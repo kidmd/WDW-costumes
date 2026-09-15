@@ -49,7 +49,7 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
   - [x] Configure toolchain in Antigravity (PlatformIO Core 6.2.0 installed & verified).
   - [x] Create baseline MSEP animation sketch with FastLED current limiting (`src/main.cpp`).
   - [x] Build and compile firmware successfully with FastLED library.
-  - [ ] Connect ESP-32D via USB and flash test firmware.
+  - [x] Connect ESP-32D via USB and flash test firmware (**Board 1 MAC: `B0:CB:D8:C8:49:84`**).
   - [ ] Bench wire 1 ESP32 with 220/330/470 Ω resistor, isolated 5V power, and common ground.
   - [ ] Verify discrete bulb appearance, color calibration (RGB vs GRB), and stability.
 
@@ -72,6 +72,15 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 ---
 
 ## Progress Log
+
+### Entry: Board 1 Flashed & Online
+* **Date:** 2026-09-14
+* **Status:** Hardware connected & verified.
+* **Notes:**
+  * Installed Silicon Labs CP210x Universal Driver on Windows 11 ARM64.
+  * Successfully flashed initial test firmware to Board 1 via COM5.
+  * Retrieved Board 1 Wi-Fi MAC address: `B0:CB:D8:C8:49:84`.
+  * Board is actively running the 3 MSEP animation loops on GPIO 16.
 
 ### Entry: Build Environment & Baseline Firmware
 * **Date:** 2026-09-14
