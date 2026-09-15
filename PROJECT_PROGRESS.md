@@ -86,16 +86,14 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
-### Entry: Interactive Python LED Simulator Launched
+### Entry: Interactive Python LED Simulator Enhanced (Auto-Outline & Preset Persistence)
 * **Date:** 2026-09-15
-* **Status:** Python Simulator operational.
+* **Status:** Operational with Auto-Contour boundary tracing & Preset System.
 * **Notes:**
-  * Created `simulator.py` (zero-dependency standard library web server).
-  * Built HTML5 Canvas visualizer rendering an athletic black technical running shirt with Pete's Dragon in green reflective vinyl styling.
-  * Auto-distributed 50 addressable LEDs along the dragon's perimeter with click-and-drag editing and JSON coordinate export.
-  * Added live effect sliders (Speed, Sparkle Frequency, Green Hue, Brightness, Glow size).
-  * Implemented 7-Shirt Fleet Lineup view demonstrating the synchronized Traveling Wave across all 7 floats.
-  * Built one-click FastLED C++ code exporter.
+  * **Auto-Contour Perimeter Tracing:** Implemented Moore-Neighbor 8-way boundary tracing algorithm with cumulative arc-length parameterization. Automatically redistributes exactly 50 equidistant LEDs around the visible edges of any uploaded graphic (transparent PNGs or high-contrast logos) via the **"✨ Auto-Outline Image (50 LEDs)"** button or upon upload.
+  * **Preset Manager:** Added server-side JSON profile saving/loading to `presets/` and browser `localStorage` to save custom LED coordinates, custom graphics, and animation sliders together. Default Pete's Dragon profile saved to `presets/petes_dragon_default.json`.
+  * **Authentic Athletic Proportions:** Refactored 7-shirt fleet lineup from stretched vertical shapes to natural $1 : 1.25$ aspect ratio running shirts with runner bib numbers (01–07), running shorts, legs, shoes, and parade asphalt road.
+  * Live server confirmed running at `http://localhost:8000`.
 
 ### Entry: Milestone 2 Bench Verification Confirmed
 * **Date:** 2026-09-14
