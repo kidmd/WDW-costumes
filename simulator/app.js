@@ -1,12 +1,12 @@
 // Main Street Electrical Parade - LED Costume Simulator
-// Interactive HTML5 Canvas Engine
+// Interactive HTML5 Canvas Engine with Preset Management & Realistic Fleet Proportions
 
 const canvas = document.getElementById('simulatorCanvas');
 const ctx = canvas.getContext('2d');
 
 // State
 let currentView = 'single'; // 'single' or 'fleet'
-let activePattern = 'dragon_sparkle'; // 'dragon_sparkle', 'fire_breath', 'traveling_wave', 'marquee', 'photo_mode'
+let activePattern = 'dragon_sparkle';
 
 // Control parameters
 let params = {
@@ -20,8 +20,10 @@ let params = {
     reflectiveShine: true
 };
 
-// Custom artwork image (if user uploads one)
+// Custom artwork image (if user uploads one or loads one from preset)
 let customArtworkImg = null;
+let currentGraphicType = 'builtin_dragon'; // 'builtin_dragon' or 'custom_image'
+let customArtworkDataUrl = null;
 
 // Dragging state
 let draggedLed = null;
@@ -29,7 +31,6 @@ let hoveredLed = null;
 let isDragging = false;
 
 // 50 LEDs coordinates (normalized 0.0 to 1.0 relative to shirt chest area)
-// Tracing Pete's Dragon outline: Horns -> Snout -> Spine/Wings -> Belly -> Tail
 let leds = [];
 
 function initDefaultDragonLeds() {
@@ -62,15 +63,17 @@ function initDefaultDragonLeds() {
 
 initDefaultDragonLeds();
 
-// Shirt boundaries in Canvas Space
+// Shirt boundaries in Canvas Space (single shirt view)
 function getShirtBounds() {
     const w = canvas.width;
     const h = canvas.height;
+    const shirtWidth = Math.min(w * 0.70, 560);
+    const shirtHeight = shirtWidth * 1.25; // True athletic t-shirt aspect ratio (1 : 1.25)
     return {
-        x: w * 0.15,
-        y: h * 0.08,
-        width: w * 0.70,
-        height: h * 0.84
+        x: (w - shirtWidth) / 2,
+        y: Math.max(30, (h - shirtHeight) / 2 - 20),
+        width: shirtWidth,
+        height: shirtHeight
     };
 }
 
@@ -92,43 +95,42 @@ function canvasToNorm(x, y) {
     };
 }
 
-// Sparkle state per LED (intensity and decay)
+// Sparkle state per LED
 const sparkles = new Array(50).fill(0);
 
 // ============================================================================
-// DRAWING ROUTINES: Black Tech Running Shirt
+// DRAWING ROUTINES: Authentic Athletic T-Shirt with Natural Dimensions
 // ============================================================================
 function drawRunningShirt(cx, x, y, width, height, label = "PETE'S DRAGON") {
     cx.save();
 
-    // Shirt Body Silhouette
-    cx.beginPath();
-    // Collar center
-    const collarLeftX = x + width * 0.40;
-    const collarRightX = x + width * 0.60;
-    const collarY = y + height * 0.06;
+    // Natural proportions check (ensure athletic ratio 1 : 1.25)
+    const collarLeftX = x + width * 0.38;
+    const collarRightX = x + width * 0.62;
+    const collarY = y + height * 0.07;
 
+    cx.beginPath();
     cx.moveTo(collarLeftX, collarY);
     // Crew neck dip
-    cx.quadraticCurveTo(x + width * 0.5, y + height * 0.11, collarRightX, collarY);
+    cx.quadraticCurveTo(x + width * 0.5, y + height * 0.14, collarRightX, collarY);
     // Right shoulder
-    cx.lineTo(x + width * 0.82, y + height * 0.12);
+    cx.lineTo(x + width * 0.82, y + height * 0.14);
     // Right sleeve
-    cx.lineTo(x + width * 0.98, y + height * 0.32);
-    cx.lineTo(x + width * 0.86, y + height * 0.40);
+    cx.lineTo(x + width * 0.98, y + height * 0.35);
+    cx.lineTo(x + width * 0.85, y + height * 0.44);
     // Right armpit
-    cx.lineTo(x + width * 0.78, y + height * 0.34);
+    cx.lineTo(x + width * 0.76, y + height * 0.37);
     // Right torso down to hem
-    cx.lineTo(x + width * 0.76, y + height * 0.95);
+    cx.lineTo(x + width * 0.74, y + height * 0.94);
     // Bottom hem curve
-    cx.quadraticCurveTo(x + width * 0.5, y + height * 0.98, x + width * 0.24, y + height * 0.95);
+    cx.quadraticCurveTo(x + width * 0.5, y + height * 0.97, x + width * 0.26, y + height * 0.94);
     // Left torso up
-    cx.lineTo(x + width * 0.22, y + height * 0.34);
+    cx.lineTo(x + width * 0.24, y + height * 0.37);
     // Left armpit & sleeve
-    cx.lineTo(x + width * 0.14, y + height * 0.40);
-    cx.lineTo(x + width * 0.02, y + height * 0.32);
+    cx.lineTo(x + width * 0.15, y + height * 0.44);
+    cx.lineTo(x + width * 0.02, y + height * 0.35);
     // Left shoulder
-    cx.lineTo(x + width * 0.18, y + height * 0.12);
+    cx.lineTo(x + width * 0.18, y + height * 0.14);
     cx.closePath();
 
     // Matte Black Tech Fabric Gradient
@@ -148,24 +150,25 @@ function drawRunningShirt(cx, x, y, width, height, label = "PETE'S DRAGON") {
     cx.beginPath();
     cx.strokeStyle = '#38404a';
     cx.lineWidth = 1.5;
-    // Collar ribbing
-    cx.arc(x + width * 0.5, y + height * 0.07, width * 0.12, 0.2 * Math.PI, 0.8 * Math.PI);
+    cx.arc(x + width * 0.5, y + height * 0.08, width * 0.12, 0.2 * Math.PI, 0.8 * Math.PI);
     cx.stroke();
 
-    // Raglan athletic shoulder seam lines
+    // Raglan shoulder lines
     cx.beginPath();
     cx.moveTo(collarLeftX, collarY);
-    cx.quadraticCurveTo(x + width * 0.30, y + height * 0.22, x + width * 0.22, y + height * 0.34);
+    cx.quadraticCurveTo(x + width * 0.30, y + height * 0.24, x + width * 0.24, y + height * 0.37);
     cx.moveTo(collarRightX, collarY);
-    cx.quadraticCurveTo(x + width * 0.70, y + height * 0.22, x + width * 0.78, y + height * 0.34);
+    cx.quadraticCurveTo(x + width * 0.70, y + height * 0.24, x + width * 0.76, y + height * 0.37);
     cx.strokeStyle = '#282e37';
     cx.stroke();
 
-    // Subtle runDisney-style chest tag
-    cx.fillStyle = '#444d56';
-    cx.font = '10px sans-serif';
-    cx.textAlign = 'center';
-    cx.fillText(label, x + width * 0.5, y + height * 0.92);
+    // Hem label badge
+    if (label) {
+        cx.fillStyle = '#6e7681';
+        cx.font = `${Math.max(9, Math.floor(width * 0.08))}px sans-serif`;
+        cx.textAlign = 'center';
+        cx.fillText(label, x + width * 0.5, y + height * 0.91);
+    }
 
     cx.restore();
 }
@@ -175,7 +178,6 @@ function drawRunningShirt(cx, x, y, width, height, label = "PETE'S DRAGON") {
 // ============================================================================
 function drawPetesDragon(cx, s) {
     if (customArtworkImg) {
-        // Draw user uploaded image
         const imgW = s.width * 0.65;
         const imgH = s.height * 0.55;
         cx.drawImage(customArtworkImg, s.x + s.width * 0.175, s.y + s.height * 0.20, imgW, imgH);
@@ -188,56 +190,40 @@ function drawPetesDragon(cx, s) {
     const dragonGrad = cx.createLinearGradient(s.x, s.y, s.x + s.width, s.y + s.height);
     const baseH = params.greenHue;
     dragonGrad.addColorStop(0, `hsl(${baseH}, 90%, 55%)`);
-    dragonGrad.addColorStop(0.3, `hsl(${baseH + 15}, 100%, 75%)`); // Specular metallic sheen
+    dragonGrad.addColorStop(0.3, `hsl(${baseH + 15}, 100%, 75%)`);
     dragonGrad.addColorStop(0.7, `hsl(${baseH - 10}, 85%, 45%)`);
     dragonGrad.addColorStop(1, `hsl(${baseH - 25}, 90%, 35%)`);
 
     // Dragon Body Silhouette Path
     cx.beginPath();
-    // Start at dragon nose/snout
     cx.moveTo(s.x + s.width * 0.36, s.y + s.height * 0.33);
-    // Head crest & horns
     cx.quadraticCurveTo(s.x + s.width * 0.42, s.y + s.height * 0.25, s.x + s.width * 0.49, s.y + s.height * 0.22);
-    // Horn spike 1
     cx.lineTo(s.x + s.width * 0.52, s.y + s.height * 0.18);
     cx.lineTo(s.x + s.width * 0.53, s.y + s.height * 0.24);
-    // Horn spike 2
     cx.lineTo(s.x + s.width * 0.56, s.y + s.height * 0.20);
     cx.lineTo(s.x + s.width * 0.57, s.y + s.height * 0.27);
-    // Neck down to back
     cx.quadraticCurveTo(s.x + s.width * 0.60, s.y + s.height * 0.35, s.x + s.width * 0.65, s.y + s.height * 0.38);
-    // Wings
-    cx.lineTo(s.x + s.width * 0.74, s.y + s.height * 0.30); // Wing tip 1
-    cx.quadraticCurveTo(s.x + s.width * 0.71, s.y + s.height * 0.37, s.x + s.width * 0.76, s.y + s.height * 0.35); // Wing tip 2
+    cx.lineTo(s.x + s.width * 0.74, s.y + s.height * 0.30);
+    cx.quadraticCurveTo(s.x + s.width * 0.71, s.y + s.height * 0.37, s.x + s.width * 0.76, s.y + s.height * 0.35);
     cx.quadraticCurveTo(s.x + s.width * 0.70, s.y + s.height * 0.43, s.x + s.width * 0.67, s.y + s.height * 0.46);
-    // Lower back & spine ridges
     cx.quadraticCurveTo(s.x + s.width * 0.72, s.y + s.height * 0.52, s.x + s.width * 0.77, s.y + s.height * 0.55);
-    // Tail curl
     cx.quadraticCurveTo(s.x + s.width * 0.88, s.y + s.height * 0.52, s.x + s.width * 0.86, s.y + s.height * 0.45);
     cx.quadraticCurveTo(s.x + s.width * 0.80, s.y + s.height * 0.44, s.x + s.width * 0.78, s.y + s.height * 0.52);
-    // Bottom of tail & back leg
     cx.quadraticCurveTo(s.x + s.width * 0.72, s.y + s.height * 0.63, s.x + s.width * 0.64, s.y + s.height * 0.64);
-    // Belly curve
     cx.quadraticCurveTo(s.x + s.width * 0.52, s.y + s.height * 0.67, s.x + s.width * 0.42, s.y + s.height * 0.63);
-    // Front foot
     cx.lineTo(s.x + s.width * 0.38, s.y + s.height * 0.63);
-    // Chest up to chin
     cx.quadraticCurveTo(s.x + s.width * 0.42, s.y + s.height * 0.47, s.x + s.width * 0.38, s.y + s.height * 0.38);
-    // Chin & snout
     cx.quadraticCurveTo(s.x + s.width * 0.34, s.y + s.height * 0.36, s.x + s.width * 0.36, s.y + s.height * 0.33);
     cx.closePath();
 
-    // Fill with metallic gradient
     cx.fillStyle = dragonGrad;
     cx.fill();
 
-    // Reflective Vinyl High-Gloss Bevel
     if (params.reflectiveShine) {
         cx.lineWidth = 2.5;
         cx.strokeStyle = `hsl(${baseH + 20}, 100%, 85%)`;
         cx.stroke();
 
-        // Iridescent interior accents (wings & belly plates)
         cx.beginPath();
         cx.moveTo(s.x + s.width * 0.45, s.y + s.height * 0.46);
         cx.quadraticCurveTo(s.x + s.width * 0.53, s.y + s.height * 0.52, s.x + s.width * 0.61, s.y + s.height * 0.48);
@@ -250,7 +236,7 @@ function drawPetesDragon(cx, s) {
 }
 
 // ============================================================================
-// LIGHTING ENGINE: Colors, Sparkles, and Halos
+// LIGHTING ENGINE
 // ============================================================================
 function computeLedColor(index, totalLeds, timeMs) {
     const bpm = params.speedBpm;
@@ -262,17 +248,13 @@ function computeLedColor(index, totalLeds, timeMs) {
 
     switch (activePattern) {
         case 'dragon_sparkle': {
-            // Predominantly green with breathing glow
             const breath = 0.75 + 0.25 * Math.sin(normTime * 2 + index * 0.15);
-            // HSL to RGB approximation for emerald/lime green
             const h = baseH + Math.sin(index * 0.4) * 8;
             const rgb = hslToRgb(h / 360, 0.95, 0.50 * breath);
             r = rgb.r; g = rgb.g; b = rgb.b;
 
-            // Sparkle logic
             if (sparkles[index] > 0) {
                 const sp = sparkles[index];
-                // Blend toward dazzling incandescent white
                 r = r * (1 - sp) + 255 * sp;
                 g = g * (1 - sp) + 255 * sp;
                 b = b * (1 - sp) + 230 * sp;
@@ -281,7 +263,6 @@ function computeLedColor(index, totalLeds, timeMs) {
             break;
         }
         case 'fire_breath': {
-            // Snout LEDs (0-6) breathe fiery orange/red, body is green
             if (index <= 6) {
                 const fire = Math.sin(normTime * 6 + index) * 0.5 + 0.5;
                 r = 255;
@@ -294,7 +275,6 @@ function computeLedColor(index, totalLeds, timeMs) {
             break;
         }
         case 'traveling_wave': {
-            // Wave head sweeping 0 to 49
             const waveCycle = (timeMs % 2000) / 2000;
             const head = waveCycle * totalLeds;
             const dist = Math.abs(index - head);
@@ -313,10 +293,9 @@ function computeLedColor(index, totalLeds, timeMs) {
             break;
         }
         case 'marquee': {
-            // Classic 1-in-3 incandescent chase
             const step = Math.floor(normTime * 3) % 3;
             if ((index + step) % 3 === 0) {
-                r = 255; g = 150; b = 30; // Incandescent Amber Gold
+                r = 255; g = 150; b = 30;
                 brightness = 0.9;
             } else {
                 r = 10; g = 10; b = 10;
@@ -325,7 +304,6 @@ function computeLedColor(index, totalLeds, timeMs) {
             break;
         }
         case 'photo_mode': {
-            // Solid high-visibility green and marquee gold
             if (index % 2 === 0) {
                 const rgb = hslToRgb(baseH / 360, 1.0, 0.55);
                 r = rgb.r; g = rgb.g; b = rgb.b;
@@ -337,11 +315,9 @@ function computeLedColor(index, totalLeds, timeMs) {
         }
     }
 
-    // Decay sparkle
     if (sparkles[index] > 0) {
         sparkles[index] = Math.max(0, sparkles[index] - 0.04);
     }
-    // Trigger new sparkles randomly based on slider
     if (activePattern === 'dragon_sparkle' && Math.random() * 1000 < params.sparkleRate) {
         sparkles[index] = 1.0;
     }
@@ -354,11 +330,9 @@ function computeLedColor(index, totalLeds, timeMs) {
     };
 }
 
-// Draw a single blooming LED
 function renderBulb(cx, x, y, col, isHovered, isSelected, index) {
     const glowRadius = params.glowSize;
 
-    // 1. Soft Outer Bloom Halo
     const grad = cx.createRadialGradient(x, y, 1, x, y, glowRadius);
     grad.addColorStop(0, `rgba(${col.r}, ${col.g}, ${col.b}, 0.9)`);
     grad.addColorStop(0.3, `rgba(${col.r}, ${col.g}, ${col.b}, 0.45)`);
@@ -370,19 +344,16 @@ function renderBulb(cx, x, y, col, isHovered, isSelected, index) {
     cx.arc(x, y, glowRadius, 0, Math.PI * 2);
     cx.fill();
 
-    // 2. Physical Glass Bead / Lens
     cx.beginPath();
     cx.arc(x, y, 4.5, 0, Math.PI * 2);
     cx.fillStyle = `rgb(${Math.min(255, col.r + 40)}, ${Math.min(255, col.g + 40)}, ${Math.min(255, col.b + 40)})`;
     cx.fill();
 
-    // 3. Hot White Filament Center
     cx.beginPath();
     cx.arc(x, y, 2.0, 0, Math.PI * 2);
     cx.fillStyle = 'rgba(255, 255, 255, 0.95)';
     cx.fill();
 
-    // Selection / Hover rings
     if (isHovered || isSelected) {
         cx.beginPath();
         cx.arc(x, y, 7.5, 0, Math.PI * 2);
@@ -391,7 +362,6 @@ function renderBulb(cx, x, y, col, isHovered, isSelected, index) {
         cx.stroke();
     }
 
-    // Optional LED numbering
     if (params.showNumbers) {
         cx.fillStyle = '#ffffff';
         cx.font = '9px monospace';
@@ -407,16 +377,11 @@ function renderSingleShirtView(timeMs) {
     const h = canvas.height;
     const s = getShirtBounds();
 
-    // Clear background
     ctx.clearRect(0, 0, w, h);
 
-    // 1. Draw Black Running Shirt
     drawRunningShirt(ctx, s.x, s.y, s.width, s.height, "FLOAT #3: PETE'S DRAGON");
-
-    // 2. Draw Pete's Dragon Graphic
     drawPetesDragon(ctx, s);
 
-    // 3. Draw Wiring Path (if enabled)
     if (params.showWiring && leds.length > 1) {
         ctx.beginPath();
         const p0 = normToCanvas(leds[0]);
@@ -432,7 +397,6 @@ function renderSingleShirtView(timeMs) {
         ctx.setLineDash([]);
     }
 
-    // 4. Draw 50 Blooming LEDs
     for (let i = 0; i < leds.length; i++) {
         const pt = normToCanvas(leds[i]);
         const col = computeLedColor(i, leds.length, timeMs);
@@ -443,16 +407,16 @@ function renderSingleShirtView(timeMs) {
 }
 
 // ============================================================================
-// 7-SHIRT FLEET PARADE VIEW
+// 7-SHIRT FLEET PARADE VIEW (NATURAL ATHELTIC PROPORTIONS)
 // ============================================================================
 const FLEET_ROSTER = [
-    { num: 1, name: "Title Drum", color: "#ffb703" },
-    { num: 2, name: "Casey Jr", color: "#e63946" },
-    { num: 3, name: "Elliott", color: "#00ff88" },
-    { num: 4, name: "Mushroom", color: "#9d4edd" },
-    { num: 5, name: "Cinderella", color: "#48cae4" },
-    { num: 6, name: "Pirate Ship", color: "#fb8500" },
-    { num: 7, name: "Snail Finale", color: "#ff007f" }
+    { num: "01", name: "Title Drum", tag: "THE DRUM", color: "#ffb703", accent: "Gold" },
+    { num: "02", name: "Casey Jr.", tag: "LOCOMOTIVE", color: "#e63946", accent: "Red" },
+    { num: "03", name: "Elliott", tag: "PETE'S DRAGON", color: "#00ff88", accent: "Green" },
+    { num: "04", name: "Mushroom", tag: "ALICE", color: "#9d4edd", accent: "Purple" },
+    { num: "05", name: "Cinderella", tag: "PUMPKIN COACH", color: "#48cae4", accent: "Cyan" },
+    { num: "06", name: "Pirate Ship", tag: "PETER PAN", color: "#fb8500", accent: "Orange" },
+    { num: "07", name: "Snail Finale", tag: "SPINNING SNAIL", color: "#ff007f", accent: "Pink" }
 ];
 
 function renderFleetView(timeMs) {
@@ -461,69 +425,128 @@ function renderFleetView(timeMs) {
     ctx.clearRect(0, 0, w, h);
 
     const totalFloats = 7;
-    const shirtW = w / 7.6;
-    const shirtH = h * 0.70;
-    const shirtY = h * 0.15;
+    // Natural Athletic Proportions:
+    // With 820px canvas width, 7 shirts = ~96px wide each, 120px tall (1 : 1.25 ratio!)
+    const shirtW = Math.floor(w / 8.2); // ~100px
+    const shirtH = Math.floor(shirtW * 1.25); // ~125px (natural athletic dimensions!)
+    const shirtY = h * 0.28; // Centered vertically in upper-mid canvas
 
     // Master Traveling Wave Clock (7-second loop across 7 runners)
     const masterWaveTime = (timeMs % 7000);
     const activeFloatIndex = Math.floor(masterWaveTime / 1000); // 0 to 6
     const waveProgress = (masterWaveTime % 1000) / 1000; // 0.0 to 1.0
 
+    // Header Title & Subtitle
+    ctx.fillStyle = '#ffc107';
+    ctx.font = 'bold 15px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText("MAIN STREET ELECTRICAL PARADE — 7-RUNNER FLEET LINEUP", w * 0.5, h * 0.09);
+
+    ctx.fillStyle = '#8b949e';
+    ctx.font = '12px sans-serif';
+    ctx.fillText("Synchronized ESP-NOW Traveling Wave Passing from Runner 1 to Runner 7", w * 0.5, h * 0.13);
+
+    // Draw Parade Course Road Surface
+    ctx.fillStyle = '#161b22';
+    ctx.fillRect(w * 0.02, shirtY + shirtH + 90, w * 0.96, 40);
+    // Yellow Road Dash Line
+    ctx.setLineDash([15, 15]);
+    ctx.strokeStyle = '#30363d';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(w * 0.02, shirtY + shirtH + 110);
+    ctx.lineTo(w * 0.98, shirtY + shirtH + 110);
+    ctx.stroke();
+    ctx.setLineDash([]);
+
     for (let i = 0; i < totalFloats; i++) {
-        const shirtX = (w * 0.03) + i * (shirtW * 1.05);
+        const shirtX = (w * 0.03) + i * (shirtW * 1.08);
         const floatData = FLEET_ROSTER[i];
-
-        // Draw Mini Shirt
-        drawRunningShirt(ctx, shirtX, shirtY, shirtW, shirtH, `#${floatData.num} ${floatData.name}`);
-
-        // Draw Mini LEDs around chest
-        const numMiniLeds = 20;
-        const chestCX = shirtX + shirtW * 0.5;
-        const chestCY = shirtY + shirtH * 0.5;
-        const rx = shirtW * 0.28;
-        const ry = shirtH * 0.22;
-
         const isCurrentWaveFloat = (i === activeFloatIndex);
+
+        // 1. Draw Runner Bib Number Above Shirt
+        ctx.fillStyle = isCurrentWaveFloat ? '#ffc107' : '#8b949e';
+        ctx.font = 'bold 11px monospace';
+        ctx.textAlign = 'center';
+        ctx.fillText(`BIB #${floatData.num}`, shirtX + shirtW * 0.5, shirtY - 14);
+
+        // 2. Draw Natural Proportioned Shirt (1 : 1.25)
+        drawRunningShirt(ctx, shirtX, shirtY, shirtW, shirtH, "");
+
+        // 3. Draw Running Shorts & Legs Below Shirt
+        const shortsW = shirtW * 0.44;
+        const shortsH = shirtW * 0.35;
+        const shortsY = shirtY + shirtH * 0.93;
+
+        // Running Shorts (Black)
+        ctx.fillStyle = '#0a0d12';
+        ctx.fillRect(shirtX + shirtW * 0.28, shortsY, shortsW, shortsH);
+        ctx.strokeStyle = '#21262d';
+        ctx.strokeRect(shirtX + shirtW * 0.28, shortsY, shortsW, shortsH);
+
+        // Legs
+        ctx.fillStyle = '#484f58';
+        ctx.fillRect(shirtX + shirtW * 0.32, shortsY + shortsH, 6, 20);
+        ctx.fillRect(shirtX + shirtW * 0.58, shortsY + shortsH, 6, 20);
+
+        // Running Shoes
+        ctx.fillStyle = floatData.color;
+        ctx.fillRect(shirtX + shirtW * 0.29, shortsY + shortsH + 20, 10, 5);
+        ctx.fillRect(shirtX + shirtW * 0.57, shortsY + shortsH + 20, 10, 5);
+
+        // 4. Draw Mini LEDs around chest
+        const numMiniLeds = 18;
+        const chestCX = shirtX + shirtW * 0.5;
+        const chestCY = shirtY + shirtH * 0.50;
+        const rx = shirtW * 0.26;
+        const ry = shirtH * 0.22;
 
         for (let j = 0; j < numMiniLeds; j++) {
             const angle = (j / numMiniLeds) * Math.PI * 2;
             const lx = chestCX + Math.cos(angle) * rx;
             const ly = chestCY + Math.sin(angle) * ry;
 
-            let r = 30, g = 30, b = 30;
+            let r = 20, g = 20, b = 20;
 
             if (isCurrentWaveFloat) {
-                // Wave is actively sweeping this float!
                 const ledNorm = j / numMiniLeds;
                 const dist = Math.abs(ledNorm - waveProgress);
-                if (dist < 0.2) {
-                    r = 255; g = 255; b = 255; // White hot wave center
+                if (dist < 0.18) {
+                    r = 255; g = 255; b = 255; // White hot center
                 } else {
-                    r = 255; g = 180; b = 40;
+                    r = 255; g = 180; b = 40; // Warm trail
                 }
             } else {
-                // Soft idle color
                 r = 15; g = 35; b = 20;
             }
 
-            // Draw mini bulb
             ctx.beginPath();
             ctx.arc(lx, ly, isCurrentWaveFloat ? 3.5 : 2, 0, Math.PI * 2);
             ctx.fillStyle = `rgb(${r}, ${g}, ${b})`;
             ctx.fill();
         }
-    }
 
-    // Title banner
-    ctx.fillStyle = '#ffc107';
-    ctx.font = '14px sans-serif';
-    ctx.textAlign = 'center';
-    ctx.fillText("MAIN STREET ELECTRICAL PARADE — 7-RUNNER SYNCHRONIZED FLEET", w * 0.5, h * 0.08);
+        // 5. Float Name Tag Below Runner
+        ctx.fillStyle = isCurrentWaveFloat ? '#ffffff' : '#8b949e';
+        ctx.font = 'bold 10px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText(floatData.name, shirtX + shirtW * 0.5, shirtY + shirtH + 68);
+
+        ctx.fillStyle = isCurrentWaveFloat ? '#ffc107' : '#57606a';
+        ctx.font = '9px sans-serif';
+        ctx.fillText(floatData.tag, shirtX + shirtW * 0.5, shirtY + shirtH + 80);
+
+        // Wave active highlight indicator
+        if (isCurrentWaveFloat) {
+            ctx.strokeStyle = '#ffc107';
+            ctx.lineWidth = 2;
+            ctx.strokeRect(shirtX - 4, shirtY - 25, shirtW + 8, shirtH + 115);
+        }
+    }
 }
 
 // ============================================================================
-// INTERACTION & HIT DETECTION (Dragging LEDs)
+// INTERACTION & HIT DETECTION
 // ============================================================================
 canvas.addEventListener('mousedown', (e) => {
     if (currentView !== 'single') return;
@@ -553,7 +576,6 @@ canvas.addEventListener('mousemove', (e) => {
         leds[draggedLed].x = norm.x;
         leds[draggedLed].y = norm.y;
     } else {
-        // Hover detection
         let found = null;
         for (let i = 0; i < leds.length; i++) {
             const pt = normToCanvas(leds[i]);
@@ -575,7 +597,7 @@ window.addEventListener('mouseup', () => {
 });
 
 // ============================================================================
-// MAIN LOOP
+// MAIN ANIMATION LOOP
 // ============================================================================
 function animate(time) {
     if (currentView === 'single') {
@@ -587,6 +609,170 @@ function animate(time) {
 }
 
 requestAnimationFrame(animate);
+
+// ============================================================================
+// PRESET & PROFILE MANAGEMENT (Save Coordinates + Graphic for Quick Loading)
+// ============================================================================
+
+// Load preset list from API & localStorage
+async function refreshPresetDropdown() {
+    const select = document.getElementById('presetSelect');
+    select.innerHTML = '<option value="">-- Select Saved Profile --</option>';
+
+    // 1. Fetch from Python backend
+    try {
+        const res = await fetch('/api/presets');
+        if (res.ok) {
+            const serverPresets = await res.json();
+            serverPresets.forEach(p => {
+                const opt = document.createElement('option');
+                opt.value = 'server:' + p.filename;
+                opt.textContent = `📁 ${p.name}`;
+                select.appendChild(opt);
+            });
+        }
+    } catch (err) {
+        console.log("Offline mode, checking local storage...");
+    }
+
+    // 2. Fetch from localStorage
+    const localProfiles = JSON.parse(localStorage.getItem('msep_custom_presets') || '{}');
+    Object.keys(localProfiles).forEach(name => {
+        const opt = document.createElement('option');
+        opt.value = 'local:' + name;
+        opt.textContent = `💾 ${name} (Browser)`;
+        select.appendChild(opt);
+    });
+}
+
+// Save Current Profile (LEDs + Graphic + Settings)
+async function saveCurrentProfile(name) {
+    if (!name || name.trim() === '') {
+        alert("Please enter a name for this costume profile!");
+        return;
+    }
+    const cleanName = name.trim();
+
+    const profileData = {
+        name: cleanName,
+        savedAt: new Date().toISOString(),
+        ledCount: leds.length,
+        leds: leds,
+        graphicType: currentGraphicType,
+        customArtworkDataUrl: customArtworkDataUrl,
+        settings: {
+            pattern: activePattern,
+            speedBpm: params.speedBpm,
+            sparkleRate: params.sparkleRate,
+            greenHue: params.greenHue,
+            brightness: params.brightness,
+            glowSize: params.glowSize
+        }
+    };
+
+    // 1. Save to LocalStorage
+    const localProfiles = JSON.parse(localStorage.getItem('msep_custom_presets') || '{}');
+    localProfiles[cleanName] = profileData;
+    localStorage.setItem('msep_custom_presets', JSON.stringify(localProfiles));
+
+    // 2. Save to Python backend
+    try {
+        const res = await fetch('/api/save_preset', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(profileData)
+        });
+        if (res.ok) {
+            const result = await res.json();
+            alert(`Profile "${cleanName}" saved successfully!`);
+        }
+    } catch (e) {
+        alert(`Profile "${cleanName}" saved to browser cache.`);
+    }
+
+    refreshPresetDropdown();
+}
+
+// Load Selected Profile
+async function loadProfile(sourceValue) {
+    if (!sourceValue) return;
+
+    let profileData = null;
+
+    if (sourceValue.startsWith('server:')) {
+        const filename = sourceValue.replace('server:', '');
+        try {
+            const res = await fetch(`/api/preset/${encodeURIComponent(filename)}`);
+            if (res.ok) {
+                profileData = await res.json();
+            }
+        } catch (e) {
+            alert("Failed to load preset from server.");
+            return;
+        }
+    } else if (sourceValue.startsWith('local:')) {
+        const name = sourceValue.replace('local:', '');
+        const localProfiles = JSON.parse(localStorage.getItem('msep_custom_presets') || '{}');
+        profileData = localProfiles[name];
+    }
+
+    if (!profileData) return;
+
+    // 1. Restore LEDs
+    if (Array.isArray(profileData.leds) && profileData.leds.length > 0) {
+        leds = profileData.leds;
+    }
+
+    // 2. Restore Graphic
+    currentGraphicType = profileData.graphicType || 'builtin_dragon';
+    if (profileData.customArtworkDataUrl) {
+        customArtworkDataUrl = profileData.customArtworkDataUrl;
+        const img = new Image();
+        img.onload = () => {
+            customArtworkImg = img;
+        };
+        img.src = customArtworkDataUrl;
+    } else {
+        customArtworkImg = null;
+    }
+
+    // 3. Restore Settings
+    if (profileData.settings) {
+        const s = profileData.settings;
+        if (s.pattern) {
+            activePattern = s.pattern;
+            document.getElementById('patternSelect').value = s.pattern;
+        }
+        if (s.speedBpm) {
+            params.speedBpm = s.speedBpm;
+            document.getElementById('speedSlider').value = s.speedBpm;
+            document.getElementById('speedVal').textContent = `${s.speedBpm} BPM`;
+        }
+        if (s.sparkleRate !== undefined) {
+            params.sparkleRate = s.sparkleRate;
+            document.getElementById('sparkleSlider').value = s.sparkleRate;
+            document.getElementById('sparkleVal').textContent = `${s.sparkleRate}%`;
+        }
+        if (s.greenHue !== undefined) {
+            params.greenHue = s.greenHue;
+            document.getElementById('hueSlider').value = s.greenHue;
+            document.getElementById('hueVal').textContent = `${s.greenHue}°`;
+        }
+        if (s.brightness !== undefined) {
+            params.brightness = s.brightness;
+            document.getElementById('brightnessSlider').value = s.brightness;
+            document.getElementById('brightVal').textContent = `${s.brightness}%`;
+        }
+        if (s.glowSize !== undefined) {
+            params.glowSize = s.glowSize;
+            document.getElementById('glowSlider').value = s.glowSize;
+            document.getElementById('glowVal').textContent = `${s.glowSize}px`;
+        }
+    }
+}
+
+// Initial Preset Load
+refreshPresetDropdown();
 
 // ============================================================================
 // UI CONTROLS BINDING
@@ -651,17 +837,33 @@ document.getElementById('artworkUpload').addEventListener('change', (e) => {
     if (file) {
         const reader = new FileReader();
         reader.onload = (event) => {
+            customArtworkDataUrl = event.target.result;
+            currentGraphicType = 'custom_image';
             const img = new Image();
             img.onload = () => {
                 customArtworkImg = img;
             };
-            img.src = event.target.result;
+            img.src = customArtworkDataUrl;
         };
         reader.readAsDataURL(file);
     }
 });
 
-// Save / Export Coordinates to JSON
+// Preset Buttons
+document.getElementById('presetSelect').addEventListener('change', (e) => {
+    loadProfile(e.target.value);
+});
+
+document.getElementById('saveProfileBtn').addEventListener('click', () => {
+    const nameInput = document.getElementById('profileNameInput');
+    const name = nameInput.value.trim() || prompt("Enter a name for this profile:", "Pete's Dragon V1");
+    if (name) {
+        saveCurrentProfile(name);
+        nameInput.value = "";
+    }
+});
+
+// Export JSON file
 document.getElementById('saveLayoutBtn').addEventListener('click', () => {
     const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(leds, null, 2));
     const dlAnchor = document.createElement('a');
@@ -677,11 +879,9 @@ document.getElementById('exportCodeBtn').addEventListener('click', () => {
 // ============================================================================
 void renderPetesDragonCustom(uint32_t t) {
     // Base Green Hue: ${params.greenHue}° | Tempo: ${params.speedBpm} BPM
-    uint32_t beat = (t * ${params.speedBpm}) / 60000;
-    
     for (int i = 0; i < NUM_LEDS; i++) {
         // Deep emerald green base with organic breathing pulse
-        uint8_t breath = beatsin8(${params.speedBpm / 2}, 180, 255);
+        uint8_t breath = beatsin8(${Math.round(params.speedBpm / 2)}, 180, 255);
         leds[i] = CHSV(${Math.floor(params.greenHue * 255 / 360)}, 240, breath);
         
         // Starlight Sparkles (Probability: ${params.sparkleRate}%)

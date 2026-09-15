@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MSEP Costume LED Simulator - Pete's Dragon</title>
+    <title>MSEP Costume LED Simulator - Pete's Dragon & 7-Shirt Fleet</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -22,7 +22,7 @@
     <div class="main-layout">
         <!-- Canvas Viewport -->
         <div class="canvas-container">
-            <canvas id="simulatorCanvas" width="800" height="880"></canvas>
+            <canvas id="simulatorCanvas" width="850" height="880"></canvas>
             <div class="floating-overlay">
                 <span>💡 <strong>Interactive:</strong> Click and drag any LED bulb to adjust its placement along the dragon!</span>
             </div>
@@ -31,7 +31,27 @@
         <!-- Controls Sidebar -->
         <div class="controls-sidebar">
 
-            <!-- 1. Lighting Pattern -->
+            <!-- 1. Saved Profiles & Presets -->
+            <div class="control-section">
+                <div class="section-title">
+                    <span>Costume Profiles & Presets</span>
+                </div>
+                <div class="control-group">
+                    <label style="font-size: 12px; color: var(--text-muted);">Quick-Load Profile:</label>
+                    <select id="presetSelect" style="background: #21262d; color: #fff; border: 1px solid #30363d; padding: 8px 10px; border-radius: 6px; outline: none; font-size: 13px;">
+                        <option value="">-- Select Saved Profile --</option>
+                    </select>
+                </div>
+                <div class="control-group" style="margin-top: 4px;">
+                    <label style="font-size: 12px; color: var(--text-muted);">Save Current Layout & Graphic:</label>
+                    <div style="display: flex; gap: 6px;">
+                        <input type="text" id="profileNameInput" placeholder="Profile name (e.g. Dragon V1)" style="flex: 1; background: #0d1117; color: #fff; border: 1px solid #30363d; padding: 6px 10px; border-radius: 6px; font-size: 12px; outline: none;">
+                        <button id="saveProfileBtn" class="action-btn primary" style="flex: none; padding: 6px 12px; font-size: 12px;">💾 Save</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 2. Lighting Pattern -->
             <div class="control-section">
                 <div class="section-title">
                     <span>Parade Lighting Pattern</span>
@@ -47,7 +67,7 @@
                 </div>
             </div>
 
-            <!-- 2. Live Dynamics & Color -->
+            <!-- 3. Live Dynamics & Color -->
             <div class="control-section">
                 <div class="section-title">
                     <span>Effect Tuning</span>
@@ -94,18 +114,18 @@
                 </div>
             </div>
 
-            <!-- 3. Shirt & Custom Artwork -->
+            <!-- 4. Shirt & Custom Artwork -->
             <div class="control-section">
                 <div class="section-title">
                     <span>Shirt & Artwork</span>
                 </div>
                 <div class="control-group">
-                    <label style="font-size: 13px; color: var(--text-muted); margin-bottom: 4px;">Custom Graphic (Optional PNG/SVG):</label>
+                    <label style="font-size: 12px; color: var(--text-muted); margin-bottom: 4px;">Custom Graphic (Optional PNG/SVG):</label>
                     <input type="file" id="artworkUpload" accept="image/*" style="font-size: 12px; color: var(--text-muted);">
                 </div>
             </div>
 
-            <!-- 4. LED Layout Tools -->
+            <!-- 5. LED Layout Tools -->
             <div class="control-section">
                 <div class="section-title">
                     <span>LED Layout (50 Pixels)</span>
@@ -129,11 +149,11 @@
 
                 <div class="btn-row" style="margin-top: 6px;">
                     <button id="resetLedsBtn" class="action-btn">Reset Layout</button>
-                    <button id="saveLayoutBtn" class="action-btn">Save JSON</button>
+                    <button id="saveLayoutBtn" class="action-btn">Download JSON</button>
                 </div>
             </div>
 
-            <!-- 5. Firmware Code Export -->
+            <!-- 6. Firmware Code Export -->
             <div class="control-section">
                 <div class="section-title">
                     <span>ESP32 Firmware Export</span>
