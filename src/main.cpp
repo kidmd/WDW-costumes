@@ -1,33 +1,31 @@
 #include <Arduino.h>
 #include <FastLED.h>
 #include <WiFi.h>
-#include <esp_wifi.h>
 
 // ============================================================================
 // HARDWARE CONFIGURATION
 // ============================================================================
-#define DATA_PIN    16          // ESP32 GPIO connected to LED Data wire (via 220-470 ohm resistor)
-#define LED_TYPE    WS2812B     // Standard for seed/pebble pixel strings
-#define COLOR_ORDER GRB         // Most WS2812B strings use GRB order
-#define NUM_LEDS    50          // Adjust to match your test strand length
+#define DATA_PIN        16      // 8th pin on the right on your ESP-32D
+#define LED_TYPE        WS2812B // Seed / Pebble pixels
+#define COLOR_ORDER     GRB
+#define NUM_LEDS        50      // Test strand count (change if you have more)
+#define STATUS_LED_PIN  2       // Onboard blue heartbeat LED
 
-// Safety & Brightness Caps for Bench Testing
-#define MAX_BRIGHTNESS 40       // 0-255 (~15% brightness - comfortable indoors, safe current)
-#define MAX_POWER_MILLIAMPS 800 // FastLED hardware safety limiter (5V @ 800mA)
+// Safety & Brightness Caps for USB Power
+#define MAX_BRIGHTNESS  45      // Warm, distinct incandescent look without blinding
+#define MAX_MILLIAMPS   800     // 5V FastLED current limiter
 
 CRGB leds[NUM_LEDS];
 
 // ============================================================================
-// ANIMATION HELPERS (Main Street Electrical Parade Theme)
+// MAIN STREET ELECTRICAL PARADE ANIMATIONS
 // ============================================================================
 
-// Mode 1: Classic Golden Marquee Bulb Chase
-// Simulates the classic incandescent chasing bulbs of the MSEP floats
+// 1. Classic Golden Marquee Chasing Bulbs
+// Simulates the vintage incandescent chase around the float frames
 void patternMarqueeChase() {
     static uint8_t offset = 0;
-    
     for (int i = 0; i < NUM_LEDS; i++) {
-        // Every 3rd bulb is lit, and the pattern steps along the wire
         if ((i + offset) % 3 == 0) {
             leds[i] = CRGB(255, 147, 41); // Warm incandescent amber/gold
         } else {
@@ -36,18 +34,18 @@ void patternMarqueeChase() {
     }
     FastLED.show();
     offset++;
-    delay(120);
+    delay(110);
 }
 
-// Mode 2: Multi-Color Float Sparkle
-// Classic parade palette: Gold, Emerald Green (Elliott), Cyan, Ruby Red, Warm White
+// 2. Parade Multi-Color Float Sparkle
+// Elliott Green, Casey Jr. Red, Cinderella Cyan, Marquee Gold, Warm White
 void patternParadePalette() {
     static const CRGB paradeColors[] = {
         CRGB(255, 160, 20),  // Marquee Gold
-        CRGB(0, 255, 50),    // Pete's Dragon Green
-        CRGB(255, 30, 0),    // Casey Jr. Caboose Red
-        CRGB(0, 180, 255),   // Cinderella Carriage Cyan
-        CRGB(255, 230, 180)  // Warm White Incandescent
+        CRGB(0, 255, 50),    // Pete's Dragon (Elliott) Green
+        CRGB(255, 25, 0),    // Casey Jr. Caboose Red
+        CRGB(0, 190, 255),   // Cinderella Carriage Cyan
+        CRGB(255, 230, 180)  // Incandescent Warm White
     };
     const uint8_t numColors = sizeof(paradeColors) / sizeof(paradeColors[0]);
 
@@ -58,15 +56,35 @@ void patternParadePalette() {
     delay(50);
 }
 
-// Mode 3: Gentle Twinkle / Starlight
+// 3. Starlight / Fairy Dust Twinkle
+// Cinderella fairy dust and clock tower shimmer
 void patternTwinkle() {
-    fadeToBlackBy(leds, NUM_LEDS, 20);
-    if (random8() < 60) {
+    fadeToBlackBy(leds, NUM_LEDS, 25);
+    if (random8() < 70) {
         int pos = random16(NUM_LEDS);
-        leds[pos] = CRGB(255, 220, 150); // Warm starlight flash
+        leds[pos] = CRGB(255, 220, 160); // Warm sparkle
     }
     FastLED.show();
     delay(30);
+}
+
+// 4. Traveling Float Wave (Preview of ESP-NOW sync pulse)
+// A wave of brilliant light that sweeps down the float
+void patternTravelingPulse() {
+    static int head = 0;
+    static int direction = 1;
+
+    fadeToBlackBy(leds, NUM_LEDS, 40);
+    leds[head] = CRGB(255, 200, 100);
+    if (head > 0) leds[head - 1] = CRGB(200, 100, 20);
+    if (head < NUM_LEDS - 1) leds[head + 1] = CRGB(200, 100, 20);
+
+    FastLED.show();
+    head += direction;
+    if (head >= NUM_LEDS - 1 || head <= 0) {
+        direction = -direction;
+    }
+    delay(40);
 }
 
 // ============================================================================
@@ -74,35 +92,34 @@ void patternTwinkle() {
 // ============================================================================
 void setup() {
     Serial.begin(115200);
-    delay(1000);
+    pinMode(STATUS_LED_PIN, OUTPUT);
+    delay(500);
 
     Serial.println("\n========================================================");
-    Serial.println("  MAIN STREET ELECTRICAL PARADE - LED BENCH TEST (NODE 1)");
+    Serial.println("  MAIN STREET ELECTRICAL PARADE - FULL ANIMATION SUITE");
     Serial.println("========================================================");
 
-    // Initialize Wi-Fi in Station mode to retrieve the ESP32 MAC address
-    // (This MAC address will be used to identify boards in ESP-NOW)
     WiFi.mode(WIFI_STA);
     Serial.print("[INFO] Board MAC Address: ");
     Serial.println(WiFi.macAddress());
 
-    // Configure FastLED with conservative power management
     FastLED.addLeds<LED_TYPE, DATA_PIN, COLOR_ORDER>(leds, NUM_LEDS)
            .setCorrection(TypicalLEDStrip);
     FastLED.setBrightness(MAX_BRIGHTNESS);
-    FastLED.setMaxPowerInVoltsAndMilliamps(5, MAX_POWER_MILLIAMPS);
+    FastLED.setMaxPowerInVoltsAndMilliamps(5, MAX_MILLIAMPS);
 
-    Serial.printf("[INFO] LEDs Initialized: %d pixels on GPIO %d\n", NUM_LEDS, DATA_PIN);
-    Serial.printf("[INFO] Power Limit: 5V @ %d mA | Max Brightness: %d/255\n", 
-                  MAX_POWER_MILLIAMPS, MAX_BRIGHTNESS);
-    Serial.println("[INFO] Starting Animation Loop...\n");
+    Serial.printf("[INFO] LEDs Initialized on GPIO %d (8th pin on the right)\n", DATA_PIN);
+    Serial.println("[INFO] Cycling through 4 MSEP animations every 10 seconds...\n");
 }
 
 void loop() {
-    // Cycle between MSEP animations every 10 seconds
-    uint32_t currentSec = (millis() / 10000) % 3;
+    // Heartbeat blink on the onboard blue LED
+    digitalWrite(STATUS_LED_PIN, (millis() / 500) % 2);
 
-    switch (currentSec) {
+    // Cycle through 4 parade modes (10 seconds each)
+    uint32_t mode = (millis() / 10000) % 4;
+
+    switch (mode) {
         case 0:
             patternMarqueeChase();
             break;
@@ -111,6 +128,9 @@ void loop() {
             break;
         case 2:
             patternTwinkle();
+            break;
+        case 3:
+            patternTravelingPulse();
             break;
     }
 }
