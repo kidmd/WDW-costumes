@@ -7,6 +7,7 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
+    <div id="toast" class="toast"></div>
 
     <header>
         <div class="header-title">
@@ -120,9 +121,12 @@
                     <span>Shirt & Artwork</span>
                 </div>
                 <div class="control-group">
-                    <label style="font-size: 12px; color: var(--text-muted); margin-bottom: 4px;">Custom Graphic (Optional PNG/SVG):</label>
+                    <label style="font-size: 12px; color: var(--text-muted); margin-bottom: 4px;">Custom Graphic (PNG / SVG / JPG):</label>
                     <input type="file" id="artworkUpload" accept="image/*" style="font-size: 12px; color: var(--text-muted);">
                 </div>
+                <button id="autoOutlineBtn" class="action-btn accent" style="margin-top: 4px;">
+                    ✨ Auto-Outline Image (50 LEDs)
+                </button>
             </div>
 
             <!-- 5. LED Layout Tools -->

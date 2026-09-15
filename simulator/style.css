@@ -239,8 +239,38 @@ button.action-btn.primary {
     color: #fff;
 }
 
-button.action-btn.primary:hover {
-    background: linear-gradient(135deg, #2ea043, #3fb950);
+button.action-btn.accent {
+    background: linear-gradient(135deg, #1f6feb, #388bfd);
+    border-color: rgba(240, 246, 252, 0.1);
+    color: #fff;
+}
+
+button.action-btn.accent:hover {
+    background: linear-gradient(135deg, #388bfd, #58a6ff);
+}
+
+.toast {
+    position: fixed;
+    top: 70px;
+    left: 50%;
+    transform: translateX(-50%) translateY(-20px);
+    background: rgba(35, 134, 54, 0.95);
+    border: 1px solid #3fb950;
+    color: white;
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
+    opacity: 0;
+    transition: all 0.3s ease;
+    pointer-events: none;
+    z-index: 200;
+}
+
+.toast.show {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
 }
 
 .toggle-row {

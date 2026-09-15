@@ -831,6 +831,181 @@ document.getElementById('fleetViewBtn').addEventListener('click', () => {
     document.getElementById('singleViewBtn').classList.remove('active');
 });
 
+// ============================================================================
+// COMPUTER VISION: AUTO-OUTLINE PERIMETER TRACING (50 LEDs)
+// ============================================================================
+function showToast(message) {
+    const toast = document.getElementById('toast');
+    if (!toast) return;
+    toast.textContent = message;
+    toast.classList.add('show');
+    setTimeout(() => {
+        toast.classList.remove('show');
+    }, 3000);
+}
+
+function autoOutlineCurrentGraphic(targetCount = 50) {
+    const targetW = 320;
+    let targetH = 320;
+
+    const offCanvas = document.createElement('canvas');
+    const offCtx = offCanvas.getContext('2d');
+
+    if (customArtworkImg && customArtworkImg.complete && customArtworkImg.naturalWidth > 0) {
+        targetH = Math.max(100, Math.round(targetW * (customArtworkImg.naturalHeight / customArtworkImg.naturalWidth)));
+        offCanvas.width = targetW;
+        offCanvas.height = targetH;
+        offCtx.drawImage(customArtworkImg, 0, 0, targetW, targetH);
+    } else {
+        offCanvas.width = targetW;
+        offCanvas.height = targetH;
+        const fakeBounds = { x: 0, y: 0, width: targetW, height: targetH };
+        drawPetesDragon(offCtx, fakeBounds);
+    }
+
+    const imgData = offCtx.getImageData(0, 0, targetW, targetH);
+    const data = imgData.data;
+
+    // Detect transparency
+    let hasTransparency = false;
+    for (let i = 3; i < data.length; i += 16) {
+        if (data[i] < 200) {
+            hasTransparency = true;
+            break;
+        }
+    }
+
+    // Visibility test
+    const isFg = (x, y) => {
+        if (x < 0 || x >= targetW || y < 0 || y >= targetH) return false;
+        const idx = (y * targetW + x) * 4;
+        const a = data[idx + 3];
+        if (hasTransparency) {
+            return a > 40; // Visible pixels on transparent background
+        } else {
+            const r = data[idx], g = data[idx + 1], b = data[idx + 2];
+            const lum = 0.299 * r + 0.587 * g + 0.114 * b;
+            return lum > 40;
+        }
+    };
+
+    // Find starting top-left foreground pixel
+    let startX = -1, startY = -1;
+    for (let y = 0; y < targetH; y++) {
+        for (let x = 0; x < targetW; x++) {
+            if (isFg(x, y)) {
+                startX = x;
+                startY = y;
+                break;
+            }
+        }
+        if (startX !== -1) break;
+    }
+
+    if (startX === -1) {
+        alert("No visible graphic detected! Make sure your image contains visible content.");
+        return;
+    }
+
+    // Moore-Neighbor Clockwise Boundary Tracing
+    const DIRS = [
+        { dx: 0, dy: -1 },  // N
+        { dx: 1, dy: -1 },  // NE
+        { dx: 1, dy: 0 },   // E
+        { dx: 1, dy: 1 },   // SE
+        { dx: 0, dy: 1 },   // S
+        { dx: -1, dy: 1 },  // SW
+        { dx: -1, dy: 0 },  // W
+        { dx: -1, dy: -1 }  // NW
+    ];
+
+    const rawPerimeter = [];
+    let currX = startX, currY = startY;
+    let backtrackDir = 6;
+    const maxSteps = targetW * targetH * 2;
+    let stepCount = 0;
+
+    rawPerimeter.push({ x: currX, y: currY });
+
+    while (stepCount++ < maxSteps) {
+        let foundNext = false;
+        const checkStart = (backtrackDir + 1) % 8;
+        for (let i = 0; i < 8; i++) {
+            const checkDir = (checkStart + i) % 8;
+            const nx = currX + DIRS[checkDir].dx;
+            const ny = currY + DIRS[checkDir].dy;
+
+            if (isFg(nx, ny)) {
+                currX = nx;
+                currY = ny;
+                backtrackDir = (checkDir + 4) % 8;
+                foundNext = true;
+                break;
+            }
+        }
+
+        if (!foundNext) break;
+        if (currX === startX && currY === startY && rawPerimeter.length > 10) {
+            break;
+        }
+        rawPerimeter.push({ x: currX, y: currY });
+    }
+
+    if (rawPerimeter.length < targetCount) {
+        alert("The detected outline is too small to distribute 50 LEDs.");
+        return;
+    }
+
+    // Calculate Cumulative Perimeter Distances
+    const cumulativeDist = [0];
+    let totalLength = 0;
+    for (let i = 1; i < rawPerimeter.length; i++) {
+        const d = Math.hypot(rawPerimeter[i].x - rawPerimeter[i - 1].x, rawPerimeter[i].y - rawPerimeter[i - 1].y);
+        totalLength += d;
+        cumulativeDist.push(totalLength);
+    }
+    const loopCloseDist = Math.hypot(rawPerimeter[0].x - rawPerimeter[rawPerimeter.length - 1].x, rawPerimeter[0].y - rawPerimeter[rawPerimeter.length - 1].y);
+    totalLength += loopCloseDist;
+
+    // Resample 50 equidistant points
+    const step = totalLength / targetCount;
+    const newLeds = [];
+
+    let searchIdx = 0;
+    for (let k = 0; k < targetCount; k++) {
+        const targetDist = k * step;
+
+        while (searchIdx < cumulativeDist.length - 1 && cumulativeDist[searchIdx + 1] < targetDist) {
+            searchIdx++;
+        }
+
+        const p1 = rawPerimeter[searchIdx];
+        const p2 = rawPerimeter[(searchIdx + 1) % rawPerimeter.length];
+        const segStartDist = cumulativeDist[searchIdx];
+        const segEndDist = (searchIdx + 1 < cumulativeDist.length) ? cumulativeDist[searchIdx + 1] : totalLength;
+        const segLen = segEndDist - segStartDist;
+
+        let px = p1.x, py = p1.y;
+        if (segLen > 0.001) {
+            const fraction = (targetDist - segStartDist) / segLen;
+            px = p1.x + (p2.x - p1.x) * fraction;
+            py = p1.y + (p2.y - p1.y) * fraction;
+        }
+
+        // Map into normalized shirt chest area (0.175 + 0.65x, 0.20 + 0.55y)
+        const normX = 0.175 + (px / targetW) * 0.65;
+        const normY = 0.20 + (py / targetH) * 0.55;
+
+        newLeds.push({
+            x: Math.max(0.05, Math.min(0.95, parseFloat(normX.toFixed(3)))),
+            y: Math.max(0.05, Math.min(0.95, parseFloat(normY.toFixed(3))))
+        });
+    }
+
+    leds = newLeds;
+    showToast("✨ 50 LEDs redistributed along graphic outline!");
+}
+
 // Custom Artwork Image Upload
 document.getElementById('artworkUpload').addEventListener('change', (e) => {
     const file = e.target.files[0];
@@ -842,12 +1017,20 @@ document.getElementById('artworkUpload').addEventListener('change', (e) => {
             const img = new Image();
             img.onload = () => {
                 customArtworkImg = img;
+                // Automatically outline the new image!
+                autoOutlineCurrentGraphic(50);
             };
             img.src = customArtworkDataUrl;
         };
         reader.readAsDataURL(file);
     }
 });
+
+// Auto-Outline Button Click
+document.getElementById('autoOutlineBtn').addEventListener('click', () => {
+    autoOutlineCurrentGraphic(50);
+});
+
 
 // Preset Buttons
 document.getElementById('presetSelect').addEventListener('change', (e) => {
