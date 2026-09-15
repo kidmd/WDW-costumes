@@ -46,9 +46,11 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 ## Roadmap & Milestones
 
 - [ ] **Milestone 1: Bench Setup & Single-Strand Validation**
-  - [ ] Configure toolchain in Antigravity (PlatformIO or Arduino CLI).
+  - [x] Configure toolchain in Antigravity (PlatformIO Core 6.2.0 installed & verified).
+  - [x] Create baseline MSEP animation sketch with FastLED current limiting (`src/main.cpp`).
+  - [x] Build and compile firmware successfully with FastLED library.
+  - [ ] Connect ESP-32D via USB and flash test firmware.
   - [ ] Bench wire 1 ESP32 with 220/330/470 Ω resistor, isolated 5V power, and common ground.
-  - [ ] Upload single-node test firmware using FastLED with software current limiting (`setMaxPowerInVoltsAndMilliamps`).
   - [ ] Verify discrete bulb appearance, color calibration (RGB vs GRB), and stability.
 
 - [ ] **Milestone 2: ESP-NOW Wireless Synchronization**
@@ -71,9 +73,20 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### Entry: Build Environment & Baseline Firmware
+* **Date:** 2026-09-14
+* **Status:** Toolchain operational & firmware built.
+* **Notes:**
+  * Installed PlatformIO Core 6.2.0 and Espressif32 framework.
+  * Created `platformio.ini` configured for `esp32dev` and FastLED library.
+  * Authored `src/main.cpp` with 3 classic Main Street Electrical Parade sequences (Golden Marquee Chase, Multi-Color Float Sparkle, Starlight Twinkle).
+  * Included safe current caps (5V @ 800 mA) and Wi-Fi MAC address reporting on boot.
+  * Successfully compiled firmware binary (Flash: 57.4%, RAM: 13.6%).
+
 ### Entry: Kickoff & Architecture Definition
 * **Date:** 2026-09-14
 * **Status:** Initialized project workspace and documentation.
+
 * **Notes:**
   * Created project tracking log [`PROJECT_PROGRESS.md`](file:///c:/Users/Kiddi/Desktop/WDW%20costumes/PROJECT_PROGRESS.md).
   * Outlined 7-float roster and ESP-NOW broadcast architecture.
