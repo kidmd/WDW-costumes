@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MSEP Costume LED Simulator - Pete's Dragon</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <header>
+        <div class="header-title">
+            <span class="logo-badge">MSEP 10K</span>
+            <h1>Costume LED Visualizer & Simulator</h1>
+        </div>
+        <div class="view-tabs">
+            <button id="singleViewBtn" class="tab-btn active">Single Shirt (Pete's Dragon)</button>
+            <button id="fleetViewBtn" class="tab-btn">7-Shirt Fleet Lineup</button>
+        </div>
+    </header>
+
+    <div class="main-layout">
+        <!-- Canvas Viewport -->
+        <div class="canvas-container">
+            <canvas id="simulatorCanvas" width="800" height="880"></canvas>
+            <div class="floating-overlay">
+                <span>💡 <strong>Interactive:</strong> Click and drag any LED bulb to adjust its placement along the dragon!</span>
+            </div>
+        </div>
+
+        <!-- Controls Sidebar -->
+        <div class="controls-sidebar">
+
+            <!-- 1. Lighting Pattern -->
+            <div class="control-section">
+                <div class="section-title">
+                    <span>Parade Lighting Pattern</span>
+                </div>
+                <div class="control-group">
+                    <select id="patternSelect" style="background: #21262d; color: #fff; border: 1px solid #30363d; padding: 8px 12px; border-radius: 6px; outline: none; font-size: 13px;">
+                        <option value="dragon_sparkle">🐉 Pete's Dragon: Green Glow + White Sparkles</option>
+                        <option value="fire_breath">🔥 Snout Fire-Breathing Pulse</option>
+                        <option value="traveling_wave">🌊 Traveling Parade Wave (ESP-NOW)</option>
+                        <option value="marquee">🎪 Classic Incandescent Marquee Chase</option>
+                        <option value="photo_mode">📸 Castle Photo Mode (Solid Bright)</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- 2. Live Dynamics & Color -->
+            <div class="control-section">
+                <div class="section-title">
+                    <span>Effect Tuning</span>
+                </div>
+                
+                <div class="control-group">
+                    <div class="label-row">
+                        <span>Speed / Tempo</span>
+                        <span id="speedVal" class="val-badge">120 BPM</span>
+                    </div>
+                    <input type="range" id="speedSlider" min="60" max="220" value="120">
+                </div>
+
+                <div class="control-group">
+                    <div class="label-row">
+                        <span>Sparkle Frequency</span>
+                        <span id="sparkleVal" class="val-badge">40%</span>
+                    </div>
+                    <input type="range" id="sparkleSlider" min="0" max="100" value="40">
+                </div>
+
+                <div class="control-group">
+                    <div class="label-row">
+                        <span>Green Hue (Shade)</span>
+                        <span id="hueVal" class="val-badge">140° (Emerald)</span>
+                    </div>
+                    <input type="range" id="hueSlider" min="90" max="170" value="140">
+                </div>
+
+                <div class="control-group">
+                    <div class="label-row">
+                        <span>Brightness</span>
+                        <span id="brightVal" class="val-badge">80%</span>
+                    </div>
+                    <input type="range" id="brightnessSlider" min="10" max="100" value="80">
+                </div>
+
+                <div class="control-group">
+                    <div class="label-row">
+                        <span>LED Bloom / Glow Size</span>
+                        <span id="glowVal" class="val-badge">22px</span>
+                    </div>
+                    <input type="range" id="glowSlider" min="8" max="40" value="22">
+                </div>
+            </div>
+
+            <!-- 3. Shirt & Custom Artwork -->
+            <div class="control-section">
+                <div class="section-title">
+                    <span>Shirt & Artwork</span>
+                </div>
+                <div class="control-group">
+                    <label style="font-size: 13px; color: var(--text-muted); margin-bottom: 4px;">Custom Graphic (Optional PNG/SVG):</label>
+                    <input type="file" id="artworkUpload" accept="image/*" style="font-size: 12px; color: var(--text-muted);">
+                </div>
+            </div>
+
+            <!-- 4. LED Layout Tools -->
+            <div class="control-section">
+                <div class="section-title">
+                    <span>LED Layout (50 Pixels)</span>
+                </div>
+                
+                <div class="toggle-row">
+                    <span>Show Wiring Trace (0 $\rightarrow$ 49)</span>
+                    <label class="switch">
+                        <input type="checkbox" id="showWiringToggle">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+
+                <div class="toggle-row">
+                    <span>Show Bulb Numbers</span>
+                    <label class="switch">
+                        <input type="checkbox" id="showNumbersToggle">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+
+                <div class="btn-row" style="margin-top: 6px;">
+                    <button id="resetLedsBtn" class="action-btn">Reset Layout</button>
+                    <button id="saveLayoutBtn" class="action-btn">Save JSON</button>
+                </div>
+            </div>
+
+            <!-- 5. Firmware Code Export -->
+            <div class="control-section">
+                <div class="section-title">
+                    <span>ESP32 Firmware Export</span>
+                </div>
+                <p style="font-size: 12px; color: var(--text-muted); line-height: 1.4;">
+                    Generate the exact C++ FastLED function with your custom speed, hue, and sparkle settings.
+                </p>
+                <button id="exportCodeBtn" class="action-btn primary" style="margin-top: 8px;">
+                    📋 Copy FastLED C++ Code
+                </button>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Modal for Code Export -->
+    <div id="codeModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 style="font-size: 15px; font-weight: 600;">FastLED C++ Animation Function</h3>
+                <button id="closeModalBtn" class="close-btn">&times;</button>
+            </div>
+            <div id="codeOutput" class="modal-body"></div>
+            <div style="padding: 12px 20px; background: #161b22; border-top: 1px solid var(--border-color); display: flex; justify-content: flex-end; gap: 8px;">
+                <button id="copyCodeBtn" class="action-btn primary" style="flex: none; padding: 8px 16px;">Copy to Clipboard</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>

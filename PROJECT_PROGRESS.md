@@ -62,12 +62,21 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
   - [x] Implement synchronized modes: Marquee Chase, Float Sparkle, Starlight Twinkle, and Traveling Parade Wave.
   - [x] Verify bench latency and wireless lockstep synchronization between both strands (SUCCESS).
 
-- [ ] **Milestone 3: Parade Animation Sequencing**
+- [x] **Milestone 3: Python LED Costume Simulator & Visualizer**
+  - [x] Lightweight Python local server with zero external dependencies (`simulator.py`).
+  - [x] Interactive Single-Shirt view of Pete's Dragon with metallic green reflective styling on black shirt.
+  - [x] 50 interactive addressable LEDs with drag-and-drop repositioning and JSON export.
+  - [x] Dynamic lighting engine: Green glow with starlight sparkles, fire-breathing snout pulse, marquee chase.
+  - [x] Live sliders: Speed (BPM), Sparkle Frequency, Green Hue, Brightness, Glow size.
+  - [x] 7-Shirt Fleet Lineup view with animated synchronized Traveling Wave across all 7 floats.
+  - [x] One-click FastLED C++ code generator for immediate copy-pasting into ESP32 firmware.
+
+- [ ] **Milestone 4: Parade Animation Sequencing**
   - [ ] Implement classic traveling parade chase (running down the line of 7 floats).
   - [ ] Implement float-specific accent animations (fire flickers, clock chime, sparkles).
   - [ ] Optional: Sync tempo to the *Baroque Hoedown* soundtrack.
 
-- [ ] **Milestone 4: Wearable Construction & Race Prep**
+- [ ] **Milestone 5: Wearable Construction & Race Prep**
   - [ ] Assemble Y-splitter power cables for race-day battery packs.
   - [ ] Secure seed LEDs to black running shirts (clear nylon tacking / fabric adhesive).
   - [ ] Add quick-disconnect JST connectors between waist belts and shirts.
@@ -76,6 +85,17 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 ---
 
 ## Progress Log
+
+### Entry: Interactive Python LED Simulator Launched
+* **Date:** 2026-09-15
+* **Status:** Python Simulator operational.
+* **Notes:**
+  * Created `simulator.py` (zero-dependency standard library web server).
+  * Built HTML5 Canvas visualizer rendering an athletic black technical running shirt with Pete's Dragon in green reflective vinyl styling.
+  * Auto-distributed 50 addressable LEDs along the dragon's perimeter with click-and-drag editing and JSON coordinate export.
+  * Added live effect sliders (Speed, Sparkle Frequency, Green Hue, Brightness, Glow size).
+  * Implemented 7-Shirt Fleet Lineup view demonstrating the synchronized Traveling Wave across all 7 floats.
+  * Built one-click FastLED C++ code exporter.
 
 ### Entry: Milestone 2 Bench Verification Confirmed
 * **Date:** 2026-09-14
