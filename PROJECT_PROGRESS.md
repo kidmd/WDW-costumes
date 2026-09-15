@@ -55,10 +55,12 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
   - [x] Bench wire ESP32 with isolated 5V power, common ground, and GPIO 16 (pin 8 on right).
   - [x] Verify discrete bulb appearance, color calibration (GRB), and animation playback.
 
-- [ ] **Milestone 2: ESP-NOW Wireless Synchronization**
-  - [ ] Build Leader (Broadcast) firmware with timing ticks and pattern triggers.
-  - [ ] Build Follower firmware with assigned Unit IDs (1–7) and phase offsets.
-  - [ ] Verify bench latency and synchronized color switching across multiple boards.
+- [x] **Milestone 2: ESP-NOW Wireless Synchronization**
+  - [x] Build unified firmware with auto-role detection via MAC address (`src/main.cpp`).
+  - [x] Flash Board 1 as **Leader (Float 1 - Title Drum)** [`B0:CB:D8:C8:49:84`].
+  - [x] Flash Board 2 as **Follower (Float 2 - Casey Jr.)** [`A4:F0:0F:64:33:A0`].
+  - [x] Implement synchronized modes: Marquee Chase, Float Sparkle, Starlight Twinkle, and Traveling Parade Wave.
+  - [ ] Verify bench latency and wireless lockstep synchronization between both strands.
 
 - [ ] **Milestone 3: Parade Animation Sequencing**
   - [ ] Implement classic traveling parade chase (running down the line of 7 floats).
@@ -74,6 +76,15 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 ---
 
 ## Progress Log
+
+### Entry: ESP-NOW Wireless Fleet Deployed to Both Boards
+* **Date:** 2026-09-14
+* **Status:** Milestone 2 firmware deployed.
+* **Notes:**
+  * Created unified fleet firmware with auto-role detection based on hardware MAC.
+  * Board 1 (`B0:CB:D8:C8:49:84`) booted as Leader (Float 1 - Title Drum) broadcasting at 25 Hz.
+  * Board 2 (`A4:F0:0F:64:33:A0`) booted as Follower (Float 2 - Casey Jr.) listening on ESP-NOW.
+  * Implemented cross-float Traveling Wave sequence.
 
 ### Entry: Board 2 Flashed & Milestone 1 Completed
 * **Date:** 2026-09-14
