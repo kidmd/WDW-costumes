@@ -45,13 +45,15 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Roadmap & Milestones
 
-- [ ] **Milestone 1: Bench Setup & Single-Strand Validation**
+- [x] **Milestone 1: Bench Setup & Single-Strand Validation**
   - [x] Configure toolchain in Antigravity (PlatformIO Core 6.2.0 installed & verified).
   - [x] Create baseline MSEP animation sketch with FastLED current limiting (`src/main.cpp`).
   - [x] Build and compile firmware successfully with FastLED library.
-  - [x] Connect ESP-32D via USB and flash test firmware (**Board 1 MAC: `B0:CB:D8:C8:49:84`**).
-  - [ ] Bench wire 1 ESP32 with 220/330/470 Ω resistor, isolated 5V power, and common ground.
-  - [ ] Verify discrete bulb appearance, color calibration (RGB vs GRB), and stability.
+  - [x] Connect ESP-32D via USB and flash test firmware:
+    - **Board 1 MAC:** `B0:CB:D8:C8:49:84`
+    - **Board 2 MAC:** `A4:F0:0F:64:33:A0`
+  - [x] Bench wire ESP32 with isolated 5V power, common ground, and GPIO 16 (pin 8 on right).
+  - [x] Verify discrete bulb appearance, color calibration (GRB), and animation playback.
 
 - [ ] **Milestone 2: ESP-NOW Wireless Synchronization**
   - [ ] Build Leader (Broadcast) firmware with timing ticks and pattern triggers.
@@ -72,6 +74,16 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 ---
 
 ## Progress Log
+
+### Entry: Board 2 Flashed & Milestone 1 Completed
+* **Date:** 2026-09-14
+* **Status:** 2 Nodes operational with verified pinout & animations.
+* **Notes:**
+  * Flashed Board 2 successfully via COM5.
+  * Retrieved Board 2 MAC address: `A4:F0:0F:64:33:A0`.
+  * Identified physical pin mapping on user's ESP32: GPIO 16 is 8th pin down on the right side.
+  * Milestone 1 officially complete: 2 independent nodes running MSEP animation suite.
+  * Ready for Milestone 2: ESP-NOW wireless synchronization.
 
 ### Entry: Board 1 Flashed & Online
 * **Date:** 2026-09-14
