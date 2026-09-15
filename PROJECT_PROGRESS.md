@@ -4,6 +4,7 @@
 This project coordinates synchronized, addressable LED lighting across **7 runner costumes** styled as the iconic floats of Disney's **Main Street Electrical Parade** for the Walt Disney World 10K.
 
 * **Theme:** Main Street Electrical Parade (7 Floats)
+* **GitHub Repository:** [kidmd/WDW-costumes](https://github.com/kidmd/WDW-costumes)
 * **Base Shirts:** Black moisture-wicking technical running shirts with glow-in-the-dark graphic outlines
 * **Lighting:** 5V WS2812B "Seed / Pebble" RGBIC fairy pixel strings (~1" to 2" spacing for discrete light bulb look)
 * **Controller:** ESP32 Microcontrollers (1 per runner)
