@@ -60,7 +60,7 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
   - [x] Flash Board 1 as **Leader (Float 1 - Title Drum)** [`B0:CB:D8:C8:49:84`].
   - [x] Flash Board 2 as **Follower (Float 2 - Casey Jr.)** [`A4:F0:0F:64:33:A0`].
   - [x] Implement synchronized modes: Marquee Chase, Float Sparkle, Starlight Twinkle, and Traveling Parade Wave.
-  - [ ] Verify bench latency and wireless lockstep synchronization between both strands.
+  - [x] Verify bench latency and wireless lockstep synchronization between both strands (SUCCESS).
 
 - [ ] **Milestone 3: Parade Animation Sequencing**
   - [ ] Implement classic traveling parade chase (running down the line of 7 floats).
@@ -76,6 +76,15 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 ---
 
 ## Progress Log
+
+### Entry: Milestone 2 Bench Verification Confirmed
+* **Date:** 2026-09-14
+* **Status:** Wireless sync fully operational.
+* **Notes:**
+  * Both strands confirmed running in lockstep via ESP-NOW 2.4 GHz radio.
+  * Status indicator on Board 2 transitioned to solid blue upon locking to Board 1.
+  * Successfully verified the cross-float Traveling Wave effect jumping from Strand 1 to Strand 2.
+  * Milestone 2 officially complete!
 
 ### Entry: ESP-NOW Wireless Fleet Deployed to Both Boards
 * **Date:** 2026-09-14
