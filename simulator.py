@@ -207,7 +207,7 @@ class SimulatorRequestHandler(http.server.SimpleHTTPRequestHandler):
 #define COSTUME_SPARKLE_RATE             {sparkle_rate}
 #define COSTUME_GREEN_HUE                {green_hue}
 #define COSTUME_BRIGHTNESS               {fastled_brightness}
-#define COLOR_ORDER                      GRB
+#define COLOR_ORDER                      RGB
 #define HAS_CUSTOM_PALETTE               1
 #define COSTUME_OVERRIDE_STANDALONE      1
 

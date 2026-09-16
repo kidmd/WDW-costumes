@@ -10,7 +10,7 @@
 // ============================================================================
 #define DATA_PIN        16      // 8th pin down on the right
 #define LED_TYPE        WS2812B
-#define COLOR_ORDER     GRB
+#define COLOR_ORDER     RGB     // Calibrated hardware color order (Red, Green, Blue)
 #define NUM_LEDS        50      // LEDs per strand
 #define STATUS_LED_PIN  2       // Onboard Blue LED (Heartbeat / Sync Indicator)
 

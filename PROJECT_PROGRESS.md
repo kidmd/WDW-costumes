@@ -53,7 +53,7 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
     - **Board 1 MAC:** `B0:CB:D8:C8:49:84`
     - **Board 2 MAC:** `A4:F0:0F:64:33:A0`
   - [x] Bench wire ESP32 with isolated 5V power, common ground, and GPIO 16 (pin 8 on right).
-  - [x] Verify discrete bulb appearance, color calibration (GRB), and animation playback.
+  - [x] Verify discrete bulb appearance, color calibration (RGB order established), and animation playback.
 
 - [x] **Milestone 2: ESP-NOW Wireless Synchronization**
   - [x] Build unified firmware with auto-role detection via MAC address (`src/main.cpp`).
@@ -75,7 +75,7 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
   - [ ] Await delivery of WS2812B 5V "Seed / Pebble" RGBIC fairy pixel strings.
   - [ ] Implement Real-Time Live Streaming / Tethering (stream pixel colors over Wi-Fi / Serial from `simulator.py` directly to ESP32 for instant live-preview without re-flashing).
   - [ ] Resume custom character costume layout and testing with the Web Simulator (`simulator.py`).
-  - [ ] Calibrate fairy light color order (verify RGB vs GRB on new fairy light hardware) and power limits.
+  - [ ] Confirm RGB color order on new fairy light hardware and verify power limits.
   - [ ] Test 100-LED Pete's Dragon scatter pattern with starlight diamond sparkles on wearable fairy lights.
 
 - [ ] **Milestone 4: Parade Animation Sequencing**
