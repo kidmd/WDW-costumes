@@ -71,6 +71,12 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
   - [x] 7-Shirt Fleet Lineup view with animated synchronized Traveling Wave across all 7 floats.
   - [x] One-click FastLED C++ code generator for immediate copy-pasting into ESP32 firmware.
 
+- [ ] **To-Do (Pending Fairy Lights Arrival): Resume Custom Costume Simulator Testing**
+  - [ ] Await delivery of WS2812B 5V "Seed / Pebble" RGBIC fairy pixel strings.
+  - [ ] Resume custom character costume layout and testing with the Web Simulator (`simulator.py`).
+  - [ ] Calibrate fairy light color order (verify RGB vs GRB on new fairy light hardware) and power limits.
+  - [ ] Test 100-LED Pete's Dragon scatter pattern with starlight diamond sparkles on wearable fairy lights.
+
 - [ ] **Milestone 4: Parade Animation Sequencing**
   - [ ] Implement classic traveling parade chase (running down the line of 7 floats).
   - [ ] Implement float-specific accent animations (fire flickers, clock chime, sparkles).
@@ -85,6 +91,15 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 ---
 
 ## Progress Log
+
+### Entry: Reverted to Pre-Simulator Fleet Sync Firmware (Awaiting Fairy Lights)
+* **Date:** 2026-09-15
+* **Status:** Milestone 2 fleet synchronization firmware restored.
+* **Notes:**
+  * Reverted `src/main.cpp` back to the baseline Milestone 2 firmware (auto-role ESP-NOW synchronization, 50 LEDs, 4 parade modes: Marquee Chase, Float Sparkle, Starlight Twinkle, and Traveling Wave).
+  * Archived custom Pete's Dragon layout, vibrant scatter presets, and simulator flashing engine in the codebase.
+  * Paused custom single-costume testing pending arrival of wearable WS2812B fairy lights (which draw significantly less power than the 12mm bullet pixels tested today).
+  * Flashed restored fleet sync firmware onto the ESP32.
 
 ### Entry: Interactive Python LED Simulator Enhanced (Auto-Outline & Preset Persistence)
 * **Date:** 2026-09-15
