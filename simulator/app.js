@@ -6,31 +6,71 @@ const ctx = canvas.getContext('2d');
 
 // State
 let currentView = 'single'; // 'single' or 'fleet'
-let activePattern = 'dragon_sparkle';
+let activePattern = 'color_match'; // 'color_match', 'dragon_sparkle', 'fire_breath', etc.
 
 // Control parameters
 let params = {
     speedBpm: 120,
     sparkleRate: 40,
     greenHue: 140, // 100 = lime, 140 = emerald, 165 = seafoam
-    brightness: 80,
-    glowSize: 22,
+    brightness: 85,
+    glowSize: 20,
     showWiring: false,
     showNumbers: false,
     reflectiveShine: true
 };
+
+// Default Pete's Dragon Artwork from user upload
+const defaultDragonImg = new Image();
+let defaultDragonLoaded = false;
+defaultDragonImg.onload = () => {
+    defaultDragonLoaded = true;
+    // If starting fresh without saved profile, scatter 100 color-matched LEDs
+    if (leds.length === 0 || activePattern === 'color_match') {
+        scatterLedsOnGraphic(100, true);
+    }
+};
+defaultDragonImg.src = 'assets/petes_dragon.png';
 
 // Custom artwork image (if user uploads one or loads one from preset)
 let customArtworkImg = null;
 let currentGraphicType = 'builtin_dragon'; // 'builtin_dragon' or 'custom_image'
 let customArtworkDataUrl = null;
 
+function getActiveGraphicImg() {
+    if (customArtworkImg && customArtworkImg.complete && customArtworkImg.naturalWidth > 0) {
+        return customArtworkImg;
+    }
+    if (defaultDragonLoaded && defaultDragonImg.complete && defaultDragonImg.naturalWidth > 0) {
+        return defaultDragonImg;
+    }
+    return null;
+}
+
+// Compute normalized bounds of the graphic on the athletic shirt
+function getGraphicChestBounds() {
+    const activeImg = getActiveGraphicImg();
+    let normH = 0.62;
+    let normW = 0.54;
+    if (activeImg) {
+        const aspect = activeImg.naturalWidth / activeImg.naturalHeight; // e.g. 300 / 425 = 0.706
+        normW = normH * 1.25 * aspect;
+        if (normW > 0.65) {
+            normW = 0.65;
+            normH = normW / (1.25 * aspect);
+        }
+    }
+    const normX = (1.0 - normW) / 2;
+    const normY = 0.18;
+    return { normX, normY, normW, normH };
+}
+
 // Dragging state
 let draggedLed = null;
 let hoveredLed = null;
 let isDragging = false;
 
-// 50 LEDs coordinates (normalized 0.0 to 1.0 relative to shirt chest area)
+// LEDs array: [{ x, y, color: {r, g, b} }]
 let leds = [];
 
 function initDefaultDragonLeds() {
@@ -59,9 +99,8 @@ function initDefaultDragonLeds() {
         { x: 0.53, y: 0.28 }, { x: 0.52, y: 0.24 }, { x: 0.50, y: 0.21 },
         { x: 0.48, y: 0.23 }, { x: 0.47, y: 0.26 }, { x: 0.46, y: 0.29 }, { x: 0.45, y: 0.28 }
     ];
+    updateLedCountUI();
 }
-
-initDefaultDragonLeds();
 
 // Shirt boundaries in Canvas Space (single shirt view)
 function getShirtBounds() {
@@ -96,7 +135,7 @@ function canvasToNorm(x, y) {
 }
 
 // Sparkle state per LED
-const sparkles = new Array(50).fill(0);
+let sparkles = new Array(100).fill(0);
 
 // ============================================================================
 // DRAWING ROUTINES: Authentic Athletic T-Shirt with Natural Dimensions
@@ -177,10 +216,14 @@ function drawRunningShirt(cx, x, y, width, height, label = "PETE'S DRAGON") {
 // DRAWING ROUTINES: Green Reflective Pete's Dragon Graphic
 // ============================================================================
 function drawPetesDragon(cx, s) {
-    if (customArtworkImg) {
-        const imgW = s.width * 0.65;
-        const imgH = s.height * 0.55;
-        cx.drawImage(customArtworkImg, s.x + s.width * 0.175, s.y + s.height * 0.20, imgW, imgH);
+    const activeImg = getActiveGraphicImg();
+    if (activeImg) {
+        const gb = getGraphicChestBounds();
+        const gx = s.x + gb.normX * s.width;
+        const gy = s.y + gb.normY * s.height;
+        const gw = gb.normW * s.width;
+        const gh = gb.normH * s.height;
+        cx.drawImage(activeImg, gx, gy, gw, gh);
         return;
     }
 
@@ -219,16 +262,39 @@ function drawPetesDragon(cx, s) {
     cx.fillStyle = dragonGrad;
     cx.fill();
 
+    // Belly patch (Lime)
+    cx.beginPath();
+    cx.moveTo(s.x + s.width * 0.44, s.y + s.height * 0.45);
+    cx.quadraticCurveTo(s.x + s.width * 0.56, s.y + s.height * 0.46, s.x + s.width * 0.59, s.y + s.height * 0.63);
+    cx.quadraticCurveTo(s.x + s.width * 0.48, s.y + s.height * 0.66, s.x + s.width * 0.43, s.y + s.height * 0.62);
+    cx.closePath();
+    cx.fillStyle = '#a6e22e';
+    cx.fill();
+
+    // Wings (Hot Pink)
+    cx.beginPath();
+    cx.moveTo(s.x + s.width * 0.65, s.y + s.height * 0.38);
+    cx.lineTo(s.x + s.width * 0.77, s.y + s.height * 0.30);
+    cx.quadraticCurveTo(s.x + s.width * 0.73, s.y + s.height * 0.37, s.x + s.width * 0.79, s.y + s.height * 0.36);
+    cx.quadraticCurveTo(s.x + s.width * 0.71, s.y + s.height * 0.44, s.x + s.width * 0.67, s.y + s.height * 0.46);
+    cx.closePath();
+    cx.fillStyle = '#ff2a8d';
+    cx.fill();
+
+    // Hair Tuft on Head (Bright Orange / Coral)
+    cx.beginPath();
+    cx.moveTo(s.x + s.width * 0.47, s.y + s.height * 0.24);
+    cx.lineTo(s.x + s.width * 0.51, s.y + s.height * 0.16);
+    cx.lineTo(s.x + s.width * 0.54, s.y + s.height * 0.22);
+    cx.lineTo(s.x + s.width * 0.57, s.y + s.height * 0.18);
+    cx.lineTo(s.x + s.width * 0.58, s.y + s.height * 0.26);
+    cx.closePath();
+    cx.fillStyle = '#ff6a00';
+    cx.fill();
+
     if (params.reflectiveShine) {
         cx.lineWidth = 2.5;
         cx.strokeStyle = `hsl(${baseH + 20}, 100%, 85%)`;
-        cx.stroke();
-
-        cx.beginPath();
-        cx.moveTo(s.x + s.width * 0.45, s.y + s.height * 0.46);
-        cx.quadraticCurveTo(s.x + s.width * 0.53, s.y + s.height * 0.52, s.x + s.width * 0.61, s.y + s.height * 0.48);
-        cx.strokeStyle = `rgba(255, 255, 255, 0.4)`;
-        cx.lineWidth = 2;
         cx.stroke();
     }
 
@@ -246,12 +312,43 @@ function computeLedColor(index, totalLeds, timeMs) {
 
     let r = 0, g = 255, b = 100, brightness = params.brightness / 100;
 
+    const hasColor = (leds[index] && leds[index].color);
+    const c = hasColor ? leds[index].color : null;
+
     switch (activePattern) {
+        case 'color_match': {
+            if (hasColor) {
+                const breath = 0.72 + 0.28 * Math.sin(normTime * 2 + index * 0.18);
+                r = Math.floor(c.r * breath);
+                g = Math.floor(c.g * breath);
+                b = Math.floor(c.b * breath);
+            } else {
+                const breath = 0.75 + 0.25 * Math.sin(normTime * 2 + index * 0.15);
+                const rgb = hslToRgb(baseH / 360, 0.95, 0.50 * breath);
+                r = rgb.r; g = rgb.g; b = rgb.b;
+            }
+
+            if (sparkles[index] > 0) {
+                const sp = sparkles[index];
+                r = Math.round(r * (1 - sp) + 255 * sp);
+                g = Math.round(g * (1 - sp) + 255 * sp);
+                b = Math.round(b * (1 - sp) + 240 * sp);
+                brightness = Math.min(1.0, brightness + sp * 0.4);
+            }
+            break;
+        }
         case 'dragon_sparkle': {
-            const breath = 0.75 + 0.25 * Math.sin(normTime * 2 + index * 0.15);
-            const h = baseH + Math.sin(index * 0.4) * 8;
-            const rgb = hslToRgb(h / 360, 0.95, 0.50 * breath);
-            r = rgb.r; g = rgb.g; b = rgb.b;
+            if (hasColor) {
+                const breath = 0.75 + 0.25 * Math.sin(normTime * 2 + index * 0.15);
+                r = Math.floor(c.r * breath);
+                g = Math.floor(c.g * breath);
+                b = Math.floor(c.b * breath);
+            } else {
+                const breath = 0.75 + 0.25 * Math.sin(normTime * 2 + index * 0.15);
+                const h = baseH + Math.sin(index * 0.4) * 8;
+                const rgb = hslToRgb(h / 360, 0.95, 0.50 * breath);
+                r = rgb.r; g = rgb.g; b = rgb.b;
+            }
 
             if (sparkles[index] > 0) {
                 const sp = sparkles[index];
@@ -263,11 +360,13 @@ function computeLedColor(index, totalLeds, timeMs) {
             break;
         }
         case 'fire_breath': {
-            if (index <= 6) {
+            if (index <= 8) {
                 const fire = Math.sin(normTime * 6 + index) * 0.5 + 0.5;
                 r = 255;
                 g = Math.floor(60 + fire * 100);
                 b = 10;
+            } else if (hasColor) {
+                r = c.r; g = c.g; b = c.b;
             } else {
                 const rgb = hslToRgb(baseH / 360, 0.85, 0.45);
                 r = rgb.r; g = rgb.g; b = rgb.b;
@@ -279,12 +378,17 @@ function computeLedColor(index, totalLeds, timeMs) {
             const head = waveCycle * totalLeds;
             const dist = Math.abs(index - head);
 
-            if (dist < 3.5) {
-                const intensity = Math.max(0, 1 - (dist / 3.5));
+            if (dist < 4.0) {
+                const intensity = Math.max(0, 1 - (dist / 4.0));
                 r = 255 * intensity;
                 g = 255 * intensity;
-                b = Math.floor(200 * intensity);
+                b = Math.floor(220 * intensity);
                 brightness = 1.0;
+            } else if (hasColor) {
+                r = Math.floor(c.r * 0.5);
+                g = Math.floor(c.g * 0.5);
+                b = Math.floor(c.b * 0.5);
+                brightness = 0.4;
             } else {
                 const rgb = hslToRgb(baseH / 360, 0.9, 0.25);
                 r = rgb.r; g = rgb.g; b = rgb.b;
@@ -295,7 +399,13 @@ function computeLedColor(index, totalLeds, timeMs) {
         case 'marquee': {
             const step = Math.floor(normTime * 3) % 3;
             if ((index + step) % 3 === 0) {
-                r = 255; g = 150; b = 30;
+                if (hasColor) {
+                    r = Math.min(255, c.r + 50);
+                    g = Math.min(255, c.g + 50);
+                    b = Math.min(255, c.b + 50);
+                } else {
+                    r = 255; g = 150; b = 30;
+                }
                 brightness = 0.9;
             } else {
                 r = 10; g = 10; b = 10;
@@ -304,7 +414,9 @@ function computeLedColor(index, totalLeds, timeMs) {
             break;
         }
         case 'photo_mode': {
-            if (index % 2 === 0) {
+            if (hasColor) {
+                r = c.r; g = c.g; b = c.b;
+            } else if (index % 2 === 0) {
                 const rgb = hslToRgb(baseH / 360, 1.0, 0.55);
                 r = rgb.r; g = rgb.g; b = rgb.b;
             } else {
@@ -318,7 +430,7 @@ function computeLedColor(index, totalLeds, timeMs) {
     if (sparkles[index] > 0) {
         sparkles[index] = Math.max(0, sparkles[index] - 0.04);
     }
-    if (activePattern === 'dragon_sparkle' && Math.random() * 1000 < params.sparkleRate) {
+    if ((activePattern === 'dragon_sparkle' || activePattern === 'color_match') && Math.random() * 1000 < params.sparkleRate) {
         sparkles[index] = 1.0;
     }
 
@@ -591,6 +703,14 @@ canvas.addEventListener('mousemove', (e) => {
 });
 
 window.addEventListener('mouseup', () => {
+    if (isDragging && draggedLed !== null) {
+        if (activePattern === 'color_match' || (leds[draggedLed] && leds[draggedLed].color)) {
+            const newCol = sampleColorAtNorm(leds[draggedLed].x, leds[draggedLed].y);
+            if (newCol) {
+                leds[draggedLed].color = newCol;
+            }
+        }
+    }
     isDragging = false;
     draggedLed = null;
     canvas.classList.remove('dragging');
@@ -721,10 +841,13 @@ async function loadProfile(sourceValue) {
     // 1. Restore LEDs
     if (Array.isArray(profileData.leds) && profileData.leds.length > 0) {
         leds = profileData.leds;
+        while (sparkles.length < leds.length) sparkles.push(0);
+        updateLedCountUI();
     }
 
     // 2. Restore Graphic
     currentGraphicType = profileData.graphicType || 'builtin_dragon';
+    const resetBtn = document.getElementById('resetArtworkBtn');
     if (profileData.customArtworkDataUrl) {
         customArtworkDataUrl = profileData.customArtworkDataUrl;
         const img = new Image();
@@ -732,8 +855,10 @@ async function loadProfile(sourceValue) {
             customArtworkImg = img;
         };
         img.src = customArtworkDataUrl;
+        if (resetBtn) resetBtn.style.display = 'block';
     } else {
         customArtworkImg = null;
+        if (resetBtn) resetBtn.style.display = 'none';
     }
 
     // 3. Restore Settings
@@ -832,7 +957,7 @@ document.getElementById('fleetViewBtn').addEventListener('click', () => {
 });
 
 // ============================================================================
-// COMPUTER VISION: AUTO-OUTLINE PERIMETER TRACING (50 LEDs)
+// COMPUTER VISION & COLOR-MATCHED SAMPLING
 // ============================================================================
 function showToast(message) {
     const toast = document.getElementById('toast');
@@ -844,18 +969,225 @@ function showToast(message) {
     }, 3000);
 }
 
+function updateLedCountUI() {
+    const title = document.getElementById('ledCountTitle');
+    if (title) {
+        title.textContent = `LED Layout (${leds.length} Pixels)`;
+    }
+    const wiringLabel = document.getElementById('wiringLabel');
+    if (wiringLabel) {
+        wiringLabel.textContent = `Show Wiring Trace (0 → ${Math.max(0, leds.length - 1)})`;
+    }
+}
+
+// Boost vibrancy of sampled colors so they shine like punchy WS2812B LEDs
+function boostLedVibrancy(r, g, b) {
+    const maxVal = Math.max(r, g, b);
+    if (maxVal === 0) return { r: 60, g: 60, b: 60 };
+
+    let factor = 1.0;
+    if (maxVal < 140) {
+        factor = Math.min(2.0, 180 / maxVal);
+    }
+    return {
+        r: Math.min(255, Math.round(r * factor)),
+        g: Math.min(255, Math.round(g * factor)),
+        b: Math.min(255, Math.round(b * factor))
+    };
+}
+
+// Sample artwork pixel color at normalized shirt coordinates
+function sampleColorAtNorm(normX, normY) {
+    const gb = getGraphicChestBounds();
+    const relX = (normX - gb.normX) / gb.normW;
+    const relY = (normY - gb.normY) / gb.normH;
+    if (relX < 0 || relX > 1 || relY < 0 || relY > 1) {
+        return null;
+    }
+
+    const activeImg = getActiveGraphicImg();
+    const targetW = 360;
+    let targetH = 360;
+
+    const offCanvas = document.createElement('canvas');
+    const offCtx = offCanvas.getContext('2d');
+
+    if (activeImg) {
+        targetH = Math.max(120, Math.round(targetW * (activeImg.naturalHeight / activeImg.naturalWidth)));
+        offCanvas.width = targetW;
+        offCanvas.height = targetH;
+        offCtx.drawImage(activeImg, 0, 0, targetW, targetH);
+    } else {
+        offCanvas.width = targetW;
+        offCanvas.height = targetH;
+        drawPetesDragon(offCtx, { x: 0, y: 0, width: targetW, height: targetH });
+    }
+
+    const px = Math.floor(relX * targetW);
+    const py = Math.floor(relY * targetH);
+    if (px < 0 || px >= targetW || py < 0 || py >= targetH) return null;
+
+    const p = offCtx.getImageData(px, py, 1, 1).data;
+    if (p[3] < 30) return null;
+
+    return boostLedVibrancy(p[0], p[1], p[2]);
+}
+
+// Resample colors for all current LEDs based on current background graphic
+function resampleAllLedColors() {
+    let count = 0;
+    for (let i = 0; i < leds.length; i++) {
+        const col = sampleColorAtNorm(leds[i].x, leds[i].y);
+        if (col) {
+            leds[i].color = col;
+            count++;
+        }
+    }
+    showToast(`🎨 Resampled ${count} LED colors from background graphic!`);
+}
+
+// SCATTER 100 LEDs (Farthest-Point Sampling inside graphic with pixel color matching)
+function scatterLedsOnGraphic(targetCount = 100, colorMatch = true) {
+    const targetW = 360;
+    let targetH = 360;
+
+    const offCanvas = document.createElement('canvas');
+    const offCtx = offCanvas.getContext('2d');
+    const activeImg = getActiveGraphicImg();
+
+    if (activeImg) {
+        targetH = Math.max(120, Math.round(targetW * (activeImg.naturalHeight / activeImg.naturalWidth)));
+        offCanvas.width = targetW;
+        offCanvas.height = targetH;
+        offCtx.drawImage(activeImg, 0, 0, targetW, targetH);
+    } else {
+        offCanvas.width = targetW;
+        offCanvas.height = targetH;
+        drawPetesDragon(offCtx, { x: 0, y: 0, width: targetW, height: targetH });
+    }
+
+    const imgData = offCtx.getImageData(0, 0, targetW, targetH);
+    const data = imgData.data;
+
+    let hasTransparency = false;
+    for (let i = 3; i < data.length; i += 16) {
+        if (data[i] < 200) {
+            hasTransparency = true;
+            break;
+        }
+    }
+
+    const step = 3;
+    const candidates = [];
+    for (let y = 3; y < targetH - 3; y += step) {
+        for (let x = 3; x < targetW - 3; x += step) {
+            const idx = (y * targetW + x) * 4;
+            const a = data[idx + 3];
+            const r = data[idx];
+            const g = data[idx + 1];
+            const b = data[idx + 2];
+
+            let isFg = false;
+            if (hasTransparency) {
+                isFg = (a > 60);
+            } else {
+                const lum = 0.299 * r + 0.587 * g + 0.114 * b;
+                isFg = (lum > 35);
+            }
+
+            if (isFg) {
+                candidates.push({ x, y, r, g, b });
+            }
+        }
+    }
+
+    if (candidates.length < targetCount) {
+        alert(`Graphic area is too small to distribute ${targetCount} LEDs!`);
+        return;
+    }
+
+    // Farthest Point Sampling (FPS) for maximal, uniform organic distribution
+    const numCandidates = candidates.length;
+    const minDist = new Float32Array(numCandidates).fill(1e9);
+    const selected = [];
+
+    let startIdx = Math.floor(numCandidates / 2);
+    selected.push(candidates[startIdx]);
+
+    for (let i = 0; i < numCandidates; i++) {
+        const dx = candidates[i].x - candidates[startIdx].x;
+        const dy = candidates[i].y - candidates[startIdx].y;
+        minDist[i] = dx * dx + dy * dy;
+    }
+
+    for (let k = 1; k < targetCount; k++) {
+        let maxD = -1;
+        let bestIdx = 0;
+        for (let i = 0; i < numCandidates; i++) {
+            if (minDist[i] > maxD) {
+                maxD = minDist[i];
+                bestIdx = i;
+            }
+        }
+
+        const chosen = candidates[bestIdx];
+        selected.push(chosen);
+
+        for (let i = 0; i < numCandidates; i++) {
+            const dx = candidates[i].x - chosen.x;
+            const dy = candidates[i].y - chosen.y;
+            const d = dx * dx + dy * dy;
+            if (d < minDist[i]) {
+                minDist[i] = d;
+            }
+        }
+    }
+
+    const gb = getGraphicChestBounds();
+    const newLeds = [];
+
+    for (let i = 0; i < selected.length; i++) {
+        const p = selected[i];
+        const normX = gb.normX + (p.x / targetW) * gb.normW;
+        const normY = gb.normY + (p.y / targetH) * gb.normH;
+
+        let col = { r: p.r, g: p.g, b: p.b };
+        if (colorMatch) {
+            col = boostLedVibrancy(col.r, col.g, col.b);
+        }
+
+        newLeds.push({
+            x: Math.max(0.05, Math.min(0.95, parseFloat(normX.toFixed(3)))),
+            y: Math.max(0.05, Math.min(0.95, parseFloat(normY.toFixed(3)))),
+            color: col
+        });
+    }
+
+    leds = newLeds;
+    while (sparkles.length < leds.length) sparkles.push(0);
+
+    activePattern = 'color_match';
+    const patSelect = document.getElementById('patternSelect');
+    if (patSelect) patSelect.value = 'color_match';
+
+    updateLedCountUI();
+    showToast(`🌈 ${targetCount} LEDs scattered & color-matched to artwork!`);
+}
+
+// OUTLINE 50 LEDs (Moore-Neighbor Clockwise Boundary Tracing)
 function autoOutlineCurrentGraphic(targetCount = 50) {
     const targetW = 320;
     let targetH = 320;
 
     const offCanvas = document.createElement('canvas');
     const offCtx = offCanvas.getContext('2d');
+    const activeImg = getActiveGraphicImg();
 
-    if (customArtworkImg && customArtworkImg.complete && customArtworkImg.naturalWidth > 0) {
-        targetH = Math.max(100, Math.round(targetW * (customArtworkImg.naturalHeight / customArtworkImg.naturalWidth)));
+    if (activeImg) {
+        targetH = Math.max(100, Math.round(targetW * (activeImg.naturalHeight / activeImg.naturalWidth)));
         offCanvas.width = targetW;
         offCanvas.height = targetH;
-        offCtx.drawImage(customArtworkImg, 0, 0, targetW, targetH);
+        offCtx.drawImage(activeImg, 0, 0, targetW, targetH);
     } else {
         offCanvas.width = targetW;
         offCanvas.height = targetH;
@@ -866,7 +1198,6 @@ function autoOutlineCurrentGraphic(targetCount = 50) {
     const imgData = offCtx.getImageData(0, 0, targetW, targetH);
     const data = imgData.data;
 
-    // Detect transparency
     let hasTransparency = false;
     for (let i = 3; i < data.length; i += 16) {
         if (data[i] < 200) {
@@ -875,13 +1206,12 @@ function autoOutlineCurrentGraphic(targetCount = 50) {
         }
     }
 
-    // Visibility test
     const isFg = (x, y) => {
         if (x < 0 || x >= targetW || y < 0 || y >= targetH) return false;
         const idx = (y * targetW + x) * 4;
         const a = data[idx + 3];
         if (hasTransparency) {
-            return a > 40; // Visible pixels on transparent background
+            return a > 40;
         } else {
             const r = data[idx], g = data[idx + 1], b = data[idx + 2];
             const lum = 0.299 * r + 0.587 * g + 0.114 * b;
@@ -889,7 +1219,6 @@ function autoOutlineCurrentGraphic(targetCount = 50) {
         }
     };
 
-    // Find starting top-left foreground pixel
     let startX = -1, startY = -1;
     for (let y = 0; y < targetH; y++) {
         for (let x = 0; x < targetW; x++) {
@@ -907,7 +1236,6 @@ function autoOutlineCurrentGraphic(targetCount = 50) {
         return;
     }
 
-    // Moore-Neighbor Clockwise Boundary Tracing
     const DIRS = [
         { dx: 0, dy: -1 },  // N
         { dx: 1, dy: -1 },  // NE
@@ -952,11 +1280,10 @@ function autoOutlineCurrentGraphic(targetCount = 50) {
     }
 
     if (rawPerimeter.length < targetCount) {
-        alert("The detected outline is too small to distribute 50 LEDs.");
+        alert("The detected outline is too small to distribute LEDs.");
         return;
     }
 
-    // Calculate Cumulative Perimeter Distances
     const cumulativeDist = [0];
     let totalLength = 0;
     for (let i = 1; i < rawPerimeter.length; i++) {
@@ -967,8 +1294,8 @@ function autoOutlineCurrentGraphic(targetCount = 50) {
     const loopCloseDist = Math.hypot(rawPerimeter[0].x - rawPerimeter[rawPerimeter.length - 1].x, rawPerimeter[0].y - rawPerimeter[rawPerimeter.length - 1].y);
     totalLength += loopCloseDist;
 
-    // Resample 50 equidistant points
     const step = totalLength / targetCount;
+    const gb = getGraphicChestBounds();
     const newLeds = [];
 
     let searchIdx = 0;
@@ -992,18 +1319,23 @@ function autoOutlineCurrentGraphic(targetCount = 50) {
             py = p1.y + (p2.y - p1.y) * fraction;
         }
 
-        // Map into normalized shirt chest area (0.175 + 0.65x, 0.20 + 0.55y)
-        const normX = 0.175 + (px / targetW) * 0.65;
-        const normY = 0.20 + (py / targetH) * 0.55;
+        const normX = gb.normX + (px / targetW) * gb.normW;
+        const normY = gb.normY + (py / targetH) * gb.normH;
+
+        // Sample color at perimeter point as well
+        const col = sampleColorAtNorm(normX, normY);
 
         newLeds.push({
             x: Math.max(0.05, Math.min(0.95, parseFloat(normX.toFixed(3)))),
-            y: Math.max(0.05, Math.min(0.95, parseFloat(normY.toFixed(3))))
+            y: Math.max(0.05, Math.min(0.95, parseFloat(normY.toFixed(3)))),
+            color: col
         });
     }
 
     leds = newLeds;
-    showToast("✨ 50 LEDs redistributed along graphic outline!");
+    while (sparkles.length < leds.length) sparkles.push(0);
+    updateLedCountUI();
+    showToast(`✨ ${targetCount} LEDs redistributed along graphic outline!`);
 }
 
 // Custom Artwork Image Upload
@@ -1017,8 +1349,10 @@ document.getElementById('artworkUpload').addEventListener('change', (e) => {
             const img = new Image();
             img.onload = () => {
                 customArtworkImg = img;
-                // Automatically outline the new image!
-                autoOutlineCurrentGraphic(50);
+                const resetBtn = document.getElementById('resetArtworkBtn');
+                if (resetBtn) resetBtn.style.display = 'block';
+                // Automatically scatter 100 color-matched LEDs across new artwork!
+                scatterLedsOnGraphic(100, true);
             };
             img.src = customArtworkDataUrl;
         };
@@ -1026,11 +1360,39 @@ document.getElementById('artworkUpload').addEventListener('change', (e) => {
     }
 });
 
-// Auto-Outline Button Click
+// Button Click Handlers
+document.getElementById('scatterColorBtn').addEventListener('click', () => {
+    scatterLedsOnGraphic(100, true);
+});
+
+document.getElementById('quick100Btn').addEventListener('click', () => {
+    scatterLedsOnGraphic(100, true);
+});
+
 document.getElementById('autoOutlineBtn').addEventListener('click', () => {
     autoOutlineCurrentGraphic(50);
 });
 
+document.getElementById('quick50Btn').addEventListener('click', () => {
+    autoOutlineCurrentGraphic(50);
+});
+
+document.getElementById('resampleColorsBtn').addEventListener('click', () => {
+    resampleAllLedColors();
+});
+
+const resetArtworkBtn = document.getElementById('resetArtworkBtn');
+if (resetArtworkBtn) {
+    resetArtworkBtn.addEventListener('click', () => {
+        customArtworkImg = null;
+        customArtworkDataUrl = null;
+        currentGraphicType = 'builtin_dragon';
+        resetArtworkBtn.style.display = 'none';
+        document.getElementById('artworkUpload').value = '';
+        scatterLedsOnGraphic(100, true);
+        showToast("🔄 Restored default Pete's Dragon graphic!");
+    });
+}
 
 // Preset Buttons
 document.getElementById('presetSelect').addEventListener('change', (e) => {
@@ -1051,28 +1413,69 @@ document.getElementById('saveLayoutBtn').addEventListener('click', () => {
     const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(leds, null, 2));
     const dlAnchor = document.createElement('a');
     dlAnchor.setAttribute("href", dataStr);
-    dlAnchor.setAttribute("download", "petes_dragon_led_coords.json");
+    dlAnchor.setAttribute("download", `petes_dragon_${leds.length}_leds.json`);
     dlAnchor.click();
 });
 
 // Generate FastLED C++ Code
 document.getElementById('exportCodeBtn').addEventListener('click', () => {
-    const code = `// ============================================================================
-// FASTLED ANIMATION: PETE'S DRAGON FLOAT (GENERATED BY SIMULATOR)
+    const hasAnyColors = leds.some(l => l.color);
+    let code = '';
+
+    if (hasAnyColors) {
+        const paletteLines = [];
+        for (let i = 0; i < leds.length; i++) {
+            const c = leds[i].color || { r: 0, g: 255, b: 100 };
+            paletteLines.push(`    CRGB(${c.r}, ${c.g}, ${c.b})${i < leds.length - 1 ? ',' : ''} // LED ${i}`);
+        }
+
+        code = `// ============================================================================
+// FASTLED ANIMATION: PETE'S DRAGON ${leds.length}-LED COLOR-MATCHED COSTUME
+// Generated by MSEP Simulator - kidmd/WDW-costumes
 // ============================================================================
+#define NUM_LEDS ${leds.length}
+
+// Artwork Sampled Color Palette (PROGMEM flash storage)
+const CRGB PROGMEM ARTWORK_PALETTE[NUM_LEDS] = {
+${paletteLines.join('\n')}
+};
+
 void renderPetesDragonCustom(uint32_t t) {
-    // Base Green Hue: ${params.greenHue}° | Tempo: ${params.speedBpm} BPM
+    // Breathing tempo: ${params.speedBpm} BPM
+    uint8_t breath = beatsin8(${Math.round(params.speedBpm / 2)}, 160, 255);
+
     for (int i = 0; i < NUM_LEDS; i++) {
-        // Deep emerald green base with organic breathing pulse
-        uint8_t breath = beatsin8(${Math.round(params.speedBpm / 2)}, 180, 255);
-        leds[i] = CHSV(${Math.floor(params.greenHue * 255 / 360)}, 240, breath);
-        
-        // Starlight Sparkles (Probability: ${params.sparkleRate}%)
+        // Read color from artwork flash palette
+        CRGB baseColor;
+        baseColor.r = pgm_read_byte(&ARTWORK_PALETTE[i].r);
+        baseColor.g = pgm_read_byte(&ARTWORK_PALETTE[i].g);
+        baseColor.b = pgm_read_byte(&ARTWORK_PALETTE[i].b);
+
+        // Apply organic breathing
+        baseColor.nscale8_video(breath);
+        leds[i] = baseColor;
+
+        // Incandescent Starlight Sparkles (Probability: ${params.sparkleRate}%)
         if (random8() < ${Math.floor(params.sparkleRate * 0.4)}) {
-            leds[i] = CRGB(255, 255, 230); // Incandescent starlight flash
+            leds[i] = CRGB(255, 255, 240);
         }
     }
 }`;
+    } else {
+        code = `// ============================================================================
+// FASTLED ANIMATION: PETE'S DRAGON FLOAT (GENERATED BY SIMULATOR)
+// ============================================================================
+#define NUM_LEDS ${leds.length}
+void renderPetesDragonCustom(uint32_t t) {
+    for (int i = 0; i < NUM_LEDS; i++) {
+        uint8_t breath = beatsin8(${Math.round(params.speedBpm / 2)}, 180, 255);
+        leds[i] = CHSV(${Math.floor(params.greenHue * 255 / 360)}, 240, breath);
+        if (random8() < ${Math.floor(params.sparkleRate * 0.4)}) {
+            leds[i] = CRGB(255, 255, 230);
+        }
+    }
+}`;
+    }
 
     document.getElementById('codeOutput').textContent = code;
     document.getElementById('codeModal').classList.add('open');

@@ -59,6 +59,7 @@
                 </div>
                 <div class="control-group">
                     <select id="patternSelect" style="background: #21262d; color: #fff; border: 1px solid #30363d; padding: 8px 12px; border-radius: 6px; outline: none; font-size: 13px;">
+                        <option value="color_match">🌈 Color-Matched Scatter Glow + Sparkles</option>
                         <option value="dragon_sparkle">🐉 Pete's Dragon: Green Glow + White Sparkles</option>
                         <option value="fire_breath">🔥 Snout Fire-Breathing Pulse</option>
                         <option value="traveling_wave">🌊 Traveling Parade Wave (ESP-NOW)</option>
@@ -124,19 +125,33 @@
                     <label style="font-size: 12px; color: var(--text-muted); margin-bottom: 4px;">Custom Graphic (PNG / SVG / JPG):</label>
                     <input type="file" id="artworkUpload" accept="image/*" style="font-size: 12px; color: var(--text-muted);">
                 </div>
-                <button id="autoOutlineBtn" class="action-btn accent" style="margin-top: 4px;">
-                    ✨ Auto-Outline Image (50 LEDs)
-                </button>
+                <div style="display: flex; flex-direction: column; gap: 6px; margin-top: 6px;">
+                    <button id="scatterColorBtn" class="action-btn accent" style="font-weight: 600;">
+                        🌈 Scatter 100 LEDs (Color-Match)
+                    </button>
+                    <button id="autoOutlineBtn" class="action-btn" style="font-size: 12px;">
+                        ✨ Auto-Outline Image (50 LEDs)
+                    </button>
+                    <button id="resetArtworkBtn" class="action-btn" style="font-size: 11px; display: none;" title="Restore default Pete's Dragon artwork">
+                        🔄 Restore Default Dragon
+                    </button>
+                </div>
             </div>
 
             <!-- 5. LED Layout Tools -->
             <div class="control-section">
                 <div class="section-title">
-                    <span>LED Layout (50 Pixels)</span>
+                    <span id="ledCountTitle">LED Layout (100 Pixels)</span>
                 </div>
                 
+                <div class="control-group" style="display: flex; gap: 6px; margin-bottom: 8px;">
+                    <button id="quick100Btn" class="action-btn accent" style="flex: 1; font-size: 11px; padding: 5px 6px;">100 Scatter</button>
+                    <button id="quick50Btn" class="action-btn" style="flex: 1; font-size: 11px; padding: 5px 6px;">50 Outline</button>
+                    <button id="resampleColorsBtn" class="action-btn" style="flex: 1; font-size: 11px; padding: 5px 6px;" title="Sample colors from artwork under each LED">🎨 Sample</button>
+                </div>
+
                 <div class="toggle-row">
-                    <span>Show Wiring Trace (0 $\rightarrow$ 49)</span>
+                    <span id="wiringLabel">Show Wiring Trace (0 &rarr; 99)</span>
                     <label class="switch">
                         <input type="checkbox" id="showWiringToggle">
                         <span class="slider"></span>
