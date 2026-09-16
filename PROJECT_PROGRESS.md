@@ -73,6 +73,7 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 - [ ] **To-Do (Pending Fairy Lights Arrival): Resume Custom Costume Simulator Testing**
   - [ ] Await delivery of WS2812B 5V "Seed / Pebble" RGBIC fairy pixel strings.
+  - [ ] Implement Real-Time Live Streaming / Tethering (stream pixel colors over Wi-Fi / Serial from `simulator.py` directly to ESP32 for instant live-preview without re-flashing).
   - [ ] Resume custom character costume layout and testing with the Web Simulator (`simulator.py`).
   - [ ] Calibrate fairy light color order (verify RGB vs GRB on new fairy light hardware) and power limits.
   - [ ] Test 100-LED Pete's Dragon scatter pattern with starlight diamond sparkles on wearable fairy lights.
@@ -94,12 +95,13 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ### Entry: Reverted to Pre-Simulator Fleet Sync Firmware (Awaiting Fairy Lights)
 * **Date:** 2026-09-15
-* **Status:** Milestone 2 fleet synchronization firmware restored.
+* **Status:** Milestone 2 fleet synchronization firmware restored & 100% verified in lockstep.
 * **Notes:**
-  * Reverted `src/main.cpp` back to the baseline Milestone 2 firmware (auto-role ESP-NOW synchronization, 50 LEDs, 4 parade modes: Marquee Chase, Float Sparkle, Starlight Twinkle, and Traveling Wave).
+  * Reverted `src/main.cpp` back to the baseline Milestone 2 firmware (auto-role ESP-NOW synchronization, 50 LEDs, 4 parade modes: Marquee Chase, Float Sparkle, Starlight Twinkle, and Traveling Wave) with startup brownout bypass.
+  * **Power Verification:** Confirmed that Board 1 (Leader) and Board 2 (Follower) are running in 100% wireless lockstep on 5V external power (phone charger / battery pack).
+  * **Electrical Finding:** Identified that 12mm WS2811 bullet pixels pull ~30-55mA each (1.0A+ for 50 LEDs), whereas seed/pebble fairy lights pull only ~10-15mA each (~350mA for 50 LEDs). This explains why the laptop USB port handled fairy lights yesterday, but browned out on the heavier 12mm bullet pixels today.
   * Archived custom Pete's Dragon layout, vibrant scatter presets, and simulator flashing engine in the codebase.
-  * Paused custom single-costume testing pending arrival of wearable WS2812B fairy lights (which draw significantly less power than the 12mm bullet pixels tested today).
-  * Flashed restored fleet sync firmware onto the ESP32.
+  * Paused custom single-costume testing pending arrival of wearable WS2812B fairy lights.
 
 ### Entry: Interactive Python LED Simulator Enhanced (Auto-Outline & Preset Persistence)
 * **Date:** 2026-09-15
