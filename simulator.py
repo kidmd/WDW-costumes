@@ -145,6 +145,8 @@ class SimulatorRequestHandler(http.server.SimpleHTTPRequestHandler):
             speed_bpm = int(payload.get("speedBpm", 120))
             sparkle_rate = int(payload.get("sparkleRate", 40))
             green_hue = int(payload.get("greenHue", 140))
+            brightness_pct = int(payload.get("brightness", 80))
+            fastled_brightness = max(40, min(255, int(brightness_pct * 255 / 100)))
             palette = payload.get("palette", [])
             
             pattern_map = {
@@ -161,11 +163,11 @@ class SimulatorRequestHandler(http.server.SimpleHTTPRequestHandler):
             for i in range(num_leds):
                 if i < len(palette) and palette[i]:
                     c = palette[i]
-                    r = int(c.get("r", 40))
-                    g = int(c.get("g", 180))
-                    b = int(c.get("b", 50))
+                    r = int(c.get("r", 15))
+                    g = int(c.get("g", 255))
+                    b = int(c.get("b", 35))
                 else:
-                    r, g, b = (40, 180, 50)
+                    r, g, b = (15, 255, 35)
                 comma = "," if i < num_leds - 1 else ""
                 palette_lines.append(f"    CRGB({r}, {g}, {b}){comma} // LED {i}")
             
@@ -190,6 +192,7 @@ class SimulatorRequestHandler(http.server.SimpleHTTPRequestHandler):
 #define COSTUME_SPEED_BPM                {speed_bpm}
 #define COSTUME_SPARKLE_RATE             {sparkle_rate}
 #define COSTUME_GREEN_HUE                {green_hue}
+#define COSTUME_BRIGHTNESS               {fastled_brightness}
 #define HAS_CUSTOM_PALETTE               1
 #define COSTUME_OVERRIDE_STANDALONE      1
 

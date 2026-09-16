@@ -1003,19 +1003,75 @@ function updateLedCountUI() {
     }
 }
 
-// Boost vibrancy of sampled colors so they shine like punchy WS2812B LEDs
-function boostLedVibrancy(r, g, b) {
+// Boost vibrancy and saturation of sampled colors so physical WS2812B LEDs shine with true character colors
+function boostLedVibrancy(r, g, b, relX, relY) {
+    // If pixel is near-black line art, contour, or dark shadow (< 60):
+    // Never allow an LED to be dark or unlit! Default to vibrant dragon green.
     const maxVal = Math.max(r, g, b);
-    if (maxVal === 0) return { r: 60, g: 60, b: 60 };
-
-    let factor = 1.0;
-    if (maxVal < 140) {
-        factor = Math.min(2.0, 180 / maxVal);
+    if (maxVal < 60) {
+        return { r: 15, g: 255, b: 35 };
     }
+
+    // Convert to HSV to evaluate dominant hue and saturation
+    const rNorm = r / 255.0;
+    const gNorm = g / 255.0;
+    const bNorm = b / 255.0;
+    const max = Math.max(rNorm, gNorm, bNorm);
+    const min = Math.min(rNorm, gNorm, bNorm);
+    const delta = max - min;
+
+    let hue = 0;
+    if (delta > 0.001) {
+        if (max === rNorm) {
+            hue = ((gNorm - bNorm) / delta) % 6;
+        } else if (max === gNorm) {
+            hue = (bNorm - rNorm) / delta + 2;
+        } else {
+            hue = (rNorm - gNorm) / delta + 4;
+        }
+        hue = Math.round(hue * 60);
+        if (hue < 0) hue += 360;
+    }
+
+    // 1. Pete's Dragon Hair Crest / Tuft (at the top of the head: relY < 0.12):
+    // Produce vivid Disney electric orange hair!
+    if (currentGraphicType === 'builtin_dragon' && relY !== undefined && relY < 0.12 && relX > 0.35 && relX < 0.62) {
+        return { r: 255, g: 50, b: 0 };
+    }
+
+    // 2. Wings / Pink / Magenta / Violet:
+    // In WS2812B LEDs, the green diode is 3x more luminous than red.
+    // To make physical LEDs shine true, radiant Disney Hot Pink without washing out into pastel lime/white,
+    // green must be strictly suppressed (0-25) while red is at maximum (255)!
+    if ((hue >= 265 || hue <= 15) && (r > g + 8 || b > g || delta > 0.12)) {
+        const gLed = Math.min(22, Math.round(g * 0.12));
+        const bLed = Math.min(220, Math.max(120, Math.round(b * 1.25)));
+        return { r: 255, g: gLed, b: bLed };
+    }
+
+    // 3. Orange / Red (Hue 15° to 55°):
+    if (hue > 15 && hue < 55 && r > g + 15) {
+        const gLed = Math.min(80, Math.max(35, Math.round(g * 0.5)));
+        return { r: 255, g: gLed, b: 0 };
+    }
+
+    // 4. Lime Green / Yellow-Green Underbelly (Hue 55° to 95°):
+    if (hue >= 55 && hue < 95) {
+        const rLed = Math.min(100, Math.max(50, Math.round(r * 0.7)));
+        return { r: rLed, g: 255, b: 15 };
+    }
+
+    // 5. Cyan / Sky Blue (Hue 175° to 260°):
+    if (hue >= 175 && hue < 260) {
+        const gLed = Math.min(220, Math.max(80, Math.round(g * 0.9)));
+        return { r: 0, g: gLed, b: 255 };
+    }
+
+    // 6. Emerald Dragon Green Body (Hue 95° to 175°, or default):
     return {
-        r: Math.min(255, Math.round(r * factor)),
-        g: Math.min(255, Math.round(g * factor)),
-        b: Math.min(255, Math.round(b * factor))
+        r: Math.min(40, Math.max(10, Math.round(r * 0.3))),
+        g: 255,
+        b: Math.min(60, Math.max(25, Math.round(b * 0.4)))
     };
 }
 
@@ -1053,7 +1109,7 @@ function sampleColorAtNorm(normX, normY) {
     const p = offCtx.getImageData(px, py, 1, 1).data;
     if (p[3] < 30) return null;
 
-    return boostLedVibrancy(p[0], p[1], p[2]);
+    return boostLedVibrancy(p[0], p[1], p[2], relX, relY);
 }
 
 // Resample colors for all current LEDs based on current background graphic
@@ -1112,10 +1168,11 @@ function scatterLedsOnGraphic(targetCount = 100, colorMatch = true) {
 
             let isFg = false;
             if (hasTransparency) {
-                isFg = (a > 60);
+                // Ignore transparent background AND ignore black contour line art (< 60)
+                isFg = (a > 80 && Math.max(r, g, b) >= 60);
             } else {
                 const lum = 0.299 * r + 0.587 * g + 0.114 * b;
-                isFg = (lum > 35);
+                isFg = (lum > 55);
             }
 
             if (isFg) {
@@ -1171,12 +1228,14 @@ function scatterLedsOnGraphic(targetCount = 100, colorMatch = true) {
 
     for (let i = 0; i < selected.length; i++) {
         const p = selected[i];
-        const normX = gb.normX + (p.x / targetW) * gb.normW;
-        const normY = gb.normY + (p.y / targetH) * gb.normH;
+        const relX = p.x / targetW;
+        const relY = p.y / targetH;
+        const normX = gb.normX + relX * gb.normW;
+        const normY = gb.normY + relY * gb.normH;
 
         let col = { r: p.r, g: p.g, b: p.b };
         if (colorMatch) {
-            col = boostLedVibrancy(col.r, col.g, col.b);
+            col = boostLedVibrancy(col.r, col.g, col.b, relX, relY);
         }
 
         newLeds.push({
@@ -1649,7 +1708,8 @@ if (flashEsp32Btn) {
                 speedBpm: params.speedBpm,
                 sparkleRate: params.sparkleRate,
                 greenHue: params.greenHue,
-                palette: leds.map(l => l.color || { r: 40, g: 180, b: 50 })
+                brightness: params.brightness,
+                palette: leds.map(l => l.color || { r: 15, g: 255, b: 35 })
             };
 
             const response = await fetch('/api/flash_firmware', {

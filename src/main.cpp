@@ -20,8 +20,11 @@
 
 #define STATUS_LED_PIN  2       // Onboard Blue LED (Heartbeat / Sync Indicator)
 
-#define MAX_BRIGHTNESS  45
-#define MAX_MILLIAMPS   800
+#ifndef COSTUME_BRIGHTNESS
+  #define COSTUME_BRIGHTNESS 85
+#endif
+#define MAX_BRIGHTNESS  COSTUME_BRIGHTNESS
+#define MAX_MILLIAMPS   1000
 
 CRGB leds[NUM_LEDS];
 
