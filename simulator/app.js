@@ -1540,9 +1540,184 @@ document.getElementById('closeModalBtn').addEventListener('click', () => {
 document.getElementById('copyCodeBtn').addEventListener('click', () => {
     const codeText = document.getElementById('codeOutput').textContent;
     navigator.clipboard.writeText(codeText).then(() => {
-        alert("FastLED C++ code copied to clipboard!");
+        showToast("📋 FastLED C++ code copied to clipboard!");
     });
 });
+
+// ============================================================================
+// ESP32 USB SERIAL & ONE-CLICK FIRMWARE FLASHER
+// ============================================================================
+let detectedSerialPort = null;
+let isFlashingFirmware = false;
+
+async function checkSerialPortStatus() {
+    const dot = document.getElementById('serialIndicatorDot');
+    const text = document.getElementById('serialStatusText');
+    const portBadge = document.getElementById('flashPortBadge');
+    
+    try {
+        const res = await fetch('/api/serial_status');
+        if (res.ok) {
+            const data = await res.json();
+            if (data.connected && data.port) {
+                detectedSerialPort = data.port;
+                if (dot) dot.style.background = '#3fb950';
+                if (text) {
+                    text.textContent = `ESP32 on ${data.port}`;
+                    text.style.color = '#3fb950';
+                }
+                if (portBadge) {
+                    portBadge.textContent = data.port;
+                    portBadge.style.display = 'inline-block';
+                }
+                return;
+            }
+        }
+    } catch (e) {
+        // Backend offline or error
+    }
+
+    detectedSerialPort = null;
+    if (dot) dot.style.background = '#f85149';
+    if (text) {
+        text.textContent = 'No ESP32 (Plug into USB)';
+        text.style.color = '#8b949e';
+    }
+    if (portBadge) {
+        portBadge.style.display = 'none';
+    }
+}
+
+const refreshSerialBtn = document.getElementById('refreshSerialBtn');
+if (refreshSerialBtn) {
+    refreshSerialBtn.addEventListener('click', () => {
+        checkSerialPortStatus();
+        showToast("🔄 Refreshed USB serial port status");
+    });
+}
+
+// Initial status check & auto-poll every 6 seconds
+checkSerialPortStatus();
+setInterval(checkSerialPortStatus, 6000);
+
+// Flash to Connected ESP32 handler
+const flashEsp32Btn = document.getElementById('flashEsp32Btn');
+const flashModal = document.getElementById('flashModal');
+const closeFlashModalBtn = document.getElementById('closeFlashModalBtn');
+const flashDoneBtn = document.getElementById('flashDoneBtn');
+const flashStatusText = document.getElementById('flashStatusText');
+const flashProgressBar = document.getElementById('flashProgressBar');
+const flashTerminal = document.getElementById('flashTerminal');
+const flashTipText = document.getElementById('flashTipText');
+
+if (flashEsp32Btn) {
+    flashEsp32Btn.addEventListener('click', async () => {
+        if (isFlashingFirmware) return;
+
+        // Open modal and show initial build state
+        flashModal.classList.add('open');
+        flashStatusText.textContent = `Building costume firmware (${leds.length} LEDs)...`;
+        flashStatusText.style.color = 'var(--text-main)';
+        flashProgressBar.style.width = '20%';
+        flashProgressBar.style.background = '#388bfd';
+        flashDoneBtn.style.display = 'none';
+        flashTipText.textContent = 'Compiling C++ FastLED code and flashing via USB...';
+        
+        flashTerminal.textContent = `[SIMULATOR] Preparing firmware for ${leds.length} LEDs...\n` +
+            `[SIMULATOR] Active Pattern: ${activePattern}\n` +
+            `[SIMULATOR] Speed: ${params.speedBpm} BPM | Sparkle Rate: ${params.sparkleRate}%\n` +
+            `[SIMULATOR] Generating include/costume_config.h...\n` +
+            `[SIMULATOR] Connecting to ESP32...\n--------------------------------------------------\n`;
+
+        isFlashingFirmware = true;
+        flashEsp32Btn.disabled = true;
+        flashEsp32Btn.style.opacity = '0.6';
+
+        // Animate progress bar incrementally while waiting
+        let progress = 20;
+        const progressTimer = setInterval(() => {
+            if (progress < 85) {
+                progress += 5;
+                flashProgressBar.style.width = `${progress}%`;
+            }
+        }, 600);
+
+        try {
+            const payload = {
+                numLeds: leds.length,
+                pattern: activePattern,
+                speedBpm: params.speedBpm,
+                sparkleRate: params.sparkleRate,
+                greenHue: params.greenHue,
+                palette: leds.map(l => l.color || { r: 40, g: 180, b: 50 })
+            };
+
+            const response = await fetch('/api/flash_firmware', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+
+            clearInterval(progressTimer);
+
+            if (!response.ok) {
+                throw new Error(`Server returned HTTP ${response.status}`);
+            }
+
+            const data = await response.json();
+
+            if (data.success) {
+                flashProgressBar.style.width = '100%';
+                flashProgressBar.style.background = '#238636';
+                flashStatusText.textContent = `🎉 Flash Complete! Running on ${data.port || 'ESP32'}`;
+                flashStatusText.style.color = '#3fb950';
+                flashTipText.textContent = 'ESP32 restarted and running your costume animation!';
+                flashTerminal.textContent += (data.log || '') + '\n\n' +
+                    `==================================================\n` +
+                    `[SUCCESS] Costume successfully flashed to ESP32 on ${data.port}!\n` +
+                    `GPIO 16 is now outputting the ${leds.length}-LED animation.\n` +
+                    `==================================================`;
+                showToast(`⚡ Flashed successfully to ${data.port}!`);
+            } else {
+                flashProgressBar.style.width = '100%';
+                flashProgressBar.style.background = '#da3633';
+                flashStatusText.textContent = `⚠️ Flash Failed: ${data.error || 'Check log'}`;
+                flashStatusText.style.color = '#f85149';
+                flashTipText.textContent = 'Ensure ESP32 is plugged in and hold BOOT button if needed.';
+                flashTerminal.textContent += (data.log || '') + '\n\n' +
+                    `--------------------------------------------------\n` +
+                    `[ERROR] ${data.error || 'Upload failed'}\n` +
+                    `Tip: Check USB cable or hold BOOT button on the ESP32 while connecting.`;
+            }
+        } catch (err) {
+            clearInterval(progressTimer);
+            flashProgressBar.style.width = '100%';
+            flashProgressBar.style.background = '#da3633';
+            flashStatusText.textContent = `⚠️ Error: ${err.message}`;
+            flashStatusText.style.color = '#f85149';
+            flashTerminal.textContent += `\n[CLIENT ERROR] ${err.message}\nMake sure simulator.py is running.`;
+        } finally {
+            isFlashingFirmware = false;
+            flashEsp32Btn.disabled = false;
+            flashEsp32Btn.style.opacity = '1';
+            flashDoneBtn.style.display = 'block';
+            flashTerminal.scrollTop = flashTerminal.scrollHeight;
+            checkSerialPortStatus();
+        }
+    });
+}
+
+if (closeFlashModalBtn) {
+    closeFlashModalBtn.addEventListener('click', () => {
+        flashModal.classList.remove('open');
+    });
+}
+
+if (flashDoneBtn) {
+    flashDoneBtn.addEventListener('click', () => {
+        flashModal.classList.remove('open');
+    });
+}
 
 // Utility: HSL to RGB
 function hslToRgb(h, s, l) {

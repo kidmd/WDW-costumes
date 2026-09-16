@@ -3,13 +3,21 @@
 #include <esp_now.h>
 #include <WiFi.h>
 
+#if __has_include("costume_config.h")
+  #include "costume_config.h"
+#endif
+
 // ============================================================================
 // HARDWARE & PIN DEFINITIONS
 // ============================================================================
 #define DATA_PIN        16      // 8th pin down on the right
 #define LED_TYPE        WS2812B
 #define COLOR_ORDER     GRB
-#define NUM_LEDS        50      // LEDs per strand
+
+#ifndef NUM_LEDS
+  #define NUM_LEDS      50      // Default LEDs per strand if not defined in costume_config.h
+#endif
+
 #define STATUS_LED_PIN  2       // Onboard Blue LED (Heartbeat / Sync Indicator)
 
 #define MAX_BRIGHTNESS  45
@@ -81,8 +89,42 @@ void renderMarqueeChase(uint32_t t) {
     }
 }
 
+// Custom Costume Animation (Pete's Dragon / User Float Design)
+void renderCustomCostume(uint32_t t) {
+#if defined(HAS_CUSTOM_PALETTE) && HAS_CUSTOM_PALETTE
+  #if ACTIVE_COSTUME_PATTERN == COSTUME_PATTERN_BREATHING_GLOW
+    uint8_t breath = beatsin8(COSTUME_SPEED_BPM / 2, 160, 255);
+    for (int i = 0; i < NUM_LEDS; i++) {
+        CRGB baseColor;
+        baseColor.r = pgm_read_byte(&ARTWORK_PALETTE[i].r);
+        baseColor.g = pgm_read_byte(&ARTWORK_PALETTE[i].g);
+        baseColor.b = pgm_read_byte(&ARTWORK_PALETTE[i].b);
+        baseColor.nscale8_video(breath);
+        leds[i] = baseColor;
+        if (random8() < (COSTUME_SPARKLE_RATE * 0.4)) {
+            leds[i] = CRGB(255, 255, 240);
+        }
+    }
+  #else
+    // Default: Steady colors with occasional starlight sparkles (no breathing)
+    for (int i = 0; i < NUM_LEDS; i++) {
+        CRGB baseColor;
+        baseColor.r = pgm_read_byte(&ARTWORK_PALETTE[i].r);
+        baseColor.g = pgm_read_byte(&ARTWORK_PALETTE[i].g);
+        baseColor.b = pgm_read_byte(&ARTWORK_PALETTE[i].b);
+        leds[i] = baseColor;
+        if (random8() < (COSTUME_SPARKLE_RATE * 0.4)) {
+            leds[i] = CRGB(255, 255, 240);
+        }
+    }
+  #endif
+#else
+    fill_solid(leds, NUM_LEDS, CHSV(96, 240, 200));
+#endif
+}
+
 // Mode 1: Synchronized Float Palette Sparkle
-// Float 1 showcases Title Drum Gold, Float 2 showcases Casey Jr. Red/White accents
+// Float 1: Title Drum Gold | Float 2: Casey Jr. Red/Cyan | Float 3+: Pete's Dragon / Custom
 void renderParadeSparkle(uint32_t t) {
     static const CRGB paletteDrum[] = {
         CRGB(255, 160, 20), CRGB(255, 230, 180), CRGB(255, 120, 10)
@@ -90,6 +132,11 @@ void renderParadeSparkle(uint32_t t) {
     static const CRGB paletteCasey[] = {
         CRGB(255, 25, 0), CRGB(255, 230, 180), CRGB(0, 190, 255)
     };
+
+    if (myFloatNumber >= 3) {
+        renderCustomCostume(t);
+        return;
+    }
 
     uint8_t step = (t / 180) % 3;
     for (int i = 0; i < NUM_LEDS; i++) {
@@ -160,8 +207,8 @@ void setup() {
         Serial.println("[ROLE] Configured as: >>> FOLLOWER (Float 2 - Casey Jr.) <<<");
     } else {
         isLeader = false;
-        myFloatNumber = 2;
-        Serial.println("[ROLE] Unregistered MAC - Defaulting to Follower (Float 2)");
+        myFloatNumber = 3;
+        Serial.println("[ROLE] Unregistered MAC - Configured as: >>> FOLLOWER (Float 3 - Pete's Dragon / Custom) <<<");
     }
 
     // 3. Initialize ESP-NOW
@@ -201,6 +248,30 @@ void setup() {
 void loop() {
     uint32_t now = millis();
 
+#if defined(COSTUME_OVERRIDE_STANDALONE) && COSTUME_OVERRIDE_STANDALONE
+    // Standalone costume preview mode flashed directly from Simulator
+    renderCustomCostume(now);
+
+    // If Leader, broadcast sync heartbeat so followers remain synchronized
+    if (isLeader) {
+        static uint32_t lastBroadcast = 0;
+        if (now - lastBroadcast >= 40) {
+            lastBroadcast = now;
+            ParadeSyncPacket packet;
+            packet.magic = 0xEE;
+            packet.mode = 1; // Mode 1: Sparkle / Costume
+            packet.masterMillis = now;
+            packet.activeFloat = 3;
+            packet.waveHead = 0;
+            esp_now_send(broadcastMac, (uint8_t*)&packet, sizeof(packet));
+        }
+    }
+    digitalWrite(STATUS_LED_PIN, (now / 500) % 2); // Heartbeat flash
+    FastLED.show();
+    delay(15);
+    return;
+#endif
+
     if (isLeader) {
         // --------------------------------------------------------------------
         // LEADER LOGIC: Controls the Master Clock and Broadcasts to Followers
@@ -210,7 +281,6 @@ void loop() {
         uint8_t mode = cycleTime / 12000; // 12 seconds per mode (0, 1, 2, 3)
 
         // Calculate traveling wave positions (Mode 3)
-        // 0 to 1.5s: Float 1 runs wave. 1.5s to 3.0s: Float 2 runs wave.
         uint8_t waveActiveFloat = 1;
         uint8_t waveHeadPos = 0;
         if (mode == 3) {
@@ -257,26 +327,31 @@ void loop() {
         localSyncTime += (now - lastLocalTick);
         lastLocalTick = now;
 
-        uint8_t mode = isConnected ? currentPacket.mode : ((now / 10000) % 4);
-        uint32_t activeTime = isConnected ? localSyncTime : now;
+        if (!isConnected && myFloatNumber >= 3) {
+            // Standalone bench preview for Float 3 / Custom costume design
+            renderCustomCostume(now);
+        } else {
+            uint8_t mode = isConnected ? currentPacket.mode : ((now / 10000) % 4);
+            uint32_t activeTime = isConnected ? localSyncTime : now;
 
-        switch (mode) {
-            case 0: 
-                renderMarqueeChase(activeTime); 
-                break;
-            case 1: 
-                renderParadeSparkle(activeTime); 
-                break;
-            case 2: 
-                renderTwinkle(activeTime); 
-                break;
-            case 3: 
-                if (isConnected) {
-                    renderTravelingWave(currentPacket.activeFloat, currentPacket.waveHead);
-                } else {
-                    renderMarqueeChase(now); // Standalone fallback
-                }
-                break;
+            switch (mode) {
+                case 0: 
+                    renderMarqueeChase(activeTime); 
+                    break;
+                case 1: 
+                    renderParadeSparkle(activeTime); 
+                    break;
+                case 2: 
+                    renderTwinkle(activeTime); 
+                    break;
+                case 3: 
+                    if (isConnected) {
+                        renderTravelingWave(currentPacket.activeFloat, currentPacket.waveHead);
+                    } else {
+                        renderMarqueeChase(now); // Standalone fallback
+                    }
+                    break;
+            }
         }
 
         // Status LED on Follower:

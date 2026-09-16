@@ -173,17 +173,31 @@
                 </div>
             </div>
 
-            <!-- 6. Firmware Code Export -->
+            <!-- 6. Firmware Code Export & Flashing -->
             <div class="control-section">
                 <div class="section-title">
-                    <span>ESP32 Firmware Export</span>
+                    <span>ESP32 Firmware & Flashing</span>
                 </div>
                 <p style="font-size: 12px; color: var(--text-muted); line-height: 1.4;">
-                    Generate the exact C++ FastLED function with your custom speed, hue, and sparkle settings.
+                    Send your active LED layout, sampled colors, and sparkle mode directly to the ESP32 over USB in one click.
                 </p>
-                <button id="exportCodeBtn" class="action-btn primary" style="margin-top: 8px;">
-                    📋 Copy FastLED C++ Code
-                </button>
+
+                <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 8px; margin-bottom: 8px; padding: 6px 10px; background: #0d1117; border-radius: 6px; border: 1px solid var(--border-color);">
+                    <div style="display: flex; align-items: center; gap: 6px; font-size: 12px;">
+                        <span id="serialIndicatorDot" style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #8b949e;"></span>
+                        <span id="serialStatusText" style="color: var(--text-muted);">Checking USB connection...</span>
+                    </div>
+                    <button id="refreshSerialBtn" style="background: transparent; border: none; color: var(--accent-cyan); font-size: 12px; cursor: pointer;" title="Refresh COM Port Status">🔄</button>
+                </div>
+
+                <div style="display: flex; flex-direction: column; gap: 8px;">
+                    <button id="flashEsp32Btn" class="action-btn primary" style="font-weight: 600; font-size: 13px; padding: 10px; background: linear-gradient(135deg, #238636, #2ea043);">
+                        ⚡ Flash to Connected ESP32
+                    </button>
+                    <button id="exportCodeBtn" class="action-btn" style="font-size: 12px;">
+                        📋 View / Copy C++ Code
+                    </button>
+                </div>
             </div>
 
         </div>
@@ -199,6 +213,33 @@
             <div id="codeOutput" class="modal-body"></div>
             <div style="padding: 12px 20px; background: #161b22; border-top: 1px solid var(--border-color); display: flex; justify-content: flex-end; gap: 8px;">
                 <button id="copyCodeBtn" class="action-btn primary" style="flex: none; padding: 8px 16px;">Copy to Clipboard</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal for ESP32 Firmware Flashing -->
+    <div id="flashModal" class="modal">
+        <div class="modal-content" style="width: 720px;">
+            <div class="modal-header">
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <span style="font-size: 18px;">⚡</span>
+                    <h3 style="font-size: 15px; font-weight: 600;" id="flashModalTitle">ESP32 Firmware Flasher</h3>
+                </div>
+                <button id="closeFlashModalBtn" class="close-btn">&times;</button>
+            </div>
+            <div style="padding: 16px 20px; border-bottom: 1px solid var(--border-color); background: #161b22;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                    <span id="flashStatusText" style="font-size: 13px; font-weight: 600; color: var(--text-main);">Preparing firmware build...</span>
+                    <span id="flashPortBadge" class="val-badge">COM5</span>
+                </div>
+                <div id="flashProgressBarContainer" style="width: 100%; height: 6px; background: #21262d; border-radius: 3px; overflow: hidden; position: relative;">
+                    <div id="flashProgressBar" style="width: 25%; height: 100%; background: #388bfd; transition: width 0.3s ease;"></div>
+                </div>
+            </div>
+            <div id="flashTerminal" class="modal-body" style="height: 300px; font-size: 12px; line-height: 1.5; color: #7ee787; background: #0b0f14; overflow-y: auto; white-space: pre-wrap; font-family: monospace;"></div>
+            <div style="padding: 12px 20px; background: #161b22; border-top: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center;">
+                <span id="flashTipText" style="font-size: 11px; color: var(--text-muted);">Ensure ESP32 is plugged in via USB (GPIO 16 drives LEDs).</span>
+                <button id="flashDoneBtn" class="action-btn primary" style="flex: none; padding: 6px 16px;">Close</button>
             </div>
         </div>
     </div>
