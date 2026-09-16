@@ -1034,25 +1034,20 @@ function boostLedVibrancy(r, g, b, relX, relY) {
     }
 
     // 1. Pete's Dragon Hair Crest / Tuft (at the top of the head: relY < 0.12):
-    // Produce vivid Disney electric orange hair!
+    // Produce vivid Disney flame orange hair!
     if (currentGraphicType === 'builtin_dragon' && relY !== undefined && relY < 0.12 && relX > 0.35 && relX < 0.62) {
-        return { r: 255, g: 50, b: 0 };
+        return { r: 255, g: 120, b: 0 };
     }
 
     // 2. Wings / Pink / Magenta / Violet:
-    // In WS2812B LEDs, the green diode is 3x more luminous than red.
-    // To make physical LEDs shine true, radiant Disney Hot Pink without washing out into pastel lime/white,
-    // green must be strictly suppressed (0-25) while red is at maximum (255)!
+    // Electric Disney Hot Pink: equal punch on Red & Blue with minimal green
     if ((hue >= 265 || hue <= 15) && (r > g + 8 || b > g || delta > 0.12)) {
-        const gLed = Math.min(22, Math.round(g * 0.12));
-        const bLed = Math.min(220, Math.max(120, Math.round(b * 1.25)));
-        return { r: 255, g: gLed, b: bLed };
+        return { r: 255, g: 25, b: 230 };
     }
 
     // 3. Orange / Red (Hue 15° to 55°):
     if (hue > 15 && hue < 55 && r > g + 15) {
-        const gLed = Math.min(80, Math.max(35, Math.round(g * 0.5)));
-        return { r: 255, g: gLed, b: 0 };
+        return { r: 255, g: 120, b: 0 };
     }
 
     // 4. Lime Green / Yellow-Green Underbelly (Hue 55° to 95°):

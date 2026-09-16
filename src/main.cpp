@@ -2,6 +2,8 @@
 #include <FastLED.h>
 #include <esp_now.h>
 #include <WiFi.h>
+#include "soc/soc.h"
+#include "soc/rtc_cntl_reg.h"
 
 // ============================================================================
 // HARDWARE & PIN DEFINITIONS
@@ -135,6 +137,7 @@ void renderTravelingWave(uint8_t activeFloat, uint8_t waveHead) {
 // SETUP
 // ============================================================================
 void setup() {
+    WRITE_PERI_REG(RTC_CNTL_BROWN_OUT_REG, 0); // Disable transient brownout detector during startup
     Serial.begin(115200);
     pinMode(STATUS_LED_PIN, OUTPUT);
     delay(500);
