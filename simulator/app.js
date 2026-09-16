@@ -1620,10 +1620,18 @@ async function checkSerialPortStatus() {
             const data = await res.json();
             if (data.connected && data.port) {
                 detectedSerialPort = data.port;
-                if (dot) dot.style.background = '#3fb950';
-                if (text) {
-                    text.textContent = `ESP32 on ${data.port}`;
-                    text.style.color = '#3fb950';
+                if (data.ready) {
+                    if (dot) dot.style.background = '#3fb950';
+                    if (text) {
+                        text.textContent = `ESP32 on ${data.port} (Ready)`;
+                        text.style.color = '#3fb950';
+                    }
+                } else {
+                    if (dot) dot.style.background = '#e3b341';
+                    if (text) {
+                        text.textContent = `${data.port} Wedged: Please Re-plug USB!`;
+                        text.style.color = '#e3b341';
+                    }
                 }
                 if (portBadge) {
                     portBadge.textContent = data.port;

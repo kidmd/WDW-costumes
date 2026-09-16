@@ -3,9 +3,7 @@
 #include <esp_now.h>
 #include <WiFi.h>
 
-#if __has_include("costume_config.h")
-  #include "costume_config.h"
-#endif
+#include "costume_config.h"
 
 // ============================================================================
 // HARDWARE & PIN DEFINITIONS
@@ -98,25 +96,18 @@ void renderCustomCostume(uint32_t t) {
   #if ACTIVE_COSTUME_PATTERN == COSTUME_PATTERN_BREATHING_GLOW
     uint8_t breath = beatsin8(COSTUME_SPEED_BPM / 2, 160, 255);
     for (int i = 0; i < NUM_LEDS; i++) {
-        CRGB baseColor;
-        baseColor.r = pgm_read_byte(&ARTWORK_PALETTE[i].r);
-        baseColor.g = pgm_read_byte(&ARTWORK_PALETTE[i].g);
-        baseColor.b = pgm_read_byte(&ARTWORK_PALETTE[i].b);
+        CRGB baseColor = ARTWORK_PALETTE[i];
         baseColor.nscale8_video(breath);
         leds[i] = baseColor;
-        if (random8() < (COSTUME_SPARKLE_RATE * 0.4)) {
+        if (COSTUME_SPARKLE_RATE > 0 && random8() < COSTUME_SPARKLE_RATE) {
             leds[i] = CRGB(255, 255, 240);
         }
     }
   #else
     // Default: Steady colors with occasional starlight sparkles (no breathing)
     for (int i = 0; i < NUM_LEDS; i++) {
-        CRGB baseColor;
-        baseColor.r = pgm_read_byte(&ARTWORK_PALETTE[i].r);
-        baseColor.g = pgm_read_byte(&ARTWORK_PALETTE[i].g);
-        baseColor.b = pgm_read_byte(&ARTWORK_PALETTE[i].b);
-        leds[i] = baseColor;
-        if (random8() < (COSTUME_SPARKLE_RATE * 0.4)) {
+        leds[i] = ARTWORK_PALETTE[i];
+        if (COSTUME_SPARKLE_RATE > 0 && random8() < COSTUME_SPARKLE_RATE) {
             leds[i] = CRGB(255, 255, 240);
         }
     }

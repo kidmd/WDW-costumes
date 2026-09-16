@@ -123,12 +123,26 @@ class SimulatorRequestHandler(http.server.SimpleHTTPRequestHandler):
             except Exception:
                 pass
 
+            ready = False
+            error_msg = None
+            if port:
+                try:
+                    import serial
+                    s = serial.Serial(port, 115200, timeout=0.1)
+                    s.close()
+                    ready = True
+                except Exception as ex:
+                    ready = False
+                    error_msg = str(ex)
+
             self.send_response(200)
             self.send_header("Content-Type", "application/json")
             self.end_headers()
             self.wfile.write(json.dumps({
                 "connected": bool(port),
+                "ready": ready,
                 "port": port,
+                "error": error_msg,
                 "all_ports": all_ports
             }).encode("utf-8"))
         except Exception as e:
@@ -209,6 +223,13 @@ const CRGB PROGMEM ARTWORK_PALETTE[NUM_LEDS] = {{
             with open(config_path, "w", encoding="utf-8") as f:
                 f.write(header_content)
 
+            # Touch src/main.cpp to force PlatformIO to recompile with new header
+            try:
+                main_cpp_path = os.path.join(BASE_DIR, "src", "main.cpp")
+                os.utime(main_cpp_path, None)
+            except Exception:
+                pass
+
             port = get_connected_esp32_port()
             if not port:
                 self.send_response(200)
@@ -233,7 +254,9 @@ const CRGB PROGMEM ARTWORK_PALETTE[NUM_LEDS] = {{
             success = (proc.returncode == 0)
             user_error = None
             if not success:
-                if "Wrong boot mode detected" in stdout or "needs to be in download mode" in stdout:
+                if "not functioning" in stdout or "Error 31" in stdout or "PermissionError(13" in stdout:
+                    user_error = f"USB Port {port} is unresponsive (Windows Error 31). Please UNPLUG the USB cable from the ESP32, wait 2 seconds, and plug it back in. Then click Flash again."
+                elif "Wrong boot mode detected" in stdout or "needs to be in download mode" in stdout:
                     user_error = "ESP32 did not enter bootloader mode automatically. Hold down the BOOT button on your ESP32 board, click Flash again, and release BOOT once writing begins."
                 elif "could not open port" in stdout or "PermissionError" in stdout or "Access is denied" in stdout:
                     user_error = f"Serial port {port} is busy or locked by another program (e.g. Serial Monitor). Close other apps using this COM port and try again."
