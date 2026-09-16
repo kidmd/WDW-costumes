@@ -160,7 +160,7 @@ class SimulatorRequestHandler(http.server.SimpleHTTPRequestHandler):
             sparkle_rate = int(payload.get("sparkleRate", 40))
             green_hue = int(payload.get("greenHue", 140))
             brightness_pct = int(payload.get("brightness", 80))
-            fastled_brightness = max(40, min(255, int(brightness_pct * 255 / 100)))
+            fastled_brightness = max(30, min(85, int(brightness_pct * 85 / 100)))
             palette = payload.get("palette", [])
             
             pattern_map = {
@@ -207,6 +207,7 @@ class SimulatorRequestHandler(http.server.SimpleHTTPRequestHandler):
 #define COSTUME_SPARKLE_RATE             {sparkle_rate}
 #define COSTUME_GREEN_HUE                {green_hue}
 #define COSTUME_BRIGHTNESS               {fastled_brightness}
+#define COLOR_ORDER                      RGB
 #define HAS_CUSTOM_PALETTE               1
 #define COSTUME_OVERRIDE_STANDALONE      1
 

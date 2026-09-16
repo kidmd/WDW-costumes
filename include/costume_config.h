@@ -15,114 +15,115 @@
 
 #define ACTIVE_COSTUME_PATTERN           COSTUME_PATTERN_STEADY_SPARKLE
 #define COSTUME_SPEED_BPM                120
-#define COSTUME_SPARKLE_RATE             40
+#define COSTUME_SPARKLE_RATE             1
 #define COSTUME_GREEN_HUE                140
-#define COSTUME_BRIGHTNESS               204
+#define COSTUME_BRIGHTNESS               70
+#define COLOR_ORDER                      RGB
 #define HAS_CUSTOM_PALETTE               1
 #define COSTUME_OVERRIDE_STANDALONE      1
 
 // Artwork Sampled Color Palette (PROGMEM Flash Storage)
 const CRGB PROGMEM ARTWORK_PALETTE[NUM_LEDS] = {
-    CRGB(31, 255, 27), // LED 0
+    CRGB(32, 255, 27), // LED 0
     CRGB(255, 50, 0), // LED 1
     CRGB(19, 255, 25), // LED 2
     CRGB(255, 8, 120), // LED 3
-    CRGB(255, 6, 120), // LED 4
+    CRGB(255, 13, 161), // LED 4
     CRGB(13, 255, 25), // LED 5
     CRGB(21, 255, 25), // LED 6
-    CRGB(21, 255, 25), // LED 7
-    CRGB(14, 255, 25), // LED 8
-    CRGB(20, 255, 25), // LED 9
-    CRGB(13, 255, 25), // LED 10
-    CRGB(255, 3, 120), // LED 11
-    CRGB(32, 255, 28), // LED 12
-    CRGB(20, 255, 25), // LED 13
-    CRGB(32, 255, 28), // LED 14
-    CRGB(22, 255, 25), // LED 15
-    CRGB(31, 255, 27), // LED 16
-    CRGB(19, 255, 25), // LED 17
-    CRGB(17, 255, 25), // LED 18
-    CRGB(21, 255, 25), // LED 19
-    CRGB(28, 255, 25), // LED 20
-    CRGB(27, 255, 32), // LED 21
-    CRGB(255, 15, 195), // LED 22
-    CRGB(255, 4, 120), // LED 23
-    CRGB(255, 50, 0), // LED 24
-    CRGB(84, 255, 15), // LED 25
-    CRGB(30, 255, 28), // LED 26
-    CRGB(27, 255, 30), // LED 27
-    CRGB(50, 255, 15), // LED 28
-    CRGB(21, 255, 25), // LED 29
-    CRGB(33, 255, 29), // LED 30
-    CRGB(19, 255, 25), // LED 31
-    CRGB(31, 255, 27), // LED 32
-    CRGB(255, 3, 120), // LED 33
-    CRGB(21, 255, 25), // LED 34
-    CRGB(255, 9, 132), // LED 35
-    CRGB(255, 50, 0), // LED 36
-    CRGB(255, 8, 120), // LED 37
-    CRGB(20, 255, 25), // LED 38
-    CRGB(18, 255, 25), // LED 39
-    CRGB(31, 255, 27), // LED 40
-    CRGB(19, 255, 25), // LED 41
-    CRGB(31, 255, 27), // LED 42
-    CRGB(31, 255, 26), // LED 43
-    CRGB(255, 8, 120), // LED 44
-    CRGB(20, 255, 25), // LED 45
-    CRGB(19, 255, 25), // LED 46
-    CRGB(20, 255, 25), // LED 47
-    CRGB(13, 255, 25), // LED 48
-    CRGB(255, 13, 175), // LED 49
-    CRGB(32, 255, 29), // LED 50
-    CRGB(31, 255, 27), // LED 51
-    CRGB(19, 255, 25), // LED 52
-    CRGB(10, 255, 25), // LED 53
-    CRGB(23, 255, 28), // LED 54
-    CRGB(21, 255, 25), // LED 55
-    CRGB(29, 255, 26), // LED 56
-    CRGB(255, 50, 0), // LED 57
-    CRGB(19, 255, 25), // LED 58
+    CRGB(11, 255, 25), // LED 7
+    CRGB(21, 255, 25), // LED 8
+    CRGB(17, 255, 25), // LED 9
+    CRGB(255, 5, 120), // LED 10
+    CRGB(14, 255, 25), // LED 11
+    CRGB(32, 255, 27), // LED 12
+    CRGB(19, 255, 25), // LED 13
+    CRGB(255, 10, 126), // LED 14
+    CRGB(255, 5, 120), // LED 15
+    CRGB(20, 255, 25), // LED 16
+    CRGB(255, 15, 201), // LED 17
+    CRGB(33, 255, 29), // LED 18
+    CRGB(32, 255, 27), // LED 19
+    CRGB(18, 255, 25), // LED 20
+    CRGB(11, 255, 25), // LED 21
+    CRGB(29, 255, 25), // LED 22
+    CRGB(32, 255, 27), // LED 23
+    CRGB(32, 255, 27), // LED 24
+    CRGB(16, 255, 25), // LED 25
+    CRGB(255, 50, 0), // LED 26
+    CRGB(32, 255, 28), // LED 27
+    CRGB(18, 255, 25), // LED 28
+    CRGB(11, 255, 25), // LED 29
+    CRGB(76, 255, 15), // LED 30
+    CRGB(32, 255, 28), // LED 31
+    CRGB(14, 255, 25), // LED 32
+    CRGB(255, 14, 181), // LED 33
+    CRGB(17, 255, 25), // LED 34
+    CRGB(33, 255, 28), // LED 35
+    CRGB(20, 255, 25), // LED 36
+    CRGB(255, 9, 120), // LED 37
+    CRGB(10, 255, 25), // LED 38
+    CRGB(255, 50, 0), // LED 39
+    CRGB(20, 255, 25), // LED 40
+    CRGB(255, 15, 188), // LED 41
+    CRGB(20, 255, 25), // LED 42
+    CRGB(255, 7, 120), // LED 43
+    CRGB(20, 255, 25), // LED 44
+    CRGB(12, 255, 25), // LED 45
+    CRGB(33, 255, 30), // LED 46
+    CRGB(32, 255, 27), // LED 47
+    CRGB(32, 255, 27), // LED 48
+    CRGB(21, 255, 25), // LED 49
+    CRGB(22, 255, 25), // LED 50
+    CRGB(20, 255, 25), // LED 51
+    CRGB(18, 255, 25), // LED 52
+    CRGB(20, 255, 25), // LED 53
+    CRGB(32, 255, 27), // LED 54
+    CRGB(17, 255, 25), // LED 55
+    CRGB(20, 255, 25), // LED 56
+    CRGB(33, 255, 28), // LED 57
+    CRGB(255, 50, 0), // LED 58
     CRGB(21, 255, 25), // LED 59
-    CRGB(255, 15, 191), // LED 60
-    CRGB(31, 255, 27), // LED 61
-    CRGB(18, 255, 25), // LED 62
-    CRGB(30, 255, 26), // LED 63
-    CRGB(10, 255, 25), // LED 64
-    CRGB(31, 255, 27), // LED 65
-    CRGB(21, 255, 25), // LED 66
-    CRGB(31, 255, 27), // LED 67
-    CRGB(31, 255, 27), // LED 68
-    CRGB(255, 18, 220), // LED 69
-    CRGB(19, 255, 25), // LED 70
-    CRGB(19, 255, 25), // LED 71
-    CRGB(11, 255, 25), // LED 72
-    CRGB(31, 255, 27), // LED 73
-    CRGB(255, 50, 0), // LED 74
-    CRGB(21, 255, 25), // LED 75
-    CRGB(22, 255, 25), // LED 76
-    CRGB(10, 255, 25), // LED 77
-    CRGB(22, 255, 25), // LED 78
-    CRGB(19, 255, 25), // LED 79
-    CRGB(27, 255, 25), // LED 80
-    CRGB(10, 255, 25), // LED 81
-    CRGB(31, 255, 27), // LED 82
-    CRGB(54, 255, 15), // LED 83
-    CRGB(255, 13, 172), // LED 84
-    CRGB(255, 14, 183), // LED 85
-    CRGB(32, 255, 29), // LED 86
-    CRGB(29, 255, 25), // LED 87
-    CRGB(30, 255, 26), // LED 88
-    CRGB(255, 5, 120), // LED 89
+    CRGB(20, 255, 25), // LED 60
+    CRGB(12, 255, 25), // LED 61
+    CRGB(255, 4, 120), // LED 62
+    CRGB(22, 255, 25), // LED 63
+    CRGB(32, 255, 32), // LED 64
+    CRGB(32, 255, 27), // LED 65
+    CRGB(255, 4, 120), // LED 66
+    CRGB(255, 7, 156), // LED 67
+    CRGB(32, 255, 27), // LED 68
+    CRGB(31, 255, 26), // LED 69
+    CRGB(10, 255, 25), // LED 70
+    CRGB(32, 255, 27), // LED 71
+    CRGB(32, 255, 27), // LED 72
+    CRGB(32, 255, 27), // LED 73
+    CRGB(255, 15, 199), // LED 74
+    CRGB(255, 5, 120), // LED 75
+    CRGB(32, 255, 27), // LED 76
+    CRGB(11, 255, 25), // LED 77
+    CRGB(32, 255, 28), // LED 78
+    CRGB(11, 255, 25), // LED 79
+    CRGB(255, 15, 186), // LED 80
+    CRGB(21, 255, 25), // LED 81
+    CRGB(32, 255, 27), // LED 82
+    CRGB(16, 255, 25), // LED 83
+    CRGB(255, 50, 0), // LED 84
+    CRGB(19, 255, 25), // LED 85
+    CRGB(20, 255, 25), // LED 86
+    CRGB(32, 255, 27), // LED 87
+    CRGB(20, 255, 25), // LED 88
+    CRGB(255, 15, 189), // LED 89
     CRGB(19, 255, 25), // LED 90
-    CRGB(31, 255, 27), // LED 91
-    CRGB(24, 255, 27), // LED 92
-    CRGB(10, 255, 25), // LED 93
-    CRGB(28, 255, 25), // LED 94
-    CRGB(255, 15, 206), // LED 95
-    CRGB(50, 255, 15), // LED 96
-    CRGB(30, 255, 25), // LED 97
-    CRGB(10, 255, 25), // LED 98
-    CRGB(31, 255, 27) // LED 99
+    CRGB(32, 255, 27), // LED 91
+    CRGB(14, 255, 25), // LED 92
+    CRGB(22, 255, 25), // LED 93
+    CRGB(32, 255, 27), // LED 94
+    CRGB(23, 255, 26), // LED 95
+    CRGB(14, 255, 25), // LED 96
+    CRGB(255, 14, 181), // LED 97
+    CRGB(20, 255, 25), // LED 98
+    CRGB(18, 255, 25) // LED 99
 };
 
 #endif // COSTUME_CONFIG_H

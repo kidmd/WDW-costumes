@@ -1607,6 +1607,7 @@ document.getElementById('copyCodeBtn').addEventListener('click', () => {
 // ESP32 USB SERIAL & ONE-CLICK FIRMWARE FLASHER
 // ============================================================================
 let detectedSerialPort = null;
+let isSerialPortReady = false;
 let isFlashingFirmware = false;
 
 async function checkSerialPortStatus() {
@@ -1620,6 +1621,7 @@ async function checkSerialPortStatus() {
             const data = await res.json();
             if (data.connected && data.port) {
                 detectedSerialPort = data.port;
+                isSerialPortReady = !!data.ready;
                 if (data.ready) {
                     if (dot) dot.style.background = '#3fb950';
                     if (text) {
@@ -1680,6 +1682,24 @@ const flashTipText = document.getElementById('flashTipText');
 if (flashEsp32Btn) {
     flashEsp32Btn.addEventListener('click', async () => {
         if (isFlashingFirmware) return;
+
+        if (!isSerialPortReady && detectedSerialPort) {
+            flashModal.classList.add('open');
+            flashStatusText.textContent = `⚠️ USB Port ${detectedSerialPort} Wedged (Windows Error 31)`;
+            flashStatusText.style.color = '#f85149';
+            flashProgressBar.style.width = '100%';
+            flashProgressBar.style.background = '#da3633';
+            flashTipText.textContent = 'Please unplug the USB cable, wait 2 seconds, and plug it back in!';
+            flashTerminal.textContent = `[PORT ERROR] Windows driver locked ${detectedSerialPort}: "A device attached to the system is not functioning" (Error 31).\n\n` +
+                `TO FIX THIS NOW:\n` +
+                `1. Unplug the ESP32 USB cable from your computer.\n` +
+                `2. Wait 2 seconds.\n` +
+                `3. Plug it back into your USB port.\n` +
+                `4. Watch the top indicator turn green: "● ESP32 on ${detectedSerialPort} (Ready)".\n` +
+                `5. Click Flash again!\n`;
+            flashDoneBtn.style.display = 'inline-block';
+            return;
+        }
 
         // Open modal and show initial build state
         flashModal.classList.add('open');

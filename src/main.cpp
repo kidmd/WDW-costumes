@@ -2,6 +2,8 @@
 #include <FastLED.h>
 #include <esp_now.h>
 #include <WiFi.h>
+#include "soc/soc.h"
+#include "soc/rtc_cntl_reg.h"
 
 #include "costume_config.h"
 
@@ -10,7 +12,9 @@
 // ============================================================================
 #define DATA_PIN        16      // 8th pin down on the right
 #define LED_TYPE        WS2812B
-#define COLOR_ORDER     GRB
+#ifndef COLOR_ORDER
+  #define COLOR_ORDER   RGB     // Physical fairy lights use RGB color order
+#endif
 
 #ifndef NUM_LEDS
   #define NUM_LEDS      50      // Default LEDs per strand if not defined in costume_config.h
@@ -19,10 +23,11 @@
 #define STATUS_LED_PIN  2       // Onboard Blue LED (Heartbeat / Sync Indicator)
 
 #ifndef COSTUME_BRIGHTNESS
-  #define COSTUME_BRIGHTNESS 85
+  #define COSTUME_BRIGHTNESS 70
 #endif
-#define MAX_BRIGHTNESS  COSTUME_BRIGHTNESS
-#define MAX_MILLIAMPS   1000
+// USB Power Safety: Cap brightness to 75 max so 100 LEDs don't brown out the USB port
+#define MAX_BRIGHTNESS  (COSTUME_BRIGHTNESS > 75 ? 75 : COSTUME_BRIGHTNESS)
+#define MAX_MILLIAMPS   450     // Strictly limit to 450mA to prevent USB brownout resets
 
 CRGB leds[NUM_LEDS];
 
@@ -93,22 +98,45 @@ void renderMarqueeChase(uint32_t t) {
 // Custom Costume Animation (Pete's Dragon / User Float Design)
 void renderCustomCostume(uint32_t t) {
 #if defined(HAS_CUSTOM_PALETTE) && HAS_CUSTOM_PALETTE
+    static uint8_t sparkleVal[NUM_LEDS] = {0};
+
+    // 1. Decay existing sparkles smoothly (~300ms organic fade like simulator)
+    for (int i = 0; i < NUM_LEDS; i++) {
+        if (sparkleVal[i] > 12) {
+            sparkleVal[i] -= 12;
+        } else {
+            sparkleVal[i] = 0;
+        }
+    }
+
+    // 2. Trigger new sparkles based on COSTUME_SPARKLE_RATE (gives visible twinkling even at 1%)
+    if (COSTUME_SPARKLE_RATE > 0) {
+        for (int i = 0; i < NUM_LEDS; i++) {
+            if (sparkleVal[i] == 0 && random16(1000) < (COSTUME_SPARKLE_RATE * 3)) {
+                sparkleVal[i] = 255;
+            }
+        }
+    }
+
   #if ACTIVE_COSTUME_PATTERN == COSTUME_PATTERN_BREATHING_GLOW
     uint8_t breath = beatsin8(COSTUME_SPEED_BPM / 2, 160, 255);
     for (int i = 0; i < NUM_LEDS; i++) {
         CRGB baseColor = ARTWORK_PALETTE[i];
         baseColor.nscale8_video(breath);
-        leds[i] = baseColor;
-        if (COSTUME_SPARKLE_RATE > 0 && random8() < COSTUME_SPARKLE_RATE) {
-            leds[i] = CRGB(255, 255, 240);
+        if (sparkleVal[i] > 0) {
+            leds[i] = blend(baseColor, CRGB(255, 255, 255), sparkleVal[i]);
+        } else {
+            leds[i] = baseColor;
         }
     }
   #else
-    // Default: Steady colors with occasional starlight sparkles (no breathing)
+    // Default: Steady colors with fading starlight sparkles (no breathing)
     for (int i = 0; i < NUM_LEDS; i++) {
-        leds[i] = ARTWORK_PALETTE[i];
-        if (COSTUME_SPARKLE_RATE > 0 && random8() < COSTUME_SPARKLE_RATE) {
-            leds[i] = CRGB(255, 255, 240);
+        CRGB baseColor = ARTWORK_PALETTE[i];
+        if (sparkleVal[i] > 0) {
+            leds[i] = blend(baseColor, CRGB(255, 255, 255), sparkleVal[i]);
+        } else {
+            leds[i] = baseColor;
         }
     }
   #endif
@@ -176,9 +204,10 @@ void renderTravelingWave(uint8_t activeFloat, uint8_t waveHead) {
 // SETUP
 // ============================================================================
 void setup() {
+    WRITE_PERI_REG(RTC_CNTL_BROWN_OUT_REG, 0); // Disable transient brownout detector during startup
     Serial.begin(115200);
     pinMode(STATUS_LED_PIN, OUTPUT);
-    delay(500);
+    delay(200);
 
     Serial.println("\n========================================================");
     Serial.println("  MAIN STREET ELECTRICAL PARADE - ESP-NOW WIRELESS FLEET");
