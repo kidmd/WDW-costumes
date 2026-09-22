@@ -194,7 +194,12 @@ void runFleetSync(uint32_t now) {
             case 2: renderTwinkle(activeTime); break;
             case 3: 
                 if (isConnected) {
-                    renderTravelingWave(currentPacket.activeFloat, currentPacket.waveHead);
+                    uint32_t waveTimer = activeTime % 3000;
+                    uint8_t waveActiveFloat = (waveTimer < 1500) ? 1 : 2;
+                    uint8_t waveHeadPos = (waveTimer < 1500) 
+                        ? map(waveTimer, 0, 1500, 0, PARADE_NUM_LEDS - 1)
+                        : map(waveTimer - 1500, 0, 1500, 0, PARADE_NUM_LEDS - 1);
+                    renderTravelingWave(waveActiveFloat, waveHeadPos);
                 } else {
                     renderMarqueeChase(now);
                 }
