@@ -102,6 +102,14 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
   * **One-Click Wi-Fi Receiver Flasher:** Users can flash the receiver once over USB via the simulator UI (`⚙️` settings dialog), then unplug the USB and power the ESP32 from a 5V/2A wall charger across the room forever while testing designs!
   * **Simulator UI Integration:** Added a "📡 Real-Time Wi-Fi Stream" dock with a live stream toggle button, pulsing connection status indicator, and automated 30 FPS pixel transmission.
 
+### Entry: Both ESP32 Boards Flashed with Unified Dual-Mode Firmware
+* **Date:** 2026-09-22
+* **Status:** 100% Deployed & Verified on Hardware.
+* **Notes:**
+  * **Board 1 (Leader - Float 1 Title Drum):** Flashed via PlatformIO on COM5; verified MAC `B0:CB:D8:C8:49:84`.
+  * **Board 2 (Follower - Float 2 Casey Jr.):** Flashed via PlatformIO on COM5; verified MAC `A4:F0:0F:64:33:A0`.
+  * **Unified Dual-Mode Operation:** Both boards now run the synchronized ESP-NOW fleet loop by default (Marquee Chase, Title Drum/Casey Jr. Sparkles, Starlight Twinkle, Traveling Wave across floats). When the Web Simulator transmits UDP packets on port 4210, the boards instantly switch to live pixel rendering; when the stream stops, they automatically resume the ESP-NOW parade loop after 2.5 seconds.
+
 ### Entry: Reverted to Pre-Simulator Fleet Sync Firmware (Awaiting Fairy Lights)
 * **Date:** 2026-09-15
 * **Status:** Milestone 2 fleet synchronization firmware restored & 100% verified in lockstep.
