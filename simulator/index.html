@@ -23,9 +23,17 @@
     <div class="main-layout">
         <!-- Canvas Viewport -->
         <div class="canvas-container">
+            <!-- Floating Zoom & Pan Controls -->
+            <div class="zoom-toolbar">
+                <button id="zoomInBtn" class="zoom-btn" title="Zoom In (+ or Scroll Up)">➕</button>
+                <button id="zoomOutBtn" class="zoom-btn" title="Zoom Out (- or Scroll Down)">➖</button>
+                <button id="zoomResetBtn" class="zoom-btn" title="Reset View (0 key)">⟲ 100%</button>
+                <span id="zoomLevelText" class="zoom-badge">100%</span>
+            </div>
+
             <canvas id="simulatorCanvas" width="850" height="880"></canvas>
             <div class="floating-overlay">
-                <span>💡 <strong>Interactive:</strong> Click and drag any LED bulb to adjust its placement along the dragon!</span>
+                <span>💡 <strong>Interactive:</strong> Scroll wheel to Zoom · Drag canvas or Space+drag to Pan · Click LED to select & adjust RGB · Drag LED to move</span>
             </div>
         </div>
 
@@ -177,7 +185,107 @@
                 </div>
             </div>
 
-            <!-- 5b. Real-Time Wi-Fi Live Stream (No ROM Flashing) -->
+            <!-- 5b. Selected LED Inspector & Color Adjuster -->
+            <div class="control-section" id="ledInspectorSection" style="border: 1px solid #ffc107; background: rgba(255, 193, 7, 0.05); border-radius: 10px; padding: 14px;">
+                <div class="section-title" style="color: #ffc107; display: flex; justify-content: space-between; align-items: center;">
+                    <span>💡 LED Inspector & Color Tuning</span>
+                    <span id="inspectorLedBadge" style="background: #ffc107; color: #000; font-weight: 700; padding: 2px 7px; border-radius: 12px; font-size: 11px;">Select an LED</span>
+                </div>
+
+                <!-- Quick LED Stepper -->
+                <div style="display: flex; gap: 6px; align-items: center; margin-top: 6px;">
+                    <button id="prevLedBtn" class="action-btn" style="flex: 1; font-size: 11px; padding: 6px 4px;" title="Select Previous LED (Left Arrow or [ )">◀ Prev</button>
+                    <div style="display: flex; align-items: center; gap: 4px; flex: 1.4; justify-content: center;">
+                        <span style="font-size: 11px; color: var(--text-muted);">LED #</span>
+                        <input type="number" id="inspectorLedNumInput" min="0" max="99" value="0" style="width: 50px; background: #0d1117; color: #fff; border: 1px solid #30363d; border-radius: 4px; padding: 4px; text-align: center; font-size: 12px; font-weight: bold;">
+                    </div>
+                    <button id="nextLedBtn" class="action-btn" style="flex: 1; font-size: 11px; padding: 6px 4px;" title="Select Next LED (Right Arrow or ] )">Next ▶</button>
+                    <button id="focusLedBtn" class="action-btn" style="padding: 6px 8px; font-size: 11px;" title="Center and Zoom to this LED">⌖ Focus</button>
+                </div>
+
+                <!-- Empty State Prompt (shown when no LED is selected) -->
+                <div id="inspectorEmptyPrompt" style="padding: 10px; background: #0d1117; border-radius: 6px; border: 1px dashed #30363d; font-size: 11px; color: var(--text-muted); text-align: center; margin-top: 8px; line-height: 1.5;">
+                    👆 Click any LED on the shirt (or click <strong>Prev / Next</strong>) to select and customize its RGB color.
+                </div>
+
+                <!-- Active LED Color Editor (shown when an LED is selected) -->
+                <div id="inspectorColorControls" style="display: none; flex-direction: column; gap: 10px; margin-top: 8px;">
+                    
+                    <!-- Color Preview Card + Native Color Picker -->
+                    <div style="display: flex; gap: 10px; align-items: center; padding: 8px 10px; background: #0d1117; border-radius: 8px; border: 1px solid #30363d;">
+                        <div id="inspectorColorSwatch" style="width: 44px; height: 44px; border-radius: 8px; border: 2px solid #fff; box-shadow: 0 0 10px rgba(0,0,0,0.5); cursor: pointer; flex-shrink: 0; position: relative; overflow: hidden;" title="Click to open color picker">
+                            <input type="color" id="inspectorNativePicker" style="position: absolute; top: -10px; left: -10px; width: 64px; height: 64px; opacity: 0; cursor: pointer;">
+                        </div>
+                        <div style="flex: 1; display: flex; flex-direction: column; gap: 2px;">
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <span id="inspectorHexText" style="font-family: monospace; font-size: 13px; font-weight: bold; color: #fff;">#00FF23</span>
+                                <span id="inspectorCoordsText" style="font-size: 10px; color: var(--text-muted);">X: 50% | Y: 50%</span>
+                            </div>
+                            <span id="inspectorRgbText" style="font-family: monospace; font-size: 11px; color: var(--text-muted);">rgb(0, 255, 35)</span>
+                        </div>
+                    </div>
+
+                    <!-- RGB Sliders & Number Inputs -->
+                    <div style="display: flex; flex-direction: column; gap: 8px;">
+                        <!-- Red -->
+                        <div class="control-group">
+                            <div class="label-row" style="margin-bottom: 2px;">
+                                <span style="color: #ff5566; font-weight: 600; font-size: 11px;">Red (R)</span>
+                                <input type="number" id="ledRNum" min="0" max="255" value="0" style="width: 48px; background: #0d1117; color: #fff; border: 1px solid #ff5566; border-radius: 4px; padding: 2px 4px; text-align: center; font-size: 11px;">
+                            </div>
+                            <input type="range" id="ledRSlider" min="0" max="255" value="0" style="accent-color: #ff5566;">
+                        </div>
+
+                        <!-- Green -->
+                        <div class="control-group">
+                            <div class="label-row" style="margin-bottom: 2px;">
+                                <span style="color: #00ff88; font-weight: 600; font-size: 11px;">Green (G)</span>
+                                <input type="number" id="ledGNum" min="0" max="255" value="255" style="width: 48px; background: #0d1117; color: #fff; border: 1px solid #00ff88; border-radius: 4px; padding: 2px 4px; text-align: center; font-size: 11px;">
+                            </div>
+                            <input type="range" id="ledGSlider" min="0" max="255" value="255" style="accent-color: #00ff88;">
+                        </div>
+
+                        <!-- Blue -->
+                        <div class="control-group">
+                            <div class="label-row" style="margin-bottom: 2px;">
+                                <span style="color: #388bfd; font-weight: 600; font-size: 11px;">Blue (B)</span>
+                                <input type="number" id="ledBNum" min="0" max="255" value="35" style="width: 48px; background: #0d1117; color: #fff; border: 1px solid #388bfd; border-radius: 4px; padding: 2px 4px; text-align: center; font-size: 11px;">
+                            </div>
+                            <input type="range" id="ledBSlider" min="0" max="255" value="35" style="accent-color: #388bfd;">
+                        </div>
+                    </div>
+
+                    <!-- Quick Disney Palette Swatches -->
+                    <div>
+                        <div style="font-size: 11px; color: var(--text-muted); margin-bottom: 6px; font-weight: 500;">
+                            Quick Palette Swatches:
+                        </div>
+                        <div style="display: grid; grid-template-columns: repeat(6, 1fr); gap: 4px;">
+                            <button type="button" class="palette-swatch-btn" data-r="0" data-g="255" data-b="35" style="background: #00ff23;" title="Dragon Green"></button>
+                            <button type="button" class="palette-swatch-btn" data-r="255" data-g="120" data-b="0" style="background: #ff7800;" title="Flame Orange"></button>
+                            <button type="button" class="palette-swatch-btn" data-r="255" data-g="25" data-b="230" style="background: #ff19e6;" title="Electric Pink"></button>
+                            <button type="button" class="palette-swatch-btn" data-r="0" data-g="119" data-b="255" style="background: #0077ff;" title="Cinderella Blue"></button>
+                            <button type="button" class="palette-swatch-btn" data-r="255" data-g="193" data-b="7" style="background: #ffc107;" title="Belle Gold"></button>
+                            <button type="button" class="palette-swatch-btn" data-r="255" data-g="250" data-b="242" style="background: #fffaf2; border: 1px solid #ccc;" title="Starlight White"></button>
+                            <button type="button" class="palette-swatch-btn" data-r="175" data-g="37" data-b="255" style="background: #af25ff;" title="Cheshire Violet"></button>
+                            <button type="button" class="palette-swatch-btn" data-r="255" data-g="13" data-b="26" style="background: #ff0d1a;" title="Mickey Red"></button>
+                            <button type="button" class="palette-swatch-btn" data-r="85" data-g="255" data-b="16" style="background: #55ff10;" title="Electric Lime"></button>
+                            <button type="button" class="palette-swatch-btn" data-r="0" data-g="240" data-b="255" style="background: #00f0ff;" title="Alice Cyan"></button>
+                            <button type="button" class="palette-swatch-btn" data-r="255" data-g="60" data-b="120" style="background: #ff3c78;" title="Coral Rose"></button>
+                            <button type="button" class="palette-swatch-btn" data-r="40" data-g="16" data-b="120" style="background: #281078;" title="Deep Indigo"></button>
+                        </div>
+                    </div>
+
+                    <!-- Single LED Utility Buttons -->
+                    <div style="display: flex; gap: 6px; margin-top: 4px;">
+                        <button type="button" id="inspectorSampleBtn" class="action-btn" style="flex: 1; font-size: 11px; padding: 6px;" title="Sample artwork pixel color directly under this LED">🎨 Sample Art</button>
+                        <button type="button" id="inspectorCopyNextBtn" class="action-btn" style="flex: 1; font-size: 11px; padding: 6px;" title="Copy this color to the next 5 LEDs along the wire">⏩ Copy Next 5</button>
+                        <button type="button" id="inspectorDeselectBtn" class="action-btn" style="padding: 6px 10px; font-size: 11px;" title="Deselect LED">✖</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 5c. Real-Time Wi-Fi Live Stream (No ROM Flashing) -->
             <div class="control-section" style="border: 1px solid #1f6feb; background: rgba(31, 111, 235, 0.08); border-radius: 8px; padding: 12px;">
                 <div class="section-title" style="color: #58a6ff; display: flex; align-items: center; justify-content: space-between;">
                     <span>📡 Real-Time Wi-Fi Stream</span>
@@ -306,6 +414,6 @@
         </div>
     </div>
 
-    <script src="app.js?v=6"></script>
+    <script src="app.js?v=7"></script>
 </body>
 </html>

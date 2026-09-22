@@ -65,10 +65,26 @@ function getGraphicChestBounds() {
     return { normX, normY, normW, normH };
 }
 
-// Dragging state
+// Zoom & Pan state (Smooth interactive navigation)
+let zoomScale = 1.0;
+let panX = 0;
+let panY = 0;
+const minZoom = 0.6;
+const maxZoom = 5.0;
+
+let isPanning = false;
+let panStartX = 0;
+let panStartY = 0;
+let isSpacePressed = false;
+let mouseStartX = 0;
+let mouseStartY = 0;
+let hasMovedSignificantly = false;
+
+// Selection & Dragging state
+let selectedLed = null;
 let draggedLed = null;
 let hoveredLed = null;
-let isDragging = false;
+let isDraggingLed = false;
 
 // LEDs array: [{ x, y, color: {r, g, b} }]
 let leds = [];
@@ -489,15 +505,44 @@ function renderBulb(cx, x, y, col, isHovered, isSelected, index) {
     cx.fillStyle = 'rgba(255, 255, 255, 0.95)';
     cx.fill();
 
-    if (isHovered || isSelected) {
+    if (isSelected) {
+        cx.save();
+        // High-visibility cyan outer dashed ring
+        cx.beginPath();
+        cx.arc(x, y, 11, 0, Math.PI * 2);
+        cx.strokeStyle = '#00ffff';
+        cx.lineWidth = 2.5;
+        cx.setLineDash([4, 3]);
+        cx.stroke();
+
+        // Inner solid gold ring
         cx.beginPath();
         cx.arc(x, y, 7.5, 0, Math.PI * 2);
-        cx.strokeStyle = isSelected ? '#ffc107' : '#00e5ff';
+        cx.strokeStyle = '#ffc107';
+        cx.lineWidth = 2;
+        cx.setLineDash([]);
+        cx.stroke();
+
+        // 4 Focus Crosshairs
+        const crossLen = 4;
+        cx.beginPath();
+        cx.moveTo(x - 15, y); cx.lineTo(x - 15 + crossLen, y);
+        cx.moveTo(x + 15 - crossLen, y); cx.lineTo(x + 15, y);
+        cx.moveTo(x, y - 15); cx.lineTo(x, y - 15 + crossLen);
+        cx.moveTo(x, y + 15 - crossLen); cx.lineTo(x, y + 15);
+        cx.strokeStyle = '#00ffff';
+        cx.lineWidth = 2;
+        cx.stroke();
+        cx.restore();
+    } else if (isHovered) {
+        cx.beginPath();
+        cx.arc(x, y, 8.5, 0, Math.PI * 2);
+        cx.strokeStyle = '#00e5ff';
         cx.lineWidth = 2;
         cx.stroke();
     }
 
-    if (params.showNumbers) {
+    if (params.showNumbers || isSelected) {
         if (index === 0) {
             cx.fillStyle = '#00ff88';
             cx.font = 'bold 10px monospace';
@@ -507,15 +552,15 @@ function renderBulb(cx, x, y, col, isHovered, isSelected, index) {
             cx.font = 'bold 10px monospace';
             cx.fillText(`${index} (END)`, x + 6, y - 6);
         } else {
-            cx.fillStyle = '#ffffff';
-            cx.font = '9px monospace';
-            cx.fillText(index, x + 6, y - 6);
+            cx.fillStyle = isSelected ? '#00ffff' : '#ffffff';
+            cx.font = isSelected ? 'bold 11px monospace' : '9px monospace';
+            cx.fillText(isSelected ? `#${index}` : index, x + 6, y - 6);
         }
     }
 }
 
 // ============================================================================
-// SINGLE SHIRT VIEW
+// SINGLE SHIRT VIEW (With Smooth Zoom & Pan Support)
 // ============================================================================
 function renderSingleShirtView(timeMs) {
     const w = canvas.width;
@@ -523,6 +568,11 @@ function renderSingleShirtView(timeMs) {
     const s = getShirtBounds();
 
     ctx.clearRect(0, 0, w, h);
+
+    // Apply interactive Zoom & Pan transform
+    ctx.save();
+    ctx.translate(panX, panY);
+    ctx.scale(zoomScale, zoomScale);
 
     const shirtTitle = (currentGraphicType === 'custom_image') ? "CUSTOM RUNNER DESIGN" : "FLOAT #3: PETE'S DRAGON";
     drawRunningShirt(ctx, s.x, s.y, s.width, s.height, shirtTitle);
@@ -564,9 +614,11 @@ function renderSingleShirtView(timeMs) {
         const pt = normToCanvas(leds[i]);
         const col = computeLedColor(i, leds.length, timeMs);
         const isHover = (hoveredLed === i);
-        const isSel = (draggedLed === i);
+        const isSel = (selectedLed === i || draggedLed === i);
         renderBulb(ctx, pt.x, pt.y, col, isHover, isSel, i);
     }
+
+    ctx.restore();
 }
 
 // ============================================================================
@@ -709,62 +761,358 @@ function renderFleetView(timeMs) {
 }
 
 // ============================================================================
-// INTERACTION & HIT DETECTION
+// ZOOM & PAN ENGINE
 // ============================================================================
+function setZoom(newZoom, pivotX = canvas.width / 2, pivotY = canvas.height / 2) {
+    const clampedZoom = Math.min(maxZoom, Math.max(minZoom, newZoom));
+    if (Math.abs(clampedZoom - zoomScale) < 0.001) return;
+
+    // Keep world coordinate under pivot point invariant
+    const worldPivotX = (pivotX - panX) / zoomScale;
+    const worldPivotY = (pivotY - panY) / zoomScale;
+
+    zoomScale = clampedZoom;
+    panX = pivotX - worldPivotX * zoomScale;
+    panY = pivotY - worldPivotY * zoomScale;
+
+    updateZoomUI();
+}
+
+function resetZoom() {
+    zoomScale = 1.0;
+    panX = 0;
+    panY = 0;
+    updateZoomUI();
+}
+
+function updateZoomUI() {
+    const badge = document.getElementById('zoomLevelText');
+    if (badge) {
+        badge.textContent = `${Math.round(zoomScale * 100)}%`;
+    }
+}
+
+function focusOnLed(index) {
+    if (index === null || index < 0 || index >= leds.length) return;
+    const pt = normToCanvas(leds[index]);
+    zoomScale = Math.max(zoomScale, 2.2);
+    panX = (canvas.width / 2) - pt.x * zoomScale;
+    panY = (canvas.height / 2) - pt.y * zoomScale;
+    updateZoomUI();
+}
+
+// ============================================================================
+// LED SELECTION & RGB COLOR INSPECTOR
+// ============================================================================
+function selectLed(index) {
+    if (index === null || index < 0 || index >= leds.length) {
+        deselectLed();
+        return;
+    }
+    selectedLed = index;
+    updateLedInspectorUI();
+}
+
+function deselectLed() {
+    selectedLed = null;
+    updateLedInspectorUI();
+}
+
+function selectNextLed() {
+    if (!leds || leds.length === 0) return;
+    if (selectedLed === null) {
+        selectLed(0);
+    } else {
+        selectLed((selectedLed + 1) % leds.length);
+    }
+}
+
+function selectPrevLed() {
+    if (!leds || leds.length === 0) return;
+    if (selectedLed === null) {
+        selectLed(leds.length - 1);
+    } else {
+        selectLed((selectedLed - 1 + leds.length) % leds.length);
+    }
+}
+
+function updateLedInspectorCoords() {
+    if (selectedLed === null || !leds[selectedLed]) return;
+    const coordsEl = document.getElementById('inspectorCoordsText');
+    if (coordsEl) {
+        coordsEl.textContent = `X: ${(leds[selectedLed].x * 100).toFixed(1)}% | Y: ${(leds[selectedLed].y * 100).toFixed(1)}%`;
+    }
+}
+
+function setSelectedLedColor(r, g, b) {
+    if (selectedLed === null || !leds[selectedLed]) return;
+    const clampedR = Math.max(0, Math.min(255, Math.round(r)));
+    const clampedG = Math.max(0, Math.min(255, Math.round(g)));
+    const clampedB = Math.max(0, Math.min(255, Math.round(b)));
+
+    leds[selectedLed].color = { r: clampedR, g: clampedG, b: clampedB };
+    updateLedInspectorColorInputs(clampedR, clampedG, clampedB);
+
+    // If live Wi-Fi streaming is active, transmit frame to physical ESP32 immediately
+    if (isWifiStreaming) {
+        sendLivePixelFrame(performance.now());
+    }
+}
+
+function updateLedInspectorColorInputs(r, g, b) {
+    const toHex = (n) => n.toString(16).padStart(2, '0').toUpperCase();
+    const hex = `#${toHex(r)}${toHex(g)}${toHex(b)}`;
+
+    const swatch = document.getElementById('inspectorColorSwatch');
+    if (swatch) swatch.style.background = hex;
+
+    const nativePicker = document.getElementById('inspectorNativePicker');
+    if (nativePicker) nativePicker.value = hex.toLowerCase();
+
+    const hexText = document.getElementById('inspectorHexText');
+    if (hexText) hexText.textContent = hex;
+
+    const rgbText = document.getElementById('inspectorRgbText');
+    if (rgbText) rgbText.textContent = `rgb(${r}, ${g}, ${b})`;
+
+    // Sliders
+    const rSlider = document.getElementById('ledRSlider');
+    const gSlider = document.getElementById('ledGSlider');
+    const bSlider = document.getElementById('ledBSlider');
+    if (rSlider) rSlider.value = r;
+    if (gSlider) gSlider.value = g;
+    if (bSlider) bSlider.value = b;
+
+    // Numbers
+    const rNum = document.getElementById('ledRNum');
+    const gNum = document.getElementById('ledGNum');
+    const bNum = document.getElementById('ledBNum');
+    if (rNum) rNum.value = r;
+    if (gNum) gNum.value = g;
+    if (bNum) bNum.value = b;
+}
+
+function updateLedInspectorUI() {
+    const emptyPrompt = document.getElementById('inspectorEmptyPrompt');
+    const colorControls = document.getElementById('inspectorColorControls');
+    const badge = document.getElementById('inspectorLedBadge');
+    const numInput = document.getElementById('inspectorLedNumInput');
+
+    if (selectedLed === null || !leds[selectedLed]) {
+        if (emptyPrompt) emptyPrompt.style.display = 'block';
+        if (colorControls) colorControls.style.display = 'none';
+        if (badge) {
+            badge.textContent = 'None Selected';
+            badge.style.background = '#30363d';
+            badge.style.color = '#8b949e';
+        }
+        return;
+    }
+
+    if (emptyPrompt) emptyPrompt.style.display = 'none';
+    if (colorControls) colorControls.style.display = 'flex';
+
+    if (badge) {
+        badge.textContent = `LED #${selectedLed}`;
+        badge.style.background = '#ffc107';
+        badge.style.color = '#000';
+    }
+
+    if (numInput) {
+        numInput.value = selectedLed;
+        numInput.max = Math.max(0, leds.length - 1);
+    }
+
+    updateLedInspectorCoords();
+
+    let col = leds[selectedLed].color;
+    if (!col) {
+        col = computeLedColor(selectedLed, leds.length, performance.now());
+        leds[selectedLed].color = { r: col.r, g: col.g, b: col.b };
+    }
+
+    updateLedInspectorColorInputs(col.r, col.g, col.b);
+}
+
+// ============================================================================
+// INTERACTION & HIT DETECTION (Zoom, Pan, Drag, and Selection)
+// ============================================================================
+
+canvas.addEventListener('contextmenu', (e) => {
+    e.preventDefault(); // Prevent context menu so right-drag pans seamlessly
+});
+
+canvas.addEventListener('wheel', (e) => {
+    if (currentView !== 'single') return;
+    e.preventDefault();
+    const rect = canvas.getBoundingClientRect();
+    const scaleX = canvas.width / rect.width;
+    const scaleY = canvas.height / rect.height;
+    const mx = (e.clientX - rect.left) * scaleX;
+    const my = (e.clientY - rect.top) * scaleY;
+
+    const zoomFactor = e.deltaY < 0 ? 1.15 : 0.87;
+    setZoom(zoomScale * zoomFactor, mx, my);
+}, { passive: false });
+
+window.addEventListener('keydown', (e) => {
+    if (['INPUT', 'SELECT', 'TEXTAREA'].includes(document.activeElement?.tagName)) return;
+
+    if (e.code === 'Space') {
+        if (!isSpacePressed) {
+            isSpacePressed = true;
+            canvas.style.cursor = 'grab';
+        }
+        e.preventDefault();
+    } else if (e.key === 'ArrowRight' || e.key === ']' || e.key === 'n') {
+        selectNextLed();
+    } else if (e.key === 'ArrowLeft' || e.key === '[' || e.key === 'p') {
+        selectPrevLed();
+    } else if (e.key === 'Escape') {
+        deselectLed();
+    } else if (e.key === '+' || e.key === '=') {
+        setZoom(zoomScale * 1.2);
+    } else if (e.key === '-' || e.key === '_') {
+        setZoom(zoomScale / 1.2);
+    } else if (e.key === '0') {
+        resetZoom();
+    }
+});
+
+window.addEventListener('keyup', (e) => {
+    if (e.code === 'Space') {
+        isSpacePressed = false;
+        canvas.style.cursor = hoveredLed !== null ? 'pointer' : 'default';
+    }
+});
+
 canvas.addEventListener('mousedown', (e) => {
     if (currentView !== 'single') return;
     const rect = canvas.getBoundingClientRect();
-    const mx = e.clientX - rect.left;
-    const my = e.clientY - rect.top;
+    const scaleX = canvas.width / rect.width;
+    const scaleY = canvas.height / rect.height;
+    const mx = (e.clientX - rect.left) * scaleX;
+    const my = (e.clientY - rect.top) * scaleY;
 
+    mouseStartX = mx;
+    mouseStartY = my;
+    hasMovedSignificantly = false;
+
+    // Right-click (2), Middle-click (1), or Space+click -> Pan Canvas
+    if (e.button === 2 || e.button === 1 || (e.button === 0 && isSpacePressed)) {
+        isPanning = true;
+        panStartX = mx - panX;
+        panStartY = my - panY;
+        canvas.style.cursor = 'grabbing';
+        return;
+    }
+
+    if (e.button !== 0) return;
+
+    // Left-click: Screen space hit test
+    let clickedIdx = -1;
     for (let i = 0; i < leds.length; i++) {
         const pt = normToCanvas(leds[i]);
-        const dist = Math.hypot(mx - pt.x, my - pt.y);
-        if (dist <= 14) {
-            draggedLed = i;
-            isDragging = true;
-            canvas.classList.add('dragging');
+        const screenX = pt.x * zoomScale + panX;
+        const screenY = pt.y * zoomScale + panY;
+        const dist = Math.hypot(mx - screenX, my - screenY);
+        const hitRadius = Math.max(14, Math.min(28, 14 * zoomScale));
+        if (dist <= hitRadius) {
+            clickedIdx = i;
             break;
         }
+    }
+
+    if (clickedIdx !== -1) {
+        draggedLed = clickedIdx;
+        isDraggingLed = true;
+        selectLed(clickedIdx);
+        canvas.classList.add('dragging');
+    } else {
+        // Clicked background -> prepare to pan if user drags
+        isPanning = true;
+        panStartX = mx - panX;
+        panStartY = my - panY;
     }
 });
 
 canvas.addEventListener('mousemove', (e) => {
+    if (currentView !== 'single') return;
     const rect = canvas.getBoundingClientRect();
-    const mx = e.clientX - rect.left;
-    const my = e.clientY - rect.top;
+    const scaleX = canvas.width / rect.width;
+    const scaleY = canvas.height / rect.height;
+    const mx = (e.clientX - rect.left) * scaleX;
+    const my = (e.clientY - rect.top) * scaleY;
 
-    if (isDragging && draggedLed !== null) {
-        const norm = canvasToNorm(mx, my);
+    if (Math.hypot(mx - mouseStartX, my - mouseStartY) > 5) {
+        hasMovedSignificantly = true;
+    }
+
+    if (isPanning) {
+        panX = mx - panStartX;
+        panY = my - panStartY;
+        canvas.style.cursor = 'grabbing';
+        return;
+    }
+
+    if (isDraggingLed && draggedLed !== null) {
+        const worldX = (mx - panX) / zoomScale;
+        const worldY = (my - panY) / zoomScale;
+        const norm = canvasToNorm(worldX, worldY);
         leds[draggedLed].x = norm.x;
         leds[draggedLed].y = norm.y;
-    } else {
-        let found = null;
-        for (let i = 0; i < leds.length; i++) {
-            const pt = normToCanvas(leds[i]);
-            const dist = Math.hypot(mx - pt.x, my - pt.y);
-            if (dist <= 14) {
-                found = i;
-                break;
-            }
+        updateLedInspectorCoords();
+        return;
+    }
+
+    // Hover detection
+    let found = null;
+    for (let i = 0; i < leds.length; i++) {
+        const pt = normToCanvas(leds[i]);
+        const screenX = pt.x * zoomScale + panX;
+        const screenY = pt.y * zoomScale + panY;
+        const dist = Math.hypot(mx - screenX, my - screenY);
+        const hitRadius = Math.max(14, Math.min(28, 14 * zoomScale));
+        if (dist <= hitRadius) {
+            found = i;
+            break;
         }
-        hoveredLed = found;
-        canvas.style.cursor = found !== null ? 'pointer' : 'default';
+    }
+    hoveredLed = found;
+
+    if (isSpacePressed) {
+        canvas.style.cursor = 'grab';
+    } else if (found !== null) {
+        canvas.style.cursor = 'pointer';
+    } else {
+        canvas.style.cursor = 'default';
     }
 });
 
 window.addEventListener('mouseup', () => {
-    if (isDragging && draggedLed !== null) {
-        if (activePattern === 'color_match' || (leds[draggedLed] && leds[draggedLed].color)) {
-            const newCol = sampleColorAtNorm(leds[draggedLed].x, leds[draggedLed].y);
-            if (newCol) {
-                leds[draggedLed].color = newCol;
-            }
+    if (isPanning) {
+        isPanning = false;
+        canvas.style.cursor = isSpacePressed ? 'grab' : (hoveredLed !== null ? 'pointer' : 'default');
+        // Click on empty canvas without dragging clears selection
+        if (!hasMovedSignificantly && draggedLed === null) {
+            deselectLed();
         }
     }
-    isDragging = false;
-    draggedLed = null;
-    canvas.classList.remove('dragging');
+
+    if (isDraggingLed && draggedLed !== null) {
+        if (hasMovedSignificantly) {
+            if (activePattern === 'color_match' || (leds[draggedLed] && leds[draggedLed].color)) {
+                const newCol = sampleColorAtNorm(leds[draggedLed].x, leds[draggedLed].y);
+                if (newCol) {
+                    leds[draggedLed].color = newCol;
+                    updateLedInspectorUI();
+                }
+            }
+        }
+        isDraggingLed = false;
+        draggedLed = null;
+        canvas.classList.remove('dragging');
+    }
 });
 
 // ============================================================================
@@ -1002,12 +1350,16 @@ document.getElementById('singleViewBtn').addEventListener('click', () => {
     currentView = 'single';
     document.getElementById('singleViewBtn').classList.add('active');
     document.getElementById('fleetViewBtn').classList.remove('active');
+    const zt = document.querySelector('.zoom-toolbar');
+    if (zt) zt.style.display = 'flex';
 });
 
 document.getElementById('fleetViewBtn').addEventListener('click', () => {
     currentView = 'fleet';
     document.getElementById('fleetViewBtn').classList.add('active');
     document.getElementById('singleViewBtn').classList.remove('active');
+    const zt = document.querySelector('.zoom-toolbar');
+    if (zt) zt.style.display = 'none';
 });
 
 // ============================================================================
@@ -1032,7 +1384,120 @@ function updateLedCountUI() {
     if (wiringLabel) {
         wiringLabel.textContent = `Show Wiring Trace (0 → ${Math.max(0, leds.length - 1)})`;
     }
+    const inspectorNumInput = document.getElementById('inspectorLedNumInput');
+    if (inspectorNumInput) {
+        inspectorNumInput.max = Math.max(0, leds.length - 1);
+    }
+    if (selectedLed !== null && selectedLed >= leds.length) {
+        selectedLed = leds.length > 0 ? leds.length - 1 : null;
+        updateLedInspectorUI();
+    }
 }
+
+// ============================================================================
+// BINDINGS FOR ZOOM TOOLBAR & LED INSPECTOR / COLOR TUNER
+// ============================================================================
+document.getElementById('zoomInBtn')?.addEventListener('click', () => setZoom(zoomScale * 1.3));
+document.getElementById('zoomOutBtn')?.addEventListener('click', () => setZoom(zoomScale / 1.3));
+document.getElementById('zoomResetBtn')?.addEventListener('click', () => resetZoom());
+
+document.getElementById('prevLedBtn')?.addEventListener('click', () => selectPrevLed());
+document.getElementById('nextLedBtn')?.addEventListener('click', () => selectNextLed());
+document.getElementById('focusLedBtn')?.addEventListener('click', () => {
+    if (selectedLed !== null) focusOnLed(selectedLed);
+    else if (leds.length > 0) { selectLed(0); focusOnLed(0); }
+});
+
+const inspectorLedNumInput = document.getElementById('inspectorLedNumInput');
+if (inspectorLedNumInput) {
+    inspectorLedNumInput.addEventListener('change', (e) => {
+        const val = parseInt(e.target.value, 10);
+        if (!isNaN(val) && val >= 0 && val < leds.length) {
+            selectLed(val);
+        }
+    });
+}
+
+document.getElementById('inspectorNativePicker')?.addEventListener('input', (e) => {
+    const hex = e.target.value;
+    const r = parseInt(hex.slice(1, 3), 16);
+    const g = parseInt(hex.slice(3, 5), 16);
+    const b = parseInt(hex.slice(5, 7), 16);
+    setSelectedLedColor(r, g, b);
+});
+
+const bindRgbControl = (sliderId, numId, channel) => {
+    const slider = document.getElementById(sliderId);
+    const num = document.getElementById(numId);
+    if (!slider || !num) return;
+
+    slider.addEventListener('input', (e) => {
+        const val = parseInt(e.target.value, 10);
+        num.value = val;
+        if (selectedLed !== null && leds[selectedLed]) {
+            const cur = leds[selectedLed].color || { r: 0, g: 255, b: 100 };
+            cur[channel] = val;
+            setSelectedLedColor(cur.r, cur.g, cur.b);
+        }
+    });
+
+    num.addEventListener('input', (e) => {
+        let val = parseInt(e.target.value, 10);
+        if (isNaN(val)) val = 0;
+        val = Math.max(0, Math.min(255, val));
+        slider.value = val;
+        if (selectedLed !== null && leds[selectedLed]) {
+            const cur = leds[selectedLed].color || { r: 0, g: 255, b: 100 };
+            cur[channel] = val;
+            setSelectedLedColor(cur.r, cur.g, cur.b);
+        }
+    });
+};
+
+bindRgbControl('ledRSlider', 'ledRNum', 'r');
+bindRgbControl('ledGSlider', 'ledGNum', 'g');
+bindRgbControl('ledBSlider', 'ledBNum', 'b');
+
+document.querySelectorAll('.palette-swatch-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+        if (selectedLed === null) {
+            if (leds.length > 0) selectLed(0);
+            else return;
+        }
+        const r = parseInt(btn.getAttribute('data-r'), 10);
+        const g = parseInt(btn.getAttribute('data-g'), 10);
+        const b = parseInt(btn.getAttribute('data-b'), 10);
+        setSelectedLedColor(r, g, b);
+        showToast(`🎨 Set LED #${selectedLed} to ${btn.title}!`);
+    });
+});
+
+document.getElementById('inspectorSampleBtn')?.addEventListener('click', () => {
+    if (selectedLed === null || !leds[selectedLed]) return;
+    const col = sampleColorAtNorm(leds[selectedLed].x, leds[selectedLed].y);
+    if (col) {
+        setSelectedLedColor(col.r, col.g, col.b);
+        showToast(`🎨 Sampled artwork color for LED #${selectedLed}!`);
+    } else {
+        showToast(`⚠️ No graphic pixel found directly under LED #${selectedLed}`);
+    }
+});
+
+document.getElementById('inspectorCopyNextBtn')?.addEventListener('click', () => {
+    if (selectedLed === null || !leds[selectedLed] || !leds[selectedLed].color) return;
+    const srcCol = { ...leds[selectedLed].color };
+    let count = 0;
+    for (let i = selectedLed + 1; i <= Math.min(leds.length - 1, selectedLed + 5); i++) {
+        leds[i].color = { ...srcCol };
+        count++;
+    }
+    if (count > 0) {
+        showToast(`⏩ Copied color to next ${count} LEDs along the wire!`);
+        if (isWifiStreaming) sendLivePixelFrame(performance.now());
+    }
+});
+
+document.getElementById('inspectorDeselectBtn')?.addEventListener('click', () => deselectLed());
 
 // ============================================================================
 // COLOR SCIENCE & VIBRANCY BOOSTING
