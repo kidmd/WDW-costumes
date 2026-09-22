@@ -18,6 +18,10 @@ Desktop.ini
 $RECYCLE.BIN/
 .DS_Store
 
+# Python Cache
+__pycache__/
+*.py[cod]
+
 # Compilation and binary files
 *.o
 *.obj

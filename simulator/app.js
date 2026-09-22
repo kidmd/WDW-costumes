@@ -748,6 +748,9 @@ function animate(time) {
     } else {
         renderFleetView(time);
     }
+    if (isWifiStreaming) {
+        sendLivePixelFrame(time);
+    }
     requestAnimationFrame(animate);
 }
 
@@ -1827,4 +1830,231 @@ function hslToRgb(h, s, l) {
         g: Math.round(g * 255),
         b: Math.round(b * 255)
     };
+}
+
+// ============================================================================
+// WI-FI LIVE STREAM ENGINE & RECEIVER FLASHER
+// ============================================================================
+let isWifiStreaming = false;
+let wifiTargetIp = '255.255.255.255';
+let lastWifiStreamTime = 0;
+let isSendingFrame = false;
+let streamPacketCounter = 0;
+
+const toggleWifiStreamBtn = document.getElementById('toggleWifiStreamBtn');
+const wifiStreamDot = document.getElementById('wifiStreamDot');
+const wifiStreamStatusText = document.getElementById('wifiStreamStatusText');
+const wifiSettingsBtn = document.getElementById('wifiSettingsBtn');
+const wifiModal = document.getElementById('wifiModal');
+const closeWifiModalBtn = document.getElementById('closeWifiModalBtn');
+const wifiSsidInput = document.getElementById('wifiSsidInput');
+const wifiPasswordInput = document.getElementById('wifiPasswordInput');
+const wifiTargetIpInput = document.getElementById('wifiTargetIpInput');
+const saveWifiBtn = document.getElementById('saveWifiBtn');
+const flashReceiverBtn = document.getElementById('flashReceiverBtn');
+
+async function sendLivePixelFrame(timeMs) {
+    if (!isWifiStreaming || isSendingFrame) return;
+    if (timeMs - lastWifiStreamTime < 33) return; // 30 FPS throttle (~33ms)
+    lastWifiStreamTime = timeMs;
+    isSendingFrame = true;
+
+    try {
+        const pixelPayload = [];
+        const total = leds.length;
+        for (let i = 0; i < total; i++) {
+            const col = computeLedColor(i, total, timeMs);
+            pixelPayload.push({
+                r: Math.max(0, Math.min(255, col.r)),
+                g: Math.max(0, Math.min(255, col.g)),
+                b: Math.max(0, Math.min(255, col.b))
+            });
+        }
+
+        const res = await fetch('/api/stream_pixels', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                targetIp: wifiTargetIp,
+                pixels: pixelPayload
+            })
+        });
+        const data = await res.json();
+        if (data && data.success) {
+            streamPacketCounter++;
+            if (streamPacketCounter % 30 === 0 && wifiStreamStatusText) {
+                wifiStreamStatusText.textContent = `Streaming (${total} LEDs @ 30 FPS)`;
+            }
+        }
+    } catch (err) {
+        console.warn("[WIFI STREAM] Packet send error:", err);
+    } finally {
+        isSendingFrame = false;
+    }
+}
+
+async function loadWifiSettings() {
+    try {
+        const res = await fetch('/api/wifi_config');
+        if (res.ok) {
+            const data = await res.json();
+            if (wifiSsidInput && data.ssid) wifiSsidInput.value = data.ssid;
+            if (wifiPasswordInput && data.password) wifiPasswordInput.value = data.password;
+            if (wifiTargetIpInput && data.targetIp) {
+                wifiTargetIpInput.value = data.targetIp;
+                wifiTargetIp = data.targetIp;
+            }
+        }
+    } catch (e) {
+        console.warn("[WIFI] Could not load Wi-Fi config:", e);
+    }
+}
+loadWifiSettings();
+
+if (toggleWifiStreamBtn) {
+    toggleWifiStreamBtn.addEventListener('click', () => {
+        isWifiStreaming = !isWifiStreaming;
+        if (isWifiStreaming) {
+            toggleWifiStreamBtn.textContent = '⏹ Stop Live Wi-Fi Stream';
+            toggleWifiStreamBtn.style.background = 'linear-gradient(135deg, #da3633, #f85149)';
+            if (wifiStreamDot) {
+                wifiStreamDot.style.background = '#2ea043';
+                wifiStreamDot.style.boxShadow = '0 0 8px #2ea043';
+            }
+            if (wifiStreamStatusText) {
+                wifiStreamStatusText.textContent = `Streaming (${leds.length} LEDs @ 30 FPS)`;
+                wifiStreamStatusText.style.color = '#3fb950';
+            }
+            showToast('📡 Wi-Fi live stream started! Updating LEDs in real time.');
+        } else {
+            toggleWifiStreamBtn.textContent = '▶ Start Live Wi-Fi Stream';
+            toggleWifiStreamBtn.style.background = 'linear-gradient(135deg, #1f6feb, #388bfd)';
+            if (wifiStreamDot) {
+                wifiStreamDot.style.background = '#8b949e';
+                wifiStreamDot.style.boxShadow = 'none';
+            }
+            if (wifiStreamStatusText) {
+                wifiStreamStatusText.textContent = 'Standby (Off)';
+                wifiStreamStatusText.style.color = 'var(--text-muted)';
+            }
+            showToast('⏹ Live Wi-Fi stream stopped.');
+        }
+    });
+}
+
+if (wifiSettingsBtn) {
+    wifiSettingsBtn.addEventListener('click', () => {
+        loadWifiSettings();
+        if (wifiModal) wifiModal.classList.add('open');
+    });
+}
+
+if (closeWifiModalBtn) {
+    closeWifiModalBtn.addEventListener('click', () => {
+        if (wifiModal) wifiModal.classList.remove('open');
+    });
+}
+
+if (saveWifiBtn) {
+    saveWifiBtn.addEventListener('click', async () => {
+        const ssid = wifiSsidInput.value.trim();
+        const password = wifiPasswordInput.value.trim();
+        const targetIp = (wifiTargetIpInput.value.trim()) || '255.255.255.255';
+        wifiTargetIp = targetIp;
+
+        try {
+            const res = await fetch('/api/save_wifi', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ ssid, password, targetIp })
+            });
+            const data = await res.json();
+            if (data.success) {
+                showToast('💾 Wi-Fi settings saved!');
+                if (wifiModal) wifiModal.classList.remove('open');
+            } else {
+                showToast('⚠️ Failed to save Wi-Fi settings');
+            }
+        } catch (e) {
+            showToast('⚠️ Error saving Wi-Fi settings: ' + e.message);
+        }
+    });
+}
+
+if (flashReceiverBtn) {
+    flashReceiverBtn.addEventListener('click', async () => {
+        const ssid = wifiSsidInput.value.trim();
+        const password = wifiPasswordInput.value.trim();
+        const targetIp = (wifiTargetIpInput.value.trim()) || '255.255.255.255';
+        wifiTargetIp = targetIp;
+
+        await fetch('/api/save_wifi', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ ssid, password, targetIp })
+        });
+
+        if (wifiModal) wifiModal.classList.remove('open');
+        if (flashModal) flashModal.classList.add('open');
+
+        flashStatusText.textContent = 'Building Wi-Fi Receiver Firmware...';
+        flashStatusText.style.color = 'var(--text-main)';
+        flashProgressBar.style.width = '20%';
+        flashProgressBar.style.background = '#388bfd';
+        flashDoneBtn.style.display = 'none';
+        flashTipText.textContent = 'Flashing one-time Wi-Fi Receiver to ESP32...';
+
+        flashTerminal.textContent = `[SIMULATOR] Preparing Wi-Fi Receiver firmware...\n` +
+            `[SIMULATOR] Protocol: High-Speed UDP Pixel Stream (Port 4210)\n` +
+            `[SIMULATOR] Target Network: ${ssid || 'MSEP-Costume-AP (Fallback)'}\n` +
+            `[SIMULATOR] Connecting to ESP32 over USB...\n--------------------------------------------------\n`;
+
+        let progress = 20;
+        const progressTimer = setInterval(() => {
+            progress = Math.min(progress + 4, 90);
+            flashProgressBar.style.width = progress + '%';
+        }, 800);
+
+        try {
+            const res = await fetch('/api/flash_wifi_receiver', { method: 'POST' });
+            clearInterval(progressTimer);
+            const data = await res.json();
+
+            if (data.success) {
+                flashProgressBar.style.width = '100%';
+                flashProgressBar.style.background = '#238636';
+                flashStatusText.textContent = `🎉 Wi-Fi Receiver Flashed to ${data.port || 'ESP32'}!`;
+                flashStatusText.style.color = '#3fb950';
+                flashTipText.textContent = 'Now unplug USB and connect ESP32 to a 5V wall charger!';
+                flashTerminal.textContent += (data.log || '') + '\n\n' +
+                    `==================================================\n` +
+                    `[SUCCESS] Wi-Fi Receiver active on ${data.port}!\n` +
+                    `1. Unplug USB cable from the ESP32.\n` +
+                    `2. Plug ESP32 into your 5V/2A wall charger or battery pack.\n` +
+                    `3. Click "▶ Start Live Wi-Fi Stream" to test in real time!\n` +
+                    `==================================================`;
+                showToast(`⚡ Receiver flashed successfully to ${data.port}!`);
+            } else {
+                flashProgressBar.style.width = '100%';
+                flashProgressBar.style.background = '#da3633';
+                flashStatusText.textContent = `⚠️ Flash Failed: ${data.error || 'Check log'}`;
+                flashStatusText.style.color = '#f85149';
+                flashTipText.textContent = 'Ensure ESP32 is plugged in via USB and click flash again.';
+                flashTerminal.textContent += (data.log || '') + '\n\n' +
+                    `--------------------------------------------------\n` +
+                    `[ERROR] ${data.error || 'Upload failed'}\n`;
+            }
+        } catch (err) {
+            clearInterval(progressTimer);
+            flashProgressBar.style.width = '100%';
+            flashProgressBar.style.background = '#da3633';
+            flashStatusText.textContent = `⚠️ Error: ${err.message}`;
+            flashStatusText.style.color = '#f85149';
+            flashTerminal.textContent += `\n[CLIENT ERROR] ${err.message}\n`;
+        } finally {
+            flashDoneBtn.style.display = 'block';
+            flashTerminal.scrollTop = flashTerminal.scrollHeight;
+            checkSerialPortStatus();
+        }
+    });
 }

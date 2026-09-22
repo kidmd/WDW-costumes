@@ -12,6 +12,15 @@ import json
 import webbrowser
 import threading
 import urllib.parse
+import socket
+
+# UDP Pixel Streaming Socket
+udp_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+try:
+    udp_socket.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
+except Exception as e:
+    print(f"[WARN] Could not enable SO_BROADCAST on UDP socket: {e}")
+UDP_STREAM_PORT = 4210
 
 DEFAULT_PORT = 8000
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -35,6 +44,8 @@ class SimulatorRequestHandler(http.server.SimpleHTTPRequestHandler):
             self.handle_list_presets()
         elif parsed.path == "/api/serial_status":
             self.handle_serial_status()
+        elif parsed.path == "/api/wifi_config":
+            self.handle_get_wifi_config()
         elif parsed.path.startswith("/api/preset/"):
             filename = urllib.parse.unquote(parsed.path[len("/api/preset/"):])
             self.handle_get_preset(filename)
@@ -47,6 +58,12 @@ class SimulatorRequestHandler(http.server.SimpleHTTPRequestHandler):
             self.handle_save_preset()
         elif parsed.path == "/api/flash_firmware":
             self.handle_flash_firmware()
+        elif parsed.path == "/api/stream_pixels":
+            self.handle_stream_pixels()
+        elif parsed.path == "/api/save_wifi":
+            self.handle_save_wifi()
+        elif parsed.path == "/api/flash_wifi_receiver":
+            self.handle_flash_wifi_receiver()
         else:
             self.send_error(404, "Endpoint not found")
 
@@ -261,6 +278,184 @@ const CRGB PROGMEM ARTWORK_PALETTE[NUM_LEDS] = {{
                     user_error = "ESP32 did not enter bootloader mode automatically. Hold down the BOOT button on your ESP32 board, click Flash again, and release BOOT once writing begins."
                 elif "could not open port" in stdout or "PermissionError" in stdout or "Access is denied" in stdout:
                     user_error = f"Serial port {port} is busy or locked by another program (e.g. Serial Monitor). Close other apps using this COM port and try again."
+                else:
+                    user_error = f"PlatformIO upload failed with exit code {proc.returncode}"
+
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json")
+            self.end_headers()
+            self.wfile.write(json.dumps({
+                "success": success,
+                "port": port,
+                "log": stdout,
+                "error": user_error
+            }).encode("utf-8"))
+        except Exception as e:
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json")
+            self.end_headers()
+            self.wfile.write(json.dumps({
+                "success": False,
+                "error": str(e)
+            }).encode("utf-8"))
+
+    def handle_stream_pixels(self):
+        try:
+            content_length = int(self.headers.get("Content-Length", 0))
+            post_data = self.rfile.read(content_length)
+            payload = json.loads(post_data.decode("utf-8"))
+            pixels = payload.get("pixels", [])
+            target_ip = payload.get("targetIp", "255.255.255.255")
+            if not target_ip or not target_ip.strip():
+                target_ip = "255.255.255.255"
+
+            # Frame Protocol: 'MSEP' (4 bytes), opcode 0x01 (live frame), num_leds (2 bytes big-endian)
+            num_leds = len(pixels)
+            header = b'MSEP' + bytes([0x01]) + num_leds.to_bytes(2, 'big')
+            raw = bytearray(header)
+            for p in pixels:
+                raw.append(max(0, min(255, int(p.get("r", 0)))))
+                raw.append(max(0, min(255, int(p.get("g", 0)))))
+                raw.append(max(0, min(255, int(p.get("b", 0)))))
+
+            udp_socket.sendto(bytes(raw), (target_ip, UDP_STREAM_PORT))
+
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json")
+            self.end_headers()
+            self.wfile.write(json.dumps({
+                "success": True,
+                "count": num_leds,
+                "bytes": len(raw),
+                "targetIp": target_ip
+            }).encode("utf-8"))
+        except Exception as e:
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json")
+            self.end_headers()
+            self.wfile.write(json.dumps({
+                "success": False,
+                "error": str(e)
+            }).encode("utf-8"))
+
+    def handle_get_wifi_config(self):
+        try:
+            wifi_file = os.path.join(PRESETS_DIR, "wifi_settings.json")
+            config = {
+                "ssid": "",
+                "password": "",
+                "targetIp": "255.255.255.255"
+            }
+            if os.path.exists(wifi_file):
+                with open(wifi_file, "r", encoding="utf-8") as f:
+                    config.update(json.load(f))
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json")
+            self.end_headers()
+            self.wfile.write(json.dumps(config).encode("utf-8"))
+        except Exception as e:
+            self.send_error(500, str(e))
+
+    def handle_save_wifi(self):
+        try:
+            content_length = int(self.headers.get("Content-Length", 0))
+            post_data = self.rfile.read(content_length)
+            payload = json.loads(post_data.decode("utf-8"))
+
+            ssid = payload.get("ssid", "").strip()
+            password = payload.get("password", "").strip()
+            target_ip = payload.get("targetIp", "255.255.255.255").strip()
+
+            wifi_file = os.path.join(PRESETS_DIR, "wifi_settings.json")
+            with open(wifi_file, "w", encoding="utf-8") as f:
+                json.dump({"ssid": ssid, "password": password, "targetIp": target_ip}, f, indent=2)
+
+            header_content = f"""#ifndef WIFI_CONFIG_H
+#define WIFI_CONFIG_H
+
+#include <Arduino.h>
+
+#define WIFI_SSID       "{ssid if ssid else 'YourWiFiNetwork'}"
+#define WIFI_PASSWORD   "{password}"
+#define UDP_STREAM_PORT 4210
+#define AP_SSID         "MSEP-Costume-AP"
+#define AP_PASSWORD     "msep1234"
+
+#define MSEP_MAGIC_0    'M'
+#define MSEP_MAGIC_1    'S'
+#define MSEP_MAGIC_2    'E'
+#define MSEP_MAGIC_3    'P'
+#define MSEP_OPCODE_LIVE_FRAME  0x01
+#define MSEP_OPCODE_HEARTBEAT   0x02
+
+#endif // WIFI_CONFIG_H
+"""
+            include_dir = os.path.join(BASE_DIR, "include")
+            os.makedirs(include_dir, exist_ok=True)
+            with open(os.path.join(include_dir, "wifi_config.h"), "w", encoding="utf-8") as f:
+                f.write(header_content)
+
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json")
+            self.end_headers()
+            self.wfile.write(json.dumps({"success": True}).encode("utf-8"))
+        except Exception as e:
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json")
+            self.end_headers()
+            self.wfile.write(json.dumps({"success": False, "error": str(e)}).encode("utf-8"))
+
+    def handle_flash_wifi_receiver(self):
+        try:
+            include_dir = os.path.join(BASE_DIR, "include")
+            os.makedirs(include_dir, exist_ok=True)
+            costume_path = os.path.join(include_dir, "costume_config.h")
+            
+            with open(costume_path, "w", encoding="utf-8") as f:
+                f.write("""#ifndef COSTUME_CONFIG_H
+#define COSTUME_CONFIG_H
+
+#define ENABLE_WIFI_LIVE_STREAM 1
+#define COLOR_ORDER RGB
+
+#endif
+""")
+            try:
+                main_cpp = os.path.join(BASE_DIR, "src", "main.cpp")
+                os.utime(main_cpp, None)
+            except Exception:
+                pass
+
+            port = get_connected_esp32_port()
+            if not port:
+                self.send_response(200)
+                self.send_header("Content-Type", "application/json")
+                self.end_headers()
+                self.wfile.write(json.dumps({
+                    "success": False,
+                    "error": "No ESP32 detected on USB serial ports. Please connect your ESP32 with a USB cable and try again."
+                }).encode("utf-8"))
+                return
+
+            import subprocess
+            cmd = [sys.executable, "-m", "platformio", "run", "-t", "upload", "--upload-port", port]
+            proc = subprocess.Popen(
+                cmd,
+                cwd=BASE_DIR,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.STDOUT,
+                text=True
+            )
+            stdout, _ = proc.communicate(timeout=120)
+            success = (proc.returncode == 0)
+            user_error = None
+            if not success:
+                if "not functioning" in stdout or "Error 31" in stdout or "PermissionError(13" in stdout:
+                    user_error = f"USB Port {port} is unresponsive (Windows Error 31). Please UNPLUG the USB cable from the ESP32, wait 2 seconds, and plug it back in. Then click Flash again."
+                elif "Wrong boot mode detected" in stdout or "needs to be in download mode" in stdout:
+                    user_error = "ESP32 did not enter bootloader mode automatically. Hold down the BOOT button on your ESP32 board, click Flash again, and release BOOT once writing begins."
+                elif "could not open port" in stdout or "PermissionError" in stdout or "Access is denied" in stdout:
+                    user_error = f"Serial port {port} is busy or locked by another program. Close other apps using this COM port and try again."
                 else:
                     user_error = f"PlatformIO upload failed with exit code {proc.returncode}"
 

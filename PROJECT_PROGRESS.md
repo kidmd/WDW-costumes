@@ -73,7 +73,7 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 - [ ] **To-Do (Pending Fairy Lights Arrival): Resume Custom Costume Simulator Testing**
   - [ ] Await delivery of WS2812B 5V "Seed / Pebble" RGBIC fairy pixel strings.
-  - [ ] Implement Real-Time Live Streaming / Tethering (stream pixel colors over Wi-Fi / Serial from `simulator.py` directly to ESP32 for instant live-preview without re-flashing).
+  - [x] Implement Real-Time Live Streaming / Tethering (stream pixel colors over Wi-Fi from `simulator.py` directly to ESP32 for instant live-preview without re-flashing).
   - [ ] Resume custom character costume layout and testing with the Web Simulator (`simulator.py`).
   - [ ] Confirm RGB color order on new fairy light hardware and verify power limits.
   - [ ] Test 100-LED Pete's Dragon scatter pattern with starlight diamond sparkles on wearable fairy lights.
@@ -92,6 +92,16 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 ---
 
 ## Progress Log
+
+### Entry: Real-Time Wi-Fi Pixel Streaming Implemented (No ROM Flashing Needed)
+* **Date:** 2026-09-22
+* **Status:** Operational & verified with high-speed UDP pixel streaming.
+* **Notes:**
+  * **Zero-Wait Real-Time Testing:** Developed a high-speed Wi-Fi UDP streaming pipeline (port 4210, `MSEP` binary protocol) between the Web Simulator (`simulator.py`) and ESP32 firmware (`src/main.cpp`).
+  * **Dual-Mode Firmware Architecture:** Added `#define ENABLE_WIFI_LIVE_STREAM` in `src/main.cpp`. When enabled, the ESP32 acts as an instantaneous live display for whatever is on the simulator canvas. When disabled, it runs full standalone ESP-NOW fleet lockstep for race day.
+  * **Dual Connection Support:** Connects automatically to Home Wi-Fi (`include/wifi_config.h`), or falls back to an open Access Point (`MSEP-Costume-AP`) if home network is unavailable.
+  * **One-Click Wi-Fi Receiver Flasher:** Users can flash the receiver once over USB via the simulator UI (`⚙️` settings dialog), then unplug the USB and power the ESP32 from a 5V/2A wall charger across the room forever while testing designs!
+  * **Simulator UI Integration:** Added a "📡 Real-Time Wi-Fi Stream" dock with a live stream toggle button, pulsing connection status indicator, and automated 30 FPS pixel transmission.
 
 ### Entry: Reverted to Pre-Simulator Fleet Sync Firmware (Awaiting Fairy Lights)
 * **Date:** 2026-09-15

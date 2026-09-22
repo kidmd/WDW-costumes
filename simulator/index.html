@@ -173,10 +173,33 @@
                 </div>
             </div>
 
-            <!-- 6. Firmware Code Export & Flashing -->
+            <!-- 5b. Real-Time Wi-Fi Live Stream (No ROM Flashing) -->
+            <div class="control-section" style="border: 1px solid #1f6feb; background: rgba(31, 111, 235, 0.08); border-radius: 8px; padding: 12px;">
+                <div class="section-title" style="color: #58a6ff; display: flex; align-items: center; justify-content: space-between;">
+                    <span>📡 Real-Time Wi-Fi Stream</span>
+                    <span style="font-size: 10px; background: #1f6feb; color: #fff; padding: 2px 6px; border-radius: 10px; font-weight: 600;">LIVE</span>
+                </div>
+                <p style="font-size: 11px; color: var(--text-muted); line-height: 1.4; margin-top: 4px;">
+                    Test colors and animations on physical LEDs in real time over Wi-Fi without flashing ROM!
+                </p>
+
+                <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 8px; margin-bottom: 10px; padding: 6px 10px; background: #0d1117; border-radius: 6px; border: 1px solid var(--border-color);">
+                    <div style="display: flex; align-items: center; gap: 6px; font-size: 12px;">
+                        <span id="wifiStreamDot" style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #8b949e;"></span>
+                        <span id="wifiStreamStatusText" style="color: var(--text-muted);">Standby (Off)</span>
+                    </div>
+                    <button id="wifiSettingsBtn" style="background: transparent; border: none; color: #58a6ff; font-size: 14px; cursor: pointer;" title="Configure Wi-Fi Credentials">⚙️</button>
+                </div>
+
+                <button id="toggleWifiStreamBtn" class="action-btn primary" style="font-weight: 600; font-size: 13px; padding: 10px; background: linear-gradient(135deg, #1f6feb, #388bfd); width: 100%;">
+                    ▶ Start Live Wi-Fi Stream
+                </button>
+            </div>
+
+            <!-- 6. Firmware Code Export & Standalone Flashing -->
             <div class="control-section">
                 <div class="section-title">
-                    <span>ESP32 Firmware & Flashing</span>
+                    <span>ESP32 Standalone Flashing</span>
                 </div>
                 <p style="font-size: 12px; color: var(--text-muted); line-height: 1.4;">
                     Send your active LED layout, sampled colors, and sparkle mode directly to the ESP32 over USB in one click.
@@ -192,7 +215,7 @@
 
                 <div style="display: flex; flex-direction: column; gap: 8px;">
                     <button id="flashEsp32Btn" class="action-btn primary" style="font-weight: 600; font-size: 13px; padding: 10px; background: linear-gradient(135deg, #238636, #2ea043);">
-                        ⚡ Flash to Connected ESP32
+                        ⚡ Flash Standalone Firmware (USB)
                     </button>
                     <button id="exportCodeBtn" class="action-btn" style="font-size: 12px;">
                         📋 View / Copy C++ Code
@@ -240,6 +263,41 @@
             <div style="padding: 12px 20px; background: #161b22; border-top: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center;">
                 <span id="flashTipText" style="font-size: 11px; color: var(--text-muted);">Ensure ESP32 is plugged in via USB (GPIO 16 drives LEDs).</span>
                 <button id="flashDoneBtn" class="action-btn primary" style="flex: none; padding: 6px 16px;">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal for Wi-Fi Configuration & Receiver Flash -->
+    <div id="wifiModal" class="modal">
+        <div class="modal-content" style="width: 540px;">
+            <div class="modal-header">
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <span style="font-size: 18px;">📡</span>
+                    <h3 style="font-size: 15px; font-weight: 600;">Wi-Fi Live Stream Settings</h3>
+                </div>
+                <button id="closeWifiModalBtn" class="close-btn">&times;</button>
+            </div>
+            <div style="padding: 18px 20px; background: #161b22; display: flex; flex-direction: column; gap: 14px;">
+                <div>
+                    <label style="font-size: 12px; color: var(--text-muted); display: block; margin-bottom: 5px;">Home 2.4 GHz Wi-Fi Network Name (SSID):</label>
+                    <input type="text" id="wifiSsidInput" placeholder="e.g. HomeNetwork-2.4G" style="width: 100%; background: #0d1117; color: #fff; border: 1px solid #30363d; padding: 8px 10px; border-radius: 6px; font-size: 13px; outline: none; box-sizing: border-box;">
+                </div>
+                <div>
+                    <label style="font-size: 12px; color: var(--text-muted); display: block; margin-bottom: 5px;">Wi-Fi Password:</label>
+                    <input type="password" id="wifiPasswordInput" placeholder="Wi-Fi Password" style="width: 100%; background: #0d1117; color: #fff; border: 1px solid #30363d; padding: 8px 10px; border-radius: 6px; font-size: 13px; outline: none; box-sizing: border-box;">
+                </div>
+                <div>
+                    <label style="font-size: 12px; color: var(--text-muted); display: block; margin-bottom: 5px;">Target ESP32 IP Address:</label>
+                    <input type="text" id="wifiTargetIpInput" value="255.255.255.255" placeholder="255.255.255.255" style="width: 100%; background: #0d1117; color: #fff; border: 1px solid #30363d; padding: 8px 10px; border-radius: 6px; font-size: 13px; outline: none; box-sizing: border-box;">
+                    <span style="font-size: 11px; color: #8b949e; margin-top: 4px; display: block;">Leave as <code>255.255.255.255</code> for automatic local network broadcast (no IP lookup needed).</span>
+                </div>
+                <div style="padding: 12px; background: #0d1117; border-radius: 6px; border: 1px solid #30363d; font-size: 11px; color: #8b949e; line-height: 1.5;">
+                    💡 <strong>One-Time Setup:</strong> Connect your ESP32 via USB and click <em>"⚡ Flash Wi-Fi Receiver"</em> once. After that flash completes, unplug USB and power the ESP32 from any <strong>5V wall charger</strong> across the room.
+                </div>
+            </div>
+            <div style="padding: 14px 20px; background: #161b22; border-top: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center;">
+                <button id="saveWifiBtn" class="action-btn" style="padding: 8px 16px;">💾 Save Wi-Fi</button>
+                <button id="flashReceiverBtn" class="action-btn primary" style="padding: 8px 18px; background: linear-gradient(135deg, #1f6feb, #388bfd);">⚡ Flash Wi-Fi Receiver (USB)</button>
             </div>
         </div>
     </div>
