@@ -188,7 +188,7 @@
                         <span id="wifiStreamDot" style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #8b949e;"></span>
                         <span id="wifiStreamStatusText" style="color: var(--text-muted);">Standby (Off)</span>
                     </div>
-                    <button id="wifiSettingsBtn" style="background: transparent; border: none; color: #58a6ff; font-size: 14px; cursor: pointer;" title="Configure Wi-Fi Credentials">⚙️</button>
+                    <button id="wifiSettingsBtn" type="button" onclick="openWifiModal()" class="action-btn" style="flex: none; background: #21262d; border: 1px solid #388bfd; color: #58a6ff; font-size: 11px; padding: 4px 8px; border-radius: 4px; cursor: pointer; display: flex; align-items: center; gap: 4px;" title="Configure Wi-Fi Credentials">⚙️ Settings</button>
                 </div>
 
                 <button id="toggleWifiStreamBtn" class="action-btn primary" style="font-weight: 600; font-size: 13px; padding: 10px; background: linear-gradient(135deg, #1f6feb, #388bfd); width: 100%;">
@@ -275,7 +275,7 @@
                     <span style="font-size: 18px;">📡</span>
                     <h3 style="font-size: 15px; font-weight: 600;">Wi-Fi Live Stream Settings</h3>
                 </div>
-                <button id="closeWifiModalBtn" class="close-btn">&times;</button>
+                <button id="closeWifiModalBtn" type="button" onclick="closeWifiModal()" class="close-btn">&times;</button>
             </div>
             <div style="padding: 18px 20px; background: #161b22; display: flex; flex-direction: column; gap: 14px;">
                 <div>
@@ -302,6 +302,6 @@
         </div>
     </div>
 
-    <script src="app.js"></script>
+    <script src="app.js?v=4"></script>
 </body>
 </html>

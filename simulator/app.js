@@ -1942,17 +1942,23 @@ if (toggleWifiStreamBtn) {
     });
 }
 
+window.openWifiModal = function() {
+    loadWifiSettings();
+    const modal = document.getElementById('wifiModal') || wifiModal;
+    if (modal) modal.classList.add('open');
+};
+
+window.closeWifiModal = function() {
+    const modal = document.getElementById('wifiModal') || wifiModal;
+    if (modal) modal.classList.remove('open');
+};
+
 if (wifiSettingsBtn) {
-    wifiSettingsBtn.addEventListener('click', () => {
-        loadWifiSettings();
-        if (wifiModal) wifiModal.classList.add('open');
-    });
+    wifiSettingsBtn.addEventListener('click', window.openWifiModal);
 }
 
 if (closeWifiModalBtn) {
-    closeWifiModalBtn.addEventListener('click', () => {
-        if (wifiModal) wifiModal.classList.remove('open');
-    });
+    closeWifiModalBtn.addEventListener('click', window.closeWifiModal);
 }
 
 if (saveWifiBtn) {
