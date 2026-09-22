@@ -97,8 +97,7 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 * **Date:** 2026-09-22
 * **Status:** Operational & verified with high-speed UDP pixel streaming.
 * **Notes:**
-  * **Zero-Wait Real-Time Testing:** Developed a high-speed Wi-Fi UDP streaming pipeline (port 4210, `MSEP` binary protocol) between the Web Simulator (`simulator.py`) and ESP32 firmware (`src/main.cpp`).
-  * **Dual-Mode Firmware Architecture:** Added `#define ENABLE_WIFI_LIVE_STREAM` in `src/main.cpp`. When enabled, the ESP32 acts as an instantaneous live display for whatever is on the simulator canvas. When disabled, it runs full standalone ESP-NOW fleet lockstep for race day.
+  * **Unified Universal Firmware Architecture:** Combined both systems into a single seamless firmware in `src/main.cpp`. It runs the full ESP-NOW parade fleet loop (Marquee Chase, Float Sparkles, Twinkle, Traveling Wave) by default. When the web simulator sends live stream packets, it temporarily overrides the lights in real time; the moment streaming stops for >2.5s, it smoothly resumes synchronized parade lockstep!
   * **Dual Connection Support:** Connects automatically to Home Wi-Fi (`include/wifi_config.h`), or falls back to an open Access Point (`MSEP-Costume-AP`) if home network is unavailable.
   * **One-Click Wi-Fi Receiver Flasher:** Users can flash the receiver once over USB via the simulator UI (`⚙️` settings dialog), then unplug the USB and power the ESP32 from a 5V/2A wall charger across the room forever while testing designs!
   * **Simulator UI Integration:** Added a "📡 Real-Time Wi-Fi Stream" dock with a live stream toggle button, pulsing connection status indicator, and automated 30 FPS pixel transmission.
