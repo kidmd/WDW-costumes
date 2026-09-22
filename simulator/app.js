@@ -524,7 +524,8 @@ function renderSingleShirtView(timeMs) {
 
     ctx.clearRect(0, 0, w, h);
 
-    drawRunningShirt(ctx, s.x, s.y, s.width, s.height, "FLOAT #3: PETE'S DRAGON");
+    const shirtTitle = (currentGraphicType === 'custom_image') ? "CUSTOM RUNNER DESIGN" : "FLOAT #3: PETE'S DRAGON";
+    drawRunningShirt(ctx, s.x, s.y, s.width, s.height, shirtTitle);
     drawPetesDragon(ctx, s);
 
     if (params.showWiring && leds.length > 1) {
@@ -1033,10 +1034,92 @@ function updateLedCountUI() {
     }
 }
 
+// ============================================================================
+// COLOR SCIENCE & VIBRANCY BOOSTING
+// ============================================================================
+function rgbToHsl(r, g, b) {
+    const rNorm = r / 255.0;
+    const gNorm = g / 255.0;
+    const bNorm = b / 255.0;
+    const max = Math.max(rNorm, gNorm, bNorm);
+    const min = Math.min(rNorm, gNorm, bNorm);
+    let h = 0, s = 0;
+    const l = (max + min) / 2.0;
+
+    if (max !== min) {
+        const d = max - min;
+        s = l > 0.5 ? d / (2.0 - max - min) : d / (max + min);
+        switch (max) {
+            case rNorm: h = (gNorm - bNorm) / d + (gNorm < bNorm ? 6 : 0); break;
+            case gNorm: h = (bNorm - rNorm) / d + 2; break;
+            case bNorm: h = (rNorm - gNorm) / d + 4; break;
+        }
+        h /= 6.0;
+    }
+    return { h, s, l };
+}
+
+// Boost custom image colors so WS2812Bs pop with true character vibrancy without falling back to dragon green
+function boostCustomImageColor(r, g, b) {
+    const maxVal = Math.max(r, g, b);
+    const minVal = Math.min(r, g, b);
+    const delta = maxVal - minVal;
+
+    // 1. Dark pixels (shadows, line art, dark contours):
+    // Never leave an LED completely dark or unlit on the costume
+    if (maxVal < 45) {
+        if (delta >= 10) {
+            const { h, s } = rgbToHsl(r, g, b);
+            return hslToRgb(h, Math.min(1.0, s * 1.5 + 0.2), 0.28);
+        }
+        // Neutral black/charcoal -> clean cool starlight night glow
+        return { r: 50, g: 52, b: 65 };
+    }
+
+    // 2. Whites, Silvers, and Light Neutrals (low saturation, high lightness):
+    if (delta < 28 && maxVal > 170) {
+        return { r: 255, g: 250, b: 242 };
+    }
+
+    // 3. Colored pixels: Boost saturation and normalize lightness for maximum WS2812B punch!
+    const { h, s, l } = rgbToHsl(r, g, b);
+    const boostedS = Math.min(1.0, Math.max(0.65, s * 1.35 + 0.12));
+
+    let boostedL = 0.50;
+    if (l < 0.40) {
+        boostedL = 0.38 + (l / 0.40) * 0.12;
+    } else if (l > 0.65) {
+        boostedL = 0.52 + (l - 0.65) * 0.25;
+    } else {
+        boostedL = 0.48 + (l - 0.40) * 0.16;
+    }
+    boostedL = Math.min(0.70, Math.max(0.35, boostedL));
+
+    const result = hslToRgb(h, boostedS, boostedL);
+
+    // Ensure dominant channel reaches punchy brightness for physical LEDs
+    const resMax = Math.max(result.r, result.g, result.b);
+    if (resMax > 0 && resMax < 255 && boostedS > 0.5) {
+        const scale = 255 / resMax;
+        const factor = 0.7;
+        result.r = Math.min(255, Math.round(result.r * (1 + (scale - 1) * factor)));
+        result.g = Math.min(255, Math.round(result.g * (1 + (scale - 1) * factor)));
+        result.b = Math.min(255, Math.round(result.b * (1 + (scale - 1) * factor)));
+    }
+
+    return result;
+}
+
 // Boost vibrancy and saturation of sampled colors so physical WS2812B LEDs shine with true character colors
 function boostLedVibrancy(r, g, b, relX, relY) {
+    // If user uploaded a custom graphic, preserve and boost its genuine colors!
+    if (currentGraphicType === 'custom_image') {
+        return boostCustomImageColor(r, g, b);
+    }
+
+    // --- Pete's Dragon Built-in Preset Enhancement ---
     // If pixel is near-black line art, contour, or dark shadow (< 60):
-    // Never allow an LED to be dark or unlit! Default to vibrant dragon green.
+    // Default to vibrant dragon green for the built-in dragon graphic.
     const maxVal = Math.max(r, g, b);
     if (maxVal < 60) {
         return { r: 15, g: 255, b: 35 };
@@ -1139,13 +1222,46 @@ function sampleColorAtNorm(normX, normY) {
 
 // Resample colors for all current LEDs based on current background graphic
 function resampleAllLedColors() {
+    if (!leds || leds.length === 0) return;
+
+    const gb = getGraphicChestBounds();
+    const activeImg = getActiveGraphicImg();
+    const targetW = 360;
+    let targetH = 360;
+
+    const offCanvas = document.createElement('canvas');
+    const offCtx = offCanvas.getContext('2d');
+
+    if (activeImg) {
+        targetH = Math.max(120, Math.round(targetW * (activeImg.naturalHeight / activeImg.naturalWidth)));
+        offCanvas.width = targetW;
+        offCanvas.height = targetH;
+        offCtx.drawImage(activeImg, 0, 0, targetW, targetH);
+    } else {
+        offCanvas.width = targetW;
+        offCanvas.height = targetH;
+        drawPetesDragon(offCtx, { x: 0, y: 0, width: targetW, height: targetH });
+    }
+
+    const imgData = offCtx.getImageData(0, 0, targetW, targetH).data;
     let count = 0;
+
     for (let i = 0; i < leds.length; i++) {
-        const col = sampleColorAtNorm(leds[i].x, leds[i].y);
-        if (col) {
-            leds[i].color = col;
-            count++;
-        }
+        const normX = leds[i].x;
+        const normY = leds[i].y;
+        const relX = (normX - gb.normX) / gb.normW;
+        const relY = (normY - gb.normY) / gb.normH;
+        if (relX < 0 || relX > 1 || relY < 0 || relY > 1) continue;
+
+        const px = Math.floor(relX * targetW);
+        const py = Math.floor(relY * targetH);
+        if (px < 0 || px >= targetW || py < 0 || py >= targetH) continue;
+
+        const pIdx = (py * targetW + px) * 4;
+        if (imgData[pIdx + 3] < 30) continue;
+
+        leds[i].color = boostLedVibrancy(imgData[pIdx], imgData[pIdx + 1], imgData[pIdx + 2], relX, relY);
+        count++;
     }
     showToast(`🎨 Resampled ${count} LED colors from background graphic!`);
 }
@@ -1286,6 +1402,30 @@ function scatterLedsOnGraphic(targetCount = 100, colorMatch = true) {
         }
     }
 
+    // Detect background type for opaque images by sampling the 4 corners
+    let isLightBg = false;
+    let isDarkBg = false;
+    if (!hasTransparency) {
+        const cornerCoords = [
+            [4, 4],
+            [targetW - 5, 4],
+            [4, targetH - 5],
+            [targetW - 5, targetH - 5],
+            [Math.floor(targetW / 2), 4],
+            [Math.floor(targetW / 2), targetH - 5]
+        ];
+        let lightCorners = 0;
+        let darkCorners = 0;
+        for (const [cx, cy] of cornerCoords) {
+            const cIdx = (cy * targetW + cx) * 4;
+            const cLum = 0.299 * data[cIdx] + 0.587 * data[cIdx + 1] + 0.114 * data[cIdx + 2];
+            if (cLum > 215) lightCorners++;
+            else if (cLum < 45) darkCorners++;
+        }
+        if (lightCorners >= 3) isLightBg = true;
+        else if (darkCorners >= 3) isDarkBg = true;
+    }
+
     const step = 3;
     const candidates = [];
     for (let y = 3; y < targetH - 3; y += step) {
@@ -1298,11 +1438,26 @@ function scatterLedsOnGraphic(targetCount = 100, colorMatch = true) {
 
             let isFg = false;
             if (hasTransparency) {
-                // Ignore transparent background AND ignore black contour line art (< 60)
-                isFg = (a > 80 && Math.max(r, g, b) >= 60);
+                // For Pete's dragon built-in, avoid contour ink lines (< 60)
+                if (currentGraphicType === 'builtin_dragon') {
+                    isFg = (a > 80 && Math.max(r, g, b) >= 60);
+                } else {
+                    isFg = (a > 60);
+                }
+            } else if (isLightBg) {
+                // Opaque image on white / light background: foreground is anything non-white
+                const lum = 0.299 * r + 0.587 * g + 0.114 * b;
+                const maxC = Math.max(r, g, b);
+                const minC = Math.min(r, g, b);
+                const satDelta = maxC - minC;
+                isFg = (lum < 225 || satDelta > 25);
+            } else if (isDarkBg) {
+                // Opaque image on dark background: foreground is visible graphic
+                const lum = 0.299 * r + 0.587 * g + 0.114 * b;
+                isFg = (lum > 45);
             } else {
                 const lum = 0.299 * r + 0.587 * g + 0.114 * b;
-                isFg = (lum > 55);
+                isFg = (lum > 40);
             }
 
             if (isFg) {
@@ -1419,12 +1574,29 @@ function autoOutlineCurrentGraphic(targetCount = 50) {
         }
     }
 
+    let isLightBg = false;
+    if (!hasTransparency) {
+        const cornerCoords = [[4, 4], [targetW - 5, 4], [4, targetH - 5], [targetW - 5, targetH - 5]];
+        let lightCorners = 0;
+        for (const [cx, cy] of cornerCoords) {
+            const cIdx = (cy * targetW + cx) * 4;
+            const cLum = 0.299 * data[cIdx] + 0.587 * data[cIdx + 1] + 0.114 * data[cIdx + 2];
+            if (cLum > 215) lightCorners++;
+        }
+        if (lightCorners >= 3) isLightBg = true;
+    }
+
     const isFg = (x, y) => {
         if (x < 0 || x >= targetW || y < 0 || y >= targetH) return false;
         const idx = (y * targetW + x) * 4;
         const a = data[idx + 3];
         if (hasTransparency) {
             return a > 40;
+        } else if (isLightBg) {
+            const r = data[idx], g = data[idx + 1], b = data[idx + 2];
+            const lum = 0.299 * r + 0.587 * g + 0.114 * b;
+            const satDelta = Math.max(r, g, b) - Math.min(r, g, b);
+            return (lum < 225 || satDelta > 25);
         } else {
             const r = data[idx], g = data[idx + 1], b = data[idx + 2];
             const lum = 0.299 * r + 0.587 * g + 0.114 * b;
@@ -1541,7 +1713,7 @@ function autoOutlineCurrentGraphic(targetCount = 50) {
         newLeds.push({
             x: Math.max(0.05, Math.min(0.95, parseFloat(normX.toFixed(3)))),
             y: Math.max(0.05, Math.min(0.95, parseFloat(normY.toFixed(3)))),
-            color: col
+            color: col || { r: 255, g: 250, b: 242 }
         });
     }
 
