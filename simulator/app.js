@@ -498,9 +498,19 @@ function renderBulb(cx, x, y, col, isHovered, isSelected, index) {
     }
 
     if (params.showNumbers) {
-        cx.fillStyle = '#ffffff';
-        cx.font = '9px monospace';
-        cx.fillText(index, x + 6, y - 6);
+        if (index === 0) {
+            cx.fillStyle = '#00ff88';
+            cx.font = 'bold 10px monospace';
+            cx.fillText('0 (START)', x + 6, y - 6);
+        } else if (index === leds.length - 1) {
+            cx.fillStyle = '#ff4d6d';
+            cx.font = 'bold 10px monospace';
+            cx.fillText(`${index} (END)`, x + 6, y - 6);
+        } else {
+            cx.fillStyle = '#ffffff';
+            cx.font = '9px monospace';
+            cx.fillText(index, x + 6, y - 6);
+        }
     }
 }
 
@@ -518,6 +528,7 @@ function renderSingleShirtView(timeMs) {
     drawPetesDragon(ctx, s);
 
     if (params.showWiring && leds.length > 1) {
+        ctx.save();
         ctx.beginPath();
         const p0 = normToCanvas(leds[0]);
         ctx.moveTo(p0.x, p0.y);
@@ -525,11 +536,27 @@ function renderSingleShirtView(timeMs) {
             const pt = normToCanvas(leds[i]);
             ctx.lineTo(pt.x, pt.y);
         }
-        ctx.strokeStyle = 'rgba(255, 193, 7, 0.4)';
-        ctx.lineWidth = 1.5;
-        ctx.setLineDash([4, 4]);
+        ctx.strokeStyle = 'rgba(255, 193, 7, 0.55)';
+        ctx.lineWidth = 1.8;
+        ctx.setLineDash([5, 4]);
         ctx.stroke();
         ctx.setLineDash([]);
+
+        // Highlight Start LED 0 (Green indicator ring)
+        ctx.beginPath();
+        ctx.arc(p0.x, p0.y, 9.5, 0, Math.PI * 2);
+        ctx.strokeStyle = '#00ff88';
+        ctx.lineWidth = 2.5;
+        ctx.stroke();
+
+        // Highlight End LED (Red indicator ring)
+        const pEnd = normToCanvas(leds[leds.length - 1]);
+        ctx.beginPath();
+        ctx.arc(pEnd.x, pEnd.y, 9.5, 0, Math.PI * 2);
+        ctx.strokeStyle = '#ff4d6d';
+        ctx.lineWidth = 2.5;
+        ctx.stroke();
+        ctx.restore();
     }
 
     for (let i = 0; i < leds.length; i++) {
@@ -1123,6 +1150,111 @@ function resampleAllLedColors() {
     showToast(`🎨 Resampled ${count} LED colors from background graphic!`);
 }
 
+// ============================================================================
+// CONTINUOUS PHYSICAL WIRING ROUTING (Shortest Path: Nearest-Neighbor + 2-Opt)
+// Sorts and renumbers LEDs so LED[i+1] is always immediately adjacent to LED[i].
+// Minimizes wire travel, prevents crisscrossing, and makes costume sewing easy!
+// ============================================================================
+function optimizeLedWiringOrder(points, startCorner = 'bottom-left') {
+    if (!points || points.length <= 2) return points;
+
+    const n = points.length;
+
+    // 1. Pick starting LED (e.g. bottom-left near the waist / battery pack)
+    let startIdx = 0;
+    let bestScore = Infinity;
+
+    for (let i = 0; i < n; i++) {
+        let score;
+        const p = points[i];
+        if (startCorner === 'bottom-left') {
+            score = (1.0 - p.y) * 1.5 + p.x;
+        } else if (startCorner === 'bottom-center') {
+            score = (1.0 - p.y) * 1.5 + Math.abs(p.x - 0.5);
+        } else if (startCorner === 'bottom-right') {
+            score = (1.0 - p.y) * 1.5 + (1.0 - p.x);
+        } else { // top-left
+            score = p.y * 1.5 + p.x;
+        }
+        if (score < bestScore) {
+            bestScore = score;
+            startIdx = i;
+        }
+    }
+
+    // 2. Nearest Neighbor Tour Construction
+    const unvisited = new Set();
+    for (let i = 0; i < n; i++) {
+        if (i !== startIdx) unvisited.add(i);
+    }
+
+    const path = [startIdx];
+    while (unvisited.size > 0) {
+        const curr = path[path.length - 1];
+        let nearest = -1;
+        let minD = Infinity;
+
+        for (const idx of unvisited) {
+            const dx = points[curr].x - points[idx].x;
+            const dy = points[curr].y - points[idx].y;
+            const d = dx * dx + dy * dy;
+            if (d < minD) {
+                minD = d;
+                nearest = idx;
+            }
+        }
+
+        path.push(nearest);
+        unvisited.delete(nearest);
+    }
+
+    // Distance helper
+    const dist = (a, b) => Math.hypot(points[a].x - points[b].x, points[a].y - points[b].y);
+
+    // 3. 2-Opt Optimization Pass (Untangles crossovers & minimizes total physical wire length)
+    let improved = true;
+    let iterations = 0;
+    while (improved && iterations < 60) {
+        improved = false;
+        iterations++;
+        for (let i = 0; i < n - 2; i++) {
+            for (let j = i + 2; j < n; j++) {
+                if (j === n - 1) {
+                    const dCur = dist(path[i], path[i + 1]);
+                    const dNew = dist(path[i], path[j]);
+                    if (dNew < dCur - 1e-5) {
+                        let left = i + 1, right = j;
+                        while (left < right) {
+                            const tmp = path[left];
+                            path[left] = path[right];
+                            path[right] = tmp;
+                            left++;
+                            right--;
+                        }
+                        improved = true;
+                    }
+                } else {
+                    const dCur = dist(path[i], path[i + 1]) + dist(path[j], path[j + 1]);
+                    const dNew = dist(path[i], path[j]) + dist(path[i + 1], path[j + 1]);
+                    if (dNew < dCur - 1e-5) {
+                        let left = i + 1, right = j;
+                        while (left < right) {
+                            const tmp = path[left];
+                            path[left] = path[right];
+                            path[right] = tmp;
+                            left++;
+                            right--;
+                        }
+                        improved = true;
+                    }
+                }
+            }
+        }
+    }
+
+    return path.map(idx => points[idx]);
+}
+
 // SCATTER 100 LEDs (Farthest-Point Sampling inside graphic with pixel color matching)
 function scatterLedsOnGraphic(targetCount = 100, colorMatch = true) {
     const targetW = 360;
@@ -1243,7 +1375,8 @@ function scatterLedsOnGraphic(targetCount = 100, colorMatch = true) {
         });
     }
 
-    leds = newLeds;
+    // Sort & renumber LEDs into a continuous physical wiring path (starts near waist / bottom-left)
+    leds = optimizeLedWiringOrder(newLeds, 'bottom-left');
     while (sparkles.length < leds.length) sparkles.push(0);
 
     activePattern = 'steady_sparkle';
@@ -1251,7 +1384,7 @@ function scatterLedsOnGraphic(targetCount = 100, colorMatch = true) {
     if (patSelect) patSelect.value = 'steady_sparkle';
 
     updateLedCountUI();
-    showToast(`🌈 ${targetCount} LEDs scattered & color-matched to artwork!`);
+    showToast(`🌈 ${targetCount} LEDs scattered & ordered along continuous wiring route!`);
 }
 
 // OUTLINE 50 LEDs (Moore-Neighbor Clockwise Boundary Tracing)
@@ -1441,6 +1574,15 @@ document.getElementById('artworkUpload').addEventListener('change', (e) => {
 });
 
 // Button Click Handlers
+const optWiringBtn = document.getElementById('optimizeWiringBtn');
+if (optWiringBtn) {
+    optWiringBtn.addEventListener('click', () => {
+        if (!leds || leds.length <= 2) return;
+        leds = optimizeLedWiringOrder(leds, 'bottom-left');
+        showToast(`🔌 Renumbered ${leds.length} LEDs along continuous physical wiring route!`);
+    });
+}
+
 document.getElementById('scatterColorBtn').addEventListener('click', () => {
     scatterLedsOnGraphic(100, true);
 });

@@ -151,6 +151,10 @@
                     <button id="resampleColorsBtn" class="action-btn" style="flex: 1; font-size: 11px; padding: 5px 6px;" title="Sample colors from artwork under each LED">🎨 Sample</button>
                 </div>
 
+                <button id="optimizeWiringBtn" class="action-btn" style="width: 100%; font-size: 11px; padding: 6px 8px; margin-bottom: 8px; font-weight: 600; background: rgba(31, 111, 235, 0.25); border-color: rgba(56, 139, 253, 0.4);" title="Sort and renumber LEDs so each bulb connects to its nearest neighbor along a continuous physical wire route">
+                    🔌 Optimize Wiring Route (Order LEDs)
+                </button>
+
                 <div class="toggle-row">
                     <span id="wiringLabel">Show Wiring Trace (0 &rarr; 99)</span>
                     <label class="switch">
@@ -302,6 +306,6 @@
         </div>
     </div>
 
-    <script src="app.js?v=4"></script>
+    <script src="app.js?v=5"></script>
 </body>
 </html>
