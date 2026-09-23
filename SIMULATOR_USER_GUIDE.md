@@ -334,9 +334,9 @@ When you are ready to prepare a shirt for autonomous use:
 
 ---
 
-## 14. Dual-Mode ESP32 Firmware & Onboard Button Toggle
+## 14. Dual-Mode ESP32 Firmware, Button Toggle & Float ID Selector
 
-The firmware in [`src/main.cpp`](file:///c:/Users/Kiddi/Desktop/WDW%20costumes/src/main.cpp) incorporates dual-mode operation toggled via the ESP32's onboard **BOOT button** (`BUTTON_PIN 0` with hardware internal pull-up and 50ms debouncing):
+The firmware in [`src/main.cpp`](file:///c:/Users/Kiddi/Desktop/WDW%20costumes/src/main.cpp) incorporates dual-mode operation and interactive float configuration toggled via the ESP32's onboard **BOOT button** (`BUTTON_PIN 0` with hardware internal pull-up and debouncing):
 
 ### Mode 0: Autonomous 90-Second Theatrical Show Sequence (Default)
 - Runs your float's customized 90-second Cue Director sequence independently.
@@ -347,9 +347,16 @@ The firmware in [`src/main.cpp`](file:///c:/Users/Kiddi/Desktop/WDW%20costumes/s
 - Tap the **BOOT button** once to switch into Fleet Sync mode.
 - Unit 1 operates as the **Parade Leader / Transmitter**, broadcasting synchronization packets over connectionless 2.4 GHz ESP-NOW radio at 25 Hz.
 - Units 2 through 7 operate as **Followers / Receivers**, locking their internal clock to the Leader with sub-millisecond precision.
-- Features coordinated multi-float traveling waves where illuminated light pulses leap smoothly from runner to runner down the line!
-- The onboard status LED illuminates solid green when receiving radio synchronization packets.
+- Features coordinated 7-float traveling waves where illuminated light pulses leap smoothly from runner to runner down the line (Float 1 ➔ 2 ➔ 3 ➔ 4 ➔ 5 ➔ 6 ➔ 7)!
+- The onboard status LED illuminates solid green/blue when receiving radio synchronization packets.
 - Tap the **BOOT button** again to return to individual 90-second autonomous show playback at any time.
+
+### 🎛️ Interactive Float ID Selector (Hold for 3 Seconds)
+Any board can be assigned to any of the 7 floats without touching code:
+1. **Hold the BOOT button for 3 seconds:** The LEDs flash white 3 times to enter Config Mode.
+2. **Visual Feedback:** The first `N` LEDs on the strip light up in that float's signature color (1=Gold/Amber, 2=Red, 3=Green, 4=Purple, 5=Cyan, 6=Orange, 7=Pink). The onboard blue LED blinks `N` times in sequence.
+3. **Tap to Cycle:** Each short tap cycles `1 ➔ 2 ➔ 3 ➔ 4 ➔ 5 ➔ 6 ➔ 7 ➔ 1`.
+4. **Auto-Save:** Leave untouched for 4 seconds. The LEDs flash green 4 times and the Float ID is permanently saved to ESP32 NVS flash (`Preferences.h`). Float 1 automatically acts as Leader; Floats 2–7 act as Followers.
 
 ---
 

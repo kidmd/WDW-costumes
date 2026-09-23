@@ -91,6 +91,36 @@ Once your board is flashed:
 
 ---
 
+## 🎛️ Setting Your Float Number (1 to 7) & Role (Leader / Follower)
+
+You do **not** need to change any code to configure which float you are! Any ESP32 can be set to any float in the parade lineup using the onboard **BOOT button (GPIO 0)**, and your board permanently remembers its number in flash memory even when powered off.
+
+### How to Configure:
+1. **Hold the BOOT button for 3 seconds:**
+   - The LEDs will flash **white 3 times** to signal you have entered Configuration Mode.
+2. **Read the Current Float Number:**
+   - Look at the start of your LED strip: the first **N pixels** will light up in that float's signature color!
+   - (If you don't have the LED strip plugged in, the onboard Blue LED blinks N times repeatedly).
+3. **Tap the BOOT button to cycle:**
+   - Each short tap advances to the next float: `1 ➔ 2 ➔ 3 ➔ 4 ➔ 5 ➔ 6 ➔ 7 ➔ 1`.
+4. **Auto-Save & Exit:**
+   - Once you reach your float, **leave the button alone for 4 seconds**.
+   - The LEDs will flash **green 4 times** to confirm it is saved!
+
+### The 7-Runner Fleet Lineup:
+
+| Float # | Float Name | Character Tag | Signature Color | Role |
+|:---:|---|---|---|:---:|
+| **01** | **Title Drum** | THE DRUM | 🟡 Gold / Amber | **👑 LEADER** (Broadcasts timing clock) |
+| **02** | **Casey Jr.** | LOCOMOTIVE | 🔴 Red | Follower |
+| **03** | **Elliott** | PETE'S DRAGON | 🟢 Green | Follower |
+| **04** | **Mushroom** | ALICE | 🟣 Purple | Follower |
+| **05** | **Cinderella** | PUMPKIN COACH | 🔵 Cyan | Follower |
+| **06** | **Pirate Ship** | PETER PAN | 🟠 Orange | Follower |
+| **07** | **Snail Finale** | SPINNING SNAIL | 🌸 Pink | Follower |
+
+> 💡 **Fleet Leader Note:** Float 01 is the **Master Leader** that broadcasts the wireless sync clock. If you are running together as a group, one runner sets their shirt to **Float 01**, and everyone else picks Floats **02 through 07**. The synchronized traveling wave will then roll down the line in order: `01 ➔ 02 ➔ 03 ➔ 04 ➔ 05 ➔ 06 ➔ 07`!
+
 ## ❓ Troubleshooting
 
 | Issue | Quick Fix |

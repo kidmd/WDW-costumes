@@ -37,6 +37,7 @@ An **ESP32** microcontroller on each runner coordinates lighting patterns wirele
 * **Architecture:**
   * **Unit 1 (Leader / Transmitter):** Broadcasts timing ticks, BPM tempo, master brightness, and pattern triggers.
   * **Units 2–7 (Followers / Receivers):** Listen to broadcast packets, sync their internal animation clock, and calculate their position-based phase delay for traveling parade chases down the line of runners.
+* **On-the-Fly Configuration:** Hold the onboard **BOOT button for 3 seconds** to assign any ESP32 to Floats 1 through 7 with visual LED feedback and save to persistent flash memory (`Preferences.h`). No hardcoded MAC addresses required!
 
 ---
 

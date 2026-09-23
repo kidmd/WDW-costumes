@@ -12,12 +12,12 @@
 //    - Connect your ESP32 via USB and choose its port in Tools -> Port.
 // 5. Click the "Upload" arrow button (top-left).
 // ============================================================================
-
 #include <Arduino.h>
 #include <FastLED.h>
 #include <WiFi.h>
 #include <WiFiUdp.h>
 #include <esp_now.h>
+#include <Preferences.h>
 #include "soc/soc.h"
 #include "soc/rtc_cntl_reg.h"
 
@@ -42,6 +42,25 @@
 
 CRGB leds[MAX_LEDS_CAPACITY];
 
+Preferences preferences;
+
+// 7-Runner Fleet Metadata & Signature Colors
+struct FloatMeta {
+    const char* name;
+    const char* tag;
+    CRGB color;
+};
+
+const FloatMeta FLEET_ROSTER_INFO[7] = {
+    { "Title Drum",     "LEADER",     CRGB(255, 180, 20)  }, // Float 1 (Gold/Amber)
+    { "Casey Jr.",      "FOLLOWER",   CRGB(230, 40, 50)   }, // Float 2 (Red)
+    { "Elliott",        "FOLLOWER",   CRGB(0, 255, 100)   }, // Float 3 (Green)
+    { "Mushroom",       "FOLLOWER",   CRGB(160, 40, 220)  }, // Float 4 (Purple)
+    { "Cinderella",     "FOLLOWER",   CRGB(50, 180, 240)  }, // Float 5 (Cyan)
+    { "Pirate Ship",    "FOLLOWER",   CRGB(255, 120, 0)   }, // Float 6 (Orange)
+    { "Snail Finale",   "FOLLOWER",   CRGB(255, 20, 140)  }  // Float 7 (Pink)
+};
+
 // ============================================================================
 // WI-FI & UDP LIVE STREAMING STATE
 // ============================================================================
@@ -63,7 +82,7 @@ struct __attribute__((packed)) ParadeSyncPacket {
     uint8_t  magic;          // 0xEE verification byte
     uint8_t  mode;           // 0: Marquee, 1: Sparkle, 2: Twinkle, 3: Traveling Wave
     uint32_t masterMillis;   // Synchronized timebase (ms)
-    uint8_t  activeFloat;    // For traveling wave (1 = Float 1, 2 = Float 2)
+    uint8_t  activeFloat;    // For traveling wave (1 to 7)
     uint8_t  waveHead;       // 0-49 pixel position of traveling wave
 };
 
@@ -110,20 +129,17 @@ void renderMarqueeChase(uint32_t t) {
 }
 
 void renderParadeSparkle(uint32_t t) {
-    static const CRGB paletteDrum[] = {
-        CRGB(255, 160, 20), CRGB(255, 230, 180), CRGB(255, 120, 10)
-    };
-    static const CRGB paletteCasey[] = {
-        CRGB(255, 25, 0), CRGB(255, 230, 180), CRGB(0, 190, 255)
+    uint8_t floatIdx = (myFloatNumber >= 1 && myFloatNumber <= 7) ? (myFloatNumber - 1) : 0;
+    CRGB baseCol = FLEET_ROSTER_INFO[floatIdx].color;
+    CRGB palette[3] = {
+        baseCol,
+        CRGB(255, 230, 180), // Warm incandescent starlight accent
+        CRGB(baseCol.r / 2, baseCol.g / 2, baseCol.b / 2) // Deep jewel shadow
     };
 
     uint8_t step = (t / 180) % 3;
     for (int i = 0; i < PARADE_NUM_LEDS; i++) {
-        if (myFloatNumber == 1) {
-            leds[i] = paletteDrum[(i + step) % 3];
-        } else {
-            leds[i] = paletteCasey[(i + step) % 3];
-        }
+        leds[i] = palette[(i + step) % 3];
     }
 }
 
@@ -162,14 +178,11 @@ void runFleetSync(uint32_t now) {
         uint8_t waveActiveFloat = 1;
         uint8_t waveHeadPos = 0;
         if (mode == 3) {
-            uint32_t waveTimer = now % 3000;
-            if (waveTimer < 1500) {
-                waveActiveFloat = 1;
-                waveHeadPos = map(waveTimer, 0, 1500, 0, PARADE_NUM_LEDS - 1);
-            } else {
-                waveActiveFloat = 2;
-                waveHeadPos = map(waveTimer - 1500, 0, 1500, 0, PARADE_NUM_LEDS - 1);
-            }
+            // 7-second master wave across all 7 floats (1000ms per runner)
+            uint32_t waveTimer = now % 7000;
+            waveActiveFloat = (waveTimer / 1000) + 1; // 1 to 7
+            uint32_t floatTime = waveTimer % 1000;
+            waveHeadPos = map(floatTime, 0, 1000, 0, PARADE_NUM_LEDS - 1);
         }
 
         // Broadcast ESP-NOW packet at 25 Hz
@@ -209,12 +222,7 @@ void runFleetSync(uint32_t now) {
             case 2: renderTwinkle(activeTime); break;
             case 3: 
                 if (isConnected) {
-                    uint32_t waveTimer = activeTime % 3000;
-                    uint8_t waveActiveFloat = (waveTimer < 1500) ? 1 : 2;
-                    uint8_t waveHeadPos = (waveTimer < 1500) 
-                        ? map(waveTimer, 0, 1500, 0, PARADE_NUM_LEDS - 1)
-                        : map(waveTimer - 1500, 0, 1500, 0, PARADE_NUM_LEDS - 1);
-                    renderTravelingWave(waveActiveFloat, waveHeadPos);
+                    renderTravelingWave(currentPacket.activeFloat, currentPacket.waveHead);
                 } else {
                     renderMarqueeChase(now);
                 }
@@ -237,6 +245,26 @@ void runFleetSync(uint32_t now) {
     delay(15);
 }
 
+void configureEspNowRole() {
+    isLeader = (myFloatNumber == 1);
+    if (isLeader) {
+        Serial.printf("[ROLE] *** LEADER (Float 1 - %s) ***\n", FLEET_ROSTER_INFO[0].name);
+        esp_now_peer_info_t peerInfo = {};
+        memcpy(peerInfo.peer_addr, broadcastMac, 6);
+        peerInfo.channel = 0;
+        peerInfo.encrypt = false;
+        if (!esp_now_is_peer_exist(broadcastMac)) {
+            esp_now_add_peer(&peerInfo);
+        }
+        Serial.println("[INFO] ESP-NOW Broadcast peer registered for Leader.");
+    } else {
+        Serial.printf("[ROLE] >>> FOLLOWER (Float %d - %s) <<<\n", 
+                      myFloatNumber, FLEET_ROSTER_INFO[myFloatNumber - 1].name);
+        esp_now_register_recv_cb(onDataReceive);
+        Serial.println("[INFO] ESP-NOW Receive callback registered for Follower.");
+    }
+}
+
 // ============================================================================
 // HARDWARE BUTTON & STANDALONE SHOW SEQUENCE (Autonomous Float Mode)
 // ============================================================================
@@ -249,6 +277,104 @@ enum StandaloneShowMode {
 };
 
 StandaloneShowMode currentStandaloneMode = SHOW_MODE_AUTONOMOUS_SEQUENCE;
+
+// Interactive Float ID Configuration via BOOT Button (Held for 3 seconds)
+void handleFloatConfigMode() {
+    Serial.println("\n========================================================");
+    Serial.println("  >>> ENTERED FLOAT ID CONFIGURATION MODE <<<");
+    Serial.println("  Tap BOOT button to cycle Float 1 -> 7");
+    Serial.println("  Leave untouched for 4 seconds to save & exit");
+    Serial.println("========================================================");
+
+    // Entry alert: Flash white 3 times
+    for (int f = 0; f < 3; f++) {
+        fill_solid(leds, PARADE_NUM_LEDS, CRGB(200, 200, 200));
+        FastLED.show();
+        digitalWrite(STATUS_LED_PIN, HIGH);
+        delay(100);
+        fill_solid(leds, PARADE_NUM_LEDS, CRGB::Black);
+        FastLED.show();
+        digitalWrite(STATUS_LED_PIN, LOW);
+        delay(100);
+    }
+
+    // Wait until button is released
+    while (digitalRead(BUTTON_PIN) == LOW) {
+        delay(10);
+    }
+    delay(200);
+
+    uint32_t lastActionTime = millis();
+    bool configActive = true;
+    bool buttonPressed = false;
+    uint32_t btnPressTime = 0;
+
+    while (configActive) {
+        uint32_t loopNow = millis();
+
+        // 1. Render current float indicator on LED strip
+        fill_solid(leds, MAX_LEDS_CAPACITY, CRGB::Black);
+        CRGB floatCol = FLEET_ROSTER_INFO[myFloatNumber - 1].color;
+        for (int i = 0; i < myFloatNumber && i < MAX_LEDS_CAPACITY; i++) {
+            leds[i] = floatCol;
+        }
+        FastLED.show();
+
+        // 2. Blink onboard blue status LED to match float count (N blinks, then pause)
+        uint32_t blinkCycle = loopNow % (myFloatNumber * 300 + 800);
+        if (blinkCycle < (uint32_t)(myFloatNumber * 300)) {
+            uint32_t subCycle = blinkCycle % 300;
+            digitalWrite(STATUS_LED_PIN, (subCycle < 150) ? HIGH : LOW);
+        } else {
+            digitalWrite(STATUS_LED_PIN, LOW);
+        }
+
+        // 3. Handle button tap to cycle float ID
+        bool isDown = (digitalRead(BUTTON_PIN) == LOW);
+        if (isDown && !buttonPressed) {
+            buttonPressed = true;
+            btnPressTime = loopNow;
+        } else if (!isDown && buttonPressed) {
+            buttonPressed = false;
+            if (loopNow - btnPressTime > 40) { // Debounced
+                myFloatNumber = (myFloatNumber % 7) + 1;
+                lastActionTime = loopNow;
+                Serial.printf("[CONFIG] Tapped -> Float %d: %s (%s)\n",
+                              myFloatNumber,
+                              FLEET_ROSTER_INFO[myFloatNumber - 1].name,
+                              FLEET_ROSTER_INFO[myFloatNumber - 1].tag);
+            }
+        }
+
+        // 4. Auto-save & Exit after 4 seconds of inactivity
+        if (loopNow - lastActionTime >= 4000) {
+            configActive = false;
+        }
+
+        delay(10);
+    }
+
+    // Save permanently to Preferences (NVS flash)
+    preferences.putUChar("float_id", myFloatNumber);
+    Serial.printf("[CONFIG] Saved Float %d (%s) permanently to NVS flash!\n",
+                  myFloatNumber, FLEET_ROSTER_INFO[myFloatNumber - 1].name);
+
+    // Reconfigure ESP-NOW role
+    configureEspNowRole();
+
+    // Exit alert: Flash green 4 times
+    for (int s = 0; s < 4; s++) {
+        fill_solid(leds, PARADE_NUM_LEDS, CRGB(0, 255, 80));
+        FastLED.show();
+        digitalWrite(STATUS_LED_PIN, HIGH);
+        delay(80);
+        fill_solid(leds, PARADE_NUM_LEDS, CRGB::Black);
+        FastLED.show();
+        digitalWrite(STATUS_LED_PIN, LOW);
+        delay(80);
+    }
+    Serial.println("[CONFIG] Configuration saved! Returned to normal operation.\n");
+}
 
 void runAutonomousShowSequence(uint32_t now) {
     uint32_t seqTime = now % SHOW_LOOP_MS;
@@ -336,40 +462,37 @@ void setup() {
     udp.begin(UDP_STREAM_PORT);
     Serial.printf("[UDP] Listening for simulator streaming packets on port %d\n", UDP_STREAM_PORT);
 
-    // 3. Initialize ESP-NOW Peer-to-Peer
+    // 3. Initialize ESP-NOW Peer-to-Peer & Load Float ID from NVS Flash
+    preferences.begin("msep", false);
+    uint8_t savedFloatId = preferences.getUChar("float_id", 0);
+
     String myMac = WiFi.macAddress();
     Serial.printf("[INFO] My MAC Address: %s\n", myMac.c_str());
 
-    if (myMac.equalsIgnoreCase(MAC_LEADER_FLOAT1)) {
-        isLeader = true;
-        myFloatNumber = 1;
-        Serial.println("[ROLE] *** LEADER (Float 1 - Title Drum) ***");
-    } else if (myMac.equalsIgnoreCase(MAC_FOLLOWER_FLOAT2)) {
-        isLeader = false;
-        myFloatNumber = 2;
-        Serial.println("[ROLE] >>> FOLLOWER (Float 2 - Casey Jr.) <<<");
+    if (savedFloatId >= 1 && savedFloatId <= 7) {
+        myFloatNumber = savedFloatId;
+        Serial.printf("[NVS] Loaded saved Float ID: %d (%s - %s)\n", 
+                      myFloatNumber, FLEET_ROSTER_INFO[myFloatNumber - 1].name, FLEET_ROSTER_INFO[myFloatNumber - 1].tag);
     } else {
-        isLeader = false;
-        myFloatNumber = 2;
-        Serial.println("[ROLE] Unregistered MAC - Defaulting to Follower (Float 2)");
+        // Fallback to MAC-based default if never configured via button
+        if (myMac.equalsIgnoreCase(MAC_LEADER_FLOAT1)) {
+            myFloatNumber = 1;
+            Serial.println("[MAC] Matched Board 1 -> Float 1 (Leader - Title Drum)");
+        } else if (myMac.equalsIgnoreCase(MAC_FOLLOWER_FLOAT2)) {
+            myFloatNumber = 2;
+            Serial.println("[MAC] Matched Board 2 -> Float 2 (Casey Jr.)");
+        } else {
+            myFloatNumber = 2;
+            Serial.println("[MAC] Unregistered MAC -> Defaulting to Float 2 (Casey Jr.)");
+            Serial.println("[TIP] Hold BOOT button for 3s anytime to set your Float Number (1 to 7)!");
+        }
     }
 
     if (esp_now_init() != ESP_OK) {
         Serial.println("[ERROR] ESP-NOW initialization failed!");
     } else {
         Serial.println("[INFO] ESP-NOW Initialized successfully.");
-        if (isLeader) {
-            esp_now_peer_info_t peerInfo = {};
-            memcpy(peerInfo.peer_addr, broadcastMac, 6);
-            peerInfo.channel = 0;
-            peerInfo.encrypt = false;
-            if (esp_now_add_peer(&peerInfo) == ESP_OK) {
-                Serial.println("[INFO] ESP-NOW Broadcast peer registered.");
-            }
-        } else {
-            esp_now_register_recv_cb(onDataReceive);
-            Serial.println("[INFO] ESP-NOW Receive callback registered. Listening for Leader...");
-        }
+        configureEspNowRole();
     }
 
     // 4. Initialize FastLED
@@ -424,22 +547,41 @@ void loop() {
         Serial.println("[MODE] Live stream ended. Resuming standalone mode.");
     }
 
-    // 3. Hardware Button Mode Toggle (BOOT button on GPIO 0)
-    static uint32_t lastButtonPress = 0;
-    if (digitalRead(BUTTON_PIN) == LOW && (now - lastButtonPress > 400)) {
-        lastButtonPress = now;
-        if (currentStandaloneMode == SHOW_MODE_AUTONOMOUS_SEQUENCE) {
-            currentStandaloneMode = SHOW_MODE_FLEET_SYNC;
-            Serial.println("[MODE] Button pressed -> Switched to: ESP-NOW Fleet Sync");
-            for (int b = 0; b < 2; b++) {
-                digitalWrite(STATUS_LED_PIN, HIGH); delay(70);
-                digitalWrite(STATUS_LED_PIN, LOW); delay(70);
+    // 3. Hardware Button (BOOT button on GPIO 0)
+    // Short Tap: Toggle between Autonomous 90s Show and Fleet Sync
+    // Long Hold (>= 3 seconds): Enter Float ID Configuration Mode (1 to 7)
+    static bool buttonWasPressed = false;
+    static uint32_t buttonDownTime = 0;
+    static bool longHoldHandled = false;
+
+    bool isButtonPressed = (digitalRead(BUTTON_PIN) == LOW);
+
+    if (isButtonPressed && !buttonWasPressed) {
+        buttonWasPressed = true;
+        buttonDownTime = now;
+        longHoldHandled = false;
+    } else if (isButtonPressed && buttonWasPressed) {
+        if (!longHoldHandled && (now - buttonDownTime >= 3000)) {
+            longHoldHandled = true;
+            handleFloatConfigMode();
+        }
+    } else if (!isButtonPressed && buttonWasPressed) {
+        buttonWasPressed = false;
+        uint32_t pressDuration = now - buttonDownTime;
+        if (!longHoldHandled && pressDuration > 50 && pressDuration < 1500) {
+            if (currentStandaloneMode == SHOW_MODE_AUTONOMOUS_SEQUENCE) {
+                currentStandaloneMode = SHOW_MODE_FLEET_SYNC;
+                Serial.println("[MODE] Button pressed -> Switched to: ESP-NOW Fleet Sync");
+                for (int b = 0; b < 2; b++) {
+                    digitalWrite(STATUS_LED_PIN, HIGH); delay(70);
+                    digitalWrite(STATUS_LED_PIN, LOW); delay(70);
+                }
+            } else {
+                currentStandaloneMode = SHOW_MODE_AUTONOMOUS_SEQUENCE;
+                Serial.println("[MODE] Button pressed -> Switched to: Autonomous 90-Second Show Sequence");
+                digitalWrite(STATUS_LED_PIN, HIGH); delay(250);
+                digitalWrite(STATUS_LED_PIN, LOW);
             }
-        } else {
-            currentStandaloneMode = SHOW_MODE_AUTONOMOUS_SEQUENCE;
-            Serial.println("[MODE] Button pressed -> Switched to: Autonomous 90-Second Show Sequence");
-            digitalWrite(STATUS_LED_PIN, HIGH); delay(250);
-            digitalWrite(STATUS_LED_PIN, LOW);
         }
     }
 
