@@ -20,7 +20,7 @@ let params = {
     reflectiveShine: true
 };
 
-// Default Pete's Dragon Artwork from user upload
+// Default Pete's Dragon Artwork
 const defaultDragonImg = new Image();
 let defaultDragonLoaded = false;
 defaultDragonImg.onload = () => {
@@ -32,14 +32,28 @@ defaultDragonImg.onload = () => {
 };
 defaultDragonImg.src = 'assets/petes_dragon.png';
 
+// Cinderella's Coach Artwork
+const cinderellasCoachImg = new Image();
+let cinderellasCoachLoaded = false;
+cinderellasCoachImg.onload = () => {
+    cinderellasCoachLoaded = true;
+};
+cinderellasCoachImg.src = 'assets/cinderellas_coach.png';
+
 // Custom artwork image (if user uploads one or loads one from preset)
 let customArtworkImg = null;
-let currentGraphicType = 'builtin_dragon'; // 'builtin_dragon' or 'custom_image'
+let currentGraphicType = 'builtin_dragon'; // 'builtin_dragon', 'cinderellas_coach', or 'custom_image'
 let customArtworkDataUrl = null;
 
 function getActiveGraphicImg() {
-    if (customArtworkImg && customArtworkImg.complete && customArtworkImg.naturalWidth > 0) {
+    if (currentGraphicType === 'custom_image' && customArtworkImg && customArtworkImg.complete && customArtworkImg.naturalWidth > 0) {
         return customArtworkImg;
+    }
+    if (currentGraphicType === 'cinderellas_coach') {
+        if (cinderellasCoachImg && cinderellasCoachImg.naturalWidth > 0) {
+            return cinderellasCoachImg;
+        }
+        return cinderellasCoachImg;
     }
     if (defaultDragonLoaded && defaultDragonImg.complete && defaultDragonImg.naturalWidth > 0) {
         return defaultDragonImg;
@@ -52,16 +66,27 @@ function getGraphicChestBounds() {
     const activeImg = getActiveGraphicImg();
     let normH = 0.62;
     let normW = 0.54;
-    if (activeImg) {
-        const aspect = activeImg.naturalWidth / activeImg.naturalHeight; // e.g. 300 / 425 = 0.706
-        normW = normH * 1.25 * aspect;
-        if (normW > 0.65) {
-            normW = 0.65;
+    let normY = 0.18;
+
+    if (activeImg && activeImg.naturalWidth > 0 && activeImg.naturalHeight > 0) {
+        const aspect = activeImg.naturalWidth / activeImg.naturalHeight;
+        if (aspect > 1.3) {
+            // Wide landscape graphic (like Cinderella's Coach: aspect ~ 1.789)
+            normW = 0.70;
             normH = normW / (1.25 * aspect);
+            normY = 0.22 + (0.40 - normH) * 0.4;
+        } else {
+            // Portrait or square graphic (like Pete's Dragon: aspect ~ 0.706)
+            normH = 0.62;
+            normW = normH * 1.25 * aspect;
+            if (normW > 0.65) {
+                normW = 0.65;
+                normH = normW / (1.25 * aspect);
+            }
+            normY = 0.18;
         }
     }
     const normX = (1.0 - normW) / 2;
-    const normY = 0.18;
     return { normX, normY, normW, normH };
 }
 
@@ -574,7 +599,12 @@ function renderSingleShirtView(timeMs) {
     ctx.translate(panX, panY);
     ctx.scale(zoomScale, zoomScale);
 
-    const shirtTitle = (currentGraphicType === 'custom_image') ? "CUSTOM RUNNER DESIGN" : "FLOAT #3: PETE'S DRAGON";
+    let shirtTitle = "FLOAT #3: PETE'S DRAGON";
+    if (currentGraphicType === 'cinderellas_coach') {
+        shirtTitle = "FLOAT #5: CINDERELLA'S COACH";
+    } else if (currentGraphicType === 'custom_image') {
+        shirtTitle = "CUSTOM RUNNER DESIGN";
+    }
     drawRunningShirt(ctx, s.x, s.y, s.width, s.height, shirtTitle);
     drawPetesDragon(ctx, s);
 
@@ -1250,16 +1280,29 @@ async function loadProfile(sourceValue) {
     // 2. Restore Graphic
     currentGraphicType = profileData.graphicType || 'builtin_dragon';
     const resetBtn = document.getElementById('resetArtworkBtn');
-    if (profileData.customArtworkDataUrl) {
+    const graphicSelect = document.getElementById('graphicPresetSelect');
+    const uploadContainer = document.getElementById('customUploadContainer');
+
+    if (currentGraphicType === 'cinderellas_coach') {
+        customArtworkImg = null;
+        customArtworkDataUrl = null;
+        if (graphicSelect) graphicSelect.value = 'cinderellas_coach';
+        if (uploadContainer) uploadContainer.style.display = 'none';
+        if (resetBtn) resetBtn.style.display = 'block';
+    } else if (profileData.customArtworkDataUrl) {
         customArtworkDataUrl = profileData.customArtworkDataUrl;
         const img = new Image();
         img.onload = () => {
             customArtworkImg = img;
         };
         img.src = customArtworkDataUrl;
+        if (graphicSelect) graphicSelect.value = 'custom_upload';
+        if (uploadContainer) uploadContainer.style.display = 'block';
         if (resetBtn) resetBtn.style.display = 'block';
     } else {
         customArtworkImg = null;
+        if (graphicSelect) graphicSelect.value = 'builtin_dragon';
+        if (uploadContainer) uploadContainer.style.display = 'none';
         if (resetBtn) resetBtn.style.display = 'none';
     }
 
@@ -1577,8 +1620,8 @@ function boostCustomImageColor(r, g, b) {
 
 // Boost vibrancy and saturation of sampled colors so physical WS2812B LEDs shine with true character colors
 function boostLedVibrancy(r, g, b, relX, relY) {
-    // If user uploaded a custom graphic, preserve and boost its genuine colors!
-    if (currentGraphicType === 'custom_image') {
+    // If user uploaded a custom graphic or selected Cinderella's Coach, preserve and boost authentic colors!
+    if (currentGraphicType === 'custom_image' || currentGraphicType === 'cinderellas_coach') {
         return boostCustomImageColor(r, g, b);
     }
 
@@ -2188,27 +2231,116 @@ function autoOutlineCurrentGraphic(targetCount = 50) {
     showToast(`✨ ${targetCount} LEDs redistributed along graphic outline!`);
 }
 
-// Custom Artwork Image Upload
-document.getElementById('artworkUpload').addEventListener('change', (e) => {
-    const file = e.target.files[0];
-    if (file) {
-        const reader = new FileReader();
-        reader.onload = (event) => {
-            customArtworkDataUrl = event.target.result;
+// Switch costume graphic preset (Pete's Dragon, Cinderella's Coach, or Custom Upload)
+async function loadGraphicPreset(type) {
+    const uploadContainer = document.getElementById('customUploadContainer');
+    const resetBtn = document.getElementById('resetArtworkBtn');
+    const graphicSelect = document.getElementById('graphicPresetSelect');
+    if (graphicSelect) graphicSelect.value = type;
+
+    if (type === 'cinderellas_coach') {
+        currentGraphicType = 'cinderellas_coach';
+        customArtworkImg = null;
+        customArtworkDataUrl = null;
+        if (uploadContainer) uploadContainer.style.display = 'none';
+        if (resetBtn) resetBtn.style.display = 'block';
+
+        // Load Cinderella's Coach preset if available from server
+        try {
+            const res = await fetch('/api/preset/cinderellas_coach.json');
+            if (res.ok) {
+                const profileData = await res.json();
+                if (Array.isArray(profileData.leds) && profileData.leds.length > 0) {
+                    leds = profileData.leds;
+                    while (sparkles.length < leds.length) sparkles.push(0);
+                    updateLedCountUI();
+                    showToast("🎃 Loaded Cinderella's Coach with 100 color-matched LEDs!");
+                    return;
+                }
+            }
+        } catch (e) {
+            console.warn("Could not fetch Cinderella preset:", e);
+        }
+
+        scatterLedsOnGraphic(100, true);
+        showToast("🎃 Switched to Cinderella's Coach!");
+    } else if (type === 'custom_upload') {
+        if (uploadContainer) uploadContainer.style.display = 'block';
+        if (resetBtn) resetBtn.style.display = customArtworkImg ? 'block' : 'none';
+        if (customArtworkImg) {
             currentGraphicType = 'custom_image';
-            const img = new Image();
-            img.onload = () => {
-                customArtworkImg = img;
-                const resetBtn = document.getElementById('resetArtworkBtn');
-                if (resetBtn) resetBtn.style.display = 'block';
-                // Automatically scatter 100 color-matched LEDs across new artwork!
-                scatterLedsOnGraphic(100, true);
-            };
-            img.src = customArtworkDataUrl;
-        };
-        reader.readAsDataURL(file);
+            scatterLedsOnGraphic(100, true);
+        } else {
+            const fileInput = document.getElementById('artworkUpload');
+            if (fileInput) fileInput.click();
+        }
+    } else {
+        // Default Pete's Dragon
+        currentGraphicType = 'builtin_dragon';
+        customArtworkImg = null;
+        customArtworkDataUrl = null;
+        if (uploadContainer) uploadContainer.style.display = 'none';
+        if (resetBtn) resetBtn.style.display = 'none';
+        const fileInput = document.getElementById('artworkUpload');
+        if (fileInput) fileInput.value = '';
+
+        try {
+            const res = await fetch('/api/preset/petes_dragon.json');
+            if (res.ok) {
+                const profileData = await res.json();
+                if (Array.isArray(profileData.leds) && profileData.leds.length > 0) {
+                    leds = profileData.leds;
+                    while (sparkles.length < leds.length) sparkles.push(0);
+                    updateLedCountUI();
+                    showToast("🐉 Loaded Pete's Dragon with 100 color-matched LEDs!");
+                    return;
+                }
+            }
+        } catch (e) {
+            console.warn("Could not fetch dragon preset:", e);
+        }
+
+        scatterLedsOnGraphic(100, true);
+        showToast("🔄 Restored default Pete's Dragon graphic!");
     }
-});
+}
+
+// Graphic Preset Dropdown Handler
+const graphicPresetSelect = document.getElementById('graphicPresetSelect');
+if (graphicPresetSelect) {
+    graphicPresetSelect.addEventListener('change', (e) => {
+        loadGraphicPreset(e.target.value);
+    });
+}
+
+// Custom Artwork Image Upload
+const artworkUploadInput = document.getElementById('artworkUpload');
+if (artworkUploadInput) {
+    artworkUploadInput.addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                customArtworkDataUrl = event.target.result;
+                currentGraphicType = 'custom_image';
+                const img = new Image();
+                img.onload = () => {
+                    customArtworkImg = img;
+                    const resetBtn = document.getElementById('resetArtworkBtn');
+                    if (resetBtn) resetBtn.style.display = 'block';
+                    const graphicSelect = document.getElementById('graphicPresetSelect');
+                    if (graphicSelect) graphicSelect.value = 'custom_upload';
+                    const uploadContainer = document.getElementById('customUploadContainer');
+                    if (uploadContainer) uploadContainer.style.display = 'block';
+                    // Automatically scatter 100 color-matched LEDs across new artwork!
+                    scatterLedsOnGraphic(100, true);
+                };
+                img.src = customArtworkDataUrl;
+            };
+            reader.readAsDataURL(file);
+        }
+    });
+}
 
 // Button Click Handlers
 const optWiringBtn = document.getElementById('optimizeWiringBtn');
@@ -2243,13 +2375,7 @@ document.getElementById('resampleColorsBtn').addEventListener('click', () => {
 const resetArtworkBtn = document.getElementById('resetArtworkBtn');
 if (resetArtworkBtn) {
     resetArtworkBtn.addEventListener('click', () => {
-        customArtworkImg = null;
-        customArtworkDataUrl = null;
-        currentGraphicType = 'builtin_dragon';
-        resetArtworkBtn.style.display = 'none';
-        document.getElementById('artworkUpload').value = '';
-        scatterLedsOnGraphic(100, true);
-        showToast("🔄 Restored default Pete's Dragon graphic!");
+        loadGraphicPreset('builtin_dragon');
     });
 }
 
