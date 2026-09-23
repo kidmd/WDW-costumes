@@ -55,6 +55,38 @@ class SimulatorRequestHandler(http.server.SimpleHTTPRequestHandler):
         elif parsed.path.startswith("/api/preset/"):
             filename = urllib.parse.unquote(parsed.path[len("/api/preset/"):])
             self.handle_get_preset(filename)
+        elif parsed.path.startswith("/firmware/"):
+            rel_path = parsed.path[len("/firmware/"):]
+            firmware_file = os.path.join(BASE_DIR, "firmware", rel_path)
+            if os.path.exists(firmware_file) and os.path.isfile(firmware_file):
+                self.send_response(200)
+                if firmware_file.endswith(".bin"):
+                    self.send_header("Content-Type", "application/octet-stream")
+                elif firmware_file.endswith(".json"):
+                    self.send_header("Content-Type", "application/json")
+                else:
+                    self.send_header("Content-Type", "text/plain")
+                self.send_header("Content-Length", str(os.path.getsize(firmware_file)))
+                self.end_headers()
+                with open(firmware_file, "rb") as f:
+                    self.wfile.write(f.read())
+                return
+            else:
+                self.send_error(404, "Firmware file not found")
+                return
+        elif parsed.path == "/SIMULATOR_USER_GUIDE.md":
+            guide_path = os.path.join(BASE_DIR, "SIMULATOR_USER_GUIDE.md")
+            if os.path.exists(guide_path):
+                self.send_response(200)
+                self.send_header("Content-Type", "text/markdown; charset=utf-8")
+                self.send_header("Content-Length", str(os.path.getsize(guide_path)))
+                self.end_headers()
+                with open(guide_path, "rb") as f:
+                    self.wfile.write(f.read())
+                return
+            else:
+                self.send_error(404, "Guide not found")
+                return
         else:
             super().do_GET()
 

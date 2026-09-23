@@ -42,8 +42,13 @@ An **ESP32** microcontroller on each runner coordinates lighting patterns wirele
 
 ## Project Structure & Documentation
 
+* [`FLASHING_INSTRUCTIONS.md`](FLASHING_INSTRUCTIONS.md): **⚡ Quick Flashing Guide for the Brothers** (Double-click 1-click flasher, Web Browser flasher, and Arduino IDE).
 * [`SIMULATOR_USER_GUIDE.md`](SIMULATOR_USER_GUIDE.md): **Complete User Guide & Theatrical Lighting Manual** for the browser simulator, multi-layer timeline, and ESP32 hardware flasher.
 * [`PROJECT_PROGRESS.md`](PROJECT_PROGRESS.md): Live project milestones, wiring specifications, and development changelog.
+* `flash_firmware.bat`: One-click Windows desktop firmware flasher script.
+* `flash_firmware.command`: One-click Mac / Linux desktop firmware flasher script.
+* `arduino/MSEP_Costume/`: Ready-to-open native Arduino IDE sketch.
+* `firmware/`: Pre-compiled ROM binary files (`firmware.bin`, `bootloader.bin`, `partitions.bin`).
 * `src/`: C++ / Arduino firmware source code for ESP32.
 * `simulator/`: Web-based visual simulator and theatrical cue director.
 * `platformio.ini`: PlatformIO configuration with board targets and library dependencies (FastLED).
