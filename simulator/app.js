@@ -19,7 +19,7 @@ let params = {
     showNumbers: false,
     reflectiveShine: true,
     showBib: true,
-    bibYOffset: 0.61
+    bibYOffset: 0.57
 };
 
 // Default Pete's Dragon Artwork
@@ -80,27 +80,44 @@ function getActiveGraphicImg() {
 // Compute normalized bounds of the graphic on the athletic shirt
 function getGraphicChestBounds() {
     const activeImg = getActiveGraphicImg();
-    let normH = 0.62;
+    const maxH = 0.385; // Available vertical height strictly above bib (0.168 to 0.553)
+    const maxW = 0.70;  // Maximum chest width between raglan seams
+    const topY = 0.168; // Just below crew neck collar dip (0.14)
+
+    let normH = maxH;
     let normW = 0.54;
-    let normY = 0.18;
+    let normY = topY;
 
     if (activeImg && activeImg.naturalWidth > 0 && activeImg.naturalHeight > 0) {
         const aspect = activeImg.naturalWidth / activeImg.naturalHeight;
         if (aspect > 1.3) {
-            // Wide landscape graphic (like Cinderella's Coach: aspect ~ 1.789)
-            normW = 0.70;
+            // Wide landscape graphic (like Cinderella's Coach: aspect ~ 1.789, Carriage ~ 1.835)
+            normW = maxW;
             normH = normW / (1.25 * aspect);
+            if (normH > maxH) {
+                normH = maxH;
+                normW = normH * 1.25 * aspect;
+            }
             normY = 0.22 + (0.40 - normH) * 0.4;
+            if (normY + normH > 0.565) {
+                normY = 0.565 - normH;
+            }
         } else {
             // Portrait or square graphic (like Pete's Dragon: aspect ~ 0.706)
-            normH = 0.62;
+            // Scale so full height fits strictly in area above bib, keeping exact x/y ratio
+            normH = maxH;
             normW = normH * 1.25 * aspect;
-            if (normW > 0.65) {
-                normW = 0.65;
+            if (normW > maxW) {
+                normW = maxW;
                 normH = normW / (1.25 * aspect);
             }
-            normY = 0.18;
+            normY = topY;
         }
+    } else {
+        // Fallback vector Pete's Dragon
+        normH = maxH;
+        normW = normH * 1.25 * 0.706;
+        normY = topY;
     }
     const normX = (1.0 - normW) / 2;
     return { normX, normY, normW, normH };
@@ -172,28 +189,28 @@ let leds = [];
 function initDefaultDragonLeds() {
     leds = [
         // Snout & Head (0 - 6)
-        { x: 0.44, y: 0.28 }, { x: 0.41, y: 0.29 }, { x: 0.38, y: 0.31 },
-        { x: 0.36, y: 0.33 }, { x: 0.38, y: 0.36 }, { x: 0.41, y: 0.38 }, { x: 0.45, y: 0.39 },
+        { x: 0.463, y: 0.230 }, { x: 0.444, y: 0.236 }, { x: 0.425, y: 0.249 },
+        { x: 0.413, y: 0.261 }, { x: 0.425, y: 0.280 }, { x: 0.444, y: 0.292 }, { x: 0.469, y: 0.298 },
         // Neck & Front Leg (7 - 12)
-        { x: 0.43, y: 0.43 }, { x: 0.41, y: 0.48 }, { x: 0.39, y: 0.54 },
-        { x: 0.37, y: 0.60 }, { x: 0.39, y: 0.63 }, { x: 0.43, y: 0.62 },
+        { x: 0.457, y: 0.323 }, { x: 0.444, y: 0.354 }, { x: 0.432, y: 0.392 },
+        { x: 0.419, y: 0.429 }, { x: 0.432, y: 0.447 }, { x: 0.457, y: 0.441 },
         // Belly & Foot (13 - 18)
-        { x: 0.46, y: 0.63 }, { x: 0.50, y: 0.64 }, { x: 0.54, y: 0.65 },
-        { x: 0.58, y: 0.65 }, { x: 0.61, y: 0.64 }, { x: 0.64, y: 0.62 },
+        { x: 0.475, y: 0.447 }, { x: 0.500, y: 0.454 }, { x: 0.525, y: 0.460 },
+        { x: 0.550, y: 0.460 }, { x: 0.568, y: 0.454 }, { x: 0.587, y: 0.441 },
         // Back Leg & Tail Base (19 - 25)
-        { x: 0.66, y: 0.65 }, { x: 0.69, y: 0.65 }, { x: 0.72, y: 0.63 },
-        { x: 0.74, y: 0.60 }, { x: 0.76, y: 0.58 }, { x: 0.79, y: 0.56 }, { x: 0.82, y: 0.55 },
+        { x: 0.599, y: 0.460 }, { x: 0.618, y: 0.460 }, { x: 0.637, y: 0.447 },
+        { x: 0.649, y: 0.429 }, { x: 0.661, y: 0.416 }, { x: 0.680, y: 0.404 }, { x: 0.699, y: 0.398 },
         // Tail Tip & Curl (26 - 31)
-        { x: 0.85, y: 0.53 }, { x: 0.87, y: 0.50 }, { x: 0.86, y: 0.47 },
-        { x: 0.83, y: 0.46 }, { x: 0.80, y: 0.48 }, { x: 0.77, y: 0.50 },
+        { x: 0.717, y: 0.385 }, { x: 0.730, y: 0.367 }, { x: 0.724, y: 0.348 },
+        { x: 0.705, y: 0.342 }, { x: 0.686, y: 0.354 }, { x: 0.668, y: 0.367 },
         // Upper Back & Wing Tip (32 - 39)
-        { x: 0.74, y: 0.47 }, { x: 0.72, y: 0.43 }, { x: 0.73, y: 0.38 },
-        { x: 0.75, y: 0.34 }, { x: 0.72, y: 0.33 }, { x: 0.68, y: 0.36 },
-        { x: 0.65, y: 0.40 }, { x: 0.62, y: 0.43 },
+        { x: 0.649, y: 0.348 }, { x: 0.637, y: 0.323 }, { x: 0.643, y: 0.292 },
+        { x: 0.655, y: 0.267 }, { x: 0.637, y: 0.261 }, { x: 0.612, y: 0.280 },
+        { x: 0.593, y: 0.305 }, { x: 0.575, y: 0.323 },
         // Dragon Horns & Crest (40 - 49)
-        { x: 0.59, y: 0.39 }, { x: 0.56, y: 0.36 }, { x: 0.54, y: 0.32 },
-        { x: 0.53, y: 0.28 }, { x: 0.52, y: 0.24 }, { x: 0.50, y: 0.21 },
-        { x: 0.48, y: 0.23 }, { x: 0.47, y: 0.26 }, { x: 0.46, y: 0.29 }, { x: 0.45, y: 0.28 }
+        { x: 0.556, y: 0.298 }, { x: 0.537, y: 0.280 }, { x: 0.525, y: 0.255 },
+        { x: 0.519, y: 0.230 }, { x: 0.512, y: 0.205 }, { x: 0.500, y: 0.187 },
+        { x: 0.488, y: 0.199 }, { x: 0.481, y: 0.218 }, { x: 0.475, y: 0.236 }, { x: 0.469, y: 0.230 }
     ];
     updateLedCountUI();
 }
@@ -321,7 +338,7 @@ function drawRaceBib(cx, s) {
     const bibW = s.width * 0.375;
     const bibH = bibW * (8.0 / 7.5); // ~ 1.067 aspect ratio
     const bibX = s.x + (s.width - bibW) / 2;
-    const bibY = s.y + s.height * (params.bibYOffset !== undefined ? params.bibYOffset : 0.61);
+    const bibY = s.y + s.height * (params.bibYOffset !== undefined ? params.bibYOffset : 0.57);
 
     // 1. Tyvek Drop Shadow
     cx.shadowColor = 'rgba(0, 0, 0, 0.65)';
