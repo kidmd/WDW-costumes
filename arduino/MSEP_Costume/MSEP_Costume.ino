@@ -12,6 +12,7 @@
 //    - Connect your ESP32 via USB and choose its port in Tools -> Port.
 // 5. Click the "Upload" arrow button (top-left).
 // ============================================================================
+
 #include <Arduino.h>
 #include <FastLED.h>
 #include <WiFi.h>
@@ -20,6 +21,10 @@
 #include <Preferences.h>
 #include "soc/soc.h"
 #include "soc/rtc_cntl_reg.h"
+
+#if __has_include("costume_config.h")
+#include "costume_config.h"
+#endif
 
 #if __has_include("wifi_config.h")
 #include "wifi_config.h"
@@ -35,9 +40,13 @@
 #endif
 #define STATUS_LED_PIN      2       // Onboard Blue LED
 
-#define PARADE_NUM_LEDS     50      // Standard parade float strand count
+#ifndef NUM_LEDS
+#define NUM_LEDS            50      // Standard parade float strand count
+#endif
 #define MAX_LEDS_CAPACITY   120     // Buffer capacity for custom 100-LED simulator designs
+#ifndef MAX_BRIGHTNESS
 #define MAX_BRIGHTNESS      60      // Bench/wearable safe brightness
+#endif
 #define MAX_MILLIAMPS       1200    // 1.2A power bank / wall charger limit
 
 CRGB leds[MAX_LEDS_CAPACITY];
@@ -119,7 +128,7 @@ void onDataReceive(const uint8_t *mac_addr, const uint8_t *incomingData, int len
 // ============================================================================
 void renderMarqueeChase(uint32_t t) {
     uint8_t offset = (t / 110) % 3;
-    for (int i = 0; i < PARADE_NUM_LEDS; i++) {
+    for (int i = 0; i < NUM_LEDS; i++) {
         if ((i + offset) % 3 == 0) {
             leds[i] = CRGB(255, 147, 41); // Incandescent amber/gold
         } else {
@@ -138,30 +147,30 @@ void renderParadeSparkle(uint32_t t) {
     };
 
     uint8_t step = (t / 180) % 3;
-    for (int i = 0; i < PARADE_NUM_LEDS; i++) {
+    for (int i = 0; i < NUM_LEDS; i++) {
         leds[i] = palette[(i + step) % 3];
     }
 }
 
 void renderTwinkle(uint32_t t) {
-    fill_solid(leds, PARADE_NUM_LEDS, CRGB(20, 10, 2));
+    fill_solid(leds, NUM_LEDS, CRGB(20, 10, 2));
     uint16_t seed = (t / 35) + (myFloatNumber * 100);
     if ((seed % 7) == 0) {
-        int pos = (seed * 13) % PARADE_NUM_LEDS;
+        int pos = (seed * 13) % NUM_LEDS;
         leds[pos] = CRGB(255, 220, 160);
     }
 }
 
 void renderTravelingWave(uint8_t activeFloat, uint8_t waveHead) {
-    fill_solid(leds, PARADE_NUM_LEDS, CRGB(15, 8, 2));
+    fill_solid(leds, NUM_LEDS, CRGB(15, 8, 2));
     if (myFloatNumber == activeFloat) {
         int head = waveHead;
-        if (head >= 0 && head < PARADE_NUM_LEDS) {
+        if (head >= 0 && head < NUM_LEDS) {
             leds[head] = CRGB(255, 255, 255);
             if (head > 0) leds[head - 1] = CRGB(255, 180, 40);
             if (head > 1) leds[head - 2] = CRGB(200, 80, 10);
-            if (head < PARADE_NUM_LEDS - 1) leds[head + 1] = CRGB(255, 180, 40);
-            if (head < PARADE_NUM_LEDS - 2) leds[head + 2] = CRGB(200, 80, 10);
+            if (head < NUM_LEDS - 1) leds[head + 1] = CRGB(255, 180, 40);
+            if (head < NUM_LEDS - 2) leds[head + 2] = CRGB(200, 80, 10);
         }
     }
 }
@@ -182,7 +191,7 @@ void runFleetSync(uint32_t now) {
             uint32_t waveTimer = now % 7000;
             waveActiveFloat = (waveTimer / 1000) + 1; // 1 to 7
             uint32_t floatTime = waveTimer % 1000;
-            waveHeadPos = map(floatTime, 0, 1000, 0, PARADE_NUM_LEDS - 1);
+            waveHeadPos = map(floatTime, 0, 1000, 0, NUM_LEDS - 1);
         }
 
         // Broadcast ESP-NOW packet at 25 Hz
@@ -236,8 +245,8 @@ void runFleetSync(uint32_t now) {
         }
     }
 
-    // Clear any extra LEDs beyond 50
-    for (int i = PARADE_NUM_LEDS; i < MAX_LEDS_CAPACITY; i++) {
+    // Clear any extra LEDs beyond strand count
+    for (int i = NUM_LEDS; i < MAX_LEDS_CAPACITY; i++) {
         leds[i] = CRGB::Black;
     }
 
@@ -288,11 +297,11 @@ void handleFloatConfigMode() {
 
     // Entry alert: Flash white 3 times
     for (int f = 0; f < 3; f++) {
-        fill_solid(leds, PARADE_NUM_LEDS, CRGB(200, 200, 200));
+        fill_solid(leds, NUM_LEDS, CRGB(200, 200, 200));
         FastLED.show();
         digitalWrite(STATUS_LED_PIN, HIGH);
         delay(100);
-        fill_solid(leds, PARADE_NUM_LEDS, CRGB::Black);
+        fill_solid(leds, NUM_LEDS, CRGB::Black);
         FastLED.show();
         digitalWrite(STATUS_LED_PIN, LOW);
         delay(100);
@@ -364,11 +373,11 @@ void handleFloatConfigMode() {
 
     // Exit alert: Flash green 4 times
     for (int s = 0; s < 4; s++) {
-        fill_solid(leds, PARADE_NUM_LEDS, CRGB(0, 255, 80));
+        fill_solid(leds, NUM_LEDS, CRGB(0, 255, 80));
         FastLED.show();
         digitalWrite(STATUS_LED_PIN, HIGH);
         delay(80);
-        fill_solid(leds, PARADE_NUM_LEDS, CRGB::Black);
+        fill_solid(leds, NUM_LEDS, CRGB::Black);
         FastLED.show();
         digitalWrite(STATUS_LED_PIN, LOW);
         delay(80);
@@ -379,29 +388,92 @@ void handleFloatConfigMode() {
 void runAutonomousShowSequence(uint32_t now) {
     uint32_t seqTime = now % SHOW_LOOP_MS;
 
-    // 4 Theatrical Phases across 90 seconds:
-    // Phase 1: 0 - 25s  (Starlight Sparkle / Gentle Breathing)
-    // Phase 2: 25 - 50s (Twinkle / Color-Matched Float Palette Glow)
-    // Phase 3: 50 - 70s (Incandescent Marquee Chase)
-    // Phase 4: 70 - 90s (Traveling Electrical Parade Wave)
-    if (seqTime < 25000) {
-        renderParadeSparkle(now);
-    } else if (seqTime < 50000) {
-        renderTwinkle(now);
-    } else if (seqTime < 70000) {
+#if defined(HAS_CUSTOM_PALETTE) && HAS_CUSTOM_PALETTE
+    // ------------------------------------------------------------------------
+    // CUSTOM ARTWORK PALETTE (Sampled from Simulator Artwork)
+    // ------------------------------------------------------------------------
+    // Phase 1 (0 - 30s): Steady custom artwork colors with starlight sparkle
+    // Phase 2 (30 - 60s): Theatrical breathing glow pulsing on the custom palette
+    // Phase 3 (60 - 75s): Dynamic traveling chase across the costume
+    // Phase 4 (75 - 90s): Solo electrical parade wave
+    if (seqTime < 30000) {
+        for (int i = 0; i < NUM_LEDS && i < MAX_LEDS_CAPACITY; i++) {
+            leds[i] = ARTWORK_PALETTE[i];
+            if (COSTUME_SPARKLE_RATE > 0 && random16(10000) < (uint16_t)(COSTUME_SPARKLE_RATE * 100)) {
+                leds[i] = CRGB(255, 255, 240);
+            }
+        }
+    } else if (seqTime < 60000) {
+        uint8_t breath = beatsin8(COSTUME_SPEED_BPM / 2, 120, 255);
+        for (int i = 0; i < NUM_LEDS && i < MAX_LEDS_CAPACITY; i++) {
+            CRGB baseColor = ARTWORK_PALETTE[i];
+            baseColor.nscale8_video(breath);
+            leds[i] = baseColor;
+            if (COSTUME_SPARKLE_RATE > 0 && random16(10000) < (uint16_t)(COSTUME_SPARKLE_RATE * 100)) {
+                leds[i] = CRGB(255, 255, 240);
+            }
+        }
+    } else if (seqTime < 75000) {
+        uint8_t step = (now / 120) % NUM_LEDS;
+        for (int i = 0; i < NUM_LEDS && i < MAX_LEDS_CAPACITY; i++) {
+            int dist = (i - step + NUM_LEDS) % NUM_LEDS;
+            if (dist < 8) {
+                leds[i] = CRGB(255, 255, 220); // Bright chasing beam
+            } else {
+                CRGB dim = ARTWORK_PALETTE[i];
+                dim.nscale8_video(60);
+                leds[i] = dim;
+            }
+        }
+    } else {
+        uint32_t waveTimer = now % 3000;
+        uint8_t waveHeadPos = map(waveTimer, 0, 3000, 0, NUM_LEDS - 1);
+        renderTravelingWave(myFloatNumber, waveHeadPos);
+    }
+#else
+    // ------------------------------------------------------------------------
+    // CHARACTER FLOAT THEMED SHOW (When no custom palette is compiled)
+    // ------------------------------------------------------------------------
+    uint8_t floatIdx = (myFloatNumber >= 1 && myFloatNumber <= 7) ? (myFloatNumber - 1) : 0;
+    CRGB charColor = FLEET_ROSTER_INFO[floatIdx].color;
+
+    // Phase 1 (0 - 30s): Character Signature Color Glow with Starlight Twinkle
+    // Phase 2 (30 - 60s): Gentle Breathing Glow on Float Colors
+    // Phase 3 (60 - 75s): Incandescent Marquee Chase
+    // Phase 4 (75 - 90s): Solo Electrical Wave
+    if (seqTime < 30000) {
+        fill_solid(leds, NUM_LEDS, charColor);
+        for (int i = 0; i < NUM_LEDS && i < MAX_LEDS_CAPACITY; i++) {
+            leds[i].nscale8_video(180);
+            if (random16(10000) < 150) { // 1.5% subtle starlight
+                leds[i] = CRGB(255, 255, 240);
+            }
+        }
+    } else if (seqTime < 60000) {
+        uint8_t breath = beatsin8(30, 80, 255);
+        for (int i = 0; i < NUM_LEDS && i < MAX_LEDS_CAPACITY; i++) {
+            CRGB col = charColor;
+            col.nscale8_video(breath);
+            leds[i] = col;
+            if (random16(10000) < 150) {
+                leds[i] = CRGB(255, 255, 240);
+            }
+        }
+    } else if (seqTime < 75000) {
         renderMarqueeChase(now);
     } else {
         uint32_t waveTimer = now % 3000;
-        uint8_t waveHeadPos = map(waveTimer, 0, 3000, 0, PARADE_NUM_LEDS - 1);
+        uint8_t waveHeadPos = map(waveTimer, 0, 3000, 0, NUM_LEDS - 1);
         renderTravelingWave(myFloatNumber, waveHeadPos);
     }
+#endif
 
     // Status LED gentle breath during autonomous sequence
     uint8_t breathLed = ((seqTime / 1000) % 2 == 0) ? HIGH : LOW;
     digitalWrite(STATUS_LED_PIN, breathLed);
 
-    // Clear any extra LEDs beyond parade count
-    for (int i = PARADE_NUM_LEDS; i < MAX_LEDS_CAPACITY; i++) {
+    // Clear any extra LEDs beyond strand count
+    for (int i = NUM_LEDS; i < MAX_LEDS_CAPACITY; i++) {
         leds[i] = CRGB::Black;
     }
 
@@ -510,7 +582,61 @@ void setup() {
 void loop() {
     uint32_t now = millis();
 
-    // 1. Check for incoming live stream packets from Python Simulator
+    // 1. Hardware Button (BOOT button on GPIO 0)
+    // Short Tap (20ms - 2500ms): Toggle between Autonomous Show and Fleet Sync
+    // Long Hold (>= 3 seconds): Enter Float ID Configuration Mode (1 to 7)
+    static bool buttonWasPressed = false;
+    static uint32_t buttonDownTime = 0;
+    static bool longHoldHandled = false;
+
+    bool isButtonPressed = (digitalRead(BUTTON_PIN) == LOW);
+
+    if (isButtonPressed && !buttonWasPressed) {
+        buttonWasPressed = true;
+        buttonDownTime = now;
+        longHoldHandled = false;
+    } else if (isButtonPressed && buttonWasPressed) {
+        if (!longHoldHandled && (now - buttonDownTime >= 3000)) {
+            longHoldHandled = true;
+            handleFloatConfigMode();
+        }
+    } else if (!isButtonPressed && buttonWasPressed) {
+        buttonWasPressed = false;
+        uint32_t pressDuration = now - buttonDownTime;
+        if (!longHoldHandled && pressDuration >= 20 && pressDuration < 2500) {
+            if (currentStandaloneMode == SHOW_MODE_AUTONOMOUS_SEQUENCE) {
+                currentStandaloneMode = SHOW_MODE_FLEET_SYNC;
+                Serial.println("[MODE] Button pressed -> Switched to: ESP-NOW Fleet Sync");
+                // Visual confirmation on costume LED strip: 2 Amber/Gold flashes
+                for (int f = 0; f < 2; f++) {
+                    fill_solid(leds, NUM_LEDS, CRGB(255, 140, 0));
+                    FastLED.show();
+                    digitalWrite(STATUS_LED_PIN, HIGH);
+                    delay(120);
+                    fill_solid(leds, NUM_LEDS, CRGB::Black);
+                    FastLED.show();
+                    digitalWrite(STATUS_LED_PIN, LOW);
+                    delay(80);
+                }
+            } else {
+                currentStandaloneMode = SHOW_MODE_AUTONOMOUS_SEQUENCE;
+                Serial.println("[MODE] Button pressed -> Switched to: Autonomous Float Show Sequence");
+                // Visual confirmation on costume LED strip: 2 Cyan flashes
+                for (int f = 0; f < 2; f++) {
+                    fill_solid(leds, NUM_LEDS, CRGB(0, 220, 255));
+                    FastLED.show();
+                    digitalWrite(STATUS_LED_PIN, HIGH);
+                    delay(120);
+                    fill_solid(leds, NUM_LEDS, CRGB::Black);
+                    FastLED.show();
+                    digitalWrite(STATUS_LED_PIN, LOW);
+                    delay(80);
+                }
+            }
+        }
+    }
+
+    // 2. Check for incoming live stream packets from Python Simulator
     int packetSize = udp.parsePacket();
     if (packetSize > 0) {
         uint8_t buffer[512];
@@ -541,48 +667,10 @@ void loop() {
         }
     }
 
-    // 2. Check if live stream recently ended (> 2.5 seconds timeout)
+    // 3. Check if live stream recently ended (> 2.5 seconds timeout)
     if (isLiveStreaming && (now - lastStreamPacketTime > 2500)) {
         isLiveStreaming = false;
         Serial.println("[MODE] Live stream ended. Resuming standalone mode.");
-    }
-
-    // 3. Hardware Button (BOOT button on GPIO 0)
-    // Short Tap: Toggle between Autonomous 90s Show and Fleet Sync
-    // Long Hold (>= 3 seconds): Enter Float ID Configuration Mode (1 to 7)
-    static bool buttonWasPressed = false;
-    static uint32_t buttonDownTime = 0;
-    static bool longHoldHandled = false;
-
-    bool isButtonPressed = (digitalRead(BUTTON_PIN) == LOW);
-
-    if (isButtonPressed && !buttonWasPressed) {
-        buttonWasPressed = true;
-        buttonDownTime = now;
-        longHoldHandled = false;
-    } else if (isButtonPressed && buttonWasPressed) {
-        if (!longHoldHandled && (now - buttonDownTime >= 3000)) {
-            longHoldHandled = true;
-            handleFloatConfigMode();
-        }
-    } else if (!isButtonPressed && buttonWasPressed) {
-        buttonWasPressed = false;
-        uint32_t pressDuration = now - buttonDownTime;
-        if (!longHoldHandled && pressDuration > 50 && pressDuration < 1500) {
-            if (currentStandaloneMode == SHOW_MODE_AUTONOMOUS_SEQUENCE) {
-                currentStandaloneMode = SHOW_MODE_FLEET_SYNC;
-                Serial.println("[MODE] Button pressed -> Switched to: ESP-NOW Fleet Sync");
-                for (int b = 0; b < 2; b++) {
-                    digitalWrite(STATUS_LED_PIN, HIGH); delay(70);
-                    digitalWrite(STATUS_LED_PIN, LOW); delay(70);
-                }
-            } else {
-                currentStandaloneMode = SHOW_MODE_AUTONOMOUS_SEQUENCE;
-                Serial.println("[MODE] Button pressed -> Switched to: Autonomous 90-Second Show Sequence");
-                digitalWrite(STATUS_LED_PIN, HIGH); delay(250);
-                digitalWrite(STATUS_LED_PIN, LOW);
-            }
-        }
     }
 
     // 4. If simulator is NOT streaming, run the selected standalone mode!
