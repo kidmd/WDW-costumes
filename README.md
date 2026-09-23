@@ -25,9 +25,10 @@ An **ESP32** microcontroller on each runner coordinates lighting patterns wirele
 ## Hardware Specifications
 
 * **Microcontrollers:** ESP32 (e.g. ESP32-WROOM-32D or Seeed XIAO ESP32)
-* **LED Strands:** 5V WS2812B / WS2811 Addressable Seed/Pebble Pixels (black wire, ~1" to 2" spacing)
-* **Data Resistor:** 220 Ω to 470 Ω inline on the data line between GPIO and LED Data-In
-* **Power Source:** 5V USB portable phone power bank (2.1A+ rating) per runner
+* **LED Strands:** 200 WS2812B / WS2811 Addressable 5V Seed/Pebble Pixels (100 front + 100 back duplicated, black wire, ~1" to 2" spacing)
+* **Data Resistor:** 220 Ω to 470 Ω inline on the data line between GPIO 16 and LED Data-In
+* **Power Source:** 5V USB portable power bank (2.1A+ rating, FastLED limited to 2000 mA) per runner
+* **Costume Simulation:** Visual browser-based layout engine (`python simulator.py` @ `localhost:8000`) with built-in presets (Pete's Dragon, Cinderella's Coach, Carriage No Horses) and authentic runDisney 10K Race Bib (#1952) with Chip & Dale and BibBoards fastener clearance.
 
 ---
 

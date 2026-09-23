@@ -32,7 +32,7 @@ The simulator acts as a virtual workbench and lighting console for your WS2812B 
 - **Design in the Browser:** Visually position up to 100 LEDs on any costume shirt graphic, match colors from the artwork pixels, organize LEDs into zone animation groups (e.g. carriage wheels, lanterns, dragon crest), and sequence rich multi-layered theatrical cues along a 90-second timeline.
 - **Preview with 60 FPS Fidelity:** The canvas simulates the optical diffusion, bloom, and incandescent decay of vintage parade light bulbs.
 - **Direct Hardware Link (Zero-Latency Wi-Fi UDP):** Stream the exact animation frames from the browser directly to an ESP32 over local Wi-Fi at 30 FPS.
-- **Standalone FastLED Firmware:** Generate standalone C++ code and flash your ESP32 with one click. In the theme park, the ESP32 runs autonomously off a USB battery pack, with an onboard button to toggle between your individual float show and wireless ESP-NOW fleet synchronization.
+- **Standalone FastLED Firmware:** Generate standalone C++ code and flash your ESP32 with one click. In the theme park, the ESP32 runs autonomously off a USB battery pack, controlling **200 LEDs (100 Front + 100 Back Duplicated)** with an onboard button to toggle between your individual float show and wireless ESP-NOW fleet synchronization.
 
 ```
 ┌────────────────────────────────────────────────────────┐
@@ -40,6 +40,7 @@ The simulator acts as a virtual workbench and lighting console for your WS2812B 
 │  - Multi-Layer Timeline & 90s Parade Cue Director     │
 │  - Zone Groups (Wheels, Lanterns, Flame Crest)         │
 │  - Continuous Wiring Route Optimizer                   │
+│  - runDisney 10K Race Bib (#1952) & BibBoards Overlay  │
 └──────────────────────────┬─────────────────────────────┘
                            │
              ┌─────────────┴─────────────┐
@@ -47,6 +48,7 @@ The simulator acts as a virtual workbench and lighting console for your WS2812B 
 ┌──────────────────────────┐   ┌──────────────────────────┐
 │   LIVE WI-FI UDP STREAM  │   │  STANDALONE USB FLASH    │
 │   (Port 4210 @ 30 FPS)   │   │  (PlatformIO / FastLED)  │
+│   100 Front LEDs Live    │   │  200 LEDs (Front + Back) │
 └────────────┬─────────────┘   └─────────────┬────────────┘
              │                               │
              └───────────────┬───────────────┘
@@ -55,7 +57,7 @@ The simulator acts as a virtual workbench and lighting console for your WS2812B 
                │    ESP32 COSTUME NODE     │
                │  - Mode 0: 90s Show Seq   │
                │  - Mode 1: ESP-NOW Sync   │
-               │  - Output: GPIO 16 (LEDs) │
+               │  - Output: 200 LEDs (G16) │
                │  - Button: GPIO 0 (BOOT)  │
                └───────────────────────────┘
 ```
@@ -151,14 +153,36 @@ Attaching LEDs to a shirt by hand can easily result in tangled wire spaghetti if
 
 ---
 
-## 7. Artwork & Graphic Management
+## 7. Artwork Management & runDisney 10K Race Bib Overlay
 
-You can choose from pre-loaded Disney parade artwork or upload your own high-resolution shirt graphics.
+You can choose from pre-loaded Disney parade artwork or upload your own high-resolution shirt graphics, complete with realistic race bib collision checking.
 
 ### Built-in Graphic Presets
 Use the **Graphic Style** dropdown in Section 1 to switch between:
 - **🐉 Pete's Dragon (Elliott):** Default 100-LED layout with emerald body scales, magenta hair crest, and incandescent starlight sparkles.
 - **🎃 Cinderella's Coach:** Classic golden carriage outline with dual spinning wheels, pumpkin body, and royal lanterns.
+- **🎃 Carriage (No Horses):** Focused Cinderella coach design with clean wheel arches, royal carriage frame, and dedicated 100-LED preset.
+
+### Proportional Chest Graphic Scaling
+All artwork graphics are automatically scaled to sit comfortably in the chest area above the race bib (`y = 0.168` to `0.553`):
+- **Exact Aspect Ratio:** Strictly preserves each graphic's original $x / y$ pixel ratio without stretching, squishing, or distortion.
+- **Automatic Clearance:** Leaves a clean fabric margin between the bottom-most LEDs and the top of the race bib, ensuring no LEDs or wiring sit directly under bib clamp points.
+
+### 🏷️ runDisney 10K Race Bib (#1952) with Chip & Dale
+Section 4 features an authentic runDisney race bib overlay on the lower torso to verify physical clearance with your running gear:
+- **Mostly Yellow Tyvek Theme:** Official sunny yellow gradient background (`#fef9c3` to `#facc15`), golden amber trim (`#ca8a04`), subtle athletic speed chevrons, and red/blue racing side stripes.
+- **Official Chip 'n' Dale Mascots:**
+  - **Chip (Left Flank):** Chocolate chip black nose, single centered buck tooth, dark chocolate brown fur, cream muzzle, and red runner's headband.
+  - **Dale (Right Flank):** Signature big shiny red nose, messy hair tuft between ears, two separated buck teeth, playful winking eye, and royal blue & gold runner's headband.
+  - **Acorn Accents:** Golden acorns (`🌰`) flanking the runner sub-label `MSEP RUNNER`.
+- **Top Header Banner:** Royal Disney Navy banner (`#1e1b4b` ➔ `#312e81`) with gold trim, `★ runDisney`, `WALT DISNEY WORLD® 10K`, official `CHIP 'N' DALE 10K` title ribbon, and `CORRAL A` badge.
+- **Center Race Number:** High-contrast athletic number **`1952`** with crisp white outline and dark slate fill.
+- **PhotoPass Barcode:** Lower barcode window with `DIS-1952-10K`.
+- **BibBoards Fasteners:** Accurately renders the snap-and-lock circular pucks at all 4 corners (outer casing, cyan accent ring, center dome button with specular highlight) so you can visually verify clearance before pinning your shirt!
+- **Interactive UI Controls (Section 4):**
+  - **Toggle Checkbox:** Show/Hide the bib overlay at any time.
+  - **Height Slider:** Adjust vertical elevation on the torso (range: 50% to 75%, default **57%**).
+  - **Scale Slider:** Dynamically resize the bib from **60% to 140%** (default **100%**) while preserving all internal artwork, character illustrations, and clamp points.
 
 ### Custom Artwork Upload
 1. In Section 1, choose **"Upload Custom Artwork Image"**.
@@ -323,12 +347,15 @@ Preview animations on your physical shirt in real time without flashing:
 5. The status indicator turns green: `Streaming (100 LEDs @ 30 FPS)`.
 6. As you scrub the timeline or hit play, the browser packs the RGB frame data into high-speed UDP packets on port `4210`. Your physical shirt mirrors the simulator screen with zero perceived latency!
 
-### One-Click Standalone USB Firmware Flashing
+### One-Click Standalone USB Firmware Flashing (200 LEDs: 100 Front + 100 Back)
 When you are ready to prepare a shirt for autonomous use:
 1. Connect your ESP32 to your computer using a standard micro-USB or USB-C data cable.
 2. The top status indicator will detect your COM port and turn green: `● ESP32 on COMx (Ready)`.
 3. Click **"⚡ Flash to Connected ESP32"**.
-4. The simulator invokes PlatformIO in the background, compiles the firmware with your active color palette and cues, and uploads it via esptool.
+4. The simulator compiles and flashes standalone firmware configured for **200 LEDs**:
+   - **Front 100 LEDs (0 – 99):** Your custom-placed, color-matched chest artwork lighting.
+   - **Back 100 LEDs (100 – 199):** Real-time duplicate of the front animation for 360° visibility and battery life benchmarking.
+   - **Power Management:** FastLED power limit configured up to **2000 mA (2.0A)** for safe operation from portable 5V USB power banks.
 5. The live terminal modal displays compilation output and upload progress.
 6. Once complete, unplug the USB cable from your computer, plug the ESP32 into a 5V USB battery bank in your pocket, and your costume runs on its own!
 
@@ -338,25 +365,28 @@ When you are ready to prepare a shirt for autonomous use:
 
 The firmware in [`src/main.cpp`](file:///c:/Users/Kiddi/Desktop/WDW%20costumes/src/main.cpp) incorporates dual-mode operation and interactive float configuration toggled via the ESP32's onboard **BOOT button** (`BUTTON_PIN 0` with hardware internal pull-up and debouncing):
 
+### Mode Switching & Visual Confirmations (Short Tap BOOT Button)
+Tap the onboard **BOOT button (GPIO 0)** once (short tap < 2.5s) to toggle between modes. The LEDs give immediate visual confirmation across all 200 lights:
+- 🔵 **2 Cyan Flashes**: Switched to **Mode 0: Autonomous 90-Second Theatrical Show** (plays custom artwork palette or float cue sequence).
+- 🟡 **2 Amber Flashes**: Switched to **Mode 1: ESP-NOW Fleet Sync** (locks wireless timing with the other runner shirts for synchronized golden marquee chases, sparkles, and traveling waves).
+
 ### Mode 0: Autonomous 90-Second Theatrical Show Sequence (Default)
-- Runs your float's customized 90-second Cue Director sequence independently.
+- Runs your float's customized 90-second Cue Director sequence independently across all 200 LEDs (front and back).
 - Ideal when runners are separated, walking through the park, or taking photos.
 - The onboard status LED pulses with a gentle 1 Hz breath to indicate autonomous mode.
 
 ### Mode 1: ESP-NOW Fleet Sync
-- Tap the **BOOT button** once to switch into Fleet Sync mode.
 - Unit 1 operates as the **Parade Leader / Transmitter**, broadcasting synchronization packets over connectionless 2.4 GHz ESP-NOW radio at 25 Hz.
 - Units 2 through 7 operate as **Followers / Receivers**, locking their internal clock to the Leader with sub-millisecond precision.
 - Features coordinated 7-float traveling waves where illuminated light pulses leap smoothly from runner to runner down the line (Float 1 ➔ 2 ➔ 3 ➔ 4 ➔ 5 ➔ 6 ➔ 7)!
 - The onboard status LED illuminates solid green/blue when receiving radio synchronization packets.
-- Tap the **BOOT button** again to return to individual 90-second autonomous show playback at any time.
 
 ### 🎛️ Interactive Float ID Selector (Hold for 3 Seconds)
 Any board can be assigned to any of the 7 floats without touching code:
-1. **Hold the BOOT button for 3 seconds:** The LEDs flash white 3 times to enter Config Mode.
+1. **Hold the BOOT button for 3 seconds:** The LEDs flash **white 3 times** to enter Config Mode.
 2. **Visual Feedback:** The first `N` LEDs on the strip light up in that float's signature color (1=Gold/Amber, 2=Red, 3=Green, 4=Purple, 5=Cyan, 6=Orange, 7=Pink). The onboard blue LED blinks `N` times in sequence.
 3. **Tap to Cycle:** Each short tap cycles `1 ➔ 2 ➔ 3 ➔ 4 ➔ 5 ➔ 6 ➔ 7 ➔ 1`.
-4. **Auto-Save:** Leave untouched for 4 seconds. The LEDs flash green 4 times and the Float ID is permanently saved to ESP32 NVS flash (`Preferences.h`). Float 1 automatically acts as Leader; Floats 2–7 act as Followers.
+4. **Auto-Save:** Leave untouched for 4 seconds. The LEDs flash **green 4 times** and the Float ID is permanently saved to ESP32 NVS flash (`Preferences.h`). Float 1 automatically acts as Leader; Floats 2–7 act as Followers.
 
 ---
 

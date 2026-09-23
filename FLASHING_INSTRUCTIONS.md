@@ -89,7 +89,8 @@ Once your board is flashed:
 
 ### Pinout Connections:
 - **LED Data In (DIN):** Connects to **GPIO 16** (8th pin down on the right of most ESP32 DevKits).
-- **Power:** Connect a 5V USB battery bank (2.1A+ rated) to the ESP32's micro-USB port or `5V` and `GND` pins.
+- **LED String Configuration:** Pre-configured for **200 LEDs** (100 Front + 100 Back duplicated) for full 360° visibility and battery life testing.
+- **Power:** Connect a 5V USB battery bank (2.1A+ rated) to the ESP32's micro-USB / USB-C port or `5V` and `GND` pins (firmware is limited to 2000 mA for safety).
 - **Data Resistor:** A 220 Ω to 470 Ω resistor on the data wire between GPIO 16 and LED DIN is recommended.
 
 ### How to Use the Shirt:
