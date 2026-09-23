@@ -44,7 +44,7 @@
         <!-- Controls Sidebar -->
         <div class="controls-sidebar">
 
-            <!-- 1. Saved Profiles & Presets -->
+            <!-- 1. Preset Profile Selector -->
             <div class="control-section">
                 <div class="section-title">
                     <span>Costume Profiles & Presets</span>
@@ -56,11 +56,16 @@
                     </select>
                 </div>
                 <div class="control-group" style="margin-top: 4px;">
-                    <label style="font-size: 12px; color: var(--text-muted);">Save Current Layout & Graphic:</label>
+                    <label style="font-size: 12px; color: var(--text-muted);">Save Configuration:</label>
                     <div style="display: flex; gap: 6px;">
-                        <input type="text" id="profileNameInput" placeholder="Profile name (e.g. Dragon V1)" style="flex: 1; background: #0d1117; color: #fff; border: 1px solid #30363d; padding: 6px 10px; border-radius: 6px; font-size: 12px; outline: none;">
-                        <button id="saveProfileBtn" class="action-btn primary" style="flex: none; padding: 6px 12px; font-size: 12px;">💾 Save</button>
+                        <input type="text" id="profileNameInput" placeholder="Profile name (e.g. Cinderella Coach V1)" style="flex: 1; background: #0d1117; color: #fff; border: 1px solid #30363d; padding: 6px 10px; border-radius: 6px; font-size: 12px; outline: none;">
+                        <button id="saveProfileBtn" class="action-btn primary" style="flex: none; padding: 6px 12px; font-size: 12px;" title="Save profile to browser cache and server presets">💾 Save</button>
                     </div>
+                </div>
+                <div class="btn-row" style="margin-top: 6px; display: flex; gap: 6px;">
+                    <button id="downloadProfileBtn" class="action-btn" style="flex: 1; font-size: 11px; padding: 5px 8px;" title="Export and download this full costume configuration as JSON">⬇ Export JSON</button>
+                    <button id="importProfileBtn" class="action-btn" style="flex: 1; font-size: 11px; padding: 5px 8px;" title="Import a previously saved costume configuration JSON file">📂 Import JSON</button>
+                    <input type="file" id="importProfileFileInput" accept=".json,application/json" style="display: none;">
                 </div>
             </div>
 
@@ -311,7 +316,7 @@
 
                         <div class="control-group">
                             <label style="font-size: 11px; color: var(--text-muted); margin-bottom: 2px;">Group / Zone Name:</label>
-                            <input type="text" id="groupNameInput" placeholder="e.g. Coach Wheels" value="Coach Wheels" style="background: #0d1117; color: #fff; border: 1px solid #30363d; border-radius: 4px; padding: 5px 8px; font-size: 12px; width: 100%;">
+                            <input type="text" id="groupNameInput" placeholder="e.g. Front Wheel, Lanterns, Wings" value="" style="background: #0d1117; color: #fff; border: 1px solid #30363d; border-radius: 4px; padding: 5px 8px; font-size: 12px; width: 100%;">
                         </div>
 
                         <div class="control-group">
@@ -496,6 +501,6 @@
         </div>
     </div>
 
-    <script src="app.js?v=10"></script>
+    <script src="app.js?v=11"></script>
 </body>
 </html>

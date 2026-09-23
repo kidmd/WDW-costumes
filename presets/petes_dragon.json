@@ -906,18 +906,7 @@
     }
   ],
   "graphicType": "builtin_dragon",
-  "animationGroups": [
-    {
-      "id": "dragon_flame_crest",
-      "name": "Flame Hair Crest",
-      "ledIndices": [49, 50, 51, 52, 53],
-      "effect": "pulse",
-      "speedBpm": 90,
-      "direction": 1,
-      "width": 2,
-      "colorMode": "original"
-    }
-  ],
+  "animationGroups": [],
   "settings": {
     "pattern": "steady_sparkle",
     "speedBpm": 120,

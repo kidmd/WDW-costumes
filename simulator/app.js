@@ -1695,10 +1695,10 @@ async function refreshPresetDropdown() {
     });
 }
 
-// Save Current Profile (LEDs + Graphic + Settings)
+// Save Current Profile (LEDs + Graphic + Settings + Animation Groups)
 async function saveCurrentProfile(name) {
     if (!name || name.trim() === '') {
-        alert("Please enter a name for this costume profile!");
+        showToast("⚠️ Please enter a name for this costume profile!");
         return;
     }
     const cleanName = name.trim();
@@ -1734,39 +1734,26 @@ async function saveCurrentProfile(name) {
             body: JSON.stringify(profileData)
         });
         if (res.ok) {
-            const result = await res.json();
-            alert(`Profile "${cleanName}" saved successfully!`);
+            showToast(`💾 Profile "${cleanName}" saved successfully!`);
         }
     } catch (e) {
-        alert(`Profile "${cleanName}" saved to browser cache.`);
+        showToast(`💾 Profile "${cleanName}" saved to browser cache.`);
     }
 
-    refreshPresetDropdown();
+    await refreshPresetDropdown();
+    const select = document.getElementById('presetSelect');
+    if (select) {
+        for (let i = 0; i < select.options.length; i++) {
+            if (select.options[i].text.includes(cleanName)) {
+                select.selectedIndex = i;
+                break;
+            }
+        }
+    }
 }
 
-// Load Selected Profile
-async function loadProfile(sourceValue) {
-    if (!sourceValue) return;
-
-    let profileData = null;
-
-    if (sourceValue.startsWith('server:')) {
-        const filename = sourceValue.replace('server:', '');
-        try {
-            const res = await fetch(`/api/preset/${encodeURIComponent(filename)}`);
-            if (res.ok) {
-                profileData = await res.json();
-            }
-        } catch (e) {
-            alert("Failed to load preset from server.");
-            return;
-        }
-    } else if (sourceValue.startsWith('local:')) {
-        const name = sourceValue.replace('local:', '');
-        const localProfiles = JSON.parse(localStorage.getItem('msep_custom_presets') || '{}');
-        profileData = localProfiles[name];
-    }
-
+// Apply Profile Data object to simulator
+function applyProfileData(profileData) {
     if (!profileData) return;
 
     // 1. Restore LEDs
@@ -1810,32 +1797,43 @@ async function loadProfile(sourceValue) {
         const s = profileData.settings;
         if (s.pattern) {
             activePattern = s.pattern;
-            document.getElementById('patternSelect').value = s.pattern;
+            const pSel = document.getElementById('patternSelect');
+            if (pSel) pSel.value = s.pattern;
         }
         if (s.speedBpm) {
             params.speedBpm = s.speedBpm;
-            document.getElementById('speedSlider').value = s.speedBpm;
-            document.getElementById('speedVal').textContent = `${s.speedBpm} BPM`;
+            const spd = document.getElementById('speedSlider');
+            if (spd) spd.value = s.speedBpm;
+            const spdVal = document.getElementById('speedVal');
+            if (spdVal) spdVal.textContent = `${s.speedBpm} BPM`;
         }
         if (s.sparkleRate !== undefined) {
             params.sparkleRate = s.sparkleRate;
-            document.getElementById('sparkleSlider').value = s.sparkleRate;
-            document.getElementById('sparkleVal').textContent = `${s.sparkleRate}%`;
+            const spk = document.getElementById('sparkleSlider');
+            if (spk) spk.value = s.sparkleRate;
+            const spkVal = document.getElementById('sparkleVal');
+            if (spkVal) spkVal.textContent = `${s.sparkleRate}%`;
         }
         if (s.greenHue !== undefined) {
             params.greenHue = s.greenHue;
-            document.getElementById('hueSlider').value = s.greenHue;
-            document.getElementById('hueVal').textContent = `${s.greenHue}°`;
+            const hue = document.getElementById('hueSlider');
+            if (hue) hue.value = s.greenHue;
+            const hueVal = document.getElementById('hueVal');
+            if (hueVal) hueVal.textContent = `${s.greenHue}°`;
         }
         if (s.brightness !== undefined) {
             params.brightness = s.brightness;
-            document.getElementById('brightnessSlider').value = s.brightness;
-            document.getElementById('brightVal').textContent = `${s.brightness}%`;
+            const brt = document.getElementById('brightnessSlider');
+            if (brt) brt.value = s.brightness;
+            const brtVal = document.getElementById('brightVal');
+            if (brtVal) brtVal.textContent = `${s.brightness}%`;
         }
         if (s.glowSize !== undefined) {
             params.glowSize = s.glowSize;
-            document.getElementById('glowSlider').value = s.glowSize;
-            document.getElementById('glowVal').textContent = `${s.glowSize}px`;
+            const glow = document.getElementById('glowSlider');
+            if (glow) glow.value = s.glowSize;
+            const glowVal = document.getElementById('glowVal');
+            if (glowVal) glowVal.textContent = `${s.glowSize}px`;
         }
     }
 
@@ -1847,6 +1845,40 @@ async function loadProfile(sourceValue) {
     }
     rebuildLedGroupMap();
     renderActiveGroupsList();
+
+    // 5. Populate profile name input
+    const nameInput = document.getElementById('profileNameInput');
+    if (nameInput && profileData.name) {
+        nameInput.value = profileData.name;
+    }
+}
+
+// Load Selected Profile
+async function loadProfile(sourceValue) {
+    if (!sourceValue) return;
+
+    let profileData = null;
+
+    if (sourceValue.startsWith('server:')) {
+        const filename = sourceValue.replace('server:', '');
+        try {
+            const res = await fetch(`/api/preset/${encodeURIComponent(filename)}`);
+            if (res.ok) {
+                profileData = await res.json();
+            }
+        } catch (e) {
+            showToast("⚠️ Failed to load preset from server.");
+            return;
+        }
+    } else if (sourceValue.startsWith('local:')) {
+        const name = sourceValue.replace('local:', '');
+        const localProfiles = JSON.parse(localStorage.getItem('msep_custom_presets') || '{}');
+        profileData = localProfiles[name];
+    }
+
+    if (!profileData) return;
+    applyProfileData(profileData);
+    showToast(`📂 Loaded "${profileData.name || 'Profile'}"`);
 }
 
 // Initial Preset Load
@@ -2802,7 +2834,9 @@ async function loadGraphicPreset(type) {
                     rebuildLedGroupMap();
                     renderActiveGroupsList();
                     updateLedCountUI();
-                    showToast("🎃 Loaded Cinderella's Coach with spinning wheel chase animations!");
+                    const nameIn = document.getElementById('profileNameInput');
+                    if (nameIn) nameIn.value = "Cinderella's Coach";
+                    showToast("🎃 Loaded Cinderella's Coach with 100 color-matched LEDs!");
                     return;
                 }
             }
@@ -2850,6 +2884,8 @@ async function loadGraphicPreset(type) {
                     rebuildLedGroupMap();
                     renderActiveGroupsList();
                     updateLedCountUI();
+                    const nameIn = document.getElementById('profileNameInput');
+                    if (nameIn) nameIn.value = "Pete's Dragon";
                     showToast("🐉 Loaded Pete's Dragon with 100 color-matched LEDs!");
                     return;
                 }
@@ -2945,22 +2981,79 @@ document.getElementById('presetSelect').addEventListener('change', (e) => {
     loadProfile(e.target.value);
 });
 
+// Export complete profile configuration JSON
+function exportCurrentProfileJson() {
+    const nameInput = document.getElementById('profileNameInput');
+    const name = (nameInput?.value || '').trim() || (currentGraphicType === 'cinderellas_coach' ? "Cinderella_Coach" : "Petes_Dragon");
+    const profileData = {
+        name: name,
+        savedAt: new Date().toISOString(),
+        ledCount: leds.length,
+        leds: leds,
+        graphicType: currentGraphicType,
+        customArtworkDataUrl: customArtworkDataUrl,
+        animationGroups: animationGroups,
+        settings: {
+            pattern: activePattern,
+            speedBpm: params.speedBpm,
+            sparkleRate: params.sparkleRate,
+            greenHue: params.greenHue,
+            brightness: params.brightness,
+            glowSize: params.glowSize
+        }
+    };
+    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(profileData, null, 2));
+    const dlAnchor = document.createElement('a');
+    dlAnchor.setAttribute("href", dataStr);
+    const safeFilename = `${name.toLowerCase().replace(/[^a-z0-9_-]/g, '_')}_profile.json`;
+    dlAnchor.setAttribute("download", safeFilename);
+    dlAnchor.click();
+    showToast(`⬇ Exported ${safeFilename}`);
+}
+
 document.getElementById('saveProfileBtn').addEventListener('click', () => {
     const nameInput = document.getElementById('profileNameInput');
-    const name = nameInput.value.trim() || prompt("Enter a name for this profile:", "Pete's Dragon V1");
+    const defaultName = currentGraphicType === 'cinderellas_coach' ? "Cinderella's Coach" : "Pete's Dragon";
+    const name = (nameInput?.value || '').trim() || prompt("Enter a name for this profile:", defaultName);
     if (name) {
+        if (nameInput) nameInput.value = name;
         saveCurrentProfile(name);
-        nameInput.value = "";
     }
 });
 
-// Export JSON file
+// Download & Import Profile Buttons
+const downloadProfileBtn = document.getElementById('downloadProfileBtn');
+if (downloadProfileBtn) {
+    downloadProfileBtn.addEventListener('click', exportCurrentProfileJson);
+}
+
+const importProfileBtn = document.getElementById('importProfileBtn');
+const importProfileFileInput = document.getElementById('importProfileFileInput');
+if (importProfileBtn && importProfileFileInput) {
+    importProfileBtn.addEventListener('click', () => importProfileFileInput.click());
+    importProfileFileInput.addEventListener('change', (e) => {
+        const file = e.target.files && e.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = (evt) => {
+                try {
+                    const parsed = JSON.parse(evt.target.result);
+                    const profile = Array.isArray(parsed) ? { leds: parsed, name: file.name.replace('.json', '') } : parsed;
+                    applyProfileData(profile);
+                    showToast(`📂 Imported "${profile.name || file.name}" (${leds.length} LEDs)!`);
+                } catch (err) {
+                    showToast("⚠️ Failed to parse profile JSON: " + err.message);
+                }
+            };
+            reader.readAsText(file);
+        }
+        e.target.value = '';
+    });
+}
+
+// Export JSON file (Section 5)
 document.getElementById('saveLayoutBtn').addEventListener('click', () => {
-    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(leds, null, 2));
-    const dlAnchor = document.createElement('a');
-    dlAnchor.setAttribute("href", dataStr);
-    dlAnchor.setAttribute("download", `petes_dragon_${leds.length}_leds.json`);
-    dlAnchor.click();
+    exportCurrentProfileJson();
 });
 
 // Generate FastLED C++ Code
