@@ -50,7 +50,7 @@ echo "      press and hold the 'BOOT' button on your ESP32 for 2 seconds!"
 echo ""
 echo "----------------------------------------------------------------------"
 
-$PYTHON_CMD -m esptool --chip esp32 write_flash 0x1000 firmware/bootloader.bin 0x8000 firmware/partitions.bin 0x10000 firmware/firmware.bin
+$PYTHON_CMD -m esptool --chip esp32 write-flash 0x1000 firmware/bootloader.bin 0x8000 firmware/partitions.bin 0x10000 firmware/firmware.bin
 
 if [ $? -eq 0 ]; then
     echo ""
