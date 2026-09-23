@@ -1,0 +1,377 @@
+# 🏰 Main Street Electrical Parade Costume Simulator
+## Complete User Guide & Theatrical Lighting Manual
+
+Welcome to the **Main Street Electrical Parade (MSEP) Costume Simulator** — a comprehensive browser-based theatrical lighting design console and hardware integration engine for synchronized, wearable addressable LED floats.
+
+This guide walks you through every feature of the simulator, from placing and wiring your physical LEDs to orchestrating multi-layer 90-second parade show routines, live streaming to your ESP32, and compiling standalone firmware.
+
+---
+
+## Table of Contents
+1. [Introduction & System Architecture](#1-introduction--system-architecture)
+2. [Launching the Simulator](#2-launching-the-simulator)
+3. [Canvas Navigation & Interactive Controls](#3-canvas-navigation--interactive-controls)
+4. [LED Placement, Inspection & Color Tuning](#4-led-placement-inspection--color-tuning)
+5. [Multi-LED Selection & Animation Groups](#5-multi-led-selection--animation-groups)
+6. [Physical Wiring Route Optimization](#6-physical-wiring-route-optimization)
+7. [Artwork & Graphic Management](#7-artwork--graphic-management)
+8. [Master Timeline Scrubber & Multi-Layer Tracks](#8-master-timeline-scrubber--multi-layer-tracks)
+9. [Parade Cue Director (90-Second Theatrical Sequences)](#9-parade-cue-director-90-second-theatrical-sequences)
+10. [Lighting Patterns & Effects Library](#10-lighting-patterns--effects-library)
+11. [Decimal Sparkle Frequency & Starlight Twinkle](#11-decimal-sparkle-frequency--starlight-twinkle)
+12. [Profile Management, Saving & JSON Import/Export](#12-profile-management-saving--json-importexport)
+13. [Hardware Integration: Live Wi-Fi Streaming & Standalone USB Flashing](#13-hardware-integration-live-wi-fi-streaming--standalone-usb-flashing)
+14. [Dual-Mode ESP32 Firmware & Onboard Button Toggle](#14-dual-mode-esp32-firmware--onboard-button-toggle)
+15. [Keyboard Shortcuts & Quick Reference Cheat Sheet](#15-keyboard-shortcuts--quick-reference-cheat-sheet)
+
+---
+
+## 1. Introduction & System Architecture
+
+The simulator acts as a virtual workbench and lighting console for your WS2812B addressable LED costumes:
+- **Design in the Browser:** Visually position up to 100 LEDs on any costume shirt graphic, match colors from the artwork pixels, organize LEDs into zone animation groups (e.g. carriage wheels, lanterns, dragon crest), and sequence rich multi-layered theatrical cues along a 90-second timeline.
+- **Preview with 60 FPS Fidelity:** The canvas simulates the optical diffusion, bloom, and incandescent decay of vintage parade light bulbs.
+- **Direct Hardware Link (Zero-Latency Wi-Fi UDP):** Stream the exact animation frames from the browser directly to an ESP32 over local Wi-Fi at 30 FPS.
+- **Standalone FastLED Firmware:** Generate standalone C++ code and flash your ESP32 with one click. In the theme park, the ESP32 runs autonomously off a USB battery pack, with an onboard button to toggle between your individual float show and wireless ESP-NOW fleet synchronization.
+
+```
+┌────────────────────────────────────────────────────────┐
+│                   BROWSER SIMULATOR                    │
+│  - Multi-Layer Timeline & 90s Parade Cue Director     │
+│  - Zone Groups (Wheels, Lanterns, Flame Crest)         │
+│  - Continuous Wiring Route Optimizer                   │
+└──────────────────────────┬─────────────────────────────┘
+                           │
+             ┌─────────────┴─────────────┐
+             ▼                           ▼
+┌──────────────────────────┐   ┌──────────────────────────┐
+│   LIVE WI-FI UDP STREAM  │   │  STANDALONE USB FLASH    │
+│   (Port 4210 @ 30 FPS)   │   │  (PlatformIO / FastLED)  │
+└────────────┬─────────────┘   └─────────────┬────────────┘
+             │                               │
+             └───────────────┬───────────────┘
+                             ▼
+               ┌───────────────────────────┐
+               │    ESP32 COSTUME NODE     │
+               │  - Mode 0: 90s Show Seq   │
+               │  - Mode 1: ESP-NOW Sync   │
+               │  - Output: GPIO 16 (LEDs) │
+               │  - Button: GPIO 0 (BOOT)  │
+               └───────────────────────────┘
+```
+
+---
+
+## 2. Launching the Simulator
+
+1. **Start the Local Server:**
+   Open a terminal in the project directory and run:
+   ```bash
+   python simulator.py
+   ```
+   *(Or double-click `start_simulator.bat` on Windows or `start_simulator.command` on macOS).*
+2. **Open Your Browser:**
+   Navigate to:
+   ```
+   http://localhost:8000
+   ```
+3. The simulator will load with default artwork, pre-configured palettes, and an active transport control bar.
+
+---
+
+## 3. Canvas Navigation & Interactive Controls
+
+The central workspace renders an interactive, hardware-accelerated preview of your shirt and LEDs.
+
+### Pan & Zoom
+- **Zoom In / Out:** Scroll your mouse wheel anywhere over the canvas. You can also press the `+` / `-` keys on your keyboard, or click the **Zoom In (+)** and **Zoom Out (-)** buttons in the top-left toolbar.
+- **Reset Zoom:** Click the **⟲ 100%** button or press the `0` key to restore the default centered view.
+- **Panning:**
+  - **Right-Click Drag:** Hold down the right mouse button and drag across the canvas.
+  - **Spacebar + Drag:** Hold the `Spacebar` (the cursor turns into a grab hand ✋) and drag with the left mouse button.
+  - *Note:* A quick tap and release of the `Spacebar` (without dragging) toggles **Play / Pause** on the timeline!
+
+---
+
+## 4. LED Placement, Inspection & Color Tuning
+
+Every LED on the shirt is an addressable physical node that maps directly to an index in your LED string (`0` to `N-1`).
+
+### Selecting & Inspecting an LED
+- **Click an LED:** Click on any LED circle on the canvas. A glowing cyan ring highlights the active LED, and the **LED Inspector** appears in Section 4 of the sidebar.
+- **Inspector Details:** Displays the LED Index (`#0`), Normalized X/Y coordinates, sampled RGB values, and a live color swatch.
+- **Adjusting Color:**
+  - Use the **R, G, and B sliders** (0–255) to fine-tune the exact color balance.
+  - Enter a hexadecimal color code (e.g., `#FFB347` for vintage amber incandescent).
+  - Use the native color picker swatch for intuitive visual adjustments.
+- **Moving LEDs:** Click and drag any LED to reposition it anywhere on the shirt. If color matching is active, dragging the LED will automatically resample the pixel color from the underlying artwork image as you move it!
+
+---
+
+## 5. Multi-LED Selection & Animation Groups
+
+To create localized zone animations (like carriage wheels spinning or lanterns pulsing), you can select multiple LEDs and organize them into **Animation Groups**.
+
+### Selecting Multiple LEDs
+1. **Marquee Box Select:**
+   - Click the **⬚ Box Select** button in the top toolbar, then click and drag a rectangular bounding box across any area of the canvas.
+   - *Quick Shortcut:* Hold down the `Shift` key and drag anywhere on the canvas to draw a selection box immediately!
+2. **Select All:** Click the **All** button or press `Ctrl + A` (`Cmd + A` on Mac) to select all LEDs on the float.
+3. **Clear Selection:** Click **Clear** or press `Escape` to deselect all LEDs.
+
+### Creating Animation Groups
+1. Select the LEDs you want to group (e.g., the 16 LEDs outlining Cinderella's front carriage wheel).
+2. Look at Section 4 in the sidebar (**"Multi-LED Selection"**).
+3. Type a descriptive name into the **Group Name** field (e.g., `Front Wheel`, `Carriage Lanterns`, or `Dragon Crest`).
+4. Click **➕ Create Animation Group**.
+5. The new group will appear in Section 4 under **"Active Animation Groups"** with its member count, index range, and an icon badge.
+
+### Group Configuration
+- **Direction:** Select **Clockwise (CW)** or **Counter-Clockwise (CCW)** for directional chase animations (crucial for ensuring left and right carriage wheels appear to roll forward!).
+- **Group Effect:** Choose an effect from the dropdown:
+  - *🎡 Chase / Wheel Spin:* Chases illuminated heads around the ring.
+  - *💓 Breathing Glow Pulse:* Pulses the group in sync or out of phase with the baseline.
+  - *💡 Slow Flashing / Blink:* Theatrical blinking.
+  - *✍️ Write-On / Write-Off:* Successively illuminates the group in sequence.
+- **Inspect Group:** Click the **Inspect** button next to any group to highlight its member LEDs on the canvas.
+- **Delete Group:** Click the red **🗑️** button to dismantle a group and return its LEDs to the global float baseline.
+
+---
+
+## 6. Physical Wiring Route Optimization
+
+Attaching LEDs to a shirt by hand can easily result in tangled wire spaghetti if the LEDs are numbered randomly. The simulator solves this with a **continuous shortest-path wiring optimizer**.
+
+### How It Works
+1. Click the **🔌 Optimize Wiring Route** button in the toolbar.
+2. The algorithm starts at the bottom-left corner of the shirt (where your battery pack and ESP32 pocket are typically located).
+3. It uses a 2-opt spatial traveling salesman algorithm to renumber every LED along the shortest continuous physical snake route.
+4. Each LED is renumbered so LED `0` connects to LED `1`, which connects to LED `2`, and so on, with minimum wire length between successive pixels.
+5. Toggle **Show Wiring Route** in Section 6 to see the physical wire path drawn directly on the canvas!
+
+---
+
+## 7. Artwork & Graphic Management
+
+You can choose from pre-loaded Disney parade artwork or upload your own high-resolution shirt graphics.
+
+### Built-in Graphic Presets
+Use the **Graphic Style** dropdown in Section 1 to switch between:
+- **🐉 Pete's Dragon (Elliott):** Default 100-LED layout with emerald body scales, magenta hair crest, and incandescent starlight sparkles.
+- **🎃 Cinderella's Coach:** Classic golden carriage outline with dual spinning wheels, pumpkin body, and royal lanterns.
+
+### Custom Artwork Upload
+1. In Section 1, choose **"Upload Custom Artwork Image"**.
+2. Select any high-resolution transparent PNG or JPEG image from your computer.
+3. The simulator immediately renders your artwork in the center of the shirt canvas.
+4. Click **"✨ Scatter 100 Color-Matched LEDs"**:
+   - The simulator uses a multi-pass Poisson disk scatter to distribute 100 LEDs evenly across your graphic.
+   - It samples the true RGB pixel color beneath each LED, automatically creating a color-matched palette!
+5. Click **"🔄 Resample Colors from Artwork"** at any time to re-sample pixel values if you change or replace the artwork.
+
+---
+
+## 8. Master Timeline Scrubber & Multi-Layer Tracks
+
+The **Master Timeline Bar** is anchored at the bottom of the canvas view and operates like a digital audio workstation (DAW) or non-linear video editor (NLE).
+
+```
+┌────────────────────────────────────────────────────────────────────────────────────────┐
+│  ▶  ⏹  00:32.4 / 01:30.0   [ 3 Layers ] [ Active: Royal Carriage Glow + Wheels Spin ]  │
+├────────────────────────────────────────────────────────────────────────────────────────┤
+│  TIMELINE   |00:00        |00:15        |00:30        |00:45        |01:00        |01:30  │
+├─────────────┴──────────────────────────────────────────────────────────────────────────┤
+│  🌐 Global:  [ Opening Sparkle (25s) ] [ Royal Carriage Glow (40s) ]                  │
+│                                                     [ Grand Finale Wave (30s) ]        │
+├────────────────────────────────────────────────────────────────────────────────────────┤
+│  🎡 Wheels:                [ Carriage Wheels Spin (35s) ]                              │
+├────────────────────────────────────────────────────────────────────────────────────────┤
+│  💡 Lanterns:                               [ Lanterns Pulse (25s) ]                   │
+└────────────────────────────────────────────────────────────────────────────────────────┘
+```
+
+### Transport Controls
+- **▶ Play / ⏸ Pause:** Starts or pauses continuous 60 FPS theatrical playback. Press the `Spacebar` anywhere on the page to toggle.
+- **⏹ Stop / Rewind:** Immediately stops playback and rewinds the playhead to `00:00.0`.
+- **Time Readout:** Displays current position down to tenths of a second alongside total loop length (`00:15.5 / 01:30.0`).
+- **🔁 Loop Button:** When active (green), playback seamlessly wraps from the end back to `00:00.0`.
+- **🎬 Sequence Mode Toggle:** Toggles between **Free-Run** (single continuous baseline pattern) and **Show Sequence** (timeline-driven theatrical cue playback).
+
+### The Multi-Layer Track System (Scenario B Stacking)
+- **Dedicated Track Lanes:**
+  - **Track 1 (`🌐 Global Float`):** Displays all cues affecting the whole float baseline.
+  - **Tracks 2+ (`🎡 [Group Name]`):** Displays cues targeting localized groups (e.g. `Front Wheel`, `Rear Wheel`, `Lanterns`).
+- **Automatic Sub-Lane Stacking:** When multiple cues on the same layer overlap in time (e.g., crossfading between two global cues), the track automatically expands into stacked sub-lanes so **both cues remain 100% visible** without overlapping or clipping!
+- **Interactive Cue Blocks:**
+  - Displays the cue's title, total duration, and visual fade-in/fade-out gradient indicators.
+  - When a cue is actively firing, it lights up with a glowing white/cyan border.
+  - **Clicking any cue block** immediately seeks the playhead to that cue's start time and scrolls to its card in the sidebar editor.
+- **Synchronized Playhead Needle:** A vertical cyan line extends across all tracks from top to bottom, moving smoothly with playback to show exactly which cues are active at the current moment.
+- **Seek Ruler:** Formatted time ticks (`00:00`, `00:15`, `00:30`, etc.) display along the top. Click or drag anywhere across the ruler or track lanes to scrub in real time.
+
+---
+
+## 9. Parade Cue Director (90-Second Theatrical Sequences)
+
+Located in Section 2 of the left sidebar, the **Parade Cue Director** is where you script and fine-tune your float's theatrical show sequence.
+
+### Structuring a Cue
+Click **➕ Add Cue** to create a new cue card with the following settings:
+- **Cue Name:** A custom theatrical label (e.g., `Carriage Wheels Spin`, `Snout Fire Breath`).
+- **Target Layer:** Select either `🌐 Global Float` or any active animation group (e.g. `🎡 Group: Front Wheel`).
+- **Pattern / Effect:** Select from the 10 built-in lighting effects (see Section 10).
+- **Start Time (s):** Time offset in seconds from the beginning of the show loop (0.5s resolution).
+- **Duration (s):** How long the cue runs before fading out.
+- **BPM (Tempo):** The speed of the animation during this specific cue (30–280 BPM).
+- **Crossfades (Fade In / Fade Out):**
+  - **In (s):** Smooth ramp-up blend from baseline color into the effect (`0.0s` for an instant cut, up to `5.0s` for a soft cinematic blend).
+  - **Out (s):** Smooth ramp-down blend back into the baseline pattern.
+
+### 1-Click Example Show Routines
+Use the **Load Example Routine** dropdown to test fully orchestrated 90-second sequences:
+- **🎃 Cinderella 90s (Wheels & Lanterns):**
+  - `0.0s – 25.0s`: Opening Starlight Sparkle (Global baseline)
+  - `15.0s – 50.0s`: Carriage Wheels Spin (Group chase overlay)
+  - `25.0s – 65.0s`: Royal Carriage Breathing Glow (Warm golden float glow)
+  - `35.0s – 60.0s`: Carriage Lanterns Breathing Pulse (Group pulse overlay)
+  - `60.0s – 90.0s`: Grand Finale Electrical Wave (Cascading electrical wave)
+- **🐉 Pete's Dragon 90s (Crest Flame):**
+  - `0.0s – 30.0s`: Comic Starlight Sparkle
+  - `20.0s – 50.0s`: Flame Hair Crest Fire Pulse
+  - `30.0s – 65.0s`: Snout Fire-Breathing Pulse
+  - `65.0s – 90.0s`: Broadway Electrical Marquee Finale
+- **🗑️ Clear All Cues:** Wipes the cue list clean so you can start from scratch.
+
+---
+
+## 10. Lighting Patterns & Effects Library
+
+The simulator includes 10 specialized algorithms designed specifically for parade floats:
+
+| Effect ID | Effect Name | Description | Best Suited For |
+|---|---|---|---|
+| `steady_sparkle` | **Steady Colors + Sparkles** | Holds constant artwork color palette with occasional incandescent starlight twinkles. | Entry / ambient float scenes |
+| `color_match` | **Color-Matched Breathing Glow** | Organic sinusoidal breathing pulse that preserves true sampled artwork hues. | Main float bodies |
+| `chase` | **Chase / Wheel Spin** | Directional traveling pulse that rotates around closed loops or lines. | Carriage wheels, rims, borders |
+| `pulse` | **Breathing Glow Pulse** | Rhythmic swelling heartbeat glow. | Lanterns, dragon scales, accents |
+| `flash_slow` | **Slow Flashing / Blink** | Alternating on/off flashing cycle. | Warning lanterns, beacons, stars |
+| `write_on_off` | **Theatrical Write-On / Write-Off** | Successively turns on LEDs one-by-one from start to finish, then wipes them off. | Float entrances and grand reveals |
+| `sparkle_storm` | **Sparkle Storm** | High-energy flurry of white incandescent flashes. | Magic moments, fairy dust, wand taps |
+| `marquee` | **Theater Marquee Chase** | 3-phase alternating incandescent bulb chase (dots 1, 2, 3). | Outer float frames, title drums |
+| `traveling_wave` | **Traveling Parade Wave** | Intense illuminated wave head with fading comet tail. | Float-to-float ESP-NOW sync, finales |
+| `fire_breath` | **Snout Fire Breath** | Flickering flame simulation in amber, orange, and red hues. | Pete's Dragon snout, torches |
+
+---
+
+## 11. Decimal Sparkle Frequency & Starlight Twinkle
+
+Authentic Disney parade floats use warm, incandescent filament bulbs that twinkle softly like distant stars. High sparkle rates can look like chaotic strobes.
+
+### Fine Decimal Control (`0.0% – 10.0%`)
+The **Sparkle Frequency Slider** in Section 3 supports fine decimal percentages with `0.05%` resolution:
+- **`0.0%`:** Completely steady colors; zero sparkles.
+- **`0.10% – 0.50%` (Recommended Starlight Twinkle):** An authentic, subtle starlight twinkle. Roughly 1 to 3 random LEDs sparkle every second across the entire costume.
+- **`1.0% – 2.0%`:** A lively, playful sparkle suitable for active musical passages.
+- **`5.0% – 10.0%`:** A fast-paced sparkle storm for grand finales.
+
+*Firmware Note:* When exporting C++ code or flashing firmware, the engine uses 16-bit random thresholds (`random16()`), ensuring that decimal frequencies (like `0.25%`) translate with 100% mathematical fidelity to the microcontroller without rounding down to zero.
+
+---
+
+## 12. Profile Management, Saving & JSON Import/Export
+
+You can save and export complete costume profiles so you never lose your LED arrangements, group definitions, or cue timelines.
+
+### Saving Profiles
+1. Enter a name in the **Profile Name** input (e.g., `Cinderella_Final_Costume`).
+2. Click **💾 Save Profile**.
+3. Profiles are saved both to the Python backend server (`presets/` directory) and cached in your browser's `localStorage`.
+4. Saved profiles appear in the **Quick-Load Profile** dropdown in Section 1.
+
+### Exporting & Importing Configuration JSON
+- **⬇ Download / Export Configuration JSON:**
+  Click **"Download Configuration JSON"** (Section 1 or 5) to save a complete `.json` file containing:
+  - Exact normalized X/Y coordinates for all 100 LEDs
+  - Sampled RGB colors and brightness settings
+  - Animation group definitions (member indices and directions)
+  - The complete 90-second Cue Director sequence with all timeline cues
+- **📂 Import Configuration JSON:**
+  Click **"Import Configuration JSON"** and choose any previously saved `.json` file. The simulator instantly restores your LEDs, groups, and cues.
+
+### Generating FastLED C++ Code
+Click **"💻 Export FastLED C++ Code"** (Section 5) to open the code modal:
+- Generates a complete C++ PROGMEM flash array storing the sampled color palette for all 100 LEDs (`CRGB ARTWORK_PALETTE[NUM_LEDS]`).
+- Auto-generates the `runAutonomousShowSequence` routine matching your active timeline cues.
+- Click **"📋 Copy to Clipboard"** to paste directly into your Arduino or PlatformIO sketch!
+
+---
+
+## 13. Hardware Integration: Live Wi-Fi Streaming & Standalone USB Flashing
+
+The simulator connects directly to physical ESP32 hardware via two powerful workflows:
+
+```
+[ BROWSER SIMULATOR ] ──(UDP Port 4210 @ 30 FPS)──▶ [ ESP32 NODE ] ──▶ [ WS2812B SHIRT ]
+```
+
+### Real-Time Live Wi-Fi UDP Streaming
+Preview animations on your physical shirt in real time without flashing:
+1. Connect your ESP32 to your local Wi-Fi network (or use the built-in `MSEP-Costume-AP` hotspot).
+2. In the simulator header, click **"📡 Wi-Fi Live Stream"** or the settings gear.
+3. Enter your Wi-Fi SSID, Password, and the target ESP32 IP address (or leave `255.255.255.255` for broadcast).
+4. Click **"▶ Start Live Wi-Fi Stream"**.
+5. The status indicator turns green: `Streaming (100 LEDs @ 30 FPS)`.
+6. As you scrub the timeline or hit play, the browser packs the RGB frame data into high-speed UDP packets on port `4210`. Your physical shirt mirrors the simulator screen with zero perceived latency!
+
+### One-Click Standalone USB Firmware Flashing
+When you are ready to prepare a shirt for autonomous use:
+1. Connect your ESP32 to your computer using a standard micro-USB or USB-C data cable.
+2. The top status indicator will detect your COM port and turn green: `● ESP32 on COMx (Ready)`.
+3. Click **"⚡ Flash to Connected ESP32"**.
+4. The simulator invokes PlatformIO in the background, compiles the firmware with your active color palette and cues, and uploads it via esptool.
+5. The live terminal modal displays compilation output and upload progress.
+6. Once complete, unplug the USB cable from your computer, plug the ESP32 into a 5V USB battery bank in your pocket, and your costume runs on its own!
+
+---
+
+## 14. Dual-Mode ESP32 Firmware & Onboard Button Toggle
+
+The firmware in [`src/main.cpp`](file:///c:/Users/Kiddi/Desktop/WDW%20costumes/src/main.cpp) incorporates dual-mode operation toggled via the ESP32's onboard **BOOT button** (`BUTTON_PIN 0` with hardware internal pull-up and 50ms debouncing):
+
+### Mode 0: Autonomous 90-Second Theatrical Show Sequence (Default)
+- Runs your float's customized 90-second Cue Director sequence independently.
+- Ideal when runners are separated, walking through the park, or taking photos.
+- The onboard status LED pulses with a gentle 1 Hz breath to indicate autonomous mode.
+
+### Mode 1: ESP-NOW Fleet Sync
+- Tap the **BOOT button** once to switch into Fleet Sync mode.
+- Unit 1 operates as the **Parade Leader / Transmitter**, broadcasting synchronization packets over connectionless 2.4 GHz ESP-NOW radio at 25 Hz.
+- Units 2 through 7 operate as **Followers / Receivers**, locking their internal clock to the Leader with sub-millisecond precision.
+- Features coordinated multi-float traveling waves where illuminated light pulses leap smoothly from runner to runner down the line!
+- The onboard status LED illuminates solid green when receiving radio synchronization packets.
+- Tap the **BOOT button** again to return to individual 90-second autonomous show playback at any time.
+
+---
+
+## 15. Keyboard Shortcuts & Quick Reference Cheat Sheet
+
+| Key / Action | Context | Description |
+|---|---|---|
+| `Spacebar` (Tap) | Anywhere | **Play / Pause** show sequence playback on the master timeline |
+| `Spacebar` (Hold) + Drag | Canvas | **Pan** the canvas workspace smoothly |
+| Right-Click + Drag | Canvas | **Pan** the canvas workspace |
+| Mouse Wheel | Canvas | **Zoom** in / out centered on cursor position |
+| `+` / `=` | Canvas | **Zoom In** (+20%) |
+| `-` / `_` | Canvas | **Zoom Out** (-20%) |
+| `0` | Canvas | **Reset Zoom** to default centered 100% view |
+| `Shift` + Drag | Canvas | **Marquee Box Select** multiple LEDs |
+| `Ctrl + A` / `Cmd + A` | Canvas | **Select All** LEDs |
+| `Escape` | Canvas | **Deselect All** LEDs |
+| Arrow Right `]` / `n` | LED Select | Select **Next LED** in wiring order |
+| Arrow Left `[` / `p` | LED Select | Select **Previous LED** in wiring order |
+| Click on Timeline Track | Timeline | **Seek playhead** to that exact second |
+| Click on Cue Block | Timeline | **Jump to cue start** and highlight cue card in editor |
+
+---
+
+*Disney, Main Street Electrical Parade, Pete's Dragon, and Cinderella are registered trademarks of The Walt Disney Company. This open-source project is an unofficial tribute created for the Walt Disney World 10K runDisney event.*

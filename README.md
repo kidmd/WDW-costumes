@@ -40,8 +40,10 @@ An **ESP32** microcontroller on each runner coordinates lighting patterns wirele
 
 ---
 
-## Project Structure & Progress
+## Project Structure & Documentation
 
+* [`SIMULATOR_USER_GUIDE.md`](SIMULATOR_USER_GUIDE.md): **Complete User Guide & Theatrical Lighting Manual** for the browser simulator, multi-layer timeline, and ESP32 hardware flasher.
 * [`PROJECT_PROGRESS.md`](PROJECT_PROGRESS.md): Live project milestones, wiring specifications, and development changelog.
-* `src/`: C++ / Arduino firmware source code.
+* `src/`: C++ / Arduino firmware source code for ESP32.
+* `simulator/`: Web-based visual simulator and theatrical cue director.
 * `platformio.ini`: PlatformIO configuration with board targets and library dependencies (FastLED).
