@@ -62,12 +62,12 @@ struct FloatMeta {
 
 const FloatMeta FLEET_ROSTER_INFO[7] = {
     { "Title Drum",     "LEADER",     CRGB(255, 180, 20)  }, // Float 1 (Gold/Amber)
-    { "Casey Jr.",      "FOLLOWER",   CRGB(230, 40, 50)   }, // Float 2 (Red)
-    { "Elliott",        "FOLLOWER",   CRGB(0, 255, 100)   }, // Float 3 (Green)
-    { "Mushroom",       "FOLLOWER",   CRGB(160, 40, 220)  }, // Float 4 (Purple)
-    { "Cinderella",     "FOLLOWER",   CRGB(50, 180, 240)  }, // Float 5 (Cyan)
-    { "Pirate Ship",    "FOLLOWER",   CRGB(255, 120, 0)   }, // Float 6 (Orange)
-    { "Snail Finale",   "FOLLOWER",   CRGB(255, 20, 140)  }  // Float 7 (Pink)
+    { "The Train",      "FOLLOWER",   CRGB(230, 40, 50)   }, // Float 2 (Red)
+    { "Pete's Dragon",  "FOLLOWER",   CRGB(0, 255, 100)   }, // Float 3 (Green)
+    { "Cinderella",     "FOLLOWER",   CRGB(50, 180, 240)  }, // Float 4 (Cyan)
+    { "The Turtle",     "FOLLOWER",   CRGB(40, 200, 180)  }, // Float 5 (Teal)
+    { "The Snail",      "FOLLOWER",   CRGB(255, 20, 140)  }, // Float 6 (Pink)
+    { "Flag & Eagle",   "FOLLOWER",   CRGB(60, 120, 255)  }  // Float 7 (Patriotic Blue)
 };
 
 // ============================================================================

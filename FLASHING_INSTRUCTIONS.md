@@ -125,13 +125,13 @@ You do **not** need to change any code to configure which float you are! Any ESP
 
 | Float # | Float Name | Character Tag | Signature Color | Role |
 |:---:|---|---|---|:---:|
-| **01** | **Title Drum** | THE DRUM | 🟡 Gold / Amber | **👑 LEADER** (Broadcasts timing clock) |
-| **02** | **Casey Jr.** | LOCOMOTIVE | 🔴 Red | Follower |
-| **03** | **Elliott** | PETE'S DRAGON | 🟢 Green | Follower |
-| **04** | **Mushroom** | ALICE | 🟣 Purple | Follower |
-| **05** | **Cinderella** | PUMPKIN COACH | 🔵 Cyan | Follower |
-| **06** | **Pirate Ship** | PETER PAN | 🟠 Orange | Follower |
-| **07** | **Snail Finale** | SPINNING SNAIL | 🌸 Pink | Follower |
+| **01** | **The Title Drum** | THE DRUM | 🟡 Gold / Amber | **👑 LEADER** (Broadcasts timing clock) |
+| **02** | **The Train** | CASEY JR. | 🔴 Red | Follower |
+| **03** | **Pete's Dragon** | ELLIOTT | 🟢 Green | Follower |
+| **04** | **Cinderella's Coach** | CINDERELLA | 🔵 Cyan | Follower |
+| **05** | **The Turtle** | SPINNING TURTLE | 🟢 Teal / Green | Follower |
+| **06** | **The Snail** | SPINNING SNAIL | 🌸 Pink | Follower |
+| **07** | **To Honor America** | FLAG & EAGLE | 🔴⚪🔵 Patriotic Blue | Follower |
 
 > 💡 **Fleet Leader Note:** Float 01 is the **Master Leader** that broadcasts the wireless sync clock. If you are running together as a group, one runner sets their shirt to **Float 01**, and everyone else picks Floats **02 through 07**. The synchronized traveling wave will then roll down the line in order: `01 ➔ 02 ➔ 03 ➔ 04 ➔ 05 ➔ 06 ➔ 07`!
 

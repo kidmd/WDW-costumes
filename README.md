@@ -13,12 +13,12 @@ An **ESP32** microcontroller on each runner coordinates lighting patterns wirele
 ### The 7 Floats Roster
 
 1. **The Title Drum:** Golden chasing marquee border, "Disney" electric text accent.
-2. **Casey Junior Circus Train:** Warm white chugging locomotive headlight & steam pulses.
+2. **The Train (Casey Jr.):** Warm white chugging locomotive headlight & steam pulses.
 3. **Pete's Dragon (Elliott):** Chartreuse/green body scales with orange/red fire breathing effect.
-4. **Alice in Wonderland / Caterpillar Mushroom:** Whimsical neon swirls & alternating colors.
-5. **Cinderella's Carriage & Clock:** Shimmering fairy dust sparkle and clock chime pulses.
-6. **Peter Pan / Pirate Ship:** Lantern flicker, ocean waves, and skull & crossbones highlight.
-7. **The Spinning Snail / Grand Finale:** Multi-color rotating rainbow spiral wheels.
+4. **Cinderella's Coach:** Shimmering fairy dust sparkle and midnight pumpkin carriage glow.
+5. **The Turtle:** Whimsical spinning shell spirals, blinking amber eyes, and teal/green shell pattern.
+6. **The Snail:** Multi-color rotating rainbow spiral shell wheels and neon antennae glow.
+7. **To Honor America (Flag & Eagle):** Patriotic red, white, and blue finale fireworks shimmer with majestic illuminated eagle.
 
 ---
 

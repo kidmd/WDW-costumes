@@ -18,12 +18,12 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 | Float # | Unit / Float Name | Visual Concept & Accent Lights |
 | :---: | :--- | :--- |
 | **1** | **The Title Drum** | Golden chasing marquee border, "Disney" electric text accent |
-| **2** | **Casey Junior Circus Train** | Warm white chugging headlight, locomotive steam pulses |
+| **2** | **The Train (Casey Jr.)** | Warm white chugging headlight, locomotive steam pulses |
 | **3** | **Pete's Dragon (Elliott)** | Chartreuse/green scales with orange/red fire breathing effect |
-| **4** | **Alice / Caterpillar Mushroom** | Whimsical neon swirls, psychedelic alternating colors |
-| **5** | **Cinderella Carriage & Clock** | Brilliant fairy dust shimmer, midnight clock chimes |
-| **6** | **Peter Pan / Pirate Ship** | Lantern gold flicker, ocean waves, skull & crossbones |
-| **7** | **Spinning Snail / Finale** | Rotating rainbow spiral wheels, grand parade finale twinkle |
+| **4** | **Cinderella's Coach** | Brilliant fairy dust shimmer, pumpkin coach starlight glow |
+| **5** | **The Turtle** | Whimsical spinning shell spirals, blinking amber eyes, teal/green glow |
+| **6** | **The Snail** | Rotating rainbow spiral wheels, neon antennae, vibrant spinning motion |
+| **7** | **To Honor America (Flag & Eagle)** | Cascading patriotic red/white/blue starbursts & majestic illuminated eagle |
 
 ---
 
@@ -92,6 +92,21 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 ---
 
 ## Progress Log
+
+### Entry: Official 7-Float Parade Roster Synchronized Across Documentation & Firmware
+* **Date:** 2026-09-23
+* **Status:** Synchronized across all docs, Web Simulator, C++ firmware, and Arduino sketches.
+* **Notes:**
+  * **Updated 7-Float Lineup:** Finalized the official runner costume float roster:
+    1. **Float 01:** The Title Drum (Leader, Gold/Amber `#ffb703`)
+    2. **Float 02:** The Train / Casey Jr. (Follower, Red `#e63946`)
+    3. **Float 03:** Pete's Dragon / Elliott (Follower, Green `#00ff88`)
+    4. **Float 04:** Cinderella's Coach (Follower, Cyan `#48cae4`)
+    5. **Float 05:** The Turtle (Follower, Teal/Green `#2ec4b6`)
+    6. **Float 06:** The Snail (Follower, Pink `#ff007f`)
+    7. **Float 07:** To Honor America (Flag & Eagle) (Follower, Patriotic Blue `#3a86ff`)
+  * **Code & Firmware Synchrony:** Updated `FLEET_ROSTER` in `simulator/app.js`, `FLEET_ROSTER_INFO` in `src/main.cpp`, and `FLEET_ROSTER_INFO` in `arduino/MSEP_Costume/MSEP_Costume.ino`.
+  * **Documentation Alignment:** Synchronized `README.md`, `SIMULATOR_USER_GUIDE.md`, `FLASHING_INSTRUCTIONS.md`, and project artifacts.
 
 ### Entry: Yellow runDisney 10K Bib (#1952) with Chip & Dale Mascots & Dynamic Scaling
 * **Date:** 2026-09-23
