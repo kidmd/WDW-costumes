@@ -239,6 +239,21 @@
                         🔄 Restore Default Dragon
                     </button>
                 </div>
+
+                <!-- runDisney 10K Race Bib Indicator -->
+                <div style="margin-top: 10px; padding: 8px 10px; background: rgba(56, 189, 248, 0.06); border: 1px solid rgba(56, 189, 248, 0.25); border-radius: 8px;">
+                    <div style="display: flex; align-items: center; justify-content: space-between;">
+                        <label for="showBibToggle" style="font-size: 12px; color: #fff; cursor: pointer; display: flex; align-items: center; gap: 6px; font-weight: 500;">
+                            <span>🏷️ runDisney 10K Bib (#1952)</span>
+                        </label>
+                        <input type="checkbox" id="showBibToggle" checked style="accent-color: #38bdf8; width: 16px; height: 16px; cursor: pointer;">
+                    </div>
+                    <div id="bibPositionRow" style="display: flex; align-items: center; gap: 6px; margin-top: 6px;">
+                        <span style="font-size: 11px; color: var(--text-muted); flex: 1;">Height:</span>
+                        <input type="range" id="bibYSlider" min="50" max="75" value="61" style="flex: 2;">
+                        <span id="bibYVal" style="font-size: 11px; color: var(--accent-cyan); font-family: monospace; width: 28px; text-align: right;">61%</span>
+                    </div>
+                </div>
             </div>
 
             <!-- 5. LED Layout Tools -->

@@ -17,7 +17,9 @@ let params = {
     glowSize: 20,
     showWiring: false,
     showNumbers: false,
-    reflectiveShine: true
+    reflectiveShine: true,
+    showBib: true,
+    bibYOffset: 0.61
 };
 
 // Default Pete's Dragon Artwork
@@ -302,6 +304,190 @@ function drawRunningShirt(cx, x, y, width, height, label = "PETE'S DRAGON") {
         cx.textAlign = 'center';
         cx.fillText(label, x + width * 0.5, y + height * 0.91);
     }
+
+    cx.restore();
+}
+
+// ============================================================================
+// DRAWING ROUTINES: Authentic runDisney 10K Race Bib (#1952) with BibBoards
+// ============================================================================
+function drawRaceBib(cx, s) {
+    if (!params.showBib) return;
+
+    cx.save();
+
+    // Authentic runDisney bib dimensions: ~7.5" wide by 8.0" tall
+    // Scaled realistically onto the athletic running shirt: width ~ 37.5% of shirt width
+    const bibW = s.width * 0.375;
+    const bibH = bibW * (8.0 / 7.5); // ~ 1.067 aspect ratio
+    const bibX = s.x + (s.width - bibW) / 2;
+    const bibY = s.y + s.height * (params.bibYOffset !== undefined ? params.bibYOffset : 0.61);
+
+    // 1. Tyvek Drop Shadow
+    cx.shadowColor = 'rgba(0, 0, 0, 0.65)';
+    cx.shadowBlur = 12;
+    cx.shadowOffsetX = 0;
+    cx.shadowOffsetY = 4;
+
+    // 2. White Tyvek Card Body with Rounded Corners
+    const r = 6;
+    cx.beginPath();
+    cx.moveTo(bibX + r, bibY);
+    cx.lineTo(bibX + bibW - r, bibY);
+    cx.quadraticCurveTo(bibX + bibW, bibY, bibX + bibW, bibY + r);
+    cx.lineTo(bibX + bibW, bibY + bibH - r);
+    cx.quadraticCurveTo(bibX + bibW, bibY + bibH, bibX + bibW - r, bibY + bibH);
+    cx.lineTo(bibX + r, bibY + bibH);
+    cx.quadraticCurveTo(bibX, bibY + bibH, bibX, bibY + bibH - r);
+    cx.lineTo(bibX, bibY + r);
+    cx.quadraticCurveTo(bibX, bibY, bibX + r, bibY);
+    cx.closePath();
+
+    const tyvekGrad = cx.createLinearGradient(bibX, bibY, bibX, bibY + bibH);
+    tyvekGrad.addColorStop(0, '#ffffff');
+    tyvekGrad.addColorStop(1, '#f1f5f9');
+    cx.fillStyle = tyvekGrad;
+    cx.fill();
+
+    // Reset shadow for crisp internal graphics
+    cx.shadowColor = 'transparent';
+    cx.shadowBlur = 0;
+    cx.shadowOffsetY = 0;
+
+    // Card border
+    cx.strokeStyle = '#cbd5e1';
+    cx.lineWidth = 1.2;
+    cx.stroke();
+
+    // 3. Top Header Banner: Deep Royal Purple/Navy with Walt Disney World 10K
+    const headerH = bibH * 0.22;
+    cx.save();
+    cx.beginPath();
+    cx.moveTo(bibX + r, bibY);
+    cx.lineTo(bibX + bibW - r, bibY);
+    cx.quadraticCurveTo(bibX + bibW, bibY, bibX + bibW, bibY + r);
+    cx.lineTo(bibX + bibW, bibY + headerH);
+    cx.lineTo(bibX, bibY + headerH);
+    cx.lineTo(bibX, bibY + r);
+    cx.quadraticCurveTo(bibX, bibY, bibX + r, bibY);
+    cx.closePath();
+    cx.clip();
+
+    const bannerGrad = cx.createLinearGradient(bibX, bibY, bibX + bibW, bibY + headerH);
+    bannerGrad.addColorStop(0, '#1e1b4b'); // Deep Disney royal purple
+    bannerGrad.addColorStop(0.5, '#3730a3');
+    bannerGrad.addColorStop(1, '#1e1b4b');
+    cx.fillStyle = bannerGrad;
+    cx.fill();
+
+    // Header Stars & Text
+    cx.fillStyle = '#facc15'; // Disney Gold Star
+    cx.font = `bold ${Math.max(8, Math.floor(bibW * 0.052))}px sans-serif`;
+    cx.textAlign = 'left';
+    cx.fillText("★ runDisney", bibX + bibW * 0.06, bibY + headerH * 0.40);
+
+    cx.fillStyle = '#ffffff';
+    cx.font = `bold ${Math.max(8, Math.floor(bibW * 0.065))}px sans-serif`;
+    cx.fillText("WALT DISNEY WORLD® 10K", bibX + bibW * 0.06, bibY + headerH * 0.80);
+
+    // Top-Right Corral Badge: "CORRAL A"
+    const badgeW = bibW * 0.22;
+    const badgeH = headerH * 0.72;
+    const badgeX = bibX + bibW - badgeW - bibW * 0.04;
+    const badgeY = bibY + (headerH - badgeH) / 2;
+
+    cx.fillStyle = '#0284c7'; // Cyan Corral box
+    cx.beginPath();
+    if (cx.roundRect) {
+        cx.roundRect(badgeX, badgeY, badgeW, badgeH, 4);
+    } else {
+        cx.rect(badgeX, badgeY, badgeW, badgeH);
+    }
+    cx.fill();
+    cx.strokeStyle = '#ffffff';
+    cx.lineWidth = 1;
+    cx.stroke();
+
+    cx.fillStyle = '#ffffff';
+    cx.textAlign = 'center';
+    cx.font = `bold ${Math.max(6, Math.floor(badgeH * 0.32))}px sans-serif`;
+    cx.fillText("CORRAL", badgeX + badgeW / 2, badgeY + badgeH * 0.38);
+    cx.font = `bold ${Math.max(12, Math.floor(badgeH * 0.58))}px sans-serif`;
+    cx.fillText("A", badgeX + badgeW / 2, badgeY + badgeH * 0.88);
+    cx.restore();
+
+    // 4. Center Bib Number: "1952"
+    cx.fillStyle = '#0f172a'; // Bold athletic dark slate
+    cx.font = `900 ${Math.max(22, Math.floor(bibW * 0.26))}px Impact, "Arial Black", sans-serif`;
+    cx.textAlign = 'center';
+    cx.fillText("1952", bibX + bibW / 2, bibY + bibH * 0.58);
+
+    // Runner Name under number
+    cx.fillStyle = '#475569';
+    cx.font = `bold ${Math.max(8, Math.floor(bibW * 0.060))}px sans-serif`;
+    cx.fillText("MSEP RUNNER", bibX + bibW / 2, bibY + bibH * 0.70);
+
+    // 5. Bottom Section: PhotoPass Barcode & Verification
+    const footerY = bibY + bibH * 0.78;
+    cx.strokeStyle = '#e2e8f0';
+    cx.lineWidth = 1;
+    cx.beginPath();
+    cx.moveTo(bibX + bibW * 0.05, footerY);
+    cx.lineTo(bibX + bibW * 0.95, footerY);
+    cx.stroke();
+
+    // Barcode representation
+    cx.fillStyle = '#334155';
+    const barStartY = footerY + bibH * 0.035;
+    const barH = bibH * 0.09;
+    const barX0 = bibX + bibW * 0.08;
+    for (let b = 0; b < 22; b++) {
+        const bw = (b % 3 === 0 || b % 5 === 0) ? 2.5 : 1.2;
+        cx.fillRect(barX0 + b * (bibW * 0.016), barStartY, bw, barH);
+    }
+
+    // PhotoPass code
+    cx.fillStyle = '#64748b';
+    cx.textAlign = 'right';
+    cx.font = `${Math.max(6, Math.floor(bibW * 0.040))}px sans-serif`;
+    cx.fillText("Disney PhotoPass®", bibX + bibW * 0.92, barStartY + barH * 0.45);
+    cx.font = `bold ${Math.max(6, Math.floor(bibW * 0.038))}px monospace`;
+    cx.fillText("DIS-1952-10K", bibX + bibW * 0.92, barStartY + barH * 0.90);
+
+    // 6. FOUR CORNER BIBBOARDS SNAP FASTENERS
+    // Circular snap-and-lock fasteners at all four corners
+    const boardRadius = Math.max(6, bibW * 0.040);
+    const cornerInset = boardRadius + 4;
+    const corners = [
+        { x: bibX + cornerInset, y: bibY + cornerInset },             // Top-Left
+        { x: bibX + bibW - cornerInset, y: bibY + cornerInset },      // Top-Right
+        { x: bibX + cornerInset, y: bibY + bibH - cornerInset },      // Bottom-Left
+        { x: bibX + bibW - cornerInset, y: bibY + bibH - cornerInset }// Bottom-Right
+    ];
+
+    corners.forEach((c) => {
+        // Outer dark casing
+        cx.beginPath();
+        cx.arc(c.x, c.y, boardRadius, 0, Math.PI * 2);
+        cx.fillStyle = '#0f172a';
+        cx.fill();
+        // Cyan accent ring
+        cx.strokeStyle = '#38bdf8';
+        cx.lineWidth = 1.6;
+        cx.stroke();
+
+        // Inner dome button
+        cx.beginPath();
+        cx.arc(c.x, c.y, boardRadius * 0.55, 0, Math.PI * 2);
+        cx.fillStyle = '#38bdf8';
+        cx.fill();
+
+        // Center glossy highlight
+        cx.beginPath();
+        cx.arc(c.x, c.y, boardRadius * 0.22, 0, Math.PI * 2);
+        cx.fillStyle = '#ffffff';
+        cx.fill();
+    });
 
     cx.restore();
 }
@@ -872,6 +1058,7 @@ function renderSingleShirtView(timeMs) {
     }
     drawRunningShirt(ctx, s.x, s.y, s.width, s.height, shirtTitle);
     drawPetesDragon(ctx, s);
+    drawRaceBib(ctx, s);
 
     if (params.showWiring && leds.length > 1) {
         ctx.save();
@@ -2828,6 +3015,25 @@ document.getElementById('showWiringToggle').addEventListener('change', (e) => {
 document.getElementById('showNumbersToggle').addEventListener('change', (e) => {
     params.showNumbers = e.target.checked;
 });
+
+const showBibToggle = document.getElementById('showBibToggle');
+if (showBibToggle) {
+    showBibToggle.addEventListener('change', (e) => {
+        params.showBib = e.target.checked;
+        const posRow = document.getElementById('bibPositionRow');
+        if (posRow) posRow.style.display = e.target.checked ? 'flex' : 'none';
+    });
+}
+
+const bibYSlider = document.getElementById('bibYSlider');
+if (bibYSlider) {
+    bibYSlider.addEventListener('input', (e) => {
+        const val = parseInt(e.target.value);
+        params.bibYOffset = val / 100.0;
+        const valBadge = document.getElementById('bibYVal');
+        if (valBadge) valBadge.textContent = `${val}%`;
+    });
+}
 
 document.getElementById('resetLedsBtn').addEventListener('click', () => {
     initDefaultDragonLeds();
