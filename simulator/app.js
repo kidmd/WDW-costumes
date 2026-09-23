@@ -139,6 +139,17 @@ function rebuildLedGroupMap() {
     }
 }
 
+// ============================================================================
+// PARADE CUE DIRECTOR (Autonomous 90s Float Show Sequence Engine)
+// ============================================================================
+let sequenceMode = false;           // false = Free-Run pattern, true = 90s Show Sequence
+let sequenceLoopDuration = 90.0;    // Loop duration in seconds
+let sequenceTime = 0.0;            // Current timeline position in seconds
+let sequencePlaying = false;       // Playback state
+let sequenceLoop = true;           // Loop back to 0:00
+let sequenceCues = [];             // Array of cue objects
+let lastTimelineFrameTime = performance.now();
+
 // LEDs array: [{ x, y, color: {r, g, b} }]
 let leds = [];
 
@@ -371,165 +382,125 @@ function drawPetesDragon(cx, s) {
 }
 
 // ============================================================================
-// LIGHTING ENGINE
+// LIGHTING ENGINE (Modular Multi-Layer Pattern & Group Evaluator)
 // ============================================================================
-function computeLedColor(index, totalLeds, timeMs) {
-    const bpm = params.speedBpm;
-    const beatMs = 60000 / bpm;
+
+function evalGroupEffect(grp, effect, bpm, dir, grpIndex, grpSize, timeMs, c) {
+    const grpBeatMs = 60000 / Math.max(20, bpm || 120);
+    const grpNormTime = timeMs / grpBeatMs;
+    const direction = dir || 1;
+
+    let baseR = c ? c.r : 255;
+    let baseG = c ? c.g : 200;
+    let baseB = c ? c.b : 50;
+
+    if (grp.colorMode === 'custom' && grp.customColor) {
+        baseR = grp.customColor.r;
+        baseG = grp.customColor.g;
+        baseB = grp.customColor.b;
+    }
+
+    let grpIntensity = 1.0;
+
+    switch (effect) {
+        case 'chase': {
+            const head = ((grpNormTime * direction) % grpSize + grpSize) % grpSize;
+            const directDist = Math.abs(grpIndex - head);
+            const circDist = Math.min(directDist, grpSize - directDist);
+            const fadeLen = Math.max(1.8, (grp.width || 2.5));
+            if (circDist < fadeLen) {
+                const fade = Math.max(0, 1 - (circDist / fadeLen));
+                grpIntensity = 0.18 + 0.82 * Math.pow(fade, 1.2);
+                if (circDist < 0.85) {
+                    baseR = Math.min(255, baseR + 45);
+                    baseG = Math.min(255, baseG + 45);
+                    baseB = Math.min(255, baseB + 45);
+                }
+            } else {
+                grpIntensity = 0.14;
+            }
+            break;
+        }
+        case 'flash_slow': {
+            const phase = (timeMs % (grpBeatMs * 2)) / (grpBeatMs * 2);
+            grpIntensity = phase < 0.5 ? 1.0 : 0.08;
+            break;
+        }
+        case 'pulse': {
+            const sine = Math.sin(grpNormTime * Math.PI * 2) * 0.5 + 0.5;
+            grpIntensity = 0.18 + 0.82 * sine;
+            break;
+        }
+        case 'write_on_off': {
+            const totalCycleMs = grpBeatMs * 4;
+            const progress = (timeMs % totalCycleMs) / totalCycleMs;
+            if (progress < 0.40) {
+                const litHead = (progress / 0.40) * grpSize;
+                grpIntensity = (direction >= 0 ? (grpIndex <= litHead) : ((grpSize - 1 - grpIndex) <= litHead)) ? 1.0 : 0.05;
+            } else if (progress < 0.58) {
+                grpIntensity = 1.0;
+            } else if (progress < 0.88) {
+                const offHead = ((progress - 0.58) / 0.30) * grpSize;
+                grpIntensity = (direction >= 0 ? (grpIndex <= offHead) : ((grpSize - 1 - grpIndex) <= offHead)) ? 0.05 : 1.0;
+            } else {
+                grpIntensity = 0.05;
+            }
+            break;
+        }
+        case 'sparkle_storm': {
+            const rand = Math.sin(timeMs * 0.05 + grpIndex * 37.1) * 0.5 + 0.5;
+            if (rand > 0.65) {
+                grpIntensity = 1.0;
+                baseR = Math.min(255, baseR + 80);
+                baseG = Math.min(255, baseG + 80);
+                baseB = Math.min(255, baseB + 80);
+            } else {
+                grpIntensity = 0.25 + 0.35 * rand;
+            }
+            break;
+        }
+        case 'marquee': {
+            const step = Math.floor(grpNormTime * 2 * direction) % 3;
+            const posInStep = ((grpIndex + step) % 3 + 3) % 3;
+            grpIntensity = posInStep === 0 ? 1.0 : 0.12;
+            break;
+        }
+        case 'rainbow_cycle': {
+            const hue = ((timeMs * 0.08 * direction + grpIndex * (360 / grpSize)) % 360 + 360) % 360;
+            const rgb = hslToRgb(hue / 360, 0.95, 0.52);
+            baseR = rgb.r; baseG = rgb.g; baseB = rgb.b;
+            grpIntensity = 1.0;
+            break;
+        }
+        default:
+            grpIntensity = 1.0;
+            break;
+    }
+
+    const effBrightness = (params.brightness / 100) * grpIntensity;
+    return {
+        r: Math.floor(baseR * effBrightness),
+        g: Math.floor(baseG * effBrightness),
+        b: Math.floor(baseB * effBrightness),
+        alpha: effBrightness
+    };
+}
+
+function evalGlobalPattern(pattern, bpm, index, totalLeds, timeMs, c, hasColor) {
+    const beatMs = 60000 / Math.max(20, bpm || params.speedBpm || 120);
     const normTime = timeMs / beatMs;
     const baseH = params.greenHue;
 
     let r = 0, g = 255, b = 100, brightness = params.brightness / 100;
 
-    const hasColor = (leds[index] && leds[index].color);
-    const c = hasColor ? leds[index].color : null;
-
-    // ------------------------------------------------------------------------
-    // ANIMATION GROUP / ZONE OVERRIDE
-    // If this LED belongs to a custom animation group (e.g. Coach Wheels, Lanterns):
-    // ------------------------------------------------------------------------
-    const grpEntry = ledGroupMap[index];
-    if (grpEntry && grpEntry.group) {
-        const grp = grpEntry.group;
-        const grpIndex = grpEntry.indexInGroup;
-        const grpSize = Math.max(1, grpEntry.groupSize);
-        const grpBpm = grp.speedBpm || params.speedBpm || 120;
-        const grpBeatMs = 60000 / grpBpm;
-        const grpNormTime = timeMs / grpBeatMs;
-        const grpDir = grp.direction || 1;
-
-        let baseR = c ? c.r : 255;
-        let baseG = c ? c.g : 200;
-        let baseB = c ? c.b : 50;
-
-        if (grp.colorMode === 'custom' && grp.customColor) {
-            baseR = grp.customColor.r;
-            baseG = grp.customColor.g;
-            baseB = grp.customColor.b;
-        }
-
-        let grpIntensity = 1.0;
-
-        switch (grp.effect) {
-            case 'chase': {
-                // Spinning wheel chase: traveling lit segment rotating along the group
-                const head = ((grpNormTime * grpDir) % grpSize + grpSize) % grpSize;
-                const directDist = Math.abs(grpIndex - head);
-                const circDist = Math.min(directDist, grpSize - directDist);
-                const fadeLen = Math.max(1.8, (grp.width || 2.5));
-                if (circDist < fadeLen) {
-                    const fade = Math.max(0, 1 - (circDist / fadeLen));
-                    grpIntensity = 0.18 + 0.82 * Math.pow(fade, 1.2);
-                    if (circDist < 0.85) {
-                        baseR = Math.min(255, baseR + 45);
-                        baseG = Math.min(255, baseG + 45);
-                        baseB = Math.min(255, baseB + 45);
-                    }
-                } else {
-                    grpIntensity = 0.14; // Dim unlit wheel track
-                }
-                break;
-            }
-            case 'flash_slow': {
-                // Gentle slow blink
-                const phase = (timeMs % (grpBeatMs * 2)) / (grpBeatMs * 2);
-                grpIntensity = phase < 0.5 ? 1.0 : 0.08;
-                break;
-            }
-            case 'pulse': {
-                // Smooth sine-wave breathing glow
-                const sine = Math.sin(grpNormTime * Math.PI * 2) * 0.5 + 0.5;
-                grpIntensity = 0.18 + 0.82 * sine;
-                break;
-            }
-            case 'write_on_off': {
-                // Theatrical / Neon sign progressive write-on and write-off wipe
-                const totalCycleMs = grpBeatMs * 4;
-                const progress = (timeMs % totalCycleMs) / totalCycleMs;
-                if (progress < 0.40) {
-                    // Progressive turn-on
-                    const litHead = (progress / 0.40) * grpSize;
-                    if (grpDir >= 0) {
-                        grpIntensity = grpIndex <= litHead ? 1.0 : 0.05;
-                    } else {
-                        grpIntensity = (grpSize - 1 - grpIndex) <= litHead ? 1.0 : 0.05;
-                    }
-                } else if (progress < 0.58) {
-                    // Hold fully lit
-                    grpIntensity = 1.0;
-                } else if (progress < 0.88) {
-                    // Progressive turn-off
-                    const offHead = ((progress - 0.58) / 0.30) * grpSize;
-                    if (grpDir >= 0) {
-                        grpIntensity = grpIndex <= offHead ? 0.05 : 1.0;
-                    } else {
-                        grpIntensity = (grpSize - 1 - grpIndex) <= offHead ? 0.05 : 1.0;
-                    }
-                } else {
-                    // Dark pause
-                    grpIntensity = 0.05;
-                }
-                break;
-            }
-            case 'sparkle_storm': {
-                // Rapid shimmering fairy dust / starlight on this group
-                const rand = Math.sin(timeMs * 0.05 + grpIndex * 37.1) * 0.5 + 0.5;
-                if (rand > 0.65) {
-                    grpIntensity = 1.0;
-                    baseR = Math.min(255, baseR + 80);
-                    baseG = Math.min(255, baseG + 80);
-                    baseB = Math.min(255, baseB + 80);
-                } else {
-                    grpIntensity = 0.25 + 0.35 * rand;
-                }
-                break;
-            }
-            case 'marquee': {
-                // 3-step running marquee dot chase
-                const step = Math.floor(grpNormTime * 2 * grpDir) % 3;
-                const posInStep = ((grpIndex + step) % 3 + 3) % 3;
-                grpIntensity = posInStep === 0 ? 1.0 : 0.12;
-                break;
-            }
-            case 'rainbow_cycle': {
-                // Flowing spectrum
-                const hue = ((timeMs * 0.08 * grpDir + grpIndex * (360 / grpSize)) % 360 + 360) % 360;
-                const rgb = hslToRgb(hue / 360, 0.95, 0.52);
-                baseR = rgb.r;
-                baseG = rgb.g;
-                baseB = rgb.b;
-                grpIntensity = 1.0;
-                break;
-            }
-            default:
-                grpIntensity = 1.0;
-                break;
-        }
-
-        const effBrightness = (params.brightness / 100) * grpIntensity;
-        return {
-            r: Math.floor(baseR * effBrightness),
-            g: Math.floor(baseG * effBrightness),
-            b: Math.floor(baseB * effBrightness),
-            alpha: effBrightness
-        };
-    }
-
-    switch (activePattern) {
+    switch (pattern) {
         case 'steady_sparkle': {
-            // Constant steady colors without breathing pulse
             if (hasColor) {
-                r = c.r;
-                g = c.g;
-                b = c.b;
+                r = c.r; g = c.g; b = c.b;
             } else {
                 const rgb = hslToRgb(baseH / 360, 0.95, 0.50);
-                r = rgb.r;
-                g = rgb.g;
-                b = rgb.b;
+                r = rgb.r; g = rgb.g; b = rgb.b;
             }
-
-            // Occasional bright starlight sparkle
             if (sparkles[index] > 0) {
                 const sp = sparkles[index];
                 r = Math.round(r * (1 - sp) + 255 * sp);
@@ -550,7 +521,6 @@ function computeLedColor(index, totalLeds, timeMs) {
                 const rgb = hslToRgb(baseH / 360, 0.95, 0.50 * breath);
                 r = rgb.r; g = rgb.g; b = rgb.b;
             }
-
             if (sparkles[index] > 0) {
                 const sp = sparkles[index];
                 r = Math.round(r * (1 - sp) + 255 * sp);
@@ -572,7 +542,6 @@ function computeLedColor(index, totalLeds, timeMs) {
                 const rgb = hslToRgb(h / 360, 0.95, 0.50 * breath);
                 r = rgb.r; g = rgb.g; b = rgb.b;
             }
-
             if (sparkles[index] > 0) {
                 const sp = sparkles[index];
                 r = r * (1 - sp) + 255 * sp;
@@ -600,7 +569,6 @@ function computeLedColor(index, totalLeds, timeMs) {
             const waveCycle = (timeMs % 2000) / 2000;
             const head = waveCycle * totalLeds;
             const dist = Math.abs(index - head);
-
             if (dist < 4.0) {
                 const intensity = Math.max(0, 1 - (dist / 4.0));
                 r = 255 * intensity;
@@ -648,12 +616,48 @@ function computeLedColor(index, totalLeds, timeMs) {
             brightness = 1.0;
             break;
         }
+        case 'pulse': {
+            const breath = 0.35 + 0.65 * (Math.sin(normTime * Math.PI * 2) * 0.5 + 0.5);
+            if (hasColor) {
+                r = Math.floor(c.r * breath);
+                g = Math.floor(c.g * breath);
+                b = Math.floor(c.b * breath);
+            } else {
+                const rgb = hslToRgb(baseH / 360, 0.95, 0.50 * breath);
+                r = rgb.r; g = rgb.g; b = rgb.b;
+            }
+            break;
+        }
+        case 'chase': {
+            const head = (normTime * 2) % totalLeds;
+            const dist = Math.abs(index - head);
+            const fade = Math.max(0, 1 - (dist / 8));
+            const intensity = 0.15 + 0.85 * fade;
+            if (hasColor) {
+                r = Math.floor(c.r * intensity);
+                g = Math.floor(c.g * intensity);
+                b = Math.floor(c.b * intensity);
+            } else {
+                const rgb = hslToRgb(baseH / 360, 0.95, 0.50 * intensity);
+                r = rgb.r; g = rgb.g; b = rgb.b;
+            }
+            break;
+        }
+        default: {
+            if (hasColor) {
+                r = c.r; g = c.g; b = c.b;
+            } else {
+                const rgb = hslToRgb(baseH / 360, 0.95, 0.50);
+                r = rgb.r; g = rgb.g; b = rgb.b;
+            }
+            break;
+        }
     }
 
     if (sparkles[index] > 0) {
         sparkles[index] = Math.max(0, sparkles[index] - 0.04);
     }
-    if ((activePattern === 'steady_sparkle' || activePattern === 'dragon_sparkle' || activePattern === 'color_match') && Math.random() * 1000 < params.sparkleRate) {
+    if ((pattern === 'steady_sparkle' || pattern === 'dragon_sparkle' || pattern === 'color_match') && Math.random() * 1000 < params.sparkleRate) {
         sparkles[index] = 1.0;
     }
 
@@ -663,6 +667,92 @@ function computeLedColor(index, totalLeds, timeMs) {
         b: Math.floor(b * brightness),
         alpha: brightness
     };
+}
+
+function computeLedColor(index, totalLeds, timeMs) {
+    const hasColor = (leds[index] && leds[index].color);
+    const c = hasColor ? leds[index].color : null;
+    const grpEntry = ledGroupMap[index];
+
+    // ========================================================================
+    // MODE A: SHOW SEQUENCE PLAYBACK (Parade Cue Director)
+    // ========================================================================
+    if (sequenceMode) {
+        const t = sequenceTime;
+
+        // 1. Evaluate Active Global Cues
+        const activeGlobalCues = sequenceCues.filter(q => q.targetType === 'global' && t >= q.startTime && t < (q.startTime + q.duration));
+
+        let baseColor = null;
+        if (activeGlobalCues.length === 0) {
+            baseColor = evalGlobalPattern(activePattern, params.speedBpm, index, totalLeds, timeMs, c, hasColor);
+        } else if (activeGlobalCues.length === 1) {
+            const q = activeGlobalCues[0];
+            const col = evalGlobalPattern(q.effect, q.speedBpm, index, totalLeds, timeMs, c, hasColor);
+            const w = getCueWeight(q, t);
+            if (w < 1.0) {
+                const restCol = evalGlobalPattern('steady_sparkle', 120, index, totalLeds, timeMs, c, hasColor);
+                baseColor = {
+                    r: Math.round(restCol.r * (1 - w) + col.r * w),
+                    g: Math.round(restCol.g * (1 - w) + col.g * w),
+                    b: Math.round(restCol.b * (1 - w) + col.b * w),
+                    alpha: restCol.alpha * (1 - w) + col.alpha * w
+                };
+            } else {
+                baseColor = col;
+            }
+        } else {
+            // Crossfade between overlapping active global cues
+            let totalW = 0;
+            const weights = activeGlobalCues.map(q => {
+                const w = getCueWeight(q, t);
+                totalW += w;
+                return w;
+            });
+            let blR = 0, blG = 0, blB = 0, blA = 0;
+            for (let i = 0; i < activeGlobalCues.length; i++) {
+                const q = activeGlobalCues[i];
+                const col = evalGlobalPattern(q.effect, q.speedBpm, index, totalLeds, timeMs, c, hasColor);
+                const normW = totalW > 0 ? (weights[i] / totalW) : (1 / activeGlobalCues.length);
+                blR += col.r * normW;
+                blG += col.g * normW;
+                blB += col.b * normW;
+                blA += col.alpha * normW;
+            }
+            baseColor = { r: Math.round(blR), g: Math.round(blG), b: Math.round(blB), alpha: blA };
+        }
+
+        // 2. Evaluate Active Group Cue Overrides (Scenario B: Multi-Layer)
+        if (grpEntry && grpEntry.group) {
+            const grpId = grpEntry.group.id;
+            const activeGrpCue = sequenceCues.find(q => q.targetType === 'group' && (q.groupId === grpId || q.groupName === grpEntry.group.name) && t >= q.startTime && t < (q.startTime + q.duration));
+
+            if (activeGrpCue) {
+                const grpCol = evalGroupEffect(grpEntry.group, activeGrpCue.effect, activeGrpCue.speedBpm, activeGrpCue.direction, grpEntry.indexInGroup, grpEntry.groupSize, timeMs, c);
+                const w = getCueWeight(activeGrpCue, t);
+
+                // Blend from baseline into group animation
+                return {
+                    r: Math.round(baseColor.r * (1 - w) + grpCol.r * w),
+                    g: Math.round(baseColor.g * (1 - w) + grpCol.g * w),
+                    b: Math.round(baseColor.b * (1 - w) + grpCol.b * w),
+                    alpha: baseColor.alpha * (1 - w) + grpCol.alpha * w
+                };
+            }
+        }
+
+        return baseColor;
+    }
+
+    // ========================================================================
+    // MODE B: FREE-RUN PARADE PATTERN
+    // ========================================================================
+    if (grpEntry && grpEntry.group) {
+        const grp = grpEntry.group;
+        return evalGroupEffect(grp, grp.effect, grp.speedBpm, grp.direction, grpEntry.indexInGroup, grpEntry.groupSize, timeMs, c);
+    }
+
+    return evalGlobalPattern(activePattern, params.speedBpm, index, totalLeds, timeMs, c, hasColor);
 }
 
 function renderBulb(cx, x, y, col, isHovered, isSelected, index) {
@@ -1404,6 +1494,607 @@ function renderActiveGroupsList() {
 }
 
 // ============================================================================
+// PARADE CUE DIRECTOR (Autonomous Show Sequence Engine)
+// ============================================================================
+
+function formatTimelineTime(sec) {
+    const s = Math.max(0, sec);
+    const m = Math.floor(s / 60);
+    const remS = (s % 60).toFixed(1);
+    return `${m < 10 ? '0' : ''}${m}:${parseFloat(remS) < 10 ? '0' : ''}${remS}`;
+}
+
+function getCueWeight(cue, t) {
+    const start = cue.startTime;
+    const end = cue.startTime + cue.duration;
+    if (t < start || t >= end) return 0;
+
+    let weight = 1.0;
+    const fadeIn = Math.max(0, cue.fadeIn || 0);
+    const fadeOut = Math.max(0, cue.fadeOut || 0);
+
+    if (fadeIn > 0 && (t - start) < fadeIn) {
+        weight = Math.min(weight, (t - start) / fadeIn);
+    }
+    if (fadeOut > 0 && (end - t) < fadeOut) {
+        weight = Math.min(weight, (end - t) / fadeOut);
+    }
+    return Math.max(0, Math.min(1, weight));
+}
+
+function updateSequenceTimeline(now) {
+    const dt = (now - lastTimelineFrameTime) / 1000;
+    lastTimelineFrameTime = now;
+
+    if (sequenceMode && sequencePlaying) {
+        sequenceTime += dt;
+        if (sequenceTime >= sequenceLoopDuration) {
+            if (sequenceLoop) {
+                sequenceTime = sequenceTime % sequenceLoopDuration;
+            } else {
+                sequenceTime = sequenceLoopDuration;
+                sequencePlaying = false;
+                updateTimelinePlayBtn();
+            }
+        }
+        updateTimelineScrubberUI();
+    }
+}
+
+function updateTimelineScrubberUI() {
+    const scrubber = document.getElementById('timelineScrubber');
+    const currTimeElem = document.getElementById('timelineCurrentTime');
+    const totalTimeElem = document.getElementById('timelineTotalTime');
+
+    if (scrubber) {
+        scrubber.max = sequenceLoopDuration;
+        scrubber.value = sequenceTime;
+    }
+    if (currTimeElem) currTimeElem.textContent = formatTimelineTime(sequenceTime);
+    if (totalTimeElem) totalTimeElem.textContent = formatTimelineTime(sequenceLoopDuration);
+
+    // Update active cue highlights in list and on strip
+    const cards = document.querySelectorAll('.cue-card');
+    cards.forEach(card => {
+        const id = card.dataset.cueId;
+        const cue = sequenceCues.find(q => q.id === id);
+        if (cue && sequenceTime >= cue.startTime && sequenceTime < (cue.startTime + cue.duration)) {
+            card.classList.add('active');
+        } else {
+            card.classList.remove('active');
+        }
+    });
+
+    const pills = document.querySelectorAll('.cue-segment-pill');
+    pills.forEach(pill => {
+        const id = pill.dataset.cueId;
+        const cue = sequenceCues.find(q => q.id === id);
+        if (cue && sequenceTime >= cue.startTime && sequenceTime < (cue.startTime + cue.duration)) {
+            pill.classList.add('active');
+        } else {
+            pill.classList.remove('active');
+        }
+    });
+}
+
+function updateTimelinePlayBtn() {
+    const btn = document.getElementById('timelinePlayBtn');
+    if (btn) {
+        btn.textContent = sequencePlaying ? '⏸' : '▶';
+        btn.title = sequencePlaying ? 'Pause Sequence (Spacebar)' : 'Play Sequence (Spacebar)';
+    }
+}
+
+function togglePlayPause() {
+    sequencePlaying = !sequencePlaying;
+    if (sequencePlaying && !sequenceMode) {
+        toggleSequenceMode(true);
+    }
+    lastTimelineFrameTime = performance.now();
+    updateTimelinePlayBtn();
+    showToast(sequencePlaying ? `▶ Playing show sequence (${formatTimelineTime(sequenceTime)})` : '⏸ Paused show sequence');
+}
+
+function stopSequence() {
+    sequencePlaying = false;
+    sequenceTime = 0.0;
+    updateTimelinePlayBtn();
+    updateTimelineScrubberUI();
+    showToast('⏹ Rewound sequence to 0:00');
+}
+
+function toggleSequenceMode(forceState) {
+    sequenceMode = (typeof forceState === 'boolean') ? forceState : !sequenceMode;
+
+    const btn1 = document.getElementById('toggleSequenceModeBtn');
+    const btn2 = document.getElementById('timelineModeToggle');
+    const badge = document.getElementById('cueDirectorBadge');
+
+    if (sequenceMode) {
+        if (btn1) {
+            btn1.textContent = '⏹ Switch to Free-Run';
+            btn1.style.borderColor = '#d29922';
+            btn1.style.color = '#f0883e';
+        }
+        if (btn2) {
+            btn2.classList.add('active');
+            btn2.textContent = '🎬 Sequence: ON';
+        }
+        if (badge) {
+            badge.textContent = `${sequenceCues.length} Cues (Sequence ON)`;
+            badge.style.color = '#3fb950';
+        }
+        showToast('🎬 Show Sequence mode enabled! Running multi-cue timeline.');
+    } else {
+        if (btn1) {
+            btn1.textContent = '▶ Switch to Show Sequence';
+            btn1.style.borderColor = '#58a6ff';
+            btn1.style.color = '#58a6ff';
+        }
+        if (btn2) {
+            btn2.classList.remove('active');
+            btn2.textContent = '🎬 Sequence: OFF';
+        }
+        if (badge) {
+            badge.textContent = `${sequenceCues.length} Cues (Free-Run)`;
+            badge.style.color = 'var(--accent-cyan)';
+        }
+        showToast('🖱️ Free-Run pattern mode restored.');
+    }
+}
+
+function renderTimelineCueStrip() {
+    const strip = document.getElementById('timelineCueStrip');
+    if (!strip) return;
+    strip.innerHTML = '';
+
+    const colorPalette = [
+        '#58a6ff', '#f0883e', '#3fb950', '#a371f7', '#f85149',
+        '#388bfd', '#d29922', '#2ea043', '#db61a2', '#2188ff'
+    ];
+
+    sequenceCues.forEach((cue, idx) => {
+        const leftPct = (cue.startTime / sequenceLoopDuration) * 100;
+        const widthPct = Math.max(1, (cue.duration / sequenceLoopDuration) * 100);
+
+        const pill = document.createElement('div');
+        pill.className = 'cue-segment-pill';
+        pill.dataset.cueId = cue.id;
+        pill.style.left = `${leftPct}%`;
+        pill.style.width = `${widthPct}%`;
+        pill.style.background = cue.targetType === 'global' ? colorPalette[idx % colorPalette.length] : '#ffc107';
+        pill.title = `${cue.name} (${cue.startTime.toFixed(1)}s - ${(cue.startTime + cue.duration).toFixed(1)}s)`;
+
+        pill.addEventListener('click', (e) => {
+            e.stopPropagation();
+            sequenceTime = cue.startTime;
+            updateTimelineScrubberUI();
+        });
+
+        strip.appendChild(pill);
+    });
+}
+
+function renderCuesList() {
+    const container = document.getElementById('cuesListContainer');
+    const badge = document.getElementById('cueDirectorBadge');
+    if (!container) return;
+
+    if (badge) {
+        badge.textContent = `${sequenceCues.length} Cues (${sequenceMode ? 'Sequence ON' : 'Free-Run'})`;
+    }
+
+    container.innerHTML = '';
+
+    if (sequenceCues.length === 0) {
+        container.innerHTML = `
+            <div style="font-size: 11px; color: var(--text-muted); font-style: italic; padding: 12px; text-align: center; border: 1px dashed #30363d; border-radius: 6px;">
+                No cues added yet. Click <strong>➕ Add Cue</strong> or pick an example routine above to start directing your float!
+            </div>
+        `;
+        renderTimelineCueStrip();
+        return;
+    }
+
+    // Sort cues by start time
+    sequenceCues.sort((a, b) => a.startTime - b.startTime);
+
+    const effectOptions = [
+        { id: 'steady_sparkle', label: '✨ Steady Colors + Sparkles' },
+        { id: 'color_match', label: '🌈 Color-Matched Breathing Glow' },
+        { id: 'chase', label: '🎡 Chase / Wheel Spin' },
+        { id: 'pulse', label: '💓 Breathing Glow Pulse' },
+        { id: 'flash_slow', label: '💡 Slow Flashing / Blink' },
+        { id: 'write_on_off', label: '✍️ Theatrical Write-On/Off' },
+        { id: 'sparkle_storm', label: '✨ Sparkle Storm' },
+        { id: 'marquee', label: '🎪 Theater Marquee' },
+        { id: 'traveling_wave', label: '🌊 Traveling Parade Wave' },
+        { id: 'fire_breath', label: '🔥 Snout Fire Breath' }
+    ];
+
+    sequenceCues.forEach((cue, idx) => {
+        const card = document.createElement('div');
+        card.className = 'cue-card';
+        card.dataset.cueId = cue.id;
+
+        const endTime = (cue.startTime + cue.duration).toFixed(1);
+
+        card.innerHTML = `
+            <div class="cue-card-header">
+                <div style="display: flex; align-items: center; gap: 6px;">
+                    <span style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: ${cue.targetType === 'global' ? '#58a6ff' : '#ffc107'};"></span>
+                    <input type="text" class="cue-name-input" value="${cue.name}" style="background: transparent; border: none; border-bottom: 1px dashed #30363d; color: #fff; font-size: 12px; font-weight: bold; width: 150px; outline: none;">
+                </div>
+                <div style="display: flex; align-items: center; gap: 4px;">
+                    <span style="font-family: monospace; font-size: 10px; color: var(--accent-cyan);">${cue.startTime.toFixed(1)}s - ${endTime}s</span>
+                    <button type="button" class="del-cue-btn" style="background: transparent; border: none; color: #f85149; font-size: 11px; cursor: pointer; padding: 2px;" title="Delete this cue">🗑️</button>
+                </div>
+            </div>
+
+            <!-- Target Layer & Effect Selection -->
+            <div class="cue-card-row">
+                <div style="flex: 1.1;">
+                    <label style="font-size: 10px; color: var(--text-muted); display: block;">Target Layer:</label>
+                    <select class="cue-target-select" style="width: 100%; background: #0d1117; color: #fff; border: 1px solid #30363d; border-radius: 4px; padding: 4px; font-size: 11px;">
+                        <option value="global" ${cue.targetType === 'global' ? 'selected' : ''}>🌐 Global Float</option>
+                        ${animationGroups.map(g => `<option value="group:${g.id}" ${cue.targetType === 'group' && cue.groupId === g.id ? 'selected' : ''}>🎡 Group: ${g.name}</option>`).join('')}
+                    </select>
+                </div>
+                <div style="flex: 1.3;">
+                    <label style="font-size: 10px; color: var(--text-muted); display: block;">Pattern / Effect:</label>
+                    <select class="cue-effect-select" style="width: 100%; background: #0d1117; color: #fff; border: 1px solid #30363d; border-radius: 4px; padding: 4px; font-size: 11px;">
+                        ${effectOptions.map(e => `<option value="${e.id}" ${cue.effect === e.id ? 'selected' : ''}>${e.label}</option>`).join('')}
+                    </select>
+                </div>
+            </div>
+
+            <!-- Start Time, Duration & BPM -->
+            <div class="cue-card-row">
+                <div style="flex: 1;">
+                    <label style="font-size: 10px; color: var(--text-muted); display: block;">Start (s):</label>
+                    <input type="number" class="cue-start-input" step="0.5" min="0" max="${sequenceLoopDuration}" value="${cue.startTime}" style="width: 100%; background: #0d1117; color: #fff; border: 1px solid #30363d; border-radius: 4px; padding: 4px; font-size: 11px; text-align: center;">
+                </div>
+                <div style="flex: 1;">
+                    <label style="font-size: 10px; color: var(--text-muted); display: block;">Duration (s):</label>
+                    <input type="number" class="cue-dur-input" step="0.5" min="1" max="${sequenceLoopDuration}" value="${cue.duration}" style="width: 100%; background: #0d1117; color: #fff; border: 1px solid #30363d; border-radius: 4px; padding: 4px; font-size: 11px; text-align: center;">
+                </div>
+                <div style="flex: 1;">
+                    <label style="font-size: 10px; color: var(--text-muted); display: block;">BPM:</label>
+                    <input type="number" class="cue-bpm-input" min="30" max="280" value="${cue.speedBpm || 120}" style="width: 100%; background: #0d1117; color: #fff; border: 1px solid #30363d; border-radius: 4px; padding: 4px; font-size: 11px; text-align: center;">
+                </div>
+            </div>
+
+            <!-- Crossfade In / Out -->
+            <div class="cue-card-row" style="background: rgba(0,0,0,0.25); padding: 4px 6px; border-radius: 4px;">
+                <span style="font-size: 10px; color: var(--text-muted);">Crossfade:</span>
+                <div style="display: flex; align-items: center; gap: 4px; flex: 1;">
+                    <label style="font-size: 10px; color: var(--text-muted);">In:</label>
+                    <input type="number" class="cue-fade-in-input" step="0.5" min="0" max="10" value="${cue.fadeIn || 0}" style="width: 44px; background: #0d1117; color: #fff; border: 1px solid #30363d; border-radius: 4px; padding: 2px 4px; font-size: 10px; text-align: center;">
+                    <span style="font-size: 10px; color: var(--text-muted);">s</span>
+                </div>
+                <div style="display: flex; align-items: center; gap: 4px; flex: 1;">
+                    <label style="font-size: 10px; color: var(--text-muted);">Out:</label>
+                    <input type="number" class="cue-fade-out-input" step="0.5" min="0" max="10" value="${cue.fadeOut || 0}" style="width: 44px; background: #0d1117; color: #fff; border: 1px solid #30363d; border-radius: 4px; padding: 2px 4px; font-size: 10px; text-align: center;">
+                    <span style="font-size: 10px; color: var(--text-muted);">s</span>
+                </div>
+            </div>
+        `;
+
+        // Event listeners for cue inputs
+        card.querySelector('.cue-name-input').addEventListener('input', (e) => {
+            cue.name = e.target.value.trim() || `Cue #${idx + 1}`;
+        });
+
+        card.querySelector('.cue-target-select').addEventListener('change', (e) => {
+            const val = e.target.value;
+            if (val.startsWith('group:')) {
+                cue.targetType = 'group';
+                cue.groupId = val.replace('group:', '');
+                const grp = animationGroups.find(g => g.id === cue.groupId);
+                cue.groupName = grp ? grp.name : '';
+            } else {
+                cue.targetType = 'global';
+                cue.groupId = '';
+                cue.groupName = '';
+            }
+            renderTimelineCueStrip();
+        });
+
+        card.querySelector('.cue-effect-select').addEventListener('change', (e) => {
+            cue.effect = e.target.value;
+        });
+
+        card.querySelector('.cue-start-input').addEventListener('change', (e) => {
+            cue.startTime = Math.max(0, parseFloat(e.target.value) || 0);
+            renderTimelineCueStrip();
+        });
+
+        card.querySelector('.cue-dur-input').addEventListener('change', (e) => {
+            cue.duration = Math.max(0.5, parseFloat(e.target.value) || 10);
+            renderTimelineCueStrip();
+        });
+
+        card.querySelector('.cue-bpm-input').addEventListener('change', (e) => {
+            cue.speedBpm = Math.max(20, parseInt(e.target.value) || 120);
+        });
+
+        card.querySelector('.cue-fade-in-input').addEventListener('change', (e) => {
+            cue.fadeIn = Math.max(0, parseFloat(e.target.value) || 0);
+        });
+
+        card.querySelector('.cue-fade-out-input').addEventListener('change', (e) => {
+            cue.fadeOut = Math.max(0, parseFloat(e.target.value) || 0);
+        });
+
+        card.querySelector('.del-cue-btn').addEventListener('click', () => {
+            deleteCue(cue.id);
+        });
+
+        container.appendChild(card);
+    });
+
+    renderTimelineCueStrip();
+    updateTimelineScrubberUI();
+}
+
+function addCue(options = {}) {
+    const lastCue = sequenceCues.length > 0 ? sequenceCues[sequenceCues.length - 1] : null;
+    const defaultStart = lastCue ? Math.min(sequenceLoopDuration - 5, lastCue.startTime + lastCue.duration) : Math.min(sequenceLoopDuration - 10, Math.floor(sequenceTime));
+
+    const newCue = {
+        id: 'cue_' + Date.now() + '_' + Math.floor(Math.random() * 1000),
+        name: options.name || `Cue #${sequenceCues.length + 1}`,
+        startTime: options.startTime !== undefined ? options.startTime : defaultStart,
+        duration: options.duration !== undefined ? options.duration : 20.0,
+        targetType: options.targetType || 'global',
+        groupId: options.groupId || '',
+        groupName: options.groupName || '',
+        effect: options.effect || 'color_match',
+        speedBpm: options.speedBpm || 120,
+        fadeIn: options.fadeIn !== undefined ? options.fadeIn : 1.5,
+        fadeOut: options.fadeOut !== undefined ? options.fadeOut : 1.5
+    };
+
+    sequenceCues.push(newCue);
+    renderCuesList();
+    showToast(`➕ Added show cue "${newCue.name}"!`);
+}
+
+function deleteCue(cueId) {
+    const idx = sequenceCues.findIndex(q => q.id === cueId);
+    if (idx !== -1) {
+        const name = sequenceCues[idx].name;
+        sequenceCues.splice(idx, 1);
+        renderCuesList();
+        showToast(`🗑️ Deleted cue "${name}"`);
+    }
+}
+
+function loadCinderellaShowTemplate() {
+    sequenceLoopDuration = 90.0;
+    const loopInput = document.getElementById('sequenceLoopInput');
+    if (loopInput) loopInput.value = 90;
+
+    let wheelGrp = animationGroups.find(g => g.name.toLowerCase().includes('wheel'));
+    let lanternGrp = animationGroups.find(g => g.name.toLowerCase().includes('lantern'));
+
+    sequenceCues = [
+        {
+            id: 'cue_cinderella_1',
+            name: 'Opening Starlight Sparkle',
+            startTime: 0.0,
+            duration: 25.0,
+            targetType: 'global',
+            groupId: '',
+            groupName: '',
+            effect: 'steady_sparkle',
+            speedBpm: 120,
+            fadeIn: 2.0,
+            fadeOut: 2.0
+        },
+        {
+            id: 'cue_cinderella_2',
+            name: 'Carriage Wheels Spin',
+            startTime: 15.0,
+            duration: 35.0,
+            targetType: wheelGrp ? 'group' : 'global',
+            groupId: wheelGrp ? wheelGrp.id : '',
+            groupName: wheelGrp ? wheelGrp.name : 'Carriage Wheels',
+            effect: 'chase',
+            speedBpm: 140,
+            fadeIn: 1.5,
+            fadeOut: 1.5
+        },
+        {
+            id: 'cue_cinderella_3',
+            name: 'Royal Carriage Breathing Glow',
+            startTime: 25.0,
+            duration: 40.0,
+            targetType: 'global',
+            groupId: '',
+            groupName: '',
+            effect: 'color_match',
+            speedBpm: 100,
+            fadeIn: 2.0,
+            fadeOut: 2.0
+        },
+        {
+            id: 'cue_cinderella_4',
+            name: 'Lanterns Breathing Pulse',
+            startTime: 35.0,
+            duration: 25.0,
+            targetType: lanternGrp ? 'group' : 'global',
+            groupId: lanternGrp ? lanternGrp.id : '',
+            groupName: lanternGrp ? lanternGrp.name : 'Carriage Lanterns',
+            effect: 'pulse',
+            speedBpm: 75,
+            fadeIn: 1.5,
+            fadeOut: 1.5
+        },
+        {
+            id: 'cue_cinderella_5',
+            name: 'Grand Finale Electrical Wave',
+            startTime: 60.0,
+            duration: 30.0,
+            targetType: 'global',
+            groupId: '',
+            groupName: '',
+            effect: 'traveling_wave',
+            speedBpm: 130,
+            fadeIn: 2.5,
+            fadeOut: 2.0
+        }
+    ];
+
+    renderCuesList();
+    toggleSequenceMode(true);
+    showToast("🎃 Loaded Cinderella's Coach 90s Parade Show Routine!");
+}
+
+function loadDragonShowTemplate() {
+    sequenceLoopDuration = 90.0;
+    const loopInput = document.getElementById('sequenceLoopInput');
+    if (loopInput) loopInput.value = 90;
+
+    let crestGrp = animationGroups.find(g => g.name.toLowerCase().includes('crest') || g.name.toLowerCase().includes('hair'));
+
+    sequenceCues = [
+        {
+            id: 'cue_dragon_1',
+            name: 'Comic Starlight Sparkle',
+            startTime: 0.0,
+            duration: 30.0,
+            targetType: 'global',
+            groupId: '',
+            groupName: '',
+            effect: 'steady_sparkle',
+            speedBpm: 120,
+            fadeIn: 2.0,
+            fadeOut: 2.0
+        },
+        {
+            id: 'cue_dragon_2',
+            name: 'Flame Hair Crest Fire Pulse',
+            startTime: 20.0,
+            duration: 30.0,
+            targetType: crestGrp ? 'group' : 'global',
+            groupId: crestGrp ? crestGrp.id : '',
+            groupName: crestGrp ? crestGrp.name : 'Flame Crest',
+            effect: 'pulse',
+            speedBpm: 100,
+            fadeIn: 1.5,
+            fadeOut: 1.5
+        },
+        {
+            id: 'cue_dragon_3',
+            name: 'Snout Fire-Breathing Pulse',
+            startTime: 30.0,
+            duration: 35.0,
+            targetType: 'global',
+            groupId: '',
+            groupName: '',
+            effect: 'fire_breath',
+            speedBpm: 110,
+            fadeIn: 2.0,
+            fadeOut: 2.0
+        },
+        {
+            id: 'cue_dragon_4',
+            name: 'Broadway Electrical Marquee',
+            startTime: 65.0,
+            duration: 25.0,
+            targetType: 'global',
+            groupId: '',
+            groupName: '',
+            effect: 'marquee',
+            speedBpm: 140,
+            fadeIn: 2.0,
+            fadeOut: 2.0
+        }
+    ];
+
+    renderCuesList();
+    toggleSequenceMode(true);
+    showToast("🐉 Loaded Pete's Dragon 90s Parade Show Routine!");
+}
+
+// ============================================================================
+// PARADE CUE DIRECTOR & MASTER TIMELINE EVENT LISTENERS
+// ============================================================================
+const timelinePlayBtn = document.getElementById('timelinePlayBtn');
+if (timelinePlayBtn) {
+    timelinePlayBtn.addEventListener('click', togglePlayPause);
+}
+
+const timelineStopBtn = document.getElementById('timelineStopBtn');
+if (timelineStopBtn) {
+    timelineStopBtn.addEventListener('click', stopSequence);
+}
+
+const timelineLoopToggle = document.getElementById('timelineLoopToggle');
+if (timelineLoopToggle) {
+    timelineLoopToggle.addEventListener('click', () => {
+        sequenceLoop = !sequenceLoop;
+        timelineLoopToggle.classList.toggle('active', sequenceLoop);
+        showToast(sequenceLoop ? "🔁 Sequence loop ON" : "➡️ Sequence play once (no loop)");
+    });
+}
+
+const timelineModeToggle = document.getElementById('timelineModeToggle');
+if (timelineModeToggle) {
+    timelineModeToggle.addEventListener('click', () => toggleSequenceMode());
+}
+
+const toggleSequenceModeBtn = document.getElementById('toggleSequenceModeBtn');
+if (toggleSequenceModeBtn) {
+    toggleSequenceModeBtn.addEventListener('click', () => toggleSequenceMode());
+}
+
+const timelineScrubber = document.getElementById('timelineScrubber');
+if (timelineScrubber) {
+    timelineScrubber.addEventListener('input', (e) => {
+        sequenceTime = parseFloat(e.target.value) || 0;
+        updateTimelineScrubberUI();
+    });
+}
+
+const sequenceLoopInput = document.getElementById('sequenceLoopInput');
+if (sequenceLoopInput) {
+    sequenceLoopInput.addEventListener('change', (e) => {
+        const val = Math.max(10, parseFloat(e.target.value) || 90);
+        sequenceLoopDuration = val;
+        e.target.value = val;
+        const scrubber = document.getElementById('timelineScrubber');
+        if (scrubber) scrubber.max = val;
+        updateTimelineScrubberUI();
+        renderTimelineCueStrip();
+        showToast(`⏱️ Loop duration set to ${val}s`);
+    });
+}
+
+const addCueBtn = document.getElementById('addCueBtn');
+if (addCueBtn) {
+    addCueBtn.addEventListener('click', () => addCue());
+}
+
+const sequenceTemplateSelect = document.getElementById('sequenceTemplateSelect');
+if (sequenceTemplateSelect) {
+    sequenceTemplateSelect.addEventListener('change', (e) => {
+        const val = e.target.value;
+        if (val === 'cinderella_90s') {
+            loadCinderellaShowTemplate();
+        } else if (val === 'dragon_90s') {
+            loadDragonShowTemplate();
+        } else if (val === 'clear_cues') {
+            sequenceCues = [];
+            renderCuesList();
+            showToast("🗑️ All sequence cues cleared.");
+        }
+        e.target.value = '';
+    });
+}
+
+// ============================================================================
 // INTERACTION & HIT DETECTION (Zoom, Pan, Drag, and Selection)
 // ============================================================================
 
@@ -1453,6 +2144,9 @@ window.addEventListener('keydown', (e) => {
 
 window.addEventListener('keyup', (e) => {
     if (e.code === 'Space') {
+        if (!isPanning && !hasMovedSignificantly && !['INPUT', 'SELECT', 'TEXTAREA'].includes(document.activeElement?.tagName)) {
+            togglePlayPause();
+        }
         isSpacePressed = false;
         canvas.style.cursor = hoveredLed !== null ? 'pointer' : 'default';
     }
@@ -1647,6 +2341,7 @@ window.addEventListener('mouseup', (e) => {
 // MAIN ANIMATION LOOP
 // ============================================================================
 function animate(time) {
+    updateSequenceTimeline(time);
     if (currentView === 'single') {
         renderSingleShirtView(time);
     } else {
@@ -1718,6 +2413,10 @@ async function saveCurrentProfile(name) {
             greenHue: params.greenHue,
             brightness: params.brightness,
             glowSize: params.glowSize
+        },
+        sequence: {
+            loopDuration: sequenceLoopDuration,
+            cues: sequenceCues
         }
     };
 
@@ -1846,7 +2545,24 @@ function applyProfileData(profileData) {
     rebuildLedGroupMap();
     renderActiveGroupsList();
 
-    // 5. Populate profile name input
+    // 5. Restore Sequence Cues (Parade Cue Director)
+    if (profileData.sequence && typeof profileData.sequence === 'object') {
+        sequenceLoopDuration = Math.max(10, parseFloat(profileData.sequence.loopDuration) || 90.0);
+        sequenceCues = Array.isArray(profileData.sequence.cues) ? profileData.sequence.cues : [];
+        const loopInput = document.getElementById('sequenceLoopInput');
+        if (loopInput) loopInput.value = sequenceLoopDuration;
+        const scrubber = document.getElementById('timelineScrubber');
+        if (scrubber) scrubber.max = sequenceLoopDuration;
+        renderCuesList();
+        renderTimelineCueStrip();
+        updateTimelineScrubberUI();
+    } else {
+        sequenceCues = [];
+        renderCuesList();
+        renderTimelineCueStrip();
+    }
+
+    // 6. Populate profile name input
     const nameInput = document.getElementById('profileNameInput');
     if (nameInput && profileData.name) {
         nameInput.value = profileData.name;
@@ -3000,6 +3716,10 @@ function exportCurrentProfileJson() {
             greenHue: params.greenHue,
             brightness: params.brightness,
             glowSize: params.glowSize
+        },
+        sequence: {
+            loopDuration: sequenceLoopDuration,
+            cues: sequenceCues
         }
     };
     const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(profileData, null, 2));
@@ -3061,7 +3781,52 @@ document.getElementById('exportCodeBtn').addEventListener('click', () => {
     const hasAnyColors = leds.some(l => l.color);
     let code = '';
 
-    if (hasAnyColors) {
+    if (sequenceCues.length > 0) {
+        const paletteLines = [];
+        for (let i = 0; i < leds.length; i++) {
+            const c = leds[i].color || { r: 0, g: 255, b: 100 };
+            paletteLines.push(`    CRGB(${c.r}, ${c.g}, ${c.b})${i < leds.length - 1 ? ',' : ''} // LED ${i}`);
+        }
+
+        const cueCommentLines = sequenceCues.map((q, idx) => 
+            `// Cue ${idx + 1}: "${q.name}" [${q.startTime.toFixed(1)}s - ${(q.startTime + q.duration).toFixed(1)}s] -> Layer: ${q.targetType.toUpperCase()}${q.targetType === 'group' ? ` (${q.groupName})` : ''} | Effect: ${q.effect} (${q.speedBpm} BPM)`
+        ).join('\n');
+
+        code = `// ============================================================================
+// FASTLED AUTONOMOUS SHOW SEQUENCE: ${currentGraphicType.toUpperCase()}
+// Loop Duration: ${sequenceLoopDuration}s (${sequenceCues.length} Cues)
+// Generated by Parade Cue Director - kidmd/WDW-costumes
+// ============================================================================
+#define NUM_LEDS ${leds.length}
+#define SHOW_LOOP_MS ${(sequenceLoopDuration * 1000).toFixed(0)}
+
+// Artwork Sampled Color Palette (PROGMEM flash storage)
+const CRGB PROGMEM ARTWORK_PALETTE[NUM_LEDS] = {
+${paletteLines.join('\n')}
+};
+
+// --- Show Sequence Cue List ---
+${cueCommentLines}
+
+void runAutonomousShowSequence(uint32_t now) {
+    uint32_t seqTime = now % SHOW_LOOP_MS;
+
+    // Default base color
+    for (int i = 0; i < NUM_LEDS; i++) {
+        leds[i].r = pgm_read_byte(&ARTWORK_PALETTE[i].r);
+        leds[i].g = pgm_read_byte(&ARTWORK_PALETTE[i].g);
+        leds[i].b = pgm_read_byte(&ARTWORK_PALETTE[i].b);
+    }
+
+${sequenceCues.map((q, idx) => {
+    const startMs = Math.round(q.startTime * 1000);
+    const endMs = Math.round((q.startTime + q.duration) * 1000);
+    return `    // Cue ${idx + 1}: ${q.name} (${startMs}ms - ${endMs}ms)\n    if (seqTime >= ${startMs} && seqTime < ${endMs}) {\n        // Active effect: ${q.effect} @ ${q.speedBpm} BPM\n    }`;
+}).join('\n\n')}
+
+    FastLED.show();
+}`;
+    } else if (hasAnyColors) {
         const paletteLines = [];
         for (let i = 0; i < leds.length; i++) {
             const c = leds[i].color || { r: 0, g: 255, b: 100 };
@@ -3070,7 +3835,7 @@ document.getElementById('exportCodeBtn').addEventListener('click', () => {
 
         if (activePattern === 'steady_sparkle') {
             code = `// ============================================================================
-// FASTLED ANIMATION: PETE'S DRAGON ${leds.length}-LED STEADY COLOR + SPARKLES
+// FASTLED ANIMATION: ${currentGraphicType.toUpperCase()} ${leds.length}-LED STEADY COLOR + SPARKLES
 // Generated by MSEP Simulator - kidmd/WDW-costumes
 // ============================================================================
 #define NUM_LEDS ${leds.length}
@@ -3080,7 +3845,7 @@ const CRGB PROGMEM ARTWORK_PALETTE[NUM_LEDS] = {
 ${paletteLines.join('\n')}
 };
 
-void renderPetesDragonCustom(uint32_t t) {
+void renderCostumeCustom(uint32_t t) {
     for (int i = 0; i < NUM_LEDS; i++) {
         // Steady baseline color (no breathing pulse)
         CRGB baseColor;
@@ -3097,7 +3862,7 @@ void renderPetesDragonCustom(uint32_t t) {
 }`;
         } else {
             code = `// ============================================================================
-// FASTLED ANIMATION: PETE'S DRAGON ${leds.length}-LED COLOR-MATCHED COSTUME
+// FASTLED ANIMATION: ${currentGraphicType.toUpperCase()} ${leds.length}-LED COLOR-MATCHED COSTUME
 // Generated by MSEP Simulator - kidmd/WDW-costumes
 // ============================================================================
 #define NUM_LEDS ${leds.length}
@@ -3107,7 +3872,7 @@ const CRGB PROGMEM ARTWORK_PALETTE[NUM_LEDS] = {
 ${paletteLines.join('\n')}
 };
 
-void renderPetesDragonCustom(uint32_t t) {
+void renderCostumeCustom(uint32_t t) {
     // Breathing tempo: ${params.speedBpm} BPM
     uint8_t breath = beatsin8(${Math.round(params.speedBpm / 2)}, 160, 255);
 
@@ -3131,10 +3896,10 @@ void renderPetesDragonCustom(uint32_t t) {
         }
     } else {
         code = `// ============================================================================
-// FASTLED ANIMATION: PETE'S DRAGON FLOAT (GENERATED BY SIMULATOR)
+// FASTLED ANIMATION: ${currentGraphicType.toUpperCase()} FLOAT (GENERATED BY SIMULATOR)
 // ============================================================================
 #define NUM_LEDS ${leds.length}
-void renderPetesDragonCustom(uint32_t t) {
+void renderCostumeCustom(uint32_t t) {
     for (int i = 0; i < NUM_LEDS; i++) {
         uint8_t breath = beatsin8(${Math.round(params.speedBpm / 2)}, 180, 255);
         leds[i] = CHSV(${Math.floor(params.greenHue * 255 / 360)}, 240, breath);

@@ -223,12 +223,59 @@ void runFleetSync(uint32_t now) {
 }
 
 // ============================================================================
+// HARDWARE BUTTON & STANDALONE SHOW SEQUENCE (Autonomous Float Mode)
+// ============================================================================
+#define BUTTON_PIN          0       // BOOT button on standard ESP32 DevKit
+#define SHOW_LOOP_MS        90000   // 90-second autonomous theatrical sequence
+
+enum StandaloneShowMode {
+    SHOW_MODE_AUTONOMOUS_SEQUENCE = 0,
+    SHOW_MODE_FLEET_SYNC          = 1
+};
+
+StandaloneShowMode currentStandaloneMode = SHOW_MODE_AUTONOMOUS_SEQUENCE;
+
+void runAutonomousShowSequence(uint32_t now) {
+    uint32_t seqTime = now % SHOW_LOOP_MS;
+
+    // 4 Theatrical Phases across 90 seconds:
+    // Phase 1: 0 - 25s  (Starlight Sparkle / Gentle Breathing)
+    // Phase 2: 25 - 50s (Twinkle / Color-Matched Float Palette Glow)
+    // Phase 3: 50 - 70s (Incandescent Marquee Chase)
+    // Phase 4: 70 - 90s (Traveling Electrical Parade Wave)
+    if (seqTime < 25000) {
+        renderParadeSparkle(now);
+    } else if (seqTime < 50000) {
+        renderTwinkle(now);
+    } else if (seqTime < 70000) {
+        renderMarqueeChase(now);
+    } else {
+        uint32_t waveTimer = now % 3000;
+        uint8_t waveHeadPos = map(waveTimer, 0, 3000, 0, PARADE_NUM_LEDS - 1);
+        renderTravelingWave(myFloatNumber, waveHeadPos);
+    }
+
+    // Status LED gentle breath during autonomous sequence
+    uint8_t breathLed = ((seqTime / 1000) % 2 == 0) ? HIGH : LOW;
+    digitalWrite(STATUS_LED_PIN, breathLed);
+
+    // Clear any extra LEDs beyond parade count
+    for (int i = PARADE_NUM_LEDS; i < MAX_LEDS_CAPACITY; i++) {
+        leds[i] = CRGB::Black;
+    }
+
+    FastLED.show();
+    delay(15);
+}
+
+// ============================================================================
 // MAIN SETUP
 // ============================================================================
 void setup() {
     WRITE_PERI_REG(RTC_CNTL_BROWN_OUT_REG, 0); // Disable transient brownout detector during startup
     Serial.begin(115200);
     pinMode(STATUS_LED_PIN, OUTPUT);
+    pinMode(BUTTON_PIN, INPUT_PULLUP);
     delay(300);
 
     Serial.println("\n========================================================");
@@ -359,11 +406,34 @@ void loop() {
     // 2. Check if live stream recently ended (> 2.5 seconds timeout)
     if (isLiveStreaming && (now - lastStreamPacketTime > 2500)) {
         isLiveStreaming = false;
-        Serial.println("[MODE] Live stream ended. Resuming ESP-NOW Parade Fleet sync.");
+        Serial.println("[MODE] Live stream ended. Resuming standalone mode.");
     }
 
-    // 3. If simulator is NOT streaming, run the synchronized ESP-NOW parade loop!
+    // 3. Hardware Button Mode Toggle (BOOT button on GPIO 0)
+    static uint32_t lastButtonPress = 0;
+    if (digitalRead(BUTTON_PIN) == LOW && (now - lastButtonPress > 400)) {
+        lastButtonPress = now;
+        if (currentStandaloneMode == SHOW_MODE_AUTONOMOUS_SEQUENCE) {
+            currentStandaloneMode = SHOW_MODE_FLEET_SYNC;
+            Serial.println("[MODE] Button pressed -> Switched to: ESP-NOW Fleet Sync");
+            for (int b = 0; b < 2; b++) {
+                digitalWrite(STATUS_LED_PIN, HIGH); delay(70);
+                digitalWrite(STATUS_LED_PIN, LOW); delay(70);
+            }
+        } else {
+            currentStandaloneMode = SHOW_MODE_AUTONOMOUS_SEQUENCE;
+            Serial.println("[MODE] Button pressed -> Switched to: Autonomous 90-Second Show Sequence");
+            digitalWrite(STATUS_LED_PIN, HIGH); delay(250);
+            digitalWrite(STATUS_LED_PIN, LOW);
+        }
+    }
+
+    // 4. If simulator is NOT streaming, run the selected standalone mode!
     if (!isLiveStreaming) {
-        runFleetSync(now);
+        if (currentStandaloneMode == SHOW_MODE_AUTONOMOUS_SEQUENCE) {
+            runAutonomousShowSequence(now);
+        } else {
+            runFleetSync(now);
+        }
     }
 }

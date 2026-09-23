@@ -36,6 +36,28 @@
             </div>
 
             <canvas id="simulatorCanvas" width="850" height="880"></canvas>
+
+            <!-- Master Timeline Scrubber Bar -->
+            <div class="timeline-bar" id="timelineBar">
+                <div class="timeline-controls-row">
+                    <button id="timelinePlayBtn" class="timeline-btn primary" title="Play / Pause Show Sequence (Spacebar)">▶</button>
+                    <button id="timelineStopBtn" class="timeline-btn" title="Stop & Return to 0:00">⏹</button>
+                    <div class="timeline-time-display">
+                        <span id="timelineCurrentTime">00:00.0</span>
+                        <span style="opacity: 0.4;">/</span>
+                        <span id="timelineTotalTime">01:30.0</span>
+                    </div>
+                    <div class="timeline-track-wrapper">
+                        <!-- Colored Cue Segments Preview Strip -->
+                        <div id="timelineCueStrip" class="timeline-cue-strip" title="Visual Cue Strip - Click to jump"></div>
+                        <!-- Range Scrubber -->
+                        <input type="range" id="timelineScrubber" min="0" max="90" step="0.1" value="0">
+                    </div>
+                    <button id="timelineLoopToggle" class="timeline-btn active" title="Toggle Sequence Loop">🔁 Loop</button>
+                    <button id="timelineModeToggle" class="timeline-mode-btn" title="Toggle between Free-Run Pattern and Show Sequence">🎬 Sequence: OFF</button>
+                </div>
+            </div>
+
             <div class="floating-overlay">
                 <span>💡 <strong>Interactive:</strong> Scroll wheel to Zoom · Drag canvas or Space+drag to Pan · Click LED to select & adjust RGB · Drag LED to move</span>
             </div>
@@ -69,10 +91,45 @@
                 </div>
             </div>
 
-            <!-- 2. Lighting Pattern -->
+            <!-- 2. Parade Cue Director (Autonomous Float Show Sequence) -->
+            <div class="control-section" id="cueDirectorSection" style="border: 1px solid #58a6ff; background: rgba(56, 139, 253, 0.05); border-radius: 10px; padding: 12px;">
+                <div class="section-title" style="color: #58a6ff; display: flex; justify-content: space-between; align-items: center;">
+                    <span>🎬 Parade Cue Director</span>
+                    <span id="cueDirectorBadge" style="background: #21262d; color: var(--accent-cyan); font-weight: 700; padding: 2px 7px; border-radius: 12px; font-size: 11px;">0 Cues (Free-Run)</span>
+                </div>
+
+                <div style="display: flex; gap: 6px; align-items: center; margin-top: 6px; margin-bottom: 8px;">
+                    <button id="toggleSequenceModeBtn" class="action-btn" style="flex: 1.3; font-size: 11px; padding: 6px 8px; font-weight: 600; background: #21262d; border-color: #58a6ff; color: #58a6ff;" title="Toggle between single continuous pattern and the 90-second show sequence">
+                        ▶ Switch to Show Sequence
+                    </button>
+                    <div style="display: flex; align-items: center; gap: 4px; flex: 1; justify-content: flex-end;">
+                        <label style="font-size: 11px; color: var(--text-muted);">Loop:</label>
+                        <input type="number" id="sequenceLoopInput" min="10" max="300" step="5" value="90" style="width: 50px; background: #0d1117; color: #fff; border: 1px solid #30363d; border-radius: 4px; padding: 4px; text-align: center; font-size: 11px;">
+                        <span style="font-size: 11px; color: var(--text-muted);">s</span>
+                    </div>
+                </div>
+
+                <!-- Template & Add Cue Controls -->
+                <div style="display: flex; gap: 6px; margin-bottom: 8px;">
+                    <select id="sequenceTemplateSelect" style="flex: 1; background: #0d1117; color: #fff; border: 1px solid #30363d; border-radius: 4px; padding: 5px 6px; font-size: 11px;">
+                        <option value="">-- Load Example Routine --</option>
+                        <option value="cinderella_90s">🎃 Cinderella 90s (Wheels & Lanterns)</option>
+                        <option value="dragon_90s">🐉 Pete's Dragon 90s (Crest Flame)</option>
+                        <option value="clear_cues">🗑️ Clear All Cues</option>
+                    </select>
+                    <button id="addCueBtn" class="action-btn primary" style="flex: none; font-size: 11px; padding: 5px 10px; font-weight: 600;" title="Add a new cue at the current playhead time">➕ Add Cue</button>
+                </div>
+
+                <!-- Scrollable Cues Card List -->
+                <div id="cuesListContainer" style="display: flex; flex-direction: column; gap: 8px; max-height: 380px; overflow-y: auto; padding-right: 2px;">
+                    <!-- Dynamic Cue Cards Rendered Here -->
+                </div>
+            </div>
+
+            <!-- 3. Baseline Lighting Pattern -->
             <div class="control-section">
                 <div class="section-title">
-                    <span>Parade Lighting Pattern</span>
+                    <span>Baseline Lighting Pattern (Free-Run)</span>
                 </div>
                 <div class="control-group">
                     <select id="patternSelect" style="background: #21262d; color: #fff; border: 1px solid #30363d; padding: 8px 12px; border-radius: 6px; outline: none; font-size: 13px;">
@@ -501,6 +558,6 @@
         </div>
     </div>
 
-    <script src="app.js?v=11"></script>
+    <script src="app.js?v=12"></script>
 </body>
 </html>
