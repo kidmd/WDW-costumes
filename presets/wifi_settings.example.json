@@ -1,0 +1,5 @@
+{
+  "ssid": "YourWiFiNetwork",
+  "password": "YourPassword",
+  "targetIp": "255.255.255.255"
+}

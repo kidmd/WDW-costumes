@@ -30,3 +30,6 @@ __pycache__/
 *.hex
 !firmware/*.bin
 
+# Local Wi-Fi Credentials & Secrets
+include/wifi_config.h
+presets/wifi_settings.json
