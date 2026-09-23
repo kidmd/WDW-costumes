@@ -94,11 +94,13 @@ Once your board is flashed:
 
 ### How to Use the Shirt:
 - **Autonomous Show Sequence (Default):** 
-  When you turn on the power bank, your ESP32 runs the complete **90-second theatrical parade sequence** (opening starlight sparkles, wheel spin chases, breathing glow, and grand finale electrical waves). The blue onboard LED gently breathes.
-- **ESP-NOW Fleet Sync:**
-  Tap the onboard **BOOT button (GPIO 0)** once! 
-  The board instantly switches to Fleet Sync mode, locking wireless timing with the other runner shirts so traveling waves and sparkle cascades leap from shirt to shirt over radio.
-  Tap the BOOT button again to return to your standalone show!
+  When you turn on the power bank, your ESP32 runs the complete **90-second theatrical parade sequence** (custom sampled artwork colors, starlight sparkles, wheel spin chases, breathing glow, and electrical wave).
+- **Mode Switching (Short Tap BOOT Button):**
+  Tap the onboard **BOOT button (GPIO 0)** once (short tap < 2.5s) to switch between modes. The LED strip gives immediate visual confirmation:
+  - 🔵 **2 Cyan Flashes**: Switched to **Autonomous Float Show** (plays custom artwork palette or float theme).
+  - 🟡 **2 Amber Flashes**: Switched to **ESP-NOW Fleet Sync** (locks wireless timing with the other runner shirts for synchronized golden marquee chases, sparkles, and traveling waves).
+- **Float ID Selector (Long Hold BOOT Button for 3s):**
+  Hold the BOOT button for 3 seconds to reassign which Float you are (see below).
 
 ---
 
