@@ -19,7 +19,8 @@ let params = {
     showNumbers: false,
     reflectiveShine: true,
     showBib: true,
-    bibYOffset: 0.57
+    bibYOffset: 0.57,
+    bibScale: 1.0
 };
 
 // Default Pete's Dragon Artwork
@@ -326,28 +327,270 @@ function drawRunningShirt(cx, x, y, width, height, label = "PETE'S DRAGON") {
 }
 
 // ============================================================================
-// DRAWING ROUTINES: Authentic runDisney 10K Race Bib (#1952) with BibBoards
+// DRAWING ROUTINES: Authentic runDisney 10K Race Bib (#1952) with Chip & Dale
 // ============================================================================
+
+// Chip Character Face (Left flank: chocolate chip nose, single center tooth, red headband)
+function drawChipFace(cx, centerX, centerY, size) {
+    cx.save();
+    cx.translate(centerX, centerY);
+    const s = size / 50;
+    cx.scale(s, s);
+
+    // 1. Ears
+    cx.fillStyle = '#6b3410';
+    cx.beginPath();
+    cx.arc(-14, -18, 9, 0, Math.PI * 2);
+    cx.arc(14, -18, 9, 0, Math.PI * 2);
+    cx.fill();
+    cx.fillStyle = '#f472b6';
+    cx.beginPath();
+    cx.arc(-14, -18, 5, 0, Math.PI * 2);
+    cx.arc(14, -18, 5, 0, Math.PI * 2);
+    cx.fill();
+
+    // 2. Head Base (Dark Chocolate Brown)
+    cx.fillStyle = '#78350f';
+    cx.beginPath();
+    cx.ellipse(0, 0, 20, 18, 0, 0, Math.PI * 2);
+    cx.fill();
+
+    // Cheek puffs
+    cx.beginPath();
+    cx.arc(-13, 6, 10, 0, Math.PI * 2);
+    cx.arc(13, 6, 10, 0, Math.PI * 2);
+    cx.fill();
+
+    // 3. Cream muzzle / cheeks
+    cx.fillStyle = '#fef3c7';
+    cx.beginPath();
+    cx.ellipse(0, 7, 14, 10, 0, 0, Math.PI * 2);
+    cx.fill();
+    cx.beginPath();
+    cx.arc(-9, 7, 8, 0, Math.PI * 2);
+    cx.arc(9, 7, 8, 0, Math.PI * 2);
+    cx.fill();
+
+    // 4. Eyes (Dark oval with highlight)
+    cx.fillStyle = '#1e1b4b';
+    cx.beginPath();
+    cx.ellipse(-7, -4, 4, 6, -0.1, 0, Math.PI * 2);
+    cx.ellipse(7, -4, 4, 6, 0.1, 0, Math.PI * 2);
+    cx.fill();
+    cx.fillStyle = '#ffffff';
+    cx.beginPath();
+    cx.arc(-8, -6, 1.8, 0, Math.PI * 2);
+    cx.arc(6, -6, 1.8, 0, Math.PI * 2);
+    cx.fill();
+
+    // 5. Signature "Chocolate Chip" Nose (Small, Black, Shiny)
+    cx.fillStyle = '#0f172a';
+    cx.beginPath();
+    cx.ellipse(0, 3, 4.5, 3.2, 0, 0, Math.PI * 2);
+    cx.fill();
+    cx.fillStyle = '#ffffff';
+    cx.beginPath();
+    cx.arc(-1.2, 2.0, 1.2, 0, Math.PI * 2);
+    cx.fill();
+
+    // 6. Smile & Chip's Single Center Buck Tooth
+    cx.strokeStyle = '#451a03';
+    cx.lineWidth = 1.6;
+    cx.beginPath();
+    cx.arc(0, 7, 7, 0.15 * Math.PI, 0.85 * Math.PI);
+    cx.stroke();
+
+    // Single centered front tooth
+    cx.fillStyle = '#ffffff';
+    cx.strokeStyle = '#78350f';
+    cx.lineWidth = 0.8;
+    cx.fillRect(-2, 10.5, 4, 4);
+    cx.strokeRect(-2, 10.5, 4, 4);
+
+    // 7. Red Runner's Headband
+    cx.fillStyle = '#ef4444';
+    cx.beginPath();
+    if (cx.roundRect) {
+        cx.roundRect(-17, -13, 34, 5, 2.5);
+    } else {
+        cx.rect(-17, -13, 34, 5);
+    }
+    cx.fill();
+    cx.fillStyle = '#ffffff';
+    cx.fillRect(-17, -11.5, 34, 1.5);
+
+    cx.restore();
+}
+
+// Dale Character Face (Right flank: big red nose, two separated teeth, messy hair, blue headband)
+function drawDaleFace(cx, centerX, centerY, size) {
+    cx.save();
+    cx.translate(centerX, centerY);
+    const s = size / 50;
+    cx.scale(s, s);
+
+    // 1. Ears
+    cx.fillStyle = '#9a3412';
+    cx.beginPath();
+    cx.arc(-14, -18, 9, 0, Math.PI * 2);
+    cx.arc(14, -18, 9, 0, Math.PI * 2);
+    cx.fill();
+    cx.fillStyle = '#f472b6';
+    cx.beginPath();
+    cx.arc(-14, -18, 5, 0, Math.PI * 2);
+    cx.arc(14, -18, 5, 0, Math.PI * 2);
+    cx.fill();
+
+    // 2. Head Base (Lighter Reddish/Golden Brown)
+    cx.fillStyle = '#c2410c';
+    cx.beginPath();
+    cx.ellipse(0, 0, 20, 18, 0, 0, Math.PI * 2);
+    cx.fill();
+
+    // Cheek puffs
+    cx.beginPath();
+    cx.arc(-13, 6, 10, 0, Math.PI * 2);
+    cx.arc(13, 6, 10, 0, Math.PI * 2);
+    cx.fill();
+
+    // 3. Dale's signature messy red hair tuft on top!
+    cx.fillStyle = '#9a3412';
+    cx.beginPath();
+    cx.moveTo(-5, -17);
+    cx.quadraticCurveTo(-7, -26, -2, -24);
+    cx.quadraticCurveTo(0, -28, 4, -23);
+    cx.quadraticCurveTo(6, -26, 7, -17);
+    cx.closePath();
+    cx.fill();
+
+    // 4. Cream muzzle / cheeks
+    cx.fillStyle = '#fef3c7';
+    cx.beginPath();
+    cx.ellipse(0, 7, 14, 10, 0, 0, Math.PI * 2);
+    cx.fill();
+    cx.beginPath();
+    cx.arc(-9, 7, 8, 0, Math.PI * 2);
+    cx.arc(9, 7, 8, 0, Math.PI * 2);
+    cx.fill();
+
+    // 5. Playful eyes (Left open, Right cheeky wink)
+    cx.fillStyle = '#1e1b4b';
+    cx.beginPath();
+    cx.ellipse(-7, -4, 4, 6, -0.1, 0, Math.PI * 2);
+    cx.fill();
+    cx.fillStyle = '#ffffff';
+    cx.beginPath();
+    cx.arc(-8, -6, 1.8, 0, Math.PI * 2);
+    cx.fill();
+
+    // Right eye wink
+    cx.strokeStyle = '#1e1b4b';
+    cx.lineWidth = 2.2;
+    cx.beginPath();
+    cx.arc(7, -3, 4.5, 1.1 * Math.PI, 1.9 * Math.PI);
+    cx.stroke();
+
+    // 6. Dale's signature BIG RED NOSE (Oval, Bright Red, Glossy)
+    cx.fillStyle = '#dc2626';
+    cx.beginPath();
+    cx.ellipse(0, 2.5, 7.5, 5.5, 0, 0, Math.PI * 2);
+    cx.fill();
+    cx.fillStyle = '#fca5a5';
+    cx.beginPath();
+    cx.arc(-2.5, 1.0, 2.0, 0, Math.PI * 2);
+    cx.fill();
+
+    // 7. Wide Goofy Smile & TWO SEPARATED Buck Teeth
+    cx.strokeStyle = '#7c2d12';
+    cx.lineWidth = 1.6;
+    cx.beginPath();
+    cx.arc(0, 7, 8, 0.12 * Math.PI, 0.88 * Math.PI);
+    cx.stroke();
+
+    // Two separated buck teeth
+    cx.fillStyle = '#ffffff';
+    cx.strokeStyle = '#9a3412';
+    cx.lineWidth = 0.8;
+    cx.fillRect(-5.5, 11, 3.5, 4);
+    cx.strokeRect(-5.5, 11, 3.5, 4);
+    cx.fillRect(2.0, 11, 3.5, 4);
+    cx.strokeRect(2.0, 11, 3.5, 4);
+
+    // 8. Royal Blue Runner's Headband
+    cx.fillStyle = '#2563eb';
+    cx.beginPath();
+    if (cx.roundRect) {
+        cx.roundRect(-17, -13, 34, 5, 2.5);
+    } else {
+        cx.rect(-17, -13, 34, 5);
+    }
+    cx.fill();
+    cx.fillStyle = '#facc15';
+    cx.fillRect(-17, -11.5, 34, 1.5);
+
+    cx.restore();
+}
+
+// Little Acorn Accent
+function drawAcorn(cx, x, y, size) {
+    cx.save();
+    cx.translate(x, y);
+    const s = size / 20;
+    cx.scale(s, s);
+
+    // Cap
+    cx.fillStyle = '#78350f';
+    cx.beginPath();
+    cx.arc(0, -2, 7, Math.PI, 0);
+    cx.fill();
+    // Stem
+    cx.strokeStyle = '#451a03';
+    cx.lineWidth = 1.8;
+    cx.beginPath();
+    cx.moveTo(0, -7);
+    cx.quadraticCurveTo(2, -11, 4, -10);
+    cx.stroke();
+
+    // Body
+    cx.fillStyle = '#d97706';
+    cx.beginPath();
+    cx.moveTo(-6, -2);
+    cx.quadraticCurveTo(-6, 7, 0, 11);
+    cx.quadraticCurveTo(6, 7, 6, -2);
+    cx.closePath();
+    cx.fill();
+
+    // Highlight
+    cx.fillStyle = 'rgba(255, 255, 255, 0.35)';
+    cx.beginPath();
+    cx.ellipse(-2, 2, 1.5, 4, -0.3, 0, Math.PI * 2);
+    cx.fill();
+
+    cx.restore();
+}
+
 function drawRaceBib(cx, s) {
     if (!params.showBib) return;
 
     cx.save();
 
     // Authentic runDisney bib dimensions: ~7.5" wide by 8.0" tall
-    // Scaled realistically onto the athletic running shirt: width ~ 37.5% of shirt width
-    const bibW = s.width * 0.375;
+    // Scaled realistically onto athletic running shirt with user scale multiplier
+    const scale = (params.bibScale !== undefined ? params.bibScale : 1.0);
+    const baseBibW = s.width * 0.375;
+    const bibW = baseBibW * scale;
     const bibH = bibW * (8.0 / 7.5); // ~ 1.067 aspect ratio
     const bibX = s.x + (s.width - bibW) / 2;
     const bibY = s.y + s.height * (params.bibYOffset !== undefined ? params.bibYOffset : 0.57);
 
     // 1. Tyvek Drop Shadow
     cx.shadowColor = 'rgba(0, 0, 0, 0.65)';
-    cx.shadowBlur = 12;
+    cx.shadowBlur = 14;
     cx.shadowOffsetX = 0;
     cx.shadowOffsetY = 4;
 
-    // 2. White Tyvek Card Body with Rounded Corners
-    const r = 6;
+    // 2. Bright Sunshine Yellow Tyvek Card Body with Rounded Corners
+    const r = Math.max(4, bibW * 0.028);
     cx.beginPath();
     cx.moveTo(bibX + r, bibY);
     cx.lineTo(bibX + bibW - r, bibY);
@@ -360,9 +603,12 @@ function drawRaceBib(cx, s) {
     cx.quadraticCurveTo(bibX, bibY, bibX + r, bibY);
     cx.closePath();
 
+    // Mostly Yellow Gradient: Lemon Sunshine to Deep Disney Gold
     const tyvekGrad = cx.createLinearGradient(bibX, bibY, bibX, bibY + bibH);
-    tyvekGrad.addColorStop(0, '#ffffff');
-    tyvekGrad.addColorStop(1, '#f1f5f9');
+    tyvekGrad.addColorStop(0, '#fef9c3');    // Sunny lemon top
+    tyvekGrad.addColorStop(0.35, '#fef08a'); // Warm vibrant sunshine yellow
+    tyvekGrad.addColorStop(0.75, '#fde047'); // Rich race yellow
+    tyvekGrad.addColorStop(1, '#facc15');    // Golden sunshine yellow
     cx.fillStyle = tyvekGrad;
     cx.fill();
 
@@ -371,13 +617,54 @@ function drawRaceBib(cx, s) {
     cx.shadowBlur = 0;
     cx.shadowOffsetY = 0;
 
-    // Card border
-    cx.strokeStyle = '#cbd5e1';
-    cx.lineWidth = 1.2;
+    // Golden Card Border
+    cx.strokeStyle = '#ca8a04';
+    cx.lineWidth = 1.8;
     cx.stroke();
 
-    // 3. Top Header Banner: Deep Royal Purple/Navy with Walt Disney World 10K
-    const headerH = bibH * 0.22;
+    // Background Graphic Accents: Diagonal Runner Speed Stripes & Radiance
+    cx.save();
+    cx.clip();
+
+    // Subtle yellow speed chevrons across background
+    cx.fillStyle = 'rgba(234, 179, 8, 0.16)';
+    for (let stripe = -bibH; stripe < bibW + bibH; stripe += bibW * 0.12) {
+        cx.beginPath();
+        cx.moveTo(bibX + stripe, bibY);
+        cx.lineTo(bibX + stripe + bibW * 0.05, bibY);
+        cx.lineTo(bibX + stripe + bibW * 0.05 - bibH * 0.35, bibY + bibH);
+        cx.lineTo(bibX + stripe - bibH * 0.35, bibY + bibH);
+        cx.closePath();
+        cx.fill();
+    }
+
+    // Side racing accent stripes (Disney Red & Blue trim)
+    const stripeW = Math.max(3, bibW * 0.018);
+    cx.fillStyle = '#ef4444'; // Red
+    cx.fillRect(bibX, bibY, stripeW, bibH);
+    cx.fillStyle = '#1e40af'; // Blue
+    cx.fillRect(bibX + stripeW, bibY, stripeW, bibH);
+
+    cx.fillStyle = '#ef4444';
+    cx.fillRect(bibX + bibW - stripeW, bibY, stripeW, bibH);
+    cx.fillStyle = '#1e40af';
+    cx.fillRect(bibX + bibW - stripeW * 2, bibY, stripeW, bibH);
+
+    // Center radial athletic highlight behind bib number
+    const centerGrad = cx.createRadialGradient(
+        bibX + bibW / 2, bibY + bibH * 0.58, 5,
+        bibX + bibW / 2, bibY + bibH * 0.58, bibW * 0.45
+    );
+    centerGrad.addColorStop(0, 'rgba(255, 255, 255, 0.65)');
+    centerGrad.addColorStop(0.6, 'rgba(254, 240, 138, 0.30)');
+    centerGrad.addColorStop(1, 'rgba(254, 240, 138, 0)');
+    cx.fillStyle = centerGrad;
+    cx.fillRect(bibX, bibY + bibH * 0.30, bibW, bibH * 0.50);
+
+    cx.restore();
+
+    // 3. Top Header Banner: Royal Disney Navy/Purple Gradient with Gold Trim
+    const headerH = bibH * 0.23;
     cx.save();
     cx.beginPath();
     cx.moveTo(bibX + r, bibY);
@@ -391,21 +678,30 @@ function drawRaceBib(cx, s) {
     cx.clip();
 
     const bannerGrad = cx.createLinearGradient(bibX, bibY, bibX + bibW, bibY + headerH);
-    bannerGrad.addColorStop(0, '#1e1b4b'); // Deep Disney royal purple
-    bannerGrad.addColorStop(0.5, '#3730a3');
+    bannerGrad.addColorStop(0, '#1e1b4b'); // Deep Royal Navy
+    bannerGrad.addColorStop(0.5, '#312e81');
     bannerGrad.addColorStop(1, '#1e1b4b');
     cx.fillStyle = bannerGrad;
     cx.fill();
 
+    // Gold ribbon bottom accent on header
+    cx.fillStyle = '#f59e0b';
+    cx.fillRect(bibX, bibY + headerH - 2.5, bibW, 2.5);
+
     // Header Stars & Text
-    cx.fillStyle = '#facc15'; // Disney Gold Star
+    cx.fillStyle = '#facc15'; // Gold Star
     cx.font = `bold ${Math.max(8, Math.floor(bibW * 0.052))}px sans-serif`;
     cx.textAlign = 'left';
-    cx.fillText("★ runDisney", bibX + bibW * 0.06, bibY + headerH * 0.40);
+    cx.fillText("★ runDisney", bibX + bibW * 0.06, bibY + headerH * 0.36);
 
     cx.fillStyle = '#ffffff';
-    cx.font = `bold ${Math.max(8, Math.floor(bibW * 0.065))}px sans-serif`;
-    cx.fillText("WALT DISNEY WORLD® 10K", bibX + bibW * 0.06, bibY + headerH * 0.80);
+    cx.font = `bold ${Math.max(8, Math.floor(bibW * 0.060))}px sans-serif`;
+    cx.fillText("WALT DISNEY WORLD® 10K", bibX + bibW * 0.06, bibY + headerH * 0.68);
+
+    // Official Sub-Title Ribbon
+    cx.fillStyle = '#fef08a';
+    cx.font = `900 ${Math.max(7, Math.floor(bibW * 0.040))}px sans-serif`;
+    cx.fillText("CHIP 'N' DALE 10K", bibX + bibW * 0.06, bibY + headerH * 0.92);
 
     // Top-Right Corral Badge: "CORRAL A"
     const badgeW = bibW * 0.22;
@@ -433,47 +729,90 @@ function drawRaceBib(cx, s) {
     cx.fillText("A", badgeX + badgeW / 2, badgeY + badgeH * 0.88);
     cx.restore();
 
-    // 4. Center Bib Number: "1952"
-    cx.fillStyle = '#0f172a'; // Bold athletic dark slate
-    cx.font = `900 ${Math.max(22, Math.floor(bibW * 0.26))}px Impact, "Arial Black", sans-serif`;
+    // 4. CHIP & DALE CHARACTER GRAPHICS (Flanking the Number)
+    const charSize = bibW * 0.22;
+    const charY = bibY + bibH * 0.52;
+
+    // Draw Chip on Left Flank
+    drawChipFace(cx, bibX + bibW * 0.16, charY, charSize);
+    cx.fillStyle = '#78350f';
     cx.textAlign = 'center';
-    cx.fillText("1952", bibX + bibW / 2, bibY + bibH * 0.58);
+    cx.font = `900 ${Math.max(7, Math.floor(bibW * 0.042))}px sans-serif`;
+    cx.fillText("CHIP", bibX + bibW * 0.16, charY + charSize * 0.52);
 
-    // Runner Name under number
-    cx.fillStyle = '#475569';
-    cx.font = `bold ${Math.max(8, Math.floor(bibW * 0.060))}px sans-serif`;
-    cx.fillText("MSEP RUNNER", bibX + bibW / 2, bibY + bibH * 0.70);
+    // Draw Dale on Right Flank
+    drawDaleFace(cx, bibX + bibW * 0.84, charY, charSize);
+    cx.fillStyle = '#c2410c';
+    cx.textAlign = 'center';
+    cx.font = `900 ${Math.max(7, Math.floor(bibW * 0.042))}px sans-serif`;
+    cx.fillText("DALE", bibX + bibW * 0.84, charY + charSize * 0.52);
 
-    // 5. Bottom Section: PhotoPass Barcode & Verification
+    // 5. Center Bib Number: "1952" with Crisp White Edge
+    const numX = bibX + bibW / 2;
+    const numY = bibY + bibH * 0.59;
+    cx.font = `900 ${Math.max(22, Math.floor(bibW * 0.25))}px Impact, "Arial Black", sans-serif`;
+    cx.textAlign = 'center';
+
+    // White outline for athletic pop on yellow card
+    cx.strokeStyle = '#ffffff';
+    cx.lineWidth = Math.max(3, bibW * 0.024);
+    cx.lineJoin = 'round';
+    cx.strokeText("1952", numX, numY);
+
+    // Dark Athletic Slate fill
+    cx.fillStyle = '#0f172a';
+    cx.fillText("1952", numX, numY);
+
+    // Runner Name under number flanked by Acorns
+    const subY = bibY + bibH * 0.70;
+    cx.fillStyle = '#78350f';
+    cx.font = `bold ${Math.max(8, Math.floor(bibW * 0.052))}px sans-serif`;
+    cx.fillText("MSEP RUNNER", numX, subY);
+
+    // Acorns flanking MSEP RUNNER
+    const acornSize = Math.max(8, bibW * 0.055);
+    drawAcorn(cx, numX - bibW * 0.20, subY - bibH * 0.015, acornSize);
+    drawAcorn(cx, numX + bibW * 0.20, subY - bibH * 0.015, acornSize);
+
+    // 6. Bottom Section: PhotoPass Barcode & Verification
     const footerY = bibY + bibH * 0.78;
-    cx.strokeStyle = '#e2e8f0';
-    cx.lineWidth = 1;
-    cx.beginPath();
-    cx.moveTo(bibX + bibW * 0.05, footerY);
-    cx.lineTo(bibX + bibW * 0.95, footerY);
-    cx.stroke();
 
-    // Barcode representation
-    cx.fillStyle = '#334155';
-    const barStartY = footerY + bibH * 0.035;
+    // Dual racing stripe divider
+    cx.fillStyle = '#ef4444';
+    cx.fillRect(bibX + bibW * 0.05, footerY, bibW * 0.90, 1.5);
+    cx.fillStyle = '#1e40af';
+    cx.fillRect(bibX + bibW * 0.05, footerY + 2.5, bibW * 0.90, 1.5);
+
+    // White Tyvek Barcode Window
+    const barStartY = footerY + bibH * 0.04;
     const barH = bibH * 0.09;
-    const barX0 = bibX + bibW * 0.08;
+    const barX0 = bibX + bibW * 0.07;
+    const barW = bibW * 0.40;
+
+    cx.fillStyle = '#ffffff';
+    cx.fillRect(barX0 - 4, barStartY - 2, barW + 8, barH + 4);
+    cx.strokeStyle = '#e2e8f0';
+    cx.lineWidth = 0.8;
+    cx.strokeRect(barX0 - 4, barStartY - 2, barW + 8, barH + 4);
+
+    // Barcode lines
+    cx.fillStyle = '#0f172a';
     for (let b = 0; b < 22; b++) {
         const bw = (b % 3 === 0 || b % 5 === 0) ? 2.5 : 1.2;
-        cx.fillRect(barX0 + b * (bibW * 0.016), barStartY, bw, barH);
+        cx.fillRect(barX0 + b * (bibW * 0.017), barStartY, bw, barH);
     }
 
-    // PhotoPass code
+    // PhotoPass code & text
     cx.fillStyle = '#64748b';
     cx.textAlign = 'right';
-    cx.font = `${Math.max(6, Math.floor(bibW * 0.040))}px sans-serif`;
-    cx.fillText("Disney PhotoPass®", bibX + bibW * 0.92, barStartY + barH * 0.45);
-    cx.font = `bold ${Math.max(6, Math.floor(bibW * 0.038))}px monospace`;
-    cx.fillText("DIS-1952-10K", bibX + bibW * 0.92, barStartY + barH * 0.90);
+    cx.font = `bold ${Math.max(6, Math.floor(bibW * 0.038))}px sans-serif`;
+    cx.fillText("Disney PhotoPass®", bibX + bibW * 0.93, barStartY + barH * 0.45);
+    cx.font = `bold ${Math.max(6, Math.floor(bibW * 0.036))}px monospace`;
+    cx.fillStyle = '#1e293b';
+    cx.fillText("DIS-1952-10K", bibX + bibW * 0.93, barStartY + barH * 0.90);
 
-    // 6. FOUR CORNER BIBBOARDS SNAP FASTENERS
-    // Circular snap-and-lock fasteners at all four corners
-    const boardRadius = Math.max(6, bibW * 0.040);
+    // 7. FOUR CORNER BIBBOARDS SNAP FASTENERS
+    const boardRadius = Math.max(5, bibW * 0.040);
     const cornerInset = boardRadius + 4;
     const corners = [
         { x: bibX + cornerInset, y: bibY + cornerInset },             // Top-Left
@@ -490,7 +829,7 @@ function drawRaceBib(cx, s) {
         cx.fill();
         // Cyan accent ring
         cx.strokeStyle = '#38bdf8';
-        cx.lineWidth = 1.6;
+        cx.lineWidth = Math.max(1.2, boardRadius * 0.22);
         cx.stroke();
 
         // Inner dome button
@@ -3038,7 +3377,9 @@ if (showBibToggle) {
     showBibToggle.addEventListener('change', (e) => {
         params.showBib = e.target.checked;
         const posRow = document.getElementById('bibPositionRow');
+        const scaleRow = document.getElementById('bibScaleRow');
         if (posRow) posRow.style.display = e.target.checked ? 'flex' : 'none';
+        if (scaleRow) scaleRow.style.display = e.target.checked ? 'flex' : 'none';
     });
 }
 
@@ -3048,6 +3389,16 @@ if (bibYSlider) {
         const val = parseInt(e.target.value);
         params.bibYOffset = val / 100.0;
         const valBadge = document.getElementById('bibYVal');
+        if (valBadge) valBadge.textContent = `${val}%`;
+    });
+}
+
+const bibScaleSlider = document.getElementById('bibScaleSlider');
+if (bibScaleSlider) {
+    bibScaleSlider.addEventListener('input', (e) => {
+        const val = parseInt(e.target.value);
+        params.bibScale = val / 100.0;
+        const valBadge = document.getElementById('bibScaleVal');
         if (valBadge) valBadge.textContent = `${val}%`;
     });
 }
