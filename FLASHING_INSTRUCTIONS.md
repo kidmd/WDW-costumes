@@ -125,8 +125,8 @@ You do **not** need to change any code to configure which float you are! Any ESP
 
 | Float # | Float Name | Character Tag | Signature Color | Role |
 |:---:|---|---|---|:---:|
-| **01** | **The Title Drum** | THE DRUM | 🟡 Gold / Amber | **👑 LEADER** (Broadcasts timing clock) |
-| **02** | **The Train** | CASEY JR. | 🔴 Red | Follower |
+| **01** | **The Train** | CASEY JR. | 🔴 Red | **👑 LEADER** (Pulls the Drum & Broadcasts timing clock) |
+| **02** | **The Title Drum** | THE DRUM | 🟡 Gold / Amber | Follower |
 | **03** | **Pete's Dragon** | ELLIOTT | 🟢 Green | Follower |
 | **04** | **Cinderella's Coach** | CINDERELLA | 🔵 Cyan | Follower |
 | **05** | **The Turtle** | SPINNING TURTLE | 🟢 Teal / Green | Follower |

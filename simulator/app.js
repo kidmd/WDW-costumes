@@ -1480,8 +1480,8 @@ function renderSingleShirtView(timeMs) {
 // 7-SHIRT FLEET PARADE VIEW (NATURAL ATHELTIC PROPORTIONS)
 // ============================================================================
 const FLEET_ROSTER = [
-    { num: "01", name: "Title Drum", tag: "THE DRUM", color: "#ffb703", accent: "Gold" },
-    { num: "02", name: "The Train", tag: "CASEY JR.", color: "#e63946", accent: "Red" },
+    { num: "01", name: "The Train", tag: "CASEY JR.", color: "#e63946", accent: "Red" },
+    { num: "02", name: "Title Drum", tag: "THE DRUM", color: "#ffb703", accent: "Gold" },
     { num: "03", name: "Pete's Dragon", tag: "ELLIOTT", color: "#00ff88", accent: "Green" },
     { num: "04", name: "Cinderella", tag: "COACH", color: "#48cae4", accent: "Cyan" },
     { num: "05", name: "The Turtle", tag: "TURTLE", color: "#2ec4b6", accent: "Teal" },

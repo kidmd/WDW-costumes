@@ -61,8 +61,8 @@ struct FloatMeta {
 };
 
 const FloatMeta FLEET_ROSTER_INFO[7] = {
-    { "Title Drum",     "LEADER",     CRGB(255, 180, 20)  }, // Float 1 (Gold/Amber)
-    { "The Train",      "FOLLOWER",   CRGB(230, 40, 50)   }, // Float 2 (Red)
+    { "The Train",      "LEADER",     CRGB(230, 40, 50)   }, // Float 1 (Red)
+    { "Title Drum",     "FOLLOWER",   CRGB(255, 180, 20)  }, // Float 2 (Gold/Amber)
     { "Pete's Dragon",  "FOLLOWER",   CRGB(0, 255, 100)   }, // Float 3 (Green)
     { "Cinderella",     "FOLLOWER",   CRGB(50, 180, 240)  }, // Float 4 (Cyan)
     { "The Turtle",     "FOLLOWER",   CRGB(40, 200, 180)  }, // Float 5 (Teal)
@@ -84,8 +84,8 @@ uint32_t lastStreamPacketTime = 0;
 // ============================================================================
 // KNOWN MAC ADDRESSES FOR THE FLEET (Milestone 2)
 // ============================================================================
-const char* MAC_LEADER_FLOAT1   = "B0:CB:D8:C8:49:84"; // Board 1: Title Drum (Leader)
-const char* MAC_FOLLOWER_FLOAT2 = "A4:F0:0F:64:33:A0"; // Board 2: Casey Jr. Train (Follower)
+const char* MAC_LEADER_FLOAT1   = "B0:CB:D8:C8:49:84"; // Board 1: The Train (Leader)
+const char* MAC_FOLLOWER_FLOAT2 = "A4:F0:0F:64:33:A0"; // Board 2: Title Drum (Follower)
 
 struct __attribute__((packed)) ParadeSyncPacket {
     uint8_t  magic;          // 0xEE verification byte
@@ -556,13 +556,13 @@ void setup() {
         // Fallback to MAC-based default if never configured via button
         if (myMac.equalsIgnoreCase(MAC_LEADER_FLOAT1)) {
             myFloatNumber = 1;
-            Serial.println("[MAC] Matched Board 1 -> Float 1 (Leader - Title Drum)");
+            Serial.println("[MAC] Matched Board 1 -> Float 1 (Leader - The Train)");
         } else if (myMac.equalsIgnoreCase(MAC_FOLLOWER_FLOAT2)) {
             myFloatNumber = 2;
-            Serial.println("[MAC] Matched Board 2 -> Float 2 (Casey Jr.)");
+            Serial.println("[MAC] Matched Board 2 -> Float 2 (Title Drum)");
         } else {
             myFloatNumber = 2;
-            Serial.println("[MAC] Unregistered MAC -> Defaulting to Float 2 (Casey Jr.)");
+            Serial.println("[MAC] Unregistered MAC -> Defaulting to Float 2 (Title Drum)");
             Serial.println("[TIP] Hold BOOT button for 3s anytime to set your Float Number (1 to 7)!");
         }
     }

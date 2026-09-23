@@ -17,8 +17,8 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 | Float # | Unit / Float Name | Visual Concept & Accent Lights |
 | :---: | :--- | :--- |
-| **1** | **The Title Drum** | Golden chasing marquee border, "Disney" electric text accent |
-| **2** | **The Train (Casey Jr.)** | Warm white chugging headlight, locomotive steam pulses |
+| **1** | **The Train (Casey Jr.)** | Warm white chugging headlight, locomotive steam pulses (parade leader pulling the Title Drum) |
+| **2** | **The Title Drum** | Golden chasing marquee border, "Disney" electric text accent |
 | **3** | **Pete's Dragon (Elliott)** | Chartreuse/green scales with orange/red fire breathing effect |
 | **4** | **Cinderella's Coach** | Brilliant fairy dust shimmer, pumpkin coach starlight glow |
 | **5** | **The Turtle** | Whimsical spinning shell spirals, blinking amber eyes, teal/green glow |
@@ -98,8 +98,8 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 * **Status:** Synchronized across all docs, Web Simulator, C++ firmware, and Arduino sketches.
 * **Notes:**
   * **Updated 7-Float Lineup:** Finalized the official runner costume float roster:
-    1. **Float 01:** The Title Drum (Leader, Gold/Amber `#ffb703`)
-    2. **Float 02:** The Train / Casey Jr. (Follower, Red `#e63946`)
+    1. **Float 01:** The Train / Casey Jr. (Leader pulling the drum, Red `#e63946`)
+    2. **Float 02:** The Title Drum (Follower, Gold/Amber `#ffb703`)
     3. **Float 03:** Pete's Dragon / Elliott (Follower, Green `#00ff88`)
     4. **Float 04:** Cinderella's Coach (Follower, Cyan `#48cae4`)
     5. **Float 05:** The Turtle (Follower, Teal/Green `#2ec4b6`)

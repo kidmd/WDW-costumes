@@ -12,8 +12,8 @@ An **ESP32** microcontroller on each runner coordinates lighting patterns wirele
 
 ### The 7 Floats Roster
 
-1. **The Title Drum:** Golden chasing marquee border, "Disney" electric text accent.
-2. **The Train (Casey Jr.):** Warm white chugging locomotive headlight & steam pulses.
+1. **The Train (Casey Jr.):** Warm white chugging locomotive headlight & steam pulses (parade leader pulling the Title Drum).
+2. **The Title Drum:** Golden chasing marquee border, "Disney" electric text accent.
 3. **Pete's Dragon (Elliott):** Chartreuse/green body scales with orange/red fire breathing effect.
 4. **Cinderella's Coach:** Shimmering fairy dust sparkle and midnight pumpkin carriage glow.
 5. **The Turtle:** Whimsical spinning shell spirals, blinking amber eyes, and teal/green shell pattern.
