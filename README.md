@@ -14,10 +14,10 @@ An **ESP32** microcontroller on each runner coordinates lighting patterns wirele
 
 1. **The Train (Casey Jr.):** Warm white chugging locomotive headlight & steam pulses (parade leader pulling the Title Drum).
 2. **The Title Drum:** Golden chasing marquee border, "Disney" electric text accent.
-3. **Pete's Dragon (Elliott):** Chartreuse/green body scales with orange/red fire breathing effect.
-4. **Cinderella's Coach:** Shimmering fairy dust sparkle and midnight pumpkin carriage glow.
-5. **The Turtle:** Whimsical spinning shell spirals, blinking amber eyes, and teal/green shell pattern.
-6. **The Snail:** Multi-color rotating rainbow spiral shell wheels and neon antennae glow.
+3. **The Turtle:** Whimsical spinning shell spirals, blinking amber eyes, and teal/green shell pattern.
+4. **The Snail:** Multi-color rotating rainbow spiral shell wheels and neon antennae glow.
+5. **Cinderella's Coach:** Shimmering fairy dust sparkle and midnight pumpkin carriage glow.
+6. **Pete's Dragon (Elliott):** Chartreuse/green body scales with orange/red fire breathing effect.
 7. **To Honor America (Flag & Eagle):** Patriotic red, white, and blue finale fireworks shimmer with majestic illuminated eagle.
 
 ---

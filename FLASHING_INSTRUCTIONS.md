@@ -127,10 +127,10 @@ You do **not** need to change any code to configure which float you are! Any ESP
 |:---:|---|---|---|:---:|
 | **01** | **The Train** | CASEY JR. | 🔴 Red | **👑 LEADER** (Pulls the Drum & Broadcasts timing clock) |
 | **02** | **The Title Drum** | THE DRUM | 🟡 Gold / Amber | Follower |
-| **03** | **Pete's Dragon** | ELLIOTT | 🟢 Green | Follower |
-| **04** | **Cinderella's Coach** | CINDERELLA | 🔵 Cyan | Follower |
-| **05** | **The Turtle** | SPINNING TURTLE | 🟢 Teal / Green | Follower |
-| **06** | **The Snail** | SPINNING SNAIL | 🌸 Pink | Follower |
+| **03** | **The Turtle** | SPINNING TURTLE | 🟢 Teal / Green | Follower |
+| **04** | **The Snail** | SPINNING SNAIL | 🌸 Pink | Follower |
+| **05** | **Cinderella's Coach** | CINDERELLA | 🔵 Cyan | Follower |
+| **06** | **Pete's Dragon** | ELLIOTT | 🟢 Green | Follower |
 | **07** | **To Honor America** | FLAG & EAGLE | 🔴⚪🔵 Patriotic Blue | Follower |
 
 > 💡 **Fleet Leader Note:** Float 01 is the **Master Leader** that broadcasts the wireless sync clock. If you are running together as a group, one runner sets their shirt to **Float 01**, and everyone else picks Floats **02 through 07**. The synchronized traveling wave will then roll down the line in order: `01 ➔ 02 ➔ 03 ➔ 04 ➔ 05 ➔ 06 ➔ 07`!

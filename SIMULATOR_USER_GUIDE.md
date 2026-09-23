@@ -384,7 +384,7 @@ Tap the onboard **BOOT button (GPIO 0)** once (short tap < 2.5s) to toggle betwe
 ### 🎛️ Interactive Float ID Selector (Hold for 3 Seconds)
 Any board can be assigned to any of the 7 floats without touching code:
 1. **Hold the BOOT button for 3 seconds:** The LEDs flash **white 3 times** to enter Config Mode.
-2. **Visual Feedback:** The first `N` LEDs on the strip light up in that float's signature color (1=Red, 2=Gold/Amber, 3=Green, 4=Cyan, 5=Teal, 6=Pink, 7=Patriotic Blue). The onboard blue LED blinks `N` times in sequence.
+2. **Visual Feedback:** The first `N` LEDs on the strip light up in that float's signature color (1=Red, 2=Gold/Amber, 3=Teal, 4=Pink, 5=Cyan, 6=Green, 7=Patriotic Blue). The onboard blue LED blinks `N` times in sequence.
 3. **Tap to Cycle:** Each short tap cycles `1 ➔ 2 ➔ 3 ➔ 4 ➔ 5 ➔ 6 ➔ 7 ➔ 1`.
 4. **Auto-Save:** Leave untouched for 4 seconds. The LEDs flash **green 4 times** and the Float ID is permanently saved to ESP32 NVS flash (`Preferences.h`). Float 1 automatically acts as Leader; Floats 2–7 act as Followers.
 
@@ -393,10 +393,10 @@ Any board can be assigned to any of the 7 floats without touching code:
 |:---:|---|---|---|:---:|
 | **01** | **The Train** | CASEY JR. | 🔴 Red | **👑 LEADER** (Pulls the Drum & Broadcasts timing clock) |
 | **02** | **The Title Drum** | THE DRUM | 🟡 Gold / Amber | Follower |
-| **03** | **Pete's Dragon** | ELLIOTT | 🟢 Green | Follower |
-| **04** | **Cinderella's Coach** | CINDERELLA | 🔵 Cyan | Follower |
-| **05** | **The Turtle** | SPINNING TURTLE | 🟢 Teal / Green | Follower |
-| **06** | **The Snail** | SPINNING SNAIL | 🌸 Pink | Follower |
+| **03** | **The Turtle** | SPINNING TURTLE | 🟢 Teal / Green | Follower |
+| **04** | **The Snail** | SPINNING SNAIL | 🌸 Pink | Follower |
+| **05** | **Cinderella's Coach** | CINDERELLA | 🔵 Cyan | Follower |
+| **06** | **Pete's Dragon** | ELLIOTT | 🟢 Green | Follower |
 | **07** | **To Honor America** | FLAG & EAGLE | 🔴⚪🔵 Patriotic Blue | Follower |
 
 ---

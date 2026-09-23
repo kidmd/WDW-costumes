@@ -19,10 +19,10 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 | :---: | :--- | :--- |
 | **1** | **The Train (Casey Jr.)** | Warm white chugging headlight, locomotive steam pulses (parade leader pulling the Title Drum) |
 | **2** | **The Title Drum** | Golden chasing marquee border, "Disney" electric text accent |
-| **3** | **Pete's Dragon (Elliott)** | Chartreuse/green scales with orange/red fire breathing effect |
-| **4** | **Cinderella's Coach** | Brilliant fairy dust shimmer, pumpkin coach starlight glow |
-| **5** | **The Turtle** | Whimsical spinning shell spirals, blinking amber eyes, teal/green glow |
-| **6** | **The Snail** | Rotating rainbow spiral wheels, neon antennae, vibrant spinning motion |
+| **3** | **The Turtle** | Whimsical spinning shell spirals, blinking amber eyes, teal/green glow |
+| **4** | **The Snail** | Rotating rainbow spiral wheels, neon antennae, vibrant spinning motion |
+| **5** | **Cinderella's Coach** | Brilliant fairy dust shimmer, pumpkin coach starlight glow |
+| **6** | **Pete's Dragon (Elliott)** | Chartreuse/green scales with orange/red fire breathing effect |
 | **7** | **To Honor America (Flag & Eagle)** | Cascading patriotic red/white/blue starbursts & majestic illuminated eagle |
 
 ---
@@ -100,10 +100,10 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
   * **Updated 7-Float Lineup:** Finalized the official runner costume float roster:
     1. **Float 01:** The Train / Casey Jr. (Leader pulling the drum, Red `#e63946`)
     2. **Float 02:** The Title Drum (Follower, Gold/Amber `#ffb703`)
-    3. **Float 03:** Pete's Dragon / Elliott (Follower, Green `#00ff88`)
-    4. **Float 04:** Cinderella's Coach (Follower, Cyan `#48cae4`)
-    5. **Float 05:** The Turtle (Follower, Teal/Green `#2ec4b6`)
-    6. **Float 06:** The Snail (Follower, Pink `#ff007f`)
+    3. **Float 03:** The Turtle (Follower, Teal/Green `#2ec4b6`)
+    4. **Float 04:** The Snail (Follower, Pink `#ff007f`)
+    5. **Float 05:** Cinderella's Coach (Follower, Cyan `#48cae4`)
+    6. **Float 06:** Pete's Dragon / Elliott (Follower, Green `#00ff88`)
     7. **Float 07:** To Honor America (Flag & Eagle) (Follower, Patriotic Blue `#3a86ff`)
   * **Code & Firmware Synchrony:** Updated `FLEET_ROSTER` in `simulator/app.js`, `FLEET_ROSTER_INFO` in `src/main.cpp`, and `FLEET_ROSTER_INFO` in `arduino/MSEP_Costume/MSEP_Costume.ino`.
   * **Documentation Alignment:** Synchronized `README.md`, `SIMULATOR_USER_GUIDE.md`, `FLASHING_INSTRUCTIONS.md`, and project artifacts.

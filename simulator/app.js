@@ -1482,10 +1482,10 @@ function renderSingleShirtView(timeMs) {
 const FLEET_ROSTER = [
     { num: "01", name: "The Train", tag: "CASEY JR.", color: "#e63946", accent: "Red" },
     { num: "02", name: "Title Drum", tag: "THE DRUM", color: "#ffb703", accent: "Gold" },
-    { num: "03", name: "Pete's Dragon", tag: "ELLIOTT", color: "#00ff88", accent: "Green" },
-    { num: "04", name: "Cinderella", tag: "COACH", color: "#48cae4", accent: "Cyan" },
-    { num: "05", name: "The Turtle", tag: "TURTLE", color: "#2ec4b6", accent: "Teal" },
-    { num: "06", name: "The Snail", tag: "SNAIL", color: "#ff007f", accent: "Pink" },
+    { num: "03", name: "The Turtle", tag: "TURTLE", color: "#2ec4b6", accent: "Teal" },
+    { num: "04", name: "The Snail", tag: "SNAIL", color: "#ff007f", accent: "Pink" },
+    { num: "05", name: "Cinderella", tag: "COACH", color: "#48cae4", accent: "Cyan" },
+    { num: "06", name: "Pete's Dragon", tag: "ELLIOTT", color: "#00ff88", accent: "Green" },
     { num: "07", name: "Flag & Eagle", tag: "HONOR AMERICA", color: "#3a86ff", accent: "Patriotic" }
 ];
 

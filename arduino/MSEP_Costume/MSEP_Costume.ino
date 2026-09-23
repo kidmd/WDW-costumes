@@ -78,10 +78,10 @@ struct FloatMeta {
 const FloatMeta FLEET_ROSTER_INFO[7] = {
     { "The Train",      "LEADER",     CRGB(230, 40, 50)   }, // Float 1 (Red)
     { "Title Drum",     "FOLLOWER",   CRGB(255, 180, 20)  }, // Float 2 (Gold/Amber)
-    { "Pete's Dragon",  "FOLLOWER",   CRGB(0, 255, 100)   }, // Float 3 (Green)
-    { "Cinderella",     "FOLLOWER",   CRGB(50, 180, 240)  }, // Float 4 (Cyan)
-    { "The Turtle",     "FOLLOWER",   CRGB(40, 200, 180)  }, // Float 5 (Teal)
-    { "The Snail",      "FOLLOWER",   CRGB(255, 20, 140)  }, // Float 6 (Pink)
+    { "The Turtle",     "FOLLOWER",   CRGB(40, 200, 180)  }, // Float 3 (Teal)
+    { "The Snail",      "FOLLOWER",   CRGB(255, 20, 140)  }, // Float 4 (Pink)
+    { "Cinderella",     "FOLLOWER",   CRGB(50, 180, 240)  }, // Float 5 (Cyan)
+    { "Pete's Dragon",  "FOLLOWER",   CRGB(0, 255, 100)   }, // Float 6 (Green)
     { "Flag & Eagle",   "FOLLOWER",   CRGB(60, 120, 255)  }  // Float 7 (Patriotic Blue)
 };
 
