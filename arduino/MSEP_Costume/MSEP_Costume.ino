@@ -40,16 +40,31 @@
 #endif
 #define STATUS_LED_PIN      2       // Onboard Blue LED
 
-#ifndef NUM_LEDS
-#define NUM_LEDS            50      // Standard parade float strand count
+#ifndef FRONT_LEDS
+#define FRONT_LEDS          100     // 100 LEDs on front of costume shirt
 #endif
-#define MAX_LEDS_CAPACITY   120     // Buffer capacity for custom 100-LED simulator designs
+
+#ifndef BACK_LEDS
+#define BACK_LEDS           100     // 100 LEDs on back of costume shirt
+#endif
+
+#ifndef NUM_LEDS
+#define NUM_LEDS            200     // 200 total LEDs (100 front + 100 back)
+#endif
+#define MAX_LEDS_CAPACITY   256     // Buffer capacity supporting 200 LEDs
 #ifndef MAX_BRIGHTNESS
 #define MAX_BRIGHTNESS      60      // Bench/wearable safe brightness
 #endif
-#define MAX_MILLIAMPS       1200    // 1.2A power bank / wall charger limit
+#define MAX_MILLIAMPS       2000    // 2.0A limit for 200 LEDs on wearable power bank
 
 CRGB leds[MAX_LEDS_CAPACITY];
+
+// Duplicate front 100 LEDs to back 100 LEDs so entire 200-LED costume illuminates identically
+inline void duplicateFrontToBack() {
+    for (int i = 0; i < FRONT_LEDS && (FRONT_LEDS + i) < NUM_LEDS && (FRONT_LEDS + i) < MAX_LEDS_CAPACITY; i++) {
+        leds[FRONT_LEDS + i] = leds[i];
+    }
+}
 
 Preferences preferences;
 
@@ -128,7 +143,7 @@ void onDataReceive(const uint8_t *mac_addr, const uint8_t *incomingData, int len
 // ============================================================================
 void renderMarqueeChase(uint32_t t) {
     uint8_t offset = (t / 110) % 3;
-    for (int i = 0; i < NUM_LEDS; i++) {
+    for (int i = 0; i < FRONT_LEDS; i++) {
         if ((i + offset) % 3 == 0) {
             leds[i] = CRGB(255, 147, 41); // Incandescent amber/gold
         } else {
@@ -147,30 +162,30 @@ void renderParadeSparkle(uint32_t t) {
     };
 
     uint8_t step = (t / 180) % 3;
-    for (int i = 0; i < NUM_LEDS; i++) {
+    for (int i = 0; i < FRONT_LEDS; i++) {
         leds[i] = palette[(i + step) % 3];
     }
 }
 
 void renderTwinkle(uint32_t t) {
-    fill_solid(leds, NUM_LEDS, CRGB(20, 10, 2));
+    fill_solid(leds, FRONT_LEDS, CRGB(20, 10, 2));
     uint16_t seed = (t / 35) + (myFloatNumber * 100);
     if ((seed % 7) == 0) {
-        int pos = (seed * 13) % NUM_LEDS;
+        int pos = (seed * 13) % FRONT_LEDS;
         leds[pos] = CRGB(255, 220, 160);
     }
 }
 
 void renderTravelingWave(uint8_t activeFloat, uint8_t waveHead) {
-    fill_solid(leds, NUM_LEDS, CRGB(15, 8, 2));
+    fill_solid(leds, FRONT_LEDS, CRGB(15, 8, 2));
     if (myFloatNumber == activeFloat) {
         int head = waveHead;
-        if (head >= 0 && head < NUM_LEDS) {
+        if (head >= 0 && head < FRONT_LEDS) {
             leds[head] = CRGB(255, 255, 255);
             if (head > 0) leds[head - 1] = CRGB(255, 180, 40);
             if (head > 1) leds[head - 2] = CRGB(200, 80, 10);
-            if (head < NUM_LEDS - 1) leds[head + 1] = CRGB(255, 180, 40);
-            if (head < NUM_LEDS - 2) leds[head + 2] = CRGB(200, 80, 10);
+            if (head < FRONT_LEDS - 1) leds[head + 1] = CRGB(255, 180, 40);
+            if (head < FRONT_LEDS - 2) leds[head + 2] = CRGB(200, 80, 10);
         }
     }
 }
@@ -191,7 +206,7 @@ void runFleetSync(uint32_t now) {
             uint32_t waveTimer = now % 7000;
             waveActiveFloat = (waveTimer / 1000) + 1; // 1 to 7
             uint32_t floatTime = waveTimer % 1000;
-            waveHeadPos = map(floatTime, 0, 1000, 0, NUM_LEDS - 1);
+            waveHeadPos = map(floatTime, 0, 1000, 0, FRONT_LEDS - 1);
         }
 
         // Broadcast ESP-NOW packet at 25 Hz
@@ -244,6 +259,9 @@ void runFleetSync(uint32_t now) {
             digitalWrite(STATUS_LED_PIN, (now / 150) % 2);
         }
     }
+
+    // Duplicate front 100 LEDs to back 100 LEDs for full 200-LED costume!
+    duplicateFrontToBack();
 
     // Clear any extra LEDs beyond strand count
     for (int i = NUM_LEDS; i < MAX_LEDS_CAPACITY; i++) {
@@ -324,9 +342,10 @@ void handleFloatConfigMode() {
         // 1. Render current float indicator on LED strip
         fill_solid(leds, MAX_LEDS_CAPACITY, CRGB::Black);
         CRGB floatCol = FLEET_ROSTER_INFO[myFloatNumber - 1].color;
-        for (int i = 0; i < myFloatNumber && i < MAX_LEDS_CAPACITY; i++) {
+        for (int i = 0; i < myFloatNumber && i < FRONT_LEDS; i++) {
             leds[i] = floatCol;
         }
+        duplicateFrontToBack();
         FastLED.show();
 
         // 2. Blink onboard blue status LED to match float count (N blinks, then pause)
@@ -397,7 +416,7 @@ void runAutonomousShowSequence(uint32_t now) {
     // Phase 3 (60 - 75s): Dynamic traveling chase across the costume
     // Phase 4 (75 - 90s): Solo electrical parade wave
     if (seqTime < 30000) {
-        for (int i = 0; i < NUM_LEDS && i < MAX_LEDS_CAPACITY; i++) {
+        for (int i = 0; i < FRONT_LEDS && i < MAX_LEDS_CAPACITY; i++) {
             leds[i] = ARTWORK_PALETTE[i];
             if (COSTUME_SPARKLE_RATE > 0 && random16(10000) < (uint16_t)(COSTUME_SPARKLE_RATE * 100)) {
                 leds[i] = CRGB(255, 255, 240);
@@ -405,7 +424,7 @@ void runAutonomousShowSequence(uint32_t now) {
         }
     } else if (seqTime < 60000) {
         uint8_t breath = beatsin8(COSTUME_SPEED_BPM / 2, 120, 255);
-        for (int i = 0; i < NUM_LEDS && i < MAX_LEDS_CAPACITY; i++) {
+        for (int i = 0; i < FRONT_LEDS && i < MAX_LEDS_CAPACITY; i++) {
             CRGB baseColor = ARTWORK_PALETTE[i];
             baseColor.nscale8_video(breath);
             leds[i] = baseColor;
@@ -414,9 +433,9 @@ void runAutonomousShowSequence(uint32_t now) {
             }
         }
     } else if (seqTime < 75000) {
-        uint8_t step = (now / 120) % NUM_LEDS;
-        for (int i = 0; i < NUM_LEDS && i < MAX_LEDS_CAPACITY; i++) {
-            int dist = (i - step + NUM_LEDS) % NUM_LEDS;
+        uint8_t step = (now / 120) % FRONT_LEDS;
+        for (int i = 0; i < FRONT_LEDS && i < MAX_LEDS_CAPACITY; i++) {
+            int dist = (i - step + FRONT_LEDS) % FRONT_LEDS;
             if (dist < 8) {
                 leds[i] = CRGB(255, 255, 220); // Bright chasing beam
             } else {
@@ -427,7 +446,7 @@ void runAutonomousShowSequence(uint32_t now) {
         }
     } else {
         uint32_t waveTimer = now % 3000;
-        uint8_t waveHeadPos = map(waveTimer, 0, 3000, 0, NUM_LEDS - 1);
+        uint8_t waveHeadPos = map(waveTimer, 0, 3000, 0, FRONT_LEDS - 1);
         renderTravelingWave(myFloatNumber, waveHeadPos);
     }
 #else
@@ -442,8 +461,8 @@ void runAutonomousShowSequence(uint32_t now) {
     // Phase 3 (60 - 75s): Incandescent Marquee Chase
     // Phase 4 (75 - 90s): Solo Electrical Wave
     if (seqTime < 30000) {
-        fill_solid(leds, NUM_LEDS, charColor);
-        for (int i = 0; i < NUM_LEDS && i < MAX_LEDS_CAPACITY; i++) {
+        fill_solid(leds, FRONT_LEDS, charColor);
+        for (int i = 0; i < FRONT_LEDS && i < MAX_LEDS_CAPACITY; i++) {
             leds[i].nscale8_video(180);
             if (random16(10000) < 150) { // 1.5% subtle starlight
                 leds[i] = CRGB(255, 255, 240);
@@ -451,7 +470,7 @@ void runAutonomousShowSequence(uint32_t now) {
         }
     } else if (seqTime < 60000) {
         uint8_t breath = beatsin8(30, 80, 255);
-        for (int i = 0; i < NUM_LEDS && i < MAX_LEDS_CAPACITY; i++) {
+        for (int i = 0; i < FRONT_LEDS && i < MAX_LEDS_CAPACITY; i++) {
             CRGB col = charColor;
             col.nscale8_video(breath);
             leds[i] = col;
@@ -463,10 +482,13 @@ void runAutonomousShowSequence(uint32_t now) {
         renderMarqueeChase(now);
     } else {
         uint32_t waveTimer = now % 3000;
-        uint8_t waveHeadPos = map(waveTimer, 0, 3000, 0, NUM_LEDS - 1);
+        uint8_t waveHeadPos = map(waveTimer, 0, 3000, 0, FRONT_LEDS - 1);
         renderTravelingWave(myFloatNumber, waveHeadPos);
     }
 #endif
+
+    // Duplicate front 100 LEDs to back 100 LEDs for full 200-LED costume!
+    duplicateFrontToBack();
 
     // Status LED gentle breath during autonomous sequence
     uint8_t breathLed = ((seqTime / 1000) % 2 == 0) ? HIGH : LOW;
@@ -646,7 +668,7 @@ void loop() {
             buffer[4] == 0x01) {
             
             uint16_t frameLeds = (buffer[5] << 8) | buffer[6];
-            int ledsToUpdate = min((int)frameLeds, (int)MAX_LEDS_CAPACITY);
+            int ledsToUpdate = min((int)frameLeds, (int)FRONT_LEDS);
             
             int pIdx = 7;
             for (int i = 0; i < ledsToUpdate && (pIdx + 2) < len; i++) {
@@ -654,8 +676,11 @@ void loop() {
                 leds[i].g = buffer[pIdx++];
                 leds[i].b = buffer[pIdx++];
             }
+
+            // Duplicate front 100 LEDs to back 100 LEDs for full 200-LED costume!
+            duplicateFrontToBack();
             
-            for (int i = ledsToUpdate; i < MAX_LEDS_CAPACITY; i++) {
+            for (int i = NUM_LEDS; i < MAX_LEDS_CAPACITY; i++) {
                 leds[i] = CRGB::Black;
             }
             
