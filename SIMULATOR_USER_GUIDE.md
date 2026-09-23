@@ -193,6 +193,18 @@ Section 4 features an authentic runDisney race bib overlay on the lower torso to
    - It samples the true RGB pixel color beneath each LED, automatically creating a color-matched palette!
 5. Click **"🔄 Resample Colors from Artwork"** at any time to re-sample pixel values if you change or replace the artwork.
 
+### ✂️ Cricut Heat Transfer Vinyl (HTV) Cut Files
+Production-ready layered vector SVG files for all 7 floats are included in `assets/cricut_svg/`:
+- **The Train / Casey Jr.:** [`assets/cricut_svg/casey_jr_train.svg`](assets/cricut_svg/casey_jr_train.svg) (4 mats: Red, Gold, Cyan, White)
+- **The Title Drum:** [`assets/cricut_svg/title_drum.svg`](assets/cricut_svg/title_drum.svg) (4 mats: Navy, Gold, Cyan, White)
+- **The Spinning Turtle:** [`assets/cricut_svg/spinning_turtle.svg`](assets/cricut_svg/spinning_turtle.svg) (4 mats: Teal, Yellow, Red, White)
+- **The Spinning Snail:** [`assets/cricut_svg/spinning_snail.svg`](assets/cricut_svg/spinning_snail.svg) (4 mats: Yellow, Pink, Cyan, White)
+- **Cinderella's Coach:** [`assets/cricut_svg/cinderella_coach.svg`](assets/cricut_svg/cinderella_coach.svg) (3 mats: Cyan, Gold, White)
+- **Pete's Dragon (Elliott):** [`assets/cricut_svg/petes_dragon.svg`](assets/cricut_svg/petes_dragon.svg) (4 mats: Green, Pink, Orange, White)
+- **To Honor America (Flag & Eagle):** [`assets/cricut_svg/honor_america_eagle.svg`](assets/cricut_svg/honor_america_eagle.svg) (4 mats: Blue, Red, Gold, White)
+- **Interactive Visual Catalog:** Double-click [`assets/cricut_svg/cricut_catalog.html`](assets/cricut_svg/cricut_catalog.html) to inspect layers, preview specs, and download files.
+- See **[`CRICUT_ARTWORK_GUIDE.md`](CRICUT_ARTWORK_GUIDE.md)** for complete step-by-step Cricut Design Space upload, mat mirroring, multi-layer tack press temps, and LED attachment guides.
+
 ---
 
 ## 8. Master Timeline Scrubber & Multi-Layer Tracks

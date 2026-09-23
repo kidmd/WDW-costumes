@@ -1,0 +1,104 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600" width="100%" height="100%">
+  <!-- Main Street Electrical Parade - Float 06: Pete's Dragon (Elliott) -->
+  <!-- Designed for Layered Cricut Heat Transfer Vinyl (HTV) Cutting -->
+
+  <defs>
+    <style>
+      .layer-green { fill: #00ff88; }
+      .layer-pink { fill: #ff007f; }
+      .layer-orange { fill: #fb8500; }
+      .layer-white { fill: #ffffff; }
+      .stroke-dark { stroke: #111111; stroke-width: 4; stroke-linejoin: round; stroke-linecap: round; }
+    </style>
+  </defs>
+
+  <!-- LAYER 1: VIBRANT EMERALD GREEN HTV (Dragon Body, Head, Legs, Tail) -->
+  <g id="Layer_1_Green_Vinyl" class="layer-green">
+    <!-- Elliott's Plump Pear-Shaped Body & Arching Neck -->
+    <path class="stroke-dark" d="M 330 200 C 330 200 320 160 300 130 C 270 90 230 110 200 130 C 170 150 160 180 180 210 C 190 225 210 230 220 240 C 240 260 250 310 240 370 C 230 430 250 490 320 510 C 390 530 490 520 540 460 C 580 410 570 330 520 280 C 470 230 400 230 360 230 Z" />
+
+    <!-- Chubby Left Leg & Claws -->
+    <path class="stroke-dark" d="M 270 480 C 260 520 260 550 280 560 C 300 570 330 560 340 530 L 340 490 Z" />
+
+    <!-- Chubby Right Leg & Claws -->
+    <path class="stroke-dark" d="M 440 480 C 440 520 445 550 465 560 C 485 570 515 560 525 530 L 525 470 Z" />
+
+    <!-- Long Sweeping Dragon Tail -->
+    <path class="stroke-dark" d="M 540 440 C 620 440 680 390 710 320 C 730 280 720 230 680 230 C 650 230 650 260 640 280 C 620 320 580 360 520 380 Z" />
+
+    <!-- Cute Chubby Dragon Arm/Paw -->
+    <path class="stroke-dark" d="M 230 310 C 190 310 180 335 190 355 C 200 375 230 360 250 340 Z" />
+  </g>
+
+  <!-- LAYER 2: HOT PINK / MAGENTA HTV (Hair Crest, Back Plates, Wings, Tail Tuft) -->
+  <g id="Layer_2_Pink_Vinyl" class="layer-pink">
+    <!-- Wild Jagged Hair Crest on Head -->
+    <path class="stroke-dark" d="M 240 110 C 250 70 220 50 190 60 C 210 75 205 90 190 95 C 215 105 210 120 200 130 C 230 125 240 115 240 110 Z" />
+
+    <!-- Dragon Dorsal Back Spikes / Plates (Running down spine) -->
+    <polygon points="340,190 350,150 370,185" class="stroke-dark" />
+    <polygon points="380,210 405,170 415,215" class="stroke-dark" />
+    <polygon points="430,230 460,195 465,240" class="stroke-dark" />
+    <polygon points="480,255 515,225 510,270" class="stroke-dark" />
+    <polygon points="535,290 570,265 555,310" class="stroke-dark" />
+    <polygon points="590,325 630,305 605,350" class="stroke-dark" />
+    <polygon points="650,300 685,275 665,320" class="stroke-dark" />
+
+    <!-- Cute Little Dragon Wings -->
+    <path class="stroke-dark" d="M 390 270 C 410 200 480 180 500 200 C 510 210 490 240 470 245 C 490 250 495 270 475 280 C 450 280 420 280 390 270 Z" />
+    <!-- Wing Inner Webbing Ribs -->
+    <line x1="410" y1="260" x2="480" y2="205" stroke="#ff007f" stroke-width="4" />
+    <line x1="410" y1="260" x2="465" y2="245" stroke="#ff007f" stroke-width="4" />
+
+    <!-- Tail Spade / Fin Tuft -->
+    <path class="stroke-dark" d="M 680 230 C 720 190 750 210 740 245 C 730 280 700 270 680 230 Z" />
+  </g>
+
+  <!-- LAYER 3: MARIGOLD ORANGE / YELLOW HTV (Fire Breath Burst & Underbelly Scales) -->
+  <g id="Layer_3_Orange_Vinyl" class="layer-orange">
+    <!-- Underbelly Curved Scales (Yellow/Orange Ribs) -->
+    <path class="stroke-dark" d="M 250 360 C 275 390 280 430 270 470 C 255 460 245 420 240 370 Z" />
+    <path class="stroke-dark" d="M 270 410 C 310 435 320 480 300 510 C 285 495 275 450 270 410 Z" />
+
+    <!-- Fire Breathing Flame Core Puff from Snout -->
+    <path class="stroke-dark" d="M 160 190 C 130 180 100 195 80 220 C 70 230 85 240 100 235 C 90 255 110 270 130 255 C 145 270 170 260 165 240 C 180 230 180 205 160 190 Z" />
+    <!-- Inner Hot Yellow Flame Tongue -->
+    <polygon points="150,205 110,225 130,235 95,245 135,250 155,230" fill="#ffb703" />
+
+    <!-- Snout Nostril Dot -->
+    <circle cx="175" cy="180" r="5" class="stroke-dark" />
+  </g>
+
+  <!-- LAYER 4: CRISP WHITE HTV (Big Friendly Eye, Teeth, Smoke Sparkles, Scales) -->
+  <g id="Layer_4_White_Vinyl" class="layer-white">
+    <!-- Big Friendly Cartoon Eye -->
+    <ellipse cx="215" cy="155" rx="16" ry="20" class="stroke-dark" />
+    <circle cx="212" cy="153" r="8" fill="#111111" />
+    <circle cx="210" cy="150" r="3" fill="#ffffff" />
+
+    <!-- Cheerful Open Smile & Tooth -->
+    <path class="stroke-dark" d="M 180 195 C 190 215 220 220 235 205" fill="none" stroke="#111111" stroke-width="4" />
+    <polygon points="195,198 202,210 208,200" fill="#ffffff" />
+
+    <!-- Smoke & Fire Sparkles -->
+    <polygon points="65,180 69,188 77,190 69,192 65,200 61,192 53,190 61,188" />
+    <polygon points="105,150 108,156 114,158 108,160 105,166 102,160 96,158 102,156" />
+
+    <!-- Back Scale Light Nodes (Perfect LED Anchor Positions!) -->
+    <circle cx="360" cy="170" r="7" />
+    <circle cx="400" cy="195" r="7" />
+    <circle cx="445" cy="220" r="7" />
+    <circle cx="495" cy="245" r="7" />
+    <circle cx="545" cy="285" r="7" />
+    <circle cx="610" cy="325" r="7" />
+    <circle cx="670" cy="295" r="7" />
+
+    <!-- Belly Scale Light Nodes -->
+    <circle cx="280" cy="340" r="6" />
+    <circle cx="295" cy="390" r="6" />
+    <circle cx="310" cy="440" r="6" />
+    <circle cx="350" cy="485" r="6" />
+    <circle cx="410" cy="505" r="6" />
+    <circle cx="470" cy="495" r="6" />
+  </g>
+</svg>

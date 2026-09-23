@@ -55,6 +55,7 @@ You don't need Git, Google Antigravity, or any programming tools:
 ## Project Structure & Documentation
 
 * [`FLASHING_INSTRUCTIONS.md`](FLASHING_INSTRUCTIONS.md): **⚡ Quick Flashing Guide for the Brothers** (Double-click 1-click flasher, Web Browser flasher, and Arduino IDE).
+* [`CRICUT_ARTWORK_GUIDE.md`](CRICUT_ARTWORK_GUIDE.md): **🎨 Cricut HTV Costume Artwork Guide** (Layered SVG cut files, color mats, heat press settings, and visual catalog).
 * [`SIMULATOR_USER_GUIDE.md`](SIMULATOR_USER_GUIDE.md): **Complete User Guide & Theatrical Lighting Manual** for the browser simulator, multi-layer timeline, and ESP32 hardware flasher.
 * [`PROJECT_PROGRESS.md`](PROJECT_PROGRESS.md): Live project milestones, wiring specifications, and development changelog.
 * `flash_firmware.bat`: One-click Windows desktop firmware flasher script.
