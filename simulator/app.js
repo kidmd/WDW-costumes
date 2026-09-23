@@ -40,9 +40,17 @@ cinderellasCoachImg.onload = () => {
 };
 cinderellasCoachImg.src = 'assets/cinderellas_coach.png';
 
+// Carriage (No Horses) Artwork
+const carriageNoHorsesImg = new Image();
+let carriageNoHorsesLoaded = false;
+carriageNoHorsesImg.onload = () => {
+    carriageNoHorsesLoaded = true;
+};
+carriageNoHorsesImg.src = 'assets/Carriage_nohorses.png';
+
 // Custom artwork image (if user uploads one or loads one from preset)
 let customArtworkImg = null;
-let currentGraphicType = 'builtin_dragon'; // 'builtin_dragon', 'cinderellas_coach', or 'custom_image'
+let currentGraphicType = 'builtin_dragon'; // 'builtin_dragon', 'cinderellas_coach', 'carriage_nohorses', or 'custom_image'
 let customArtworkDataUrl = null;
 
 function getActiveGraphicImg() {
@@ -54,6 +62,12 @@ function getActiveGraphicImg() {
             return cinderellasCoachImg;
         }
         return cinderellasCoachImg;
+    }
+    if (currentGraphicType === 'carriage_nohorses') {
+        if (carriageNoHorsesImg && carriageNoHorsesImg.naturalWidth > 0) {
+            return carriageNoHorsesImg;
+        }
+        return carriageNoHorsesImg;
     }
     if (defaultDragonLoaded && defaultDragonImg.complete && defaultDragonImg.naturalWidth > 0) {
         return defaultDragonImg;
@@ -851,6 +865,8 @@ function renderSingleShirtView(timeMs) {
     let shirtTitle = "FLOAT #3: PETE'S DRAGON";
     if (currentGraphicType === 'cinderellas_coach') {
         shirtTitle = "FLOAT #5: CINDERELLA'S COACH";
+    } else if (currentGraphicType === 'carriage_nohorses') {
+        shirtTitle = "FLOAT #5: CARRIAGE (NO HORSES)";
     } else if (currentGraphicType === 'custom_image') {
         shirtTitle = "CUSTOM RUNNER DESIGN";
     }
@@ -2639,6 +2655,12 @@ function applyProfileData(profileData) {
         if (graphicSelect) graphicSelect.value = 'cinderellas_coach';
         if (uploadContainer) uploadContainer.style.display = 'none';
         if (resetBtn) resetBtn.style.display = 'block';
+    } else if (currentGraphicType === 'carriage_nohorses') {
+        customArtworkImg = null;
+        customArtworkDataUrl = null;
+        if (graphicSelect) graphicSelect.value = 'carriage_nohorses';
+        if (uploadContainer) uploadContainer.style.display = 'none';
+        if (resetBtn) resetBtn.style.display = 'block';
     } else if (profileData.customArtworkDataUrl) {
         customArtworkDataUrl = profileData.customArtworkDataUrl;
         const img = new Image();
@@ -3074,8 +3096,8 @@ function boostCustomImageColor(r, g, b) {
 
 // Boost vibrancy and saturation of sampled colors so physical WS2812B LEDs shine with true character colors
 function boostLedVibrancy(r, g, b, relX, relY) {
-    // If user uploaded a custom graphic or selected Cinderella's Coach, preserve and boost authentic colors!
-    if (currentGraphicType === 'custom_image' || currentGraphicType === 'cinderellas_coach') {
+    // If user uploaded a custom graphic, selected Cinderella's Coach, or Carriage (No Horses), preserve and boost authentic colors!
+    if (currentGraphicType === 'custom_image' || currentGraphicType === 'cinderellas_coach' || currentGraphicType === 'carriage_nohorses') {
         return boostCustomImageColor(r, g, b);
     }
 
@@ -3730,6 +3752,44 @@ async function loadGraphicPreset(type) {
         renderActiveGroupsList();
         scatterLedsOnGraphic(100, true);
         showToast("🎃 Switched to Cinderella's Coach!");
+    } else if (type === 'carriage_nohorses') {
+        currentGraphicType = 'carriage_nohorses';
+        customArtworkImg = null;
+        customArtworkDataUrl = null;
+        if (uploadContainer) uploadContainer.style.display = 'none';
+        if (resetBtn) resetBtn.style.display = 'block';
+
+        // Load Carriage (No Horses) preset if available from server
+        try {
+            const res = await fetch('/api/preset/carriage_nohorses.json');
+            if (res.ok) {
+                const profileData = await res.json();
+                if (Array.isArray(profileData.leds) && profileData.leds.length > 0) {
+                    leds = profileData.leds;
+                    while (sparkles.length < leds.length) sparkles.push(0);
+                    if (Array.isArray(profileData.animationGroups)) {
+                        animationGroups = profileData.animationGroups;
+                    } else {
+                        animationGroups = [];
+                    }
+                    rebuildLedGroupMap();
+                    renderActiveGroupsList();
+                    updateLedCountUI();
+                    const nameIn = document.getElementById('profileNameInput');
+                    if (nameIn) nameIn.value = "Carriage (No Horses)";
+                    showToast("🎃 Loaded Carriage (No Horses) with 100 color-matched LEDs!");
+                    return;
+                }
+            }
+        } catch (e) {
+            console.warn("Could not fetch Carriage (No Horses) preset:", e);
+        }
+
+        animationGroups = [];
+        rebuildLedGroupMap();
+        renderActiveGroupsList();
+        scatterLedsOnGraphic(100, true);
+        showToast("🎃 Switched to Carriage (No Horses)!");
     } else if (type === 'custom_upload') {
         if (uploadContainer) uploadContainer.style.display = 'block';
         if (resetBtn) resetBtn.style.display = customArtworkImg ? 'block' : 'none';
@@ -3865,7 +3925,7 @@ document.getElementById('presetSelect').addEventListener('change', (e) => {
 // Export complete profile configuration JSON
 function exportCurrentProfileJson() {
     const nameInput = document.getElementById('profileNameInput');
-    const name = (nameInput?.value || '').trim() || (currentGraphicType === 'cinderellas_coach' ? "Cinderella_Coach" : "Petes_Dragon");
+    const name = (nameInput?.value || '').trim() || (currentGraphicType === 'cinderellas_coach' ? "Cinderella_Coach" : (currentGraphicType === 'carriage_nohorses' ? "Carriage_nohorses" : "Petes_Dragon"));
     const profileData = {
         name: name,
         savedAt: new Date().toISOString(),
@@ -3898,7 +3958,7 @@ function exportCurrentProfileJson() {
 
 document.getElementById('saveProfileBtn').addEventListener('click', () => {
     const nameInput = document.getElementById('profileNameInput');
-    const defaultName = currentGraphicType === 'cinderellas_coach' ? "Cinderella's Coach" : "Pete's Dragon";
+    const defaultName = currentGraphicType === 'cinderellas_coach' ? "Cinderella's Coach" : (currentGraphicType === 'carriage_nohorses' ? "Carriage (No Horses)" : "Pete's Dragon");
     const name = (nameInput?.value || '').trim() || prompt("Enter a name for this profile:", defaultName);
     if (name) {
         if (nameInput) nameInput.value = name;
