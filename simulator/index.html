@@ -29,6 +29,10 @@
                 <button id="zoomOutBtn" class="zoom-btn" title="Zoom Out (- or Scroll Down)">➖</button>
                 <button id="zoomResetBtn" class="zoom-btn" title="Reset View (0 key)">⟲ 100%</button>
                 <span id="zoomLevelText" class="zoom-badge">100%</span>
+                <span style="display: inline-block; width: 1px; height: 16px; background: var(--border-color); margin: 0 2px;"></span>
+                <button id="boxSelectBtn" class="zoom-btn" title="Toggle Marquee Box Select (or hold Shift + drag on canvas)">⬚ Box Select</button>
+                <button id="selectAllBtn" class="zoom-btn" title="Select All LEDs (Ctrl+A)" style="font-size: 11px;">All</button>
+                <button id="clearSelectionBtn" class="zoom-btn" title="Deselect All (Esc)" style="font-size: 11px;">Clear</button>
             </div>
 
             <canvas id="simulatorCanvas" width="850" height="880"></canvas>
@@ -196,12 +200,12 @@
             <!-- 5b. Selected LED Inspector & Color Adjuster -->
             <div class="control-section" id="ledInspectorSection" style="border: 1px solid #ffc107; background: rgba(255, 193, 7, 0.05); border-radius: 10px; padding: 14px;">
                 <div class="section-title" style="color: #ffc107; display: flex; justify-content: space-between; align-items: center;">
-                    <span>💡 LED Inspector & Color Tuning</span>
+                    <span id="inspectorTitle">💡 LED Inspector & Groups</span>
                     <span id="inspectorLedBadge" style="background: #ffc107; color: #000; font-weight: 700; padding: 2px 7px; border-radius: 12px; font-size: 11px;">Select an LED</span>
                 </div>
 
-                <!-- Quick LED Stepper -->
-                <div style="display: flex; gap: 6px; align-items: center; margin-top: 6px;">
+                <!-- Quick LED Stepper (Visible when 1 or no LED is selected) -->
+                <div id="inspectorStepperRow" style="display: flex; gap: 6px; align-items: center; margin-top: 6px;">
                     <button id="prevLedBtn" class="action-btn" style="flex: 1; font-size: 11px; padding: 6px 4px;" title="Select Previous LED (Left Arrow or [ )">◀ Prev</button>
                     <div style="display: flex; align-items: center; gap: 4px; flex: 1.4; justify-content: center;">
                         <span style="font-size: 11px; color: var(--text-muted);">LED #</span>
@@ -211,12 +215,19 @@
                     <button id="focusLedBtn" class="action-btn" style="padding: 6px 8px; font-size: 11px;" title="Center and Zoom to this LED">⌖ Focus</button>
                 </div>
 
-                <!-- Empty State Prompt (shown when no LED is selected) -->
-                <div id="inspectorEmptyPrompt" style="padding: 10px; background: #0d1117; border-radius: 6px; border: 1px dashed #30363d; font-size: 11px; color: var(--text-muted); text-align: center; margin-top: 8px; line-height: 1.5;">
-                    👆 Click any LED on the shirt (or click <strong>Prev / Next</strong>) to select and customize its RGB color.
+                <!-- Multi-Selection Action Bar (Visible when multiple LEDs are selected) -->
+                <div id="inspectorMultiSelectRow" style="display: none; gap: 6px; align-items: center; margin-top: 6px;">
+                    <button id="inspectorSelectAllBtn" class="action-btn" style="flex: 1; font-size: 11px; padding: 6px 4px;">Select All</button>
+                    <button id="inspectorInvertBtn" class="action-btn" style="flex: 1; font-size: 11px; padding: 6px 4px;">Invert</button>
+                    <button id="inspectorClearBtn" class="action-btn" style="flex: 1; font-size: 11px; padding: 6px 4px;">Clear</button>
                 </div>
 
-                <!-- Active LED Color Editor (shown when an LED is selected) -->
+                <!-- Empty State Prompt (shown when no LED is selected) -->
+                <div id="inspectorEmptyPrompt" style="padding: 10px; background: #0d1117; border-radius: 6px; border: 1px dashed #30363d; font-size: 11px; color: var(--text-muted); text-align: center; margin-top: 8px; line-height: 1.5;">
+                    👆 Click an LED to inspect it, hold <strong>Shift</strong> to select multiple, or use <strong>⬚ Box Select</strong> in the canvas toolbar.
+                </div>
+
+                <!-- Active LED Color Editor (shown when 1 or more LEDs are selected) -->
                 <div id="inspectorColorControls" style="display: none; flex-direction: column; gap: 10px; margin-top: 8px;">
                     
                     <!-- Color Preview Card + Native Color Picker -->
@@ -266,7 +277,7 @@
                     <!-- Quick Disney Palette Swatches -->
                     <div>
                         <div style="font-size: 11px; color: var(--text-muted); margin-bottom: 6px; font-weight: 500;">
-                            Quick Palette Swatches:
+                            Quick Palette Swatches (Applies to all selected):
                         </div>
                         <div style="display: grid; grid-template-columns: repeat(6, 1fr); gap: 4px;">
                             <button type="button" class="palette-swatch-btn" data-r="0" data-g="255" data-b="35" style="background: #00ff23;" title="Dragon Green"></button>
@@ -285,11 +296,74 @@
                     </div>
 
                     <!-- Single LED Utility Buttons -->
-                    <div style="display: flex; gap: 6px; margin-top: 4px;">
+                    <div id="inspectorSingleUtils" style="display: flex; gap: 6px; margin-top: 4px;">
                         <button type="button" id="inspectorSampleBtn" class="action-btn" style="flex: 1; font-size: 11px; padding: 6px;" title="Sample artwork pixel color directly under this LED">🎨 Sample Art</button>
                         <button type="button" id="inspectorCopyNextBtn" class="action-btn" style="flex: 1; font-size: 11px; padding: 6px;" title="Copy this color to the next 5 LEDs along the wire">⏩ Copy Next 5</button>
                         <button type="button" id="inspectorDeselectBtn" class="action-btn" style="padding: 6px 10px; font-size: 11px;" title="Deselect LED">✖</button>
                     </div>
+
+                    <!-- Group Animation Effects Card -->
+                    <div id="groupEffectCard" style="margin-top: 6px; padding: 12px; background: #161b22; border-radius: 8px; border: 1px solid #30363d; display: flex; flex-direction: column; gap: 8px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <span style="font-size: 12px; font-weight: 600; color: #58a6ff;">🎡 Group Animation Effect</span>
+                            <span id="groupEffectLedCountBadge" style="font-size: 10px; background: #21262d; color: var(--accent-cyan); padding: 2px 6px; border-radius: 10px; font-weight: bold;">0 LEDs Selected</span>
+                        </div>
+
+                        <div class="control-group">
+                            <label style="font-size: 11px; color: var(--text-muted); margin-bottom: 2px;">Group / Zone Name:</label>
+                            <input type="text" id="groupNameInput" placeholder="e.g. Coach Wheels" value="Coach Wheels" style="background: #0d1117; color: #fff; border: 1px solid #30363d; border-radius: 4px; padding: 5px 8px; font-size: 12px; width: 100%;">
+                        </div>
+
+                        <div class="control-group">
+                            <label style="font-size: 11px; color: var(--text-muted); margin-bottom: 2px;">Effect Pattern:</label>
+                            <select id="groupEffectSelect" style="background: #0d1117; color: #fff; border: 1px solid #30363d; border-radius: 4px; padding: 6px 8px; font-size: 12px; width: 100%;">
+                                <option value="chase">🎡 Chase / Rotating Wheels (Spin)</option>
+                                <option value="flash_slow">💡 Slow Flashing (Blink)</option>
+                                <option value="pulse">💓 Pulsating / Breathing Glow</option>
+                                <option value="write_on_off">✍️ Write-On / Write-Off (Wipe)</option>
+                                <option value="sparkle_storm">✨ Sparkle Storm (Glitter)</option>
+                                <option value="marquee">🎪 Theater Marquee</option>
+                                <option value="rainbow_cycle">🌈 Rainbow Color Wave</option>
+                            </select>
+                        </div>
+
+                        <div class="control-group">
+                            <div class="label-row" style="margin-bottom: 2px;">
+                                <span style="font-size: 11px; color: var(--text-muted);">Speed / Tempo</span>
+                                <span id="groupSpeedVal" class="val-badge" style="font-size: 10px;">140 BPM</span>
+                            </div>
+                            <input type="range" id="groupSpeedSlider" min="40" max="280" value="140">
+                        </div>
+
+                        <div style="display: flex; gap: 8px; align-items: center;">
+                            <label style="font-size: 11px; color: var(--text-muted); flex: 1;">Direction:</label>
+                            <select id="groupDirectionSelect" style="background: #0d1117; color: #fff; border: 1px solid #30363d; border-radius: 4px; padding: 4px 6px; font-size: 11px; flex: 1.5;">
+                                <option value="1">Forward ➡️</option>
+                                <option value="-1">Reverse ⬅️</option>
+                            </select>
+                        </div>
+
+                        <div style="display: flex; gap: 6px; margin-top: 4px;">
+                            <button type="button" id="applyGroupEffectBtn" class="action-btn accent" style="flex: 1; font-weight: 600; font-size: 11px; padding: 7px 6px;">
+                                ⚡ Apply Effect to Selected
+                            </button>
+                            <button type="button" id="removeGroupEffectBtn" class="action-btn" style="flex: none; font-size: 11px; padding: 7px 10px;" title="Remove group effect from selected LEDs">
+                                Remove
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Active Animation Groups List Container -->
+                    <div id="activeGroupsContainer" style="margin-top: 8px; display: flex; flex-direction: column; gap: 6px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <span style="font-size: 11px; font-weight: 600; color: var(--text-muted);">Configured Groups:</span>
+                            <span id="activeGroupsCountBadge" style="font-size: 10px; color: var(--accent-cyan); font-family: monospace;">0 Groups</span>
+                        </div>
+                        <div id="activeGroupsList" style="display: flex; flex-direction: column; gap: 4px; max-height: 160px; overflow-y: auto;">
+                            <!-- Populated dynamically -->
+                        </div>
+                    </div>
+
                 </div>
             </div>
 
@@ -422,6 +496,6 @@
         </div>
     </div>
 
-    <script src="app.js?v=9"></script>
+    <script src="app.js?v=10"></script>
 </body>
 </html>

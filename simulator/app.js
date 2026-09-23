@@ -106,10 +106,38 @@ let mouseStartY = 0;
 let hasMovedSignificantly = false;
 
 // Selection & Dragging state
-let selectedLed = null;
+let selectedLed = null; // Primary / last selected LED index
+let selectedLeds = new Set(); // Multi-selection set of LED indices
+let isBoxSelectMode = false; // Toggleable box-select mode
+let isBoxSelecting = false;
+let boxStartX = 0;
+let boxStartY = 0;
+let boxCurrentX = 0;
+let boxCurrentY = 0;
+
 let draggedLed = null;
 let hoveredLed = null;
 let isDraggingLed = false;
+
+// Animation Groups & Zones
+// Array of { id, name, ledIndices: [idx...], effect: 'chase'|'flash_slow'|..., speedBpm, direction, width, colorMode, customColor }
+let animationGroups = [];
+let ledGroupMap = {}; // mapping: ledIndex -> { group, indexInGroup, groupSize }
+
+function rebuildLedGroupMap() {
+    ledGroupMap = {};
+    for (const grp of animationGroups) {
+        if (!grp || !Array.isArray(grp.ledIndices)) continue;
+        for (let pos = 0; pos < grp.ledIndices.length; pos++) {
+            const idx = grp.ledIndices[pos];
+            ledGroupMap[idx] = {
+                group: grp,
+                indexInGroup: pos,
+                groupSize: grp.ledIndices.length
+            };
+        }
+    }
+}
 
 // LEDs array: [{ x, y, color: {r, g, b} }]
 let leds = [];
@@ -355,6 +383,137 @@ function computeLedColor(index, totalLeds, timeMs) {
 
     const hasColor = (leds[index] && leds[index].color);
     const c = hasColor ? leds[index].color : null;
+
+    // ------------------------------------------------------------------------
+    // ANIMATION GROUP / ZONE OVERRIDE
+    // If this LED belongs to a custom animation group (e.g. Coach Wheels, Lanterns):
+    // ------------------------------------------------------------------------
+    const grpEntry = ledGroupMap[index];
+    if (grpEntry && grpEntry.group) {
+        const grp = grpEntry.group;
+        const grpIndex = grpEntry.indexInGroup;
+        const grpSize = Math.max(1, grpEntry.groupSize);
+        const grpBpm = grp.speedBpm || params.speedBpm || 120;
+        const grpBeatMs = 60000 / grpBpm;
+        const grpNormTime = timeMs / grpBeatMs;
+        const grpDir = grp.direction || 1;
+
+        let baseR = c ? c.r : 255;
+        let baseG = c ? c.g : 200;
+        let baseB = c ? c.b : 50;
+
+        if (grp.colorMode === 'custom' && grp.customColor) {
+            baseR = grp.customColor.r;
+            baseG = grp.customColor.g;
+            baseB = grp.customColor.b;
+        }
+
+        let grpIntensity = 1.0;
+
+        switch (grp.effect) {
+            case 'chase': {
+                // Spinning wheel chase: traveling lit segment rotating along the group
+                const head = ((grpNormTime * grpDir) % grpSize + grpSize) % grpSize;
+                const directDist = Math.abs(grpIndex - head);
+                const circDist = Math.min(directDist, grpSize - directDist);
+                const fadeLen = Math.max(1.8, (grp.width || 2.5));
+                if (circDist < fadeLen) {
+                    const fade = Math.max(0, 1 - (circDist / fadeLen));
+                    grpIntensity = 0.18 + 0.82 * Math.pow(fade, 1.2);
+                    if (circDist < 0.85) {
+                        baseR = Math.min(255, baseR + 45);
+                        baseG = Math.min(255, baseG + 45);
+                        baseB = Math.min(255, baseB + 45);
+                    }
+                } else {
+                    grpIntensity = 0.14; // Dim unlit wheel track
+                }
+                break;
+            }
+            case 'flash_slow': {
+                // Gentle slow blink
+                const phase = (timeMs % (grpBeatMs * 2)) / (grpBeatMs * 2);
+                grpIntensity = phase < 0.5 ? 1.0 : 0.08;
+                break;
+            }
+            case 'pulse': {
+                // Smooth sine-wave breathing glow
+                const sine = Math.sin(grpNormTime * Math.PI * 2) * 0.5 + 0.5;
+                grpIntensity = 0.18 + 0.82 * sine;
+                break;
+            }
+            case 'write_on_off': {
+                // Theatrical / Neon sign progressive write-on and write-off wipe
+                const totalCycleMs = grpBeatMs * 4;
+                const progress = (timeMs % totalCycleMs) / totalCycleMs;
+                if (progress < 0.40) {
+                    // Progressive turn-on
+                    const litHead = (progress / 0.40) * grpSize;
+                    if (grpDir >= 0) {
+                        grpIntensity = grpIndex <= litHead ? 1.0 : 0.05;
+                    } else {
+                        grpIntensity = (grpSize - 1 - grpIndex) <= litHead ? 1.0 : 0.05;
+                    }
+                } else if (progress < 0.58) {
+                    // Hold fully lit
+                    grpIntensity = 1.0;
+                } else if (progress < 0.88) {
+                    // Progressive turn-off
+                    const offHead = ((progress - 0.58) / 0.30) * grpSize;
+                    if (grpDir >= 0) {
+                        grpIntensity = grpIndex <= offHead ? 0.05 : 1.0;
+                    } else {
+                        grpIntensity = (grpSize - 1 - grpIndex) <= offHead ? 0.05 : 1.0;
+                    }
+                } else {
+                    // Dark pause
+                    grpIntensity = 0.05;
+                }
+                break;
+            }
+            case 'sparkle_storm': {
+                // Rapid shimmering fairy dust / starlight on this group
+                const rand = Math.sin(timeMs * 0.05 + grpIndex * 37.1) * 0.5 + 0.5;
+                if (rand > 0.65) {
+                    grpIntensity = 1.0;
+                    baseR = Math.min(255, baseR + 80);
+                    baseG = Math.min(255, baseG + 80);
+                    baseB = Math.min(255, baseB + 80);
+                } else {
+                    grpIntensity = 0.25 + 0.35 * rand;
+                }
+                break;
+            }
+            case 'marquee': {
+                // 3-step running marquee dot chase
+                const step = Math.floor(grpNormTime * 2 * grpDir) % 3;
+                const posInStep = ((grpIndex + step) % 3 + 3) % 3;
+                grpIntensity = posInStep === 0 ? 1.0 : 0.12;
+                break;
+            }
+            case 'rainbow_cycle': {
+                // Flowing spectrum
+                const hue = ((timeMs * 0.08 * grpDir + grpIndex * (360 / grpSize)) % 360 + 360) % 360;
+                const rgb = hslToRgb(hue / 360, 0.95, 0.52);
+                baseR = rgb.r;
+                baseG = rgb.g;
+                baseB = rgb.b;
+                grpIntensity = 1.0;
+                break;
+            }
+            default:
+                grpIntensity = 1.0;
+                break;
+        }
+
+        const effBrightness = (params.brightness / 100) * grpIntensity;
+        return {
+            r: Math.floor(baseR * effBrightness),
+            g: Math.floor(baseG * effBrightness),
+            b: Math.floor(baseB * effBrightness),
+            alpha: effBrightness
+        };
+    }
 
     switch (activePattern) {
         case 'steady_sparkle': {
@@ -644,11 +803,28 @@ function renderSingleShirtView(timeMs) {
         const pt = normToCanvas(leds[i]);
         const col = computeLedColor(i, leds.length, timeMs);
         const isHover = (hoveredLed === i);
-        const isSel = (selectedLed === i || draggedLed === i);
+        const isSel = (selectedLed === i || draggedLed === i || selectedLeds.has(i));
         renderBulb(ctx, pt.x, pt.y, col, isHover, isSel, i);
     }
 
     ctx.restore();
+
+    // Render Marquee Selection Box in Screen Space
+    if (isBoxSelecting) {
+        const bx = Math.min(boxStartX, boxCurrentX);
+        const by = Math.min(boxStartY, boxCurrentY);
+        const bw = Math.abs(boxCurrentX - boxStartX);
+        const bh = Math.abs(boxCurrentY - boxStartY);
+
+        ctx.save();
+        ctx.fillStyle = 'rgba(56, 139, 253, 0.18)';
+        ctx.fillRect(bx, by, bw, bh);
+        ctx.strokeStyle = '#58a6ff';
+        ctx.lineWidth = 1.5;
+        ctx.setLineDash([4, 3]);
+        ctx.strokeRect(bx, by, bw, bh);
+        ctx.restore();
+    }
 }
 
 // ============================================================================
@@ -834,17 +1010,35 @@ function focusOnLed(index) {
 // ============================================================================
 // LED SELECTION & RGB COLOR INSPECTOR
 // ============================================================================
-function selectLed(index) {
+function selectLed(index, isMulti = false) {
     if (index === null || index < 0 || index >= leds.length) {
         deselectLed();
         return;
     }
-    selectedLed = index;
+
+    if (isMulti) {
+        if (selectedLeds.has(index)) {
+            selectedLeds.delete(index);
+            if (selectedLed === index) {
+                const arr = Array.from(selectedLeds);
+                selectedLed = arr.length > 0 ? arr[arr.length - 1] : null;
+            }
+        } else {
+            selectedLeds.add(index);
+            selectedLed = index;
+        }
+    } else {
+        selectedLeds.clear();
+        selectedLeds.add(index);
+        selectedLed = index;
+    }
+
     updateLedInspectorUI();
 }
 
 function deselectLed() {
     selectedLed = null;
+    selectedLeds.clear();
     updateLedInspectorUI();
 }
 
@@ -866,24 +1060,60 @@ function selectPrevLed() {
     }
 }
 
+function selectAllLeds() {
+    if (!leds || leds.length === 0) return;
+    selectedLeds.clear();
+    for (let i = 0; i < leds.length; i++) {
+        selectedLeds.add(i);
+    }
+    selectedLed = 0;
+    updateLedInspectorUI();
+    showToast(`✨ Selected all ${leds.length} LEDs!`);
+}
+
+function invertLedSelection() {
+    if (!leds || leds.length === 0) return;
+    const newSel = new Set();
+    for (let i = 0; i < leds.length; i++) {
+        if (!selectedLeds.has(i)) newSel.add(i);
+    }
+    selectedLeds = newSel;
+    const arr = Array.from(selectedLeds);
+    selectedLed = arr.length > 0 ? arr[0] : null;
+    updateLedInspectorUI();
+    showToast(`🔄 Inverted selection: ${selectedLeds.size} LEDs selected`);
+}
+
 function updateLedInspectorCoords() {
     if (selectedLed === null || !leds[selectedLed]) return;
     const coordsEl = document.getElementById('inspectorCoordsText');
     if (coordsEl) {
-        coordsEl.textContent = `X: ${(leds[selectedLed].x * 100).toFixed(1)}% | Y: ${(leds[selectedLed].y * 100).toFixed(1)}%`;
+        if (selectedLeds.size > 1) {
+            coordsEl.textContent = `${selectedLeds.size} LEDs in selection`;
+        } else {
+            coordsEl.textContent = `X: ${(leds[selectedLed].x * 100).toFixed(1)}% | Y: ${(leds[selectedLed].y * 100).toFixed(1)}%`;
+        }
     }
 }
 
 function setSelectedLedColor(r, g, b) {
-    if (selectedLed === null || !leds[selectedLed]) return;
+    if (selectedLeds.size === 0 && (selectedLed === null || !leds[selectedLed])) return;
     const clampedR = Math.max(0, Math.min(255, Math.round(r)));
     const clampedG = Math.max(0, Math.min(255, Math.round(g)));
     const clampedB = Math.max(0, Math.min(255, Math.round(b)));
 
-    leds[selectedLed].color = { r: clampedR, g: clampedG, b: clampedB };
+    if (selectedLeds.size > 0) {
+        for (const idx of selectedLeds) {
+            if (leds[idx]) {
+                leds[idx].color = { r: clampedR, g: clampedG, b: clampedB };
+            }
+        }
+    } else if (selectedLed !== null && leds[selectedLed]) {
+        leds[selectedLed].color = { r: clampedR, g: clampedG, b: clampedB };
+    }
+
     updateLedInspectorColorInputs(clampedR, clampedG, clampedB);
 
-    // If live Wi-Fi streaming is active, transmit frame to physical ESP32 immediately
     if (isWifiStreaming) {
         sendLivePixelFrame(performance.now());
     }
@@ -900,7 +1130,13 @@ function updateLedInspectorColorInputs(r, g, b) {
     if (nativePicker) nativePicker.value = hex.toLowerCase();
 
     const hexText = document.getElementById('inspectorHexText');
-    if (hexText) hexText.textContent = hex;
+    if (hexText) {
+        if (selectedLeds.size > 1) {
+            hexText.textContent = `${hex} (${selectedLeds.size} LEDs)`;
+        } else {
+            hexText.textContent = hex;
+        }
+    }
 
     const rgbText = document.getElementById('inspectorRgbText');
     if (rgbText) rgbText.textContent = `rgb(${r}, ${g}, ${b})`;
@@ -927,41 +1163,244 @@ function updateLedInspectorUI() {
     const colorControls = document.getElementById('inspectorColorControls');
     const badge = document.getElementById('inspectorLedBadge');
     const numInput = document.getElementById('inspectorLedNumInput');
+    const stepperRow = document.getElementById('inspectorStepperRow');
+    const multiRow = document.getElementById('inspectorMultiSelectRow');
+    const groupBadge = document.getElementById('groupEffectLedCountBadge');
 
-    if (selectedLed === null || !leds[selectedLed]) {
+    const totalSelected = selectedLeds.size;
+
+    if (totalSelected === 0) {
         if (emptyPrompt) emptyPrompt.style.display = 'block';
         if (colorControls) colorControls.style.display = 'none';
+        if (stepperRow) stepperRow.style.display = 'flex';
+        if (multiRow) multiRow.style.display = 'none';
         if (badge) {
             badge.textContent = 'None Selected';
             badge.style.background = '#30363d';
             badge.style.color = '#8b949e';
         }
+        if (groupBadge) groupBadge.textContent = '0 LEDs Selected';
         return;
     }
 
     if (emptyPrompt) emptyPrompt.style.display = 'none';
     if (colorControls) colorControls.style.display = 'flex';
 
-    if (badge) {
-        badge.textContent = `LED #${selectedLed}`;
-        badge.style.background = '#ffc107';
-        badge.style.color = '#000';
-    }
+    if (totalSelected === 1) {
+        if (stepperRow) stepperRow.style.display = 'flex';
+        if (multiRow) multiRow.style.display = 'none';
+        if (badge) {
+            badge.textContent = `LED #${selectedLed}`;
+            badge.style.background = '#ffc107';
+            badge.style.color = '#000';
+        }
+        if (groupBadge) groupBadge.textContent = '1 LED Selected';
+        if (numInput) {
+            numInput.value = selectedLed;
+            numInput.max = Math.max(0, leds.length - 1);
+        }
 
-    if (numInput) {
-        numInput.value = selectedLed;
-        numInput.max = Math.max(0, leds.length - 1);
+        // If this LED belongs to a group, populate group inputs
+        const grpEntry = ledGroupMap[selectedLed];
+        if (grpEntry && grpEntry.group) {
+            const grp = grpEntry.group;
+            const nameInput = document.getElementById('groupNameInput');
+            const effectSelect = document.getElementById('groupEffectSelect');
+            const speedSlider = document.getElementById('groupSpeedSlider');
+            const speedVal = document.getElementById('groupSpeedVal');
+            const dirSelect = document.getElementById('groupDirectionSelect');
+            if (nameInput) nameInput.value = grp.name;
+            if (effectSelect) effectSelect.value = grp.effect;
+            if (speedSlider) {
+                speedSlider.value = grp.speedBpm;
+                if (speedVal) speedVal.textContent = `${grp.speedBpm} BPM`;
+            }
+            if (dirSelect) dirSelect.value = String(grp.direction || 1);
+        }
+    } else {
+        // Multi-selection (> 1)
+        if (stepperRow) stepperRow.style.display = 'none';
+        if (multiRow) multiRow.style.display = 'flex';
+        if (badge) {
+            badge.textContent = `✨ ${totalSelected} LEDs Selected`;
+            badge.style.background = '#388bfd';
+            badge.style.color = '#ffffff';
+        }
+        if (groupBadge) groupBadge.textContent = `${totalSelected} LEDs Selected`;
     }
 
     updateLedInspectorCoords();
 
-    let col = leds[selectedLed].color;
-    if (!col) {
-        col = computeLedColor(selectedLed, leds.length, performance.now());
-        leds[selectedLed].color = { r: col.r, g: col.g, b: col.b };
+    const activeRef = (selectedLed !== null && leds[selectedLed]) ? selectedLed : Array.from(selectedLeds)[0];
+    if (activeRef !== undefined && leds[activeRef]) {
+        let col = leds[activeRef].color;
+        if (!col) {
+            col = computeLedColor(activeRef, leds.length, performance.now());
+            leds[activeRef].color = { r: col.r, g: col.g, b: col.b };
+        }
+        updateLedInspectorColorInputs(col.r, col.g, col.b);
+    }
+}
+
+// ----------------------------------------------------------------------------
+// ANIMATION GROUP MANAGEMENT ROUTINES
+// ----------------------------------------------------------------------------
+function applyGroupEffectToSelection() {
+    if (selectedLeds.size === 0) {
+        alert("Please select at least 2 LEDs to create or apply an animation group effect!");
+        return;
     }
 
-    updateLedInspectorColorInputs(col.r, col.g, col.b);
+    const nameInput = document.getElementById('groupNameInput');
+    const effectSelect = document.getElementById('groupEffectSelect');
+    const speedSlider = document.getElementById('groupSpeedSlider');
+    const dirSelect = document.getElementById('groupDirectionSelect');
+
+    const rawName = (nameInput?.value || '').trim() || `Zone (${selectedLeds.size} LEDs)`;
+    const effect = effectSelect?.value || 'chase';
+    const speedBpm = parseInt(speedSlider?.value || '140', 10);
+    const direction = parseInt(dirSelect?.value || '1', 10);
+
+    const sortedIndices = Array.from(selectedLeds).sort((a, b) => a - b);
+
+    // If an existing group with this exact name exists, update it; otherwise create new
+    let targetGroup = animationGroups.find(g => g.name.toLowerCase() === rawName.toLowerCase());
+
+    if (targetGroup) {
+        targetGroup.ledIndices = sortedIndices;
+        targetGroup.effect = effect;
+        targetGroup.speedBpm = speedBpm;
+        targetGroup.direction = direction;
+    } else {
+        targetGroup = {
+            id: 'grp_' + Date.now() + '_' + Math.floor(Math.random() * 1000),
+            name: rawName,
+            ledIndices: sortedIndices,
+            effect: effect,
+            speedBpm: speedBpm,
+            direction: direction,
+            width: 3,
+            colorMode: 'original'
+        };
+        animationGroups.push(targetGroup);
+    }
+
+    rebuildLedGroupMap();
+    renderActiveGroupsList();
+    showToast(`✨ Applied "${effect.replace('_', ' ')}" to ${sortedIndices.length} LEDs in "${targetGroup.name}"!`);
+}
+
+function removeGroupEffectFromSelection() {
+    if (selectedLeds.size === 0) return;
+
+    let removedCount = 0;
+    for (const idx of selectedLeds) {
+        for (let g = animationGroups.length - 1; g >= 0; g--) {
+            const grp = animationGroups[g];
+            const p = grp.ledIndices.indexOf(idx);
+            if (p !== -1) {
+                grp.ledIndices.splice(p, 1);
+                removedCount++;
+                if (grp.ledIndices.length === 0) {
+                    animationGroups.splice(g, 1);
+                }
+            }
+        }
+    }
+
+    rebuildLedGroupMap();
+    renderActiveGroupsList();
+    showToast(`🗑️ Removed group effects from ${removedCount} LEDs.`);
+}
+
+function deleteGroup(groupId) {
+    const idx = animationGroups.findIndex(g => g.id === groupId);
+    if (idx !== -1) {
+        const name = animationGroups[idx].name;
+        animationGroups.splice(idx, 1);
+        rebuildLedGroupMap();
+        renderActiveGroupsList();
+        showToast(`🗑️ Deleted animation group "${name}"`);
+    }
+}
+
+function selectGroupLeds(groupId) {
+    const grp = animationGroups.find(g => g.id === groupId);
+    if (!grp) return;
+
+    selectedLeds.clear();
+    for (const idx of grp.ledIndices) {
+        if (idx < leds.length) selectedLeds.add(idx);
+    }
+    selectedLed = grp.ledIndices[0] || null;
+
+    const nameInput = document.getElementById('groupNameInput');
+    const effectSelect = document.getElementById('groupEffectSelect');
+    const speedSlider = document.getElementById('groupSpeedSlider');
+    const speedVal = document.getElementById('groupSpeedVal');
+    const dirSelect = document.getElementById('groupDirectionSelect');
+
+    if (nameInput) nameInput.value = grp.name;
+    if (effectSelect) effectSelect.value = grp.effect;
+    if (speedSlider) {
+        speedSlider.value = grp.speedBpm;
+        if (speedVal) speedVal.textContent = `${grp.speedBpm} BPM`;
+    }
+    if (dirSelect) dirSelect.value = String(grp.direction || 1);
+
+    updateLedInspectorUI();
+    showToast(`🎯 Selected ${selectedLeds.size} LEDs for group "${grp.name}"!`);
+}
+
+function renderActiveGroupsList() {
+    const container = document.getElementById('activeGroupsList');
+    const badge = document.getElementById('activeGroupsCountBadge');
+    if (!container) return;
+
+    if (badge) badge.textContent = `${animationGroups.length} Groups`;
+    container.innerHTML = '';
+
+    if (animationGroups.length === 0) {
+        container.innerHTML = `
+            <div style="font-size: 11px; color: var(--text-muted); font-style: italic; padding: 6px; text-align: center;">
+                No custom groups created yet. Select LEDs to add an effect!
+            </div>
+        `;
+        return;
+    }
+
+    const effectIcons = {
+        chase: '🎡 Chase',
+        flash_slow: '💡 Blink',
+        pulse: '💓 Pulse',
+        write_on_off: '✍️ Wipe',
+        sparkle_storm: '✨ Sparkle',
+        marquee: '🎪 Marquee',
+        rainbow_cycle: '🌈 Rainbow'
+    };
+
+    for (const grp of animationGroups) {
+        const item = document.createElement('div');
+        item.style.cssText = 'display: flex; justify-content: space-between; align-items: center; padding: 6px 8px; background: #0d1117; border-radius: 6px; border: 1px solid #30363d; font-size: 11px;';
+
+        const label = effectIcons[grp.effect] || grp.effect;
+
+        item.innerHTML = `
+            <div style="display: flex; flex-direction: column; gap: 2px; overflow: hidden; max-width: 170px;">
+                <span style="font-weight: 600; color: #fff; text-overflow: ellipsis; overflow: hidden; white-space: nowrap;">${grp.name}</span>
+                <span style="font-size: 10px; color: var(--accent-cyan);">${label} (${grp.ledIndices.length} LEDs @ ${grp.speedBpm} BPM)</span>
+            </div>
+            <div style="display: flex; gap: 4px; align-items: center;">
+                <button type="button" class="action-btn select-grp-btn" style="padding: 3px 6px; font-size: 10px;" title="Select all LEDs in this group">⌖ Select</button>
+                <button type="button" class="action-btn del-grp-btn" style="padding: 3px 6px; font-size: 10px; color: #f85149;" title="Delete group">🗑️</button>
+            </div>
+        `;
+
+        item.querySelector('.select-grp-btn').addEventListener('click', () => selectGroupLeds(grp.id));
+        item.querySelector('.del-grp-btn').addEventListener('click', () => deleteGroup(grp.id));
+
+        container.appendChild(item);
+    }
 }
 
 // ============================================================================
@@ -994,6 +1433,9 @@ window.addEventListener('keydown', (e) => {
             canvas.style.cursor = 'grab';
         }
         e.preventDefault();
+    } else if ((e.key === 'a' || e.key === 'A') && (e.ctrlKey || e.metaKey)) {
+        e.preventDefault();
+        selectAllLeds();
     } else if (e.key === 'ArrowRight' || e.key === ']' || e.key === 'n') {
         selectNextLed();
     } else if (e.key === 'ArrowLeft' || e.key === '[' || e.key === 'p') {
@@ -1028,6 +1470,8 @@ canvas.addEventListener('mousedown', (e) => {
     mouseStartY = my;
     hasMovedSignificantly = false;
 
+    const isMultiKey = e.shiftKey || e.ctrlKey || e.metaKey;
+
     // Right-click (2), Middle-click (1), or Space+click -> Pan Canvas
     if (e.button === 2 || e.button === 1 || (e.button === 0 && isSpacePressed)) {
         isPanning = true;
@@ -1054,15 +1498,30 @@ canvas.addEventListener('mousedown', (e) => {
     }
 
     if (clickedIdx !== -1) {
-        draggedLed = clickedIdx;
-        isDraggingLed = true;
-        selectLed(clickedIdx);
-        canvas.classList.add('dragging');
+        if (isMultiKey) {
+            // Shift / Ctrl click: toggle LED in multi-selection
+            selectLed(clickedIdx, true);
+        } else {
+            // Normal click: select single LED and allow drag
+            draggedLed = clickedIdx;
+            isDraggingLed = true;
+            selectLed(clickedIdx, false);
+            canvas.classList.add('dragging');
+        }
     } else {
-        // Clicked background -> prepare to pan if user drags
-        isPanning = true;
-        panStartX = mx - panX;
-        panStartY = my - panY;
+        // Clicked background
+        if (isBoxSelectMode || isMultiKey) {
+            isBoxSelecting = true;
+            boxStartX = mx;
+            boxStartY = my;
+            boxCurrentX = mx;
+            boxCurrentY = my;
+        } else {
+            // Prepare to pan if user drags
+            isPanning = true;
+            panStartX = mx - panX;
+            panStartY = my - panY;
+        }
     }
 });
 
@@ -1076,6 +1535,12 @@ canvas.addEventListener('mousemove', (e) => {
 
     if (Math.hypot(mx - mouseStartX, my - mouseStartY) > 5) {
         hasMovedSignificantly = true;
+    }
+
+    if (isBoxSelecting) {
+        boxCurrentX = mx;
+        boxCurrentY = my;
+        return;
     }
 
     if (isPanning) {
@@ -1112,6 +1577,8 @@ canvas.addEventListener('mousemove', (e) => {
 
     if (isSpacePressed) {
         canvas.style.cursor = 'grab';
+    } else if (isBoxSelectMode) {
+        canvas.style.cursor = 'crosshair';
     } else if (found !== null) {
         canvas.style.cursor = 'pointer';
     } else {
@@ -1119,12 +1586,43 @@ canvas.addEventListener('mousemove', (e) => {
     }
 });
 
-window.addEventListener('mouseup', () => {
+window.addEventListener('mouseup', (e) => {
+    if (isBoxSelecting) {
+        isBoxSelecting = false;
+        const minX = Math.min(boxStartX, boxCurrentX);
+        const maxX = Math.max(boxStartX, boxCurrentX);
+        const minY = Math.min(boxStartY, boxCurrentY);
+        const maxY = Math.max(boxStartY, boxCurrentY);
+
+        if (Math.abs(maxX - minX) > 6 && Math.abs(maxY - minY) > 6) {
+            if (!e.shiftKey && !e.ctrlKey && !e.metaKey) {
+                selectedLeds.clear();
+            }
+            let newlyFound = 0;
+            for (let i = 0; i < leds.length; i++) {
+                const pt = normToCanvas(leds[i]);
+                const sx = pt.x * zoomScale + panX;
+                const sy = pt.y * zoomScale + panY;
+                if (sx >= minX && sx <= maxX && sy >= minY && sy <= maxY) {
+                    selectedLeds.add(i);
+                    newlyFound++;
+                }
+            }
+            if (selectedLeds.size > 0) {
+                const arr = Array.from(selectedLeds);
+                selectedLed = arr[arr.length - 1];
+                showToast(`✨ Selected ${selectedLeds.size} LEDs in box!`);
+            }
+            updateLedInspectorUI();
+        }
+        return;
+    }
+
     if (isPanning) {
         isPanning = false;
         canvas.style.cursor = isSpacePressed ? 'grab' : (hoveredLed !== null ? 'pointer' : 'default');
         // Click on empty canvas without dragging clears selection
-        if (!hasMovedSignificantly && draggedLed === null) {
+        if (!hasMovedSignificantly && draggedLed === null && !e.shiftKey && !e.ctrlKey && !e.metaKey) {
             deselectLed();
         }
     }
@@ -1212,6 +1710,7 @@ async function saveCurrentProfile(name) {
         leds: leds,
         graphicType: currentGraphicType,
         customArtworkDataUrl: customArtworkDataUrl,
+        animationGroups: animationGroups,
         settings: {
             pattern: activePattern,
             speedBpm: params.speedBpm,
@@ -1339,10 +1838,21 @@ async function loadProfile(sourceValue) {
             document.getElementById('glowVal').textContent = `${s.glowSize}px`;
         }
     }
+
+    // 4. Restore Animation Groups
+    if (Array.isArray(profileData.animationGroups)) {
+        animationGroups = profileData.animationGroups;
+    } else {
+        animationGroups = [];
+    }
+    rebuildLedGroupMap();
+    renderActiveGroupsList();
 }
 
 // Initial Preset Load
 refreshPresetDropdown();
+rebuildLedGroupMap();
+renderActiveGroupsList();
 
 // ============================================================================
 // UI CONTROLS BINDING
@@ -1541,6 +2051,37 @@ document.getElementById('inspectorCopyNextBtn')?.addEventListener('click', () =>
 });
 
 document.getElementById('inspectorDeselectBtn')?.addEventListener('click', () => deselectLed());
+
+// Canvas Toolbar Box Select, Select All, and Clear Bindings
+const boxSelectBtn = document.getElementById('boxSelectBtn');
+if (boxSelectBtn) {
+    boxSelectBtn.addEventListener('click', () => {
+        isBoxSelectMode = !isBoxSelectMode;
+        boxSelectBtn.classList.toggle('active', isBoxSelectMode);
+        canvas.style.cursor = isBoxSelectMode ? 'crosshair' : 'default';
+        showToast(isBoxSelectMode ? '⬚ Box Select mode enabled: Drag across LEDs to select' : '🖱️ Normal Pan/Select mode restored');
+    });
+}
+
+document.getElementById('selectAllBtn')?.addEventListener('click', () => selectAllLeds());
+document.getElementById('clearSelectionBtn')?.addEventListener('click', () => deselectLed());
+
+// Inspector Multi-Selection Action Bar Bindings
+document.getElementById('inspectorSelectAllBtn')?.addEventListener('click', () => selectAllLeds());
+document.getElementById('inspectorInvertBtn')?.addEventListener('click', () => invertLedSelection());
+document.getElementById('inspectorClearBtn')?.addEventListener('click', () => deselectLed());
+
+// Group Animation Controls Bindings
+document.getElementById('applyGroupEffectBtn')?.addEventListener('click', () => applyGroupEffectToSelection());
+document.getElementById('removeGroupEffectBtn')?.addEventListener('click', () => removeGroupEffectFromSelection());
+
+const groupSpeedSlider = document.getElementById('groupSpeedSlider');
+const groupSpeedVal = document.getElementById('groupSpeedVal');
+if (groupSpeedSlider) {
+    groupSpeedSlider.addEventListener('input', (e) => {
+        if (groupSpeedVal) groupSpeedVal.textContent = `${e.target.value} BPM`;
+    });
+}
 
 // ============================================================================
 // COLOR SCIENCE & VIBRANCY BOOSTING
@@ -2253,8 +2794,15 @@ async function loadGraphicPreset(type) {
                 if (Array.isArray(profileData.leds) && profileData.leds.length > 0) {
                     leds = profileData.leds;
                     while (sparkles.length < leds.length) sparkles.push(0);
+                    if (Array.isArray(profileData.animationGroups)) {
+                        animationGroups = profileData.animationGroups;
+                    } else {
+                        animationGroups = [];
+                    }
+                    rebuildLedGroupMap();
+                    renderActiveGroupsList();
                     updateLedCountUI();
-                    showToast("🎃 Loaded Cinderella's Coach with 100 color-matched LEDs!");
+                    showToast("🎃 Loaded Cinderella's Coach with spinning wheel chase animations!");
                     return;
                 }
             }
@@ -2262,6 +2810,9 @@ async function loadGraphicPreset(type) {
             console.warn("Could not fetch Cinderella preset:", e);
         }
 
+        animationGroups = [];
+        rebuildLedGroupMap();
+        renderActiveGroupsList();
         scatterLedsOnGraphic(100, true);
         showToast("🎃 Switched to Cinderella's Coach!");
     } else if (type === 'custom_upload') {
@@ -2291,6 +2842,13 @@ async function loadGraphicPreset(type) {
                 if (Array.isArray(profileData.leds) && profileData.leds.length > 0) {
                     leds = profileData.leds;
                     while (sparkles.length < leds.length) sparkles.push(0);
+                    if (Array.isArray(profileData.animationGroups)) {
+                        animationGroups = profileData.animationGroups;
+                    } else {
+                        animationGroups = [];
+                    }
+                    rebuildLedGroupMap();
+                    renderActiveGroupsList();
                     updateLedCountUI();
                     showToast("🐉 Loaded Pete's Dragon with 100 color-matched LEDs!");
                     return;
@@ -2300,6 +2858,9 @@ async function loadGraphicPreset(type) {
             console.warn("Could not fetch dragon preset:", e);
         }
 
+        animationGroups = [];
+        rebuildLedGroupMap();
+        renderActiveGroupsList();
         scatterLedsOnGraphic(100, true);
         showToast("🔄 Restored default Pete's Dragon graphic!");
     }

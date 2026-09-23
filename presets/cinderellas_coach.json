@@ -906,6 +906,38 @@
     }
   ],
   "graphicType": "cinderellas_coach",
+  "animationGroups": [
+    {
+      "id": "cinderella_rear_wheel",
+      "name": "Rear Wheel",
+      "ledIndices": [0, 1, 2, 4, 5, 6, 7],
+      "effect": "chase",
+      "speedBpm": 130,
+      "direction": 1,
+      "width": 2,
+      "colorMode": "original"
+    },
+    {
+      "id": "cinderella_front_wheel",
+      "name": "Front Wheel",
+      "ledIndices": [8, 9, 25, 26, 27],
+      "effect": "chase",
+      "speedBpm": 130,
+      "direction": 1,
+      "width": 2,
+      "colorMode": "original"
+    },
+    {
+      "id": "cinderella_lanterns",
+      "name": "Carriage Lanterns",
+      "ledIndices": [11, 12, 28, 29],
+      "effect": "pulse",
+      "speedBpm": 60,
+      "direction": 1,
+      "width": 2,
+      "colorMode": "original"
+    }
+  ],
   "settings": {
     "pattern": "steady_sparkle",
     "speedBpm": 120,

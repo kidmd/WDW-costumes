@@ -152,6 +152,13 @@ h1 {
     color: #58a6ff;
 }
 
+.zoom-btn.active {
+    background: #1f6feb;
+    border-color: #388bfd;
+    color: #ffffff;
+    box-shadow: 0 0 8px rgba(56, 139, 253, 0.5);
+}
+
 .zoom-badge {
     font-size: 11px;
     font-family: monospace;
