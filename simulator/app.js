@@ -11,7 +11,7 @@ let activePattern = 'steady_sparkle'; // 'steady_sparkle', 'color_match', 'drago
 // Control parameters
 let params = {
     speedBpm: 120,
-    sparkleRate: 40,
+    sparkleRate: 1.5,
     greenHue: 140, // 100 = lime, 140 = emerald, 165 = seafoam
     brightness: 85,
     glowSize: 20,
@@ -1545,6 +1545,9 @@ function updateTimelineScrubberUI() {
     const scrubber = document.getElementById('timelineScrubber');
     const currTimeElem = document.getElementById('timelineCurrentTime');
     const totalTimeElem = document.getElementById('timelineTotalTime');
+    const needle = document.getElementById('timelinePlayheadNeedle');
+    const layersBadge = document.getElementById('timelineActiveLayersBadge');
+    const cuesBadge = document.getElementById('timelineActiveCuesBadge');
 
     if (scrubber) {
         scrubber.max = sequenceLoopDuration;
@@ -1553,7 +1556,26 @@ function updateTimelineScrubberUI() {
     if (currTimeElem) currTimeElem.textContent = formatTimelineTime(sequenceTime);
     if (totalTimeElem) totalTimeElem.textContent = formatTimelineTime(sequenceLoopDuration);
 
-    // Update active cue highlights in list and on strip
+    // Update Playhead Needle position
+    if (needle) {
+        const pct = Math.max(0, Math.min(1, sequenceTime / sequenceLoopDuration));
+        needle.style.left = `calc(115px + (100% - 115px) * ${pct})`;
+    }
+
+    // Update active cue highlights in multi-layer tracks and sidebar cards
+    const activeCueNames = [];
+    const blocks = document.querySelectorAll('.cue-block');
+    blocks.forEach(blk => {
+        const id = blk.dataset.cueId;
+        const cue = sequenceCues.find(q => q.id === id);
+        if (cue && sequenceTime >= cue.startTime && sequenceTime < (cue.startTime + cue.duration)) {
+            blk.classList.add('active');
+            if (!activeCueNames.includes(cue.name)) activeCueNames.push(cue.name);
+        } else {
+            blk.classList.remove('active');
+        }
+    });
+
     const cards = document.querySelectorAll('.cue-card');
     cards.forEach(card => {
         const id = card.dataset.cueId;
@@ -1565,16 +1587,20 @@ function updateTimelineScrubberUI() {
         }
     });
 
-    const pills = document.querySelectorAll('.cue-segment-pill');
-    pills.forEach(pill => {
-        const id = pill.dataset.cueId;
-        const cue = sequenceCues.find(q => q.id === id);
-        if (cue && sequenceTime >= cue.startTime && sequenceTime < (cue.startTime + cue.duration)) {
-            pill.classList.add('active');
+    // Update status badges in timeline transport bar
+    if (layersBadge) {
+        const rowCount = document.querySelectorAll('.timeline-layer-row').length;
+        layersBadge.textContent = `${rowCount} Layer${rowCount !== 1 ? 's' : ''}`;
+    }
+    if (cuesBadge) {
+        if (activeCueNames.length === 0) {
+            cuesBadge.textContent = sequenceMode ? 'No Cues Active' : 'Sequence Standby (Free-Run)';
+            cuesBadge.style.color = '#8b949e';
         } else {
-            pill.classList.remove('active');
+            cuesBadge.textContent = `Active (${activeCueNames.length}): ${activeCueNames.join(' + ')}`;
+            cuesBadge.style.color = '#58a6ff';
         }
-    });
+    }
 }
 
 function updateTimelinePlayBtn() {
@@ -1643,37 +1669,176 @@ function toggleSequenceMode(forceState) {
     }
 }
 
-function renderTimelineCueStrip() {
-    const strip = document.getElementById('timelineCueStrip');
-    if (!strip) return;
-    strip.innerHTML = '';
+function renderTimelineLayers() {
+    const container = document.getElementById('timelineLayersContainer');
+    const marksContainer = document.getElementById('timelineRulerMarks');
+    if (!container) return;
 
-    const colorPalette = [
-        '#58a6ff', '#f0883e', '#3fb950', '#a371f7', '#f85149',
-        '#388bfd', '#d29922', '#2ea043', '#db61a2', '#2188ff'
-    ];
+    // 1. Render Dynamic Ruler Marks
+    if (marksContainer) {
+        marksContainer.innerHTML = '';
+        const tickCount = 6;
+        for (let i = 0; i <= tickCount; i++) {
+            const t = (sequenceLoopDuration * i) / tickCount;
+            const span = document.createElement('span');
+            span.className = 'ruler-tick';
+            span.textContent = formatTimelineTime(t);
+            marksContainer.appendChild(span);
+        }
+    }
 
-    sequenceCues.forEach((cue, idx) => {
-        const leftPct = (cue.startTime / sequenceLoopDuration) * 100;
-        const widthPct = Math.max(1, (cue.duration / sequenceLoopDuration) * 100);
+    container.innerHTML = '';
 
-        const pill = document.createElement('div');
-        pill.className = 'cue-segment-pill';
-        pill.dataset.cueId = cue.id;
-        pill.style.left = `${leftPct}%`;
-        pill.style.width = `${widthPct}%`;
-        pill.style.background = cue.targetType === 'global' ? colorPalette[idx % colorPalette.length] : '#ffc107';
-        pill.title = `${cue.name} (${cue.startTime.toFixed(1)}s - ${(cue.startTime + cue.duration).toFixed(1)}s)`;
+    if (sequenceCues.length === 0) {
+        container.innerHTML = `
+            <div style="font-size: 11px; color: var(--text-muted); font-style: italic; padding: 6px 12px; text-align: center; border: 1px dashed #30363d; border-radius: 4px;">
+                No cues scheduled. Add cues or pick an example routine in the sidebar.
+            </div>
+        `;
+        updateTimelineScrubberUI();
+        return;
+    }
 
-        pill.addEventListener('click', (e) => {
-            e.stopPropagation();
-            sequenceTime = cue.startTime;
+    // 2. Identify Distinct Target Layers
+    const layerMap = new Map();
+
+    const globalCues = sequenceCues.filter(q => q.targetType === 'global');
+    if (globalCues.length > 0 || animationGroups.length === 0) {
+        layerMap.set('global', {
+            id: 'global',
+            name: '🌐 Global Float',
+            isGlobal: true,
+            cues: globalCues
+        });
+    }
+
+    // Groups present in cues or active animation groups
+    sequenceCues.filter(q => q.targetType === 'group').forEach(q => {
+        const key = q.groupId || q.groupName || 'unknown_group';
+        if (!layerMap.has(key)) {
+            const grp = animationGroups.find(g => g.id === q.groupId);
+            layerMap.set(key, {
+                id: key,
+                name: grp ? `🎡 ${grp.name}` : (q.groupName ? `🎡 ${q.groupName}` : '🎡 Group Layer'),
+                isGlobal: false,
+                cues: []
+            });
+        }
+        layerMap.get(key).cues.push(q);
+    });
+
+    let layerIndex = 0;
+
+    layerMap.forEach((layer) => {
+        // Calculate non-colliding sub-lanes for overlapping cues in this layer
+        const layerCues = [...layer.cues].sort((a, b) => a.startTime - b.startTime);
+        const laneEndTimes = [];
+
+        layerCues.forEach(cue => {
+            let placedLane = -1;
+            for (let l = 0; l < laneEndTimes.length; l++) {
+                if (laneEndTimes[l] <= cue.startTime) {
+                    placedLane = l;
+                    laneEndTimes[l] = cue.startTime + cue.duration;
+                    break;
+                }
+            }
+            if (placedLane === -1) {
+                placedLane = laneEndTimes.length;
+                laneEndTimes.push(cue.startTime + cue.duration);
+            }
+            cue._subLane = placedLane;
+        });
+
+        const totalSubLanes = Math.max(1, laneEndTimes.length);
+        const rowHeight = totalSubLanes * 24;
+
+        const row = document.createElement('div');
+        row.className = 'timeline-layer-row';
+        row.style.minHeight = `${rowHeight}px`;
+
+        const label = document.createElement('div');
+        label.className = 'timeline-layer-label';
+        label.title = layer.name;
+        label.textContent = layer.name;
+        label.style.minHeight = `${rowHeight}px`;
+
+        const track = document.createElement('div');
+        track.className = 'timeline-layer-track';
+        track.style.minHeight = `${rowHeight}px`;
+
+        // Click track seeking
+        track.addEventListener('click', (e) => {
+            const rect = track.getBoundingClientRect();
+            const clickX = e.clientX - rect.left;
+            const pct = Math.max(0, Math.min(1, clickX / rect.width));
+            sequenceTime = pct * sequenceLoopDuration;
             updateTimelineScrubberUI();
         });
 
-        strip.appendChild(pill);
+        layerCues.forEach(cue => {
+            const block = document.createElement('div');
+            const colorClass = layer.isGlobal 
+                ? 'global-layer' 
+                : (layerIndex % 3 === 0 ? 'group-layer' : (layerIndex % 3 === 1 ? 'group-layer-alt' : 'group-layer-green'));
+            block.className = `cue-block ${colorClass}`;
+            block.dataset.cueId = cue.id;
+
+            const leftPct = (cue.startTime / sequenceLoopDuration) * 100;
+            const widthPct = Math.max(1.2, (cue.duration / sequenceLoopDuration) * 100);
+            block.style.left = `${leftPct}%`;
+            block.style.width = `${widthPct}%`;
+            block.style.top = `${cue._subLane * 24 + 2}px`;
+            block.title = `${cue.name} (${cue.startTime.toFixed(1)}s - ${(cue.startTime + cue.duration).toFixed(1)}s) [Fade In: ${cue.fadeIn || 0}s, Out: ${cue.fadeOut || 0}s]`;
+
+            if (cue.fadeIn && cue.fadeIn > 0) {
+                const inPct = Math.min(40, (cue.fadeIn / cue.duration) * 100);
+                const fadeDiv = document.createElement('div');
+                fadeDiv.className = 'cue-fade-indicator-in';
+                fadeDiv.style.width = `${inPct}%`;
+                block.appendChild(fadeDiv);
+            }
+
+            const title = document.createElement('span');
+            title.className = 'cue-block-title';
+            title.textContent = `${cue.name} (${cue.duration.toFixed(0)}s)`;
+            block.appendChild(title);
+
+            if (cue.fadeOut && cue.fadeOut > 0) {
+                const outPct = Math.min(40, (cue.fadeOut / cue.duration) * 100);
+                const fadeDiv = document.createElement('div');
+                fadeDiv.className = 'cue-fade-indicator-out';
+                fadeDiv.style.width = `${outPct}%`;
+                block.appendChild(fadeDiv);
+            }
+
+            block.addEventListener('click', (e) => {
+                e.stopPropagation();
+                sequenceTime = cue.startTime;
+                updateTimelineScrubberUI();
+                const card = document.querySelector(`.cue-card[data-cue-id="${cue.id}"]`);
+                if (card) {
+                    card.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                    card.style.outline = '2px solid #58a6ff';
+                    setTimeout(() => card.style.outline = 'none', 1000);
+                }
+            });
+
+            track.appendChild(block);
+        });
+
+        row.appendChild(label);
+        row.appendChild(track);
+        container.appendChild(row);
+
+        layerIndex++;
     });
+
+    updateTimelineScrubberUI();
 }
+
+// Retain alias for any existing calls
+const renderTimelineCueStrip = renderTimelineLayers;
 
 function renderCuesList() {
     const container = document.getElementById('cuesListContainer');
@@ -2507,11 +2672,11 @@ function applyProfileData(profileData) {
             if (spdVal) spdVal.textContent = `${s.speedBpm} BPM`;
         }
         if (s.sparkleRate !== undefined) {
-            params.sparkleRate = s.sparkleRate;
+            params.sparkleRate = parseFloat(s.sparkleRate);
             const spk = document.getElementById('sparkleSlider');
-            if (spk) spk.value = s.sparkleRate;
+            if (spk) spk.value = params.sparkleRate;
             const spkVal = document.getElementById('sparkleVal');
-            if (spkVal) spkVal.textContent = `${s.sparkleRate}%`;
+            if (spkVal) spkVal.textContent = `${params.sparkleRate.toFixed(params.sparkleRate < 1 ? 2 : 1)}%`;
         }
         if (s.greenHue !== undefined) {
             params.greenHue = s.greenHue;
@@ -2615,8 +2780,8 @@ document.getElementById('speedSlider').addEventListener('input', (e) => {
 });
 
 document.getElementById('sparkleSlider').addEventListener('input', (e) => {
-    params.sparkleRate = parseInt(e.target.value);
-    document.getElementById('sparkleVal').textContent = `${params.sparkleRate}%`;
+    params.sparkleRate = parseFloat(e.target.value);
+    document.getElementById('sparkleVal').textContent = `${params.sparkleRate.toFixed(params.sparkleRate < 1 ? 2 : 1)}%`;
 });
 
 document.getElementById('hueSlider').addEventListener('input', (e) => {
@@ -3833,6 +3998,8 @@ ${sequenceCues.map((q, idx) => {
             paletteLines.push(`    CRGB(${c.r}, ${c.g}, ${c.b})${i < leds.length - 1 ? ',' : ''} // LED ${i}`);
         }
 
+        const sparkleThreshold = Math.max(1, Math.round(params.sparkleRate * 65.5));
+
         if (activePattern === 'steady_sparkle') {
             code = `// ============================================================================
 // FASTLED ANIMATION: ${currentGraphicType.toUpperCase()} ${leds.length}-LED STEADY COLOR + SPARKLES
@@ -3854,8 +4021,8 @@ void renderCostumeCustom(uint32_t t) {
         baseColor.b = pgm_read_byte(&ARTWORK_PALETTE[i].b);
         leds[i] = baseColor;
 
-        // Occasional Incandescent Starlight Sparkles (Probability: ${params.sparkleRate}%)
-        if (random8() < ${Math.floor(params.sparkleRate * 0.4)}) {
+        // Occasional Incandescent Starlight Sparkles (Rate: ${params.sparkleRate.toFixed(2)}%)
+        if (random16() < ${sparkleThreshold}) {
             leds[i] = CRGB(255, 255, 240);
         }
     }
@@ -3887,8 +4054,8 @@ void renderCostumeCustom(uint32_t t) {
         baseColor.nscale8_video(breath);
         leds[i] = baseColor;
 
-        // Incandescent Starlight Sparkles (Probability: ${params.sparkleRate}%)
-        if (random8() < ${Math.floor(params.sparkleRate * 0.4)}) {
+        // Incandescent Starlight Sparkles (Rate: ${params.sparkleRate.toFixed(2)}%)
+        if (random16() < ${sparkleThreshold}) {
             leds[i] = CRGB(255, 255, 240);
         }
     }

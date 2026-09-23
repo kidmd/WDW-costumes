@@ -187,16 +187,17 @@ h1 {
 
 .floating-overlay {
     position: absolute;
-    bottom: 20px;
-    left: 20px;
+    top: 20px;
+    right: 20px;
     background: rgba(15, 17, 23, 0.85);
     border: 1px solid var(--border-color);
-    padding: 8px 14px;
+    padding: 6px 12px;
     border-radius: 8px;
-    font-size: 12px;
+    font-size: 11px;
     color: var(--text-muted);
     backdrop-filter: blur(8px);
     pointer-events: none;
+    z-index: 9;
 }
 
 .floating-overlay strong {
@@ -458,26 +459,28 @@ input:checked + .slider:before {
    ============================================================================ */
 .timeline-bar {
     position: absolute;
-    bottom: 30px;
+    bottom: 18px;
     left: 20px;
     right: 20px;
-    background: rgba(13, 17, 23, 0.94);
+    background: rgba(13, 17, 23, 0.96);
     border: 1px solid var(--border-color);
     border-radius: 10px;
-    padding: 8px 12px;
+    padding: 8px 12px 10px 12px;
     display: flex;
     flex-direction: column;
     gap: 6px;
-    backdrop-filter: blur(10px);
-    box-shadow: 0 8px 28px rgba(0, 0, 0, 0.65);
+    backdrop-filter: blur(12px);
+    box-shadow: 0 10px 32px rgba(0, 0, 0, 0.75);
     z-index: 10;
     user-select: none;
+    max-width: 900px;
+    margin: 0 auto;
 }
 
 .timeline-controls-row {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 8px;
     width: 100%;
 }
 
@@ -485,7 +488,7 @@ input:checked + .slider:before {
     background: #21262d;
     border: 1px solid var(--border-color);
     color: var(--text-main);
-    padding: 6px 10px;
+    padding: 5px 10px;
     border-radius: 6px;
     font-size: 12px;
     font-weight: 600;
@@ -530,53 +533,33 @@ input:checked + .slider:before {
     min-width: 105px;
 }
 
-.timeline-track-wrapper {
+.timeline-status-info {
     flex: 1;
-    position: relative;
     display: flex;
-    flex-direction: column;
-    justify-content: center;
-    height: 32px;
-}
-
-.timeline-cue-strip {
-    width: 100%;
-    height: 9px;
-    background: #161b22;
-    border: 1px solid #30363d;
-    border-radius: 4px;
-    position: relative;
-    cursor: pointer;
+    align-items: center;
+    gap: 6px;
     overflow: hidden;
-    margin-bottom: 2px;
 }
 
-.cue-segment-pill {
-    position: absolute;
-    top: 0;
-    bottom: 0;
-    border-radius: 3px;
-    opacity: 0.85;
-    transition: opacity 0.15s ease, transform 0.1s ease;
-    cursor: pointer;
+.timeline-badge {
+    font-size: 10px;
+    font-weight: 600;
+    padding: 2px 7px;
+    border-radius: 10px;
+    border: 1px solid #30363d;
+    white-space: nowrap;
 }
 
-.cue-segment-pill.active {
-    opacity: 1;
-    box-shadow: 0 0 8px rgba(255, 255, 255, 0.8);
-    transform: scaleY(1.15);
-    z-index: 2;
+.timeline-badge.layers-badge {
+    background: #161b22;
+    color: var(--accent-cyan);
 }
 
-.cue-segment-pill:hover {
-    filter: brightness(1.25);
-}
-
-#timelineScrubber {
-    width: 100%;
-    cursor: pointer;
-    height: 7px;
-    accent-color: #58a6ff;
+.timeline-badge.cues-badge {
+    background: #21262d;
+    color: var(--text-muted);
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .timeline-mode-btn {
@@ -585,7 +568,7 @@ input:checked + .slider:before {
     color: var(--text-muted);
     font-size: 11px;
     font-weight: 600;
-    padding: 6px 10px;
+    padding: 5px 9px;
     border-radius: 6px;
     cursor: pointer;
     transition: all 0.2s ease;
@@ -598,6 +581,226 @@ input:checked + .slider:before {
     color: #000;
     font-weight: 700;
     box-shadow: 0 0 10px rgba(240, 136, 62, 0.4);
+}
+
+/* Timeline Ruler & Scrubber Row */
+.timeline-ruler-row {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    margin-top: 2px;
+}
+
+.timeline-track-label-col {
+    width: 115px;
+    flex-shrink: 0;
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    color: var(--text-muted);
+    padding-left: 2px;
+}
+
+.timeline-ruler-wrapper {
+    flex: 1;
+    position: relative;
+    height: 22px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    background: #161b22;
+    border: 1px solid #30363d;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.timeline-ruler-marks {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    display: flex;
+    justify-content: space-between;
+    padding: 0 4px;
+    align-items: center;
+    pointer-events: none;
+}
+
+.ruler-tick {
+    font-family: monospace;
+    font-size: 9px;
+    color: #8b949e;
+    user-select: none;
+}
+
+#timelineScrubber {
+    width: 100%;
+    position: relative;
+    z-index: 2;
+    cursor: pointer;
+    height: 22px;
+    opacity: 0.6;
+    margin: 0;
+    accent-color: #58a6ff;
+    background: transparent;
+}
+
+#timelineScrubber:hover {
+    opacity: 0.9;
+}
+
+/* Multi-Layer Tracks Container */
+.timeline-layers-wrapper {
+    position: relative;
+    width: 100%;
+}
+
+.timeline-playhead-needle {
+    position: absolute;
+    top: -24px;
+    bottom: 0;
+    width: 2px;
+    background: #58a6ff;
+    box-shadow: 0 0 8px #58a6ff, 0 0 14px rgba(88, 166, 255, 0.7);
+    pointer-events: none;
+    z-index: 25;
+    left: 115px;
+    transition: left 0.03s linear;
+}
+
+.timeline-playhead-needle::before {
+    content: '';
+    position: absolute;
+    top: -2px;
+    left: -4px;
+    width: 10px;
+    height: 6px;
+    background: #58a6ff;
+    clip-path: polygon(0% 0%, 100% 0%, 50% 100%);
+}
+
+.timeline-layers-container {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    max-height: 140px;
+    overflow-y: auto;
+    padding-right: 2px;
+}
+
+.timeline-layer-row {
+    display: flex;
+    align-items: stretch;
+    width: 100%;
+    min-height: 24px;
+    background: rgba(22, 27, 34, 0.7);
+    border-radius: 4px;
+    border: 1px solid rgba(48, 54, 61, 0.75);
+    overflow: hidden;
+}
+
+.timeline-layer-label {
+    width: 115px;
+    flex-shrink: 0;
+    padding: 3px 6px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--text-main);
+    background: rgba(13, 17, 23, 0.85);
+    border-right: 1px solid #30363d;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.timeline-layer-track {
+    flex: 1;
+    position: relative;
+    background: #0d1117;
+    cursor: pointer;
+    min-height: 24px;
+}
+
+/* Individual Cue Blocks on Layers */
+.cue-block {
+    position: absolute;
+    border-radius: 3px;
+    height: 20px;
+    top: 2px;
+    display: flex;
+    align-items: center;
+    padding: 0 5px;
+    cursor: pointer;
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2), 0 2px 5px rgba(0, 0, 0, 0.35);
+    transition: transform 0.1s ease, filter 0.15s ease, box-shadow 0.15s ease;
+    user-select: none;
+    z-index: 2;
+}
+
+.cue-block.global-layer {
+    background: linear-gradient(90deg, #1f6feb 0%, #388bfd 100%);
+}
+
+.cue-block.group-layer {
+    background: linear-gradient(90deg, #d29922 0%, #f0883e 100%);
+}
+
+.cue-block.group-layer-alt {
+    background: linear-gradient(90deg, #8957e5 0%, #a371f7 100%);
+}
+
+.cue-block.group-layer-green {
+    background: linear-gradient(90deg, #238636 0%, #2ea043 100%);
+}
+
+.cue-block-title {
+    font-size: 9.5px;
+    font-weight: 700;
+    color: #ffffff;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.9);
+    pointer-events: none;
+    z-index: 3;
+}
+
+.cue-fade-indicator-in {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    background: linear-gradient(90deg, rgba(0, 0, 0, 0.5) 0%, transparent 100%);
+    pointer-events: none;
+    z-index: 1;
+}
+
+.cue-fade-indicator-out {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    right: 0;
+    background: linear-gradient(270deg, rgba(0, 0, 0, 0.5) 0%, transparent 100%);
+    pointer-events: none;
+    z-index: 1;
+}
+
+.cue-block.active {
+    border-color: #ffffff;
+    box-shadow: 0 0 10px rgba(88, 166, 255, 0.95), inset 0 0 6px rgba(255, 255, 255, 0.4);
+    transform: scaleY(1.08);
+    z-index: 10;
+}
+
+.cue-block:hover {
+    filter: brightness(1.25);
+    z-index: 12;
 }
 
 /* Cue Card Styling */

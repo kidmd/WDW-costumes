@@ -37,8 +37,9 @@
 
             <canvas id="simulatorCanvas" width="850" height="880"></canvas>
 
-            <!-- Master Timeline Scrubber Bar -->
+            <!-- Master Timeline Multi-Layer Scrubber Bar -->
             <div class="timeline-bar" id="timelineBar">
+                <!-- Top Transport Row -->
                 <div class="timeline-controls-row">
                     <button id="timelinePlayBtn" class="timeline-btn primary" title="Play / Pause Show Sequence (Spacebar)">▶</button>
                     <button id="timelineStopBtn" class="timeline-btn" title="Stop & Return to 0:00">⏹</button>
@@ -47,14 +48,31 @@
                         <span style="opacity: 0.4;">/</span>
                         <span id="timelineTotalTime">01:30.0</span>
                     </div>
-                    <div class="timeline-track-wrapper">
-                        <!-- Colored Cue Segments Preview Strip -->
-                        <div id="timelineCueStrip" class="timeline-cue-strip" title="Visual Cue Strip - Click to jump"></div>
-                        <!-- Range Scrubber -->
-                        <input type="range" id="timelineScrubber" min="0" max="90" step="0.1" value="0">
+                    <div class="timeline-status-info">
+                        <span id="timelineActiveLayersBadge" class="timeline-badge layers-badge">0 Layers</span>
+                        <span id="timelineActiveCuesBadge" class="timeline-badge cues-badge">Sequence Standby</span>
                     </div>
                     <button id="timelineLoopToggle" class="timeline-btn active" title="Toggle Sequence Loop">🔁 Loop</button>
                     <button id="timelineModeToggle" class="timeline-mode-btn" title="Toggle between Free-Run Pattern and Show Sequence">🎬 Sequence: OFF</button>
+                </div>
+
+                <!-- Timeline Ruler & Master Scrubber Row -->
+                <div class="timeline-ruler-row">
+                    <div class="timeline-track-label-col">
+                        <span>TIMELINE</span>
+                    </div>
+                    <div class="timeline-ruler-wrapper" id="timelineRulerWrapper">
+                        <div id="timelineRulerMarks" class="timeline-ruler-marks"></div>
+                        <input type="range" id="timelineScrubber" min="0" max="90" step="0.1" value="0">
+                    </div>
+                </div>
+
+                <!-- Multi-Layer Cue Tracks Container -->
+                <div class="timeline-layers-wrapper" id="timelineLayersWrapper">
+                    <div id="timelinePlayheadNeedle" class="timeline-playhead-needle"></div>
+                    <div class="timeline-layers-container" id="timelineLayersContainer">
+                        <!-- Dynamic Multi-Layer Tracks Rendered by app.js -->
+                    </div>
                 </div>
             </div>
 
@@ -161,9 +179,9 @@
                 <div class="control-group">
                     <div class="label-row">
                         <span>Sparkle Frequency</span>
-                        <span id="sparkleVal" class="val-badge">40%</span>
+                        <span id="sparkleVal" class="val-badge">1.5%</span>
                     </div>
-                    <input type="range" id="sparkleSlider" min="0" max="100" value="40">
+                    <input type="range" id="sparkleSlider" min="0" max="10" step="0.05" value="1.5">
                 </div>
 
                 <div class="control-group">

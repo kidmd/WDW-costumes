@@ -180,7 +180,7 @@ class SimulatorRequestHandler(http.server.SimpleHTTPRequestHandler):
             num_leds = int(payload.get("numLeds", 100))
             pattern_str = payload.get("pattern", "steady_sparkle")
             speed_bpm = int(payload.get("speedBpm", 120))
-            sparkle_rate = int(payload.get("sparkleRate", 40))
+            sparkle_rate = float(payload.get("sparkleRate", 1.5))
             green_hue = int(payload.get("greenHue", 140))
             brightness_pct = int(payload.get("brightness", 80))
             fastled_brightness = max(30, min(85, int(brightness_pct * 85 / 100)))

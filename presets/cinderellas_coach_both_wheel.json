@@ -1,6 +1,6 @@
 {
   "name": "Cinderella's Coach Both Wheel",
-  "savedAt": "2026-09-23T01:45:45.513Z",
+  "savedAt": "2026-09-23T02:34:44.176Z",
   "ledCount": 100,
   "leds": [
     {
@@ -951,5 +951,36 @@
     "greenHue": 140,
     "brightness": 85,
     "glowSize": 20
+  },
+  "sequence": {
+    "loopDuration": 90,
+    "cues": [
+      {
+        "id": "cue_1790130655283_749",
+        "name": "Cue #1",
+        "startTime": 0,
+        "duration": 52,
+        "targetType": "group",
+        "groupId": "grp_1790127719356_779",
+        "groupName": "Front Wheel",
+        "effect": "chase",
+        "speedBpm": 250,
+        "fadeIn": 1.5,
+        "fadeOut": 1.5
+      },
+      {
+        "id": "cue_1790130811335_959",
+        "name": "Cue #2",
+        "startTime": 0,
+        "duration": 52,
+        "targetType": "group",
+        "groupId": "grp_1790127416459_59",
+        "groupName": "Rear Whee;",
+        "effect": "chase",
+        "speedBpm": 250,
+        "fadeIn": 1.5,
+        "fadeOut": 1.5
+      }
+    ]
   }
 }

@@ -910,7 +910,7 @@
   "settings": {
     "pattern": "steady_sparkle",
     "speedBpm": 120,
-    "sparkleRate": 40,
+    "sparkleRate": 1.5,
     "greenHue": 140,
     "brightness": 80,
     "glowSize": 22
