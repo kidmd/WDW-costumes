@@ -41,6 +41,16 @@ An **ESP32** microcontroller on each runner coordinates lighting patterns wirele
 
 ---
 
+## ⚡ Quick Start for Runners / Brothers (No Git Required!)
+
+You don't need Git, Google Antigravity, or any programming tools:
+1. **Download:** Click the green **`<> Code`** button above ➔ **`Download ZIP`** (or [Click Here to Download ZIP](https://github.com/kidmd/WDW-costumes/archive/refs/heads/main.zip)).
+2. **Extract:** Right-click the `.zip` file and select **Extract All...** to any folder on your computer.
+3. **Plug in & Flash:** Connect your ESP32 via USB and double-click **`flash_firmware.bat`** (Windows) or **`flash_firmware.command`** (Mac).
+4. See **[`FLASHING_INSTRUCTIONS.md`](FLASHING_INSTRUCTIONS.md)** for complete hardware wiring and float selection instructions.
+
+---
+
 ## Project Structure & Documentation
 
 * [`FLASHING_INSTRUCTIONS.md`](FLASHING_INSTRUCTIONS.md): **⚡ Quick Flashing Guide for the Brothers** (Double-click 1-click flasher, Web Browser flasher, and Arduino IDE).

@@ -1,7 +1,18 @@
 # ⚡ Quick Flashing Guide for the Brothers
 ### How to flash your ESP32 with the latest parade costume firmware in under 60 seconds
 
-Hey guys! If you pulled the latest files from GitHub and just want to flash your ESP32 board without learning Google Antigravity or dealing with complex toolchains, this guide gives you **3 easy ways to do it**.
+Hey guys! If you just want to flash your ESP32 board without learning Git, Google Antigravity, or dealing with complex toolchains, this guide gives you **3 easy ways to do it**.
+
+---
+
+## 📥 Step 0: Download the Files (No Git or GitHub Account Needed!)
+
+You **do not need Git installed** and you **do not need to make a repository** on your computer. You can download everything as a standard `.zip`:
+
+1. Go to the project page: **[https://github.com/kidmd/WDW-costumes](https://github.com/kidmd/WDW-costumes)**
+2. Click the green **`<> Code`** button (near the top-right) and click **`Download ZIP`**.
+3. Right-click the downloaded `WDW-costumes-main.zip` file and select **`Extract All...`** (extract to any folder, like your Desktop or Downloads).
+4. Plug in your ESP32 with a USB data cable, open the extracted folder, and choose your preferred flashing method below!
 
 ---
 
