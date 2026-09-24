@@ -152,6 +152,8 @@ let boxCurrentY = 0;
 let draggedLed = null;
 let hoveredLed = null;
 let isDraggingLed = false;
+let multiDragStartNorm = null;
+let multiDragInitialPositions = new Map();
 
 // Animation Groups & Zones
 // Array of { id, name, ledIndices: [idx...], effect: 'chase'|'flash_slow'|..., speedBpm, direction, width, colorMode, customColor }
@@ -3099,11 +3101,46 @@ canvas.addEventListener('mousedown', (e) => {
             // Shift / Ctrl click: toggle LED in multi-selection
             selectLed(clickedIdx, true);
         } else {
-            // Normal click: select single LED and allow drag
+            // Normal click: select single LED or drag entire multi-selection/firework
+            let isGroupDrag = false;
+            if (selectedLeds.has(clickedIdx) && selectedLeds.size > 1) {
+                isGroupDrag = true;
+                selectedLed = clickedIdx;
+                updateLedInspectorUI();
+            } else {
+                // Check if this LED belongs to an active fireworks group
+                const fwGroup = animationGroups.find(g => g.effect === 'fireworks' && g.ledIndices && g.ledIndices.includes(clickedIdx));
+                if (fwGroup) {
+                    isGroupDrag = true;
+                    selectedLeds.clear();
+                    for (const idx of fwGroup.ledIndices) selectedLeds.add(idx);
+                    selectedLed = clickedIdx;
+                    updateLedInspectorUI();
+                } else {
+                    selectLed(clickedIdx, false);
+                }
+            }
+
             draggedLed = clickedIdx;
             isDraggingLed = true;
-            selectLed(clickedIdx, false);
             canvas.classList.add('dragging');
+
+            const worldX = (mx - panX) / zoomScale;
+            const worldY = (my - panY) / zoomScale;
+            multiDragStartNorm = canvasToNorm(worldX, worldY);
+            multiDragInitialPositions.clear();
+
+            if (isGroupDrag) {
+                for (const idx of selectedLeds) {
+                    if (leds[idx]) {
+                        multiDragInitialPositions.set(idx, { x: leds[idx].x, y: leds[idx].y });
+                    }
+                }
+            } else {
+                if (leds[clickedIdx]) {
+                    multiDragInitialPositions.set(clickedIdx, { x: leds[clickedIdx].x, y: leds[clickedIdx].y });
+                }
+            }
         }
     } else {
         // Clicked background
@@ -3151,8 +3188,35 @@ canvas.addEventListener('mousemove', (e) => {
         const worldX = (mx - panX) / zoomScale;
         const worldY = (my - panY) / zoomScale;
         const norm = canvasToNorm(worldX, worldY);
-        leds[draggedLed].x = norm.x;
-        leds[draggedLed].y = norm.y;
+
+        if (multiDragInitialPositions.size > 1 && multiDragStartNorm) {
+            const dx = norm.x - multiDragStartNorm.x;
+            const dy = norm.y - multiDragStartNorm.y;
+
+            for (const [idx, initialPos] of multiDragInitialPositions.entries()) {
+                if (leds[idx]) {
+                    leds[idx].x = Math.max(0.05, Math.min(0.95, parseFloat((initialPos.x + dx).toFixed(4))));
+                    leds[idx].y = Math.max(0.05, Math.min(0.95, parseFloat((initialPos.y + dy).toFixed(4))));
+                }
+            }
+
+            // Sync fireworks group center & sliders if a fireworks group is being dragged
+            const fwGroup = animationGroups.find(g => g.effect === 'fireworks');
+            if (fwGroup && fwGroup.ledIndices && fwGroup.ledIndices.includes(draggedLed)) {
+                let sumX = 0, sumY = 0;
+                for (const idx of fwGroup.ledIndices) {
+                    sumX += leds[idx].x;
+                    sumY += leds[idx].y;
+                }
+                fwGroup.centerNormX = parseFloat((sumX / fwGroup.ledIndices.length).toFixed(4));
+                fwGroup.centerNormY = parseFloat((sumY / fwGroup.ledIndices.length).toFixed(4));
+                syncFireworksSliders(fwGroup.centerNormX, fwGroup.centerNormY, fwGroup.burstRadius);
+            }
+        } else {
+            leds[draggedLed].x = norm.x;
+            leds[draggedLed].y = norm.y;
+        }
+
         updateLedInspectorCoords();
         return;
     }
@@ -3236,6 +3300,8 @@ window.addEventListener('mouseup', (e) => {
         }
         isDraggingLed = false;
         draggedLed = null;
+        multiDragStartNorm = null;
+        multiDragInitialPositions.clear();
         canvas.classList.remove('dragging');
     }
 });
@@ -3453,6 +3519,10 @@ function applyProfileData(profileData) {
     }
     rebuildLedGroupMap();
     renderActiveGroupsList();
+    const loadedFwGroup = animationGroups.find(g => g.effect === 'fireworks');
+    if (loadedFwGroup) {
+        syncFireworksSliders(loadedFwGroup.centerNormX, loadedFwGroup.centerNormY, loadedFwGroup.burstRadius);
+    }
 
     // 5. Restore Sequence Cues (Parade Cue Director)
     if (profileData.sequence && typeof profileData.sequence === 'object') {
@@ -4673,7 +4743,7 @@ if (resetArtworkBtn) {
 // ============================================================================
 // FIREWORKS STARBURST GENERATOR & REMAINING LED RE-DISTRIBUTION (100 TOTAL)
 // ============================================================================
-function sampleRemainingGraphicLeds(targetCount, excludeX = 0.50, excludeY = 0.34, excludeRadius = 0.16) {
+function sampleRemainingGraphicLeds(targetCount, excludeX = 0, excludeY = 0, excludeRadius = 0) {
     if (targetCount <= 0) return [];
 
     const targetW = 360;
@@ -4753,9 +4823,13 @@ function sampleRemainingGraphicLeds(targetCount, excludeX = 0.50, excludeY = 0.3
                 const normX = gb.normX + relX * gb.normW;
                 const normY = gb.normY + relY * gb.normH;
 
-                // Check exclusion distance
-                const distToFw = Math.hypot((normX - excludeX) * 1.25, normY - excludeY);
-                if (distToFw >= excludeRadius) {
+                // Check exclusion distance if specified (0 = use entire graphic)
+                if (excludeRadius > 0) {
+                    const distToFw = Math.hypot((normX - excludeX) * 1.25, normY - excludeY);
+                    if (distToFw >= excludeRadius) {
+                        candidates.push({ x, y, r, g, b, normX, normY });
+                    }
+                } else {
                     candidates.push({ x, y, r, g, b, normX, normY });
                 }
             }
@@ -4833,7 +4907,7 @@ function sampleRemainingGraphicLeds(targetCount, excludeX = 0.50, excludeY = 0.3
     return result;
 }
 
-function generateFireworksCluster(centerNormX = 0.50, centerNormY = 0.34, rays = 5, ledsPerRay = 4, burstRadius = 0.14, redistributeRemaining = true) {
+function generateFireworksCluster(centerNormX = 0.28, centerNormY = 0.22, rays = 5, ledsPerRay = 4, burstRadius = 0.13, redistributeRemaining = true) {
     const totalFwLeds = rays * ledsPerRay;
     const remainingCount = 100 - totalFwLeds;
 
@@ -4874,30 +4948,14 @@ function generateFireworksCluster(centerNormX = 0.50, centerNormY = 0.34, rays =
         }
     }
 
-    // 2. Generate or extract remaining LEDs to guarantee exactly 100 LEDs
-    let nonFwLeds = [];
-    if (redistributeRemaining || !leds || leds.length < 100) {
-        nonFwLeds = sampleRemainingGraphicLeds(remainingCount, centerNormX, centerNormY, burstRadius * 1.15);
-    } else {
-        // Filter out LEDs that fall inside the firework circle
-        const outsideLeds = leds.filter(pt => {
-            const d = Math.hypot((pt.x - centerNormX) * 1.25, pt.y - centerNormY);
-            return d > burstRadius;
-        });
-        if (outsideLeds.length >= remainingCount) {
-            nonFwLeds = outsideLeds.slice(0, remainingCount);
-        } else {
-            const needed = remainingCount - outsideLeds.length;
-            const extra = sampleRemainingGraphicLeds(needed, centerNormX, centerNormY, burstRadius * 1.15);
-            nonFwLeds = outsideLeds.concat(extra);
-        }
-    }
+    // 2. Generate remaining LEDs across ENTIRE graphic to guarantee exactly 100 LEDs
+    let nonFwLeds = sampleRemainingGraphicLeds(remainingCount, 0, 0, 0);
 
     // Ensure nonFwLeds has exactly remainingCount
     if (nonFwLeds.length > remainingCount) {
         nonFwLeds = nonFwLeds.slice(0, remainingCount);
     } else if (nonFwLeds.length < remainingCount) {
-        const filler = sampleRemainingGraphicLeds(remainingCount - nonFwLeds.length, centerNormX, centerNormY, burstRadius * 1.15);
+        const filler = sampleRemainingGraphicLeds(remainingCount - nonFwLeds.length, 0, 0, 0);
         nonFwLeds = nonFwLeds.concat(filler);
     }
 
@@ -4941,8 +4999,9 @@ function generateFireworksCluster(centerNormX = 0.50, centerNormY = 0.34, rays =
 
     rebuildLedGroupMap();
     renderActiveGroupsList();
+    syncFireworksSliders(centerNormX, centerNormY, burstRadius);
 
-    // Select the firework group so it is highlighted
+    // Select the firework group so it is highlighted and draggable
     selectedLeds.clear();
     for (const idx of fwIndices) selectedLeds.add(idx);
     selectedLed = fwIndices[0];
@@ -4962,17 +5021,14 @@ function redistributeRemainingNonFireworkLeds() {
     const totalFwLeds = fwGroup.ledIndices.length;
     const remainingCount = 100 - totalFwLeds;
 
-    // Get current firework LED objects
+    // Get current firework LED objects preserving existing positions & vibrant colors
     const fwLeds = [];
     for (const idx of fwGroup.ledIndices) {
         if (leds[idx]) fwLeds.push({ ...leds[idx] });
     }
 
-    const cx = fwGroup.centerNormX || 0.50;
-    const cy = fwGroup.centerNormY || 0.34;
-    const rad = fwGroup.burstRadius || 0.14;
-
-    let nonFwLeds = sampleRemainingGraphicLeds(remainingCount, cx, cy, rad * 1.15);
+    // Re-distribute other LEDs across the ENTIRE graphic without exclusion zone
+    let nonFwLeds = sampleRemainingGraphicLeds(remainingCount, 0, 0, 0);
     nonFwLeds = optimizeLedWiringOrder(nonFwLeds, 'bottom-left');
 
     leds = nonFwLeds.concat(fwLeds);
@@ -4985,17 +5041,154 @@ function redistributeRemainingNonFireworkLeds() {
     updateLedCountUI();
     updateLedInspectorUI();
 
-    showToast(`🔄 Re-distributed ${remainingCount} LEDs across graphic! Exactly 100 LEDs active.`);
+    showToast(`🔄 Re-distributed ${remainingCount} LEDs across entire graphic! Exactly 100 LEDs active.`);
+}
+
+function updateFireworksLedPositions(fwGroup, cx, cy, radius) {
+    if (!fwGroup || !fwGroup.ledIndices || fwGroup.ledIndices.length === 0) return;
+    const rays = fwGroup.fireworkRays || 5;
+    const ledsPerRay = fwGroup.fireworkLedsPerRay || 4;
+    fwGroup.centerNormX = cx;
+    fwGroup.centerNormY = cy;
+    fwGroup.burstRadius = radius;
+
+    let pIdx = 0;
+    for (let r = 0; r < rays; r++) {
+        const theta = -Math.PI / 2 + r * ((2 * Math.PI) / rays);
+        for (let p = 0; p < ledsPerRay; p++) {
+            if (pIdx >= fwGroup.ledIndices.length) break;
+            const ledIdx = fwGroup.ledIndices[pIdx++];
+            if (!leds[ledIdx]) continue;
+
+            const step = (r % 2 === 1) ? (ledsPerRay - 1 - p) : p;
+            const normDist = step / Math.max(1, ledsPerRay - 1);
+            const rad = 0.025 + normDist * (radius - 0.025);
+            const nx = cx + Math.cos(theta) * rad * 0.82;
+            const ny = cy + Math.sin(theta) * rad;
+
+            leds[ledIdx].x = Math.max(0.05, Math.min(0.95, parseFloat(nx.toFixed(4))));
+            leds[ledIdx].y = Math.max(0.05, Math.min(0.95, parseFloat(ny.toFixed(4))));
+        }
+    }
+    updateLedInspectorCoords();
+}
+
+function syncFireworksSliders(cx, cy, radius) {
+    const xSlider = document.getElementById('fwPosXSlider');
+    const xVal = document.getElementById('fwPosXVal');
+    const ySlider = document.getElementById('fwPosYSlider');
+    const yVal = document.getElementById('fwPosYVal');
+    const rSlider = document.getElementById('fwRadiusSlider');
+    const rVal = document.getElementById('fwRadiusVal');
+
+    if (xSlider && cx !== undefined) {
+        const xPct = Math.round(cx * 100);
+        xSlider.value = xPct;
+        if (xVal) xVal.textContent = `${xPct}%`;
+    }
+    if (ySlider && cy !== undefined) {
+        const yPct = Math.round(cy * 100);
+        ySlider.value = yPct;
+        if (yVal) yVal.textContent = `${yPct}%`;
+    }
+    if (rSlider && radius !== undefined) {
+        const rPct = Math.round(radius * 100);
+        rSlider.value = rPct;
+        if (rVal) rVal.textContent = `${rPct}%`;
+    }
+}
+
+function setFireworksPositionPreset(preset) {
+    let cx = 0.28, cy = 0.22;
+    if (preset === 'top-right') {
+        cx = 0.72; cy = 0.22;
+    } else if (preset === 'center') {
+        cx = 0.50; cy = 0.34;
+    }
+
+    const tlBtn = document.getElementById('fwPosTopLeftBtn');
+    const trBtn = document.getElementById('fwPosTopRightBtn');
+    const cBtn = document.getElementById('fwPosCenterBtn');
+    [tlBtn, trBtn, cBtn].forEach(b => {
+        if (b) {
+            b.style.color = '';
+            b.style.fontWeight = 'normal';
+        }
+    });
+    const activeBtn = preset === 'top-left' ? tlBtn : (preset === 'top-right' ? trBtn : cBtn);
+    if (activeBtn) {
+        activeBtn.style.color = '#ff7b72';
+        activeBtn.style.fontWeight = '600';
+    }
+
+    syncFireworksSliders(cx, cy);
+
+    const fwGroup = animationGroups.find(g => g.effect === 'fireworks');
+    if (fwGroup) {
+        const rad = fwGroup.burstRadius || (parseInt(document.getElementById('fwRadiusSlider')?.value || '13', 10) / 100);
+        updateFireworksLedPositions(fwGroup, cx, cy, rad);
+    }
 }
 
 // Fireworks Starburst Generator Event Listeners
-const stampFwBtn = document.getElementById('stampFireworksBtn');
-const redistRemBtn = document.getElementById('redistributeRemainingBtn');
-const fwRaysSelect = document.getElementById('fwRaysSelect');
-const fwLedsPerRaySelect = document.getElementById('fwLedsPerRaySelect');
+const fwPosTopLeftBtn = document.getElementById('fwPosTopLeftBtn');
+const fwPosTopRightBtn = document.getElementById('fwPosTopRightBtn');
+const fwPosCenterBtn = document.getElementById('fwPosCenterBtn');
+const fwPosXSlider = document.getElementById('fwPosXSlider');
+const fwPosXVal = document.getElementById('fwPosXVal');
+const fwPosYSlider = document.getElementById('fwPosYSlider');
+const fwPosYVal = document.getElementById('fwPosYVal');
 const fwRadiusSlider = document.getElementById('fwRadiusSlider');
 const fwRadiusVal = document.getElementById('fwRadiusVal');
+const fwRaysSelect = document.getElementById('fwRaysSelect');
+const fwLedsPerRaySelect = document.getElementById('fwLedsPerRaySelect');
 const fwLedCountBadge = document.getElementById('fwLedCountBadge');
+const stampFwBtn = document.getElementById('stampFireworksBtn');
+const redistRemBtn = document.getElementById('redistributeRemainingBtn');
+
+if (fwPosTopLeftBtn) fwPosTopLeftBtn.addEventListener('click', () => setFireworksPositionPreset('top-left'));
+if (fwPosTopRightBtn) fwPosTopRightBtn.addEventListener('click', () => setFireworksPositionPreset('top-right'));
+if (fwPosCenterBtn) fwPosCenterBtn.addEventListener('click', () => setFireworksPositionPreset('center'));
+
+if (fwPosXSlider) {
+    fwPosXSlider.addEventListener('input', (e) => {
+        const cx = parseInt(e.target.value, 10) / 100;
+        if (fwPosXVal) fwPosXVal.textContent = `${e.target.value}%`;
+        const fwGroup = animationGroups.find(g => g.effect === 'fireworks');
+        if (fwGroup) {
+            const cy = fwGroup.centerNormY || (parseInt(fwPosYSlider?.value || '22', 10) / 100);
+            const rad = fwGroup.burstRadius || (parseInt(fwRadiusSlider?.value || '13', 10) / 100);
+            updateFireworksLedPositions(fwGroup, cx, cy, rad);
+        }
+    });
+}
+
+if (fwPosYSlider) {
+    fwPosYSlider.addEventListener('input', (e) => {
+        const cy = parseInt(e.target.value, 10) / 100;
+        if (fwPosYVal) fwPosYVal.textContent = `${e.target.value}%`;
+        const fwGroup = animationGroups.find(g => g.effect === 'fireworks');
+        if (fwGroup) {
+            const cx = fwGroup.centerNormX || (parseInt(fwPosXSlider?.value || '28', 10) / 100);
+            const rad = fwGroup.burstRadius || (parseInt(fwRadiusSlider?.value || '13', 10) / 100);
+            updateFireworksLedPositions(fwGroup, cx, cy, rad);
+        }
+    });
+}
+
+if (fwRadiusSlider) {
+    fwRadiusSlider.addEventListener('input', (e) => {
+        const radPct = parseInt(e.target.value, 10);
+        if (fwRadiusVal) fwRadiusVal.textContent = `${radPct}%`;
+        const rad = radPct / 100;
+        const fwGroup = animationGroups.find(g => g.effect === 'fireworks');
+        if (fwGroup) {
+            const cx = fwGroup.centerNormX || (parseInt(fwPosXSlider?.value || '28', 10) / 100);
+            const cy = fwGroup.centerNormY || (parseInt(fwPosYSlider?.value || '22', 10) / 100);
+            updateFireworksLedPositions(fwGroup, cx, cy, rad);
+        }
+    });
+}
 
 function updateFwBadge() {
     if (!fwRaysSelect || !fwLedsPerRaySelect || !fwLedCountBadge) return;
@@ -5008,24 +5201,14 @@ function updateFwBadge() {
 if (fwRaysSelect) fwRaysSelect.addEventListener('change', updateFwBadge);
 if (fwLedsPerRaySelect) fwLedsPerRaySelect.addEventListener('change', updateFwBadge);
 
-if (fwRadiusSlider && fwRadiusVal) {
-    fwRadiusSlider.addEventListener('input', (e) => {
-        fwRadiusVal.textContent = `${e.target.value}%`;
-    });
-}
-
 if (stampFwBtn) {
     stampFwBtn.addEventListener('click', () => {
         const rays = parseInt(fwRaysSelect?.value || '5', 10);
         const lpr = parseInt(fwLedsPerRaySelect?.value || '4', 10);
-        const radPct = parseInt(fwRadiusSlider?.value || '14', 10);
+        const radPct = parseInt(fwRadiusSlider?.value || '13', 10);
         const burstRadius = radPct / 100;
-
-        let cx = 0.50, cy = 0.34;
-        if (selectedLed !== null && leds[selectedLed]) {
-            cx = leds[selectedLed].x;
-            cy = leds[selectedLed].y;
-        }
+        const cx = parseInt(fwPosXSlider?.value || '28', 10) / 100;
+        const cy = parseInt(fwPosYSlider?.value || '22', 10) / 100;
 
         generateFireworksCluster(cx, cy, rays, lpr, burstRadius, true);
     });

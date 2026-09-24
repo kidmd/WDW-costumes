@@ -93,6 +93,16 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### Entry: Fireworks Corner Placement, Interactive Move & Scale (Sliders & Multi-Drag), and Full-Graphic Re-Distribution
+* **Date:** 2026-09-24
+* **Status:** Operational & Verified in Web Simulator.
+* **Notes:**
+  * **Corner Initial Placement:** Stamping a fireworks cluster now places it initially in the upper chest corner of the running shirt (default: ↖ Top-Left at $x = 28\%, y = 22\%$, well above the race bib clearance line).
+  * **Position Presets:** Added one-click alignment buttons (`↖ Top-Left`, `↗ Top-Right`, and `⏺ Center`) for fast positioning.
+  * **Move & Scale Controls:** Implemented Move X slider ($15\% - 85\%$), Move Y slider ($15\% - 55\%$), and Scale / Radius slider ($7\% - 24\%$) with live feedback and instant starburst re-calculation.
+  * **Canvas Multi-LED Dragging:** Enabled direct group dragging on the canvas. Clicking and dragging any individual LED within the firework moves all firework LEDs together as a unified cluster while dynamically updating the Move X/Y sliders.
+  * **Full-Graphic Re-Distribution:** Removed the exclusion dead-zone from `sampleRemainingGraphicLeds()`. When stamping or clicking "🔄 Re-distribute Other LEDs (Full Graphic)", the remaining $(100 - N_{\text{fw}})$ LEDs are sampled across the entire character artwork, maintaining the strict 100-LED invariant (`leds.length === 100`).
+
 ### Entry: Radial 360° Fireworks Starburst Animation, Serpentine Numbering & 100-LED Invariant Generator
 * **Date:** 2026-09-24
 * **Status:** Operational & Verified in Web Simulator and PlatformIO C++ firmware.

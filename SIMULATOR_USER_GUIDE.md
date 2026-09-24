@@ -152,23 +152,28 @@ Attaching LEDs to a shirt by hand can easily result in tangled wire spaghetti if
 4. Each LED is renumbered so LED `0` connects to LED `1`, which connects to LED `2`, and so on, with minimum wire length between successive pixels.
 5. Toggle **Show Wiring Route** in Section 6 to see the physical wire path drawn directly on the canvas!
 
-### 🎆 Fireworks Starburst Generator & Serpentine Wiring
-Creating radial fireworks bursts requires clean geometry and predictable physical wiring:
-1. **Rays & Length Customization:**
-   - Choose between **4, 5, or 6 Rays** radiating from a central explosion origin.
-   - Choose between **3, 4, or 5 LEDs per Ray** (e.g. 5 rays $\times$ 4 LEDs = 20 LEDs).
-   - Adjust the **Burst Radius slider (8% – 22%)** to scale the firework size.
-2. **Serpentine Wiring Geometry:**
+### 🎆 Fireworks Starburst Generator, Placement, & Scaling
+Creating radial fireworks bursts requires clean geometry, flexible placement, and predictable physical wiring:
+1. **Initial Corner Placement & Position Presets:**
+   - Stamping initially positions the fireworks cluster in the upper corner of the shirt (**↖ Top-Left corner** at $x = 28\%, y = 22\%$, above the race bib clearance zone).
+   - Use the one-click position presets (**↖ Top-Left**, **↗ Top-Right**, **⏺ Center**) to instantly reposition the firework.
+2. **Move & Scale Controls (Sliders & Direct Canvas Drag):**
+   - **Move X & Move Y Sliders:** Fine-tune position horizontally ($15\% - 85\%$) and vertically ($15\% - 55\%$) with live slider feedback.
+   - **Scale / Radius Slider:** Dynamically expand or contract the burst diameter ($7\% - 24\%$) around its center hub.
+   - **Direct Canvas Multi-Drag:** Simply click and drag any LED belonging to the firework cluster directly on the costume canvas! The entire starburst moves as a unified group, and the Move X/Move Y sliders update synchronously in real-time.
+3. **Rays & Length Customization:**
+   - Choose between **4, 5, or 6 Rays** radiating from the explosion origin.
+   - Choose between **3, 4, or 5 LEDs per Ray** (e.g. 5 rays $\times$ 4 LEDs = 20 LEDs; $100 - 20 = 80$ other LEDs).
+4. **Serpentine Wiring Geometry:**
    - To eliminate long, messy return wires from outer spoke tips back to the center hub, the generator utilizes **continuous serpentine routing**:
      - *Even Rays (0, 2, 4):* Wire travels outward (**Center $\to$ Tip**).
      - *Odd Rays (1, 3, 5):* Wire travels inward (**Tip $\to$ Center**), with a short 1-inch jump between adjacent spoke tips.
    - The animation engine automatically compensates for reversed rays, ensuring all lines visually radiate outward from the center simultaneously!
-3. **100-LED Invariant Guarantee:**
-   - Placing a firework cluster claims $N_{\text{fw}}$ LEDs from the float pool (e.g. 20 LEDs for a $5 \times 4$ burst), leaving $100 - N_{\text{fw}}$ LEDs (e.g. 80 LEDs) for the rest of the costume.
-   - Click **"🔄 Re-distribute Remaining LEDs"** at any time to organically re-scatter the remaining LEDs across the graphic outside the firework cluster while keeping the firework LEDs intact.
-   - The total count is **strictly preserved at 100 LEDs**.
-4. **Canvas Numbering & Identification:**
-   - With **Show Numbers** active or when selecting bulbs, each firework LED displays its exact ray and step badge: e.g. `R1:1 (CTR)`, `R1:4 (TIP)`, `R2:1 (CTR)`, `R2:4 (TIP)`.
+5. **Strict 100-LED Invariant & Full-Graphic Re-Distribution:**
+   - Placing a firework cluster claims $N_{\text{fw}}$ LEDs from the float pool, preserving exactly **100 LEDs on screen**.
+   - Click **"🔄 Re-distribute Other LEDs (Full Graphic)"** to re-distribute the remaining $(100 - N_{\text{fw}})$ LEDs across the **entire character graphic** (without any exclusion zone) while keeping your firework cluster intact.
+6. **Canvas Numbering & Identification:**
+   - With **Show Numbers** active or when inspecting bulbs, each firework LED displays its exact ray and step badge: e.g. `R1:1 (CTR)`, `R1:4 (TIP)`, `R2:1 (CTR)`, `R2:4 (TIP)`.
    - The LED Inspector displays the full role breakdown: e.g. `Ray 2 of 5 • Trail Step 3 (Mid-Trail)`.
 
 ---

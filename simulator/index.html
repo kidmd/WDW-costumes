@@ -301,8 +301,38 @@
                         <span id="fwLedCountBadge" style="background: #ff7b72; color: #000; font-weight: 700; padding: 2px 7px; border-radius: 12px; font-size: 10px;">20 LEDs (Serpentine)</span>
                     </div>
                     <p style="font-size: 11px; color: var(--text-muted); line-height: 1.35; margin-bottom: 8px;">
-                        Generates a 360° radial burst with serpentine wiring. Takes LEDs from float so there are <strong>always exactly 100 LEDs</strong>.
+                        360° radial burst with serpentine wiring. Placed initially in corner; drag or slider to move & scale. Always maintains <strong>100 LEDs total</strong>.
                     </p>
+
+                    <!-- Corner / Position Presets -->
+                    <div style="margin-bottom: 8px;">
+                        <label style="font-size: 10px; color: var(--text-muted); display: block; margin-bottom: 3px;">Position Placement:</label>
+                        <div style="display: flex; gap: 4px;">
+                            <button type="button" id="fwPosTopLeftBtn" class="action-btn" style="flex: 1; font-size: 10px; padding: 4px 2px; font-weight: 600; color: #ff7b72;" title="Upper-left chest corner (Default)">↖ Top-Left</button>
+                            <button type="button" id="fwPosTopRightBtn" class="action-btn" style="flex: 1; font-size: 10px; padding: 4px 2px;" title="Upper-right chest corner">↗ Top-Right</button>
+                            <button type="button" id="fwPosCenterBtn" class="action-btn" style="flex: 1; font-size: 10px; padding: 4px 2px;" title="Center chest">⏺ Center</button>
+                        </div>
+                    </div>
+
+                    <!-- Move X / Y Sliders -->
+                    <div style="display: flex; gap: 8px; margin-bottom: 8px;">
+                        <div style="flex: 1;">
+                            <div class="label-row" style="margin-bottom: 2px;">
+                                <span style="font-size: 10px; color: var(--text-muted);">Move X</span>
+                                <span id="fwPosXVal" class="val-badge" style="font-size: 10px;">28%</span>
+                            </div>
+                            <input type="range" id="fwPosXSlider" min="15" max="85" value="28" style="accent-color: #ff7b72;">
+                        </div>
+                        <div style="flex: 1;">
+                            <div class="label-row" style="margin-bottom: 2px;">
+                                <span style="font-size: 10px; color: var(--text-muted);">Move Y</span>
+                                <span id="fwPosYVal" class="val-badge" style="font-size: 10px;">22%</span>
+                            </div>
+                            <input type="range" id="fwPosYSlider" min="15" max="55" value="22" style="accent-color: #ff7b72;">
+                        </div>
+                    </div>
+
+                    <!-- Rays & LEDs per ray selection -->
                     <div style="display: flex; gap: 8px; margin-bottom: 8px;">
                         <div style="flex: 1;">
                             <label style="font-size: 10px; color: var(--text-muted); display: block; margin-bottom: 2px;">Rays (Lines):</label>
@@ -321,19 +351,23 @@
                             </select>
                         </div>
                     </div>
+
+                    <!-- Scale / Radius Slider -->
                     <div class="control-group" style="margin-bottom: 8px;">
                         <div class="label-row" style="margin-bottom: 2px;">
-                            <span style="font-size: 10px; color: var(--text-muted);">Burst Radius (Spread)</span>
-                            <span id="fwRadiusVal" class="val-badge" style="font-size: 10px;">14%</span>
+                            <span style="font-size: 10px; color: var(--text-muted);">Scale / Radius</span>
+                            <span id="fwRadiusVal" class="val-badge" style="font-size: 10px;">13%</span>
                         </div>
-                        <input type="range" id="fwRadiusSlider" min="8" max="22" value="14" style="accent-color: #ff7b72;">
+                        <input type="range" id="fwRadiusSlider" min="7" max="24" value="13" style="accent-color: #ff7b72;">
                     </div>
+
+                    <!-- Actions -->
                     <div style="display: flex; flex-direction: column; gap: 6px;">
                         <button type="button" id="stampFireworksBtn" class="action-btn accent" style="background: linear-gradient(135deg, #ff7b72, #d2a8ff); border-color: #ff7b72; font-weight: 600; font-size: 11px; padding: 7px 6px;">
-                            🎆 Stamp Fireworks Cluster (100 Total)
+                            🎆 Stamp Fireworks in Corner (100 Total)
                         </button>
-                        <button type="button" id="redistributeRemainingBtn" class="action-btn" style="font-size: 11px; padding: 5px;" title="Re-distribute non-firework LEDs across the costume while keeping the firework intact">
-                            🔄 Re-distribute Remaining LEDs (100 Total)
+                        <button type="button" id="redistributeRemainingBtn" class="action-btn" style="font-size: 11px; padding: 5px;" title="Re-distribute non-firework LEDs across the entire graphic while keeping the firework intact">
+                            🔄 Re-distribute Other LEDs (Full Graphic)
                         </button>
                     </div>
                 </div>
