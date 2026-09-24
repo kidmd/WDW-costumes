@@ -215,7 +215,7 @@ void renderFireworks(uint32_t t) {
             if (step == 0) {
                 leds[fwStart + idx] = CRGB(255, 255, 220);
             } else {
-                leds[fwStart + idx] = CRGB::Black;
+                leds[fwStart + idx] = CRGB(15, 8, 4);
             }
         } else if (tau < 1250) {
             // Phase 2: Outward trail growth
@@ -223,13 +223,19 @@ void renderFireworks(uint32_t t) {
             int headStep = progress / 100;
             int delta = headStep - step;
             if (delta == 0) {
+                // Leading spark head
                 leds[fwStart + idx] = CRGB(255, 255, 255);
             } else if (delta > 0) {
-                CRGB ember = rayColor;
-                ember.nscale8_video(max(25, 255 - delta * 65));
-                leds[fwStart + idx] = ember;
+                // Leave centermost LEDs on to create trailing line from center!
+                if (step == 0) {
+                    leds[fwStart + idx] = CRGB(255, 185, 60);
+                } else {
+                    CRGB ember = rayColor;
+                    ember.nscale8_video(max((uint8_t)50, (uint8_t)(255 - delta * 50)));
+                    leds[fwStart + idx] = ember;
+                }
             } else {
-                leds[fwStart + idx] = CRGB::Black;
+                leds[fwStart + idx] = CRGB(10, 5, 2);
             }
         } else if (tau < 1600) {
             // Phase 3: Tip sparkle crackle
@@ -239,11 +245,19 @@ void renderFireworks(uint32_t t) {
                 } else {
                     leds[fwStart + idx] = CRGB(35, 18, 8);
                 }
+            } else if (step == 0) {
+                // Persistent trailing anchor while tips crackle
+                leds[fwStart + idx] = CRGB(180, 110, 30);
+            } else {
+                leds[fwStart + idx] = CRGB(8, 4, 2);
+            }
+        } else {
+            // Phase 4: Center breathing ember before next shell
+            if (step == 0) {
+                leds[fwStart + idx] = CRGB(70, 35, 10);
             } else {
                 leds[fwStart + idx] = CRGB::Black;
             }
-        } else {
-            leds[fwStart + idx] = CRGB::Black;
         }
     }
 }

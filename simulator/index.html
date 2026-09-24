@@ -352,6 +352,25 @@
                         </div>
                     </div>
 
+                    <!-- Firework Color Palette / Custom Color -->
+                    <div style="margin-bottom: 8px;">
+                        <label style="font-size: 10px; color: var(--text-muted); display: block; margin-bottom: 2px;">Firework Color:</label>
+                        <div style="display: flex; gap: 6px; align-items: center;">
+                            <select id="fwColorSelect" style="background: #0d1117; color: #fff; border: 1px solid #30363d; border-radius: 4px; padding: 4px 6px; font-size: 11px; flex: 1;">
+                                <option value="rainbow" selected>🌈 Multi-Color (Disney Classic)</option>
+                                <option value="#ffb703">✨ Golden Amber (#FFB703)</option>
+                                <option value="#00e5ff">💠 Alice Cyan (#00E5FF)</option>
+                                <option value="#ff3366">💖 Coral Rose (#FF3366)</option>
+                                <option value="#76ff03">⚡ Electric Lime (#76FF03)</option>
+                                <option value="#d500f9">💜 Royal Violet (#D500F9)</option>
+                                <option value="#ff3d00">🔥 Blazing Red-Orange (#FF3D00)</option>
+                                <option value="#ffffff">⭐ Starlight White (#FFFFFF)</option>
+                                <option value="custom">🎨 Custom Hex Color...</option>
+                            </select>
+                            <input type="color" id="fwCustomColorPicker" value="#ffb703" style="width: 28px; height: 26px; border: 1px solid #30363d; border-radius: 4px; background: transparent; cursor: pointer; padding: 1px; display: none;" title="Pick custom firework color">
+                        </div>
+                    </div>
+
                     <!-- Scale / Radius Slider -->
                     <div class="control-group" style="margin-bottom: 8px;">
                         <div class="label-row" style="margin-bottom: 2px;">
@@ -368,6 +387,9 @@
                         </button>
                         <button type="button" id="redistributeRemainingBtn" class="action-btn" style="font-size: 11px; padding: 5px;" title="Re-distribute non-firework LEDs across the entire graphic while keeping the firework intact">
                             🔄 Re-distribute Other LEDs (Full Graphic)
+                        </button>
+                        <button type="button" id="fwAddCueBtn" class="action-btn" style="font-size: 11px; padding: 5px; border-color: #58a6ff; color: #58a6ff; font-weight: 600;" title="Add an explosion cue to the Master Timeline at the current playhead time">
+                            ⏱️ Add Explosion Cue to Timeline
                         </button>
                     </div>
                 </div>

@@ -93,6 +93,15 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### Entry: Fireworks Color Customization, Persistent Center Trailing Effect, & Timeline Explosion Cue Integration
+* **Date:** 2026-09-24
+* **Status:** Operational & Verified in Web Simulator and PlatformIO C++ firmware.
+* **Notes:**
+  * **Color Customization:** Added Firework Color Theme selector with 8 presets (Multi-Color Disney Classic, Golden Amber, Alice Cyan, Coral Rose, Electric Lime, Royal Violet, Blazing Red-Orange, Starlight White) and an interactive HTML5 native color picker (`#fwCustomColorPicker`) for dialling in custom hex colors with warm incandescent shifts.
+  * **Persistent Center Trailing Effect:** Re-engineered the pyrotechnic animation math so centermost hub LEDs (`step === 0`) stay continuously illuminated through Phase 2 (expanding wavefront holding at ~70% intensity) and Phase 3 (tip crackle anchor at ~50%), bridging an unbroken streak of light from center to tips, and gently breathing in Phase 4 (~25%-35%). Mirrored in `src/main.cpp` and `arduino/MSEP_Costume/MSEP_Costume.ino`.
+  * **Timeline Cue Director Integration:** Fireworks are now fully schedulable on the Master Timeline. Added one-click "⏱️ Add Explosion Cue to Timeline" button in the Fireworks card. Implemented cue-relative phase synchronization (`cueTimeMs = (t - startTime) * 1000`) so the explosion detonate precisely at the cue's start time with custom duration, BPM tempo, and smooth crossfades.
+  * **Toolchain & Hardware Compilation:** Compiled with PlatformIO (`pio run` SUCCESS: 14.3% RAM, 59.6% Flash). Exported verified binary to `firmware/firmware.bin`.
+
 ### Entry: Fireworks Corner Placement, Interactive Move & Scale (Sliders & Multi-Drag), and Full-Graphic Re-Distribution
 * **Date:** 2026-09-24
 * **Status:** Operational & Verified in Web Simulator.

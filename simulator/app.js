@@ -175,6 +175,27 @@ function rebuildLedGroupMap() {
     }
 }
 
+function hexToRgb(hex) {
+    if (!hex || typeof hex !== 'string') return null;
+    const clean = hex.replace('#', '').trim();
+    if (clean.length === 3) {
+        return {
+            r: parseInt(clean[0] + clean[0], 16),
+            g: parseInt(clean[1] + clean[1], 16),
+            b: parseInt(clean[2] + clean[2], 16)
+        };
+    }
+    if (clean.length === 6) {
+        return {
+            r: parseInt(clean.slice(0, 2), 16),
+            g: parseInt(clean.slice(2, 4), 16),
+            b: parseInt(clean.slice(4, 6), 16)
+        };
+    }
+    return null;
+}
+
+
 // ============================================================================
 // PARADE CUE DIRECTOR (Autonomous 90s Float Show Sequence Engine)
 // ============================================================================
@@ -1051,12 +1072,23 @@ function evalGroupEffect(grp, effect, bpm, dir, grpIndex, grpSize, timeMs, c) {
             const cycleMs = grpBeatMs * 3.0; // e.g. 1500ms at 120 BPM
             const tau = (timeMs % cycleMs) / cycleMs; // 0.0 to 1.0
 
-            // Ray color variation (festive Disney fireworks palette)
+            // Ray color variation (festive Disney fireworks palette or user chosen color)
             const rayHues = [40, 15, 340, 185, 120, 280]; // Gold, Red-Orange, Coral, Alice Cyan, Lime, Violet
             const rayHue = rayHues[rayIdx % rayHues.length];
             const rayRgb = hslToRgb(rayHue / 360, 0.95, 0.55);
 
-            if (grp.colorMode !== 'custom') {
+            if (grp.fireworkColor && grp.fireworkColor !== 'rainbow') {
+                const cRgb = hexToRgb(grp.fireworkColor);
+                if (cRgb) {
+                    baseR = cRgb.r;
+                    baseG = cRgb.g;
+                    baseB = cRgb.b;
+                }
+            } else if (grp.colorMode === 'custom' && grp.customColor) {
+                baseR = grp.customColor.r;
+                baseG = grp.customColor.g;
+                baseB = grp.customColor.b;
+            } else if (grp.colorMode !== 'custom') {
                 baseR = Math.round(baseR * 0.35 + rayRgb.r * 0.65);
                 baseG = Math.round(baseG * 0.35 + rayRgb.g * 0.65);
                 baseB = Math.round(baseB * 0.35 + rayRgb.b * 0.65);
@@ -1071,7 +1103,7 @@ function evalGroupEffect(grp, effect, bpm, dir, grpIndex, grpSize, timeMs, c) {
                     baseG = Math.min(255, baseG + 160);
                     baseB = Math.min(255, baseB + 180);
                 } else {
-                    grpIntensity = 0.04;
+                    grpIntensity = 0.08;
                 }
             } else if (tau < 0.70) {
                 // Phase 2: Outward Trail Growth (Wavefront expands from center to tips)
@@ -1088,18 +1120,25 @@ function evalGroupEffect(grp, effect, bpm, dir, grpIndex, grpSize, timeMs, c) {
                         baseG = Math.min(255, baseG + 90);
                         baseB = Math.min(255, baseB + 90);
                     } else if (delta > 0) {
-                        // Trailing line growing behind the head with incandescent exponential decay
-                        const trailDecay = Math.exp(-1.15 * (delta - 0.75));
-                        grpIntensity = Math.max(0.12, trailDecay);
-                        // Warm amber/red shift in trail embers
-                        baseR = Math.min(255, Math.round(baseR * 1.1));
-                        baseG = Math.round(baseG * 0.85);
-                        baseB = Math.round(baseB * 0.6);
+                        // Trailing line growing behind the head
+                        const trailDecay = Math.exp(-0.85 * (delta - 0.5));
+                        // LEAVE CENTERMOST LEDS ON to create a continuous radiating trail!
+                        if (step === 0) {
+                            grpIntensity = Math.max(0.68, trailDecay);
+                            baseR = Math.min(255, baseR + 35);
+                            baseG = Math.min(255, Math.round(baseG * 0.95 + 35));
+                        } else {
+                            grpIntensity = Math.max(0.20, trailDecay);
+                            // Warm ember shift in trailing line
+                            baseR = Math.min(255, Math.round(baseR * 1.08));
+                            baseG = Math.round(baseG * 0.85);
+                            baseB = Math.round(baseB * 0.65);
+                        }
                     } else {
-                        grpIntensity = 0.10;
+                        grpIntensity = 0.12;
                     }
                 } else {
-                    grpIntensity = 0.04;
+                    grpIntensity = 0.06;
                 }
             } else if (tau < 0.88) {
                 // Phase 3: Outer Starburst Twinkle & Crackle at Tips
@@ -1107,19 +1146,31 @@ function evalGroupEffect(grp, effect, bpm, dir, grpIndex, grpSize, timeMs, c) {
                 if (step >= ledsPerRay - 2) {
                     const crackle = Math.sin(timeMs * 0.09 + grpIndex * 37.3) > 0.15;
                     if (crackle) {
-                        grpIntensity = Math.max(0.2, (1.0 - tipProg * 0.7));
+                        grpIntensity = Math.max(0.25, (1.0 - tipProg * 0.65));
                         baseR = 255;
                         baseG = 250;
                         baseB = 220; // Starlight white sparkle
                     } else {
-                        grpIntensity = Math.max(0.06, 0.35 * (1.0 - tipProg));
+                        grpIntensity = Math.max(0.08, 0.35 * (1.0 - tipProg));
                     }
+                } else if (step === 0) {
+                    // LEAVE CENTERMOST LEDS ON as persistent trailing anchor while tips crackle
+                    grpIntensity = Math.max(0.42, 0.58 * (1.0 - tipProg * 0.35));
+                    baseR = Math.min(255, baseR + 30);
+                    baseG = Math.min(255, Math.round(baseG * 0.9));
                 } else {
-                    grpIntensity = Math.max(0.03, 0.25 * (1.0 - tipProg));
+                    grpIntensity = Math.max(0.06, 0.28 * (1.0 - tipProg));
                 }
             } else {
-                // Phase 4: Dark rest before next shell
-                grpIntensity = 0.03;
+                // Phase 4: Rest / Glowing Ember Core before next shell
+                if (step === 0) {
+                    // Centermost LEDs stay softly lit as a breathing warm ember
+                    const restProg = (tau - 0.88) / 0.12;
+                    grpIntensity = 0.25 + 0.12 * Math.sin(restProg * Math.PI);
+                    baseR = Math.min(255, baseR + 20);
+                } else {
+                    grpIntensity = 0.04;
+                }
             }
             break;
         }
@@ -1425,7 +1476,9 @@ function computeLedColor(index, totalLeds, timeMs) {
             const activeGrpCue = sequenceCues.find(q => q.targetType === 'group' && (q.groupId === grpId || q.groupName === grpEntry.group.name) && t >= q.startTime && t < (q.startTime + q.duration));
 
             if (activeGrpCue) {
-                const grpCol = evalGroupEffect(grpEntry.group, activeGrpCue.effect, activeGrpCue.speedBpm, activeGrpCue.direction, grpEntry.indexInGroup, grpEntry.groupSize, timeMs, c);
+                // Synchronize animation phase to cue onset time so cue effects (e.g. fireworks) explode precisely when triggered on timeline!
+                const cueTimeMs = Math.max(0, (t - activeGrpCue.startTime) * 1000);
+                const grpCol = evalGroupEffect(grpEntry.group, activeGrpCue.effect, activeGrpCue.speedBpm, activeGrpCue.direction, grpEntry.indexInGroup, grpEntry.groupSize, cueTimeMs, c);
                 const w = getCueWeight(activeGrpCue, t);
 
                 // Blend from baseline into group animation
@@ -3521,7 +3574,7 @@ function applyProfileData(profileData) {
     renderActiveGroupsList();
     const loadedFwGroup = animationGroups.find(g => g.effect === 'fireworks');
     if (loadedFwGroup) {
-        syncFireworksSliders(loadedFwGroup.centerNormX, loadedFwGroup.centerNormY, loadedFwGroup.burstRadius);
+        syncFireworksSliders(loadedFwGroup.centerNormX, loadedFwGroup.centerNormY, loadedFwGroup.burstRadius, loadedFwGroup.fireworkColor);
     }
 
     // 5. Restore Sequence Cues (Parade Cue Director)
@@ -4922,10 +4975,18 @@ function generateFireworksCluster(centerNormX = 0.28, centerNormY = 0.22, rays =
         { r: 175, g: 45,  b: 255 }  // Royal Violet
     ];
 
+    // Determine chosen color theme or custom hex
+    const colorSelect = document.getElementById('fwColorSelect');
+    const colorVal = colorSelect?.value || 'rainbow';
+    const customPicker = document.getElementById('fwCustomColorPicker');
+    const chosenHex = (colorVal === 'custom') ? (customPicker?.value || '#ffb703') : colorVal;
+    const isRainbow = (chosenHex === 'rainbow');
+    const chosenRgb = isRainbow ? null : hexToRgb(chosenHex);
+
     for (let r = 0; r < rays; r++) {
         // Start straight up at -PI/2 (12 o'clock), rotate clockwise
         const theta = -Math.PI / 2 + r * ((2 * Math.PI) / rays);
-        const col = rayColors[r % rayColors.length];
+        const col = isRainbow ? rayColors[r % rayColors.length] : (chosenRgb || rayColors[0]);
 
         for (let p = 0; p < ledsPerRay; p++) {
             // Serpentine wiring:
@@ -4987,7 +5048,9 @@ function generateFireworksCluster(centerNormX = 0.28, centerNormY = 0.22, rays =
         speedBpm: 120,
         direction: 1,
         width: 3,
-        colorMode: 'original',
+        colorMode: isRainbow ? 'original' : 'custom',
+        fireworkColor: chosenHex,
+        customColor: chosenRgb,
         fireworkRays: rays,
         fireworkLedsPerRay: ledsPerRay,
         wiringMode: 'serpentine',
@@ -4999,7 +5062,7 @@ function generateFireworksCluster(centerNormX = 0.28, centerNormY = 0.22, rays =
 
     rebuildLedGroupMap();
     renderActiveGroupsList();
-    syncFireworksSliders(centerNormX, centerNormY, burstRadius);
+    syncFireworksSliders(centerNormX, centerNormY, burstRadius, chosenHex);
 
     // Select the firework group so it is highlighted and draggable
     selectedLeds.clear();
@@ -5073,13 +5136,15 @@ function updateFireworksLedPositions(fwGroup, cx, cy, radius) {
     updateLedInspectorCoords();
 }
 
-function syncFireworksSliders(cx, cy, radius) {
+function syncFireworksSliders(cx, cy, radius, color) {
     const xSlider = document.getElementById('fwPosXSlider');
     const xVal = document.getElementById('fwPosXVal');
     const ySlider = document.getElementById('fwPosYSlider');
     const yVal = document.getElementById('fwPosYVal');
     const rSlider = document.getElementById('fwRadiusSlider');
     const rVal = document.getElementById('fwRadiusVal');
+    const colorSelect = document.getElementById('fwColorSelect');
+    const customPicker = document.getElementById('fwCustomColorPicker');
 
     if (xSlider && cx !== undefined) {
         const xPct = Math.round(cx * 100);
@@ -5095,6 +5160,60 @@ function syncFireworksSliders(cx, cy, radius) {
         const rPct = Math.round(radius * 100);
         rSlider.value = rPct;
         if (rVal) rVal.textContent = `${rPct}%`;
+    }
+    if (color && colorSelect) {
+        const standardOptions = ['rainbow', '#ffb703', '#00e5ff', '#ff3366', '#76ff03', '#d500f9', '#ff3d00', '#ffffff'];
+        if (standardOptions.includes(color)) {
+            colorSelect.value = color;
+            if (customPicker) customPicker.style.display = 'none';
+        } else {
+            colorSelect.value = 'custom';
+            if (customPicker) {
+                customPicker.style.display = 'block';
+                customPicker.value = color;
+            }
+        }
+    }
+}
+
+function applyFireworksColor(colorVal) {
+    const customPicker = document.getElementById('fwCustomColorPicker');
+    if (customPicker) {
+        customPicker.style.display = (colorVal === 'custom') ? 'block' : 'none';
+    }
+    const hex = (colorVal === 'custom') ? (customPicker?.value || '#ffb703') : colorVal;
+    const isRainbow = (hex === 'rainbow');
+    const chosenRgb = isRainbow ? null : hexToRgb(hex);
+
+    const fwGroup = animationGroups.find(g => g.effect === 'fireworks');
+    if (fwGroup) {
+        fwGroup.fireworkColor = hex;
+        fwGroup.colorMode = isRainbow ? 'original' : 'custom';
+        fwGroup.customColor = chosenRgb;
+
+        const rays = fwGroup.fireworkRays || 5;
+        const ledsPerRay = fwGroup.fireworkLedsPerRay || 4;
+        const rayColors = [
+            { r: 255, g: 195, b: 45 },  // Gold / Amber
+            { r: 255, g: 75,  b: 35 },  // Red-Orange
+            { r: 255, g: 50,  b: 130 }, // Coral Rose
+            { r: 0,   g: 235, b: 255 }, // Alice Cyan
+            { r: 80,  g: 255, b: 35 },  // Electric Lime
+            { r: 175, g: 45,  b: 255 }  // Royal Violet
+        ];
+
+        let pIdx = 0;
+        for (let r = 0; r < rays; r++) {
+            const col = isRainbow ? rayColors[r % rayColors.length] : chosenRgb;
+            for (let p = 0; p < ledsPerRay; p++) {
+                if (pIdx >= fwGroup.ledIndices.length) break;
+                const ledIdx = fwGroup.ledIndices[pIdx++];
+                if (leds[ledIdx] && col) {
+                    leds[ledIdx].color = { r: col.r, g: col.g, b: col.b };
+                }
+            }
+        }
+        updateLedInspectorUI();
     }
 }
 
@@ -5143,12 +5262,22 @@ const fwRadiusVal = document.getElementById('fwRadiusVal');
 const fwRaysSelect = document.getElementById('fwRaysSelect');
 const fwLedsPerRaySelect = document.getElementById('fwLedsPerRaySelect');
 const fwLedCountBadge = document.getElementById('fwLedCountBadge');
+const fwColorSelect = document.getElementById('fwColorSelect');
+const fwCustomColorPicker = document.getElementById('fwCustomColorPicker');
 const stampFwBtn = document.getElementById('stampFireworksBtn');
 const redistRemBtn = document.getElementById('redistributeRemainingBtn');
+const fwAddCueBtn = document.getElementById('fwAddCueBtn');
 
 if (fwPosTopLeftBtn) fwPosTopLeftBtn.addEventListener('click', () => setFireworksPositionPreset('top-left'));
 if (fwPosTopRightBtn) fwPosTopRightBtn.addEventListener('click', () => setFireworksPositionPreset('top-right'));
 if (fwPosCenterBtn) fwPosCenterBtn.addEventListener('click', () => setFireworksPositionPreset('center'));
+
+if (fwColorSelect) {
+    fwColorSelect.addEventListener('change', (e) => applyFireworksColor(e.target.value));
+}
+if (fwCustomColorPicker) {
+    fwCustomColorPicker.addEventListener('input', (e) => applyFireworksColor('custom'));
+}
 
 if (fwPosXSlider) {
     fwPosXSlider.addEventListener('input', (e) => {
@@ -5217,6 +5346,50 @@ if (stampFwBtn) {
 if (redistRemBtn) {
     redistRemBtn.addEventListener('click', () => {
         redistributeRemainingNonFireworkLeds();
+    });
+}
+
+if (fwAddCueBtn) {
+    fwAddCueBtn.addEventListener('click', () => {
+        let fwGroup = animationGroups.find(g => g.effect === 'fireworks');
+        if (!fwGroup) {
+            stampFwBtn?.click();
+            fwGroup = animationGroups.find(g => g.effect === 'fireworks');
+        }
+        if (!fwGroup) {
+            showToast('⚠️ Please stamp a fireworks cluster first!');
+            return;
+        }
+
+        const startSec = Math.min(sequenceLoopDuration - 4, Math.floor(sequenceTime));
+        addCue({
+            name: `🎆 ${fwGroup.name} Burst`,
+            startTime: startSec,
+            duration: 4.5,
+            targetType: 'group',
+            groupId: fwGroup.id,
+            groupName: fwGroup.name,
+            effect: 'fireworks',
+            speedBpm: fwGroup.speedBpm || 120,
+            fadeIn: 0.1,
+            fadeOut: 0.8
+        });
+
+        if (!sequenceMode) {
+            const toggle = document.getElementById('sequenceModeToggle');
+            if (toggle) {
+                toggle.checked = true;
+                sequenceMode = true;
+                const badge = document.getElementById('sequenceModeBadge');
+                if (badge) {
+                    badge.textContent = 'SEQUENCE ON';
+                    badge.style.background = '#238636';
+                }
+            }
+        }
+        renderTimelineCueStrip();
+        updateTimelineScrubberUI();
+        showToast(`🎆 Added Fireworks explosion cue at ${startSec.toFixed(1)}s on timeline!`);
     });
 }
 
