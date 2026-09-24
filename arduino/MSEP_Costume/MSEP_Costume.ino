@@ -196,6 +196,73 @@ void renderTravelingWave(uint8_t activeFloat, uint8_t waveHead) {
     }
 }
 
+void renderFireworks(uint32_t t) {
+    uint32_t cycleMs = 1800;
+    uint32_t tau = t % cycleMs;
+    uint8_t rays = 5;
+    uint8_t ledsPerRay = 4;
+    uint8_t fwLeds = rays * ledsPerRay; // 20 LEDs
+    uint8_t fwStart = (FRONT_LEDS > fwLeds) ? (FRONT_LEDS - fwLeds) : 0;
+
+    // Ambient glow on background LEDs
+    for (int i = 0; i < fwStart; i++) {
+        leds[i] = CRGB(20, 10, 5);
+        if (random16(10000) < 150) {
+            leds[i] = CRGB(255, 230, 180);
+        }
+    }
+
+    // Firework LEDs in Serpentine order
+    for (int idx = 0; idx < fwLeds && (fwStart + idx) < FRONT_LEDS; idx++) {
+        uint8_t ray = idx / ledsPerRay;
+        uint8_t posInRay = idx % ledsPerRay;
+        // Serpentine: odd rays reversed
+        uint8_t step = (ray % 2 == 1) ? (ledsPerRay - 1 - posInRay) : posInRay;
+
+        CRGB rayColor = (ray == 0) ? CRGB(255, 195, 45) :
+                        (ray == 1) ? CRGB(255, 75, 35) :
+                        (ray == 2) ? CRGB(255, 50, 130) :
+                        (ray == 3) ? CRGB(0, 235, 255) :
+                        (ray == 4) ? CRGB(80, 255, 35) : CRGB(175, 45, 255);
+
+        if (tau < 200) {
+            // Phase 1: Center ignition flash
+            if (step == 0) {
+                leds[fwStart + idx] = CRGB(255, 255, 220);
+            } else {
+                leds[fwStart + idx] = CRGB::Black;
+            }
+        } else if (tau < 1250) {
+            // Phase 2: Outward trail growth
+            int progress = map(tau - 200, 0, 1050, 0, (ledsPerRay - 1) * 100);
+            int headStep = progress / 100;
+            int delta = headStep - step;
+            if (delta == 0) {
+                leds[fwStart + idx] = CRGB(255, 255, 255);
+            } else if (delta > 0) {
+                CRGB ember = rayColor;
+                ember.nscale8_video(max(25, 255 - delta * 65));
+                leds[fwStart + idx] = ember;
+            } else {
+                leds[fwStart + idx] = CRGB::Black;
+            }
+        } else if (tau < 1600) {
+            // Phase 3: Tip sparkle crackle
+            if (step >= ledsPerRay - 2) {
+                if (random16(100) < 40) {
+                    leds[fwStart + idx] = CRGB(255, 255, 240);
+                } else {
+                    leds[fwStart + idx] = CRGB(35, 18, 8);
+                }
+            } else {
+                leds[fwStart + idx] = CRGB::Black;
+            }
+        } else {
+            leds[fwStart + idx] = CRGB::Black;
+        }
+    }
+}
+
 // ============================================================================
 // PARADE FLEET LOOP (Autonomous / ESP-NOW)
 // ============================================================================
@@ -411,6 +478,14 @@ void handleFloatConfigMode() {
 }
 
 void runAutonomousShowSequence(uint32_t now) {
+#if defined(ACTIVE_COSTUME_PATTERN) && (ACTIVE_COSTUME_PATTERN == COSTUME_PATTERN_FIREWORKS)
+    renderFireworks(now);
+    duplicateFrontToBack();
+    FastLED.show();
+    delay(15);
+    return;
+#endif
+
     uint32_t seqTime = now % SHOW_LOOP_MS;
 
 #if defined(HAS_CUSTOM_PALETTE) && HAS_CUSTOM_PALETTE

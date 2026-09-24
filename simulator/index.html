@@ -158,6 +158,7 @@
                         <option value="fire_breath">🔥 Snout Fire-Breathing Pulse</option>
                         <option value="traveling_wave">🌊 Traveling Parade Wave (ESP-NOW)</option>
                         <option value="marquee">🎪 Classic Incandescent Marquee Chase</option>
+                        <option value="fireworks">🎆 Fireworks (Radiating Starburst)</option>
                         <option value="photo_mode">📸 Castle Photo Mode (Solid Bright)</option>
                     </select>
                 </div>
@@ -293,6 +294,50 @@
                     </label>
                 </div>
 
+                <!-- Fireworks Starburst Generator Card -->
+                <div style="margin-top: 10px; padding: 10px 12px; background: rgba(255, 123, 114, 0.08); border: 1px solid rgba(255, 123, 114, 0.35); border-radius: 8px;">
+                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px;">
+                        <span style="font-size: 12px; font-weight: 600; color: #ff7b72;">🎆 Fireworks Starburst</span>
+                        <span id="fwLedCountBadge" style="background: #ff7b72; color: #000; font-weight: 700; padding: 2px 7px; border-radius: 12px; font-size: 10px;">20 LEDs (Serpentine)</span>
+                    </div>
+                    <p style="font-size: 11px; color: var(--text-muted); line-height: 1.35; margin-bottom: 8px;">
+                        Generates a 360° radial burst with serpentine wiring. Takes LEDs from float so there are <strong>always exactly 100 LEDs</strong>.
+                    </p>
+                    <div style="display: flex; gap: 8px; margin-bottom: 8px;">
+                        <div style="flex: 1;">
+                            <label style="font-size: 10px; color: var(--text-muted); display: block; margin-bottom: 2px;">Rays (Lines):</label>
+                            <select id="fwRaysSelect" style="background: #0d1117; color: #fff; border: 1px solid #30363d; border-radius: 4px; padding: 4px 6px; font-size: 11px; width: 100%;">
+                                <option value="4">4 Rays</option>
+                                <option value="5" selected>5 Rays (Default)</option>
+                                <option value="6">6 Rays</option>
+                            </select>
+                        </div>
+                        <div style="flex: 1;">
+                            <label style="font-size: 10px; color: var(--text-muted); display: block; margin-bottom: 2px;">LEDs per Ray:</label>
+                            <select id="fwLedsPerRaySelect" style="background: #0d1117; color: #fff; border: 1px solid #30363d; border-radius: 4px; padding: 4px 6px; font-size: 11px; width: 100%;">
+                                <option value="3">3 LEDs</option>
+                                <option value="4" selected>4 LEDs (Default)</option>
+                                <option value="5">5 LEDs</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="control-group" style="margin-bottom: 8px;">
+                        <div class="label-row" style="margin-bottom: 2px;">
+                            <span style="font-size: 10px; color: var(--text-muted);">Burst Radius (Spread)</span>
+                            <span id="fwRadiusVal" class="val-badge" style="font-size: 10px;">14%</span>
+                        </div>
+                        <input type="range" id="fwRadiusSlider" min="8" max="22" value="14" style="accent-color: #ff7b72;">
+                    </div>
+                    <div style="display: flex; flex-direction: column; gap: 6px;">
+                        <button type="button" id="stampFireworksBtn" class="action-btn accent" style="background: linear-gradient(135deg, #ff7b72, #d2a8ff); border-color: #ff7b72; font-weight: 600; font-size: 11px; padding: 7px 6px;">
+                            🎆 Stamp Fireworks Cluster (100 Total)
+                        </button>
+                        <button type="button" id="redistributeRemainingBtn" class="action-btn" style="font-size: 11px; padding: 5px;" title="Re-distribute non-firework LEDs across the costume while keeping the firework intact">
+                            🔄 Re-distribute Remaining LEDs (100 Total)
+                        </button>
+                    </div>
+                </div>
+
                 <div class="btn-row" style="margin-top: 6px;">
                     <button id="resetLedsBtn" class="action-btn">Reset Layout</button>
                     <button id="saveLayoutBtn" class="action-btn">Download JSON</button>
@@ -426,6 +471,7 @@
                                 <option value="sparkle_storm">✨ Sparkle Storm (Glitter)</option>
                                 <option value="marquee">🎪 Theater Marquee</option>
                                 <option value="rainbow_cycle">🌈 Rainbow Color Wave</option>
+                                <option value="fireworks">🎆 Fireworks (Radiating Starburst)</option>
                             </select>
                         </div>
 

@@ -1028,6 +1028,99 @@ function evalGroupEffect(grp, effect, bpm, dir, grpIndex, grpSize, timeMs, c) {
             grpIntensity = 1.0;
             break;
         }
+        case 'fireworks': {
+            const ledsPerRay = Math.max(2, grp.fireworkLedsPerRay || (
+                (grpSize % 5 === 0) ? (grpSize / 5) :
+                (grpSize % 4 === 0) ? (grpSize / 4) :
+                (grpSize % 6 === 0) ? (grpSize / 6) :
+                (grpSize % 3 === 0) ? (grpSize / 3) : 4
+            ));
+            const rays = Math.max(1, Math.round(grpSize / ledsPerRay));
+            const rayIdx = Math.floor(grpIndex / ledsPerRay);
+            const posInRay = grpIndex % ledsPerRay;
+
+            // Serpentine wiring:
+            // Even rays (0, 2, 4): center -> tip (step 0 to ledsPerRay - 1)
+            // Odd rays (1, 3, 5): tip -> center (step ledsPerRay - 1 down to 0)
+            const isSerp = grp.wiringMode !== 'spoke';
+            const step = (isSerp && (rayIdx % 2 === 1)) ? (ledsPerRay - 1 - posInRay) : posInRay;
+
+            // Cycle timing based on BPM (faster BPM = more frequent bursts)
+            const cycleMs = grpBeatMs * 3.0; // e.g. 1500ms at 120 BPM
+            const tau = (timeMs % cycleMs) / cycleMs; // 0.0 to 1.0
+
+            // Ray color variation (festive Disney fireworks palette)
+            const rayHues = [40, 15, 340, 185, 120, 280]; // Gold, Red-Orange, Coral, Alice Cyan, Lime, Violet
+            const rayHue = rayHues[rayIdx % rayHues.length];
+            const rayRgb = hslToRgb(rayHue / 360, 0.95, 0.55);
+
+            if (grp.colorMode !== 'custom') {
+                baseR = Math.round(baseR * 0.35 + rayRgb.r * 0.65);
+                baseG = Math.round(baseG * 0.35 + rayRgb.g * 0.65);
+                baseB = Math.round(baseB * 0.35 + rayRgb.b * 0.65);
+            }
+
+            if (tau < 0.12) {
+                // Phase 1: Center ignition flash
+                if (step === 0) {
+                    const igniteProg = tau / 0.12;
+                    grpIntensity = Math.sin(igniteProg * Math.PI);
+                    baseR = 255;
+                    baseG = Math.min(255, baseG + 160);
+                    baseB = Math.min(255, baseB + 180);
+                } else {
+                    grpIntensity = 0.04;
+                }
+            } else if (tau < 0.70) {
+                // Phase 2: Outward Trail Growth (Wavefront expands from center to tips)
+                const expandProg = (tau - 0.12) / 0.58; // 0.0 to 1.0
+                const waveHead = expandProg * (ledsPerRay - 1);
+                const delta = waveHead - step;
+
+                if (delta >= -0.25) {
+                    const headDist = Math.abs(delta);
+                    if (headDist < 0.75) {
+                        // Bright leading spark head
+                        grpIntensity = 1.0;
+                        baseR = Math.min(255, baseR + 90);
+                        baseG = Math.min(255, baseG + 90);
+                        baseB = Math.min(255, baseB + 90);
+                    } else if (delta > 0) {
+                        // Trailing line growing behind the head with incandescent exponential decay
+                        const trailDecay = Math.exp(-1.15 * (delta - 0.75));
+                        grpIntensity = Math.max(0.12, trailDecay);
+                        // Warm amber/red shift in trail embers
+                        baseR = Math.min(255, Math.round(baseR * 1.1));
+                        baseG = Math.round(baseG * 0.85);
+                        baseB = Math.round(baseB * 0.6);
+                    } else {
+                        grpIntensity = 0.10;
+                    }
+                } else {
+                    grpIntensity = 0.04;
+                }
+            } else if (tau < 0.88) {
+                // Phase 3: Outer Starburst Twinkle & Crackle at Tips
+                const tipProg = (tau - 0.70) / 0.18; // 0.0 to 1.0
+                if (step >= ledsPerRay - 2) {
+                    const crackle = Math.sin(timeMs * 0.09 + grpIndex * 37.3) > 0.15;
+                    if (crackle) {
+                        grpIntensity = Math.max(0.2, (1.0 - tipProg * 0.7));
+                        baseR = 255;
+                        baseG = 250;
+                        baseB = 220; // Starlight white sparkle
+                    } else {
+                        grpIntensity = Math.max(0.06, 0.35 * (1.0 - tipProg));
+                    }
+                } else {
+                    grpIntensity = Math.max(0.03, 0.25 * (1.0 - tipProg));
+                }
+            } else {
+                // Phase 4: Dark rest before next shell
+                grpIntensity = 0.03;
+            }
+            break;
+        }
         default:
             grpIntensity = 1.0;
             break;
@@ -1196,6 +1289,52 @@ function evalGlobalPattern(pattern, bpm, index, totalLeds, timeMs, c, hasColor) 
             } else {
                 const rgb = hslToRgb(baseH / 360, 0.95, 0.50 * intensity);
                 r = rgb.r; g = rgb.g; b = rgb.b;
+            }
+            break;
+        }
+        case 'fireworks': {
+            const cycleMs = beatMs * 3.0;
+            const tau = (timeMs % cycleMs) / cycleMs;
+            const fwGroup = animationGroups.find(g => g.effect === 'fireworks');
+            const ledsPerRay = fwGroup ? (fwGroup.fireworkLedsPerRay || 4) : 4;
+            const step = index % ledsPerRay;
+
+            if (tau < 0.12) {
+                if (step === 0) {
+                    r = 255; g = 250; b = 200;
+                    brightness = Math.sin((tau / 0.12) * Math.PI);
+                } else {
+                    r = 20; g = 10; b = 5;
+                    brightness = 0.05;
+                }
+            } else if (tau < 0.70) {
+                const expandProg = (tau - 0.12) / 0.58;
+                const waveHead = expandProg * (ledsPerRay - 1);
+                const delta = waveHead - step;
+                if (delta >= -0.25) {
+                    if (Math.abs(delta) < 0.75) {
+                        r = 255; g = 230; b = 150;
+                        brightness = 1.0;
+                    } else if (delta > 0) {
+                        const decay = Math.exp(-1.15 * (delta - 0.75));
+                        r = 255; g = 140; b = 30;
+                        brightness = Math.max(0.12, decay);
+                    } else {
+                        brightness = 0.10;
+                    }
+                } else {
+                    brightness = 0.05;
+                }
+            } else if (tau < 0.88) {
+                if (step >= ledsPerRay - 2) {
+                    const crackle = Math.sin(timeMs * 0.09 + index * 37.3) > 0.15;
+                    r = 255; g = 255; b = 240;
+                    brightness = crackle ? 0.95 : 0.15;
+                } else {
+                    brightness = 0.05;
+                }
+            } else {
+                brightness = 0.04;
             }
             break;
         }
@@ -1373,18 +1512,35 @@ function renderBulb(cx, x, y, col, isHovered, isSelected, index) {
     }
 
     if (params.showNumbers || isSelected) {
+        const grpEntry = ledGroupMap[index];
+        let fwTag = '';
+        let isFw = false;
+        if (grpEntry && grpEntry.group && grpEntry.group.effect === 'fireworks') {
+            isFw = true;
+            const ledsPerRay = grpEntry.group.fireworkLedsPerRay || 4;
+            const ray = Math.floor(grpEntry.indexInGroup / ledsPerRay) + 1;
+            const pos = grpEntry.indexInGroup % ledsPerRay;
+            const isSerp = grpEntry.group.wiringMode !== 'spoke';
+            const step = (isSerp && ((ray - 1) % 2 === 1)) ? (ledsPerRay - 1 - pos) : pos;
+            const role = (step === 0) ? 'CTR' : (step === ledsPerRay - 1 ? 'TIP' : `S${step + 1}`);
+            fwTag = `R${ray}:${step + 1}${role === 'CTR' ? '•C' : (role === 'TIP' ? '•T' : '')}`;
+        }
+
+        const baseLabel = isSelected ? `#${index}` : index;
+        const displayLabel = fwTag ? (isSelected ? `#${index} [${fwTag}]` : `${index} [${fwTag}]`) : baseLabel;
+
         if (index === 0) {
             cx.fillStyle = '#00ff88';
             cx.font = 'bold 10px monospace';
-            cx.fillText('0 (START)', x + 6, y - 6);
+            cx.fillText(`0 (START)${fwTag ? ' ' + fwTag : ''}`, x + 6, y - 6);
         } else if (index === leds.length - 1) {
             cx.fillStyle = '#ff4d6d';
             cx.font = 'bold 10px monospace';
-            cx.fillText(`${index} (END)`, x + 6, y - 6);
+            cx.fillText(`${index} (END)${fwTag ? ' ' + fwTag : ''}`, x + 6, y - 6);
         } else {
-            cx.fillStyle = isSelected ? '#00ffff' : '#ffffff';
+            cx.fillStyle = isSelected ? '#00ffff' : (isFw ? '#ffa657' : '#ffffff');
             cx.font = isSelected ? 'bold 11px monospace' : '9px monospace';
-            cx.fillText(isSelected ? `#${index}` : index, x + 6, y - 6);
+            cx.fillText(displayLabel, x + 6, y - 6);
         }
     }
 }
@@ -1838,10 +1994,24 @@ function updateLedInspectorUI() {
     if (totalSelected === 1) {
         if (stepperRow) stepperRow.style.display = 'flex';
         if (multiRow) multiRow.style.display = 'none';
+        const grpEntry = ledGroupMap[selectedLed];
         if (badge) {
-            badge.textContent = `LED #${selectedLed}`;
-            badge.style.background = '#ffc107';
-            badge.style.color = '#000';
+            if (grpEntry && grpEntry.group && grpEntry.group.effect === 'fireworks') {
+                const ledsPerRay = grpEntry.group.fireworkLedsPerRay || 4;
+                const rays = grpEntry.group.fireworkRays || Math.round(grpEntry.groupSize / ledsPerRay);
+                const ray = Math.floor(grpEntry.indexInGroup / ledsPerRay) + 1;
+                const pos = grpEntry.indexInGroup % ledsPerRay;
+                const isSerp = grpEntry.group.wiringMode !== 'spoke';
+                const step = (isSerp && ((ray - 1) % 2 === 1)) ? (ledsPerRay - 1 - pos) : pos;
+                const role = (step === 0) ? 'Center Hub' : (step === ledsPerRay - 1 ? 'Outer Tip' : `Trail Step ${step + 1}`);
+                badge.textContent = `LED #${selectedLed} (Ray ${ray}/${rays} • ${role})`;
+                badge.style.background = '#ff7b72';
+                badge.style.color = '#000';
+            } else {
+                badge.textContent = `LED #${selectedLed}`;
+                badge.style.background = '#ffc107';
+                badge.style.color = '#000';
+            }
         }
         if (groupBadge) groupBadge.textContent = '1 LED Selected';
         if (numInput) {
@@ -1850,7 +2020,6 @@ function updateLedInspectorUI() {
         }
 
         // If this LED belongs to a group, populate group inputs
-        const grpEntry = ledGroupMap[selectedLed];
         if (grpEntry && grpEntry.group) {
             const grp = grpEntry.group;
             const nameInput = document.getElementById('groupNameInput');
@@ -1932,6 +2101,14 @@ function applyGroupEffectToSelection() {
             colorMode: 'original'
         };
         animationGroups.push(targetGroup);
+    }
+
+    if (effect === 'fireworks') {
+        const count = sortedIndices.length;
+        const inferredRays = (count % 5 === 0) ? 5 : ((count % 4 === 0) ? 4 : ((count % 6 === 0) ? 6 : ((count % 3 === 0) ? 3 : 5)));
+        targetGroup.fireworkRays = targetGroup.fireworkRays || inferredRays;
+        targetGroup.fireworkLedsPerRay = targetGroup.fireworkLedsPerRay || Math.round(count / targetGroup.fireworkRays);
+        targetGroup.wiringMode = targetGroup.wiringMode || 'serpentine';
     }
 
     rebuildLedGroupMap();
@@ -2025,7 +2202,8 @@ function renderActiveGroupsList() {
         write_on_off: '✍️ Wipe',
         sparkle_storm: '✨ Sparkle',
         marquee: '🎪 Marquee',
-        rainbow_cycle: '🌈 Rainbow'
+        rainbow_cycle: '🌈 Rainbow',
+        fireworks: '🎆 Fireworks'
     };
 
     for (const grp of animationGroups) {
@@ -2433,7 +2611,8 @@ function renderCuesList() {
         { id: 'sparkle_storm', label: '✨ Sparkle Storm' },
         { id: 'marquee', label: '🎪 Theater Marquee' },
         { id: 'traveling_wave', label: '🌊 Traveling Parade Wave' },
-        { id: 'fire_breath', label: '🔥 Snout Fire Breath' }
+        { id: 'fire_breath', label: '🔥 Snout Fire Breath' },
+        { id: 'fireworks', label: '🎆 Fireworks Starburst' }
     ];
 
     sequenceCues.forEach((cue, idx) => {
@@ -4488,6 +4667,373 @@ const resetArtworkBtn = document.getElementById('resetArtworkBtn');
 if (resetArtworkBtn) {
     resetArtworkBtn.addEventListener('click', () => {
         loadGraphicPreset('builtin_dragon');
+    });
+}
+
+// ============================================================================
+// FIREWORKS STARBURST GENERATOR & REMAINING LED RE-DISTRIBUTION (100 TOTAL)
+// ============================================================================
+function sampleRemainingGraphicLeds(targetCount, excludeX = 0.50, excludeY = 0.34, excludeRadius = 0.16) {
+    if (targetCount <= 0) return [];
+
+    const targetW = 360;
+    let targetH = 360;
+    const offCanvas = document.createElement('canvas');
+    const offCtx = offCanvas.getContext('2d');
+    const activeImg = getActiveGraphicImg();
+
+    if (activeImg) {
+        targetH = Math.max(120, Math.round(targetW * (activeImg.naturalHeight / activeImg.naturalWidth)));
+        offCanvas.width = targetW;
+        offCanvas.height = targetH;
+        offCtx.drawImage(activeImg, 0, 0, targetW, targetH);
+    } else {
+        offCanvas.width = targetW;
+        offCanvas.height = targetH;
+        drawPetesDragon(offCtx, { x: 0, y: 0, width: targetW, height: targetH });
+    }
+
+    const imgData = offCtx.getImageData(0, 0, targetW, targetH);
+    const data = imgData.data;
+
+    let hasTransparency = false;
+    for (let i = 3; i < data.length; i += 16) {
+        if (data[i] < 200) {
+            hasTransparency = true;
+            break;
+        }
+    }
+
+    let isLightBg = false;
+    let isDarkBg = false;
+    if (!hasTransparency) {
+        const cornerCoords = [
+            [4, 4], [targetW - 5, 4], [4, targetH - 5], [targetW - 5, targetH - 5],
+            [Math.floor(targetW / 2), 4], [Math.floor(targetW / 2), targetH - 5]
+        ];
+        let lightCorners = 0;
+        let darkCorners = 0;
+        for (const [cx, cy] of cornerCoords) {
+            const cIdx = (cy * targetW + cx) * 4;
+            const cLum = 0.299 * data[cIdx] + 0.587 * data[cIdx + 1] + 0.114 * data[cIdx + 2];
+            if (cLum > 215) lightCorners++;
+            else if (cLum < 45) darkCorners++;
+        }
+        if (lightCorners >= 3) isLightBg = true;
+        else if (darkCorners >= 3) isDarkBg = true;
+    }
+
+    const gb = getGraphicChestBounds();
+    const step = 3;
+    const candidates = [];
+
+    for (let y = 3; y < targetH - 3; y += step) {
+        for (let x = 3; x < targetW - 3; x += step) {
+            const idx = (y * targetW + x) * 4;
+            const a = data[idx + 3];
+            const r = data[idx];
+            const g = data[idx + 1];
+            const b = data[idx + 2];
+
+            let isFg = false;
+            if (hasTransparency) {
+                isFg = (currentGraphicType === 'builtin_dragon') ? (a > 80 && Math.max(r, g, b) >= 60) : (a > 60);
+            } else if (isLightBg) {
+                const lum = 0.299 * r + 0.587 * g + 0.114 * b;
+                const satDelta = Math.max(r, g, b) - Math.min(r, g, b);
+                isFg = (lum < 225 || satDelta > 25);
+            } else {
+                const lum = 0.299 * r + 0.587 * g + 0.114 * b;
+                isFg = (lum > 40);
+            }
+
+            if (isFg) {
+                const relX = x / targetW;
+                const relY = y / targetH;
+                const normX = gb.normX + relX * gb.normW;
+                const normY = gb.normY + relY * gb.normH;
+
+                // Check exclusion distance
+                const distToFw = Math.hypot((normX - excludeX) * 1.25, normY - excludeY);
+                if (distToFw >= excludeRadius) {
+                    candidates.push({ x, y, r, g, b, normX, normY });
+                }
+            }
+        }
+    }
+
+    // Fallback if exclusion zone was too large: accept any foreground pixel
+    if (candidates.length < targetCount) {
+        for (let y = 3; y < targetH - 3; y += step * 2) {
+            for (let x = 3; x < targetW - 3; x += step * 2) {
+                const idx = (y * targetW + x) * 4;
+                const a = data[idx + 3];
+                if (a > 40) {
+                    const relX = x / targetW;
+                    const relY = y / targetH;
+                    const normX = gb.normX + relX * gb.normW;
+                    const normY = gb.normY + relY * gb.normH;
+                    candidates.push({ x, y, r: data[idx], g: data[idx + 1], b: data[idx + 2], normX, normY });
+                }
+            }
+        }
+    }
+
+    if (candidates.length === 0) return [];
+
+    // Farthest Point Sampling
+    const numCandidates = candidates.length;
+    const countToPick = Math.min(targetCount, numCandidates);
+    const minDist = new Float32Array(numCandidates).fill(1e9);
+    const selected = [];
+
+    let startIdx = Math.floor(numCandidates / 2);
+    selected.push(candidates[startIdx]);
+
+    for (let i = 0; i < numCandidates; i++) {
+        const dx = candidates[i].normX - candidates[startIdx].normX;
+        const dy = candidates[i].normY - candidates[startIdx].normY;
+        minDist[i] = dx * dx + dy * dy;
+    }
+
+    for (let k = 1; k < countToPick; k++) {
+        let maxD = -1;
+        let bestIdx = 0;
+        for (let i = 0; i < numCandidates; i++) {
+            if (minDist[i] > maxD) {
+                maxD = minDist[i];
+                bestIdx = i;
+            }
+        }
+
+        const chosen = candidates[bestIdx];
+        selected.push(chosen);
+
+        for (let i = 0; i < numCandidates; i++) {
+            const dx = candidates[i].normX - chosen.normX;
+            const dy = candidates[i].normY - chosen.normY;
+            const d = dx * dx + dy * dy;
+            if (d < minDist[i]) {
+                minDist[i] = d;
+            }
+        }
+    }
+
+    const result = [];
+    for (let i = 0; i < selected.length; i++) {
+        const p = selected[i];
+        let col = boostLedVibrancy(p.r, p.g, p.b, (p.normX - gb.normX) / gb.normW, (p.normY - gb.normY) / gb.normH);
+        result.push({
+            x: Math.max(0.05, Math.min(0.95, parseFloat(p.normX.toFixed(4)))),
+            y: Math.max(0.05, Math.min(0.95, parseFloat(p.normY.toFixed(4)))),
+            color: col
+        });
+    }
+
+    return result;
+}
+
+function generateFireworksCluster(centerNormX = 0.50, centerNormY = 0.34, rays = 5, ledsPerRay = 4, burstRadius = 0.14, redistributeRemaining = true) {
+    const totalFwLeds = rays * ledsPerRay;
+    const remainingCount = 100 - totalFwLeds;
+
+    // 1. Generate Firework LEDs in Serpentine order
+    const fwLeds = [];
+    const rayColors = [
+        { r: 255, g: 195, b: 45 },  // Gold / Amber
+        { r: 255, g: 75,  b: 35 },  // Red-Orange
+        { r: 255, g: 50,  b: 130 }, // Coral Rose
+        { r: 0,   g: 235, b: 255 }, // Alice Cyan
+        { r: 80,  g: 255, b: 35 },  // Electric Lime
+        { r: 175, g: 45,  b: 255 }  // Royal Violet
+    ];
+
+    for (let r = 0; r < rays; r++) {
+        // Start straight up at -PI/2 (12 o'clock), rotate clockwise
+        const theta = -Math.PI / 2 + r * ((2 * Math.PI) / rays);
+        const col = rayColors[r % rayColors.length];
+
+        for (let p = 0; p < ledsPerRay; p++) {
+            // Serpentine wiring:
+            // Even rays: center -> tip
+            // Odd rays: tip -> center
+            const step = (r % 2 === 1) ? (ledsPerRay - 1 - p) : p;
+            const normDist = step / Math.max(1, ledsPerRay - 1);
+            // Minimum radius at center (0.025) up to burstRadius
+            const rad = 0.025 + normDist * (burstRadius - 0.025);
+
+            // Aspect ratio compensation for shirt coordinates
+            const nx = centerNormX + Math.cos(theta) * rad * 0.82;
+            const ny = centerNormY + Math.sin(theta) * rad;
+
+            fwLeds.push({
+                x: Math.max(0.08, Math.min(0.92, parseFloat(nx.toFixed(4)))),
+                y: Math.max(0.08, Math.min(0.92, parseFloat(ny.toFixed(4)))),
+                color: { r: col.r, g: col.g, b: col.b }
+            });
+        }
+    }
+
+    // 2. Generate or extract remaining LEDs to guarantee exactly 100 LEDs
+    let nonFwLeds = [];
+    if (redistributeRemaining || !leds || leds.length < 100) {
+        nonFwLeds = sampleRemainingGraphicLeds(remainingCount, centerNormX, centerNormY, burstRadius * 1.15);
+    } else {
+        // Filter out LEDs that fall inside the firework circle
+        const outsideLeds = leds.filter(pt => {
+            const d = Math.hypot((pt.x - centerNormX) * 1.25, pt.y - centerNormY);
+            return d > burstRadius;
+        });
+        if (outsideLeds.length >= remainingCount) {
+            nonFwLeds = outsideLeds.slice(0, remainingCount);
+        } else {
+            const needed = remainingCount - outsideLeds.length;
+            const extra = sampleRemainingGraphicLeds(needed, centerNormX, centerNormY, burstRadius * 1.15);
+            nonFwLeds = outsideLeds.concat(extra);
+        }
+    }
+
+    // Ensure nonFwLeds has exactly remainingCount
+    if (nonFwLeds.length > remainingCount) {
+        nonFwLeds = nonFwLeds.slice(0, remainingCount);
+    } else if (nonFwLeds.length < remainingCount) {
+        const filler = sampleRemainingGraphicLeds(remainingCount - nonFwLeds.length, centerNormX, centerNormY, burstRadius * 1.15);
+        nonFwLeds = nonFwLeds.concat(filler);
+    }
+
+    // Sort nonFwLeds with 2-opt wiring starting at bottom-left
+    nonFwLeds = optimizeLedWiringOrder(nonFwLeds, 'bottom-left');
+
+    // Combine: non-firework LEDs (0 .. remainingCount - 1), then fwLeds (remainingCount .. 99)
+    leds = nonFwLeds.concat(fwLeds);
+    while (sparkles.length < leds.length) sparkles.push(0);
+
+    // 3. Create or update Animation Group for the firework
+    const fwIndices = [];
+    for (let i = remainingCount; i < 100; i++) {
+        fwIndices.push(i);
+    }
+
+    // Remove any previous fireworks group
+    for (let g = animationGroups.length - 1; g >= 0; g--) {
+        if (animationGroups[g].effect === 'fireworks') {
+            animationGroups.splice(g, 1);
+        }
+    }
+
+    const fwGroup = {
+        id: 'grp_fireworks_' + Date.now(),
+        name: `Fireworks (${rays}R x ${ledsPerRay}L)`,
+        ledIndices: fwIndices,
+        effect: 'fireworks',
+        speedBpm: 120,
+        direction: 1,
+        width: 3,
+        colorMode: 'original',
+        fireworkRays: rays,
+        fireworkLedsPerRay: ledsPerRay,
+        wiringMode: 'serpentine',
+        centerNormX: centerNormX,
+        centerNormY: centerNormY,
+        burstRadius: burstRadius
+    };
+    animationGroups.push(fwGroup);
+
+    rebuildLedGroupMap();
+    renderActiveGroupsList();
+
+    // Select the firework group so it is highlighted
+    selectedLeds.clear();
+    for (const idx of fwIndices) selectedLeds.add(idx);
+    selectedLed = fwIndices[0];
+    updateLedInspectorUI();
+    updateLedCountUI();
+
+    showToast(`🎆 Created Fireworks cluster: ${rays} rays x ${ledsPerRay} LEDs (${totalFwLeds} LEDs, Serpentine wired)! Total LEDs: ${leds.length}.`);
+}
+
+function redistributeRemainingNonFireworkLeds() {
+    const fwGroup = animationGroups.find(g => g.effect === 'fireworks');
+    if (!fwGroup || !fwGroup.ledIndices || fwGroup.ledIndices.length === 0) {
+        showToast('⚠️ No active Fireworks group found. Stamp a fireworks cluster first!');
+        return;
+    }
+
+    const totalFwLeds = fwGroup.ledIndices.length;
+    const remainingCount = 100 - totalFwLeds;
+
+    // Get current firework LED objects
+    const fwLeds = [];
+    for (const idx of fwGroup.ledIndices) {
+        if (leds[idx]) fwLeds.push({ ...leds[idx] });
+    }
+
+    const cx = fwGroup.centerNormX || 0.50;
+    const cy = fwGroup.centerNormY || 0.34;
+    const rad = fwGroup.burstRadius || 0.14;
+
+    let nonFwLeds = sampleRemainingGraphicLeds(remainingCount, cx, cy, rad * 1.15);
+    nonFwLeds = optimizeLedWiringOrder(nonFwLeds, 'bottom-left');
+
+    leds = nonFwLeds.concat(fwLeds);
+    while (sparkles.length < leds.length) sparkles.push(0);
+
+    fwGroup.ledIndices = Array.from({ length: totalFwLeds }, (_, i) => remainingCount + i);
+
+    rebuildLedGroupMap();
+    renderActiveGroupsList();
+    updateLedCountUI();
+    updateLedInspectorUI();
+
+    showToast(`🔄 Re-distributed ${remainingCount} LEDs across graphic! Exactly 100 LEDs active.`);
+}
+
+// Fireworks Starburst Generator Event Listeners
+const stampFwBtn = document.getElementById('stampFireworksBtn');
+const redistRemBtn = document.getElementById('redistributeRemainingBtn');
+const fwRaysSelect = document.getElementById('fwRaysSelect');
+const fwLedsPerRaySelect = document.getElementById('fwLedsPerRaySelect');
+const fwRadiusSlider = document.getElementById('fwRadiusSlider');
+const fwRadiusVal = document.getElementById('fwRadiusVal');
+const fwLedCountBadge = document.getElementById('fwLedCountBadge');
+
+function updateFwBadge() {
+    if (!fwRaysSelect || !fwLedsPerRaySelect || !fwLedCountBadge) return;
+    const rays = parseInt(fwRaysSelect.value, 10) || 5;
+    const lpr = parseInt(fwLedsPerRaySelect.value, 10) || 4;
+    const total = rays * lpr;
+    fwLedCountBadge.textContent = `${total} LEDs (${100 - total} Other)`;
+}
+
+if (fwRaysSelect) fwRaysSelect.addEventListener('change', updateFwBadge);
+if (fwLedsPerRaySelect) fwLedsPerRaySelect.addEventListener('change', updateFwBadge);
+
+if (fwRadiusSlider && fwRadiusVal) {
+    fwRadiusSlider.addEventListener('input', (e) => {
+        fwRadiusVal.textContent = `${e.target.value}%`;
+    });
+}
+
+if (stampFwBtn) {
+    stampFwBtn.addEventListener('click', () => {
+        const rays = parseInt(fwRaysSelect?.value || '5', 10);
+        const lpr = parseInt(fwLedsPerRaySelect?.value || '4', 10);
+        const radPct = parseInt(fwRadiusSlider?.value || '14', 10);
+        const burstRadius = radPct / 100;
+
+        let cx = 0.50, cy = 0.34;
+        if (selectedLed !== null && leds[selectedLed]) {
+            cx = leds[selectedLed].x;
+            cy = leds[selectedLed].y;
+        }
+
+        generateFireworksCluster(cx, cy, rays, lpr, burstRadius, true);
+    });
+}
+
+if (redistRemBtn) {
+    redistRemBtn.addEventListener('click', () => {
+        redistributeRemainingNonFireworkLeds();
     });
 }
 

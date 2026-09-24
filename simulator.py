@@ -226,7 +226,8 @@ class SimulatorRequestHandler(http.server.SimpleHTTPRequestHandler):
                 "fire_breath": "COSTUME_PATTERN_FIRE_BREATH",
                 "traveling_wave": "COSTUME_PATTERN_TRAVELING_WAVE",
                 "marquee": "COSTUME_PATTERN_MARQUEE",
-                "photo_mode": "COSTUME_PATTERN_PHOTO_MODE"
+                "photo_mode": "COSTUME_PATTERN_PHOTO_MODE",
+                "fireworks": "COSTUME_PATTERN_FIREWORKS"
             }
             active_pattern = pattern_map.get(pattern_str, "COSTUME_PATTERN_STEADY_SPARKLE")
             

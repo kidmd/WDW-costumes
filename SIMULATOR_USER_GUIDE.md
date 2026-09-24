@@ -135,6 +135,7 @@ To create localized zone animations (like carriage wheels spinning or lanterns p
   - *💓 Breathing Glow Pulse:* Pulses the group in sync or out of phase with the baseline.
   - *💡 Slow Flashing / Blink:* Theatrical blinking.
   - *✍️ Write-On / Write-Off:* Successively illuminates the group in sequence.
+  - *🎆 Fireworks (Radiating Starburst):* 4-phase pyrotechnic explosion with center ignition flash, outward expanding spark trails with decaying ember tails, starlight tip crackles, and dark sky resets. Uses serpentine wiring geometry for maximum solder efficiency.
 - **Inspect Group:** Click the **Inspect** button next to any group to highlight its member LEDs on the canvas.
 - **Delete Group:** Click the red **🗑️** button to dismantle a group and return its LEDs to the global float baseline.
 
@@ -150,6 +151,25 @@ Attaching LEDs to a shirt by hand can easily result in tangled wire spaghetti if
 3. It uses a 2-opt spatial traveling salesman algorithm to renumber every LED along the shortest continuous physical snake route.
 4. Each LED is renumbered so LED `0` connects to LED `1`, which connects to LED `2`, and so on, with minimum wire length between successive pixels.
 5. Toggle **Show Wiring Route** in Section 6 to see the physical wire path drawn directly on the canvas!
+
+### 🎆 Fireworks Starburst Generator & Serpentine Wiring
+Creating radial fireworks bursts requires clean geometry and predictable physical wiring:
+1. **Rays & Length Customization:**
+   - Choose between **4, 5, or 6 Rays** radiating from a central explosion origin.
+   - Choose between **3, 4, or 5 LEDs per Ray** (e.g. 5 rays $\times$ 4 LEDs = 20 LEDs).
+   - Adjust the **Burst Radius slider (8% – 22%)** to scale the firework size.
+2. **Serpentine Wiring Geometry:**
+   - To eliminate long, messy return wires from outer spoke tips back to the center hub, the generator utilizes **continuous serpentine routing**:
+     - *Even Rays (0, 2, 4):* Wire travels outward (**Center $\to$ Tip**).
+     - *Odd Rays (1, 3, 5):* Wire travels inward (**Tip $\to$ Center**), with a short 1-inch jump between adjacent spoke tips.
+   - The animation engine automatically compensates for reversed rays, ensuring all lines visually radiate outward from the center simultaneously!
+3. **100-LED Invariant Guarantee:**
+   - Placing a firework cluster claims $N_{\text{fw}}$ LEDs from the float pool (e.g. 20 LEDs for a $5 \times 4$ burst), leaving $100 - N_{\text{fw}}$ LEDs (e.g. 80 LEDs) for the rest of the costume.
+   - Click **"🔄 Re-distribute Remaining LEDs"** at any time to organically re-scatter the remaining LEDs across the graphic outside the firework cluster while keeping the firework LEDs intact.
+   - The total count is **strictly preserved at 100 LEDs**.
+4. **Canvas Numbering & Identification:**
+   - With **Show Numbers** active or when selecting bulbs, each firework LED displays its exact ray and step badge: e.g. `R1:1 (CTR)`, `R1:4 (TIP)`, `R2:1 (CTR)`, `R2:4 (TIP)`.
+   - The LED Inspector displays the full role breakdown: e.g. `Ray 2 of 5 • Trail Step 3 (Mid-Trail)`.
 
 ---
 
@@ -282,7 +302,7 @@ Use the **Load Example Routine** dropdown to test fully orchestrated 90-second s
 
 ## 10. Lighting Patterns & Effects Library
 
-The simulator includes 10 specialized algorithms designed specifically for parade floats:
+The simulator includes 11 specialized algorithms designed specifically for parade floats:
 
 | Effect ID | Effect Name | Description | Best Suited For |
 |---|---|---|---|
@@ -296,6 +316,7 @@ The simulator includes 10 specialized algorithms designed specifically for parad
 | `marquee` | **Theater Marquee Chase** | 3-phase alternating incandescent bulb chase (dots 1, 2, 3). | Outer float frames, title drums |
 | `traveling_wave` | **Traveling Parade Wave** | Intense illuminated wave head with fading comet tail. | Float-to-float ESP-NOW sync, finales |
 | `fire_breath` | **Snout Fire Breath** | Flickering flame simulation in amber, orange, and red hues. | Pete's Dragon snout, torches |
+| `fireworks` | **Fireworks Starburst** | 4-phase pyrotechnic explosion with center flash, outward expanding fire trails, and starlight tip crackle. | Finales, celestial bursts, chest stars |
 
 ---
 
