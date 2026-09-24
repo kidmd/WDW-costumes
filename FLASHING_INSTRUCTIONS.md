@@ -64,7 +64,7 @@ If you're already familiar with the Arduino IDE and want to inspect or modify th
    - Search for `FastLED` (by Daniel Garcia) and click **Install**.
 3. **Select Board:**
    - Go to **Tools ➔ Board ➔ esp32 ➔ ESP32 Dev Module**.
-   *(If you don't have the ESP32 board package installed, go to Tools ➔ Board ➔ Boards Manager, search for `esp32` by Espressif, and click Install).*
+   *(If you don't have the ESP32 board package installed, go to Tools ➔ Board ➔ Boards Manager, search for `esp32` by Espressif, and click Install. The sketch automatically detects and supports **both ESP32 Arduino Core 2.x and Core 3.x+** without code changes).*
 4. **Select Port & Upload:**
    - Go to **Tools ➔ Port** and select your connected ESP32 COM port.
    - Click the **Upload** arrow button in the top toolbar!

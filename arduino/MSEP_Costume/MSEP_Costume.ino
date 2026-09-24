@@ -18,6 +18,7 @@
 #include <WiFi.h>
 #include <WiFiUdp.h>
 #include <esp_now.h>
+#include <esp_arduino_version.h>
 #include <Preferences.h>
 #include "soc/soc.h"
 #include "soc/rtc_cntl_reg.h"
@@ -123,8 +124,13 @@ uint8_t broadcastMac[] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
 
 // ============================================================================
 // ESP-NOW RECEIVE CALLBACK (Follower)
+// Compatible with both ESP32 Arduino Core 2.x (const uint8_t*) and Core 3.x+ (esp_now_recv_info_t*)
 // ============================================================================
+#if defined(ESP_ARDUINO_VERSION_MAJOR) && (ESP_ARDUINO_VERSION_MAJOR >= 3)
+void onDataReceive(const esp_now_recv_info_t *esp_now_info, const uint8_t *incomingData, int len) {
+#else
 void onDataReceive(const uint8_t *mac_addr, const uint8_t *incomingData, int len) {
+#endif
     if (len == sizeof(ParadeSyncPacket)) {
         ParadeSyncPacket packet;
         memcpy(&packet, incomingData, sizeof(packet));

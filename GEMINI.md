@@ -63,3 +63,24 @@ Whenever any feature, UI control, slider, preset, firmware parameter, or hardwar
    - Use conventional commit prefixes: `feat:`, `fix:`, `docs:`, `refactor:`.
 3. **Push to Remote:**
    - Always push commits to `origin main` to keep the GitHub repository ([kidmd/WDW-costumes](https://github.com/kidmd/WDW-costumes)) in sync.
+
+---
+
+## 5. ESP32 Arduino Core & Toolchain Compatibility Standards
+
+1. **Dual Core Compatibility (ESP32 Core 2.x and 3.x+):**
+   - Whenever writing or updating ESP32 C++ firmware (`src/main.cpp`) or Arduino sketch files (`arduino/MSEP_Costume/MSEP_Costume.ino`), the code MUST support both legacy ESP32 Arduino Core 2.x (used by default in PlatformIO environments) and modern ESP32 Arduino Core 3.x+ (default in current Arduino IDE Boards Manager).
+   - Never write code that assumes only one core version exists.
+   - For ESP-NOW receive callbacks (`esp_now_recv_cb_t`), always use `#if defined(ESP_ARDUINO_VERSION_MAJOR) && (ESP_ARDUINO_VERSION_MAJOR >= 3)` with `#include <esp_arduino_version.h>` so that both `esp_now_recv_info_t` (Core 3.x) and `const uint8_t *mac_addr` (Core 2.x) compile without errors:
+     ```cpp
+     #include <esp_arduino_version.h>
+
+     #if defined(ESP_ARDUINO_VERSION_MAJOR) && (ESP_ARDUINO_VERSION_MAJOR >= 3)
+     void onDataReceive(const esp_now_recv_info_t *esp_now_info, const uint8_t *incomingData, int len) {
+     #else
+     void onDataReceive(const uint8_t *mac_addr, const uint8_t *incomingData, int len) {
+     #endif
+     ```
+2. **Firmware Source Synchronization:**
+   - Any firmware change made to `src/main.cpp` must be mirrored in `arduino/MSEP_Costume/MSEP_Costume.ino`, and vice versa, preserving identical animation, networking, and hardware logic.
+
