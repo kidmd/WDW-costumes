@@ -1072,27 +1072,19 @@ function evalGroupEffect(grp, effect, bpm, dir, grpIndex, grpSize, timeMs, c) {
             const cycleMs = grpBeatMs * 3.0; // e.g. 1500ms at 120 BPM
             const tau = (timeMs % cycleMs) / cycleMs; // 0.0 to 1.0
 
-            // Ray color variation (festive Disney fireworks palette or user chosen color)
-            const rayHues = [40, 15, 340, 185, 120, 280]; // Gold, Red-Orange, Coral, Alice Cyan, Lime, Violet
-            const rayHue = rayHues[rayIdx % rayHues.length];
-            const rayRgb = hslToRgb(rayHue / 360, 0.95, 0.55);
-
+            // All rays of a firework group share the exact same uniform color
+            let fwR = 255, fwG = 195, fwB = 45; // Golden Amber signature default
             if (grp.fireworkColor && grp.fireworkColor !== 'rainbow') {
                 const cRgb = hexToRgb(grp.fireworkColor);
-                if (cRgb) {
-                    baseR = cRgb.r;
-                    baseG = cRgb.g;
-                    baseB = cRgb.b;
-                }
+                if (cRgb) { fwR = cRgb.r; fwG = cRgb.g; fwB = cRgb.b; }
+            } else if (grp.customColor) {
+                fwR = grp.customColor.r; fwG = grp.customColor.g; fwB = grp.customColor.b;
             } else if (grp.colorMode === 'custom' && grp.customColor) {
-                baseR = grp.customColor.r;
-                baseG = grp.customColor.g;
-                baseB = grp.customColor.b;
-            } else if (grp.colorMode !== 'custom') {
-                baseR = Math.round(baseR * 0.35 + rayRgb.r * 0.65);
-                baseG = Math.round(baseG * 0.35 + rayRgb.g * 0.65);
-                baseB = Math.round(baseB * 0.35 + rayRgb.b * 0.65);
+                fwR = grp.customColor.r; fwG = grp.customColor.g; fwB = grp.customColor.b;
             }
+            baseR = fwR;
+            baseG = fwG;
+            baseB = fwB;
 
             if (tau < 0.12) {
                 // Phase 1: Center ignition flash
@@ -1341,9 +1333,22 @@ function evalGlobalPattern(pattern, bpm, index, totalLeds, timeMs, c, hasColor) 
         case 'fireworks': {
             const cycleMs = beatMs * 3.0;
             const tau = (timeMs % cycleMs) / cycleMs;
-            const fwGroup = animationGroups.find(g => g.effect === 'fireworks');
+            const fwGroup = animationGroups.find(g => g.effect === 'fireworks' && g.ledIndices && g.ledIndices.includes(index)) || animationGroups.find(g => g.effect === 'fireworks');
             const ledsPerRay = fwGroup ? (fwGroup.fireworkLedsPerRay || 4) : 4;
-            const step = index % ledsPerRay;
+            const posInGroup = (fwGroup && fwGroup.ledIndices) ? fwGroup.ledIndices.indexOf(index) : -1;
+            const posInRay = (posInGroup >= 0) ? (posInGroup % ledsPerRay) : (index % ledsPerRay);
+            const rayIdx = (posInGroup >= 0) ? Math.floor(posInGroup / ledsPerRay) : 0;
+            const isSerp = !fwGroup || fwGroup.wiringMode !== 'spoke';
+            const step = (isSerp && (rayIdx % 2 === 1)) ? (ledsPerRay - 1 - posInRay) : posInRay;
+
+            // All rays of a firework group share the exact same uniform color
+            let fwR = 255, fwG = 195, fwB = 45;
+            if (fwGroup && fwGroup.fireworkColor && fwGroup.fireworkColor !== 'rainbow') {
+                const cRgb = hexToRgb(fwGroup.fireworkColor);
+                if (cRgb) { fwR = cRgb.r; fwG = cRgb.g; fwB = cRgb.b; }
+            } else if (fwGroup && fwGroup.customColor) {
+                fwR = fwGroup.customColor.r; fwG = fwGroup.customColor.g; fwB = fwGroup.customColor.b;
+            }
 
             if (tau < 0.12) {
                 if (step === 0) {
@@ -3186,6 +3191,9 @@ canvas.addEventListener('mousedown', (e) => {
                 const fwGroup = animationGroups.find(g => g.effect === 'fireworks' && g.ledIndices && g.ledIndices.includes(clickedIdx));
                 if (fwGroup) {
                     isGroupDrag = true;
+                    activeFireworksGroupId = fwGroup.id;
+                    updateActiveFwDropdown();
+                    syncFireworksSliders(fwGroup.centerNormX, fwGroup.centerNormY, fwGroup.burstRadius, fwGroup.fireworkColor);
                     selectedLeds.clear();
                     for (const idx of fwGroup.ledIndices) selectedLeds.add(idx);
                     selectedLed = clickedIdx;
@@ -3275,8 +3283,8 @@ canvas.addEventListener('mousemove', (e) => {
             }
 
             // Sync fireworks group center & sliders if a fireworks group is being dragged
-            const fwGroup = animationGroups.find(g => g.effect === 'fireworks');
-            if (fwGroup && fwGroup.ledIndices && fwGroup.ledIndices.includes(draggedLed)) {
+            const fwGroup = animationGroups.find(g => g.effect === 'fireworks' && g.ledIndices && g.ledIndices.includes(draggedLed));
+            if (fwGroup) {
                 let sumX = 0, sumY = 0;
                 for (const idx of fwGroup.ledIndices) {
                     sumX += leds[idx].x;
@@ -3284,7 +3292,10 @@ canvas.addEventListener('mousemove', (e) => {
                 }
                 fwGroup.centerNormX = parseFloat((sumX / fwGroup.ledIndices.length).toFixed(4));
                 fwGroup.centerNormY = parseFloat((sumY / fwGroup.ledIndices.length).toFixed(4));
-                syncFireworksSliders(fwGroup.centerNormX, fwGroup.centerNormY, fwGroup.burstRadius);
+                activeFireworksGroupId = fwGroup.id;
+                syncFireworksSliders(fwGroup.centerNormX, fwGroup.centerNormY, fwGroup.burstRadius, fwGroup.fireworkColor);
+                const sel = document.getElementById('activeFwSelect');
+                if (sel) sel.value = fwGroup.id;
             }
         } else {
             leds[draggedLed].x = norm.x;
@@ -3593,9 +3604,14 @@ function applyProfileData(profileData) {
     }
     rebuildLedGroupMap();
     renderActiveGroupsList();
-    const loadedFwGroup = animationGroups.find(g => g.effect === 'fireworks');
-    if (loadedFwGroup) {
-        syncFireworksSliders(loadedFwGroup.centerNormX, loadedFwGroup.centerNormY, loadedFwGroup.burstRadius, loadedFwGroup.fireworkColor);
+    const loadedFwGroups = animationGroups.filter(g => g.effect === 'fireworks');
+    if (loadedFwGroups.length > 0) {
+        activeFireworksGroupId = loadedFwGroups[0].id;
+        updateActiveFwDropdown();
+        syncFireworksSliders(loadedFwGroups[0].centerNormX, loadedFwGroups[0].centerNormY, loadedFwGroups[0].burstRadius, loadedFwGroups[0].fireworkColor);
+    } else {
+        activeFireworksGroupId = null;
+        updateActiveFwDropdown();
     }
 
     // 5. Restore Sequence Cues (Parade Cue Director)
@@ -4981,95 +4997,166 @@ function sampleRemainingGraphicLeds(targetCount, excludeX = 0, excludeY = 0, exc
     return result;
 }
 
-function generateFireworksCluster(centerNormX = 0.28, centerNormY = 0.22, rays = 5, ledsPerRay = 4, burstRadius = 0.13, redistributeRemaining = true) {
-    const totalFwLeds = rays * ledsPerRay;
-    const remainingCount = 100 - totalFwLeds;
+let activeFireworksGroupId = null;
 
-    // 1. Generate Firework LEDs in Serpentine order
-    const fwLeds = [];
-    const rayColors = [
-        { r: 255, g: 195, b: 45 },  // Gold / Amber
-        { r: 255, g: 75,  b: 35 },  // Red-Orange
-        { r: 255, g: 50,  b: 130 }, // Coral Rose
-        { r: 0,   g: 235, b: 255 }, // Alice Cyan
-        { r: 80,  g: 255, b: 35 },  // Electric Lime
-        { r: 175, g: 45,  b: 255 }  // Royal Violet
-    ];
+function getActiveFireworksGroup() {
+    const fwGroups = animationGroups.filter(g => g.effect === 'fireworks');
+    if (fwGroups.length === 0) return null;
+    if (activeFireworksGroupId) {
+        const found = fwGroups.find(g => g.id === activeFireworksGroupId);
+        if (found) return found;
+    }
+    return fwGroups[fwGroups.length - 1]; // Default to most recent
+}
 
-    // Determine chosen color theme or custom hex
-    const colorSelect = document.getElementById('fwColorSelect');
-    const colorVal = colorSelect?.value || 'rainbow';
-    const customPicker = document.getElementById('fwCustomColorPicker');
-    const chosenHex = (colorVal === 'custom') ? (customPicker?.value || '#ffb703') : colorVal;
-    const isRainbow = (chosenHex === 'rainbow');
-    const chosenRgb = isRainbow ? null : hexToRgb(chosenHex);
+function updateActiveFwDropdown() {
+    const fwRow = document.getElementById('activeFwRow');
+    const select = document.getElementById('activeFwSelect');
+    if (!select || !fwRow) return;
 
+    const fwGroups = animationGroups.filter(g => g.effect === 'fireworks');
+    if (fwGroups.length <= 1) {
+        fwRow.style.display = 'none';
+        return;
+    }
+
+    fwRow.style.display = 'block';
+    select.innerHTML = '';
+    fwGroups.forEach((g) => {
+        const opt = document.createElement('option');
+        opt.value = g.id;
+        opt.textContent = `${g.name} (${g.fireworkColor || '#ffb703'})`;
+        if (g.id === activeFireworksGroupId) {
+            opt.selected = true;
+        }
+        select.appendChild(opt);
+    });
+}
+
+function deleteFireworksGroup(groupId) {
+    const idx = animationGroups.findIndex(g => g.id === groupId);
+    if (idx === -1) return;
+    const name = animationGroups[idx].name;
+    animationGroups.splice(idx, 1);
+
+    // Remove cues for this fireworks group
+    sequenceCues = sequenceCues.filter(q => q.groupId !== groupId);
+
+    const remainingFwGroups = animationGroups.filter(g => g.effect === 'fireworks');
+    activeFireworksGroupId = remainingFwGroups.length > 0 ? remainingFwGroups[remainingFwGroups.length - 1].id : null;
+
+    if (remainingFwGroups.length > 0) {
+        redistributeRemainingNonFireworkLeds();
+    } else {
+        // All fireworks removed: re-sample all 100 LEDs across graphic
+        scatterLedsOnGraphic(currentGraphicType, 100);
+    }
+
+    rebuildLedGroupMap();
+    renderActiveGroupsList();
+    updateActiveFwDropdown();
+    renderCuesList();
+    renderTimelineCueStrip();
+    updateTimelineScrubberUI();
+    showToast(`🗑️ Removed ${name}! Total LEDs: ${leds.length}.`);
+}
+
+function generateFireworksCluster(centerNormX = 0.28, centerNormY = 0.22, rays = 5, ledsPerRay = 4, burstRadius = 0.13, redistributeRemaining = true, forceHexColor = null) {
+    const existingFwGroups = animationGroups.filter(g => g.effect === 'fireworks');
+    const newFwCount = rays * ledsPerRay;
+
+    // Check existing fireworks LED data to preserve their positions
+    const existingFwData = existingFwGroups.map(g => ({
+        group: g,
+        leds: g.ledIndices.map(idx => ({ ...leds[idx] }))
+    }));
+    const totalExistingFwLeds = existingFwData.reduce((sum, d) => sum + d.leds.length, 0);
+
+    if (totalExistingFwLeds + newFwCount > 80) {
+        showToast('⚠️ Maximum fireworks capacity reached (at least 20 LEDs reserved for float artwork)!');
+        return;
+    }
+
+    const totalAllFwLeds = totalExistingFwLeds + newFwCount;
+    const remainingCount = 100 - totalAllFwLeds;
+
+    // Determine single uniform color for this firework: ALL rays of this group share this exact color!
+    const FW_PALETTE = ['#ffb703', '#00e5ff', '#ff3366', '#76ff03', '#d500f9', '#ff3d00', '#ffffff'];
+    let chosenHex = forceHexColor;
+    if (!chosenHex) {
+        const colorSelect = document.getElementById('fwColorSelect');
+        const colorVal = colorSelect?.value || '#ffb703';
+        const customPicker = document.getElementById('fwCustomColorPicker');
+        chosenHex = (colorVal === 'custom') ? (customPicker?.value || '#ffb703') :
+                    (colorVal === 'rainbow') ? (FW_PALETTE[existingFwGroups.length % FW_PALETTE.length]) : colorVal;
+    }
+    const chosenRgb = hexToRgb(chosenHex) || { r: 255, g: 195, b: 45 };
+
+    // 1. Generate New Firework LEDs in Serpentine order (ALL rays have chosenRgb!)
+    const newFwLeds = [];
     for (let r = 0; r < rays; r++) {
-        // Start straight up at -PI/2 (12 o'clock), rotate clockwise
         const theta = -Math.PI / 2 + r * ((2 * Math.PI) / rays);
-        const col = isRainbow ? rayColors[r % rayColors.length] : (chosenRgb || rayColors[0]);
-
         for (let p = 0; p < ledsPerRay; p++) {
-            // Serpentine wiring:
-            // Even rays: center -> tip
-            // Odd rays: tip -> center
             const step = (r % 2 === 1) ? (ledsPerRay - 1 - p) : p;
             const normDist = step / Math.max(1, ledsPerRay - 1);
-            // Minimum radius at center (0.025) up to burstRadius
             const rad = 0.025 + normDist * (burstRadius - 0.025);
 
-            // Aspect ratio compensation for shirt coordinates
             const nx = centerNormX + Math.cos(theta) * rad * 0.82;
             const ny = centerNormY + Math.sin(theta) * rad;
 
-            fwLeds.push({
+            newFwLeds.push({
                 x: Math.max(0.08, Math.min(0.92, parseFloat(nx.toFixed(4)))),
                 y: Math.max(0.08, Math.min(0.92, parseFloat(ny.toFixed(4)))),
-                color: { r: col.r, g: col.g, b: col.b }
+                color: { r: chosenRgb.r, g: chosenRgb.g, b: chosenRgb.b }
             });
         }
     }
 
-    // 2. Generate remaining LEDs across ENTIRE graphic to guarantee exactly 100 LEDs
+    // 2. Generate remaining non-firework LEDs across ENTIRE graphic to guarantee exactly 100 LEDs
     let nonFwLeds = sampleRemainingGraphicLeds(remainingCount, 0, 0, 0);
-
-    // Ensure nonFwLeds has exactly remainingCount
     if (nonFwLeds.length > remainingCount) {
         nonFwLeds = nonFwLeds.slice(0, remainingCount);
     } else if (nonFwLeds.length < remainingCount) {
         const filler = sampleRemainingGraphicLeds(remainingCount - nonFwLeds.length, 0, 0, 0);
         nonFwLeds = nonFwLeds.concat(filler);
     }
-
-    // Sort nonFwLeds with 2-opt wiring starting at bottom-left
     nonFwLeds = optimizeLedWiringOrder(nonFwLeds, 'bottom-left');
 
-    // Combine: non-firework LEDs (0 .. remainingCount - 1), then fwLeds (remainingCount .. 99)
-    leds = nonFwLeds.concat(fwLeds);
+    // 3. Assemble full array: [nonFwLeds, existingFw1, existingFw2, ..., newFwLeds]
+    let newLeds = [...nonFwLeds];
+    let currentIdx = nonFwLeds.length;
+
+    // Preserve existing fireworks and re-index their ledIndices
+    existingFwData.forEach(d => {
+        const newIndices = [];
+        d.leds.forEach(l => {
+            newLeds.push(l);
+            newIndices.push(currentIdx++);
+        });
+        d.group.ledIndices = newIndices;
+    });
+
+    // Append new firework LEDs
+    const newFwIndices = [];
+    newFwLeds.forEach(l => {
+        newLeds.push(l);
+        newFwIndices.push(currentIdx++);
+    });
+
+    leds = newLeds;
     while (sparkles.length < leds.length) sparkles.push(0);
 
-    // 3. Create or update Animation Group for the firework
-    const fwIndices = [];
-    for (let i = remainingCount; i < 100; i++) {
-        fwIndices.push(i);
-    }
-
-    // Remove any previous fireworks group
-    for (let g = animationGroups.length - 1; g >= 0; g--) {
-        if (animationGroups[g].effect === 'fireworks') {
-            animationGroups.splice(g, 1);
-        }
-    }
-
+    // 4. Create new Animation Group for this firework
+    const fwNum = existingFwGroups.length + 1;
     const fwGroup = {
         id: 'grp_fireworks_' + Date.now(),
-        name: `Fireworks (${rays}R x ${ledsPerRay}L)`,
-        ledIndices: fwIndices,
+        name: `Fireworks #${fwNum} (${rays}R x ${ledsPerRay}L)`,
+        ledIndices: newFwIndices,
         effect: 'fireworks',
         speedBpm: 120,
         direction: 1,
         width: 3,
-        colorMode: isRainbow ? 'original' : 'custom',
+        colorMode: 'custom',
         fireworkColor: chosenHex,
         customColor: chosenRgb,
         fireworkRays: rays,
@@ -5080,55 +5167,74 @@ function generateFireworksCluster(centerNormX = 0.28, centerNormY = 0.22, rays =
         burstRadius: burstRadius
     };
     animationGroups.push(fwGroup);
+    activeFireworksGroupId = fwGroup.id;
 
     rebuildLedGroupMap();
     renderActiveGroupsList();
+    updateActiveFwDropdown();
     syncFireworksSliders(centerNormX, centerNormY, burstRadius, chosenHex);
 
-    // Select the firework group so it is highlighted and draggable
+    // Select the newly created firework group on canvas
     selectedLeds.clear();
-    for (const idx of fwIndices) selectedLeds.add(idx);
-    selectedLed = fwIndices[0];
+    for (const idx of newFwIndices) selectedLeds.add(idx);
+    selectedLed = newFwIndices[0];
     updateLedInspectorUI();
     updateLedCountUI();
 
-    // Automatically place explosion cues on Master Timeline in Parade Cue Director!
+    // Auto-place explosion cues on Master Timeline in Parade Cue Director!
     autoPlaceFireworksCues(fwGroup, false);
 
-    showToast(`🎆 Created Fireworks cluster & auto-scheduled timeline bursts (Baseline: OFF)! Total LEDs: ${leds.length}.`);
+    showToast(`🎆 Created ${fwGroup.name} (All Rays ${chosenHex}) at (${Math.round(centerNormX*100)}%, ${Math.round(centerNormY*100)}%)! Total LEDs: ${leds.length}.`);
 }
 
 function redistributeRemainingNonFireworkLeds() {
-    const fwGroup = animationGroups.find(g => g.effect === 'fireworks');
-    if (!fwGroup || !fwGroup.ledIndices || fwGroup.ledIndices.length === 0) {
+    const fwGroups = animationGroups.filter(g => g.effect === 'fireworks');
+    if (fwGroups.length === 0) {
         showToast('⚠️ No active Fireworks group found. Stamp a fireworks cluster first!');
         return;
     }
 
-    const totalFwLeds = fwGroup.ledIndices.length;
-    const remainingCount = 100 - totalFwLeds;
+    // Collect all firework LEDs
+    const allFwLeds = [];
+    fwGroups.forEach(g => {
+        g.ledIndices.forEach(idx => {
+            if (leds[idx]) allFwLeds.push({ ...leds[idx] });
+        });
+    });
 
-    // Get current firework LED objects preserving existing positions & vibrant colors
-    const fwLeds = [];
-    for (const idx of fwGroup.ledIndices) {
-        if (leds[idx]) fwLeds.push({ ...leds[idx] });
-    }
+    const totalFwCount = allFwLeds.length;
+    const remainingCount = 100 - totalFwCount;
 
-    // Re-distribute other LEDs across the ENTIRE graphic without exclusion zone
     let nonFwLeds = sampleRemainingGraphicLeds(remainingCount, 0, 0, 0);
+    if (nonFwLeds.length > remainingCount) nonFwLeds = nonFwLeds.slice(0, remainingCount);
+    else if (nonFwLeds.length < remainingCount) {
+        nonFwLeds = nonFwLeds.concat(sampleRemainingGraphicLeds(remainingCount - nonFwLeds.length, 0, 0, 0));
+    }
     nonFwLeds = optimizeLedWiringOrder(nonFwLeds, 'bottom-left');
 
-    leds = nonFwLeds.concat(fwLeds);
-    while (sparkles.length < leds.length) sparkles.push(0);
+    let newLeds = [...nonFwLeds];
+    let currentIdx = nonFwLeds.length;
 
-    fwGroup.ledIndices = Array.from({ length: totalFwLeds }, (_, i) => remainingCount + i);
+    fwGroups.forEach(g => {
+        const newIndices = [];
+        const count = g.ledIndices.length;
+        for (let i = 0; i < count; i++) {
+            newLeds.push(allFwLeds.shift());
+            newIndices.push(currentIdx++);
+        }
+        g.ledIndices = newIndices;
+    });
+
+    leds = newLeds;
+    while (sparkles.length < leds.length) sparkles.push(0);
 
     rebuildLedGroupMap();
     renderActiveGroupsList();
+    updateActiveFwDropdown();
     updateLedCountUI();
     updateLedInspectorUI();
 
-    showToast(`🔄 Re-distributed ${remainingCount} LEDs across entire graphic! Exactly 100 LEDs active.`);
+    showToast(`🔄 Re-distributed non-firework LEDs across the entire graphic (100 total LEDs preserved, ${fwGroups.length} fireworks intact)!`);
 }
 
 function updateFireworksLedPositions(fwGroup, cx, cy, radius) {
@@ -5206,37 +5312,21 @@ function applyFireworksColor(colorVal) {
         customPicker.style.display = (colorVal === 'custom') ? 'block' : 'none';
     }
     const hex = (colorVal === 'custom') ? (customPicker?.value || '#ffb703') : colorVal;
-    const isRainbow = (hex === 'rainbow');
-    const chosenRgb = isRainbow ? null : hexToRgb(hex);
+    const chosenRgb = hexToRgb(hex) || { r: 255, g: 195, b: 45 };
 
-    const fwGroup = animationGroups.find(g => g.effect === 'fireworks');
+    const fwGroup = getActiveFireworksGroup();
     if (fwGroup) {
         fwGroup.fireworkColor = hex;
-        fwGroup.colorMode = isRainbow ? 'original' : 'custom';
+        fwGroup.colorMode = 'custom';
         fwGroup.customColor = chosenRgb;
 
-        const rays = fwGroup.fireworkRays || 5;
-        const ledsPerRay = fwGroup.fireworkLedsPerRay || 4;
-        const rayColors = [
-            { r: 255, g: 195, b: 45 },  // Gold / Amber
-            { r: 255, g: 75,  b: 35 },  // Red-Orange
-            { r: 255, g: 50,  b: 130 }, // Coral Rose
-            { r: 0,   g: 235, b: 255 }, // Alice Cyan
-            { r: 80,  g: 255, b: 35 },  // Electric Lime
-            { r: 175, g: 45,  b: 255 }  // Royal Violet
-        ];
-
-        let pIdx = 0;
-        for (let r = 0; r < rays; r++) {
-            const col = isRainbow ? rayColors[r % rayColors.length] : chosenRgb;
-            for (let p = 0; p < ledsPerRay; p++) {
-                if (pIdx >= fwGroup.ledIndices.length) break;
-                const ledIdx = fwGroup.ledIndices[pIdx++];
-                if (leds[ledIdx] && col) {
-                    leds[ledIdx].color = { r: col.r, g: col.g, b: col.b };
-                }
+        // All rays of this firework group share the exact same uniform color!
+        for (const ledIdx of fwGroup.ledIndices) {
+            if (leds[ledIdx]) {
+                leds[ledIdx].color = { r: chosenRgb.r, g: chosenRgb.g, b: chosenRgb.b };
             }
         }
+        updateActiveFwDropdown();
         updateLedInspectorUI();
     }
 }
@@ -5264,12 +5354,13 @@ function setFireworksPositionPreset(preset) {
         activeBtn.style.fontWeight = '600';
     }
 
-    syncFireworksSliders(cx, cy);
-
-    const fwGroup = animationGroups.find(g => g.effect === 'fireworks');
+    const fwGroup = getActiveFireworksGroup();
     if (fwGroup) {
         const rad = fwGroup.burstRadius || (parseInt(document.getElementById('fwRadiusSlider')?.value || '13', 10) / 100);
         updateFireworksLedPositions(fwGroup, cx, cy, rad);
+        syncFireworksSliders(cx, cy, rad, fwGroup.fireworkColor);
+    } else {
+        syncFireworksSliders(cx, cy);
     }
 }
 
@@ -5291,6 +5382,30 @@ const fwCustomColorPicker = document.getElementById('fwCustomColorPicker');
 const stampFwBtn = document.getElementById('stampFireworksBtn');
 const redistRemBtn = document.getElementById('redistributeRemainingBtn');
 const fwAddCueBtn = document.getElementById('fwAddCueBtn');
+const activeFwSelect = document.getElementById('activeFwSelect');
+const removeActiveFwBtn = document.getElementById('removeActiveFwBtn');
+
+if (activeFwSelect) {
+    activeFwSelect.addEventListener('change', (e) => {
+        activeFireworksGroupId = e.target.value;
+        const fwGroup = getActiveFireworksGroup();
+        if (fwGroup) {
+            syncFireworksSliders(fwGroup.centerNormX, fwGroup.centerNormY, fwGroup.burstRadius, fwGroup.fireworkColor);
+            selectedLeds.clear();
+            for (const idx of fwGroup.ledIndices) selectedLeds.add(idx);
+            selectedLed = fwGroup.ledIndices[0];
+            updateLedInspectorUI();
+        }
+    });
+}
+
+if (removeActiveFwBtn) {
+    removeActiveFwBtn.addEventListener('click', () => {
+        if (activeFireworksGroupId) {
+            deleteFireworksGroup(activeFireworksGroupId);
+        }
+    });
+}
 
 if (fwPosTopLeftBtn) fwPosTopLeftBtn.addEventListener('click', () => setFireworksPositionPreset('top-left'));
 if (fwPosTopRightBtn) fwPosTopRightBtn.addEventListener('click', () => setFireworksPositionPreset('top-right'));
@@ -5307,7 +5422,7 @@ if (fwPosXSlider) {
     fwPosXSlider.addEventListener('input', (e) => {
         const cx = parseInt(e.target.value, 10) / 100;
         if (fwPosXVal) fwPosXVal.textContent = `${e.target.value}%`;
-        const fwGroup = animationGroups.find(g => g.effect === 'fireworks');
+        const fwGroup = getActiveFireworksGroup();
         if (fwGroup) {
             const cy = fwGroup.centerNormY || (parseInt(fwPosYSlider?.value || '22', 10) / 100);
             const rad = fwGroup.burstRadius || (parseInt(fwRadiusSlider?.value || '13', 10) / 100);
@@ -5320,7 +5435,7 @@ if (fwPosYSlider) {
     fwPosYSlider.addEventListener('input', (e) => {
         const cy = parseInt(e.target.value, 10) / 100;
         if (fwPosYVal) fwPosYVal.textContent = `${e.target.value}%`;
-        const fwGroup = animationGroups.find(g => g.effect === 'fireworks');
+        const fwGroup = getActiveFireworksGroup();
         if (fwGroup) {
             const cx = fwGroup.centerNormX || (parseInt(fwPosXSlider?.value || '28', 10) / 100);
             const rad = fwGroup.burstRadius || (parseInt(fwRadiusSlider?.value || '13', 10) / 100);
@@ -5334,7 +5449,7 @@ if (fwRadiusSlider) {
         const radPct = parseInt(e.target.value, 10);
         if (fwRadiusVal) fwRadiusVal.textContent = `${radPct}%`;
         const rad = radPct / 100;
-        const fwGroup = animationGroups.find(g => g.effect === 'fireworks');
+        const fwGroup = getActiveFireworksGroup();
         if (fwGroup) {
             const cx = fwGroup.centerNormX || (parseInt(fwPosXSlider?.value || '28', 10) / 100);
             const cy = fwGroup.centerNormY || (parseInt(fwPosYSlider?.value || '22', 10) / 100);
@@ -5361,7 +5476,7 @@ function autoPlaceFireworksCues(fwGroup, clearExisting = false) {
         sequenceCues = sequenceCues.filter(q => !(q.effect === 'fireworks' || q.groupId === fwGroup.id || (q.groupName && q.groupName.toLowerCase().includes('fireworks'))));
     }
 
-    const existingFwCues = sequenceCues.filter(q => q.groupId === fwGroup.id || (q.targetType === 'group' && q.effect === 'fireworks'));
+    const existingFwCues = sequenceCues.filter(q => q.groupId === fwGroup.id);
 
     if (existingFwCues.length > 0 && !clearExisting) {
         // Update existing cues with latest group name, ID, and speed
@@ -5390,25 +5505,31 @@ function autoPlaceFireworksCues(fwGroup, clearExisting = false) {
             });
         }
 
+        // Stagger bursts based on which fireworks group this is (+2.5s per firework group)
+        const fwGroups = animationGroups.filter(g => g.effect === 'fireworks');
+        const fwIdx = Math.max(0, fwGroups.findIndex(g => g.id === fwGroup.id));
+        const stagger = fwIdx * 2.5;
+
         // Generate evenly spaced bursts across sequence loop duration
         const duration = sequenceLoopDuration || 90.0;
-        const burstTimes = [];
+        const baseBurstTimes = [];
         if (duration <= 25) {
-            burstTimes.push(3.0);
+            baseBurstTimes.push(3.0);
         } else if (duration <= 50) {
-            burstTimes.push(4.0, 24.0);
+            baseBurstTimes.push(4.0, 24.0);
         } else if (duration <= 75) {
-            burstTimes.push(5.0, 26.0, 48.0);
+            baseBurstTimes.push(5.0, 26.0, 48.0);
         } else {
             // E.g. 90s loop: 4 bursts spaced across the show
-            burstTimes.push(6.0, 28.0, 52.0, 74.0);
+            baseBurstTimes.push(6.0, 28.0, 52.0, 74.0);
         }
 
-        burstTimes.forEach((bTime, i) => {
+        baseBurstTimes.forEach((bTime, i) => {
+            const burstTime = parseFloat(((bTime + stagger) % Math.max(10, duration - 5)).toFixed(1));
             sequenceCues.push({
-                id: `cue_fw_${Date.now()}_${i}`,
+                id: `cue_fw_${Date.now()}_${fwGroup.id}_${i}`,
                 name: `🎆 ${fwGroup.name} Burst #${i + 1}`,
-                startTime: bTime,
+                startTime: burstTime,
                 duration: 4.5,
                 targetType: 'group',
                 groupId: fwGroup.id,
@@ -5438,10 +5559,37 @@ if (stampFwBtn) {
         const lpr = parseInt(fwLedsPerRaySelect?.value || '4', 10);
         const radPct = parseInt(fwRadiusSlider?.value || '13', 10);
         const burstRadius = radPct / 100;
-        const cx = parseInt(fwPosXSlider?.value || '28', 10) / 100;
-        const cy = parseInt(fwPosYSlider?.value || '22', 10) / 100;
 
-        generateFireworksCluster(cx, cy, rays, lpr, burstRadius, true);
+        const existingFw = animationGroups.filter(g => g.effect === 'fireworks');
+        // Preset offset coordinates so additional fireworks are clearly visible side-by-side above race bib
+        const offsetPresets = [
+            { x: 0.28, y: 0.22 }, // #1 Top-Left
+            { x: 0.58, y: 0.26 }, // #2 Upper-Right offset
+            { x: 0.38, y: 0.40 }, // #3 Lower-Mid offset
+            { x: 0.72, y: 0.22 }  // #4 Far Top-Right
+        ];
+
+        let cx, cy;
+        if (existingFw.length === 0) {
+            cx = parseInt(fwPosXSlider?.value || '28', 10) / 100;
+            cy = parseInt(fwPosYSlider?.value || '22', 10) / 100;
+        } else {
+            const nextPreset = offsetPresets[existingFw.length % offsetPresets.length];
+            cx = nextPreset.x;
+            cy = nextPreset.y;
+        }
+
+        const FW_PALETTE = ['#ffb703', '#00e5ff', '#ff3366', '#76ff03', '#d500f9', '#ff3d00', '#ffffff'];
+        const colorVal = fwColorSelect?.value;
+        let colorToUse = null;
+        if (existingFw.length > 0) {
+            colorToUse = FW_PALETTE[existingFw.length % FW_PALETTE.length];
+            if (fwColorSelect) fwColorSelect.value = colorToUse;
+        } else {
+            colorToUse = (colorVal === 'custom') ? (fwCustomColorPicker?.value || '#ffb703') : (colorVal || '#ffb703');
+        }
+
+        generateFireworksCluster(cx, cy, rays, lpr, burstRadius, true, colorToUse);
     });
 }
 
@@ -5454,23 +5602,23 @@ if (redistRemBtn) {
 const fwAutoScheduleBtn = document.getElementById('fwAutoScheduleBtn');
 if (fwAutoScheduleBtn) {
     fwAutoScheduleBtn.addEventListener('click', () => {
-        let fwGroup = animationGroups.find(g => g.effect === 'fireworks');
+        let fwGroup = getActiveFireworksGroup();
         if (!fwGroup) {
             stampFwBtn?.click();
-            fwGroup = animationGroups.find(g => g.effect === 'fireworks');
+            fwGroup = getActiveFireworksGroup();
         }
         if (!fwGroup) return;
         autoPlaceFireworksCues(fwGroup, true);
-        showToast('⚡ Auto-scheduled recurring fireworks bursts across the timeline!');
+        showToast(`⚡ Auto-scheduled recurring bursts for ${fwGroup.name} across timeline!`);
     });
 }
 
 if (fwAddCueBtn) {
     fwAddCueBtn.addEventListener('click', () => {
-        let fwGroup = animationGroups.find(g => g.effect === 'fireworks');
+        let fwGroup = getActiveFireworksGroup();
         if (!fwGroup) {
             stampFwBtn?.click();
-            fwGroup = animationGroups.find(g => g.effect === 'fireworks');
+            fwGroup = getActiveFireworksGroup();
         }
         if (!fwGroup) {
             showToast('⚠️ Please stamp a fireworks cluster first!');
@@ -5498,7 +5646,7 @@ if (fwAddCueBtn) {
             renderTimelineCueStrip();
             updateTimelineScrubberUI();
         }
-        showToast(`🎆 Added Fireworks explosion cue at ${startSec.toFixed(1)}s on timeline!`);
+        showToast(`🎆 Added ${fwGroup.name} explosion cue at ${startSec.toFixed(1)}s on timeline!`);
     });
 }
 

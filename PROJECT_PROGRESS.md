@@ -93,6 +93,18 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### Entry: Multi-Firework Stamping with Offset Placement, Uniform Ray Color, and Active Group Management
+* **Date:** 2026-09-25
+* **Status:** Operational & Verified in Web Simulator and PlatformIO C++ firmware.
+* **Notes:**
+  * **Uniform Ray Color per Firework Group:** Standardized firework groups so all rays in a given firework starburst share the exact same uniform base color (Golden Amber, Alice Cyan, Coral Rose, Electric Lime, Royal Violet, Blazing Red-Orange, Starlight White, or custom hex color). Replaced per-ray rainbow variations with a cohesive single-color burst presentation that feels authentic to synchronized Disney theme park fireworks.
+  * **Multi-Firework Burst Stamping:** Upgraded the starburst generator to support stamping multiple independent fireworks clusters on a single shirt (e.g. Firework #1, Firework #2) while strictly preserving the 100-LED invariant (`leds.length === 100`).
+  * **Smart Visual Offset Stamping:** When stamping additional fireworks, subsequent bursts automatically spawn with a calculated offset (Firework #1 at default Top-Left $x = 28\%, y = 22\%$, Firework #2 at $x = 58\%, y = 26\%$, Firework #3 at $x = 38\%, y = 40\%$, etc.) and an alternating contrasting color from the palette, ensuring the user immediately sees both fireworks side-by-side above the race bib without visual occlusion.
+  * **Active Firework Group Selector Dropdown & Deletion:** Added an `#activeFwSelect` dropdown with live group names and color chips. Switching the active group dynamically binds the Move X/Y, scale, and color controls to that cluster and selects its LEDs on the canvas. Added a `🗑️ Remove` button to delete the active firework group, clean up its timeline cues, and automatically re-distribute the reclaimed LEDs back to the float graphic.
+  * **Interactive Canvas Group Binding:** Clicking or dragging any LED on the canvas that belongs to a firework cluster automatically switches the Active Firework Group dropdown and syncs the position/radius/color sliders in real time.
+  * **Multi-Group Timeline Staggering:** Stamping multiple fireworks automatically schedules staggered burst cues on the Master Timeline (+2.5s per group index), creating an orchestrated sequential detonation across the costume.
+  * **Dual Firmware & Toolchain Parity:** Updated `src/main.cpp` and `arduino/MSEP_Costume/MSEP_Costume.ino` so `renderFireworks()` renders all rays with uniform color (`CRGB(255, 195, 45)`). Compiled successfully with PlatformIO (`pio run` SUCCESS: 14.3% RAM, 59.6% Flash) and exported verified binary to `firmware/firmware.bin`.
+
 ### Entry: Auto-Placement on Master Timeline & Completely Off (Unlit) Baseline for Fireworks
 * **Date:** 2026-09-25
 * **Status:** Operational & Verified in Web Simulator and PlatformIO C++ firmware.

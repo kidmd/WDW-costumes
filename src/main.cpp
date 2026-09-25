@@ -204,11 +204,8 @@ void renderFireworks(uint32_t t) {
         // Serpentine: odd rays reversed
         uint8_t step = (ray % 2 == 1) ? (ledsPerRay - 1 - posInRay) : posInRay;
 
-        CRGB rayColor = (ray == 0) ? CRGB(255, 195, 45) :
-                        (ray == 1) ? CRGB(255, 75, 35) :
-                        (ray == 2) ? CRGB(255, 50, 130) :
-                        (ray == 3) ? CRGB(0, 235, 255) :
-                        (ray == 4) ? CRGB(80, 255, 35) : CRGB(175, 45, 255);
+        // All rays of a firework group share the exact same uniform color
+        CRGB rayColor = CRGB(255, 195, 45); // Golden Amber (#ffb703) signature uniform
 
         if (tau < 200) {
             // Phase 1: Center ignition flash

@@ -304,6 +304,15 @@
                         360° radial burst with serpentine wiring. Placed initially in corner; drag or slider to move & scale. Always maintains <strong>100 LEDs total</strong>.
                     </p>
 
+                    <!-- Active Firework Selector (when multiple fireworks exist) -->
+                    <div id="activeFwRow" style="margin-bottom: 8px; display: none; background: #0d1117; padding: 6px 8px; border-radius: 6px; border: 1px solid #30363d;">
+                        <div class="label-row" style="margin-bottom: 3px;">
+                            <span style="font-size: 10px; color: #ff7b72; font-weight: 600;">Active Firework Group:</span>
+                            <button type="button" id="removeActiveFwBtn" style="background: none; border: none; color: #f85149; font-size: 10px; cursor: pointer; padding: 0;" title="Remove this firework group">🗑️ Remove</button>
+                        </div>
+                        <select id="activeFwSelect" style="background: #161b22; color: #fff; border: 1px solid #30363d; border-radius: 4px; padding: 3px 6px; font-size: 11px; width: 100%;"></select>
+                    </div>
+
                     <!-- Corner / Position Presets -->
                     <div style="margin-bottom: 8px;">
                         <label style="font-size: 10px; color: var(--text-muted); display: block; margin-bottom: 3px;">Position Placement:</label>
@@ -354,11 +363,10 @@
 
                     <!-- Firework Color Palette / Custom Color -->
                     <div style="margin-bottom: 8px;">
-                        <label style="font-size: 10px; color: var(--text-muted); display: block; margin-bottom: 2px;">Firework Color:</label>
+                        <label style="font-size: 10px; color: var(--text-muted); display: block; margin-bottom: 2px;">Firework Color (All Rays Uniform):</label>
                         <div style="display: flex; gap: 6px; align-items: center;">
                             <select id="fwColorSelect" style="background: #0d1117; color: #fff; border: 1px solid #30363d; border-radius: 4px; padding: 4px 6px; font-size: 11px; flex: 1;">
-                                <option value="rainbow" selected>🌈 Multi-Color (Disney Classic)</option>
-                                <option value="#ffb703">✨ Golden Amber (#FFB703)</option>
+                                <option value="#ffb703" selected>✨ Golden Amber (#FFB703)</option>
                                 <option value="#00e5ff">💠 Alice Cyan (#00E5FF)</option>
                                 <option value="#ff3366">💖 Coral Rose (#FF3366)</option>
                                 <option value="#76ff03">⚡ Electric Lime (#76FF03)</option>
@@ -383,7 +391,7 @@
                     <!-- Actions -->
                     <div style="display: flex; flex-direction: column; gap: 6px;">
                         <button type="button" id="stampFireworksBtn" class="action-btn accent" style="background: linear-gradient(135deg, #ff7b72, #d2a8ff); border-color: #ff7b72; font-weight: 600; font-size: 11px; padding: 7px 6px;">
-                            🎆 Stamp Fireworks in Corner (Auto-Places on Timeline)
+                            🎆 Stamp Fireworks Burst (+ Add Another)
                         </button>
                         <button type="button" id="redistributeRemainingBtn" class="action-btn" style="font-size: 11px; padding: 5px;" title="Re-distribute non-firework LEDs across the entire graphic while keeping the firework intact">
                             🔄 Re-distribute Other LEDs (Full Graphic)

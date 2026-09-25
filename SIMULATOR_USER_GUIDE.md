@@ -152,19 +152,23 @@ Attaching LEDs to a shirt by hand can easily result in tangled wire spaghetti if
 4. Each LED is renumbered so LED `0` connects to LED `1`, which connects to LED `2`, and so on, with minimum wire length between successive pixels.
 5. Toggle **Show Wiring Route** in Section 6 to see the physical wire path drawn directly on the canvas!
 
-### 🎆 Fireworks Starburst Generator, Placement, & Scaling
+### 🎆 Fireworks Starburst Generator, Multi-Burst Stamping, & Scaling
 Creating radial fireworks bursts requires clean geometry, flexible placement, and predictable physical wiring:
-1. **Initial Corner Placement & Position Presets:**
-   - Stamping initially positions the fireworks cluster in the upper corner of the shirt (**↖ Top-Left corner** at $x = 28\%, y = 22\%$, above the race bib clearance zone).
-   - Use the one-click position presets (**↖ Top-Left**, **↗ Top-Right**, **⏺ Center**) to instantly reposition the firework.
+1. **Multi-Burst Stamping & Smart Offset Positioning:**
+   - Click **"🎆 Stamp Fireworks Burst (+ Add Another)"** to stamp one or more firework bursts onto the costume.
+   - **Smart Offset Placement:** The first burst defaults to the upper corner (**↖ Top-Left corner** at $x = 28\%, y = 22\%$, above the race bib clearance zone). Subsequent bursts are automatically positioned with a distinct visual offset (Firework #2 at $x = 58\%, y = 26\%$, Firework #3 at $x = 38\%, y = 40\%$, etc.) so you can immediately see multiple fireworks side-by-side without any overlap.
+   - **Active Firework Group Selector:** When multiple fireworks exist, an **Active Firework Group** dropdown appears directly in the controls card. Selecting any firework instantly syncs the Move X/Y sliders, radius slider, and color controls to that specific cluster, and highlights its LEDs on the canvas.
+   - **One-Click Group Deletion:** Click **"🗑️ Remove"** next to the active firework selector to cleanly delete that specific firework group, remove its timeline cues, and automatically re-distribute the reclaimed LEDs back to the character graphic.
+   - **Direct Canvas Selection:** Clicking or dragging any LED of a firework cluster on canvas automatically selects that firework in the Active Group dropdown and updates all sliders in real time!
 2. **Move & Scale Controls (Sliders & Direct Canvas Drag):**
    - **Move X & Move Y Sliders:** Fine-tune position horizontally ($15\% - 85\%$) and vertically ($15\% - 55\%$) with live slider feedback.
    - **Scale / Radius Slider:** Dynamically expand or contract the burst diameter ($7\% - 24\%$) around its center hub.
-   - **Direct Canvas Multi-Drag:** Simply click and drag any LED belonging to the firework cluster directly on the costume canvas! The entire starburst moves as a unified group, and the Move X/Move Y sliders update synchronously in real-time.
-3. **Color Customization (Presets & Custom Color Picker):**
-   - Choose between **🌈 Multi-Color (Disney Classic)** (distinct hue on every ray) or vibrant single-color themes: **✨ Golden Amber**, **💠 Alice Cyan**, **💖 Coral Rose**, **⚡ Electric Lime**, **💜 Royal Violet**, **🔥 Blazing Red-Orange**, or **⭐ Starlight White**.
-   - Select **🎨 Custom Hex Color...** to open an interactive native color picker and dial in any hex color for your show.
-   - Changing colors updates the cluster in real time while maintaining warm incandescent shifts along the trailing rays.
+   - **Direct Canvas Multi-Drag:** Simply click and drag any LED belonging to any firework cluster directly on the costume canvas! The entire starburst moves as a unified group, and the Move X/Move Y sliders update synchronously in real-time.
+3. **Uniform Color per Firework Group (Presets & Custom Color Picker):**
+   - **Uniform Ray Color:** All rays of a firework group share the **exact same uniform color** (e.g. all 5 rays Golden Amber, all 5 rays Alice Cyan, etc.) for a clean, coherent theatrical pyrotechnic burst.
+   - **Automatic Palette Rotation:** Stamping additional fireworks automatically assigns a contrasting color from the signature palette (**✨ Golden Amber**, **💠 Alice Cyan**, **💖 Coral Rose**, **⚡ Electric Lime**, **💜 Royal Violet**, **🔥 Blazing Red-Orange**, or **⭐ Starlight White**).
+   - Select **🎨 Custom Hex Color...** to open an interactive native color picker and dial in any specific hex color.
+   - Changing colors updates all rays of the active cluster in real time while maintaining warm incandescent shifts along the trailing rays.
 4. **Persistent Center Trailing Effect & Completely Off (Unlit) Baseline:**
    - In previous iterations, all LEDs dimmed out as the wavefront moved or bled into global background patterns. Now:
      - *Completely Off (Unlit) Baseline:* Outside active explosion cues, all firework LEDs remain **100% off (unlit)**. They do not participate in global background chases or ambient sparkles, keeping the firework location dark and invisible until detonation. Unlit LEDs render realistically on canvas as dark SMD pixel beads (`rgba(22, 26, 33, 0.85)`) without artificial central white filament cores or glow bloom.
@@ -173,9 +177,10 @@ Creating radial fireworks bursts requires clean geometry, flexible placement, an
      - *Phase 3 (Tip Crackle):* Center stays lit ($\sim 50\%$) as a visual anchor while outer tips crackle; burned-out inner steps turn completely off.
      - *Phase 4 (Rest / Idle):* Burst concludes, all firework LEDs fade out completely to **0% intensity (black/unlit)** until the next scheduled burst.
 5. **Master Timeline Scheduling & Explosion Cue Director:**
-   - **Automatic Timeline Auto-Placement:** Stamping a fireworks cluster (**"🎆 Stamp Fireworks in Corner"**) automatically creates and schedules fireworks explosion cues on the Master Timeline in the Parade Cue Director and turns Sequence Mode ON. You never need to manually navigate and build cues from scratch.
-   - **Auto-Schedule Bursts:** Click **"⚡ Auto-Schedule Bursts"** in the Fireworks card to re-populate recurring explosion bursts evenly spaced across the full loop duration (e.g. at 6s, 28s, 52s, 74s for a 90s show).
-   - **Single Cue at Playhead:** Click **"⏱️ Add at Playhead"** to drop a burst cue right at the current scrubber playhead position.
+   - **Automatic Timeline Auto-Placement:** Stamping a fireworks cluster automatically creates and schedules fireworks explosion cues on the Master Timeline in the Parade Cue Director and turns Sequence Mode ON.
+   - **Orchestrated Multi-Firework Staggering:** When stamping multiple fireworks, burst cues are automatically staggered by $+2.5\,\text{s}$ per group index (e.g. Firework #1 detonates at 6.0s, Firework #2 detonates at 8.5s) to produce an orchestrated, multi-stage fireworks show across your costume!
+   - **Auto-Schedule Bursts:** Click **"⚡ Auto-Schedule Bursts"** in the Fireworks card to re-populate recurring explosion bursts evenly spaced across the full loop duration.
+   - **Single Cue at Playhead:** Click **"⏱️ Add at Playhead"** to drop a burst cue for the active firework right at the current scrubber playhead position.
    - **Cue-Relative Phase Sync:** The firework explosion phase automatically synchronizes with the cue's start time ($t = \text{startTime}$ triggers Phase 0 ignition), ensuring the starburst explodes precisely on the theatrical cue!
    - You can schedule multiple fireworks cues throughout your parade loop, adjust BPM, and customize crossfade in/out times.
 6. **Rays & Length Customization:**
@@ -187,8 +192,8 @@ Creating radial fireworks bursts requires clean geometry, flexible placement, an
      - *Odd Rays (1, 3, 5):* Wire travels inward (**Tip $\to$ Center**), with a short 1-inch jump between adjacent spoke tips.
    - The animation engine automatically compensates for reversed rays, ensuring all lines visually radiate outward from the center simultaneously!
 8. **Strict 100-LED Invariant & Full-Graphic Re-Distribution:**
-   - Placing a firework cluster claims $N_{\text{fw}}$ LEDs from the float pool, preserving exactly **100 LEDs on screen**.
-   - Click **"🔄 Re-distribute Other LEDs (Full Graphic)"** to re-distribute the remaining $(100 - N_{\text{fw}})$ LEDs across the **entire character graphic** (without any exclusion zone) while keeping your firework cluster intact.
+   - Placing firework clusters claims LEDs from the float pool, preserving exactly **100 LEDs on screen** at all times ($N_{\text{float}} + \sum N_{\text{fw}} = 100$).
+   - Click **"🔄 Re-distribute Other LEDs (Full Graphic)"** to re-distribute non-firework LEDs across the **entire character graphic** (without any exclusion zone) while keeping all existing firework clusters intact at their configured coordinates.
 9. **Canvas Numbering & Identification:**
    - With **Show Numbers** active or when inspecting bulbs, each firework LED displays its exact ray and step badge: e.g. `R1:1 (CTR)`, `R1:4 (TIP)`, `R2:1 (CTR)`, `R2:4 (TIP)`.
    - The LED Inspector displays the full role breakdown: e.g. `Ray 2 of 5 • Trail Step 3 (Mid-Trail)`.
