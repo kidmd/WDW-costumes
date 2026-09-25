@@ -2079,16 +2079,10 @@ function updateLedInspectorUI() {
 
     const totalSelected = selectedLeds.size;
 
-    const inspectorSection = document.getElementById('ledInspectorSection');
-
     if (totalSelected === 0) {
-        if (inspectorSection) {
-            inspectorSection.classList.remove('dock-active');
-            inspectorSection.classList.add('dock-empty');
-        }
         if (emptyPrompt) emptyPrompt.style.display = 'block';
         if (colorControls) colorControls.style.display = 'none';
-        if (stepperRow) stepperRow.style.display = 'none';
+        if (stepperRow) stepperRow.style.display = 'flex';
         if (multiRow) multiRow.style.display = 'none';
         const groupFwRow = document.getElementById('groupFwRadiusRow');
         if (groupFwRow) groupFwRow.style.display = 'none';
@@ -2101,10 +2095,6 @@ function updateLedInspectorUI() {
         return;
     }
 
-    if (inspectorSection) {
-        inspectorSection.classList.remove('dock-empty');
-        inspectorSection.classList.add('dock-active');
-    }
     if (emptyPrompt) emptyPrompt.style.display = 'none';
     if (colorControls) colorControls.style.display = 'flex';
 
@@ -6559,82 +6549,3 @@ if (flashReceiverBtn) {
         }
     });
 }
-
-// ============================================================================
-// SIDEBAR TASK TABS & TIMELINE COLLAPSE (THOROUGHBRED UI)
-// ============================================================================
-function initSidebarTabs() {
-    const tabBtns = document.querySelectorAll('.sidebar-tab-btn');
-    const tabPanels = document.querySelectorAll('.tab-panel');
-
-    function switchSidebarTab(targetTabId) {
-        tabBtns.forEach(btn => {
-            const isTarget = btn.getAttribute('data-tab') === targetTabId;
-            btn.classList.toggle('active', isTarget);
-        });
-        tabPanels.forEach(panel => {
-            const isTarget = panel.id === targetTabId;
-            panel.classList.toggle('active', isTarget);
-        });
-        try {
-            localStorage.setItem('msep_active_sidebar_tab', targetTabId);
-        } catch (e) {}
-    }
-
-    tabBtns.forEach(btn => {
-        btn.addEventListener('click', () => {
-            const targetId = btn.getAttribute('data-tab');
-            if (targetId) switchSidebarTab(targetId);
-        });
-    });
-
-    let savedTab = 'tabLayout';
-    try {
-        savedTab = localStorage.getItem('msep_active_sidebar_tab') || 'tabLayout';
-    } catch (e) {}
-
-    if (document.getElementById(savedTab)) {
-        switchSidebarTab(savedTab);
-    }
-}
-
-function initTimelineCollapse() {
-    const timelineCollapseBtn = document.getElementById('timelineCollapseBtn');
-    const timelineBar = document.getElementById('timelineBar');
-    if (!timelineCollapseBtn || !timelineBar) return;
-
-    function setTimelineCollapsed(collapsed) {
-        timelineBar.classList.toggle('collapsed', collapsed);
-        timelineCollapseBtn.textContent = collapsed ? '⤢ Expand' : '⤢ Minimize';
-        timelineCollapseBtn.title = collapsed ? 'Expand Timeline Tracks' : 'Collapse Timeline Tracks';
-        try {
-            localStorage.setItem('msep_timeline_collapsed', collapsed ? 'true' : 'false');
-        } catch (e) {}
-    }
-
-    timelineCollapseBtn.addEventListener('click', () => {
-        const isCollapsed = !timelineBar.classList.contains('collapsed');
-        setTimelineCollapsed(isCollapsed);
-    });
-
-    let savedCollapsed = false;
-    try {
-        savedCollapsed = localStorage.getItem('msep_timeline_collapsed') === 'true';
-    } catch (e) {}
-
-    if (savedCollapsed) {
-        setTimelineCollapsed(true);
-    }
-}
-
-// Initialize on load
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', () => {
-        initSidebarTabs();
-        initTimelineCollapse();
-    });
-} else {
-    initSidebarTabs();
-    initTimelineCollapse();
-}
-

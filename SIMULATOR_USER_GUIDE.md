@@ -95,22 +95,56 @@ The central workspace renders an interactive, hardware-accelerated preview of yo
 
 ---
 
-## 4. LED Placement, Inspection & Color Tuning
+## 4. Thoroughbred Workspace: 4 Task Tabs & Contextual Inspector Dock
 
-Every LED on the shirt is an addressable physical node that maps directly to an index in your LED string (`0` to `N-1`).
+The simulator features a streamlined, modern workspace inspired by creative suites (After Effects, Figma, Blender), replacing long vertical scrolling with **4 task-oriented tabs** and an **intelligent contextual inspector dock**:
 
-### Selecting & Inspecting an LED
-- **Click an LED:** Click on any LED circle on the canvas. A glowing cyan ring highlights the active LED, and the **LED Inspector** appears in Section 4 of the sidebar.
-- **Inspector Details:** Displays the LED Index (`#0`), Normalized X/Y coordinates, sampled RGB values, and a live color swatch.
-- **Adjusting Color:**
-  - Use the **R, G, and B sliders** (0–255) to fine-tune the exact color balance.
-  - Enter a hexadecimal color code (e.g., `#FFB347` for vintage amber incandescent).
-  - Use the native color picker swatch for intuitive visual adjustments.
-- **Moving LEDs:** Click and drag any LED to reposition it anywhere on the shirt. If color matching is active, dragging the LED will automatically resample the pixel color from the underlying artwork image as you move it!
+### The 4 Sidebar Tabs
+1. **🎨 Tab 1: Layout ("The Canvas Studio"):**
+   - **Costume Profiles:** Quick-load, save, and export/import full JSON profiles.
+   - **Shirt & Character Artwork:** Choose from built-in presets (Pete's Dragon, Cinderella's Coach, Carriage No Horses) or upload custom graphics.
+   - **LED Generation:** One-click `100 Scatter`, `50 Auto-Outline`, and `Sample Colors`.
+   - **Fireworks Starburst Generator:** Corner placement presets, Position & Scale box (with S/M/L/XL quick buttons), Rays & LEDs per ray, Color theme, and Stamping.
+   - **runDisney 10K Race Bib (#1952):** Toggle overlay, height, and scale sliders to verify physical clearance.
+   - **Physical Wiring Route Optimizer:** Shortest-path snake wiring optimizer, Show Wiring Trace toggle, Show Numbers toggle.
+
+2. **✨ Tab 2: Effects ("The FX Lab"):**
+   - **Baseline Lighting Pattern:** Select from 8 continuous baseline patterns (Steady Sparkle, Color Match, Fire Breath, Traveling Wave, Marquee, Fireworks, Photo Mode).
+   - **Live Dynamics Tuning:** Speed/Tempo BPM slider, Sparkle Frequency, Green Hue/Shade, Master Brightness, LED Bloom Glow Size.
+   - **Configured Animation Groups Manager:** View all active zones, member counts, idle baselines, and inspect/delete controls.
+
+3. **🎬 Tab 3: Show ("The Show Director"):**
+   - **Parade Cue Director:** 90-second Sequence Loop controls (Sequence ON/OFF, Loop duration, Example routines).
+   - **Active Cue List:** Clean, scrollable cue cards displaying start time, duration, target layer/group, effect, BPM, and quick delete.
+   - **Quick Cue Insertion:** `➕ Add Cue at Playhead`, `⚡ Auto-Schedule Bursts`.
+
+4. **⚡ Tab 4: Deploy ("The Workshop"):**
+   - **USB Standalone Flashing:** Auto-detected COM port, connection status badge, 1-Click Flash firmware, View/Copy C++ code modal.
+   - **📡 Real-Time Wi-Fi Live Stream:** Stream live colors & animations directly to physical LEDs over Wi-Fi without flashing ROM. Wi-Fi credentials modal.
+   - **Web Serial Flasher:** Quick launch button for zero-install browser-based flashing.
+
+### 💡 Contextual Inspector Dock (Docked at Bottom of Sidebar)
+Instead of taking up vertical space in the middle of your workflow:
+- **Standby State (No Selection):** When no bulbs are selected, the Inspector rests as a compact status chip (`👆 Click an LED or drag on canvas to inspect`).
+- **Active State (Selected LED or Group):** When 1 or more LEDs are selected, the Inspector automatically expands with an illuminated gold accent border:
+  - LED number stepper (`◀ Prev`, `Next ▶`, `⌖ Focus`).
+  - Color preview swatch, Hex & RGB badges, and RGB sliders.
+  - Quick Disney Palette Swatches (12 signature theme park colors).
+  - Group Animation Effect creator (Zone Name, Effect Pattern, Speed BPM, Direction, Resting Baseline, and Firework Burst Radius slider).
+  - One-click deselect button (`✖`).
+
+### ⤢ Collapsible Master Timeline
+- Click **`⤢ Minimize`** in the transport bar to collapse the multi-layer cue tracks into a slim transport bar, giving the canvas full vertical workspace.
+- Click **`⤢ Expand`** to restore the full multi-layer cue tracks and ruler when arranging show sequences.
+
+### 🛡️ Zero-Risk Rollback System
+The pre-overhaul UI state is permanently tagged and archived:
+- Git Tag: `v1.0-pre-ui-overhaul` (`git checkout v1.0-pre-ui-overhaul -- simulator/`)
+- Backup Archive: `simulator/archive_v1/` containing exact copies of `index.html`, `style.css`, and `app.js`.
 
 ---
 
-## 5. Multi-LED Selection & Animation Groups
+## 5. LED Placement, Inspection & Color Tuning
 
 To create localized zone animations (like carriage wheels spinning or lanterns pulsing), you can select multiple LEDs and organize them into **Animation Groups**.
 

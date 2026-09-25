@@ -93,6 +93,20 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### Entry: Thoroughbred UI Overhaul — 4 Task-Oriented Tabs, Contextual Inspector Dock, and Collapsible Timeline
+* **Date:** 2026-09-25
+* **Status:** Operational & Verified in Web Simulator.
+* **Notes:**
+  * **Complete Ergonomic Redesign ("From Camel to Thoroughbred"):** Replaced the single 3,000px vertical card stack with 4 streamlined task-oriented sidebar tabs:
+    - `🎨 Layout` (Costume Profiles, Artwork & Character Graphic, 100-LED Scatter, Fireworks Starburst Generator, runDisney 10K Race Bib clearance, Wiring Route Optimizer).
+    - `✨ Effects` (Baseline Lighting Patterns, Dynamics Tuning: Speed BPM, Sparkles, Green Hue, Brightness, Bloom Glow, and Configured Animation Groups Manager).
+    - `🎬 Show` (Parade Cue Director, Sequence Loop Mode, Example Routines, and Scrollable Cue Card List).
+    - `⚡ Deploy` (ESP32 USB Firmware Flashing, Real-Time Wi-Fi Live Stream, and Web Serial Flasher link).
+  * **Contextual Inspector Dock (Option A):** Docked the LED & Group Inspector at the bottom of the sidebar. When no LEDs are selected, it rests as a slim status chip (`👆 Click an LED or drag to inspect`), saving over 700px of vertical space. When bulbs are selected, it smoothly expands with an active amber glow, exposing bulb steppers, RGB sliders, native color pickers, quick Disney palettes, and group animation settings.
+  * **Collapsible Timeline Transport Bar:** Added a 1-click `⤢ Minimize` / `⤢ Expand` toggle to `#timelineBar`, giving the canvas maximum vertical screen real estate when designing garment layouts while enabling full-depth multi-layer tracks during cue choreography.
+  * **100% Backward Compatibility:** Preserved every single existing DOM element ID and data structure, ensuring zero regression across animation math, FastLED code exports, Wi-Fi streaming, and flashing.
+  * **Zero-Risk Rollback System:** Tagged the pre-overhaul state as `v1.0-pre-ui-overhaul` on Git and created a standalone backup archive in `simulator/archive_v1/` for instant 1-command reversion.
+
 ### Entry: Prominent Firework Burst Scale / Radius Controls in Generator and Group Inspector Cards
 * **Date:** 2026-09-25
 * **Status:** Operational & Verified in Web Simulator.

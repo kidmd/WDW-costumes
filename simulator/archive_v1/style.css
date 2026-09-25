@@ -205,118 +205,24 @@ h1 {
 }
 
 .controls-sidebar {
-    width: 410px;
+    width: 380px;
     background: var(--panel-bg);
     border-left: 1px solid var(--border-color);
-    padding: 0;
-    overflow: hidden;
-    display: flex;
-    flex-direction: column;
-}
-
-/* Sidebar Task Tabs Navigation */
-.sidebar-tab-nav {
-    display: flex;
-    background: #090c10;
-    border-bottom: 1px solid var(--border-color);
-    padding: 8px 10px;
-    gap: 6px;
-    flex-shrink: 0;
-    user-select: none;
-}
-
-.sidebar-tab-btn {
-    flex: 1;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 6px;
-    background: #161b22;
-    border: 1px solid var(--border-color);
-    color: var(--text-muted);
-    padding: 8px 4px;
-    border-radius: 6px;
-    font-size: 11.5px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.15s ease;
-}
-
-.sidebar-tab-btn:hover {
-    color: var(--text-main);
-    background: #21262d;
-    border-color: #484f58;
-}
-
-.sidebar-tab-btn.active {
-    background: #1f6feb;
-    border-color: #388bfd;
-    color: #ffffff;
-    box-shadow: 0 0 10px rgba(56, 139, 253, 0.4);
-}
-
-.sidebar-tab-btn .tab-icon {
-    font-size: 13px;
-}
-
-/* Sidebar Tab Content Area */
-.sidebar-tab-content {
-    flex: 1;
+    padding: 20px;
     overflow-y: auto;
-    padding: 14px;
     display: flex;
     flex-direction: column;
-}
-
-.tab-panel {
-    display: none;
-    flex-direction: column;
-    gap: 12px;
-}
-
-.tab-panel.active {
-    display: flex;
-}
-
-/* Contextual Inspector Dock (Option A) */
-.inspector-dock {
-    flex-shrink: 0;
-    background: #0d1117;
-    border-top: 1px solid var(--border-color);
-    max-height: 48vh;
-    overflow-y: auto;
-    padding: 12px 14px;
-    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    box-shadow: 0 -4px 18px rgba(0, 0, 0, 0.45);
-}
-
-.inspector-dock.dock-active {
-    background: #11151d;
-    border-top: 2px solid #ffc107;
-}
-
-.inspector-dock.dock-empty {
-    max-height: 75px;
-    padding: 8px 12px;
-}
-
-.inspector-dock.dock-empty #inspectorStepperRow,
-.inspector-dock.dock-empty #inspectorMultiSelectRow,
-.inspector-dock.dock-empty #inspectorColorControls {
-    display: none !important;
+    gap: 20px;
 }
 
 .control-section {
     background: #0d1117;
     border: 1px solid var(--border-color);
     border-radius: 10px;
-    padding: 14px;
+    padding: 16px;
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: 14px;
 }
 
 .section-title {
@@ -569,16 +475,6 @@ input:checked + .slider:before {
     user-select: none;
     max-width: 900px;
     margin: 0 auto;
-    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.timeline-bar.collapsed {
-    padding: 6px 12px;
-}
-
-.timeline-bar.collapsed .timeline-ruler-row,
-.timeline-bar.collapsed .timeline-layers-wrapper {
-    display: none !important;
 }
 
 .timeline-controls-row {

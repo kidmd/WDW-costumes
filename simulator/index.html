@@ -9,6 +9,7 @@
 <body>
     <div id="toast" class="toast"></div>
 
+    <!-- Header Navigation -->
     <header>
         <div class="header-title">
             <span class="logo-badge">MSEP 10K</span>
@@ -55,6 +56,7 @@
                     </div>
                     <button id="timelineLoopToggle" class="timeline-btn active" title="Toggle Sequence Loop">🔁 Loop</button>
                     <button id="timelineModeToggle" class="timeline-mode-btn" title="Toggle between Free-Run Pattern and Show Sequence">🎬 Sequence: OFF</button>
+                    <button id="timelineCollapseBtn" class="timeline-btn" title="Collapse / Expand Timeline Tracks" style="margin-left: auto;">⤢ Minimize</button>
                 </div>
 
                 <!-- Timeline Ruler & Master Scrubber Row -->
@@ -78,388 +80,520 @@
             </div>
 
             <div class="floating-overlay">
-                <span>💡 <strong>Interactive:</strong> Scroll wheel to Zoom · Drag canvas or Space+drag to Pan · Click LED to select & adjust RGB · Drag LED to move</span>
+                <span>💡 <strong>Interactive:</strong> Scroll to Zoom · Drag canvas to Pan · Click LED to inspect & color · Drag LED to move</span>
             </div>
         </div>
 
-        <!-- Controls Sidebar -->
+        <!-- Controls Sidebar with Task-Oriented Tabs & Contextual Inspector -->
         <div class="controls-sidebar">
 
-            <!-- 1. Preset Profile Selector -->
-            <div class="control-section">
-                <div class="section-title">
-                    <span>Costume Profiles & Presets</span>
-                </div>
-                <div class="control-group">
-                    <label style="font-size: 12px; color: var(--text-muted);">Quick-Load Profile:</label>
-                    <select id="presetSelect" style="background: #21262d; color: #fff; border: 1px solid #30363d; padding: 8px 10px; border-radius: 6px; outline: none; font-size: 13px;">
-                        <option value="">-- Select Saved Profile --</option>
-                    </select>
-                </div>
-                <div class="control-group" style="margin-top: 4px;">
-                    <label style="font-size: 12px; color: var(--text-muted);">Save Configuration:</label>
-                    <div style="display: flex; gap: 6px;">
-                        <input type="text" id="profileNameInput" placeholder="Profile name (e.g. Cinderella Coach V1)" style="flex: 1; background: #0d1117; color: #fff; border: 1px solid #30363d; padding: 6px 10px; border-radius: 6px; font-size: 12px; outline: none;">
-                        <button id="saveProfileBtn" class="action-btn primary" style="flex: none; padding: 6px 12px; font-size: 12px;" title="Save profile to browser cache and server presets">💾 Save</button>
-                    </div>
-                </div>
-                <div class="btn-row" style="margin-top: 6px; display: flex; gap: 6px;">
-                    <button id="downloadProfileBtn" class="action-btn" style="flex: 1; font-size: 11px; padding: 5px 8px;" title="Export and download this full costume configuration as JSON">⬇ Export JSON</button>
-                    <button id="importProfileBtn" class="action-btn" style="flex: 1; font-size: 11px; padding: 5px 8px;" title="Import a previously saved costume configuration JSON file">📂 Import JSON</button>
-                    <input type="file" id="importProfileFileInput" accept=".json,application/json" style="display: none;">
-                </div>
-            </div>
-
-            <!-- 2. Parade Cue Director (Autonomous Float Show Sequence) -->
-            <div class="control-section" id="cueDirectorSection" style="border: 1px solid #58a6ff; background: rgba(56, 139, 253, 0.05); border-radius: 10px; padding: 12px;">
-                <div class="section-title" style="color: #58a6ff; display: flex; justify-content: space-between; align-items: center;">
-                    <span>🎬 Parade Cue Director</span>
-                    <span id="cueDirectorBadge" style="background: #21262d; color: var(--accent-cyan); font-weight: 700; padding: 2px 7px; border-radius: 12px; font-size: 11px;">0 Cues (Free-Run)</span>
-                </div>
-
-                <div style="display: flex; gap: 6px; align-items: center; margin-top: 6px; margin-bottom: 8px;">
-                    <button id="toggleSequenceModeBtn" class="action-btn" style="flex: 1.3; font-size: 11px; padding: 6px 8px; font-weight: 600; background: #21262d; border-color: #58a6ff; color: #58a6ff;" title="Toggle between single continuous pattern and the 90-second show sequence">
-                        ▶ Switch to Show Sequence
-                    </button>
-                    <div style="display: flex; align-items: center; gap: 4px; flex: 1; justify-content: flex-end;">
-                        <label style="font-size: 11px; color: var(--text-muted);">Loop:</label>
-                        <input type="number" id="sequenceLoopInput" min="10" max="300" step="5" value="90" style="width: 50px; background: #0d1117; color: #fff; border: 1px solid #30363d; border-radius: 4px; padding: 4px; text-align: center; font-size: 11px;">
-                        <span style="font-size: 11px; color: var(--text-muted);">s</span>
-                    </div>
-                </div>
-
-                <!-- Template & Add Cue Controls -->
-                <div style="display: flex; gap: 6px; margin-bottom: 8px;">
-                    <select id="sequenceTemplateSelect" style="flex: 1; background: #0d1117; color: #fff; border: 1px solid #30363d; border-radius: 4px; padding: 5px 6px; font-size: 11px;">
-                        <option value="">-- Load Example Routine --</option>
-                        <option value="cinderella_90s">🎃 Cinderella 90s (Wheels & Lanterns)</option>
-                        <option value="dragon_90s">🐉 Pete's Dragon 90s (Crest Flame)</option>
-                        <option value="clear_cues">🗑️ Clear All Cues</option>
-                    </select>
-                    <button id="addCueBtn" class="action-btn primary" style="flex: none; font-size: 11px; padding: 5px 10px; font-weight: 600;" title="Add a new cue at the current playhead time">➕ Add Cue</button>
-                </div>
-
-                <!-- Scrollable Cues Card List -->
-                <div id="cuesListContainer" style="display: flex; flex-direction: column; gap: 8px; max-height: 380px; overflow-y: auto; padding-right: 2px;">
-                    <!-- Dynamic Cue Cards Rendered Here -->
-                </div>
-            </div>
-
-            <!-- 3. Baseline Lighting Pattern -->
-            <div class="control-section">
-                <div class="section-title">
-                    <span>Baseline Lighting Pattern (Free-Run)</span>
-                </div>
-                <div class="control-group">
-                    <select id="patternSelect" style="background: #21262d; color: #fff; border: 1px solid #30363d; padding: 8px 12px; border-radius: 6px; outline: none; font-size: 13px;">
-                        <option value="steady_sparkle">✨ Steady Colors + Occasional Sparkle (No Breathing)</option>
-                        <option value="color_match">🌈 Color-Matched Breathing Glow + Sparkles</option>
-                        <option value="dragon_sparkle">🐉 Pete's Dragon: Green Glow + White Sparkles</option>
-                        <option value="fire_breath">🔥 Snout Fire-Breathing Pulse</option>
-                        <option value="traveling_wave">🌊 Traveling Parade Wave (ESP-NOW)</option>
-                        <option value="marquee">🎪 Classic Incandescent Marquee Chase</option>
-                        <option value="fireworks">🎆 Fireworks (Radiating Starburst)</option>
-                        <option value="photo_mode">📸 Castle Photo Mode (Solid Bright)</option>
-                    </select>
-                </div>
-            </div>
-
-            <!-- 3. Live Dynamics & Color -->
-            <div class="control-section">
-                <div class="section-title">
-                    <span>Effect Tuning</span>
-                </div>
-                
-                <div class="control-group">
-                    <div class="label-row">
-                        <span>Speed / Tempo</span>
-                        <span id="speedVal" class="val-badge">120 BPM</span>
-                    </div>
-                    <input type="range" id="speedSlider" min="60" max="220" value="120">
-                </div>
-
-                <div class="control-group">
-                    <div class="label-row">
-                        <span>Sparkle Frequency</span>
-                        <span id="sparkleVal" class="val-badge">1.5%</span>
-                    </div>
-                    <input type="range" id="sparkleSlider" min="0" max="10" step="0.05" value="1.5">
-                </div>
-
-                <div class="control-group">
-                    <div class="label-row">
-                        <span>Green Hue (Shade)</span>
-                        <span id="hueVal" class="val-badge">140° (Emerald)</span>
-                    </div>
-                    <input type="range" id="hueSlider" min="90" max="170" value="140">
-                </div>
-
-                <div class="control-group">
-                    <div class="label-row">
-                        <span>Brightness</span>
-                        <span id="brightVal" class="val-badge">80%</span>
-                    </div>
-                    <input type="range" id="brightnessSlider" min="10" max="100" value="80">
-                </div>
-
-                <div class="control-group">
-                    <div class="label-row">
-                        <span>LED Bloom / Glow Size</span>
-                        <span id="glowVal" class="val-badge">22px</span>
-                    </div>
-                    <input type="range" id="glowSlider" min="8" max="40" value="22">
-                </div>
-            </div>
-
-            <!-- 4. Shirt & Custom Artwork -->
-            <div class="control-section">
-                <div class="section-title">
-                    <span>Shirt & Artwork</span>
-                </div>
-                <div class="control-group">
-                    <label style="font-size: 12px; color: var(--text-muted); margin-bottom: 4px;">Costume Graphic:</label>
-                    <select id="graphicPresetSelect" style="background: #21262d; color: #fff; border: 1px solid #30363d; padding: 8px 10px; border-radius: 6px; outline: none; font-size: 13px; width: 100%;">
-                        <option value="builtin_dragon">🐉 Pete's Dragon</option>
-                        <option value="cinderellas_coach">🎃 Cinderella's Coach</option>
-                        <option value="carriage_nohorses">🎃 Carriage (No Horses)</option>
-                        <option value="custom_upload">📁 Upload Custom Artwork...</option>
-                    </select>
-                </div>
-                <div class="control-group" id="customUploadContainer" style="display: none; margin-top: 4px;">
-                    <label style="font-size: 12px; color: var(--text-muted); margin-bottom: 4px;">Upload Image (PNG / SVG / JPG):</label>
-                    <input type="file" id="artworkUpload" accept="image/*" style="font-size: 12px; color: var(--text-muted); width: 100%;">
-                </div>
-                <div style="display: flex; flex-direction: column; gap: 6px; margin-top: 6px;">
-                    <button id="scatterColorBtn" class="action-btn accent" style="font-weight: 600;">
-                        🌈 Scatter 100 LEDs (Color-Match)
-                    </button>
-                    <button id="autoOutlineBtn" class="action-btn" style="font-size: 12px;">
-                        ✨ Auto-Outline Image (50 LEDs)
-                    </button>
-                    <button id="resetArtworkBtn" class="action-btn" style="font-size: 11px; display: none;" title="Restore default Pete's Dragon artwork">
-                        🔄 Restore Default Dragon
-                    </button>
-                </div>
-
-                <!-- runDisney 10K Race Bib Indicator -->
-                <div style="margin-top: 10px; padding: 8px 10px; background: rgba(56, 189, 248, 0.06); border: 1px solid rgba(56, 189, 248, 0.25); border-radius: 8px;">
-                    <div style="display: flex; align-items: center; justify-content: space-between;">
-                        <label for="showBibToggle" style="font-size: 12px; color: #fff; cursor: pointer; display: flex; align-items: center; gap: 6px; font-weight: 500;">
-                            <span>🏷️ runDisney 10K Bib (#1952)</span>
-                        </label>
-                        <input type="checkbox" id="showBibToggle" checked style="accent-color: #38bdf8; width: 16px; height: 16px; cursor: pointer;">
-                    </div>
-                    <div id="bibPositionRow" style="display: flex; align-items: center; gap: 6px; margin-top: 6px;">
-                        <span style="font-size: 11px; color: var(--text-muted); flex: 1;">Height:</span>
-                        <input type="range" id="bibYSlider" min="50" max="75" value="57" style="flex: 2;">
-                        <span id="bibYVal" style="font-size: 11px; color: var(--accent-cyan); font-family: monospace; width: 28px; text-align: right;">57%</span>
-                    </div>
-                    <div id="bibScaleRow" style="display: flex; align-items: center; gap: 6px; margin-top: 6px;">
-                        <span style="font-size: 11px; color: var(--text-muted); flex: 1;">Scale:</span>
-                        <input type="range" id="bibScaleSlider" min="60" max="140" value="100" style="flex: 2;">
-                        <span id="bibScaleVal" style="font-size: 11px; color: var(--accent-cyan); font-family: monospace; width: 36px; text-align: right;">100%</span>
-                    </div>
-                </div>
-            </div>
-
-            <!-- 5. LED Layout Tools -->
-            <div class="control-section">
-                <div class="section-title">
-                    <span id="ledCountTitle">LED Layout (100 Pixels)</span>
-                </div>
-                
-                <div class="control-group" style="display: flex; gap: 6px; margin-bottom: 8px;">
-                    <button id="quick100Btn" class="action-btn accent" style="flex: 1; font-size: 11px; padding: 5px 6px;">100 Scatter</button>
-                    <button id="quick50Btn" class="action-btn" style="flex: 1; font-size: 11px; padding: 5px 6px;">50 Outline</button>
-                    <button id="resampleColorsBtn" class="action-btn" style="flex: 1; font-size: 11px; padding: 5px 6px;" title="Sample colors from artwork under each LED">🎨 Sample</button>
-                </div>
-
-                <button id="optimizeWiringBtn" class="action-btn" style="width: 100%; font-size: 11px; padding: 6px 8px; margin-bottom: 8px; font-weight: 600; background: rgba(31, 111, 235, 0.25); border-color: rgba(56, 139, 253, 0.4);" title="Sort and renumber LEDs so each bulb connects to its nearest neighbor along a continuous physical wire route">
-                    🔌 Optimize Wiring Route (Order LEDs)
+            <!-- 4 Task-Oriented Sidebar Tabs -->
+            <div class="sidebar-tab-nav" role="tablist">
+                <button type="button" id="tabBtnLayout" class="sidebar-tab-btn active" data-tab="tabLayout" title="Costume Artwork, Placement & Fireworks">
+                    <span class="tab-icon">🎨</span>
+                    <span class="tab-label">Layout</span>
                 </button>
+                <button type="button" id="tabBtnFx" class="sidebar-tab-btn" data-tab="tabFx" title="Lighting Patterns & Animation Dynamics">
+                    <span class="tab-icon">✨</span>
+                    <span class="tab-label">Effects</span>
+                </button>
+                <button type="button" id="tabBtnDirector" class="sidebar-tab-btn" data-tab="tabDirector" title="Parade 90s Show Sequence & Master Cues">
+                    <span class="tab-icon">🎬</span>
+                    <span class="tab-label">Show</span>
+                </button>
+                <button type="button" id="tabBtnHardware" class="sidebar-tab-btn" data-tab="tabHardware" title="USB Flashing & Live Wi-Fi Stream">
+                    <span class="tab-icon">⚡</span>
+                    <span class="tab-label">Deploy</span>
+                </button>
+            </div>
 
-                <div class="toggle-row">
-                    <span id="wiringLabel">Show Wiring Trace (0 &rarr; 99)</span>
-                    <label class="switch">
-                        <input type="checkbox" id="showWiringToggle">
-                        <span class="slider"></span>
-                    </label>
-                </div>
+            <!-- Scrollable Tab Content Container -->
+            <div class="sidebar-tab-content">
 
-                <div class="toggle-row">
-                    <span>Show Bulb Numbers</span>
-                    <label class="switch">
-                        <input type="checkbox" id="showNumbersToggle">
-                        <span class="slider"></span>
-                    </label>
-                </div>
-
-                <!-- Fireworks Starburst Generator Card -->
-                <div style="margin-top: 10px; padding: 10px 12px; background: rgba(255, 123, 114, 0.08); border: 1px solid rgba(255, 123, 114, 0.35); border-radius: 8px;">
-                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px;">
-                        <span style="font-size: 12px; font-weight: 600; color: #ff7b72;">🎆 Fireworks Starburst</span>
-                        <span id="fwLedCountBadge" style="background: #ff7b72; color: #000; font-weight: 700; padding: 2px 7px; border-radius: 12px; font-size: 10px;">20 LEDs (Serpentine)</span>
-                    </div>
-                    <p style="font-size: 11px; color: var(--text-muted); line-height: 1.35; margin-bottom: 8px;">
-                        360° radial burst with serpentine wiring. Placed initially in corner; drag or slider to move & scale. Always maintains <strong>100 LEDs total</strong>.
-                    </p>
-
-                    <!-- Active Firework Selector (when multiple fireworks exist) -->
-                    <div id="activeFwRow" style="margin-bottom: 8px; display: none; background: #0d1117; padding: 6px 8px; border-radius: 6px; border: 1px solid #30363d;">
-                        <div class="label-row" style="margin-bottom: 3px;">
-                            <span style="font-size: 10px; color: #ff7b72; font-weight: 600;">Active Firework Group:</span>
-                            <button type="button" id="removeActiveFwBtn" style="background: none; border: none; color: #f85149; font-size: 10px; cursor: pointer; padding: 0;" title="Remove this firework group">🗑️ Remove</button>
+                <!-- ======================================================== -->
+                <!-- TAB 1: COSTUME & LAYOUT                                  -->
+                <!-- ======================================================== -->
+                <div id="tabLayout" class="tab-panel active">
+                    
+                    <!-- 1. Costume Profiles & Presets -->
+                    <div class="control-section">
+                        <div class="section-title">
+                            <span>Costume Profiles & Presets</span>
                         </div>
-                        <select id="activeFwSelect" style="background: #161b22; color: #fff; border: 1px solid #30363d; border-radius: 4px; padding: 3px 6px; font-size: 11px; width: 100%;"></select>
-                    </div>
-
-                    <!-- Corner / Position Presets -->
-                    <div style="margin-bottom: 8px;">
-                        <label style="font-size: 10px; color: var(--text-muted); display: block; margin-bottom: 3px;">Position Placement:</label>
-                        <div style="display: flex; gap: 4px;">
-                            <button type="button" id="fwPosTopLeftBtn" class="action-btn" style="flex: 1; font-size: 10px; padding: 4px 2px; font-weight: 600; color: #ff7b72;" title="Upper-left chest corner (Default)">↖ Top-Left</button>
-                            <button type="button" id="fwPosTopRightBtn" class="action-btn" style="flex: 1; font-size: 10px; padding: 4px 2px;" title="Upper-right chest corner">↗ Top-Right</button>
-                            <button type="button" id="fwPosCenterBtn" class="action-btn" style="flex: 1; font-size: 10px; padding: 4px 2px;" title="Center chest">⏺ Center</button>
+                        <div class="control-group">
+                            <label style="font-size: 11px; color: var(--text-muted);">Quick-Load Profile:</label>
+                            <select id="presetSelect" style="background: #21262d; color: #fff; border: 1px solid #30363d; padding: 7px 10px; border-radius: 6px; outline: none; font-size: 12px;">
+                                <option value="">-- Select Saved Profile --</option>
+                            </select>
+                        </div>
+                        <div class="control-group" style="margin-top: 2px;">
+                            <label style="font-size: 11px; color: var(--text-muted);">Save Configuration:</label>
+                            <div style="display: flex; gap: 6px;">
+                                <input type="text" id="profileNameInput" placeholder="Profile name (e.g. Cinderella Coach V1)" style="flex: 1; background: #0d1117; color: #fff; border: 1px solid #30363d; padding: 6px 10px; border-radius: 6px; font-size: 12px; outline: none;">
+                                <button id="saveProfileBtn" class="action-btn primary" style="flex: none; padding: 6px 12px; font-size: 12px;" title="Save profile to browser cache and server presets">💾 Save</button>
+                            </div>
+                        </div>
+                        <div class="btn-row" style="margin-top: 4px; display: flex; gap: 6px;">
+                            <button id="downloadProfileBtn" class="action-btn" style="flex: 1; font-size: 11px; padding: 5px 8px;" title="Export and download this full costume configuration as JSON">⬇ Export JSON</button>
+                            <button id="importProfileBtn" class="action-btn" style="flex: 1; font-size: 11px; padding: 5px 8px;" title="Import a previously saved costume configuration JSON file">📂 Import JSON</button>
+                            <input type="file" id="importProfileFileInput" accept=".json,application/json" style="display: none;">
                         </div>
                     </div>
 
-                    <!-- Position & Scale Geometry Box -->
-                    <div style="background: #0d1117; padding: 8px 10px; border-radius: 6px; border: 1px solid #30363d; margin-bottom: 8px;">
-                        <span style="font-size: 10px; font-weight: 600; color: #ff7b72; display: block; margin-bottom: 4px;">📐 Position & Scale (Size):</span>
+                    <!-- 2. Shirt & Artwork Selection -->
+                    <div class="control-section">
+                        <div class="section-title">
+                            <span>Shirt & Character Artwork</span>
+                        </div>
+                        <div class="control-group">
+                            <label style="font-size: 11px; color: var(--text-muted); margin-bottom: 2px;">Costume Graphic:</label>
+                            <select id="graphicPresetSelect" style="background: #21262d; color: #fff; border: 1px solid #30363d; padding: 7px 10px; border-radius: 6px; outline: none; font-size: 12px; width: 100%;">
+                                <option value="builtin_dragon">🐉 Pete's Dragon</option>
+                                <option value="cinderellas_coach">🎃 Cinderella's Coach</option>
+                                <option value="carriage_nohorses">🎃 Carriage (No Horses)</option>
+                                <option value="custom_upload">📁 Upload Custom Artwork...</option>
+                            </select>
+                        </div>
+                        <div class="control-group" id="customUploadContainer" style="display: none; margin-top: 4px;">
+                            <label style="font-size: 11px; color: var(--text-muted); margin-bottom: 2px;">Upload Image (PNG / SVG / JPG):</label>
+                            <input type="file" id="artworkUpload" accept="image/*" style="font-size: 11px; color: var(--text-muted); width: 100%;">
+                        </div>
+                        <div style="display: flex; flex-direction: column; gap: 6px; margin-top: 4px;">
+                            <button id="scatterColorBtn" class="action-btn accent" style="font-weight: 600; font-size: 12px; padding: 7px;">
+                                🌈 Scatter 100 LEDs (Color-Match)
+                            </button>
+                            <button id="autoOutlineBtn" class="action-btn" style="font-size: 11px; padding: 6px;">
+                                ✨ Auto-Outline Image (50 LEDs)
+                            </button>
+                            <button id="resetArtworkBtn" class="action-btn" style="font-size: 11px; display: none;" title="Restore default Pete's Dragon artwork">
+                                🔄 Restore Default Dragon
+                            </button>
+                        </div>
 
-                        <!-- Move X / Y Sliders -->
+                        <!-- runDisney 10K Race Bib Indicator -->
+                        <div style="margin-top: 8px; padding: 8px 10px; background: rgba(56, 189, 248, 0.06); border: 1px solid rgba(56, 189, 248, 0.25); border-radius: 8px;">
+                            <div style="display: flex; align-items: center; justify-content: space-between;">
+                                <label for="showBibToggle" style="font-size: 11px; color: #fff; cursor: pointer; display: flex; align-items: center; gap: 6px; font-weight: 500;">
+                                    <span>🏷️ runDisney 10K Bib (#1952)</span>
+                                </label>
+                                <input type="checkbox" id="showBibToggle" checked style="accent-color: #38bdf8; width: 15px; height: 15px; cursor: pointer;">
+                            </div>
+                            <div id="bibPositionRow" style="display: flex; align-items: center; gap: 6px; margin-top: 6px;">
+                                <span style="font-size: 11px; color: var(--text-muted); flex: 1;">Height:</span>
+                                <input type="range" id="bibYSlider" min="50" max="75" value="57" style="flex: 2;">
+                                <span id="bibYVal" style="font-size: 11px; color: var(--accent-cyan); font-family: monospace; width: 28px; text-align: right;">57%</span>
+                            </div>
+                            <div id="bibScaleRow" style="display: flex; align-items: center; gap: 6px; margin-top: 4px;">
+                                <span style="font-size: 11px; color: var(--text-muted); flex: 1;">Scale:</span>
+                                <input type="range" id="bibScaleSlider" min="60" max="140" value="100" style="flex: 2;">
+                                <span id="bibScaleVal" style="font-size: 11px; color: var(--accent-cyan); font-family: monospace; width: 36px; text-align: right;">100%</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 3. LED Placement & Wiring Optimizer -->
+                    <div class="control-section">
+                        <div class="section-title">
+                            <span id="ledCountTitle">LED Layout & Wiring Route</span>
+                        </div>
+                        
+                        <div class="control-group" style="display: flex; gap: 6px; margin-bottom: 6px;">
+                            <button id="quick100Btn" class="action-btn accent" style="flex: 1; font-size: 11px; padding: 5px 6px;">100 Scatter</button>
+                            <button id="quick50Btn" class="action-btn" style="flex: 1; font-size: 11px; padding: 5px 6px;">50 Outline</button>
+                            <button id="resampleColorsBtn" class="action-btn" style="flex: 1; font-size: 11px; padding: 5px 6px;" title="Sample colors from artwork under each LED">🎨 Sample</button>
+                        </div>
+
+                        <button id="optimizeWiringBtn" class="action-btn" style="width: 100%; font-size: 11px; padding: 7px 8px; margin-bottom: 6px; font-weight: 600; background: rgba(31, 111, 235, 0.25); border-color: rgba(56, 139, 253, 0.4);" title="Sort and renumber LEDs so each bulb connects to its nearest neighbor along a continuous physical wire route">
+                            🔌 Optimize Wiring Route (Shortest Snake)
+                        </button>
+
+                        <div class="toggle-row" style="margin-bottom: 4px;">
+                            <span id="wiringLabel" style="font-size: 11px;">Show Wiring Trace (0 &rarr; 99)</span>
+                            <label class="switch">
+                                <input type="checkbox" id="showWiringToggle">
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+
+                        <div class="toggle-row">
+                            <span style="font-size: 11px;">Show Bulb Numbers</span>
+                            <label class="switch">
+                                <input type="checkbox" id="showNumbersToggle">
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+
+                        <div class="btn-row" style="margin-top: 6px;">
+                            <button id="resetLedsBtn" class="action-btn" style="font-size: 11px; padding: 5px 8px;">Reset Layout</button>
+                            <button id="saveLayoutBtn" class="action-btn" style="font-size: 11px; padding: 5px 8px;">Download JSON</button>
+                        </div>
+                    </div>
+
+                    <!-- 4. Fireworks Starburst Generator Card -->
+                    <div class="control-section" style="border: 1px solid rgba(255, 123, 114, 0.35); background: rgba(255, 123, 114, 0.05);">
+                        <div class="section-title" style="color: #ff7b72; display: flex; align-items: center; justify-content: space-between;">
+                            <span>🎆 Fireworks Starburst</span>
+                            <span id="fwLedCountBadge" style="background: #ff7b72; color: #000; font-weight: 700; padding: 2px 7px; border-radius: 12px; font-size: 10px;">20 LEDs (Serpentine)</span>
+                        </div>
+                        <p style="font-size: 11px; color: var(--text-muted); line-height: 1.35; margin-bottom: 6px;">
+                            360° radial burst with serpentine wiring. Placed initially in corner; drag or slider to move & scale. Always maintains <strong>100 LEDs total</strong>.
+                        </p>
+
+                        <!-- Active Firework Selector (when multiple fireworks exist) -->
+                        <div id="activeFwRow" style="margin-bottom: 8px; display: none; background: #0d1117; padding: 6px 8px; border-radius: 6px; border: 1px solid #30363d;">
+                            <div class="label-row" style="margin-bottom: 3px;">
+                                <span style="font-size: 10px; color: #ff7b72; font-weight: 600;">Active Firework Group:</span>
+                                <button type="button" id="removeActiveFwBtn" style="background: none; border: none; color: #f85149; font-size: 10px; cursor: pointer; padding: 0;" title="Remove this firework group">🗑️ Remove</button>
+                            </div>
+                            <select id="activeFwSelect" style="background: #161b22; color: #fff; border: 1px solid #30363d; border-radius: 4px; padding: 3px 6px; font-size: 11px; width: 100%;"></select>
+                        </div>
+
+                        <!-- Corner / Position Presets -->
+                        <div style="margin-bottom: 8px;">
+                            <label style="font-size: 10px; color: var(--text-muted); display: block; margin-bottom: 3px;">Position Placement:</label>
+                            <div style="display: flex; gap: 4px;">
+                                <button type="button" id="fwPosTopLeftBtn" class="action-btn" style="flex: 1; font-size: 10px; padding: 4px 2px; font-weight: 600; color: #ff7b72;" title="Upper-left chest corner (Default)">↖ Top-Left</button>
+                                <button type="button" id="fwPosTopRightBtn" class="action-btn" style="flex: 1; font-size: 10px; padding: 4px 2px;" title="Upper-right chest corner">↗ Top-Right</button>
+                                <button type="button" id="fwPosCenterBtn" class="action-btn" style="flex: 1; font-size: 10px; padding: 4px 2px;" title="Center chest">⏺ Center</button>
+                            </div>
+                        </div>
+
+                        <!-- Position & Scale Geometry Box -->
+                        <div style="background: #0d1117; padding: 8px 10px; border-radius: 6px; border: 1px solid #30363d; margin-bottom: 8px;">
+                            <span style="font-size: 10px; font-weight: 600; color: #ff7b72; display: block; margin-bottom: 4px;">📐 Position & Scale (Size):</span>
+
+                            <!-- Move X / Y Sliders -->
+                            <div style="display: flex; gap: 8px; margin-bottom: 8px;">
+                                <div style="flex: 1;">
+                                    <div class="label-row" style="margin-bottom: 2px;">
+                                        <span style="font-size: 10px; color: var(--text-muted);">Move X</span>
+                                        <span id="fwPosXVal" class="val-badge" style="font-size: 10px;">28%</span>
+                                    </div>
+                                    <input type="range" id="fwPosXSlider" min="15" max="85" value="28" style="accent-color: #ff7b72;">
+                                </div>
+                                <div style="flex: 1;">
+                                    <div class="label-row" style="margin-bottom: 2px;">
+                                        <span style="font-size: 10px; color: var(--text-muted);">Move Y</span>
+                                        <span id="fwPosYVal" class="val-badge" style="font-size: 10px;">22%</span>
+                                    </div>
+                                    <input type="range" id="fwPosYSlider" min="15" max="55" value="22" style="accent-color: #ff7b72;">
+                                </div>
+                            </div>
+
+                            <!-- Scale / Burst Radius Slider & Quick Presets -->
+                            <div>
+                                <div class="label-row" style="margin-bottom: 2px;">
+                                    <span style="font-size: 10px; font-weight: 600; color: #ff7b72;">🔍 Scale / Burst Radius</span>
+                                    <span id="fwRadiusVal" class="val-badge" style="font-size: 10px; background: #ff7b72; color: #000; font-weight: 700;">13%</span>
+                                </div>
+                                <input type="range" id="fwRadiusSlider" min="5" max="28" value="13" style="width: 100%; accent-color: #ff7b72;">
+                                <div style="display: flex; gap: 4px; margin-top: 4px;">
+                                    <button type="button" id="fwRadiusSmBtn" class="action-btn" style="flex: 1; font-size: 9px; padding: 3px 2px;" title="Small Burst (8% radius)">S (8%)</button>
+                                    <button type="button" id="fwRadiusMdBtn" class="action-btn" style="flex: 1; font-size: 9px; padding: 3px 2px; font-weight: 600; color: #ff7b72;" title="Medium Burst (13% radius - Default)">M (13%)</button>
+                                    <button type="button" id="fwRadiusLgBtn" class="action-btn" style="flex: 1; font-size: 9px; padding: 3px 2px;" title="Large Burst (18% radius)">L (18%)</button>
+                                    <button type="button" id="fwRadiusXlBtn" class="action-btn" style="flex: 1; font-size: 9px; padding: 3px 2px;" title="Extra Large Burst (24% radius)">XL (24%)</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Rays & LEDs per ray selection -->
                         <div style="display: flex; gap: 8px; margin-bottom: 8px;">
                             <div style="flex: 1;">
-                                <div class="label-row" style="margin-bottom: 2px;">
-                                    <span style="font-size: 10px; color: var(--text-muted);">Move X</span>
-                                    <span id="fwPosXVal" class="val-badge" style="font-size: 10px;">28%</span>
-                                </div>
-                                <input type="range" id="fwPosXSlider" min="15" max="85" value="28" style="accent-color: #ff7b72;">
+                                <label style="font-size: 10px; color: var(--text-muted); display: block; margin-bottom: 2px;">Rays (Lines):</label>
+                                <select id="fwRaysSelect" style="background: #0d1117; color: #fff; border: 1px solid #30363d; border-radius: 4px; padding: 4px 6px; font-size: 11px; width: 100%;">
+                                    <option value="4">4 Rays</option>
+                                    <option value="5" selected>5 Rays (Default)</option>
+                                    <option value="6">6 Rays</option>
+                                </select>
                             </div>
                             <div style="flex: 1;">
-                                <div class="label-row" style="margin-bottom: 2px;">
-                                    <span style="font-size: 10px; color: var(--text-muted);">Move Y</span>
-                                    <span id="fwPosYVal" class="val-badge" style="font-size: 10px;">22%</span>
-                                </div>
-                                <input type="range" id="fwPosYSlider" min="15" max="55" value="22" style="accent-color: #ff7b72;">
+                                <label style="font-size: 10px; color: var(--text-muted); display: block; margin-bottom: 2px;">LEDs per Ray:</label>
+                                <select id="fwLedsPerRaySelect" style="background: #0d1117; color: #fff; border: 1px solid #30363d; border-radius: 4px; padding: 4px 6px; font-size: 11px; width: 100%;">
+                                    <option value="3">3 LEDs</option>
+                                    <option value="4" selected>4 LEDs (Default)</option>
+                                    <option value="5">5 LEDs</option>
+                                </select>
                             </div>
                         </div>
 
-                        <!-- Scale / Burst Radius Slider & Quick Presets -->
-                        <div>
-                            <div class="label-row" style="margin-bottom: 2px;">
-                                <span style="font-size: 10px; font-weight: 600; color: #ff7b72;">🔍 Scale / Burst Radius</span>
-                                <span id="fwRadiusVal" class="val-badge" style="font-size: 10px; background: #ff7b72; color: #000; font-weight: 700;">13%</span>
+                        <!-- Firework Color Palette / Custom Color -->
+                        <div style="margin-bottom: 8px;">
+                            <label style="font-size: 10px; color: var(--text-muted); display: block; margin-bottom: 2px;">Firework Color (All Rays Uniform):</label>
+                            <div style="display: flex; gap: 6px; align-items: center;">
+                                <select id="fwColorSelect" style="background: #0d1117; color: #fff; border: 1px solid #30363d; border-radius: 4px; padding: 4px 6px; font-size: 11px; flex: 1;">
+                                    <option value="#ffb703" selected>✨ Golden Amber (#FFB703)</option>
+                                    <option value="#00e5ff">💠 Alice Cyan (#00E5FF)</option>
+                                    <option value="#ff3366">💖 Coral Rose (#FF3366)</option>
+                                    <option value="#76ff03">⚡ Electric Lime (#76FF03)</option>
+                                    <option value="#d500f9">💜 Royal Violet (#D500F9)</option>
+                                    <option value="#ff3d00">🔥 Blazing Red-Orange (#FF3D00)</option>
+                                    <option value="#ffffff">⭐ Starlight White (#FFFFFF)</option>
+                                    <option value="custom">🎨 Custom Hex Color...</option>
+                                </select>
+                                <input type="color" id="fwCustomColorPicker" value="#ffb703" style="width: 28px; height: 26px; border: 1px solid #30363d; border-radius: 4px; background: transparent; cursor: pointer; padding: 1px; display: none;" title="Pick custom firework color">
                             </div>
-                            <input type="range" id="fwRadiusSlider" min="5" max="28" value="13" style="width: 100%; accent-color: #ff7b72;">
-                            <div style="display: flex; gap: 4px; margin-top: 4px;">
-                                <button type="button" id="fwRadiusSmBtn" class="action-btn" style="flex: 1; font-size: 9px; padding: 3px 2px;" title="Small Burst (8% radius)">S (8%)</button>
-                                <button type="button" id="fwRadiusMdBtn" class="action-btn" style="flex: 1; font-size: 9px; padding: 3px 2px; font-weight: 600; color: #ff7b72;" title="Medium Burst (13% radius - Default)">M (13%)</button>
-                                <button type="button" id="fwRadiusLgBtn" class="action-btn" style="flex: 1; font-size: 9px; padding: 3px 2px;" title="Large Burst (18% radius)">L (18%)</button>
-                                <button type="button" id="fwRadiusXlBtn" class="action-btn" style="flex: 1; font-size: 9px; padding: 3px 2px;" title="Extra Large Burst (24% radius)">XL (24%)</button>
-                            </div>
                         </div>
-                    </div>
 
-                    <!-- Rays & LEDs per ray selection -->
-                    <div style="display: flex; gap: 8px; margin-bottom: 8px;">
-                        <div style="flex: 1;">
-                            <label style="font-size: 10px; color: var(--text-muted); display: block; margin-bottom: 2px;">Rays (Lines):</label>
-                            <select id="fwRaysSelect" style="background: #0d1117; color: #fff; border: 1px solid #30363d; border-radius: 4px; padding: 4px 6px; font-size: 11px; width: 100%;">
-                                <option value="4">4 Rays</option>
-                                <option value="5" selected>5 Rays (Default)</option>
-                                <option value="6">6 Rays</option>
-                            </select>
-                        </div>
-                        <div style="flex: 1;">
-                            <label style="font-size: 10px; color: var(--text-muted); display: block; margin-bottom: 2px;">LEDs per Ray:</label>
-                            <select id="fwLedsPerRaySelect" style="background: #0d1117; color: #fff; border: 1px solid #30363d; border-radius: 4px; padding: 4px 6px; font-size: 11px; width: 100%;">
-                                <option value="3">3 LEDs</option>
-                                <option value="4" selected>4 LEDs (Default)</option>
-                                <option value="5">5 LEDs</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <!-- Firework Color Palette / Custom Color -->
-                    <div style="margin-bottom: 8px;">
-                        <label style="font-size: 10px; color: var(--text-muted); display: block; margin-bottom: 2px;">Firework Color (All Rays Uniform):</label>
-                        <div style="display: flex; gap: 6px; align-items: center;">
-                            <select id="fwColorSelect" style="background: #0d1117; color: #fff; border: 1px solid #30363d; border-radius: 4px; padding: 4px 6px; font-size: 11px; flex: 1;">
-                                <option value="#ffb703" selected>✨ Golden Amber (#FFB703)</option>
-                                <option value="#00e5ff">💠 Alice Cyan (#00E5FF)</option>
-                                <option value="#ff3366">💖 Coral Rose (#FF3366)</option>
-                                <option value="#76ff03">⚡ Electric Lime (#76FF03)</option>
-                                <option value="#d500f9">💜 Royal Violet (#D500F9)</option>
-                                <option value="#ff3d00">🔥 Blazing Red-Orange (#FF3D00)</option>
-                                <option value="#ffffff">⭐ Starlight White (#FFFFFF)</option>
-                                <option value="custom">🎨 Custom Hex Color...</option>
-                            </select>
-                            <input type="color" id="fwCustomColorPicker" value="#ffb703" style="width: 28px; height: 26px; border: 1px solid #30363d; border-radius: 4px; background: transparent; cursor: pointer; padding: 1px; display: none;" title="Pick custom firework color">
-                        </div>
-                    </div>
-
-                    <!-- Actions -->
-                    <div style="display: flex; flex-direction: column; gap: 6px;">
-                        <button type="button" id="stampFireworksBtn" class="action-btn accent" style="background: linear-gradient(135deg, #ff7b72, #d2a8ff); border-color: #ff7b72; font-weight: 600; font-size: 11px; padding: 7px 6px;">
-                            🎆 Stamp Fireworks Burst (+ Add Another)
-                        </button>
-                        <button type="button" id="redistributeRemainingBtn" class="action-btn" style="font-size: 11px; padding: 5px;" title="Re-distribute non-firework LEDs across the entire graphic while keeping the firework intact">
-                            🔄 Re-distribute Other LEDs (Full Graphic)
-                        </button>
-                        <div style="display: flex; gap: 6px;">
-                            <button type="button" id="fwAutoScheduleBtn" class="action-btn" style="font-size: 11px; padding: 5px; flex: 1; border-color: #2ea043; color: #3fb950; font-weight: 600;" title="Auto-schedule recurring fireworks explosion bursts spaced evenly across the entire timeline">
-                                ⚡ Auto-Schedule Bursts
+                        <!-- Actions -->
+                        <div style="display: flex; flex-direction: column; gap: 6px;">
+                            <button type="button" id="stampFireworksBtn" class="action-btn accent" style="background: linear-gradient(135deg, #ff7b72, #d2a8ff); border-color: #ff7b72; font-weight: 600; font-size: 11px; padding: 7px 6px;">
+                                🎆 Stamp Fireworks Burst (+ Add Another)
                             </button>
-                            <button type="button" id="fwAddCueBtn" class="action-btn" style="font-size: 11px; padding: 5px; flex: 1; border-color: #58a6ff; color: #58a6ff; font-weight: 600;" title="Add a fireworks explosion cue to the Master Timeline at the current playhead time">
-                                ⏱️ Add at Playhead
+                            <button type="button" id="redistributeRemainingBtn" class="action-btn" style="font-size: 11px; padding: 5px;" title="Re-distribute non-firework LEDs across the entire graphic while keeping the firework intact">
+                                🔄 Re-distribute Other LEDs (Full Graphic)
                             </button>
+                            <div style="display: flex; gap: 6px;">
+                                <button type="button" id="fwAutoScheduleBtn" class="action-btn" style="font-size: 11px; padding: 5px; flex: 1; border-color: #2ea043; color: #3fb950; font-weight: 600;" title="Auto-schedule recurring fireworks explosion bursts spaced evenly across the entire timeline">
+                                    ⚡ Auto-Schedule Bursts
+                                </button>
+                                <button type="button" id="fwAddCueBtn" class="action-btn" style="font-size: 11px; padding: 5px; flex: 1; border-color: #58a6ff; color: #58a6ff; font-weight: 600;" title="Add a fireworks explosion cue to the Master Timeline at the current playhead time">
+                                    ⏱️ Add at Playhead
+                                </button>
+                            </div>
                         </div>
                     </div>
+
                 </div>
 
-                <div class="btn-row" style="margin-top: 6px;">
-                    <button id="resetLedsBtn" class="action-btn">Reset Layout</button>
-                    <button id="saveLayoutBtn" class="action-btn">Download JSON</button>
+                <!-- ======================================================== -->
+                <!-- TAB 2: LIGHTING & FX                                     -->
+                <!-- ======================================================== -->
+                <div id="tabFx" class="tab-panel">
+
+                    <!-- Baseline Lighting Pattern -->
+                    <div class="control-section">
+                        <div class="section-title">
+                            <span>Baseline Lighting Pattern (Free-Run)</span>
+                        </div>
+                        <div class="control-group">
+                            <select id="patternSelect" style="background: #21262d; color: #fff; border: 1px solid #30363d; padding: 8px 12px; border-radius: 6px; outline: none; font-size: 13px;">
+                                <option value="steady_sparkle">✨ Steady Colors + Occasional Sparkle (No Breathing)</option>
+                                <option value="color_match">🌈 Color-Matched Breathing Glow + Sparkles</option>
+                                <option value="dragon_sparkle">🐉 Pete's Dragon: Green Glow + White Sparkles</option>
+                                <option value="fire_breath">🔥 Snout Fire-Breathing Pulse</option>
+                                <option value="traveling_wave">🌊 Traveling Parade Wave (ESP-NOW)</option>
+                                <option value="marquee">🎪 Classic Incandescent Marquee Chase</option>
+                                <option value="fireworks">🎆 Fireworks (Radiating Starburst)</option>
+                                <option value="photo_mode">📸 Castle Photo Mode (Solid Bright)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Live Dynamics & Tuning -->
+                    <div class="control-section">
+                        <div class="section-title">
+                            <span>Live Dynamics Tuning</span>
+                        </div>
+                        
+                        <div class="control-group">
+                            <div class="label-row">
+                                <span>Speed / Tempo</span>
+                                <span id="speedVal" class="val-badge">120 BPM</span>
+                            </div>
+                            <input type="range" id="speedSlider" min="60" max="220" value="120">
+                        </div>
+
+                        <div class="control-group">
+                            <div class="label-row">
+                                <span>Sparkle Frequency</span>
+                                <span id="sparkleVal" class="val-badge">1.5%</span>
+                            </div>
+                            <input type="range" id="sparkleSlider" min="0" max="10" step="0.05" value="1.5">
+                        </div>
+
+                        <div class="control-group">
+                            <div class="label-row">
+                                <span>Green Hue (Shade)</span>
+                                <span id="hueVal" class="val-badge">140° (Emerald)</span>
+                            </div>
+                            <input type="range" id="hueSlider" min="90" max="170" value="140">
+                        </div>
+
+                        <div class="control-group">
+                            <div class="label-row">
+                                <span>Brightness</span>
+                                <span id="brightVal" class="val-badge">80%</span>
+                            </div>
+                            <input type="range" id="brightnessSlider" min="10" max="100" value="80">
+                        </div>
+
+                        <div class="control-group">
+                            <div class="label-row">
+                                <span>LED Bloom / Glow Size</span>
+                                <span id="glowVal" class="val-badge">22px</span>
+                            </div>
+                            <input type="range" id="glowSlider" min="8" max="40" value="22">
+                        </div>
+                    </div>
+
+                    <!-- Active Animation Groups Manager -->
+                    <div class="control-section" id="activeGroupsContainer">
+                        <div class="section-title">
+                            <span>Configured Animation Groups</span>
+                            <span id="activeGroupsCountBadge" style="font-size: 10px; color: var(--accent-cyan); font-family: monospace;">0 Groups</span>
+                        </div>
+                        <p style="font-size: 11px; color: var(--text-muted); line-height: 1.35; margin-bottom: 6px;">
+                            Active localized zones (wheels, lanterns, crest, fireworks). Click <strong>Inspect</strong> to view and edit group settings in the Inspector dock below.
+                        </p>
+                        <div id="activeGroupsList" style="display: flex; flex-direction: column; gap: 4px; max-height: 280px; overflow-y: auto;">
+                            <!-- Populated dynamically -->
+                        </div>
+                    </div>
+
                 </div>
+
+                <!-- ======================================================== -->
+                <!-- TAB 3: SHOW DIRECTOR                                     -->
+                <!-- ======================================================== -->
+                <div id="tabDirector" class="tab-panel">
+
+                    <!-- Parade Cue Director -->
+                    <div class="control-section" id="cueDirectorSection" style="border: 1px solid #58a6ff; background: rgba(56, 139, 253, 0.05);">
+                        <div class="section-title" style="color: #58a6ff; display: flex; justify-content: space-between; align-items: center;">
+                            <span>🎬 Parade Cue Director</span>
+                            <span id="cueDirectorBadge" style="background: #21262d; color: var(--accent-cyan); font-weight: 700; padding: 2px 7px; border-radius: 12px; font-size: 11px;">0 Cues (Free-Run)</span>
+                        </div>
+
+                        <div style="display: flex; gap: 6px; align-items: center; margin-top: 6px; margin-bottom: 8px;">
+                            <button id="toggleSequenceModeBtn" class="action-btn" style="flex: 1.3; font-size: 11px; padding: 6px 8px; font-weight: 600; background: #21262d; border-color: #58a6ff; color: #58a6ff;" title="Toggle between single continuous pattern and the 90-second show sequence">
+                                ▶ Switch to Show Sequence
+                            </button>
+                            <div style="display: flex; align-items: center; gap: 4px; flex: 1; justify-content: flex-end;">
+                                <label style="font-size: 11px; color: var(--text-muted);">Loop:</label>
+                                <input type="number" id="sequenceLoopInput" min="10" max="300" step="5" value="90" style="width: 50px; background: #0d1117; color: #fff; border: 1px solid #30363d; border-radius: 4px; padding: 4px; text-align: center; font-size: 11px;">
+                                <span style="font-size: 11px; color: var(--text-muted);">s</span>
+                            </div>
+                        </div>
+
+                        <!-- Template & Add Cue Controls -->
+                        <div style="display: flex; gap: 6px; margin-bottom: 8px;">
+                            <select id="sequenceTemplateSelect" style="flex: 1; background: #0d1117; color: #fff; border: 1px solid #30363d; border-radius: 4px; padding: 5px 6px; font-size: 11px;">
+                                <option value="">-- Load Example Routine --</option>
+                                <option value="cinderella_90s">🎃 Cinderella 90s (Wheels & Lanterns)</option>
+                                <option value="dragon_90s">🐉 Pete's Dragon 90s (Crest Flame)</option>
+                                <option value="clear_cues">🗑️ Clear All Cues</option>
+                            </select>
+                            <button id="addCueBtn" class="action-btn primary" style="flex: none; font-size: 11px; padding: 5px 10px; font-weight: 600;" title="Add a new cue at the current playhead time">➕ Add Cue</button>
+                        </div>
+
+                        <!-- Scrollable Cues Card List -->
+                        <div id="cuesListContainer" style="display: flex; flex-direction: column; gap: 8px; max-height: 480px; overflow-y: auto; padding-right: 2px;">
+                            <!-- Dynamic Cue Cards Rendered Here -->
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- ======================================================== -->
+                <!-- TAB 4: DEPLOY & HARDWARE                                 -->
+                <!-- ======================================================== -->
+                <div id="tabHardware" class="tab-panel">
+
+                    <!-- ESP32 Standalone Flashing (USB) -->
+                    <div class="control-section">
+                        <div class="section-title">
+                            <span>ESP32 Standalone Flashing (USB)</span>
+                        </div>
+                        <p style="font-size: 12px; color: var(--text-muted); line-height: 1.4;">
+                            Send your active LED layout, sampled colors, and sparkle mode directly to the ESP32 over USB in one click.
+                        </p>
+
+                        <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 6px; margin-bottom: 8px; padding: 6px 10px; background: #0d1117; border-radius: 6px; border: 1px solid var(--border-color);">
+                            <div style="display: flex; align-items: center; gap: 6px; font-size: 12px;">
+                                <span id="serialIndicatorDot" style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #8b949e;"></span>
+                                <span id="serialStatusText" style="color: var(--text-muted);">Checking USB connection...</span>
+                            </div>
+                            <button id="refreshSerialBtn" style="background: transparent; border: none; color: var(--accent-cyan); font-size: 12px; cursor: pointer;" title="Refresh COM Port Status">🔄</button>
+                        </div>
+
+                        <div style="display: flex; flex-direction: column; gap: 8px;">
+                            <button id="flashEsp32Btn" class="action-btn primary" style="font-weight: 600; font-size: 13px; padding: 10px; background: linear-gradient(135deg, #238636, #2ea043);">
+                                ⚡ Flash Standalone Firmware (USB)
+                            </button>
+                            <button id="exportCodeBtn" class="action-btn" style="font-size: 12px;">
+                                📋 View / Copy C++ Code
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Real-Time Wi-Fi Live Stream -->
+                    <div class="control-section" style="border: 1px solid #1f6feb; background: rgba(31, 111, 235, 0.08);">
+                        <div class="section-title" style="color: #58a6ff; display: flex; align-items: center; justify-content: space-between;">
+                            <span>📡 Real-Time Wi-Fi Stream</span>
+                            <span style="font-size: 10px; background: #1f6feb; color: #fff; padding: 2px 6px; border-radius: 10px; font-weight: 600;">LIVE</span>
+                        </div>
+                        <p style="font-size: 11px; color: var(--text-muted); line-height: 1.4; margin-top: 4px;">
+                            Test colors and animations on physical LEDs in real time over Wi-Fi without flashing ROM!
+                        </p>
+
+                        <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 8px; margin-bottom: 10px; padding: 6px 10px; background: #0d1117; border-radius: 6px; border: 1px solid var(--border-color);">
+                            <div style="display: flex; align-items: center; gap: 6px; font-size: 12px;">
+                                <span id="wifiStreamDot" style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #8b949e;"></span>
+                                <span id="wifiStreamStatusText" style="color: var(--text-muted);">Standby (Off)</span>
+                            </div>
+                            <button id="wifiSettingsBtn" type="button" onclick="openWifiModal()" class="action-btn" style="flex: none; background: #21262d; border: 1px solid #388bfd; color: #58a6ff; font-size: 11px; padding: 4px 8px; border-radius: 4px; cursor: pointer; display: flex; align-items: center; gap: 4px;" title="Configure Wi-Fi Credentials">⚙️ Settings</button>
+                        </div>
+
+                        <button id="toggleWifiStreamBtn" class="action-btn primary" style="font-weight: 600; font-size: 13px; padding: 10px; background: linear-gradient(135deg, #1f6feb, #388bfd); width: 100%;">
+                            ▶ Start Live Wi-Fi Stream
+                        </button>
+                    </div>
+
+                    <!-- Web Flasher Zero-Install Link -->
+                    <div class="control-section">
+                        <div class="section-title">
+                            <span>Zero-Install Browser Flasher</span>
+                        </div>
+                        <p style="font-size: 11px; color: var(--text-muted); line-height: 1.4;">
+                            Flash any of the 7 runner ESP32s directly through Chrome or Edge via Web Serial — no software or drivers required.
+                        </p>
+                        <a href="/web_flasher.html" target="_blank" class="action-btn" style="text-decoration: none; font-size: 12px; padding: 8px; margin-top: 4px; color: #3fb950; border-color: #2ea043; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 6px;">
+                            🚀 Open Web Serial Flasher Tab
+                        </a>
+                    </div>
+
+                </div>
+
             </div>
 
-            <!-- 5b. Selected LED Inspector & Color Adjuster -->
-            <div class="control-section" id="ledInspectorSection" style="border: 1px solid #ffc107; background: rgba(255, 193, 7, 0.05); border-radius: 10px; padding: 14px;">
+            <!-- ======================================================== -->
+            <!-- CONTEXTUAL INSPECTOR DOCK (Docked at bottom of sidebar)   -->
+            <!-- ======================================================== -->
+            <div class="inspector-dock dock-empty" id="ledInspectorSection">
                 <div class="section-title" style="color: #ffc107; display: flex; justify-content: space-between; align-items: center;">
                     <span id="inspectorTitle">💡 LED Inspector & Groups</span>
-                    <span id="inspectorLedBadge" style="background: #ffc107; color: #000; font-weight: 700; padding: 2px 7px; border-radius: 12px; font-size: 11px;">Select an LED</span>
-                </div>
-
-                <!-- Quick LED Stepper (Visible when 1 or no LED is selected) -->
-                <div id="inspectorStepperRow" style="display: flex; gap: 6px; align-items: center; margin-top: 6px;">
-                    <button id="prevLedBtn" class="action-btn" style="flex: 1; font-size: 11px; padding: 6px 4px;" title="Select Previous LED (Left Arrow or [ )">◀ Prev</button>
-                    <div style="display: flex; align-items: center; gap: 4px; flex: 1.4; justify-content: center;">
-                        <span style="font-size: 11px; color: var(--text-muted);">LED #</span>
-                        <input type="number" id="inspectorLedNumInput" min="0" max="99" value="0" style="width: 50px; background: #0d1117; color: #fff; border: 1px solid #30363d; border-radius: 4px; padding: 4px; text-align: center; font-size: 12px; font-weight: bold;">
-                    </div>
-                    <button id="nextLedBtn" class="action-btn" style="flex: 1; font-size: 11px; padding: 6px 4px;" title="Select Next LED (Right Arrow or ] )">Next ▶</button>
-                    <button id="focusLedBtn" class="action-btn" style="padding: 6px 8px; font-size: 11px;" title="Center and Zoom to this LED">⌖ Focus</button>
-                </div>
-
-                <!-- Multi-Selection Action Bar (Visible when multiple LEDs are selected) -->
-                <div id="inspectorMultiSelectRow" style="display: none; gap: 6px; align-items: center; margin-top: 6px;">
-                    <button id="inspectorSelectAllBtn" class="action-btn" style="flex: 1; font-size: 11px; padding: 6px 4px;">Select All</button>
-                    <button id="inspectorInvertBtn" class="action-btn" style="flex: 1; font-size: 11px; padding: 6px 4px;">Invert</button>
-                    <button id="inspectorClearBtn" class="action-btn" style="flex: 1; font-size: 11px; padding: 6px 4px;">Clear</button>
+                    <span id="inspectorLedBadge" style="background: #30363d; color: #8b949e; font-weight: 700; padding: 2px 7px; border-radius: 12px; font-size: 11px;">None Selected</span>
                 </div>
 
                 <!-- Empty State Prompt (shown when no LED is selected) -->
-                <div id="inspectorEmptyPrompt" style="padding: 10px; background: #0d1117; border-radius: 6px; border: 1px dashed #30363d; font-size: 11px; color: var(--text-muted); text-align: center; margin-top: 8px; line-height: 1.5;">
-                    👆 Click an LED to inspect it, hold <strong>Shift</strong> to select multiple, or use <strong>⬚ Box Select</strong> in the canvas toolbar.
+                <div id="inspectorEmptyPrompt" style="padding: 6px 10px; background: #0d1117; border-radius: 6px; border: 1px dashed #30363d; font-size: 11px; color: var(--text-muted); text-align: center; line-height: 1.4;">
+                    👆 Click an LED on canvas to inspect, hold <strong>Shift</strong> to select multiple, or use <strong>⬚ Box Select</strong>.
+                </div>
+
+                <!-- Quick LED Stepper (Visible when 1 or no LED is selected) -->
+                <div id="inspectorStepperRow" style="display: flex; gap: 6px; align-items: center;">
+                    <button id="prevLedBtn" class="action-btn" style="flex: 1; font-size: 11px; padding: 5px 4px;" title="Select Previous LED (Left Arrow or [ )">◀ Prev</button>
+                    <div style="display: flex; align-items: center; gap: 4px; flex: 1.4; justify-content: center;">
+                        <span style="font-size: 11px; color: var(--text-muted);">LED #</span>
+                        <input type="number" id="inspectorLedNumInput" min="0" max="99" value="0" style="width: 50px; background: #0d1117; color: #fff; border: 1px solid #30363d; border-radius: 4px; padding: 3px 4px; text-align: center; font-size: 12px; font-weight: bold;">
+                    </div>
+                    <button id="nextLedBtn" class="action-btn" style="flex: 1; font-size: 11px; padding: 5px 4px;" title="Select Next LED (Right Arrow or ] )">Next ▶</button>
+                    <button id="focusLedBtn" class="action-btn" style="padding: 5px 8px; font-size: 11px;" title="Center and Zoom to this LED">⌖ Focus</button>
+                </div>
+
+                <!-- Multi-Selection Action Bar (Visible when multiple LEDs are selected) -->
+                <div id="inspectorMultiSelectRow" style="display: none; gap: 6px; align-items: center;">
+                    <button id="inspectorSelectAllBtn" class="action-btn" style="flex: 1; font-size: 11px; padding: 5px 4px;">Select All</button>
+                    <button id="inspectorInvertBtn" class="action-btn" style="flex: 1; font-size: 11px; padding: 5px 4px;">Invert</button>
+                    <button id="inspectorClearBtn" class="action-btn" style="flex: 1; font-size: 11px; padding: 5px 4px;">Clear</button>
                 </div>
 
                 <!-- Active LED Color Editor (shown when 1 or more LEDs are selected) -->
-                <div id="inspectorColorControls" style="display: none; flex-direction: column; gap: 10px; margin-top: 8px;">
+                <div id="inspectorColorControls" style="display: none; flex-direction: column; gap: 8px;">
                     
                     <!-- Color Preview Card + Native Color Picker -->
-                    <div style="display: flex; gap: 10px; align-items: center; padding: 8px 10px; background: #0d1117; border-radius: 8px; border: 1px solid #30363d;">
-                        <div id="inspectorColorSwatch" style="width: 44px; height: 44px; border-radius: 8px; border: 2px solid #fff; box-shadow: 0 0 10px rgba(0,0,0,0.5); cursor: pointer; flex-shrink: 0; position: relative; overflow: hidden;" title="Click to open color picker">
+                    <div style="display: flex; gap: 10px; align-items: center; padding: 6px 10px; background: #0d1117; border-radius: 8px; border: 1px solid #30363d;">
+                        <div id="inspectorColorSwatch" style="width: 38px; height: 38px; border-radius: 6px; border: 2px solid #fff; box-shadow: 0 0 10px rgba(0,0,0,0.5); cursor: pointer; flex-shrink: 0; position: relative; overflow: hidden;" title="Click to open color picker">
                             <input type="color" id="inspectorNativePicker" style="position: absolute; top: -10px; left: -10px; width: 64px; height: 64px; opacity: 0; cursor: pointer;">
                         </div>
                         <div style="flex: 1; display: flex; flex-direction: column; gap: 2px;">
@@ -472,7 +606,7 @@
                     </div>
 
                     <!-- RGB Sliders & Number Inputs -->
-                    <div style="display: flex; flex-direction: column; gap: 8px;">
+                    <div style="display: flex; flex-direction: column; gap: 6px;">
                         <!-- Red -->
                         <div class="control-group">
                             <div class="label-row" style="margin-bottom: 2px;">
@@ -503,8 +637,8 @@
 
                     <!-- Quick Disney Palette Swatches -->
                     <div>
-                        <div style="font-size: 11px; color: var(--text-muted); margin-bottom: 6px; font-weight: 500;">
-                            Quick Palette Swatches (Applies to all selected):
+                        <div style="font-size: 10px; color: var(--text-muted); margin-bottom: 4px; font-weight: 500;">
+                            Quick Palette Swatches:
                         </div>
                         <div style="display: grid; grid-template-columns: repeat(6, 1fr); gap: 4px;">
                             <button type="button" class="palette-swatch-btn" data-r="0" data-g="255" data-b="35" style="background: #00ff23;" title="Dragon Green"></button>
@@ -523,27 +657,27 @@
                     </div>
 
                     <!-- Single LED Utility Buttons -->
-                    <div id="inspectorSingleUtils" style="display: flex; gap: 6px; margin-top: 4px;">
-                        <button type="button" id="inspectorSampleBtn" class="action-btn" style="flex: 1; font-size: 11px; padding: 6px;" title="Sample artwork pixel color directly under this LED">🎨 Sample Art</button>
-                        <button type="button" id="inspectorCopyNextBtn" class="action-btn" style="flex: 1; font-size: 11px; padding: 6px;" title="Copy this color to the next 5 LEDs along the wire">⏩ Copy Next 5</button>
-                        <button type="button" id="inspectorDeselectBtn" class="action-btn" style="padding: 6px 10px; font-size: 11px;" title="Deselect LED">✖</button>
+                    <div id="inspectorSingleUtils" style="display: flex; gap: 6px; margin-top: 2px;">
+                        <button type="button" id="inspectorSampleBtn" class="action-btn" style="flex: 1; font-size: 11px; padding: 5px;" title="Sample artwork pixel color directly under this LED">🎨 Sample Art</button>
+                        <button type="button" id="inspectorCopyNextBtn" class="action-btn" style="flex: 1; font-size: 11px; padding: 5px;" title="Copy this color to the next 5 LEDs along the wire">⏩ Copy Next 5</button>
+                        <button type="button" id="inspectorDeselectBtn" class="action-btn" style="padding: 5px 8px; font-size: 11px;" title="Deselect LED">✖</button>
                     </div>
 
                     <!-- Group Animation Effects Card -->
-                    <div id="groupEffectCard" style="margin-top: 6px; padding: 12px; background: #161b22; border-radius: 8px; border: 1px solid #30363d; display: flex; flex-direction: column; gap: 8px;">
+                    <div id="groupEffectCard" style="margin-top: 6px; padding: 10px 12px; background: #161b22; border-radius: 8px; border: 1px solid #30363d; display: flex; flex-direction: column; gap: 7px;">
                         <div style="display: flex; justify-content: space-between; align-items: center;">
-                            <span style="font-size: 12px; font-weight: 600; color: #58a6ff;">🎡 Group Animation Effect</span>
+                            <span style="font-size: 11px; font-weight: 600; color: #58a6ff;">🎡 Group Animation Effect</span>
                             <span id="groupEffectLedCountBadge" style="font-size: 10px; background: #21262d; color: var(--accent-cyan); padding: 2px 6px; border-radius: 10px; font-weight: bold;">0 LEDs Selected</span>
                         </div>
 
                         <div class="control-group">
-                            <label style="font-size: 11px; color: var(--text-muted); margin-bottom: 2px;">Group / Zone Name:</label>
-                            <input type="text" id="groupNameInput" placeholder="e.g. Front Wheel, Lanterns, Wings" value="" style="background: #0d1117; color: #fff; border: 1px solid #30363d; border-radius: 4px; padding: 5px 8px; font-size: 12px; width: 100%;">
+                            <label style="font-size: 10px; color: var(--text-muted); margin-bottom: 2px;">Group / Zone Name:</label>
+                            <input type="text" id="groupNameInput" placeholder="e.g. Front Wheel, Lanterns, Wings" value="" style="background: #0d1117; color: #fff; border: 1px solid #30363d; border-radius: 4px; padding: 4px 8px; font-size: 11px; width: 100%;">
                         </div>
 
                         <div class="control-group">
-                            <label style="font-size: 11px; color: var(--text-muted); margin-bottom: 2px;">Effect Pattern:</label>
-                            <select id="groupEffectSelect" style="background: #0d1117; color: #fff; border: 1px solid #30363d; border-radius: 4px; padding: 6px 8px; font-size: 12px; width: 100%;">
+                            <label style="font-size: 10px; color: var(--text-muted); margin-bottom: 2px;">Effect Pattern:</label>
+                            <select id="groupEffectSelect" style="background: #0d1117; color: #fff; border: 1px solid #30363d; border-radius: 4px; padding: 5px 8px; font-size: 11px; width: 100%;">
                                 <option value="chase">🎡 Chase / Rotating Wheels (Spin)</option>
                                 <option value="flash_slow">💡 Slow Flashing (Blink)</option>
                                 <option value="pulse">💓 Pulsating / Breathing Glow</option>
@@ -558,14 +692,14 @@
 
                         <div class="control-group">
                             <div class="label-row" style="margin-bottom: 2px;">
-                                <span style="font-size: 11px; color: var(--text-muted);">Speed / Tempo</span>
+                                <span style="font-size: 10px; color: var(--text-muted);">Speed / Tempo</span>
                                 <span id="groupSpeedVal" class="val-badge" style="font-size: 10px;">140 BPM</span>
                             </div>
                             <input type="range" id="groupSpeedSlider" min="40" max="280" value="140">
                         </div>
 
                         <div style="display: flex; gap: 8px; align-items: center;">
-                            <label style="font-size: 11px; color: var(--text-muted); flex: 1;">Direction:</label>
+                            <label style="font-size: 10px; color: var(--text-muted); flex: 1;">Direction:</label>
                             <select id="groupDirectionSelect" style="background: #0d1117; color: #fff; border: 1px solid #30363d; border-radius: 4px; padding: 4px 6px; font-size: 11px; flex: 1.5;">
                                 <option value="1">Forward ➡️</option>
                                 <option value="-1">Reverse ⬅️</option>
@@ -573,8 +707,8 @@
                         </div>
 
                         <div class="control-group" style="margin-top: 2px;">
-                            <label style="font-size: 11px; color: var(--text-muted); margin-bottom: 2px;">Resting Baseline (When Idle / No Cue):</label>
-                            <select id="groupBaselineSelect" style="background: #0d1117; color: #fff; border: 1px solid #30363d; border-radius: 4px; padding: 6px 8px; font-size: 12px; width: 100%;">
+                            <label style="font-size: 10px; color: var(--text-muted); margin-bottom: 2px;">Resting Baseline (When Idle / No Cue):</label>
+                            <select id="groupBaselineSelect" style="background: #0d1117; color: #fff; border: 1px solid #30363d; border-radius: 4px; padding: 5px 8px; font-size: 11px; width: 100%;">
                                 <option value="inherit" selected>🌐 Follow Overall Baseline (Default)</option>
                                 <option value="off">🌑 Off / Completely Unlit (Pitch Black)</option>
                                 <option value="steady_sparkle">✨ Gentle Starlight Sparkle</option>
@@ -585,9 +719,9 @@
                         </div>
 
                         <!-- Fireworks Specific Scale/Radius in Group Inspector -->
-                        <div id="groupFwRadiusRow" style="display: none; margin-top: 4px; background: #0d1117; padding: 8px 10px; border-radius: 6px; border: 1px solid #ff7b72;">
+                        <div id="groupFwRadiusRow" style="display: none; margin-top: 4px; background: #0d1117; padding: 6px 8px; border-radius: 6px; border: 1px solid #ff7b72;">
                             <div class="label-row" style="margin-bottom: 2px;">
-                                <span style="font-size: 11px; font-weight: 600; color: #ff7b72;">🔍 Firework Burst Scale / Radius:</span>
+                                <span style="font-size: 10px; font-weight: 600; color: #ff7b72;">🔍 Firework Burst Scale / Radius:</span>
                                 <span id="groupFwRadiusVal" class="val-badge" style="font-size: 10px; background: #ff7b72; color: #000; font-weight: 700;">13%</span>
                             </div>
                             <input type="range" id="groupFwRadiusSlider" min="5" max="28" value="13" style="width: 100%; accent-color: #ff7b72;">
@@ -600,77 +734,17 @@
                         </div>
 
                         <div style="display: flex; gap: 6px; margin-top: 4px;">
-                            <button type="button" id="applyGroupEffectBtn" class="action-btn accent" style="flex: 1; font-weight: 600; font-size: 11px; padding: 7px 6px;">
+                            <button type="button" id="applyGroupEffectBtn" class="action-btn accent" style="flex: 1; font-weight: 600; font-size: 11px; padding: 6px;">
                                 ⚡ Apply Effect to Selected
                             </button>
-                            <button type="button" id="removeGroupEffectBtn" class="action-btn" style="flex: none; font-size: 11px; padding: 7px 10px;" title="Remove group effect from selected LEDs">
+                            <button type="button" id="removeGroupEffectBtn" class="action-btn" style="flex: none; font-size: 11px; padding: 6px 10px;" title="Remove group effect from selected LEDs">
                                 Remove
                             </button>
                         </div>
                     </div>
 
-                    <!-- Active Animation Groups List Container -->
-                    <div id="activeGroupsContainer" style="margin-top: 8px; display: flex; flex-direction: column; gap: 6px;">
-                        <div style="display: flex; justify-content: space-between; align-items: center;">
-                            <span style="font-size: 11px; font-weight: 600; color: var(--text-muted);">Configured Groups:</span>
-                            <span id="activeGroupsCountBadge" style="font-size: 10px; color: var(--accent-cyan); font-family: monospace;">0 Groups</span>
-                        </div>
-                        <div id="activeGroupsList" style="display: flex; flex-direction: column; gap: 4px; max-height: 160px; overflow-y: auto;">
-                            <!-- Populated dynamically -->
-                        </div>
-                    </div>
-
-                </div>
-            </div>
-
-            <!-- 5c. Real-Time Wi-Fi Live Stream (No ROM Flashing) -->
-            <div class="control-section" style="border: 1px solid #1f6feb; background: rgba(31, 111, 235, 0.08); border-radius: 8px; padding: 12px;">
-                <div class="section-title" style="color: #58a6ff; display: flex; align-items: center; justify-content: space-between;">
-                    <span>📡 Real-Time Wi-Fi Stream</span>
-                    <span style="font-size: 10px; background: #1f6feb; color: #fff; padding: 2px 6px; border-radius: 10px; font-weight: 600;">LIVE</span>
-                </div>
-                <p style="font-size: 11px; color: var(--text-muted); line-height: 1.4; margin-top: 4px;">
-                    Test colors and animations on physical LEDs in real time over Wi-Fi without flashing ROM!
-                </p>
-
-                <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 8px; margin-bottom: 10px; padding: 6px 10px; background: #0d1117; border-radius: 6px; border: 1px solid var(--border-color);">
-                    <div style="display: flex; align-items: center; gap: 6px; font-size: 12px;">
-                        <span id="wifiStreamDot" style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #8b949e;"></span>
-                        <span id="wifiStreamStatusText" style="color: var(--text-muted);">Standby (Off)</span>
-                    </div>
-                    <button id="wifiSettingsBtn" type="button" onclick="openWifiModal()" class="action-btn" style="flex: none; background: #21262d; border: 1px solid #388bfd; color: #58a6ff; font-size: 11px; padding: 4px 8px; border-radius: 4px; cursor: pointer; display: flex; align-items: center; gap: 4px;" title="Configure Wi-Fi Credentials">⚙️ Settings</button>
                 </div>
 
-                <button id="toggleWifiStreamBtn" class="action-btn primary" style="font-weight: 600; font-size: 13px; padding: 10px; background: linear-gradient(135deg, #1f6feb, #388bfd); width: 100%;">
-                    ▶ Start Live Wi-Fi Stream
-                </button>
-            </div>
-
-            <!-- 6. Firmware Code Export & Standalone Flashing -->
-            <div class="control-section">
-                <div class="section-title">
-                    <span>ESP32 Standalone Flashing</span>
-                </div>
-                <p style="font-size: 12px; color: var(--text-muted); line-height: 1.4;">
-                    Send your active LED layout, sampled colors, and sparkle mode directly to the ESP32 over USB in one click.
-                </p>
-
-                <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 8px; margin-bottom: 8px; padding: 6px 10px; background: #0d1117; border-radius: 6px; border: 1px solid var(--border-color);">
-                    <div style="display: flex; align-items: center; gap: 6px; font-size: 12px;">
-                        <span id="serialIndicatorDot" style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #8b949e;"></span>
-                        <span id="serialStatusText" style="color: var(--text-muted);">Checking USB connection...</span>
-                    </div>
-                    <button id="refreshSerialBtn" style="background: transparent; border: none; color: var(--accent-cyan); font-size: 12px; cursor: pointer;" title="Refresh COM Port Status">🔄</button>
-                </div>
-
-                <div style="display: flex; flex-direction: column; gap: 8px;">
-                    <button id="flashEsp32Btn" class="action-btn primary" style="font-weight: 600; font-size: 13px; padding: 10px; background: linear-gradient(135deg, #238636, #2ea043);">
-                        ⚡ Flash Standalone Firmware (USB)
-                    </button>
-                    <button id="exportCodeBtn" class="action-btn" style="font-size: 12px;">
-                        📋 View / Copy C++ Code
-                    </button>
-                </div>
             </div>
 
         </div>
@@ -752,6 +826,6 @@
         </div>
     </div>
 
-    <script src="app.js?v=12"></script>
+    <script src="app.js?v=13"></script>
 </body>
 </html>
