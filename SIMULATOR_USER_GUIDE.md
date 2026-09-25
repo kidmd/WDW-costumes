@@ -97,28 +97,37 @@ The central workspace renders an interactive, hardware-accelerated preview of yo
 
 ## 4. Thoroughbred Workspace: 4 Task Tabs & Contextual Inspector Dock
 
-The simulator features a streamlined, modern workspace inspired by creative suites (After Effects, Figma, Blender), replacing long vertical scrolling with **4 task-oriented tabs** and an **intelligent contextual inspector dock**:
+## 4. Thoroughbred Workspace: 5 Task Tabs & Contextual Inspector Dock
 
-### The 4 Sidebar Tabs
+The simulator features a streamlined, modern workspace inspired by creative suites (After Effects, Figma, Blender), replacing long vertical scrolling with **5 task-oriented tabs** and an **intelligent contextual inspector dock**:
+
+### The 5 Sidebar Tabs
 1. **🎨 Tab 1: Layout ("The Canvas Studio"):**
    - **Costume Profiles:** Quick-load, save, and export/import full JSON profiles.
    - **Shirt & Character Artwork:** Choose from built-in presets (Pete's Dragon, Cinderella's Coach, Carriage No Horses) or upload custom graphics.
    - **LED Generation:** One-click `100 Scatter`, `50 Auto-Outline`, and `Sample Colors`.
-   - **Fireworks Starburst Generator:** Corner placement presets, Position & Scale box (with S/M/L/XL quick buttons), Rays & LEDs per ray, Color theme, and Stamping.
    - **runDisney 10K Race Bib (#1952):** Toggle overlay, height, and scale sliders to verify physical clearance.
    - **Physical Wiring Route Optimizer:** Shortest-path snake wiring optimizer, Show Wiring Trace toggle, Show Numbers toggle.
+   - **Quick-Link to Groups:** Fast-jump button to the Groups Tab for drawing paths or stamping fireworks.
 
-2. **✨ Tab 2: Effects ("The FX Lab"):**
+2. **👥 Tab 2: Groups ("Group Creation Hub & Manager"):**
+   - **LED Allocation Overview Box:** Real-time visual progress bar tracking how many LEDs are assigned to animation groups versus unassigned.
+   - **Unified Group Creation Hub:** 3 dedicated creation modes:
+     - 📦 **From Selection:** Save or update groups directly from canvas marquee box selections.
+     - ✏️ **Click-to-Draw Path:** Sequentially place LEDs directly on the shirt by clicking one-by-one.
+     - 🎆 **Fireworks Stamper:** Relocated radial starburst generator with serpentine wiring, radius scale, and color themes.
+   - **Active Groups Browser:** Card list of all configured groups with instant selection, badge metrics, and deletion controls.
+
+3. **✨ Tab 3: Effects ("The FX Lab"):**
    - **Baseline Lighting Pattern:** Select from 8 continuous baseline patterns (Steady Sparkle, Color Match, Fire Breath, Traveling Wave, Marquee, Fireworks, Photo Mode).
    - **Live Dynamics Tuning:** Speed/Tempo BPM slider, Sparkle Frequency, Green Hue/Shade, Master Brightness, LED Bloom Glow Size.
-   - **Configured Animation Groups Manager:** View all active zones, member counts, idle baselines, and inspect/delete controls.
 
-3. **🎬 Tab 3: Show ("The Show Director"):**
+4. **🎬 Tab 4: Director ("The Show Director"):**
    - **Parade Cue Director:** 90-second Sequence Loop controls (Sequence ON/OFF, Loop duration, Example routines).
    - **Active Cue List:** Clean, scrollable cue cards displaying start time, duration, target layer/group, effect, BPM, and quick delete.
    - **Quick Cue Insertion:** `➕ Add Cue at Playhead`, `⚡ Auto-Schedule Bursts`.
 
-4. **⚡ Tab 4: Deploy ("The Workshop"):**
+5. **⚡ Tab 5: Hardware ("The Workshop"):**
    - **USB Standalone Flashing:** Auto-detected COM port, connection status badge, 1-Click Flash firmware, View/Copy C++ code modal.
    - **📡 Real-Time Wi-Fi Live Stream:** Stream live colors & animations directly to physical LEDs over Wi-Fi without flashing ROM. Wi-Fi credentials modal.
    - **Web Serial Flasher:** Quick launch button for zero-install browser-based flashing.
@@ -144,9 +153,9 @@ The pre-overhaul UI state is permanently tagged and archived:
 
 ---
 
-## 5. Multi-LED Selection & Dedicated Groups Management
+## 5. Multi-LED Selection, Group Creation Hub & Click-to-Draw Path Tool
 
-To create localized zone animations (like carriage wheels spinning, lanterns pulsing, or radiating starburst fireworks), you can select multiple LEDs and organize them into **Animation Groups**.
+To create localized zone animations (like carriage wheels spinning, lanterns pulsing, spinal ridges glowing, or radiating starburst fireworks), you can organize LEDs into **Animation Groups**.
 
 ### Selecting Multiple LEDs
 1. **Marquee Box Select:**
@@ -155,9 +164,48 @@ To create localized zone animations (like carriage wheels spinning, lanterns pul
 2. **Select All:** Click the **All** button or press `Ctrl + A` (`Cmd + A` on Mac) to select all LEDs on the float.
 3. **Clear Selection:** Click **Clear** or press `Escape` to deselect all LEDs.
 
-### 👥 Dedicated "Groups" Sidebar Tab & LED Allocation Metrics
-The sidebar features a dedicated **`👥 Groups`** tab (with a dynamic count badge showing active groups):
-- **LED Allocation Overview Box:** Real-time visual progress bar tracking how many LEDs are assigned to animation groups versus unassigned. Displays total assigned percentage and count (e.g. `24 / 100 LEDs (24%) assigned to groups`).
+---
+
+### ➕ The Unified Group Creation Hub (`👥 Groups` Tab)
+
+The Group Creation Hub provides 3 dedicated, purpose-built workflows under unified tabs:
+
+#### 1. 📦 Mode 1: From Selection
+- Select 2 or more LEDs using **⬚ Box Select** or `Shift + Click`.
+- The Hub automatically displays the number of selected LEDs and their index range (e.g. `✨ 16 LEDs Selected · Indices: #12–27`).
+- If the selection matches an existing group, fields automatically populate and the button reflects **`💾 Update Group "[Name]"`**.
+- Otherwise, configure Group Name, Effect Pattern, Direction (➡️ Forward / ⬅️ Reverse), Speed (BPM), and Resting Baseline, then click **`💾 Save Selection as Group`**.
+
+#### 2. ✏️ Mode 2: Click-to-Draw Sequential Path Tool
+The **Click-to-Draw Path Tool** lets you place sequential LEDs one-by-one directly onto the shirt canvas by simply clicking where you want each light:
+- **Activation:**
+  - Click the **`[✏️ Draw Group]`** button in the top canvas toolbar, OR
+  - Click **`[✏️ Start Drawing on Shirt]`** in the Group Creation Hub (Draw mode), OR
+  - Switch to the Groups tab and click **`✏️ Click-to-Draw`**.
+- **Visual In-Progress Guide:**
+  - A prominent floating **Canvas Drawing Banner** appears above the shirt with an active pulse indicator and placed LED count.
+  - A glowing gold dashed line connects your clicks in real time.
+  - Each placed point is highlighted with a gold circular badge displaying its sequence step number (`1`, `2`, `3`...).
+- **Contiguous LED Allocation Algorithm:**
+  - Each click takes from the available costume LEDs while preserving the strict **100-LED invariant**.
+  - LED indices are allocated contiguously (#24, #25, #26...) whenever possible. This ensures directional animations like **Chase**, **Write-On / Wipe**, and **Traveling Waves** flow smoothly in the exact chronological order of your clicks!
+- **Color Auto-Sampling:**
+  - Each placed point automatically samples the pixel color from the underlying character graphic (Pete's Dragon, Cinderella's Coach, or custom artwork).
+- **Finishing & Saving:**
+  - Press `Enter` on your keyboard, click **`✅ Done`** on the canvas floating banner, or click **`✅ Finish & Save`** in the sidebar.
+  - Provide a group name, choose the animation effect and direction, and save directly into the active groups roster!
+- **Canceling:**
+  - Press `Escape` or click **`❌ Cancel`** on the canvas banner to exit draw mode without saving.
+
+#### 3. 🎆 Mode 3: Fireworks Stamper (Relocated from Layout)
+- Stamp multi-ray radial starburst fireworks directly from the Groups tab.
+- Includes corner placement presets (Top-Left, Top-Right, Center), Move X/Y sliders, Scale / Burst Radius slider (with S/M/L/XL quick buttons), Ray count, LEDs per ray, uniform ray color theme, and auto-scheduling explosion cues on the Master Timeline.
+- Serpentine wiring ensures maximum physical wire efficiency during costume assembly.
+
+---
+
+### 👥 LED Allocation Overview & Active Groups Browser
+- **Allocation Progress Bar:** Real-time visual progress bar tracking how many LEDs are assigned to animation groups versus unassigned. Displays total assigned percentage and count (e.g. `24 / 100 LEDs (24%) assigned to groups`).
 - **Quick Selection Actions:**
   - **`👥 Select All Grouped`**: Instantly selects all LEDs currently belonging to any group across the entire costume for bulk review.
   - **`⚡ Select Unassigned`**: Immediately highlights all ungrouped LEDs so you can quickly bundle remaining costume LEDs into a new zone with one click!
@@ -539,7 +587,9 @@ Any board can be assigned to any of the 7 floats without touching code:
 | `0` | Canvas | **Reset Zoom** to default centered 100% view |
 | `Shift` + Drag | Canvas | **Marquee Box Select** multiple LEDs |
 | `Ctrl + A` / `Cmd + A` | Canvas | **Select All** LEDs |
-| `Escape` | Canvas | **Deselect All** LEDs |
+| `Enter` | Draw Mode | **Finish & Save** drawn path animation group (when $\ge 2$ LEDs placed) |
+| `Escape` | Draw Mode | **Cancel** drawing mode and revert uncommitted points |
+| `Escape` | Normal Mode | **Deselect All** LEDs |
 | Arrow Right `]` / `n` | LED Select | Select **Next LED** in wiring order |
 | Arrow Left `[` / `p` | LED Select | Select **Previous LED** in wiring order |
 | Click on Timeline Track | Timeline | **Seek playhead** to that exact second |

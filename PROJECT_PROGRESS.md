@@ -93,6 +93,25 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### Entry: Unified Group Creation Hub, Click-to-Draw Sequential Path Tool, and Relocated Fireworks Stamper
+* **Date:** 2026-09-25
+* **Status:** Operational & Verified in Web Simulator and PlatformIO Build.
+* **Notes:**
+  * **Unified Group Creation Hub (`#groupCreationHub`):** Consolidated all group generation into a 3-mode sub-tab interface located directly inside the `👥 Groups` tab:
+    - 📦 **From Selection (`#creationPanelSelect`):** Save or update groups directly from canvas marquee box selections with full parameters (Name, Effect, Direction, Speed BPM, Resting Baseline).
+    - ✏️ **Click-to-Draw (`#creationPanelDraw`):** Sequentially place individual LEDs directly on the costume shirt by clicking one-by-one.
+    - 🎆 **Fireworks (`#creationPanelFw`):** Relocated the Fireworks Starburst Stamper from the Layout tab into Groups, consolidating all group creation in one unified place.
+  * **Click-to-Draw Sequential Path Engine:**
+    - **Contiguous LED Allocation Algorithm (`getNextAvailableLedIndex()`):** Allocates unassigned LEDs consecutively (#24, #25, #26...) whenever possible, ensuring directional animations (Chase, Wipe/Write-On, Traveling Waves) flow predictably in click sequence. Strictly preserves the 100-costume-LED invariant without creating phantom LEDs.
+    - **Visual In-Progress Guidance:** Renders an animated floating banner (`#canvasDrawBanner`) above the canvas with a live placed count badge, plus glowing gold dashed guide lines and numbered step badges (`1`, `2`, `3`...) at each placed point on the shirt.
+    - **Pixel Color Auto-Sampling:** Automatically samples the character graphic pixel color directly underneath each clicked point on the shirt.
+    - **Keyboard & UI Controls:** Integrated `Enter` (finish & save when $\ge 2$ LEDs placed) and `Escape` (cancel draw mode) shortcuts, plus canvas floating banner buttons and sidebar action buttons.
+  * **Layout Tab Streamlining:**
+    - Replaced the bulky Fireworks card in `tabLayout` with a sleek quick-link (`#goToGroupsTabBtn`), leaving Layout focused cleanly on Artwork, Placement, Bib Clearance, and Wiring Optimization.
+    - Preserved all 15+ Fireworks DOM element IDs and slider bindings, guaranteeing 100% backward compatibility.
+  * **Top Toolbar Integration:** Added `[✏️ Draw Group]` button to the canvas top toolbar alongside `[⬚ Box Select]`, automatically activating the Groups tab and entering Click-to-Draw mode.
+  * **Dual-Core & PlatformIO Verification:** Firmware compiles cleanly (`pio run`) at 14.3% RAM and 59.6% Flash.
+
 ### Entry: First-Class "👥 Groups" Tab, Allocation Metrics Bar, and Explicit "Save Group" Inspector Workflow
 * **Date:** 2026-09-25
 * **Status:** Operational & Verified in Web Simulator and PlatformIO Build.

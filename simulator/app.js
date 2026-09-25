@@ -155,6 +155,11 @@ let isDraggingLed = false;
 let multiDragStartNorm = null;
 let multiDragInitialPositions = new Map();
 
+// Click-to-Draw Sequential Path State
+let isDrawGroupMode = false;
+let drawGroupLedIndices = [];
+let drawGroupPoints = [];
+
 // Animation Groups & Zones
 // Array of { id, name, ledIndices: [idx...], effect: 'chase'|'flash_slow'|..., speedBpm, direction, width, colorMode, customColor }
 let animationGroups = [];
@@ -1717,6 +1722,47 @@ function renderSingleShirtView(timeMs) {
         renderBulb(ctx, pt.x, pt.y, col, isHover, isSel, i);
     }
 
+    // Render Click-to-Draw Guide Lines & Step Indicators on Canvas
+    if (isDrawGroupMode && drawGroupPoints.length > 0) {
+        ctx.save();
+        if (drawGroupPoints.length > 1) {
+            ctx.beginPath();
+            const pStart = normToCanvas(drawGroupPoints[0]);
+            ctx.moveTo(pStart.x, pStart.y);
+            for (let p = 1; p < drawGroupPoints.length; p++) {
+                const pt = normToCanvas(drawGroupPoints[p]);
+                ctx.lineTo(pt.x, pt.y);
+            }
+            ctx.strokeStyle = '#ffc107';
+            ctx.lineWidth = 2.4;
+            ctx.setLineDash([6, 4]);
+            ctx.stroke();
+            ctx.setLineDash([]);
+        }
+
+        // Draw order badges (1, 2, 3...) at each placed point
+        for (let p = 0; p < drawGroupPoints.length; p++) {
+            const pt = normToCanvas(drawGroupPoints[p]);
+
+            // Outer glowing gold ring
+            ctx.beginPath();
+            ctx.arc(pt.x, pt.y, 11, 0, Math.PI * 2);
+            ctx.fillStyle = '#ffc107';
+            ctx.fill();
+            ctx.strokeStyle = '#000';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+
+            // Sequence order number
+            ctx.fillStyle = '#000';
+            ctx.font = 'bold 10px sans-serif';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(String(p + 1), pt.x, pt.y);
+        }
+        ctx.restore();
+    }
+
     ctx.restore();
 
     // Render Marquee Selection Box in Screen Space
@@ -2127,6 +2173,18 @@ function updateLedInspectorUI() {
         // Remove active-group highlights on cards
         document.querySelectorAll('.group-card.active-group').forEach(el => el.classList.remove('active-group'));
 
+        // Update Group Creation Hub in tabGroups
+        const selEmpty = document.getElementById('creationSelectEmptyText');
+        const selActive = document.getElementById('creationSelectActiveText');
+        const saveHubBtn = document.getElementById('saveSelectionGroupBtnHub');
+        if (selEmpty) selEmpty.style.display = 'block';
+        if (selActive) selActive.style.display = 'none';
+        if (saveHubBtn) {
+            saveHubBtn.innerHTML = '💾 Save Selection as Group';
+            saveHubBtn.style.background = 'linear-gradient(135deg, #238636, #2ea043)';
+            saveHubBtn.style.borderColor = '#2ea043';
+        }
+
         return;
     }
 
@@ -2276,16 +2334,273 @@ function updateLedInspectorUI() {
         }
     }
 
-    // Highlight matching active group in Groups tab
-    document.querySelectorAll('.group-card').forEach(card => {
-        const gId = card.getAttribute('data-group-id');
-        const grp = animationGroups.find(g => g.id === gId);
-        if (grp && grp.ledIndices && grp.ledIndices.length > 0 && grp.ledIndices.every(idx => selectedLeds.has(idx))) {
-            card.classList.add('active-group');
+    // Update Group Creation Hub (in tabGroups)
+    const selEmpty = document.getElementById('creationSelectEmptyText');
+    const selActive = document.getElementById('creationSelectActiveText');
+    const selCount = document.getElementById('creationSelectCountText');
+    const selRange = document.getElementById('creationSelectRangeText');
+    const saveHubBtn = document.getElementById('saveSelectionGroupBtnHub');
+
+    if (totalSelected >= 2) {
+        if (selEmpty) selEmpty.style.display = 'none';
+        if (selActive) selActive.style.display = 'flex';
+        if (selCount) selCount.textContent = `✨ ${totalSelected} LEDs Selected`;
+        if (selRange) selRange.textContent = `Indices: ${formatIndexSummary(Array.from(selectedLeds))}`;
+
+        const nameInput = document.getElementById('groupNameInput');
+        const rawName = (nameInput?.value || '').trim();
+        const existingGrp = (rawName ? animationGroups.find(g => g.name.toLowerCase() === rawName.toLowerCase()) : null) ||
+            (selectedLed !== null && ledGroupMap[selectedLed] ? ledGroupMap[selectedLed].group : null);
+
+        if (existingGrp) {
+            const hubName = document.getElementById('groupNameInputHub');
+            const hubEff = document.getElementById('groupEffectSelectHub');
+            const hubSpd = document.getElementById('groupSpeedSliderHub');
+            const hubSpdVal = document.getElementById('groupSpeedValHub');
+            const hubDir = document.getElementById('groupDirectionSelectHub');
+            const hubBase = document.getElementById('groupBaselineSelectHub');
+
+            if (hubName && document.activeElement !== hubName) hubName.value = existingGrp.name;
+            if (hubEff) hubEff.value = existingGrp.effect;
+            if (hubSpd) hubSpd.value = existingGrp.speedBpm;
+            if (hubSpdVal) hubSpdVal.textContent = `${existingGrp.speedBpm} BPM`;
+            if (hubDir) hubDir.value = String(existingGrp.direction || 1);
+            if (hubBase) hubBase.value = existingGrp.baselineEffect || (existingGrp.effect === 'fireworks' ? 'off' : 'inherit');
+
+            if (saveHubBtn) {
+                saveHubBtn.innerHTML = `💾 Update Group "${existingGrp.name}"`;
+                saveHubBtn.style.background = 'linear-gradient(135deg, #1f6feb, #388bfd)';
+                saveHubBtn.style.borderColor = '#388bfd';
+            }
         } else {
-            card.classList.remove('active-group');
+            if (saveHubBtn) {
+                saveHubBtn.innerHTML = `💾 Save Selection as Group`;
+                saveHubBtn.style.background = 'linear-gradient(135deg, #238636, #2ea043)';
+                saveHubBtn.style.borderColor = '#2ea043';
+            }
         }
-    });
+    } else {
+        if (selEmpty) selEmpty.style.display = 'block';
+        if (selActive) selActive.style.display = 'none';
+        if (saveHubBtn) {
+            saveHubBtn.innerHTML = `💾 Save Selection as Group`;
+            saveHubBtn.style.background = 'linear-gradient(135deg, #238636, #2ea043)';
+            saveHubBtn.style.borderColor = '#2ea043';
+        }
+    }
+}
+
+// ----------------------------------------------------------------------------
+// CLICK-TO-DRAW SEQUENTIAL PATH & GROUP CREATION HUB ENGINE
+// ----------------------------------------------------------------------------
+
+function switchGroupCreationMode(mode) {
+    const targetMode = mode === 'fireworks' ? 'fw' : mode;
+
+    document.getElementById('creationModeSelectBtn')?.classList.toggle('active', targetMode === 'select');
+    document.getElementById('creationModeDrawBtn')?.classList.toggle('active', targetMode === 'draw');
+    document.getElementById('creationModeFwBtn')?.classList.toggle('active', targetMode === 'fw');
+
+    const panelSelect = document.getElementById('creationPanelSelect');
+    const panelDraw = document.getElementById('creationPanelDraw');
+    const panelFw = document.getElementById('creationPanelFw');
+    const badge = document.getElementById('creationModeBadge');
+
+    if (panelSelect) panelSelect.style.display = targetMode === 'select' ? 'block' : 'none';
+    if (panelDraw) panelDraw.style.display = targetMode === 'draw' ? 'block' : 'none';
+    if (panelFw) panelFw.style.display = targetMode === 'fw' ? 'block' : 'none';
+
+    if (badge) {
+        if (targetMode === 'select') {
+            badge.textContent = 'Selection';
+            badge.style.background = '#1f6feb';
+        } else if (targetMode === 'draw') {
+            badge.textContent = 'Click-to-Draw';
+            badge.style.background = '#d29922';
+        } else if (targetMode === 'fw') {
+            badge.textContent = 'Fireworks';
+            badge.style.background = '#ff7b72';
+        }
+    }
+}
+
+function getNextAvailableLedIndex() {
+    const totalCostumeLeds = (leds && leds.length > 0) ? leds.length : 100;
+    const assignedIndices = new Set();
+    animationGroups.forEach(g => (g.ledIndices || []).forEach(idx => assignedIndices.add(idx)));
+    drawGroupLedIndices.forEach(idx => assignedIndices.add(idx));
+
+    if (drawGroupLedIndices.length > 0) {
+        const last = drawGroupLedIndices[drawGroupLedIndices.length - 1];
+        if (last + 1 < totalCostumeLeds && !assignedIndices.has(last + 1)) {
+            return last + 1;
+        }
+    }
+    for (let i = 0; i < totalCostumeLeds; i++) {
+        if (!assignedIndices.has(i)) return i;
+    }
+    return -1;
+}
+
+function handleDrawGroupClick(normX, normY) {
+    const targetIdx = getNextAvailableLedIndex();
+    if (targetIdx === -1) {
+        showToast("⚠️ All 100 costume LEDs are assigned to groups! Free up or delete a group first.", "warning");
+        return;
+    }
+
+    // Reposition LED to exact click coordinates
+    leds[targetIdx].x = parseFloat(normX.toFixed(4));
+    leds[targetIdx].y = parseFloat(normY.toFixed(4));
+
+    // Sample color from artwork or keep existing
+    const col = sampleColorAtNorm(normX, normY);
+    if (col) {
+        leds[targetIdx].color = { ...col };
+    }
+
+    drawGroupLedIndices.push(targetIdx);
+    drawGroupPoints.push({ x: leds[targetIdx].x, y: leds[targetIdx].y });
+    selectedLeds.add(targetIdx);
+    selectedLed = targetIdx;
+
+    updateDrawGroupUI();
+    showToast(`📍 Placed Point ${drawGroupLedIndices.length}: LED #${targetIdx}!`);
+}
+
+function updateDrawGroupUI() {
+    const count = drawGroupLedIndices.length;
+    const bannerBadge = document.getElementById('canvasDrawCountBadge');
+    const panelBadge = document.getElementById('drawPlacedCountBadge');
+    const statusText = document.getElementById('drawStatusText');
+    const finishBtn = document.getElementById('finishDrawBtn');
+    const canvasFinishBtn = document.getElementById('canvasFinishDrawBtn');
+
+    const badgeText = `${count} Placed`;
+    if (bannerBadge) bannerBadge.textContent = badgeText;
+    if (panelBadge) panelBadge.textContent = badgeText;
+
+    if (statusText) {
+        if (count === 0) {
+            statusText.textContent = '✏️ Drawing... Click on shirt';
+        } else {
+            const nextIdx = getNextAvailableLedIndex();
+            statusText.textContent = `📍 ${count} LEDs placed ${nextIdx !== -1 ? `(next: #${nextIdx})` : ''}`;
+        }
+    }
+
+    const canFinish = count >= 2;
+    if (finishBtn) finishBtn.disabled = !canFinish;
+    if (canvasFinishBtn) canvasFinishBtn.disabled = !canFinish;
+
+    updateLedInspectorUI();
+}
+
+function startDrawGroupMode() {
+    isDrawGroupMode = true;
+    if (isBoxSelectMode) {
+        isBoxSelectMode = false;
+        const boxBtn = document.getElementById('boxSelectBtn');
+        if (boxBtn) boxBtn.classList.remove('active');
+    }
+
+    drawGroupLedIndices = [];
+    drawGroupPoints = [];
+    selectedLeds.clear();
+    selectedLed = null;
+
+    switchGroupCreationMode('draw');
+
+    const drawBtn = document.getElementById('drawGroupBtn');
+    if (drawBtn) drawBtn.classList.add('active');
+
+    const toggleBtn = document.getElementById('toggleDrawModeBtn');
+    if (toggleBtn) {
+        toggleBtn.textContent = '🛑 Stop Drawing';
+        toggleBtn.style.background = 'linear-gradient(135deg, #f85149, #da3633)';
+        toggleBtn.style.borderColor = '#f85149';
+        toggleBtn.style.color = '#fff';
+    }
+
+    const banner = document.getElementById('canvasDrawBanner');
+    if (banner) banner.style.display = 'flex';
+
+    canvas.style.cursor = 'crosshair';
+    updateDrawGroupUI();
+    showToast('✏️ Draw Mode Activated: Click anywhere on shirt to place LEDs!');
+}
+
+function stopDrawGroupMode() {
+    isDrawGroupMode = false;
+
+    const drawBtn = document.getElementById('drawGroupBtn');
+    if (drawBtn) drawBtn.classList.remove('active');
+
+    const toggleBtn = document.getElementById('toggleDrawModeBtn');
+    if (toggleBtn) {
+        toggleBtn.textContent = '✏️ Start Drawing on Shirt';
+        toggleBtn.style.background = 'linear-gradient(135deg, #ffc107, #f0883e)';
+        toggleBtn.style.borderColor = '#ffc107';
+        toggleBtn.style.color = '#000';
+    }
+
+    const banner = document.getElementById('canvasDrawBanner');
+    if (banner) banner.style.display = 'none';
+
+    canvas.style.cursor = 'default';
+}
+
+function cancelDrawGroup() {
+    stopDrawGroupMode();
+    drawGroupLedIndices = [];
+    drawGroupPoints = [];
+    selectedLeds.clear();
+    selectedLed = null;
+    updateLedInspectorUI();
+    showToast('Drawing mode cancelled.');
+}
+
+function finishDrawGroup() {
+    if (drawGroupLedIndices.length < 2) {
+        showToast('⚠️ Please place at least 2 LEDs before saving an animation group!', 'warning');
+        return;
+    }
+
+    const nameInput = document.getElementById('drawGroupNameInput');
+    const effectSelect = document.getElementById('drawGroupEffectSelect');
+    const dirSelect = document.getElementById('drawGroupDirectionSelect');
+    const speedSlider = document.getElementById('drawGroupSpeedSlider');
+    const baselineSelect = document.getElementById('drawGroupBaselineSelect');
+
+    const defaultName = `Drawn Path (${drawGroupLedIndices.length} LEDs)`;
+    const rawName = (nameInput?.value || '').trim() || defaultName;
+    const effect = effectSelect?.value || 'chase';
+    const direction = parseInt(dirSelect?.value || '1', 10);
+    const speedBpm = parseInt(speedSlider?.value || '140', 10);
+    const baselineEffect = baselineSelect?.value || 'inherit';
+
+    const newGroup = {
+        id: 'grp_' + Date.now() + '_' + Math.floor(Math.random() * 1000),
+        name: rawName,
+        ledIndices: [...drawGroupLedIndices], // in exact sequential order of clicks!
+        effect: effect,
+        speedBpm: speedBpm,
+        direction: direction,
+        width: 3,
+        colorMode: 'original',
+        baselineEffect: baselineEffect
+    };
+
+    animationGroups.push(newGroup);
+    rebuildLedGroupMap();
+    renderActiveGroupsList();
+
+    // Select the new group
+    selectGroupLeds(newGroup.id);
+    stopDrawGroupMode();
+    showToast(`🎉 Saved group "${newGroup.name}" with ${newGroup.ledIndices.length} sequential LEDs!`);
+
+    if (nameInput) nameInput.value = '';
 }
 
 // ----------------------------------------------------------------------------
@@ -2297,11 +2612,11 @@ function applyGroupEffectToSelection() {
         return;
     }
 
-    const nameInput = document.getElementById('groupNameInput');
-    const effectSelect = document.getElementById('groupEffectSelect');
-    const speedSlider = document.getElementById('groupSpeedSlider');
-    const dirSelect = document.getElementById('groupDirectionSelect');
-    const baselineSelect = document.getElementById('groupBaselineSelect');
+    const nameInput = document.getElementById('groupNameInputHub')?.value ? document.getElementById('groupNameInputHub') : document.getElementById('groupNameInput');
+    const effectSelect = document.getElementById('groupEffectSelectHub')?.value ? document.getElementById('groupEffectSelectHub') : document.getElementById('groupEffectSelect');
+    const speedSlider = document.getElementById('groupSpeedSliderHub') || document.getElementById('groupSpeedSlider');
+    const dirSelect = document.getElementById('groupDirectionSelectHub') || document.getElementById('groupDirectionSelect');
+    const baselineSelect = document.getElementById('groupBaselineSelectHub') || document.getElementById('groupBaselineSelect');
 
     const rawName = (nameInput?.value || '').trim() || `Zone (${selectedLeds.size} LEDs)`;
     const effect = effectSelect?.value || 'chase';
@@ -3379,6 +3694,18 @@ canvas.addEventListener('wheel', (e) => {
 window.addEventListener('keydown', (e) => {
     if (['INPUT', 'SELECT', 'TEXTAREA'].includes(document.activeElement?.tagName)) return;
 
+    if (isDrawGroupMode) {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            finishDrawGroup();
+            return;
+        } else if (e.key === 'Escape') {
+            e.preventDefault();
+            cancelDrawGroup();
+            return;
+        }
+    }
+
     if (e.code === 'Space') {
         if (!isSpacePressed) {
             isSpacePressed = true;
@@ -3437,6 +3764,17 @@ canvas.addEventListener('mousedown', (e) => {
     }
 
     if (e.button !== 0) return;
+
+    // Click-to-Draw Sequential Mode Handler
+    if (isDrawGroupMode) {
+        const worldX = (mx - panX) / zoomScale;
+        const worldY = (my - panY) / zoomScale;
+        const norm = canvasToNorm(worldX, worldY);
+        const clampX = Math.max(0.08, Math.min(0.92, norm.x));
+        const clampY = Math.max(0.08, Math.min(0.92, norm.y));
+        handleDrawGroupClick(clampX, clampY);
+        return;
+    }
 
     // Left-click: Screen space hit test
     let clickedIdx = -1;
@@ -3600,6 +3938,8 @@ canvas.addEventListener('mousemove', (e) => {
 
     if (isSpacePressed) {
         canvas.style.cursor = 'grab';
+    } else if (isDrawGroupMode) {
+        canvas.style.cursor = 'crosshair';
     } else if (isBoxSelectMode) {
         canvas.style.cursor = 'crosshair';
     } else if (found !== null) {
@@ -4199,6 +4539,99 @@ document.getElementById('inspectorClearBtn')?.addEventListener('click', () => de
 // Group Animation Controls Bindings
 document.getElementById('applyGroupEffectBtn')?.addEventListener('click', () => applyGroupEffectToSelection());
 document.getElementById('removeGroupEffectBtn')?.addEventListener('click', () => removeGroupEffectFromSelection());
+
+// Group Creation Hub & Navigation Bindings
+document.getElementById('goToGroupsTabBtn')?.addEventListener('click', () => {
+    if (typeof switchSidebarTab === 'function') switchSidebarTab('tabGroups');
+});
+
+document.getElementById('quickActivateBoxSelectBtn')?.addEventListener('click', () => {
+    isBoxSelectMode = true;
+    const boxBtn = document.getElementById('boxSelectBtn');
+    if (boxBtn) boxBtn.classList.add('active');
+    canvas.style.cursor = 'crosshair';
+    showToast('⬚ Box Select mode enabled: Drag across LEDs to select');
+});
+
+// Mode Selector Tabs (Selection, Click-to-Draw, Fireworks)
+document.getElementById('creationModeSelectBtn')?.addEventListener('click', () => switchGroupCreationMode('select'));
+document.getElementById('creationModeDrawBtn')?.addEventListener('click', () => switchGroupCreationMode('draw'));
+document.getElementById('creationModeFwBtn')?.addEventListener('click', () => switchGroupCreationMode('fw'));
+
+// Hub Panel 1: From Selection Actions & Sliders
+document.getElementById('saveSelectionGroupBtnHub')?.addEventListener('click', () => applyGroupEffectToSelection());
+document.getElementById('removeGroupEffectBtnHub')?.addEventListener('click', () => removeGroupEffectFromSelection());
+
+const groupSpeedSliderHub = document.getElementById('groupSpeedSliderHub');
+const groupSpeedValHub = document.getElementById('groupSpeedValHub');
+if (groupSpeedSliderHub) {
+    groupSpeedSliderHub.addEventListener('input', (e) => {
+        if (groupSpeedValHub) groupSpeedValHub.textContent = `${e.target.value} BPM`;
+        const gSlider = document.getElementById('groupSpeedSlider');
+        const gVal = document.getElementById('groupSpeedVal');
+        if (gSlider) gSlider.value = e.target.value;
+        if (gVal) gVal.textContent = `${e.target.value} BPM`;
+    });
+}
+
+const groupBaselineSelectHub = document.getElementById('groupBaselineSelectHub');
+if (groupBaselineSelectHub) {
+    groupBaselineSelectHub.addEventListener('change', (e) => {
+        const val = e.target.value;
+        const gBase = document.getElementById('groupBaselineSelect');
+        if (gBase) gBase.value = val;
+        const nameInput = document.getElementById('groupNameInputHub') || document.getElementById('groupNameInput');
+        const rawName = (nameInput?.value || '').trim();
+        let grp = null;
+        if (selectedLed !== null && ledGroupMap[selectedLed]) {
+            grp = ledGroupMap[selectedLed].group;
+        } else if (rawName) {
+            grp = animationGroups.find(g => g.name.toLowerCase() === rawName.toLowerCase());
+        }
+        if (grp) {
+            grp.baselineEffect = val;
+            renderActiveGroupsList();
+            showToast(`💤 Set resting baseline for "${grp.name}" to: ${val}`);
+        }
+    });
+}
+
+// Hub Panel 2: Click-to-Draw Actions
+const drawGroupBtn = document.getElementById('drawGroupBtn');
+if (drawGroupBtn) {
+    drawGroupBtn.addEventListener('click', () => {
+        if (isDrawGroupMode) {
+            stopDrawGroupMode();
+        } else {
+            if (typeof switchSidebarTab === 'function') switchSidebarTab('tabGroups');
+            startDrawGroupMode();
+        }
+    });
+}
+
+const toggleDrawModeBtn = document.getElementById('toggleDrawModeBtn');
+if (toggleDrawModeBtn) {
+    toggleDrawModeBtn.addEventListener('click', () => {
+        if (isDrawGroupMode) {
+            stopDrawGroupMode();
+        } else {
+            startDrawGroupMode();
+        }
+    });
+}
+
+document.getElementById('finishDrawBtn')?.addEventListener('click', () => finishDrawGroup());
+document.getElementById('canvasFinishDrawBtn')?.addEventListener('click', () => finishDrawGroup());
+document.getElementById('cancelDrawBtn')?.addEventListener('click', () => cancelDrawGroup());
+document.getElementById('canvasCancelDrawBtn')?.addEventListener('click', () => cancelDrawGroup());
+
+const drawGroupSpeedSlider = document.getElementById('drawGroupSpeedSlider');
+const drawGroupSpeedVal = document.getElementById('drawGroupSpeedVal');
+if (drawGroupSpeedSlider) {
+    drawGroupSpeedSlider.addEventListener('input', (e) => {
+        if (drawGroupSpeedVal) drawGroupSpeedVal.textContent = `${e.target.value} BPM`;
+    });
+}
 
 document.getElementById('selectAllGroupedBtn')?.addEventListener('click', () => {
     const allGroupedIndices = new Set();
@@ -6767,24 +7200,25 @@ if (flashReceiverBtn) {
 // ============================================================================
 // SIDEBAR TASK TABS & TIMELINE COLLAPSE (THOROUGHBRED UI)
 // ============================================================================
-function initSidebarTabs() {
+function switchSidebarTab(targetTabId) {
     const tabBtns = document.querySelectorAll('.sidebar-tab-btn');
     const tabPanels = document.querySelectorAll('.tab-panel');
+    tabBtns.forEach(btn => {
+        const isTarget = btn.getAttribute('data-tab') === targetTabId;
+        btn.classList.toggle('active', isTarget);
+    });
+    tabPanels.forEach(panel => {
+        const isTarget = panel.id === targetTabId;
+        panel.classList.toggle('active', isTarget);
+    });
+    try {
+        localStorage.setItem('msep_active_sidebar_tab', targetTabId);
+    } catch (e) {}
+}
+window.switchSidebarTab = switchSidebarTab;
 
-    function switchSidebarTab(targetTabId) {
-        tabBtns.forEach(btn => {
-            const isTarget = btn.getAttribute('data-tab') === targetTabId;
-            btn.classList.toggle('active', isTarget);
-        });
-        tabPanels.forEach(panel => {
-            const isTarget = panel.id === targetTabId;
-            panel.classList.toggle('active', isTarget);
-        });
-        try {
-            localStorage.setItem('msep_active_sidebar_tab', targetTabId);
-        } catch (e) {}
-    }
-
+function initSidebarTabs() {
+    const tabBtns = document.querySelectorAll('.sidebar-tab-btn');
     tabBtns.forEach(btn => {
         btn.addEventListener('click', () => {
             const targetId = btn.getAttribute('data-tab');
