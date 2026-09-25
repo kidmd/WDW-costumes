@@ -2084,6 +2084,8 @@ function updateLedInspectorUI() {
         if (colorControls) colorControls.style.display = 'none';
         if (stepperRow) stepperRow.style.display = 'flex';
         if (multiRow) multiRow.style.display = 'none';
+        const groupFwRow = document.getElementById('groupFwRadiusRow');
+        if (groupFwRow) groupFwRow.style.display = 'none';
         if (badge) {
             badge.textContent = 'None Selected';
             badge.style.background = '#30363d';
@@ -2155,6 +2157,55 @@ function updateLedInspectorUI() {
     }
 
     updateLedInspectorCoords();
+
+    // Show or hide Fireworks Burst Radius slider in Group Inspector
+    const groupFwRow = document.getElementById('groupFwRadiusRow');
+    if (groupFwRow) {
+        let isFw = false;
+        let fwGrp = null;
+
+        if (totalSelected === 1 && selectedLed !== null && ledGroupMap[selectedLed]) {
+            if (ledGroupMap[selectedLed].group && ledGroupMap[selectedLed].group.effect === 'fireworks') {
+                isFw = true;
+                fwGrp = ledGroupMap[selectedLed].group;
+            }
+        } else if (totalSelected > 1) {
+            const firstLed = Array.from(selectedLeds)[0];
+            const grpEntry = ledGroupMap[firstLed];
+            if (grpEntry && grpEntry.group && grpEntry.group.effect === 'fireworks') {
+                isFw = true;
+                fwGrp = grpEntry.group;
+            } else {
+                fwGrp = animationGroups.find(g => g.effect === 'fireworks' && g.ledIndices.some(idx => selectedLeds.has(idx)));
+                if (fwGrp) isFw = true;
+            }
+        }
+
+        if (!isFw) {
+            const effectSelect = document.getElementById('groupEffectSelect');
+            if (effectSelect && effectSelect.value === 'fireworks') {
+                isFw = true;
+                fwGrp = typeof getActiveFireworksGroup === 'function' ? getActiveFireworksGroup() : null;
+            }
+        }
+
+        if (isFw) {
+            groupFwRow.style.display = 'block';
+            if (fwGrp) {
+                activeFireworksGroupId = fwGrp.id;
+                const rPct = Math.round((fwGrp.burstRadius || 0.13) * 100);
+                const gSlider = document.getElementById('groupFwRadiusSlider');
+                const gVal = document.getElementById('groupFwRadiusVal');
+                if (gSlider) gSlider.value = rPct;
+                if (gVal) gVal.textContent = `${rPct}%`;
+                if (typeof highlightRadiusPresetButtons === 'function') {
+                    highlightRadiusPresetButtons(rPct);
+                }
+            }
+        } else {
+            groupFwRow.style.display = 'none';
+        }
+    }
 
     const activeRef = (selectedLed !== null && leds[selectedLed]) ? selectedLed : Array.from(selectedLeds)[0];
     if (activeRef !== undefined && leds[activeRef]) {
@@ -3969,6 +4020,23 @@ document.getElementById('inspectorClearBtn')?.addEventListener('click', () => de
 document.getElementById('applyGroupEffectBtn')?.addEventListener('click', () => applyGroupEffectToSelection());
 document.getElementById('removeGroupEffectBtn')?.addEventListener('click', () => removeGroupEffectFromSelection());
 
+const groupEffectSelect = document.getElementById('groupEffectSelect');
+if (groupEffectSelect) {
+    groupEffectSelect.addEventListener('change', (e) => {
+        const row = document.getElementById('groupFwRadiusRow');
+        if (row) {
+            const isFw = e.target.value === 'fireworks';
+            row.style.display = isFw ? 'block' : 'none';
+            if (isFw) {
+                const fwGrp = typeof getActiveFireworksGroup === 'function' ? getActiveFireworksGroup() : null;
+                if (fwGrp) {
+                    syncFireworksSliders(fwGrp.centerNormX, fwGrp.centerNormY, fwGrp.burstRadius, fwGrp.fireworkColor);
+                }
+            }
+        }
+    });
+}
+
 const groupSpeedSlider = document.getElementById('groupSpeedSlider');
 const groupSpeedVal = document.getElementById('groupSpeedVal');
 if (groupSpeedSlider) {
@@ -5341,6 +5409,46 @@ function updateFireworksLedPositions(fwGroup, cx, cy, radius) {
     updateLedInspectorCoords();
 }
 
+function highlightRadiusPresetButtons(rPct) {
+    const presets = [
+        { id: 'fwRadiusSmBtn', grpId: 'groupFwRadiusSmBtn', val: 8 },
+        { id: 'fwRadiusMdBtn', grpId: 'groupFwRadiusMdBtn', val: 13 },
+        { id: 'fwRadiusLgBtn', grpId: 'groupFwRadiusLgBtn', val: 18 },
+        { id: 'fwRadiusXlBtn', grpId: 'groupFwRadiusXlBtn', val: 24 }
+    ];
+
+    presets.forEach(p => {
+        const btn = document.getElementById(p.id);
+        const grpBtn = document.getElementById(p.grpId);
+        const isMatch = Math.abs(rPct - p.val) <= 1;
+        if (btn) {
+            btn.style.color = isMatch ? '#ff7b72' : '';
+            btn.style.fontWeight = isMatch ? '700' : 'normal';
+            btn.style.borderColor = isMatch ? '#ff7b72' : '';
+        }
+        if (grpBtn) {
+            grpBtn.style.color = isMatch ? '#ff7b72' : '';
+            grpBtn.style.fontWeight = isMatch ? '700' : 'normal';
+            grpBtn.style.borderColor = isMatch ? '#ff7b72' : '';
+        }
+    });
+}
+
+function setFireworksRadius(radPct) {
+    const rad = radPct / 100;
+    const fwGroup = getActiveFireworksGroup();
+    if (fwGroup) {
+        fwGroup.burstRadius = rad;
+        const cx = fwGroup.centerNormX || (parseInt(document.getElementById('fwPosXSlider')?.value || '28', 10) / 100);
+        const cy = fwGroup.centerNormY || (parseInt(document.getElementById('fwPosYSlider')?.value || '22', 10) / 100);
+        updateFireworksLedPositions(fwGroup, cx, cy, rad);
+        syncFireworksSliders(cx, cy, rad, fwGroup.fireworkColor);
+        showToast(`🔍 Scaled ${fwGroup.name} burst radius to ${radPct}%`);
+    } else {
+        syncFireworksSliders(undefined, undefined, rad);
+    }
+}
+
 function syncFireworksSliders(cx, cy, radius, color) {
     const xSlider = document.getElementById('fwPosXSlider');
     const xVal = document.getElementById('fwPosXVal');
@@ -5348,6 +5456,8 @@ function syncFireworksSliders(cx, cy, radius, color) {
     const yVal = document.getElementById('fwPosYVal');
     const rSlider = document.getElementById('fwRadiusSlider');
     const rVal = document.getElementById('fwRadiusVal');
+    const groupRSlider = document.getElementById('groupFwRadiusSlider');
+    const groupRVal = document.getElementById('groupFwRadiusVal');
     const colorSelect = document.getElementById('fwColorSelect');
     const customPicker = document.getElementById('fwCustomColorPicker');
 
@@ -5361,10 +5471,13 @@ function syncFireworksSliders(cx, cy, radius, color) {
         ySlider.value = yPct;
         if (yVal) yVal.textContent = `${yPct}%`;
     }
-    if (rSlider && radius !== undefined) {
+    if (radius !== undefined) {
         const rPct = Math.round(radius * 100);
-        rSlider.value = rPct;
+        if (rSlider) rSlider.value = rPct;
         if (rVal) rVal.textContent = `${rPct}%`;
+        if (groupRSlider) groupRSlider.value = rPct;
+        if (groupRVal) groupRVal.textContent = `${rPct}%`;
+        highlightRadiusPresetButtons(rPct);
     }
     if (color && colorSelect) {
         const standardOptions = ['rainbow', '#ffb703', '#00e5ff', '#ff3366', '#76ff03', '#d500f9', '#ff3d00', '#ffffff'];
@@ -5522,16 +5635,29 @@ if (fwPosYSlider) {
 if (fwRadiusSlider) {
     fwRadiusSlider.addEventListener('input', (e) => {
         const radPct = parseInt(e.target.value, 10);
-        if (fwRadiusVal) fwRadiusVal.textContent = `${radPct}%`;
-        const rad = radPct / 100;
-        const fwGroup = getActiveFireworksGroup();
-        if (fwGroup) {
-            const cx = fwGroup.centerNormX || (parseInt(fwPosXSlider?.value || '28', 10) / 100);
-            const cy = fwGroup.centerNormY || (parseInt(fwPosYSlider?.value || '22', 10) / 100);
-            updateFireworksLedPositions(fwGroup, cx, cy, rad);
-        }
+        setFireworksRadius(radPct);
     });
 }
+
+const groupFwRadiusSlider = document.getElementById('groupFwRadiusSlider');
+if (groupFwRadiusSlider) {
+    groupFwRadiusSlider.addEventListener('input', (e) => {
+        const radPct = parseInt(e.target.value, 10);
+        setFireworksRadius(radPct);
+    });
+}
+
+// Preset button handlers in Fireworks Generator Card
+document.getElementById('fwRadiusSmBtn')?.addEventListener('click', () => setFireworksRadius(8));
+document.getElementById('fwRadiusMdBtn')?.addEventListener('click', () => setFireworksRadius(13));
+document.getElementById('fwRadiusLgBtn')?.addEventListener('click', () => setFireworksRadius(18));
+document.getElementById('fwRadiusXlBtn')?.addEventListener('click', () => setFireworksRadius(24));
+
+// Preset button handlers in Group Inspector Card
+document.getElementById('groupFwRadiusSmBtn')?.addEventListener('click', () => setFireworksRadius(8));
+document.getElementById('groupFwRadiusMdBtn')?.addEventListener('click', () => setFireworksRadius(13));
+document.getElementById('groupFwRadiusLgBtn')?.addEventListener('click', () => setFireworksRadius(18));
+document.getElementById('groupFwRadiusXlBtn')?.addEventListener('click', () => setFireworksRadius(24));
 
 function updateFwBadge() {
     if (!fwRaysSelect || !fwLedsPerRaySelect || !fwLedCountBadge) return;

@@ -323,21 +323,41 @@
                         </div>
                     </div>
 
-                    <!-- Move X / Y Sliders -->
-                    <div style="display: flex; gap: 8px; margin-bottom: 8px;">
-                        <div style="flex: 1;">
-                            <div class="label-row" style="margin-bottom: 2px;">
-                                <span style="font-size: 10px; color: var(--text-muted);">Move X</span>
-                                <span id="fwPosXVal" class="val-badge" style="font-size: 10px;">28%</span>
+                    <!-- Position & Scale Geometry Box -->
+                    <div style="background: #0d1117; padding: 8px 10px; border-radius: 6px; border: 1px solid #30363d; margin-bottom: 8px;">
+                        <span style="font-size: 10px; font-weight: 600; color: #ff7b72; display: block; margin-bottom: 4px;">📐 Position & Scale (Size):</span>
+
+                        <!-- Move X / Y Sliders -->
+                        <div style="display: flex; gap: 8px; margin-bottom: 8px;">
+                            <div style="flex: 1;">
+                                <div class="label-row" style="margin-bottom: 2px;">
+                                    <span style="font-size: 10px; color: var(--text-muted);">Move X</span>
+                                    <span id="fwPosXVal" class="val-badge" style="font-size: 10px;">28%</span>
+                                </div>
+                                <input type="range" id="fwPosXSlider" min="15" max="85" value="28" style="accent-color: #ff7b72;">
                             </div>
-                            <input type="range" id="fwPosXSlider" min="15" max="85" value="28" style="accent-color: #ff7b72;">
+                            <div style="flex: 1;">
+                                <div class="label-row" style="margin-bottom: 2px;">
+                                    <span style="font-size: 10px; color: var(--text-muted);">Move Y</span>
+                                    <span id="fwPosYVal" class="val-badge" style="font-size: 10px;">22%</span>
+                                </div>
+                                <input type="range" id="fwPosYSlider" min="15" max="55" value="22" style="accent-color: #ff7b72;">
+                            </div>
                         </div>
-                        <div style="flex: 1;">
+
+                        <!-- Scale / Burst Radius Slider & Quick Presets -->
+                        <div>
                             <div class="label-row" style="margin-bottom: 2px;">
-                                <span style="font-size: 10px; color: var(--text-muted);">Move Y</span>
-                                <span id="fwPosYVal" class="val-badge" style="font-size: 10px;">22%</span>
+                                <span style="font-size: 10px; font-weight: 600; color: #ff7b72;">🔍 Scale / Burst Radius</span>
+                                <span id="fwRadiusVal" class="val-badge" style="font-size: 10px; background: #ff7b72; color: #000; font-weight: 700;">13%</span>
                             </div>
-                            <input type="range" id="fwPosYSlider" min="15" max="55" value="22" style="accent-color: #ff7b72;">
+                            <input type="range" id="fwRadiusSlider" min="5" max="28" value="13" style="width: 100%; accent-color: #ff7b72;">
+                            <div style="display: flex; gap: 4px; margin-top: 4px;">
+                                <button type="button" id="fwRadiusSmBtn" class="action-btn" style="flex: 1; font-size: 9px; padding: 3px 2px;" title="Small Burst (8% radius)">S (8%)</button>
+                                <button type="button" id="fwRadiusMdBtn" class="action-btn" style="flex: 1; font-size: 9px; padding: 3px 2px; font-weight: 600; color: #ff7b72;" title="Medium Burst (13% radius - Default)">M (13%)</button>
+                                <button type="button" id="fwRadiusLgBtn" class="action-btn" style="flex: 1; font-size: 9px; padding: 3px 2px;" title="Large Burst (18% radius)">L (18%)</button>
+                                <button type="button" id="fwRadiusXlBtn" class="action-btn" style="flex: 1; font-size: 9px; padding: 3px 2px;" title="Extra Large Burst (24% radius)">XL (24%)</button>
+                            </div>
                         </div>
                     </div>
 
@@ -377,15 +397,6 @@
                             </select>
                             <input type="color" id="fwCustomColorPicker" value="#ffb703" style="width: 28px; height: 26px; border: 1px solid #30363d; border-radius: 4px; background: transparent; cursor: pointer; padding: 1px; display: none;" title="Pick custom firework color">
                         </div>
-                    </div>
-
-                    <!-- Scale / Radius Slider -->
-                    <div class="control-group" style="margin-bottom: 8px;">
-                        <div class="label-row" style="margin-bottom: 2px;">
-                            <span style="font-size: 10px; color: var(--text-muted);">Scale / Radius</span>
-                            <span id="fwRadiusVal" class="val-badge" style="font-size: 10px;">13%</span>
-                        </div>
-                        <input type="range" id="fwRadiusSlider" min="7" max="24" value="13" style="accent-color: #ff7b72;">
                     </div>
 
                     <!-- Actions -->
@@ -571,6 +582,21 @@
                                 <option value="breathe">🌬️ Calm Breathing Glow</option>
                                 <option value="pulse_slow">💓 Slow Resting Pulse</option>
                             </select>
+                        </div>
+
+                        <!-- Fireworks Specific Scale/Radius in Group Inspector -->
+                        <div id="groupFwRadiusRow" style="display: none; margin-top: 4px; background: #0d1117; padding: 8px 10px; border-radius: 6px; border: 1px solid #ff7b72;">
+                            <div class="label-row" style="margin-bottom: 2px;">
+                                <span style="font-size: 11px; font-weight: 600; color: #ff7b72;">🔍 Firework Burst Scale / Radius:</span>
+                                <span id="groupFwRadiusVal" class="val-badge" style="font-size: 10px; background: #ff7b72; color: #000; font-weight: 700;">13%</span>
+                            </div>
+                            <input type="range" id="groupFwRadiusSlider" min="5" max="28" value="13" style="width: 100%; accent-color: #ff7b72;">
+                            <div style="display: flex; gap: 4px; margin-top: 4px;">
+                                <button type="button" id="groupFwRadiusSmBtn" class="action-btn" style="flex: 1; font-size: 9px; padding: 2px 2px;" title="Small (8%)">S (8%)</button>
+                                <button type="button" id="groupFwRadiusMdBtn" class="action-btn" style="flex: 1; font-size: 9px; padding: 2px 2px; font-weight: 600; color: #ff7b72;" title="Medium (13%)">M (13%)</button>
+                                <button type="button" id="groupFwRadiusLgBtn" class="action-btn" style="flex: 1; font-size: 9px; padding: 2px 2px;" title="Large (18%)">L (18%)</button>
+                                <button type="button" id="groupFwRadiusXlBtn" class="action-btn" style="flex: 1; font-size: 9px; padding: 2px 2px;" title="Extra Large (24%)">XL (24%)</button>
+                            </div>
                         </div>
 
                         <div style="display: flex; gap: 6px; margin-top: 4px;">

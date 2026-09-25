@@ -140,6 +140,10 @@ To create localized zone animations (like carriage wheels spinning or lanterns p
   - *🌈 Rainbow Color Wave:* Smooth cycling rainbow wave across the group.
   - *🎆 Fireworks (Radiating Starburst):* 4-phase pyrotechnic explosion with center ignition flash, outward expanding spark trails with decaying ember tails, starlight tip crackles, and dark sky resets. Uses serpentine wiring geometry for maximum solder efficiency.
   - *🌑 Off / Completely Unlit:* Keeps the group unlit.
+- **Dedicated Firework Burst Scale / Radius Controls:** When an inspected group is set to `fireworks`, an interactive **Firework Burst Scale / Radius** panel automatically appears directly inside the Group Inspector card:
+  - *Dynamic Radius Slider:* Continuously scale the explosion radius from **5%** (tight, compact burst) to **28%** (wide, theatrical starburst across the entire upper torso).
+  - *Quick Preset Buttons:* Instant one-click size presets: **S (8%)**, **M (13% - Default)**, **L (18%)**, and **XL (24%)** with visual active-state highlighting.
+  - *Bidirectional Live Sync:* Adjusting size in the Group Inspector instantly synchronizes the Section 5a Fireworks Generator card, updates LED positions on the canvas, recalculates wiring lengths, and reflects across all inspector coordinate readouts.
 - **Resting Baseline Effect (When Idle / No Cue):** Configure what the group does when resting outside active timeline cues in Sequence Mode:
   - *🌐 Follow Overall Baseline (Default):* The group seamlessly follows the overall float background pattern/cue (e.g. `steady_sparkle`), matching all non-grouped float LEDs.
   - *🌑 Off / Completely Unlit:* The group stays 100% dark (pitch black) outside active cues. Default for fireworks, and ideal for theatrical accents like carriage lanterns, Elliott's dragon fire breathing, or Casey Jr.'s headlight until detonated/triggered on the timeline!
@@ -172,9 +176,15 @@ Creating radial fireworks bursts requires clean geometry, flexible placement, an
    - **Active Firework Group Selector:** When multiple fireworks exist, an **Active Firework Group** dropdown appears directly in the controls card. Selecting any firework instantly syncs the Move X/Y sliders, radius slider, and color controls to that specific cluster, and highlights its LEDs on the canvas.
    - **One-Click Group Deletion:** Click **"🗑️ Remove"** next to the active firework selector to cleanly delete that specific firework group, remove its timeline cues, and automatically re-distribute the reclaimed LEDs back to the character graphic.
    - **Direct Canvas Selection:** Clicking or dragging any LED of a firework cluster on canvas automatically selects that firework in the Active Group dropdown and updates all sliders in real time!
-2. **Move & Scale Controls (Sliders & Direct Canvas Drag):**
-   - **Move X & Move Y Sliders:** Fine-tune position horizontally ($15\% - 85\%$) and vertically ($15\% - 55\%$) with live slider feedback.
-   - **Scale / Radius Slider:** Dynamically expand or contract the burst diameter ($7\% - 24\%$) around its center hub.
+2. **Move & Scale Controls (Geometry Box & Quick Presets):**
+   - **Consolidated Position & Scale Geometry Box:** Section 5a groups Move X, Move Y, and Scale / Burst Radius together in a dedicated high-contrast dark panel (`📐 Position & Scale (Size)`) right above the color controls.
+   - **Move X & Move Y Sliders:** Fine-tune position horizontally ($15\% - 85\%$) and vertically ($15\% - 55\%$) with live badge percentage feedback.
+   - **Scale / Burst Radius Slider & Quick Presets:** Dynamically expand or contract the burst diameter ($5\% - 28\%$, default $13\%$) with live slider feedback or click any of the 4 quick preset buttons:
+     - **S (8%):** Tight, compact accent burst.
+     - **M (13%):** Standard balanced Disney fireworks burst (default).
+     - **L (18%):** Expanded starburst spanning the upper chest.
+     - **XL (24%):** Grand finale burst spanning the entire upper chest width.
+   - **Dual-Card Synchronization:** The Scale / Burst Radius slider and S/M/L/XL buttons are available and bidirectional across **both** Section 5a (Fireworks Card) and Section 5b (Group Animation Inspector).
    - **Direct Canvas Multi-Drag:** Simply click and drag any LED belonging to any firework cluster directly on the costume canvas! The entire starburst moves as a unified group, and the Move X/Move Y sliders update synchronously in real-time.
 3. **Uniform Color per Firework Group (Presets & Custom Color Picker):**
    - **Uniform Ray Color:** All rays of a firework group share the **exact same uniform color** (e.g. all 5 rays Golden Amber, all 5 rays Alice Cyan, etc.) for a clean, coherent theatrical pyrotechnic burst.

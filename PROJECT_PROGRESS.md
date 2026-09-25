@@ -93,6 +93,15 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### Entry: Prominent Firework Burst Scale / Radius Controls in Generator and Group Inspector Cards
+* **Date:** 2026-09-25
+* **Status:** Operational & Verified in Web Simulator.
+* **Notes:**
+  * **Unified Geometry Box in Fireworks Card (Section 5a):** Moved the Firework Scale / Burst Radius slider into a dedicated, high-contrast dark panel (`📐 Position & Scale (Size)`) positioned prominently directly under Move X and Move Y. Expanded the slider range from 5% to 28% (default 13%) with real-time percentage badge readout.
+  * **Quick Size Preset Buttons:** Added 4 one-click size preset buttons: **S (8%)**, **M (13% - Default)**, **L (18%)**, and **XL (24%)** with visual active-state highlighting (orange accent color and border) and instant toast feedback.
+  * **Group Animation Inspector Integration (Section 5b):** Added a dedicated `#groupFwRadiusRow` panel inside the Selected LED Inspector / Group Animation Effects card. When a fireworks group is selected or when the group effect dropdown is set to `fireworks`, the Burst Scale / Radius slider and S/M/L/XL buttons automatically appear, allowing users to scale the firework directly while inspecting animation groups.
+  * **Bidirectional Real-Time Synchronization:** Synchronized `#fwRadiusSlider` (Section 5a) and `#groupFwRadiusSlider` (Section 5b). Adjusting radius from either card immediately recalculates radial spoke coordinates across all rays and steps via `updateFireworksLedPositions()`, updates canvas LED positions, synchronizes both sliders and badges, highlights the matching preset button, and keeps inspector coordinates in sync.
+
 ### Entry: Configurable Per-Group Resting Baseline Effect (Follow Global, Off/Unlit, Sparkle, Dim Glow, Breathe)
 * **Date:** 2026-09-25
 * **Status:** Operational & Verified in Web Simulator.
