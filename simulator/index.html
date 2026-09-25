@@ -383,14 +383,19 @@
                     <!-- Actions -->
                     <div style="display: flex; flex-direction: column; gap: 6px;">
                         <button type="button" id="stampFireworksBtn" class="action-btn accent" style="background: linear-gradient(135deg, #ff7b72, #d2a8ff); border-color: #ff7b72; font-weight: 600; font-size: 11px; padding: 7px 6px;">
-                            🎆 Stamp Fireworks in Corner (100 Total)
+                            🎆 Stamp Fireworks in Corner (Auto-Places on Timeline)
                         </button>
                         <button type="button" id="redistributeRemainingBtn" class="action-btn" style="font-size: 11px; padding: 5px;" title="Re-distribute non-firework LEDs across the entire graphic while keeping the firework intact">
                             🔄 Re-distribute Other LEDs (Full Graphic)
                         </button>
-                        <button type="button" id="fwAddCueBtn" class="action-btn" style="font-size: 11px; padding: 5px; border-color: #58a6ff; color: #58a6ff; font-weight: 600;" title="Add an explosion cue to the Master Timeline at the current playhead time">
-                            ⏱️ Add Explosion Cue to Timeline
-                        </button>
+                        <div style="display: flex; gap: 6px;">
+                            <button type="button" id="fwAutoScheduleBtn" class="action-btn" style="font-size: 11px; padding: 5px; flex: 1; border-color: #2ea043; color: #3fb950; font-weight: 600;" title="Auto-schedule recurring fireworks explosion bursts spaced evenly across the entire timeline">
+                                ⚡ Auto-Schedule Bursts
+                            </button>
+                            <button type="button" id="fwAddCueBtn" class="action-btn" style="font-size: 11px; padding: 5px; flex: 1; border-color: #58a6ff; color: #58a6ff; font-weight: 600;" title="Add a fireworks explosion cue to the Master Timeline at the current playhead time">
+                                ⏱️ Add at Playhead
+                            </button>
+                        </div>
                     </div>
                 </div>
 

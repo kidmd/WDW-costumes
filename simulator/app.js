@@ -1103,7 +1103,7 @@ function evalGroupEffect(grp, effect, bpm, dir, grpIndex, grpSize, timeMs, c) {
                     baseG = Math.min(255, baseG + 160);
                     baseB = Math.min(255, baseB + 180);
                 } else {
-                    grpIntensity = 0.08;
+                    grpIntensity = 0.0; // Completely off until ignited
                 }
             } else if (tau < 0.70) {
                 // Phase 2: Outward Trail Growth (Wavefront expands from center to tips)
@@ -1135,10 +1135,10 @@ function evalGroupEffect(grp, effect, bpm, dir, grpIndex, grpSize, timeMs, c) {
                             baseB = Math.round(baseB * 0.65);
                         }
                     } else {
-                        grpIntensity = 0.12;
+                        grpIntensity = 0.0;
                     }
                 } else {
-                    grpIntensity = 0.06;
+                    grpIntensity = 0.0; // Ahead of expanding wavefront: completely off
                 }
             } else if (tau < 0.88) {
                 // Phase 3: Outer Starburst Twinkle & Crackle at Tips
@@ -1151,26 +1151,19 @@ function evalGroupEffect(grp, effect, bpm, dir, grpIndex, grpSize, timeMs, c) {
                         baseG = 250;
                         baseB = 220; // Starlight white sparkle
                     } else {
-                        grpIntensity = Math.max(0.08, 0.35 * (1.0 - tipProg));
+                        grpIntensity = 0.0;
                     }
                 } else if (step === 0) {
                     // LEAVE CENTERMOST LEDS ON as persistent trailing anchor while tips crackle
-                    grpIntensity = Math.max(0.42, 0.58 * (1.0 - tipProg * 0.35));
+                    grpIntensity = Math.max(0.35, 0.58 * (1.0 - tipProg));
                     baseR = Math.min(255, baseR + 30);
                     baseG = Math.min(255, Math.round(baseG * 0.9));
                 } else {
-                    grpIntensity = Math.max(0.06, 0.28 * (1.0 - tipProg));
+                    grpIntensity = 0.0; // Burned out inner trail: completely off
                 }
             } else {
-                // Phase 4: Rest / Glowing Ember Core before next shell
-                if (step === 0) {
-                    // Centermost LEDs stay softly lit as a breathing warm ember
-                    const restProg = (tau - 0.88) / 0.12;
-                    grpIntensity = 0.25 + 0.12 * Math.sin(restProg * Math.PI);
-                    baseR = Math.min(255, baseR + 20);
-                } else {
-                    grpIntensity = 0.04;
-                }
+                // Phase 4: Rest / Burst ended - baseline completely unlit / off
+                grpIntensity = 0.0;
             }
             break;
         }
@@ -1357,8 +1350,7 @@ function evalGlobalPattern(pattern, bpm, index, totalLeds, timeMs, c, hasColor) 
                     r = 255; g = 250; b = 200;
                     brightness = Math.sin((tau / 0.12) * Math.PI);
                 } else {
-                    r = 20; g = 10; b = 5;
-                    brightness = 0.05;
+                    brightness = 0.0;
                 }
             } else if (tau < 0.70) {
                 const expandProg = (tau - 0.12) / 0.58;
@@ -1371,23 +1363,26 @@ function evalGlobalPattern(pattern, bpm, index, totalLeds, timeMs, c, hasColor) 
                     } else if (delta > 0) {
                         const decay = Math.exp(-1.15 * (delta - 0.75));
                         r = 255; g = 140; b = 30;
-                        brightness = Math.max(0.12, decay);
+                        brightness = Math.max(0.20, decay);
                     } else {
-                        brightness = 0.10;
+                        brightness = 0.0;
                     }
                 } else {
-                    brightness = 0.05;
+                    brightness = 0.0;
                 }
             } else if (tau < 0.88) {
                 if (step >= ledsPerRay - 2) {
                     const crackle = Math.sin(timeMs * 0.09 + index * 37.3) > 0.15;
                     r = 255; g = 255; b = 240;
-                    brightness = crackle ? 0.95 : 0.15;
+                    brightness = crackle ? 0.95 : 0.0;
+                } else if (step === 0) {
+                    r = 255; g = 180; b = 80;
+                    brightness = 0.40;
                 } else {
-                    brightness = 0.05;
+                    brightness = 0.0;
                 }
             } else {
-                brightness = 0.04;
+                brightness = 0.0;
             }
             break;
         }
@@ -1473,6 +1468,7 @@ function computeLedColor(index, totalLeds, timeMs) {
         // 2. Evaluate Active Group Cue Overrides (Scenario B: Multi-Layer)
         if (grpEntry && grpEntry.group) {
             const grpId = grpEntry.group.id;
+            const isFirework = grpEntry.group.effect === 'fireworks' || (grpEntry.group.id && grpEntry.group.id.includes('fireworks'));
             const activeGrpCue = sequenceCues.find(q => q.targetType === 'group' && (q.groupId === grpId || q.groupName === grpEntry.group.name) && t >= q.startTime && t < (q.startTime + q.duration));
 
             if (activeGrpCue) {
@@ -1481,6 +1477,16 @@ function computeLedColor(index, totalLeds, timeMs) {
                 const grpCol = evalGroupEffect(grpEntry.group, activeGrpCue.effect, activeGrpCue.speedBpm, activeGrpCue.direction, grpEntry.indexInGroup, grpEntry.groupSize, cueTimeMs, c);
                 const w = getCueWeight(activeGrpCue, t);
 
+                if (isFirework) {
+                    // For fireworks, the baseline status is completely OFF (unlit), blending directly from/to pitch black
+                    return {
+                        r: Math.round(grpCol.r * w),
+                        g: Math.round(grpCol.g * w),
+                        b: Math.round(grpCol.b * w),
+                        alpha: grpCol.alpha * w
+                    };
+                }
+
                 // Blend from baseline into group animation
                 return {
                     r: Math.round(baseColor.r * (1 - w) + grpCol.r * w),
@@ -1488,6 +1494,9 @@ function computeLedColor(index, totalLeds, timeMs) {
                     b: Math.round(baseColor.b * (1 - w) + grpCol.b * w),
                     alpha: baseColor.alpha * (1 - w) + grpCol.alpha * w
                 };
+            } else if (isFirework) {
+                // Baseline status of fireworks LEDs is completely off (unlit)
+                return { r: 0, g: 0, b: 0, alpha: 0 };
             }
         }
 
@@ -1506,28 +1515,40 @@ function computeLedColor(index, totalLeds, timeMs) {
 }
 
 function renderBulb(cx, x, y, col, isHovered, isSelected, index) {
-    const glowRadius = params.glowSize;
+    const isLit = (col.alpha > 0.01) && (col.r > 2 || col.g > 2 || col.b > 2);
 
-    const grad = cx.createRadialGradient(x, y, 1, x, y, glowRadius);
-    grad.addColorStop(0, `rgba(${col.r}, ${col.g}, ${col.b}, 0.9)`);
-    grad.addColorStop(0.3, `rgba(${col.r}, ${col.g}, ${col.b}, 0.45)`);
-    grad.addColorStop(0.7, `rgba(${col.r}, ${col.g}, ${col.b}, 0.12)`);
-    grad.addColorStop(1, 'rgba(0, 0, 0, 0)');
+    if (isLit) {
+        const glowRadius = params.glowSize;
+        const grad = cx.createRadialGradient(x, y, 1, x, y, glowRadius);
+        grad.addColorStop(0, `rgba(${col.r}, ${col.g}, ${col.b}, 0.9)`);
+        grad.addColorStop(0.3, `rgba(${col.r}, ${col.g}, ${col.b}, 0.45)`);
+        grad.addColorStop(0.7, `rgba(${col.r}, ${col.g}, ${col.b}, 0.12)`);
+        grad.addColorStop(1, 'rgba(0, 0, 0, 0)');
 
-    cx.fillStyle = grad;
-    cx.beginPath();
-    cx.arc(x, y, glowRadius, 0, Math.PI * 2);
-    cx.fill();
+        cx.fillStyle = grad;
+        cx.beginPath();
+        cx.arc(x, y, glowRadius, 0, Math.PI * 2);
+        cx.fill();
 
-    cx.beginPath();
-    cx.arc(x, y, 4.5, 0, Math.PI * 2);
-    cx.fillStyle = `rgb(${Math.min(255, col.r + 40)}, ${Math.min(255, col.g + 40)}, ${Math.min(255, col.b + 40)})`;
-    cx.fill();
+        cx.beginPath();
+        cx.arc(x, y, 4.5, 0, Math.PI * 2);
+        cx.fillStyle = `rgb(${Math.min(255, col.r + 40)}, ${Math.min(255, col.g + 40)}, ${Math.min(255, col.b + 40)})`;
+        cx.fill();
 
-    cx.beginPath();
-    cx.arc(x, y, 2.0, 0, Math.PI * 2);
-    cx.fillStyle = 'rgba(255, 255, 255, 0.95)';
-    cx.fill();
+        cx.beginPath();
+        cx.arc(x, y, 2.0, 0, Math.PI * 2);
+        cx.fillStyle = 'rgba(255, 255, 255, 0.95)';
+        cx.fill();
+    } else {
+        // Physical unlit LED bead (completely off)
+        cx.beginPath();
+        cx.arc(x, y, 3.5, 0, Math.PI * 2);
+        cx.fillStyle = 'rgba(22, 26, 33, 0.85)';
+        cx.fill();
+        cx.strokeStyle = 'rgba(75, 82, 95, 0.45)';
+        cx.lineWidth = 1;
+        cx.stroke();
+    }
 
     if (isSelected) {
         cx.save();
@@ -5071,7 +5092,10 @@ function generateFireworksCluster(centerNormX = 0.28, centerNormY = 0.22, rays =
     updateLedInspectorUI();
     updateLedCountUI();
 
-    showToast(`🎆 Created Fireworks cluster: ${rays} rays x ${ledsPerRay} LEDs (${totalFwLeds} LEDs, Serpentine wired)! Total LEDs: ${leds.length}.`);
+    // Automatically place explosion cues on Master Timeline in Parade Cue Director!
+    autoPlaceFireworksCues(fwGroup, false);
+
+    showToast(`🎆 Created Fireworks cluster & auto-scheduled timeline bursts (Baseline: OFF)! Total LEDs: ${leds.length}.`);
 }
 
 function redistributeRemainingNonFireworkLeds() {
@@ -5330,6 +5354,84 @@ function updateFwBadge() {
 if (fwRaysSelect) fwRaysSelect.addEventListener('change', updateFwBadge);
 if (fwLedsPerRaySelect) fwLedsPerRaySelect.addEventListener('change', updateFwBadge);
 
+function autoPlaceFireworksCues(fwGroup, clearExisting = false) {
+    if (!fwGroup) return;
+
+    if (clearExisting) {
+        sequenceCues = sequenceCues.filter(q => !(q.effect === 'fireworks' || q.groupId === fwGroup.id || (q.groupName && q.groupName.toLowerCase().includes('fireworks'))));
+    }
+
+    const existingFwCues = sequenceCues.filter(q => q.groupId === fwGroup.id || (q.targetType === 'group' && q.effect === 'fireworks'));
+
+    if (existingFwCues.length > 0 && !clearExisting) {
+        // Update existing cues with latest group name, ID, and speed
+        existingFwCues.forEach(q => {
+            q.groupId = fwGroup.id;
+            q.groupName = fwGroup.name;
+            q.effect = 'fireworks';
+            q.speedBpm = fwGroup.speedBpm || 120;
+        });
+    } else {
+        // Ensure baseline background cue if timeline has no global cues
+        const hasGlobalCue = sequenceCues.some(q => q.targetType === 'global');
+        if (!hasGlobalCue) {
+            sequenceCues.push({
+                id: 'cue_bg_' + Date.now(),
+                name: 'Parade Starlight Sparkle (Float)',
+                startTime: 0.0,
+                duration: sequenceLoopDuration || 90.0,
+                targetType: 'global',
+                groupId: '',
+                groupName: '',
+                effect: 'steady_sparkle',
+                speedBpm: 120,
+                fadeIn: 1.0,
+                fadeOut: 1.0
+            });
+        }
+
+        // Generate evenly spaced bursts across sequence loop duration
+        const duration = sequenceLoopDuration || 90.0;
+        const burstTimes = [];
+        if (duration <= 25) {
+            burstTimes.push(3.0);
+        } else if (duration <= 50) {
+            burstTimes.push(4.0, 24.0);
+        } else if (duration <= 75) {
+            burstTimes.push(5.0, 26.0, 48.0);
+        } else {
+            // E.g. 90s loop: 4 bursts spaced across the show
+            burstTimes.push(6.0, 28.0, 52.0, 74.0);
+        }
+
+        burstTimes.forEach((bTime, i) => {
+            sequenceCues.push({
+                id: `cue_fw_${Date.now()}_${i}`,
+                name: `🎆 ${fwGroup.name} Burst #${i + 1}`,
+                startTime: bTime,
+                duration: 4.5,
+                targetType: 'group',
+                groupId: fwGroup.id,
+                groupName: fwGroup.name,
+                effect: 'fireworks',
+                speedBpm: fwGroup.speedBpm || 120,
+                fadeIn: 0.1,
+                fadeOut: 0.8
+            });
+        });
+
+        sequenceCues.sort((a, b) => a.startTime - b.startTime);
+    }
+
+    renderCuesList();
+    renderTimelineCueStrip();
+    updateTimelineScrubberUI();
+
+    if (!sequenceMode) {
+        toggleSequenceMode(true);
+    }
+}
+
 if (stampFwBtn) {
     stampFwBtn.addEventListener('click', () => {
         const rays = parseInt(fwRaysSelect?.value || '5', 10);
@@ -5346,6 +5448,20 @@ if (stampFwBtn) {
 if (redistRemBtn) {
     redistRemBtn.addEventListener('click', () => {
         redistributeRemainingNonFireworkLeds();
+    });
+}
+
+const fwAutoScheduleBtn = document.getElementById('fwAutoScheduleBtn');
+if (fwAutoScheduleBtn) {
+    fwAutoScheduleBtn.addEventListener('click', () => {
+        let fwGroup = animationGroups.find(g => g.effect === 'fireworks');
+        if (!fwGroup) {
+            stampFwBtn?.click();
+            fwGroup = animationGroups.find(g => g.effect === 'fireworks');
+        }
+        if (!fwGroup) return;
+        autoPlaceFireworksCues(fwGroup, true);
+        showToast('⚡ Auto-scheduled recurring fireworks bursts across the timeline!');
     });
 }
 
@@ -5376,19 +5492,12 @@ if (fwAddCueBtn) {
         });
 
         if (!sequenceMode) {
-            const toggle = document.getElementById('sequenceModeToggle');
-            if (toggle) {
-                toggle.checked = true;
-                sequenceMode = true;
-                const badge = document.getElementById('sequenceModeBadge');
-                if (badge) {
-                    badge.textContent = 'SEQUENCE ON';
-                    badge.style.background = '#238636';
-                }
-            }
+            toggleSequenceMode(true);
+        } else {
+            renderCuesList();
+            renderTimelineCueStrip();
+            updateTimelineScrubberUI();
         }
-        renderTimelineCueStrip();
-        updateTimelineScrubberUI();
         showToast(`🎆 Added Fireworks explosion cue at ${startSec.toFixed(1)}s on timeline!`);
     });
 }

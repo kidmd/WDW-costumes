@@ -93,6 +93,16 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### Entry: Auto-Placement on Master Timeline & Completely Off (Unlit) Baseline for Fireworks
+* **Date:** 2026-09-25
+* **Status:** Operational & Verified in Web Simulator and PlatformIO C++ firmware.
+* **Notes:**
+  * **Automatic Master Timeline Placement:** Stamping a fireworks cluster now automatically creates and schedules fireworks explosion cues on the Master Timeline in the Parade Cue Director without requiring manual placement. Burst cues are spaced across the sequence loop duration with clean cue-onset phase synchronization (`cueTimeMs = 0`), and Sequence Mode is automatically activated so the show runs immediately.
+  * **Auto-Schedule Bursts Control:** Added a dedicated `⚡ Auto-Schedule Bursts` button to re-populate recurring explosion bursts across the timeline on demand, alongside `⏱️ Add at Playhead` to insert single explosion cues at the exact scrubber position.
+  * **Completely Off (Unlit) Baseline Status:** Enforced that firework LEDs are 100% unlit (`rgb(0, 0, 0)`, `alpha = 0`) outside active explosion cues on the timeline, preventing them from bleeding into or being illuminated by global background patterns. Unreached steps ahead of the expanding wavefront, burned-out inner trails, and post-burst idle intervals are completely dark.
+  * **Physical Unlit Bulb Rendering:** Upgraded canvas `renderBulb()` so unlit LEDs (`col.alpha < 0.01` or RGB near 0) render as realistic, dark unlit SMD pixel beads (`rgba(22, 26, 33, 0.85)`) without artificial central white filament cores or glow gradients, while preserving selection crosshairs and hover indicators.
+  * **Firmware & Arduino Synchrony:** Updated `renderFireworks()` in both `src/main.cpp` and `arduino/MSEP_Costume/MSEP_Costume.ino` so unreached, burned-out, and idle intervals hold `CRGB::Black`. Compiled and verified with PlatformIO (`pio run` SUCCESS: 14.3% RAM, 59.6% Flash).
+
 ### Entry: Fireworks Color Customization, Persistent Center Trailing Effect, & Timeline Explosion Cue Integration
 * **Date:** 2026-09-24
 * **Status:** Operational & Verified in Web Simulator and PlatformIO C++ firmware.

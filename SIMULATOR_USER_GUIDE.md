@@ -165,17 +165,19 @@ Creating radial fireworks bursts requires clean geometry, flexible placement, an
    - Choose between **🌈 Multi-Color (Disney Classic)** (distinct hue on every ray) or vibrant single-color themes: **✨ Golden Amber**, **💠 Alice Cyan**, **💖 Coral Rose**, **⚡ Electric Lime**, **💜 Royal Violet**, **🔥 Blazing Red-Orange**, or **⭐ Starlight White**.
    - Select **🎨 Custom Hex Color...** to open an interactive native color picker and dial in any hex color for your show.
    - Changing colors updates the cluster in real time while maintaining warm incandescent shifts along the trailing rays.
-4. **Persistent Center Trailing Effect:**
-   - In previous iterations, all LEDs dimmed out as the wavefront moved. Now, the **centermost LEDs (hub / step 0) remain illuminated** throughout the entire explosion cycle:
-     - *Phase 1 (Ignition):* Center flashes with white-hot brilliance.
-     - *Phase 2 (Expanding Wavefront):* Center LEDs hold at high intensity ($\sim 70\%$) while trailing embers bridge the line out to the spark head, creating a continuous radiating streak of fire.
-     - *Phase 3 (Tip Crackle):* Center stays lit ($\sim 50\%$) as a visual anchor while outer tips sparkle.
-     - *Phase 4 (Rest):* Center breathes softly as a warm glowing ember ($\sim 25\% - 35\%$) until the next burst.
+4. **Persistent Center Trailing Effect & Completely Off (Unlit) Baseline:**
+   - In previous iterations, all LEDs dimmed out as the wavefront moved or bled into global background patterns. Now:
+     - *Completely Off (Unlit) Baseline:* Outside active explosion cues, all firework LEDs remain **100% off (unlit)**. They do not participate in global background chases or ambient sparkles, keeping the firework location dark and invisible until detonation. Unlit LEDs render realistically on canvas as dark SMD pixel beads (`rgba(22, 26, 33, 0.85)`) without artificial central white filament cores or glow bloom.
+     - *Phase 1 (Ignition):* Center flashes with white-hot brilliance while outer unreached LEDs remain completely dark (unlit).
+     - *Phase 2 (Expanding Wavefront):* Center LEDs hold at high intensity ($\sim 70\%$) while trailing embers bridge the line out to the spark head, creating a continuous radiating streak of fire. Ahead of the expanding wavefront, outer LEDs stay completely unlit.
+     - *Phase 3 (Tip Crackle):* Center stays lit ($\sim 50\%$) as a visual anchor while outer tips crackle; burned-out inner steps turn completely off.
+     - *Phase 4 (Rest / Idle):* Burst concludes, all firework LEDs fade out completely to **0% intensity (black/unlit)** until the next scheduled burst.
 5. **Master Timeline Scheduling & Explosion Cue Director:**
-   - Fireworks are fully integrated into the **Parade Cue Director** multi-layer timeline engine.
-   - Click **"⏱️ Add Explosion Cue to Timeline"** in the Fireworks card to immediately drop an explosion cue onto the timeline at the current playhead position.
+   - **Automatic Timeline Auto-Placement:** Stamping a fireworks cluster (**"🎆 Stamp Fireworks in Corner"**) automatically creates and schedules fireworks explosion cues on the Master Timeline in the Parade Cue Director and turns Sequence Mode ON. You never need to manually navigate and build cues from scratch.
+   - **Auto-Schedule Bursts:** Click **"⚡ Auto-Schedule Bursts"** in the Fireworks card to re-populate recurring explosion bursts evenly spaced across the full loop duration (e.g. at 6s, 28s, 52s, 74s for a 90s show).
+   - **Single Cue at Playhead:** Click **"⏱️ Add at Playhead"** to drop a burst cue right at the current scrubber playhead position.
    - **Cue-Relative Phase Sync:** The firework explosion phase automatically synchronizes with the cue's start time ($t = \text{startTime}$ triggers Phase 0 ignition), ensuring the starburst explodes precisely on the theatrical cue!
-   - You can schedule multiple fireworks cues throughout your parade loop (e.g. at 15s, 45s, and a grand finale barrage at 80s), adjust BPM, and customize crossfade in/out times.
+   - You can schedule multiple fireworks cues throughout your parade loop, adjust BPM, and customize crossfade in/out times.
 6. **Rays & Length Customization:**
    - Choose between **4, 5, or 6 Rays** radiating from the explosion origin.
    - Choose between **3, 4, or 5 LEDs per Ray** (e.g. 5 rays $\times$ 4 LEDs = 20 LEDs; $100 - 20 = 80$ other LEDs).

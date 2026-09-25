@@ -230,7 +230,7 @@ void renderFireworks(uint32_t t) {
             if (step == 0) {
                 leds[fwStart + idx] = CRGB(255, 255, 220);
             } else {
-                leds[fwStart + idx] = CRGB(15, 8, 4);
+                leds[fwStart + idx] = CRGB::Black; // Completely off until ignited
             }
         } else if (tau < 1250) {
             // Phase 2: Outward trail growth
@@ -250,7 +250,7 @@ void renderFireworks(uint32_t t) {
                     leds[fwStart + idx] = ember;
                 }
             } else {
-                leds[fwStart + idx] = CRGB(10, 5, 2);
+                leds[fwStart + idx] = CRGB::Black; // Ahead of expanding wavefront: completely off
             }
         } else if (tau < 1600) {
             // Phase 3: Tip sparkle crackle
@@ -258,21 +258,17 @@ void renderFireworks(uint32_t t) {
                 if (random16(100) < 40) {
                     leds[fwStart + idx] = CRGB(255, 255, 240);
                 } else {
-                    leds[fwStart + idx] = CRGB(35, 18, 8);
+                    leds[fwStart + idx] = CRGB::Black;
                 }
             } else if (step == 0) {
                 // Persistent trailing anchor while tips crackle
                 leds[fwStart + idx] = CRGB(180, 110, 30);
             } else {
-                leds[fwStart + idx] = CRGB(8, 4, 2);
+                leds[fwStart + idx] = CRGB::Black; // Burned out inner trail: completely off
             }
         } else {
-            // Phase 4: Center breathing ember before next shell
-            if (step == 0) {
-                leds[fwStart + idx] = CRGB(70, 35, 10);
-            } else {
-                leds[fwStart + idx] = CRGB::Black;
-            }
+            // Phase 4: Rest / Burst ended - baseline completely unlit / off
+            leds[fwStart + idx] = CRGB::Black;
         }
     }
 }
