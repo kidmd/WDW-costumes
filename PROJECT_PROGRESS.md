@@ -93,6 +93,25 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### Entry: First-Class "👥 Groups" Tab, Allocation Metrics Bar, and Explicit "Save Group" Inspector Workflow
+* **Date:** 2026-09-25
+* **Status:** Operational & Verified in Web Simulator and PlatformIO Build.
+* **Notes:**
+  * **Dedicated "👥 Groups" Sidebar Tab (`#tabGroups`):** Elevated animation groups to a first-class workflow in the sidebar tab navigation (`🎨 Layout`, `👥 Groups`, `✨ Effects`, `🎬 Show`, `⚡ Deploy`). Features a live count badge (`#tabGroupsBadge`) showing total configured groups at a glance.
+  * **Visual LED Allocation Overview Bar:** Added a real-time capacity and distribution widget (`#groupsCapacityBadge`, `#groupedLedsCountText`, `#groupedLedsBar`, `#ungroupedLedsBar`) showing exact percentage and pixel counts of LEDs assigned to groups vs. unassigned out of the 100 costume LEDs.
+  * **Quick Batch Selection Actions:**
+    - `👥 Select All Grouped` (`#selectAllGroupedBtn`): Instantly selects all grouped LEDs across all clusters on canvas.
+    - `⚡ Select Unassigned` (`#selectUnassignedBtn`): Instantly highlights all unassigned LEDs on canvas so users can bundle remaining costume pixels into a new animation zone with 1 click.
+  * **Rich Interactive Group Cards (`#activeGroupsList`):**
+    - Styled with hover elevation, active glow border (`.group-card.active-group`), category emoji icons, member badges, effect details, resting baseline pills (`Idle: Off / Unlit`, `Idle: Global`), and physical LED index ranges (`#0–15`).
+    - Clicking anywhere on a card (or clicking `🎯 Select & Edit`) selects all member LEDs on canvas, focuses the Inspector dock, and updates coordinate/color inputs.
+    - Added one-click `🗑️ Delete` button with confirmation.
+    - Added welcoming empty state when no groups exist with actionable instructions.
+  * **Contextual Inspector "Save Selection as Group" Workflow:**
+    - Replaced ambiguous `⚡ Apply Effect to Selected` button with prominent, high-visibility `💾 Save Selection as Group` (green accent).
+    - When modifying an already-grouped selection or existing group name, the button dynamically shifts to `💾 Update Group "[Name]"` (blue accent), providing immediate visual clarity between group creation and modification.
+    - When 0 LEDs are selected, the Inspector displays clickable quick group chips (`#inspectorGroupChipsRow`), enabling 1-click group selection and inspection from anywhere.
+
 ### Entry: Thoroughbred UI Overhaul — 4 Task-Oriented Tabs, Contextual Inspector Dock, and Collapsible Timeline
 * **Date:** 2026-09-25
 * **Status:** Operational & Verified in Web Simulator.

@@ -2098,6 +2098,35 @@ function updateLedInspectorUI() {
             badge.style.color = '#8b949e';
         }
         if (groupBadge) groupBadge.textContent = '0 LEDs Selected';
+
+        // Populate quick group chips when 0 LEDs selected
+        const quickPrompt = document.getElementById('inspectorQuickGroupsPrompt');
+        const chipsRow = document.getElementById('inspectorGroupChipsRow');
+        if (quickPrompt && chipsRow) {
+            if (animationGroups && animationGroups.length > 0) {
+                quickPrompt.style.display = 'flex';
+                chipsRow.innerHTML = '';
+                animationGroups.forEach(g => {
+                    const chip = document.createElement('span');
+                    chip.className = 'inspector-group-chip';
+                    const icon = g.effect === 'fireworks' ? '🎆' : (g.effect === 'chase' ? '🎡' : (g.effect === 'sparkle_storm' ? '✨' : '👥'));
+                    chip.innerHTML = `${icon} ${g.name} <span style="opacity:0.65;">(${g.ledIndices.length})</span>`;
+                    chip.title = `Click to select all ${g.ledIndices.length} LEDs in "${g.name}"`;
+                    chip.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        selectGroupLeds(g.id);
+                    });
+                    chipsRow.appendChild(chip);
+                });
+            } else {
+                quickPrompt.style.display = 'none';
+                chipsRow.innerHTML = '';
+            }
+        }
+
+        // Remove active-group highlights on cards
+        document.querySelectorAll('.group-card.active-group').forEach(el => el.classList.remove('active-group'));
+
         return;
     }
 
@@ -2106,6 +2135,8 @@ function updateLedInspectorUI() {
         inspectorSection.classList.add('dock-active');
     }
     if (emptyPrompt) emptyPrompt.style.display = 'none';
+    const quickPrompt = document.getElementById('inspectorQuickGroupsPrompt');
+    if (quickPrompt) quickPrompt.style.display = 'none';
     if (colorControls) colorControls.style.display = 'flex';
 
     if (totalSelected === 1) {
@@ -2226,6 +2257,35 @@ function updateLedInspectorUI() {
         }
         updateLedInspectorColorInputs(col.r, col.g, col.b);
     }
+
+    // Dynamic Save vs. Update Button text and styling
+    const applyBtn = document.getElementById('applyGroupEffectBtn');
+    if (applyBtn) {
+        const nameInput = document.getElementById('groupNameInput');
+        const rawName = (nameInput?.value || '').trim();
+        const existingGrp = (rawName ? animationGroups.find(g => g.name.toLowerCase() === rawName.toLowerCase()) : null) ||
+            (selectedLed !== null && ledGroupMap[selectedLed] ? ledGroupMap[selectedLed].group : null);
+        if (existingGrp) {
+            applyBtn.innerHTML = `💾 Update Group "${existingGrp.name}"`;
+            applyBtn.style.background = 'linear-gradient(135deg, #1f6feb, #388bfd)';
+            applyBtn.style.borderColor = '#388bfd';
+        } else {
+            applyBtn.innerHTML = `💾 Save Selection as Group`;
+            applyBtn.style.background = 'linear-gradient(135deg, #238636, #2ea043)';
+            applyBtn.style.borderColor = '#2ea043';
+        }
+    }
+
+    // Highlight matching active group in Groups tab
+    document.querySelectorAll('.group-card').forEach(card => {
+        const gId = card.getAttribute('data-group-id');
+        const grp = animationGroups.find(g => g.id === gId);
+        if (grp && grp.ledIndices && grp.ledIndices.length > 0 && grp.ledIndices.every(idx => selectedLeds.has(idx))) {
+            card.classList.add('active-group');
+        } else {
+            card.classList.remove('active-group');
+        }
+    });
 }
 
 // ----------------------------------------------------------------------------
@@ -2233,7 +2293,7 @@ function updateLedInspectorUI() {
 // ----------------------------------------------------------------------------
 function applyGroupEffectToSelection() {
     if (selectedLeds.size === 0) {
-        alert("Please select at least 2 LEDs to create or apply an animation group effect!");
+        showToast("⚠️ Please select at least 2 LEDs to create or update an animation group!");
         return;
     }
 
@@ -2253,6 +2313,7 @@ function applyGroupEffectToSelection() {
 
     // If an existing group with this exact name exists, update it; otherwise create new
     let targetGroup = animationGroups.find(g => g.name.toLowerCase() === rawName.toLowerCase());
+    const isNew = !targetGroup;
 
     if (targetGroup) {
         targetGroup.ledIndices = sortedIndices;
@@ -2285,7 +2346,13 @@ function applyGroupEffectToSelection() {
 
     rebuildLedGroupMap();
     renderActiveGroupsList();
-    showToast(`✨ Applied "${effect.replace('_', ' ')}" to ${sortedIndices.length} LEDs in "${targetGroup.name}"!`);
+    updateLedInspectorUI();
+
+    if (isNew) {
+        showToast(`🎉 Saved new group "${targetGroup.name}" (${sortedIndices.length} LEDs)!`);
+    } else {
+        showToast(`✅ Updated group "${targetGroup.name}" (${sortedIndices.length} LEDs)!`);
+    }
 }
 
 function removeGroupEffectFromSelection() {
@@ -2308,6 +2375,7 @@ function removeGroupEffectFromSelection() {
 
     rebuildLedGroupMap();
     renderActiveGroupsList();
+    updateLedInspectorUI();
     showToast(`🗑️ Removed group effects from ${removedCount} LEDs.`);
 }
 
@@ -2318,6 +2386,7 @@ function deleteGroup(groupId) {
         animationGroups.splice(idx, 1);
         rebuildLedGroupMap();
         renderActiveGroupsList();
+        updateLedInspectorUI();
         showToast(`🗑️ Deleted animation group "${name}"`);
     }
 }
@@ -2349,21 +2418,72 @@ function selectGroupLeds(groupId) {
     if (baselineSelect) baselineSelect.value = grp.baselineEffect || (grp.effect === 'fireworks' ? 'off' : 'inherit');
 
     updateLedInspectorUI();
+    renderActiveGroupsList();
     showToast(`🎯 Selected ${selectedLeds.size} LEDs for group "${grp.name}"!`);
+}
+
+function formatIndexSummary(indices) {
+    if (!indices || indices.length === 0) return 'None';
+    const sorted = [...indices].sort((a, b) => a - b);
+    if (sorted.length <= 5) {
+        return sorted.map(i => `#${i}`).join(', ');
+    }
+    let isConsecutive = true;
+    for (let i = 1; i < sorted.length; i++) {
+        if (sorted[i] !== sorted[i - 1] + 1) {
+            isConsecutive = false;
+            break;
+        }
+    }
+    if (isConsecutive) {
+        return `#${sorted[0]}–#${sorted[sorted.length - 1]} (${sorted.length})`;
+    }
+    return `#${sorted[0]}..#${sorted[sorted.length - 1]} (${sorted.length} LEDs)`;
 }
 
 function renderActiveGroupsList() {
     const container = document.getElementById('activeGroupsList');
     const badge = document.getElementById('activeGroupsCountBadge');
-    if (!container) return;
+    const tabBadge = document.getElementById('tabGroupsBadge');
+    const capBadge = document.getElementById('groupsCapacityBadge');
+    const countText = document.getElementById('groupedLedsCountText');
+    const groupedBar = document.getElementById('groupedLedsBar');
+    const ungroupedBar = document.getElementById('ungroupedLedsBar');
+    const groupedPctText = document.getElementById('groupedPctText');
+    const ungroupedPctText = document.getElementById('ungroupedPctText');
 
+    const totalCostumeLeds = (leds && leds.length > 0) ? leds.length : 100;
+    const assignedSet = new Set();
+    animationGroups.forEach(g => {
+        (g.ledIndices || []).forEach(idx => {
+            if (idx < totalCostumeLeds) assignedSet.add(idx);
+        });
+    });
+    const assignedCount = assignedSet.size;
+    const unassignedCount = Math.max(0, totalCostumeLeds - assignedCount);
+    const assignedPct = Math.round((assignedCount / totalCostumeLeds) * 100);
+    const unassignedPct = 100 - assignedPct;
+
+    if (tabBadge) tabBadge.textContent = animationGroups.length;
     if (badge) badge.textContent = `${animationGroups.length} Groups`;
+    if (capBadge) capBadge.textContent = `${assignedCount}/${totalCostumeLeds} LEDs`;
+    if (countText) countText.textContent = `${assignedCount} / ${totalCostumeLeds} LEDs (${assignedPct}%) assigned to groups`;
+    if (groupedBar) groupedBar.style.width = `${assignedPct}%`;
+    if (ungroupedBar) ungroupedBar.style.width = `${unassignedPct}%`;
+    if (groupedPctText) groupedPctText.textContent = `${assignedPct}% (${assignedCount} LEDs)`;
+    if (ungroupedPctText) ungroupedPctText.textContent = `${unassignedPct}% (${unassignedCount} LEDs)`;
+
+    if (!container) return;
     container.innerHTML = '';
 
     if (animationGroups.length === 0) {
         container.innerHTML = `
-            <div style="font-size: 11px; color: var(--text-muted); font-style: italic; padding: 6px; text-align: center;">
-                No custom groups created yet. Select LEDs to add an effect!
+            <div style="text-align: center; padding: 22px 14px; background: #0d1117; border-radius: 8px; border: 1px dashed #30363d;">
+                <div style="font-size: 26px; margin-bottom: 6px;">👥</div>
+                <div style="font-size: 13px; font-weight: 600; color: #c9d1d9;">No Animation Groups Yet</div>
+                <div style="font-size: 11px; color: var(--text-muted); margin-top: 6px; line-height: 1.45;">
+                    Select 2 or more LEDs using <strong>⬚ Box Select</strong> or <strong>Shift + Click</strong>, configure animation parameters in the Inspector dock below, and click <strong>💾 Save Selection as Group</strong>.
+                </div>
             </div>
         `;
         return;
@@ -2381,7 +2501,19 @@ function renderActiveGroupsList() {
         off: '🌑 Off'
     };
 
-    const baselineIcons = {
+    const effectEmoji = {
+        fireworks: '🎆',
+        chase: '🎡',
+        flash_slow: '💡',
+        pulse: '💓',
+        write_on_off: '✍️',
+        sparkle_storm: '✨',
+        marquee: '🎪',
+        rainbow_cycle: '🌈',
+        off: '🌑'
+    };
+
+    const baselineLabels = {
         inherit: '🌐 Global',
         off: '🌑 Off / Unlit',
         steady_sparkle: '✨ Sparkle',
@@ -2391,30 +2523,68 @@ function renderActiveGroupsList() {
     };
 
     for (const grp of animationGroups) {
-        const item = document.createElement('div');
-        item.style.cssText = 'display: flex; justify-content: space-between; align-items: center; padding: 6px 8px; background: #0d1117; border-radius: 6px; border: 1px solid #30363d; font-size: 11px;';
+        const card = document.createElement('div');
+        card.className = 'group-card';
+        card.setAttribute('data-group-id', grp.id);
 
+        const isFullySelected = selectedLeds.size > 0 &&
+            grp.ledIndices.length > 0 &&
+            grp.ledIndices.every(idx => selectedLeds.has(idx));
+        if (isFullySelected) {
+            card.classList.add('active-group');
+        }
+
+        const icon = effectEmoji[grp.effect] || '💫';
         const label = effectIcons[grp.effect] || grp.effect;
         const currentBaseline = grp.baselineEffect || (grp.effect === 'fireworks' ? 'off' : 'inherit');
-        const baselineLabel = baselineIcons[currentBaseline] || '🌐 Global';
-        const baselineBadgeColor = (currentBaseline === 'off') ? '#8b949e' : (currentBaseline === 'inherit' ? '#58a6ff' : '#7ee787');
+        const baselineLabel = baselineLabels[currentBaseline] || '🌐 Global';
 
-        item.innerHTML = `
-            <div style="display: flex; flex-direction: column; gap: 2px; overflow: hidden; max-width: 170px;">
-                <span style="font-weight: 600; color: #fff; text-overflow: ellipsis; overflow: hidden; white-space: nowrap;">${grp.name}</span>
-                <span style="font-size: 10px; color: var(--accent-cyan);">${label} (${grp.ledIndices.length} LEDs @ ${grp.speedBpm} BPM)</span>
-                <span style="font-size: 9.5px; color: var(--text-muted);">Idle: <span style="color: ${baselineBadgeColor}; font-weight: 600;">${baselineLabel}</span></span>
+        let extraPillHtml = '';
+        if (grp.effect === 'fireworks') {
+            const rPct = Math.round((grp.burstRadius || 0.13) * 100);
+            extraPillHtml = `<span class="group-pill group-pill-burst">🎆 ${grp.fireworkRays || 5} Rays • R: ${rPct}%</span>`;
+        }
+
+        card.innerHTML = `
+            <div class="group-card-header">
+                <div class="group-card-title-wrap">
+                    <span class="group-card-icon">${icon}</span>
+                    <span class="group-card-name" title="${grp.name}">${grp.name}</span>
+                </div>
+                <span class="group-card-leds-badge">${grp.ledIndices.length} LEDs</span>
             </div>
-            <div style="display: flex; gap: 4px; align-items: center;">
-                <button type="button" class="action-btn select-grp-btn" style="padding: 3px 6px; font-size: 10px;" title="Select all LEDs in this group">⌖ Select</button>
-                <button type="button" class="action-btn del-grp-btn" style="padding: 3px 6px; font-size: 10px; color: #f85149;" title="Delete group">🗑️</button>
+            <div class="group-card-badges">
+                <span class="group-pill group-pill-effect">${label} @ ${grp.speedBpm} BPM</span>
+                ${extraPillHtml}
+                <span class="group-pill group-pill-baseline">Idle: ${baselineLabel}</span>
+                <span class="group-pill" style="background: #21262d; color: #8b949e; border: 1px solid #30363d;" title="LED indices: ${grp.ledIndices.join(', ')}">LEDs: ${formatIndexSummary(grp.ledIndices)}</span>
+            </div>
+            <div class="group-card-actions">
+                <button type="button" class="action-btn select-grp-btn" style="flex: 1; font-weight: 600;" title="Select and inspect all LEDs in this group">
+                    🎯 Select & Edit
+                </button>
+                <button type="button" class="action-btn del-grp-btn" style="color: #ff7b72;" title="Delete group">
+                    🗑️
+                </button>
             </div>
         `;
 
-        item.querySelector('.select-grp-btn').addEventListener('click', () => selectGroupLeds(grp.id));
-        item.querySelector('.del-grp-btn').addEventListener('click', () => deleteGroup(grp.id));
+        card.addEventListener('click', (e) => {
+            if (e.target.closest('.del-grp-btn')) return;
+            selectGroupLeds(grp.id);
+        });
 
-        container.appendChild(item);
+        const delBtn = card.querySelector('.del-grp-btn');
+        if (delBtn) {
+            delBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                if (confirm(`Delete animation group "${grp.name}"?`)) {
+                    deleteGroup(grp.id);
+                }
+            });
+        }
+
+        container.appendChild(card);
     }
 }
 
@@ -4029,6 +4199,40 @@ document.getElementById('inspectorClearBtn')?.addEventListener('click', () => de
 // Group Animation Controls Bindings
 document.getElementById('applyGroupEffectBtn')?.addEventListener('click', () => applyGroupEffectToSelection());
 document.getElementById('removeGroupEffectBtn')?.addEventListener('click', () => removeGroupEffectFromSelection());
+
+document.getElementById('selectAllGroupedBtn')?.addEventListener('click', () => {
+    const allGroupedIndices = new Set();
+    animationGroups.forEach(g => (g.ledIndices || []).forEach(idx => allGroupedIndices.add(idx)));
+    if (allGroupedIndices.size === 0) {
+        showToast('⚠️ No LEDs are currently assigned to any group.');
+        return;
+    }
+    selectedLeds.clear();
+    allGroupedIndices.forEach(idx => { if (idx < leds.length) selectedLeds.add(idx); });
+    selectedLed = Array.from(selectedLeds)[0] || null;
+    updateLedInspectorUI();
+    renderActiveGroupsList();
+    showToast(`👥 Selected all ${selectedLeds.size} grouped LEDs across ${animationGroups.length} groups.`);
+});
+
+document.getElementById('selectUnassignedBtn')?.addEventListener('click', () => {
+    const allGroupedIndices = new Set();
+    animationGroups.forEach(g => (g.ledIndices || []).forEach(idx => allGroupedIndices.add(idx)));
+    selectedLeds.clear();
+    for (let i = 0; i < leds.length; i++) {
+        if (!allGroupedIndices.has(i)) {
+            selectedLeds.add(i);
+        }
+    }
+    if (selectedLeds.size === 0) {
+        showToast('🎉 All 100 LEDs are assigned to animation groups!');
+        return;
+    }
+    selectedLed = Array.from(selectedLeds)[0] || null;
+    updateLedInspectorUI();
+    renderActiveGroupsList();
+    showToast(`⚡ Selected ${selectedLeds.size} unassigned LEDs! Customize effect and save as a group below.`);
+});
 
 const groupEffectSelect = document.getElementById('groupEffectSelect');
 if (groupEffectSelect) {
