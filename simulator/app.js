@@ -982,6 +982,9 @@ function evalGroupEffect(grp, effect, bpm, dir, grpIndex, grpSize, timeMs, c) {
     let grpIntensity = 1.0;
 
     switch (effect) {
+        case 'off': {
+            return { r: 0, g: 0, b: 0, alpha: 0 };
+        }
         case 'chase': {
             const head = ((grpNormTime * direction) % grpSize + grpSize) % grpSize;
             const directDist = Math.abs(grpIndex - head);
@@ -1472,36 +1475,54 @@ function computeLedColor(index, totalLeds, timeMs) {
 
         // 2. Evaluate Active Group Cue Overrides (Scenario B: Multi-Layer)
         if (grpEntry && grpEntry.group) {
-            const grpId = grpEntry.group.id;
-            const isFirework = grpEntry.group.effect === 'fireworks' || (grpEntry.group.id && grpEntry.group.id.includes('fireworks'));
-            const activeGrpCue = sequenceCues.find(q => q.targetType === 'group' && (q.groupId === grpId || q.groupName === grpEntry.group.name) && t >= q.startTime && t < (q.startTime + q.duration));
+            const grp = grpEntry.group;
+            const grpId = grp.id;
+            const isFirework = grp.effect === 'fireworks' || (grp.id && grp.id.includes('fireworks'));
+            const activeGrpCue = sequenceCues.find(q => q.targetType === 'group' && (q.groupId === grpId || q.groupName === grp.name) && t >= q.startTime && t < (q.startTime + q.duration));
+
+            // Determine this group's resting baseline effect
+            // Default: 'inherit' (follows overall global baseline) for standard groups; 'off' for fireworks
+            const groupBaseline = grp.baselineEffect || (isFirework ? 'off' : 'inherit');
+
+            // Evaluate the group's resting baseline color (when idle / outside active cues)
+            let grpBaselineCol;
+            if (groupBaseline === 'off') {
+                grpBaselineCol = { r: 0, g: 0, b: 0, alpha: 0 };
+            } else if (groupBaseline === 'steady_sparkle') {
+                grpBaselineCol = evalGlobalPattern('steady_sparkle', 120, index, totalLeds, timeMs, c, hasColor);
+            } else if (groupBaseline === 'dim_glow') {
+                const baseR = (grp.customColor && grp.colorMode === 'custom') ? grp.customColor.r : (c ? c.r : 255);
+                const baseG = (grp.customColor && grp.colorMode === 'custom') ? grp.customColor.g : (c ? c.g : 200);
+                const baseB = (grp.customColor && grp.colorMode === 'custom') ? grp.customColor.b : (c ? c.b : 50);
+                grpBaselineCol = { r: Math.round(baseR * 0.22), g: Math.round(baseG * 0.22), b: Math.round(baseB * 0.22), alpha: 0.35 };
+            } else if (groupBaseline === 'breathe' || groupBaseline === 'pulse_slow') {
+                const sine = Math.sin((timeMs / 1000) * Math.PI) * 0.5 + 0.5; // ~30 BPM gentle breath
+                const baseR = (grp.customColor && grp.colorMode === 'custom') ? grp.customColor.r : (c ? c.r : 255);
+                const baseG = (grp.customColor && grp.colorMode === 'custom') ? grp.customColor.g : (c ? c.g : 200);
+                const baseB = (grp.customColor && grp.colorMode === 'custom') ? grp.customColor.b : (c ? c.b : 50);
+                const intensity = 0.08 + 0.32 * sine;
+                grpBaselineCol = { r: Math.round(baseR * intensity), g: Math.round(baseG * intensity), b: Math.round(baseB * intensity), alpha: intensity };
+            } else {
+                // 'inherit' or default: follow overall global baseline
+                grpBaselineCol = baseColor;
+            }
 
             if (activeGrpCue) {
-                // Synchronize animation phase to cue onset time so cue effects (e.g. fireworks) explode precisely when triggered on timeline!
+                // Synchronize animation phase to cue onset time so cue effects explode/trigger precisely on cue!
                 const cueTimeMs = Math.max(0, (t - activeGrpCue.startTime) * 1000);
-                const grpCol = evalGroupEffect(grpEntry.group, activeGrpCue.effect, activeGrpCue.speedBpm, activeGrpCue.direction, grpEntry.indexInGroup, grpEntry.groupSize, cueTimeMs, c);
+                const grpCol = evalGroupEffect(grp, activeGrpCue.effect, activeGrpCue.speedBpm, activeGrpCue.direction, grpEntry.indexInGroup, grpEntry.groupSize, cueTimeMs, c);
                 const w = getCueWeight(activeGrpCue, t);
 
-                if (isFirework) {
-                    // For fireworks, the baseline status is completely OFF (unlit), blending directly from/to pitch black
-                    return {
-                        r: Math.round(grpCol.r * w),
-                        g: Math.round(grpCol.g * w),
-                        b: Math.round(grpCol.b * w),
-                        alpha: grpCol.alpha * w
-                    };
-                }
-
-                // Blend from baseline into group animation
+                // Blend smoothly from group resting baseline into active cue animation
                 return {
-                    r: Math.round(baseColor.r * (1 - w) + grpCol.r * w),
-                    g: Math.round(baseColor.g * (1 - w) + grpCol.g * w),
-                    b: Math.round(baseColor.b * (1 - w) + grpCol.b * w),
-                    alpha: baseColor.alpha * (1 - w) + grpCol.alpha * w
+                    r: Math.round(grpBaselineCol.r * (1 - w) + grpCol.r * w),
+                    g: Math.round(grpBaselineCol.g * (1 - w) + grpCol.g * w),
+                    b: Math.round(grpBaselineCol.b * (1 - w) + grpCol.b * w),
+                    alpha: grpBaselineCol.alpha * (1 - w) + grpCol.alpha * w
                 };
-            } else if (isFirework) {
-                // Baseline status of fireworks LEDs is completely off (unlit)
-                return { r: 0, g: 0, b: 0, alpha: 0 };
+            } else {
+                // Return configured resting baseline effect when group is idle!
+                return grpBaselineCol;
             }
         }
 
@@ -1513,6 +1534,9 @@ function computeLedColor(index, totalLeds, timeMs) {
     // ========================================================================
     if (grpEntry && grpEntry.group) {
         const grp = grpEntry.group;
+        if (grp.effect === 'off') {
+            return { r: 0, g: 0, b: 0, alpha: 0 };
+        }
         return evalGroupEffect(grp, grp.effect, grp.speedBpm, grp.direction, grpEntry.indexInGroup, grpEntry.groupSize, timeMs, c);
     }
 
@@ -2115,6 +2139,8 @@ function updateLedInspectorUI() {
                 if (speedVal) speedVal.textContent = `${grp.speedBpm} BPM`;
             }
             if (dirSelect) dirSelect.value = String(grp.direction || 1);
+            const baselineSelect = document.getElementById('groupBaselineSelect');
+            if (baselineSelect) baselineSelect.value = grp.baselineEffect || (grp.effect === 'fireworks' ? 'off' : 'inherit');
         }
     } else {
         // Multi-selection (> 1)
@@ -2154,11 +2180,13 @@ function applyGroupEffectToSelection() {
     const effectSelect = document.getElementById('groupEffectSelect');
     const speedSlider = document.getElementById('groupSpeedSlider');
     const dirSelect = document.getElementById('groupDirectionSelect');
+    const baselineSelect = document.getElementById('groupBaselineSelect');
 
     const rawName = (nameInput?.value || '').trim() || `Zone (${selectedLeds.size} LEDs)`;
     const effect = effectSelect?.value || 'chase';
     const speedBpm = parseInt(speedSlider?.value || '140', 10);
     const direction = parseInt(dirSelect?.value || '1', 10);
+    const baselineEffect = baselineSelect?.value || (effect === 'fireworks' ? 'off' : 'inherit');
 
     const sortedIndices = Array.from(selectedLeds).sort((a, b) => a - b);
 
@@ -2170,6 +2198,7 @@ function applyGroupEffectToSelection() {
         targetGroup.effect = effect;
         targetGroup.speedBpm = speedBpm;
         targetGroup.direction = direction;
+        targetGroup.baselineEffect = baselineEffect;
     } else {
         targetGroup = {
             id: 'grp_' + Date.now() + '_' + Math.floor(Math.random() * 1000),
@@ -2179,7 +2208,8 @@ function applyGroupEffectToSelection() {
             speedBpm: speedBpm,
             direction: direction,
             width: 3,
-            colorMode: 'original'
+            colorMode: 'original',
+            baselineEffect: baselineEffect
         };
         animationGroups.push(targetGroup);
     }
@@ -2254,6 +2284,8 @@ function selectGroupLeds(groupId) {
         if (speedVal) speedVal.textContent = `${grp.speedBpm} BPM`;
     }
     if (dirSelect) dirSelect.value = String(grp.direction || 1);
+    const baselineSelect = document.getElementById('groupBaselineSelect');
+    if (baselineSelect) baselineSelect.value = grp.baselineEffect || (grp.effect === 'fireworks' ? 'off' : 'inherit');
 
     updateLedInspectorUI();
     showToast(`🎯 Selected ${selectedLeds.size} LEDs for group "${grp.name}"!`);
@@ -2284,7 +2316,17 @@ function renderActiveGroupsList() {
         sparkle_storm: '✨ Sparkle',
         marquee: '🎪 Marquee',
         rainbow_cycle: '🌈 Rainbow',
-        fireworks: '🎆 Fireworks'
+        fireworks: '🎆 Fireworks',
+        off: '🌑 Off'
+    };
+
+    const baselineIcons = {
+        inherit: '🌐 Global',
+        off: '🌑 Off / Unlit',
+        steady_sparkle: '✨ Sparkle',
+        dim_glow: '💡 Glow',
+        breathe: '🌬️ Breathe',
+        pulse_slow: '💓 Pulse'
     };
 
     for (const grp of animationGroups) {
@@ -2292,11 +2334,15 @@ function renderActiveGroupsList() {
         item.style.cssText = 'display: flex; justify-content: space-between; align-items: center; padding: 6px 8px; background: #0d1117; border-radius: 6px; border: 1px solid #30363d; font-size: 11px;';
 
         const label = effectIcons[grp.effect] || grp.effect;
+        const currentBaseline = grp.baselineEffect || (grp.effect === 'fireworks' ? 'off' : 'inherit');
+        const baselineLabel = baselineIcons[currentBaseline] || '🌐 Global';
+        const baselineBadgeColor = (currentBaseline === 'off') ? '#8b949e' : (currentBaseline === 'inherit' ? '#58a6ff' : '#7ee787');
 
         item.innerHTML = `
             <div style="display: flex; flex-direction: column; gap: 2px; overflow: hidden; max-width: 170px;">
                 <span style="font-weight: 600; color: #fff; text-overflow: ellipsis; overflow: hidden; white-space: nowrap;">${grp.name}</span>
                 <span style="font-size: 10px; color: var(--accent-cyan);">${label} (${grp.ledIndices.length} LEDs @ ${grp.speedBpm} BPM)</span>
+                <span style="font-size: 9.5px; color: var(--text-muted);">Idle: <span style="color: ${baselineBadgeColor}; font-weight: 600;">${baselineLabel}</span></span>
             </div>
             <div style="display: flex; gap: 4px; align-items: center;">
                 <button type="button" class="action-btn select-grp-btn" style="padding: 3px 6px; font-size: 10px;" title="Select all LEDs in this group">⌖ Select</button>
@@ -3931,6 +3977,34 @@ if (groupSpeedSlider) {
     });
 }
 
+const groupBaselineSelect = document.getElementById('groupBaselineSelect');
+if (groupBaselineSelect) {
+    groupBaselineSelect.addEventListener('change', (e) => {
+        const val = e.target.value;
+        const nameInput = document.getElementById('groupNameInput');
+        const rawName = (nameInput?.value || '').trim();
+        let grp = null;
+        if (selectedLed !== null && ledGroupMap[selectedLed]) {
+            grp = ledGroupMap[selectedLed].group;
+        } else if (rawName) {
+            grp = animationGroups.find(g => g.name.toLowerCase() === rawName.toLowerCase());
+        }
+        if (grp) {
+            grp.baselineEffect = val;
+            renderActiveGroupsList();
+            const labelMap = {
+                inherit: 'Follow Overall Baseline (Default)',
+                off: 'Off / Completely Unlit (Pitch Black)',
+                steady_sparkle: 'Gentle Starlight Sparkle',
+                dim_glow: 'Dim Static Glow',
+                breathe: 'Calm Breathing Glow',
+                pulse_slow: 'Slow Resting Pulse'
+            };
+            showToast(`💤 Set resting baseline for "${grp.name}" to: ${labelMap[val] || val}`);
+        }
+    });
+}
+
 // ============================================================================
 // COLOR SCIENCE & VIBRANCY BOOSTING
 // ============================================================================
@@ -5164,7 +5238,8 @@ function generateFireworksCluster(centerNormX = 0.28, centerNormY = 0.22, rays =
         wiringMode: 'serpentine',
         centerNormX: centerNormX,
         centerNormY: centerNormY,
-        burstRadius: burstRadius
+        burstRadius: burstRadius,
+        baselineEffect: 'off'
     };
     animationGroups.push(fwGroup);
     activeFireworksGroupId = fwGroup.id;

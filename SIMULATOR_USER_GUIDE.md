@@ -129,13 +129,25 @@ To create localized zone animations (like carriage wheels spinning or lanterns p
 5. The new group will appear in Section 4 under **"Active Animation Groups"** with its member count, index range, and an icon badge.
 
 ### Group Configuration
-- **Direction:** Select **Clockwise (CW)** or **Counter-Clockwise (CCW)** for directional chase animations (crucial for ensuring left and right carriage wheels appear to roll forward!).
+- **Direction:** Select **Forward (➡️)** or **Reverse (⬅️)** for directional chase animations (crucial for ensuring left and right carriage wheels appear to roll forward!).
 - **Group Effect:** Choose an effect from the dropdown:
   - *🎡 Chase / Wheel Spin:* Chases illuminated heads around the ring.
   - *💓 Breathing Glow Pulse:* Pulses the group in sync or out of phase with the baseline.
   - *💡 Slow Flashing / Blink:* Theatrical blinking.
   - *✍️ Write-On / Write-Off:* Successively illuminates the group in sequence.
+  - *✨ Sparkle Storm:* High-energy glitter and sparkle storm.
+  - *🎪 Theater Marquee:* 3-phase theatrical marquee chase.
+  - *🌈 Rainbow Color Wave:* Smooth cycling rainbow wave across the group.
   - *🎆 Fireworks (Radiating Starburst):* 4-phase pyrotechnic explosion with center ignition flash, outward expanding spark trails with decaying ember tails, starlight tip crackles, and dark sky resets. Uses serpentine wiring geometry for maximum solder efficiency.
+  - *🌑 Off / Completely Unlit:* Keeps the group unlit.
+- **Resting Baseline Effect (When Idle / No Cue):** Configure what the group does when resting outside active timeline cues in Sequence Mode:
+  - *🌐 Follow Overall Baseline (Default):* The group seamlessly follows the overall float background pattern/cue (e.g. `steady_sparkle`), matching all non-grouped float LEDs.
+  - *🌑 Off / Completely Unlit:* The group stays 100% dark (pitch black) outside active cues. Default for fireworks, and ideal for theatrical accents like carriage lanterns, Elliott's dragon fire breathing, or Casey Jr.'s headlight until detonated/triggered on the timeline!
+  - *✨ Gentle Starlight Sparkle:* Gentle starlight twinkling on group pixels.
+  - *💡 Dim Static Glow:* Ambient resting glow (~22% brightness) in the group's artwork or custom color.
+  - *🌬️ Calm Breathing Glow:* Gentle ~30 BPM breathing glow.
+  - *💓 Slow Resting Pulse:* Soft rhythmic heartbeat pulse.
+  - *Cue Crossfading:* When an active cue on that group fires, the show engine smoothly crossfades from the group's configured resting baseline into the active cue effect, and seamlessly returns to baseline when the cue ends.
 - **Inspect Group:** Click the **Inspect** button next to any group to highlight its member LEDs on the canvas.
 - **Delete Group:** Click the red **🗑️** button to dismantle a group and return its LEDs to the global float baseline.
 

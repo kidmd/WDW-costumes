@@ -93,6 +93,19 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### Entry: Configurable Per-Group Resting Baseline Effect (Follow Global, Off/Unlit, Sparkle, Dim Glow, Breathe)
+* **Date:** 2026-09-25
+* **Status:** Operational & Verified in Web Simulator.
+* **Notes:**
+  * **Per-Group Resting Baseline Architecture:** Added a configurable resting baseline effect for every animation group. Groups can now define their exact resting behavior when idle (outside active timeline cues in Sequence Mode):
+    - `inherit` (Default): Seamlessly follows the overall float background pattern/cue (e.g. `steady_sparkle` or active global cue), matching non-grouped float LEDs.
+    - `off`: Keeps group LEDs 100% off/unlit (pitch black) when idle. Defaults for fireworks, and enables other theatrical groups (e.g. carriage headlights, lantern flashes, dragon fire breathing) to remain completely dark until their cue fires.
+    - `steady_sparkle`: Subtle starlight twinkle across group pixels while resting.
+    - `dim_glow`: Ambient resting glow (~22% brightness) in the group's artwork or custom color.
+    - `breathe` / `pulse_slow`: Gentle resting breath/heartbeat (~30 BPM) while the rest of the float sparkles.
+  * **Smooth Crossfade Integration:** During timeline playback in `computeLedColor()`, active group cues now dynamically fade in from the group's designated resting baseline into the active cue effect, and fade back to baseline when the cue finishes.
+  * **Inspector & Group Card Synchronization:** Added a dedicated `#groupBaselineSelect` dropdown to the Group Animation Effect card with live update bindings. Inspecting an LED or group synchronizes the dropdown, and each group card in the active groups list displays an idle badge (e.g. `Idle: Global`, `Idle: Off / Unlit`, `Idle: Glow`).
+
 ### Entry: Multi-Firework Stamping with Offset Placement, Uniform Ray Color, and Active Group Management
 * **Date:** 2026-09-25
 * **Status:** Operational & Verified in Web Simulator and PlatformIO C++ firmware.

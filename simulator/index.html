@@ -541,6 +541,7 @@
                                 <option value="marquee">🎪 Theater Marquee</option>
                                 <option value="rainbow_cycle">🌈 Rainbow Color Wave</option>
                                 <option value="fireworks">🎆 Fireworks (Radiating Starburst)</option>
+                                <option value="off">🌑 Off / Completely Unlit</option>
                             </select>
                         </div>
 
@@ -557,6 +558,18 @@
                             <select id="groupDirectionSelect" style="background: #0d1117; color: #fff; border: 1px solid #30363d; border-radius: 4px; padding: 4px 6px; font-size: 11px; flex: 1.5;">
                                 <option value="1">Forward ➡️</option>
                                 <option value="-1">Reverse ⬅️</option>
+                            </select>
+                        </div>
+
+                        <div class="control-group" style="margin-top: 2px;">
+                            <label style="font-size: 11px; color: var(--text-muted); margin-bottom: 2px;">Resting Baseline (When Idle / No Cue):</label>
+                            <select id="groupBaselineSelect" style="background: #0d1117; color: #fff; border: 1px solid #30363d; border-radius: 4px; padding: 6px 8px; font-size: 12px; width: 100%;">
+                                <option value="inherit" selected>🌐 Follow Overall Baseline (Default)</option>
+                                <option value="off">🌑 Off / Completely Unlit (Pitch Black)</option>
+                                <option value="steady_sparkle">✨ Gentle Starlight Sparkle</option>
+                                <option value="dim_glow">💡 Dim Static Glow (Artwork / Group Color)</option>
+                                <option value="breathe">🌬️ Calm Breathing Glow</option>
+                                <option value="pulse_slow">💓 Slow Resting Pulse</option>
                             </select>
                         </div>
 
