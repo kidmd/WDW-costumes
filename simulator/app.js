@@ -2797,32 +2797,18 @@ function drawAthleticRunnerBase(ctx, shirtX, shirtY, shirtW, shirtH, floatData) 
     ctx.fillStyle = skinTone;
     ctx.fillRect(shirtCX - shirtW * 0.09, shirtY - 12, shirtW * 0.18, 22);
 
-    // 2. Athletic Runner Head & Running Visor/Cap
+    // 2. Athletic Runner Head Silhouette (clean athletic silhouette, no visors)
     ctx.beginPath();
     ctx.ellipse(shirtCX, shirtY - 20, shirtW * 0.13, shirtW * 0.15, 0, 0, Math.PI * 2);
     ctx.fillStyle = skinTone;
     ctx.fill();
 
-    // Athletic Running Cap / Visor (Black #161b22 with Float Accent Trim)
+    // Clean athletic hair contour
     ctx.beginPath();
-    ctx.arc(shirtCX, shirtY - 21, shirtW * 0.135, Math.PI * 1.1, Math.PI * 1.9, false);
-    ctx.lineTo(shirtCX + shirtW * 0.16, shirtY - 21);
-    ctx.quadraticCurveTo(shirtCX, shirtY - 29, shirtCX - shirtW * 0.16, shirtY - 21);
-    ctx.closePath();
-    ctx.fillStyle = '#161b22';
+    ctx.arc(shirtCX, shirtY - 20, shirtW * 0.132, Math.PI * 1.05, Math.PI * 1.95, false);
+    ctx.quadraticCurveTo(shirtCX, shirtY - 24, shirtCX - shirtW * 0.12, shirtY - 19);
+    ctx.fillStyle = '#1e293b';
     ctx.fill();
-
-    // Cap Visor Brim (pointing forward in running direction)
-    ctx.beginPath();
-    ctx.moveTo(shirtCX + shirtW * 0.04, shirtY - 23);
-    ctx.quadraticCurveTo(shirtCX + shirtW * 0.22, shirtY - 25, shirtCX + shirtW * 0.26, shirtY - 20);
-    ctx.quadraticCurveTo(shirtCX + shirtW * 0.14, shirtY - 20, shirtCX + shirtW * 0.08, shirtY - 21);
-    ctx.closePath();
-    ctx.fillStyle = '#0d1117';
-    ctx.fill();
-    ctx.strokeStyle = floatData.color || '#ffc107';
-    ctx.lineWidth = 1.5;
-    ctx.stroke();
 
     // 3. Athletic Running Arms (Mid-Stride Posture)
     // Left Arm (Forward pump)
@@ -2883,22 +2869,13 @@ function drawSneaker(ctx, x, y, width, height, accentColor) {
     ctx.stroke();
 }
 
-function drawAthleticRunnerLowerBody(ctx, shirtX, shirtY, shirtW, shirtH, floatData, groundY, isLit, glowColor) {
+function drawAthleticRunnerLowerBody(ctx, shirtX, shirtY, shirtW, shirtH, floatData, groundY) {
     const shirtCX = shirtX + shirtW * 0.5;
     const skinTone = '#d4a373'; // Natural warm athletic runner skin tone (always clearly visible!)
     const skinKnee = '#bf8556';
     const shortsTopY = shirtY + shirtH * 0.88;
     const shortsH = Math.round(shirtH * 0.30);
     const shortsBottomY = shortsTopY + shortsH;
-
-    // Optional LED Downward Light Spill (Ambient bounce onto shorts & legs)
-    if (isLit && glowColor) {
-        const radGrad = ctx.createRadialGradient(shirtCX, shirtY + shirtH * 0.8, 10, shirtCX, groundY, shirtW * 0.85);
-        radGrad.addColorStop(0, `rgba(${glowColor.r}, ${glowColor.g}, ${glowColor.b}, 0.32)`);
-        radGrad.addColorStop(1, `rgba(${glowColor.r}, ${glowColor.g}, ${glowColor.b}, 0.0)`);
-        ctx.fillStyle = radGrad;
-        ctx.fillRect(shirtX - 10, shortsTopY, shirtW + 20, groundY - shortsTopY + 15);
-    }
 
     // 1. Athletic Running Shorts (Technical Black with Float Signature Racing Stripe)
     const legLeftShortX = shirtX + shirtW * 0.21;
@@ -3163,29 +3140,6 @@ function renderFleetView(timeMs) {
             const isLivePreview = (i === activeSingleShirtRunnerSlot) || (floatData.preset === 'current_editor');
             const pData = isLivePreview ? getLiveSingleShirtPresetData() : (fleetPresetCache[floatData.preset] || null);
 
-            // Theatrical Spotlight Beam on Reporting Float during Roll Call
-            if (isRollCallReporting) {
-                const colHex = isRollCallFinale ? '#00ff88' : (floatData.color || '#ffc107');
-                const colRgb = hexToRgb(colHex);
-                const grad = ctx.createLinearGradient(shirtCX, h * 0.14, shirtCX, groundY);
-                grad.addColorStop(0, `rgba(${colRgb.r}, ${colRgb.g}, ${colRgb.b}, 0.28)`);
-                grad.addColorStop(1, `rgba(${colRgb.r}, ${colRgb.g}, ${colRgb.b}, 0.04)`);
-                ctx.beginPath();
-                ctx.moveTo(shirtCX - 20, h * 0.14);
-                ctx.lineTo(shirtCX + 20, h * 0.14);
-                ctx.lineTo(shirtCX + shirtW * 0.55, groundY + 6);
-                ctx.lineTo(shirtCX - shirtW * 0.55, groundY + 6);
-                ctx.closePath();
-                ctx.fillStyle = grad;
-                ctx.fill();
-
-                // Illuminated Ground Circle on Asphalt
-                ctx.beginPath();
-                ctx.ellipse(shirtCX, groundY + 1, shirtW * 0.45, 10, 0, 0, Math.PI * 2);
-                ctx.fillStyle = `rgba(${colRgb.r}, ${colRgb.g}, ${colRgb.b}, 0.45)`;
-                ctx.fill();
-            }
-
             // 1. Draw Runner Bib Number Badge & Preview Badge Above Shirt
             const activeBibCol = isRollCallReporting ? (isRollCallFinale ? '#00ff88' : floatData.color) : (fleetShowActive ? (waveColor.hex || '#ffc107') : '#ffc107');
             ctx.fillStyle = isCurrentWaveFloat ? activeBibCol : (isSelected ? '#58a6ff' : '#8b949e');
@@ -3290,11 +3244,7 @@ function renderFleetView(timeMs) {
             }
 
             // 7. Draw Athletic Runner Lower Body (Shorts, Toned Legs, Socks, Running Shoes, Shadows)
-            const isLit = isCurrentWaveFloat || fleetShowActive || isRollCallReporting;
-            const glowColor = isRollCallReporting 
-                ? (isRollCallFinale ? { r: 0, g: 255, b: 80 } : hexToRgb(floatData.color || '#ffc107')) 
-                : (fleetShowActive ? hexToRgb(waveColor.hex || floatData.color || '#ffc107') : hexToRgb(floatData.color || '#ffffff'));
-            drawAthleticRunnerLowerBody(ctx, shirtX, shirtY, shirtW, shirtH, floatData, groundY, isLit, glowColor);
+            drawAthleticRunnerLowerBody(ctx, shirtX, shirtY, shirtW, shirtH, floatData, groundY);
 
             // 8. Float Name Tag & Character Description Below Runner on Road
             ctx.fillStyle = isCurrentWaveFloat ? '#ffffff' : (isSelected ? '#58a6ff' : '#c9d1d9');

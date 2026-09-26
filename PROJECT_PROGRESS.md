@@ -92,6 +92,14 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### Entry: Visual Cleanliness - Removed Spotlight Effect & Visors from Runners
+* **Date:** 2026-09-26
+* **Milestone:** Milestone 5 - Realistic Runner Anatomy & Visual Cleanliness
+* **Status:** Operational & Verified across Web Simulator (`index.html`, `app.js?v=32`) and Documentation.
+* **Notes:**
+  * **Removed Spotlight Effect:** Eliminated the overhead theatrical spotlight cone, the ground light circle, and downward radial light spills when shirts light up, keeping the focus strictly on the authentic LED costumes themselves.
+  * **Removed Visors:** Streamlined runner head silhouettes to natural, athletic contours with clean dark hair silhouettes, removing the running caps, visors, and brim trims.
+
 ### Entry: Athletic Runner Mannequin Rendering & 4-Second Roll Call Wave Fixes
 * **Date:** 2026-09-26
 * **Milestone:** Milestone 5 - Realistic Runner Anatomy & Pre-Race Choreography Verification
