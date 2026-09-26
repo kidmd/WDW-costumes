@@ -99,10 +99,12 @@ Once your board is flashed:
 ### How to Use the Shirt:
 - **Autonomous Float Program (Baseline Default):** 
   When you power on your ESP32 with your battery bank, the costume runs its complete independent float sequence (custom artwork colors, starlight sparkles, wheel spin chases, breathing glow, and electrical waves) across all 200 LEDs (100 front + 100 back).
-- **One-Shot 30-Second Fleet Routine (Short Tap BOOT Button):**
-  - **Start Fleet Show:** Tap the onboard **BOOT button (GPIO 0)** once (short tap between 50ms and 2.5s) to trigger the **30-Second Synchronized Fleet Routine** once. The ESP32 broadcasts a wireless ESP-NOW trigger packet (`0x30`) so all runner costumes initiate the 30-second routine simultaneously. After 30.0 seconds, all shirts automatically return to their individual float programs.
+- **4-Second Rapid Attendance Roll Call (Double-Tap BOOT Button):**
+  - **Check Fleet Attendance in Corral:** Quickly double-tap the **BOOT button (GPIO 0)** on *any* brother's board (two taps within 400ms) to trigger the **4-Second Rapid Attendance Wave**.
+  - **Choreography:** Floats 1 through 7 light up one-by-one in their signature colors (500ms each) down the line while the other 6 stay dark, followed by all 7 costumes flashing bright emerald green together twice! At 4 seconds, every costume automatically returns to baseline. Requires zero phones or Wi-Fi!
+- **One-Shot 30-Second Fleet Routine (Single Tap BOOT Button):**
+  - **Start Fleet Show:** Tap the onboard **BOOT button (GPIO 0)** once (< 600ms) to trigger the **30-Second Synchronized Fleet Routine** once. The ESP32 broadcasts a wireless ESP-NOW trigger packet (`0x30`) so all runner costumes initiate the 30-second routine simultaneously. After 30.0 seconds, all shirts automatically return to their individual float programs.
   - **Early Stop:** Tap the BOOT button while the 30-second routine is playing to stop it early. The ESP32 gives **2 Amber Flashes**, broadcasts a cancellation packet (`0x00`), and returns all costumes immediately to their baseline float programs.
-  - **Debounce Protection:** Enforces 50ms hardware contact debounce and 300ms software lockout between button releases to prevent accidental double-triggers.
 - **Float ID Selector (Long Hold BOOT Button for 3s):**
   Hold the BOOT button for 3 seconds to enter Float ID configuration mode (Floats 1 through 7, see below).
 

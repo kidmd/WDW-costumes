@@ -129,6 +129,8 @@ class SimulatorRequestHandler(http.server.SimpleHTTPRequestHandler):
             self.handle_fleet_radar_scan()
         elif parsed.path == "/api/fleet_radar/identify":
             self.handle_fleet_radar_identify()
+        elif parsed.path == "/api/fleet_radar/trigger_roll_call":
+            self.handle_fleet_radar_trigger_roll_call()
         else:
             self.send_error(404, "Endpoint not found")
 
@@ -936,6 +938,33 @@ const CRGB PROGMEM ARTWORK_PALETTE[NUM_LEDS] = {{
             self.send_header("Content-Type", "application/json")
             self.end_headers()
             self.wfile.write(json.dumps({"success": False, "error": str(e)}).encode("utf-8"))
+
+    def handle_fleet_radar_trigger_roll_call(self):
+        try:
+            content_length = int(self.headers.get("Content-Length", 0))
+            payload = {}
+            if content_length > 0:
+                payload = json.loads(self.rfile.read(content_length).decode("utf-8"))
+            target_ip = payload.get("targetIp", "255.255.255.255") or "255.255.255.255"
+
+            # Broadcast Opcode 0x03, cmd 0x03 (Rapid Roll Call Trigger)
+            roll_call_packet = b'MSEP' + bytes([0x03, 0x03, 0x00])
+            udp_socket.sendto(roll_call_packet, (target_ip, UDP_STREAM_PORT))
+
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json")
+            self.end_headers()
+            self.wfile.write(json.dumps({
+                "success": True,
+                "message": f"Broadcasted 4s Rapid Attendance Roll Call trigger to {target_ip}:{UDP_STREAM_PORT}",
+                "durationMs": 4000
+            }).encode("utf-8"))
+        except Exception as e:
+            self.send_response(500)
+            self.send_header("Content-Type", "application/json")
+            self.end_headers()
+            self.wfile.write(json.dumps({"success": False, "error": str(e)}).encode("utf-8"))
+
 
 
 def get_connected_esp32_port():

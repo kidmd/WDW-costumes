@@ -1484,6 +1484,30 @@ function evalGlobalPattern(pattern, bpm, index, totalLeds, timeMs, c, hasColor) 
 }
 
 function computeLedColor(index, totalLeds, timeMs) {
+    if (rapidRollCallActive) {
+        const elapsed = timeMs - rapidRollCallStartTime;
+        if (elapsed >= 0 && elapsed < 4000) {
+            const runnerIndex = activeSingleShirtRunnerSlot || 0;
+            if (elapsed < 3500) {
+                const activeSlot = Math.floor(elapsed / 500);
+                if (runnerIndex === activeSlot) {
+                    const radarFloat = DEFAULT_FLEET_RADAR[runnerIndex];
+                    const col = hexToRgb(radarFloat ? radarFloat.color : '#ffffff');
+                    return { r: col.r, g: col.g, b: col.b, alpha: 1.0 };
+                } else {
+                    return { r: 0, g: 0, b: 0, alpha: 0.0 };
+                }
+            } else {
+                const finaleMs = elapsed - 3500;
+                if ((finaleMs < 200) || (finaleMs >= 300 && finaleMs < 500)) {
+                    return { r: 0, g: 255, b: 80, alpha: 1.0 };
+                } else {
+                    return { r: 0, g: 0, b: 0, alpha: 0.0 };
+                }
+            }
+        }
+    }
+
     const hasColor = (leds[index] && leds[index].color);
     const c = hasColor ? leds[index].color : null;
     const grpEntry = ledGroupMap[index];
@@ -2513,6 +2537,33 @@ function computeRunnerLedColor(runnerIndex, runner, presetData, ledIndex, totalL
             }
         } else if (elapsed > flash.duration) {
             delete radarIdentifyFlashes[runnerIndex];
+        }
+    }
+
+    // 0B. Rapid Attendance Roll Call (4.0s wave: 500ms per float 1..7, then 500ms unison double emerald green flash)
+    if (rapidRollCallActive) {
+        const elapsed = timeMs - rapidRollCallStartTime;
+        if (elapsed >= 0 && elapsed < 4000) {
+            if (elapsed < 3500) {
+                const activeSlot = Math.floor(elapsed / 500); // 0..6
+                if (runnerIndex === activeSlot) {
+                    const radarFloat = DEFAULT_FLEET_RADAR[runnerIndex];
+                    const col = hexToRgb(radarFloat ? radarFloat.color : '#ffffff');
+                    return { r: col.r, g: col.g, b: col.b, alpha: 1.0 };
+                } else {
+                    return { r: 0, g: 0, b: 0, alpha: 0.0 };
+                }
+            } else {
+                // Finale (3500ms - 4000ms): Double emerald green flash across ALL 7 floats!
+                const finaleMs = elapsed - 3500;
+                if ((finaleMs < 200) || (finaleMs >= 300 && finaleMs < 500)) {
+                    return { r: 0, g: 255, b: 80, alpha: 1.0 };
+                } else {
+                    return { r: 0, g: 0, b: 0, alpha: 0.0 };
+                }
+            }
+        } else if (elapsed >= 4000) {
+            rapidRollCallActive = false;
         }
     }
 
@@ -11184,13 +11235,90 @@ function applyRadarScenario(scenario) {
 }
 window.applyRadarScenario = applyRadarScenario;
 
+async function triggerRapidRollCall() {
+    const rollCallBtn = document.getElementById('fleetRadarRapidRollCallBtn');
+    if (rapidRollCallActive) return;
+
+    rapidRollCallActive = true;
+    rapidRollCallStartTime = performance.now();
+
+    if (rollCallBtn) {
+        rollCallBtn.disabled = true;
+        rollCallBtn.innerHTML = `⚡ Rapid Roll Call Active (4s)...`;
+        rollCallBtn.style.opacity = '0.85';
+    }
+
+    showToast(`⚡ 4-Second Rapid Attendance Roll Call wave activated! (Double-Tap)`);
+
+    // Card glow animations matching each float's 500ms slot
+    for (let slot = 0; slot < 7; slot++) {
+        const floatId = slot + 1;
+        const floatObj = fleetRadarFloats.find(f => f.id === floatId) || DEFAULT_FLEET_RADAR[slot];
+        setTimeout(() => {
+            if (!rapidRollCallActive) return;
+            const card = document.getElementById(`radarCard_${floatId}`);
+            if (card && floatObj) {
+                card.style.transition = 'box-shadow 0.2s ease, border-color 0.2s ease';
+                card.style.boxShadow = `0 0 18px ${floatObj.color}`;
+                card.style.borderColor = floatObj.color;
+                setTimeout(() => {
+                    card.style.boxShadow = 'none';
+                    card.style.borderColor = (floatObj.status === 'CONFLICT') ? '#f85149' : (floatObj.status === 'ONLINE' ? '#30363d' : '#21262d');
+                }, 480);
+            }
+        }, slot * 500);
+    }
+
+    // Finale slot: 3500ms - 4000ms unison emerald green glow across all 7 cards
+    setTimeout(() => {
+        if (!rapidRollCallActive) return;
+        for (let fid = 1; fid <= 7; fid++) {
+            const card = document.getElementById(`radarCard_${fid}`);
+            if (card) {
+                card.style.transition = 'box-shadow 0.15s ease, border-color 0.15s ease';
+                card.style.boxShadow = `0 0 16px #39ff14`;
+                card.style.borderColor = '#39ff14';
+                setTimeout(() => {
+                    card.style.boxShadow = 'none';
+                    const fObj = fleetRadarFloats.find(f => f.id === fid) || DEFAULT_FLEET_RADAR[fid - 1];
+                    card.style.borderColor = (fObj && fObj.status === 'CONFLICT') ? '#f85149' : ((fObj && fObj.status === 'ONLINE') ? '#30363d' : '#21262d');
+                }, 480);
+            }
+        }
+    }, 3500);
+
+    // Reset button after 4000ms
+    setTimeout(() => {
+        rapidRollCallActive = false;
+        if (rollCallBtn) {
+            rollCallBtn.disabled = false;
+            rollCallBtn.innerHTML = `⚡ 4s Rapid Attendance Wave (Double-Tap)`;
+            rollCallBtn.style.opacity = '1';
+        }
+    }, 4000);
+
+    // Broadcast UDP/API command to hardware
+    try {
+        await fetch('/api/fleet_radar/trigger_roll_call', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ targetIp: wifiTargetIp || '255.255.255.255' })
+        });
+    } catch (e) {
+        console.warn("API roll call call skipped:", e);
+    }
+}
+window.triggerRapidRollCall = triggerRapidRollCall;
+
 function initFleetRadar() {
     const scanBtn = document.getElementById('fleetRadarScanBtn');
     const identifyAllBtn = document.getElementById('fleetRadarIdentifyAllBtn');
+    const rapidRollCallBtn = document.getElementById('fleetRadarRapidRollCallBtn');
     const scenarioSelect = document.getElementById('fleetRadarScenarioSelect');
 
     scanBtn?.addEventListener('click', scanFleetRadar);
     identifyAllBtn?.addEventListener('click', triggerIdentifyAllFloats);
+    rapidRollCallBtn?.addEventListener('click', triggerRapidRollCall);
 
     scenarioSelect?.addEventListener('change', (e) => {
         applyRadarScenario(e.target.value);

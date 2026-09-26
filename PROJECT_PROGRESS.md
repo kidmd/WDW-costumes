@@ -92,6 +92,27 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### Entry: Double-Tap 4-Second Rapid Attendance Roll Call Wave (Hardware-Only & Simulator)
+* **Date:** 2026-09-26
+* **Milestone:** Milestone 5 - Pre-Race Wireless Telemetry, Lineup Verification & Rapid Corral Wave
+* **Status:** Operational & Verified across ESP32 Firmware (`src/main.cpp`, `MSEP_Costume.ino`), PlatformIO compilation, Web Simulator (`index.html`, `app.js?v=29`), and Python Server (`simulator.py`).
+* **Notes:**
+  * **Double-Tap Hardware Detection (BOOT Button on GPIO 0):**
+    - Two quick taps within a 400ms detection window (`now - firstTapReleaseTime <= 400`) triggers the **4-Second Rapid Attendance Roll Call** (`SHOW_MODE_RAPID_ROLL_CALL = 3`, ESP-NOW `mode = 0x44`).
+    - Single tap (< 600ms, released > 400ms) continues to toggle the **30-Second Theatrical Fleet Routine** (`mode = 0x30` / `mode = 0x00`).
+    - Long hold (>= 3.0s) continues to enter **Float ID Configuration Mode** (1 to 7).
+    - Can be initiated from **ANY brother's costume** in the starting corral without reaching for a phone or opening a Wi-Fi hotspot.
+  * **4000ms Rapid Attendance Wave Choreography:**
+    - **Slots 0–6 (500ms per float, 0.0s – 3.5s):** Floats 1 through 7 illuminate sequentially solo in their signature colors (1 Red ➔ 2 Gold ➔ 3 Teal ➔ 4 Pink ➔ 5 Cyan ➔ 6 Green ➔ 7 Blue). While one brother calls roll, the other 6 stay completely unlit, making each runner immediately stand out.
+    - **Finale Slot (3.5s – 4.0s):** All 7 floats illuminate together in a synchronized double emerald green flash (`#00FF50`), signaling that the entire fleet is linked and ready.
+    - **Auto-Revert:** At 4.0 seconds, every costume automatically returns to its baseline show program with zero manual intervention.
+  * **Simulator & Network Integration:**
+    - Added `⚡ 4s Rapid Attendance Wave (Double-Tap)` button to `#fleetRadarSection` toolbar.
+    - Implemented `triggerRapidRollCall()` in `simulator/app.js` with canvas mini-shirt animation and sequential radar card glow.
+    - Added `POST /api/fleet_radar/trigger_roll_call` endpoint in `simulator.py` broadcasting UDP Opcode `0x03, cmd 0x03`.
+    - Mirrored identically across `src/main.cpp` and `arduino/MSEP_Costume/MSEP_Costume.ino` for dual ESP32 core compatibility (Rule 5).
+    - Verified PlatformIO build (Flash: 59.9%, RAM: 14.3%) and updated binary in `firmware/firmware.bin`.
+
 ### Entry: Pre-Race Corral Roll Call & ESP-NOW Fleet Radar Diagnostics
 * **Date:** 2026-09-26
 * **Milestone:** Milestone 5 - Pre-Race Wireless Telemetry, Lineup Verification & Fleet Radar

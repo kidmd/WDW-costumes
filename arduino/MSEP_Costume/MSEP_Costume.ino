@@ -129,17 +129,20 @@ uint8_t broadcastMac[] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
 #define BUTTON_PIN          0       // BOOT button on standard ESP32 DevKit
 #define SHOW_LOOP_MS        90000   // 90-second autonomous theatrical sequence
 #define FLEET_ROUTINE_TOTAL_MS 30000 // Auto-updated for 30s Grand Electrical Parade Show (30.0s)
+#define RAPID_ROLL_CALL_TOTAL_MS 4000 // 4.0-second Rapid Attendance Roll Call (500ms x 7 floats + 500ms unison finale)
 
 enum StandaloneShowMode {
     SHOW_MODE_AUTONOMOUS_SEQUENCE = 0,
     SHOW_MODE_FLEET_SYNC          = 1,
-    SHOW_MODE_FLEET_30S_ROUTINE   = 2
+    SHOW_MODE_FLEET_30S_ROUTINE   = 2,
+    SHOW_MODE_RAPID_ROLL_CALL     = 3
 };
 
 StandaloneShowMode currentStandaloneMode = SHOW_MODE_AUTONOMOUS_SEQUENCE;
 StandaloneShowMode previousStandaloneMode = SHOW_MODE_AUTONOMOUS_SEQUENCE;
 uint32_t fleetRoutineStartTime = 0;
 uint8_t fleetRoutineCycle = 0;
+uint32_t rapidRollCallStartTime = 0;
 
 void broadcastFleetRoutinePacket(uint8_t mode, uint32_t masterMillis) {
     ParadeSyncPacket packet;
@@ -181,6 +184,55 @@ void broadcastIdentifyPacket(uint8_t targetFloat) {
     esp_now_send(broadcastMac, (uint8_t*)&packet, sizeof(packet));
 }
 
+void broadcastRapidRollCallPacket() {
+    ParadeSyncPacket packet;
+    packet.magic = 0xEE;
+    packet.mode = 0x44; // 0x44 = 4s Rapid Attendance Roll Call
+    packet.masterMillis = 0;
+    packet.activeFloat = myFloatNumber;
+    packet.waveHead = 0;
+    esp_now_send(broadcastMac, (uint8_t*)&packet, sizeof(packet));
+}
+
+void startRapidRollCall(uint32_t now) {
+    if (currentStandaloneMode != SHOW_MODE_RAPID_ROLL_CALL) {
+        previousStandaloneMode = currentStandaloneMode;
+    }
+    currentStandaloneMode = SHOW_MODE_RAPID_ROLL_CALL;
+    rapidRollCallStartTime = now;
+    Serial.printf("[ROLL CALL] ⚡ 4-Second Rapid Attendance Roll Call started! (Initiator: Float %d)\n", myFloatNumber);
+}
+
+void renderRapidRollCall(uint32_t elapsedMs) {
+    if (elapsedMs < 3500) {
+        // Individual float slots: 0 to 6 (500ms each)
+        uint8_t activeSlot = elapsedMs / 500; // 0..6
+        uint8_t activeFloat = activeSlot + 1; // 1..7
+
+        if (myFloatNumber == activeFloat) {
+            // It's our turn! Illuminate brightly in our float's signature color
+            CRGB color = FLEET_ROSTER_INFO[activeSlot].color;
+            fill_solid(leds, FRONT_LEDS, color);
+        } else {
+            // Other floats stay completely dark so active runner is spotlighted!
+            fill_solid(leds, FRONT_LEDS, CRGB::Black);
+        }
+    } else if (elapsedMs < 4000) {
+        // Unison finale: Double Emerald Green flash across all 7 floats!
+        uint32_t finaleMs = elapsedMs - 3500;
+        if ((finaleMs < 200) || (finaleMs >= 300 && finaleMs < 500)) {
+            fill_solid(leds, FRONT_LEDS, CRGB(0, 255, 80)); // Electric Emerald Green
+        } else {
+            fill_solid(leds, FRONT_LEDS, CRGB::Black);
+        }
+    } else {
+        fill_solid(leds, FRONT_LEDS, CRGB::Black);
+    }
+
+    duplicateFrontToBack();
+    FastLED.show();
+}
+
 // ============================================================================
 // ESP-NOW RECEIVE CALLBACK (Follower & Fleet Peer)
 // Compatible with both ESP32 Arduino Core 2.x (const uint8_t*) and Core 3.x+ (esp_now_recv_info_t*)
@@ -213,6 +265,10 @@ void onDataReceive(const uint8_t *mac_addr, const uint8_t *incomingData, int len
                 if (packet.activeFloat == 0 || packet.activeFloat == myFloatNumber) {
                     triggerIdentifyFlash();
                 }
+            } else if (packet.mode == 0x44) {
+                // 4-Second Rapid Attendance Roll Call commanded by peer
+                startRapidRollCall(millis() - packet.masterMillis);
+                Serial.printf("[ESP-NOW] ⚡ Rapid Attendance Roll Call triggered by Float %d\n", packet.activeFloat);
             } else {
                 currentPacket = packet;
                 packetReceived = true;
@@ -956,14 +1012,15 @@ void loop() {
     uint32_t now = millis();
 
     // 1. Hardware Button (BOOT button on GPIO 0)
-    // Short Tap (50ms - 2500ms):
-    //   - If idle / baseline: Trigger 30-Second Fleet Routine once and broadcast to peers
-    //   - If running 30s Fleet Routine: Stop early and return to baseline, broadcast stop to peers
-    // Long Hold (>= 3 seconds): Enter Float ID Configuration Mode (1 to 7)
+    // - Double Tap (two quick taps within 400ms): 4-Second Rapid Attendance Roll Call (Mode 0x44)
+    // - Single Tap (< 600ms, idle > 400ms): Toggle 30s Theatrical Fleet Routine (Mode 0x30 / 0x00)
+    // - Long Hold (>= 3 seconds): Enter Float ID Configuration Mode (1 to 7)
     static bool buttonWasPressed = false;
     static uint32_t buttonDownTime = 0;
     static uint32_t lastButtonReleaseTime = 0;
     static bool longHoldHandled = false;
+    static uint8_t pendingTapCount = 0;
+    static uint32_t firstTapReleaseTime = 0;
 
     bool isButtonPressed = (digitalRead(BUTTON_PIN) == LOW);
 
@@ -974,42 +1031,60 @@ void loop() {
     } else if (isButtonPressed && buttonWasPressed) {
         if (!longHoldHandled && (now - buttonDownTime >= 3000)) {
             longHoldHandled = true;
+            pendingTapCount = 0; // Cancel any pending taps
             handleFloatConfigMode();
         }
     } else if (!isButtonPressed && buttonWasPressed) {
         buttonWasPressed = false;
         uint32_t pressDuration = now - buttonDownTime;
 
-        // 50ms hardware press debounce and 300ms software lockout between button actions
-        if (!longHoldHandled && pressDuration >= 50 && pressDuration < 2500 && (now - lastButtonReleaseTime >= 300)) {
-            lastButtonReleaseTime = now;
+        // 50ms hardware debounce
+        if (!longHoldHandled && pressDuration >= 50 && pressDuration < 2500) {
+            if (pendingTapCount == 1 && (now - firstTapReleaseTime <= 400)) {
+                // SECOND TAP DETECTED within 400ms -> DOUBLE TAP!
+                pendingTapCount = 0;
+                lastButtonReleaseTime = now;
 
-            if (currentStandaloneMode == SHOW_MODE_FLEET_30S_ROUTINE) {
-                // STOP EARLY: Return to baseline and broadcast stop to fleet
-                currentStandaloneMode = previousStandaloneMode;
-                broadcastFleetRoutinePacket(0x00, 0);
-                Serial.println("[FLEET] Early stop triggered via BOOT button -> returning to baseline.");
-                
-                // Visual confirmation on costume LED strip: 2 Amber/Gold flashes
-                for (int f = 0; f < 2; f++) {
-                    fill_solid(leds, NUM_LEDS, CRGB(255, 140, 0));
-                    FastLED.show();
-                    digitalWrite(STATUS_LED_PIN, HIGH);
-                    delay(120);
-                    fill_solid(leds, NUM_LEDS, CRGB::Black);
-                    FastLED.show();
-                    digitalWrite(STATUS_LED_PIN, LOW);
-                    delay(80);
-                }
+                startRapidRollCall(now);
+                broadcastRapidRollCallPacket();
             } else {
-                // START 30s FLEET ROUTINE: Trigger once and broadcast start to fleet
-                fleetRoutineCycle++;
-                fleetRoutineStartTime = now;
-                previousStandaloneMode = currentStandaloneMode;
-                currentStandaloneMode = SHOW_MODE_FLEET_30S_ROUTINE;
-                broadcastFleetRoutinePacket(0x30, 0);
-                Serial.printf("[FLEET] 30s Fleet Show started via BOOT button! (Cycle #%u)\n", fleetRoutineCycle);
+                // FIRST TAP DETECTED -> wait for potential second tap
+                pendingTapCount = 1;
+                firstTapReleaseTime = now;
+                lastButtonReleaseTime = now;
             }
+        }
+    }
+
+    // Evaluate pending single-tap once the 400ms window expires and button is not currently held
+    if (pendingTapCount == 1 && !isButtonPressed && (now - firstTapReleaseTime > 400)) {
+        pendingTapCount = 0;
+
+        if (currentStandaloneMode == SHOW_MODE_FLEET_30S_ROUTINE || currentStandaloneMode == SHOW_MODE_RAPID_ROLL_CALL) {
+            // STOP EARLY: Return to baseline and broadcast stop to fleet
+            currentStandaloneMode = previousStandaloneMode;
+            broadcastFleetRoutinePacket(0x00, 0);
+            Serial.println("[FLEET] Early stop triggered via BOOT button -> returning to baseline.");
+            
+            // Visual confirmation on costume LED strip: 2 Amber/Gold flashes
+            for (int f = 0; f < 2; f++) {
+                fill_solid(leds, NUM_LEDS, CRGB(255, 140, 0));
+                FastLED.show();
+                digitalWrite(STATUS_LED_PIN, HIGH);
+                delay(120);
+                fill_solid(leds, NUM_LEDS, CRGB::Black);
+                FastLED.show();
+                digitalWrite(STATUS_LED_PIN, LOW);
+                delay(80);
+            }
+        } else {
+            // START 30s FLEET ROUTINE: Trigger once and broadcast start to fleet
+            fleetRoutineCycle++;
+            fleetRoutineStartTime = now;
+            previousStandaloneMode = currentStandaloneMode;
+            currentStandaloneMode = SHOW_MODE_FLEET_30S_ROUTINE;
+            broadcastFleetRoutinePacket(0x30, 0);
+            Serial.printf("[FLEET] 30s Fleet Show started via BOOT button! (Cycle #%u)\n", fleetRoutineCycle);
         }
     }
 
@@ -1038,15 +1113,19 @@ void loop() {
                     pIdx = 8;
                     frameAccepted = true;
                 }
-            } else if (buffer[4] == 0x03 && len >= 7) {
+            } else if (buffer[4] == 0x03 && len >= 6) {
                 // Opcode 0x03: Corral Roll Call & Radar Diagnostics
                 uint8_t cmd = buffer[5];
-                uint8_t targetFloatId = buffer[6];
-                if (targetFloatId == 0 || targetFloatId == myFloatNumber) {
-                    if (cmd == 0x02) {
-                        // Identify Flash
+                uint8_t targetFloatId = (len >= 7) ? buffer[6] : 0;
+                if (cmd == 0x02) {
+                    // Identify Flash
+                    if (targetFloatId == 0 || targetFloatId == myFloatNumber) {
                         triggerIdentifyFlash();
                     }
+                } else if (cmd == 0x03) {
+                    // ⚡ Rapid Attendance Roll Call
+                    startRapidRollCall(millis());
+                    broadcastRapidRollCallPacket();
                 }
             }
 
@@ -1082,7 +1161,17 @@ void loop() {
 
     // 4. If simulator is NOT streaming, run the selected standalone mode!
     if (!isLiveStreaming) {
-        if (currentStandaloneMode == SHOW_MODE_FLEET_30S_ROUTINE) {
+        if (currentStandaloneMode == SHOW_MODE_RAPID_ROLL_CALL) {
+            uint32_t elapsedMs = now - rapidRollCallStartTime;
+            if (elapsedMs < RAPID_ROLL_CALL_TOTAL_MS) {
+                renderRapidRollCall(elapsedMs);
+            } else {
+                currentStandaloneMode = previousStandaloneMode;
+                fill_solid(leds, NUM_LEDS, CRGB::Black);
+                FastLED.show();
+                Serial.println("[ROLL CALL] ⚡ Rapid Attendance Roll Call complete -> returned to baseline.");
+            }
+        } else if (currentStandaloneMode == SHOW_MODE_FLEET_30S_ROUTINE) {
             uint32_t elapsedMs = now - fleetRoutineStartTime;
             if (elapsedMs < FLEET_ROUTINE_TOTAL_MS) {
                 render30sFleetRoutine(elapsedMs);

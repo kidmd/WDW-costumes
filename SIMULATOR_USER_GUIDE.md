@@ -732,7 +732,12 @@ In the dark, chilly 3:30 AM staging corrals outside Epcot, the 7 brothers need i
    - **Physical Hardware:** Transmitted via ESP-NOW (`Mode 0x42`) or UDP (`Opcode 0x03, cmd 0x02`), causing the physical bench or wearable ESP32 to strobe its 200 LEDs without interrupting autonomous mode.
 4. **Lineup Sequential Flash (`✨ Flash Lineup (1➔7)`):**
    - Illuminates all 7 floats down the line in rapid succession (Float 1 ➔ 2 ➔ 3 ➔ 4 ➔ 5 ➔ 6 ➔ 7) to visually confirm the entire parade formation in person before stepping across the starting timing mat.
-5. **Bench Simulation Scenarios:**
+5. **⚡ 4-Second Rapid Attendance Roll Call Wave (Double-Tap Hardware Trigger):**
+   - Click **`⚡ 4s Rapid Attendance Wave (Double-Tap)`** in the toolbar, or **double-tap the physical BOOT button on ANY costume node in the corral**:
+     - **0.0s – 3.5s (500ms per float):** Floats 1 through 7 illuminate sequentially solo in their signature colors (1 Red ➔ 2 Gold ➔ 3 Teal ➔ 4 Pink ➔ 5 Cyan ➔ 6 Green ➔ 7 Blue). While one brother's shirt calls roll, the other 6 stay dark so the spotlighted float pops unmistakably across the crowd!
+     - **3.5s – 4.0s (Unison Double-Green Flash):** All 7 brothers flash bright emerald green twice together (`#00FF50`), visually signaling: *"All 7 present and accounted for, ready to run!"*
+     - **Pure Hardware Operation:** Requires zero phones, zero routers, and zero internet. Transmitted peer-to-peer over ESP-NOW (`Mode 0x44`) or broadcast UDP (`Opcode 0x03, cmd 0x03`).
+6. **Bench Simulation Scenarios:**
    - Test your pre-race checklist under real-world conditions:
      - `🟢 All 7 Online & Ready`: Perfect corral scenario.
      - `⚠️ Float 4 Missing`: Simulates runner disconnection with red `OFFLINE` badge.
@@ -814,20 +819,29 @@ To ensure that **no brother goes dark on course** during the runDisney 10K, the 
 
 The unified firmware in [`src/main.cpp`](file:///c:/Users/Kiddi/Desktop/WDW%20costumes/src/main.cpp) and [`arduino/MSEP_Costume/MSEP_Costume.ino`](file:///c:/Users/Kiddi/Desktop/WDW%20costumes/arduino/MSEP_Costume/MSEP_Costume.ino) implements the one-shot fleet show architecture with debounced button handling via the onboard **BOOT button** (`BUTTON_PIN 0`):
 
-### Short Tap BOOT Button (< 2.5s): One-Shot Trigger & Early Stop
+### ⚡ Double Tap BOOT Button (2 Taps within 400ms): 4-Second Rapid Attendance Roll Call
+- **Any Costume in the Fleet:** Double-tapping the BOOT button on *any* brother's board triggers the **4-Second Rapid Attendance Wave** (`mode = 0x44`).
+- **Zero Configuration Required:** The initiating costume immediately broadcasts an un-addressed ESP-NOW packet to all nearby brother boards.
+- **Roll Call Choreography (4000ms):**
+  - **Slots 0–6 (500ms each, 0.0s – 3.5s):** Floats 1 through 7 illuminate solo in their signature colors (1 Red ➔ 2 Gold ➔ 3 Teal ➔ 4 Pink ➔ 5 Cyan ➔ 6 Green ➔ 7 Blue). While one brother calls roll, all other 6 costumes stay completely unlit, spotlighting each runner individually.
+  - **Finale Slot (3.5s – 4.0s):** All 7 floats illuminate together in a synchronized **double emerald green flash** (`#00FF50`), visually signaling that all brothers are present and the fleet is linked.
+- **Auto-Revert:** At 4.0 seconds, every costume automatically returns to its baseline show program with zero manual intervention.
+
+### 👑 Single Tap BOOT Button (< 600ms, idle > 400ms): 30s Theatrical Fleet Routine
 - **From Baseline (Idle):**
-  - Tapping the BOOT button (50ms–2500ms press with 300ms lockout) initiates the **30-Second Synchronized Fleet Routine** once.
+  - Tapping the BOOT button once initiates the **30-Second Synchronized Fleet Routine** once.
   - Automatically broadcasts an ESP-NOW sync trigger packet (`mode = 0x30`) to all listening peer costumes in range so the entire fleet initiates simultaneously.
   - Advances through all 12 choreography phases (blackouts, forward wave, reverse wave, 5s fleet pulse, center burst, wig-wag, baton chase, sparkle storm, ping-pong, carnival finale).
   - Automatically returns to the individual float program after 30.0 seconds.
-- **During Active Fleet Routine:**
+- **During Active Fleet Routine or Roll Call:**
   - Tapping the BOOT button stops the routine early!
   - Broadcasts an ESP-NOW cancellation packet (`mode = 0x00`) to all peer costumes.
   - Displays **2 Amber Flashes** and returns immediately to the regular individual program.
 
-### Debounce Protocol
+### Debounce & Double-Tap Timing Protocol
 - **Hardware Press Debounce:** Ignores contact bounce or electrical noise under 50ms (`pressDuration >= 50`).
-- **Software Lockout:** Enforces 300ms lockout between button releases (`now - lastButtonReleaseTime >= 300`) to prevent double-triggering.
+- **Double-Tap Detection Window:** 400ms evaluation window between button releases (`now - firstTapReleaseTime <= 400`). If a second tap arrives within 400ms, it is executed immediately as a Double-Tap. If the 400ms window elapses without a second press, the single tap action is executed.
+- **Long Hold Cancellation:** Holding the button for $\ge 3.0$ seconds automatically cancels any pending tap actions and enters Float ID Configuration Mode.
 
 ### 🎛️ Interactive Float ID Selector (Hold for 3 Seconds)
 Any board can be assigned to any of the 7 floats without touching code:
