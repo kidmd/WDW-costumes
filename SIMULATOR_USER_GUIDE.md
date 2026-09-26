@@ -105,7 +105,7 @@ The simulator features a streamlined, modern workspace inspired by creative suit
 1. **🎨 Tab 1: Layout ("The Canvas Studio"):**
    - **Costume Profiles:** Quick-load, save, and export/import full JSON profiles.
    - **Shirt & Character Artwork:** Choose from built-in presets (Pete's Dragon, Cinderella's Coach, Carriage No Horses) or upload custom graphics.
-   - **LED Generation:** One-click `100 Scatter`, `50 Auto-Outline`, and `Sample Colors`.
+   - **LED Generation & Graphic Fill:** One-click `100 Scatter`, `50 Auto-Outline`, `Sample Colors`, and `🔄 Fill Graphic with Remaining LEDs` (redistributes non-grouped LEDs to fill open space without moving any grouped LEDs).
    - **runDisney 10K Race Bib (#1952):** Toggle overlay, height, and scale sliders to verify physical clearance.
    - **Physical Wiring Route Optimizer:** Shortest-path snake wiring optimizer, Show Wiring Trace toggle, Show Numbers toggle.
    - **Quick-Link to Groups:** Fast-jump button to the Groups Tab for drawing paths or stamping fireworks.
@@ -114,7 +114,7 @@ The simulator features a streamlined, modern workspace inspired by creative suit
    - **LED Allocation Overview Box:** Real-time visual progress bar tracking how many LEDs are assigned to animation groups versus unassigned.
    - **Unified Group Creation Hub:** 3 dedicated creation modes:
      - 📦 **From Selection:** Save or update groups directly from canvas marquee box selections.
-     - ✏️ **Click-to-Draw Path:** Sequentially place LEDs directly on the shirt by clicking one-by-one.
+     - ✏️ **Click-to-Draw Path:** Sequentially place LEDs directly on the shirt with a checkable option to auto-rearrange remaining unassigned LEDs to fill the graphic.
      - 🎆 **Fireworks Stamper:** Relocated radial starburst generator with serpentine wiring, radius scale, and color themes.
    - **Active Groups Browser:** Card list of all configured groups with instant selection, badge metrics, and deletion controls.
 
@@ -193,11 +193,15 @@ The **Click-to-Draw Path Tool** lets you place sequential LEDs one-by-one direct
   - LED indices are allocated contiguously (#24, #25, #26...) whenever possible. This ensures directional animations like **Chase**, **Write-On / Wipe**, and **Traveling Waves** flow smoothly in the exact chronological order of your clicks!
 - **Color Auto-Sampling:**
   - Each placed point automatically samples the pixel color from the underlying character graphic (Pete's Dragon, Cinderella's Coach, or custom artwork).
-- **Finishing & Saving:**
+- **Finishing & Saving with Auto-Rearrange:**
   - Press `Enter` on your keyboard, click **`✅ Done`** on the canvas floating banner, or click **`✅ Finish & Save`** in the sidebar.
   - The newly created group is saved, immediately selected, and opened in the editor for fine-tuning.
-- **Canceling:**
-  - Press `Escape` or click **`❌ Cancel`** on the canvas banner to exit draw mode without saving.
+  - **Auto-Rearrange Option (Checkable):** By default, the `🔄 Auto-rearrange remaining LEDs` checkbox is enabled (available in both the Click-to-Draw panel and the canvas floating banner). When saved, all non-grouped LEDs are automatically redistributed across open spaces of the graphic using Farthest-Point Sampling. The existing grouped LEDs serve as fixed distance anchors so remaining lights never collide with or crowd your custom path.
+- **Safe Cancellation:**
+  - Press `Escape` or click **`❌ Cancel`** on the canvas banner to exit draw mode without saving. All LED positions are instantly restored to their exact pre-draw coordinates.
+- **Manual "Fill Graphic with Remaining LEDs" Button (Layout Tab):**
+  - Located on the Layout Tab (`🎨 Layout`) under both Shirt Artwork and LED Layout (`🔄 Fill Graphic with Remaining LEDs`).
+  - At any time, clicking this button scans all currently assigned groups and evenly redistributes all remaining non-grouped LEDs across the open areas of the character graphic without modifying any grouped LEDs or changing total LED count (always 100). Perfect for refreshing the background layout if points ever become uneven or after editing groups!
 
 #### 3. 🎆 Mode 3: Fireworks Stamper (Relocated from Layout)
 - Stamp multi-ray radial starburst fireworks directly from the Groups tab.

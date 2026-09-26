@@ -44,6 +44,10 @@
                 <span id="canvasDrawBannerText">✏️ <strong>Draw Mode:</strong> Click on shirt to place LEDs in sequence</span>
                 <div style="display: flex; gap: 6px; align-items: center; margin-left: 8px;">
                     <span id="canvasDrawCountBadge" class="val-badge" style="background: #ffc107; color: #000; font-weight: 700;">0 Placed</span>
+                    <label style="display: flex; align-items: center; gap: 4px; font-size: 10px; color: #8b949e; cursor: pointer; user-select: none;" title="When saving, automatically redistributes remaining non-grouped LEDs to fill open spaces in the graphic">
+                        <input type="checkbox" id="canvasDrawAutoRearrangeCheckbox" checked style="accent-color: #38bdf8; width: 12px; height: 12px; cursor: pointer;">
+                        <span>Auto-Fill</span>
+                    </label>
                     <button id="canvasFinishDrawBtn" class="action-btn primary" style="padding: 2px 8px; font-size: 10px; font-weight: 600;" disabled>✅ Done</button>
                     <button id="canvasCancelDrawBtn" class="action-btn" style="padding: 2px 8px; font-size: 10px;">❌ Cancel</button>
                 </div>
@@ -179,6 +183,9 @@
                             <button id="scatterColorBtn" class="action-btn accent" style="font-weight: 600; font-size: 12px; padding: 7px;">
                                 🌈 Scatter 100 LEDs (Color-Match)
                             </button>
+                            <button id="rearrangeRemainingLedsBtn" class="action-btn" style="font-size: 11px; padding: 6px; background: rgba(56, 189, 248, 0.12); border-color: rgba(56, 189, 248, 0.35); color: #38bdf8; font-weight: 600;" title="Evenly rearranges all non-grouped LEDs across the graphic to fill open space without moving any grouped LEDs">
+                                🔄 Fill Graphic with Remaining LEDs
+                            </button>
                             <button id="autoOutlineBtn" class="action-btn" style="font-size: 11px; padding: 6px;">
                                 ✨ Auto-Outline Image (50 LEDs)
                             </button>
@@ -219,6 +226,10 @@
                             <button id="quick50Btn" class="action-btn" style="flex: 1; font-size: 11px; padding: 5px 6px;">50 Outline</button>
                             <button id="resampleColorsBtn" class="action-btn" style="flex: 1; font-size: 11px; padding: 5px 6px;" title="Sample colors from artwork under each LED">🎨 Sample</button>
                         </div>
+
+                        <button id="rearrangeRemainingLedsBtn2" class="action-btn" style="width: 100%; font-size: 11px; padding: 7px 8px; margin-bottom: 6px; font-weight: 600; background: rgba(56, 189, 248, 0.12); border-color: rgba(56, 189, 248, 0.35); color: #38bdf8;" title="Evenly scatters and rearranges all non-grouped LEDs across the graphic to fill open space, preserving all existing groups">
+                            🔄 Fill Graphic with Remaining LEDs
+                        </button>
 
                         <button id="optimizeWiringBtn" class="action-btn" style="width: 100%; font-size: 11px; padding: 7px 8px; margin-bottom: 6px; font-weight: 600; background: rgba(31, 111, 235, 0.25); border-color: rgba(56, 139, 253, 0.4);" title="Sort and renumber LEDs so each bulb connects to its nearest neighbor along a continuous physical wire route">
                             🔌 Optimize Wiring Route (Shortest Snake)
@@ -468,6 +479,17 @@
                                     <option value="breathe">🌬️ Calm Breathing Glow (30 BPM)</option>
                                     <option value="pulse_slow">💓 Slow Resting Pulse</option>
                                 </select>
+                            </div>
+
+                            <!-- Checkable option: Auto-rearrange remaining LEDs to fill graphic space -->
+                            <div class="control-group" style="margin-top: 8px; margin-bottom: 6px; padding: 7px 9px; background: #0d1117; border-radius: 6px; border: 1px solid #30363d;">
+                                <label style="display: flex; align-items: center; gap: 7px; font-size: 11px; cursor: pointer; color: #c9d1d9; user-select: none;">
+                                    <input type="checkbox" id="drawAutoRearrangeCheckbox" checked style="accent-color: #38bdf8; width: 14px; height: 14px; cursor: pointer;">
+                                    <span style="font-weight: 600; color: #58a6ff;">🔄 Auto-rearrange remaining LEDs</span>
+                                </label>
+                                <div style="font-size: 10px; color: var(--text-muted); margin-top: 3px; line-height: 1.35; padding-left: 21px;">
+                                    When saved, redistributes non-grouped LEDs to fill open spaces in the graphic around your drawn path.
+                                </div>
                             </div>
                         </div>
 

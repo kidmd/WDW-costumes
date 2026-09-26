@@ -93,6 +93,28 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### Entry: Auto-Rearrange Remaining LEDs Option & Layout Tab Graphic Fill Engine
+* **Date:** 2026-09-25
+* **Status:** Operational & Verified in Web Simulator and PlatformIO Build.
+* **Notes:**
+  * **Anchored Farthest-Point Sampling Engine (`rearrangeRemainingLedsOnGraphic`):**
+    - Implemented Poisson-disk / Farthest-Point Sampling (FPS) algorithm using all existing animation groups' LEDs as fixed distance anchors.
+    - When executed, dynamically identifies all unassigned (non-grouped) LEDs out of the 100 costume LEDs and redistributes them evenly into open negative spaces across the character graphic.
+    - Preserves all existing group memberships, indices, and coordinates 100% intact.
+    - Orders newly placed unassigned LEDs along a continuous physical snake wiring route (`optimizeLedWiringOrder`) starting from bottom-left to maintain hardware assembly neatness.
+    - Samples and boosts colors directly from the graphic under each newly redistributed point.
+  * **Click-to-Draw Auto-Rearrange Checkable Option:**
+    - Added `#drawAutoRearrangeCheckbox` to the Groups Tab Click-to-Draw panel and `#canvasDrawAutoRearrangeCheckbox` to the canvas floating banner with two-way state synchronization.
+    - Enabled by default: when saving a drawn group, non-grouped LEDs automatically rearrange to fill open spaces in the artwork around the new path without leaving awkward gaps.
+    - Added pre-draw position snapshotting (`preDrawLedBackup`) so canceling draw mode cleanly restores all LEDs to their exact pre-draw coordinates.
+  * **Layout Tab "Fill Graphic with Remaining LEDs" Action:**
+    - Added `#rearrangeRemainingLedsBtn` in Section 2 (Shirt Artwork) and `#rearrangeRemainingLedsBtn2` in Section 3 (LED Layout & Wiring Route).
+    - Enables 1-click on-demand redistribution of unassigned LEDs across the graphic at any time (e.g. after group deletion or point experimentation).
+  * **Verification:**
+    - Zero JavaScript syntax errors (`node -c simulator/app.js`).
+    - HTTP server running smoothly (`HTTP/1.0 200 OK`).
+    - ESP32 firmware cleanly compiles (`pio run`) at 14.3% RAM and 59.6% Flash.
+
 ### Entry: Inspector Suppression in Draw Mode & Reliable ID-Based In-Place Group Updates
 * **Date:** 2026-09-25
 * **Status:** Operational & Verified in Web Simulator and PlatformIO Build.

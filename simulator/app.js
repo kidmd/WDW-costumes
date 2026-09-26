@@ -159,6 +159,7 @@ let multiDragInitialPositions = new Map();
 let isDrawGroupMode = false;
 let drawGroupLedIndices = [];
 let drawGroupPoints = [];
+let preDrawLedBackup = null;
 
 // Animation Groups & Zones
 // Array of { id, name, ledIndices: [idx...], effect: 'chase'|'flash_slow'|..., speedBpm, direction, width, colorMode, customColor }
@@ -2607,6 +2608,9 @@ function startDrawGroupMode() {
         if (boxBtn) boxBtn.classList.remove('active');
     }
 
+    // Save pre-draw positions of LEDs so cancellation can cleanly restore them
+    preDrawLedBackup = leds.map(l => ({ x: l.x, y: l.y, color: { ...l.color } }));
+
     drawGroupLedIndices = [];
     drawGroupPoints = [];
     selectedLeds.clear();
@@ -2663,13 +2667,21 @@ function stopDrawGroupMode() {
 
 function cancelDrawGroup() {
     stopDrawGroupMode();
+    if (preDrawLedBackup && preDrawLedBackup.length === leds.length) {
+        for (let i = 0; i < leds.length; i++) {
+            leds[i].x = preDrawLedBackup[i].x;
+            leds[i].y = preDrawLedBackup[i].y;
+            leds[i].color = { ...preDrawLedBackup[i].color };
+        }
+    }
+    preDrawLedBackup = null;
     drawGroupLedIndices = [];
     drawGroupPoints = [];
     selectedLeds.clear();
     selectedLed = null;
     selectedGroupId = null;
     updateLedInspectorUI();
-    showToast('Drawing mode cancelled.');
+    showToast('Drawing mode cancelled. Previous LED positions restored.');
 }
 
 function finishDrawGroup() {
@@ -2703,13 +2715,26 @@ function finishDrawGroup() {
         baselineEffect: baselineEffect
     };
 
+    preDrawLedBackup = null;
     animationGroups.push(newGroup);
-    rebuildLedGroupMap();
-    renderActiveGroupsList();
+
+    // Check if auto-rearranging remaining LEDs is enabled
+    const autoRearrange = document.getElementById('drawAutoRearrangeCheckbox')?.checked ?? true;
+    if (autoRearrange) {
+        rearrangeRemainingLedsOnGraphic(false);
+    } else {
+        rebuildLedGroupMap();
+        renderActiveGroupsList();
+    }
 
     stopDrawGroupMode();
     selectGroupLeds(newGroup.id);
-    showToast(`🎉 Saved group "${newGroup.name}" with ${newGroup.ledIndices.length} sequential LEDs!`);
+
+    if (autoRearrange) {
+        showToast(`🎉 Saved group "${newGroup.name}" (${newGroup.ledIndices.length} LEDs) & filled graphic with remaining LEDs!`);
+    } else {
+        showToast(`🎉 Saved group "${newGroup.name}" with ${newGroup.ledIndices.length} sequential LEDs!`);
+    }
 
     if (nameInput) nameInput.value = '';
 }
@@ -4781,6 +4806,15 @@ if (drawGroupSpeedSlider) {
     });
 }
 
+const drawRearrangeCb = document.getElementById('drawAutoRearrangeCheckbox');
+const canvasRearrangeCb = document.getElementById('canvasDrawAutoRearrangeCheckbox');
+drawRearrangeCb?.addEventListener('change', (e) => {
+    if (canvasRearrangeCb) canvasRearrangeCb.checked = e.target.checked;
+});
+canvasRearrangeCb?.addEventListener('change', (e) => {
+    if (drawRearrangeCb) drawRearrangeCb.checked = e.target.checked;
+});
+
 document.getElementById('selectAllGroupedBtn')?.addEventListener('click', () => {
     const allGroupedIndices = new Set();
     animationGroups.forEach(g => (g.ledIndices || []).forEach(idx => allGroupedIndices.add(idx)));
@@ -5151,6 +5185,239 @@ function optimizeLedWiringOrder(points, startCorner = 'bottom-left') {
     }
 
     return path.map(idx => points[idx]);
+}
+
+// ============================================================================
+// REARRANGE REMAINING (NON-GROUPED) LEDs TO FILL GRAPHIC SPACE
+// ============================================================================
+// Uses Farthest-Point Sampling with existing grouped LEDs as fixed distance anchors
+// so remaining LEDs evenly fill open spaces of the graphic without moving any groups.
+function rearrangeRemainingLedsOnGraphic(showNotification = true) {
+    if (!leds || leds.length === 0) return;
+
+    // 1. Identify all grouped LEDs vs unassigned LEDs
+    const allGroupedIndices = new Set();
+    animationGroups.forEach(g => {
+        (g.ledIndices || []).forEach(idx => {
+            if (idx >= 0 && idx < leds.length) {
+                allGroupedIndices.add(idx);
+            }
+        });
+    });
+
+    const unassignedIndices = [];
+    for (let i = 0; i < leds.length; i++) {
+        if (!allGroupedIndices.has(i)) {
+            unassignedIndices.push(i);
+        }
+    }
+
+    if (unassignedIndices.length === 0) {
+        if (showNotification) {
+            showToast('🎉 All 100 LEDs are assigned to animation groups! No remaining LEDs to rearrange.', 'info');
+        }
+        return;
+    }
+
+    // 2. Prepare offscreen canvas to sample current character graphic
+    const targetW = 360;
+    let targetH = 360;
+    const offCanvas = document.createElement('canvas');
+    const offCtx = offCanvas.getContext('2d');
+    const activeImg = getActiveGraphicImg();
+
+    if (activeImg) {
+        targetH = Math.max(120, Math.round(targetW * (activeImg.naturalHeight / activeImg.naturalWidth)));
+        offCanvas.width = targetW;
+        offCanvas.height = targetH;
+        offCtx.drawImage(activeImg, 0, 0, targetW, targetH);
+    } else {
+        offCanvas.width = targetW;
+        offCanvas.height = targetH;
+        drawPetesDragon(offCtx, { x: 0, y: 0, width: targetW, height: targetH });
+    }
+
+    const imgData = offCtx.getImageData(0, 0, targetW, targetH);
+    const data = imgData.data;
+
+    let hasTransparency = false;
+    for (let i = 3; i < data.length; i += 16) {
+        if (data[i] < 200) {
+            hasTransparency = true;
+            break;
+        }
+    }
+
+    let isLightBg = false;
+    let isDarkBg = false;
+    if (!hasTransparency) {
+        const cornerCoords = [
+            [4, 4],
+            [targetW - 5, 4],
+            [4, targetH - 5],
+            [targetW - 5, targetH - 5],
+            [Math.floor(targetW / 2), 4],
+            [Math.floor(targetW / 2), targetH - 5]
+        ];
+        let lightCorners = 0;
+        let darkCorners = 0;
+        for (const [cx, cy] of cornerCoords) {
+            const cIdx = (cy * targetW + cx) * 4;
+            const cLum = 0.299 * data[cIdx] + 0.587 * data[cIdx + 1] + 0.114 * data[cIdx + 2];
+            if (cLum > 215) lightCorners++;
+            else if (cLum < 45) darkCorners++;
+        }
+        if (lightCorners >= 3) isLightBg = true;
+        else if (darkCorners >= 3) isDarkBg = true;
+    }
+
+    const step = 3;
+    const candidates = [];
+    for (let y = 3; y < targetH - 3; y += step) {
+        for (let x = 3; x < targetW - 3; x += step) {
+            const idx = (y * targetW + x) * 4;
+            const a = data[idx + 3];
+            const r = data[idx];
+            const g = data[idx + 1];
+            const b = data[idx + 2];
+
+            let isFg = false;
+            if (hasTransparency) {
+                if (currentGraphicType === 'builtin_dragon') {
+                    isFg = (a > 80 && Math.max(r, g, b) >= 60);
+                } else {
+                    isFg = (a > 60);
+                }
+            } else if (isLightBg) {
+                const lum = 0.299 * r + 0.587 * g + 0.114 * b;
+                const maxC = Math.max(r, g, b);
+                const minC = Math.min(r, g, b);
+                const satDelta = maxC - minC;
+                isFg = (lum < 225 || satDelta > 25);
+            } else if (isDarkBg) {
+                const lum = 0.299 * r + 0.587 * g + 0.114 * b;
+                isFg = (lum > 45);
+            } else {
+                const lum = 0.299 * r + 0.587 * g + 0.114 * b;
+                isFg = (lum > 40);
+            }
+
+            if (isFg) {
+                candidates.push({ x, y, r, g, b });
+            }
+        }
+    }
+
+    const targetCount = unassignedIndices.length;
+    if (candidates.length < targetCount) {
+        showToast(`Graphic area is too small to distribute ${targetCount} LEDs!`, 'warning');
+        return;
+    }
+
+    const gb = getGraphicChestBounds();
+    const numCandidates = candidates.length;
+    const minDist = new Float32Array(numCandidates);
+
+    // 3. Anchor distances to existing grouped LEDs so remaining LEDs don't overlap with them
+    if (allGroupedIndices.size > 0) {
+        const groupedPixels = [];
+        allGroupedIndices.forEach(idx => {
+            const l = leds[idx];
+            if (l) {
+                const relX = (l.x - gb.normX) / gb.normW;
+                const relY = (l.y - gb.normY) / gb.normH;
+                groupedPixels.push({ px: relX * targetW, py: relY * targetH });
+            }
+        });
+
+        for (let i = 0; i < numCandidates; i++) {
+            let dMin = 1e9;
+            const cx = candidates[i].x;
+            const cy = candidates[i].y;
+            for (let g = 0; g < groupedPixels.length; g++) {
+                const dx = cx - groupedPixels[g].px;
+                const dy = cy - groupedPixels[g].py;
+                const d = dx * dx + dy * dy;
+                if (d < dMin) dMin = d;
+            }
+            minDist[i] = dMin;
+        }
+    } else {
+        const startIdx = Math.floor(numCandidates / 2);
+        for (let i = 0; i < numCandidates; i++) {
+            const dx = candidates[i].x - candidates[startIdx].x;
+            const dy = candidates[i].y - candidates[startIdx].y;
+            minDist[i] = dx * dx + dy * dy;
+        }
+    }
+
+    // 4. Farthest Point Sampling to choose positions for all remaining LEDs
+    const selected = [];
+    for (let k = 0; k < targetCount; k++) {
+        let maxD = -1;
+        let bestIdx = 0;
+        for (let i = 0; i < numCandidates; i++) {
+            if (minDist[i] > maxD) {
+                maxD = minDist[i];
+                bestIdx = i;
+            }
+        }
+
+        const chosen = candidates[bestIdx];
+        selected.push(chosen);
+
+        for (let i = 0; i < numCandidates; i++) {
+            const dx = candidates[i].x - chosen.x;
+            const dy = candidates[i].y - chosen.y;
+            const d = dx * dx + dy * dy;
+            if (d < minDist[i]) {
+                minDist[i] = d;
+            }
+        }
+    }
+
+    // 5. Convert selected pixel positions to normalized coordinates & color match
+    const newPoints = [];
+    for (let i = 0; i < selected.length; i++) {
+        const p = selected[i];
+        const relX = p.x / targetW;
+        const relY = p.y / targetH;
+        const normX = gb.normX + relX * gb.normW;
+        const normY = gb.normY + relY * gb.normH;
+
+        let col = { r: p.r, g: p.g, b: p.b };
+        if (typeof boostLedVibrancy === 'function') {
+            col = boostLedVibrancy(col.r, col.g, col.b, relX, relY);
+        }
+
+        newPoints.push({
+            x: Math.max(0.05, Math.min(0.95, parseFloat(normX.toFixed(3)))),
+            y: Math.max(0.05, Math.min(0.95, parseFloat(normY.toFixed(3)))),
+            color: col
+        });
+    }
+
+    // 6. Order the unassigned points along a continuous physical snake path
+    const sortedPoints = optimizeLedWiringOrder(newPoints, 'bottom-left');
+
+    // 7. Assign new coordinates and colors to unassigned LEDs
+    for (let i = 0; i < unassignedIndices.length; i++) {
+        const ledIdx = unassignedIndices[i];
+        leds[ledIdx].x = sortedPoints[i].x;
+        leds[ledIdx].y = sortedPoints[i].y;
+        leds[ledIdx].color = sortedPoints[i].color;
+    }
+
+    while (sparkles.length < leds.length) sparkles.push(0);
+
+    rebuildLedGroupMap();
+    renderActiveGroupsList();
+    updateLedInspectorUI();
+    updateLedCountUI();
+
+    if (showNotification) {
+        showToast(`✨ Evenly rearranged ${targetCount} remaining LEDs across the graphic!`);
+    }
 }
 
 // SCATTER 100 LEDs (Farthest-Point Sampling inside graphic with pixel color matching)
@@ -5712,6 +5979,20 @@ const resetArtworkBtn = document.getElementById('resetArtworkBtn');
 if (resetArtworkBtn) {
     resetArtworkBtn.addEventListener('click', () => {
         loadGraphicPreset('builtin_dragon');
+    });
+}
+
+const rearrangeRemainingBtn = document.getElementById('rearrangeRemainingLedsBtn');
+if (rearrangeRemainingBtn) {
+    rearrangeRemainingBtn.addEventListener('click', () => {
+        rearrangeRemainingLedsOnGraphic(true);
+    });
+}
+
+const rearrangeRemainingBtn2 = document.getElementById('rearrangeRemainingLedsBtn2');
+if (rearrangeRemainingBtn2) {
+    rearrangeRemainingBtn2.addEventListener('click', () => {
+        rearrangeRemainingLedsOnGraphic(true);
     });
 }
 
