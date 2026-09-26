@@ -2072,7 +2072,32 @@ function setSelectedLedColor(r, g, b) {
         leds[selectedLed].color = { r: clampedR, g: clampedG, b: clampedB };
     }
 
+    // If an animation group is selected, update the group's custom color & mode so animations illuminate in this color!
+    if (selectedGroupId) {
+        const activeGrp = animationGroups.find(g => g.id === selectedGroupId);
+        if (activeGrp) {
+            activeGrp.colorMode = 'custom';
+            activeGrp.customColor = { r: clampedR, g: clampedG, b: clampedB };
+            const toHex = (n) => n.toString(16).padStart(2, '0').toUpperCase();
+            const hex = `#${toHex(clampedR)}${toHex(clampedG)}${toHex(clampedB)}`;
+            if (activeGrp.effect === 'fireworks') {
+                activeGrp.fireworkColor = hex;
+                const fwSel = document.getElementById('fwColorSelect');
+                if (fwSel) {
+                    const match = Array.from(fwSel.options).some(o => o.value.toLowerCase() === hex.toLowerCase());
+                    fwSel.value = match ? hex.toLowerCase() : 'custom';
+                    const customPicker = document.getElementById('fwCustomColorPicker');
+                    if (customPicker) {
+                        customPicker.value = hex;
+                        customPicker.style.display = match ? 'none' : 'block';
+                    }
+                }
+            }
+        }
+    }
+
     updateLedInspectorColorInputs(clampedR, clampedG, clampedB);
+    updateLedInspectorUI();
 
     if (isWifiStreaming) {
         sendLivePixelFrame(performance.now());
@@ -3021,6 +3046,9 @@ function renderActiveGroupsList() {
                 <button type="button" class="action-btn select-grp-btn" style="flex: 1; font-weight: 600;" title="Select and inspect all LEDs in this group">
                     🎯 Select & Edit
                 </button>
+                <button type="button" class="action-btn add-cue-grp-btn" style="font-weight: 600; color: #58a6ff; border-color: rgba(56, 139, 253, 0.4);" title="Add a Show Cue for this group to the Master Timeline">
+                    ➕ Show Cue
+                </button>
                 <button type="button" class="action-btn del-grp-btn" style="color: #ff7b72;" title="Delete group">
                     🗑️
                 </button>
@@ -3028,9 +3056,26 @@ function renderActiveGroupsList() {
         `;
 
         card.addEventListener('click', (e) => {
-            if (e.target.closest('.del-grp-btn')) return;
+            if (e.target.closest('.del-grp-btn') || e.target.closest('.add-cue-grp-btn')) return;
             selectGroupLeds(grp.id);
         });
+
+        const addCueBtn = card.querySelector('.add-cue-grp-btn');
+        if (addCueBtn) {
+            addCueBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                addCue({
+                    targetType: 'group',
+                    groupId: grp.id,
+                    groupName: grp.name,
+                    effect: grp.effect || 'chase',
+                    speedBpm: grp.speedBpm || 140
+                });
+                if (typeof switchSidebarTab === 'function') {
+                    switchSidebarTab('tabDirector');
+                }
+            });
+        }
 
         const delBtn = card.querySelector('.del-grp-btn');
         if (delBtn) {
@@ -3426,9 +3471,11 @@ function renderCuesList() {
         { id: 'write_on_off', label: '✍️ Theatrical Write-On/Off' },
         { id: 'sparkle_storm', label: '✨ Sparkle Storm' },
         { id: 'marquee', label: '🎪 Theater Marquee' },
+        { id: 'rainbow_cycle', label: '🌈 Rainbow Color Wave' },
         { id: 'traveling_wave', label: '🌊 Traveling Parade Wave' },
         { id: 'fire_breath', label: '🔥 Snout Fire Breath' },
-        { id: 'fireworks', label: '🎆 Fireworks Starburst' }
+        { id: 'fireworks', label: '🎆 Fireworks Starburst' },
+        { id: 'off', label: '🌑 Off / Completely Unlit' }
     ];
 
     sequenceCues.forEach((cue, idx) => {
@@ -3511,6 +3558,25 @@ function renderCuesList() {
                 cue.groupId = val.replace('group:', '');
                 const grp = animationGroups.find(g => g.id === cue.groupId);
                 cue.groupName = grp ? grp.name : '';
+                if (grp) {
+                    // Carry over the animation effect that was selected when the group was created!
+                    if (grp.effect) {
+                        cue.effect = grp.effect;
+                        const effSelect = card.querySelector('.cue-effect-select');
+                        if (effSelect) effSelect.value = grp.effect;
+                    }
+                    if (grp.speedBpm) {
+                        cue.speedBpm = grp.speedBpm;
+                        const bpmInput = card.querySelector('.cue-bpm-input');
+                        if (bpmInput) bpmInput.value = grp.speedBpm;
+                    }
+                    // If cue has default name, update to reflect group name
+                    if (cue.name.startsWith('Cue #') || cue.name.endsWith(' Routine')) {
+                        cue.name = `${grp.name} Routine`;
+                        const nameInput = card.querySelector('.cue-name-input');
+                        if (nameInput) nameInput.value = cue.name;
+                    }
+                }
             } else {
                 cue.targetType = 'global';
                 cue.groupId = '';
@@ -3521,6 +3587,7 @@ function renderCuesList() {
 
         card.querySelector('.cue-effect-select').addEventListener('change', (e) => {
             cue.effect = e.target.value;
+            renderTimelineCueStrip();
         });
 
         card.querySelector('.cue-start-input').addEventListener('change', (e) => {
@@ -3560,23 +3627,60 @@ function addCue(options = {}) {
     const lastCue = sequenceCues.length > 0 ? sequenceCues[sequenceCues.length - 1] : null;
     const defaultStart = lastCue ? Math.min(sequenceLoopDuration - 5, lastCue.startTime + lastCue.duration) : Math.min(sequenceLoopDuration - 10, Math.floor(sequenceTime));
 
+    let targetType = options.targetType;
+    let groupId = options.groupId;
+    let groupName = options.groupName;
+    let effect = options.effect;
+    let speedBpm = options.speedBpm;
+
+    // If options didn't specify target, but an animation group is currently selected in the UI:
+    if (!targetType && !groupId && selectedGroupId) {
+        const selGrp = animationGroups.find(g => g.id === selectedGroupId);
+        if (selGrp) {
+            targetType = 'group';
+            groupId = selGrp.id;
+            groupName = selGrp.name;
+        }
+    }
+
+    if (!targetType) targetType = 'global';
+    if (!groupId) groupId = '';
+    if (!groupName) groupName = '';
+
+    // If cue targets a group, carry over the effect that was selected when the group was created!
+    if (targetType === 'group' && groupId) {
+        const grp = animationGroups.find(g => g.id === groupId);
+        if (grp) {
+            if (!groupName) groupName = grp.name;
+            if (!effect) effect = grp.effect || 'chase';
+            if (!speedBpm) speedBpm = grp.speedBpm || 140;
+        }
+    }
+
+    if (!effect) effect = 'color_match';
+    if (!speedBpm) speedBpm = 120;
+
+    const defaultName = (targetType === 'group' && groupName)
+        ? `${groupName} Routine`
+        : `Cue #${sequenceCues.length + 1}`;
+
     const newCue = {
         id: 'cue_' + Date.now() + '_' + Math.floor(Math.random() * 1000),
-        name: options.name || `Cue #${sequenceCues.length + 1}`,
+        name: options.name || defaultName,
         startTime: options.startTime !== undefined ? options.startTime : defaultStart,
         duration: options.duration !== undefined ? options.duration : 20.0,
-        targetType: options.targetType || 'global',
-        groupId: options.groupId || '',
-        groupName: options.groupName || '',
-        effect: options.effect || 'color_match',
-        speedBpm: options.speedBpm || 120,
+        targetType: targetType,
+        groupId: groupId,
+        groupName: groupName,
+        effect: effect,
+        speedBpm: speedBpm,
         fadeIn: options.fadeIn !== undefined ? options.fadeIn : 1.5,
         fadeOut: options.fadeOut !== undefined ? options.fadeOut : 1.5
     };
 
     sequenceCues.push(newCue);
     renderCuesList();
-    showToast(`➕ Added show cue "${newCue.name}"!`);
+    showToast(`➕ Added show cue "${newCue.name}" (${newCue.effect})!`);
 }
 
 function deleteCue(cueId) {
@@ -4621,7 +4725,7 @@ bindRgbControl('ledBSlider', 'ledBNum', 'b');
 
 document.querySelectorAll('.palette-swatch-btn').forEach(btn => {
     btn.addEventListener('click', () => {
-        if (selectedLed === null) {
+        if (selectedLeds.size === 0 && selectedLed === null) {
             if (leds.length > 0) selectLed(0);
             else return;
         }
@@ -4629,8 +4733,46 @@ document.querySelectorAll('.palette-swatch-btn').forEach(btn => {
         const g = parseInt(btn.getAttribute('data-g'), 10);
         const b = parseInt(btn.getAttribute('data-b'), 10);
         setSelectedLedColor(r, g, b);
-        showToast(`🎨 Set LED #${selectedLed} to ${btn.title}!`);
+
+        const activeGrp = selectedGroupId ? animationGroups.find(g => g.id === selectedGroupId) : null;
+        if (selectedLeds.size > 1) {
+            const label = activeGrp ? `group "${activeGrp.name}"` : `${selectedLeds.size} LEDs`;
+            showToast(`🎨 Set ${selectedLeds.size} LEDs in ${label} to ${btn.title}!`);
+        } else {
+            showToast(`🎨 Set LED #${selectedLed} to ${btn.title}!`);
+        }
     });
+});
+
+document.getElementById('resetGroupArtworkColorBtnHub')?.addEventListener('click', () => {
+    if (selectedLeds.size === 0 && (selectedLed === null || !leds[selectedLed])) {
+        showToast("⚠️ Select a group or LEDs to restore artwork colors.", "warning");
+        return;
+    }
+    const targetIndices = selectedLeds.size > 0 ? Array.from(selectedLeds) : [selectedLed];
+    let restored = 0;
+    targetIndices.forEach(idx => {
+        if (leds[idx]) {
+            const col = sampleColorAtNorm(leds[idx].x, leds[idx].y) || { r: 255, g: 255, b: 255 };
+            leds[idx].color = col;
+            restored++;
+        }
+    });
+
+    if (selectedGroupId) {
+        const activeGrp = animationGroups.find(g => g.id === selectedGroupId);
+        if (activeGrp) {
+            activeGrp.colorMode = 'original';
+            activeGrp.customColor = null;
+        }
+    }
+
+    const ref = selectedLed !== null ? selectedLed : targetIndices[0];
+    if (leds[ref]?.color) {
+        updateLedInspectorColorInputs(leds[ref].color.r, leds[ref].color.g, leds[ref].color.b);
+    }
+    updateLedInspectorUI();
+    showToast(`🎨 Restored original artwork colors for ${restored} LEDs!`);
 });
 
 document.getElementById('inspectorSampleBtn')?.addEventListener('click', () => {

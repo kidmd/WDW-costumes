@@ -93,6 +93,25 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### Entry: Group Color Preservation Across Multi-Selection & Automatic Show Cue Preset Inheritance
+* **Date:** 2026-09-25
+* **Status:** Operational & Verified in Web Simulator and PlatformIO Build.
+* **Notes:**
+  * **Group Multi-Selection Color Choice Preservation:**
+    - Resolved issue where choosing a color palette swatch or using RGB sliders on an existing group collapsed selection to the first LED.
+    - Updated `setSelectedLedColor(r, g, b)` to cleanly iterate and apply the new color across all member LEDs in `selectedLeds`.
+    - Added automatic group state tracking: when a group is active (`selectedGroupId`), updates `activeGrp.colorMode = 'custom'` and `activeGrp.customColor = { r, g, b }` (syncing `activeGrp.fireworkColor` for fireworks starbursts) so real-time canvas animations render in the chosen custom color.
+    - Updated `.palette-swatch-btn` click handler to preserve `selectedLeds` multi-selection, prevent fallback resets, and show an informative multi-LED toast (`🎨 Set X LEDs in group "[Name]" to [Color]!`).
+    - Added a dedicated **Group Color Palette Override** (with 12 signature Disney palette buttons + `#resetGroupArtworkColorBtnHub` "Use Artwork Colors" button) directly inside Tab 2's Group Creation Hub.
+  * **Show Cue Preset Inheritance from Animation Groups:**
+    - Updated `addCue(options)` to check active group selection (`selectedGroupId`): when creating a cue for a group, it defaults `cue.effect` and `cue.speedBpm` directly to the preset configured when the group was created (`grp.effect` and `grp.speedBpm`), and titles the cue `${grp.name} Routine`.
+    - Updated `cue-target-select` change listener in `renderCuesList()`: selecting a group from the Target Layer dropdown immediately updates `cue.effect` to `grp.effect` and `cue.speedBpm` to `grp.speedBpm`, dynamically updating the `.cue-effect-select` and `.cue-bpm-input` DOM elements while leaving the user 100% free to override the effect.
+    - Added a direct **`➕ Show Cue`** shortcut button to all active group cards in Tab 2 (`renderActiveGroupsList`), allowing 1-click cue creation with preset effect/tempo and immediate jump to the Parade Cue Director tab (`switchSidebarTab('tabDirector')`).
+  * **Verification:**
+    - JavaScript syntax validated (`node -c simulator/app.js`).
+    - ESP32 C++ firmware compiled with zero errors (`pio run`) at 14.3% RAM and 59.6% Flash.
+    - Full documentation synchronized in `SIMULATOR_USER_GUIDE.md` and `PROJECT_PROGRESS.md`.
+
 ### Entry: Auto-Rearrange Remaining LEDs Option & Layout Tab Graphic Fill Engine
 * **Date:** 2026-09-25
 * **Status:** Operational & Verified in Web Simulator and PlatformIO Build.

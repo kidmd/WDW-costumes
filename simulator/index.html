@@ -395,6 +395,28 @@
                                 </select>
                             </div>
 
+                            <!-- Group Color Palette Override -->
+                            <div class="control-group" style="margin-bottom: 8px;">
+                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 3px;">
+                                    <label style="font-size: 10.5px; color: var(--text-muted);">Group Color (Applies to all member LEDs):</label>
+                                    <button type="button" id="resetGroupArtworkColorBtnHub" style="background: none; border: none; color: #58a6ff; font-size: 10px; cursor: pointer; text-decoration: underline;" title="Reset group LEDs to artwork-sampled colors">Use Artwork Colors</button>
+                                </div>
+                                <div style="display: grid; grid-template-columns: repeat(6, 1fr); gap: 4px;">
+                                    <button type="button" class="palette-swatch-btn" data-r="0" data-g="255" data-b="35" style="background: #00ff23;" title="Dragon Green"></button>
+                                    <button type="button" class="palette-swatch-btn" data-r="255" data-g="120" data-b="0" style="background: #ff7800;" title="Flame Orange"></button>
+                                    <button type="button" class="palette-swatch-btn" data-r="255" data-g="25" data-b="230" style="background: #ff19e6;" title="Electric Pink"></button>
+                                    <button type="button" class="palette-swatch-btn" data-r="0" data-g="119" data-b="255" style="background: #0077ff;" title="Cinderella Blue"></button>
+                                    <button type="button" class="palette-swatch-btn" data-r="255" data-g="193" data-b="7" style="background: #ffc107;" title="Belle Gold"></button>
+                                    <button type="button" class="palette-swatch-btn" data-r="255" data-g="250" data-b="242" style="background: #fffaf2; border: 1px solid #ccc;" title="Starlight White"></button>
+                                    <button type="button" class="palette-swatch-btn" data-r="175" data-g="37" data-b="255" style="background: #af25ff;" title="Cheshire Violet"></button>
+                                    <button type="button" class="palette-swatch-btn" data-r="255" data-g="13" data-b="26" style="background: #ff0d1a;" title="Mickey Red"></button>
+                                    <button type="button" class="palette-swatch-btn" data-r="85" data-g="255" data-b="16" style="background: #55ff10;" title="Electric Lime"></button>
+                                    <button type="button" class="palette-swatch-btn" data-r="0" data-g="240" data-b="255" style="background: #00f0ff;" title="Alice Cyan"></button>
+                                    <button type="button" class="palette-swatch-btn" data-r="255" data-g="60" data-b="120" style="background: #ff3c78;" title="Coral Rose"></button>
+                                    <button type="button" class="palette-swatch-btn" data-r="40" data-g="16" data-b="120" style="background: #281078;" title="Deep Indigo"></button>
+                                </div>
+                            </div>
+
                             <div style="display: flex; gap: 6px;">
                                 <button type="button" id="saveSelectionGroupBtnHub" class="action-btn accent" style="flex: 1; font-weight: 600; font-size: 11px; padding: 7px 6px; background: linear-gradient(135deg, #238636, #2ea043); border-color: #2ea043;">
                                     💾 Save Selection as Group
@@ -1097,6 +1119,6 @@
         </div>
     </div>
 
-    <script src="app.js?v=13"></script>
+    <script src="app.js?v=14"></script>
 </body>
 </html>

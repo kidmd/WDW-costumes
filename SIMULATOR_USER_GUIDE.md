@@ -219,7 +219,14 @@ The **Click-to-Draw Path Tool** lets you place sequential LEDs one-by-one direct
   - **Header:** Group emoji icon (e.g., 🎆 for fireworks, 🎡 for chase, 🎪 for marquee), bold group name, and total LED count badge.
   - **Badges:** Effect pill (`🎡 Chase @ 140 BPM`), Starburst geometry details (for fireworks: ray count and burst radius), Resting Baseline pill (`Idle: Off / Unlit`), and physical LED index ranges (`LEDs: #0–15`).
   - **Instant Selection & Canvas Focus:** Clicking anywhere on a group card or clicking **`🎯 Select & Edit`** highlights all member LEDs on the canvas, opens their properties in the docked Inspector, and marks the card with a glowing active border.
+  - **1-Click Show Cue Shortcut:** Click the **`➕ Show Cue`** button directly on any card to create a synchronized Show Cue on the Master Timeline—pre-configured with the group's effect and tempo—and immediately jump to the Parade Cue Director tab!
   - **One-Click Deletion:** Click the red **🗑️** button to delete a group, return its LEDs to the global baseline, and clean up associated timeline cues.
+
+### 🎨 Group Color Palette Override & Multi-LED Color Control
+When a group is selected (or when editing an existing group), changing its color applies cleanly across all member LEDs while maintaining group selection:
+- **Dedicated Palette Swatches in Group Hub & Docked Inspector:** Click any of the 12 signature Disney parade color swatches (Dragon Green, Flame Orange, Electric Pink, Cinderella Blue, Belle Gold, Starlight White, Cheshire Violet, Mickey Red, Electric Lime, Alice Cyan, Coral Rose, Deep Indigo) or use the native color picker and RGB sliders.
+- **Bulk Multi-LED Application:** The selected color updates every individual LED in the group, sets `activeGrp.colorMode = 'custom'` and `activeGrp.customColor`, and dynamically colors the group's animation routine on the canvas without collapsing the multi-LED selection.
+- **Use Artwork Colors Reset Button:** Click **`Use Artwork Colors`** in the Group Hub to instantly restore the original sampled costume artwork colors for all member LEDs and reset `activeGrp.colorMode = 'original'`.
 
 ### 💡 Contextual Inspector Workflow: Explicit "Save Group" & Reliable In-Place Editing
 Creating and editing groups is seamlessly integrated into both the Group Creation Hub (`From Selection` panel) and the docked Inspector at the bottom of the sidebar:
@@ -421,9 +428,10 @@ Located in Section 2 of the left sidebar, the **Parade Cue Director** is where y
 
 ### Structuring a Cue
 Click **➕ Add Cue** to create a new cue card with the following settings:
-- **Cue Name:** A custom theatrical label (e.g., `Carriage Wheels Spin`, `Snout Fire Breath`).
+- **Cue Name:** A custom theatrical label (e.g., `Carriage Wheels Spin`, `Snout Fire Breath`, or automatic `[Group Name] Routine`).
 - **Target Layer:** Select either `🌐 Global Float` or any active animation group (e.g. `🎡 Group: Front Wheel`).
-- **Pattern / Effect:** Select from the 10 built-in lighting effects (see Section 10).
+  - **Group Preset Inheritance:** When an animation group is selected in the Target Layer dropdown (or when clicking **`➕ Add Cue`** while a group is active), the cue automatically inherits the **Pattern / Effect** and **BPM (Tempo)** configured when the group was created, saving setup time while still allowing you to freely change the effect in the dropdown!
+- **Pattern / Effect:** Select from the 12 built-in lighting effects (see Section 10).
 - **Start Time (s):** Time offset in seconds from the beginning of the show loop (0.5s resolution).
 - **Duration (s):** How long the cue runs before fading out.
 - **BPM (Tempo):** The speed of the animation during this specific cue (30–280 BPM).
