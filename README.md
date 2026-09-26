@@ -61,7 +61,7 @@ You don't need Git, Google Antigravity, or any programming tools:
 * `flash_firmware.bat`: One-click Windows desktop firmware flasher script.
 * `flash_firmware.command`: One-click Mac / Linux desktop firmware flasher script.
 * `arduino/MSEP_Costume/`: Ready-to-open native Arduino IDE sketch.
-* `firmware/`: Pre-compiled ROM binary files (`firmware.bin`, `bootloader.bin`, `partitions.bin`).
+* `firmware/`: Pre-compiled ROM binary files (`firmware_float1.bin` through `firmware_float7.bin`, `firmware.bin`, `bootloader.bin`, `partitions.bin`) and Web Serial manifests.
 * `src/`: C++ / Arduino firmware source code for ESP32.
 * `simulator/`: Web-based visual simulator and theatrical cue director.
 * `platformio.ini`: PlatformIO configuration with board targets and library dependencies (FastLED).

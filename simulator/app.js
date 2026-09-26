@@ -4080,6 +4080,14 @@ function initFleetManager() {
     const applyFirmwareBtn = document.getElementById('fleetApplyFirmwareBtn');
     if (applyFirmwareBtn) applyFirmwareBtn.addEventListener('click', applyFleetShowToFirmware);
 
+    const fleetFlashBtn = document.getElementById('fleetFlashBtn');
+    if (fleetFlashBtn) {
+        fleetFlashBtn.addEventListener('click', () => {
+            const preferred = (typeof activeRunnerIndex === 'number' && activeRunnerIndex >= 0) ? (activeRunnerIndex + 1) : 1;
+            openFleetFlashModal(preferred);
+        });
+    }
+
     if (addBlockBtn && addBlockTypeSelect) {
         addBlockBtn.addEventListener('click', () => {
             addFleetBlock(addBlockTypeSelect.value);
@@ -9889,120 +9897,259 @@ const flashProgressBar = document.getElementById('flashProgressBar');
 const flashTerminal = document.getElementById('flashTerminal');
 const flashTipText = document.getElementById('flashTipText');
 
-if (flashEsp32Btn) {
-    flashEsp32Btn.addEventListener('click', async () => {
-        if (isFlashingFirmware) return;
+// Fleet Flasher Metadata Roster
+const FLEET_FLASHER_ROSTER = [
+    { id: 1, name: "The Train", role: "LEADER", tag: "CASEY JR.", icon: "🚂", color: "#ff5e3a", desc: "Pulls the parade & broadcasts ESP-NOW master sync clock. Tapping BOOT triggers the fleet show!" },
+    { id: 2, name: "The Title Drum", role: "FOLLOWER", tag: "THE DRUM", icon: "🥁", color: "#f1e05a", desc: "Follows Casey Jr. with warm golden amber sparkles and traveling waves." },
+    { id: 3, name: "Cinderella's Coach", role: "FOLLOWER", tag: "CINDERELLA", icon: "🩵", color: "#05d9e8", desc: "Pumpkin coach enchanted blue glow with rotating wheel chase patterns." },
+    { id: 4, name: "Peter Pan's Ship", role: "FOLLOWER", tag: "PETER PAN", icon: "🏴‍☠️", color: "#00ff66", desc: "Captain Hook's galleon sailing with emerald pixie dust shimmers." },
+    { id: 5, name: "Dumbo the Elephant", role: "FOLLOWER", tag: "DUMBO", icon: "🐘", color: "#ff70a6", desc: "Circus pink and gold starbursts with high-flying ear wave pulses." },
+    { id: 6, name: "Pete's Dragon", role: "FOLLOWER", tag: "ELLIOTT", icon: "🐉", color: "#39ff14", desc: "Bright green dragon scales, violet spine accents, and fire-breath sweeps!" },
+    { id: 7, name: "To Honor America", role: "FOLLOWER", tag: "FLAG & EAGLE", icon: "🦅", color: "#388bfd", desc: "Grand Finale Stars & Stripes patriotic waves, strobes, and fireworks." },
+    { id: 0, name: "Generic / Auto Board", role: "GENERIC", tag: "HOTEL BOOT SELECT", icon: "🎲", color: "#bc8cff", desc: "Universal costume firmware. Remembers previous float ID or defaults to Float 2." }
+];
 
-        if (!isSerialPortReady && detectedSerialPort) {
-            flashModal.classList.add('open');
-            flashStatusText.textContent = `⚠️ USB Port ${detectedSerialPort} Wedged (Windows Error 31)`;
-            flashStatusText.style.color = '#f85149';
-            flashProgressBar.style.width = '100%';
-            flashProgressBar.style.background = '#da3633';
-            flashTipText.textContent = 'Please unplug the USB cable, wait 2 seconds, and plug it back in!';
-            flashTerminal.textContent = `[PORT ERROR] Windows driver locked ${detectedSerialPort}: "A device attached to the system is not functioning" (Error 31).\n\n` +
-                `TO FIX THIS NOW:\n` +
-                `1. Unplug the ESP32 USB cable from your computer.\n` +
-                `2. Wait 2 seconds.\n` +
-                `3. Plug it back into your USB port.\n` +
-                `4. Watch the top indicator turn green: "● ESP32 on ${detectedSerialPort} (Ready)".\n` +
-                `5. Click Flash again!\n`;
-            flashDoneBtn.style.display = 'inline-block';
-            return;
+let selectedFleetFlashFloatId = 1;
+
+function openFleetFlashModal(preferredFloatId = 1) {
+    const modal = document.getElementById('fleetFlashModal');
+    if (!modal) return;
+    selectedFleetFlashFloatId = (preferredFloatId >= 0 && preferredFloatId <= 7) ? preferredFloatId : 1;
+    renderFleetFlashModalGrid();
+    updateArmedFloatInfo();
+    modal.classList.add('open');
+}
+window.openFleetFlashModal = openFleetFlashModal;
+
+function closeFleetFlashModal() {
+    const modal = document.getElementById('fleetFlashModal');
+    if (modal) modal.classList.remove('open');
+}
+window.closeFleetFlashModal = closeFleetFlashModal;
+
+function renderFleetFlashModalGrid() {
+    const grid = document.getElementById('modalFloatCardGrid');
+    if (!grid) return;
+    grid.innerHTML = '';
+
+    FLEET_FLASHER_ROSTER.forEach(f => {
+        const isSelected = (f.id === selectedFleetFlashFloatId);
+        const card = document.createElement('div');
+        card.style.background = isSelected ? 'rgba(56, 139, 253, 0.15)' : '#0d1117';
+        card.style.border = `1.5px solid ${isSelected ? f.color : 'var(--border-color)'}`;
+        card.style.borderRadius = '8px';
+        card.style.padding = '8px 10px';
+        card.style.cursor = 'pointer';
+        card.style.display = 'flex';
+        card.style.alignItems = 'center';
+        card.style.gap = '8px';
+        card.style.transition = 'all 0.15s ease';
+
+        const isLeader = f.role === 'LEADER';
+        const roleBadge = isLeader ? '<span style="font-size: 8.5px; background: rgba(248,81,73,0.25); color: #ff7b72; padding: 1px 4px; border-radius: 3px; font-weight: 700;">LEADER</span>' : '';
+
+        card.innerHTML = `
+            <span style="font-size: 18px; line-height: 1;">${f.icon}</span>
+            <div style="flex: 1; overflow: hidden;">
+                <div style="font-size: 11px; font-weight: 700; color: #fff; white-space: nowrap; text-overflow: ellipsis; overflow: hidden;">
+                    ${f.id > 0 ? '#' + f.id + ' ' : ''}${f.name}
+                </div>
+                <div style="font-size: 9.5px; color: var(--text-muted); display: flex; align-items: center; gap: 4px;">
+                    ${f.tag} ${roleBadge}
+                </div>
+            </div>
+        `;
+
+        card.addEventListener('click', () => {
+            selectedFleetFlashFloatId = f.id;
+            renderFleetFlashModalGrid();
+            updateArmedFloatInfo();
+        });
+
+        grid.appendChild(card);
+    });
+}
+
+function updateArmedFloatInfo() {
+    const f = FLEET_FLASHER_ROSTER.find(item => item.id === selectedFleetFlashFloatId) || FLEET_FLASHER_ROSTER[0];
+    const icon = document.getElementById('modalArmedIcon');
+    const title = document.getElementById('modalArmedTitle');
+    const rolePill = document.getElementById('modalArmedRolePill');
+    const tag = document.getElementById('modalArmedTag');
+
+    if (icon) icon.textContent = f.icon;
+    if (title) title.textContent = f.id > 0 ? `Float ${f.id}: ${f.name}` : f.name;
+    if (tag) tag.textContent = `${f.tag} · ${f.desc}`;
+    if (rolePill) {
+        if (f.role === 'LEADER') {
+            rolePill.textContent = '👑 LEADER';
+            rolePill.style.background = 'rgba(248,81,73,0.2)';
+            rolePill.style.color = '#ff7b72';
+            rolePill.style.borderColor = 'rgba(248,81,73,0.4)';
+        } else if (f.role === 'GENERIC') {
+            rolePill.textContent = '🎲 AUTO';
+            rolePill.style.background = 'rgba(188,140,255,0.2)';
+            rolePill.style.color = '#bc8cff';
+            rolePill.style.borderColor = 'rgba(188,140,255,0.4)';
+        } else {
+            rolePill.textContent = '📡 FOLLOWER';
+            rolePill.style.background = 'rgba(56,139,253,0.15)';
+            rolePill.style.color = '#58a6ff';
+            rolePill.style.borderColor = 'rgba(56,139,253,0.3)';
         }
+    }
+}
 
-        // Open modal and show initial build state
+// Unified USB Flasher supporting both standalone layout and dedicated float identities
+async function triggerUsbFirmwareFlash(floatId = 0) {
+    if (isFlashingFirmware) return;
+
+    if (!isSerialPortReady && detectedSerialPort) {
         flashModal.classList.add('open');
-        flashStatusText.textContent = `Building costume firmware (${leds.length} LEDs)...`;
-        flashStatusText.style.color = 'var(--text-main)';
-        flashProgressBar.style.width = '20%';
-        flashProgressBar.style.background = '#388bfd';
-        flashDoneBtn.style.display = 'none';
-        flashTipText.textContent = 'Compiling C++ FastLED code and flashing via USB...';
-        
-        flashTerminal.textContent = `[SIMULATOR] Preparing firmware for ${leds.length} LEDs...\n` +
-            `[SIMULATOR] Active Pattern: ${activePattern}\n` +
-            `[SIMULATOR] Speed: ${params.speedBpm} BPM | Sparkle Rate: ${params.sparkleRate}%\n` +
-            `[SIMULATOR] Generating include/costume_config.h...\n` +
-            `[SIMULATOR] Connecting to ESP32...\n--------------------------------------------------\n`;
+        flashStatusText.textContent = `⚠️ USB Port ${detectedSerialPort} Wedged (Windows Error 31)`;
+        flashStatusText.style.color = '#f85149';
+        flashProgressBar.style.width = '100%';
+        flashProgressBar.style.background = '#da3633';
+        flashTipText.textContent = 'Please unplug the USB cable, wait 2 seconds, and plug it back in!';
+        flashTerminal.textContent = `[PORT ERROR] Windows driver locked ${detectedSerialPort}: "A device attached to the system is not functioning" (Error 31).\n\n` +
+            `TO FIX THIS NOW:\n` +
+            `1. Unplug the ESP32 USB cable from your computer.\n` +
+            `2. Wait 2 seconds.\n` +
+            `3. Plug it back into your USB port.\n` +
+            `4. Watch the top indicator turn green: "● ESP32 on ${detectedSerialPort} (Ready)".\n` +
+            `5. Click Flash again!\n`;
+        flashDoneBtn.style.display = 'inline-block';
+        return;
+    }
 
-        isFlashingFirmware = true;
+    const floatMeta = FLEET_FLASHER_ROSTER.find(f => f.id === floatId) || FLEET_FLASHER_ROSTER[0];
+    const floatLabel = floatId > 0 ? `Float ${floatId}: ${floatMeta.name}` : "Generic Board";
+
+    // Close fleet flash modal if open
+    closeFleetFlashModal();
+
+    // Open main flash progress modal
+    flashModal.classList.add('open');
+    flashStatusText.textContent = `Building & Flashing ${floatLabel}...`;
+    flashStatusText.style.color = 'var(--text-main)';
+    flashProgressBar.style.width = '20%';
+    flashProgressBar.style.background = '#388bfd';
+    flashDoneBtn.style.display = 'none';
+    flashTipText.textContent = `Baking ${floatLabel} into ESP32 NVS flash over USB...`;
+
+    flashTerminal.textContent = `[SIMULATOR] Preparing firmware for 200 LEDs (100 Front + 100 Back)...\n` +
+        `[SIMULATOR] Assigned Float Role: ${floatLabel} (${floatMeta.role})\n` +
+        `[SIMULATOR] Active Pattern: ${activePattern}\n` +
+        `[SIMULATOR] Generating include/float_config.h (COMPILED_FLOAT_ID=${floatId})...\n` +
+        `[SIMULATOR] Connecting to ESP32...\n--------------------------------------------------\n`;
+
+    isFlashingFirmware = true;
+    if (flashEsp32Btn) {
         flashEsp32Btn.disabled = true;
         flashEsp32Btn.style.opacity = '0.6';
+    }
 
-        // Animate progress bar incrementally while waiting
-        let progress = 20;
-        const progressTimer = setInterval(() => {
-            if (progress < 85) {
-                progress += 5;
-                flashProgressBar.style.width = `${progress}%`;
-            }
-        }, 600);
+    let progress = 20;
+    const progressTimer = setInterval(() => {
+        if (progress < 85) {
+            progress += 5;
+            flashProgressBar.style.width = `${progress}%`;
+        }
+    }, 600);
 
-        try {
-            const payload = {
-                numLeds: leds.length,
-                pattern: activePattern,
-                speedBpm: params.speedBpm,
-                sparkleRate: params.sparkleRate,
-                greenHue: params.greenHue,
-                brightness: params.brightness,
-                palette: leds.map(l => l.color || { r: 15, g: 255, b: 35 })
-            };
+    try {
+        const payload = {
+            numLeds: leds.length || 100,
+            floatId: floatId,
+            pattern: activePattern,
+            speedBpm: params.speedBpm,
+            sparkleRate: params.sparkleRate,
+            greenHue: params.greenHue,
+            brightness: params.brightness,
+            palette: leds.map(l => l.color || { r: 15, g: 255, b: 35 })
+        };
 
-            const response = await fetch('/api/flash_firmware', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
-            });
+        const response = await fetch('/api/flash_firmware', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
 
-            clearInterval(progressTimer);
+        clearInterval(progressTimer);
 
-            if (!response.ok) {
-                throw new Error(`Server returned HTTP ${response.status}`);
-            }
+        if (!response.ok) {
+            throw new Error(`Server returned HTTP ${response.status}`);
+        }
 
-            const data = await response.json();
+        const data = await response.json();
 
-            if (data.success) {
-                flashProgressBar.style.width = '100%';
-                flashProgressBar.style.background = '#238636';
-                flashStatusText.textContent = `🎉 Flash Complete! Running on ${data.port || 'ESP32'}`;
-                flashStatusText.style.color = '#3fb950';
-                flashTipText.textContent = 'ESP32 restarted and running your costume animation!';
-                flashTerminal.textContent += (data.log || '') + '\n\n' +
-                    `==================================================\n` +
-                    `[SUCCESS] Costume successfully flashed to ESP32 on ${data.port}!\n` +
-                    `GPIO 16 is now outputting the ${leds.length}-LED animation.\n` +
-                    `==================================================`;
-                showToast(`⚡ Flashed successfully to ${data.port}!`);
-            } else {
-                flashProgressBar.style.width = '100%';
-                flashProgressBar.style.background = '#da3633';
-                flashStatusText.textContent = `⚠️ Flash Failed: ${data.error || 'Check log'}`;
-                flashStatusText.style.color = '#f85149';
-                flashTipText.textContent = 'Ensure ESP32 is plugged in and hold BOOT button if needed.';
-                flashTerminal.textContent += (data.log || '') + '\n\n' +
-                    `--------------------------------------------------\n` +
-                    `[ERROR] ${data.error || 'Upload failed'}\n` +
-                    `Tip: Check USB cable or hold BOOT button on the ESP32 while connecting.`;
-            }
-        } catch (err) {
-            clearInterval(progressTimer);
+        if (data.success) {
+            flashProgressBar.style.width = '100%';
+            flashProgressBar.style.background = '#238636';
+            flashStatusText.textContent = `🎉 Flash Complete! Flashed as ${floatLabel} on ${data.port || 'ESP32'}`;
+            flashStatusText.style.color = '#3fb950';
+            flashTipText.textContent = `ESP32 rebooted and running as ${floatLabel}!`;
+            flashTerminal.textContent += (data.log || '') + '\n\n' +
+                `==================================================\n` +
+                `[SUCCESS] Flashed successfully as ${floatLabel} to ESP32 on ${data.port}!\n` +
+                `The ESP32 has saved Float ID ${floatId} into NVS flash memory.\n` +
+                `Outputting 200 LEDs on GPIO 16 (FastLED 2.0A power limiter active).\n` +
+                `==================================================`;
+            showToast(`⚡ Flashed ${floatLabel} to ${data.port}!`);
+        } else {
             flashProgressBar.style.width = '100%';
             flashProgressBar.style.background = '#da3633';
-            flashStatusText.textContent = `⚠️ Error: ${err.message}`;
+            flashStatusText.textContent = `⚠️ Flash Failed: ${data.error || 'Check log'}`;
             flashStatusText.style.color = '#f85149';
-            flashTerminal.textContent += `\n[CLIENT ERROR] ${err.message}\nMake sure simulator.py is running.`;
-        } finally {
-            isFlashingFirmware = false;
+            flashTipText.textContent = 'Ensure ESP32 is plugged in and hold BOOT button if needed.';
+            flashTerminal.textContent += (data.log || '') + '\n\n' +
+                `--------------------------------------------------\n` +
+                `[ERROR] ${data.error || 'Upload failed'}\n` +
+                `Tip: Check USB cable or hold BOOT button on the ESP32 while connecting.`;
+        }
+    } catch (err) {
+        clearInterval(progressTimer);
+        flashProgressBar.style.width = '100%';
+        flashProgressBar.style.background = '#da3633';
+        flashStatusText.textContent = `⚠️ Error: ${err.message}`;
+        flashStatusText.style.color = '#f85149';
+        flashTerminal.textContent += `\n[CLIENT ERROR] ${err.message}\nMake sure simulator.py is running.`;
+    } finally {
+        isFlashingFirmware = false;
+        if (flashEsp32Btn) {
             flashEsp32Btn.disabled = false;
             flashEsp32Btn.style.opacity = '1';
-            flashDoneBtn.style.display = 'block';
-            flashTerminal.scrollTop = flashTerminal.scrollHeight;
-            checkSerialPortStatus();
         }
+        flashDoneBtn.style.display = 'block';
+        flashTerminal.scrollTop = flashTerminal.scrollHeight;
+        checkSerialPortStatus();
+    }
+}
+window.triggerUsbFirmwareFlash = triggerUsbFirmwareFlash;
+
+if (flashEsp32Btn) {
+    flashEsp32Btn.addEventListener('click', () => {
+        const floatSelect = document.getElementById('flashFloatSelect');
+        const floatId = floatSelect ? parseInt(floatSelect.value, 10) : 0;
+        triggerUsbFirmwareFlash(floatId);
     });
+}
+
+const executeFleetFlashUsbBtn = document.getElementById('executeFleetFlashUsbBtn');
+if (executeFleetFlashUsbBtn) {
+    executeFleetFlashUsbBtn.addEventListener('click', () => {
+        triggerUsbFirmwareFlash(selectedFleetFlashFloatId);
+    });
+}
+
+const closeFleetFlashModalBtn = document.getElementById('closeFleetFlashModalBtn');
+if (closeFleetFlashModalBtn) {
+    closeFleetFlashModalBtn.addEventListener('click', closeFleetFlashModal);
+}
+
+const cancelFleetFlashModalBtn = document.getElementById('cancelFleetFlashModalBtn');
+if (cancelFleetFlashModalBtn) {
+    cancelFleetFlashModalBtn.addEventListener('click', closeFleetFlashModal);
 }
 
 if (closeFlashModalBtn) {

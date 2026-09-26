@@ -735,6 +735,20 @@ Any board can be assigned to any of the 7 floats without touching code:
 3. **Tap to Cycle:** Each short tap cycles `1 ➔ 2 ➔ 3 ➔ 4 ➔ 5 ➔ 6 ➔ 7 ➔ 1`.
 4. **Auto-Save:** Leave untouched for 4 seconds. The LEDs flash **green 4 times** and the Float ID is permanently saved to ESP32 NVS flash (`Preferences.h`).
 
+### 🎵 Design Decision: Soundtrack & Audio Playback Omission
+Soundtrack audio playback (e.g. Baroque Hoedown music synchronized via speakers) was evaluated and intentionally omitted based on runDisney 10K race logistics:
+- **Crowded Corrals:** Runners pack closely in starting corrals; loud costume speakers would annoy surrounding participants.
+- **Race Entertainment:** The event already features high-volume DJ stages in the pre-race staging area, live bands along the course, and park audio loops throughout Epcot's World Showcase.
+- **Quiet Zones:** The Disney Boardwalk resort area is an enforced race quiet zone where personal music playback is discouraged.
+- **Visual Focus:** Eliminating speakers saves significant battery power and weight, directing 100% of spectator attention toward the dazzling wireless synchronized LED choreography across all 7 shirts.
+
+### 🚀 Zero-Install Web Serial Fleet Flasher Suite (Floats 1–7)
+You can flash any runner's ESP32 directly from Google Chrome or Microsoft Edge with zero software installation:
+- **Dedicated Float Lineup Cards (1–7):** Select any character float (🚂 *Float 1: The Train*, 🥁 *Float 2: Title Drum*, 🩵 *Float 3: Cinderella*, 🏴‍☠️ *Float 4: Peter Pan*, 🐘 *Float 5: Dumbo*, 🐉 *Float 6: Pete's Dragon*, 🦅 *Float 7: To Honor America*, or *Generic Auto*).
+- **Automatic Role Baking:** Flashing a dedicated float ROM permanently bakes that float's ID and role (👑 Master Leader vs 📡 Fleet Follower) into the ESP32's NVS flash memory on first boot.
+- **Fleet Tab 1-Click Flashing:** Click **"⚡ Flash Float..."** directly from the Fleet Show Creator toolbar to open the in-simulator flasher modal, choose a float, and flash either over local USB (PlatformIO) or via Web Serial (`/web_flasher.html`).
+- **Deploy & Hardware Tab Role Selector:** When using standard USB flashing on the Deploy tab, select your desired Float Role from the dropdown before clicking **"⚡ Flash Standalone Firmware (USB)"**.
+
 ---
 
 ## 16. Keyboard Shortcuts & Quick Reference Cheat Sheet

@@ -78,6 +78,7 @@ class SimulatorRequestHandler(http.server.SimpleHTTPRequestHandler):
                 else:
                     self.send_header("Content-Type", "text/plain")
                 self.send_header("Content-Length", str(os.path.getsize(firmware_file)))
+                self.send_header("Access-Control-Allow-Origin", "*")
                 self.end_headers()
                 with open(firmware_file, "rb") as f:
                     self.wfile.write(f.read())
@@ -119,6 +120,8 @@ class SimulatorRequestHandler(http.server.SimpleHTTPRequestHandler):
             self.handle_flash_wifi_receiver()
         elif parsed.path == "/api/export_fleet_routine":
             self.handle_export_fleet_routine()
+        elif parsed.path == "/api/build_fleet_binaries":
+            self.handle_build_fleet_binaries()
         else:
             self.send_error(404, "Endpoint not found")
 
@@ -368,6 +371,16 @@ class SimulatorRequestHandler(http.server.SimpleHTTPRequestHandler):
                     compile_result["tested"] = True
                     compile_result["success"] = (res.returncode == 0)
                     compile_result["output"] = res.stdout[-600:] if res.stdout else res.stderr[-600:]
+                    if compile_result["success"]:
+                        try:
+                            pio_fw = os.path.join(BASE_DIR, ".pio", "build", "esp32dev", "firmware.bin")
+                            firmware_dir = os.path.join(BASE_DIR, "firmware")
+                            if os.path.exists(pio_fw):
+                                shutil.copy2(pio_fw, os.path.join(firmware_dir, "firmware.bin"))
+                            # Rebuild all 7 float binaries in background to sync Web Flasher
+                            subprocess.Popen([sys.executable, "build_fleet_binaries.py"], cwd=BASE_DIR, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+                        except Exception as fe:
+                            print(f"[WARN] Failed auto-syncing firmware binaries: {fe}")
                 except Exception as ce:
                     compile_result["tested"] = True
                     compile_result["success"] = False
@@ -517,6 +530,11 @@ const CRGB PROGMEM ARTWORK_PALETTE[NUM_LEDS] = {{
             with open(config_path, "w", encoding="utf-8") as f:
                 f.write(header_content)
 
+            float_id = int(payload.get("floatId", 0))
+            float_config_path = os.path.join(include_dir, "float_config.h")
+            with open(float_config_path, "w", encoding="utf-8") as f:
+                f.write(f"#ifndef FLOAT_CONFIG_H\n#define FLOAT_CONFIG_H\n\n#ifndef COMPILED_FLOAT_ID\n#define COMPILED_FLOAT_ID {float_id}\n#endif\n\n#endif // FLOAT_CONFIG_H\n")
+
             # Touch src/main.cpp to force PlatformIO to recompile with new header
             try:
                 main_cpp_path = os.path.join(BASE_DIR, "src", "main.cpp")
@@ -563,6 +581,7 @@ const CRGB PROGMEM ARTWORK_PALETTE[NUM_LEDS] = {{
             self.wfile.write(json.dumps({
                 "success": success,
                 "port": port,
+                "floatId": float_id,
                 "log": stdout,
                 "error": user_error
             }).encode("utf-8"))
@@ -746,6 +765,27 @@ const CRGB PROGMEM ARTWORK_PALETTE[NUM_LEDS] = {{
             }).encode("utf-8"))
         except Exception as e:
             self.send_response(200)
+            self.send_header("Content-Type", "application/json")
+            self.end_headers()
+            self.wfile.write(json.dumps({
+                "success": False,
+                "error": str(e)
+            }).encode("utf-8"))
+
+    def handle_build_fleet_binaries(self):
+        try:
+            import subprocess
+            cmd = [sys.executable, "build_fleet_binaries.py"]
+            subprocess.Popen(cmd, cwd=BASE_DIR, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json")
+            self.end_headers()
+            self.wfile.write(json.dumps({
+                "success": True,
+                "message": "Building all 7 float ROM binaries in background."
+            }).encode("utf-8"))
+        except Exception as e:
+            self.send_response(500)
             self.send_header("Content-Type", "application/json")
             self.end_headers()
             self.wfile.write(json.dumps({

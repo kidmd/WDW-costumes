@@ -3,17 +3,22 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MSEP Costume - Zero-Install ESP32 Web Flasher</title>
+    <title>🏰 MSEP Costume - Zero-Install ESP32 Web Flasher</title>
     <script type="module" src="https://unpkg.com/esp-web-tools@10/dist/web/install-button.js?module"></script>
     <style>
         :root {
-            --bg-color: #0d1117;
+            --bg-color: #0b0f14;
             --panel-bg: #161b22;
+            --panel-bg-alt: #0d1117;
             --border-color: #30363d;
             --text-main: #c9d1d9;
             --text-muted: #8b949e;
             --accent-blue: #58a6ff;
             --accent-green: #3fb950;
+            --accent-gold: #f1e05a;
+            --accent-purple: #bc8cff;
+            --accent-red: #f85149;
+            --accent-cyan: #39c5bb;
         }
 
         * {
@@ -30,168 +35,597 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: center;
-            padding: 20px;
+            justify-content: flex-start;
+            padding: 30px 20px 60px 20px;
+            background-image: 
+                radial-gradient(circle at 50% 0%, rgba(56, 139, 253, 0.12) 0%, transparent 60%),
+                radial-gradient(circle at 85% 30%, rgba(241, 224, 90, 0.08) 0%, transparent 50%),
+                radial-gradient(circle at 15% 70%, rgba(63, 185, 80, 0.08) 0%, transparent 50%);
         }
 
-        .card {
+        .container {
+            max-width: 900px;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .header-card {
             background: var(--panel-bg);
             border: 1px solid var(--border-color);
-            border-radius: 12px;
-            max-width: 600px;
-            width: 100%;
-            padding: 32px;
-            box-shadow: 0 12px 36px rgba(0, 0, 0, 0.7);
+            border-radius: 14px;
+            padding: 28px 32px;
             text-align: center;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header-card::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, #ff5e3a, #ff2a6d, #05d9e8, #00ff66, #ffdd53);
+        }
+
+        .badge-row {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 12px;
+            flex-wrap: wrap;
         }
 
         .badge {
-            display: inline-block;
             background: rgba(88, 166, 255, 0.15);
             color: var(--accent-blue);
             border: 1px solid var(--accent-blue);
-            font-size: 12px;
+            font-size: 11px;
             font-weight: 700;
-            padding: 4px 10px;
+            padding: 3px 10px;
             border-radius: 20px;
-            margin-bottom: 16px;
             text-transform: uppercase;
             letter-spacing: 0.5px;
         }
 
+        .badge.green {
+            background: rgba(63, 185, 80, 0.15);
+            color: var(--accent-green);
+            border-color: var(--accent-green);
+        }
+
+        .badge.gold {
+            background: rgba(241, 224, 90, 0.15);
+            color: var(--accent-gold);
+            border-color: var(--accent-gold);
+        }
+
         h1 {
-            font-size: 24px;
-            color: #fff;
-            margin-bottom: 10px;
+            font-size: 26px;
+            color: #ffffff;
+            margin-bottom: 8px;
+            letter-spacing: -0.5px;
         }
 
         p.subtitle {
             font-size: 14px;
             color: var(--text-muted);
-            margin-bottom: 24px;
             line-height: 1.5;
+            max-width: 680px;
+            margin: 0 auto;
         }
 
-        .steps-container {
-            text-align: left;
-            background: rgba(13, 17, 23, 0.8);
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            padding: 16px 20px;
-            margin-bottom: 28px;
-            font-size: 13px;
-            line-height: 1.6;
+        /* 7-Float Grid Selector */
+        .section-title {
+            font-size: 14px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--text-muted);
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
         }
 
-        .steps-container ol {
-            padding-left: 20px;
-        }
-
-        .steps-container li {
+        .float-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 12px;
             margin-bottom: 8px;
         }
 
-        .steps-container strong {
+        .float-card {
+            background: var(--panel-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 14px 16px;
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+            position: relative;
+            user-select: none;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .float-card:hover {
+            border-color: #58a6ff;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 18px rgba(0, 0, 0, 0.4);
+        }
+
+        .float-card.active {
+            border-width: 2px;
+            box-shadow: 0 0 20px rgba(88, 166, 255, 0.25);
+        }
+
+        .float-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .float-num {
+            font-size: 11px;
+            font-weight: 800;
+            padding: 2px 7px;
+            border-radius: 6px;
+            background: #21262d;
+            font-family: monospace;
+        }
+
+        .role-pill {
+            font-size: 10px;
+            font-weight: 700;
+            padding: 2px 6px;
+            border-radius: 4px;
+            text-transform: uppercase;
+        }
+
+        .role-pill.leader {
+            background: rgba(248, 81, 73, 0.2);
+            color: #ff7b72;
+            border: 1px solid rgba(248, 81, 73, 0.4);
+        }
+
+        .role-pill.follower {
+            background: rgba(56, 139, 253, 0.15);
+            color: #58a6ff;
+            border: 1px solid rgba(56, 139, 253, 0.3);
+        }
+
+        .float-name {
+            font-size: 14px;
+            font-weight: 700;
+            color: #fff;
+            margin-top: 2px;
+        }
+
+        .float-tag {
+            font-size: 11px;
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+
+        .float-indicator-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 6px;
+        }
+
+        /* Detail & Flash Action Panel */
+        .flash-panel {
+            background: var(--panel-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 14px;
+            padding: 24px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .selected-info-box {
+            background: rgba(13, 17, 23, 0.85);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 16px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+
+        .selected-title-group {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .selected-icon {
+            font-size: 32px;
+            line-height: 1;
+        }
+
+        .selected-name {
+            font-size: 17px;
+            font-weight: 800;
             color: #fff;
         }
 
-        .flash-btn-wrapper {
-            margin: 24px 0;
+        .selected-desc {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-top: 2px;
+        }
+
+        .hardware-specs {
             display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            font-family: monospace;
+            font-size: 11px;
+            color: var(--accent-cyan);
+        }
+
+        .spec-item {
+            background: #21262d;
+            padding: 4px 8px;
+            border-radius: 6px;
+            border: 1px solid rgba(255,255,255,0.06);
+        }
+
+        /* Flash Button Container */
+        .action-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
             justify-content: center;
+            padding: 18px;
+            background: rgba(13, 17, 23, 0.5);
+            border-radius: 10px;
+            border: 1px dashed var(--border-color);
+            text-align: center;
         }
 
         esp-web-install-button {
-            --esp-tools-button-border-radius: 8px;
-            --esp-tools-button-color: #fff;
+            --esp-tools-button-border-radius: 10px;
+            --esp-tools-button-color: #ffffff;
             --esp-tools-button-background-color: #238636;
             --esp-tools-button-background-color-hover: #2ea043;
-            --esp-tools-button-padding: 12px 24px;
+            --esp-tools-button-padding: 14px 36px;
             --esp-tools-button-font-size: 16px;
             --esp-tools-button-font-weight: 700;
         }
 
-        .unsupported-note {
-            font-size: 12px;
-            color: #f85149;
-            margin-top: 10px;
-            display: none;
-        }
-
-        .footer-links {
-            margin-top: 24px;
-            display: flex;
-            justify-content: center;
-            gap: 16px;
+        .flash-instructions {
+            background: rgba(13, 17, 23, 0.7);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 16px 20px;
             font-size: 13px;
+            line-height: 1.6;
         }
 
-        .footer-links a {
+        .flash-instructions ol {
+            padding-left: 20px;
+            margin-top: 6px;
+        }
+
+        .flash-instructions li {
+            margin-bottom: 6px;
+        }
+
+        .flash-instructions strong {
+            color: #fff;
+        }
+
+        .pro-tip {
+            margin-top: 10px;
+            padding: 10px 14px;
+            border-radius: 8px;
+            background: rgba(241, 224, 90, 0.08);
+            border: 1px solid rgba(241, 224, 90, 0.25);
+            font-size: 12px;
+            color: #f1e05a;
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+        }
+
+        .footer-nav {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 20px;
+            font-size: 13px;
+            margin-top: 10px;
+        }
+
+        .footer-nav a {
             color: var(--accent-blue);
             text-decoration: none;
             transition: color 0.15s ease;
-        }
-
-        .footer-links a:hover {
-            text-decoration: underline;
-        }
-
-        .chip-badge {
             display: inline-flex;
             align-items: center;
-            gap: 6px;
-            font-family: monospace;
-            font-size: 11px;
-            background: #21262d;
-            padding: 4px 8px;
-            border-radius: 6px;
-            color: var(--accent-green);
-            margin-top: 14px;
+            gap: 4px;
+        }
+
+        .footer-nav a:hover {
+            text-decoration: underline;
         }
     </style>
 </head>
 <body>
 
-    <div class="card">
-        <div class="badge">Zero-Install Browser Flasher</div>
+<div class="container">
+
+    <!-- Header Card -->
+    <div class="header-card">
+        <div class="badge-row">
+            <span class="badge">Zero-Install Web Serial</span>
+            <span class="badge green">200 LEDs (100 Front + 100 Back)</span>
+            <span class="badge gold">FastLED 2.0A Safe</span>
+        </div>
         <h1>🏰 MSEP Costume Firmware Installer</h1>
         <p class="subtitle">
-            Flash the latest compiled 90-second show sequence and ESP-NOW fleet sync firmware directly from your web browser! No Arduino IDE, Python, or command line needed.
+            Flash your ESP32 directly from Google Chrome or Microsoft Edge. Select your assigned float role below, plug in via USB, and let Web Serial handle the rest — no command lines or drivers needed!
         </p>
+    </div>
 
-        <div class="steps-container">
-            <ol>
-                <li>Connect your <strong>ESP32</strong> to your computer using a <strong>USB data cable</strong>.</li>
-                <li>Click the green <strong>"Connect & Flash ESP32"</strong> button below.</li>
-                <li>In the Chrome/Edge pop-up, select your ESP32's serial port (e.g. <em>CP2102</em>, <em>CH340</em>, or <em>USB Serial</em>) and click <strong>Connect</strong>.</li>
-                <li>Click <strong>Install</strong> and watch the progress bar reach 100%!</li>
-            </ol>
-            <p style="font-size: 11px; color: var(--text-muted); margin-top: 6px;">
-                💡 <em>Tip: If it fails to connect, hold down the onboard <strong>BOOT</strong> button on your ESP32 for 2 seconds while connecting!</em>
+    <!-- 7-Float Selection Deck -->
+    <div>
+        <div class="section-title">
+            <span>Select Your Float Role (Lineup 1 to 7)</span>
+            <span style="font-size: 11px; text-transform: none; color: var(--accent-green);">● Auto-bakes role into NVS flash</span>
+        </div>
+
+        <div class="float-grid" id="floatGrid">
+            <!-- Rendered dynamically by JS -->
+        </div>
+    </div>
+
+    <!-- Live Armed Flash Panel -->
+    <div class="flash-panel">
+        
+        <div class="selected-info-box">
+            <div class="selected-title-group">
+                <div class="selected-icon" id="armedIcon">🚂</div>
+                <div>
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <span class="selected-name" id="armedName">Float 1: The Train</span>
+                        <span class="role-pill leader" id="armedRolePill">👑 Master Leader</span>
+                    </div>
+                    <div class="selected-desc" id="armedDesc">Casey Jr. · Pulls the parade & broadcasts ESP-NOW master sync clock.</div>
+                </div>
+            </div>
+
+            <div class="hardware-specs">
+                <span class="spec-item">Data Pin: GPIO 16</span>
+                <span class="spec-item">200 LEDs (100F + 100B)</span>
+                <span class="spec-item">Limit: 5V 2000mA</span>
+                <span class="spec-item">Toggle: BOOT (GPIO 0)</span>
+            </div>
+        </div>
+
+        <!-- The Install Button Container -->
+        <div class="action-container">
+            <div id="installButtonHost" style="margin-bottom: 8px;">
+                <!-- esp-web-install-button injected here -->
+            </div>
+            <p style="font-size: 12px; color: var(--text-muted); margin-top: 6px;">
+                Compatible with Google Chrome & Microsoft Edge on Windows, Mac, Linux, and Chromebook.
             </p>
         </div>
 
-        <div class="flash-btn-wrapper">
-            <esp-web-install-button manifest="/firmware/manifest.json">
-                <button slot="activate" style="background: linear-gradient(135deg, #238636, #2ea043); color: #fff; border: 1px solid #2ea043; border-radius: 8px; padding: 12px 28px; font-size: 15px; font-weight: 700; cursor: pointer; box-shadow: 0 4px 14px rgba(46, 160, 67, 0.4);">
-                    ⚡ Connect & Flash ESP32
+        <!-- How It Works Instructions -->
+        <div class="flash-instructions">
+            <strong>📋 Flashing in 3 Simple Steps:</strong>
+            <ol>
+                <li>Connect your ESP32 board to your computer using a <strong>USB data cable</strong>.</li>
+                <li>Click the green <strong>"Connect & Flash ESP32"</strong> button above.</li>
+                <li>Select your ESP32's serial port (e.g. <em>CP2102</em>, <em>CH340</em>, or <em>USB Serial</em>) and click <strong>Connect</strong>, then <strong>Install</strong>.</li>
+            </ol>
+
+            <div class="pro-tip">
+                <span>💡</span>
+                <div>
+                    <strong>Brother-Proof Field Tips:</strong>
+                    <ul style="margin-top: 4px; padding-left: 16px;">
+                        <li><strong>ESP32 refusing to connect?</strong> Hold down the onboard <strong>BOOT button (GPIO 0)</strong> for 2 seconds while clicking Connect!</li>
+                        <li><strong>Windows Error 31 / USB Wedged?</strong> Unplug the USB cable for 2 seconds and plug it back in.</li>
+                        <li><strong>Need to switch floats in the hotel room?</strong> Hold the BOOT button for 3 seconds anytime on battery power to cycle Floats 1 ➔ 7!</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Footer Links -->
+    <div class="footer-nav">
+        <a href="/">← Return to Simulator</a>
+        <span style="opacity: 0.3;">|</span>
+        <a href="/SIMULATOR_USER_GUIDE.md" target="_blank">📖 View User Guide</a>
+        <span style="opacity: 0.3;">|</span>
+        <a href="https://github.com/kidmd/WDW-costumes" target="_blank">GitHub Repository</a>
+    </div>
+
+</div>
+
+<script>
+    const FLEET_ROSTER = [
+        {
+            id: 1,
+            name: "The Train",
+            role: "LEADER",
+            tag: "CASEY JR.",
+            icon: "🚂",
+            color: "#ff5e3a",
+            desc: "Pulls the parade & broadcasts ESP-NOW master sync clock. Tapping BOOT triggers the fleet show!"
+        },
+        {
+            id: 2,
+            name: "The Title Drum",
+            role: "FOLLOWER",
+            tag: "THE DRUM",
+            icon: "🥁",
+            color: "#f1e05a",
+            desc: "Follows Casey Jr. with warm golden amber sparkles and traveling waves."
+        },
+        {
+            id: 3,
+            name: "Cinderella's Coach",
+            role: "FOLLOWER",
+            tag: "CINDERELLA",
+            icon: "🩵",
+            color: "#05d9e8",
+            desc: "Pumpkin coach enchanted blue glow with rotating wheel chase patterns."
+        },
+        {
+            id: 4,
+            name: "Peter Pan's Ship",
+            role: "FOLLOWER",
+            tag: "PETER PAN",
+            icon: "🏴‍☠️",
+            color: "#00ff66",
+            desc: "Captain Hook's galleon sailing with emerald pixie dust shimmers."
+        },
+        {
+            id: 5,
+            name: "Dumbo the Elephant",
+            role: "FOLLOWER",
+            tag: "DUMBO",
+            icon: "🐘",
+            color: "#ff70a6",
+            desc: "Circus pink and gold starbursts with high-flying ear wave pulses."
+        },
+        {
+            id: 6,
+            name: "Pete's Dragon",
+            role: "FOLLOWER",
+            tag: "ELLIOTT",
+            icon: "🐉",
+            color: "#39ff14",
+            desc: "Bright green dragon scales, violet spine accents, and fire-breath sweeps!"
+        },
+        {
+            id: 7,
+            name: "To Honor America",
+            role: "FOLLOWER",
+            tag: "FLAG & EAGLE",
+            icon: "🦅",
+            color: "#388bfd",
+            desc: "Grand Finale Stars & Stripes patriotic waves, strobes, and fireworks."
+        },
+        {
+            id: 0,
+            name: "Generic / Auto Board",
+            role: "GENERIC",
+            tag: "HOTEL BOOT SELECT",
+            icon: "🎲",
+            color: "#bc8cff",
+            desc: "Universal costume firmware. Remembers previous float ID or defaults to Float 2."
+        }
+    ];
+
+    let currentFloatId = 1;
+
+    function renderFloatCards() {
+        const grid = document.getElementById('floatGrid');
+        grid.innerHTML = '';
+
+        FLEET_ROSTER.forEach(f => {
+            const card = document.createElement('div');
+            card.className = `float-card ${f.id === currentFloatId ? 'active' : ''}`;
+            card.style.borderColor = f.id === currentFloatId ? f.color : 'var(--border-color)';
+            if (f.id === currentFloatId) {
+                card.style.boxShadow = `0 0 16px ${f.color}40`;
+            }
+
+            const isLeader = f.role === 'LEADER';
+            const isGeneric = f.role === 'GENERIC';
+            const roleClass = isLeader ? 'leader' : 'follower';
+            const roleText = isLeader ? '👑 Leader' : (isGeneric ? '🎲 Auto' : '📡 Follower');
+
+            card.innerHTML = `
+                <div class="float-header">
+                    <span class="float-num" style="color: ${f.color};">${f.id > 0 ? '#' + f.id : 'GEN'}</span>
+                    <span class="role-pill ${roleClass}">${roleText}</span>
+                </div>
+                <div class="float-name">
+                    <span class="float-indicator-dot" style="background: ${f.color}; box-shadow: 0 0 6px ${f.color};"></span>
+                    ${f.icon} ${f.name}
+                </div>
+                <div class="float-tag">${f.tag}</div>
+            `;
+
+            card.addEventListener('click', () => {
+                selectFloat(f.id);
+            });
+
+            grid.appendChild(card);
+        });
+    }
+
+    function selectFloat(id) {
+        currentFloatId = id;
+        const flt = FLEET_ROSTER.find(f => f.id === id) || FLEET_ROSTER[0];
+
+        // Update card highlights
+        renderFloatCards();
+
+        // Update Armed Info
+        const armedIcon = document.getElementById('armedIcon');
+        const armedName = document.getElementById('armedName');
+        const armedRolePill = document.getElementById('armedRolePill');
+        const armedDesc = document.getElementById('armedDesc');
+
+        armedIcon.textContent = flt.icon;
+        armedName.textContent = flt.id > 0 ? `Float ${flt.id}: ${flt.name}` : flt.name;
+        armedDesc.textContent = flt.desc;
+
+        if (flt.role === 'LEADER') {
+            armedRolePill.className = 'role-pill leader';
+            armedRolePill.textContent = '👑 Master Leader';
+        } else if (flt.role === 'GENERIC') {
+            armedRolePill.className = 'role-pill follower';
+            armedRolePill.textContent = '🎲 Generic Board';
+        } else {
+            armedRolePill.className = 'role-pill follower';
+            armedRolePill.textContent = '📡 Fleet Follower';
+        }
+
+        // Re-inject esp-web-install-button with targeted manifest
+        const host = document.getElementById('installButtonHost');
+        const manifestUrl = flt.id > 0 ? `/firmware/manifest_float${flt.id}.json` : `/firmware/manifest.json`;
+
+        host.innerHTML = `
+            <esp-web-install-button manifest="${manifestUrl}">
+                <button slot="activate" style="background: linear-gradient(135deg, #238636, #2ea043); color: #fff; border: 1px solid #2ea043; border-radius: 8px; padding: 14px 32px; font-size: 15px; font-weight: 700; cursor: pointer; box-shadow: 0 4px 14px rgba(46, 160, 67, 0.4); display: inline-flex; align-items: center; gap: 8px;">
+                    ⚡ Connect & Flash ${flt.id > 0 ? 'Float ' + flt.id : 'ESP32'}
                 </button>
                 <span slot="unsupported">
                     ⚠️ Web Serial is not supported in this browser. Please open this page in <strong>Google Chrome</strong> or <strong>Microsoft Edge</strong>!
                 </span>
             </esp-web-install-button>
-        </div>
+        `;
+    }
 
-        <div>
-            <span class="chip-badge">Target: ESP32 DevKit · Output: GPIO 16 (WS2812B) · Toggle: BOOT Pin (GPIO 0)</span>
-        </div>
-
-        <div class="footer-links">
-            <a href="/">← Return to Costume Simulator</a>
-            <span style="opacity: 0.3;">|</span>
-            <a href="/SIMULATOR_USER_GUIDE.md" target="_blank">View User Guide</a>
-        </div>
-    </div>
+    // Initialize on load
+    document.addEventListener('DOMContentLoaded', () => {
+        selectFloat(1);
+    });
+</script>
 
 </body>
 </html>

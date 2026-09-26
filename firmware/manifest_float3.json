@@ -1,5 +1,5 @@
 {
-  "name": "MSEP Costume - Generic / Auto",
+  "name": "MSEP Costume - Cinderella's Coach (FOLLOWER)",
   "version": "1.0.0",
   "new_install_prompt_erase": false,
   "builds": [
@@ -15,7 +15,7 @@
           "offset": 32768
         },
         {
-          "path": "firmware.bin",
+          "path": "firmware_float3.bin",
           "offset": 65536
         }
       ]

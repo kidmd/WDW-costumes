@@ -37,17 +37,20 @@ No compiling, no Arduino IDE, no software configuration needed! We already pre-c
 
 ## 🌐 Method 2: Zero-Install Web Browser Flasher (Chrome or Edge)
 
-You can flash the ESP32 directly from your web browser using HTML5 Web Serial — **zero software to install**!
+You can flash the ESP32 directly from your web browser using HTML5 Web Serial — **zero software or drivers to install**! You can even pick which specific runner float role you want to bake into the board:
 
-1. Connect your ESP32 to your computer via USB.
+1. Connect your ESP32 to your computer via a USB data cable.
 2. Open **Google Chrome** or **Microsoft Edge**.
-3. If the local server is running (`python simulator.py`), go to:
+3. With the simulator running (`python simulator.py`), go to:
    ```
    http://localhost:8000/web_flasher.html
    ```
-4. Click the green **"⚡ Connect & Flash ESP32"** button.
-5. In the browser pop-up window, select your ESP32 port (usually labeled *CP2102*, *CH340*, or *USB Serial*) and click **Connect**.
-6. Click **Install** and wait for the progress bar to reach 100%!
+   *(Or click the green **"⚡ Web Flasher"** link in the top-right header of the Costume Simulator).*
+4. Click on your assigned **Float Card** (e.g. 🚂 **Float 1: The Train**, 🥁 **Float 2: The Title Drum**, 🐉 **Float 6: Pete's Dragon**, etc.).
+   - The flasher will automatically arm the dedicated firmware image for that character and role!
+5. Click the green **"⚡ Connect & Flash Float X"** button.
+6. In the browser pop-up window, select your ESP32 port (usually labeled *CP2102*, *CH340*, or *USB Serial*) and click **Connect**.
+7. Click **Install** and watch the progress bar reach 100%! The board automatically reboots with that float's identity pre-configured in flash memory.
 
 ---
 

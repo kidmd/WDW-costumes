@@ -93,6 +93,29 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### Entry: Web Serial ESP32 Flasher Suite for Fleet Units (Floats 1–7), Dedicated Float Roles & Soundtrack Decision
+* **Date:** 2026-09-26
+* **Milestone:** Milestone 5 - 7-Shirt Synchronized Fleet Show Flasher Suite & Multi-Float ROM Architecture
+* **Status:** Operational & Verified across Web Serial, PlatformIO Build Toolchain, and Simulator UI.
+* **Notes:**
+  * **Dedicated Float Role Firmware Injection (`src/main.cpp` & `MSEP_Costume.ino`):**
+    - Introduced `COMPILED_FLOAT_ID` macro and optional `include/float_config.h` header across both PlatformIO C++ firmware and Arduino sketches.
+    - When a dedicated float binary is flashed, the microcontroller automatically initializes its NVS flash memory (`Preferences.h`) to that exact Float ID on first boot, eliminating any need for manual button tapping.
+    - Interactive hardware override (holding the onboard BOOT button for 3 seconds to cycle Floats 1–7) remains fully operational for field flexibility.
+  * **Automated Multi-Binary Build Pipeline (`build_fleet_binaries.py` & `simulator.py`):**
+    - Created build pipeline generating dedicated binaries for all 7 floats (`firmware_float1.bin` through `firmware_float7.bin`) plus a universal fallback (`firmware.bin`), along with matching JSON manifests (`manifest_float1.json` – `manifest_float7.json`).
+    - Added backend endpoint `POST /api/build_fleet_binaries` and automated background syncing upon "Apply to Firmware" export.
+    - Added CORS `Access-Control-Allow-Origin: *` headers for all firmware assets to ensure seamless browser Web Serial downloads.
+  * **Zero-Install Web Serial Flasher Overhaul (`simulator/web_flasher.html`):**
+    - Modernized the web flasher with a responsive 7-card fleet lineup selector (plus Generic Auto) with character icons (🚂 The Train, 🥁 Title Drum, 🩵 Cinderella, 🏴‍☠️ Peter Pan, 🐘 Dumbo, 🐉 Pete's Dragon, 🦅 To Honor America).
+    - Clicking any float dynamically updates the armed float panel, hardware specs (GPIO 16, 200 LEDs, 2.0A limit), and re-targets the `<esp-web-install-button>` manifest URL.
+  * **Simulator In-App Flashing Integration (`simulator/index.html` & `simulator/app.js`):**
+    - Added **"⚡ Flash Float..."** button to the Fleet Show Creator toolbar opening a dedicated Float Role selection modal (`#fleetFlashModal`) with 1-click USB (PlatformIO) and Web Serial links.
+    - Added **"Assigned Float Role"** dropdown selector to the Deploy & Hardware tab directly above the USB flashing button.
+  * **Soundtrack Audio Playback Omission Decision:**
+    - Evaluated and intentionally omitted personal costume audio speakers based on runDisney 10K race conditions (ambient corral crowd courtesy, loud pre-race and on-course DJ/band stages, and the designated Boardwalk quiet zone). 100% of battery power and design focus is dedicated to the wireless synchronized LED visual spectacle.
+  * **Cache-Busting & Script Versioning:** Bumped script tag to `app.js?v=23` in `simulator/index.html`.
+
 ### Entry: 1-Click Fleet Show to Firmware Export, C++ Generator & Automated PlatformIO Build Verification
 * **Date:** 2026-09-26
 * **Milestone:** Milestone 5 - 7-Shirt Synchronized Fleet Show Choreography & C++ Firmware Export Pipeline

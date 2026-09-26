@@ -27,6 +27,10 @@
 #include "costume_config.h"
 #endif
 
+#if __has_include("float_config.h")
+#include "float_config.h"
+#endif
+
 #if __has_include("wifi_config.h")
 #include "wifi_config.h"
 #endif
@@ -860,6 +864,14 @@ void setup() {
 
     // 3. Initialize ESP-NOW Peer-to-Peer & Load Float ID from NVS Flash
     preferences.begin("msep", false);
+
+#if defined(COMPILED_FLOAT_ID) && (COMPILED_FLOAT_ID >= 1 && COMPILED_FLOAT_ID <= 7)
+    // Dedicated Float Build: Automatically configure and save this Float ID to NVS flash
+    myFloatNumber = COMPILED_FLOAT_ID;
+    preferences.putUChar("float_id", myFloatNumber);
+    Serial.printf("[DEDICATED BUILD] Auto-configured and saved Float ID: %d (%s - %s)\n",
+                  myFloatNumber, FLEET_ROSTER_INFO[myFloatNumber - 1].name, FLEET_ROSTER_INFO[myFloatNumber - 1].tag);
+#else
     uint8_t savedFloatId = preferences.getUChar("float_id", 0);
 
     String myMac = WiFi.macAddress();
@@ -882,7 +894,9 @@ void setup() {
             Serial.println("[MAC] Unregistered MAC -> Defaulting to Float 2 (Title Drum)");
             Serial.println("[TIP] Hold BOOT button for 3s anytime to set your Float Number (1 to 7)!");
         }
+        preferences.putUChar("float_id", myFloatNumber);
     }
+#endif
 
     if (esp_now_init() != ESP_OK) {
         Serial.println("[ERROR] ESP-NOW initialization failed!");
