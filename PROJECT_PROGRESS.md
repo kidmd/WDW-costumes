@@ -93,6 +93,30 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### Entry: 2-Row Sidebar Task Navigation Layout Fix & 15-Second Choreographed Parade Fleet Routine
+* **Date:** 2026-09-25
+* **Status:** Operational & Verified in Web Simulator and Python Server.
+* **Notes:**
+  * **2-Row × 3-Column Sidebar Navigation Grid (`simulator/style.css`):**
+    - Resolved UI clipping issue where `.sidebar-tab-nav` flex layout inside the fixed 410px sidebar pushed the 6th tab button (`🏃 Fleet`) off-screen to the right.
+    - Converted `.sidebar-tab-nav` to `display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; padding: 8px 8px;`.
+    - Organized tabs into two clean, spacious rows:
+      - **Row 1:** `🎨 Layout` | `👥 Groups` | `✨ Effects`
+      - **Row 2:** `🎬 Show` | `⚡ Deploy` | `🏃 Fleet`
+    - Adjusted `.sidebar-tab-btn` and `.tab-count-badge` with `min-width: 0; white-space: nowrap; flex-shrink: 0;` ensuring labels and badges remain completely visible, unclipped, and easy to click.
+  * **15-Second Choreographed Parade Fleet Routine (`simulator/app.js` & `simulator/index.html`):**
+    - Implemented the user's requested 15-second choreographed routine as the new default fleet animation mode (`fleetSyncMode = 'parade_15s'`):
+      - **0.0s – 1.0s (1s):** **Blackout.** All 7 shirts go totally black (unlit / dark bulbs).
+      - **1.0s – 2.0s (1s):** **Forward Gold Wave.** A brilliant wave of Disney gold light sweeps across the fleet from Float 1 (`Casey Jr.`) through Float 7 (`To Honor America`) over 1 second. LEDs light up with a white-hot core (`#fffff5`), radiant gold body (`#ffc107`), and amber falloff tail.
+      - **2.0s – 3.0s (1s):** **Reverse Gold Wave.** The gold wave reverses direction, sweeping backward from Float 7 to Float 1 over 1 second.
+      - **3.0s – 5.0s (2s):** **Sparkle Storm.** All 7 costumes (700 LEDs) erupt into a synchronized starlight & gold sparkle storm for 2 seconds with high-frequency pseudorandom glitter and starlight twinkles.
+      - **5.0s – 6.0s (1s):** **Blackout.** All 7 shirts go totally black (off / unlit) for 1 second.
+      - **6.0s – 15.0s (9s):** **Individual Float Programs.** Each costume transitions smoothly into its assigned float preset programs (animation groups, rotating wheels, breathing effects, patriotic pulses, and custom artwork colors) for 9 seconds.
+      - **Loop:** Seamlessly resets to Phase 1 every 15.0 seconds.
+    - Added live countdown badge (`#fleetRoutinePhaseBadge`) in sidebar and real-time phase banner on the canvas header displaying the active phase name (e.g. `👑 15s Parade Routine: 🌊 Phase 2: Forward Gold Wave 1➔7 (1.4s / 15.0s)`).
+    - Synchronized runner highlight frames on canvas: during forward & reverse waves, the active runner frame glows with a Disney gold aura (`#ffc107`); during sparkle storm, all 7 runner frames glow with a golden starlight shimmer.
+    - Added routine explanation card (`#fleetRoutineInfoBox`) in the Fleet sidebar tab and wired `fleetModeParadeBtn` as the primary default button alongside continuous `Wave`, `Free-Run`, and `Show` modes.
+
 ### Entry: 7-Shirt Fleet Lineup Manager, Individual Preset Assignment & Synchronized 700-LED Canvas Preview
 * **Date:** 2026-09-25
 * **Status:** Operational & Verified in Web Simulator and Python Server.

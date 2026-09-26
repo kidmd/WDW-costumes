@@ -866,14 +866,29 @@
                         <div class="control-group">
                             <label style="font-size: 11px; color: var(--text-muted); margin-bottom: 4px;">Fleet Animation Mode:</label>
                             <div style="display: flex; gap: 4px;">
-                                <button type="button" id="fleetModeWaveBtn" class="action-btn primary" style="flex: 1; font-size: 10px; padding: 6px 4px; font-weight: 600;" title="Simulate ESP-NOW traveling wave pulse passing from Runner 1 to 7">🌊 Wave Sync</button>
-                                <button type="button" id="fleetModeFreeBtn" class="action-btn" style="flex: 1; font-size: 10px; padding: 6px 4px;" title="Each shirt independently executes its assigned preset animation">⚡ Free-Run</button>
-                                <button type="button" id="fleetModeShowBtn" class="action-btn" style="flex: 1; font-size: 10px; padding: 6px 4px;" title="All 7 shirts synchronize to the master 90s parade sequence">🎬 Master Show</button>
+                                <button type="button" id="fleetModeParadeBtn" class="action-btn primary" style="flex: 1.25; font-size: 10px; padding: 6px 3px; font-weight: 600;" title="15s Choreographed Routine: 1s Blackout ➔ 1s Gold Wave 1➔7 ➔ 1s Rev Wave 7➔1 ➔ 2s Sparkle Storm ➔ 1s Blackout ➔ 9s Presets">👑 15s Routine</button>
+                                <button type="button" id="fleetModeWaveBtn" class="action-btn" style="flex: 0.95; font-size: 10px; padding: 6px 2px;" title="Simulate continuous ESP-NOW traveling wave pulse passing from Runner 1 to 7">🌊 Wave</button>
+                                <button type="button" id="fleetModeFreeBtn" class="action-btn" style="flex: 0.95; font-size: 10px; padding: 6px 2px;" title="Each shirt independently executes its assigned preset animation">⚡ Free-Run</button>
+                                <button type="button" id="fleetModeShowBtn" class="action-btn" style="flex: 0.95; font-size: 10px; padding: 6px 2px;" title="All 7 shirts synchronize to the master 90s parade sequence">🎬 Show</button>
                             </div>
                         </div>
 
-                        <!-- Wave Cycle Speed Slider -->
-                        <div class="control-group" id="fleetWaveSpeedGroup" style="margin-top: 8px;">
+                        <!-- 15s Routine Sequence Info Card -->
+                        <div id="fleetRoutineInfoBox" style="margin-top: 8px; padding: 8px 10px; background: #0d1117; border-radius: 6px; border: 1px solid #30363d; font-size: 10.5px; color: #8b949e; line-height: 1.45;">
+                            <div style="font-weight: 600; color: #ffc107; margin-bottom: 3px; display: flex; justify-content: space-between; align-items: center;">
+                                <span>👑 15s Choreographed Parade Routine</span>
+                                <span id="fleetRoutinePhaseBadge" style="font-size: 10px; background: #21262d; color: #58a6ff; padding: 1px 6px; border-radius: 4px; font-family: monospace;">0.0s / 15.0s</span>
+                            </div>
+                            <div>• <strong>0.0s – 1.0s (1s):</strong> All shirts totally black (off)</div>
+                            <div>• <strong>1.0s – 2.0s (1s):</strong> Gold light wave passes float 1 ➔ float 7</div>
+                            <div>• <strong>2.0s – 3.0s (1s):</strong> Reverse gold wave float 7 ➔ float 1</div>
+                            <div>• <strong>3.0s – 5.0s (2s):</strong> Sparkle storm across all 7 shirts</div>
+                            <div>• <strong>5.0s – 6.0s (1s):</strong> All shirts totally black (off)</div>
+                            <div>• <strong>6.0s – 15.0s (9s):</strong> Individual float preset programs</div>
+                        </div>
+
+                        <!-- Wave Cycle Speed Slider (for continuous wave mode) -->
+                        <div class="control-group" id="fleetWaveSpeedGroup" style="margin-top: 8px; display: none;">
                             <div class="label-row" style="margin-bottom: 2px;">
                                 <span style="font-size: 11px; color: var(--text-muted);">Traveling Wave Cycle Speed:</span>
                                 <span id="fleetWaveSpeedVal" class="val-badge" style="font-size: 11px;">7.0s cycle</span>
