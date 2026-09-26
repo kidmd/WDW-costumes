@@ -93,6 +93,34 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### Entry: 20-Second Choreographed Fleet Routine with ~2-Shirt Wave Trail, 5s Synchronized Pulse, and Color+White Sparkle Storm
+* **Date:** 2026-09-25
+* **Status:** Operational & Verified in Web Simulator and Python Server.
+* **Notes:**
+  * **20-Second Choreographed Sequence Architecture (`parade_20s`):**
+    - Expanded the choreographed parade routine cycle duration from 15.0 seconds to 20.0 seconds (`timeMs % 20000`).
+    - Maintained full backwards compatibility with legacy `parade_15s` mode identifiers, auto-upgrading to `parade_20s`.
+    - Integrated exact timing breakdown across 7 distinct phases:
+      - **Phase 1 (0.0s – 1.0s):** Blackout across all 7 shirts (`alpha: 0.0`).
+      - **Phase 2 (1.0s – 2.0s):** Forward wave sweeps float 1 through 7 with a brilliant incandescent crest and a smooth **~2-shirt trailing decay** in the active cycle's wave color.
+      - **Phase 3 (2.0s – 3.0s):** Reverse wave sweeps float 7 back to 1 in the **exact same color** with symmetrical ~2-shirt trailing falloff.
+      - **Phase 4 (3.0s – 8.0s):** **All-Fleet Wave Color Pulse (5 Seconds).** All LEDs across all 7 costumes (700 LEDs) illuminate in the active wave color and execute 3 slow, majestic breath cycles (36 BPM, intensity sweeping between 28% and 100% with an incandescent white flare at peak breath).
+      - **Phase 5 (8.0s – 10.0s):** **Sparkle Storm combining Wave Color and White (2 Seconds).** High-speed twinkling combining brilliant Starlight White (`#ffffff`), pure saturated wave color bursts, and soft pastel blended shimmers.
+      - **Phase 6 (10.0s – 11.0s):** Blackout across all 7 shirts for 1 second.
+      - **Phase 7 (11.0s – 20.0s):** Individual float preset programs (animation groups, rotating wheels, breathing effects, patriotic pulses, custom artwork colors) execute for 9 seconds before looping.
+  * **Wave Trail Mathematics (~2-Shirt Length Falloff):**
+    - Normalized shirt slot spacing where 1 float width equals 1.0 unit in global coordinates (`runnerIndex + ledNormX`).
+    - Formulated smooth trailing decay spanning 2.0 units (`0.25 <= delta < 2.25`) behind the traveling wave crest:
+      `decay = Math.pow(Math.max(0, 1.0 - (delta - 0.25) / 2.0), 1.35)`.
+    - Applied identical coordinate delta symmetry to both the forward wave (`delta = sweepPos - globalPos`) and reverse wave (`delta = globalPos - sweepPos`).
+  * **Cycle Wave Color Consistency & Rotation:**
+    - Updated `getFleetRoutineWaveColor(timeMs)` to index cycles via `Math.floor(timeMs / 20000)`.
+    - The selected standard Disney color remains strictly locked throughout the forward wave, reverse wave, 5-second pulse, and sparkle storm within the same 20-second cycle, and rotates to a new, non-repeating standard color on the next cycle.
+  * **UI & Real-Time Telemetry:**
+    - Updated Fleet mode toggle button in `simulator/index.html` to `👑 20s Routine`.
+    - Updated the sidebar info box (`#fleetRoutineInfoBox`) with the full 20s breakdown and real-time phase badge (`0.0s / 20.0s`).
+    - Added dynamic breathing frame aura on canvas during the 5s pulse phase, framing all 7 runners with their pulsating wave color.
+
 ### Entry: 1-Click Single View Editing from Fleet Cards & Full Float Preset Support
 * **Date:** 2026-09-25
 * **Status:** Operational & Verified in Web Simulator and Python Server.

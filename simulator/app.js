@@ -1841,7 +1841,7 @@ const DEFAULT_FLEET_ROSTER = [
 ];
 
 let fleetRunners = JSON.parse(JSON.stringify(DEFAULT_FLEET_ROSTER));
-let fleetSyncMode = 'parade_15s'; // 'parade_15s' (default), 'wave', 'free', or 'show'
+let fleetSyncMode = 'parade_20s'; // 'parade_20s' (default), 'wave', 'free', or 'show'
 let fleetWaveCycleDurationMs = 7000; // 7.0s default
 let fleetHoveredRunner = -1;
 let fleetSelectedRunner = -1;
@@ -1890,7 +1890,7 @@ async function getPresetDataForRunner(runner) {
     return null;
 }
 
-// Standard Disney palette colors for the 15-second parade routine wave
+// Standard Disney palette colors for the 20-second parade routine wave
 const FLEET_WAVE_STANDARD_COLORS = [
     { name: "Belle Gold", r: 255, g: 193, b: 7, hex: "#ffc107" },
     { name: "Alice Cyan", r: 0, g: 240, b: 255, hex: "#00f0ff" },
@@ -1906,11 +1906,12 @@ const FLEET_WAVE_STANDARD_COLORS = [
     { name: "Mickey Red", r: 255, g: 13, b: 26, hex: "#ff0d1a" }
 ];
 
-// Returns the active standard color for the current 15-second cycle.
-// Guaranteed to stay identical during forward (1s-2s) & backward (2s-3s) waves within that cycle,
-// and cycles to a new random standard color on the next 15-second cycle without consecutive repeats.
+// Returns the active standard color for the current 20-second cycle.
+// Guaranteed to stay identical during forward wave (1s-2s), backward wave (2s-3s), 5s pulse (3s-8s),
+// and sparkle storm (8s-10s) within that cycle, and cycles to a new random standard color on the next
+// 20-second cycle without consecutive repeats.
 function getFleetRoutineWaveColor(timeMs) {
-    const cycle = Math.floor(Math.max(0, timeMs) / 15000);
+    const cycle = Math.floor(Math.max(0, timeMs) / 20000);
     const count = FLEET_WAVE_STANDARD_COLORS.length;
     // Step 5 is coprime to 12 (gcd=1), cycling all 12 colors without immediate repeats
     const idx = (cycle * 5) % count;
@@ -1924,9 +1925,9 @@ function computeRunnerLedColor(runnerIndex, runner, presetData, ledIndex, totalL
     const hasColor = !!led.color;
     const c = hasColor ? led.color : { r: 255, g: 255, b: 255 };
 
-    if (fleetSyncMode === 'parade_15s') {
-        const cycleMs = 15000;
-        const t = (timeMs % cycleMs) / 1000.0; // 0.0 to 15.0 seconds
+    if (fleetSyncMode === 'parade_20s' || fleetSyncMode === 'parade_15s') {
+        const cycleMs = 20000;
+        const t = (timeMs % cycleMs) / 1000.0; // 0.0 to 20.0 seconds
         const waveColor = getFleetRoutineWaveColor(timeMs);
         
         // 1. 0.0s – 1.0s (1s): All 7 shirts totally black (off / unlit)
@@ -1934,106 +1935,151 @@ function computeRunnerLedColor(runnerIndex, runner, presetData, ledIndex, totalL
             return { r: 0, g: 0, b: 0, alpha: 0.0 };
         }
         
-        // 2. 1.0s – 2.0s (1s): Wave of standard color light passes forward from float 1 through float 7 (total time 1s)
+        // 2. 1.0s – 2.0s (1s): Wave of standard color passes forward from float 1 through float 7 (total time 1s)
+        // With trail of ~2 shirts of decreasing brightness of that color
         if (t < 2.0) {
             const p = t - 1.0; // 0.0 to 1.0
-            const sweepPos = p * 7.0; // 0.0 to 7.0
+            const sweepPos = -0.3 + p * 7.0; 
             const ledNormX = (typeof led.x === 'number') ? led.x : (ledIndex / Math.max(1, totalLeds));
             const globalPos = runnerIndex + ledNormX;
-            const dist = Math.abs(globalPos - sweepPos);
+            const delta = sweepPos - globalPos;
 
-            if (dist < 0.15) {
-                // White-hot core with tint of wave color
+            if (delta < -0.35) {
+                return { r: 0, g: 0, b: 0, alpha: 0.0 };
+            } else if (delta < 0.0) {
+                const fRise = (delta + 0.35) / 0.35;
                 return {
-                    r: Math.min(255, Math.round(255 * 0.82 + waveColor.r * 0.18)),
-                    g: Math.min(255, Math.round(255 * 0.82 + waveColor.g * 0.18)),
-                    b: Math.min(255, Math.round(255 * 0.82 + waveColor.b * 0.18)),
+                    r: Math.round(waveColor.r * fRise * 0.9),
+                    g: Math.round(waveColor.g * fRise * 0.9),
+                    b: Math.round(waveColor.b * fRise * 0.9),
+                    alpha: fRise
+                };
+            } else if (delta < 0.25) {
+                const crestMix = delta / 0.25;
+                const coreR = Math.min(255, Math.round(255 * (1.0 - 0.2 * crestMix) + waveColor.r * (0.2 * crestMix)));
+                const coreG = Math.min(255, Math.round(255 * (1.0 - 0.2 * crestMix) + waveColor.r * (0.2 * crestMix)));
+                const coreB = Math.min(255, Math.round(255 * (1.0 - 0.2 * crestMix) + waveColor.r * (0.2 * crestMix)));
+                return {
+                    r: coreR,
+                    g: coreG,
+                    b: coreB,
                     alpha: 1.0
                 };
-            } else if (dist < 0.40) {
-                // Radiant wave color body
-                const f = 1.0 - (dist - 0.15) / 0.25 * 0.22;
+            } else if (delta < 2.25) {
+                // ~2-shirt trail of decreasing brightness of that color
+                const trailFraction = (delta - 0.25) / 2.0;
+                const decay = Math.pow(Math.max(0, 1.0 - trailFraction), 1.35);
                 return {
-                    r: Math.round(waveColor.r * f),
-                    g: Math.round(waveColor.g * f),
-                    b: Math.round(waveColor.b * f),
-                    alpha: 0.95
-                };
-            } else if (dist < 0.75) {
-                // Amber/color tail falloff
-                const f = 1.0 - (dist - 0.40) / 0.35;
-                return {
-                    r: Math.round(waveColor.r * f * 0.75),
-                    g: Math.round(waveColor.g * f * 0.75),
-                    b: Math.round(waveColor.b * f * 0.75),
-                    alpha: f * 0.75
+                    r: Math.round(waveColor.r * decay),
+                    g: Math.round(waveColor.g * decay),
+                    b: Math.round(waveColor.b * decay),
+                    alpha: Math.max(0.0, decay * 0.95)
                 };
             } else {
                 return { r: 0, g: 0, b: 0, alpha: 0.0 };
             }
         }
         
-        // 3. 2.0s – 3.0s (1s): Wave in reverse from float 7 to float 1 over 1s (same standard color as forward wave!)
+        // 3. 2.0s – 3.0s (1s): Wave in reverse from float 7 to float 1 over 1s (same standard color as forward wave)
+        // With trail of ~2 shirts of decreasing brightness of that color
         if (t < 3.0) {
             const p = t - 2.0; // 0.0 to 1.0
-            const sweepPos = (1.0 - p) * 7.0; // 7.0 down to 0.0
+            const sweepPos = 6.7 - p * 7.0;
             const ledNormX = (typeof led.x === 'number') ? led.x : (ledIndex / Math.max(1, totalLeds));
             const globalPos = runnerIndex + ledNormX;
-            const dist = Math.abs(globalPos - sweepPos);
+            const delta = globalPos - sweepPos;
 
-            if (dist < 0.15) {
-                // White-hot core with tint of wave color
+            if (delta < -0.35) {
+                return { r: 0, g: 0, b: 0, alpha: 0.0 };
+            } else if (delta < 0.0) {
+                const fRise = (delta + 0.35) / 0.35;
                 return {
-                    r: Math.min(255, Math.round(255 * 0.82 + waveColor.r * 0.18)),
-                    g: Math.min(255, Math.round(255 * 0.82 + waveColor.g * 0.18)),
-                    b: Math.min(255, Math.round(255 * 0.82 + waveColor.b * 0.18)),
+                    r: Math.round(waveColor.r * fRise * 0.9),
+                    g: Math.round(waveColor.g * fRise * 0.9),
+                    b: Math.round(waveColor.b * fRise * 0.9),
+                    alpha: fRise
+                };
+            } else if (delta < 0.25) {
+                const crestMix = delta / 0.25;
+                const coreR = Math.min(255, Math.round(255 * (1.0 - 0.2 * crestMix) + waveColor.r * (0.2 * crestMix)));
+                const coreG = Math.min(255, Math.round(255 * (1.0 - 0.2 * crestMix) + waveColor.r * (0.2 * crestMix)));
+                const coreB = Math.min(255, Math.round(255 * (1.0 - 0.2 * crestMix) + waveColor.r * (0.2 * crestMix)));
+                return {
+                    r: coreR,
+                    g: coreG,
+                    b: coreB,
                     alpha: 1.0
                 };
-            } else if (dist < 0.40) {
-                // Radiant wave color body
-                const f = 1.0 - (dist - 0.15) / 0.25 * 0.22;
+            } else if (delta < 2.25) {
+                // ~2-shirt trail of decreasing brightness of that color
+                const trailFraction = (delta - 0.25) / 2.0;
+                const decay = Math.pow(Math.max(0, 1.0 - trailFraction), 1.35);
                 return {
-                    r: Math.round(waveColor.r * f),
-                    g: Math.round(waveColor.g * f),
-                    b: Math.round(waveColor.b * f),
-                    alpha: 0.95
-                };
-            } else if (dist < 0.75) {
-                // Tail falloff
-                const f = 1.0 - (dist - 0.40) / 0.35;
-                return {
-                    r: Math.round(waveColor.r * f * 0.75),
-                    g: Math.round(waveColor.g * f * 0.75),
-                    b: Math.round(waveColor.b * f * 0.75),
-                    alpha: f * 0.75
+                    r: Math.round(waveColor.r * decay),
+                    g: Math.round(waveColor.g * decay),
+                    b: Math.round(waveColor.b * decay),
+                    alpha: Math.max(0.0, decay * 0.95)
                 };
             } else {
                 return { r: 0, g: 0, b: 0, alpha: 0.0 };
             }
         }
         
-        // 4. 3.0s – 5.0s (2s): Sparkle storm across all 7 shirts for 2 seconds
-        if (t < 5.0) {
+        // 4. 3.0s – 8.0s (5s): Light all LEDs the same color as the wave, and slowly pulse for 5 seconds
+        if (t < 8.0) {
+            const tau = t - 3.0; // 0.0 to 5.0s
+            // Complete exactly 3 slow majestic breath pulses over the 5-second duration
+            const breath = 0.5 + 0.5 * Math.sin((tau / 5.0) * Math.PI * 6.0 - Math.PI * 0.5);
+            // Minimum glow at 0.28 to keep shirts glowing majestically, peaking at 1.0
+            const intensity = 0.28 + 0.72 * breath;
+            // Near peak of breath, add incandescent white flare
+            const boost = breath > 0.82 ? Math.round((breath - 0.82) / 0.18 * 60) : 0;
+            return {
+                r: Math.min(255, Math.round(waveColor.r * intensity + boost)),
+                g: Math.min(255, Math.round(waveColor.g * intensity + boost)),
+                b: Math.min(255, Math.round(waveColor.b * intensity + boost)),
+                alpha: Math.max(0.35, intensity)
+            };
+        }
+        
+        // 5. 8.0s – 10.0s (2s): Sparkle storm with a combination of that color and white across all 7 shirts
+        if (t < 10.0) {
             const frameBucket = Math.floor(timeMs / 45);
             const hash = Math.sin(runnerIndex * 43.17 + ledIndex * 93.31 + frameBucket * 19.73) * 43758.5453;
             const rnd = hash - Math.floor(hash);
-            if (rnd > 0.62) {
-                const isWhite = rnd > 0.86;
-                return isWhite ? { r: 255, g: 255, b: 255, alpha: 1.0 } : { r: 255, g: 215, b: 25, alpha: 0.95 };
-            } else if (rnd > 0.35) {
-                return { r: 255, g: 165, b: 0, alpha: 0.75 };
+            
+            if (rnd > 0.72) {
+                // Brilliant Starlight White sparkle
+                return { r: 255, g: 255, b: 255, alpha: 1.0 };
+            } else if (rnd > 0.40) {
+                // Pure vibrant wave color sparkle
+                return { r: waveColor.r, g: waveColor.g, b: waveColor.b, alpha: 0.98 };
+            } else if (rnd > 0.18) {
+                // Pastel blend of wave color and white
+                return {
+                    r: Math.min(255, Math.round(waveColor.r * 0.55 + 255 * 0.45)),
+                    g: Math.min(255, Math.round(waveColor.g * 0.55 + 255 * 0.45)),
+                    b: Math.min(255, Math.round(waveColor.b * 0.55 + 255 * 0.45)),
+                    alpha: 0.88
+                };
             } else {
-                const shim = 0.22 + 0.32 * Math.sin((timeMs * 0.014) + ledIndex * 0.8 + runnerIndex * 1.5);
-                return { r: Math.round(255 * shim), g: Math.round(190 * shim), b: Math.round(25 * shim), alpha: Math.max(0.15, shim) };
+                // Soft underlying wave color shimmer
+                const shim = 0.22 + 0.32 * Math.sin((timeMs * 0.015) + ledIndex * 0.8 + runnerIndex * 1.5);
+                return {
+                    r: Math.round(waveColor.r * shim),
+                    g: Math.round(waveColor.g * shim),
+                    b: Math.round(waveColor.b * shim),
+                    alpha: Math.max(0.18, shim)
+                };
             }
         }
         
-        // 5. 5.0s – 6.0s (1s): Off for 1 second (totally black)
-        if (t < 6.0) {
+        // 6. 10.0s – 11.0s (1s): Off for 1 second (totally black)
+        if (t < 11.0) {
             return { r: 0, g: 0, b: 0, alpha: 0.0 };
         }
         
-        // 6. 6.0s – 15.0s (9s): Back to individual shirt programs
+        // 7. 11.0s – 20.0s (9s): Back to individual shirt programs
         const pattern = (presetData && presetData.settings && presetData.settings.pattern) || 'steady_sparkle';
         const bpm = (presetData && presetData.settings && presetData.settings.speedBpm) || 120;
         const groups = (presetData && presetData.animationGroups) || [];
@@ -2157,23 +2203,28 @@ function renderFleetView(timeMs) {
     const activeFloatIndex = Math.floor(masterWaveTime / runnerDuration);
     const waveProgress = (masterWaveTime % runnerDuration) / runnerDuration;
 
-    // 15s Choreographed Parade Routine Timing
-    const tRoutine = (timeMs % 15000) / 1000.0;
+    // 20s Choreographed Parade Routine Timing
+    const tRoutine = (timeMs % 20000) / 1000.0;
     const waveColor = getFleetRoutineWaveColor(timeMs);
     let routineActiveFloat = -1;
+    let isPulsePhase = false;
     let isSparkleStorm = false;
     let isBlackout = false;
 
-    if (fleetSyncMode === 'parade_15s') {
+    const isParadeRoutine = (fleetSyncMode === 'parade_20s' || fleetSyncMode === 'parade_15s');
+
+    if (isParadeRoutine) {
         if (tRoutine < 1.0) {
             isBlackout = true;
         } else if (tRoutine < 2.0) {
             routineActiveFloat = Math.min(6, Math.max(0, Math.floor((tRoutine - 1.0) * 7.0)));
         } else if (tRoutine < 3.0) {
             routineActiveFloat = Math.min(6, Math.max(0, Math.floor((1.0 - (tRoutine - 2.0)) * 7.0)));
-        } else if (tRoutine < 5.0) {
+        } else if (tRoutine < 8.0) {
+            isPulsePhase = true;
+        } else if (tRoutine < 10.0) {
             isSparkleStorm = true;
-        } else if (tRoutine < 6.0) {
+        } else if (tRoutine < 11.0) {
             isBlackout = true;
         }
 
@@ -2183,10 +2234,11 @@ function renderFleetView(timeMs) {
             let label = "Off";
             if (tRoutine >= 1.0 && tRoutine < 2.0) label = `Wave 1➔7`;
             else if (tRoutine >= 2.0 && tRoutine < 3.0) label = `Wave 7➔1`;
-            else if (tRoutine >= 3.0 && tRoutine < 5.0) label = "Sparkle";
-            else if (tRoutine >= 5.0 && tRoutine < 6.0) label = "Off";
-            else if (tRoutine >= 6.0) label = "Programs";
-            badge.textContent = `${label} (${tRoutine.toFixed(1)}s / 15.0s)`;
+            else if (tRoutine >= 3.0 && tRoutine < 8.0) label = "Pulse 5s";
+            else if (tRoutine >= 8.0 && tRoutine < 10.0) label = "Sparkle";
+            else if (tRoutine >= 10.0 && tRoutine < 11.0) label = "Off";
+            else if (tRoutine >= 11.0) label = "Programs";
+            badge.textContent = `${label} (${tRoutine.toFixed(1)}s / 20.0s)`;
         }
 
         // Keep sidebar current cycle wave color badge synchronized
@@ -2206,18 +2258,19 @@ function renderFleetView(timeMs) {
     ctx.fillText("MAIN STREET ELECTRICAL PARADE — 7-RUNNER FLEET LINEUP", w * 0.5, h * 0.08);
 
     let modeText = "🌊 ESP-NOW Traveling Wave Mode (Cycle: " + (fleetWaveCycleDurationMs / 1000).toFixed(1) + "s)";
-    if (fleetSyncMode === 'parade_15s') {
+    if (isParadeRoutine) {
         let phaseStr = "";
         if (tRoutine < 1.0) phaseStr = "🌑 Phase 1: Blackout (Off)";
-        else if (tRoutine < 2.0) phaseStr = `🌊 Phase 2: Forward Wave 1➔7 [${waveColor.name}]`;
-        else if (tRoutine < 3.0) phaseStr = `🌊 Phase 3: Reverse Wave 7➔1 [${waveColor.name}]`;
-        else if (tRoutine < 5.0) phaseStr = "✨ Phase 4: Sparkle Storm (All 7 Shirts)";
-        else if (tRoutine < 6.0) phaseStr = "🌑 Phase 5: Blackout (Off)";
+        else if (tRoutine < 2.0) phaseStr = `🌊 Phase 2: Forward Wave 1➔7 [${waveColor.name}] (2-Shirt Trail)`;
+        else if (tRoutine < 3.0) phaseStr = `🌊 Phase 3: Reverse Wave 7➔1 [${waveColor.name}] (2-Shirt Trail)`;
+        else if (tRoutine < 8.0) phaseStr = `💓 Phase 4: Synchronized Pulse [${waveColor.name}] (5s Majestic Breath)`;
+        else if (tRoutine < 10.0) phaseStr = `✨ Phase 5: Sparkle Storm [${waveColor.name} + White]`;
+        else if (tRoutine < 11.0) phaseStr = "🌑 Phase 6: Blackout (Off)";
         else {
-            const nextWaveCol = getFleetRoutineWaveColor(timeMs + 15000);
-            phaseStr = `🎪 Phase 6: Individual Float Programs (Next wave: ${nextWaveCol.name})`;
+            const nextWaveCol = getFleetRoutineWaveColor(timeMs + 20000);
+            phaseStr = `🎪 Phase 7: Individual Float Programs (Next wave: ${nextWaveCol.name})`;
         }
-        modeText = `👑 15s Parade Routine: ${phaseStr} (${tRoutine.toFixed(1)}s / 15.0s)`;
+        modeText = `👑 20s Parade Routine: ${phaseStr} (${tRoutine.toFixed(1)}s / 20.0s)`;
     } else if (fleetSyncMode === 'free') {
         modeText = "⚡ Autonomous Free-Run Mode (Individual Presets & Animation Groups)";
     } else if (fleetSyncMode === 'show') {
@@ -2245,7 +2298,7 @@ function renderFleetView(timeMs) {
         const shirtX = marginX + i * slotW + (slotW - shirtW) / 2;
         const floatData = fleetRunners[i] || DEFAULT_FLEET_ROSTER[i];
         const isCurrentWaveFloat = (fleetSyncMode === 'wave' && i === activeFloatIndex) ||
-                                   (fleetSyncMode === 'parade_15s' && i === routineActiveFloat);
+                                   (isParadeRoutine && i === routineActiveFloat);
         const isHovered = (fleetHoveredRunner === i);
         const isSelected = (fleetSelectedRunner === i);
 
@@ -2253,7 +2306,7 @@ function renderFleetView(timeMs) {
         const pData = fleetPresetCache[floatData.preset] || null;
 
         // 1. Draw Runner Bib Number Badge Above Shirt
-        const activeBibCol = (fleetSyncMode === 'parade_15s') ? waveColor.hex : '#ffc107';
+        const activeBibCol = isParadeRoutine ? waveColor.hex : '#ffc107';
         ctx.fillStyle = isCurrentWaveFloat ? activeBibCol : (isSelected ? '#58a6ff' : '#8b949e');
         ctx.font = 'bold 11px monospace';
         ctx.textAlign = 'center';
@@ -2297,7 +2350,7 @@ function renderFleetView(timeMs) {
 
                 if (col.alpha > 0.02 && (col.r > 0 || col.g > 0 || col.b > 0)) {
                     // Bulb outer halo glow
-                    if (isCurrentWaveFloat || isSparkleStorm) {
+                    if (isCurrentWaveFloat || isPulsePhase || isSparkleStorm) {
                         ctx.beginPath();
                         ctx.arc(lx, ly, 4.2, 0, Math.PI * 2);
                         ctx.fillStyle = `rgba(${col.r}, ${col.g}, ${col.b}, 0.28)`;
@@ -2306,7 +2359,7 @@ function renderFleetView(timeMs) {
 
                     // Core bulb dot
                     ctx.beginPath();
-                    ctx.arc(lx, ly, (isCurrentWaveFloat || isSparkleStorm) ? 2.5 : 1.7, 0, Math.PI * 2);
+                    ctx.arc(lx, ly, (isCurrentWaveFloat || isPulsePhase || isSparkleStorm) ? 2.5 : 1.7, 0, Math.PI * 2);
                     ctx.fillStyle = `rgba(${col.r}, ${col.g}, ${col.b}, ${col.alpha || 1})`;
                     ctx.fill();
                 } else {
@@ -2333,7 +2386,7 @@ function renderFleetView(timeMs) {
 
                 if (col.alpha > 0.02 && (col.r > 0 || col.g > 0 || col.b > 0)) {
                     ctx.beginPath();
-                    ctx.arc(lx, ly, isCurrentWaveFloat ? 3.2 : 2.0, 0, Math.PI * 2);
+                    ctx.arc(lx, ly, (isCurrentWaveFloat || isPulsePhase || isSparkleStorm) ? 3.2 : 2.0, 0, Math.PI * 2);
                     ctx.fillStyle = `rgba(${col.r}, ${col.g}, ${col.b}, ${col.alpha || 1})`;
                     ctx.fill();
                 } else {
@@ -2376,9 +2429,9 @@ function renderFleetView(timeMs) {
         ctx.font = '9px sans-serif';
         ctx.fillText(floatData.tag, shirtX + shirtW * 0.5, shirtY + shirtH + 80);
 
-        // 8. Highlight Frame (Active Wave, Sparkle Storm, Hovered, or Selected)
+        // 8. Highlight Frame (Active Wave, Pulse Phase, Sparkle Storm, Hovered, or Selected)
         if (isCurrentWaveFloat) {
-            const frameCol = (fleetSyncMode === 'parade_15s') ? waveColor.hex : '#ffc107';
+            const frameCol = isParadeRoutine ? waveColor.hex : '#ffc107';
             ctx.save();
             ctx.strokeStyle = frameCol;
             ctx.lineWidth = 2.2;
@@ -2386,12 +2439,23 @@ function renderFleetView(timeMs) {
             ctx.shadowBlur = 12;
             ctx.strokeRect(shirtX - 4, shirtY - 26, shirtW + 8, shirtH + 115);
             ctx.restore();
+        } else if (isPulsePhase) {
+            const tau = tRoutine - 3.0;
+            const breath = 0.5 + 0.5 * Math.sin((tau / 5.0) * Math.PI * 6.0 - Math.PI * 0.5);
+            ctx.save();
+            ctx.strokeStyle = waveColor.hex;
+            ctx.lineWidth = 1.4 + breath * 1.4;
+            ctx.shadowColor = waveColor.hex;
+            ctx.shadowBlur = 4 + breath * 8;
+            ctx.globalAlpha = 0.4 + breath * 0.5;
+            ctx.strokeRect(shirtX - 4, shirtY - 26, shirtW + 8, shirtH + 115);
+            ctx.restore();
         } else if (isSparkleStorm) {
             ctx.save();
-            ctx.strokeStyle = 'rgba(255, 193, 7, 0.45)';
+            ctx.strokeStyle = waveColor.hex;
             ctx.lineWidth = 1.5;
-            ctx.shadowColor = 'rgba(255, 193, 7, 0.3)';
-            ctx.shadowBlur = 6;
+            ctx.shadowColor = 'rgba(255, 255, 255, 0.6)';
+            ctx.shadowBlur = 8;
             ctx.strokeRect(shirtX - 4, shirtY - 26, shirtW + 8, shirtH + 115);
             ctx.restore();
         } else if (isSelected) {
@@ -2690,6 +2754,7 @@ function resetFleetLineupDefaults() {
 
 // Set Fleet Synchronization Mode
 function setFleetSyncMode(mode) {
+    if (mode === 'parade_15s') mode = 'parade_20s'; // Upgrade legacy 15s to 20s routine
     fleetSyncMode = mode;
     const paradeBtn = document.getElementById('fleetModeParadeBtn');
     const waveBtn = document.getElementById('fleetModeWaveBtn');
@@ -2698,12 +2763,13 @@ function setFleetSyncMode(mode) {
     const speedGroup = document.getElementById('fleetWaveSpeedGroup');
     const routineInfoBox = document.getElementById('fleetRoutineInfoBox');
 
-    if (paradeBtn) paradeBtn.classList.toggle('primary', mode === 'parade_15s');
+    const isParade = (mode === 'parade_20s' || mode === 'parade_15s');
+    if (paradeBtn) paradeBtn.classList.toggle('primary', isParade);
     if (waveBtn) waveBtn.classList.toggle('primary', mode === 'wave');
     if (freeBtn) freeBtn.classList.toggle('primary', mode === 'free');
     if (showBtn) showBtn.classList.toggle('primary', mode === 'show');
     if (speedGroup) speedGroup.style.display = (mode === 'wave') ? 'block' : 'none';
-    if (routineInfoBox) routineInfoBox.style.display = (mode === 'parade_15s') ? 'block' : 'none';
+    if (routineInfoBox) routineInfoBox.style.display = isParade ? 'block' : 'none';
 
     saveFleetLineupToStorage();
 }
@@ -2730,9 +2796,9 @@ async function loadFleetLineupFromStorage() {
     try {
         const savedMode = localStorage.getItem('msep_fleet_sync_mode');
         if (savedMode) {
-            setFleetSyncMode(savedMode);
+            setFleetSyncMode(savedMode === 'parade_15s' ? 'parade_20s' : savedMode);
         } else {
-            setFleetSyncMode('parade_15s');
+            setFleetSyncMode('parade_20s');
         }
 
         const savedWave = localStorage.getItem('msep_fleet_wave_duration');
@@ -2781,7 +2847,7 @@ function initFleetManager() {
     const resetBtn = document.getElementById('fleetResetDefaultsBtn');
     const saveBtn = document.getElementById('fleetSaveConfigBtn');
 
-    if (paradeBtn) paradeBtn.addEventListener('click', () => setFleetSyncMode('parade_15s'));
+    if (paradeBtn) paradeBtn.addEventListener('click', () => setFleetSyncMode('parade_20s'));
     if (waveBtn) waveBtn.addEventListener('click', () => setFleetSyncMode('wave'));
     if (freeBtn) freeBtn.addEventListener('click', () => setFleetSyncMode('free'));
     if (showBtn) showBtn.addEventListener('click', () => setFleetSyncMode('show'));
