@@ -2410,12 +2410,14 @@ function startFleetShow() {
     fleetShowLastTimestamp = performance.now();
     fleetShowCycleIndex++;
     updateFleetShowUI();
+    updateTimelinePlayBtn();
 }
 
 function stopFleetShow() {
     fleetShowActive = false;
     fleetShowElapsedSec = 0.0;
     updateFleetShowUI();
+    updateTimelinePlayBtn();
 }
 
 // Keep 30-Second Fleet Show Timeline and UI Synchronized
@@ -2506,9 +2508,17 @@ function updateFleetShowUI() {
         });
     }
 
-    // Keep Master Timeline scrubber synchronized if in Fleet View
+    // Highlight active block in Master Timeline track
+    const timelineBlocks = document.querySelectorAll('.timeline-layer-track .cue-block[data-fleet-block-idx]');
+    timelineBlocks.forEach(blk => {
+        const idx = parseInt(blk.getAttribute('data-fleet-block-idx'));
+        blk.classList.toggle('active', fleetShowActive && activeInfo && activeInfo.index === idx);
+    });
+
+    // Keep Master Timeline scrubber & transport synchronized if in Fleet View
     if (currentView === 'fleet') {
         updateTimelineScrubberUI();
+        updateTimelinePlayBtn();
     }
 }
 
@@ -2970,6 +2980,19 @@ async function editRunnerInSingleView(slot) {
         const runner = fleetRunners[slot];
         if (!runner) return;
 
+        // If fleet show is active, stop it before switching to single view
+        if (fleetShowActive) {
+            stopFleetShow();
+        }
+
+        // Switch view to Single Shirt FIRST before loading preset data
+        currentView = 'single';
+        document.getElementById('singleViewBtn')?.classList.add('active');
+        document.getElementById('fleetViewBtn')?.classList.remove('active');
+        const zt = document.querySelector('.zoom-toolbar');
+        if (zt) zt.style.display = 'flex';
+        resetZoom();
+
         let pData = await getPresetDataForRunner(runner);
         if (!pData) {
             // Fallback profile if server unavailable
@@ -2985,21 +3008,13 @@ async function editRunnerInSingleView(slot) {
             };
         }
 
-        // Apply preset to main editor
+        // Apply preset to main editor (now runs with currentView === 'single' so individual timeline loads)
         applyProfileData(pData);
 
         // If preset has no leds, generate 100 on graphic
         if (!leds || leds.length === 0) {
             scatterLedsOnGraphic(100, true);
         }
-
-        // Switch view to Single Shirt
-        currentView = 'single';
-        document.getElementById('singleViewBtn')?.classList.add('active');
-        document.getElementById('fleetViewBtn')?.classList.remove('active');
-        const zt = document.querySelector('.zoom-toolbar');
-        if (zt) zt.style.display = 'flex';
-        resetZoom();
 
         // Switch sidebar to tabLayout
         switchSidebarTab('tabLayout');
@@ -3473,11 +3488,11 @@ function initFleetManager() {
         });
     }
 
-    // 2. Global Hotkey: Spacebar or 'F' triggers or stops Fleet Show early
+    // 2. Global Hotkey: 'F' triggers or stops Fleet Show early
     window.addEventListener('keydown', (e) => {
         const activeTag = document.activeElement ? document.activeElement.tagName.toLowerCase() : '';
         if (activeTag === 'input' || activeTag === 'textarea' || activeTag === 'select') return;
-        if (e.key === 'f' || e.key === 'F' || (e.code === 'Space' && currentView === 'fleet')) {
+        if (e.key === 'f' || e.key === 'F') {
             e.preventDefault();
             triggerFleetShowToggle();
         }
@@ -4822,7 +4837,9 @@ function updateSequenceTimeline(now) {
                 updateTimelinePlayBtn();
             }
         }
-        updateTimelineScrubberUI();
+        if (currentView === 'single') {
+            updateTimelineScrubberUI();
+        }
     }
 }
 
@@ -4833,9 +4850,12 @@ function updateTimelineScrubberUI() {
     const needle = document.getElementById('timelinePlayheadNeedle');
     const layersBadge = document.getElementById('timelineActiveLayersBadge');
     const cuesBadge = document.getElementById('timelineActiveCuesBadge');
+    const modeBtn = document.getElementById('timelineModeToggle');
+    const loopBtn = document.getElementById('timelineLoopToggle');
+    const labelCol = document.querySelector('.timeline-track-label-col span');
 
-    if (currentView === 'fleet' && activeFleetShow) {
-        const totalDur = activeFleetShow.loopDuration || 30.0;
+    if (currentView === 'fleet') {
+        const totalDur = (activeFleetShow && activeFleetShow.loopDuration) || 30.0;
         if (scrubber) {
             scrubber.max = totalDur;
             scrubber.value = fleetShowElapsedSec;
@@ -4846,11 +4866,46 @@ function updateTimelineScrubberUI() {
             const pct = Math.max(0, Math.min(1, fleetShowElapsedSec / totalDur));
             needle.style.left = `calc(115px + (100% - 115px) * ${pct})`;
         }
-        if (layersBadge) layersBadge.textContent = '1 Track';
-        if (cuesBadge) cuesBadge.textContent = `${(activeFleetShow.blocks || []).length} Blocks`;
+        if (labelCol) labelCol.textContent = 'FLEET SHOW';
+        if (layersBadge) {
+            const blockCount = (activeFleetShow && activeFleetShow.blocks) ? activeFleetShow.blocks.length : 0;
+            layersBadge.textContent = `👑 Fleet Show (${totalDur.toFixed(0)}s)`;
+        }
+        if (cuesBadge) {
+            const activeInfo = getActiveFleetBlock(fleetShowElapsedSec);
+            const activeBlock = activeInfo ? activeInfo.block : null;
+            if (fleetShowActive && activeBlock) {
+                cuesBadge.textContent = `Block #${activeInfo.index + 1}: ${activeBlock.name} (${activeBlock.startTime.toFixed(1)}s – ${(activeBlock.startTime + activeBlock.duration).toFixed(1)}s)`;
+                cuesBadge.style.color = '#ffc107';
+            } else {
+                cuesBadge.textContent = `Ready (${totalDur.toFixed(0)}s Standby)`;
+                cuesBadge.style.color = '#8b949e';
+            }
+        }
+        if (modeBtn) {
+            modeBtn.style.display = '';
+            modeBtn.textContent = fleetShowActive ? '👑 Fleet Show: ON' : '⚡ Baseline: ON';
+            modeBtn.title = 'Click to activate or stop 30s synchronized fleet choreography';
+            modeBtn.classList.toggle('active', fleetShowActive);
+        }
+        if (loopBtn) {
+            loopBtn.style.display = 'none';
+        }
         return;
     }
 
+    // Single Shirt View:
+    if (labelCol) labelCol.textContent = 'TIMELINE';
+    if (loopBtn) {
+        loopBtn.style.display = '';
+        loopBtn.classList.toggle('active', sequenceLoop);
+    }
+    if (modeBtn) {
+        modeBtn.style.display = '';
+        modeBtn.textContent = sequenceMode ? '🎬 Sequence: ON' : '🎬 Sequence: OFF';
+        modeBtn.title = 'Toggle between Free-Run Pattern and Show Sequence';
+        modeBtn.classList.toggle('active', sequenceMode);
+    }
     if (scrubber) {
         scrubber.max = sequenceLoopDuration;
         scrubber.value = sequenceTime;
@@ -4907,7 +4962,12 @@ function updateTimelineScrubberUI() {
 
 function updateTimelinePlayBtn() {
     const btn = document.getElementById('timelinePlayBtn');
-    if (btn) {
+    if (!btn) return;
+
+    if (currentView === 'fleet') {
+        btn.textContent = fleetShowActive ? '⏸' : '👑';
+        btn.title = fleetShowActive ? 'Stop Fleet Show (Spacebar)' : 'Activate Fleet Show (Spacebar)';
+    } else {
         btn.textContent = sequencePlaying ? '⏸' : '▶';
         btn.title = sequencePlaying ? 'Pause Sequence (Spacebar)' : 'Play Sequence (Spacebar)';
     }
@@ -4975,7 +5035,20 @@ function toggleSequenceMode(forceState) {
 function renderFleetShowTimelineLayers() {
     const container = document.getElementById('timelineLayersContainer');
     const marksContainer = document.getElementById('timelineRulerMarks');
-    if (!container || !activeFleetShow) return;
+    const labelCol = document.querySelector('.timeline-track-label-col span');
+    if (!container) return;
+
+    if (labelCol) labelCol.textContent = 'FLEET SHOW';
+
+    if (!activeFleetShow) {
+        container.innerHTML = `
+            <div style="font-size: 11px; color: var(--text-muted); font-style: italic; padding: 6px 12px; text-align: center; border: 1px dashed #30363d; border-radius: 4px;">
+                Loading Fleet Show Choreography...
+            </div>
+        `;
+        updateTimelineScrubberUI();
+        return;
+    }
 
     const totalDur = activeFleetShow.loopDuration || 30.0;
 
@@ -5008,16 +5081,22 @@ function renderFleetShowTimelineLayers() {
     // 2. Render Choreography Track Row
     const row = document.createElement('div');
     row.className = 'timeline-layer-row';
+    row.style.minHeight = '30px';
 
-    const header = document.createElement('div');
-    header.className = 'timeline-layer-header';
-    header.innerHTML = `
-        <span class="timeline-layer-name" title="7-Shirt Synchronized Fleet Show Choreography">👑 Fleet Show (${totalDur.toFixed(0)}s)</span>
-        <span class="timeline-layer-badge">${blocks.length}</span>
+    const label = document.createElement('div');
+    label.className = 'timeline-layer-label';
+    label.style.minHeight = '30px';
+    label.style.display = 'flex';
+    label.style.alignItems = 'center';
+    label.style.justifyContent = 'space-between';
+    label.innerHTML = `
+        <span class="timeline-layer-name" title="7-Shirt Synchronized Fleet Show Choreography" style="font-weight: 600; color: #ffc107; font-size: 11px;">👑 Fleet Show</span>
+        <span class="timeline-layer-badge" style="background: rgba(255, 193, 7, 0.2); color: #ffc107; font-size: 9px; padding: 1px 4px; border-radius: 8px;">${blocks.length}</span>
     `;
 
     const track = document.createElement('div');
     track.className = 'timeline-layer-track';
+    track.style.minHeight = '30px';
 
     track.addEventListener('click', (e) => {
         const rect = track.getBoundingClientRect();
@@ -5027,6 +5106,8 @@ function renderFleetShowTimelineLayers() {
         updateFleetShowUI();
     });
 
+    const activeInfo = getActiveFleetBlock(fleetShowElapsedSec);
+
     blocks.forEach((blk, idx) => {
         const def = FLEET_BLOCK_DEFS[blk.type] || { icon: "✨", name: blk.name };
         const leftPct = ((blk.startTime || 0) / totalDur) * 100;
@@ -5034,15 +5115,21 @@ function renderFleetShowTimelineLayers() {
 
         const blockElem = document.createElement('div');
         blockElem.className = 'cue-block group-layer';
+        blockElem.setAttribute('data-fleet-block-idx', idx);
+        if (fleetShowActive && activeInfo && activeInfo.index === idx) {
+            blockElem.classList.add('active');
+        }
         blockElem.style.left = `${leftPct}%`;
         blockElem.style.width = `${widthPct}%`;
-        blockElem.style.background = 'linear-gradient(135deg, rgba(255, 193, 7, 0.3), rgba(240, 136, 62, 0.45))';
+        blockElem.style.top = '3px';
+        blockElem.style.height = '24px';
+        blockElem.style.background = 'linear-gradient(135deg, rgba(255, 193, 7, 0.35), rgba(240, 136, 62, 0.5))';
         blockElem.style.borderColor = '#ffc107';
         blockElem.title = `${blk.name} (${(blk.startTime || 0).toFixed(1)}s – ${((blk.startTime || 0) + (blk.duration || 1.0)).toFixed(1)}s)`;
 
         blockElem.innerHTML = `
             <span style="font-size: 10px; margin-right: 3px;">${def.icon}</span>
-            <span class="cue-label" style="font-size: 10px; color: #fff;">${blk.name || def.name}</span>
+            <span class="cue-label" style="font-size: 10px; color: #fff; font-weight: 500;">${blk.name || def.name}</span>
         `;
 
         blockElem.addEventListener('click', (e) => {
@@ -5054,7 +5141,7 @@ function renderFleetShowTimelineLayers() {
         track.appendChild(blockElem);
     });
 
-    row.appendChild(header);
+    row.appendChild(label);
     row.appendChild(track);
     container.appendChild(row);
 
@@ -5064,12 +5151,15 @@ function renderFleetShowTimelineLayers() {
 function renderTimelineLayers() {
     const container = document.getElementById('timelineLayersContainer');
     const marksContainer = document.getElementById('timelineRulerMarks');
+    const labelCol = document.querySelector('.timeline-track-label-col span');
     if (!container) return;
 
-    if (currentView === 'fleet' && activeFleetShow) {
+    if (currentView === 'fleet') {
         renderFleetShowTimelineLayers();
         return;
     }
+
+    if (labelCol) labelCol.textContent = 'TIMELINE';
 
     // 1. Render Dynamic Ruler Marks
     if (marksContainer) {
@@ -5645,12 +5735,25 @@ function loadDragonShowTemplate() {
 // ============================================================================
 const timelinePlayBtn = document.getElementById('timelinePlayBtn');
 if (timelinePlayBtn) {
-    timelinePlayBtn.addEventListener('click', togglePlayPause);
+    timelinePlayBtn.addEventListener('click', () => {
+        if (currentView === 'fleet') {
+            triggerFleetShowToggle();
+        } else {
+            togglePlayPause();
+        }
+    });
 }
 
 const timelineStopBtn = document.getElementById('timelineStopBtn');
 if (timelineStopBtn) {
-    timelineStopBtn.addEventListener('click', stopSequence);
+    timelineStopBtn.addEventListener('click', () => {
+        if (currentView === 'fleet') {
+            stopFleetShow();
+            showToast('⏹ Stopped Fleet Show and rewound to 0.0s');
+        } else {
+            stopSequence();
+        }
+    });
 }
 
 const timelineLoopToggle = document.getElementById('timelineLoopToggle');
@@ -5664,7 +5767,13 @@ if (timelineLoopToggle) {
 
 const timelineModeToggle = document.getElementById('timelineModeToggle');
 if (timelineModeToggle) {
-    timelineModeToggle.addEventListener('click', () => toggleSequenceMode());
+    timelineModeToggle.addEventListener('click', () => {
+        if (currentView === 'fleet') {
+            triggerFleetShowToggle();
+        } else {
+            toggleSequenceMode();
+        }
+    });
 }
 
 const toggleSequenceModeBtn = document.getElementById('toggleSequenceModeBtn');
@@ -5784,7 +5893,11 @@ window.addEventListener('keydown', (e) => {
 window.addEventListener('keyup', (e) => {
     if (e.code === 'Space') {
         if (!isPanning && !hasMovedSignificantly && !['INPUT', 'SELECT', 'TEXTAREA'].includes(document.activeElement?.tagName)) {
-            togglePlayPause();
+            if (currentView === 'fleet') {
+                triggerFleetShowToggle();
+            } else {
+                togglePlayPause();
+            }
         }
         isSpacePressed = false;
         canvas.style.cursor = hoveredLed !== null ? 'pointer' : 'default';
@@ -6483,6 +6596,10 @@ document.getElementById('singleViewBtn').addEventListener('click', () => {
     const activeTab = document.querySelector('.sidebar-tab-btn.active')?.getAttribute('data-tab');
     if (activeTab === 'tabFleet') {
         switchSidebarTab('tabLayout');
+    } else {
+        renderTimelineLayers();
+        updateTimelinePlayBtn();
+        updateTimelineScrubberUI();
     }
 });
 
@@ -6493,7 +6610,6 @@ document.getElementById('fleetViewBtn').addEventListener('click', () => {
     const zt = document.querySelector('.zoom-toolbar');
     if (zt) zt.style.display = 'none';
     switchSidebarTab('tabFleet');
-    renderFleetCards();
 });
 
 // ============================================================================
@@ -9533,23 +9649,24 @@ function switchSidebarTab(targetTabId) {
 
     // Auto-synchronize Canvas View
     if (targetTabId === 'tabFleet') {
-        if (currentView !== 'fleet') {
-            currentView = 'fleet';
-            document.getElementById('fleetViewBtn')?.classList.add('active');
-            document.getElementById('singleViewBtn')?.classList.remove('active');
-            const zt = document.querySelector('.zoom-toolbar');
-            if (zt) zt.style.display = 'none';
-        }
+        currentView = 'fleet';
+        document.getElementById('fleetViewBtn')?.classList.add('active');
+        document.getElementById('singleViewBtn')?.classList.remove('active');
+        const zt = document.querySelector('.zoom-toolbar');
+        if (zt) zt.style.display = 'none';
         renderFleetCards();
     } else {
-        if (currentView === 'fleet') {
-            currentView = 'single';
-            document.getElementById('singleViewBtn')?.classList.add('active');
-            document.getElementById('fleetViewBtn')?.classList.remove('active');
-            const zt = document.querySelector('.zoom-toolbar');
-            if (zt) zt.style.display = 'flex';
-        }
+        currentView = 'single';
+        document.getElementById('singleViewBtn')?.classList.add('active');
+        document.getElementById('fleetViewBtn')?.classList.remove('active');
+        const zt = document.querySelector('.zoom-toolbar');
+        if (zt) zt.style.display = 'flex';
     }
+
+    // Master Timeline Synchronization: Individual shirt show vs Fleet show
+    renderTimelineLayers();
+    updateTimelinePlayBtn();
+    updateTimelineScrubberUI();
 }
 window.switchSidebarTab = switchSidebarTab;
 

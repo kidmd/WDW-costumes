@@ -93,6 +93,28 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### Entry: Dynamic Scoping of Master Timeline (Single Shirt Cue Director vs. Fleet Tab Choreography)
+* **Date:** 2026-09-26
+* **Milestone:** Milestone 5 - 7-Shirt Synchronized Fleet Show Choreography & Master Timeline View Scoping
+* **Status:** Operational & Verified in Web Simulator.
+* **Notes:**
+  * **Master Timeline Strict Separation:**
+    - Single Shirt View (`currentView === 'single'`): Timeline bar displays the individual float's 90-second Cue Director sequence (0..90s ruler, `🌐 Global Float` + localized `🎡 [Group Name]` lanes, sub-lane stacking, cue block details with fade indicators, `🎬 Sequence: ON/OFF` toggle, and single-shirt transport controls).
+    - Fleet Tab View (`currentView === 'fleet'` / `tabFleet`): Timeline bar displays the synchronized 7-shirt Fleet Show choreography (0..30s ruler, Fleet Show block tracks with 14 block types, active block highlights, decimal time readouts, `FLEET SHOW` track header, and one-shot fleet transport controls).
+  * **Tab & View Synchronization Fix:**
+    - Fixed tab-switching hook in `switchSidebarTab()`: Automatically sets `currentView` and triggers `renderTimelineLayers()`, `updateTimelinePlayBtn()`, and `updateTimelineScrubberUI()` so the timeline instantly reflects the active workspace.
+    - Fixed `singleViewBtn` and `fleetViewBtn` canvas toolbar click listeners to re-render timeline tracks and transport status immediately.
+  * **Order-of-Operations Bug Fix in `editRunnerInSingleView`:**
+    - Previously, `applyProfileData(pData)` was invoked before setting `currentView = 'single'`. Because `currentView` was still `'fleet'`, `renderTimelineCueStrip()` rendered the Fleet Show timeline instead of the individual float's cues.
+    - Now, `currentView = 'single'` is assigned first (and any running fleet show is stopped), guaranteeing the individual float's cue timeline is loaded cleanly upon double-clicking any runner card or clicking "Edit in Single View".
+  * **Context-Aware Transport & Hotkeys:**
+    - `timelinePlayBtn`: Toggles single-shirt sequence in Single View (`togglePlayPause()`); triggers or stops debounced 30s fleet routine in Fleet View (`triggerFleetShowToggle()`).
+    - `timelineStopBtn`: Rewinds single-shirt sequence to 0:00 in Single View (`stopSequence()`); halts fleet show and rewinds to 0.0s in Fleet View (`stopFleetShow()`).
+    - Spacebar: Plays/pauses single sequence when in Single View; triggers/stops fleet routine when in Fleet View (preventing double-firing between keydown and keyup).
+    - `timelineModeToggle`: Shows `🎬 Sequence: ON/OFF` in Single View; displays `👑 Fleet Show: ON` / `⚡ Baseline: ON` in Fleet View.
+    - `timelineLoopToggle`: Shown in Single View (`🔁 Loop`); cleanly hidden in Fleet View to preserve one-shot execution back to baseline.
+  * **Cache-Busting:** Bumped `app.js` to `?v=16` in `simulator/index.html`.
+
 ### Entry: Fix 7-Shirt Fleet Canvas Rendering (Resolved Uncaught ReferenceError on Floats 1-6)
 * **Date:** 2026-09-25
 * **Milestone:** Milestone 5 - 7-Shirt Synchronized Fleet Show Choreography & Hardware Parity

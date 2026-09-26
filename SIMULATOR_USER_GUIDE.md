@@ -430,6 +430,29 @@ The **Master Timeline Bar** is anchored at the bottom of the canvas view and ope
 - **🔁 Loop Button:** When active (green), playback seamlessly wraps from the end back to `00:00.0`.
 - **🎬 Sequence Mode Toggle:** Toggles between **Free-Run** (single continuous baseline pattern) and **Show Sequence** (timeline-driven theatrical cue playback).
 
+### Context-Aware Master Timeline (Single Shirt vs. Fleet Tab Modes)
+The Master Timeline dynamically switches display and transport logic depending on whether you are editing a single costume or orchestrating the 7-shirt fleet:
+
+1. **Single Shirt Editing Mode (`Single View` / Tabs 1–5):**
+   - **Ruler & Duration:** 0:00 to 01:30.0 (or custom loop duration up to 120s) with formatted MM:SS.S ticks.
+   - **Multi-Layer Tracks:** Displays `🌐 Global Float` and all localized `🎡 [Group Name]` lanes with automatic sub-lane stacking for overlapping cues.
+   - **Transport Controls:**
+     - `▶` Play / `⏸` Pause: Controls the 90-second single-float show sequence (`Spacebar`).
+     - `⏹` Stop: Rewinds cue sequence to `00:00.0`.
+     - `🔁 Loop`: Toggles seamless continuous sequence looping.
+     - `🎬 Sequence: ON/OFF`: Toggles between free-run baseline pattern and multi-cue show script.
+   - **Interaction:** Clicking cue blocks seeks playhead time and highlights the corresponding cue card in the Parade Cue Director.
+
+2. **Fleet Tab Mode (`Fleet View` / Tab 6):**
+   - **Ruler & Duration:** 0.0s to 30.0s (or active fleet show duration) with decimal second ticks.
+   - **Fleet Show Choreography Track:** Displays color-coded fleet block bars with block icons (e.g. 🌊 Forward Wave, 💓 Fleet Pulse, ⛈️ Sparkle Storm) spanning all 7 costumes.
+   - **Transport Controls:**
+     - `👑` / `▶` Activate / `⏸` Stop: Triggers the one-shot 30-second synchronized fleet routine (`Spacebar` or `[F]` hotkey with 300ms debounce protection).
+     - `⏹` Stop: Immediately terminates the fleet routine early and returns all 7 shirts to their baseline programs.
+     - `👑 Fleet Show: ON / ⚡ Baseline: ON`: Context badge indicating whether the fleet routine is currently firing or running in baseline float program standby.
+     - `🔁 Loop`: Hidden during fleet playback to guarantee clean one-shot execution returning to baseline.
+   - **Interaction:** Clicking fleet blocks or dragging the scrubber seeks smoothly across the 30-second routine with real-time 7-shirt canvas preview.
+
 ### The Multi-Layer Track System (Scenario B Stacking)
 - **Dedicated Track Lanes:**
   - **Track 1 (`🌐 Global Float`):** Displays all cues affecting the whole float baseline.
