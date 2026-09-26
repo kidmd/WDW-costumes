@@ -53,29 +53,55 @@ carriageNoHorsesImg.src = 'assets/Carriage_nohorses.png';
 
 // Custom artwork image (if user uploads one or loads one from preset)
 let customArtworkImg = null;
-let currentGraphicType = 'builtin_dragon'; // 'builtin_dragon', 'cinderellas_coach', 'carriage_nohorses', or 'custom_image'
+let currentGraphicType = 'builtin_dragon'; // 'builtin_dragon', 'cinderellas_coach', 'carriage_nohorses', 'casey_jr_train', 'title_drum', 'spinning_turtle', 'spinning_snail', 'honor_america_eagle', or 'custom_image'
 let customArtworkDataUrl = null;
 
-function getActiveGraphicImg() {
-    if (currentGraphicType === 'custom_image' && customArtworkImg && customArtworkImg.complete && customArtworkImg.naturalWidth > 0) {
+// Cricut SVG Float Artwork Suite for 7-Runner Lineup
+const floatArtworkImgs = {
+    'casey_jr_train': new Image(),
+    'title_drum': new Image(),
+    'spinning_turtle': new Image(),
+    'spinning_snail': new Image(),
+    'cinderella_coach': new Image(),
+    'cinderellas_coach': new Image(),
+    'petes_dragon': new Image(),
+    'builtin_dragon': new Image(),
+    'honor_america_eagle': new Image()
+};
+floatArtworkImgs['casey_jr_train'].src = 'assets/cricut_svg/casey_jr_train.svg';
+floatArtworkImgs['title_drum'].src = 'assets/cricut_svg/title_drum.svg';
+floatArtworkImgs['spinning_turtle'].src = 'assets/cricut_svg/spinning_turtle.svg';
+floatArtworkImgs['spinning_snail'].src = 'assets/cricut_svg/spinning_snail.svg';
+floatArtworkImgs['cinderella_coach'].src = 'assets/cricut_svg/cinderella_coach.svg';
+floatArtworkImgs['cinderellas_coach'].src = 'assets/cricut_svg/cinderella_coach.svg';
+floatArtworkImgs['petes_dragon'].src = 'assets/cricut_svg/petes_dragon.svg';
+floatArtworkImgs['builtin_dragon'].src = 'assets/cricut_svg/petes_dragon.svg';
+floatArtworkImgs['honor_america_eagle'].src = 'assets/cricut_svg/honor_america_eagle.svg';
+
+function getGraphicImgForType(gType) {
+    if (!gType) return defaultDragonImg;
+    if (gType === 'custom_image' && customArtworkImg && customArtworkImg.complete && customArtworkImg.naturalWidth > 0) {
         return customArtworkImg;
     }
-    if (currentGraphicType === 'cinderellas_coach') {
-        if (cinderellasCoachImg && cinderellasCoachImg.naturalWidth > 0) {
-            return cinderellasCoachImg;
-        }
-        return cinderellasCoachImg;
+    if (gType === 'cinderellas_coach' || gType === 'cinderella_coach') {
+        if (cinderellasCoachImg && cinderellasCoachImg.naturalWidth > 0) return cinderellasCoachImg;
+        return floatArtworkImgs['cinderella_coach'];
     }
-    if (currentGraphicType === 'carriage_nohorses') {
-        if (carriageNoHorsesImg && carriageNoHorsesImg.naturalWidth > 0) {
-            return carriageNoHorsesImg;
-        }
-        return carriageNoHorsesImg;
+    if (gType === 'carriage_nohorses') {
+        if (carriageNoHorsesImg && carriageNoHorsesImg.naturalWidth > 0) return carriageNoHorsesImg;
     }
-    if (defaultDragonLoaded && defaultDragonImg.complete && defaultDragonImg.naturalWidth > 0) {
-        return defaultDragonImg;
+    if (gType === 'builtin_dragon' || gType === 'petes_dragon') {
+        if (defaultDragonLoaded && defaultDragonImg.complete && defaultDragonImg.naturalWidth > 0) return defaultDragonImg;
+        return floatArtworkImgs['petes_dragon'];
+    }
+    if (floatArtworkImgs[gType]) {
+        return floatArtworkImgs[gType];
     }
     return null;
+}
+
+function getActiveGraphicImg() {
+    return getGraphicImgForType(currentGraphicType);
 }
 
 // Compute normalized bounds of the graphic on the athletic shirt
@@ -1786,17 +1812,168 @@ function renderSingleShirtView(timeMs) {
 }
 
 // ============================================================================
-// 7-SHIRT FLEET PARADE VIEW (NATURAL ATHELTIC PROPORTIONS)
+// 7-SHIRT FLEET PARADE VIEW & PRESET MANAGER (NATURAL ATHLETIC PROPORTIONS)
 // ============================================================================
-const FLEET_ROSTER = [
-    { num: "01", name: "The Train", tag: "CASEY JR.", color: "#e63946", accent: "Red" },
-    { num: "02", name: "Title Drum", tag: "THE DRUM", color: "#ffb703", accent: "Gold" },
-    { num: "03", name: "The Turtle", tag: "TURTLE", color: "#2ec4b6", accent: "Teal" },
-    { num: "04", name: "The Snail", tag: "SNAIL", color: "#ff007f", accent: "Pink" },
-    { num: "05", name: "Cinderella", tag: "COACH", color: "#48cae4", accent: "Cyan" },
-    { num: "06", name: "Pete's Dragon", tag: "ELLIOTT", color: "#00ff88", accent: "Green" },
-    { num: "07", name: "Flag & Eagle", tag: "HONOR AMERICA", color: "#3a86ff", accent: "Patriotic" }
+const DEFAULT_FLEET_ROSTER = [
+    { slot: 0, num: "01", name: "The Train", tag: "CASEY JR.", color: "#e63946", accent: "Red", preset: "server:casey_jr_train.json", defaultGraphic: "casey_jr_train" },
+    { slot: 1, num: "02", name: "Title Drum", tag: "THE DRUM", color: "#ffb703", accent: "Gold", preset: "server:title_drum.json", defaultGraphic: "title_drum" },
+    { slot: 2, num: "03", name: "The Turtle", tag: "TURTLE", color: "#2ec4b6", accent: "Teal", preset: "server:spinning_turtle.json", defaultGraphic: "spinning_turtle" },
+    { slot: 3, num: "04", name: "The Snail", tag: "SNAIL", color: "#ff007f", accent: "Pink", preset: "server:spinning_snail.json", defaultGraphic: "spinning_snail" },
+    { slot: 4, num: "05", name: "Cinderella", tag: "COACH", color: "#48cae4", accent: "Cyan", preset: "server:cinderellas_coach.json", defaultGraphic: "cinderella_coach" },
+    { slot: 5, num: "06", name: "Pete's Dragon", tag: "ELLIOTT", color: "#00ff88", accent: "Green", preset: "server:petes_dragon.json", defaultGraphic: "builtin_dragon" },
+    { slot: 6, num: "07", name: "Flag & Eagle", tag: "HONOR AMERICA", color: "#3a86ff", accent: "Patriotic", preset: "server:honor_america_eagle.json", defaultGraphic: "honor_america_eagle" }
 ];
+
+let fleetRunners = JSON.parse(JSON.stringify(DEFAULT_FLEET_ROSTER));
+let fleetSyncMode = 'wave'; // 'wave', 'free', or 'show'
+let fleetWaveCycleDurationMs = 7000; // 7.0s default
+let fleetHoveredRunner = -1;
+let fleetSelectedRunner = -1;
+const fleetPresetCache = {};
+
+// Asynchronously load and cache preset data for a runner
+async function getPresetDataForRunner(runner) {
+    if (!runner) return null;
+    const key = runner.preset;
+    if (!key) return null;
+    if (fleetPresetCache[key]) return fleetPresetCache[key];
+
+    if (key.startsWith('server:')) {
+        const filename = key.replace('server:', '');
+        try {
+            const res = await fetch(`/api/preset/${encodeURIComponent(filename)}`);
+            if (res.ok) {
+                const data = await res.json();
+                fleetPresetCache[key] = data;
+                return data;
+            }
+        } catch (e) {
+            console.warn("Could not fetch server preset", filename, e);
+        }
+    } else if (key.startsWith('local:')) {
+        const name = key.replace('local:', '');
+        try {
+            const localProfiles = JSON.parse(localStorage.getItem('msep_custom_presets') || '{}');
+            if (localProfiles[name]) {
+                fleetPresetCache[key] = localProfiles[name];
+                return localProfiles[name];
+            }
+        } catch (e) {}
+    } else if (key === 'current_editor') {
+        return {
+            name: "Current Editor Preset",
+            ledCount: leds.length,
+            leds: leds,
+            graphicType: currentGraphicType,
+            customArtworkDataUrl: customArtworkDataUrl,
+            animationGroups: animationGroups,
+            settings: { ...params, pattern: activePattern },
+            sequence: { loopDuration: sequenceLoopDuration, cues: sequenceCues }
+        };
+    }
+    return null;
+}
+
+// Compute dynamic color for an individual LED on one of the 7 runners
+function computeRunnerLedColor(runnerIndex, runner, presetData, ledIndex, totalLeds, timeMs, waveProgress, isCurrentWave) {
+    const ledsArr = (presetData && presetData.leds) ? presetData.leds : [];
+    const led = ledsArr[ledIndex] || {};
+    const hasColor = !!led.color;
+    const c = hasColor ? led.color : { r: 255, g: 255, b: 255 };
+
+    if (fleetSyncMode === 'wave') {
+        if (isCurrentWave) {
+            const ledNorm = ledIndex / Math.max(1, totalLeds);
+            const dist = Math.abs(ledNorm - waveProgress);
+            if (dist < 0.14) {
+                return { r: 255, g: 255, b: 255, alpha: 1.0 }; // White hot center of passing wave
+            } else if (dist < 0.28) {
+                return { r: Math.min(255, c.r + 90), g: Math.min(255, c.g + 90), b: Math.min(255, c.b + 90), alpha: 0.95 }; // Warm crest
+            } else {
+                const spk = Math.sin((timeMs * 0.008) + ledIndex * 0.5) > 0.6 ? 1.0 : 0.45;
+                return { r: Math.round(c.r * spk), g: Math.round(c.g * spk), b: Math.round(c.b * spk), alpha: 0.75 * spk }; // Trail
+            }
+        } else {
+            // Idle float resting sparkle (keeps the float distinct, beautiful, and alive)
+            const shimmer = 0.35 + 0.35 * Math.sin((timeMs * 0.003) + ledIndex * 0.8 + runnerIndex);
+            const isSparkle = Math.sin((timeMs * 0.005) + ledIndex * 1.3) > 0.85;
+            const factor = isSparkle ? 0.95 : shimmer;
+            return {
+                r: Math.round(c.r * factor),
+                g: Math.round(c.g * factor),
+                b: Math.round(c.b * factor),
+                alpha: Math.max(0.3, factor)
+            };
+        }
+    } else if (fleetSyncMode === 'free') {
+        const pattern = (presetData && presetData.settings && presetData.settings.pattern) || 'steady_sparkle';
+        const bpm = (presetData && presetData.settings && presetData.settings.speedBpm) || 120;
+        const groups = (presetData && presetData.animationGroups) || [];
+        for (const grp of groups) {
+            if (Array.isArray(grp.indices) && grp.indices.includes(ledIndex)) {
+                const idxInGrp = grp.indices.indexOf(ledIndex);
+                return evalGroupEffect(grp, grp.effect, grp.speedBpm || bpm, grp.direction || 1, idxInGrp, grp.indices.length, timeMs, c);
+            }
+        }
+        return evalGlobalPattern(pattern, bpm, ledIndex, totalLeds, timeMs, c, hasColor);
+    } else { // 'show' mode (sequence cues synchronized to timeline)
+        const t = sequenceTime;
+        const cues = (presetData && presetData.sequence && presetData.sequence.cues) || sequenceCues || [];
+        const activeCues = cues.filter(q => t >= q.startTime && t < (q.startTime + q.duration));
+        if (activeCues.length > 0) {
+            const q = activeCues[0];
+            return evalGlobalPattern(q.effect, q.speedBpm || 120, ledIndex, totalLeds, timeMs, c, hasColor);
+        }
+        return evalGlobalPattern('steady_sparkle', 120, ledIndex, totalLeds, timeMs, c, hasColor);
+    }
+}
+
+// Draw Authentic Mini runDisney 10K Race Bib on miniature shirt
+function drawMiniRaceBib(cx, x, y, width, height, bibNumber) {
+    cx.save();
+    // Yellow Tyvek Bib Paper
+    cx.fillStyle = '#fbc02d';
+    cx.fillRect(x, y, width, height);
+    cx.strokeStyle = '#e65100';
+    cx.lineWidth = 1;
+    cx.strokeRect(x, y, width, height);
+
+    // runDisney Top Stripe (Dark Navy)
+    cx.fillStyle = '#0d1b2a';
+    cx.fillRect(x, y, width, height * 0.28);
+
+    // 10K Logo in top stripe
+    cx.fillStyle = '#ffc107';
+    cx.font = `bold ${Math.max(7, Math.floor(height * 0.22))}px sans-serif`;
+    cx.textAlign = 'center';
+    cx.textBaseline = 'middle';
+    cx.fillText("runDisney 10K", x + width * 0.5, y + height * 0.14);
+
+    // Bib Number in center
+    cx.fillStyle = '#111111';
+    cx.font = `bold ${Math.max(9, Math.floor(height * 0.40))}px monospace`;
+    cx.textAlign = 'center';
+    cx.textBaseline = 'middle';
+    cx.fillText(bibNumber || "1952", x + width * 0.5, y + height * 0.62);
+
+    // 4 Corner BibBoards Snap Fasteners
+    const clampR = Math.max(1.5, width * 0.035);
+    const cornerInset = width * 0.08;
+    const corners = [
+        { cx: x + cornerInset, cy: y + cornerInset },
+        { cx: x + width - cornerInset, cy: y + cornerInset },
+        { cx: x + cornerInset, cy: y + height - cornerInset },
+        { cx: x + width - cornerInset, cy: y + height - cornerInset }
+    ];
+    cx.fillStyle = '#38bdf8';
+    corners.forEach(c => {
+        cx.beginPath();
+        cx.arc(c.cx, c.cy, clampR, 0, Math.PI * 2);
+        cx.fill();
+    });
+
+    cx.restore();
+}
 
 function renderFleetView(timeMs) {
     const w = canvas.width;
@@ -1804,55 +1981,146 @@ function renderFleetView(timeMs) {
     ctx.clearRect(0, 0, w, h);
 
     const totalFloats = 7;
-    // Natural Athletic Proportions:
-    // With 820px canvas width, 7 shirts = ~96px wide each, 120px tall (1 : 1.25 ratio!)
-    const shirtW = Math.floor(w / 8.2); // ~100px
+    const marginX = w * 0.025;
+    const usableW = w - marginX * 2;
+    const slotW = usableW / totalFloats;
+    const shirtW = Math.floor(slotW * 0.88); // ~100px
     const shirtH = Math.floor(shirtW * 1.25); // ~125px (natural athletic dimensions!)
-    const shirtY = h * 0.28; // Centered vertically in upper-mid canvas
+    const shirtY = h * 0.25; // Centered vertically in upper-mid canvas
 
-    // Master Traveling Wave Clock (7-second loop across 7 runners)
-    const masterWaveTime = (timeMs % 7000);
-    const activeFloatIndex = Math.floor(masterWaveTime / 1000); // 0 to 6
-    const waveProgress = (masterWaveTime % 1000) / 1000; // 0.0 to 1.0
+    // Master Traveling Wave Timing
+    const runnerDuration = fleetWaveCycleDurationMs / totalFloats;
+    const masterWaveTime = (timeMs % fleetWaveCycleDurationMs);
+    const activeFloatIndex = Math.floor(masterWaveTime / runnerDuration);
+    const waveProgress = (masterWaveTime % runnerDuration) / runnerDuration;
 
     // Header Title & Subtitle
     ctx.fillStyle = '#ffc107';
-    ctx.font = 'bold 15px sans-serif';
+    ctx.font = 'bold 16px sans-serif';
     ctx.textAlign = 'center';
-    ctx.fillText("MAIN STREET ELECTRICAL PARADE — 7-RUNNER FLEET LINEUP", w * 0.5, h * 0.09);
+    ctx.fillText("MAIN STREET ELECTRICAL PARADE — 7-RUNNER FLEET LINEUP", w * 0.5, h * 0.08);
+
+    let modeText = "🌊 ESP-NOW Traveling Wave Mode (Cycle: " + (fleetWaveCycleDurationMs / 1000).toFixed(1) + "s)";
+    if (fleetSyncMode === 'free') modeText = "⚡ Autonomous Free-Run Mode (Individual Presets & Animation Groups)";
+    if (fleetSyncMode === 'show') modeText = "🎬 Synchronized Master Show Sequence (90-Second Parade Timeline)";
 
     ctx.fillStyle = '#8b949e';
     ctx.font = '12px sans-serif';
-    ctx.fillText("Synchronized ESP-NOW Traveling Wave Passing from Runner 1 to Runner 7", w * 0.5, h * 0.13);
+    ctx.fillText(modeText, w * 0.5, h * 0.12);
 
     // Draw Parade Course Road Surface
     ctx.fillStyle = '#161b22';
-    ctx.fillRect(w * 0.02, shirtY + shirtH + 90, w * 0.96, 40);
+    ctx.fillRect(w * 0.015, shirtY + shirtH + 90, w * 0.97, 40);
     // Yellow Road Dash Line
     ctx.setLineDash([15, 15]);
     ctx.strokeStyle = '#30363d';
     ctx.lineWidth = 2;
     ctx.beginPath();
-    ctx.moveTo(w * 0.02, shirtY + shirtH + 110);
-    ctx.lineTo(w * 0.98, shirtY + shirtH + 110);
+    ctx.moveTo(w * 0.015, shirtY + shirtH + 110);
+    ctx.lineTo(w * 0.985, shirtY + shirtH + 110);
     ctx.stroke();
     ctx.setLineDash([]);
 
     for (let i = 0; i < totalFloats; i++) {
-        const shirtX = (w * 0.03) + i * (shirtW * 1.08);
-        const floatData = FLEET_ROSTER[i];
-        const isCurrentWaveFloat = (i === activeFloatIndex);
+        const shirtX = marginX + i * slotW + (slotW - shirtW) / 2;
+        const floatData = fleetRunners[i] || DEFAULT_FLEET_ROSTER[i];
+        const isCurrentWaveFloat = (fleetSyncMode === 'wave' && i === activeFloatIndex);
+        const isHovered = (fleetHoveredRunner === i);
+        const isSelected = (fleetSelectedRunner === i);
 
-        // 1. Draw Runner Bib Number Above Shirt
-        ctx.fillStyle = isCurrentWaveFloat ? '#ffc107' : '#8b949e';
+        // Retrieve preset data (cached)
+        const pData = fleetPresetCache[floatData.preset] || null;
+
+        // 1. Draw Runner Bib Number Badge Above Shirt
+        ctx.fillStyle = isCurrentWaveFloat ? '#ffc107' : (isSelected ? '#58a6ff' : '#8b949e');
         ctx.font = 'bold 11px monospace';
         ctx.textAlign = 'center';
         ctx.fillText(`BIB #${floatData.num}`, shirtX + shirtW * 0.5, shirtY - 14);
 
-        // 2. Draw Natural Proportioned Shirt (1 : 1.25)
+        // 2. Draw Natural Proportioned Athletic Shirt (1 : 1.25)
         drawRunningShirt(ctx, shirtX, shirtY, shirtW, shirtH, "");
 
-        // 3. Draw Running Shorts & Legs Below Shirt
+        // 3. Draw Float Graphic Artwork strictly in chest zone above bib
+        const chestW = shirtW * 0.56;
+        const chestH = shirtH * 0.385;
+        const chestTop = shirtY + shirtH * 0.168;
+        const chestLeft = shirtX + (shirtW - chestW) * 0.5;
+
+        const graphicType = (pData && pData.graphicType) ? pData.graphicType : floatData.defaultGraphic;
+        const gImg = getGraphicImgForType(graphicType);
+
+        if (gImg && gImg.complete && gImg.naturalWidth > 0) {
+            ctx.drawImage(gImg, chestLeft, chestTop, chestW, chestH);
+        } else if (graphicType === 'builtin_dragon' || graphicType === 'petes_dragon') {
+            // Scaled silhouette fallback
+            const dummyBounds = { x: shirtX, y: shirtY, width: shirtW, height: shirtH };
+            drawPetesDragon(ctx, dummyBounds);
+        }
+
+        // 4. Draw Mini runDisney Race Bib on lower torso
+        const bibW = shirtW * 0.52;
+        const bibH = shirtH * 0.23;
+        const bibX = shirtX + (shirtW - bibW) * 0.5;
+        const bibY = shirtY + shirtH * 0.57;
+        drawMiniRaceBib(ctx, bibX, bibY, bibW, bibH, floatData.num);
+
+        // 5. Draw Real 100-LED Configuration
+        const ledsArr = (pData && Array.isArray(pData.leds) && pData.leds.length > 0) ? pData.leds : null;
+        if (ledsArr) {
+            for (let j = 0; j < ledsArr.length; j++) {
+                const led = ledsArr[j];
+                const lx = shirtX + led.x * shirtW;
+                const ly = shirtY + led.y * shirtH;
+                const col = computeRunnerLedColor(i, floatData, pData, j, ledsArr.length, timeMs, waveProgress, isCurrentWaveFloat);
+
+                // Bulb outer halo glow
+                if (isCurrentWaveFloat) {
+                    ctx.beginPath();
+                    ctx.arc(lx, ly, 4.2, 0, Math.PI * 2);
+                    ctx.fillStyle = `rgba(${col.r}, ${col.g}, ${col.b}, 0.28)`;
+                    ctx.fill();
+                }
+
+                // Core bulb dot
+                ctx.beginPath();
+                ctx.arc(lx, ly, isCurrentWaveFloat ? 2.5 : 1.7, 0, Math.PI * 2);
+                ctx.fillStyle = `rgba(${col.r}, ${col.g}, ${col.b}, ${col.alpha || 1})`;
+                ctx.fill();
+            }
+        } else {
+            // Graceful fallback: 18 mini LEDs while preset loads
+            const numMiniLeds = 18;
+            const chestCX = shirtX + shirtW * 0.5;
+            const chestCY = shirtY + shirtH * 0.44;
+            const rx = shirtW * 0.26;
+            const ry = shirtH * 0.20;
+
+            for (let j = 0; j < numMiniLeds; j++) {
+                const angle = (j / numMiniLeds) * Math.PI * 2;
+                const lx = chestCX + Math.cos(angle) * rx;
+                const ly = chestCY + Math.sin(angle) * ry;
+                let r = 20, g = 20, b = 20;
+
+                if (isCurrentWaveFloat) {
+                    const ledNorm = j / numMiniLeds;
+                    const dist = Math.abs(ledNorm - waveProgress);
+                    if (dist < 0.18) {
+                        r = 255; g = 255; b = 255;
+                    } else {
+                        r = 255; g = 180; b = 40;
+                    }
+                } else {
+                    r = 40; g = 120; b = 80;
+                }
+
+                ctx.beginPath();
+                ctx.arc(lx, ly, isCurrentWaveFloat ? 3.2 : 2.0, 0, Math.PI * 2);
+                ctx.fillStyle = `rgb(${r}, ${g}, ${b})`;
+                ctx.fill();
+            }
+        }
+
+        // 6. Draw Running Shorts & Legs Below Shirt
         const shortsW = shirtW * 0.44;
         const shortsH = shirtW * 0.35;
         const shortsY = shirtY + shirtH * 0.93;
@@ -1868,60 +2136,381 @@ function renderFleetView(timeMs) {
         ctx.fillRect(shirtX + shirtW * 0.32, shortsY + shortsH, 6, 20);
         ctx.fillRect(shirtX + shirtW * 0.58, shortsY + shortsH, 6, 20);
 
-        // Running Shoes
+        // Running Shoes (Accent Color)
         ctx.fillStyle = floatData.color;
         ctx.fillRect(shirtX + shirtW * 0.29, shortsY + shortsH + 20, 10, 5);
         ctx.fillRect(shirtX + shirtW * 0.57, shortsY + shortsH + 20, 10, 5);
 
-        // 4. Draw Mini LEDs around chest
-        const numMiniLeds = 18;
-        const chestCX = shirtX + shirtW * 0.5;
-        const chestCY = shirtY + shirtH * 0.50;
-        const rx = shirtW * 0.26;
-        const ry = shirtH * 0.22;
-
-        for (let j = 0; j < numMiniLeds; j++) {
-            const angle = (j / numMiniLeds) * Math.PI * 2;
-            const lx = chestCX + Math.cos(angle) * rx;
-            const ly = chestCY + Math.sin(angle) * ry;
-
-            let r = 20, g = 20, b = 20;
-
-            if (isCurrentWaveFloat) {
-                const ledNorm = j / numMiniLeds;
-                const dist = Math.abs(ledNorm - waveProgress);
-                if (dist < 0.18) {
-                    r = 255; g = 255; b = 255; // White hot center
-                } else {
-                    r = 255; g = 180; b = 40; // Warm trail
-                }
-            } else {
-                r = 15; g = 35; b = 20;
-            }
-
-            ctx.beginPath();
-            ctx.arc(lx, ly, isCurrentWaveFloat ? 3.5 : 2, 0, Math.PI * 2);
-            ctx.fillStyle = `rgb(${r}, ${g}, ${b})`;
-            ctx.fill();
-        }
-
-        // 5. Float Name Tag Below Runner
-        ctx.fillStyle = isCurrentWaveFloat ? '#ffffff' : '#8b949e';
+        // 7. Float Name Tag Below Runner
+        ctx.fillStyle = isCurrentWaveFloat ? '#ffffff' : (isSelected ? '#58a6ff' : '#8b949e');
         ctx.font = 'bold 10px sans-serif';
         ctx.textAlign = 'center';
         ctx.fillText(floatData.name, shirtX + shirtW * 0.5, shirtY + shirtH + 68);
 
-        ctx.fillStyle = isCurrentWaveFloat ? '#ffc107' : '#57606a';
+        ctx.fillStyle = isCurrentWaveFloat ? '#ffc107' : (isSelected ? '#ffc107' : '#57606a');
         ctx.font = '9px sans-serif';
         ctx.fillText(floatData.tag, shirtX + shirtW * 0.5, shirtY + shirtH + 80);
 
-        // Wave active highlight indicator
+        // 8. Highlight Frame (Active Wave, Hovered, or Selected)
         if (isCurrentWaveFloat) {
+            ctx.save();
             ctx.strokeStyle = '#ffc107';
+            ctx.lineWidth = 2.2;
+            ctx.shadowColor = '#ffc107';
+            ctx.shadowBlur = 12;
+            ctx.strokeRect(shirtX - 4, shirtY - 26, shirtW + 8, shirtH + 115);
+            ctx.restore();
+        } else if (isSelected) {
+            ctx.save();
+            ctx.strokeStyle = '#388bfd';
             ctx.lineWidth = 2;
-            ctx.strokeRect(shirtX - 4, shirtY - 25, shirtW + 8, shirtH + 115);
+            ctx.shadowColor = '#388bfd';
+            ctx.shadowBlur = 8;
+            ctx.strokeRect(shirtX - 4, shirtY - 26, shirtW + 8, shirtH + 115);
+            ctx.restore();
+        } else if (isHovered) {
+            ctx.strokeStyle = 'rgba(88, 166, 255, 0.6)';
+            ctx.lineWidth = 1.5;
+            ctx.strokeRect(shirtX - 4, shirtY - 26, shirtW + 8, shirtH + 115);
         }
     }
+}
+
+// ============================================================================
+// FLEET LINEUP MANAGEMENT & SIDEBAR UI CONTROLS
+// ============================================================================
+
+async function renderFleetCards() {
+    const container = document.getElementById('fleetRunnersContainer');
+    if (!container) return;
+
+    // Fetch list of available server and local presets
+    let serverPresets = [];
+    try {
+        const res = await fetch('/api/presets');
+        if (res.ok) serverPresets = await res.json();
+    } catch (e) {}
+
+    const localProfiles = JSON.parse(localStorage.getItem('msep_custom_presets') || '{}');
+
+    container.innerHTML = '';
+
+    for (let i = 0; i < fleetRunners.length; i++) {
+        const runner = fleetRunners[i];
+        const card = document.createElement('div');
+        card.className = `fleet-runner-card ${fleetSelectedRunner === i ? 'selected-runner' : ''}`;
+        card.setAttribute('data-slot', i);
+
+        // Preload preset data if not cached
+        const pData = await getPresetDataForRunner(runner);
+
+        const ledCount = (pData && pData.leds) ? pData.leds.length : 100;
+        const patternName = (pData && pData.settings && pData.settings.pattern) ? pData.settings.pattern.replace(/_/g, ' ') : 'Sparkle';
+        const graphicName = (pData && pData.graphicType) ? pData.graphicType.replace(/_/g, ' ') : runner.name;
+
+        // Build Card HTML
+        card.innerHTML = `
+            <div class="fleet-card-header">
+                <span class="fleet-bib-badge" style="background: ${runner.color}22; color: ${runner.color}; border: 1px solid ${runner.color}66;">
+                    BIB #${runner.num}
+                </span>
+                <span class="fleet-runner-title" title="${runner.name} (${runner.tag})">
+                    ${runner.slot + 1}. ${runner.name}
+                </span>
+                <span style="font-size: 10px; color: ${runner.color}; font-weight: 700;">${runner.tag}</span>
+            </div>
+
+            <div>
+                <label style="font-size: 10px; color: var(--text-muted); display: block; margin-bottom: 2px;">Assigned Costume Preset:</label>
+                <select class="fleet-preset-select" data-slot="${i}">
+                    <optgroup label="Official Server Presets">
+                        ${serverPresets.map(p => `
+                            <option value="server:${p.filename}" ${runner.preset === ('server:' + p.filename) ? 'selected' : ''}>
+                                📁 ${p.name}
+                            </option>
+                        `).join('')}
+                    </optgroup>
+                    ${Object.keys(localProfiles).length > 0 ? `
+                        <optgroup label="Browser Saved Profiles">
+                            ${Object.keys(localProfiles).map(name => `
+                                <option value="local:${name}" ${runner.preset === ('local:' + name) ? 'selected' : ''}>
+                                    💾 ${name}
+                                </option>
+                            `).join('')}
+                        </optgroup>
+                    ` : ''}
+                    <optgroup label="Editor Session">
+                        <option value="current_editor" ${runner.preset === 'current_editor' ? 'selected' : ''}>
+                            ✨ Currently Active Editor Design
+                        </option>
+                    </optgroup>
+                </select>
+            </div>
+
+            <div class="fleet-pills-row">
+                <span class="fleet-pill">💡 ${ledCount} LEDs</span>
+                <span class="fleet-pill">🎨 ${graphicName}</span>
+                <span class="fleet-pill">✨ ${patternName}</span>
+            </div>
+
+            <div class="fleet-actions-row">
+                <button type="button" class="action-btn fleet-edit-single-btn" data-slot="${i}" style="flex: 1.2; font-weight: 600; color: #58a6ff; border-color: rgba(56, 139, 253, 0.4);" title="Load into Single Shirt visualizer to tweak LEDs, colors, and groups">
+                    ✏️ Edit in Single View
+                </button>
+                <button type="button" class="action-btn fleet-copy-active-btn" data-slot="${i}" style="flex: 1;" title="Assign current single-shirt editor design to this runner">
+                    📥 Assign Editor
+                </button>
+            </div>
+        `;
+
+        container.appendChild(card);
+    }
+
+    // Attach event listeners
+    container.querySelectorAll('.fleet-preset-select').forEach(sel => {
+        sel.addEventListener('change', async () => {
+            const slot = parseInt(sel.getAttribute('data-slot'));
+            fleetRunners[slot].preset = sel.value;
+            delete fleetPresetCache[sel.value];
+            await getPresetDataForRunner(fleetRunners[slot]);
+            saveFleetLineupToStorage();
+            renderFleetCards();
+            showToast(`Assigned preset to Runner #${fleetRunners[slot].num}!`);
+        });
+    });
+
+    container.querySelectorAll('.fleet-edit-single-btn').forEach(btn => {
+        btn.addEventListener('click', async () => {
+            const slot = parseInt(btn.getAttribute('data-slot'));
+            await editRunnerInSingleView(slot);
+        });
+    });
+
+    container.querySelectorAll('.fleet-copy-active-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const slot = parseInt(btn.getAttribute('data-slot'));
+            assignCurrentEditorToRunner(slot);
+        });
+    });
+}
+
+// 1-Click Load Runner Preset into Single Shirt Editor
+async function editRunnerInSingleView(slot) {
+    const runner = fleetRunners[slot];
+    if (!runner) return;
+
+    let pData = await getPresetDataForRunner(runner);
+    if (!pData) {
+        showToast("⚠️ Could not load preset data for this runner.");
+        return;
+    }
+
+    // Apply preset to main editor
+    applyProfileData(pData);
+
+    // Switch view to Single Shirt
+    currentView = 'single';
+    document.getElementById('singleViewBtn').classList.add('active');
+    document.getElementById('fleetViewBtn').classList.remove('active');
+    const zt = document.querySelector('.zoom-toolbar');
+    if (zt) zt.style.display = 'flex';
+
+    // Switch sidebar to tabLayout
+    switchSidebarTab('tabLayout');
+
+    showToast(`✏️ Loaded Runner #${runner.num} (${runner.name}) into Single Shirt Editor`);
+}
+
+// Copy Current Single-Shirt Editor State to a Specific Runner
+function assignCurrentEditorToRunner(slot) {
+    const runner = fleetRunners[slot];
+    if (!runner) return;
+
+    const editorData = {
+        name: `${runner.name} (Custom)`,
+        floatName: `Float ${runner.slot + 1} - ${runner.name}`,
+        savedAt: new Date().toISOString(),
+        ledCount: leds.length,
+        leds: JSON.parse(JSON.stringify(leds)),
+        graphicType: currentGraphicType,
+        customArtworkDataUrl: customArtworkDataUrl,
+        animationGroups: JSON.parse(JSON.stringify(animationGroups)),
+        settings: {
+            pattern: activePattern,
+            speedBpm: params.speedBpm,
+            sparkleRate: params.sparkleRate,
+            greenHue: params.greenHue,
+            brightness: params.brightness,
+            glowSize: params.glowSize
+        },
+        sequence: {
+            loopDuration: sequenceLoopDuration,
+            cues: JSON.parse(JSON.stringify(sequenceCues))
+        }
+    };
+
+    const cacheKey = `custom_slot_${slot}_${Date.now()}`;
+    fleetPresetCache[cacheKey] = editorData;
+    runner.preset = cacheKey;
+
+    saveFleetLineupToStorage();
+    renderFleetCards();
+    showToast(`📋 Copied current single-shirt editor design to Runner #${runner.num}!`);
+}
+
+// Assign Current Single-Shirt Editor State to All 7 Runners
+function assignCurrentEditorToAllRunners() {
+    for (let slot = 0; slot < fleetRunners.length; slot++) {
+        const runner = fleetRunners[slot];
+        const editorData = {
+            name: `${runner.name} (Unified Fleet)`,
+            floatName: `Float ${runner.slot + 1} - ${runner.name}`,
+            savedAt: new Date().toISOString(),
+            ledCount: leds.length,
+            leds: JSON.parse(JSON.stringify(leds)),
+            graphicType: currentGraphicType,
+            customArtworkDataUrl: customArtworkDataUrl,
+            animationGroups: JSON.parse(JSON.stringify(animationGroups)),
+            settings: {
+                pattern: activePattern,
+                speedBpm: params.speedBpm,
+                sparkleRate: params.sparkleRate,
+                greenHue: params.greenHue,
+                brightness: params.brightness,
+                glowSize: params.glowSize
+            },
+            sequence: {
+                loopDuration: sequenceLoopDuration,
+                cues: JSON.parse(JSON.stringify(sequenceCues))
+            }
+        };
+        const cacheKey = `custom_slot_${slot}_${Date.now()}`;
+        fleetPresetCache[cacheKey] = editorData;
+        runner.preset = cacheKey;
+    }
+    saveFleetLineupToStorage();
+    renderFleetCards();
+    showToast(`📋 Assigned current editor design to all 7 runners!`);
+}
+
+// Reset Lineup to Official Parade Roster Defaults
+function resetFleetLineupDefaults() {
+    fleetRunners = JSON.parse(JSON.stringify(DEFAULT_FLEET_ROSTER));
+    saveFleetLineupToStorage();
+    fleetRunners.forEach(r => getPresetDataForRunner(r));
+    renderFleetCards();
+    showToast("🔁 Restored official 7-float Electrical Parade lineup defaults!");
+}
+
+// Set Fleet Synchronization Mode
+function setFleetSyncMode(mode) {
+    fleetSyncMode = mode;
+    const waveBtn = document.getElementById('fleetModeWaveBtn');
+    const freeBtn = document.getElementById('fleetModeFreeBtn');
+    const showBtn = document.getElementById('fleetModeShowBtn');
+    const speedGroup = document.getElementById('fleetWaveSpeedGroup');
+
+    if (waveBtn) waveBtn.classList.toggle('primary', mode === 'wave');
+    if (freeBtn) freeBtn.classList.toggle('primary', mode === 'free');
+    if (showBtn) showBtn.classList.toggle('primary', mode === 'show');
+    if (speedGroup) speedGroup.style.display = (mode === 'wave') ? 'block' : 'none';
+
+    saveFleetLineupToStorage();
+}
+
+// Persist Lineup Configuration to LocalStorage and Backend
+function saveFleetLineupToStorage() {
+    try {
+        localStorage.setItem('msep_fleet_lineup', JSON.stringify(fleetRunners));
+        localStorage.setItem('msep_fleet_sync_mode', fleetSyncMode);
+        localStorage.setItem('msep_fleet_wave_duration', String(fleetWaveCycleDurationMs));
+    } catch (e) {}
+
+    try {
+        fetch('/api/save_fleet_config', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(fleetRunners)
+        }).catch(() => {});
+    } catch (e) {}
+}
+
+// Load Lineup Configuration from Storage on Startup
+async function loadFleetLineupFromStorage() {
+    try {
+        const savedMode = localStorage.getItem('msep_fleet_sync_mode');
+        if (savedMode) setFleetSyncMode(savedMode);
+
+        const savedWave = localStorage.getItem('msep_fleet_wave_duration');
+        if (savedWave) {
+            fleetWaveCycleDurationMs = parseInt(savedWave) || 7000;
+            const slider = document.getElementById('fleetWaveSpeedSlider');
+            if (slider) slider.value = Math.round(fleetWaveCycleDurationMs / 100);
+            const valBadge = document.getElementById('fleetWaveSpeedVal');
+            if (valBadge) valBadge.textContent = `${(fleetWaveCycleDurationMs / 1000).toFixed(1)}s cycle`;
+        }
+
+        const savedLineup = localStorage.getItem('msep_fleet_lineup');
+        if (savedLineup) {
+            const parsed = JSON.parse(savedLineup);
+            if (Array.isArray(parsed) && parsed.length === 7) {
+                fleetRunners = parsed;
+            }
+        } else {
+            try {
+                const res = await fetch('/api/fleet_config');
+                if (res.ok) {
+                    const serverConfig = await res.json();
+                    if (Array.isArray(serverConfig) && serverConfig.length === 7) {
+                        fleetRunners = serverConfig;
+                    }
+                }
+            } catch (e) {}
+        }
+    } catch (e) {}
+
+    // Preload all runner presets into cache
+    for (const runner of fleetRunners) {
+        await getPresetDataForRunner(runner);
+    }
+}
+
+// Initialize Fleet Lineup Manager controls and event listeners
+function initFleetManager() {
+    const waveBtn = document.getElementById('fleetModeWaveBtn');
+    const freeBtn = document.getElementById('fleetModeFreeBtn');
+    const showBtn = document.getElementById('fleetModeShowBtn');
+    const speedSlider = document.getElementById('fleetWaveSpeedSlider');
+    const speedVal = document.getElementById('fleetWaveSpeedVal');
+    const assignAllBtn = document.getElementById('fleetAssignAllCurrentBtn');
+    const resetBtn = document.getElementById('fleetResetDefaultsBtn');
+    const saveBtn = document.getElementById('fleetSaveConfigBtn');
+
+    if (waveBtn) waveBtn.addEventListener('click', () => setFleetSyncMode('wave'));
+    if (freeBtn) freeBtn.addEventListener('click', () => setFleetSyncMode('free'));
+    if (showBtn) showBtn.addEventListener('click', () => setFleetSyncMode('show'));
+
+    if (speedSlider) {
+        speedSlider.addEventListener('input', (e) => {
+            const val = parseInt(e.target.value);
+            fleetWaveCycleDurationMs = val * 100;
+            if (speedVal) speedVal.textContent = `${(fleetWaveCycleDurationMs / 1000).toFixed(1)}s cycle`;
+            saveFleetLineupToStorage();
+        });
+    }
+
+    if (assignAllBtn) assignAllBtn.addEventListener('click', assignCurrentEditorToAllRunners);
+    if (resetBtn) resetBtn.addEventListener('click', resetFleetLineupDefaults);
+    if (saveBtn) {
+        saveBtn.addEventListener('click', () => {
+            saveFleetLineupToStorage();
+            showToast("💾 Saved 7-Runner Fleet Lineup configuration!");
+        });
+    }
+
+    loadFleetLineupFromStorage().then(() => {
+        renderFleetCards();
+    });
 }
 
 // ============================================================================
@@ -3988,6 +4577,18 @@ window.addEventListener('keyup', (e) => {
 });
 
 canvas.addEventListener('mousedown', (e) => {
+    if (currentView === 'fleet') {
+        if (fleetHoveredRunner !== -1) {
+            fleetSelectedRunner = fleetHoveredRunner;
+            document.querySelectorAll('.fleet-runner-card').forEach(c => c.classList.remove('selected-runner'));
+            const card = document.querySelector(`.fleet-runner-card[data-slot="${fleetHoveredRunner}"]`);
+            if (card) {
+                card.classList.add('selected-runner');
+                card.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }
+        }
+        return;
+    }
     if (currentView !== 'single') return;
     const rect = canvas.getBoundingClientRect();
     const scaleX = canvas.width / rect.width;
@@ -4104,6 +4705,34 @@ canvas.addEventListener('mousedown', (e) => {
 });
 
 canvas.addEventListener('mousemove', (e) => {
+    if (currentView === 'fleet') {
+        const rect = canvas.getBoundingClientRect();
+        const scaleX = canvas.width / rect.width;
+        const scaleY = canvas.height / rect.height;
+        const mx = (e.clientX - rect.left) * scaleX;
+        const my = (e.clientY - rect.top) * scaleY;
+
+        const w = canvas.width;
+        const h = canvas.height;
+        const marginX = w * 0.025;
+        const usableW = w - marginX * 2;
+        const slotW = usableW / 7;
+        const shirtW = Math.floor(slotW * 0.88);
+        const shirtH = Math.floor(shirtW * 1.25);
+        const shirtY = h * 0.25;
+
+        let hitRunner = -1;
+        for (let i = 0; i < 7; i++) {
+            const rx = marginX + i * slotW + (slotW - shirtW) / 2;
+            if (mx >= rx - 4 && mx <= rx + shirtW + 4 && my >= shirtY - 26 && my <= shirtY + shirtH + 115) {
+                hitRunner = i;
+                break;
+            }
+        }
+        fleetHoveredRunner = hitRunner;
+        canvas.style.cursor = (hitRunner !== -1) ? 'pointer' : 'default';
+        return;
+    }
     if (currentView !== 'single') return;
     const rect = canvas.getBoundingClientRect();
     const scaleX = canvas.width / rect.width;
@@ -4252,6 +4881,12 @@ window.addEventListener('mouseup', (e) => {
         multiDragStartNorm = null;
         multiDragInitialPositions.clear();
         canvas.classList.remove('dragging');
+    }
+});
+
+canvas.addEventListener('dblclick', (e) => {
+    if (currentView === 'fleet' && fleetHoveredRunner !== -1) {
+        editRunnerInSingleView(fleetHoveredRunner);
     }
 });
 
@@ -4617,6 +5252,10 @@ document.getElementById('singleViewBtn').addEventListener('click', () => {
     document.getElementById('fleetViewBtn').classList.remove('active');
     const zt = document.querySelector('.zoom-toolbar');
     if (zt) zt.style.display = 'flex';
+    const activeTab = document.querySelector('.sidebar-tab-btn.active')?.getAttribute('data-tab');
+    if (activeTab === 'tabFleet') {
+        switchSidebarTab('tabLayout');
+    }
 });
 
 document.getElementById('fleetViewBtn').addEventListener('click', () => {
@@ -4625,6 +5264,8 @@ document.getElementById('fleetViewBtn').addEventListener('click', () => {
     document.getElementById('singleViewBtn').classList.remove('active');
     const zt = document.querySelector('.zoom-toolbar');
     if (zt) zt.style.display = 'none';
+    switchSidebarTab('tabFleet');
+    renderFleetCards();
 });
 
 // ============================================================================
@@ -7733,6 +8374,26 @@ function switchSidebarTab(targetTabId) {
     try {
         localStorage.setItem('msep_active_sidebar_tab', targetTabId);
     } catch (e) {}
+
+    // Auto-synchronize Canvas View
+    if (targetTabId === 'tabFleet') {
+        if (currentView !== 'fleet') {
+            currentView = 'fleet';
+            document.getElementById('fleetViewBtn')?.classList.add('active');
+            document.getElementById('singleViewBtn')?.classList.remove('active');
+            const zt = document.querySelector('.zoom-toolbar');
+            if (zt) zt.style.display = 'none';
+        }
+        renderFleetCards();
+    } else {
+        if (currentView === 'fleet') {
+            currentView = 'single';
+            document.getElementById('singleViewBtn')?.classList.add('active');
+            document.getElementById('fleetViewBtn')?.classList.remove('active');
+            const zt = document.querySelector('.zoom-toolbar');
+            if (zt) zt.style.display = 'flex';
+        }
+    }
 }
 window.switchSidebarTab = switchSidebarTab;
 
@@ -7789,9 +8450,11 @@ if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', () => {
         initSidebarTabs();
         initTimelineCollapse();
+        initFleetManager();
     });
 } else {
     initSidebarTabs();
     initTimelineCollapse();
+    initFleetManager();
 }
 

@@ -1,0 +1,113 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600" width="100%" height="100%">
+  <!-- Main Street Electrical Parade - Float 05: Cinderella's Coach -->
+  <!-- Designed for Layered Cricut Heat Transfer Vinyl (HTV) Cutting -->
+
+  <defs>
+    <style>
+      .layer-gold { fill: #ffb703; }
+      .layer-cyan { fill: #48cae4; }
+      .layer-white { fill: #ffffff; }
+      .stroke-dark { stroke: #111111; stroke-width: 4; stroke-linejoin: round; stroke-linecap: round; }
+    </style>
+  </defs>
+
+  <!-- LAYER 1: STARLIGHT CYAN / ICE BLUE HTV (Pumpkin Body Lobes & Drapes) -->
+  <g id="Layer_1_Cyan_Vinyl" class="layer-cyan">
+    <!-- Center Pumpkin Silhouette Body -->
+    <path class="stroke-dark" d="M 400 150 C 470 150 540 180 560 250 C 580 320 540 400 480 430 C 440 445 360 445 320 430 C 260 400 220 320 240 250 C 260 180 330 150 400 150 Z" />
+
+    <!-- Interior Heart Window Underlay (Dark/Blue Contrast) -->
+    <path class="stroke-dark" d="M 400 240 C 400 210 360 210 350 240 C 340 270 400 330 400 330 C 400 330 460 270 450 240 C 440 210 400 210 400 240 Z" fill="#1d3557" />
+
+    <!-- Left & Right Hanging Carriage Lantern Glow Bodies -->
+    <circle cx="215" cy="270" r="16" class="stroke-dark" />
+    <circle cx="585" cy="270" r="16" class="stroke-dark" />
+  </g>
+
+  <!-- LAYER 2: METALLIC / WARM GOLD HTV (Filigree Pumpkin Ribs, Crown, Carriage Frame, Giant Wheels) -->
+  <g id="Layer_2_Gold_Vinyl" class="layer-gold">
+    <!-- Royal Crown Finial Topper -->
+    <path class="stroke-dark" d="M 370 150 L 375 110 L 390 130 L 400 95 L 410 130 L 425 110 L 430 150 Z" />
+    <circle cx="400" cy="90" r="7" class="stroke-dark" />
+
+    <!-- Pumpkin Vertical Filigree Ribs -->
+    <!-- Center Left Rib -->
+    <path class="stroke-dark" d="M 400 150 C 340 170 320 260 320 310 C 320 370 360 435 400 440 C 385 410 355 350 355 310 C 355 250 380 180 400 150 Z" />
+    <!-- Center Right Rib -->
+    <path class="stroke-dark" d="M 400 150 C 460 170 480 260 480 310 C 480 370 440 435 400 440 C 415 410 445 350 445 310 C 445 250 420 180 400 150 Z" />
+
+    <!-- Heart Window Frame Molding -->
+    <path class="stroke-dark" fill="none" stroke="#ffb703" stroke-width="12" d="M 400 240 C 400 200 345 200 340 245 C 330 285 400 345 400 345 C 400 345 470 285 460 245 C 455 200 400 200 400 240 Z" />
+
+    <!-- Carriage Chassis & Underbody Scroll Springs -->
+    <path class="stroke-dark" d="M 230 420 C 300 470 500 470 570 420 L 580 440 C 490 495 310 495 220 440 Z" />
+    <path class="stroke-dark" d="M 370 440 C 380 470 420 470 430 440 Z" /> <!-- Carriage Step -->
+
+    <!-- Lantern Support Posts & Wall Brackets -->
+    <path class="stroke-dark" d="M 215 270 L 215 310 C 215 330 245 340 265 330" fill="none" stroke="#ffb703" stroke-width="8" />
+    <path class="stroke-dark" d="M 585 270 L 585 310 C 585 330 555 340 535 330" fill="none" stroke="#ffb703" stroke-width="8" />
+
+    <!-- Massive Rear Wheel (Left Side in Profile) -->
+    <circle cx="215" cy="455" r="75" fill="none" stroke="#ffb703" stroke-width="14" />
+    <circle cx="215" cy="455" r="75" fill="none" stroke="#111111" stroke-width="3" />
+    <circle cx="215" cy="455" r="22" class="stroke-dark" />
+    <!-- Rear Wheel Spiral Filigree Spokes -->
+    <line x1="215" y1="380" x2="215" y2="530" stroke="#ffb703" stroke-width="8" />
+    <line x1="140" y1="455" x2="290" y2="455" stroke="#ffb703" stroke-width="8" />
+    <line x1="162" y1="402" x2="268" y2="508" stroke="#ffb703" stroke-width="8" />
+    <line x1="162" y1="508" x2="268" y2="402" stroke="#ffb703" stroke-width="8" />
+
+    <!-- Massive Front Wheel (Right Side in Profile) -->
+    <circle cx="585" cy="455" r="75" fill="none" stroke="#ffb703" stroke-width="14" />
+    <circle cx="585" cy="455" r="75" fill="none" stroke="#111111" stroke-width="3" />
+    <circle cx="585" cy="455" r="22" class="stroke-dark" />
+    <!-- Front Wheel Spiral Filigree Spokes -->
+    <line x1="585" y1="380" x2="585" y2="530" stroke="#ffb703" stroke-width="8" />
+    <line x1="510" y1="455" x2="660" y2="455" stroke="#ffb703" stroke-width="8" />
+    <line x1="532" y1="402" x2="638" y2="508" stroke="#ffb703" stroke-width="8" />
+    <line x1="532" y1="508" x2="638" y2="402" stroke="#ffb703" stroke-width="8" />
+  </g>
+
+  <!-- LAYER 3: CRISP WHITE / GLOW WHITE HTV (Starlight Sparkles & Light Nodes) -->
+  <g id="Layer_3_White_Vinyl" class="layer-white">
+    <!-- Fairy Dust Sparkle Clusters -->
+    <!-- Top Sparkle -->
+    <polygon points="400,60 405,75 420,80 405,85 400,100 395,85 380,80 395,75" />
+    <!-- Left Flank Sparkles -->
+    <polygon points="140,240 144,250 154,253 144,256 140,266 136,256 126,253 136,250" />
+    <polygon points="180,180 183,188 191,190 183,192 180,200 177,192 169,190 177,188" />
+    <!-- Right Flank Sparkles -->
+    <polygon points="660,240 664,250 674,253 664,256 660,266 656,256 646,253 656,250" />
+    <polygon points="620,180 623,188 631,190 623,192 620,200 617,192 609,190 617,188" />
+
+    <!-- Discrete Light Bulb Nodes (Ideal LED points on carriage frame) -->
+    <!-- Roof Dome Bulbs -->
+    <circle cx="340" cy="170" r="7" />
+    <circle cx="370" cy="155" r="7" />
+    <circle cx="400" cy="148" r="7" />
+    <circle cx="430" cy="155" r="7" />
+    <circle cx="460" cy="170" r="7" />
+
+    <!-- Window Border Bulbs -->
+    <circle cx="400" cy="225" r="6" />
+    <circle cx="370" cy="235" r="6" />
+    <circle cx="355" cy="265" r="6" />
+    <circle cx="370" cy="300" r="6" />
+    <circle cx="400" cy="330" r="6" />
+    <circle cx="430" cy="300" r="6" />
+    <circle cx="445" cy="265" r="6" />
+    <circle cx="430" cy="235" r="6" />
+
+    <!-- Wheel Rim Bulbs (Rear Wheel) -->
+    <circle cx="215" cy="385" r="7" />
+    <circle cx="285" cy="455" r="7" />
+    <circle cx="215" cy="525" r="7" />
+    <circle cx="145" cy="455" r="7" />
+
+    <!-- Wheel Rim Bulbs (Front Wheel) -->
+    <circle cx="585" cy="385" r="7" />
+    <circle cx="655" cy="455" r="7" />
+    <circle cx="585" cy="525" r="7" />
+    <circle cx="515" cy="455" r="7" />
+  </g>
+</svg>

@@ -52,6 +52,8 @@ class SimulatorRequestHandler(http.server.SimpleHTTPRequestHandler):
             self.handle_serial_status()
         elif parsed.path == "/api/wifi_config":
             self.handle_get_wifi_config()
+        elif parsed.path == "/api/fleet_config":
+            self.handle_get_fleet_config()
         elif parsed.path.startswith("/api/preset/"):
             filename = urllib.parse.unquote(parsed.path[len("/api/preset/"):])
             self.handle_get_preset(filename)
@@ -94,6 +96,8 @@ class SimulatorRequestHandler(http.server.SimpleHTTPRequestHandler):
         parsed = urllib.parse.urlparse(self.path)
         if parsed.path == "/api/save_preset":
             self.handle_save_preset()
+        elif parsed.path == "/api/save_fleet_config":
+            self.handle_save_fleet_config()
         elif parsed.path == "/api/flash_firmware":
             self.handle_flash_firmware()
         elif parsed.path == "/api/stream_pixels":
@@ -165,6 +169,49 @@ class SimulatorRequestHandler(http.server.SimpleHTTPRequestHandler):
             self.send_header("Content-Type", "application/json")
             self.end_headers()
             self.wfile.write(json.dumps({"success": True, "filename": safe_name}).encode("utf-8"))
+        except Exception as e:
+            self.send_error(500, str(e))
+
+    def handle_get_fleet_config(self):
+        filepath = os.path.join(PRESETS_DIR, "fleet_lineup.json")
+        if os.path.exists(filepath):
+            try:
+                with open(filepath, "r", encoding="utf-8") as f:
+                    content = f.read()
+                self.send_response(200)
+                self.send_header("Content-Type", "application/json")
+                self.end_headers()
+                self.wfile.write(content.encode("utf-8"))
+                return
+            except Exception as e:
+                pass
+        # Default lineup fallback
+        default_fleet = [
+            {"slot": 0, "bib": "01", "name": "The Train", "tag": "CASEY JR.", "color": "#e63946", "preset": "server:casey_jr_train.json"},
+            {"slot": 1, "bib": "02", "name": "Title Drum", "tag": "THE DRUM", "color": "#ffb703", "preset": "server:title_drum.json"},
+            {"slot": 2, "bib": "03", "name": "The Turtle", "tag": "TURTLE", "color": "#2ec4b6", "preset": "server:spinning_turtle.json"},
+            {"slot": 3, "bib": "04", "name": "The Snail", "tag": "SNAIL", "color": "#ff007f", "preset": "server:spinning_snail.json"},
+            {"slot": 4, "bib": "05", "name": "Cinderella", "tag": "COACH", "color": "#48cae4", "preset": "server:cinderellas_coach.json"},
+            {"slot": 5, "bib": "06", "name": "Pete's Dragon", "tag": "ELLIOTT", "color": "#00ff88", "preset": "server:petes_dragon.json"},
+            {"slot": 6, "bib": "07", "name": "Flag & Eagle", "tag": "HONOR AMERICA", "color": "#3a86ff", "preset": "server:honor_america_eagle.json"}
+        ]
+        self.send_response(200)
+        self.send_header("Content-Type", "application/json")
+        self.end_headers()
+        self.wfile.write(json.dumps(default_fleet, indent=2).encode("utf-8"))
+
+    def handle_save_fleet_config(self):
+        try:
+            content_length = int(self.headers.get("Content-Length", 0))
+            post_data = self.rfile.read(content_length)
+            fleet_data = json.loads(post_data.decode("utf-8"))
+            filepath = os.path.join(PRESETS_DIR, "fleet_lineup.json")
+            with open(filepath, "w", encoding="utf-8") as f:
+                json.dump(fleet_data, f, indent=2)
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json")
+            self.end_headers()
+            self.wfile.write(json.dumps({"success": True}).encode("utf-8"))
         except Exception as e:
             self.send_error(500, str(e))
 

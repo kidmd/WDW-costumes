@@ -93,6 +93,50 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### Entry: 7-Shirt Fleet Lineup Manager, Individual Preset Assignment & Synchronized 700-LED Canvas Preview
+* **Date:** 2026-09-25
+* **Status:** Operational & Verified in Web Simulator and Python Server.
+* **Notes:**
+  * **Dedicated Sidebar Tab 6: 🏃 Fleet ("7-Shirt Fleet Lineup & Preset Manager"):**
+    - Added a 6th task-oriented sidebar tab (`tabBtnFleet` with badge `7` and panel `tabFleet`) for managing the 7-runner Main Street Electrical Parade fleet.
+    - Integrated 7 runner cards (Bib #01 to #07) featuring runner bib badges, float titles, and character tags.
+    - Dynamic Preset Selector `<select class="fleet-preset-select">` on every runner card populated from server presets (`presets/*.json`), browser cache profiles (`msep_custom_presets`), and active editor session.
+    - Live metadata pill indicators for LED count, character artwork, and active animation pattern.
+    - 1-Click **"✏️ Edit in Single View"** button: instantly loads that runner's design into the full-size Single Shirt editor and switches view to `single` and `tabLayout`.
+    - 1-Click **"📥 Assign Editor"** and **"📋 Assign Editor to All"** buttons: copies the active single-shirt editor design to any runner or all 7 runners.
+    - **"🔁 Parade Defaults"** button: resets Floats 01–07 to their authentic parade roster presets.
+  * **Synchronized Tab & View Toggle:**
+    - Clicking the top header **"7-Shirt Fleet Lineup"** toggle switches canvas to fleet view and automatically activates `tabFleet` in the sidebar.
+    - Clicking `tabBtnFleet` in the sidebar automatically switches canvas to fleet view.
+    - Clicking **"Single Shirt"** or any single-shirt tab (`Layout`, `Groups`, `Effects`, `Show`, `Deploy`) automatically returns the canvas to single-shirt mode.
+  * **True 700-LED Canvas Preview Pipeline (`renderFleetView`):**
+    - Replaced the legacy 18-dummy-LED ellipse with authentic, scaled athletic running shirts (1 : 1.25 natural proportions) for all 7 runners.
+    - Scaled chest zones strictly above the bib with authentic Cricut SVG vector artwork (`assets/cricut_svg/`) or high-res PNGs for all 7 floats.
+    - Rendered scaled runDisney 10K yellow Tyvek race bibs with runner-specific bib numbers (`#01` to `#07`) and 4-corner BibBoards snap fasteners.
+    - Rendered real 100-LED arrays per runner (700 LEDs total) calculating dynamic RGB colors, incandescent core intensity, and bloom halo at 60 FPS.
+    - Added multi-mode fleet synchronization:
+      - 🌊 **Wave Sync (ESP-NOW Passing Wave):** Sweeps white-hot wave crest and warm trail through the active float while inactive floats display signature resting sparkle/glow.
+      - ⚡ **Free-Run:** Each shirt executes its assigned preset pattern and animation groups independently in real time.
+      - 🎬 **Master Show:** All 7 shirts synchronize cues to the master 90-second timeline sequence.
+    - Interactive canvas selection: hover highlights runner on course; single-click selects runner card in sidebar; double-click opens runner in Single View editor.
+  * **Complete 7-Float Default Preset Suite:**
+    - Generated authentic 100-LED presets with signature Disney palettes, outlines, and animation groups:
+      - Float 01: `casey_jr_train.json` (Red/Gold steam engine with spinning drive wheel and headlight strobe)
+      - Float 02: `title_drum.json` (Golden drum chassis with perimeter rim chase and white crest)
+      - Float 03: `spinning_turtle.json` (Teal/Emerald shell with spinning spiral shell chase)
+      - Float 04: `spinning_snail.json` (Hot Pink/Magenta shell with concentric shell whorl)
+      - Float 05: `cinderellas_coach.json` (Cyan/Midnight pumpkin carriage with spinning wheels)
+      - Float 06: `petes_dragon.json` (Emerald/Lime dragon body scales with breathing flourish)
+      - Float 07: `honor_america_eagle.json` (Patriotic Red, White, & Blue stars and liberty wings flourish)
+  * **Server & Persistence APIs (`simulator.py`):**
+    - Added `GET /api/fleet_config` and `POST /api/save_fleet_config` to persist 7-runner fleet lineup to `presets/fleet_lineup.json`.
+    - Added static route serving `assets/cricut_svg/` cut files.
+  * **Verification:**
+    - Python syntax verified (`python -m py_compile simulator.py`).
+    - JavaScript syntax validated (`node -c simulator/app.js`).
+    - Server endpoints tested via HTTP (`/api/presets`, `/api/fleet_config`, and SVG asset delivery).
+    - Documentation synchronized in `SIMULATOR_USER_GUIDE.md`, `PROJECT_PROGRESS.md`, and `README.md`.
+
 ### Entry: Group Color Preservation Across Multi-Selection & Automatic Show Cue Preset Inheritance
 * **Date:** 2026-09-25
 * **Status:** Operational & Verified in Web Simulator and PlatformIO Build.

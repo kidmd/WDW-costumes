@@ -28,7 +28,7 @@ An **ESP32** microcontroller on each runner coordinates lighting patterns wirele
 * **LED Strands:** 200 WS2812B / WS2811 Addressable 5V Seed/Pebble Pixels (100 front + 100 back duplicated, black wire, ~1" to 2" spacing)
 * **Data Resistor:** 220 Ω to 470 Ω inline on the data line between GPIO 16 and LED Data-In
 * **Power Source:** 5V USB portable power bank (2.1A+ rating, FastLED limited to 2000 mA) per runner
-* **Costume Simulation:** Visual browser-based layout engine (`python simulator.py` @ `localhost:8000`) with built-in presets (Pete's Dragon, Cinderella's Coach, Carriage No Horses), Fireworks Starburst cluster generator with corner placement, move & scale controls, canvas multi-drag, and full-graphic LED re-distribution (maintaining strictly 100 LEDs), and authentic runDisney 10K Race Bib (#1952) with Chip & Dale and BibBoards fastener clearance.
+* **Costume Simulation:** Visual browser-based layout engine (`python simulator.py` @ `localhost:8000`) with built-in presets (Pete's Dragon, Cinderella's Coach, Carriage No Horses, Casey Jr., Title Drum, Turtle, Snail, Eagle), 7-Shirt Fleet Lineup Manager with real 700-LED mini-shirt visualizer and multi-mode wireless sync (ESP-NOW Wave, Free-Run, Show Sequence), Fireworks Starburst cluster generator with corner placement, move & scale controls, canvas multi-drag, and full-graphic LED re-distribution (maintaining strictly 100 LEDs per shirt), and authentic runDisney 10K Race Bib (#1952) with Chip & Dale and BibBoards fastener clearance.
 
 ---
 

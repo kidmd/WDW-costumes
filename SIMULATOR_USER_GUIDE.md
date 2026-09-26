@@ -11,18 +11,19 @@ This guide walks you through every feature of the simulator, from placing and wi
 1. [Introduction & System Architecture](#1-introduction--system-architecture)
 2. [Launching the Simulator](#2-launching-the-simulator)
 3. [Canvas Navigation & Interactive Controls](#3-canvas-navigation--interactive-controls)
-4. [LED Placement, Inspection & Color Tuning](#4-led-placement-inspection--color-tuning)
-5. [Multi-LED Selection & Animation Groups](#5-multi-led-selection--animation-groups)
-6. [Physical Wiring Route Optimization](#6-physical-wiring-route-optimization)
-7. [Artwork & Graphic Management](#7-artwork--graphic-management)
-8. [Master Timeline Scrubber & Multi-Layer Tracks](#8-master-timeline-scrubber--multi-layer-tracks)
-9. [Parade Cue Director (90-Second Theatrical Sequences)](#9-parade-cue-director-90-second-theatrical-sequences)
-10. [Lighting Patterns & Effects Library](#10-lighting-patterns--effects-library)
-11. [Decimal Sparkle Frequency & Starlight Twinkle](#11-decimal-sparkle-frequency--starlight-twinkle)
+4. [Thoroughbred Workspace: 6 Task Tabs & Contextual Inspector Dock](#4-thoroughbred-workspace-6-task-tabs--contextual-inspector-dock)
+5. [LED Placement, Inspection & Color Tuning](#5-led-placement-inspection--color-tuning)
+6. [Multi-LED Selection & Animation Groups](#6-multi-led-selection--animation-groups)
+7. [Physical Wiring Route Optimization](#7-physical-wiring-route-optimization)
+8. [Artwork & Graphic Management](#8-artwork--graphic-management)
+9. [Master Timeline Scrubber & Multi-Layer Tracks](#9-master-timeline-scrubber--multi-layer-tracks)
+10. [Parade Cue Director (90-Second Theatrical Sequences)](#10-parade-cue-director-90-second-theatrical-sequences)
+11. [Lighting Patterns & Effects Library](#11-lighting-patterns--effects-library)
 12. [Profile Management, Saving & JSON Import/Export](#12-profile-management-saving--json-importexport)
-13. [Hardware Integration: Live Wi-Fi Streaming & Standalone USB Flashing](#13-hardware-integration-live-wi-fi-streaming--standalone-usb-flashing)
-14. [Dual-Mode ESP32 Firmware & Onboard Button Toggle](#14-dual-mode-esp32-firmware--onboard-button-toggle)
-15. [Keyboard Shortcuts & Quick Reference Cheat Sheet](#15-keyboard-shortcuts--quick-reference-cheat-sheet)
+13. [7-Shirt Fleet Lineup & Preset Manager](#13-7-shirt-fleet-lineup--preset-manager)
+14. [Hardware Integration: Live Wi-Fi Streaming & Standalone USB Flashing](#14-hardware-integration-live-wi-fi-streaming--standalone-usb-flashing)
+15. [Dual-Mode ESP32 Firmware & Onboard Button Toggle](#15-dual-mode-esp32-firmware--onboard-button-toggle)
+16. [Keyboard Shortcuts & Quick Reference Cheat Sheet](#16-keyboard-shortcuts--quick-reference-cheat-sheet)
 
 ---
 
@@ -95,13 +96,11 @@ The central workspace renders an interactive, hardware-accelerated preview of yo
 
 ---
 
-## 4. Thoroughbred Workspace: 4 Task Tabs & Contextual Inspector Dock
+## 4. Thoroughbred Workspace: 6 Task Tabs & Contextual Inspector Dock
 
-## 4. Thoroughbred Workspace: 5 Task Tabs & Contextual Inspector Dock
+The simulator features a streamlined, modern workspace inspired by creative suites (After Effects, Figma, Blender), replacing long vertical scrolling with **6 task-oriented tabs** and an **intelligent contextual inspector dock**:
 
-The simulator features a streamlined, modern workspace inspired by creative suites (After Effects, Figma, Blender), replacing long vertical scrolling with **5 task-oriented tabs** and an **intelligent contextual inspector dock**:
-
-### The 5 Sidebar Tabs
+### The 6 Sidebar Tabs
 1. **🎨 Tab 1: Layout ("The Canvas Studio"):**
    - **Costume Profiles:** Quick-load, save, and export/import full JSON profiles.
    - **Shirt & Character Artwork:** Choose from built-in presets (Pete's Dragon, Cinderella's Coach, Carriage No Horses) or upload custom graphics.
@@ -131,6 +130,12 @@ The simulator features a streamlined, modern workspace inspired by creative suit
    - **USB Standalone Flashing:** Auto-detected COM port, connection status badge, 1-Click Flash firmware, View/Copy C++ code modal.
    - **📡 Real-Time Wi-Fi Live Stream:** Stream live colors & animations directly to physical LEDs over Wi-Fi without flashing ROM. Wi-Fi credentials modal.
    - **Web Serial Flasher:** Quick launch button for zero-install browser-based flashing.
+
+6. **🏃 Tab 6: Fleet ("7-Shirt Fleet Lineup & Preset Manager"):**
+   - **Parade Fleet Synchronization:** Toggle between 🌊 **Wave Sync** (ESP-NOW passing wave), ⚡ **Free-Run** (autonomous preset effects), and 🎬 **Master Show** (synchronized 90s cue timeline).
+   - **Wave Cycle Speed Slider:** Adjust parade wave cycle duration (3.0s to 14.0s, default 7.0s).
+   - **7 Runner Slot Cards (Bib #01 to #07):** Assign presets to each runner, view live LED counts and pattern pills.
+   - **1-Click Bidirectional Editing:** Jump any runner's preset directly into the Single Shirt editor (`✏️ Edit in Single View`), or copy the active single-shirt editor design to any runner or all 7 runners (`📥 Assign Editor`).
 
 ### 💡 Contextual Inspector Dock (Docked at Bottom of Sidebar)
 Instead of taking up vertical space in the middle of your workflow:
@@ -517,9 +522,73 @@ Click **"💻 Export FastLED C++ Code"** (Section 5) to open the code modal:
 - Auto-generates the `runAutonomousShowSequence` routine matching your active timeline cues.
 - Click **"📋 Copy to Clipboard"** to paste directly into your Arduino or PlatformIO sketch!
 
+## 13. 7-Shirt Fleet Lineup & Preset Manager
+
+The simulator includes a dedicated **7-Shirt Fleet Lineup & Preset Manager** (Tab 6 in the sidebar navigation or via the top header's **"7-Shirt Fleet Lineup"** view toggle).
+
+This feature coordinates costume profiles, LED mapping, and real-time animation synchronization across all 7 runners in the Main Street Electrical Parade fleet.
+
+### The 7-Runner Roster & Float Assignments
+Each of the 7 runners is represented by a dedicated preset card and canvas athlete:
+
+| Slot | Float # | Unit / Float Name | Tag | Theme Palette | Default Cricut Artwork & Preset |
+|:---:|:---:|:---|:---:|:---:|:---|
+| **0** | **01** | **The Train (Casey Jr.)** | `CASEY JR.` | 🔴 Red & Gold | `casey_jr_train.svg` / `casey_jr_train.json` |
+| **1** | **02** | **The Title Drum** | `THE DRUM` | 🟡 Gold & White | `title_drum.svg` / `title_drum.json` |
+| **2** | **03** | **The Turtle** | `TURTLE` | 🟢 Teal & Emerald | `spinning_turtle.svg` / `spinning_turtle.json` |
+| **3** | **04** | **The Snail** | `SNAIL` | 🌸 Hot Pink & Magenta | `spinning_snail.svg` / `spinning_snail.json` |
+| **4** | **05** | **Cinderella's Coach** | `COACH` | 🔵 Cyan & Midnight | `cinderella_coach.svg` / `cinderellas_coach.json` |
+| **5** | **06** | **Pete's Dragon** | `ELLIOTT` | 🟢 Emerald & Lime | `petes_dragon.svg` / `petes_dragon.json` |
+| **6** | **07** | **To Honor America** | `HONOR AMERICA` | 🔴⚪🔵 Patriotic Blue | `honor_america_eagle.svg` / `honor_america_eagle.json` |
+
 ---
 
-## 13. Hardware Integration: Live Wi-Fi Streaming & Standalone USB Flashing
+### Fleet Synchronization Modes
+In the Fleet tab toolbar, you can select between 3 synchronized animation modes:
+
+1. 🌊 **Wave Sync (ESP-NOW Passing Wave):**
+   - Simulates the physical wireless traveling wave passing sequentially from Runner 1 to Runner 7.
+   - The active float illuminates with a white-hot crest (`#ffffff`) and warm trailing glow, while the remaining 6 runners shimmer with their float's signature resting sparkle or gentle breathing glow.
+   - **Wave Speed Slider:** Adjust the full parade cycle duration from **3.0s to 14.0s** (default **7.0s** cycle, ~1.0s per runner).
+
+2. ⚡ **Free-Run (Autonomous Preset Animations):**
+   - Each runner executes their assigned costume preset and zone animation groups (e.g. Casey's spinning wheels and flashing headlight, Cinderella's dual wheels, Elliott's breathing flourish) independently in real time.
+
+3. 🎬 **Master Show (Synchronized 90-Second Sequence):**
+   - All 7 runners synchronize their lighting cues to the master 90-second timeline sequence.
+
+---
+
+### Interactive 700-LED Canvas Preview
+In the 7-Shirt Fleet Lineup view (`renderFleetView`):
+- **Authentic Athletic Shirts (1 : 1.25 Proportions):** Scaled running shirts with athletic collar, raglan seams, running shorts, and color-matched running shoes along the parade course road.
+- **Float Vector & Image Artwork:** Renders the authentic Cricut SVG vector artwork or high-res image scaled into the chest zone strictly above the bib.
+- **runDisney Mini Bib:** Displays authentic runDisney 10K yellow Tyvek bib styling with individual runner Bib numbers (`#01` through `#07`) and BibBoards snap clamps.
+- **700 Real LEDs (100 per Runner):** The canvas plots all 100 LEDs from each runner's assigned preset, calculating dynamic RGB colors, bloom halo, and incandescent core intensity at 60 FPS.
+- **Interactive Selection:**
+  - **Hover:** Move your mouse over any runner to highlight their shirt on the course.
+  - **Click:** Click any runner shirt on canvas to select and highlight their card in the sidebar tab.
+  - **Double-Click:** Double-click any runner to instantly load their preset into the Single Shirt editor!
+
+---
+
+### Bidirectional Preset Workflow
+- **Assigning Presets to Runners:**
+  Every runner slot card has an **Assigned Costume Preset** dropdown. Select any server preset (`presets/*.json`) or custom profile from your browser cache (`localStorage`) to assign it to that runner. The canvas updates immediately.
+- **✏️ Edit in Single View:**
+  Click the **"Edit in Single View"** button on any runner card to load that runner's design into the full-size Single Shirt editor. Modify LEDs, tweak colors, stamp fireworks, or record cues in high resolution.
+- **📥 Assign Editor:**
+  Click **"Assign Editor"** on a runner card to copy your active single-shirt editor design into that runner slot.
+- **📋 Assign Editor to All:**
+  Duplicates your current single-shirt design across all 7 runners with one click.
+- **🔁 Parade Defaults:**
+  Instantly resets all 7 runners to the official Electrical Parade float presets.
+- **💾 Save Fleet Lineup:**
+  Saves the complete 7-runner fleet configuration to `localStorage['msep_fleet_lineup']` and the server at `presets/fleet_lineup.json`.
+
+---
+
+## 14. Hardware Integration: Live Wi-Fi Streaming & Standalone USB Flashing
 
 The simulator connects directly to physical ESP32 hardware via two powerful workflows:
 
@@ -550,7 +619,7 @@ When you are ready to prepare a shirt for autonomous use:
 
 ---
 
-## 14. Dual-Mode ESP32 Firmware, Button Toggle & Float ID Selector
+## 15. Dual-Mode ESP32 Firmware, Button Toggle & Float ID Selector
 
 The firmware in [`src/main.cpp`](file:///c:/Users/Kiddi/Desktop/WDW%20costumes/src/main.cpp) incorporates dual-mode operation and interactive float configuration toggled via the ESP32's onboard **BOOT button** (`BUTTON_PIN 0` with hardware internal pull-up and debouncing):
 
@@ -590,7 +659,7 @@ Any board can be assigned to any of the 7 floats without touching code:
 
 ---
 
-## 15. Keyboard Shortcuts & Quick Reference Cheat Sheet
+## 16. Keyboard Shortcuts & Quick Reference Cheat Sheet
 
 | Key / Action | Context | Description |
 |---|---|---|

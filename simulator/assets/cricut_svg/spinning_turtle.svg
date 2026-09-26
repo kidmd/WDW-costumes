@@ -1,0 +1,107 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600" width="100%" height="100%">
+  <!-- Main Street Electrical Parade - Float 03: The Spinning Turtle -->
+  <!-- Designed for Layered Cricut Heat Transfer Vinyl (HTV) Cutting -->
+
+  <defs>
+    <style>
+      .layer-green { fill: #2ec4b6; }
+      .layer-yellow { fill: #ffb703; }
+      .layer-red { fill: #e63946; }
+      .layer-white { fill: #ffffff; }
+      .stroke-dark { stroke: #111111; stroke-width: 4; stroke-linejoin: round; stroke-linecap: round; }
+    </style>
+  </defs>
+
+  <!-- LAYER 1: EMERALD / TEAL GREEN HTV (Head, Flippers, Shell Dome) -->
+  <g id="Layer_1_Green_Vinyl" class="layer-green">
+    <!-- Main Big Domed Turtle Shell -->
+    <path class="stroke-dark" d="M 200 380 C 200 200 300 130 450 130 C 600 130 680 200 680 380 C 680 430 630 450 450 450 C 270 450 200 430 200 380 Z" />
+
+    <!-- Cute Smiling Turtle Head Extruding Left -->
+    <path class="stroke-dark" d="M 230 330 C 180 320 140 330 110 360 C 80 390 90 440 140 455 C 190 470 230 430 250 400 Z" />
+
+    <!-- Front Left Flipper / Foot -->
+    <path class="stroke-dark" d="M 250 440 C 220 480 180 520 220 545 C 260 565 300 515 320 450 Z" />
+
+    <!-- Front Right Flipper / Foot -->
+    <path class="stroke-dark" d="M 370 450 C 370 510 375 555 420 560 C 465 565 470 510 450 450 Z" />
+
+    <!-- Rear Flipper / Foot -->
+    <path class="stroke-dark" d="M 570 440 C 600 480 640 530 680 515 C 720 495 680 450 640 420 Z" />
+
+    <!-- Little Tail -->
+    <path class="stroke-dark" d="M 670 370 C 720 370 740 385 750 400 C 730 415 690 410 665 400 Z" />
+  </g>
+
+  <!-- LAYER 2: CHERRY RED HTV (Bow Tie, Smiling Mouth, Shell Center Core) -->
+  <g id="Layer_2_Red_Vinyl" class="layer-red">
+    <!-- Dapper Bow Tie / Necktie under Chin -->
+    <path class="stroke-dark" d="M 215 425 L 185 410 L 185 450 Z" />
+    <path class="stroke-dark" d="M 215 425 L 245 410 L 245 450 Z" />
+    <circle cx="215" cy="425" r="9" class="stroke-dark" />
+
+    <!-- Big Cheerful Smile -->
+    <path class="stroke-dark" d="M 105 405 C 120 430 155 435 175 415" fill="none" stroke="#e63946" stroke-width="6" />
+
+    <!-- Shell Core Center Circle -->
+    <circle cx="450" cy="290" r="32" class="stroke-dark" />
+
+    <!-- Outer Shell Rim Border Trim -->
+    <path class="stroke-dark" fill="none" stroke="#e63946" stroke-width="12" d="M 220 395 C 280 435 400 445 450 445 C 500 445 620 435 660 395" />
+  </g>
+
+  <!-- LAYER 3: SUNNY YELLOW HTV (Signature Oversized Glasses & Shell Spiral Bands) -->
+  <g id="Layer_3_Yellow_Vinyl" class="layer-yellow">
+    <!-- Oversized Horn-Rimmed Glasses (Iconic MSEP Turtle Feature!) -->
+    <!-- Left Lens Frame -->
+    <ellipse cx="140" cy="370" rx="26" ry="24" class="stroke-dark" fill="none" stroke="#ffb703" stroke-width="10" />
+    <!-- Right Lens Frame -->
+    <ellipse cx="195" cy="365" rx="26" ry="24" class="stroke-dark" fill="none" stroke="#ffb703" stroke-width="10" />
+    <!-- Glasses Bridge & Ear Stem -->
+    <rect x="162" y="360" width="12" height="7" rx="2" class="stroke-dark" />
+    <path class="stroke-dark" d="M 218 360 L 250 350" fill="none" stroke="#ffb703" stroke-width="7" />
+
+    <!-- Shell Concentric Spiral Bands (The Spinning Lights Effect) -->
+    <!-- Spiral Ring 1 -->
+    <ellipse cx="450" cy="290" rx="80" ry="60" fill="none" stroke="#ffb703" stroke-width="14" class="stroke-dark" />
+    <!-- Spiral Ring 2 -->
+    <ellipse cx="450" cy="290" rx="145" ry="105" fill="none" stroke="#ffb703" stroke-width="14" class="stroke-dark" />
+    <!-- Spiral Radiating Spoke Blades -->
+    <line x1="450" y1="160" x2="450" y2="420" stroke="#ffb703" stroke-width="8" />
+    <line x1="320" y1="230" x2="580" y2="350" stroke="#ffb703" stroke-width="8" />
+    <line x1="320" y1="350" x2="580" y2="230" stroke="#ffb703" stroke-width="8" />
+  </g>
+
+  <!-- LAYER 4: CRISP WHITE HTV (Bulb Dots, Glasses Reflection, Eye Whites) -->
+  <g id="Layer_4_White_Vinyl" class="layer-white">
+    <!-- Eyes behind/inside glasses -->
+    <circle cx="140" cy="370" r="14" fill="#ffffff" />
+    <circle cx="143" cy="368" r="6" fill="#111111" />
+    <circle cx="195" cy="365" r="14" fill="#ffffff" />
+    <circle cx="198" cy="363" r="6" fill="#111111" />
+
+    <!-- Glasses Glint / Shine Line -->
+    <path d="M 125 355 L 138 355" stroke="#ffffff" stroke-width="4" stroke-linecap="round" />
+    <path d="M 180 350 L 193 350" stroke="#ffffff" stroke-width="4" stroke-linecap="round" />
+
+    <!-- Shell Bulb Nodes (Key placement points for LEDs!) -->
+    <!-- Center Cluster -->
+    <circle cx="450" cy="290" r="10" />
+    <!-- Middle Ring Bulbs -->
+    <circle cx="450" cy="230" r="8" />
+    <circle cx="515" cy="255" r="8" />
+    <circle cx="515" cy="325" r="8" />
+    <circle cx="450" cy="350" r="8" />
+    <circle cx="385" cy="325" r="8" />
+    <circle cx="385" cy="255" r="8" />
+    <!-- Outer Ring Bulbs -->
+    <circle cx="450" cy="170" r="8" />
+    <circle cx="560" cy="210" r="8" />
+    <circle cx="585" cy="290" r="8" />
+    <circle cx="560" cy="370" r="8" />
+    <circle cx="450" cy="410" r="8" />
+    <circle cx="340" cy="370" r="8" />
+    <circle cx="315" cy="290" r="8" />
+    <circle cx="340" cy="210" r="8" />
+  </g>
+</svg>

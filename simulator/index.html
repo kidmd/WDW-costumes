@@ -126,6 +126,11 @@
                     <span class="tab-icon">⚡</span>
                     <span class="tab-label">Deploy</span>
                 </button>
+                <button type="button" id="tabBtnFleet" class="sidebar-tab-btn" data-tab="tabFleet" title="7-Shirt Fleet Lineup & Preset Assignments">
+                    <span class="tab-icon">🏃</span>
+                    <span class="tab-label">Fleet</span>
+                    <span id="tabFleetBadge" class="tab-count-badge">7</span>
+                </button>
             </div>
 
             <!-- Scrollable Tab Content Container -->
@@ -843,7 +848,66 @@
 
                 </div>
 
-            </div>
+                <!-- ======================================================== -->
+                <!-- TAB 6: 7-SHIRT FLEET LINEUP                              -->
+                <!-- ======================================================== -->
+                <div id="tabFleet" class="tab-panel">
+                    
+                    <!-- Fleet Header & Sync Controls -->
+                    <div class="control-section">
+                        <div class="section-title">
+                            <span>Parade Fleet Synchronization</span>
+                        </div>
+                        <p style="font-size: 11px; color: var(--text-muted); line-height: 1.4; margin-bottom: 8px;">
+                            Configure costume presets for all 7 runners. Preview live wireless traveling wave, autonomous free-run, or master cues across the entire fleet.
+                        </p>
+
+                        <!-- Fleet Sync Mode -->
+                        <div class="control-group">
+                            <label style="font-size: 11px; color: var(--text-muted); margin-bottom: 4px;">Fleet Animation Mode:</label>
+                            <div style="display: flex; gap: 4px;">
+                                <button type="button" id="fleetModeWaveBtn" class="action-btn primary" style="flex: 1; font-size: 10px; padding: 6px 4px; font-weight: 600;" title="Simulate ESP-NOW traveling wave pulse passing from Runner 1 to 7">🌊 Wave Sync</button>
+                                <button type="button" id="fleetModeFreeBtn" class="action-btn" style="flex: 1; font-size: 10px; padding: 6px 4px;" title="Each shirt independently executes its assigned preset animation">⚡ Free-Run</button>
+                                <button type="button" id="fleetModeShowBtn" class="action-btn" style="flex: 1; font-size: 10px; padding: 6px 4px;" title="All 7 shirts synchronize to the master 90s parade sequence">🎬 Master Show</button>
+                            </div>
+                        </div>
+
+                        <!-- Wave Cycle Speed Slider -->
+                        <div class="control-group" id="fleetWaveSpeedGroup" style="margin-top: 8px;">
+                            <div class="label-row" style="margin-bottom: 2px;">
+                                <span style="font-size: 11px; color: var(--text-muted);">Traveling Wave Cycle Speed:</span>
+                                <span id="fleetWaveSpeedVal" class="val-badge" style="font-size: 11px;">7.0s cycle</span>
+                            </div>
+                            <input type="range" id="fleetWaveSpeedSlider" min="30" max="140" value="70" step="5" style="accent-color: #ffc107;">
+                        </div>
+
+                        <!-- Global Lineup Actions -->
+                        <div style="display: flex; flex-direction: column; gap: 6px; margin-top: 10px;">
+                            <div style="display: flex; gap: 6px;">
+                                <button type="button" id="fleetAssignAllCurrentBtn" class="action-btn" style="flex: 1; font-size: 10px; padding: 6px 6px;" title="Copy the current single-shirt editor design to all 7 runners">
+                                    📋 Assign Editor to All
+                                </button>
+                                <button type="button" id="fleetResetDefaultsBtn" class="action-btn" style="flex: 1; font-size: 10px; padding: 6px 6px;" title="Restore official 7-float Electrical Parade roster presets">
+                                    🔁 Parade Defaults
+                                </button>
+                            </div>
+                            <button type="button" id="fleetSaveConfigBtn" class="action-btn accent" style="width: 100%; font-size: 11px; padding: 7px; background: linear-gradient(135deg, #1f6feb, #388bfd); border-color: #388bfd; font-weight: 600;">
+                                💾 Save Fleet Lineup
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- 7 Runner Slot Cards -->
+                    <div class="control-section" style="padding-bottom: 16px;">
+                        <div class="section-title">
+                            <span>7-Runner Costume Lineup</span>
+                        </div>
+                        <div id="fleetRunnersContainer" style="display: flex; flex-direction: column; gap: 10px; margin-top: 6px;">
+                            <!-- Populated dynamically by app.js -->
+                        </div>
+                    </div>
+
+                </div>
 
             <!-- ======================================================== -->
             <!-- CONTEXTUAL INSPECTOR DOCK (Docked at bottom of sidebar)   -->
