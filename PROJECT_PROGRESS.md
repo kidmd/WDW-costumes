@@ -83,15 +83,28 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
   - [ ] Implement float-specific accent animations (fire flickers, clock chime, sparkles).
   - [ ] Optional: Sync tempo to the *Baroque Hoedown* soundtrack.
 
-- [ ] **Milestone 5: Wearable Construction & Race Prep**
-  - [ ] Assemble Y-splitter power cables for race-day battery packs.
-  - [ ] Secure seed LEDs to black running shirts (clear nylon tacking / fabric adhesive).
-  - [ ] Add quick-disconnect JST connectors between waist belts and shirts.
-  - [ ] Sweat-proofing and strain relief testing.
+- [ ] **Next Up / Feature Queue (Imagineering Active Pipeline):**
+  - [ ] **Interactive Visual Timeline Block Editor:** Directly drag and stretch choreography block edges on the canvas timeline to adjust durations visually; drag-and-drop block reordering on timeline tracks.
+  - [ ] **Race-Day Battery Life & Power Budget Calculator:** Analytical battery capacity estimator (5,000 mAh / 10,000 mAh packs) modeling running pace (60–90 min 10K), average mA draw per runner, and 30s fleet show trigger frequency.
+  - [ ] **"Corral Roll Call" / ESP-NOW Fleet Radar Diagnostic:** Pre-race bench & corral RF sniffer verifying that Floats 1 through 7 are powered, connected, and responding on the sync channel before race start.
 
 ---
 
 ## Progress Log
+
+### Entry: Signature Fleet Show Preset Pack ("The Electrical Suite") & Feature Queue Roadmap
+* **Date:** 2026-09-26
+* **Milestone:** Milestone 5 - Fleet Choreography Content Library & Studio Production
+* **Status:** Operational & Verified in Web Simulator and Python Server.
+* **Notes:**
+  * **3 New Signature Fleet Choreography Presets Added to `presets/fleet_shows/`:**
+    - `supernova_spectacular_30s.json` (**💥 The Supernova Spectacular - 30s**): High-octane choreography featuring the signature Dual Collision Shockwave, Butterfly Ripple Echo, Fairy Dust Waterfall, Ping-Pong Bounce, Cosmic Breath, and Grand Finale.
+    - `baroque_hoedown_encore_30s.json` (**🎪 Baroque Hoedown Encore - 30s**): Fast-tempo, rhythmic choreography tuned to the iconic parade beat with syncopated wig-wags, forward/reverse wave volleys, collision bursts, and a roaring hoedown crescendo.
+    - `pixie_dust_processional_20s.json` (**🧚 Pixie Dust Processional - 20s**): Lyrical, enchanted starlight showcase featuring golden fairy dust waterfalls, silky cascade dissolves, starlight twinkle tempests, and gentle ambient stardust.
+  * **Dynamic Server Discovery & Dropdown:**
+    - Verified `/api/fleet_shows` dynamically enumerates all 5 presets (`default_30s_grand_parade`, `supernova_spectacular_30s`, `baroque_hoedown_encore_30s`, `classic_20s_routine`, `pixie_dust_processional_20s`).
+    - Added fallback `<option>` tags in `simulator/index.html`.
+  * **Feature Queue Prioritization:** Queued up the next 3 high-impact features (Visual Timeline Drag-to-Stretch Editor, Battery & Power Budget Calculator, and Corral Roll Call / Fleet Radar Diagnostic).
 
 ### Entry: Multi-Float Live Wi-Fi UDP Streaming Architecture (Opcode 0x02) & Simultaneous Bench Prototyping
 * **Date:** 2026-09-26

@@ -1,0 +1,125 @@
+{
+  "id": "baroque_hoedown_encore_30s",
+  "name": "🎪 Baroque Hoedown Encore (30s)",
+  "description": "Fast-tempo, rhythmic choreography tuned to the iconic parade beat with syncopated wig-wags, forward/reverse wave volleys, collision bursts, and a roaring hoedown crescendo.",
+  "version": "1.0",
+  "loopDuration": 30.0,
+  "createdAt": "2026-09-26T18:55:00Z",
+  "updatedAt": "2026-09-26T18:55:00Z",
+  "blocks": [
+    {
+      "id": "blk_01_beat_blackout",
+      "name": "Opening Beat Silence",
+      "type": "blackout",
+      "startTime": 0.0,
+      "duration": 0.5,
+      "params": {}
+    },
+    {
+      "id": "blk_02_wig_wag_intro",
+      "name": "Baroque Marquee Wig-Wag",
+      "type": "wig_wag",
+      "startTime": 0.5,
+      "duration": 3.5,
+      "params": {
+        "speedBpm": 140,
+        "colorA": "Belle Gold",
+        "colorB": "Alice Cyan"
+      }
+    },
+    {
+      "id": "blk_03_forward_wave",
+      "name": "High-Speed Forward Wave (1➔7)",
+      "type": "wave_forward",
+      "startTime": 4.0,
+      "duration": 2.0,
+      "params": {
+        "colorMode": "cycle_random",
+        "trailLengthShirts": 1.5,
+        "incandescentCrest": true
+      }
+    },
+    {
+      "id": "blk_04_reverse_wave",
+      "name": "High-Speed Reverse Wave (7➔1)",
+      "type": "wave_reverse",
+      "startTime": 6.0,
+      "duration": 2.0,
+      "params": {
+        "colorMode": "match_previous",
+        "trailLengthShirts": 1.5,
+        "incandescentCrest": true
+      }
+    },
+    {
+      "id": "blk_05_color_wash",
+      "name": "Progressive Hue Wash Fill",
+      "type": "color_wash_chase",
+      "startTime": 8.0,
+      "duration": 4.0,
+      "params": {
+        "speedBpm": 120
+      }
+    },
+    {
+      "id": "blk_06_converge_inward",
+      "name": "Converge Inward to Center (1&7➔4)",
+      "type": "converge_center",
+      "startTime": 12.0,
+      "duration": 3.0,
+      "params": {
+        "colorMode": "cycle_random"
+      }
+    },
+    {
+      "id": "blk_07_center_burst",
+      "name": "Center-Outward Eruption (4➔1&7)",
+      "type": "center_burst",
+      "startTime": 15.0,
+      "duration": 3.0,
+      "params": {
+        "colorMode": "cycle_random",
+        "peakFlare": true
+      }
+    },
+    {
+      "id": "blk_08_rainbow_sweep",
+      "name": "Rainbow Fleet Spectrum Sweep",
+      "type": "rainbow_sweep",
+      "startTime": 18.0,
+      "duration": 3.0,
+      "params": {
+        "speedBpm": 130
+      }
+    },
+    {
+      "id": "blk_09_clash_shockwave",
+      "name": "Baroque Clash & Shockwave",
+      "type": "color_collision",
+      "startTime": 21.0,
+      "duration": 3.5,
+      "params": {
+        "colorMode": "cycle_random"
+      }
+    },
+    {
+      "id": "blk_10_grand_finale",
+      "name": "Accelerating Marquee Finale",
+      "type": "grand_finale",
+      "startTime": 24.5,
+      "duration": 5.0,
+      "params": {
+        "speedBpm": 160,
+        "strobeClimax": true
+      }
+    },
+    {
+      "id": "blk_11_curtain_blackout",
+      "name": "Curtain Blackout & Return",
+      "type": "blackout",
+      "startTime": 29.5,
+      "duration": 0.5,
+      "params": {}
+    }
+  ]
+}

@@ -1,0 +1,89 @@
+{
+  "id": "pixie_dust_processional_20s",
+  "name": "✨ Pixie Dust Processional (20s)",
+  "description": "Lyrical, enchanted starlight showcase featuring golden fairy dust waterfalls, silky cascade dissolves, starlight twinkle tempests, and gentle ambient stardust.",
+  "version": "1.0",
+  "loopDuration": 20.0,
+  "createdAt": "2026-09-26T18:55:00Z",
+  "updatedAt": "2026-09-26T18:55:00Z",
+  "blocks": [
+    {
+      "id": "blk_01_twilight_blackout",
+      "name": "Nightfall Silence",
+      "type": "blackout",
+      "startTime": 0.0,
+      "duration": 0.5,
+      "params": {}
+    },
+    {
+      "id": "blk_02_fairy_waterfall",
+      "name": "Tinker Bell Fairy Dust Waterfall",
+      "type": "sparkle_cascade",
+      "startTime": 0.5,
+      "duration": 3.5,
+      "params": {
+        "colorMode": "cycle_random"
+      }
+    },
+    {
+      "id": "blk_03_enchanted_dissolve",
+      "name": "Enchanted Cascade Dissolve",
+      "type": "cross_dissolve_chase",
+      "startTime": 4.0,
+      "duration": 3.5,
+      "params": {
+        "colorMode": "cycle_random"
+      }
+    },
+    {
+      "id": "blk_04_starlight_tempest",
+      "name": "Starlight Twinkle Tempest",
+      "type": "sparkle_storm",
+      "startTime": 7.5,
+      "duration": 4.0,
+      "params": {
+        "sparkleColorMix": "wave_and_white",
+        "density": 0.8
+      }
+    },
+    {
+      "id": "blk_05_celestial_drift",
+      "name": "Celestial Shimmer Drift",
+      "type": "shimmer_drift",
+      "startTime": 11.5,
+      "duration": 3.0,
+      "params": {
+        "speedBpm": 75
+      }
+    },
+    {
+      "id": "blk_06_butterfly_ripple",
+      "name": "Butterfly Starlight Ripple",
+      "type": "ripple_echo",
+      "startTime": 14.5,
+      "duration": 3.0,
+      "params": {
+        "colorMode": "match_previous"
+      }
+    },
+    {
+      "id": "blk_07_midnight_pulse",
+      "name": "Enchanted Midnight Glow Pulse",
+      "type": "fleet_pulse",
+      "startTime": 17.5,
+      "duration": 2.0,
+      "params": {
+        "pulseSpeedBpm": 45,
+        "peakFlare": true
+      }
+    },
+    {
+      "id": "blk_08_soft_twilight",
+      "name": "Soft Twilight Fade & Return",
+      "type": "blackout",
+      "startTime": 19.5,
+      "duration": 0.5,
+      "params": {}
+    }
+  ]
+}

@@ -608,7 +608,13 @@ The fleet choreography engine features 19 specialized multi-float lighting block
 ---
 
 ### Fleet Show Creator Studio Controls
-- **Fleet Routine Profile Dropdown (`#fleetShowSelect`):** Select pre-choreographed shows such as `30s Grand Electrical Parade Show` or `Classic 20s Fleet Routine`. Profiles are loaded dynamically via REST API from `presets/fleet_shows/*.json`.
+- **Fleet Routine Profile Dropdown (`#fleetShowSelect`):** Select pre-choreographed signature shows, including:
+  1. 👑 **30s Grand Electrical Parade Show (Default):** The full parade processional with traveling waves, center bursts, marquee wig-wags, sparkle storms, and grand finale.
+  2. 💥 **The Supernova Spectacular (30s):** High-octane choreography featuring the signature Dual Collision Shockwave, Butterfly Ripple Echo, Fairy Dust Waterfall, and an explosive Grand Finale.
+  3. 🎪 **Baroque Hoedown Encore (30s):** Fast-tempo, rhythmic choreography tuned to the iconic parade beat with syncopated wig-wags, forward/reverse wave volleys, collision bursts, and a roaring hoedown crescendo.
+  4. ✨ **Classic 20s Fleet Routine:** Compact 20-second parade sequence.
+  5. 🧚 **Pixie Dust Processional (20s):** Lyrical, enchanted starlight showcase featuring golden fairy dust waterfalls, silky cascade dissolves, starlight twinkle tempests, and gentle ambient stardust.
+  Profiles are loaded dynamically via REST API from `presets/fleet_shows/*.json`.
 - **➕ Add Block (`#fleetAddBlockBtn`):** Pick any of the 19 block types from the palette and append it to the stack.
 - **Dynamic Block Stack Editor (`#fleetBlocksStackContainer`):**
   - Displays each block's name, type, start time, duration, and parameter controls (speed BPM, trail length, color modes).

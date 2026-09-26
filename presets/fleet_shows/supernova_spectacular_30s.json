@@ -1,0 +1,120 @@
+{
+  "id": "supernova_spectacular_30s",
+  "name": "💥 The Supernova Spectacular (30s)",
+  "description": "High-octane choreography featuring the signature Dual Collision Shockwave, Butterfly Ripple Echo, Fairy Dust Waterfall, and an explosive Grand Finale.",
+  "version": "1.0",
+  "loopDuration": 30.0,
+  "createdAt": "2026-09-26T18:55:00Z",
+  "updatedAt": "2026-09-26T18:55:00Z",
+  "blocks": [
+    {
+      "id": "blk_01_intro_blackout",
+      "name": "Dramatic Blackout",
+      "type": "blackout",
+      "startTime": 0.0,
+      "duration": 1.0,
+      "params": {}
+    },
+    {
+      "id": "blk_02_supernova_collision",
+      "name": "Dual Collision & Shockwave",
+      "type": "color_collision",
+      "startTime": 1.0,
+      "duration": 3.5,
+      "params": {
+        "colorMode": "cycle_random"
+      }
+    },
+    {
+      "id": "blk_03_butterfly_ripple",
+      "name": "Mirror Pair Echo (Butterfly Ripple)",
+      "type": "ripple_echo",
+      "startTime": 4.5,
+      "duration": 3.0,
+      "params": {
+        "colorMode": "match_previous"
+      }
+    },
+    {
+      "id": "blk_04_silky_dissolve",
+      "name": "Silky Cascade Dissolve",
+      "type": "cross_dissolve_chase",
+      "startTime": 7.5,
+      "duration": 3.5,
+      "params": {
+        "colorMode": "cycle_random"
+      }
+    },
+    {
+      "id": "blk_05_ping_pong",
+      "name": "Ping-Pong Double Rebound",
+      "type": "ping_pong_wave",
+      "startTime": 11.0,
+      "duration": 3.0,
+      "params": {
+        "bounces": 2,
+        "colorMode": "cycle_random"
+      }
+    },
+    {
+      "id": "blk_06_mid_blackout",
+      "name": "Anticipation Silence",
+      "type": "blackout",
+      "startTime": 14.0,
+      "duration": 1.0,
+      "params": {}
+    },
+    {
+      "id": "blk_07_fairy_waterfall",
+      "name": "Fairy Dust Waterfall Cascade",
+      "type": "sparkle_cascade",
+      "startTime": 15.0,
+      "duration": 3.5,
+      "params": {
+        "colorMode": "cycle_random"
+      }
+    },
+    {
+      "id": "blk_08_baton_chase",
+      "name": "Baton Leapfrog Chase",
+      "type": "baton_chase",
+      "startTime": 18.5,
+      "duration": 3.0,
+      "params": {
+        "direction": "1_to_7",
+        "colorMode": "cycle_random"
+      }
+    },
+    {
+      "id": "blk_09_fleet_pulse",
+      "name": "Synchronized Cosmic Breath",
+      "type": "fleet_pulse",
+      "startTime": 21.5,
+      "duration": 3.0,
+      "params": {
+        "colorMode": "match_previous",
+        "pulseSpeedBpm": 40,
+        "peakFlare": true
+      }
+    },
+    {
+      "id": "blk_10_grand_finale",
+      "name": "Grand Finale Carnival Crescendo",
+      "type": "grand_finale",
+      "startTime": 24.5,
+      "duration": 5.0,
+      "params": {
+        "speedBpm": 155,
+        "strobeClimax": true
+      }
+    },
+    {
+      "id": "blk_11_outro_blackout",
+      "name": "Curtain Blackout & Return",
+      "type": "blackout",
+      "startTime": 29.5,
+      "duration": 0.5,
+      "params": {}
+    }
+  ]
+}
