@@ -92,6 +92,16 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### Entry: Collapsible Pre-Corral Roll Call & Fleet Radar Layout Optimization
+* **Date:** 2026-09-26
+* **Milestone:** Milestone 5 - Fleet Management Ergonomics & Corral UX Refinement
+* **Status:** Operational & Verified across Web Simulator (`index.html`, `app.js?v=30`) and Documentation.
+* **Notes:**
+  * **Reduced Visual Clutter on Fleet Tab:** Reordered Section 2 to be the 7-Runner Baseline Presets and Section 3 to be the Pre-Race Corral Roll Call & ESP-NOW Fleet Radar, configured to start **minimized by default**.
+  * **Collapsible Header Console:** Features a compact header with real-time readiness status (`🟢 7/7 READY`), a clear summary subtitle, and an interactive toggle button (`▼ Open Checks` / `▲ Minimize`).
+  * **One-Click Quick Jump Buttons:** Added quick-jump action buttons (`🛰️ Corral Radar`) in the 30s Fleet Show header and 7-Runner Lineup header that smoothly expand the console and scroll directly to the radar diagnostics with an accent glow.
+  * **Auto-Expansion on Roll Call:** Triggering the 4-second rapid attendance roll call wave automatically expands the radar section so visual telemetry cards and card glow sequences remain visible.
+
 ### Entry: Double-Tap 4-Second Rapid Attendance Roll Call Wave (Hardware-Only & Simulator)
 * **Date:** 2026-09-26
 * **Milestone:** Milestone 5 - Pre-Race Wireless Telemetry, Lineup Verification & Rapid Corral Wave

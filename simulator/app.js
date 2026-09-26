@@ -11235,7 +11235,44 @@ function applyRadarScenario(scenario) {
 }
 window.applyRadarScenario = applyRadarScenario;
 
+let isFleetRadarExpanded = false;
+
+function setFleetRadarExpanded(expand) {
+    isFleetRadarExpanded = expand;
+    const content = document.getElementById('fleetRadarContent');
+    const toggleBtn = document.getElementById('fleetRadarToggleBtn');
+    const hint = document.getElementById('fleetRadarCollapsedHint');
+    const section = document.getElementById('fleetRadarSection');
+
+    if (content) content.style.display = expand ? 'block' : 'none';
+    if (toggleBtn) {
+        toggleBtn.innerHTML = expand ? '▲ Minimize' : '▼ Open Checks';
+        toggleBtn.style.color = expand ? '#ff7b72' : '#58a6ff';
+        toggleBtn.style.borderColor = expand ? '#f85149' : '#388bfd';
+    }
+    if (hint) hint.style.display = expand ? 'none' : 'block';
+    if (section) {
+        section.style.borderColor = expand ? '#388bfd' : '#1f6feb';
+    }
+}
+window.setFleetRadarExpanded = setFleetRadarExpanded;
+
+function openFleetRadar(andScroll = true) {
+    setFleetRadarExpanded(true);
+    const section = document.getElementById('fleetRadarSection');
+    if (section && andScroll) {
+        section.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        section.style.transition = 'box-shadow 0.3s ease, border-color 0.3s ease';
+        section.style.boxShadow = '0 0 16px rgba(56, 139, 253, 0.4)';
+        setTimeout(() => {
+            if (section) section.style.boxShadow = 'none';
+        }, 1200);
+    }
+}
+window.openFleetRadar = openFleetRadar;
+
 async function triggerRapidRollCall() {
+    openFleetRadar(false);
     const rollCallBtn = document.getElementById('fleetRadarRapidRollCallBtn');
     if (rapidRollCallActive) return;
 
@@ -11315,6 +11352,32 @@ function initFleetRadar() {
     const identifyAllBtn = document.getElementById('fleetRadarIdentifyAllBtn');
     const rapidRollCallBtn = document.getElementById('fleetRadarRapidRollCallBtn');
     const scenarioSelect = document.getElementById('fleetRadarScenarioSelect');
+    const toggleHeader = document.getElementById('fleetRadarToggleHeader');
+    const toggleBtn = document.getElementById('fleetRadarToggleBtn');
+    const jumpBtn = document.getElementById('fleetJumpToRadarBtn');
+    const jumpTopBtn = document.getElementById('fleetJumpToRadarTopBtn');
+
+    toggleHeader?.addEventListener('click', (e) => {
+        // Toggle if user clicks anywhere in header except if clicking button itself (handled below)
+        if (e.target !== toggleBtn && !toggleBtn?.contains(e.target)) {
+            setFleetRadarExpanded(!isFleetRadarExpanded);
+        }
+    });
+
+    toggleBtn?.addEventListener('click', (e) => {
+        e.stopPropagation();
+        setFleetRadarExpanded(!isFleetRadarExpanded);
+    });
+
+    jumpBtn?.addEventListener('click', (e) => {
+        e.preventDefault();
+        openFleetRadar(true);
+    });
+
+    jumpTopBtn?.addEventListener('click', (e) => {
+        e.preventDefault();
+        openFleetRadar(true);
+    });
 
     scanBtn?.addEventListener('click', scanFleetRadar);
     identifyAllBtn?.addEventListener('click', triggerIdentifyAllFloats);

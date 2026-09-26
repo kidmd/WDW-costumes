@@ -699,17 +699,22 @@ Each of the 7 runners is represented by a dedicated preset card and canvas athle
 
 ---
 
-### Pre-Race Corral Roll Call & ESP-NOW Fleet Radar
+### Pre-Race Corral Roll Call & ESP-NOW Fleet Radar (Collapsible Console)
 
-In the dark, chilly 3:30 AM staging corrals outside Epcot, the 7 brothers need instant, foolproof verification that all costumes are powered on, receiving wireless timing packets, and mapped to unique float numbers. The **Corral Roll Call & Fleet Radar** provides an interactive diagnostic console directly on the Fleet Tab:
+In the dark, chilly 3:30 AM staging corrals outside Epcot, the 7 brothers need instant, foolproof verification that all costumes are powered on, receiving wireless timing packets, and mapped to unique float numbers. To keep the Fleet Tab clean and focused on choreography and presets, the **Corral Roll Call & Fleet Radar** is positioned directly below the 7-Runner Lineup and **starts minimized by default**:
 
 ```
 ┌────────────────────────────────────────────────────────────────────────┐
-│  🛰️ Corral Roll Call & Fleet Radar                      🟢 7/7 READY   │
-│  Master Sync Clock: Float 1 (The Train) · ESP-NOW 2.4 GHz (Broadcast)  │
-│  7 Online · 0 Offline · 0 Conflict (Ready for Start Gun!)              │
+│  🛰️ Corral Roll Call & Fleet Radar       🟢 7/7 READY   [▼ Open Checks] │
+│  4s Attendance Wave, ESP-NOW channel status & 7-float wireless telemetry│
 └────────────────────────────────────────────────────────────────────────┘
 ```
+
+#### Minimized Console & One-Click Expansion:
+- **Default Minimized State:** Shows a compact status bar with real-time fleet health (`🟢 7/7 READY`) and summary caption without crowding the screen.
+- **Header Toggle:** Click anywhere on the header bar or the **`▼ Open Checks`** button to smoothly expand into the full telemetry and control console (button flips to **`▲ Minimize`**).
+- **Quick Jump Buttons:** Click **`🛰️ Corral Radar`** in the **30s Fleet Show Creator** header or the **7-Runner Baseline Presets** header to instantly expand the console and smoothly scroll into view with an accent pulse.
+- **Auto-Expansion on Trigger:** Triggering the rapid roll call wave (via button or physical double-tap) automatically expands the console so all 7 visual status cards can be monitored.
 
 #### Key Capabilities & Pre-Race Checks:
 1. **Fleet Readiness Banner:**
