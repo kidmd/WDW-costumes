@@ -10658,6 +10658,218 @@ function hslToRgb(h, s, l) {
 }
 
 // ============================================================================
+// RACE-DAY BATTERY LIFE & POWER BUDGET CALCULATOR (200 LEDS / FASTLED 2.0A LIMIT)
+// ============================================================================
+const FLOAT_POWER_PROFILES = [
+    { id: 1, name: "The Train", tag: "CASEY JR.", color: "#ff5e3a", baseMa: 750, showPeakMa: 1120 },
+    { id: 2, name: "Title Drum", tag: "THE DRUM", color: "#f1e05a", baseMa: 620, showPeakMa: 1050 },
+    { id: 3, name: "The Turtle", tag: "TURTLE", color: "#2ec4b6", baseMa: 660, showPeakMa: 1080 },
+    { id: 4, name: "The Snail", tag: "SNAIL", color: "#ff007f", baseMa: 670, showPeakMa: 1090 },
+    { id: 5, name: "Cinderella", tag: "COACH", color: "#05d9e8", baseMa: 700, showPeakMa: 1100 },
+    { id: 6, name: "Pete's Dragon", tag: "ELLIOTT", color: "#39ff14", baseMa: 720, showPeakMa: 1150 },
+    { id: 7, name: "Flag & Eagle", tag: "PATRIOTIC", color: "#388bfd", baseMa: 780, showPeakMa: 1180 }
+];
+
+let isPowerBreakdownOpen = false;
+
+function updatePowerBudgetCalculations() {
+    const bankSelect = document.getElementById('powerBankSizeSelect');
+    const durationRange = document.getElementById('raceDurationRange');
+    const freqSelect = document.getElementById('showFrequencySelect');
+
+    const ratedCapacity_mAh = parseInt(bankSelect?.value || '10000', 10);
+    const raceDurationMin = parseInt(durationRange?.value || '90', 10);
+    const showCadenceMin = parseInt(freqSelect?.value || '4', 10);
+
+    // Save preferences
+    try {
+        localStorage.setItem('msep_power_bank_size', ratedCapacity_mAh);
+        localStorage.setItem('msep_race_duration', raceDurationMin);
+        localStorage.setItem('msep_show_frequency', showCadenceMin);
+    } catch (e) {}
+
+    // 5V Usable mAh after DC-DC boost conversion (~70% of nominal 3.7V capacity)
+    const usable5vMah = Math.round(ratedCapacity_mAh * 0.70);
+    const whRating = (ratedCapacity_mAh * 3.7 / 1000).toFixed(1);
+
+    const powerBankWhLabel = document.getElementById('powerBankWhLabel');
+    if (powerBankWhLabel) {
+        powerBankWhLabel.textContent = `${whRating} Wh (~${usable5vMah.toLocaleString()} mAh @ 5V)`;
+    }
+
+    const raceDurationLabel = document.getElementById('raceDurationLabel');
+    if (raceDurationLabel) {
+        raceDurationLabel.textContent = `${raceDurationMin} min (${(raceDurationMin / 60).toFixed(1)} hrs)`;
+    }
+
+    // Number of 30-second shows
+    let numShows = 0;
+    if (showCadenceMin > 0) {
+        numShows = Math.floor(raceDurationMin / showCadenceMin);
+    }
+    const showMinTotal = (numShows * 0.5).toFixed(1);
+
+    const showCountLabel = document.getElementById('showCountLabel');
+    if (showCountLabel) {
+        showCountLabel.textContent = (showCadenceMin > 0) 
+            ? `${numShows} Shows (~${showMinTotal} min)` 
+            : `0 Shows (Baseline Only)`;
+    }
+
+    const tShowMin = numShows * 0.5;
+    const tBaseMin = Math.max(0, raceDurationMin - tShowMin);
+
+    // Calculate Fleet Average
+    const fleetAvgBase = FLOAT_POWER_PROFILES.reduce((s, f) => s + f.baseMa, 0) / FLOAT_POWER_PROFILES.length;
+    const fleetAvgShow = FLOAT_POWER_PROFILES.reduce((s, f) => s + f.showPeakMa, 0) / FLOAT_POWER_PROFILES.length;
+    const fleetAvgCurrent = Math.round(((fleetAvgBase * tBaseMin) + (fleetAvgShow * tShowMin)) / raceDurationMin);
+    const fleetUsedMah = Math.round(fleetAvgCurrent * (raceDurationMin / 60));
+    const fleetRemainMah = Math.max(0, usable5vMah - fleetUsedMah);
+    const fleetRemainPct = Math.max(0, Math.min(100, Math.round((fleetRemainMah / usable5vMah) * 100)));
+    const fleetTotalHours = (usable5vMah / fleetAvgCurrent).toFixed(1);
+
+    // Update Result Cards
+    const batteryRemainingPct = document.getElementById('batteryRemainingPct');
+    const batteryRemainingSubtext = document.getElementById('batteryRemainingSubtext');
+    const batteryTotalHours = document.getElementById('batteryTotalHours');
+    const batteryTotalHoursSubtext = document.getElementById('batteryTotalHoursSubtext');
+    const batteryProgressBar = document.getElementById('batteryProgressBar');
+    const batteryUsedVsTotalText = document.getElementById('batteryUsedVsTotalText');
+
+    let pctColor = '#3fb950';
+    let gradient = 'linear-gradient(90deg, #2ea043, #3fb950)';
+    let subtext = '🟢 High Buffer (Safe to Run)';
+
+    if (fleetRemainPct < 15) {
+        pctColor = '#f85149';
+        gradient = 'linear-gradient(90deg, #cf222e, #f85149)';
+        subtext = '🔴 Critical Danger (Upgrade Battery Pack!)';
+    } else if (fleetRemainPct < 35) {
+        pctColor = '#ffc107';
+        gradient = 'linear-gradient(90deg, #d29922, #e3b341)';
+        subtext = '🟠 Moderate Buffer (Sufficient for 10K)';
+    } else if (fleetRemainPct < 55) {
+        pctColor = '#58a6ff';
+        gradient = 'linear-gradient(90deg, #1f6feb, #58a6ff)';
+        subtext = '🟡 Good Buffer (Safe for 10K)';
+    }
+
+    if (batteryRemainingPct) {
+        batteryRemainingPct.textContent = `${fleetRemainPct}%`;
+        batteryRemainingPct.style.color = pctColor;
+    }
+    if (batteryRemainingSubtext) {
+        batteryRemainingSubtext.textContent = subtext;
+    }
+    if (batteryTotalHours) {
+        batteryTotalHours.textContent = `${fleetTotalHours} hrs`;
+    }
+    if (batteryTotalHoursSubtext) {
+        batteryTotalHoursSubtext.textContent = `To 0% Empty (${fleetAvgCurrent} mA avg)`;
+    }
+    if (batteryProgressBar) {
+        batteryProgressBar.style.width = `${fleetRemainPct}%`;
+        batteryProgressBar.style.background = gradient;
+    }
+    if (batteryUsedVsTotalText) {
+        batteryUsedVsTotalText.textContent = `Used: ${fleetUsedMah.toLocaleString()} / ${usable5vMah.toLocaleString()} mAh (5V)`;
+    }
+
+    // Populate Float Breakdown Table
+    const tableBody = document.getElementById('powerBreakdownTableBody');
+    if (tableBody) {
+        let rowsHtml = '';
+        FLOAT_POWER_PROFILES.forEach(f => {
+            const avgCurrent = Math.round(((f.baseMa * tBaseMin) + (f.showPeakMa * tShowMin)) / raceDurationMin);
+            const used = Math.round(avgCurrent * (raceDurationMin / 60));
+            const remainMah = Math.max(0, usable5vMah - used);
+            const remainPct = Math.max(0, Math.min(100, Math.round((remainMah / usable5vMah) * 100)));
+            const floatTotalH = (usable5vMah / avgCurrent).toFixed(1);
+
+            let rowColor = '#3fb950';
+            if (remainPct < 15) rowColor = '#f85149';
+            else if (remainPct < 35) rowColor = '#ffc107';
+            else if (remainPct < 55) rowColor = '#58a6ff';
+
+            rowsHtml += `
+                <tr style="border-bottom: 1px solid #21262d;">
+                    <td style="padding: 5px 2px; display: flex; align-items: center; gap: 5px;">
+                        <span style="display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: ${f.color};"></span>
+                        <span style="font-weight: 600; color: #fff;">${f.name}</span>
+                        <span style="color: var(--text-muted); font-size: 9px;">(${f.tag})</span>
+                    </td>
+                    <td style="padding: 5px 2px; text-align: right; font-family: monospace; color: #8b949e;">${f.baseMa} mA</td>
+                    <td style="padding: 5px 2px; text-align: right; font-family: monospace; color: #ffc107;">${f.showPeakMa} mA</td>
+                    <td style="padding: 5px 2px; text-align: right; font-family: monospace; font-weight: 700; color: ${rowColor};">${remainPct}% <span style="font-weight: normal; color: var(--text-muted); font-size: 9px;">(${floatTotalH}h)</span></td>
+                </tr>
+            `;
+        });
+
+        // Add Fleet Average Summary Row
+        rowsHtml += `
+            <tr style="border-top: 1px solid #30363d; background: rgba(56, 139, 253, 0.08); font-weight: 600;">
+                <td style="padding: 6px 2px; color: #58a6ff;">⚡ Fleet Average</td>
+                <td style="padding: 6px 2px; text-align: right; font-family: monospace; color: #58a6ff;">${Math.round(fleetAvgBase)} mA</td>
+                <td style="padding: 6px 2px; text-align: right; font-family: monospace; color: #ffc107;">${Math.round(fleetAvgShow)} mA</td>
+                <td style="padding: 6px 2px; text-align: right; font-family: monospace; font-weight: 700; color: ${pctColor};">${fleetRemainPct}% <span style="font-weight: normal; color: #58a6ff; font-size: 9px;">(${fleetTotalHours}h)</span></td>
+            </tr>
+        `;
+        tableBody.innerHTML = rowsHtml;
+    }
+}
+window.updatePowerBudgetCalculations = updatePowerBudgetCalculations;
+
+function initPowerBudgetCalculator() {
+    const bankSelect = document.getElementById('powerBankSizeSelect');
+    const durationRange = document.getElementById('raceDurationRange');
+    const freqSelect = document.getElementById('showFrequencySelect');
+    const breakdownToggle = document.getElementById('powerBreakdownToggle');
+    const breakdownContent = document.getElementById('powerBreakdownContent');
+    const breakdownToggleIcon = document.getElementById('powerBreakdownToggleIcon');
+    const jumpBtn = document.getElementById('fleetJumpToBatteryBtn');
+
+    // Restore saved settings
+    try {
+        const savedSize = localStorage.getItem('msep_power_bank_size');
+        if (savedSize && bankSelect) bankSelect.value = savedSize;
+        const savedDuration = localStorage.getItem('msep_race_duration');
+        if (savedDuration && durationRange) durationRange.value = savedDuration;
+        const savedFreq = localStorage.getItem('msep_show_frequency');
+        if (savedFreq && freqSelect) freqSelect.value = savedFreq;
+    } catch (e) {}
+
+    bankSelect?.addEventListener('change', updatePowerBudgetCalculations);
+    durationRange?.addEventListener('input', updatePowerBudgetCalculations);
+    freqSelect?.addEventListener('change', updatePowerBudgetCalculations);
+
+    if (breakdownToggle && breakdownContent && breakdownToggleIcon) {
+        breakdownToggle.addEventListener('click', () => {
+            isPowerBreakdownOpen = !isPowerBreakdownOpen;
+            breakdownContent.style.display = isPowerBreakdownOpen ? 'block' : 'none';
+            breakdownToggleIcon.textContent = isPowerBreakdownOpen ? '▲ Hide' : '▼ Show';
+        });
+    }
+
+    if (jumpBtn) {
+        jumpBtn.addEventListener('click', () => {
+            switchSidebarTab('tabHardware');
+            setTimeout(() => {
+                const sec = document.getElementById('powerBudgetSection');
+                if (sec) {
+                    sec.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    sec.style.transition = 'box-shadow 0.3s ease';
+                    sec.style.boxShadow = '0 0 15px rgba(63, 185, 80, 0.6)';
+                    setTimeout(() => { sec.style.boxShadow = 'none'; }, 1500);
+                }
+            }, 100);
+        });
+    }
+
+    updatePowerBudgetCalculations();
+}
+window.initPowerBudgetCalculator = initPowerBudgetCalculator;
+
+// ============================================================================
 // WI-FI LIVE STREAM ENGINE & RECEIVER FLASHER
 // ============================================================================
 let isWifiStreaming = false;
@@ -11103,10 +11315,13 @@ if (document.readyState === 'loading') {
         initSidebarTabs();
         initTimelineCollapse();
         initFleetManager();
+        initPowerBudgetCalculator();
     });
 } else {
     initSidebarTabs();
     initTimelineCollapse();
     initFleetManager();
+    initPowerBudgetCalculator();
 }
+
 

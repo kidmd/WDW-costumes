@@ -870,6 +870,111 @@
                         </a>
                     </div>
 
+                    <!-- Race-Day Battery Life & Power Budget Calculator -->
+                    <div class="control-section" id="powerBudgetSection" style="border: 1px solid #238636; background: rgba(35, 134, 54, 0.06);">
+                        <div class="section-title" style="color: #3fb950; display: flex; align-items: center; justify-content: space-between;">
+                            <span>🔋 Race-Day Battery & Power Budget</span>
+                            <span id="powerSafetyBadge" style="font-size: 10px; background: rgba(46, 160, 67, 0.25); color: #3fb950; padding: 2px 6px; border-radius: 10px; font-weight: 600; border: 1px solid rgba(46, 160, 67, 0.4);">SAFE • 2.0A LIMIT</span>
+                        </div>
+                        <p style="font-size: 11px; color: var(--text-muted); line-height: 1.4; margin-top: 4px; margin-bottom: 10px;">
+                            Model race-day battery consumption across all 200 LEDs (100 front + 100 back) to guarantee no brother goes dark on course!
+                        </p>
+
+                        <!-- Primary Result Cards: Projected Battery Remaining & Total Runtime -->
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 12px;">
+                            <div style="background: #0d1117; border: 1px solid #30363d; border-radius: 8px; padding: 10px; text-align: center;">
+                                <div style="font-size: 10px; color: var(--text-muted); text-transform: uppercase; font-weight: 600; margin-bottom: 4px;">At Finish Line</div>
+                                <div id="batteryRemainingPct" style="font-size: 22px; font-weight: 700; color: #3fb950; font-family: monospace;">74%</div>
+                                <div id="batteryRemainingSubtext" style="font-size: 10px; color: #8b949e; margin-top: 2px;">🟢 High Buffer</div>
+                            </div>
+                            <div style="background: #0d1117; border: 1px solid #30363d; border-radius: 8px; padding: 10px; text-align: center;">
+                                <div style="font-size: 10px; color: var(--text-muted); text-transform: uppercase; font-weight: 600; margin-bottom: 4px;">Total Battery Life</div>
+                                <div id="batteryTotalHours" style="font-size: 22px; font-weight: 700; color: #58a6ff; font-family: monospace;">5.8 hrs</div>
+                                <div id="batteryTotalHoursSubtext" style="font-size: 10px; color: #8b949e; margin-top: 2px;">To 0% Empty</div>
+                            </div>
+                        </div>
+
+                        <!-- Progress Bar Visualizer for Finish Line Battery -->
+                        <div style="background: #0d1117; border-radius: 6px; padding: 6px 8px; border: 1px solid #30363d; margin-bottom: 12px;">
+                            <div style="display: flex; justify-content: space-between; font-size: 10px; color: var(--text-muted); margin-bottom: 4px;">
+                                <span>Battery Remaining at Finish</span>
+                                <span id="batteryUsedVsTotalText" style="font-family: monospace; color: #c9d1d9;">Used: 1,820 / 7,000 mAh (5V)</span>
+                            </div>
+                            <div style="height: 10px; background: #21262d; border-radius: 5px; overflow: hidden; position: relative;">
+                                <div id="batteryProgressBar" style="height: 100%; width: 74%; background: linear-gradient(90deg, #2ea043, #3fb950); border-radius: 5px; transition: width 0.3s ease, background 0.3s ease;"></div>
+                            </div>
+                        </div>
+
+                        <!-- Interactive Controls -->
+                        <div style="display: flex; flex-direction: column; gap: 10px; background: #0d1117; padding: 10px; border-radius: 8px; border: 1px solid #30363d; margin-bottom: 12px;">
+                            <!-- Power Bank Size Selector -->
+                            <div>
+                                <div style="display: flex; justify-content: space-between; font-size: 11px; margin-bottom: 4px;">
+                                    <label for="powerBankSizeSelect" style="color: var(--text-muted); font-weight: 600;">USB Power Bank Size:</label>
+                                    <span id="powerBankWhLabel" style="color: #58a6ff; font-family: monospace;">37.0 Wh (~7000 mAh @ 5V)</span>
+                                </div>
+                                <select id="powerBankSizeSelect" style="width: 100%; background: #161b22; color: #fff; border: 1px solid #30363d; border-radius: 5px; padding: 6px 8px; font-size: 11px;">
+                                    <option value="5000">🔋 5,000 mAh Slim Pocket Pack (~18.5 Wh)</option>
+                                    <option value="10000" selected>🔋 10,000 mAh Standard Pack (~37.0 Wh - Recommended)</option>
+                                    <option value="15000">🔋 15,000 mAh Endurance Pack (~55.5 Wh)</option>
+                                    <option value="20000">🔋 20,000 mAh High-Capacity Pack (~74.0 Wh)</option>
+                                </select>
+                            </div>
+
+                            <!-- Target Race Duration / Corral Time Slider -->
+                            <div>
+                                <div style="display: flex; justify-content: space-between; font-size: 11px; margin-bottom: 4px;">
+                                    <label for="raceDurationRange" style="color: var(--text-muted); font-weight: 600;">Race + Corral Duration:</label>
+                                    <span id="raceDurationLabel" style="color: #ffc107; font-weight: 700; font-family: monospace;">90 min (1.5 hrs)</span>
+                                </div>
+                                <input type="range" id="raceDurationRange" min="30" max="240" step="15" value="90" style="width: 100%;">
+                                <div style="display: flex; justify-content: space-between; font-size: 9.5px; color: var(--text-muted); margin-top: 2px;">
+                                    <span>30m (Sprint)</span>
+                                    <span>75m (10K Pace)</span>
+                                    <span>90m (Photo Walk)</span>
+                                    <span>4h (Corral Max)</span>
+                                </div>
+                            </div>
+
+                            <!-- Fleet Show Trigger Frequency -->
+                            <div>
+                                <div style="display: flex; justify-content: space-between; font-size: 11px; margin-bottom: 4px;">
+                                    <label for="showFrequencySelect" style="color: var(--text-muted); font-weight: 600;">30s Fleet Show Trigger Cadence:</label>
+                                    <span id="showCountLabel" style="color: #d2a8ff; font-family: monospace;">22 Shows (~11 min)</span>
+                                </div>
+                                <select id="showFrequencySelect" style="width: 100%; background: #161b22; color: #fff; border: 1px solid #30363d; border-radius: 5px; padding: 6px 8px; font-size: 11px;">
+                                    <option value="2">👑 Showstopper: Every 2 minutes (~30 shows/hr)</option>
+                                    <option value="4" selected>✨ Balanced: Every 4 minutes (~15 shows/hr - Recommended)</option>
+                                    <option value="8">📸 Occasional: Every 8 minutes (~7.5 shows/hr)</option>
+                                    <option value="0">⚡ Baseline Only: 0 fleet routine triggers</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Float Power Breakdown Table (Expandable) -->
+                        <div style="background: #0d1117; border-radius: 8px; border: 1px solid #30363d; overflow: hidden;">
+                            <div id="powerBreakdownToggle" style="padding: 8px 10px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; user-select: none;">
+                                <span style="font-size: 11px; font-weight: 600; color: #58a6ff;">📊 7-Float Power Roster Breakdown</span>
+                                <span id="powerBreakdownToggleIcon" style="font-size: 10px; color: var(--text-muted);">▼ Show</span>
+                            </div>
+                            <div id="powerBreakdownContent" style="display: none; padding: 6px 10px 10px 10px; border-top: 1px solid #21262d;">
+                                <table style="width: 100%; border-collapse: collapse; font-size: 10px; text-align: left;">
+                                    <thead>
+                                        <tr style="color: var(--text-muted); border-bottom: 1px solid #30363d;">
+                                            <th style="padding: 4px 2px;">Float # & Unit</th>
+                                            <th style="padding: 4px 2px; text-align: right;">Baseline mA</th>
+                                            <th style="padding: 4px 2px; text-align: right;">Show Peak</th>
+                                            <th style="padding: 4px 2px; text-align: right;">Finish %</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="powerBreakdownTableBody">
+                                        <!-- Dynamically generated rows for Floats 1 - 7 -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
                 </div>
 
                 <!-- ======================================================== -->
@@ -881,7 +986,10 @@
                     <div class="control-section">
                         <div class="section-title" style="display: flex; justify-content: space-between; align-items: center;">
                             <span>👑 30s Fleet Show Creator</span>
-                            <span id="fleetShowDurationBadge" class="val-badge" style="background: #21262d; color: #ffc107; font-size: 10px; font-weight: 700;">30.0s Total</span>
+                            <div style="display: flex; gap: 6px; align-items: center;">
+                                <button type="button" id="fleetJumpToBatteryBtn" class="action-btn" style="font-size: 10px; padding: 2px 7px; border-color: #238636; color: #3fb950; display: inline-flex; align-items: center; gap: 4px;" title="Jump to Battery Life & Power Budget Calculator">🔋 Battery Budget</button>
+                                <span id="fleetShowDurationBadge" class="val-badge" style="background: #21262d; color: #ffc107; font-size: 10px; font-weight: 700;">30.0s Total</span>
+                            </div>
                         </div>
                         <p style="font-size: 11px; color: var(--text-muted); line-height: 1.4; margin-bottom: 10px;">
                             The 7 shirts run individual float programs at baseline. Press below to activate the 30-second synchronized routine once across all 7 shirts, or press again to stop early.
@@ -1407,6 +1515,6 @@
         </div>
     </div>
 
-    <script src="app.js?v=26"></script>
+    <script src="app.js?v=27"></script>
 </body>
 </html>

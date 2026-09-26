@@ -92,6 +92,36 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### Entry: Race-Day Battery Life & Power Budget Calculator (200 LEDs / 5V 2.0A Limit)
+* **Date:** 2026-09-26
+* **Milestone:** Milestone 5 - Race-Day Hardware Safety & Real-Time Battery Budget Modeling
+* **Status:** Operational & Verified in Web Simulator.
+* **Notes:**
+  * **200-LED Wearable Costume Physics Model:**
+    - Models 100 front chest LEDs + 100 duplicated back LEDs running concurrently for 360° race-day visibility.
+    - Factors in 130 mA steady current for ESP32 Dual-Core (240 MHz + Wi-Fi/ESP-NOW active) and 200 mA quiescent standby current for 200 WS2812B nodes (1.0 mA/node).
+    - Accurately models real-world 3.7V lithium-ion to 5.0V USB boost conversion efficiency (~70% delivered usable capacity: 5k mAh -> 3,500 mAh, 10k mAh -> 7,000 mAh, 15k mAh -> 10,500 mAh, 20k mAh -> 14,000 mAh).
+  * **Float Baseline & Show Peak Current Modeling:**
+    - Casey Jr. Train (#1): 750 mA base / 1,120 mA show peak.
+    - Title Drum (#2): 620 mA base / 1,050 mA show peak.
+    - The Turtle (#3): 660 mA base / 1,080 mA show peak.
+    - The Snail (#4): 670 mA base / 1,090 mA show peak.
+    - Cinderella's Coach (#5): 700 mA base / 1,100 mA show peak.
+    - Pete's Dragon (#6): 720 mA base / 1,150 mA show peak.
+    - Flag & Eagle (#7): 780 mA base / 1,180 mA show peak.
+    - Strictly models FastLED hardware power clamping (`FastLED.setMaxPowerInVoltsAndMilliamps(5, 2000)`), ensuring peaks never exceed the 2.0A power bank delivery limit.
+  * **Interactive UI & Real-Time Calculation Engine (`#powerBudgetSection`):**
+    - USB Power Bank Selector (5k, 10k, 15k, 20k mAh) with live Wh rating.
+    - Race + Corral Duration Slider (30m to 240m with 15m steps).
+    - 30s Fleet Show Trigger Cadence (every 2m, 4m, 8m, or baseline only).
+    - Result Cards: Projected Finish Line Battery Remaining % with color-coded safety indicators (Green $\ge 50\%$, Yellow $35-49\%$, Orange $15-34\%$, Red $< 15\%$), and Total Hours to Empty.
+    - Progress Bar visualizer showing consumed vs. total usable 5V mAh.
+    - Expandable 7-Float Breakdown Table with individual baseline mA, show peak mA, finish %, and total runtime for each brother.
+    - Fast Jump Button: Added `🔋 Battery Budget` badge in the 30s Fleet Show Creator header to immediately jump and pulse the power budget section.
+  * **Persistence & Cache-Busting:**
+    - Saves user power bank preferences to `localStorage` (`msep_power_bank_size`, `msep_race_duration`, `msep_show_frequency`).
+    - Bumped script cache-buster to `app.js?v=27`.
+
 ### Entry: Interactive Visual Timeline Block Editor (Drag-to-Stretch, Rolling Trim & Reordering)
 * **Date:** 2026-09-26
 * **Milestone:** Milestone 5 - Interactive NLE-Grade Visual Timeline Studio

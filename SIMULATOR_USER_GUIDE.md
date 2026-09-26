@@ -21,7 +21,7 @@ This guide walks you through every feature of the simulator, from placing and wi
 11. [Lighting Patterns & Effects Library](#11-lighting-patterns--effects-library)
 12. [Profile Management, Saving & JSON Import/Export](#12-profile-management-saving--json-importexport)
 13. [7-Shirt Fleet Show Creator & Preset Manager](#13-7-shirt-fleet-show-creator--preset-manager)
-14. [Hardware Integration: Live Wi-Fi Streaming & Standalone USB Flashing](#14-hardware-integration-live-wi-fi-streaming--standalone-usb-flashing)
+14. [Hardware Integration: Live Wi-Fi Streaming, Standalone USB Flashing & Battery Power Budget](#14-hardware-integration-live-wi-fi-streaming-standalone-usb-flashing--battery-power-budget)
 15. [ESP32 Firmware: Debounced Button Control, Fleet Routine Trigger & Early Stop](#15-esp32-firmware-debounced-button-control-fleet-routine-trigger--early-stop)
 16. [Keyboard Shortcuts & Quick Reference Cheat Sheet](#16-keyboard-shortcuts--quick-reference-cheat-sheet)
 
@@ -699,7 +699,7 @@ Each of the 7 runners is represented by a dedicated preset card and canvas athle
 
 ---
 
-## 14. Hardware Integration: Live Wi-Fi Streaming & Standalone USB Flashing
+## 14. Hardware Integration: Live Wi-Fi Streaming, Standalone USB Flashing & Battery Power Budget
 
 The simulator connects directly to physical ESP32 hardware via two powerful workflows:
 
@@ -733,7 +733,37 @@ When you are ready to prepare a shirt for autonomous use:
    - **Back 100 LEDs (100 – 199):** Real-time duplicate of the front animation for 360° visibility and battery life benchmarking.
    - **Power Management:** FastLED power limit configured up to **2000 mA (2.0A)** for safe operation from portable 5V USB power banks.
 5. The live terminal modal displays compilation output and upload progress.
-6. Once complete, unplug the USB cable from your computer, plug the ESP32 into a 5V USB battery bank in your pocket, and your costume runs on its own!
+### Race-Day Battery Life & Power Budget Calculator (200 LEDs / 5V 2.0A Limit)
+
+To ensure that **no brother goes dark on course** during the runDisney 10K, the Deploy & Hardware tab features an interactive, real-time power budget simulator modeled on the electrical physics of the wearable 200-LED costume:
+
+- **200-LED Duplicated Load:** 100 front chest artwork LEDs + 100 back LEDs run concurrently to guarantee 360° visibility in the dark pre-dawn corrals and through Epcot.
+- **Hardware Power Clamping:** Firmware enforces FastLED's safety limiter:
+  ```cpp
+  FastLED.setMaxPowerInVoltsAndMilliamps(5, 2000); // 5V, 2.0A max limit
+  ```
+  Even during peak white flash starlight bursts, current consumption never exceeds the USB power bank's 2.0A delivery threshold.
+- **Microcontroller & Quiescent Overhead:**
+  - ESP32 Dual-Core (240 MHz + Wi-Fi / ESP-NOW radio active): ~130 mA steady.
+  - WS2812B quiescent standby current: ~1.0 mA per node $\times$ 200 LEDs = 200 mA.
+- **7-Float Baseline vs. Show Peak Current:**
+  - **Casey Jr. Train (#1):** 750 mA baseline (amber headlights, red engine, spinning wheels) / 1,120 mA show peak.
+  - **Title Drum (#2):** 620 mA baseline (gold marquee chase, blue/red twinkle) / 1,050 mA show peak.
+  - **The Turtle (#3):** 660 mA baseline (teal shell whirl, green rim) / 1,080 mA show peak.
+  - **The Snail (#4):** 670 mA baseline (pink spiral swirl, yellow chase) / 1,090 mA show peak.
+  - **Cinderella's Coach (#5):** 700 mA baseline (cyan sparkle, golden wheels) / 1,100 mA show peak.
+  - **Pete's Dragon (#6):** 720 mA baseline (emerald scales, violet spine, orange fire breath) / 1,150 mA show peak.
+  - **Flag & Eagle (#7):** 780 mA baseline (patriotic red/white waves, blue starfield) / 1,180 mA show peak.
+- **Interactive Controls:**
+  - **USB Power Bank Size:** Select 5,000 mAh (~18.5 Wh, 3,500 mAh @ 5V), 10,000 mAh (~37 Wh, 7,000 mAh @ 5V - Recommended), 15,000 mAh (~55.5 Wh), or 20,000 mAh (~74 Wh). Factors in real-world 3.7V-to-5.0V boost converter efficiency (~70% delivered capacity).
+  - **Race + Corral Duration Slider:** Adjust from 30 minutes (fast sprint) up to 240 minutes (4-hour corral wait + leisurely walking pace).
+  - **30s Fleet Show Trigger Cadence:** Choose trigger frequency (every 2m, 4m, 8m, or baseline only).
+- **Instant Finish-Line Metrics:**
+  - **Battery Remaining %:** Dynamic color-coded gauge (Green $\ge 50\%$, Yellow $35-49\%$, Orange $15-34\%$, Red $< 15\%$).
+  - **Total Battery Life:** Calculated hours until complete battery depletion.
+  - **Visual Buffer Bar:** Displays exact mAh consumed vs. available 5V capacity.
+  - **Expandable Roster Breakdown:** Click `▼ Show` to inspect exact baseline mA, show peak mA, finish %, and total runtime for each brother's float.
+  - **One-Click Quick Jump:** Click the **"🔋 Battery Budget"** badge in the 30s Fleet Show Creator header to immediately view and test power metrics.
 
 ---
 
@@ -761,7 +791,18 @@ Any board can be assigned to any of the 7 floats without touching code:
 1. **Hold the BOOT button for 3 seconds:** The LEDs flash **white 3 times** to enter Config Mode.
 2. **Visual Feedback:** The first `N` LEDs on the strip light up in that float's signature color (1=Red, 2=Gold/Amber, 3=Teal, 4=Pink, 5=Cyan, 6=Green, 7=Patriotic Blue). The onboard blue LED blinks `N` times in sequence.
 3. **Tap to Cycle:** Each short tap cycles `1 ➔ 2 ➔ 3 ➔ 4 ➔ 5 ➔ 6 ➔ 7 ➔ 1`.
-4. **Auto-Save:** Leave untouched for 4 seconds. The LEDs flash **green 4 times** and the Float ID is permanently saved to ESP32 NVS flash (`Preferences.h`).
+4. **Auto-Save:** Leave untouched for 4 seconds. The LEDs flash **green 4 times** and the Float ID is permanently saved to ESP32 NVS flash (`Preferences.h`). Float 1 automatically acts as Leader; Floats 2–7 act as Followers.
+
+#### The 7-Runner Fleet Lineup:
+| Float # | Float Name | Character Tag | Signature Color | Role |
+|:---:|---|---|---|:---:|
+| **01** | **The Train** | CASEY JR. | 🔴 Red | **👑 LEADER** (Pulls the Drum & Broadcasts timing clock) |
+| **02** | **The Title Drum** | THE DRUM | 🟡 Gold / Amber | Follower |
+| **03** | **The Turtle** | SPINNING TURTLE | 🟢 Teal / Green | Follower |
+| **04** | **The Snail** | SPINNING SNAIL | 🌸 Pink | Follower |
+| **05** | **Cinderella's Coach** | CINDERELLA | 🔵 Cyan | Follower |
+| **06** | **Pete's Dragon** | ELLIOTT | 🟢 Green | Follower |
+| **07** | **To Honor America** | FLAG & EAGLE | 🔴⚪🔵 Patriotic Blue | Follower |
 
 ### 🎵 Design Decision: Soundtrack & Audio Playback Omission
 Soundtrack audio playback (e.g. Baroque Hoedown music synchronized via speakers) was evaluated and intentionally omitted based on runDisney 10K race logistics:
@@ -801,98 +842,7 @@ You can flash any runner's ESP32 directly from Google Chrome or Microsoft Edge w
 | Click on Timeline Track | Timeline | **Seek playhead** to that exact second |
 | Click on Cue Block | Timeline | **Jump to cue start** and highlight cue card in editor |
 
-## 14. Hardware Integration: Live Wi-Fi Streaming & Standalone USB Flashing
-
-The simulator connects directly to physical ESP32 hardware via two powerful workflows:
-
-```
-[ BROWSER SIMULATOR ] ──(UDP Port 4210 @ 30 FPS)──▶ [ ESP32 NODE ] ──▶ [ WS2812B SHIRT ]
-```
-
-### Real-Time Live Wi-Fi UDP Streaming
-Preview animations on your physical shirt in real time without flashing:
-1. Connect your ESP32 to your local Wi-Fi network (or use the built-in `MSEP-Costume-AP` hotspot).
-2. In the simulator header, click **"📡 Wi-Fi Live Stream"** or the settings gear.
-3. Enter your Wi-Fi SSID, Password, and the target ESP32 IP address (or leave `255.255.255.255` for broadcast).
-4. Click **"▶ Start Live Wi-Fi Stream"**.
-5. The status indicator turns green: `Streaming (100 LEDs @ 30 FPS)`.
-6. As you scrub the timeline or hit play, the browser packs the RGB frame data into high-speed UDP packets on port `4210`. Your physical shirt mirrors the simulator screen with zero perceived latency!
-
-### One-Click Standalone USB Firmware Flashing (200 LEDs: 100 Front + 100 Back)
-When you are ready to prepare a shirt for autonomous use:
-1. Connect your ESP32 to your computer using a standard micro-USB or USB-C data cable.
-2. The top status indicator will detect your COM port and turn green: `● ESP32 on COMx (Ready)`.
-3. Click **"⚡ Flash to Connected ESP32"**.
-4. The simulator compiles and flashes standalone firmware configured for **200 LEDs**:
-   - **Front 100 LEDs (0 – 99):** Your custom-placed, color-matched chest artwork lighting.
-   - **Back 100 LEDs (100 – 199):** Real-time duplicate of the front animation for 360° visibility and battery life benchmarking.
-   - **Power Management:** FastLED power limit configured up to **2000 mA (2.0A)** for safe operation from portable 5V USB power banks.
-5. The live terminal modal displays compilation output and upload progress.
-6. Once complete, unplug the USB cable from your computer, plug the ESP32 into a 5V USB battery bank in your pocket, and your costume runs on its own!
-
----
-
-## 15. Dual-Mode ESP32 Firmware, Button Toggle & Float ID Selector
-
-The firmware in [`src/main.cpp`](file:///c:/Users/Kiddi/Desktop/WDW%20costumes/src/main.cpp) incorporates dual-mode operation and interactive float configuration toggled via the ESP32's onboard **BOOT button** (`BUTTON_PIN 0` with hardware internal pull-up and debouncing):
-
-### Mode Switching & Visual Confirmations (Short Tap BOOT Button)
-Tap the onboard **BOOT button (GPIO 0)** once (short tap < 2.5s) to toggle between modes. The LEDs give immediate visual confirmation across all 200 lights:
-- 🔵 **2 Cyan Flashes**: Switched to **Mode 0: Autonomous 90-Second Theatrical Show** (plays custom artwork palette or float cue sequence).
-- 🟡 **2 Amber Flashes**: Switched to **Mode 1: ESP-NOW Fleet Sync** (locks wireless timing with the other runner shirts for synchronized golden marquee chases, sparkles, and traveling waves).
-
-### Mode 0: Autonomous 90-Second Theatrical Show Sequence (Default)
-- Runs your float's customized 90-second Cue Director sequence independently across all 200 LEDs (front and back).
-- Ideal when runners are separated, walking through the park, or taking photos.
-- The onboard status LED pulses with a gentle 1 Hz breath to indicate autonomous mode.
-
-### Mode 1: ESP-NOW Fleet Sync
-- Unit 1 operates as the **Parade Leader / Transmitter**, broadcasting synchronization packets over connectionless 2.4 GHz ESP-NOW radio at 25 Hz.
-- Units 2 through 7 operate as **Followers / Receivers**, locking their internal clock to the Leader with sub-millisecond precision.
-- Features coordinated 7-float traveling waves where illuminated light pulses leap smoothly from runner to runner down the line (Float 1 ➔ 2 ➔ 3 ➔ 4 ➔ 5 ➔ 6 ➔ 7)!
-- The onboard status LED illuminates solid green/blue when receiving radio synchronization packets.
-
-### 🎛️ Interactive Float ID Selector (Hold for 3 Seconds)
-Any board can be assigned to any of the 7 floats without touching code:
-1. **Hold the BOOT button for 3 seconds:** The LEDs flash **white 3 times** to enter Config Mode.
-2. **Visual Feedback:** The first `N` LEDs on the strip light up in that float's signature color (1=Red, 2=Gold/Amber, 3=Teal, 4=Pink, 5=Cyan, 6=Green, 7=Patriotic Blue). The onboard blue LED blinks `N` times in sequence.
-3. **Tap to Cycle:** Each short tap cycles `1 ➔ 2 ➔ 3 ➔ 4 ➔ 5 ➔ 6 ➔ 7 ➔ 1`.
-4. **Auto-Save:** Leave untouched for 4 seconds. The LEDs flash **green 4 times** and the Float ID is permanently saved to ESP32 NVS flash (`Preferences.h`). Float 1 automatically acts as Leader; Floats 2–7 act as Followers.
-
-#### The 7-Runner Fleet Lineup:
-| Float # | Float Name | Character Tag | Signature Color | Role |
-|:---:|---|---|---|:---:|
-| **01** | **The Train** | CASEY JR. | 🔴 Red | **👑 LEADER** (Pulls the Drum & Broadcasts timing clock) |
-| **02** | **The Title Drum** | THE DRUM | 🟡 Gold / Amber | Follower |
-| **03** | **The Turtle** | SPINNING TURTLE | 🟢 Teal / Green | Follower |
-| **04** | **The Snail** | SPINNING SNAIL | 🌸 Pink | Follower |
-| **05** | **Cinderella's Coach** | CINDERELLA | 🔵 Cyan | Follower |
-| **06** | **Pete's Dragon** | ELLIOTT | 🟢 Green | Follower |
-| **07** | **To Honor America** | FLAG & EAGLE | 🔴⚪🔵 Patriotic Blue | Follower |
-
----
-
-## 16. Keyboard Shortcuts & Quick Reference Cheat Sheet
-
-| Key / Action | Context | Description |
-|---|---|---|
-| `Spacebar` (Tap) | Anywhere | **Play / Pause** show sequence playback on the master timeline |
-| `Spacebar` (Hold) + Drag | Canvas | **Pan** the canvas workspace smoothly |
-| Right-Click + Drag | Canvas | **Pan** the canvas workspace |
-| Mouse Wheel | Canvas | **Zoom** in / out centered on cursor position |
-| `+` / `=` | Canvas | **Zoom In** (+20%) |
-| `-` / `_` | Canvas | **Zoom Out** (-20%) |
-| `0` | Canvas | **Reset Zoom** to default centered 100% view |
-| `Shift` + Drag | Canvas | **Marquee Box Select** multiple LEDs |
-| `Ctrl + A` / `Cmd + A` | Canvas | **Select All** LEDs |
-| `Enter` | Draw Mode | **Finish & Save** drawn path animation group (when $\ge 2$ LEDs placed) |
-| `Escape` | Draw Mode | **Cancel** drawing mode and revert uncommitted points |
-| `Escape` | Normal Mode | **Deselect All** LEDs |
-| Arrow Right `]` / `n` | LED Select | Select **Next LED** in wiring order |
-| Arrow Left `[` / `p` | LED Select | Select **Previous LED** in wiring order |
-| Click on Timeline Track | Timeline | **Seek playhead** to that exact second |
-| Click on Cue Block | Timeline | **Jump to cue start** and highlight cue card in editor |
-
 ---
 
 *Disney, Main Street Electrical Parade, Pete's Dragon, and Cinderella are registered trademarks of The Walt Disney Company. This open-source project is an unofficial tribute created for the Walt Disney World 10K runDisney event.*
+
