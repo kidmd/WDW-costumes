@@ -196,13 +196,16 @@ let selectedGroupId = null; // Track currently selected/editing animation group 
 function rebuildLedGroupMap() {
     ledGroupMap = {};
     for (const grp of animationGroups) {
-        if (!grp || !Array.isArray(grp.ledIndices)) continue;
-        for (let pos = 0; pos < grp.ledIndices.length; pos++) {
-            const idx = grp.ledIndices[pos];
+        if (!grp) continue;
+        const arr = Array.isArray(grp.ledIndices) ? grp.ledIndices : (Array.isArray(grp.indices) ? grp.indices : []);
+        grp.ledIndices = arr;
+        grp.indices = arr;
+        for (let pos = 0; pos < arr.length; pos++) {
+            const idx = arr[pos];
             ledGroupMap[idx] = {
                 group: grp,
                 indexInGroup: pos,
-                groupSize: grp.ledIndices.length
+                groupSize: arr.length
             };
         }
     }
@@ -909,13 +912,20 @@ function drawRaceBib(cx, s) {
 // ============================================================================
 function drawPetesDragon(cx, s) {
     const activeImg = getActiveGraphicImg();
-    if (activeImg) {
+    if (activeImg && (activeImg.complete || activeImg.naturalWidth > 0)) {
         const gb = getGraphicChestBounds();
         const gx = s.x + gb.normX * s.width;
         const gy = s.y + gb.normY * s.height;
         const gw = gb.normW * s.width;
         const gh = gb.normH * s.height;
-        cx.drawImage(activeImg, gx, gy, gw, gh);
+        try {
+            cx.drawImage(activeImg, gx, gy, gw, gh);
+            return;
+        } catch (e) {}
+    }
+
+    // Only render metallic green silhouette if graphic is actually Pete's Dragon
+    if (currentGraphicType !== 'builtin_dragon' && currentGraphicType !== 'petes_dragon') {
         return;
     }
 
@@ -1698,14 +1708,20 @@ function renderSingleShirtView(timeMs) {
     ctx.translate(panX, panY);
     ctx.scale(zoomScale, zoomScale);
 
-    let shirtTitle = "FLOAT #3: PETE'S DRAGON";
-    if (currentGraphicType === 'cinderellas_coach') {
-        shirtTitle = "FLOAT #5: CINDERELLA'S COACH";
-    } else if (currentGraphicType === 'carriage_nohorses') {
-        shirtTitle = "FLOAT #5: CARRIAGE (NO HORSES)";
-    } else if (currentGraphicType === 'custom_image') {
-        shirtTitle = "CUSTOM RUNNER DESIGN";
-    }
+    const FLOAT_TITLES = {
+        'casey_jr_train': "FLOAT #1: CASEY JR. LOCOMOTIVE",
+        'title_drum': "FLOAT #2: ELECTRICAL PARADE DRUM",
+        'spinning_turtle': "FLOAT #3: THE SPINNING TURTLE",
+        'spinning_snail': "FLOAT #4: THE SPINNING SNAIL",
+        'cinderellas_coach': "FLOAT #5: CINDERELLA'S COACH",
+        'cinderella_coach': "FLOAT #5: CINDERELLA'S COACH",
+        'carriage_nohorses': "FLOAT #5: CARRIAGE (NO HORSES)",
+        'builtin_dragon': "FLOAT #6: PETE'S DRAGON (ELLIOTT)",
+        'petes_dragon': "FLOAT #6: PETE'S DRAGON (ELLIOTT)",
+        'honor_america_eagle': "FLOAT #7: TO HONOR AMERICA (EAGLE)",
+        'custom_image': "CUSTOM RUNNER DESIGN"
+    };
+    let shirtTitle = FLOAT_TITLES[currentGraphicType] || "MAIN STREET ELECTRICAL PARADE";
     drawRunningShirt(ctx, s.x, s.y, s.width, s.height, shirtTitle);
     drawPetesDragon(ctx, s);
     drawRaceBib(ctx, s);
@@ -2398,145 +2414,197 @@ function renderFleetView(timeMs) {
 // FLEET LINEUP MANAGEMENT & SIDEBAR UI CONTROLS
 // ============================================================================
 
+let isRenderingFleetCards = false;
+
 async function renderFleetCards() {
     const container = document.getElementById('fleetRunnersContainer');
     if (!container) return;
+    if (isRenderingFleetCards) return;
+    isRenderingFleetCards = true;
 
-    // Fetch list of available server and local presets
-    let serverPresets = [];
     try {
-        const res = await fetch('/api/presets');
-        if (res.ok) serverPresets = await res.json();
-    } catch (e) {}
+        // Fetch list of available server and local presets
+        let serverPresets = [];
+        try {
+            const res = await fetch('/api/presets');
+            if (res.ok) serverPresets = await res.json();
+        } catch (e) {}
 
-    const localProfiles = JSON.parse(localStorage.getItem('msep_custom_presets') || '{}');
+        const localProfiles = JSON.parse(localStorage.getItem('msep_custom_presets') || '{}');
 
-    container.innerHTML = '';
+        container.innerHTML = '';
 
-    for (let i = 0; i < fleetRunners.length; i++) {
-        const runner = fleetRunners[i];
-        const card = document.createElement('div');
-        card.className = `fleet-runner-card ${fleetSelectedRunner === i ? 'selected-runner' : ''}`;
-        card.setAttribute('data-slot', i);
+        for (let i = 0; i < fleetRunners.length; i++) {
+            const runner = fleetRunners[i];
+            const card = document.createElement('div');
+            card.className = `fleet-runner-card ${fleetSelectedRunner === i ? 'selected-runner' : ''}`;
+            card.setAttribute('data-slot', i);
 
-        // Preload preset data if not cached
-        const pData = await getPresetDataForRunner(runner);
+            // Preload preset data if not cached
+            const pData = await getPresetDataForRunner(runner);
 
-        const ledCount = (pData && pData.leds) ? pData.leds.length : 100;
-        const patternName = (pData && pData.settings && pData.settings.pattern) ? pData.settings.pattern.replace(/_/g, ' ') : 'Sparkle';
-        const graphicName = (pData && pData.graphicType) ? pData.graphicType.replace(/_/g, ' ') : runner.name;
+            const ledCount = (pData && pData.leds) ? pData.leds.length : 100;
+            const patternName = (pData && pData.settings && pData.settings.pattern) ? pData.settings.pattern.replace(/_/g, ' ') : 'Sparkle';
+            const graphicName = (pData && pData.graphicType) ? pData.graphicType.replace(/_/g, ' ') : runner.name;
 
-        // Build Card HTML
-        card.innerHTML = `
-            <div class="fleet-card-header">
-                <span class="fleet-bib-badge" style="background: ${runner.color}22; color: ${runner.color}; border: 1px solid ${runner.color}66;">
-                    BIB #${runner.num}
-                </span>
-                <span class="fleet-runner-title" title="${runner.name} (${runner.tag})">
-                    ${runner.slot + 1}. ${runner.name}
-                </span>
-                <span style="font-size: 10px; color: ${runner.color}; font-weight: 700;">${runner.tag}</span>
-            </div>
+            // Build Card HTML
+            card.innerHTML = `
+                <div class="fleet-card-header">
+                    <span class="fleet-bib-badge" style="background: ${runner.color}22; color: ${runner.color}; border: 1px solid ${runner.color}66;">
+                        BIB #${runner.num}
+                    </span>
+                    <span class="fleet-runner-title" title="${runner.name} (${runner.tag})">
+                        ${runner.slot + 1}. ${runner.name}
+                    </span>
+                    <span style="font-size: 10px; color: ${runner.color}; font-weight: 700;">${runner.tag}</span>
+                </div>
 
-            <div>
-                <label style="font-size: 10px; color: var(--text-muted); display: block; margin-bottom: 2px;">Assigned Costume Preset:</label>
-                <select class="fleet-preset-select" data-slot="${i}">
-                    <optgroup label="Official Server Presets">
-                        ${serverPresets.map(p => `
-                            <option value="server:${p.filename}" ${runner.preset === ('server:' + p.filename) ? 'selected' : ''}>
-                                📁 ${p.name}
-                            </option>
-                        `).join('')}
-                    </optgroup>
-                    ${Object.keys(localProfiles).length > 0 ? `
-                        <optgroup label="Browser Saved Profiles">
-                            ${Object.keys(localProfiles).map(name => `
-                                <option value="local:${name}" ${runner.preset === ('local:' + name) ? 'selected' : ''}>
-                                    💾 ${name}
+                <div>
+                    <label style="font-size: 10px; color: var(--text-muted); display: block; margin-bottom: 2px;">Assigned Costume Preset:</label>
+                    <select class="fleet-preset-select" data-slot="${i}">
+                        <optgroup label="Official Server Presets">
+                            ${serverPresets.map(p => `
+                                <option value="server:${p.filename}" ${runner.preset === ('server:' + p.filename) ? 'selected' : ''}>
+                                    📁 ${p.name}
                                 </option>
                             `).join('')}
                         </optgroup>
-                    ` : ''}
-                    <optgroup label="Editor Session">
-                        <option value="current_editor" ${runner.preset === 'current_editor' ? 'selected' : ''}>
-                            ✨ Currently Active Editor Design
-                        </option>
-                    </optgroup>
-                </select>
-            </div>
+                        ${Object.keys(localProfiles).length > 0 ? `
+                            <optgroup label="Browser Saved Profiles">
+                                ${Object.keys(localProfiles).map(name => `
+                                    <option value="local:${name}" ${runner.preset === ('local:' + name) ? 'selected' : ''}>
+                                        💾 ${name}
+                                    </option>
+                                `).join('')}
+                            </optgroup>
+                        ` : ''}
+                        <optgroup label="Editor Session">
+                            <option value="current_editor" ${runner.preset === 'current_editor' ? 'selected' : ''}>
+                                ✨ Currently Active Editor Design
+                            </option>
+                        </optgroup>
+                    </select>
+                </div>
 
-            <div class="fleet-pills-row">
-                <span class="fleet-pill">💡 ${ledCount} LEDs</span>
-                <span class="fleet-pill">🎨 ${graphicName}</span>
-                <span class="fleet-pill">✨ ${patternName}</span>
-            </div>
+                <div class="fleet-pills-row">
+                    <span class="fleet-pill">💡 ${ledCount} LEDs</span>
+                    <span class="fleet-pill">🎨 ${graphicName}</span>
+                    <span class="fleet-pill">✨ ${patternName}</span>
+                </div>
 
-            <div class="fleet-actions-row">
-                <button type="button" class="action-btn fleet-edit-single-btn" data-slot="${i}" style="flex: 1.2; font-weight: 600; color: #58a6ff; border-color: rgba(56, 139, 253, 0.4);" title="Load into Single Shirt visualizer to tweak LEDs, colors, and groups">
-                    ✏️ Edit in Single View
-                </button>
-                <button type="button" class="action-btn fleet-copy-active-btn" data-slot="${i}" style="flex: 1;" title="Assign current single-shirt editor design to this runner">
-                    📥 Assign Editor
-                </button>
-            </div>
-        `;
+                <div class="fleet-actions-row">
+                    <button type="button" class="action-btn fleet-edit-single-btn" data-slot="${i}" style="flex: 1.2; font-weight: 600; color: #58a6ff; border-color: rgba(56, 139, 253, 0.4);" title="Load into Single Shirt visualizer to tweak LEDs, colors, and groups">
+                        ✏️ Edit in Single View
+                    </button>
+                    <button type="button" class="action-btn fleet-copy-active-btn" data-slot="${i}" style="flex: 1;" title="Assign current single-shirt editor design to this runner">
+                        📥 Assign Editor
+                    </button>
+                </div>
+            `;
 
-        container.appendChild(card);
+            // Card click & dblclick handlers
+            card.addEventListener('click', (e) => {
+                if (e.target.closest('button') || e.target.closest('select')) return;
+                fleetSelectedRunner = i;
+                container.querySelectorAll('.fleet-runner-card').forEach((c, idx) => {
+                    c.classList.toggle('selected-runner', idx === i);
+                });
+            });
+
+            card.addEventListener('dblclick', async (e) => {
+                if (e.target.closest('button') || e.target.closest('select')) return;
+                await editRunnerInSingleView(i);
+            });
+
+            container.appendChild(card);
+        }
+
+        // Attach event listeners
+        container.querySelectorAll('.fleet-preset-select').forEach(sel => {
+            sel.addEventListener('change', async () => {
+                const slot = parseInt(sel.getAttribute('data-slot'));
+                fleetRunners[slot].preset = sel.value;
+                delete fleetPresetCache[sel.value];
+                await getPresetDataForRunner(fleetRunners[slot]);
+                saveFleetLineupToStorage();
+                renderFleetCards();
+                showToast(`Assigned preset to Runner #${fleetRunners[slot].num}!`);
+            });
+        });
+
+        container.querySelectorAll('.fleet-edit-single-btn').forEach(btn => {
+            btn.addEventListener('click', async (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                const slot = parseInt(btn.getAttribute('data-slot'));
+                await editRunnerInSingleView(slot);
+            });
+        });
+
+        container.querySelectorAll('.fleet-copy-active-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                const slot = parseInt(btn.getAttribute('data-slot'));
+                assignCurrentEditorToRunner(slot);
+            });
+        });
+    } finally {
+        isRenderingFleetCards = false;
     }
-
-    // Attach event listeners
-    container.querySelectorAll('.fleet-preset-select').forEach(sel => {
-        sel.addEventListener('change', async () => {
-            const slot = parseInt(sel.getAttribute('data-slot'));
-            fleetRunners[slot].preset = sel.value;
-            delete fleetPresetCache[sel.value];
-            await getPresetDataForRunner(fleetRunners[slot]);
-            saveFleetLineupToStorage();
-            renderFleetCards();
-            showToast(`Assigned preset to Runner #${fleetRunners[slot].num}!`);
-        });
-    });
-
-    container.querySelectorAll('.fleet-edit-single-btn').forEach(btn => {
-        btn.addEventListener('click', async () => {
-            const slot = parseInt(btn.getAttribute('data-slot'));
-            await editRunnerInSingleView(slot);
-        });
-    });
-
-    container.querySelectorAll('.fleet-copy-active-btn').forEach(btn => {
-        btn.addEventListener('click', () => {
-            const slot = parseInt(btn.getAttribute('data-slot'));
-            assignCurrentEditorToRunner(slot);
-        });
-    });
 }
 
 // 1-Click Load Runner Preset into Single Shirt Editor
 async function editRunnerInSingleView(slot) {
-    const runner = fleetRunners[slot];
-    if (!runner) return;
+    try {
+        const runner = fleetRunners[slot];
+        if (!runner) return;
 
-    let pData = await getPresetDataForRunner(runner);
-    if (!pData) {
-        showToast("⚠️ Could not load preset data for this runner.");
-        return;
+        let pData = await getPresetDataForRunner(runner);
+        if (!pData) {
+            // Fallback profile if server unavailable
+            pData = {
+                name: `${runner.name} Costume`,
+                floatName: `Float ${runner.slot + 1} - ${runner.name}`,
+                ledCount: 100,
+                leds: [],
+                graphicType: runner.defaultGraphic || 'builtin_dragon',
+                settings: { pattern: 'steady_sparkle', speedBpm: 120, sparkleRate: 1.5, greenHue: 140, brightness: 80, glowSize: 22 },
+                animationGroups: [],
+                sequence: { loopDuration: 90.0, cues: [] }
+            };
+        }
+
+        // Apply preset to main editor
+        applyProfileData(pData);
+
+        // If preset has no leds, generate 100 on graphic
+        if (!leds || leds.length === 0) {
+            scatterLedsOnGraphic(100, true);
+        }
+
+        // Switch view to Single Shirt
+        currentView = 'single';
+        document.getElementById('singleViewBtn')?.classList.add('active');
+        document.getElementById('fleetViewBtn')?.classList.remove('active');
+        const zt = document.querySelector('.zoom-toolbar');
+        if (zt) zt.style.display = 'flex';
+        resetZoom();
+
+        // Switch sidebar to tabLayout
+        switchSidebarTab('tabLayout');
+
+        // Synchronize Quick-Load Profile dropdown in tabLayout
+        const pSel = document.getElementById('presetSelect');
+        if (pSel && runner.preset) {
+            pSel.value = runner.preset;
+        }
+
+        showToast(`✏️ Loaded Runner #${runner.num} (${runner.name}) into Single Shirt Editor`);
+    } catch (err) {
+        console.error("Error editing runner in single view:", err);
+        showToast(`⚠️ Error loading runner into editor: ${err.message}`);
     }
-
-    // Apply preset to main editor
-    applyProfileData(pData);
-
-    // Switch view to Single Shirt
-    currentView = 'single';
-    document.getElementById('singleViewBtn').classList.add('active');
-    document.getElementById('fleetViewBtn').classList.remove('active');
-    const zt = document.querySelector('.zoom-toolbar');
-    if (zt) zt.style.display = 'flex';
-
-    // Switch sidebar to tabLayout
-    switchSidebarTab('tabLayout');
-
-    showToast(`✏️ Loaded Runner #${runner.num} (${runner.name}) into Single Shirt Editor`);
 }
 
 // Copy Current Single-Shirt Editor State to a Specific Runner
@@ -3703,13 +3771,17 @@ function selectGroupLeds(groupId) {
     const grp = animationGroups.find(g => g.id === groupId);
     if (!grp) return;
 
+    const arr = Array.isArray(grp.ledIndices) ? grp.ledIndices : (Array.isArray(grp.indices) ? grp.indices : []);
+    grp.ledIndices = arr;
+    grp.indices = arr;
+
     selectedGroupId = grp.id;
 
     selectedLeds.clear();
-    for (const idx of grp.ledIndices) {
+    for (const idx of arr) {
         if (idx < leds.length) selectedLeds.add(idx);
     }
-    selectedLed = grp.ledIndices[0] || null;
+    selectedLed = arr[0] || null;
 
     // Switch Hub mode to 'select' so From Selection panel is visible
     switchGroupCreationMode('select');
@@ -3755,7 +3827,10 @@ function renderActiveGroupsList() {
     const totalCostumeLeds = (leds && leds.length > 0) ? leds.length : 100;
     const assignedSet = new Set();
     animationGroups.forEach(g => {
-        (g.ledIndices || []).forEach(idx => {
+        const arr = Array.isArray(g.ledIndices) ? g.ledIndices : (Array.isArray(g.indices) ? g.indices : []);
+        g.ledIndices = arr;
+        g.indices = arr;
+        arr.forEach(idx => {
             if (idx < totalCostumeLeds) assignedSet.add(idx);
         });
     });
@@ -3823,13 +3898,17 @@ function renderActiveGroupsList() {
     };
 
     for (const grp of animationGroups) {
+        const arr = Array.isArray(grp.ledIndices) ? grp.ledIndices : (Array.isArray(grp.indices) ? grp.indices : []);
+        grp.ledIndices = arr;
+        grp.indices = arr;
+
         const card = document.createElement('div');
         card.className = 'group-card';
         card.setAttribute('data-group-id', grp.id);
 
         const isFullySelected = selectedLeds.size > 0 &&
-            grp.ledIndices.length > 0 &&
-            grp.ledIndices.every(idx => selectedLeds.has(idx));
+            arr.length > 0 &&
+            arr.every(idx => selectedLeds.has(idx));
         if (isFullySelected) {
             card.classList.add('active-group');
         }
@@ -3851,13 +3930,13 @@ function renderActiveGroupsList() {
                     <span class="group-card-icon">${icon}</span>
                     <span class="group-card-name" title="${grp.name}">${grp.name}</span>
                 </div>
-                <span class="group-card-leds-badge">${grp.ledIndices.length} LEDs</span>
+                <span class="group-card-leds-badge">${arr.length} LEDs</span>
             </div>
             <div class="group-card-badges">
                 <span class="group-pill group-pill-effect">${label} @ ${grp.speedBpm} BPM</span>
                 ${extraPillHtml}
                 <span class="group-pill group-pill-baseline">Idle: ${baselineLabel}</span>
-                <span class="group-pill" style="background: #21262d; color: #8b949e; border: 1px solid #30363d;" title="LED indices: ${grp.ledIndices.join(', ')}">LEDs: ${formatIndexSummary(grp.ledIndices)}</span>
+                <span class="group-pill" style="background: #21262d; color: #8b949e; border: 1px solid #30363d;" title="LED indices: ${arr.join(', ')}">LEDs: ${formatIndexSummary(arr)}</span>
             </div>
             <div class="group-card-actions">
                 <button type="button" class="action-btn select-grp-btn" style="flex: 1; font-weight: 600;" title="Select and inspect all LEDs in this group">
@@ -5249,33 +5328,38 @@ function applyProfileData(profileData) {
     const graphicSelect = document.getElementById('graphicPresetSelect');
     const uploadContainer = document.getElementById('customUploadContainer');
 
-    if (currentGraphicType === 'cinderellas_coach') {
-        customArtworkImg = null;
-        customArtworkDataUrl = null;
-        if (graphicSelect) graphicSelect.value = 'cinderellas_coach';
-        if (uploadContainer) uploadContainer.style.display = 'none';
-        if (resetBtn) resetBtn.style.display = 'block';
-    } else if (currentGraphicType === 'carriage_nohorses') {
-        customArtworkImg = null;
-        customArtworkDataUrl = null;
-        if (graphicSelect) graphicSelect.value = 'carriage_nohorses';
-        if (uploadContainer) uploadContainer.style.display = 'none';
-        if (resetBtn) resetBtn.style.display = 'block';
-    } else if (profileData.customArtworkDataUrl) {
-        customArtworkDataUrl = profileData.customArtworkDataUrl;
-        const img = new Image();
-        img.onload = () => {
-            customArtworkImg = img;
-        };
-        img.src = customArtworkDataUrl;
+    if (currentGraphicType === 'custom_image' || profileData.customArtworkDataUrl) {
+        currentGraphicType = 'custom_image';
+        customArtworkDataUrl = profileData.customArtworkDataUrl || null;
+        if (customArtworkDataUrl) {
+            const img = new Image();
+            img.onload = () => {
+                customArtworkImg = img;
+            };
+            img.src = customArtworkDataUrl;
+        }
         if (graphicSelect) graphicSelect.value = 'custom_upload';
         if (uploadContainer) uploadContainer.style.display = 'block';
         if (resetBtn) resetBtn.style.display = 'block';
     } else {
         customArtworkImg = null;
-        if (graphicSelect) graphicSelect.value = 'builtin_dragon';
+        customArtworkDataUrl = null;
         if (uploadContainer) uploadContainer.style.display = 'none';
-        if (resetBtn) resetBtn.style.display = 'none';
+        if (resetBtn) resetBtn.style.display = (currentGraphicType === 'builtin_dragon' || currentGraphicType === 'petes_dragon') ? 'none' : 'block';
+        if (graphicSelect) {
+            let matched = false;
+            for (let opt of graphicSelect.options) {
+                if (opt.value === currentGraphicType) {
+                    graphicSelect.value = currentGraphicType;
+                    matched = true;
+                    break;
+                }
+            }
+            if (!matched) {
+                if (currentGraphicType === 'cinderella_coach') graphicSelect.value = 'cinderellas_coach';
+                else if (currentGraphicType === 'petes_dragon') graphicSelect.value = 'builtin_dragon';
+            }
+        }
     }
 
     // 3. Restore Settings
@@ -5325,7 +5409,14 @@ function applyProfileData(profileData) {
 
     // 4. Restore Animation Groups
     if (Array.isArray(profileData.animationGroups)) {
-        animationGroups = profileData.animationGroups;
+        animationGroups = profileData.animationGroups.map(g => {
+            const arr = Array.isArray(g.ledIndices) ? g.ledIndices : (Array.isArray(g.indices) ? g.indices : []);
+            return {
+                ...g,
+                ledIndices: arr,
+                indices: arr
+            };
+        });
     } else {
         animationGroups = [];
     }
@@ -6783,90 +6874,14 @@ function autoOutlineCurrentGraphic(targetCount = 50) {
     showToast(`✨ ${targetCount} LEDs redistributed along graphic outline!`);
 }
 
-// Switch costume graphic preset (Pete's Dragon, Cinderella's Coach, or Custom Upload)
+// Switch costume graphic preset (Pete's Dragon, Casey Jr., Cinderella's Coach, etc.)
 async function loadGraphicPreset(type) {
     const uploadContainer = document.getElementById('customUploadContainer');
     const resetBtn = document.getElementById('resetArtworkBtn');
     const graphicSelect = document.getElementById('graphicPresetSelect');
     if (graphicSelect) graphicSelect.value = type;
 
-    if (type === 'cinderellas_coach') {
-        currentGraphicType = 'cinderellas_coach';
-        customArtworkImg = null;
-        customArtworkDataUrl = null;
-        if (uploadContainer) uploadContainer.style.display = 'none';
-        if (resetBtn) resetBtn.style.display = 'block';
-
-        // Load Cinderella's Coach preset if available from server
-        try {
-            const res = await fetch('/api/preset/cinderellas_coach.json');
-            if (res.ok) {
-                const profileData = await res.json();
-                if (Array.isArray(profileData.leds) && profileData.leds.length > 0) {
-                    leds = profileData.leds;
-                    while (sparkles.length < leds.length) sparkles.push(0);
-                    if (Array.isArray(profileData.animationGroups)) {
-                        animationGroups = profileData.animationGroups;
-                    } else {
-                        animationGroups = [];
-                    }
-                    rebuildLedGroupMap();
-                    renderActiveGroupsList();
-                    updateLedCountUI();
-                    const nameIn = document.getElementById('profileNameInput');
-                    if (nameIn) nameIn.value = "Cinderella's Coach";
-                    showToast("🎃 Loaded Cinderella's Coach with 100 color-matched LEDs!");
-                    return;
-                }
-            }
-        } catch (e) {
-            console.warn("Could not fetch Cinderella preset:", e);
-        }
-
-        animationGroups = [];
-        rebuildLedGroupMap();
-        renderActiveGroupsList();
-        scatterLedsOnGraphic(100, true);
-        showToast("🎃 Switched to Cinderella's Coach!");
-    } else if (type === 'carriage_nohorses') {
-        currentGraphicType = 'carriage_nohorses';
-        customArtworkImg = null;
-        customArtworkDataUrl = null;
-        if (uploadContainer) uploadContainer.style.display = 'none';
-        if (resetBtn) resetBtn.style.display = 'block';
-
-        // Load Carriage (No Horses) preset if available from server
-        try {
-            const res = await fetch('/api/preset/carriage_nohorses.json');
-            if (res.ok) {
-                const profileData = await res.json();
-                if (Array.isArray(profileData.leds) && profileData.leds.length > 0) {
-                    leds = profileData.leds;
-                    while (sparkles.length < leds.length) sparkles.push(0);
-                    if (Array.isArray(profileData.animationGroups)) {
-                        animationGroups = profileData.animationGroups;
-                    } else {
-                        animationGroups = [];
-                    }
-                    rebuildLedGroupMap();
-                    renderActiveGroupsList();
-                    updateLedCountUI();
-                    const nameIn = document.getElementById('profileNameInput');
-                    if (nameIn) nameIn.value = "Carriage (No Horses)";
-                    showToast("🎃 Loaded Carriage (No Horses) with 100 color-matched LEDs!");
-                    return;
-                }
-            }
-        } catch (e) {
-            console.warn("Could not fetch Carriage (No Horses) preset:", e);
-        }
-
-        animationGroups = [];
-        rebuildLedGroupMap();
-        renderActiveGroupsList();
-        scatterLedsOnGraphic(100, true);
-        showToast("🎃 Switched to Carriage (No Horses)!");
-    } else if (type === 'custom_upload') {
+    if (type === 'custom_upload') {
         if (uploadContainer) uploadContainer.style.display = 'block';
         if (resetBtn) resetBtn.style.display = customArtworkImg ? 'block' : 'none';
         if (customArtworkImg) {
@@ -6876,47 +6891,51 @@ async function loadGraphicPreset(type) {
             const fileInput = document.getElementById('artworkUpload');
             if (fileInput) fileInput.click();
         }
-    } else {
-        // Default Pete's Dragon
-        currentGraphicType = 'builtin_dragon';
-        customArtworkImg = null;
-        customArtworkDataUrl = null;
-        if (uploadContainer) uploadContainer.style.display = 'none';
-        if (resetBtn) resetBtn.style.display = 'none';
-        const fileInput = document.getElementById('artworkUpload');
-        if (fileInput) fileInput.value = '';
+        return;
+    }
 
+    currentGraphicType = type;
+    customArtworkImg = null;
+    customArtworkDataUrl = null;
+    if (uploadContainer) uploadContainer.style.display = 'none';
+    if (resetBtn) resetBtn.style.display = (type === 'builtin_dragon' || type === 'petes_dragon') ? 'none' : 'block';
+
+    const presetFileMap = {
+        'casey_jr_train': 'casey_jr_train.json',
+        'title_drum': 'title_drum.json',
+        'spinning_turtle': 'spinning_turtle.json',
+        'spinning_snail': 'spinning_snail.json',
+        'cinderellas_coach': 'cinderellas_coach.json',
+        'cinderella_coach': 'cinderellas_coach.json',
+        'carriage_nohorses': 'carriage_nohorses.json',
+        'builtin_dragon': 'petes_dragon.json',
+        'petes_dragon': 'petes_dragon.json',
+        'honor_america_eagle': 'honor_america_eagle.json'
+    };
+
+    const presetFile = presetFileMap[type];
+    if (presetFile) {
         try {
-            const res = await fetch('/api/preset/petes_dragon.json');
+            const res = await fetch(`/api/preset/${presetFile}`);
             if (res.ok) {
                 const profileData = await res.json();
-                if (Array.isArray(profileData.leds) && profileData.leds.length > 0) {
-                    leds = profileData.leds;
-                    while (sparkles.length < leds.length) sparkles.push(0);
-                    if (Array.isArray(profileData.animationGroups)) {
-                        animationGroups = profileData.animationGroups;
-                    } else {
-                        animationGroups = [];
-                    }
-                    rebuildLedGroupMap();
-                    renderActiveGroupsList();
-                    updateLedCountUI();
-                    const nameIn = document.getElementById('profileNameInput');
-                    if (nameIn) nameIn.value = "Pete's Dragon";
-                    showToast("🐉 Loaded Pete's Dragon with 100 color-matched LEDs!");
-                    return;
-                }
+                applyProfileData(profileData);
+                const pSel = document.getElementById('presetSelect');
+                if (pSel) pSel.value = `server:${presetFile}`;
+                showToast(`✨ Loaded ${profileData.name || type} preset!`);
+                return;
             }
         } catch (e) {
-            console.warn("Could not fetch dragon preset:", e);
+            console.warn("Could not fetch preset for", type, e);
         }
-
-        animationGroups = [];
-        rebuildLedGroupMap();
-        renderActiveGroupsList();
-        scatterLedsOnGraphic(100, true);
-        showToast("🔄 Restored default Pete's Dragon graphic!");
     }
+
+    // Fallback if preset file not fetched or custom
+    animationGroups = [];
+    rebuildLedGroupMap();
+    renderActiveGroupsList();
+    scatterLedsOnGraphic(100, true);
+    showToast(`🎨 Switched graphic to ${type.replace(/_/g, ' ')}!`);
 }
 
 // Graphic Preset Dropdown Handler

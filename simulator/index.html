@@ -174,10 +174,19 @@
                         <div class="control-group">
                             <label style="font-size: 11px; color: var(--text-muted); margin-bottom: 2px;">Costume Graphic:</label>
                             <select id="graphicPresetSelect" style="background: #21262d; color: #fff; border: 1px solid #30363d; padding: 7px 10px; border-radius: 6px; outline: none; font-size: 12px; width: 100%;">
-                                <option value="builtin_dragon">🐉 Pete's Dragon</option>
-                                <option value="cinderellas_coach">🎃 Cinderella's Coach</option>
-                                <option value="carriage_nohorses">🎃 Carriage (No Horses)</option>
-                                <option value="custom_upload">📁 Upload Custom Artwork...</option>
+                                <optgroup label="Official Electrical Parade Floats">
+                                    <option value="casey_jr_train">🚂 Float 01: Casey Jr. Locomotive</option>
+                                    <option value="title_drum">🥁 Float 02: Electrical Parade Drum</option>
+                                    <option value="spinning_turtle">🐢 Float 03: The Spinning Turtle</option>
+                                    <option value="spinning_snail">🐌 Float 04: The Spinning Snail</option>
+                                    <option value="cinderellas_coach">🎃 Float 05: Cinderella's Coach</option>
+                                    <option value="carriage_nohorses">🎠 Float 05: Carriage (No Horses)</option>
+                                    <option value="builtin_dragon" selected>🐉 Float 06: Pete's Dragon (Elliott)</option>
+                                    <option value="honor_america_eagle">🦅 Float 07: To Honor America (Eagle)</option>
+                                </optgroup>
+                                <optgroup label="Custom Artwork">
+                                    <option value="custom_upload">📁 Upload Custom Artwork...</option>
+                                </optgroup>
                             </select>
                         </div>
                         <div class="control-group" id="customUploadContainer" style="display: none; margin-top: 4px;">

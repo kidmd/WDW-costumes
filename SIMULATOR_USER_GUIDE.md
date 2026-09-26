@@ -349,10 +349,15 @@ Creating radial fireworks bursts requires clean geometry, flexible placement, an
 You can choose from pre-loaded Disney parade artwork or upload your own high-resolution shirt graphics, complete with realistic race bib collision checking.
 
 ### Built-in Graphic Presets
-Use the **Graphic Style** dropdown in Section 1 to switch between:
-- **🐉 Pete's Dragon (Elliott):** Default 100-LED layout with emerald body scales, magenta hair crest, and incandescent starlight sparkles.
-- **🎃 Cinderella's Coach:** Classic golden carriage outline with dual spinning wheels, pumpkin body, and royal lanterns.
-- **🎃 Carriage (No Horses):** Focused Cinderella coach design with clean wheel arches, royal carriage frame, and dedicated 100-LED preset.
+Use the **Costume Graphic** dropdown in the Layout tab (Section 1) to instantly switch between all official parade units with automatic preset loading:
+- **🚂 Float 01: Casey Jr. Locomotive (`casey_jr_train`):** Iconic circus engine with spinning drive wheels, illuminated cab, and flashing strobe headlight.
+- **🥁 Float 02: The Title Drum (`title_drum`):** Massive illuminated bass drum with amber chase rim and classic marquee lighting.
+- **🐢 Float 03: The Spinning Turtle (`spinning_turtle`):** Whimsical sea turtle with concentric spinning shell spiral and glowing fins.
+- **🐌 Float 04: The Spinning Snail (`spinning_snail`):** Colorful garden snail with multi-tier shell whorls and neon antenna bulbs.
+- **🎃 Float 05: Cinderella's Coach (`cinderellas_coach`):** Golden carriage outline with dual spinning wheels, pumpkin body, and royal lanterns.
+- **🎠 Float 05: Carriage (No Horses) (`carriage_nohorses`):** Focused Cinderella coach design with clean wheel arches, royal carriage frame, and dedicated 100-LED preset.
+- **🐉 Float 06: Pete's Dragon (Elliott) (`builtin_dragon`):** Default 100-LED layout with emerald body scales, magenta hair crest, and incandescent starlight sparkles.
+- **🦅 Float 07: To Honor America (`honor_america_eagle`):** Grand patriotic eagle finale with sweeping red, white, and blue wing chases.
 
 ### Proportional Chest Graphic Scaling
 All artwork graphics are automatically scaled to sit comfortably in the chest area above the race bib (`y = 0.168` to `0.553`):
@@ -596,8 +601,11 @@ In the 7-Shirt Fleet Lineup view (`renderFleetView`):
 ### Bidirectional Preset Workflow
 - **Assigning Presets to Runners:**
   Every runner slot card has an **Assigned Costume Preset** dropdown. Select any server preset (`presets/*.json`) or custom profile from your browser cache (`localStorage`) to assign it to that runner. The canvas updates immediately.
-- **✏️ Edit in Single View:**
-  Click the **"Edit in Single View"** button on any runner card to load that runner's design into the full-size Single Shirt editor. Modify LEDs, tweak colors, stamp fireworks, or record cues in high resolution.
+- **✏️ Edit in Single View (1-Click or Double-Click):**
+  Click the **"Edit in Single View"** button on any runner card (or **double-click the card / canvas runner**) to seamlessly transition the workspace into the Single Shirt Editor:
+  - **Full Preset Restoration:** Loads all 100 LED coordinates, sampled pixel colors, float vector artwork, animation groups (with full dual-compatibility for `ledIndices` and `indices`), speed BPM, brightness, and sequence cues.
+  - **Auto-Centered Viewport:** Automatically toggles canvas rendering to Single Shirt mode, activates the zoom toolbar, and resets zoom/pan (`resetZoom()`) so the runner's shirt is perfectly framed.
+  - **Sidebar Synchronization:** Switches sidebar navigation directly to the **🎨 Layout** tab (`tabLayout`) and synchronizes the **Quick-Load Profile** dropdown (`#presetSelect`) to match the active runner's preset.
 - **📥 Assign Editor:**
   Click **"Assign Editor"** on a runner card to copy your active single-shirt editor design into that runner slot.
 - **📋 Assign Editor to All:**

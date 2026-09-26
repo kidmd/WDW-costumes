@@ -93,6 +93,28 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### Entry: 1-Click Single View Editing from Fleet Cards & Full Float Preset Support
+* **Date:** 2026-09-25
+* **Status:** Operational & Verified in Web Simulator and Python Server.
+* **Notes:**
+  * **Root Cause Diagnosis for Fleet Card Edit Buttons:**
+    - Discovered that server presets for Floats 1, 2, 3, 4, and 7 (`casey_jr_train.json`, `title_drum.json`, `spinning_turtle.json`, `spinning_snail.json`, `honor_america_eagle.json`) stored their LED index arrays under the property key `"indices"`, whereas `renderActiveGroupsList()` and group inspection logic accessed `grp.ledIndices`.
+    - Calling `grp.ledIndices.length` on undefined threw an unhandled `TypeError` inside `applyProfileData()`, aborting execution before `currentView = 'single'`, `switchSidebarTab('tabLayout')`, or view transitions could run.
+  * **Dual Key Normalization (`ledIndices` & `indices`):**
+    - Updated `applyProfileData()`, `rebuildLedGroupMap()`, `selectGroupLeds()`, and `renderActiveGroupsList()` in `simulator/app.js` to automatically normalize both keys: `const arr = Array.isArray(grp.ledIndices) ? grp.ledIndices : (Array.isArray(grp.indices) ? grp.indices : []); gr.ledIndices = arr; grp.indices = arr;`.
+    - Mirrored `ledIndices` alongside `indices` across all 5 official preset JSON files in `presets/` for complete dual compatibility.
+  * **1-Click & Double-Click Single View Editing Workflow (`editRunnerInSingleView`):**
+    - Wrapped `editRunnerInSingleView(slot)` in a `try...catch` block with user toasts and console logging.
+    - Added fallback preset synthesis in case server fetching encounters offline network interruptions.
+    - Automatically switches view to single mode, centers and frames the shirt with `resetZoom()`, opens the `🎨 Layout` tab (`tabLayout`), and sets the Quick-Load dropdown to match the runner's assigned preset.
+    - Bound `click` and `dblclick` directly to fleet runner cards: single click selects the runner card, and double click opens Single View editor.
+    - Added `isRenderingFleetCards` concurrency guard to prevent race conditions during rapid tab switching.
+  * **Full Costume Graphic Suite Integration (`graphicPresetSelect` & `loadGraphicPreset`):**
+    - Expanded the Costume Graphic dropdown in `simulator/index.html` to include all 7 official parade units (`casey_jr_train`, `title_drum`, `spinning_turtle`, `spinning_snail`, `cinderellas_coach`, `carriage_nohorses`, `builtin_dragon`, `honor_america_eagle`).
+    - Unified `loadGraphicPreset(type)` in `simulator/app.js` to automatically fetch each float's server preset and color-matched LED map.
+    - Updated SVG header dimensions to explicit `width="800" height="600"` across all 7 Cricut SVG files to guarantee accurate `naturalWidth` and `naturalHeight` reporting.
+    - Enhanced single shirt drawing title mapping (`FLOAT_TITLES`) and guarded `drawPetesDragon()` from rendering incorrect silhouette fallbacks.
+
 ### Entry: Randomized Standard Color Wave for 15-Second Choreographed Parade Fleet Routine
 * **Date:** 2026-09-25
 * **Status:** Operational & Verified in Web Simulator and Python Server.
