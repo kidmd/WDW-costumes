@@ -5826,6 +5826,171 @@ function toggleSequenceMode(forceState) {
     }
 }
 
+// ============================================================================
+// INTERACTIVE FLEET SHOW TIMELINE ENGINE (DRAG-TO-STRETCH, TRIM & REORDER)
+// ============================================================================
+let selectedFleetBlockIdx = null;
+let activeTimelineDrag = null;
+
+function getFleetBlockDirectionBadge(bType) {
+    switch (bType) {
+        case 'wave_forward': return '1 ➔ 7';
+        case 'wave_reverse': return '7 ➔ 1';
+        case 'center_burst': return '4 ➔ 1&7';
+        case 'converge_center': return '1&7 ➔ 4';
+        case 'baton_chase': return '1 ➔ 7';
+        case 'ping_pong_wave': return '1 ⇆ 7';
+        case 'color_collision': return '1&7 ➔ 4 ➔ 1&7';
+        case 'cross_dissolve_chase': return '1 ➔ 7';
+        case 'ripple_echo': return '4 ➔ 1&7';
+        case 'sparkle_cascade': return '1 ➔ 7';
+        case 'wig_wag': return '1,3,5,7 ⇄ 2,4,6';
+        case 'fleet_pulse': return 'All 7';
+        case 'sparkle_storm': return '✨ All';
+        case 'color_wash_chase': return '1 ➔ 7';
+        case 'rainbow_sweep': return '🌈 360°';
+        case 'strobe_all': return '⚡ All';
+        case 'grand_finale': return '🎆 Finale';
+        case 'shimmer_drift': return '🌌 Drift';
+        case 'blackout': return '🌑 Off';
+        default: return '';
+    }
+}
+
+function getFleetBlockCategoryClass(bType) {
+    if (bType === 'blackout') return 'fleet-block-cat-blackout';
+    const def = FLEET_BLOCK_DEFS[bType];
+    const cat = def?.category || 'waves';
+    if (cat === 'waves') return 'fleet-block-cat-waves';
+    if (cat === 'sync') return 'fleet-block-cat-sync';
+    if (cat === 'theatrical') return 'fleet-block-cat-theatrical';
+    return 'fleet-block-cat-waves';
+}
+
+function highlightSidebarFleetBlockCard(idx) {
+    document.querySelectorAll('.fleet-block-card').forEach(c => c.style.outline = 'none');
+    const card = document.querySelector(`.fleet-block-card[data-index="${idx}"]`);
+    if (card) {
+        card.style.outline = '2px solid #58a6ff';
+        card.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+}
+
+// Global mousemove & mouseup listeners for drag-to-stretch and reorder
+window.addEventListener('mousemove', (e) => {
+    if (!activeTimelineDrag) return;
+    const { type, blockIdx, startClientX, initialDuration, initialPrevDuration, trackRect, totalDur } = activeTimelineDrag;
+    const blocks = activeFleetShow?.blocks;
+    if (!blocks || !blocks[blockIdx]) return;
+    const blk = blocks[blockIdx];
+    const pixelsPerSec = trackRect.width / totalDur;
+    const deltaX = e.clientX - startClientX;
+    const deltaSec = deltaX / pixelsPerSec;
+    if (Math.abs(deltaX) > 3) activeTimelineDrag.hasMoved = true;
+
+    const tooltip = document.getElementById('timelineFloatingTooltip');
+
+    if (type === 'resize-right') {
+        const newDuration = Math.max(0.2, Math.round((initialDuration + deltaSec) * 10) / 10);
+        blk.duration = newDuration;
+        recalculateFleetBlockStartTimes();
+
+        if (tooltip) {
+            tooltip.style.display = 'block';
+            tooltip.style.left = `${e.clientX}px`;
+            tooltip.style.top = `${e.clientY - 12}px`;
+            tooltip.innerHTML = `⏱️ <strong>${blk.name}</strong>: ${newDuration.toFixed(1)}s (Ends at ${(blk.startTime + newDuration).toFixed(1)}s)`;
+        }
+        renderFleetShowTimelineLayers();
+    } else if (type === 'resize-left') {
+        if (blockIdx > 0) {
+            const prevBlk = blocks[blockIdx - 1];
+            const totalPairDur = initialPrevDuration + initialDuration;
+            const newPrevDur = Math.max(0.2, Math.min(totalPairDur - 0.2, Math.round((initialPrevDuration + deltaSec) * 10) / 10));
+            const newDur = Math.round((totalPairDur - newPrevDur) * 10) / 10;
+            prevBlk.duration = newPrevDur;
+            blk.duration = newDur;
+            recalculateFleetBlockStartTimes();
+
+            if (tooltip) {
+                tooltip.style.display = 'block';
+                tooltip.style.left = `${e.clientX}px`;
+                tooltip.style.top = `${e.clientY - 12}px`;
+                tooltip.innerHTML = `⏱️ <strong>Trim:</strong> ${prevBlk.name} (${newPrevDur.toFixed(1)}s) ➔ ${blk.name} (${newDur.toFixed(1)}s)`;
+            }
+            renderFleetShowTimelineLayers();
+        }
+    } else if (type === 'move') {
+        const cursorTime = Math.max(0, Math.min(totalDur, (e.clientX - trackRect.left) / pixelsPerSec));
+        let targetIdx = blocks.length - 1;
+        for (let i = 0; i < blocks.length; i++) {
+            const b = blocks[i];
+            const mid = b.startTime + (b.duration / 2.0);
+            if (cursorTime < mid) {
+                targetIdx = i;
+                break;
+            }
+        }
+        activeTimelineDrag.targetIdx = targetIdx;
+
+        if (tooltip) {
+            tooltip.style.display = 'block';
+            tooltip.style.left = `${e.clientX}px`;
+            tooltip.style.top = `${e.clientY - 12}px`;
+            tooltip.innerHTML = `🔀 Move <strong>${blk.name}</strong> to position #${targetIdx + 1} of ${blocks.length}`;
+        }
+
+        let dropIndicator = document.getElementById('fleetTimelineDropIndicator');
+        const track = document.querySelector('.timeline-layer-track');
+        if (track) {
+            if (!dropIndicator) {
+                dropIndicator = document.createElement('div');
+                dropIndicator.id = 'fleetTimelineDropIndicator';
+                dropIndicator.className = 'fleet-timeline-drop-indicator';
+                track.appendChild(dropIndicator);
+            }
+            const targetBlock = blocks[targetIdx];
+            const targetLeftPct = ((targetBlock?.startTime || 0) / totalDur) * 100;
+            dropIndicator.style.left = `${targetLeftPct}%`;
+            dropIndicator.style.display = 'block';
+        }
+        renderFleetShowTimelineLayers();
+    }
+});
+
+window.addEventListener('mouseup', () => {
+    if (!activeTimelineDrag) return;
+    const { type, blockIdx, hasMoved, targetIdx } = activeTimelineDrag;
+    const blocks = activeFleetShow?.blocks;
+    const blk = blocks && blocks[blockIdx];
+
+    const tooltip = document.getElementById('timelineFloatingTooltip');
+    if (tooltip) tooltip.style.display = 'none';
+
+    const dropIndicator = document.getElementById('fleetTimelineDropIndicator');
+    if (dropIndicator) dropIndicator.remove();
+
+    if (type === 'move' && hasMoved && typeof targetIdx === 'number' && targetIdx !== blockIdx) {
+        const [moved] = activeFleetShow.blocks.splice(blockIdx, 1);
+        activeFleetShow.blocks.splice(targetIdx, 0, moved);
+        recalculateFleetBlockStartTimes();
+        selectedFleetBlockIdx = targetIdx;
+        showToast(`🔀 Reordered "${moved.name}" to position #${targetIdx + 1}`);
+    } else if (type === 'resize-right' || type === 'resize-left') {
+        if (blk) showToast(`⏱️ Updated "${blk.name}" duration to ${blk.duration.toFixed(1)}s`);
+    } else if (type === 'move' && !hasMoved && blk) {
+        selectedFleetBlockIdx = blockIdx;
+        fleetShowElapsedSec = blk.startTime;
+        updateFleetShowUI();
+        highlightSidebarFleetBlockCard(blockIdx);
+    }
+
+    activeTimelineDrag = null;
+    renderFleetBlocksEditor();
+    updateFleetShowUI();
+    renderFleetShowTimelineLayers();
+});
+
 // Render 7-Shirt Fleet Show choreography blocks along the master timeline
 function renderFleetShowTimelineLayers() {
     const container = document.getElementById('timelineLayersContainer');
@@ -5876,11 +6041,11 @@ function renderFleetShowTimelineLayers() {
     // 2. Render Choreography Track Row
     const row = document.createElement('div');
     row.className = 'timeline-layer-row';
-    row.style.minHeight = '30px';
+    row.style.minHeight = '32px';
 
     const label = document.createElement('div');
     label.className = 'timeline-layer-label';
-    label.style.minHeight = '30px';
+    label.style.minHeight = '32px';
     label.style.display = 'flex';
     label.style.alignItems = 'center';
     label.style.justifyContent = 'space-between';
@@ -5891,9 +6056,10 @@ function renderFleetShowTimelineLayers() {
 
     const track = document.createElement('div');
     track.className = 'timeline-layer-track';
-    track.style.minHeight = '30px';
+    track.style.minHeight = '32px';
 
     track.addEventListener('click', (e) => {
+        if (activeTimelineDrag && activeTimelineDrag.hasMoved) return;
         const rect = track.getBoundingClientRect();
         const clickX = e.clientX - rect.left;
         const pct = Math.max(0, Math.min(1, clickX / rect.width));
@@ -5907,30 +6073,120 @@ function renderFleetShowTimelineLayers() {
         const def = FLEET_BLOCK_DEFS[blk.type] || { icon: "✨", name: blk.name };
         const leftPct = ((blk.startTime || 0) / totalDur) * 100;
         const widthPct = Math.max(1.8, ((blk.duration || 1.0) / totalDur) * 100);
+        const catClass = getFleetBlockCategoryClass(blk.type);
+        const dirBadge = getFleetBlockDirectionBadge(blk.type);
 
         const blockElem = document.createElement('div');
-        blockElem.className = 'cue-block group-layer';
+        blockElem.className = `fleet-timeline-block ${catClass}`;
         blockElem.setAttribute('data-fleet-block-idx', idx);
+
         if (fleetShowActive && activeInfo && activeInfo.index === idx) {
             blockElem.classList.add('active');
         }
+        if (selectedFleetBlockIdx === idx) {
+            blockElem.classList.add('selected');
+        }
+        if (activeTimelineDrag && activeTimelineDrag.blockIdx === idx && activeTimelineDrag.type === 'move' && activeTimelineDrag.hasMoved) {
+            blockElem.classList.add('dragging');
+        }
+
         blockElem.style.left = `${leftPct}%`;
         blockElem.style.width = `${widthPct}%`;
-        blockElem.style.top = '3px';
-        blockElem.style.height = '24px';
-        blockElem.style.background = 'linear-gradient(135deg, rgba(255, 193, 7, 0.35), rgba(240, 136, 62, 0.5))';
-        blockElem.style.borderColor = '#ffc107';
-        blockElem.title = `${blk.name} (${(blk.startTime || 0).toFixed(1)}s – ${((blk.startTime || 0) + (blk.duration || 1.0)).toFixed(1)}s)`;
 
+        const showDir = widthPct > 5.5 && dirBadge;
+        const showDur = widthPct > 4.0;
         blockElem.innerHTML = `
-            <span style="font-size: 10px; margin-right: 3px;">${def.icon}</span>
-            <span class="cue-label" style="font-size: 10px; color: #fff; font-weight: 500;">${blk.name || def.name}</span>
+            <div style="display: flex; align-items: center; gap: 4px; overflow: hidden; pointer-events: none;">
+                <span style="font-size: 10.5px; flex: none;">${def.icon}</span>
+                <span style="font-size: 10px; font-weight: 600; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${blk.name || def.name}</span>
+                ${showDir ? `<span style="font-size: 8.5px; background: rgba(0,0,0,0.35); color: #7ee787; padding: 1px 4px; border-radius: 3px; font-family: monospace; font-weight: bold; flex: none;">${dirBadge}</span>` : ''}
+            </div>
+            ${showDur ? `<span style="font-size: 9px; font-family: monospace; color: rgba(255,255,255,0.85); background: rgba(0,0,0,0.3); padding: 1px 4px; border-radius: 3px; flex: none; pointer-events: none;">${blk.duration.toFixed(1)}s</span>` : ''}
         `;
 
-        blockElem.addEventListener('click', (e) => {
+        // Left Resize Handle (rolling trim)
+        if (idx > 0) {
+            const leftHandle = document.createElement('div');
+            leftHandle.className = 'fleet-block-resize-handle left';
+            leftHandle.title = "Drag to trim transition with previous block";
+            leftHandle.addEventListener('mousedown', (e) => {
+                e.stopPropagation();
+                const trackRect = track.getBoundingClientRect();
+                activeTimelineDrag = {
+                    type: 'resize-left',
+                    blockIdx: idx,
+                    startClientX: e.clientX,
+                    initialDuration: blk.duration,
+                    initialPrevDuration: blocks[idx - 1].duration,
+                    trackRect: trackRect,
+                    totalDur: totalDur,
+                    hasMoved: false
+                };
+            });
+            blockElem.appendChild(leftHandle);
+        }
+
+        // Right Resize Handle (stretch / shrink duration)
+        const rightHandle = document.createElement('div');
+        rightHandle.className = 'fleet-block-resize-handle right';
+        rightHandle.title = "Drag to stretch or shrink duration";
+        rightHandle.addEventListener('mousedown', (e) => {
             e.stopPropagation();
-            fleetShowElapsedSec = blk.startTime || 0;
-            updateFleetShowUI();
+            const trackRect = track.getBoundingClientRect();
+            activeTimelineDrag = {
+                type: 'resize-right',
+                blockIdx: idx,
+                startClientX: e.clientX,
+                initialDuration: blk.duration,
+                trackRect: trackRect,
+                totalDur: totalDur,
+                hasMoved: false
+            };
+        });
+        blockElem.appendChild(rightHandle);
+
+        // Block Body Dragging
+        blockElem.addEventListener('mousedown', (e) => {
+            if (e.target.classList.contains('fleet-block-resize-handle')) return;
+            e.stopPropagation();
+            const trackRect = track.getBoundingClientRect();
+            activeTimelineDrag = {
+                type: 'move',
+                blockIdx: idx,
+                startClientX: e.clientX,
+                initialDuration: blk.duration,
+                trackRect: trackRect,
+                totalDur: totalDur,
+                hasMoved: false
+            };
+        });
+
+        // Tooltip hover
+        blockElem.addEventListener('mouseenter', (e) => {
+            if (activeTimelineDrag) return;
+            const tooltip = document.getElementById('timelineFloatingTooltip');
+            if (tooltip) {
+                tooltip.style.display = 'block';
+                tooltip.style.left = `${e.clientX}px`;
+                tooltip.style.top = `${e.clientY - 12}px`;
+                const endSec = ((blk.startTime || 0) + (blk.duration || 1.0)).toFixed(1);
+                tooltip.innerHTML = `<strong>${def.icon} ${blk.name}</strong> (${(blk.startTime || 0).toFixed(1)}s – ${endSec}s)<br><span style="font-size: 9.5px; color: var(--text-muted);">↔️ Drag edges to stretch • Drag body to reorder</span>`;
+            }
+        });
+
+        blockElem.addEventListener('mousemove', (e) => {
+            if (activeTimelineDrag) return;
+            const tooltip = document.getElementById('timelineFloatingTooltip');
+            if (tooltip && tooltip.style.display === 'block') {
+                tooltip.style.left = `${e.clientX}px`;
+                tooltip.style.top = `${e.clientY - 12}px`;
+            }
+        });
+
+        blockElem.addEventListener('mouseleave', () => {
+            if (activeTimelineDrag) return;
+            const tooltip = document.getElementById('timelineFloatingTooltip');
+            if (tooltip) tooltip.style.display = 'none';
         });
 
         track.appendChild(blockElem);

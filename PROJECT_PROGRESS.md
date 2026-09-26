@@ -84,13 +84,32 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
   - [ ] Optional: Sync tempo to the *Baroque Hoedown* soundtrack.
 
 - [ ] **Next Up / Feature Queue (Imagineering Active Pipeline):**
-  - [ ] **Interactive Visual Timeline Block Editor:** Directly drag and stretch choreography block edges on the canvas timeline to adjust durations visually; drag-and-drop block reordering on timeline tracks.
+  - [x] **Interactive Visual Timeline Block Editor:** Directly drag and stretch choreography block edges on the canvas timeline to adjust durations visually; drag-and-drop block reordering on timeline tracks.
   - [ ] **Race-Day Battery Life & Power Budget Calculator:** Analytical battery capacity estimator (5,000 mAh / 10,000 mAh packs) modeling running pace (60–90 min 10K), average mA draw per runner, and 30s fleet show trigger frequency.
   - [ ] **"Corral Roll Call" / ESP-NOW Fleet Radar Diagnostic:** Pre-race bench & corral RF sniffer verifying that Floats 1 through 7 are powered, connected, and responding on the sync channel before race start.
 
 ---
 
 ## Progress Log
+
+### Entry: Interactive Visual Timeline Block Editor (Drag-to-Stretch, Rolling Trim & Reordering)
+* **Date:** 2026-09-26
+* **Milestone:** Milestone 5 - Interactive NLE-Grade Visual Timeline Studio
+* **Status:** Operational & Verified in Web Simulator.
+* **Notes:**
+  * **Direct Drag-to-Stretch Duration Editing (`activeTimelineDrag`):**
+    - Hovering over the right edge of any block reveals an `ew-resize` handle.
+    - Dragging right/left resizes duration in 0.1s increments with a floating HUD tooltip (`⏱️ Duration: 3.5s | Ends at 7.5s`). Subsequent blocks automatically ripple forward smoothly.
+  * **Rolling Trim Transition Editing:**
+    - Dragging the left edge of any block performs a rolling edit against the preceding block, shifting the boundary without displacing the remainder of the routine.
+  * **Drag-and-Drop Block Reordering & Insertion Indicator:**
+    - Dragging a block's body displays a glowing blue `.fleet-timeline-drop-indicator` line showing the target insertion slot. On release, blocks reorder, start times are recalculated sequentially, and the sidebar stack is updated instantly.
+  * **Category Theming & Directional Motion Badges:**
+    - Styled blocks with category gradient themes: Electric Blue (Waves), Emerald (Sync), Vivid Amber (Theatrical), and Dark Graphite (Blackout).
+    - Added motion badges on blocks (`1 ➔ 7`, `7 ➔ 1`, `4 ➔ 1&7`, `1&7 ➔ 4 ➔ 1&7`, etc.) and duration tags (`3.5s`).
+  * **Click-to-Seek & Bi-directional Highlighting:**
+    - Clicking any block seeks the playhead to its start time, applies a golden highlight, and auto-scrolls to its editor card in the sidebar.
+  * **Cache-Busting & Versioning:** Bumped script tag to `app.js?v=26`.
 
 ### Entry: Signature Fleet Show Preset Pack ("The Electrical Suite") & Feature Queue Roadmap
 * **Date:** 2026-09-26

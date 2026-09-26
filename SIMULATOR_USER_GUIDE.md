@@ -633,9 +633,19 @@ The fleet choreography engine features 19 specialized multi-float lighting block
 
 ---
 
-### Master Timeline & Scrubber Integration
-- When viewing the 7-Shirt Fleet Lineup, the Master Timeline displays the Fleet Show track layers with color-coded block bars.
-- Clicking or dragging the timeline scrubber seeks smoothly through the fleet routine with full 700-LED fidelity.
+### Master Timeline & Interactive Block Editor
+When viewing the 7-Shirt Fleet Lineup, the Master Timeline becomes a fully interactive digital editing console:
+- **Color-Coded Category Theming:** Blocks are automatically color-coded by category:
+  - 🌊 *Traveling Waves & Directional:* Electric Blue (`.fleet-block-cat-waves`)
+  - 💓 *Synchronous Illuminations:* Emerald Green (`.fleet-block-cat-sync`)
+  - 🎪 *Theatrical & Dynamics:* Vivid Amber (`.fleet-block-cat-theatrical`)
+  - 🌑 *Theatrical Blackouts:* Dark Graphite (`.fleet-block-cat-blackout`)
+- **Directional Motion Badges:** Each directional block displays a live motion badge directly on the timeline bar (`1 ➔ 7`, `7 ➔ 1`, `4 ➔ 1&7`, `1&7 ➔ 4`, `1&7 ➔ 4 ➔ 1&7`, `1,3,5,7 ⇄ 2,4,6`, etc.).
+- **Drag-to-Stretch Duration (Right Handle):** Hover over the right edge of any block to reveal the resize grip. Click and drag horizontally to stretch or shrink its duration with real-time decimal precision (0.1s increments). A floating tooltip displays the live duration and end-time in real time. Subsequent blocks automatically ripple forward smoothly.
+- **Rolling Transition Trim (Left Handle):** Drag the left edge of any block to adjust the transition split point between the previous block and the current block without shifting the rest of the timeline.
+- **Drag-and-Drop Horizontal Reordering:** Click and drag the body of any block horizontally across the track. A glowing blue insertion drop indicator marks the destination slot. Releasing the mouse instantly reorders the blocks, updates start times sequentially, and synchronizes the sidebar stack editor.
+- **Click-to-Seek & Bi-directional Highlighting:** Clicking any block seeks the timeline playhead to its start time, applies a golden selection glow, and automatically scrolls and highlights the corresponding card in the sidebar editor.
+- **Full Scrubber Fidelity:** Scrubbing or playing the timeline renders all 700 LEDs across all 7 costumes in real time at 60 FPS.
 
 ---
 
