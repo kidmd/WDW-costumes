@@ -93,6 +93,24 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### Entry: Expansion of Fleet Choreography Library to 19 Blocks (Dual Collision, Silky Cascade, Butterfly Ripple & Fairy Waterfall)
+* **Date:** 2026-09-26
+* **Milestone:** Milestone 5 - 7-Shirt Synchronized Fleet Show Choreography & Simulation Engine
+* **Status:** Operational & Verified in Web Simulator and FastLED C++ Generator.
+* **Notes:**
+  * **New Signature Choreography Blocks (`FLEET_BLOCK_DEFS` in `simulator/app.js`):**
+    - `color_collision` (**Dual Collision & Supernova Shockwave**): High-velocity beams rush inwards from outer Floats 1 & 7 to Float 4, detonate in a brilliant white impact crest, then erupt outward in an expansive starlight shockwave back to 1 & 7.
+    - `cross_dissolve_chase` (**Silky Cascade Dissolve**): Silky, organic sinusoidal cross-dissolve flowing runner-by-runner sequentially from Float 1 through Float 7 (0.5 phase offset per runner).
+    - `ripple_echo` (**Mirror Pair Echo / Butterfly Ripple**): Symmetric harmonic ripple originating at center Float 4, then cascading outward to mirrored pairs (3&5, 2&6, then 1&7) with smooth sinusoidal breathing.
+    - `sparkle_cascade` (**Fairy Dust Waterfall Cascade**): A rolling waterfall of glittering Pixie Dust sparkles sweeping down the parade line (1 ➔ 7) with soft trailing embers.
+  * **Real-Time Canvas Simulation (`evalActiveFleetShowColor()`):**
+    - Implemented full analytical math for all four new blocks in JavaScript for interactive 60 FPS playback on the 7-shirt preview canvas.
+  * **FastLED C++ Generator Synchronization (`generateFleetRoutineCpp()`):**
+    - Integrated matching FastLED C++ math routines for all 4 new blocks inside `generateFleetRoutineCpp()`, exporting pure integer/float math, `fminf`/`fmaxf`, `blend()`, and `random8()` routines directly into firmware.
+  * **UI Palette & Selector Integration:**
+    - Updated `#fleetAddBlockTypeSelect` in `simulator/index.html` to organize all 19 choreography blocks into Traveling Waves, Synchronous Illuminations, and Theatrical & Dynamics optgroups.
+  * **Cache-Busting & Versioning:** Bumped script tag to `app.js?v=24`.
+
 ### Entry: Web Serial ESP32 Flasher Suite for Fleet Units (Floats 1–7), Dedicated Float Roles & Soundtrack Decision
 * **Date:** 2026-09-26
 * **Milestone:** Milestone 5 - 7-Shirt Synchronized Fleet Show Flasher Suite & Multi-Float ROM Architecture

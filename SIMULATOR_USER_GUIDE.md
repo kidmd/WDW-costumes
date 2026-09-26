@@ -583,28 +583,33 @@ This feature coordinates costume profiles, LED mapping, and real-time animation 
 
 ---
 
-### The 14 Fleet Block Types Palette
-The fleet choreography engine features 14 specialized multi-float lighting block types:
+### The 19 Fleet Block Types Palette
+The fleet choreography engine features 19 specialized multi-float lighting block types:
 1. 🌑 **Dramatic Blackout (`blackout`):** All 7 shirts go completely dark (unlit) for theatrical anticipation or scene transitions.
 2. 🌊 **Forward Wave (`wave_forward`):** High-energy light wave sweeping from Float 1 to Float 7 with an authentic ~2-shirt trailing decay of decreasing brightness and incandescent crest.
 3. 🔙 **Reverse Wave (`wave_reverse`):** Wave reversing direction from Float 7 to Float 1, maintaining the same wave color and 2-shirt trailing falloff.
 4. 💓 **All-Fleet Pulse (`fleet_pulse`):** All 700 LEDs across all costumes ignite in unison and breathe smoothly with peak flare.
-5. 💥 **Center Burst (`center_burst`):** Energy originates at center Float 4 (The Snail) and erupts symmetrically outward to Float 1 and Float 7.
-6. 🔀 **Converge to Center (`converge_center`):** Light beams ignite at outer Floats 1 and 7 and race inwards meeting at Float 4.
-7. 🎭 **Marquee Wig-Wag (`wig_wag`):** Odd floats (1, 3, 5, 7) and Even floats (2, 4, 6) alternate in an energetic parade marquee cadence (120 BPM).
+5. 💥 **Center Burst (`center_burst`):** Energy originates at center Float 4 and erupts symmetrically outward to Float 1 and Float 7.
+6. 🎯 **Converge to Center (`converge_center`):** Light beams ignite at outer Floats 1 and 7 and race inwards meeting at Float 4.
+7. 🎪 **Marquee Wig-Wag (`wig_wag`):** Odd floats (1, 3, 5, 7) and Even floats (2, 4, 6) alternate in an energetic parade marquee cadence (120 BPM).
 8. 🏃 **Baton Chase (`baton_chase`):** A high-intensity beam leaps from runner to runner sequentially down the parade line.
-9. ⛈️ **Sparkle Storm (`sparkle_storm`):** All 700 LEDs erupt into a dazzling sparkle storm combining high-frequency Starlight White flashes and wave color shimmers (75% density).
+9. ✨ **Sparkle Storm (`sparkle_storm`):** All 700 LEDs erupt into a dazzling sparkle storm combining high-frequency Starlight White flashes and wave color shimmers (75% density).
 10. 🏓 **Ping-Pong Wave (`ping_pong_wave`):** A traveling wave that rebounds back and forth across the 7 runners over multiple bounces.
-11. 🌈 **Color Wash Chase (`color_wash_chase`):** A progressive hue wash that rolls across the costumes, transitioning each float's base color.
-12. 🎡 **Rainbow Sweep (`rainbow_sweep`):** A full 360° spectrum sweep running across the entire 7-runner formation.
+11. 🎨 **Color Wash Chase (`color_wash_chase`):** A progressive hue wash that rolls across the costumes, transitioning each float's base color.
+12. 🌈 **Rainbow Sweep (`rainbow_sweep`):** A full 360° spectrum sweep running across the entire 7-runner formation.
 13. ⚡ **All-Fleet Strobe (`strobe_all`):** High-frequency white and primary strobing for climatic musical accents.
-14. ✨ **Shimmer Drift (`shimmer_drift`):** Gentle ambient shimmer drifting smoothly across the lineup like stardust.
+14. 🌌 **Shimmer Drift (`shimmer_drift`):** Gentle ambient shimmer drifting smoothly across the lineup like stardust.
+15. 🎆 **Carnival Finale Crescendo (`grand_finale`):** Multi-layered grand finale crescendo combining accelerating wig-wag, synchronized pulses, and full-spectrum sparkle bursts.
+16. 💥 **Dual Collision & Supernova Shockwave (`color_collision`):** Dual high-speed energy pulses launch from outer Floats 1 & 7, collide with blinding white brilliance at Float 4, and erupt outward in a devastating starlight shockwave back to 1 & 7.
+17. 🌊 **Silky Cascade Dissolve (`cross_dissolve_chase`):** A smooth, organic sinusoidal cross-dissolve flowing sequentially from Float 1 through Float 7, transitioning costumes seamlessly between signature themes.
+18. 🦋 **Mirror Pair Echo / Butterfly Ripple (`ripple_echo`):** A rhythmic butterfly ripple originating at center Float 4, echoing harmonically outward to symmetric mirror pairs (3&5, 2&6, then 1&7) with organic pulse breathing.
+19. 🧚 **Fairy Dust Waterfall Cascade (`sparkle_cascade`):** A flowing, gravity-fed waterfall of Pixie Dust sparkles that sweeps across the lineup (1 ➔ 7), leaving golden-white trailing embers in its wake.
 
 ---
 
 ### Fleet Show Creator Studio Controls
 - **Fleet Routine Profile Dropdown (`#fleetShowSelect`):** Select pre-choreographed shows such as `30s Grand Electrical Parade Show` or `Classic 20s Fleet Routine`. Profiles are loaded dynamically via REST API from `presets/fleet_shows/*.json`.
-- **➕ Add Block (`#fleetAddBlockBtn`):** Pick any of the 14 block types from the palette and append it to the stack.
+- **➕ Add Block (`#fleetAddBlockBtn`):** Pick any of the 19 block types from the palette and append it to the stack.
 - **Dynamic Block Stack Editor (`#fleetBlocksStackContainer`):**
   - Displays each block's name, type, start time, duration, and parameter controls (speed BPM, trail length, color modes).
   - Reorder blocks with **▲ Up** and **▼ Down** buttons.

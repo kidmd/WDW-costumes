@@ -2053,6 +2053,34 @@ const FLEET_BLOCK_DEFS = {
         category: "theatrical",
         defaultDuration: 1.0,
         defaultParams: {}
+    },
+    'color_collision': {
+        name: "Dual Collision & Shockwave",
+        icon: "💥",
+        category: "waves",
+        defaultDuration: 3.0,
+        defaultParams: { colorMode: "cycle_random" }
+    },
+    'cross_dissolve_chase': {
+        name: "Silky Cascade Dissolve",
+        icon: "🌊✨",
+        category: "sync",
+        defaultDuration: 3.5,
+        defaultParams: { colorMode: "cycle_random" }
+    },
+    'ripple_echo': {
+        name: "Mirror Pair Echo (Butterfly)",
+        icon: "🦋",
+        category: "theatrical",
+        defaultDuration: 2.5,
+        defaultParams: { colorMode: "cycle_random" }
+    },
+    'sparkle_cascade': {
+        name: "Fairy Dust Waterfall",
+        icon: "🪄",
+        category: "waves",
+        defaultDuration: 3.0,
+        defaultParams: { colorMode: "cycle_random" }
     }
 };
 
@@ -2373,6 +2401,91 @@ function evalActiveFleetShowColor(runnerIndex, runner, presetData, ledIndex, tot
                 return { r: waveColor.r, g: waveColor.g, b: waveColor.b, alpha: 0.9 };
             }
         }
+    }
+
+    // 16. DUAL COLLISION & SHOCKWAVE (1 & 7 ➔ 4 ➔ 1 & 7)
+    if (bType === 'color_collision') {
+        if (localP < 0.45) {
+            const inP = localP / 0.45;
+            const headL = inP * 3.0;
+            const headR = 6.0 - (inP * 3.0);
+            const distL = Math.abs(globalPos - headL);
+            const distR = Math.abs(globalPos - headR);
+            const minDist = Math.min(distL, distR);
+            if (minDist <= 1.4) {
+                const intensity = 1.0 - (minDist / 1.4);
+                const col = (distL < distR) ? waveColor : { r: 255, g: 60, b: 180 };
+                return { r: Math.round(col.r * intensity), g: Math.round(col.g * intensity), b: Math.round(col.b * intensity), alpha: intensity };
+            }
+            return { r: 0, g: 0, b: 0, alpha: 0.0 };
+        } else if (localP < 0.60) {
+            // Impact supernova explosion at Float 4 (Peter Pan)
+            if (runnerIndex === 3) {
+                return { r: 255, g: 255, b: 255, alpha: 1.0 };
+            } else {
+                return { r: Math.round(waveColor.r * 0.15), g: Math.round(waveColor.g * 0.15), b: Math.round(waveColor.b * 0.15), alpha: 0.2 };
+            }
+        } else {
+            // Rebound shockwave
+            const shockP = (localP - 0.60) / 0.40;
+            const shockRadius = shockP * 3.2;
+            const distFromCenter = Math.abs(runnerIndex - 3.0);
+            const ringDist = Math.abs(distFromCenter - shockRadius);
+            if (ringDist <= 1.2) {
+                const intensity = 1.0 - (ringDist / 1.2);
+                return { r: Math.min(255, Math.round(waveColor.r * intensity + 80)), g: Math.min(255, Math.round(waveColor.g * intensity + 80)), b: Math.round(waveColor.b * intensity), alpha: intensity };
+            }
+            return { r: 0, g: 0, b: 0, alpha: 0.0 };
+        }
+    }
+
+    // 17. SILKY CASCADE DISSOLVE (1 ➔ 7)
+    if (bType === 'cross_dissolve_chase') {
+        const runnerOffset = runnerIndex / 7.0;
+        const localRunnerP = Math.min(1.0, Math.max(0.0, (localP - runnerOffset * 0.5) / 0.5));
+        const blendAmt = 0.5 * (1.0 - Math.cos(localRunnerP * Math.PI));
+        const colA = waveColor;
+        const colB = { r: 0, g: 220, b: 255 }; // Enchanted Blue
+        return {
+            r: Math.round(colA.r * (1.0 - blendAmt) + colB.r * blendAmt),
+            g: Math.round(colA.g * (1.0 - blendAmt) + colB.g * blendAmt),
+            b: Math.round(colA.b * (1.0 - blendAmt) + colB.b * blendAmt),
+            alpha: 0.95
+        };
+    }
+
+    // 18. MIRROR PAIR ECHO (BUTTERFLY RIPPLE)
+    if (bType === 'ripple_echo') {
+        const subPhase = Math.floor(localP * 4.0) % 4; // 0: 4, 1: 3&5, 2: 2&6, 3: 1&7
+        const subP = (localP * 4.0) % 1.0;
+        const pulse = Math.sin(subP * Math.PI);
+        let isActivePair = false;
+        if (subPhase === 0 && runnerIndex === 3) isActivePair = true;
+        else if (subPhase === 1 && (runnerIndex === 2 || runnerIndex === 4)) isActivePair = true;
+        else if (subPhase === 2 && (runnerIndex === 1 || runnerIndex === 5)) isActivePair = true;
+        else if (subPhase === 3 && (runnerIndex === 0 || runnerIndex === 6)) isActivePair = true;
+
+        if (isActivePair) {
+            return { r: Math.round(waveColor.r * pulse), g: Math.round(waveColor.g * pulse), b: Math.round(waveColor.b * pulse), alpha: pulse };
+        } else {
+            return { r: Math.round(waveColor.r * 0.12), g: Math.round(waveColor.g * 0.12), b: Math.round(waveColor.b * 0.12), alpha: 0.15 };
+        }
+    }
+
+    // 19. FAIRY DUST WATERFALL CASCADE
+    if (bType === 'sparkle_cascade') {
+        const center = localP * 6.0;
+        const dist = Math.abs(runnerIndex - center);
+        if (dist <= 1.5) {
+            const intensity = 1.0 - (dist / 1.5);
+            const isSparkle = Math.random() < (0.45 * intensity);
+            if (isSparkle) {
+                return { r: 255, g: 255, b: 255, alpha: 1.0 };
+            } else {
+                return { r: Math.min(255, Math.round(waveColor.r * intensity + 40)), g: Math.min(255, Math.round(waveColor.g * intensity + 40)), b: Math.round(waveColor.b * intensity), alpha: Math.max(0.3, intensity) };
+            }
+        }
+        return { r: Math.round(waveColor.r * 0.12), g: Math.round(waveColor.g * 0.12), b: Math.round(waveColor.b * 0.12), alpha: 0.15 };
     }
 
     return { r: 0, g: 0, b: 0, alpha: 0.0 };
@@ -3858,6 +3971,103 @@ void render30sFleetRoutine(uint32_t elapsedMs) {
         fill_solid(leds, FRONT_LEDS, CHSV(hue, 220, 255));
         if (p >= 0.65f && ((elapsedMs / 70) % 2 == 0)) {
             fill_solid(leds, FRONT_LEDS, CRGB(255, 255, 255));
+        }
+    }`;
+            } else if (bType === 'color_collision') {
+                cpp += `\n${prefix} (elapsedMs < ${endMs}) {
+        // Block ${idx + 1}: ${block.name || 'Dual Collision & Shockwave'} (${(startMs/1000).toFixed(1)}s - ${(endMs/1000).toFixed(1)}s)
+        float p = (float)(elapsedMs - ${startMs}) / ${durMs}.0f;
+        if (p < 0.45f) {
+            float inP = p / 0.45f;
+            float headL = inP * 3.0f;
+            float headR = 6.0f - (inP * 3.0f);
+            float distL = fabs((float)floatIdx - headL);
+            float distR = fabs((float)floatIdx - headR);
+            float minDist = fminf(distL, distR);
+            if (minDist <= 1.4f) {
+                float intensity = 1.0f - (minDist / 1.4f);
+                CRGB col = (distL < distR) ? ${colorExpr} : CRGB(255, 60, 180);
+                col.nscale8_video((uint8_t)(intensity * 255));
+                fill_solid(leds, FRONT_LEDS, col);
+            } else {
+                fill_solid(leds, FRONT_LEDS, CRGB::Black);
+            }
+        } else if (p < 0.60f) {
+            // Impact supernova flash at Float 4 (Peter Pan)
+            if (floatIdx == 3) {
+                fill_solid(leds, FRONT_LEDS, CRGB(255, 255, 255));
+            } else {
+                CRGB dimCol = ${colorExpr};
+                dimCol.nscale8_video(30);
+                fill_solid(leds, FRONT_LEDS, dimCol);
+            }
+        } else {
+            // Rebound shockwave radiating back out
+            float shockP = (p - 0.60f) / 0.40f;
+            float shockRadius = shockP * 3.2f;
+            float distFromCenter = fabs((float)floatIdx - 3.0f);
+            float ringDist = fabs(distFromCenter - shockRadius);
+            if (ringDist <= 1.2f) {
+                float intensity = 1.0f - (ringDist / 1.2f);
+                CRGB col = blend(${colorExpr}, CRGB(255, 240, 180), 120);
+                col.nscale8_video((uint8_t)(intensity * 255));
+                fill_solid(leds, FRONT_LEDS, col);
+            } else {
+                fill_solid(leds, FRONT_LEDS, CRGB::Black);
+            }
+        }
+    }`;
+            } else if (bType === 'cross_dissolve_chase') {
+                cpp += `\n${prefix} (elapsedMs < ${endMs}) {
+        // Block ${idx + 1}: ${block.name || 'Silky Cascade Dissolve'} (${(startMs/1000).toFixed(1)}s - ${(endMs/1000).toFixed(1)}s)
+        float p = (float)(elapsedMs - ${startMs}) / ${durMs}.0f;
+        float runnerOffset = (float)floatIdx / 7.0f;
+        float localRunnerP = fminf(1.0f, fmaxf(0.0f, (p - runnerOffset * 0.5f) / 0.5f));
+        uint8_t blendAmt = (uint8_t)(0.5f * (1.0f - cosf(localRunnerP * 3.14159f)) * 255);
+        CRGB colA = ${colorExpr};
+        CRGB colB = CRGB(0, 220, 255);
+        CRGB finalCol = blend(colA, colB, blendAmt);
+        fill_solid(leds, FRONT_LEDS, finalCol);
+    }`;
+            } else if (bType === 'ripple_echo') {
+                cpp += `\n${prefix} (elapsedMs < ${endMs}) {
+        // Block ${idx + 1}: ${block.name || 'Mirror Pair Echo (Butterfly Ripple)'} (${(startMs/1000).toFixed(1)}s - ${(endMs/1000).toFixed(1)}s)
+        float p = (float)(elapsedMs - ${startMs}) / ${durMs}.0f;
+        int subPhase = (int)(p * 4.0f) % 4;
+        float subP = fmodf(p * 4.0f, 1.0f);
+        uint8_t pulse = (uint8_t)(sinf(subP * 3.14159f) * 255);
+        bool isActivePair = false;
+        if (subPhase == 0 && floatIdx == 3) isActivePair = true;
+        else if (subPhase == 1 && (floatIdx == 2 || floatIdx == 4)) isActivePair = true;
+        else if (subPhase == 2 && (floatIdx == 1 || floatIdx == 5)) isActivePair = true;
+        else if (subPhase == 3 && (floatIdx == 0 || floatIdx == 6)) isActivePair = true;
+
+        if (isActivePair) {
+            CRGB col = ${colorExpr};
+            col.nscale8_video(pulse);
+            fill_solid(leds, FRONT_LEDS, col);
+        } else {
+            CRGB dimCol = ${colorExpr};
+            dimCol.nscale8_video(25);
+            fill_solid(leds, FRONT_LEDS, dimCol);
+        }
+    }`;
+            } else if (bType === 'sparkle_cascade') {
+                cpp += `\n${prefix} (elapsedMs < ${endMs}) {
+        // Block ${idx + 1}: ${block.name || 'Fairy Dust Waterfall Cascade'} (${(startMs/1000).toFixed(1)}s - ${(endMs/1000).toFixed(1)}s)
+        float p = (float)(elapsedMs - ${startMs}) / ${durMs}.0f;
+        float center = p * 6.0f;
+        float dist = fabs((float)floatIdx - center);
+        CRGB baseCol = ${colorExpr};
+        baseCol.nscale8_video(30);
+        fill_solid(leds, FRONT_LEDS, baseCol);
+        if (dist <= 1.5f) {
+            float intensity = 1.0f - (dist / 1.5f);
+            uint8_t sparkleCount = (uint8_t)(intensity * 25.0f);
+            for (int s = 0; s < sparkleCount; s++) {
+                uint8_t rndPix = random8(FRONT_LEDS);
+                leds[rndPix] = (random8(100) < 60) ? CRGB(255, 255, 255) : blend(baseCol, CRGB(255, 215, 0), 160);
+            }
         }
     }`;
             } else {
