@@ -688,17 +688,24 @@ Each of the 7 runners is represented by a dedicated preset card and canvas athle
 The simulator connects directly to physical ESP32 hardware via two powerful workflows:
 
 ```
-[ BROWSER SIMULATOR ] ──(UDP Port 4210 @ 30 FPS)──▶ [ ESP32 NODE ] ──▶ [ WS2812B SHIRT ]
+[ BROWSER SIMULATOR ] ──(UDP Port 4210 @ 30 FPS)──▶ [ ESP32 NODES (1-7) ] ──▶ [ 200-LED COSTUMES ]
 ```
 
-### Real-Time Live Wi-Fi UDP Streaming
-Preview animations on your physical shirt in real time without flashing:
-1. Connect your ESP32 to your local Wi-Fi network (or use the built-in `MSEP-Costume-AP` hotspot).
-2. In the simulator header, click **"📡 Wi-Fi Live Stream"** or the settings gear.
-3. Enter your Wi-Fi SSID, Password, and the target ESP32 IP address (or leave `255.255.255.255` for broadcast).
-4. Click **"▶ Start Live Wi-Fi Stream"**.
-5. The status indicator turns green: `Streaming (100 LEDs @ 30 FPS)`.
-6. As you scrub the timeline or hit play, the browser packs the RGB frame data into high-speed UDP packets on port `4210`. Your physical shirt mirrors the simulator screen with zero perceived latency!
+### Real-Time Live Wi-Fi UDP Streaming (Single Costume & Multi-Float Fleet)
+Preview animations on physical shirts in real time without flashing ROM:
+1. **Connect ESP32s to Wi-Fi:** Ensure your ESP32 boards are connected to your local 2.4 GHz Wi-Fi network (or the built-in `MSEP-Costume-AP` hotspot).
+2. **Dual-Tab Streaming Bar:** Launch streaming from either the **Fleet Tab** (`#fleetWifiStreamBtn`) or the **Deploy & Hardware Tab** (`#toggleWifiStreamBtn`). Click the gear icon (`⚙️`) to set your Wi-Fi SSID, password, and target broadcast IP (`255.255.255.255`).
+3. **Multi-Float Fleet Streaming (Opcode `0x02`):**
+   - When on the **Fleet Tab** or during active Fleet Show playback, the simulator packages each of the 7 floats into an addressed high-speed UDP packet:
+     ```
+     [ 'M', 'S', 'E', 'P' ] [ 0x02 ] [ float_id (1-7) ] [ num_leds (2 bytes) ] [ R, G, B, ... ]
+     ```
+   - Each bench ESP32 inspects `float_id` against its saved NVS Float ID (`myFloatNumber`). If it matches (or if `float_id == 0`), it renders the 100 front LEDs, duplicates them to the 100 back LEDs, and displays them via FastLED. Packets addressed to other floats are dropped instantly with zero CPU overhead.
+   - **Simultaneous Bench Testing:** You can power on multiple ESP32s on your workbench at once. In **Baseline Mode**, Float 1 (Casey Jr.) chugs its warm white headlights, Float 6 (Pete's Dragon) breathes fiery orange scales, and Float 2 (The Drum) rolls its golden marquee.
+   - **Live Fleet Show Testing:** Click **"👑 Activate 30s Fleet Show"** (or hit <kbd>Space</kbd> / <kbd>F</kbd>), and every physical ESP32 on your desk executes traveling waves, dual collision shockwaves, butterfly ripples, and starlight sparkle cascades in exact lockstep with the simulator canvas—without burning a single write cycle to flash ROM!
+4. **Single-Costume Streaming (Opcode `0x01`):**
+   - When viewing or editing an individual shirt in the Layout or Patterns tabs, the simulator streams universal Opcode `0x01` frames. Any single ESP32 on your desk immediately mirrors the design you are currently painting or sequencing.
+5. **Zero Perceived Latency:** At 30 FPS, the entire 7-float lineup consumes just ~65 KB/sec (~0.5 Mbps) of UDP broadcast bandwidth. High-performance non-blocking queue draining ensures instant responsiveness with zero packet queuing lag.
 
 ### One-Click Standalone USB Firmware Flashing (200 LEDs: 100 Front + 100 Back)
 When you are ready to prepare a shirt for autonomous use:

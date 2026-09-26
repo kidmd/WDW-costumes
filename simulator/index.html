@@ -932,7 +932,7 @@
                                 ➕ New Show
                             </button>
                         </div>
-                        <div style="display: flex; gap: 6px; margin-bottom: 12px;">
+                        <div style="display: flex; gap: 6px; margin-bottom: 8px;">
                             <button type="button" id="fleetViewCppBtn" class="action-btn" style="flex: 1; font-size: 10px; padding: 6px; background: #161b22; border-color: #388bfd; color: #58a6ff;" title="Generate and view FastLED C++ code for this fleet show">
                                 📋 View C++ Code
                             </button>
@@ -942,6 +942,20 @@
                             <button type="button" id="fleetFlashBtn" class="action-btn primary" style="flex: 1.2; font-size: 10px; padding: 6px; background: linear-gradient(135deg, #238636, #2ea043); font-weight: 600;" title="Flash a specific runner float ESP32 via USB or Web Serial">
                                 ⚡ Flash Float...
                             </button>
+                        </div>
+
+                        <!-- Live Wi-Fi Multi-Float Broadcast Banner -->
+                        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; padding: 6px 10px; background: #0d1117; border-radius: 6px; border: 1px solid var(--border-color);">
+                            <div style="display: flex; align-items: center; gap: 6px; font-size: 11px;">
+                                <span id="fleetWifiStreamDot" style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #8b949e;"></span>
+                                <span id="fleetWifiStreamStatusBadge" style="color: var(--text-muted); font-size: 10.5px; font-weight: 500;">Wi-Fi: Standby (Off)</span>
+                            </div>
+                            <div style="display: flex; gap: 4px;">
+                                <button type="button" id="fleetWifiSettingsBtn" onclick="openWifiModal()" class="action-btn" style="flex: none; background: #21262d; border: 1px solid #388bfd; color: #58a6ff; font-size: 10px; padding: 3px 6px; border-radius: 4px; cursor: pointer;" title="Configure Wi-Fi Credentials">⚙️</button>
+                                <button type="button" id="fleetWifiStreamBtn" class="action-btn" style="flex: none; font-size: 10px; padding: 3px 8px; background: #161b22; border-color: #30363d; font-weight: 600;" title="Broadcast all 7 floats live over 2.4 GHz Wi-Fi to test ESP32 boards on the bench">
+                                    📡 Wi-Fi Stream
+                                </button>
+                            </div>
                         </div>
 
                         <!-- Add Block Palette Dropdown & Button -->
@@ -1389,6 +1403,6 @@
         </div>
     </div>
 
-    <script src="app.js?v=24"></script>
+    <script src="app.js?v=25"></script>
 </body>
 </html>

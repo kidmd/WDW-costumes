@@ -10422,6 +10422,45 @@ const wifiTargetIpInput = document.getElementById('wifiTargetIpInput');
 const saveWifiBtn = document.getElementById('saveWifiBtn');
 const flashReceiverBtn = document.getElementById('flashReceiverBtn');
 
+const fleetWifiStreamBtn = document.getElementById('fleetWifiStreamBtn');
+const fleetWifiStreamDot = document.getElementById('fleetWifiStreamDot');
+const fleetWifiStreamStatusBadge = document.getElementById('fleetWifiStreamStatusBadge');
+
+function updateWifiStreamStatusUI(isFleetMode) {
+    if (!isWifiStreaming) return;
+    if (isFleetMode) {
+        if (fleetShowActive) {
+            if (wifiStreamStatusText) {
+                wifiStreamStatusText.textContent = `⚡ Fleet Show (7 Floats / 700 LEDs @ 30 FPS)`;
+                wifiStreamStatusText.style.color = '#ffc107';
+            }
+            if (fleetWifiStreamStatusBadge) {
+                fleetWifiStreamStatusBadge.textContent = '⚡ Streaming Show (30 FPS)';
+                fleetWifiStreamStatusBadge.style.color = '#ffc107';
+            }
+        } else {
+            if (wifiStreamStatusText) {
+                wifiStreamStatusText.textContent = `📡 7-Float Fleet Lineup (700 LEDs @ 30 FPS)`;
+                wifiStreamStatusText.style.color = '#3fb950';
+            }
+            if (fleetWifiStreamStatusBadge) {
+                fleetWifiStreamStatusBadge.textContent = '📡 Streaming Lineup (30 FPS)';
+                fleetWifiStreamStatusBadge.style.color = '#3fb950';
+            }
+        }
+    } else {
+        const count = Math.min(100, leds.length);
+        if (wifiStreamStatusText) {
+            wifiStreamStatusText.textContent = `Streaming Single Costume (${count} LEDs @ 30 FPS)`;
+            wifiStreamStatusText.style.color = '#58a6ff';
+        }
+        if (fleetWifiStreamStatusBadge) {
+            fleetWifiStreamStatusBadge.textContent = 'Single Shirt Stream';
+            fleetWifiStreamStatusBadge.style.color = '#58a6ff';
+        }
+    }
+}
+
 async function sendLivePixelFrame(timeMs) {
     if (!isWifiStreaming || isSendingFrame) return;
     if (timeMs - lastWifiStreamTime < 33) return; // 30 FPS throttle (~33ms)
@@ -10429,30 +10468,68 @@ async function sendLivePixelFrame(timeMs) {
     isSendingFrame = true;
 
     try {
-        const pixelPayload = [];
-        const total = leds.length;
-        for (let i = 0; i < total; i++) {
-            const col = computeLedColor(i, total, timeMs);
-            pixelPayload.push({
-                r: Math.max(0, Math.min(255, col.r)),
-                g: Math.max(0, Math.min(255, col.g)),
-                b: Math.max(0, Math.min(255, col.b))
-            });
+        let payload = null;
+        const isFleetMode = (currentView === 'fleet') || fleetShowActive;
+
+        if (isFleetMode) {
+            // MULTI-FLOAT BROADCAST: Stream all 7 floats with addressed Opcode 0x02
+            const fleetFrames = [];
+            const totalFloats = 7;
+            for (let i = 0; i < totalFloats; i++) {
+                const floatData = fleetRunners[i] || DEFAULT_FLEET_ROSTER[i];
+                const isLivePreview = (i === activeSingleShirtRunnerSlot) || (floatData && floatData.preset === 'current_editor');
+                const pData = isLivePreview ? getLiveSingleShirtPresetData() : (fleetPresetCache[floatData.preset] || null);
+                const ledsArr = (pData && Array.isArray(pData.leds) && pData.leds.length > 0) ? pData.leds : leds;
+                const count = Math.min(100, (ledsArr && ledsArr.length > 0) ? ledsArr.length : 100);
+                const flatRgb = [];
+
+                for (let j = 0; j < count; j++) {
+                    const col = computeRunnerLedColor(i, floatData, pData, j, count, timeMs, 0, false);
+                    flatRgb.push(
+                        Math.max(0, Math.min(255, Math.round(col.r || 0))),
+                        Math.max(0, Math.min(255, Math.round(col.g || 0))),
+                        Math.max(0, Math.min(255, Math.round(col.b || 0)))
+                    );
+                }
+                fleetFrames.push({
+                    floatId: i + 1, // 1 to 7
+                    pixels: flatRgb
+                });
+            }
+
+            payload = {
+                targetIp: wifiTargetIp,
+                fleetFrames: fleetFrames
+            };
+        } else {
+            // SINGLE COSTUME BROADCAST: Stream active single shirt (Opcode 0x01 universal)
+            const count = Math.min(100, leds.length);
+            const flatRgb = [];
+            for (let i = 0; i < count; i++) {
+                const col = computeLedColor(i, count, timeMs);
+                flatRgb.push(
+                    Math.max(0, Math.min(255, Math.round(col.r || 0))),
+                    Math.max(0, Math.min(255, Math.round(col.g || 0))),
+                    Math.max(0, Math.min(255, Math.round(col.b || 0)))
+                );
+            }
+
+            payload = {
+                targetIp: wifiTargetIp,
+                pixels: flatRgb
+            };
         }
 
         const res = await fetch('/api/stream_pixels', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                targetIp: wifiTargetIp,
-                pixels: pixelPayload
-            })
+            body: JSON.stringify(payload)
         });
         const data = await res.json();
         if (data && data.success) {
             streamPacketCounter++;
-            if (streamPacketCounter % 30 === 0 && wifiStreamStatusText) {
-                wifiStreamStatusText.textContent = `Streaming (${total} LEDs @ 30 FPS)`;
+            if (streamPacketCounter % 15 === 0) {
+                updateWifiStreamStatusUI(isFleetMode);
             }
         }
     } catch (err) {
@@ -10480,34 +10557,72 @@ async function loadWifiSettings() {
 }
 loadWifiSettings();
 
-if (toggleWifiStreamBtn) {
-    toggleWifiStreamBtn.addEventListener('click', () => {
-        isWifiStreaming = !isWifiStreaming;
-        if (isWifiStreaming) {
+function setWifiStreamingState(active) {
+    isWifiStreaming = active;
+    const fleetBtn = document.getElementById('fleetWifiStreamBtn');
+    const fleetDot = document.getElementById('fleetWifiStreamDot');
+
+    if (isWifiStreaming) {
+        if (toggleWifiStreamBtn) {
             toggleWifiStreamBtn.textContent = '⏹ Stop Live Wi-Fi Stream';
             toggleWifiStreamBtn.style.background = 'linear-gradient(135deg, #da3633, #f85149)';
-            if (wifiStreamDot) {
-                wifiStreamDot.style.background = '#2ea043';
-                wifiStreamDot.style.boxShadow = '0 0 8px #2ea043';
-            }
-            if (wifiStreamStatusText) {
-                wifiStreamStatusText.textContent = `Streaming (${leds.length} LEDs @ 30 FPS)`;
-                wifiStreamStatusText.style.color = '#3fb950';
-            }
-            showToast('📡 Wi-Fi live stream started! Updating LEDs in real time.');
-        } else {
+        }
+        if (fleetBtn) {
+            fleetBtn.innerHTML = '⏹ Stop Stream';
+            fleetBtn.style.background = 'linear-gradient(135deg, #da3633, #f85149)';
+            fleetBtn.style.borderColor = '#f85149';
+            fleetBtn.style.color = '#fff';
+        }
+        if (wifiStreamDot) {
+            wifiStreamDot.style.background = '#2ea043';
+            wifiStreamDot.style.boxShadow = '0 0 8px #2ea043';
+        }
+        if (fleetDot) {
+            fleetDot.style.background = '#2ea043';
+            fleetDot.style.boxShadow = '0 0 8px #2ea043';
+        }
+        updateWifiStreamStatusUI((currentView === 'fleet') || fleetShowActive);
+        showToast('📡 Wi-Fi live stream started! Updating LEDs in real time.');
+    } else {
+        if (toggleWifiStreamBtn) {
             toggleWifiStreamBtn.textContent = '▶ Start Live Wi-Fi Stream';
             toggleWifiStreamBtn.style.background = 'linear-gradient(135deg, #1f6feb, #388bfd)';
-            if (wifiStreamDot) {
-                wifiStreamDot.style.background = '#8b949e';
-                wifiStreamDot.style.boxShadow = 'none';
-            }
-            if (wifiStreamStatusText) {
-                wifiStreamStatusText.textContent = 'Standby (Off)';
-                wifiStreamStatusText.style.color = 'var(--text-muted)';
-            }
-            showToast('⏹ Live Wi-Fi stream stopped.');
         }
+        if (fleetBtn) {
+            fleetBtn.innerHTML = '📡 Wi-Fi Stream';
+            fleetBtn.style.background = '#161b22';
+            fleetBtn.style.borderColor = '#30363d';
+            fleetBtn.style.color = 'var(--text-main)';
+        }
+        if (wifiStreamDot) {
+            wifiStreamDot.style.background = '#8b949e';
+            wifiStreamDot.style.boxShadow = 'none';
+        }
+        if (fleetDot) {
+            fleetDot.style.background = '#8b949e';
+            fleetDot.style.boxShadow = 'none';
+        }
+        if (wifiStreamStatusText) {
+            wifiStreamStatusText.textContent = 'Standby (Off)';
+            wifiStreamStatusText.style.color = 'var(--text-muted)';
+        }
+        if (fleetWifiStreamStatusBadge) {
+            fleetWifiStreamStatusBadge.textContent = 'Wi-Fi: Standby (Off)';
+            fleetWifiStreamStatusBadge.style.color = 'var(--text-muted)';
+        }
+        showToast('⏹ Live Wi-Fi stream stopped.');
+    }
+}
+
+if (toggleWifiStreamBtn) {
+    toggleWifiStreamBtn.addEventListener('click', () => {
+        setWifiStreamingState(!isWifiStreaming);
+    });
+}
+
+if (fleetWifiStreamBtn) {
+    fleetWifiStreamBtn.addEventListener('click', () => {
+        setWifiStreamingState(!isWifiStreaming);
     });
 }
 

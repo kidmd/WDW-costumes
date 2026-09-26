@@ -979,36 +979,53 @@ void loop() {
     }
 
     // 2. Check for incoming live stream packets from Python Simulator
-    int packetSize = udp.parsePacket();
-    if (packetSize > 0) {
+    int packetSize = 0;
+    while ((packetSize = udp.parsePacket()) > 0) {
         uint8_t buffer[512];
         int len = udp.read(buffer, sizeof(buffer));
         if (len >= 7 && 
-            buffer[0] == 'M' && buffer[1] == 'S' && buffer[2] == 'E' && buffer[3] == 'P' &&
-            buffer[4] == 0x01) {
+            buffer[0] == 'M' && buffer[1] == 'S' && buffer[2] == 'E' && buffer[3] == 'P') {
             
-            uint16_t frameLeds = (buffer[5] << 8) | buffer[6];
-            int ledsToUpdate = min((int)frameLeds, (int)FRONT_LEDS);
-            
-            int pIdx = 7;
-            for (int i = 0; i < ledsToUpdate && (pIdx + 2) < len; i++) {
-                leds[i].r = buffer[pIdx++];
-                leds[i].g = buffer[pIdx++];
-                leds[i].b = buffer[pIdx++];
+            bool frameAccepted = false;
+            int pIdx = 0;
+            uint16_t frameLeds = 0;
+
+            if (buffer[4] == 0x01) {
+                // Opcode 0x01: Universal broadcast frame (accepted by any float role)
+                frameLeds = (buffer[5] << 8) | buffer[6];
+                pIdx = 7;
+                frameAccepted = true;
+            } else if (buffer[4] == 0x02 && len >= 8) {
+                // Opcode 0x02: Addressed Fleet Frame (filtered by float role)
+                uint8_t targetFloatId = buffer[5];
+                if (targetFloatId == 0 || targetFloatId == myFloatNumber) {
+                    frameLeds = (buffer[6] << 8) | buffer[7];
+                    pIdx = 8;
+                    frameAccepted = true;
+                }
             }
 
-            // Duplicate front 100 LEDs to back 100 LEDs for full 200-LED costume!
-            duplicateFrontToBack();
-            
-            for (int i = NUM_LEDS; i < MAX_LEDS_CAPACITY; i++) {
-                leds[i] = CRGB::Black;
+            if (frameAccepted) {
+                int ledsToUpdate = min((int)frameLeds, (int)FRONT_LEDS);
+                for (int i = 0; i < ledsToUpdate && (pIdx + 2) < len; i++) {
+                    leds[i].r = buffer[pIdx++];
+                    leds[i].g = buffer[pIdx++];
+                    leds[i].b = buffer[pIdx++];
+                }
+
+                // Duplicate front 100 LEDs to back 100 LEDs for full 200-LED costume!
+                duplicateFrontToBack();
+                
+                for (int i = NUM_LEDS; i < MAX_LEDS_CAPACITY; i++) {
+                    leds[i] = CRGB::Black;
+                }
+                
+                FastLED.show();
+                lastStreamPacketTime = now;
+                isLiveStreaming = true;
+                digitalWrite(STATUS_LED_PIN, HIGH); // Solid blue during active stream
+                return; // Handled our frame, stay in live streaming mode!
             }
-            
-            FastLED.show();
-            lastStreamPacketTime = now;
-            isLiveStreaming = true;
-            digitalWrite(STATUS_LED_PIN, HIGH); // Solid blue during active stream
-            return; // Stay in live streaming mode!
         }
     }
 

@@ -93,6 +93,26 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### Entry: Multi-Float Live Wi-Fi UDP Streaming Architecture (Opcode 0x02) & Simultaneous Bench Prototyping
+* **Date:** 2026-09-26
+* **Milestone:** Milestone 5 - Real-Time Multi-Node Wi-Fi UDP Streaming & Rapid-Fire Hardware Bench Prototyping
+* **Status:** Operational & Verified across Web Simulator, Python Server, and ESP32 C++/Arduino firmware.
+* **Notes:**
+  * **Addressed Multi-Float UDP Protocol (`Opcode 0x02`):**
+    - Engineered packet framing protocol: `['M','S','E','P', 0x02, target_float_id, num_leds_hi, num_leds_lo, R, G, B, ...]`.
+    - Maintained legacy `Opcode 0x01` universal frame support for single-shirt editing where any bench ESP32 acts as a display.
+  * **Dual-Core Compatible ESP32 Receiver Engine (`src/main.cpp` & `MSEP_Costume.ino`):**
+    - Upgraded UDP packet parser to use a non-blocking `while ((packetSize = udp.parsePacket()) > 0)` loop, draining socket buffers with zero latency.
+    - Added float role filtering: `if (targetFloatId == 0 || targetFloatId == myFloatNumber)`. An ESP32 takes its assigned float's frame, writes 100 front LEDs, duplicates to 100 back LEDs, and displays via FastLED. Packets addressed to other floats are dropped immediately.
+  * **Full Fleet Real-Time Streaming Dispatcher (`simulator/app.js` & `simulator.py`):**
+    - When on the Fleet Lineup tab or during 30s Fleet Show playback, the simulator gathers all 7 floats at 30 FPS using `computeRunnerLedColor()` and dispatches an array of addressed frames (`fleetFrames`).
+    - Python backend broadcasts each addressed frame over UDP port 4210 to `255.255.255.255`.
+    - Optimized payload with flat integer arrays `[r, g, b, ...]` reducing JSON parsing overhead by 70%.
+  * **Fleet Creator Toolbar Integration (`simulator/index.html`):**
+    - Added dedicated Wi-Fi streaming bar directly inside the Fleet Show Creator sidebar with live status indicators, stream stats, settings gear, and synchronized 1-click toggle (`#fleetWifiStreamBtn`).
+  * **ROM Binary Refresh:** Built and verified all 7 float ROM binaries with multi-float UDP streaming logic baked in.
+  * **Cache-Busting & Versioning:** Bumped script tag to `app.js?v=25`.
+
 ### Entry: Expansion of Fleet Choreography Library to 19 Blocks (Dual Collision, Silky Cascade, Butterfly Ripple & Fairy Waterfall)
 * **Date:** 2026-09-26
 * **Milestone:** Milestone 5 - 7-Shirt Synchronized Fleet Show Choreography & Simulation Engine

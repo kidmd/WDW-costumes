@@ -599,19 +599,74 @@ const CRGB PROGMEM ARTWORK_PALETTE[NUM_LEDS] = {{
             content_length = int(self.headers.get("Content-Length", 0))
             post_data = self.rfile.read(content_length)
             payload = json.loads(post_data.decode("utf-8"))
-            pixels = payload.get("pixels", [])
             target_ip = payload.get("targetIp", "255.255.255.255")
             if not target_ip or not target_ip.strip():
                 target_ip = "255.255.255.255"
 
-            # Frame Protocol: 'MSEP' (4 bytes), opcode 0x01 (live frame), num_leds (2 bytes big-endian)
-            num_leds = len(pixels)
-            header = b'MSEP' + bytes([0x01]) + num_leds.to_bytes(2, 'big')
-            raw = bytearray(header)
-            for p in pixels:
-                raw.append(max(0, min(255, int(p.get("r", 0)))))
-                raw.append(max(0, min(255, int(p.get("g", 0)))))
-                raw.append(max(0, min(255, int(p.get("b", 0)))))
+            # 1. Multi-Float Fleet Stream (Opcode 0x02 per float)
+            fleet_frames = payload.get("fleetFrames")
+            if fleet_frames and isinstance(fleet_frames, list):
+                total_sent = 0
+                total_bytes = 0
+                for frame in fleet_frames:
+                    float_id = int(frame.get("floatId", 0)) # 1-7 (or 0 for universal)
+                    pixels = frame.get("pixels", [])
+                    if pixels and isinstance(pixels[0], int):
+                        # Fast Flat RGB Array: [r, g, b, r, g, b, ...]
+                        num_leds = len(pixels) // 3
+                        header = b'MSEP' + bytes([0x02, float_id & 0xFF]) + num_leds.to_bytes(2, 'big')
+                        raw = bytearray(header)
+                        for val in pixels:
+                            raw.append(max(0, min(255, int(val))))
+                    else:
+                        num_leds = len(pixels)
+                        header = b'MSEP' + bytes([0x02, float_id & 0xFF]) + num_leds.to_bytes(2, 'big')
+                        raw = bytearray(header)
+                        for p in pixels:
+                            raw.append(max(0, min(255, int(p.get("r", 0)))))
+                            raw.append(max(0, min(255, int(p.get("g", 0)))))
+                            raw.append(max(0, min(255, int(p.get("b", 0)))))
+
+                    udp_socket.sendto(bytes(raw), (target_ip, UDP_STREAM_PORT))
+                    total_sent += 1
+                    total_bytes += len(raw)
+
+                self.send_response(200)
+                self.send_header("Content-Type", "application/json")
+                self.end_headers()
+                self.wfile.write(json.dumps({
+                    "success": True,
+                    "mode": "fleet",
+                    "framesSent": total_sent,
+                    "totalBytes": total_bytes,
+                    "targetIp": target_ip
+                }).encode("utf-8"))
+                return
+
+            # 2. Single-Costume Stream (Opcode 0x01 universal, or Opcode 0x02 if floatId specified)
+            pixels = payload.get("pixels", [])
+            float_id = payload.get("floatId")
+            if pixels and isinstance(pixels[0], int):
+                # Fast Flat RGB Array
+                num_leds = len(pixels) // 3
+                if float_id is not None:
+                    header = b'MSEP' + bytes([0x02, int(float_id) & 0xFF]) + num_leds.to_bytes(2, 'big')
+                else:
+                    header = b'MSEP' + bytes([0x01]) + num_leds.to_bytes(2, 'big')
+                raw = bytearray(header)
+                for val in pixels:
+                    raw.append(max(0, min(255, int(val))))
+            else:
+                num_leds = len(pixels)
+                if float_id is not None:
+                    header = b'MSEP' + bytes([0x02, int(float_id) & 0xFF]) + num_leds.to_bytes(2, 'big')
+                else:
+                    header = b'MSEP' + bytes([0x01]) + num_leds.to_bytes(2, 'big')
+                raw = bytearray(header)
+                for p in pixels:
+                    raw.append(max(0, min(255, int(p.get("r", 0)))))
+                    raw.append(max(0, min(255, int(p.get("g", 0)))))
+                    raw.append(max(0, min(255, int(p.get("b", 0)))))
 
             udp_socket.sendto(bytes(raw), (target_ip, UDP_STREAM_PORT))
 
@@ -620,6 +675,7 @@ const CRGB PROGMEM ARTWORK_PALETTE[NUM_LEDS] = {{
             self.end_headers()
             self.wfile.write(json.dumps({
                 "success": True,
+                "mode": "single",
                 "count": num_leds,
                 "bytes": len(raw),
                 "targetIp": target_ip
@@ -681,7 +737,7 @@ const CRGB PROGMEM ARTWORK_PALETTE[NUM_LEDS] = {{
 #define MSEP_MAGIC_2    'E'
 #define MSEP_MAGIC_3    'P'
 #define MSEP_OPCODE_LIVE_FRAME  0x01
-#define MSEP_OPCODE_HEARTBEAT   0x02
+#define MSEP_OPCODE_FLEET_FRAME 0x02
 
 #endif // WIFI_CONFIG_H
 """
