@@ -93,6 +93,17 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### Entry: Removed Rectangular Card Frame Highlights Around Fleet Shirts During Fleet Show Playback
+* **Date:** 2026-09-26
+* **Milestone:** Milestone 5 - 7-Shirt Synchronized Fleet Show Choreography & Visual Polish
+* **Status:** Operational & Verified in Web Simulator.
+* **Notes:**
+  * **Visual Cleanliness Enhancement:**
+    - Per user directive, removed the outer rectangular bounding boxes and glowing color-changing frames (`strokeRect`) that previously flashed around each runner card as light waves, pulses, or sparkle storms traveled down the line in Fleet View.
+    - Eliminates visual distraction so all lighting effects and color transitions are rendered strictly through the discrete addressable LED nodes on the costumes, the float graphics, and the runner bibs.
+    - Maintained clean, non-intrusive selection/hover outlines (`isSelected` and `isHovered`) when the user explicitly clicks or hovers a runner card to edit it.
+  * **Cache-Busting:** Bumped `app.js` script tag to `?v=17` in `simulator/index.html`.
+
 ### Entry: Dynamic Scoping of Master Timeline (Single Shirt Cue Director vs. Fleet Tab Choreography)
 * **Date:** 2026-09-26
 * **Milestone:** Milestone 5 - 7-Shirt Synchronized Fleet Show Choreography & Master Timeline View Scoping

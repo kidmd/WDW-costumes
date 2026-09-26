@@ -576,6 +576,7 @@ This feature coordinates costume profiles, LED mapping, and real-time animation 
   - Upon completion, all 7 shirts automatically transition back to their regular individual float programs!
 - **Early Stop / Exit:**
   - Clicking the button while the fleet show is active (which transforms into a pulsing red **"⏹ STOP FLEET SHOW (EARLY RETURN)"** button), pressing `[Space]` / `[F]`, or tapping the physical ESP32 BOOT button immediately stops the routine and returns all 7 shirts to their baseline programs.
+- **Visual Rendering Cleanliness:** During fleet routine playback, all color transitions, waves, pulses, and sparkle storms are rendered strictly through the discrete addressable LED nodes on the costumes. Outer rectangular card frames and glowing bounding boxes around each shirt are omitted during playback to prevent visual clutter and keep total focus on the costume lighting.
 - **Debounce Protection:**
   - The activation button and keyboard hotkeys enforce a **300ms software debounce lockout** in the simulator to prevent accidental double-triggers.
   - The physical ESP32 firmware enforces a **50ms hardware debounce** and **300ms inter-press lockout**.

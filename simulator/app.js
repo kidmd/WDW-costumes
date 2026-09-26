@@ -2783,35 +2783,8 @@ function renderFleetView(timeMs) {
             ctx.font = '9px sans-serif';
             ctx.fillText(floatData.tag, shirtX + shirtW * 0.5, shirtY + shirtH + 80);
 
-            // 8. Highlight Frame (Active Wave/Routine, Hovered, or Selected)
-            if (isCurrentWaveFloat) {
-                const frameCol = waveColor?.hex || '#ffc107';
-                ctx.save();
-                ctx.strokeStyle = frameCol;
-                ctx.lineWidth = 2.2;
-                ctx.shadowColor = frameCol;
-                ctx.shadowBlur = 12;
-                ctx.strokeRect(shirtX - 4, shirtY - 26, shirtW + 8, shirtH + 115);
-                ctx.restore();
-            } else if (fleetShowActive && activeBlock?.type === 'fleet_pulse') {
-                const breath = 0.5 + 0.5 * Math.sin(timeMs * 0.005);
-                ctx.save();
-                ctx.strokeStyle = waveColor?.hex || '#ffc107';
-                ctx.lineWidth = 1.4 + breath * 1.4;
-                ctx.shadowColor = waveColor?.hex || '#ffc107';
-                ctx.shadowBlur = 4 + breath * 8;
-                ctx.globalAlpha = 0.4 + breath * 0.5;
-                ctx.strokeRect(shirtX - 4, shirtY - 26, shirtW + 8, shirtH + 115);
-                ctx.restore();
-            } else if (fleetShowActive && activeBlock?.type === 'sparkle_storm') {
-                ctx.save();
-                ctx.strokeStyle = waveColor?.hex || '#ffffff';
-                ctx.lineWidth = 1.5;
-                ctx.shadowColor = 'rgba(255, 255, 255, 0.6)';
-                ctx.shadowBlur = 8;
-                ctx.strokeRect(shirtX - 4, shirtY - 26, shirtW + 8, shirtH + 115);
-                ctx.restore();
-            } else if (isSelected) {
+            // 8. Highlight Frame (Hovered or Selected only - no color-changing rectangles during fleet show)
+            if (isSelected) {
                 ctx.save();
                 ctx.strokeStyle = '#388bfd';
                 ctx.lineWidth = 2;
@@ -2820,9 +2793,11 @@ function renderFleetView(timeMs) {
                 ctx.strokeRect(shirtX - 4, shirtY - 26, shirtW + 8, shirtH + 115);
                 ctx.restore();
             } else if (isHovered) {
+                ctx.save();
                 ctx.strokeStyle = 'rgba(88, 166, 255, 0.6)';
                 ctx.lineWidth = 1.5;
                 ctx.strokeRect(shirtX - 4, shirtY - 26, shirtW + 8, shirtH + 115);
+                ctx.restore();
             }
         } catch (err) {
             console.error(`Error rendering float runner ${i}:`, err);
