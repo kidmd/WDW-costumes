@@ -656,10 +656,16 @@ Each of the 7 runners is represented by a dedicated preset card and canvas athle
     - Updates the active runner's assigned preset (`fleetRunners[slot].preset = 'local:' + name`).
     - Clears the unsaved dirty state (`isSingleShirtDirty = false`).
     - Immediately refreshes the runner card dropdowns and badges to display the new saved preset name.
-- **Smart Navigation & Tab Memory:**
-  - **Returning from Fleet View:** Clicking **"Single View"** or navigating back from Fleet View automatically restores the exact single-shirt tab (`Layout`, `Groups`, `Director`, `Flashing`, etc.) that was open prior to entering Fleet View (`lastSingleShirtTab`).
+- **Smart Navigation & Unsaved Edits Safety:**
+  - **Returning to Active Runner:** Clicking **"Single View"** or clicking **"✏️ Edit in Single View"** on the float currently loaded in memory returns immediately to your active workspace without reloading from disk or overwriting unsaved live changes.
+  - **Tab Memory:** Navigating back from Fleet View automatically restores the exact single-shirt tab (`Layout`, `Groups`, `Director`, `Flashing`, etc.) that was open prior to entering Fleet View (`lastSingleShirtTab`).
+  - **Interactive Unsaved Changes Modal (`#unsavedChangesModal`):**
+    When switching from a float with unsaved edits to edit another float (or selecting a different preset in the Layout dropdown), an interactive dialog appears offering three clear choices:
+    1. **💾 Save Profile & Switch:** Prompts for a profile name (pre-populated with a recommended title like `Pete's Dragon Custom` or whatever was typed into the profile name field). Clicking save stores the costume preset in local storage and backend server, links it to that runner's fleet slot, clears the dirty state, and cleanly switches to the new runner.
+    2. **🗑️ Discard & Switch:** Discards live unsaved modifications and immediately loads the target runner.
+    3. **Cancel:** Dismisses the dialog and remains on the current view without losing any work.
   - **✏️ Edit in Single View (1-Click or Double-Click):**
-    Clicking the **"Edit in Single View"** button on any runner card (or **double-clicking the card or canvas runner**) loads that float into the editor and switches to the single shirt view while preserving your active workflow tab.
+    Clicking the **"Edit in Single View"** button on any runner card (or **double-clicking the card or canvas runner**) initiates single-view editing for that float.
 - **📥 Assign Editor:** Copies your active single-shirt editor design into that runner slot.
 - **📋 Assign Editor to All:** Duplicates your current single-shirt design across all 7 runners with one click.
 - **🔁 Parade Defaults:** Instantly resets all 7 runners to the official Electrical Parade float presets.

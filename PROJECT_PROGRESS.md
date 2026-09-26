@@ -93,6 +93,23 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### Entry: Interactive Unsaved Costume Changes Prompt with Custom Profile Name Saving
+* **Date:** 2026-09-26
+* **Milestone:** Milestone 5 - 7-Shirt Synchronized Fleet Show Choreography & Unsaved Edits Workflow Protection
+* **Status:** Operational & Verified in Web Simulator.
+* **Notes:**
+  * **Interactive Unsaved Changes Modal (`#unsavedChangesModal`):**
+    - Replaced generic browser `confirm()` with a dedicated, themed modal dialog (`#unsavedChangesModal`) matching the dark GitHub-themed UI of the simulator.
+    - When a user has modified a costume (`isSingleShirtDirty = true`) and attempts to edit a different runner or switch presets on the Layout tab, the dialog appears presenting three explicit choices:
+      1. **💾 Save Profile & Switch:** Prompts for a profile name with an embedded text input (`#unsavedModalProfileNameInput`) prefilled with an intuitive name (e.g. `Pete's Dragon Custom` or existing layout name). Clicking save executes `await saveCurrentProfile(name)` which saves to localStorage and backend server, links `local:<name>` to that runner's fleet slot, clears the dirty state, and transitions to the new runner.
+      2. **🗑️ Discard & Switch:** Discards live unsaved modifications and proceeds to switch.
+      3. **Cancel:** Closes the modal without modifying or switching, leaving all work intact.
+  * **Unified Integration Across All Switching Entrypoints:**
+    - Integrated with `editRunnerInSingleView(slot)` (runner card click, "Edit in Single View" button, canvas double-click, and fleet table action button).
+    - Integrated with `#presetSelect` on the Layout tab to prevent accidental data loss when selecting a different preset from the dropdown.
+    - Updated `loadProfile()` to clear dirty state and update active runner lineup slot.
+  * **Cache-Busting & Script Updates:** Bumped script tag to `app.js?v=20` in `simulator/index.html`.
+
 ### Entry: Fixed Active Single-Shirt Editor State Clobbering When Re-Entering Single View From Fleet View
 * **Date:** 2026-09-26
 * **Milestone:** Milestone 5 - 7-Shirt Synchronized Fleet Show Choreography & Live Editor Session Preservation

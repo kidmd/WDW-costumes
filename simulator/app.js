@@ -3005,6 +3005,144 @@ async function renderFleetCards() {
     }
 }
 
+// Interactive Modal: Confirm saving or discarding unsaved single-shirt edits before switching
+function confirmUnsavedEditsModal(prevRunner, targetRunner) {
+    return new Promise((resolve) => {
+        const modal = document.getElementById('unsavedChangesModal');
+        if (!modal) {
+            // Fallback prompt/confirm if modal DOM element is not present
+            const defName = prevRunner ? `${prevRunner.name} Custom` : "My Costume Profile";
+            const askSave = confirm(`You have unsaved edits on ${prevRunner ? `Runner #${prevRunner.num} (${prevRunner.name})` : 'current costume'}.\n\nWould you like to SAVE these edits as a profile before switching?\n\n• OK = Save profile with a name\n• Cancel = Choose whether to discard`);
+            if (askSave) {
+                const name = prompt("Enter a profile name to save your edits:", defName);
+                if (name && name.trim()) {
+                    resolve({ action: 'save', name: name.trim() });
+                } else {
+                    resolve({ action: 'cancel' });
+                }
+            } else {
+                const discard = confirm(`Discard unsaved edits and proceed to switch?`);
+                resolve({ action: discard ? 'discard' : 'cancel' });
+            }
+            return;
+        }
+
+        const titleEl = document.getElementById('unsavedModalTitle');
+        const descEl = document.getElementById('unsavedModalDesc');
+        const nameInput = document.getElementById('unsavedModalProfileNameInput');
+        const hintEl = document.getElementById('unsavedModalGraphicHint');
+        const saveBtn = document.getElementById('unsavedModalSaveBtn');
+        const discardBtn = document.getElementById('unsavedModalDiscardBtn');
+        const cancelBtn = document.getElementById('unsavedModalCancelBtn');
+        const closeBtn = document.getElementById('closeUnsavedModalBtn');
+
+        const prevName = prevRunner ? `Runner #${prevRunner.num} (${prevRunner.name})` : 'Current Single Shirt';
+        const targetName = targetRunner ? (targetRunner.num ? `Runner #${targetRunner.num} (${targetRunner.name})` : (targetRunner.name || 'New Profile')) : 'Another Costume';
+
+        if (titleEl) {
+            titleEl.textContent = `Unsaved Edits on ${prevRunner ? prevRunner.name : 'Costume'}`;
+        }
+        if (descEl) {
+            descEl.innerHTML = `You have modified <strong>${prevName}</strong> with unsaved layout or pattern changes.<br>Would you like to save these edits as a named costume profile before switching to <strong>${targetName}</strong>?`;
+        }
+
+        // Determine a sensible default name for the profile
+        const layoutInputVal = (document.getElementById('profileNameInput')?.value || '').trim();
+        let defaultName = layoutInputVal;
+        if (!defaultName) {
+            if (prevRunner) {
+                defaultName = `${prevRunner.name} Custom`;
+            } else if (currentGraphicType === 'cinderellas_coach') {
+                defaultName = "Cinderella's Coach Custom";
+            } else if (currentGraphicType === 'carriage_nohorses') {
+                defaultName = "Carriage (No Horses) Custom";
+            } else {
+                defaultName = "Pete's Dragon Custom";
+            }
+        }
+        if (nameInput) {
+            nameInput.value = defaultName;
+            nameInput.style.borderColor = '#388bfd';
+        }
+        if (hintEl) {
+            hintEl.textContent = `${leds.length} LEDs • ${(currentGraphicType || 'dragon').replace(/_/g, ' ')}`;
+        }
+
+        let isResolved = false;
+
+        const cleanup = () => {
+            modal.classList.remove('open');
+            saveBtn?.removeEventListener('click', onSave);
+            discardBtn?.removeEventListener('click', onDiscard);
+            cancelBtn?.removeEventListener('click', onCancel);
+            closeBtn?.removeEventListener('click', onCancel);
+            modal.removeEventListener('click', onBackdrop);
+            document.removeEventListener('keydown', onKeyDown);
+        };
+
+        const onSave = () => {
+            if (isResolved) return;
+            const entered = (nameInput?.value || '').trim();
+            if (!entered) {
+                if (nameInput) {
+                    nameInput.focus();
+                    nameInput.style.borderColor = '#f85149';
+                }
+                showToast("⚠️ Please enter a profile name to save.");
+                return;
+            }
+            isResolved = true;
+            cleanup();
+            resolve({ action: 'save', name: entered });
+        };
+
+        const onDiscard = () => {
+            if (isResolved) return;
+            isResolved = true;
+            cleanup();
+            resolve({ action: 'discard' });
+        };
+
+        const onCancel = () => {
+            if (isResolved) return;
+            isResolved = true;
+            cleanup();
+            resolve({ action: 'cancel' });
+        };
+
+        const onBackdrop = (e) => {
+            if (e.target === modal) {
+                onCancel();
+            }
+        };
+
+        const onKeyDown = (e) => {
+            if (e.key === 'Escape') {
+                e.preventDefault();
+                onCancel();
+            } else if (e.key === 'Enter' && e.target === nameInput) {
+                e.preventDefault();
+                onSave();
+            }
+        };
+
+        saveBtn?.addEventListener('click', onSave);
+        discardBtn?.addEventListener('click', onDiscard);
+        cancelBtn?.addEventListener('click', onCancel);
+        closeBtn?.addEventListener('click', onCancel);
+        modal.addEventListener('click', onBackdrop);
+        document.addEventListener('keydown', onKeyDown);
+
+        modal.classList.add('open');
+        setTimeout(() => {
+            if (nameInput) {
+                nameInput.select();
+                nameInput.focus();
+            }
+        }, 50);
+    });
+}
+
 // 1-Click Load Runner Preset into Single Shirt Editor
 async function editRunnerInSingleView(slot) {
     try {
@@ -3031,11 +3169,19 @@ async function editRunnerInSingleView(slot) {
         }
 
         // Switching to a DIFFERENT runner:
-        // If there are unsaved edits on the current runner slot, ask user to confirm before discarding!
+        // If there are unsaved edits on the current runner slot, ask user to save, discard, or cancel!
         if (isSingleShirtDirty && activeSingleShirtRunnerSlot !== null && activeSingleShirtRunnerSlot >= 0 && fleetRunners[activeSingleShirtRunnerSlot]) {
             const prevRunner = fleetRunners[activeSingleShirtRunnerSlot];
-            const proceed = confirm(`You have unsaved edits on Runner #${prevRunner.num} (${prevRunner.name}).\n\nDiscard unsaved edits and switch to edit Runner #${runner.num} (${runner.name})?`);
-            if (!proceed) return;
+            const modalResult = await confirmUnsavedEditsModal(prevRunner, runner);
+
+            if (modalResult.action === 'cancel') {
+                return; // Stay where we are
+            } else if (modalResult.action === 'save') {
+                await saveCurrentProfile(modalResult.name);
+                showToast(`💾 Saved Runner #${prevRunner.num} edits as "${modalResult.name}"!`);
+            } else if (modalResult.action === 'discard') {
+                isSingleShirtDirty = false;
+            }
         }
 
         // Record new active single shirt slot and reset dirty state
@@ -6577,6 +6723,12 @@ async function loadProfile(sourceValue) {
 
     if (!profileData) return;
     applyProfileData(profileData);
+    isSingleShirtDirty = false;
+    if (activeSingleShirtRunnerSlot !== null && activeSingleShirtRunnerSlot >= 0 && fleetRunners[activeSingleShirtRunnerSlot]) {
+        fleetRunners[activeSingleShirtRunnerSlot].preset = sourceValue;
+        saveFleetLineupToStorage();
+        renderFleetCards();
+    }
     showToast(`📂 Loaded "${profileData.name || 'Profile'}"`);
 }
 
@@ -9021,8 +9173,24 @@ if (fwAddCueBtn) {
 }
 
 // Preset Buttons
-document.getElementById('presetSelect').addEventListener('change', (e) => {
-    loadProfile(e.target.value);
+document.getElementById('presetSelect').addEventListener('change', async (e) => {
+    const nextVal = e.target.value;
+    if (isSingleShirtDirty && activeSingleShirtRunnerSlot !== null && activeSingleShirtRunnerSlot >= 0 && fleetRunners[activeSingleShirtRunnerSlot]) {
+        const prevRunner = fleetRunners[activeSingleShirtRunnerSlot];
+        const selectedOptText = e.target.options[e.target.selectedIndex]?.text?.trim() || nextVal;
+        const modalResult = await confirmUnsavedEditsModal(prevRunner, { name: selectedOptText });
+
+        if (modalResult.action === 'cancel') {
+            e.target.value = fleetRunners[activeSingleShirtRunnerSlot].preset || '';
+            return;
+        } else if (modalResult.action === 'save') {
+            await saveCurrentProfile(modalResult.name);
+            showToast(`💾 Saved Runner #${prevRunner.num} edits as "${modalResult.name}"!`);
+        } else if (modalResult.action === 'discard') {
+            isSingleShirtDirty = false;
+        }
+    }
+    await loadProfile(nextVal);
 });
 
 // Export complete profile configuration JSON

@@ -1237,6 +1237,41 @@
         </div>
     </div>
 
+    <!-- Modal for Unsaved Single-Shirt Edits Prompt -->
+    <div id="unsavedChangesModal" class="modal">
+        <div class="modal-content" style="width: 530px; max-width: 95vw;">
+            <div class="modal-header">
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <span style="font-size: 20px;">⚠️</span>
+                    <h3 style="font-size: 15px; font-weight: 600;" id="unsavedModalTitle">Unsaved Costume Changes</h3>
+                </div>
+                <button id="closeUnsavedModalBtn" type="button" class="close-btn">&times;</button>
+            </div>
+            <div style="padding: 18px 20px; background: #161b22; display: flex; flex-direction: column; gap: 14px;">
+                <p id="unsavedModalDesc" style="font-size: 13px; line-height: 1.5; color: var(--text-main); margin: 0;">
+                    You have unsaved edits on your current single shirt design. Would you like to save these edits as a costume profile before switching?
+                </p>
+                <div style="background: #0d1117; border: 1px solid #30363d; border-radius: 8px; padding: 12px 14px; display: flex; flex-direction: column; gap: 8px;">
+                    <label for="unsavedModalProfileNameInput" style="font-size: 12px; font-weight: 600; color: #58a6ff; display: flex; justify-content: space-between; align-items: center;">
+                        <span>Save Profile Name:</span>
+                        <span id="unsavedModalGraphicHint" style="font-size: 11px; color: var(--text-muted); font-weight: normal;"></span>
+                    </label>
+                    <input type="text" id="unsavedModalProfileNameInput" placeholder="Enter profile name (e.g. Pete's Dragon 50 Outline)" style="width: 100%; background: #161b22; color: #fff; border: 1px solid #388bfd; padding: 8px 12px; border-radius: 6px; font-size: 13px; outline: none; box-sizing: border-box;">
+                    <span style="font-size: 11px; color: var(--text-muted); line-height: 1.4;">
+                        💾 Saving creates a costume preset, links it to this runner's lineup slot, and makes it available across the simulator.
+                    </span>
+                </div>
+            </div>
+            <div style="padding: 14px 20px; background: #161b22; border-top: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap;">
+                <button id="unsavedModalDiscardBtn" class="action-btn" style="padding: 8px 14px; font-size: 12px; background: rgba(248, 81, 73, 0.15); color: #f85149; border: 1px solid rgba(248, 81, 73, 0.4);" title="Discard edits and proceed with switch">🗑️ Discard & Switch</button>
+                <div style="display: flex; gap: 8px;">
+                    <button id="unsavedModalCancelBtn" class="action-btn" style="padding: 8px 14px; font-size: 12px;">Cancel</button>
+                    <button id="unsavedModalSaveBtn" class="action-btn primary" style="padding: 8px 16px; font-size: 12px; background: linear-gradient(135deg, #238636, #2ea043); border-color: #2ea043; font-weight: 600;" title="Save profile with entered name and switch">💾 Save Profile & Switch</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Modal for Wi-Fi Configuration & Receiver Flash -->
     <div id="wifiModal" class="modal">
         <div class="modal-content" style="width: 540px;">
@@ -1272,6 +1307,6 @@
         </div>
     </div>
 
-    <script src="app.js?v=19"></script>
+    <script src="app.js?v=20"></script>
 </body>
 </html>
