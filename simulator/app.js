@@ -1874,6 +1874,33 @@ async function getPresetDataForRunner(runner) {
     return null;
 }
 
+// Standard Disney palette colors for the 15-second parade routine wave
+const FLEET_WAVE_STANDARD_COLORS = [
+    { name: "Belle Gold", r: 255, g: 193, b: 7, hex: "#ffc107" },
+    { name: "Alice Cyan", r: 0, g: 240, b: 255, hex: "#00f0ff" },
+    { name: "Coral Rose", r: 255, g: 60, b: 120, hex: "#ff3c78" },
+    { name: "Electric Pink", r: 255, g: 25, b: 230, hex: "#ff19e6" },
+    { name: "Electric Lime", r: 85, g: 255, b: 16, hex: "#55ff10" },
+    { name: "Cinderella Blue", r: 0, g: 119, b: 255, hex: "#0077ff" },
+    { name: "Cheshire Violet", r: 175, g: 37, b: 255, hex: "#af25ff" },
+    { name: "Deep Indigo", r: 75, g: 35, b: 190, hex: "#4b23be" },
+    { name: "Flame Orange", r: 255, g: 120, b: 0, hex: "#ff7800" },
+    { name: "Starlight White", r: 255, g: 250, b: 242, hex: "#fffaf2" },
+    { name: "Dragon Green", r: 0, g: 255, b: 35, hex: "#00ff23" },
+    { name: "Mickey Red", r: 255, g: 13, b: 26, hex: "#ff0d1a" }
+];
+
+// Returns the active standard color for the current 15-second cycle.
+// Guaranteed to stay identical during forward (1s-2s) & backward (2s-3s) waves within that cycle,
+// and cycles to a new random standard color on the next 15-second cycle without consecutive repeats.
+function getFleetRoutineWaveColor(timeMs) {
+    const cycle = Math.floor(Math.max(0, timeMs) / 15000);
+    const count = FLEET_WAVE_STANDARD_COLORS.length;
+    // Step 5 is coprime to 12 (gcd=1), cycling all 12 colors without immediate repeats
+    const idx = (cycle * 5) % count;
+    return FLEET_WAVE_STANDARD_COLORS[idx];
+}
+
 // Compute dynamic color for an individual LED on one of the 7 runners
 function computeRunnerLedColor(runnerIndex, runner, presetData, ledIndex, totalLeds, timeMs, waveProgress, isCurrentWave) {
     const ledsArr = (presetData && presetData.leds) ? presetData.leds : [];
@@ -1884,13 +1911,14 @@ function computeRunnerLedColor(runnerIndex, runner, presetData, ledIndex, totalL
     if (fleetSyncMode === 'parade_15s') {
         const cycleMs = 15000;
         const t = (timeMs % cycleMs) / 1000.0; // 0.0 to 15.0 seconds
+        const waveColor = getFleetRoutineWaveColor(timeMs);
         
         // 1. 0.0s – 1.0s (1s): All 7 shirts totally black (off / unlit)
         if (t < 1.0) {
             return { r: 0, g: 0, b: 0, alpha: 0.0 };
         }
         
-        // 2. 1.0s – 2.0s (1s): Wave of gold light passes forward from float 1 through float 7 (total time 1s)
+        // 2. 1.0s – 2.0s (1s): Wave of standard color light passes forward from float 1 through float 7 (total time 1s)
         if (t < 2.0) {
             const p = t - 1.0; // 0.0 to 1.0
             const sweepPos = p * 7.0; // 0.0 to 7.0
@@ -1899,22 +1927,37 @@ function computeRunnerLedColor(runnerIndex, runner, presetData, ledIndex, totalL
             const dist = Math.abs(globalPos - sweepPos);
 
             if (dist < 0.15) {
-                // White-hot core of passing gold wave
-                return { r: 255, g: 255, b: 245, alpha: 1.0 };
+                // White-hot core with tint of wave color
+                return {
+                    r: Math.min(255, Math.round(255 * 0.82 + waveColor.r * 0.18)),
+                    g: Math.min(255, Math.round(255 * 0.82 + waveColor.g * 0.18)),
+                    b: Math.min(255, Math.round(255 * 0.82 + waveColor.b * 0.18)),
+                    alpha: 1.0
+                };
             } else if (dist < 0.40) {
-                // Vibrant Disney Gold crest
-                const f = 1.0 - (dist - 0.15) / 0.25 * 0.25;
-                return { r: 255, g: Math.round(193 * f), b: Math.round(7 * f), alpha: 0.95 };
+                // Radiant wave color body
+                const f = 1.0 - (dist - 0.15) / 0.25 * 0.22;
+                return {
+                    r: Math.round(waveColor.r * f),
+                    g: Math.round(waveColor.g * f),
+                    b: Math.round(waveColor.b * f),
+                    alpha: 0.95
+                };
             } else if (dist < 0.75) {
-                // Amber tail
+                // Amber/color tail falloff
                 const f = 1.0 - (dist - 0.40) / 0.35;
-                return { r: Math.round(255 * f), g: Math.round(140 * f), b: 0, alpha: f * 0.75 };
+                return {
+                    r: Math.round(waveColor.r * f * 0.75),
+                    g: Math.round(waveColor.g * f * 0.75),
+                    b: Math.round(waveColor.b * f * 0.75),
+                    alpha: f * 0.75
+                };
             } else {
                 return { r: 0, g: 0, b: 0, alpha: 0.0 };
             }
         }
         
-        // 3. 2.0s – 3.0s (1s): Gold wave goes in reverse from float 7 to float 1 over 1s
+        // 3. 2.0s – 3.0s (1s): Wave in reverse from float 7 to float 1 over 1s (same standard color as forward wave!)
         if (t < 3.0) {
             const p = t - 2.0; // 0.0 to 1.0
             const sweepPos = (1.0 - p) * 7.0; // 7.0 down to 0.0
@@ -1923,16 +1966,31 @@ function computeRunnerLedColor(runnerIndex, runner, presetData, ledIndex, totalL
             const dist = Math.abs(globalPos - sweepPos);
 
             if (dist < 0.15) {
-                // White-hot core
-                return { r: 255, g: 255, b: 245, alpha: 1.0 };
+                // White-hot core with tint of wave color
+                return {
+                    r: Math.min(255, Math.round(255 * 0.82 + waveColor.r * 0.18)),
+                    g: Math.min(255, Math.round(255 * 0.82 + waveColor.g * 0.18)),
+                    b: Math.min(255, Math.round(255 * 0.82 + waveColor.b * 0.18)),
+                    alpha: 1.0
+                };
             } else if (dist < 0.40) {
-                // Vibrant Disney Gold crest
-                const f = 1.0 - (dist - 0.15) / 0.25 * 0.25;
-                return { r: 255, g: Math.round(193 * f), b: Math.round(7 * f), alpha: 0.95 };
+                // Radiant wave color body
+                const f = 1.0 - (dist - 0.15) / 0.25 * 0.22;
+                return {
+                    r: Math.round(waveColor.r * f),
+                    g: Math.round(waveColor.g * f),
+                    b: Math.round(waveColor.b * f),
+                    alpha: 0.95
+                };
             } else if (dist < 0.75) {
-                // Amber tail
+                // Tail falloff
                 const f = 1.0 - (dist - 0.40) / 0.35;
-                return { r: Math.round(255 * f), g: Math.round(140 * f), b: 0, alpha: f * 0.75 };
+                return {
+                    r: Math.round(waveColor.r * f * 0.75),
+                    g: Math.round(waveColor.g * f * 0.75),
+                    b: Math.round(waveColor.b * f * 0.75),
+                    alpha: f * 0.75
+                };
             } else {
                 return { r: 0, g: 0, b: 0, alpha: 0.0 };
             }
@@ -2085,6 +2143,7 @@ function renderFleetView(timeMs) {
 
     // 15s Choreographed Parade Routine Timing
     const tRoutine = (timeMs % 15000) / 1000.0;
+    const waveColor = getFleetRoutineWaveColor(timeMs);
     let routineActiveFloat = -1;
     let isSparkleStorm = false;
     let isBlackout = false;
@@ -2106,12 +2165,21 @@ function renderFleetView(timeMs) {
         const badge = document.getElementById('fleetRoutinePhaseBadge');
         if (badge) {
             let label = "Off";
-            if (tRoutine >= 1.0 && tRoutine < 2.0) label = "Wave 1➔7";
-            else if (tRoutine >= 2.0 && tRoutine < 3.0) label = "Wave 7➔1";
+            if (tRoutine >= 1.0 && tRoutine < 2.0) label = `Wave 1➔7`;
+            else if (tRoutine >= 2.0 && tRoutine < 3.0) label = `Wave 7➔1`;
             else if (tRoutine >= 3.0 && tRoutine < 5.0) label = "Sparkle";
             else if (tRoutine >= 5.0 && tRoutine < 6.0) label = "Off";
             else if (tRoutine >= 6.0) label = "Programs";
             badge.textContent = `${label} (${tRoutine.toFixed(1)}s / 15.0s)`;
+        }
+
+        // Keep sidebar current cycle wave color badge synchronized
+        const colBadge = document.getElementById('fleetRoutineColorBadge');
+        if (colBadge) {
+            colBadge.textContent = waveColor.name;
+            colBadge.style.background = waveColor.hex;
+            const isDark = (waveColor.r * 0.299 + waveColor.g * 0.587 + waveColor.b * 0.114) < 140;
+            colBadge.style.color = isDark ? '#ffffff' : '#000000';
         }
     }
 
@@ -2125,11 +2193,14 @@ function renderFleetView(timeMs) {
     if (fleetSyncMode === 'parade_15s') {
         let phaseStr = "";
         if (tRoutine < 1.0) phaseStr = "🌑 Phase 1: Blackout (Off)";
-        else if (tRoutine < 2.0) phaseStr = "🌊 Phase 2: Forward Gold Wave 1➔7";
-        else if (tRoutine < 3.0) phaseStr = "🌊 Phase 3: Reverse Gold Wave 7➔1";
+        else if (tRoutine < 2.0) phaseStr = `🌊 Phase 2: Forward Wave 1➔7 [${waveColor.name}]`;
+        else if (tRoutine < 3.0) phaseStr = `🌊 Phase 3: Reverse Wave 7➔1 [${waveColor.name}]`;
         else if (tRoutine < 5.0) phaseStr = "✨ Phase 4: Sparkle Storm (All 7 Shirts)";
         else if (tRoutine < 6.0) phaseStr = "🌑 Phase 5: Blackout (Off)";
-        else phaseStr = "🎪 Phase 6: Individual Float Programs";
+        else {
+            const nextWaveCol = getFleetRoutineWaveColor(timeMs + 15000);
+            phaseStr = `🎪 Phase 6: Individual Float Programs (Next wave: ${nextWaveCol.name})`;
+        }
         modeText = `👑 15s Parade Routine: ${phaseStr} (${tRoutine.toFixed(1)}s / 15.0s)`;
     } else if (fleetSyncMode === 'free') {
         modeText = "⚡ Autonomous Free-Run Mode (Individual Presets & Animation Groups)";
@@ -2166,7 +2237,8 @@ function renderFleetView(timeMs) {
         const pData = fleetPresetCache[floatData.preset] || null;
 
         // 1. Draw Runner Bib Number Badge Above Shirt
-        ctx.fillStyle = isCurrentWaveFloat ? '#ffc107' : (isSelected ? '#58a6ff' : '#8b949e');
+        const activeBibCol = (fleetSyncMode === 'parade_15s') ? waveColor.hex : '#ffc107';
+        ctx.fillStyle = isCurrentWaveFloat ? activeBibCol : (isSelected ? '#58a6ff' : '#8b949e');
         ctx.font = 'bold 11px monospace';
         ctx.textAlign = 'center';
         ctx.fillText(`BIB #${floatData.num}`, shirtX + shirtW * 0.5, shirtY - 14);
@@ -2284,16 +2356,17 @@ function renderFleetView(timeMs) {
         ctx.textAlign = 'center';
         ctx.fillText(floatData.name, shirtX + shirtW * 0.5, shirtY + shirtH + 68);
 
-        ctx.fillStyle = isCurrentWaveFloat ? '#ffc107' : (isSelected ? '#ffc107' : '#57606a');
+        ctx.fillStyle = isCurrentWaveFloat ? activeBibCol : (isSelected ? '#ffc107' : '#57606a');
         ctx.font = '9px sans-serif';
         ctx.fillText(floatData.tag, shirtX + shirtW * 0.5, shirtY + shirtH + 80);
 
         // 8. Highlight Frame (Active Wave, Sparkle Storm, Hovered, or Selected)
         if (isCurrentWaveFloat) {
+            const frameCol = (fleetSyncMode === 'parade_15s') ? waveColor.hex : '#ffc107';
             ctx.save();
-            ctx.strokeStyle = '#ffc107';
+            ctx.strokeStyle = frameCol;
             ctx.lineWidth = 2.2;
-            ctx.shadowColor = '#ffc107';
+            ctx.shadowColor = frameCol;
             ctx.shadowBlur = 12;
             ctx.strokeRect(shirtX - 4, shirtY - 26, shirtW + 8, shirtH + 115);
             ctx.restore();

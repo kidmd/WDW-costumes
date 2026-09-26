@@ -138,12 +138,12 @@ The sidebar navigation is organized into a clean **2-row × 3-column grid** that
 6. **🏃 Tab 6: Fleet ("7-Shirt Fleet Lineup & Preset Manager"):**
    - **👑 15s Choreographed Parade Routine (Default Mode):**
      - **0.0s – 1.0s (1s):** All 7 shirts go totally black (off / unlit).
-     - **1.0s – 2.0s (1s):** Brilliant wave of Disney gold light sweeps forward from Float 1 through Float 7.
-     - **2.0s – 3.0s (1s):** Gold wave sweeps in reverse from Float 7 back to Float 1.
+     - **1.0s – 2.0s (1s):** Light wave sweeps forward from Float 1 through Float 7 in a randomly chosen standard Disney color (`Belle Gold`, `Alice Cyan`, `Coral Rose`, `Electric Pink`, `Electric Lime`, `Cinderella Blue`, `Cheshire Violet`, `Deep Indigo`, `Flame Orange`, `Starlight White`, `Dragon Green`, or `Mickey Red`).
+     - **2.0s – 3.0s (1s):** The wave reverses direction, sweeping from Float 7 back to Float 1 in the **exact same color** as the forward pass.
      - **3.0s – 5.0s (2s):** Spectacular starlight & gold sparkle storm across all 7 shirts (700 LEDs).
      - **5.0s – 6.0s (1s):** All 7 shirts go totally black (off / unlit).
      - **6.0s – 15.0s (9s):** Return to individual float preset programs (animation groups, artwork colors, custom effects).
-     - **Loop:** Continuously repeats every 15.0 seconds with live phase progress badge and canvas banner.
+     - **Loop & Color Rotation:** Resets every 15.0 seconds and automatically rotates to a new, non-repeating random standard color for the next cycle. Live canvas banner and sidebar badges display the active wave color and countdown.
    - **Alternative Modes:** 🌊 **Wave Sync** (continuous ESP-NOW wave with adjustable speed slider), ⚡ **Free-Run** (autonomous presets), and 🎬 **Master Show** (synchronized 90s cue timeline).
    - **7 Runner Slot Cards (Bib #01 to #07):** Assign presets to each runner, view live LED counts and pattern pills.
    - **1-Click Bidirectional Editing:** Jump any runner's preset directly into the Single Shirt editor (`✏️ Edit in Single View`), or copy the active single-shirt editor design to any runner or all 7 runners (`📥 Assign Editor`).
@@ -560,12 +560,12 @@ In the Fleet tab toolbar, you can select between 4 synchronized animation modes:
 1. 👑 **15s Routine (15-Second Choreographed Parade Routine — Default):**
    - Implements the signature Main Street Electrical Parade fleet routine across all 7 costumes in an exact 15-second loop:
      - **0.0s – 1.0s (1s):** **Blackout.** All 7 shirts go completely dark (off / unlit).
-     - **1.0s – 2.0s (1s):** **Forward Gold Wave.** A brilliant wave of Disney gold light sweeps across the fleet from Float 1 (`Casey Jr.`) through Float 7 (`To Honor America`) over exactly 1 second. Each float lights up with a white-hot core and warm amber crest as the wave passes.
-     - **2.0s – 3.0s (1s):** **Reverse Gold Wave.** The gold wave reverses direction, sweeping backward from Float 7 back to Float 1 over exactly 1 second.
+     - **1.0s – 2.0s (1s):** **Forward Wave (Random Standard Color).** A brilliant wave of light sweeps across the fleet from Float 1 (`Casey Jr.`) through Float 7 (`To Honor America`) over 1 second. The wave selects a color at random from the 12 standard Disney palette colors (`Belle Gold`, `Alice Cyan`, `Coral Rose`, `Electric Pink`, `Electric Lime`, `Cinderella Blue`, `Cheshire Violet`, `Deep Indigo`, `Flame Orange`, `Starlight White`, `Dragon Green`, `Mickey Red`). Each float lights up with an intense white-hot core, saturated color body, and glowing amber/color crest as the wave passes.
+     - **2.0s – 3.0s (1s):** **Reverse Wave (Same Color).** The wave reverses direction, sweeping backward from Float 7 to Float 1 over 1 second, **maintaining the exact same color** as the forward wave.
      - **3.0s – 5.0s (2s):** **Sparkle Storm.** All 7 costumes (700 LEDs) erupt into a synchronized starlight & gold sparkle storm for 2 full seconds with rapid, high-frequency twinkling and starlight flashes.
      - **5.0s – 6.0s (1s):** **Blackout.** All 7 shirts go completely dark (off / unlit) for 1 second.
      - **6.0s – 15.0s (9s):** **Individual Float Programs.** Each costume transitions smoothly into its assigned float preset programs (animation groups, rotating wheels, breathing effects, patriotic pulses, and custom artwork colors) for 9 seconds.
-     - **Loop:** Seamlessly resets to Phase 1 every 15.0 seconds. A real-time timer badge and canvas header banner display the active phase and elapsed timestamp.
+     - **Loop & Color Rotation:** Seamlessly resets to Phase 1 every 15.0 seconds and switches to a **new, non-repeating random standard color** for the next cycle. A real-time timer badge, active color pill badge (`#fleetRoutineColorBadge`), and canvas header banner display the active phase, wave color name, and elapsed timestamp.
 
 2. 🌊 **Wave Sync (Continuous ESP-NOW Passing Wave):**
    - Simulates the physical wireless traveling wave continuously passing sequentially from Runner 1 to Runner 7.

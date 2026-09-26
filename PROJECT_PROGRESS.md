@@ -93,6 +93,25 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### Entry: Randomized Standard Color Wave for 15-Second Choreographed Parade Fleet Routine
+* **Date:** 2026-09-25
+* **Status:** Operational & Verified in Web Simulator and Python Server.
+* **Notes:**
+  * **Dynamic Cycle-Based Standard Color Palette (`FLEET_WAVE_STANDARD_COLORS`):**
+    - Configured a collection of 12 standard Disney theme colors corresponding directly to the project's signature color swatches:
+      - `Belle Gold` (`#ffc107`), `Alice Cyan` (`#00f0ff`), `Coral Rose` (`#ff3c78`), `Electric Pink` (`#ff19e6`), `Electric Lime` (`#55ff10`), `Cinderella Blue` (`#0077ff`), `Cheshire Violet` (`#af25ff`), `Deep Indigo` (`#4b23be`), `Flame Orange` (`#ff7800`), `Starlight White` (`#fffaf2`), `Dragon Green` (`#00ff23`), `Mickey Red` (`#ff0d1a`).
+  * **Cycle-Synchronized Non-Repeating Wave Color Selection (`getFleetRoutineWaveColor`):**
+    - Calculated active wave color strictly from `cycleIndex = Math.floor(timeMs / 15000)` using a coprime stride ($5 \pmod{12}$).
+    - **Within each 15-second cycle:**
+      - Phase 2 (1.0s – 2.0s Forward Wave) and Phase 3 (2.0s – 3.0s Backward/Reverse Wave) evaluate to the identical `cycleIndex`, guaranteeing that the forward and reverse waves are 100% color-locked to the exact same standard color.
+    - **Across subsequent cycles:**
+      - At the 15.0s loop boundary, `cycleIndex` increments, seamlessly advancing to the next randomized standard color without repeating any color consecutively.
+  * **Visual Presentation & Badge Synchronization (`renderFleetView` & `index.html`):**
+    - LED rendering blends a white-hot incandescent core (`#ffffff`) with the active cycle's saturated wave color and trailing falloff.
+    - Added `#fleetRoutineColorBadge` in the Fleet sidebar info card displaying the active cycle's color name and background swatch with dynamic high-contrast text.
+    - Canvas header subtitle dynamically reports the active wave color (e.g. `👑 15s Parade Routine: 🌊 Phase 2: Forward Wave 1➔7 [Alice Cyan] (1.4s / 15.0s)`).
+    - Runner frame outlines and bib header badges illuminate in the active wave color during Phases 2 & 3.
+
 ### Entry: 2-Row Sidebar Task Navigation Layout Fix & 15-Second Choreographed Parade Fleet Routine
 * **Date:** 2026-09-25
 * **Status:** Operational & Verified in Web Simulator and Python Server.
