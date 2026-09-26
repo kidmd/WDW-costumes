@@ -93,6 +93,22 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### Entry: Fix 7-Shirt Fleet Canvas Rendering (Resolved Uncaught ReferenceError on Floats 1-6)
+* **Date:** 2026-09-25
+* **Milestone:** Milestone 5 - 7-Shirt Synchronized Fleet Show Choreography & Hardware Parity
+* **Status:** Operational & Verified in Web Simulator.
+* **Notes:**
+  * **Root Cause:**
+    - In `renderFleetView()`, residual legacy variable references (`waveProgress`, `isPulsePhase`, `tRoutine`, `isParadeRoutine`, `isSparkleStorm`) were present inside the un-cached mini LED fallback branch (lines 2719, 2723) and highlight frame conditions (lines 2768, 2776, 2787).
+    - When `renderFleetView()` rendered Float 0 (The Train), execution crashed immediately upon evaluating line 2768/2776 with an uncaught `ReferenceError: isPulsePhase is not defined`, aborting the float loop before Floats 1 through 6 could be drawn.
+  * **Fix Implementation:**
+    - Explicitly reset canvas transform matrix at the top of `renderFleetView`: `ctx.setTransform(1, 0, 0, 1, 0, 0)`.
+    - Wrapped each float runner iteration inside a resilient `try ... catch (err)` block so an unexpected error on any one runner cannot abort the remaining fleet shirts.
+    - Replaced all legacy variable references with safe active block and time expressions (`waveColor?.hex || '#ffc107'`, `fleetShowActive && activeBlock?.type === 'fleet_pulse'`).
+    - Added in-flight promise deduplication in `getPresetDataForRunner` (`fleetPresetPromises`) and parallel preloading in `loadFleetLineupFromStorage()`.
+    - Bumped `app.js` cache-buster to `?v=15` in `simulator/index.html`.
+    - All 7 shirts (The Train, Title Drum, The Turtle, The Snail, Cinderella, Pete's Dragon, Flag & Eagle) now render simultaneously on canvas.
+
 ### Entry: 7-Shirt Fleet Show Creator Studio, 14 Block Types, One-Shot Debounced Trigger & ESP32 Parity
 * **Date:** 2026-09-25
 * **Milestone:** Milestone 5 - 7-Shirt Synchronized Fleet Show Choreography & Hardware Parity

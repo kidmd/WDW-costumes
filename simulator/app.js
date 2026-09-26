@@ -1847,47 +1847,54 @@ let fleetHoveredRunner = -1;
 let fleetSelectedRunner = -1;
 const fleetPresetCache = {};
 
+const fleetPresetPromises = {};
+
 // Asynchronously load and cache preset data for a runner
 async function getPresetDataForRunner(runner) {
     if (!runner) return null;
     const key = runner.preset;
     if (!key) return null;
     if (fleetPresetCache[key]) return fleetPresetCache[key];
+    if (fleetPresetPromises[key]) return await fleetPresetPromises[key];
 
-    if (key.startsWith('server:')) {
-        const filename = key.replace('server:', '');
-        try {
-            const res = await fetch(`/api/preset/${encodeURIComponent(filename)}`);
-            if (res.ok) {
-                const data = await res.json();
-                fleetPresetCache[key] = data;
-                return data;
+    fleetPresetPromises[key] = (async () => {
+        if (key.startsWith('server:')) {
+            const filename = key.replace('server:', '');
+            try {
+                const res = await fetch(`/api/preset/${encodeURIComponent(filename)}`);
+                if (res.ok) {
+                    const data = await res.json();
+                    fleetPresetCache[key] = data;
+                    return data;
+                }
+            } catch (e) {
+                console.warn("Could not fetch server preset", filename, e);
             }
-        } catch (e) {
-            console.warn("Could not fetch server preset", filename, e);
+        } else if (key.startsWith('local:')) {
+            const name = key.replace('local:', '');
+            try {
+                const localProfiles = JSON.parse(localStorage.getItem('msep_custom_presets') || '{}');
+                if (localProfiles[name]) {
+                    fleetPresetCache[key] = localProfiles[name];
+                    return localProfiles[name];
+                }
+            } catch (e) {}
+        } else if (key === 'current_editor') {
+            return {
+                name: "Current Editor Preset",
+                ledCount: leds.length,
+                leds: leds,
+                graphicType: currentGraphicType,
+                customArtworkDataUrl: customArtworkDataUrl,
+                animationGroups: animationGroups,
+                settings: { ...params, pattern: activePattern },
+                sequence: { loopDuration: sequenceLoopDuration, cues: sequenceCues }
+            };
         }
-    } else if (key.startsWith('local:')) {
-        const name = key.replace('local:', '');
-        try {
-            const localProfiles = JSON.parse(localStorage.getItem('msep_custom_presets') || '{}');
-            if (localProfiles[name]) {
-                fleetPresetCache[key] = localProfiles[name];
-                return localProfiles[name];
-            }
-        } catch (e) {}
-    } else if (key === 'current_editor') {
-        return {
-            name: "Current Editor Preset",
-            ledCount: leds.length,
-            leds: leds,
-            graphicType: currentGraphicType,
-            customArtworkDataUrl: customArtworkDataUrl,
-            animationGroups: animationGroups,
-            settings: { ...params, pattern: activePattern },
-            sequence: { loopDuration: sequenceLoopDuration, cues: sequenceCues }
-        };
-    }
-    return null;
+        return null;
+    })();
+
+    return await fleetPresetPromises[key];
 }
 
 // Standard Disney palette colors for the 20-second parade routine wave
@@ -2368,9 +2375,10 @@ function computeRunnerLedColor(runnerIndex, runner, presetData, ledIndex, totalL
     const bpm = (presetData && presetData.settings && presetData.settings.speedBpm) || 120;
     const groups = (presetData && presetData.animationGroups) || [];
     for (const grp of groups) {
-        if (Array.isArray(grp.indices) && grp.indices.includes(ledIndex)) {
-            const idxInGrp = grp.indices.indexOf(ledIndex);
-            return evalGroupEffect(grp, grp.effect, grp.speedBpm || bpm, grp.direction || 1, idxInGrp, grp.indices.length, timeMs, c);
+        const grpIndices = Array.isArray(grp.indices) ? grp.indices : (Array.isArray(grp.ledIndices) ? grp.ledIndices : []);
+        if (grpIndices.includes(ledIndex)) {
+            const idxInGrp = grpIndices.indexOf(ledIndex);
+            return evalGroupEffect(grp, grp.effect, grp.speedBpm || bpm, grp.direction || 1, idxInGrp, grpIndices.length, timeMs, c);
         }
     }
     return evalGlobalPattern(pattern, bpm, ledIndex, totalLeds, timeMs, c, hasColor);
@@ -2553,6 +2561,7 @@ function drawMiniRaceBib(cx, x, y, width, height, bibNumber) {
 }
 
 function renderFleetView(timeMs) {
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
     const w = canvas.width;
     const h = canvas.height;
     ctx.clearRect(0, 0, w, h);
@@ -2614,196 +2623,199 @@ function renderFleetView(timeMs) {
     ctx.setLineDash([]);
 
     for (let i = 0; i < totalFloats; i++) {
-        const shirtX = marginX + i * slotW + (slotW - shirtW) / 2;
-        const floatData = fleetRunners[i] || DEFAULT_FLEET_ROSTER[i];
+        try {
+            const shirtX = marginX + i * slotW + (slotW - shirtW) / 2;
+            const floatData = fleetRunners[i] || DEFAULT_FLEET_ROSTER[i];
 
-        let isCurrentWaveFloat = false;
-        if (fleetShowActive && activeBlock) {
-            const bType = activeBlock.type;
-            const dur = Math.max(0.1, activeBlock.duration || 1.0);
-            const localP = (activeInfo ? activeInfo.localT : 0) / dur;
-            if (bType === 'wave_forward') {
-                isCurrentWaveFloat = Math.abs((-0.3 + localP * 7.6) - i) < 0.9;
-            } else if (bType === 'wave_reverse') {
-                isCurrentWaveFloat = Math.abs((7.3 - localP * 7.6) - i) < 0.9;
-            } else if (bType === 'baton_chase') {
-                isCurrentWaveFloat = (i === Math.min(6, Math.floor(localP * 7.0)));
-            } else if (bType === 'fleet_pulse' || bType === 'sparkle_storm' || bType === 'strobe_all' || bType === 'grand_finale') {
-                isCurrentWaveFloat = true;
+            let isCurrentWaveFloat = false;
+            if (fleetShowActive && activeBlock) {
+                const bType = activeBlock.type;
+                const dur = Math.max(0.1, activeBlock.duration || 1.0);
+                const localP = (activeInfo ? activeInfo.localT : 0) / dur;
+                if (bType === 'wave_forward') {
+                    isCurrentWaveFloat = Math.abs((-0.3 + localP * 7.6) - i) < 0.9;
+                } else if (bType === 'wave_reverse') {
+                    isCurrentWaveFloat = Math.abs((7.3 - localP * 7.6) - i) < 0.9;
+                } else if (bType === 'baton_chase') {
+                    isCurrentWaveFloat = (i === Math.min(6, Math.floor(localP * 7.0)));
+                } else if (bType === 'fleet_pulse' || bType === 'sparkle_storm' || bType === 'strobe_all' || bType === 'grand_finale') {
+                    isCurrentWaveFloat = true;
+                }
             }
-        }
 
-        const isHovered = (fleetHoveredRunner === i);
-        const isSelected = (fleetSelectedRunner === i);
+            const isHovered = (fleetHoveredRunner === i);
+            const isSelected = (fleetSelectedRunner === i);
 
-        // Retrieve preset data (cached)
-        const pData = fleetPresetCache[floatData.preset] || null;
+            // Retrieve preset data (cached)
+            const pData = fleetPresetCache[floatData.preset] || null;
 
-        // 1. Draw Runner Bib Number Badge Above Shirt
-        const activeBibCol = fleetShowActive ? (waveColor.hex || '#ffc107') : '#ffc107';
-        ctx.fillStyle = isCurrentWaveFloat ? activeBibCol : (isSelected ? '#58a6ff' : '#8b949e');
-        ctx.font = 'bold 11px monospace';
-        ctx.textAlign = 'center';
-        ctx.fillText(`BIB #${floatData.num}`, shirtX + shirtW * 0.5, shirtY - 14);
+            // 1. Draw Runner Bib Number Badge Above Shirt
+            const activeBibCol = fleetShowActive ? (waveColor.hex || '#ffc107') : '#ffc107';
+            ctx.fillStyle = isCurrentWaveFloat ? activeBibCol : (isSelected ? '#58a6ff' : '#8b949e');
+            ctx.font = 'bold 11px monospace';
+            ctx.textAlign = 'center';
+            ctx.fillText(`BIB #${floatData.num}`, shirtX + shirtW * 0.5, shirtY - 14);
 
-        // 2. Draw Natural Proportioned Athletic Shirt (1 : 1.25)
-        drawRunningShirt(ctx, shirtX, shirtY, shirtW, shirtH, "");
+            // 2. Draw Natural Proportioned Athletic Shirt (1 : 1.25)
+            drawRunningShirt(ctx, shirtX, shirtY, shirtW, shirtH, "");
 
-        // 3. Draw Float Graphic Artwork strictly in chest zone above bib
-        const chestW = shirtW * 0.56;
-        const chestH = shirtH * 0.385;
-        const chestTop = shirtY + shirtH * 0.168;
-        const chestLeft = shirtX + (shirtW - chestW) * 0.5;
+            // 3. Draw Float Graphic Artwork strictly in chest zone above bib
+            const chestW = shirtW * 0.56;
+            const chestH = shirtH * 0.385;
+            const chestTop = shirtY + shirtH * 0.168;
+            const chestLeft = shirtX + (shirtW - chestW) * 0.5;
 
-        const graphicType = (pData && pData.graphicType) ? pData.graphicType : floatData.defaultGraphic;
-        const gImg = getGraphicImgForType(graphicType);
+            const graphicType = (pData && pData.graphicType) ? pData.graphicType : floatData.defaultGraphic;
+            const gImg = getGraphicImgForType(graphicType);
 
-        if (gImg && gImg.complete && gImg.naturalWidth > 0) {
-            ctx.drawImage(gImg, chestLeft, chestTop, chestW, chestH);
-        } else if (graphicType === 'builtin_dragon' || graphicType === 'petes_dragon') {
-            // Scaled silhouette fallback
-            const dummyBounds = { x: shirtX, y: shirtY, width: shirtW, height: shirtH };
-            drawPetesDragon(ctx, dummyBounds);
-        }
+            if (gImg && gImg.complete && gImg.naturalWidth > 0) {
+                ctx.drawImage(gImg, chestLeft, chestTop, chestW, chestH);
+            } else if (graphicType === 'builtin_dragon' || graphicType === 'petes_dragon') {
+                // Scaled silhouette fallback
+                const dummyBounds = { x: shirtX, y: shirtY, width: shirtW, height: shirtH };
+                drawPetesDragon(ctx, dummyBounds);
+            }
 
-        // 4. Draw Mini runDisney Race Bib on lower torso
-        const bibW = shirtW * 0.52;
-        const bibH = shirtH * 0.23;
-        const bibX = shirtX + (shirtW - bibW) * 0.5;
-        const bibY = shirtY + shirtH * 0.57;
-        drawMiniRaceBib(ctx, bibX, bibY, bibW, bibH, floatData.num);
+            // 4. Draw Mini runDisney Race Bib on lower torso
+            const bibW = shirtW * 0.52;
+            const bibH = shirtH * 0.23;
+            const bibX = shirtX + (shirtW - bibW) * 0.5;
+            const bibY = shirtY + shirtH * 0.57;
+            drawMiniRaceBib(ctx, bibX, bibY, bibW, bibH, floatData.num);
 
-        // 5. Draw Real 100-LED Configuration
-        const ledsArr = (pData && Array.isArray(pData.leds) && pData.leds.length > 0) ? pData.leds : null;
-        if (ledsArr) {
-            for (let j = 0; j < ledsArr.length; j++) {
-                const led = ledsArr[j];
-                const lx = shirtX + led.x * shirtW;
-                const ly = shirtY + led.y * shirtH;
-                const col = computeRunnerLedColor(i, floatData, pData, j, ledsArr.length, timeMs, 0, isCurrentWaveFloat);
+            // 5. Draw Real 100-LED Configuration
+            const ledsArr = (pData && Array.isArray(pData.leds) && pData.leds.length > 0) ? pData.leds : null;
+            if (ledsArr) {
+                for (let j = 0; j < ledsArr.length; j++) {
+                    const led = ledsArr[j];
+                    const lx = shirtX + led.x * shirtW;
+                    const ly = shirtY + led.y * shirtH;
+                    const col = computeRunnerLedColor(i, floatData, pData, j, ledsArr.length, timeMs, 0, isCurrentWaveFloat);
 
-                if (col.alpha > 0.02 && (col.r > 0 || col.g > 0 || col.b > 0)) {
-                    // Bulb outer halo glow
-                    if (isCurrentWaveFloat || fleetShowActive) {
+                    if (col.alpha > 0.02 && (col.r > 0 || col.g > 0 || col.b > 0)) {
+                        // Bulb outer halo glow
+                        if (isCurrentWaveFloat || fleetShowActive) {
+                            ctx.beginPath();
+                            ctx.arc(lx, ly, 4.2, 0, Math.PI * 2);
+                            ctx.fillStyle = `rgba(${col.r}, ${col.g}, ${col.b}, 0.28)`;
+                            ctx.fill();
+                        }
+
+                        // Core bulb dot
                         ctx.beginPath();
-                        ctx.arc(lx, ly, 4.2, 0, Math.PI * 2);
-                        ctx.fillStyle = `rgba(${col.r}, ${col.g}, ${col.b}, 0.28)`;
+                        ctx.arc(lx, ly, (isCurrentWaveFloat || fleetShowActive) ? 2.5 : 1.7, 0, Math.PI * 2);
+                        ctx.fillStyle = `rgba(${col.r}, ${col.g}, ${col.b}, ${col.alpha || 1})`;
+                        ctx.fill();
+                    } else {
+                        // Unlit / black bulb
+                        ctx.beginPath();
+                        ctx.arc(lx, ly, 1.2, 0, Math.PI * 2);
+                        ctx.fillStyle = 'rgba(20, 25, 32, 0.45)';
                         ctx.fill();
                     }
+                }
+            } else {
+                // Graceful fallback: 18 mini LEDs while preset loads
+                const numMiniLeds = 18;
+                const chestCX = shirtX + shirtW * 0.5;
+                const chestCY = shirtY + shirtH * 0.44;
+                const rx = shirtW * 0.26;
+                const ry = shirtH * 0.20;
 
-                    // Core bulb dot
-                    ctx.beginPath();
-                    ctx.arc(lx, ly, (isCurrentWaveFloat || fleetShowActive) ? 2.5 : 1.7, 0, Math.PI * 2);
-                    ctx.fillStyle = `rgba(${col.r}, ${col.g}, ${col.b}, ${col.alpha || 1})`;
-                    ctx.fill();
-                } else {
-                    // Unlit / black bulb
-                    ctx.beginPath();
-                    ctx.arc(lx, ly, 1.2, 0, Math.PI * 2);
-                    ctx.fillStyle = 'rgba(20, 25, 32, 0.45)';
-                    ctx.fill();
+                for (let j = 0; j < numMiniLeds; j++) {
+                    const angle = (j / numMiniLeds) * Math.PI * 2;
+                    const lx = chestCX + Math.cos(angle) * rx;
+                    const ly = chestCY + Math.sin(angle) * ry;
+                    const col = computeRunnerLedColor(i, floatData, null, j, numMiniLeds, timeMs, 0, isCurrentWaveFloat);
+
+                    if (col.alpha > 0.02 && (col.r > 0 || col.g > 0 || col.b > 0)) {
+                        ctx.beginPath();
+                        ctx.arc(lx, ly, (isCurrentWaveFloat || fleetShowActive) ? 3.2 : 2.0, 0, Math.PI * 2);
+                        ctx.fillStyle = `rgba(${col.r}, ${col.g}, ${col.b}, ${col.alpha || 1})`;
+                        ctx.fill();
+                    } else {
+                        ctx.beginPath();
+                        ctx.arc(lx, ly, 1.2, 0, Math.PI * 2);
+                        ctx.fillStyle = 'rgba(20, 25, 32, 0.45)';
+                        ctx.fill();
+                    }
                 }
             }
-        } else {
-            // Graceful fallback: 18 mini LEDs while preset loads
-            const numMiniLeds = 18;
-            const chestCX = shirtX + shirtW * 0.5;
-            const chestCY = shirtY + shirtH * 0.44;
-            const rx = shirtW * 0.26;
-            const ry = shirtH * 0.20;
 
-            for (let j = 0; j < numMiniLeds; j++) {
-                const angle = (j / numMiniLeds) * Math.PI * 2;
-                const lx = chestCX + Math.cos(angle) * rx;
-                const ly = chestCY + Math.sin(angle) * ry;
-                const col = computeRunnerLedColor(i, floatData, null, j, numMiniLeds, timeMs, waveProgress, isCurrentWaveFloat);
+            // 6. Draw Running Shorts & Legs Below Shirt
+            const shortsW = shirtW * 0.44;
+            const shortsH = shirtW * 0.35;
+            const shortsY = shirtY + shirtH * 0.93;
 
-                if (col.alpha > 0.02 && (col.r > 0 || col.g > 0 || col.b > 0)) {
-                    ctx.beginPath();
-                    ctx.arc(lx, ly, (isCurrentWaveFloat || isPulsePhase || isSparkleStorm) ? 3.2 : 2.0, 0, Math.PI * 2);
-                    ctx.fillStyle = `rgba(${col.r}, ${col.g}, ${col.b}, ${col.alpha || 1})`;
-                    ctx.fill();
-                } else {
-                    ctx.beginPath();
-                    ctx.arc(lx, ly, 1.2, 0, Math.PI * 2);
-                    ctx.fillStyle = 'rgba(20, 25, 32, 0.45)';
-                    ctx.fill();
-                }
+            // Running Shorts (Black)
+            ctx.fillStyle = '#0a0d12';
+            ctx.fillRect(shirtX + shirtW * 0.28, shortsY, shortsW, shortsH);
+            ctx.strokeStyle = '#21262d';
+            ctx.strokeRect(shirtX + shirtW * 0.28, shortsY, shortsW, shortsH);
+
+            // Legs
+            ctx.fillStyle = '#484f58';
+            ctx.fillRect(shirtX + shirtW * 0.32, shortsY + shortsH, 6, 20);
+            ctx.fillRect(shirtX + shirtW * 0.58, shortsY + shortsH, 6, 20);
+
+            // Running Shoes (Accent Color)
+            ctx.fillStyle = floatData.color;
+            ctx.fillRect(shirtX + shirtW * 0.29, shortsY + shortsH + 20, 10, 5);
+            ctx.fillRect(shirtX + shirtW * 0.57, shortsY + shortsH + 20, 10, 5);
+
+            // 7. Float Name Tag Below Runner
+            ctx.fillStyle = isCurrentWaveFloat ? '#ffffff' : (isSelected ? '#58a6ff' : '#8b949e');
+            ctx.font = 'bold 10px sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText(floatData.name, shirtX + shirtW * 0.5, shirtY + shirtH + 68);
+
+            ctx.fillStyle = isCurrentWaveFloat ? activeBibCol : (isSelected ? '#ffc107' : '#57606a');
+            ctx.font = '9px sans-serif';
+            ctx.fillText(floatData.tag, shirtX + shirtW * 0.5, shirtY + shirtH + 80);
+
+            // 8. Highlight Frame (Active Wave/Routine, Hovered, or Selected)
+            if (isCurrentWaveFloat) {
+                const frameCol = waveColor?.hex || '#ffc107';
+                ctx.save();
+                ctx.strokeStyle = frameCol;
+                ctx.lineWidth = 2.2;
+                ctx.shadowColor = frameCol;
+                ctx.shadowBlur = 12;
+                ctx.strokeRect(shirtX - 4, shirtY - 26, shirtW + 8, shirtH + 115);
+                ctx.restore();
+            } else if (fleetShowActive && activeBlock?.type === 'fleet_pulse') {
+                const breath = 0.5 + 0.5 * Math.sin(timeMs * 0.005);
+                ctx.save();
+                ctx.strokeStyle = waveColor?.hex || '#ffc107';
+                ctx.lineWidth = 1.4 + breath * 1.4;
+                ctx.shadowColor = waveColor?.hex || '#ffc107';
+                ctx.shadowBlur = 4 + breath * 8;
+                ctx.globalAlpha = 0.4 + breath * 0.5;
+                ctx.strokeRect(shirtX - 4, shirtY - 26, shirtW + 8, shirtH + 115);
+                ctx.restore();
+            } else if (fleetShowActive && activeBlock?.type === 'sparkle_storm') {
+                ctx.save();
+                ctx.strokeStyle = waveColor?.hex || '#ffffff';
+                ctx.lineWidth = 1.5;
+                ctx.shadowColor = 'rgba(255, 255, 255, 0.6)';
+                ctx.shadowBlur = 8;
+                ctx.strokeRect(shirtX - 4, shirtY - 26, shirtW + 8, shirtH + 115);
+                ctx.restore();
+            } else if (isSelected) {
+                ctx.save();
+                ctx.strokeStyle = '#388bfd';
+                ctx.lineWidth = 2;
+                ctx.shadowColor = '#388bfd';
+                ctx.shadowBlur = 8;
+                ctx.strokeRect(shirtX - 4, shirtY - 26, shirtW + 8, shirtH + 115);
+                ctx.restore();
+            } else if (isHovered) {
+                ctx.strokeStyle = 'rgba(88, 166, 255, 0.6)';
+                ctx.lineWidth = 1.5;
+                ctx.strokeRect(shirtX - 4, shirtY - 26, shirtW + 8, shirtH + 115);
             }
-        }
-
-        // 6. Draw Running Shorts & Legs Below Shirt
-        const shortsW = shirtW * 0.44;
-        const shortsH = shirtW * 0.35;
-        const shortsY = shirtY + shirtH * 0.93;
-
-        // Running Shorts (Black)
-        ctx.fillStyle = '#0a0d12';
-        ctx.fillRect(shirtX + shirtW * 0.28, shortsY, shortsW, shortsH);
-        ctx.strokeStyle = '#21262d';
-        ctx.strokeRect(shirtX + shirtW * 0.28, shortsY, shortsW, shortsH);
-
-        // Legs
-        ctx.fillStyle = '#484f58';
-        ctx.fillRect(shirtX + shirtW * 0.32, shortsY + shortsH, 6, 20);
-        ctx.fillRect(shirtX + shirtW * 0.58, shortsY + shortsH, 6, 20);
-
-        // Running Shoes (Accent Color)
-        ctx.fillStyle = floatData.color;
-        ctx.fillRect(shirtX + shirtW * 0.29, shortsY + shortsH + 20, 10, 5);
-        ctx.fillRect(shirtX + shirtW * 0.57, shortsY + shortsH + 20, 10, 5);
-
-        // 7. Float Name Tag Below Runner
-        ctx.fillStyle = isCurrentWaveFloat ? '#ffffff' : (isSelected ? '#58a6ff' : '#8b949e');
-        ctx.font = 'bold 10px sans-serif';
-        ctx.textAlign = 'center';
-        ctx.fillText(floatData.name, shirtX + shirtW * 0.5, shirtY + shirtH + 68);
-
-        ctx.fillStyle = isCurrentWaveFloat ? activeBibCol : (isSelected ? '#ffc107' : '#57606a');
-        ctx.font = '9px sans-serif';
-        ctx.fillText(floatData.tag, shirtX + shirtW * 0.5, shirtY + shirtH + 80);
-
-        // 8. Highlight Frame (Active Wave, Pulse Phase, Sparkle Storm, Hovered, or Selected)
-        if (isCurrentWaveFloat) {
-            const frameCol = isParadeRoutine ? waveColor.hex : '#ffc107';
-            ctx.save();
-            ctx.strokeStyle = frameCol;
-            ctx.lineWidth = 2.2;
-            ctx.shadowColor = frameCol;
-            ctx.shadowBlur = 12;
-            ctx.strokeRect(shirtX - 4, shirtY - 26, shirtW + 8, shirtH + 115);
-            ctx.restore();
-        } else if (isPulsePhase) {
-            const tau = tRoutine - 3.0;
-            const breath = 0.5 + 0.5 * Math.sin((tau / 5.0) * Math.PI * 6.0 - Math.PI * 0.5);
-            ctx.save();
-            ctx.strokeStyle = waveColor.hex;
-            ctx.lineWidth = 1.4 + breath * 1.4;
-            ctx.shadowColor = waveColor.hex;
-            ctx.shadowBlur = 4 + breath * 8;
-            ctx.globalAlpha = 0.4 + breath * 0.5;
-            ctx.strokeRect(shirtX - 4, shirtY - 26, shirtW + 8, shirtH + 115);
-            ctx.restore();
-        } else if (isSparkleStorm) {
-            ctx.save();
-            ctx.strokeStyle = waveColor.hex;
-            ctx.lineWidth = 1.5;
-            ctx.shadowColor = 'rgba(255, 255, 255, 0.6)';
-            ctx.shadowBlur = 8;
-            ctx.strokeRect(shirtX - 4, shirtY - 26, shirtW + 8, shirtH + 115);
-            ctx.restore();
-        } else if (isSelected) {
-            ctx.save();
-            ctx.strokeStyle = '#388bfd';
-            ctx.lineWidth = 2;
-            ctx.shadowColor = '#388bfd';
-            ctx.shadowBlur = 8;
-            ctx.strokeRect(shirtX - 4, shirtY - 26, shirtW + 8, shirtH + 115);
-            ctx.restore();
-        } else if (isHovered) {
-            ctx.strokeStyle = 'rgba(88, 166, 255, 0.6)';
-            ctx.lineWidth = 1.5;
-            ctx.strokeRect(shirtX - 4, shirtY - 26, shirtW + 8, shirtH + 115);
+        } catch (err) {
+            console.error(`Error rendering float runner ${i}:`, err);
         }
     }
 }
@@ -3402,6 +3414,8 @@ async function loadFleetLineupFromStorage() {
             const parsed = JSON.parse(savedLineup);
             if (Array.isArray(parsed) && parsed.length === 7) {
                 fleetRunners = parsed;
+            } else {
+                fleetRunners = JSON.parse(JSON.stringify(DEFAULT_FLEET_ROSTER));
             }
         } else {
             try {
@@ -3410,15 +3424,29 @@ async function loadFleetLineupFromStorage() {
                     const serverConfig = await res.json();
                     if (Array.isArray(serverConfig) && serverConfig.length === 7) {
                         fleetRunners = serverConfig;
+                    } else {
+                        fleetRunners = JSON.parse(JSON.stringify(DEFAULT_FLEET_ROSTER));
                     }
+                } else {
+                    fleetRunners = JSON.parse(JSON.stringify(DEFAULT_FLEET_ROSTER));
                 }
-            } catch (e) {}
+            } catch (e) {
+                fleetRunners = JSON.parse(JSON.stringify(DEFAULT_FLEET_ROSTER));
+            }
         }
-    } catch (e) {}
+    } catch (e) {
+        fleetRunners = JSON.parse(JSON.stringify(DEFAULT_FLEET_ROSTER));
+    }
 
-    // Preload all runner presets into cache
-    for (const runner of fleetRunners) {
-        await getPresetDataForRunner(runner);
+    if (!Array.isArray(fleetRunners) || fleetRunners.length !== 7) {
+        fleetRunners = JSON.parse(JSON.stringify(DEFAULT_FLEET_ROSTER));
+    }
+
+    // Preload all runner presets into cache in parallel
+    try {
+        await Promise.all(fleetRunners.map(r => getPresetDataForRunner(r)));
+    } catch (e) {
+        console.warn("Error preloading fleet presets:", e);
     }
 }
 
