@@ -1121,7 +1121,66 @@
 
                     </div>
 
-                    <!-- SECTION 2: 7-Runner Costume Lineup & Presets -->
+                    <!-- SECTION 2: Pre-Race Corral Roll Call & ESP-NOW Fleet Radar -->
+                    <div class="control-section" id="fleetRadarSection" style="border: 1px solid #1f6feb; background: rgba(31, 111, 235, 0.04); padding-bottom: 14px;">
+                        <div class="section-title" style="display: flex; justify-content: space-between; align-items: center; color: #58a6ff;">
+                            <div style="display: flex; align-items: center; gap: 6px;">
+                                <span>🛰️ Corral Roll Call & Fleet Radar</span>
+                            </div>
+                            <span id="fleetRadarStatusPill" style="font-size: 10px; background: rgba(46, 160, 67, 0.25); color: #3fb950; padding: 2px 8px; border-radius: 10px; font-weight: 700; border: 1px solid rgba(46, 160, 67, 0.5);">
+                                🟢 7/7 READY
+                            </span>
+                        </div>
+                        <p style="font-size: 11px; color: var(--text-muted); line-height: 1.4; margin-top: 4px; margin-bottom: 10px;">
+                            Pre-race diagnostic radar to verify all 7 brother costumes are powered on, receiving Casey Jr.'s ESP-NOW sync clock, and mapped to unique float roles before the start gun fires!
+                        </p>
+
+                        <!-- Fleet Sync Status & Channel Banner -->
+                        <div style="background: #0d1117; border: 1px solid #30363d; border-radius: 8px; padding: 8px 10px; margin-bottom: 10px; display: flex; flex-direction: column; gap: 6px;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; font-size: 11px;">
+                                <div style="display: flex; align-items: center; gap: 6px;">
+                                    <span class="draw-pulse-dot" style="background: #3fb950; box-shadow: 0 0 8px #3fb950;"></span>
+                                    <span style="font-weight: 600; color: #c9d1d9;">Master Sync Clock:</span>
+                                    <span id="fleetRadarLeaderText" style="color: #ff7b72; font-weight: 700;">Float 1 (The Train)</span>
+                                </div>
+                                <span style="font-size: 10px; color: #8b949e; font-family: monospace;">ESP-NOW 2.4 GHz</span>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; align-items: center; font-size: 10px; color: var(--text-muted); border-top: 1px solid #21262d; padding-top: 5px;">
+                                <span>Broadcast Destination: <code style="color: #79c0ff; font-size: 9.5px;">FF:FF:FF:FF:FF:FF</code></span>
+                                <span id="fleetRadarActiveCountText" style="color: #3fb950; font-weight: 600;">7 Online · 0 Offline · 0 Conflict</span>
+                            </div>
+                        </div>
+
+                        <!-- Radar Control Toolbar -->
+                        <div style="display: flex; flex-direction: column; gap: 6px; margin-bottom: 10px;">
+                            <div style="display: flex; gap: 6px;">
+                                <button type="button" id="fleetRadarScanBtn" class="action-btn" style="flex: 1.2; font-size: 11px; padding: 6px 8px; border-color: #388bfd; color: #58a6ff; font-weight: 600; display: inline-flex; align-items: center; justify-content: center; gap: 5px;" title="Broadcast roll call ping to all costumes in the starting corral">
+                                    📡 Scan Corral / Ping Fleet
+                                </button>
+                                <button type="button" id="fleetRadarIdentifyAllBtn" class="action-btn" style="flex: 1; font-size: 11px; padding: 6px 8px; border-color: #ffc107; color: #ffc107; display: inline-flex; align-items: center; justify-content: center; gap: 4px;" title="Sequentially flash each brother's shirt in signature color down the line (1 ➔ 7)">
+                                    ✨ Flash Lineup (1➔7)
+                                </button>
+                            </div>
+                            <!-- Bench Simulation Scenario Selector -->
+                            <div style="display: flex; gap: 6px; align-items: center; background: #0d1117; padding: 5px 8px; border-radius: 6px; border: 1px solid #30363d;">
+                                <label for="fleetRadarScenarioSelect" style="font-size: 10px; color: var(--text-muted); white-space: nowrap; font-weight: 600;">🧪 Bench Scenario:</label>
+                                <select id="fleetRadarScenarioSelect" style="flex: 1; background: #161b22; color: #fff; border: 1px solid #30363d; border-radius: 4px; padding: 3px 6px; font-size: 10px;">
+                                    <option value="perfect">🟢 All 7 Online & Ready (Corral Ideal)</option>
+                                    <option value="missing_4">⚠️ Float 4 Missing (Snail in Restroom)</option>
+                                    <option value="conflict_6">🔴 Float 6 Conflict (Two Elliott Shirts!)</option>
+                                    <option value="weak_7">🟡 Float 7 Weak Signal (-88 dBm Distance)</option>
+                                    <option value="live_hardware">⚡ Live Hardware Only (Physical Boards)</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- 7 Float Radar Status Cards Grid -->
+                        <div id="fleetRadarGrid" style="display: flex; flex-direction: column; gap: 6px;">
+                            <!-- Populated dynamically by app.js -->
+                        </div>
+                    </div>
+
+                    <!-- SECTION 3: 7-Runner Costume Lineup & Presets -->
                     <div class="control-section" style="padding-bottom: 16px;">
                         <div class="section-title">
                             <span>7-Runner Baseline Presets</span>
@@ -1515,6 +1574,6 @@
         </div>
     </div>
 
-    <script src="app.js?v=27"></script>
+    <script src="app.js?v=28"></script>
 </body>
 </html>

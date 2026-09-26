@@ -20,7 +20,7 @@ This guide walks you through every feature of the simulator, from placing and wi
 10. [Parade Cue Director (90-Second Theatrical Sequences)](#10-parade-cue-director-90-second-theatrical-sequences)
 11. [Lighting Patterns & Effects Library](#11-lighting-patterns--effects-library)
 12. [Profile Management, Saving & JSON Import/Export](#12-profile-management-saving--json-importexport)
-13. [7-Shirt Fleet Show Creator & Preset Manager](#13-7-shirt-fleet-show-creator--preset-manager)
+13. [7-Shirt Fleet Show Creator, Preset Manager & Corral Radar](#13-7-shirt-fleet-show-creator--preset-manager)
 14. [Hardware Integration: Live Wi-Fi Streaming, Standalone USB Flashing & Battery Power Budget](#14-hardware-integration-live-wi-fi-streaming-standalone-usb-flashing--battery-power-budget)
 15. [ESP32 Firmware: Debounced Button Control, Fleet Routine Trigger & Early Stop](#15-esp32-firmware-debounced-button-control-fleet-routine-trigger--early-stop)
 16. [Keyboard Shortcuts & Quick Reference Cheat Sheet](#16-keyboard-shortcuts--quick-reference-cheat-sheet)
@@ -696,6 +696,49 @@ Each of the 7 runners is represented by a dedicated preset card and canvas athle
 - **📋 Assign Editor to All:** Duplicates your current single-shirt design across all 7 runners with one click.
 - **🔁 Parade Defaults:** Instantly resets all 7 runners to the official Electrical Parade float presets.
 - **💾 Save Fleet Lineup:** Saves the complete 7-runner fleet configuration to `presets/fleet_lineup.json`.
+
+---
+
+### Pre-Race Corral Roll Call & ESP-NOW Fleet Radar
+
+In the dark, chilly 3:30 AM staging corrals outside Epcot, the 7 brothers need instant, foolproof verification that all costumes are powered on, receiving wireless timing packets, and mapped to unique float numbers. The **Corral Roll Call & Fleet Radar** provides an interactive diagnostic console directly on the Fleet Tab:
+
+```
+┌────────────────────────────────────────────────────────────────────────┐
+│  🛰️ Corral Roll Call & Fleet Radar                      🟢 7/7 READY   │
+│  Master Sync Clock: Float 1 (The Train) · ESP-NOW 2.4 GHz (Broadcast)  │
+│  7 Online · 0 Offline · 0 Conflict (Ready for Start Gun!)              │
+└────────────────────────────────────────────────────────────────────────┘
+```
+
+#### Key Capabilities & Pre-Race Checks:
+1. **Fleet Readiness Banner:**
+   - **`🟢 7/7 READY`:** All 7 floats detected, synchronized to Leader Float 1 (Casey Jr.), with healthy signal and battery voltage.
+   - **`🟡 X/7 READY`:** Identifies missing runners (e.g. Float 4 Snail still in the gear-check or restroom line).
+   - **`🔴 CONFLICT`:** Flags duplicate float assignments (e.g. if two brothers accidentally configured their boards as Float 6 Pete's Dragon!).
+2. **Real-Time Telemetry Cards (Floats 1 through 7):**
+   - **Signature Avatar & Color:** Displays float icon (`🚂`, `🥁`, `🐢`, `🐌`, `🩵`, `🐉`, `🦅`) and character name.
+   - **Role Badge:** `👑 LEADER (The Train)` vs `📡 FOLLOWER`.
+   - **Wireless Signal (RSSI):** 4-pip meter displaying signal quality:
+     - `●●●●` **-44 dBm:** Excellent (within 5 meters in corral pack).
+     - `●●●○` **-65 dBm:** Good (normal corral spacing).
+     - `●●○○` **-78 dBm:** Fair.
+     - `●○○○` **-88 dBm:** Weak link / outer range limit.
+   - **Battery & USB Voltage:** Live readout (`5.12V / 98%`) to verify power bank connection.
+   - **Heartbeat Counter:** Displays last contact freshness (`Just now`, `1s ago`, `No response`).
+3. **Interactive Visual Identification (`✨ Identify`):**
+   - Click **`✨ Identify`** on any float card to command that specific brother's shirt to execute **3 rapid full-brightness flashes** in its signature color.
+   - **Simulator Canvas Integration:** The corresponding mini-shirt on the canvas strobes in real time while the radar card pulses with that float's signature color.
+   - **Physical Hardware:** Transmitted via ESP-NOW (`Mode 0x42`) or UDP (`Opcode 0x03, cmd 0x02`), causing the physical bench or wearable ESP32 to strobe its 200 LEDs without interrupting autonomous mode.
+4. **Lineup Sequential Flash (`✨ Flash Lineup (1➔7)`):**
+   - Illuminates all 7 floats down the line in rapid succession (Float 1 ➔ 2 ➔ 3 ➔ 4 ➔ 5 ➔ 6 ➔ 7) to visually confirm the entire parade formation in person before stepping across the starting timing mat.
+5. **Bench Simulation Scenarios:**
+   - Test your pre-race checklist under real-world conditions:
+     - `🟢 All 7 Online & Ready`: Perfect corral scenario.
+     - `⚠️ Float 4 Missing`: Simulates runner disconnection with red `OFFLINE` badge.
+     - `🔴 Float 6 Conflict`: Simulates duplicate ID conflict with red alarm styling.
+     - `🟡 Float 7 Weak Signal`: Simulates runner 30 meters back with `-88 dBm` RSSI.
+     - `⚡ Live Hardware Only`: Displays only physical ESP32 boards actively detected.
 
 ---
 

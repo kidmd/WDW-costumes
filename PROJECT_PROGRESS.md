@@ -92,6 +92,32 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### Entry: Pre-Race Corral Roll Call & ESP-NOW Fleet Radar Diagnostics
+* **Date:** 2026-09-26
+* **Milestone:** Milestone 5 - Pre-Race Wireless Telemetry, Lineup Verification & Fleet Radar
+* **Status:** Operational & Verified across Web Simulator, Python Server, and ESP32 C++/Arduino firmware.
+* **Notes:**
+  * **Corral Roll Call Diagnostic Module (`#fleetRadarSection`):**
+    - Added dedicated diagnostic console between the 30s Fleet Show Creator and 7-Runner Lineup on `#tabFleet`.
+    - Live Fleet Readiness Status Pill: `🟢 7/7 READY`, `🟡 6/7 READY`, or `🔴 CONFLICT`.
+    - Sync Clock Lock Indicator: Displays master clock source (`Float 1 Casey Jr. · ESP-NOW 2.4 GHz Broadcast`).
+  * **7 Float Telemetry Cards (Floats 1–7):**
+    - Float avatar icon (`🚂`, `🥁`, `🐢`, `🐌`, `🩵`, `🐉`, `🦅`) and role badge (`👑 LEADER` vs `📡 FOLLOWER`).
+    - Status pills: `🟢 READY`, `🔴 OFFLINE`, `⚠️ CONFLICT`, `🟡 WEAK LINK`.
+    - 4-bar RSSI wireless signal gauge (`●●●●` -44 dBm Excellent to `●○○○` -88 dBm Weak link).
+    - Power bank / Battery telemetry (`5.12V / 98% Buffer`).
+    - Heartbeat freshness counter (`Just now`, `1s ago`, `No response`).
+  * **Interactive Visual Identification (`✨ Identify` & `✨ Flash Lineup`):**
+    - Individual `✨ Identify`: Commands target float to flash 3 full-brightness bursts in its signature color.
+    - Simulator Canvas Link: Mini-shirt on 2D canvas strobes in real time while the radar card pulses with that float's signature color.
+    - `✨ Flash Lineup (1➔7)`: Sequentially flashes Floats 1 through 7 down the line at 200ms intervals.
+  * **Network & Firmware Telemetry Protocol:**
+    - Python Server (`simulator.py`): Added `/api/fleet_radar` (GET), `/api/fleet_radar/scan` (POST), and `/api/fleet_radar/identify` (POST).
+    - UDP Packet Framing: Added Opcode `0x03` (`cmd 0x01` Probe, `cmd 0x02` Identify Flash).
+    - ESP32 Dual-Core Firmware (`src/main.cpp` & `MSEP_Costume.ino`): Added `triggerIdentifyFlash()`, `broadcastIdentifyPacket()`, UDP Opcode `0x03` handling, and ESP-NOW Mode `0x42` handling.
+  * **Corral Scenario Simulator:**
+    - Dropdown allows instant verification of realistic race-morning situations: Ideal 7/7 Ready, Float 4 Missing (in restroom), Float 6 Duplicate Conflict, Float 7 Weak Link (-88 dBm), and Live Hardware Only.
+
 ### Entry: Race-Day Battery Life & Power Budget Calculator (200 LEDs / 5V 2.0A Limit)
 * **Date:** 2026-09-26
 * **Milestone:** Milestone 5 - Race-Day Hardware Safety & Real-Time Battery Budget Modeling

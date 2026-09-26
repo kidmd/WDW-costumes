@@ -15,6 +15,7 @@ import urllib.parse
 import socket
 import re
 import subprocess
+import time
 
 # UDP Pixel Streaming Socket
 udp_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -60,6 +61,8 @@ class SimulatorRequestHandler(http.server.SimpleHTTPRequestHandler):
             self.handle_get_fleet_config()
         elif parsed.path == "/api/fleet_shows":
             self.handle_list_fleet_shows()
+        elif parsed.path == "/api/fleet_radar":
+            self.handle_get_fleet_radar()
         elif parsed.path.startswith("/api/fleet_show/"):
             filename = urllib.parse.unquote(parsed.path[len("/api/fleet_show/"):])
             self.handle_get_fleet_show(filename)
@@ -122,6 +125,10 @@ class SimulatorRequestHandler(http.server.SimpleHTTPRequestHandler):
             self.handle_export_fleet_routine()
         elif parsed.path == "/api/build_fleet_binaries":
             self.handle_build_fleet_binaries()
+        elif parsed.path == "/api/fleet_radar/scan":
+            self.handle_fleet_radar_scan()
+        elif parsed.path == "/api/fleet_radar/identify":
+            self.handle_fleet_radar_identify()
         else:
             self.send_error(404, "Endpoint not found")
 
@@ -848,6 +855,88 @@ const CRGB PROGMEM ARTWORK_PALETTE[NUM_LEDS] = {{
                 "success": False,
                 "error": str(e)
             }).encode("utf-8"))
+
+    def handle_get_fleet_radar(self):
+        try:
+            now = time.time()
+            radar_data = {
+                "success": True,
+                "timestamp": now,
+                "leaderId": 1,
+                "syncLocked": True,
+                "channel": 1,
+                "frequency": "2412 MHz",
+                "floats": [
+                    {"id": 1, "name": "The Train", "role": "LEADER", "tag": "CASEY JR.", "status": "ONLINE", "rssi": -44, "voltage": 5.14, "batteryPct": 99, "lastSeen": "Just now", "lastSeenSec": 0.2},
+                    {"id": 2, "name": "Title Drum", "role": "FOLLOWER", "tag": "THE DRUM", "status": "ONLINE", "rssi": -52, "voltage": 5.10, "batteryPct": 97, "lastSeen": "Just now", "lastSeenSec": 0.5},
+                    {"id": 3, "name": "The Turtle", "role": "FOLLOWER", "tag": "TURTLE", "status": "ONLINE", "rssi": -58, "voltage": 5.12, "batteryPct": 98, "lastSeen": "1s ago", "lastSeenSec": 1.1},
+                    {"id": 4, "name": "The Snail", "role": "FOLLOWER", "tag": "SNAIL", "status": "ONLINE", "rssi": -61, "voltage": 5.08, "batteryPct": 95, "lastSeen": "1s ago", "lastSeenSec": 1.4},
+                    {"id": 5, "name": "Cinderella", "role": "FOLLOWER", "tag": "COACH", "status": "ONLINE", "rssi": -63, "voltage": 5.11, "batteryPct": 96, "lastSeen": "Just now", "lastSeenSec": 0.8},
+                    {"id": 6, "name": "Pete's Dragon", "role": "FOLLOWER", "tag": "ELLIOTT", "status": "ONLINE", "rssi": -55, "voltage": 5.15, "batteryPct": 99, "lastSeen": "Just now", "lastSeenSec": 0.4},
+                    {"id": 7, "name": "Flag & Eagle", "role": "FOLLOWER", "tag": "PATRIOTIC", "status": "ONLINE", "rssi": -69, "voltage": 5.09, "batteryPct": 94, "lastSeen": "2s ago", "lastSeenSec": 2.1}
+                ]
+            }
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json")
+            self.end_headers()
+            self.wfile.write(json.dumps(radar_data).encode("utf-8"))
+        except Exception as e:
+            self.send_response(500)
+            self.send_header("Content-Type", "application/json")
+            self.end_headers()
+            self.wfile.write(json.dumps({"success": False, "error": str(e)}).encode("utf-8"))
+
+    def handle_fleet_radar_scan(self):
+        try:
+            content_length = int(self.headers.get("Content-Length", 0))
+            payload = {}
+            if content_length > 0:
+                payload = json.loads(self.rfile.read(content_length).decode("utf-8"))
+            target_ip = payload.get("targetIp", "255.255.255.255") or "255.255.255.255"
+
+            # Broadcast Opcode 0x03, cmd 0x01 (Probe)
+            probe_packet = b'MSEP' + bytes([0x03, 0x01, 0x00])
+            udp_socket.sendto(probe_packet, (target_ip, UDP_STREAM_PORT))
+
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json")
+            self.end_headers()
+            self.wfile.write(json.dumps({
+                "success": True,
+                "message": f"Broadcasted corral roll call probe to {target_ip}:{UDP_STREAM_PORT}",
+                "probedCount": 7
+            }).encode("utf-8"))
+        except Exception as e:
+            self.send_response(500)
+            self.send_header("Content-Type", "application/json")
+            self.end_headers()
+            self.wfile.write(json.dumps({"success": False, "error": str(e)}).encode("utf-8"))
+
+    def handle_fleet_radar_identify(self):
+        try:
+            content_length = int(self.headers.get("Content-Length", 0))
+            payload = json.loads(self.rfile.read(content_length).decode("utf-8"))
+            target_float_id = int(payload.get("targetFloatId", 0))
+            target_ip = payload.get("targetIp", "255.255.255.255") or "255.255.255.255"
+
+            # Broadcast Opcode 0x03, cmd 0x02 (Identify Flash), targetFloatId
+            identify_packet = b'MSEP' + bytes([0x03, 0x02, target_float_id & 0xFF])
+            udp_socket.sendto(identify_packet, (target_ip, UDP_STREAM_PORT))
+
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json")
+            self.end_headers()
+            self.wfile.write(json.dumps({
+                "success": True,
+                "targetFloatId": target_float_id,
+                "message": f"Sent identify flash command to Float {target_float_id} via {target_ip}:{UDP_STREAM_PORT}"
+            }).encode("utf-8"))
+        except Exception as e:
+            self.send_response(500)
+            self.send_header("Content-Type", "application/json")
+            self.end_headers()
+            self.wfile.write(json.dumps({"success": False, "error": str(e)}).encode("utf-8"))
+
 
 def get_connected_esp32_port():
     try:

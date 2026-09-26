@@ -137,6 +137,36 @@ void broadcastFleetRoutinePacket(uint8_t mode, uint32_t masterMillis) {
 }
 
 // ============================================================================
+// PRE-RACE CORRAL ROLL CALL & RADAR IDENTIFY FLASH
+// ============================================================================
+void triggerIdentifyFlash() {
+    uint8_t fIdx = (myFloatNumber >= 1 && myFloatNumber <= 7) ? (myFloatNumber - 1) : 0;
+    CRGB color = FLEET_ROSTER_INFO[fIdx].color;
+    Serial.printf("[RADAR] ✨ Identify Flash triggered for Float %d: %s (%s)!\n", 
+                  myFloatNumber, FLEET_ROSTER_INFO[fIdx].name, FLEET_ROSTER_INFO[fIdx].tag);
+    for (int f = 0; f < 3; f++) {
+        fill_solid(leds, NUM_LEDS, color);
+        FastLED.show();
+        digitalWrite(STATUS_LED_PIN, HIGH);
+        delay(120);
+        fill_solid(leds, NUM_LEDS, CRGB::Black);
+        FastLED.show();
+        digitalWrite(STATUS_LED_PIN, LOW);
+        delay(100);
+    }
+}
+
+void broadcastIdentifyPacket(uint8_t targetFloat) {
+    ParadeSyncPacket packet;
+    packet.magic = 0xEE;
+    packet.mode = 0x42; // Identify Flash Command
+    packet.masterMillis = millis();
+    packet.activeFloat = targetFloat;
+    packet.waveHead = 0;
+    esp_now_send(broadcastMac, (uint8_t*)&packet, sizeof(packet));
+}
+
+// ============================================================================
 // ESP-NOW RECEIVE CALLBACK (Follower & Fleet Peer)
 // Compatible with both ESP32 Arduino Core 2.x (const uint8_t*) and Core 3.x+ (esp_now_recv_info_t*)
 // ============================================================================
@@ -163,6 +193,11 @@ void onDataReceive(const uint8_t *mac_addr, const uint8_t *incomingData, int len
                 currentStandaloneMode = previousStandaloneMode;
                 Serial.printf("[ESP-NOW] Fleet 30s Show stopped early by Float %d -> reverting to baseline\n",
                               packet.activeFloat);
+            } else if (packet.mode == 0x42) {
+                // Pre-race Corral Roll Call: Identify Flash command
+                if (packet.activeFloat == 0 || packet.activeFloat == myFloatNumber) {
+                    triggerIdentifyFlash();
+                }
             } else {
                 currentPacket = packet;
                 packetReceived = true;
@@ -987,6 +1022,16 @@ void loop() {
                     frameLeds = (buffer[6] << 8) | buffer[7];
                     pIdx = 8;
                     frameAccepted = true;
+                }
+            } else if (buffer[4] == 0x03 && len >= 7) {
+                // Opcode 0x03: Corral Roll Call & Radar Diagnostics
+                uint8_t cmd = buffer[5];
+                uint8_t targetFloatId = buffer[6];
+                if (targetFloatId == 0 || targetFloatId == myFloatNumber) {
+                    if (cmd == 0x02) {
+                        // Identify Flash
+                        triggerIdentifyFlash();
+                    }
                 }
             }
 

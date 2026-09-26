@@ -2500,6 +2500,22 @@ function computeRunnerLedColor(runnerIndex, runner, presetData, ledIndex, totalL
     const hasColor = !!led.color;
     const c = hasColor ? led.color : { r: 255, g: 255, b: 255 };
 
+    // 0. Radar Identify Flash Strobe (3 rapid color flashes)
+    if (radarIdentifyFlashes[runnerIndex]) {
+        const flash = radarIdentifyFlashes[runnerIndex];
+        const elapsed = timeMs - flash.startTime;
+        if (elapsed >= 0 && elapsed <= flash.duration) {
+            const cycle = Math.floor(elapsed / 120);
+            if (cycle % 2 === 0) {
+                return { r: flash.color.r, g: flash.color.g, b: flash.color.b, alpha: 1.0 };
+            } else {
+                return { r: 0, g: 0, b: 0, alpha: 0.0 };
+            }
+        } else if (elapsed > flash.duration) {
+            delete radarIdentifyFlashes[runnerIndex];
+        }
+    }
+
     // 1. If 30-Second Fleet Show is Active: Evaluate Choreographed Block
     if (fleetShowActive) {
         return evalActiveFleetShowColor(runnerIndex, runner, effectiveData, ledIndex, totalLeds, timeMs, fleetShowElapsedSec);
@@ -10870,6 +10886,321 @@ function initPowerBudgetCalculator() {
 window.initPowerBudgetCalculator = initPowerBudgetCalculator;
 
 // ============================================================================
+// PRE-RACE CORRAL ROLL CALL & ESP-NOW FLEET RADAR
+// ============================================================================
+const radarIdentifyFlashes = {};
+
+const DEFAULT_FLEET_RADAR = [
+    { id: 1, name: "The Train", role: "LEADER", tag: "CASEY JR.", color: "#ff5e3a", icon: "🚂", status: "ONLINE", rssi: -44, voltage: 5.14, batteryPct: 99, lastSeenSec: 0.2 },
+    { id: 2, name: "Title Drum", role: "FOLLOWER", tag: "THE DRUM", color: "#f1e05a", icon: "🥁", status: "ONLINE", rssi: -52, voltage: 5.10, batteryPct: 97, lastSeenSec: 0.5 },
+    { id: 3, name: "The Turtle", role: "FOLLOWER", tag: "TURTLE", color: "#2ec4b6", icon: "🐢", status: "ONLINE", rssi: -58, voltage: 5.12, batteryPct: 98, lastSeenSec: 1.1 },
+    { id: 4, name: "The Snail", role: "FOLLOWER", tag: "SNAIL", color: "#ff007f", icon: "🐌", status: "ONLINE", rssi: -61, voltage: 5.08, batteryPct: 95, lastSeenSec: 1.4 },
+    { id: 5, name: "Cinderella", role: "FOLLOWER", tag: "COACH", color: "#05d9e8", icon: "🩵", status: "ONLINE", rssi: -63, voltage: 5.11, batteryPct: 96, lastSeenSec: 0.8 },
+    { id: 6, name: "Pete's Dragon", role: "FOLLOWER", tag: "ELLIOTT", color: "#39ff14", icon: "🐉", status: "ONLINE", rssi: -55, voltage: 5.15, batteryPct: 99, lastSeenSec: 0.4 },
+    { id: 7, name: "Flag & Eagle", role: "FOLLOWER", tag: "PATRIOTIC", color: "#388bfd", icon: "🦅", status: "ONLINE", rssi: -69, voltage: 5.09, batteryPct: 94, lastSeenSec: 2.1 }
+];
+
+let fleetRadarFloats = JSON.parse(JSON.stringify(DEFAULT_FLEET_RADAR));
+let fleetRadarScenario = 'perfect';
+
+function renderFleetRadarGrid() {
+    const grid = document.getElementById('fleetRadarGrid');
+    if (!grid) return;
+
+    let onlineCount = 0;
+    let offlineCount = 0;
+    let conflictCount = 0;
+
+    grid.innerHTML = '';
+
+    fleetRadarFloats.forEach(f => {
+        const isOnline = f.status === 'ONLINE';
+        const isConflict = f.status === 'CONFLICT';
+        const isWeak = (f.rssi <= -82 && isOnline);
+
+        if (isConflict) conflictCount++;
+        else if (isOnline) onlineCount++;
+        else offlineCount++;
+
+        // Status badge styling
+        let statusText = '🟢 READY';
+        let statusBadgeStyle = 'background: rgba(46, 160, 67, 0.2); color: #3fb950; border: 1px solid rgba(46, 160, 67, 0.4);';
+        if (isConflict) {
+            statusText = '⚠️ CONFLICT';
+            statusBadgeStyle = 'background: rgba(248, 81, 73, 0.2); color: #f85149; border: 1px solid rgba(248, 81, 73, 0.5); font-weight: 700;';
+        } else if (!isOnline) {
+            statusText = '🔴 OFFLINE';
+            statusBadgeStyle = 'background: rgba(139, 148, 158, 0.2); color: #8b949e; border: 1px solid rgba(139, 148, 158, 0.4);';
+        } else if (isWeak) {
+            statusText = '🟡 WEAK LINK';
+            statusBadgeStyle = 'background: rgba(210, 153, 34, 0.2); color: #e3b341; border: 1px solid rgba(210, 153, 34, 0.4);';
+        }
+
+        // RSSI Signal Bars (4 pips)
+        let signalBars = '●○○○';
+        let signalColor = '#f85149';
+        if (!isOnline) {
+            signalBars = '○○○○';
+            signalColor = '#484f58';
+        } else if (f.rssi > -55) {
+            signalBars = '●●●●';
+            signalColor = '#3fb950';
+        } else if (f.rssi > -70) {
+            signalBars = '●●●○';
+            signalColor = '#58a6ff';
+        } else if (f.rssi > -82) {
+            signalBars = '●●○○';
+            signalColor = '#d29922';
+        }
+
+        const roleBadge = f.role === 'LEADER'
+            ? `<span style="font-size: 8.5px; background: rgba(248,81,73,0.25); color: #ff7b72; padding: 1px 5px; border-radius: 3px; font-weight: 700; border: 1px solid rgba(248,81,73,0.4);">👑 LEADER</span>`
+            : `<span style="font-size: 8.5px; background: rgba(56,139,253,0.15); color: #79c0ff; padding: 1px 5px; border-radius: 3px; font-weight: 600;">📡 FOLLOWER</span>`;
+
+        const card = document.createElement('div');
+        card.id = `radarCard_${f.id}`;
+        card.style.background = '#0d1117';
+        card.style.border = `1px solid ${isConflict ? '#f85149' : (isOnline ? '#30363d' : '#21262d')}`;
+        card.style.borderRadius = '6px';
+        card.style.padding = '8px 10px';
+        card.style.display = 'flex';
+        card.style.alignItems = 'center';
+        card.style.justifyContent = 'space-between';
+        card.style.gap = '8px';
+        card.style.transition = 'all 0.2s ease';
+
+        const lastSeenText = isOnline 
+            ? (f.lastSeenSec < 1 ? 'Just now' : `${f.lastSeenSec.toFixed(1)}s ago`) 
+            : 'No response';
+
+        card.innerHTML = `
+            <!-- Left Info -->
+            <div style="display: flex; align-items: center; gap: 8px; flex: 1.2; min-width: 0;">
+                <span style="font-size: 16px; line-height: 1;">${f.icon || '✨'}</span>
+                <div style="overflow: hidden;">
+                    <div style="display: flex; align-items: center; gap: 5px; margin-bottom: 2px;">
+                        <span style="font-size: 10px; font-weight: 700; color: #8b949e; font-family: monospace;">#0${f.id}</span>
+                        <span style="font-size: 11px; font-weight: 700; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${f.name}</span>
+                        ${roleBadge}
+                    </div>
+                    <div style="font-size: 9.5px; color: var(--text-muted); display: flex; gap: 6px;">
+                        <span>${f.tag}</span>
+                        <span>•</span>
+                        <span style="color: ${isOnline ? '#8b949e' : '#484f58'};">${lastSeenText}</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Middle Telemetry (Signal & Voltage) -->
+            <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 2px; flex: 1; text-align: right;">
+                <div style="display: flex; align-items: center; gap: 4px;">
+                    <span style="font-size: 9px; font-family: monospace; color: ${signalColor};">${signalBars}</span>
+                    <span style="font-size: 10px; font-family: monospace; color: ${signalColor}; font-weight: 600;">${isOnline ? f.rssi + ' dBm' : 'NO LINK'}</span>
+                </div>
+                <div style="font-size: 9.5px; color: #8b949e; font-family: monospace;">
+                    🔋 ${isOnline ? `${f.voltage.toFixed(2)}V (${f.batteryPct}%)` : '--'}
+                </div>
+            </div>
+
+            <!-- Right Status & Identify Action -->
+            <div style="display: flex; align-items: center; gap: 6px; flex: none;">
+                <span style="font-size: 9.5px; padding: 2px 6px; border-radius: 4px; font-weight: 600; white-space: nowrap; ${statusBadgeStyle}">
+                    ${statusText}
+                </span>
+                <button type="button" class="action-btn radar-identify-btn" data-float-id="${f.id}" style="font-size: 10px; padding: 4px 8px; border-color: ${f.color}; color: #fff; background: rgba(255,255,255,0.06); white-space: nowrap;" title="Trigger 3-flash identify pulse on this costume">
+                    ✨ Identify
+                </button>
+            </div>
+        `;
+
+        grid.appendChild(card);
+    });
+
+    // Wire Identify buttons
+    grid.querySelectorAll('.radar-identify-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const fid = parseInt(btn.getAttribute('data-float-id'), 10);
+            if (fid) triggerIdentifyFloat(fid);
+        });
+    });
+
+    // Update Header Status Banner
+    const statusPill = document.getElementById('fleetRadarStatusPill');
+    const activeText = document.getElementById('fleetRadarActiveCountText');
+    if (conflictCount > 0) {
+        if (statusPill) {
+            statusPill.textContent = `🔴 ${conflictCount} CONFLICT`;
+            statusPill.style.background = 'rgba(248, 81, 73, 0.25)';
+            statusPill.style.color = '#f85149';
+            statusPill.style.borderColor = 'rgba(248, 81, 73, 0.5)';
+        }
+        if (activeText) {
+            activeText.textContent = `⚠️ CONFLICT: Duplicate Float Detected! Check runner configurations`;
+            activeText.style.color = '#f85149';
+        }
+    } else if (offlineCount > 0) {
+        if (statusPill) {
+            statusPill.textContent = `🟡 ${onlineCount}/7 READY`;
+            statusPill.style.background = 'rgba(210, 153, 34, 0.25)';
+            statusPill.style.color = '#e3b341';
+            statusPill.style.borderColor = 'rgba(210, 153, 34, 0.5)';
+        }
+        if (activeText) {
+            activeText.textContent = `${onlineCount} Online · ${offlineCount} Missing / Offline · 0 Conflict`;
+            activeText.style.color = '#e3b341';
+        }
+    } else {
+        if (statusPill) {
+            statusPill.textContent = `🟢 7/7 READY`;
+            statusPill.style.background = 'rgba(46, 160, 67, 0.25)';
+            statusPill.style.color = '#3fb950';
+            statusPill.style.borderColor = 'rgba(46, 160, 67, 0.5)';
+        }
+        if (activeText) {
+            activeText.textContent = `7 Online · 0 Offline · 0 Conflict (Ready for Start Gun!)`;
+            activeText.style.color = '#3fb950';
+        }
+    }
+}
+window.renderFleetRadarGrid = renderFleetRadarGrid;
+
+function hexToRgb(hex) {
+    if (!hex) return { r: 255, g: 255, b: 255 };
+    hex = hex.replace('#', '');
+    if (hex.length === 3) hex = hex.split('').map(c => c + c).join('');
+    const num = parseInt(hex, 16);
+    return {
+        r: (num >> 16) & 255,
+        g: (num >> 8) & 255,
+        b: num & 255
+    };
+}
+
+async function triggerIdentifyFloat(floatId) {
+    const floatObj = fleetRadarFloats.find(f => f.id === floatId) || DEFAULT_FLEET_RADAR[floatId - 1];
+    if (!floatObj) return;
+
+    // Trigger canvas strobe on runnerIndex (floatId - 1)
+    const runnerIdx = floatId - 1;
+    const nowTime = performance.now();
+    radarIdentifyFlashes[runnerIdx] = {
+        startTime: nowTime,
+        duration: 720, // 3 full cycles of 240ms (120ms ON, 120ms OFF)
+        color: hexToRgb(floatObj.color)
+    };
+
+    // Animate radar card
+    const card = document.getElementById(`radarCard_${floatId}`);
+    if (card) {
+        card.style.transition = 'box-shadow 0.2s ease, border-color 0.2s ease';
+        card.style.boxShadow = `0 0 16px ${floatObj.color}`;
+        card.style.borderColor = floatObj.color;
+        setTimeout(() => {
+            card.style.boxShadow = 'none';
+            card.style.borderColor = (floatObj.status === 'CONFLICT') ? '#f85149' : (floatObj.status === 'ONLINE' ? '#30363d' : '#21262d');
+        }, 800);
+    }
+
+    showToast(`✨ Pinging Float ${floatId} (${floatObj.name}) - Flashing 3x!`);
+
+    // Broadcast UDP/API command
+    try {
+        await fetch('/api/fleet_radar/identify', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ targetFloatId: floatId, targetIp: wifiTargetIp || '255.255.255.255' })
+        });
+    } catch (e) {
+        console.warn("API identify call skipped:", e);
+    }
+}
+window.triggerIdentifyFloat = triggerIdentifyFloat;
+
+async function triggerIdentifyAllFloats() {
+    showToast(`✨ Flashing full 7-float lineup in sequence (1 ➔ 7)!`);
+    for (let fid = 1; fid <= 7; fid++) {
+        setTimeout(() => {
+            triggerIdentifyFloat(fid);
+        }, (fid - 1) * 200);
+    }
+}
+window.triggerIdentifyAllFloats = triggerIdentifyAllFloats;
+
+async function scanFleetRadar() {
+    const scanBtn = document.getElementById('fleetRadarScanBtn');
+    if (scanBtn) {
+        scanBtn.disabled = true;
+        scanBtn.innerHTML = `🔄 Scanning Corral...`;
+        scanBtn.style.opacity = '0.7';
+    }
+
+    try {
+        await fetch('/api/fleet_radar/scan', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ targetIp: wifiTargetIp || '255.255.255.255' })
+        });
+    } catch (e) {}
+
+    setTimeout(() => {
+        applyRadarScenario(fleetRadarScenario);
+        if (scanBtn) {
+            scanBtn.disabled = false;
+            scanBtn.innerHTML = `📡 Scan Corral / Ping Fleet`;
+            scanBtn.style.opacity = '1';
+        }
+        showToast(`📡 Corral Roll Call Scan complete: ${fleetRadarFloats.filter(f => f.status === 'ONLINE').length}/7 Floats Ready!`);
+    }, 600);
+}
+window.scanFleetRadar = scanFleetRadar;
+
+function applyRadarScenario(scenario) {
+    fleetRadarScenario = scenario;
+    fleetRadarFloats = JSON.parse(JSON.stringify(DEFAULT_FLEET_RADAR));
+
+    if (scenario === 'missing_4') {
+        const f4 = fleetRadarFloats.find(f => f.id === 4);
+        if (f4) {
+            f4.status = 'OFFLINE';
+            f4.rssi = -99;
+            f4.lastSeenSec = 720; // 12 mins ago
+        }
+    } else if (scenario === 'conflict_6') {
+        const f6 = fleetRadarFloats.find(f => f.id === 6);
+        if (f6) {
+            f6.status = 'CONFLICT';
+            f6.tag = 'CONFLICT (2 BOARDS)';
+        }
+    } else if (scenario === 'weak_7') {
+        const f7 = fleetRadarFloats.find(f => f.id === 7);
+        if (f7) {
+            f7.rssi = -88;
+            f7.lastSeenSec = 3.8;
+        }
+    }
+
+    renderFleetRadarGrid();
+}
+window.applyRadarScenario = applyRadarScenario;
+
+function initFleetRadar() {
+    const scanBtn = document.getElementById('fleetRadarScanBtn');
+    const identifyAllBtn = document.getElementById('fleetRadarIdentifyAllBtn');
+    const scenarioSelect = document.getElementById('fleetRadarScenarioSelect');
+
+    scanBtn?.addEventListener('click', scanFleetRadar);
+    identifyAllBtn?.addEventListener('click', triggerIdentifyAllFloats);
+
+    scenarioSelect?.addEventListener('change', (e) => {
+        applyRadarScenario(e.target.value);
+    });
+
+    renderFleetRadarGrid();
+}
+window.initFleetRadar = initFleetRadar;
+
+// ============================================================================
 // WI-FI LIVE STREAM ENGINE & RECEIVER FLASHER
 // ============================================================================
 let isWifiStreaming = false;
@@ -11316,12 +11647,14 @@ if (document.readyState === 'loading') {
         initTimelineCollapse();
         initFleetManager();
         initPowerBudgetCalculator();
+        initFleetRadar();
     });
 } else {
     initSidebarTabs();
     initTimelineCollapse();
     initFleetManager();
     initPowerBudgetCalculator();
+    initFleetRadar();
 }
 
 
