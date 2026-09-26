@@ -93,6 +93,23 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### Entry: Inspector Suppression in Draw Mode & Reliable ID-Based In-Place Group Updates
+* **Date:** 2026-09-25
+* **Status:** Operational & Verified in Web Simulator and PlatformIO Build.
+* **Notes:**
+  * **Inspector Standby Suppression During Draw Mode (`isDrawGroupMode`):**
+    - Guaranteed that the docked Inspector at the bottom of the sidebar remains collapsed in standby (`dock-empty`) throughout drawing mode, preventing distracting dock expansions, stepper shifts, or color input flashing while clicking points on the shirt.
+    - Suppressed selection mutations during point placement so placed LEDs are recorded in sequential order without activating individual bulb inspection.
+  * **Reliable In-Place Group Editing & Saving:**
+    - Fixed root-cause issue where `updateLedInspectorUI()` was forcibly re-reading stale group properties and overwriting user modifications before "Update Group" could be clicked.
+    - Introduced explicit `selectedGroupId` state tracking so modifying group properties (including renaming the group) updates the exact group in-place by unique ID rather than brittle string name matching, preventing duplicate groups or lost LED allocations.
+    - Synchronized all form inputs bidirectionally between the Groups Creation Hub (`From Selection` panel) and the docked Inspector (Name, Effect, Speed BPM, Direction, Resting Baseline, and Fireworks Burst Radius).
+    - Unified button labeling and color states: displays `💾 Update Group "[Name]"` (blue accent) when editing an existing group and `💾 Save Selection as Group` (green accent) when configuring a new group.
+  * **Automated & Toolchain Verification:**
+    - JavaScript syntax validated (`node -c simulator/app.js`).
+    - HTTP server verified via curl (`HTTP/1.0 200 OK`).
+    - Standalone ESP32 C++ firmware compiled cleanly (`pio run`) at 14.3% RAM and 59.6% Flash.
+
 ### Entry: Unified Group Creation Hub, Click-to-Draw Sequential Path Tool, and Relocated Fireworks Stamper
 * **Date:** 2026-09-25
 * **Status:** Operational & Verified in Web Simulator and PlatformIO Build.

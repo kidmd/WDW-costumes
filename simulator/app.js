@@ -164,6 +164,7 @@ let drawGroupPoints = [];
 // Array of { id, name, ledIndices: [idx...], effect: 'chase'|'flash_slow'|..., speedBpm, direction, width, colorMode, customColor }
 let animationGroups = [];
 let ledGroupMap = {}; // mapping: ledIndex -> { group, indexInGroup, groupSize }
+let selectedGroupId = null; // Track currently selected/editing animation group ID
 
 function rebuildLedGroupMap() {
     ledGroupMap = {};
@@ -1995,6 +1996,8 @@ function selectLed(index, isMulti = false) {
 function deselectLed() {
     selectedLed = null;
     selectedLeds.clear();
+    selectedGroupId = null;
+    resetGroupFormToDefaults();
     updateLedInspectorUI();
 }
 
@@ -2114,6 +2117,121 @@ function updateLedInspectorColorInputs(r, g, b) {
     if (bNum) bNum.value = b;
 }
 
+function populateGroupForm(grp) {
+    if (!grp) return;
+    selectedGroupId = grp.id;
+
+    const nameHub = document.getElementById('groupNameInputHub');
+    const nameDoc = document.getElementById('groupNameInput');
+    const effHub = document.getElementById('groupEffectSelectHub');
+    const effDoc = document.getElementById('groupEffectSelect');
+    const spdHub = document.getElementById('groupSpeedSliderHub');
+    const spdDoc = document.getElementById('groupSpeedSlider');
+    const spdValHub = document.getElementById('groupSpeedValHub');
+    const spdValDoc = document.getElementById('groupSpeedVal');
+    const dirHub = document.getElementById('groupDirectionSelectHub');
+    const dirDoc = document.getElementById('groupDirectionSelect');
+    const baseHub = document.getElementById('groupBaselineSelectHub');
+    const baseDoc = document.getElementById('groupBaselineSelect');
+
+    const nameVal = grp.name || '';
+    const effVal = grp.effect || 'chase';
+    const spdVal = grp.speedBpm || 140;
+    const dirVal = String(grp.direction || 1);
+    const baseVal = grp.baselineEffect || (effVal === 'fireworks' ? 'off' : 'inherit');
+
+    if (nameHub) nameHub.value = nameVal;
+    if (nameDoc) nameDoc.value = nameVal;
+    if (effHub) effHub.value = effVal;
+    if (effDoc) effDoc.value = effVal;
+    if (spdHub) spdHub.value = spdVal;
+    if (spdDoc) spdDoc.value = spdVal;
+    if (spdValHub) spdValHub.textContent = `${spdVal} BPM`;
+    if (spdValDoc) spdValDoc.textContent = `${spdVal} BPM`;
+    if (dirHub) dirHub.value = dirVal;
+    if (dirDoc) dirDoc.value = dirVal;
+    if (baseHub) baseHub.value = baseVal;
+    if (baseDoc) baseDoc.value = baseVal;
+
+    // Toggle Fireworks Burst Radius row if firework
+    const fwRow = document.getElementById('groupFwRadiusRow');
+    if (fwRow) {
+        const isFw = effVal === 'fireworks';
+        fwRow.style.display = isFw ? 'block' : 'none';
+        if (isFw) {
+            const rPct = Math.round((grp.burstRadius || 0.13) * 100);
+            const gSlider = document.getElementById('groupFwRadiusSlider');
+            const gVal = document.getElementById('groupFwRadiusVal');
+            if (gSlider) gSlider.value = rPct;
+            if (gVal) gVal.textContent = `${rPct}%`;
+        }
+    }
+
+    const saveHubBtn = document.getElementById('saveSelectionGroupBtnHub');
+    const applyBtn = document.getElementById('applyGroupEffectBtn');
+    const updateText = `💾 Update Group "${nameVal}"`;
+    const updateBg = 'linear-gradient(135deg, #1f6feb, #388bfd)';
+    const updateBorder = '#388bfd';
+    if (saveHubBtn) {
+        saveHubBtn.innerHTML = updateText;
+        saveHubBtn.style.background = updateBg;
+        saveHubBtn.style.borderColor = updateBorder;
+    }
+    if (applyBtn) {
+        applyBtn.innerHTML = updateText;
+        applyBtn.style.background = updateBg;
+        applyBtn.style.borderColor = updateBorder;
+    }
+}
+
+function resetGroupFormToDefaults() {
+    selectedGroupId = null;
+    const nameHub = document.getElementById('groupNameInputHub');
+    const nameDoc = document.getElementById('groupNameInput');
+    const effHub = document.getElementById('groupEffectSelectHub');
+    const effDoc = document.getElementById('groupEffectSelect');
+    const spdHub = document.getElementById('groupSpeedSliderHub');
+    const spdDoc = document.getElementById('groupSpeedSlider');
+    const spdValHub = document.getElementById('groupSpeedValHub');
+    const spdValDoc = document.getElementById('groupSpeedVal');
+    const dirHub = document.getElementById('groupDirectionSelectHub');
+    const dirDoc = document.getElementById('groupDirectionSelect');
+    const baseHub = document.getElementById('groupBaselineSelectHub');
+    const baseDoc = document.getElementById('groupBaselineSelect');
+
+    if (nameHub) nameHub.value = '';
+    if (nameDoc) nameDoc.value = '';
+    if (effHub) effHub.value = 'chase';
+    if (effDoc) effDoc.value = 'chase';
+    if (spdHub) spdHub.value = 140;
+    if (spdDoc) spdDoc.value = 140;
+    if (spdValHub) spdValHub.textContent = '140 BPM';
+    if (spdValDoc) spdValDoc.textContent = '140 BPM';
+    if (dirHub) dirHub.value = '1';
+    if (dirDoc) dirDoc.value = '1';
+    if (baseHub) baseHub.value = 'inherit';
+    if (baseDoc) baseDoc.value = 'inherit';
+
+    const fwRow = document.getElementById('groupFwRadiusRow');
+    if (fwRow) fwRow.style.display = 'none';
+
+    const saveHubBtn = document.getElementById('saveSelectionGroupBtnHub');
+    const applyBtn = document.getElementById('applyGroupEffectBtn');
+    const saveText = `💾 Save Selection as Group`;
+    const saveBg = 'linear-gradient(135deg, #238636, #2ea043)';
+    const saveBorder = '#2ea043';
+    if (saveHubBtn) {
+        saveHubBtn.innerHTML = saveText;
+        saveHubBtn.style.background = saveBg;
+        saveHubBtn.style.borderColor = saveBorder;
+    }
+    if (applyBtn) {
+        applyBtn.innerHTML = saveText;
+        applyBtn.style.background = saveBg;
+        applyBtn.style.borderColor = saveBorder;
+    }
+}
+
 function updateLedInspectorUI() {
     const emptyPrompt = document.getElementById('inspectorEmptyPrompt');
     const colorControls = document.getElementById('inspectorColorControls');
@@ -2122,12 +2240,29 @@ function updateLedInspectorUI() {
     const stepperRow = document.getElementById('inspectorStepperRow');
     const multiRow = document.getElementById('inspectorMultiSelectRow');
     const groupBadge = document.getElementById('groupEffectLedCountBadge');
+    const inspectorSection = document.getElementById('ledInspectorSection');
+
+    // While drawing a sequential path on shirt, keep the docked inspector completely collapsed/standby
+    if (isDrawGroupMode) {
+        if (inspectorSection) {
+            inspectorSection.classList.remove('dock-active');
+            inspectorSection.classList.add('dock-empty');
+        }
+        if (emptyPrompt) emptyPrompt.style.display = 'block';
+        if (colorControls) colorControls.style.display = 'none';
+        if (stepperRow) stepperRow.style.display = 'none';
+        if (multiRow) multiRow.style.display = 'none';
+        const groupFwRow = document.getElementById('groupFwRadiusRow');
+        if (groupFwRow) groupFwRow.style.display = 'none';
+        const quickPrompt = document.getElementById('inspectorQuickGroupsPrompt');
+        if (quickPrompt) quickPrompt.style.display = 'none';
+        return;
+    }
 
     const totalSelected = selectedLeds.size;
 
-    const inspectorSection = document.getElementById('ledInspectorSection');
-
     if (totalSelected === 0) {
+        selectedGroupId = null;
         if (inspectorSection) {
             inspectorSection.classList.remove('dock-active');
             inspectorSection.classList.add('dock-empty');
@@ -2225,23 +2360,9 @@ function updateLedInspectorUI() {
             numInput.max = Math.max(0, leds.length - 1);
         }
 
-        // If this LED belongs to a group, populate group inputs
-        if (grpEntry && grpEntry.group) {
-            const grp = grpEntry.group;
-            const nameInput = document.getElementById('groupNameInput');
-            const effectSelect = document.getElementById('groupEffectSelect');
-            const speedSlider = document.getElementById('groupSpeedSlider');
-            const speedVal = document.getElementById('groupSpeedVal');
-            const dirSelect = document.getElementById('groupDirectionSelect');
-            if (nameInput) nameInput.value = grp.name;
-            if (effectSelect) effectSelect.value = grp.effect;
-            if (speedSlider) {
-                speedSlider.value = grp.speedBpm;
-                if (speedVal) speedVal.textContent = `${grp.speedBpm} BPM`;
-            }
-            if (dirSelect) dirSelect.value = String(grp.direction || 1);
-            const baselineSelect = document.getElementById('groupBaselineSelect');
-            if (baselineSelect) baselineSelect.value = grp.baselineEffect || (grp.effect === 'fireworks' ? 'off' : 'inherit');
+        // If this LED belongs to a group, populate group inputs if not already editing this group
+        if (grpEntry && grpEntry.group && selectedGroupId !== grpEntry.group.id) {
+            populateGroupForm(grpEntry.group);
         }
     } else {
         // Multi-selection (> 1)
@@ -2281,7 +2402,7 @@ function updateLedInspectorUI() {
         }
 
         if (!isFw) {
-            const effectSelect = document.getElementById('groupEffectSelect');
+            const effectSelect = document.getElementById('groupEffectSelectHub') || document.getElementById('groupEffectSelect');
             if (effectSelect && effectSelect.value === 'fireworks') {
                 isFw = true;
                 fwGrp = typeof getActiveFireworksGroup === 'function' ? getActiveFireworksGroup() : null;
@@ -2316,30 +2437,24 @@ function updateLedInspectorUI() {
         updateLedInspectorColorInputs(col.r, col.g, col.b);
     }
 
-    // Dynamic Save vs. Update Button text and styling
-    const applyBtn = document.getElementById('applyGroupEffectBtn');
-    if (applyBtn) {
-        const nameInput = document.getElementById('groupNameInput');
-        const rawName = (nameInput?.value || '').trim();
-        const existingGrp = (rawName ? animationGroups.find(g => g.name.toLowerCase() === rawName.toLowerCase()) : null) ||
-            (selectedLed !== null && ledGroupMap[selectedLed] ? ledGroupMap[selectedLed].group : null);
-        if (existingGrp) {
-            applyBtn.innerHTML = `💾 Update Group "${existingGrp.name}"`;
-            applyBtn.style.background = 'linear-gradient(135deg, #1f6feb, #388bfd)';
-            applyBtn.style.borderColor = '#388bfd';
-        } else {
-            applyBtn.innerHTML = `💾 Save Selection as Group`;
-            applyBtn.style.background = 'linear-gradient(135deg, #238636, #2ea043)';
-            applyBtn.style.borderColor = '#2ea043';
-        }
-    }
-
-    // Update Group Creation Hub (in tabGroups)
+    // Update Group Creation Hub in tabGroups & Action Buttons
     const selEmpty = document.getElementById('creationSelectEmptyText');
     const selActive = document.getElementById('creationSelectActiveText');
     const selCount = document.getElementById('creationSelectCountText');
     const selRange = document.getElementById('creationSelectRangeText');
     const saveHubBtn = document.getElementById('saveSelectionGroupBtnHub');
+    const applyBtn = document.getElementById('applyGroupEffectBtn');
+
+    let activeGrp = null;
+    if (selectedGroupId) {
+        activeGrp = animationGroups.find(g => g.id === selectedGroupId);
+    } else {
+        const nameInput = document.getElementById('groupNameInputHub') || document.getElementById('groupNameInput');
+        const rawName = (nameInput?.value || '').trim();
+        if (rawName) {
+            activeGrp = animationGroups.find(g => g.name.toLowerCase() === rawName.toLowerCase());
+        }
+    }
 
     if (totalSelected >= 2) {
         if (selEmpty) selEmpty.style.display = 'none';
@@ -2347,45 +2462,35 @@ function updateLedInspectorUI() {
         if (selCount) selCount.textContent = `✨ ${totalSelected} LEDs Selected`;
         if (selRange) selRange.textContent = `Indices: ${formatIndexSummary(Array.from(selectedLeds))}`;
 
-        const nameInput = document.getElementById('groupNameInput');
-        const rawName = (nameInput?.value || '').trim();
-        const existingGrp = (rawName ? animationGroups.find(g => g.name.toLowerCase() === rawName.toLowerCase()) : null) ||
-            (selectedLed !== null && ledGroupMap[selectedLed] ? ledGroupMap[selectedLed].group : null);
+        const btnText = activeGrp ? `💾 Update Group "${activeGrp.name}"` : `💾 Save Selection as Group`;
+        const btnBg = activeGrp ? 'linear-gradient(135deg, #1f6feb, #388bfd)' : 'linear-gradient(135deg, #238636, #2ea043)';
+        const btnBorder = activeGrp ? '#388bfd' : '#2ea043';
 
-        if (existingGrp) {
-            const hubName = document.getElementById('groupNameInputHub');
-            const hubEff = document.getElementById('groupEffectSelectHub');
-            const hubSpd = document.getElementById('groupSpeedSliderHub');
-            const hubSpdVal = document.getElementById('groupSpeedValHub');
-            const hubDir = document.getElementById('groupDirectionSelectHub');
-            const hubBase = document.getElementById('groupBaselineSelectHub');
-
-            if (hubName && document.activeElement !== hubName) hubName.value = existingGrp.name;
-            if (hubEff) hubEff.value = existingGrp.effect;
-            if (hubSpd) hubSpd.value = existingGrp.speedBpm;
-            if (hubSpdVal) hubSpdVal.textContent = `${existingGrp.speedBpm} BPM`;
-            if (hubDir) hubDir.value = String(existingGrp.direction || 1);
-            if (hubBase) hubBase.value = existingGrp.baselineEffect || (existingGrp.effect === 'fireworks' ? 'off' : 'inherit');
-
-            if (saveHubBtn) {
-                saveHubBtn.innerHTML = `💾 Update Group "${existingGrp.name}"`;
-                saveHubBtn.style.background = 'linear-gradient(135deg, #1f6feb, #388bfd)';
-                saveHubBtn.style.borderColor = '#388bfd';
-            }
-        } else {
-            if (saveHubBtn) {
-                saveHubBtn.innerHTML = `💾 Save Selection as Group`;
-                saveHubBtn.style.background = 'linear-gradient(135deg, #238636, #2ea043)';
-                saveHubBtn.style.borderColor = '#2ea043';
-            }
+        if (saveHubBtn) {
+            saveHubBtn.innerHTML = btnText;
+            saveHubBtn.style.background = btnBg;
+            saveHubBtn.style.borderColor = btnBorder;
+        }
+        if (applyBtn) {
+            applyBtn.innerHTML = btnText;
+            applyBtn.style.background = btnBg;
+            applyBtn.style.borderColor = btnBorder;
         }
     } else {
         if (selEmpty) selEmpty.style.display = 'block';
         if (selActive) selActive.style.display = 'none';
+        const defaultText = activeGrp ? `💾 Update Group "${activeGrp.name}"` : `💾 Save Selection as Group`;
+        const defaultBg = activeGrp ? 'linear-gradient(135deg, #1f6feb, #388bfd)' : 'linear-gradient(135deg, #238636, #2ea043)';
+        const defaultBorder = activeGrp ? '#388bfd' : '#2ea043';
         if (saveHubBtn) {
-            saveHubBtn.innerHTML = `💾 Save Selection as Group`;
-            saveHubBtn.style.background = 'linear-gradient(135deg, #238636, #2ea043)';
-            saveHubBtn.style.borderColor = '#2ea043';
+            saveHubBtn.innerHTML = defaultText;
+            saveHubBtn.style.background = defaultBg;
+            saveHubBtn.style.borderColor = defaultBorder;
+        }
+        if (applyBtn) {
+            applyBtn.innerHTML = defaultText;
+            applyBtn.style.background = defaultBg;
+            applyBtn.style.borderColor = defaultBorder;
         }
     }
 }
@@ -2461,8 +2566,8 @@ function handleDrawGroupClick(normX, normY) {
 
     drawGroupLedIndices.push(targetIdx);
     drawGroupPoints.push({ x: leds[targetIdx].x, y: leds[targetIdx].y });
-    selectedLeds.add(targetIdx);
-    selectedLed = targetIdx;
+    // Note: Do NOT add to selectedLeds or set selectedLed while drawing
+    // so the docked inspector stays closed and does not distract the user!
 
     updateDrawGroupUI();
     showToast(`📍 Placed Point ${drawGroupLedIndices.length}: LED #${targetIdx}!`);
@@ -2492,8 +2597,6 @@ function updateDrawGroupUI() {
     const canFinish = count >= 2;
     if (finishBtn) finishBtn.disabled = !canFinish;
     if (canvasFinishBtn) canvasFinishBtn.disabled = !canFinish;
-
-    updateLedInspectorUI();
 }
 
 function startDrawGroupMode() {
@@ -2508,6 +2611,14 @@ function startDrawGroupMode() {
     drawGroupPoints = [];
     selectedLeds.clear();
     selectedLed = null;
+    selectedGroupId = null;
+
+    // Explicitly collapse the docked inspector so it stays out of the way
+    const inspectorSection = document.getElementById('ledInspectorSection');
+    if (inspectorSection) {
+        inspectorSection.classList.remove('dock-active');
+        inspectorSection.classList.add('dock-empty');
+    }
 
     switchGroupCreationMode('draw');
 
@@ -2556,6 +2667,7 @@ function cancelDrawGroup() {
     drawGroupPoints = [];
     selectedLeds.clear();
     selectedLed = null;
+    selectedGroupId = null;
     updateLedInspectorUI();
     showToast('Drawing mode cancelled.');
 }
@@ -2595,9 +2707,8 @@ function finishDrawGroup() {
     rebuildLedGroupMap();
     renderActiveGroupsList();
 
-    // Select the new group
-    selectGroupLeds(newGroup.id);
     stopDrawGroupMode();
+    selectGroupLeds(newGroup.id);
     showToast(`🎉 Saved group "${newGroup.name}" with ${newGroup.ledIndices.length} sequential LEDs!`);
 
     if (nameInput) nameInput.value = '';
@@ -2607,36 +2718,46 @@ function finishDrawGroup() {
 // ANIMATION GROUP MANAGEMENT ROUTINES
 // ----------------------------------------------------------------------------
 function applyGroupEffectToSelection() {
-    if (selectedLeds.size === 0) {
-        showToast("⚠️ Please select at least 2 LEDs to create or update an animation group!");
+    let targetGroup = null;
+    if (selectedGroupId) {
+        targetGroup = animationGroups.find(g => g.id === selectedGroupId);
+    }
+
+    if (!targetGroup && selectedLeds.size < 2) {
+        showToast("⚠️ Please select at least 2 LEDs to create or update an animation group!", "warning");
         return;
     }
 
-    const nameInput = document.getElementById('groupNameInputHub')?.value ? document.getElementById('groupNameInputHub') : document.getElementById('groupNameInput');
-    const effectSelect = document.getElementById('groupEffectSelectHub')?.value ? document.getElementById('groupEffectSelectHub') : document.getElementById('groupEffectSelect');
+    const nameInput = document.getElementById('groupNameInputHub') || document.getElementById('groupNameInput');
+    const effectSelect = document.getElementById('groupEffectSelectHub') || document.getElementById('groupEffectSelect');
     const speedSlider = document.getElementById('groupSpeedSliderHub') || document.getElementById('groupSpeedSlider');
     const dirSelect = document.getElementById('groupDirectionSelectHub') || document.getElementById('groupDirectionSelect');
     const baselineSelect = document.getElementById('groupBaselineSelectHub') || document.getElementById('groupBaselineSelect');
 
-    const rawName = (nameInput?.value || '').trim() || `Zone (${selectedLeds.size} LEDs)`;
+    const rawName = (nameInput?.value || '').trim() || (targetGroup ? targetGroup.name : `Zone (${selectedLeds.size} LEDs)`);
     const effect = effectSelect?.value || 'chase';
     const speedBpm = parseInt(speedSlider?.value || '140', 10);
     const direction = parseInt(dirSelect?.value || '1', 10);
     const baselineEffect = baselineSelect?.value || (effect === 'fireworks' ? 'off' : 'inherit');
 
-    const sortedIndices = Array.from(selectedLeds).sort((a, b) => a - b);
+    if (!targetGroup && rawName) {
+        targetGroup = animationGroups.find(g => g.name.toLowerCase() === rawName.toLowerCase());
+    }
 
-    // If an existing group with this exact name exists, update it; otherwise create new
-    let targetGroup = animationGroups.find(g => g.name.toLowerCase() === rawName.toLowerCase());
     const isNew = !targetGroup;
 
     if (targetGroup) {
-        targetGroup.ledIndices = sortedIndices;
+        targetGroup.name = rawName;
         targetGroup.effect = effect;
         targetGroup.speedBpm = speedBpm;
         targetGroup.direction = direction;
         targetGroup.baselineEffect = baselineEffect;
+        if (selectedLeds.size >= 2) {
+            targetGroup.ledIndices = Array.from(selectedLeds).sort((a, b) => a - b);
+        }
+        selectedGroupId = targetGroup.id;
     } else {
+        const sortedIndices = Array.from(selectedLeds).sort((a, b) => a - b);
         targetGroup = {
             id: 'grp_' + Date.now() + '_' + Math.floor(Math.random() * 1000),
             name: rawName,
@@ -2649,10 +2770,11 @@ function applyGroupEffectToSelection() {
             baselineEffect: baselineEffect
         };
         animationGroups.push(targetGroup);
+        selectedGroupId = targetGroup.id;
     }
 
     if (effect === 'fireworks') {
-        const count = sortedIndices.length;
+        const count = targetGroup.ledIndices.length;
         const inferredRays = (count % 5 === 0) ? 5 : ((count % 4 === 0) ? 4 : ((count % 6 === 0) ? 6 : ((count % 3 === 0) ? 3 : 5)));
         targetGroup.fireworkRays = targetGroup.fireworkRays || inferredRays;
         targetGroup.fireworkLedsPerRay = targetGroup.fireworkLedsPerRay || Math.round(count / targetGroup.fireworkRays);
@@ -2661,12 +2783,12 @@ function applyGroupEffectToSelection() {
 
     rebuildLedGroupMap();
     renderActiveGroupsList();
-    updateLedInspectorUI();
+    populateGroupForm(targetGroup);
 
     if (isNew) {
-        showToast(`🎉 Saved new group "${targetGroup.name}" (${sortedIndices.length} LEDs)!`);
+        showToast(`🎉 Saved new group "${targetGroup.name}" (${targetGroup.ledIndices.length} LEDs)!`);
     } else {
-        showToast(`✅ Updated group "${targetGroup.name}" (${sortedIndices.length} LEDs)!`);
+        showToast(`✅ Saved changes for group "${targetGroup.name}"!`);
     }
 }
 
@@ -2682,6 +2804,7 @@ function removeGroupEffectFromSelection() {
                 grp.ledIndices.splice(p, 1);
                 removedCount++;
                 if (grp.ledIndices.length === 0) {
+                    if (selectedGroupId === grp.id) resetGroupFormToDefaults();
                     animationGroups.splice(g, 1);
                 }
             }
@@ -2699,6 +2822,9 @@ function deleteGroup(groupId) {
     if (idx !== -1) {
         const name = animationGroups[idx].name;
         animationGroups.splice(idx, 1);
+        if (selectedGroupId === groupId) {
+            resetGroupFormToDefaults();
+        }
         rebuildLedGroupMap();
         renderActiveGroupsList();
         updateLedInspectorUI();
@@ -2710,31 +2836,23 @@ function selectGroupLeds(groupId) {
     const grp = animationGroups.find(g => g.id === groupId);
     if (!grp) return;
 
+    selectedGroupId = grp.id;
+
     selectedLeds.clear();
     for (const idx of grp.ledIndices) {
         if (idx < leds.length) selectedLeds.add(idx);
     }
     selectedLed = grp.ledIndices[0] || null;
 
-    const nameInput = document.getElementById('groupNameInput');
-    const effectSelect = document.getElementById('groupEffectSelect');
-    const speedSlider = document.getElementById('groupSpeedSlider');
-    const speedVal = document.getElementById('groupSpeedVal');
-    const dirSelect = document.getElementById('groupDirectionSelect');
+    // Switch Hub mode to 'select' so From Selection panel is visible
+    switchGroupCreationMode('select');
 
-    if (nameInput) nameInput.value = grp.name;
-    if (effectSelect) effectSelect.value = grp.effect;
-    if (speedSlider) {
-        speedSlider.value = grp.speedBpm;
-        if (speedVal) speedVal.textContent = `${grp.speedBpm} BPM`;
-    }
-    if (dirSelect) dirSelect.value = String(grp.direction || 1);
-    const baselineSelect = document.getElementById('groupBaselineSelect');
-    if (baselineSelect) baselineSelect.value = grp.baselineEffect || (grp.effect === 'fireworks' ? 'off' : 'inherit');
+    // Populate all form fields in both Hub and docked inspector
+    populateGroupForm(grp);
 
     updateLedInspectorUI();
     renderActiveGroupsList();
-    showToast(`🎯 Selected ${selectedLeds.size} LEDs for group "${grp.name}"!`);
+    showToast(`🎯 Selected & Editing group "${grp.name}" (${selectedLeds.size} LEDs)!`);
 }
 
 function formatIndexSummary(indices) {
@@ -4562,39 +4680,69 @@ document.getElementById('creationModeFwBtn')?.addEventListener('click', () => sw
 document.getElementById('saveSelectionGroupBtnHub')?.addEventListener('click', () => applyGroupEffectToSelection());
 document.getElementById('removeGroupEffectBtnHub')?.addEventListener('click', () => removeGroupEffectFromSelection());
 
-const groupSpeedSliderHub = document.getElementById('groupSpeedSliderHub');
-const groupSpeedValHub = document.getElementById('groupSpeedValHub');
-if (groupSpeedSliderHub) {
-    groupSpeedSliderHub.addEventListener('input', (e) => {
-        if (groupSpeedValHub) groupSpeedValHub.textContent = `${e.target.value} BPM`;
-        const gSlider = document.getElementById('groupSpeedSlider');
-        const gVal = document.getElementById('groupSpeedVal');
-        if (gSlider) gSlider.value = e.target.value;
-        if (gVal) gVal.textContent = `${e.target.value} BPM`;
-    });
-}
+// Bidirectional Group Form Synchronization (Hub <-> Docked Inspector)
+const nameHub = document.getElementById('groupNameInputHub');
+const nameDoc = document.getElementById('groupNameInput');
+const syncGroupName = (val) => {
+    if (nameHub && nameHub.value !== val) nameHub.value = val;
+    if (nameDoc && nameDoc.value !== val) nameDoc.value = val;
+    const saveHubBtn = document.getElementById('saveSelectionGroupBtnHub');
+    const applyBtn = document.getElementById('applyGroupEffectBtn');
+    const btnText = selectedGroupId ? `💾 Update Group "${val.trim() || 'Group'}"` : `💾 Save Selection as Group`;
+    if (saveHubBtn) saveHubBtn.innerHTML = btnText;
+    if (applyBtn) applyBtn.innerHTML = btnText;
+};
+nameHub?.addEventListener('input', (e) => syncGroupName(e.target.value));
+nameDoc?.addEventListener('input', (e) => syncGroupName(e.target.value));
 
-const groupBaselineSelectHub = document.getElementById('groupBaselineSelectHub');
-if (groupBaselineSelectHub) {
-    groupBaselineSelectHub.addEventListener('change', (e) => {
-        const val = e.target.value;
-        const gBase = document.getElementById('groupBaselineSelect');
-        if (gBase) gBase.value = val;
-        const nameInput = document.getElementById('groupNameInputHub') || document.getElementById('groupNameInput');
-        const rawName = (nameInput?.value || '').trim();
-        let grp = null;
-        if (selectedLed !== null && ledGroupMap[selectedLed]) {
-            grp = ledGroupMap[selectedLed].group;
-        } else if (rawName) {
-            grp = animationGroups.find(g => g.name.toLowerCase() === rawName.toLowerCase());
+const effHub = document.getElementById('groupEffectSelectHub');
+const effDoc = document.getElementById('groupEffectSelect');
+const syncGroupEffect = (val) => {
+    if (effHub && effHub.value !== val) effHub.value = val;
+    if (effDoc && effDoc.value !== val) effDoc.value = val;
+    const row = document.getElementById('groupFwRadiusRow');
+    if (row) {
+        const isFw = val === 'fireworks';
+        row.style.display = isFw ? 'block' : 'none';
+        if (isFw) {
+            const fwGrp = typeof getActiveFireworksGroup === 'function' ? getActiveFireworksGroup() : null;
+            if (fwGrp) syncFireworksSliders(fwGrp.centerNormX, fwGrp.centerNormY, fwGrp.burstRadius, fwGrp.fireworkColor);
         }
-        if (grp) {
-            grp.baselineEffect = val;
-            renderActiveGroupsList();
-            showToast(`💤 Set resting baseline for "${grp.name}" to: ${val}`);
-        }
-    });
-}
+    }
+};
+effHub?.addEventListener('change', (e) => syncGroupEffect(e.target.value));
+effDoc?.addEventListener('change', (e) => syncGroupEffect(e.target.value));
+
+const spdHub = document.getElementById('groupSpeedSliderHub');
+const spdDoc = document.getElementById('groupSpeedSlider');
+const spdValHub = document.getElementById('groupSpeedValHub');
+const spdValDoc = document.getElementById('groupSpeedVal');
+const syncGroupSpeed = (val) => {
+    if (spdHub && spdHub.value !== String(val)) spdHub.value = val;
+    if (spdDoc && spdDoc.value !== String(val)) spdDoc.value = val;
+    if (spdValHub) spdValHub.textContent = `${val} BPM`;
+    if (spdValDoc) spdValDoc.textContent = `${val} BPM`;
+};
+spdHub?.addEventListener('input', (e) => syncGroupSpeed(e.target.value));
+spdDoc?.addEventListener('input', (e) => syncGroupSpeed(e.target.value));
+
+const dirHub = document.getElementById('groupDirectionSelectHub');
+const dirDoc = document.getElementById('groupDirectionSelect');
+const syncGroupDir = (val) => {
+    if (dirHub && dirHub.value !== String(val)) dirHub.value = val;
+    if (dirDoc && dirDoc.value !== String(val)) dirDoc.value = val;
+};
+dirHub?.addEventListener('change', (e) => syncGroupDir(e.target.value));
+dirDoc?.addEventListener('change', (e) => syncGroupDir(e.target.value));
+
+const baseHub = document.getElementById('groupBaselineSelectHub');
+const baseDoc = document.getElementById('groupBaselineSelect');
+const syncGroupBaseline = (val) => {
+    if (baseHub && baseHub.value !== val) baseHub.value = val;
+    if (baseDoc && baseDoc.value !== val) baseDoc.value = val;
+};
+baseHub?.addEventListener('change', (e) => syncGroupBaseline(e.target.value));
+baseDoc?.addEventListener('change', (e) => syncGroupBaseline(e.target.value));
 
 // Hub Panel 2: Click-to-Draw Actions
 const drawGroupBtn = document.getElementById('drawGroupBtn');
@@ -4667,58 +4815,6 @@ document.getElementById('selectUnassignedBtn')?.addEventListener('click', () => 
     showToast(`⚡ Selected ${selectedLeds.size} unassigned LEDs! Customize effect and save as a group below.`);
 });
 
-const groupEffectSelect = document.getElementById('groupEffectSelect');
-if (groupEffectSelect) {
-    groupEffectSelect.addEventListener('change', (e) => {
-        const row = document.getElementById('groupFwRadiusRow');
-        if (row) {
-            const isFw = e.target.value === 'fireworks';
-            row.style.display = isFw ? 'block' : 'none';
-            if (isFw) {
-                const fwGrp = typeof getActiveFireworksGroup === 'function' ? getActiveFireworksGroup() : null;
-                if (fwGrp) {
-                    syncFireworksSliders(fwGrp.centerNormX, fwGrp.centerNormY, fwGrp.burstRadius, fwGrp.fireworkColor);
-                }
-            }
-        }
-    });
-}
-
-const groupSpeedSlider = document.getElementById('groupSpeedSlider');
-const groupSpeedVal = document.getElementById('groupSpeedVal');
-if (groupSpeedSlider) {
-    groupSpeedSlider.addEventListener('input', (e) => {
-        if (groupSpeedVal) groupSpeedVal.textContent = `${e.target.value} BPM`;
-    });
-}
-
-const groupBaselineSelect = document.getElementById('groupBaselineSelect');
-if (groupBaselineSelect) {
-    groupBaselineSelect.addEventListener('change', (e) => {
-        const val = e.target.value;
-        const nameInput = document.getElementById('groupNameInput');
-        const rawName = (nameInput?.value || '').trim();
-        let grp = null;
-        if (selectedLed !== null && ledGroupMap[selectedLed]) {
-            grp = ledGroupMap[selectedLed].group;
-        } else if (rawName) {
-            grp = animationGroups.find(g => g.name.toLowerCase() === rawName.toLowerCase());
-        }
-        if (grp) {
-            grp.baselineEffect = val;
-            renderActiveGroupsList();
-            const labelMap = {
-                inherit: 'Follow Overall Baseline (Default)',
-                off: 'Off / Completely Unlit (Pitch Black)',
-                steady_sparkle: 'Gentle Starlight Sparkle',
-                dim_glow: 'Dim Static Glow',
-                breathe: 'Calm Breathing Glow',
-                pulse_slow: 'Slow Resting Pulse'
-            };
-            showToast(`💤 Set resting baseline for "${grp.name}" to: ${labelMap[val] || val}`);
-        }
-    });
-}
 
 // ============================================================================
 // COLOR SCIENCE & VIBRANCY BOOSTING

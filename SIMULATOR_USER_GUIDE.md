@@ -134,8 +134,8 @@ The simulator features a streamlined, modern workspace inspired by creative suit
 
 ### 💡 Contextual Inspector Dock (Docked at Bottom of Sidebar)
 Instead of taking up vertical space in the middle of your workflow:
-- **Standby State (No Selection):** When no bulbs are selected, the Inspector rests as a compact status chip (`👆 Click an LED or drag on canvas to inspect`).
-- **Active State (Selected LED or Group):** When 1 or more LEDs are selected, the Inspector automatically expands with an illuminated gold accent border:
+- **Standby State (No Selection or Draw Mode):** When no bulbs are selected, or while actively drawing a path on the shirt (`✏️ Click-to-Draw`), the Inspector rests as a quiet, compact status chip (`👆 Click an LED or drag on canvas to inspect`). It stays collapsed during drawing so you can place sequential points on the garment without distracting UI jumps or unwanted dock expansions.
+- **Active State (Selected LED or Group):** When 1 or more LEDs are selected (or when editing a saved group), the Inspector automatically expands with an illuminated gold accent border:
   - LED number stepper (`◀ Prev`, `Next ▶`, `⌖ Focus`).
   - Color preview swatch, Hex & RGB badges, and RGB sliders.
   - Quick Disney Palette Swatches (12 signature theme park colors).
@@ -182,6 +182,8 @@ The **Click-to-Draw Path Tool** lets you place sequential LEDs one-by-one direct
   - Click the **`[✏️ Draw Group]`** button in the top canvas toolbar, OR
   - Click **`[✏️ Start Drawing on Shirt]`** in the Group Creation Hub (Draw mode), OR
   - Switch to the Groups tab and click **`✏️ Click-to-Draw`**.
+- **Distraction-Free Drawing Experience:**
+  - While drawing points on the shirt, the docked Inspector is automatically held in collapsed standby (`dock-empty`). Placed points are tracked cleanly without triggering premature dock expansions, button shifts, or field flashing, keeping your view on the canvas completely unobstructed.
 - **Visual In-Progress Guide:**
   - A prominent floating **Canvas Drawing Banner** appears above the shirt with an active pulse indicator and placed LED count.
   - A glowing gold dashed line connects your clicks in real time.
@@ -193,7 +195,7 @@ The **Click-to-Draw Path Tool** lets you place sequential LEDs one-by-one direct
   - Each placed point automatically samples the pixel color from the underlying character graphic (Pete's Dragon, Cinderella's Coach, or custom artwork).
 - **Finishing & Saving:**
   - Press `Enter` on your keyboard, click **`✅ Done`** on the canvas floating banner, or click **`✅ Finish & Save`** in the sidebar.
-  - Provide a group name, choose the animation effect and direction, and save directly into the active groups roster!
+  - The newly created group is saved, immediately selected, and opened in the editor for fine-tuning.
 - **Canceling:**
   - Press `Escape` or click **`❌ Cancel`** on the canvas banner to exit draw mode without saving.
 
@@ -215,12 +217,14 @@ The **Click-to-Draw Path Tool** lets you place sequential LEDs one-by-one direct
   - **Instant Selection & Canvas Focus:** Clicking anywhere on a group card or clicking **`🎯 Select & Edit`** highlights all member LEDs on the canvas, opens their properties in the docked Inspector, and marks the card with a glowing active border.
   - **One-Click Deletion:** Click the red **🗑️** button to delete a group, return its LEDs to the global baseline, and clean up associated timeline cues.
 
-### 💡 Contextual Inspector Workflow: Explicit "Save Group"
-Creating and editing groups is seamlessly integrated into the docked Inspector at the bottom of the sidebar:
+### 💡 Contextual Inspector Workflow: Explicit "Save Group" & Reliable In-Place Editing
+Creating and editing groups is seamlessly integrated into both the Group Creation Hub (`From Selection` panel) and the docked Inspector at the bottom of the sidebar:
 1. **Clear Empty State with Quick Group Chips:** When 0 LEDs are selected, the Inspector displays clickable group chips (e.g. `[🎆 Fireworks 1 (20)]`, `[🎡 Front Wheel (16)]`). Clicking any chip immediately selects that group from anywhere in the application!
-2. **Dynamic Action Button:**
-   - When new LEDs are selected: The primary action button clearly reads **`💾 Save Selection as Group`** (green accent).
-   - When editing an existing group: The button dynamically shifts to **`💾 Update Group "[Name]"`** (blue accent) so you always know whether you are creating a new group or updating an existing one.
+2. **Dynamic Action Button & State Tracking:**
+   - **New Group Creation:** When new LEDs are selected, the primary action button clearly reads **`💾 Save Selection as Group`** (green accent).
+   - **Reliable In-Place Editing:** Clicking **`🎯 Select & Edit`** on any group card sets the active edit context (`selectedGroupId`). All form fields in both the Groups Hub and the docked Inspector automatically populate with that group's settings. The button dynamically shifts to **`💾 Update Group "[Name]"`** (blue accent).
+   - **Bidirectional Two-Way Form Sync:** Modifying the Name, Effect, Speed (BPM), Direction, Resting Baseline, or Fireworks Burst Radius in either the Hub or the docked Inspector instantly syncs to the other.
+   - **Immutable ID Preservation:** Clicking **`💾 Update Group`** saves changes directly to the existing group in-place using its unique group ID. Renaming a group updates its name immediately without creating unwanted duplicates or losing member LED assignments.
 3. **Group Configuration Parameters:**
    - **Direction:** Select **Forward (➡️)** or **Reverse (⬅️)** for directional chase animations (crucial for ensuring left and right carriage wheels appear to roll forward!).
    - **Group Effect:** Choose an effect from the dropdown:
