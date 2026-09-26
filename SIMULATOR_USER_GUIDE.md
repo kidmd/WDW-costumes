@@ -638,14 +638,28 @@ Each of the 7 runners is represented by a dedicated preset card and canvas athle
 
 ---
 
-### Bidirectional Preset Workflow
-- **Assigning Presets to Runners:**
-  Every runner slot card has an **Assigned Costume Preset** dropdown. Select any server preset (`presets/*.json`) or custom profile from your browser cache (`localStorage`) to assign it to that runner.
-- **✏️ Edit in Single View (1-Click or Double-Click):**
-  Click the **"Edit in Single View"** button on any runner card (or **double-click the card / canvas runner**) to seamlessly transition the workspace into the Single Shirt Editor:
-  - Loads all 100 LED coordinates, sampled pixel colors, float vector artwork, animation groups, speed BPM, brightness, and sequence cues.
-  - Automatically switches view mode to Single Shirt, activates the zoom toolbar, and centers the viewport (`resetZoom()`).
-  - Navigates the sidebar directly to the **🎨 Layout** tab (`tabLayout`) and synchronizes the **Quick-Load Profile** dropdown.
+### Bidirectional Preset Workflow & Live Editor Integration
+- **Live Single-Shirt Preset Synchronization:**
+  - Fleet View automatically uses the **live in-memory version** of the costume currently open in the Single Shirt Editor for the active runner slot.
+  - Any live edits made in the Single Shirt Editor—such as changing LED positions, adjusting brightness, picking hues, tweaking speed BPM, or modifying animation groups—are immediately reflected on that runner's shirt on the Fleet View canvas in real time.
+- **Visual Status Badges & Unsaved Indicators:**
+  - **Runner Cards:** Cards display explicit status badges showing preset status:
+    - **`✏️ Unsaved Live Edit`:** Displayed when live modifications exist in the single-shirt editor that haven't been saved yet.
+    - **`✨ Live Editor Active`:** Displayed when previewing the live editor session without unsaved changes.
+    - **Preset Label Note:** Clear `✏️ Previewing Unsaved Edit` label next to the preset dropdown indicator.
+  - **Fleet Canvas:** The 7-shirt preview canvas area displays a high-contrast badge directly above the runner's shirt:
+    - **`✏️ UNSAVED LIVE PREVIEW`** (orange) when previewing unsaved live editor changes.
+    - **`✨ LIVE PREVIEW`** (cyan) when previewing the active live editor session.
+    - **Header Subtitle:** Explicit header subtitle note indicating which float is being previewed and its unsaved status.
+- **Saving Profiles to Fleet Lineup:**
+  - When a single-shirt design is saved as a new profile (via **"💾 Save Profile"**), Fleet View automatically recognizes the save:
+    - Updates the active runner's assigned preset (`fleetRunners[slot].preset = 'local:' + name`).
+    - Clears the unsaved dirty state (`isSingleShirtDirty = false`).
+    - Immediately refreshes the runner card dropdowns and badges to display the new saved preset name.
+- **Smart Navigation & Tab Memory:**
+  - **Returning from Fleet View:** Clicking **"Single View"** or navigating back from Fleet View automatically restores the exact single-shirt tab (`Layout`, `Groups`, `Director`, `Flashing`, etc.) that was open prior to entering Fleet View (`lastSingleShirtTab`).
+  - **✏️ Edit in Single View (1-Click or Double-Click):**
+    Clicking the **"Edit in Single View"** button on any runner card (or **double-clicking the card or canvas runner**) loads that float into the editor and switches to the single shirt view while preserving your active workflow tab.
 - **📥 Assign Editor:** Copies your active single-shirt editor design into that runner slot.
 - **📋 Assign Editor to All:** Duplicates your current single-shirt design across all 7 runners with one click.
 - **🔁 Parade Defaults:** Instantly resets all 7 runners to the official Electrical Parade float presets.

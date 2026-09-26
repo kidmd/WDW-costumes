@@ -93,6 +93,22 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### Entry: Real-Time Single-Shirt Live Editor Synchronization & Unsaved Edit Status Badges on Fleet View
+* **Date:** 2026-09-26
+* **Milestone:** Milestone 5 - 7-Shirt Synchronized Fleet Show Choreography & Live Editor Integration
+* **Status:** Operational & Verified in Web Simulator.
+* **Notes:**
+  * **Live Single-Shirt Preset Synchronization:**
+    - Fleet View now evaluates `getLiveSingleShirtPresetData()` for the runner slot currently open in the Single Shirt Editor, rendering live modifications (LED positions, brightness, hue, speed BPM, pattern, animation groups) across both baseline rendering and fleet show choreography blocks in real time.
+  * **Visual Badges & Unsaved Indicators:**
+    - **Runner Cards:** Displays status badges (`✏️ Unsaved Live Edit` / `✨ Live Editor Active`) and explicit label notes (`✏️ Previewing Unsaved Edit`) on runner cards in `#fleetRunnersContainer`.
+    - **Fleet Canvas:** Renders high-contrast badges `✏️ UNSAVED LIVE PREVIEW` (orange) or `✨ LIVE PREVIEW` (cyan) directly above the active shirt and updates the header subtitle note with float preview details.
+  * **Preset Auto-Assignment on Save:**
+    - `saveCurrentProfile()` automatically updates the active runner card slot (`fleetRunners[activeSingleShirtRunnerSlot].preset = 'local:' + cleanName`), updates `fleetPresetCache`, clears `isSingleShirtDirty`, saves lineup configuration to storage, and refreshes cards & dropdowns.
+  * **Navigation & Tab Memory Restoration:**
+    - Single shirt editor tracks `lastSingleShirtTab` (`tabLayout`, `tabGroups`, `tabDirector`, etc.). Exiting Fleet View or double-clicking a shirt card restores the user's previous single-shirt tab automatically.
+  * **Cache-Busting:** Bumped `app.js` script tag to `?v=18` in `simulator/index.html`.
+
 ### Entry: Removed Rectangular Card Frame Highlights Around Fleet Shirts During Fleet Show Playback
 * **Date:** 2026-09-26
 * **Milestone:** Milestone 5 - 7-Shirt Synchronized Fleet Show Choreography & Visual Polish

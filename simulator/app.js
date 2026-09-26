@@ -6,7 +6,31 @@ const ctx = canvas.getContext('2d');
 
 // State
 let currentView = 'single'; // 'single' or 'fleet'
+let activeSingleShirtRunnerSlot = 5; // Default to Float 6 (Pete's Dragon) or active runner (0..6)
+let isSingleShirtDirty = false; // True when unsaved modifications exist in single shirt editor
+let lastSingleShirtTab = 'tabLayout'; // Tracks active single-shirt tab prior to entering Fleet view
 let activePattern = 'steady_sparkle'; // 'steady_sparkle', 'color_match', 'dragon_sparkle', etc.
+
+// Dynamic live single shirt editor preset helper
+function getLiveSingleShirtPresetData() {
+    return {
+        name: (document.getElementById('profileNameInput')?.value || '').trim() || `Runner #${(activeSingleShirtRunnerSlot ?? 5) + 1} (Live Edit)`,
+        ledCount: leds.length,
+        leds: leds,
+        graphicType: currentGraphicType,
+        customArtworkDataUrl: customArtworkDataUrl,
+        animationGroups: animationGroups,
+        settings: { ...params, pattern: activePattern },
+        sequence: { loopDuration: sequenceLoopDuration, cues: sequenceCues }
+    };
+}
+
+function markSingleShirtDirty() {
+    isSingleShirtDirty = true;
+    if (currentView === 'fleet') {
+        renderFleetCards();
+    }
+}
 
 // Control parameters
 let params = {
@@ -2360,20 +2384,22 @@ function evalActiveFleetShowColor(runnerIndex, runner, presetData, ledIndex, tot
 
 // Compute dynamic color for an individual LED on one of the 7 runners
 function computeRunnerLedColor(runnerIndex, runner, presetData, ledIndex, totalLeds, timeMs, waveProgress, isCurrentWave) {
-    const ledsArr = (presetData && presetData.leds) ? presetData.leds : [];
+    const isLivePreview = (runnerIndex === activeSingleShirtRunnerSlot) || (runner && runner.preset === 'current_editor');
+    const effectiveData = isLivePreview ? getLiveSingleShirtPresetData() : presetData;
+    const ledsArr = (effectiveData && effectiveData.leds) ? effectiveData.leds : [];
     const led = ledsArr[ledIndex] || {};
     const hasColor = !!led.color;
     const c = hasColor ? led.color : { r: 255, g: 255, b: 255 };
 
     // 1. If 30-Second Fleet Show is Active: Evaluate Choreographed Block
     if (fleetShowActive) {
-        return evalActiveFleetShowColor(runnerIndex, runner, presetData, ledIndex, totalLeds, timeMs, fleetShowElapsedSec);
+        return evalActiveFleetShowColor(runnerIndex, runner, effectiveData, ledIndex, totalLeds, timeMs, fleetShowElapsedSec);
     }
 
     // 2. BASELINE MODE: Evaluate Float's Individual Preset Programs and Animation Groups
-    const pattern = (presetData && presetData.settings && presetData.settings.pattern) || 'steady_sparkle';
-    const bpm = (presetData && presetData.settings && presetData.settings.speedBpm) || 120;
-    const groups = (presetData && presetData.animationGroups) || [];
+    const pattern = (effectiveData && effectiveData.settings && effectiveData.settings.pattern) || 'steady_sparkle';
+    const bpm = (effectiveData && effectiveData.settings && effectiveData.settings.speedBpm) || 120;
+    const groups = (effectiveData && effectiveData.animationGroups) || [];
     for (const grp of groups) {
         const grpIndices = Array.isArray(grp.indices) ? grp.indices : (Array.isArray(grp.ledIndices) ? grp.ledIndices : []);
         if (grpIndices.includes(ledIndex)) {
@@ -2613,8 +2639,16 @@ function renderFleetView(timeMs) {
         ctx.fillRect(progX, progY, progW * Math.min(1.0, fleetShowElapsedSec / totalDur), progH);
     } else {
         ctx.fillText("MAIN STREET ELECTRICAL PARADE — 7-RUNNER FLEET LINEUP", w * 0.5, h * 0.08);
-        const modeText = "⚡ Baseline Mode: Individual Float Programs Running (Press [👑 Activate 30s Fleet Show] or [Space/F] to launch)";
-        ctx.fillStyle = '#8b949e';
+        let modeText = "⚡ Baseline Mode: Individual Float Programs Running (Press [👑 Activate 30s Fleet Show] or [Space/F] to launch)";
+        if (activeSingleShirtRunnerSlot !== null && activeSingleShirtRunnerSlot >= 0 && activeSingleShirtRunnerSlot < 7) {
+            const runnerName = fleetRunners[activeSingleShirtRunnerSlot]?.name || `Runner #${activeSingleShirtRunnerSlot + 1}`;
+            if (isSingleShirtDirty) {
+                modeText = `⚡ Baseline Mode • ✏️ Previewing Unsaved Live Edit on Float ${activeSingleShirtRunnerSlot + 1} (${runnerName})`;
+            } else {
+                modeText = `⚡ Baseline Mode • ✨ Live Editor Previewing Float ${activeSingleShirtRunnerSlot + 1} (${runnerName})`;
+            }
+        }
+        ctx.fillStyle = (isSingleShirtDirty && activeSingleShirtRunnerSlot !== null) ? '#f0883e' : '#8b949e';
         ctx.font = '12px sans-serif';
         ctx.fillText(modeText, w * 0.5, h * 0.12);
     }
@@ -2656,15 +2690,23 @@ function renderFleetView(timeMs) {
             const isHovered = (fleetHoveredRunner === i);
             const isSelected = (fleetSelectedRunner === i);
 
-            // Retrieve preset data (cached)
-            const pData = fleetPresetCache[floatData.preset] || null;
+            // Retrieve preset data (use live single-shirt editor data if this runner is currently active in editor)
+            const isLivePreview = (i === activeSingleShirtRunnerSlot) || (floatData.preset === 'current_editor');
+            const pData = isLivePreview ? getLiveSingleShirtPresetData() : (fleetPresetCache[floatData.preset] || null);
 
-            // 1. Draw Runner Bib Number Badge Above Shirt
+            // 1. Draw Runner Bib Number Badge & Preview Badge Above Shirt
             const activeBibCol = fleetShowActive ? (waveColor.hex || '#ffc107') : '#ffc107';
             ctx.fillStyle = isCurrentWaveFloat ? activeBibCol : (isSelected ? '#58a6ff' : '#8b949e');
             ctx.font = 'bold 11px monospace';
             ctx.textAlign = 'center';
             ctx.fillText(`BIB #${floatData.num}`, shirtX + shirtW * 0.5, shirtY - 14);
+
+            if (isLivePreview) {
+                ctx.fillStyle = isSingleShirtDirty ? '#f0883e' : '#58a6ff';
+                ctx.font = 'bold 9px sans-serif';
+                ctx.textAlign = 'center';
+                ctx.fillText(isSingleShirtDirty ? '✏️ UNSAVED LIVE PREVIEW' : '✨ LIVE PREVIEW', shirtX + shirtW * 0.5, shirtY - 26);
+            }
 
             // 2. Draw Natural Proportioned Athletic Shirt (1 : 1.25)
             drawRunningShirt(ctx, shirtX, shirtY, shirtW, shirtH, "");
@@ -2836,11 +2878,24 @@ async function renderFleetCards() {
             card.setAttribute('data-slot', i);
 
             // Preload preset data if not cached
-            const pData = await getPresetDataForRunner(runner);
+            const isLivePreview = (i === activeSingleShirtRunnerSlot) || (runner.preset === 'current_editor');
+            const pData = isLivePreview ? getLiveSingleShirtPresetData() : (await getPresetDataForRunner(runner));
 
             const ledCount = (pData && pData.leds) ? pData.leds.length : 100;
             const patternName = (pData && pData.settings && pData.settings.pattern) ? pData.settings.pattern.replace(/_/g, ' ') : 'Sparkle';
             const graphicName = (pData && pData.graphicType) ? pData.graphicType.replace(/_/g, ' ') : runner.name;
+
+            let statusBadgeHtml = '';
+            let labelExtraHtml = '';
+            if (isLivePreview) {
+                if (isSingleShirtDirty) {
+                    statusBadgeHtml = `<span class="fleet-pill" style="background: rgba(240, 136, 62, 0.25); color: #f0883e; border: 1px solid rgba(240, 136, 62, 0.4);">✏️ Unsaved Live Edit</span>`;
+                    labelExtraHtml = `<span style="font-size: 10px; color: #f0883e; margin-left: 6px; font-weight: 600;">✏️ Previewing Unsaved Edit</span>`;
+                } else {
+                    statusBadgeHtml = `<span class="fleet-pill" style="background: rgba(56, 139, 253, 0.25); color: #58a6ff; border: 1px solid rgba(56, 139, 253, 0.4);">✨ Live Editor Active</span>`;
+                    labelExtraHtml = `<span style="font-size: 10px; color: #58a6ff; margin-left: 6px; font-weight: 600;">✨ Previewing Live Editor</span>`;
+                }
+            }
 
             // Build Card HTML
             card.innerHTML = `
@@ -2855,7 +2910,7 @@ async function renderFleetCards() {
                 </div>
 
                 <div>
-                    <label style="font-size: 10px; color: var(--text-muted); display: block; margin-bottom: 2px;">Assigned Costume Preset:</label>
+                    <label style="font-size: 10px; color: var(--text-muted); display: block; margin-bottom: 2px;">Assigned Costume Preset:${labelExtraHtml}</label>
                     <select class="fleet-preset-select" data-slot="${i}">
                         <optgroup label="Official Server Presets">
                             ${serverPresets.map(p => `
@@ -2882,6 +2937,7 @@ async function renderFleetCards() {
                 </div>
 
                 <div class="fleet-pills-row">
+                    ${statusBadgeHtml}
                     <span class="fleet-pill">💡 ${ledCount} LEDs</span>
                     <span class="fleet-pill">🎨 ${graphicName}</span>
                     <span class="fleet-pill">✨ ${patternName}</span>
@@ -2960,6 +3016,10 @@ async function editRunnerInSingleView(slot) {
             stopFleetShow();
         }
 
+        // Record active single shirt slot and reset dirty state
+        activeSingleShirtRunnerSlot = slot;
+        isSingleShirtDirty = false;
+
         // Switch view to Single Shirt FIRST before loading preset data
         currentView = 'single';
         document.getElementById('singleViewBtn')?.classList.add('active');
@@ -2991,8 +3051,8 @@ async function editRunnerInSingleView(slot) {
             scatterLedsOnGraphic(100, true);
         }
 
-        // Switch sidebar to tabLayout
-        switchSidebarTab('tabLayout');
+        // Switch sidebar back to last used single-shirt tab
+        switchSidebarTab(lastSingleShirtTab || 'tabLayout');
 
         // Synchronize Quick-Load Profile dropdown in tabLayout
         const pSel = document.getElementById('presetSelect');
@@ -3764,6 +3824,7 @@ function setSelectedLedColor(r, g, b) {
 
     updateLedInspectorColorInputs(clampedR, clampedG, clampedB);
     updateLedInspectorUI();
+    markSingleShirtDirty();
 
     if (isWifiStreaming) {
         sendLivePixelFrame(performance.now());
@@ -5544,6 +5605,7 @@ function addCue(options = {}) {
 
     sequenceCues.push(newCue);
     renderCuesList();
+    markSingleShirtDirty();
     showToast(`➕ Added show cue "${newCue.name}" (${newCue.effect})!`);
 }
 
@@ -5553,6 +5615,7 @@ function deleteCue(cueId) {
         const name = sequenceCues[idx].name;
         sequenceCues.splice(idx, 1);
         renderCuesList();
+        markSingleShirtDirty();
         showToast(`🗑️ Deleted cue "${name}"`);
     }
 }
@@ -6282,6 +6345,14 @@ async function saveCurrentProfile(name) {
     localProfiles[cleanName] = profileData;
     localStorage.setItem('msep_custom_presets', JSON.stringify(localProfiles));
 
+    // Cache local profile data and assign to active runner card slot
+    fleetPresetCache['local:' + cleanName] = profileData;
+    if (activeSingleShirtRunnerSlot !== null && activeSingleShirtRunnerSlot >= 0 && fleetRunners[activeSingleShirtRunnerSlot]) {
+        fleetRunners[activeSingleShirtRunnerSlot].preset = 'local:' + cleanName;
+        saveFleetLineupToStorage();
+    }
+    isSingleShirtDirty = false;
+
     // 2. Save to Python backend
     try {
         const res = await fetch('/api/save_preset', {
@@ -6297,6 +6368,7 @@ async function saveCurrentProfile(name) {
     }
 
     await refreshPresetDropdown();
+    renderFleetCards();
     const select = document.getElementById('presetSelect');
     if (select) {
         for (let i = 0; i < select.options.length; i++) {
@@ -6491,31 +6563,37 @@ renderActiveGroupsList();
 // ============================================================================
 document.getElementById('patternSelect').addEventListener('change', (e) => {
     activePattern = e.target.value;
+    markSingleShirtDirty();
 });
 
 document.getElementById('speedSlider').addEventListener('input', (e) => {
     params.speedBpm = parseInt(e.target.value);
     document.getElementById('speedVal').textContent = `${params.speedBpm} BPM`;
+    markSingleShirtDirty();
 });
 
 document.getElementById('sparkleSlider').addEventListener('input', (e) => {
     params.sparkleRate = parseFloat(e.target.value);
     document.getElementById('sparkleVal').textContent = `${params.sparkleRate.toFixed(params.sparkleRate < 1 ? 2 : 1)}%`;
+    markSingleShirtDirty();
 });
 
 document.getElementById('hueSlider').addEventListener('input', (e) => {
     params.greenHue = parseInt(e.target.value);
     document.getElementById('hueVal').textContent = `${params.greenHue}°`;
+    markSingleShirtDirty();
 });
 
 document.getElementById('brightnessSlider').addEventListener('input', (e) => {
     params.brightness = parseInt(e.target.value);
     document.getElementById('brightVal').textContent = `${params.brightness}%`;
+    markSingleShirtDirty();
 });
 
 document.getElementById('glowSlider').addEventListener('input', (e) => {
     params.glowSize = parseInt(e.target.value);
     document.getElementById('glowVal').textContent = `${params.glowSize}px`;
+    markSingleShirtDirty();
 });
 
 document.getElementById('showWiringToggle').addEventListener('change', (e) => {
@@ -6534,6 +6612,7 @@ if (showBibToggle) {
         const scaleRow = document.getElementById('bibScaleRow');
         if (posRow) posRow.style.display = e.target.checked ? 'flex' : 'none';
         if (scaleRow) scaleRow.style.display = e.target.checked ? 'flex' : 'none';
+        markSingleShirtDirty();
     });
 }
 
@@ -6544,6 +6623,7 @@ if (bibYSlider) {
         params.bibYOffset = val / 100.0;
         const valBadge = document.getElementById('bibYVal');
         if (valBadge) valBadge.textContent = `${val}%`;
+        markSingleShirtDirty();
     });
 }
 
@@ -6554,6 +6634,7 @@ if (bibScaleSlider) {
         params.bibScale = val / 100.0;
         const valBadge = document.getElementById('bibScaleVal');
         if (valBadge) valBadge.textContent = `${val}%`;
+        markSingleShirtDirty();
     });
 }
 
