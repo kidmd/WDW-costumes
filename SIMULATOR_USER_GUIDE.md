@@ -737,10 +737,13 @@ In the dark, chilly 3:30 AM staging corrals outside Epcot, the 7 brothers need i
    - **Physical Hardware:** Transmitted via ESP-NOW (`Mode 0x42`) or UDP (`Opcode 0x03, cmd 0x02`), causing the physical bench or wearable ESP32 to strobe its 200 LEDs without interrupting autonomous mode.
 4. **Lineup Sequential Flash (`✨ Flash Lineup (1➔7)`):**
    - Illuminates all 7 floats down the line in rapid succession (Float 1 ➔ 2 ➔ 3 ➔ 4 ➔ 5 ➔ 6 ➔ 7) to visually confirm the entire parade formation in person before stepping across the starting timing mat.
-5. **⚡ 4-Second Rapid Attendance Roll Call Wave (Double-Tap Hardware Trigger):**
-   - Click **`⚡ 4s Rapid Attendance Wave (Double-Tap)`** in the toolbar, or **double-tap the physical BOOT button on ANY costume node in the corral**:
+5. **⚡ 4-Second Rapid Attendance Roll Call Wave (Simulate BOOT Double-Tap):**
+   - Click or double-tap **`⚡ 4s Rapid Attendance Wave (Simulate BOOT Double-Tap)`** in the toolbar, or **double-tap the physical BOOT button on ANY costume node in the corral**:
+     - **Auto-Switch to Fleet View:** If triggered while editing a single shirt, the simulator automatically brings all 7 runners into view.
+     - **Theatrical Spotlight & Ground Glow:** As roll call proceeds, an overhead theatrical spotlight cone illuminates the reporting brother, casting a vibrant signature-colored ground halo on the asphalt road beneath their sneakers.
      - **0.0s – 3.5s (500ms per float):** Floats 1 through 7 illuminate sequentially solo in their signature colors (1 Red ➔ 2 Gold ➔ 3 Teal ➔ 4 Pink ➔ 5 Cyan ➔ 6 Green ➔ 7 Blue). While one brother's shirt calls roll, the other 6 stay dark so the spotlighted float pops unmistakably across the crowd!
-     - **3.5s – 4.0s (Unison Double-Green Flash):** All 7 brothers flash bright emerald green twice together (`#00FF50`), visually signaling: *"All 7 present and accounted for, ready to run!"*
+     - **3.5s – 4.0s (Unison Double-Green Flash):** All 7 brothers flash bright emerald green twice together (`#00FF50`), with all 7 radar cards pulsing emerald green, visually signaling: *"All 7 present and accounted for, ready to run!"*
+     - **Full Athletic Runner Mannequins:** All 7 runners feature complete athletic figures—running cap/visor with float accent trim, arms in mid-stride, technical running shorts with vertical racing stripes, toned muscular legs in warm athletic skin tone (`#d4a373`), white quarter socks, and running sneakers planted squarely on the Main Street road surface.
      - **Pure Hardware Operation:** Requires zero phones, zero routers, and zero internet. Transmitted peer-to-peer over ESP-NOW (`Mode 0x44`) or broadcast UDP (`Opcode 0x03, cmd 0x03`).
 6. **Bench Simulation Scenarios:**
    - Test your pre-race checklist under real-world conditions:

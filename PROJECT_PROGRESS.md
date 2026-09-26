@@ -92,6 +92,26 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### Entry: Athletic Runner Mannequin Rendering & 4-Second Roll Call Wave Fixes
+* **Date:** 2026-09-26
+* **Milestone:** Milestone 5 - Realistic Runner Anatomy & Pre-Race Choreography Verification
+* **Status:** Operational & Verified across Web Simulator (`index.html`, `app.js?v=31`) and Documentation.
+* **Notes:**
+  * **Full Athletic Runner Body Rendering:**
+    - Replaced the dark, hard-to-see `#484f58` 6px stick legs with complete, natural athletic runner figures that remain **100% visible at all times** whether their shirts are illuminated or dark.
+    - Features athletic head silhouettes with running caps/visors (black with float-coordinated accent trim), athletic arms in mid-stride runner posture, black microfiber running shorts with vertical racing stripes, and well-proportioned quadriceps, kneecaps, and calf muscles rendered in a warm, natural athletic skin tone (`#d4a373`).
+    - Added clean white athletic quarter socks with colored cuff rings, performance running sneakers with cushioned foam midsoles and rubber tread, and soft drop shadows planted directly on the asphalt parade course.
+    - Realistic LED ambient light spill casts downward onto the shorts, legs, and pavement whenever a runner's LEDs are active.
+  * **Rapid Attendance Wave Scoping & Trigger Fix:**
+    - Resolved variable scoping issue where undeclared `rapidRollCallActive` and `DEFAULT_FLEET_RADAR` prevented the 4-second rapid attendance wave from executing when triggered.
+    - Added top-level declarations and dual event listener support for both single-click and double-click/double-tap interactions on `#fleetRadarRapidRollCallBtn`.
+    - Clarified button label: `⚡ 4s Rapid Attendance Wave (Simulate BOOT Double-Tap)`.
+  * **Theatrical Roll Call Canvas Choreography:**
+    - Automatically switches to Fleet View so all 7 runners are visible during the roll call.
+    - Displays a live countdown header with float name, reporting status, and an animated progress bar.
+    - Projects an overhead theatrical spotlight cone and radiant ground halo under the reporting runner during their 500ms solo roll call window.
+    - Synchronized unison double emerald green flash (`#00FF50`) across all 7 costumes and radar cards during the finale (3.5s - 4.0s).
+
 ### Entry: Collapsible Pre-Corral Roll Call & Fleet Radar Layout Optimization
 * **Date:** 2026-09-26
 * **Milestone:** Milestone 5 - Fleet Management Ergonomics & Corral UX Refinement

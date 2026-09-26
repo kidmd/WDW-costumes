@@ -11,6 +11,20 @@ let isSingleShirtDirty = false; // True when unsaved modifications exist in sing
 let lastSingleShirtTab = 'tabLayout'; // Tracks active single-shirt tab prior to entering Fleet view
 let activePattern = 'steady_sparkle'; // 'steady_sparkle', 'color_match', 'dragon_sparkle', etc.
 
+// Global Fleet Radar & Attendance Wave State
+let rapidRollCallActive = false;
+let rapidRollCallStartTime = 0;
+
+const DEFAULT_FLEET_RADAR = [
+    { id: 1, name: "The Train", role: "LEADER", tag: "CASEY JR.", color: "#ff5e3a", icon: "🚂", status: "ONLINE", rssi: -44, voltage: 5.14, batteryPct: 99, lastSeenSec: 0.2 },
+    { id: 2, name: "Title Drum", role: "FOLLOWER", tag: "THE DRUM", color: "#f1e05a", icon: "🥁", status: "ONLINE", rssi: -52, voltage: 5.10, batteryPct: 97, lastSeenSec: 0.5 },
+    { id: 3, name: "The Turtle", role: "FOLLOWER", tag: "TURTLE", color: "#2ec4b6", icon: "🐢", status: "ONLINE", rssi: -58, voltage: 5.12, batteryPct: 98, lastSeenSec: 1.1 },
+    { id: 4, name: "The Snail", role: "FOLLOWER", tag: "SNAIL", color: "#ff007f", icon: "🐌", status: "ONLINE", rssi: -61, voltage: 5.08, batteryPct: 95, lastSeenSec: 1.4 },
+    { id: 5, name: "Cinderella", role: "FOLLOWER", tag: "COACH", color: "#05d9e8", icon: "🩵", status: "ONLINE", rssi: -63, voltage: 5.11, batteryPct: 96, lastSeenSec: 0.8 },
+    { id: 6, name: "Pete's Dragon", role: "FOLLOWER", tag: "ELLIOTT", color: "#39ff14", icon: "🐉", status: "ONLINE", rssi: -55, voltage: 5.15, batteryPct: 99, lastSeenSec: 0.4 },
+    { id: 7, name: "Flag & Eagle", role: "FOLLOWER", tag: "PATRIOTIC", color: "#388bfd", icon: "🦅", status: "ONLINE", rssi: -69, voltage: 5.09, batteryPct: 94, lastSeenSec: 2.1 }
+];
+
 // Dynamic live single shirt editor preset helper
 function getLiveSingleShirtPresetData() {
     return {
@@ -2772,6 +2786,239 @@ function drawMiniRaceBib(cx, x, y, width, height, bibNumber) {
     cx.restore();
 }
 
+// ============================================================================
+// ATHLETIC RUNNER FIGURE RENDERER (FULL BODY: HEAD, VISOR, ARMS, SHORTS, TONED LEGS, SNEAKERS)
+// ============================================================================
+function drawAthleticRunnerBase(ctx, shirtX, shirtY, shirtW, shirtH, floatData) {
+    const shirtCX = shirtX + shirtW * 0.5;
+    const skinTone = '#d4a373'; // Natural warm athletic runner skin tone
+
+    // 1. Runner Neck (emerging naturally from collar)
+    ctx.fillStyle = skinTone;
+    ctx.fillRect(shirtCX - shirtW * 0.09, shirtY - 12, shirtW * 0.18, 22);
+
+    // 2. Athletic Runner Head & Running Visor/Cap
+    ctx.beginPath();
+    ctx.ellipse(shirtCX, shirtY - 20, shirtW * 0.13, shirtW * 0.15, 0, 0, Math.PI * 2);
+    ctx.fillStyle = skinTone;
+    ctx.fill();
+
+    // Athletic Running Cap / Visor (Black #161b22 with Float Accent Trim)
+    ctx.beginPath();
+    ctx.arc(shirtCX, shirtY - 21, shirtW * 0.135, Math.PI * 1.1, Math.PI * 1.9, false);
+    ctx.lineTo(shirtCX + shirtW * 0.16, shirtY - 21);
+    ctx.quadraticCurveTo(shirtCX, shirtY - 29, shirtCX - shirtW * 0.16, shirtY - 21);
+    ctx.closePath();
+    ctx.fillStyle = '#161b22';
+    ctx.fill();
+
+    // Cap Visor Brim (pointing forward in running direction)
+    ctx.beginPath();
+    ctx.moveTo(shirtCX + shirtW * 0.04, shirtY - 23);
+    ctx.quadraticCurveTo(shirtCX + shirtW * 0.22, shirtY - 25, shirtCX + shirtW * 0.26, shirtY - 20);
+    ctx.quadraticCurveTo(shirtCX + shirtW * 0.14, shirtY - 20, shirtCX + shirtW * 0.08, shirtY - 21);
+    ctx.closePath();
+    ctx.fillStyle = '#0d1117';
+    ctx.fill();
+    ctx.strokeStyle = floatData.color || '#ffc107';
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+
+    // 3. Athletic Running Arms (Mid-Stride Posture)
+    // Left Arm (Forward pump)
+    ctx.beginPath();
+    ctx.moveTo(shirtX + shirtW * 0.12, shirtY + shirtH * 0.32);
+    ctx.quadraticCurveTo(shirtX - 4, shirtY + shirtH * 0.48, shirtX + shirtW * 0.04, shirtY + shirtH * 0.62);
+    ctx.lineWidth = 6.5;
+    ctx.lineCap = 'round';
+    ctx.strokeStyle = skinTone;
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.arc(shirtX + shirtW * 0.04, shirtY + shirtH * 0.63, 4, 0, Math.PI * 2);
+    ctx.fillStyle = skinTone;
+    ctx.fill();
+
+    // Right Arm (Back stride)
+    ctx.beginPath();
+    ctx.moveTo(shirtX + shirtW * 0.88, shirtY + shirtH * 0.32);
+    ctx.quadraticCurveTo(shirtX + shirtW + 4, shirtY + shirtH * 0.46, shirtX + shirtW * 0.94, shirtY + shirtH * 0.64);
+    ctx.lineWidth = 6.5;
+    ctx.lineCap = 'round';
+    ctx.strokeStyle = skinTone;
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.arc(shirtX + shirtW * 0.94, shirtY + shirtH * 0.65, 4, 0, Math.PI * 2);
+    ctx.fillStyle = skinTone;
+    ctx.fill();
+}
+
+function drawSneaker(ctx, x, y, width, height, accentColor) {
+    // Sneaker Upper Body
+    ctx.beginPath();
+    ctx.moveTo(x, y + height - 4);
+    ctx.lineTo(x, y + 3);
+    ctx.quadraticCurveTo(x + width * 0.5, y - 2, x + width, y + height - 4);
+    ctx.lineTo(x + width, y + height);
+    ctx.lineTo(x, y + height);
+    ctx.closePath();
+    ctx.fillStyle = accentColor || '#ffc107';
+    ctx.fill();
+
+    // White Cushioned Midsole (Performance Foam)
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(x - 1, y + height - 4, width + 2, 3);
+
+    // Durable Black Outsole Tread
+    ctx.fillStyle = '#0d1117';
+    ctx.fillRect(x - 1, y + height - 1.5, width + 2, 1.5);
+
+    // Laces Accent
+    ctx.strokeStyle = '#ffffff';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(x + width * 0.35, y + 2);
+    ctx.lineTo(x + width * 0.65, y + 2);
+    ctx.moveTo(x + width * 0.40, y + 4);
+    ctx.lineTo(x + width * 0.60, y + 4);
+    ctx.stroke();
+}
+
+function drawAthleticRunnerLowerBody(ctx, shirtX, shirtY, shirtW, shirtH, floatData, groundY, isLit, glowColor) {
+    const shirtCX = shirtX + shirtW * 0.5;
+    const skinTone = '#d4a373'; // Natural warm athletic runner skin tone (always clearly visible!)
+    const skinKnee = '#bf8556';
+    const shortsTopY = shirtY + shirtH * 0.88;
+    const shortsH = Math.round(shirtH * 0.30);
+    const shortsBottomY = shortsTopY + shortsH;
+
+    // Optional LED Downward Light Spill (Ambient bounce onto shorts & legs)
+    if (isLit && glowColor) {
+        const radGrad = ctx.createRadialGradient(shirtCX, shirtY + shirtH * 0.8, 10, shirtCX, groundY, shirtW * 0.85);
+        radGrad.addColorStop(0, `rgba(${glowColor.r}, ${glowColor.g}, ${glowColor.b}, 0.32)`);
+        radGrad.addColorStop(1, `rgba(${glowColor.r}, ${glowColor.g}, ${glowColor.b}, 0.0)`);
+        ctx.fillStyle = radGrad;
+        ctx.fillRect(shirtX - 10, shortsTopY, shirtW + 20, groundY - shortsTopY + 15);
+    }
+
+    // 1. Athletic Running Shorts (Technical Black with Float Signature Racing Stripe)
+    const legLeftShortX = shirtX + shirtW * 0.21;
+    const legShortW = shirtW * 0.28;
+    const legRightShortX = shirtX + shirtW * 0.51;
+
+    // Left Short Leg
+    ctx.fillStyle = '#161b22';
+    ctx.fillRect(legLeftShortX, shortsTopY, legShortW, shortsH);
+    ctx.strokeStyle = '#30363d';
+    ctx.lineWidth = 1;
+    ctx.strokeRect(legLeftShortX, shortsTopY, legShortW, shortsH);
+    // Outer racing stripe (Left)
+    ctx.fillStyle = floatData.color || '#ffc107';
+    ctx.fillRect(legLeftShortX, shortsTopY, 2.5, shortsH);
+
+    // Right Short Leg
+    ctx.fillStyle = '#161b22';
+    ctx.fillRect(legRightShortX, shortsTopY, legShortW, shortsH);
+    ctx.strokeRect(legRightShortX, shortsTopY, legShortW, shortsH);
+    // Outer racing stripe (Right)
+    ctx.fillStyle = floatData.color || '#ffc107';
+    ctx.fillRect(legRightShortX + legShortW - 2.5, shortsTopY, 2.5, shortsH);
+
+    // Inseam Crease
+    ctx.fillStyle = '#0d1117';
+    ctx.fillRect(shirtCX - 1.5, shortsTopY + 8, 3, shortsH - 8);
+
+    // 2. Athletic Runner Legs (Toned Thighs, Knees, Calves)
+    const leftLegCX = legLeftShortX + legShortW * 0.5;
+    const rightLegCX = legRightShortX + legShortW * 0.5;
+    const kneeY = shortsBottomY + 16;
+    const sockTopY = groundY - 18;
+
+    // --- Left Leg ---
+    // Thigh
+    ctx.fillStyle = skinTone;
+    ctx.beginPath();
+    ctx.moveTo(leftLegCX - 6, shortsBottomY);
+    ctx.lineTo(leftLegCX + 6, shortsBottomY);
+    ctx.lineTo(leftLegCX + 5.5, kneeY);
+    ctx.lineTo(leftLegCX - 5.5, kneeY);
+    ctx.closePath();
+    ctx.fill();
+
+    // Knee cap subtle contour
+    ctx.fillStyle = skinKnee;
+    ctx.beginPath();
+    ctx.arc(leftLegCX, kneeY, 3.8, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Athletic Muscular Calf (curving outward, tapering to ankle)
+    ctx.fillStyle = skinTone;
+    ctx.beginPath();
+    ctx.moveTo(leftLegCX - 5.5, kneeY);
+    ctx.quadraticCurveTo(leftLegCX - 7.5, (kneeY + sockTopY) * 0.5, leftLegCX - 4.5, sockTopY);
+    ctx.lineTo(leftLegCX + 4.5, sockTopY);
+    ctx.quadraticCurveTo(leftLegCX + 6.5, (kneeY + sockTopY) * 0.5, leftLegCX + 5.5, kneeY);
+    ctx.closePath();
+    ctx.fill();
+
+    // --- Right Leg ---
+    // Thigh
+    ctx.beginPath();
+    ctx.moveTo(rightLegCX - 6, shortsBottomY);
+    ctx.lineTo(rightLegCX + 6, shortsBottomY);
+    ctx.lineTo(rightLegCX + 5.5, kneeY);
+    ctx.lineTo(rightLegCX - 5.5, kneeY);
+    ctx.closePath();
+    ctx.fill();
+
+    // Knee cap
+    ctx.fillStyle = skinKnee;
+    ctx.beginPath();
+    ctx.arc(rightLegCX, kneeY, 3.8, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Calf
+    ctx.fillStyle = skinTone;
+    ctx.beginPath();
+    ctx.moveTo(rightLegCX - 5.5, kneeY);
+    ctx.quadraticCurveTo(rightLegCX - 6.5, (kneeY + sockTopY) * 0.5, rightLegCX - 4.5, sockTopY);
+    ctx.lineTo(rightLegCX + 4.5, sockTopY);
+    ctx.quadraticCurveTo(rightLegCX + 7.5, (kneeY + sockTopY) * 0.5, rightLegCX + 5.5, kneeY);
+    ctx.closePath();
+    ctx.fill();
+
+    // 3. Athletic Running Socks (White Quarter Socks with Float Accent Ring)
+    const sockH = 8;
+    const sockW = 10;
+    // Left Sock
+    ctx.fillStyle = '#f0f6fc';
+    ctx.fillRect(leftLegCX - sockW * 0.5, sockTopY, sockW, sockH);
+    ctx.fillStyle = floatData.color || '#ffc107';
+    ctx.fillRect(leftLegCX - sockW * 0.5, sockTopY, sockW, 2);
+
+    // Right Sock
+    ctx.fillStyle = '#f0f6fc';
+    ctx.fillRect(rightLegCX - sockW * 0.5, sockTopY, sockW, sockH);
+    ctx.fillStyle = floatData.color || '#ffc107';
+    ctx.fillRect(rightLegCX - sockW * 0.5, sockTopY, sockW, 2);
+
+    // 4. Runner Drop Shadows on Asphalt Road
+    ctx.beginPath();
+    ctx.ellipse(leftLegCX - 1, groundY + 1, 12, 3.5, 0, 0, Math.PI * 2);
+    ctx.ellipse(rightLegCX + 1, groundY + 1, 12, 3.5, 0, 0, Math.PI * 2);
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.65)';
+    ctx.fill();
+
+    // 5. Performance Running Sneakers (Shoes) firmly on the road
+    const shoeW = 20;
+    const shoeH = 10;
+    const shoeY = groundY - shoeH;
+
+    // Left Sneaker
+    drawSneaker(ctx, leftLegCX - shoeW * 0.55, shoeY, shoeW, shoeH, floatData.color);
+    // Right Sneaker
+    drawSneaker(ctx, rightLegCX - shoeW * 0.45, shoeY, shoeW, shoeH, floatData.color);
+}
+
 function renderFleetView(timeMs) {
     ctx.setTransform(1, 0, 0, 1, 0, 0);
     const w = canvas.width;
@@ -2786,17 +3033,54 @@ function renderFleetView(timeMs) {
     const shirtH = Math.floor(shirtW * 1.25); // ~125px (natural athletic dimensions!)
     const shirtY = h * 0.25; // Centered vertically in upper-mid canvas
 
+    // Coordinate ground line & road surface
+    const groundY = shirtY + shirtH + 74;
+    const roadY = groundY - 2;
+
+    // 4-Second Rapid Attendance Roll Call Evaluation
+    const isRollCallActive = rapidRollCallActive && (timeMs - rapidRollCallStartTime >= 0) && (timeMs - rapidRollCallStartTime < 4000);
+    const rollCallElapsed = isRollCallActive ? (timeMs - rapidRollCallStartTime) : 0;
+    const rollCallSlot = isRollCallActive ? Math.floor(rollCallElapsed / 500) : -1;
+    const isRollCallFinale = isRollCallActive && (rollCallElapsed >= 3500);
+
     // Fleet View Header & Mode Subtitle
     const totalDur = (activeFleetShow && activeFleetShow.loopDuration) || 30.0;
     const activeInfo = fleetShowActive ? getActiveFleetBlock(fleetShowElapsedSec) : null;
     const activeBlock = activeInfo ? activeInfo.block : null;
     const waveColor = activeBlock ? getActiveFleetColor(activeBlock.params?.colorMode, activeInfo.index) : FLEET_WAVE_STANDARD_COLORS[0];
 
-    ctx.fillStyle = '#ffc107';
-    ctx.font = 'bold 16px sans-serif';
     ctx.textAlign = 'center';
 
-    if (fleetShowActive) {
+    if (isRollCallActive) {
+        // Roll Call Header
+        ctx.fillStyle = '#00ff88';
+        ctx.font = 'bold 16px sans-serif';
+        ctx.fillText("MAIN STREET ELECTRICAL PARADE — ⚡ 4-SECOND RAPID ATTENDANCE WAVE", w * 0.5, h * 0.08);
+
+        let rollCallText = "";
+        if (isRollCallFinale) {
+            rollCallText = "🟢 ALL 7 BROTHERS LINKED & READY FOR THE 10K START GUN! (Unison Emerald Flash)";
+            ctx.fillStyle = '#39ff14';
+        } else {
+            const reportingFloat = fleetRunners[rollCallSlot] || DEFAULT_FLEET_ROSTER[rollCallSlot];
+            rollCallText = `⚡ Float ${rollCallSlot + 1} (${reportingFloat.name}): Reporting In! (${((3500 - rollCallElapsed)/1000).toFixed(1)}s remaining)`;
+            ctx.fillStyle = reportingFloat.color || '#ffc107';
+        }
+        ctx.font = 'bold 12px sans-serif';
+        ctx.fillText(rollCallText, w * 0.5, h * 0.12);
+
+        // Progress bar for the 4-second rapid roll call
+        const progW = Math.min(500, w * 0.45);
+        const progH = 4;
+        const progX = (w - progW) / 2;
+        const progY = h * 0.142;
+        ctx.fillStyle = '#21262d';
+        ctx.fillRect(progX, progY, progW, progH);
+        ctx.fillStyle = isRollCallFinale ? '#39ff14' : (fleetRunners[rollCallSlot]?.color || '#00e5ff');
+        ctx.fillRect(progX, progY, progW * Math.min(1.0, rollCallElapsed / 4000), progH);
+    } else if (fleetShowActive) {
+        ctx.fillStyle = '#ffc107';
+        ctx.font = 'bold 16px sans-serif';
         ctx.fillText("MAIN STREET ELECTRICAL PARADE — 👑 FLEET SHOW ACTIVE", w * 0.5, h * 0.08);
         const blockName = activeBlock ? activeBlock.name : 'Grand Parade';
         const modeText = `👑 Block #${(activeInfo ? activeInfo.index + 1 : 1)}: ${blockName} [${waveColor.name}] (${fleetShowElapsedSec.toFixed(1)}s / ${totalDur.toFixed(1)}s) — Press [Stop] or [F] to exit early`;
@@ -2814,6 +3098,8 @@ function renderFleetView(timeMs) {
         ctx.fillStyle = waveColor.hex || '#ffc107';
         ctx.fillRect(progX, progY, progW * Math.min(1.0, fleetShowElapsedSec / totalDur), progH);
     } else {
+        ctx.fillStyle = '#ffc107';
+        ctx.font = 'bold 16px sans-serif';
         ctx.fillText("MAIN STREET ELECTRICAL PARADE — 7-RUNNER FLEET LINEUP", w * 0.5, h * 0.08);
         let modeText = "⚡ Baseline Mode: Individual Float Programs Running (Press [👑 Activate 30s Fleet Show] or [Space/F] to launch)";
         if (activeSingleShirtRunnerSlot !== null && activeSingleShirtRunnerSlot >= 0 && activeSingleShirtRunnerSlot < 7) {
@@ -2829,22 +3115,23 @@ function renderFleetView(timeMs) {
         ctx.fillText(modeText, w * 0.5, h * 0.12);
     }
 
-    // Draw Parade Course Road Surface
+    // Draw Parade Course Road Surface (Sneakers planted directly on pavement!)
     ctx.fillStyle = '#161b22';
-    ctx.fillRect(w * 0.015, shirtY + shirtH + 90, w * 0.97, 40);
-    // Yellow Road Dash Line
-    ctx.setLineDash([15, 15]);
-    ctx.strokeStyle = '#30363d';
-    ctx.lineWidth = 2;
+    ctx.fillRect(w * 0.015, roadY, w * 0.97, 45);
+    // Yellow Road Dash Centerline
+    ctx.setLineDash([16, 16]);
+    ctx.strokeStyle = '#f1e05a';
+    ctx.lineWidth = 2.5;
     ctx.beginPath();
-    ctx.moveTo(w * 0.015, shirtY + shirtH + 110);
-    ctx.lineTo(w * 0.985, shirtY + shirtH + 110);
+    ctx.moveTo(w * 0.015, roadY + 22);
+    ctx.lineTo(w * 0.985, roadY + 22);
     ctx.stroke();
     ctx.setLineDash([]);
 
     for (let i = 0; i < totalFloats; i++) {
         try {
             const shirtX = marginX + i * slotW + (slotW - shirtW) / 2;
+            const shirtCX = shirtX + shirtW * 0.5;
             const floatData = fleetRunners[i] || DEFAULT_FLEET_ROSTER[i];
 
             let isCurrentWaveFloat = false;
@@ -2863,6 +3150,12 @@ function renderFleetView(timeMs) {
                 }
             }
 
+            // Rapid Attendance Wave reporting state
+            const isRollCallReporting = isRollCallActive && (i === rollCallSlot || isRollCallFinale);
+            if (isRollCallReporting) {
+                isCurrentWaveFloat = true;
+            }
+
             const isHovered = (fleetHoveredRunner === i);
             const isSelected = (fleetSelectedRunner === i);
 
@@ -2870,24 +3163,50 @@ function renderFleetView(timeMs) {
             const isLivePreview = (i === activeSingleShirtRunnerSlot) || (floatData.preset === 'current_editor');
             const pData = isLivePreview ? getLiveSingleShirtPresetData() : (fleetPresetCache[floatData.preset] || null);
 
+            // Theatrical Spotlight Beam on Reporting Float during Roll Call
+            if (isRollCallReporting) {
+                const colHex = isRollCallFinale ? '#00ff88' : (floatData.color || '#ffc107');
+                const colRgb = hexToRgb(colHex);
+                const grad = ctx.createLinearGradient(shirtCX, h * 0.14, shirtCX, groundY);
+                grad.addColorStop(0, `rgba(${colRgb.r}, ${colRgb.g}, ${colRgb.b}, 0.28)`);
+                grad.addColorStop(1, `rgba(${colRgb.r}, ${colRgb.g}, ${colRgb.b}, 0.04)`);
+                ctx.beginPath();
+                ctx.moveTo(shirtCX - 20, h * 0.14);
+                ctx.lineTo(shirtCX + 20, h * 0.14);
+                ctx.lineTo(shirtCX + shirtW * 0.55, groundY + 6);
+                ctx.lineTo(shirtCX - shirtW * 0.55, groundY + 6);
+                ctx.closePath();
+                ctx.fillStyle = grad;
+                ctx.fill();
+
+                // Illuminated Ground Circle on Asphalt
+                ctx.beginPath();
+                ctx.ellipse(shirtCX, groundY + 1, shirtW * 0.45, 10, 0, 0, Math.PI * 2);
+                ctx.fillStyle = `rgba(${colRgb.r}, ${colRgb.g}, ${colRgb.b}, 0.45)`;
+                ctx.fill();
+            }
+
             // 1. Draw Runner Bib Number Badge & Preview Badge Above Shirt
-            const activeBibCol = fleetShowActive ? (waveColor.hex || '#ffc107') : '#ffc107';
+            const activeBibCol = isRollCallReporting ? (isRollCallFinale ? '#00ff88' : floatData.color) : (fleetShowActive ? (waveColor.hex || '#ffc107') : '#ffc107');
             ctx.fillStyle = isCurrentWaveFloat ? activeBibCol : (isSelected ? '#58a6ff' : '#8b949e');
             ctx.font = 'bold 11px monospace';
             ctx.textAlign = 'center';
-            ctx.fillText(`BIB #${floatData.num}`, shirtX + shirtW * 0.5, shirtY - 14);
+            ctx.fillText(`BIB #${floatData.num}`, shirtCX, shirtY - 14);
 
             if (isLivePreview) {
                 ctx.fillStyle = isSingleShirtDirty ? '#f0883e' : '#58a6ff';
                 ctx.font = 'bold 9px sans-serif';
                 ctx.textAlign = 'center';
-                ctx.fillText(isSingleShirtDirty ? '✏️ UNSAVED LIVE PREVIEW' : '✨ LIVE PREVIEW', shirtX + shirtW * 0.5, shirtY - 26);
+                ctx.fillText(isSingleShirtDirty ? '✏️ UNSAVED LIVE PREVIEW' : '✨ LIVE PREVIEW', shirtCX, shirtY - 26);
             }
 
-            // 2. Draw Natural Proportioned Athletic Shirt (1 : 1.25)
+            // 2. Draw Athletic Runner Base (Head, Running Cap, Neck & Arms behind shirt)
+            drawAthleticRunnerBase(ctx, shirtX, shirtY, shirtW, shirtH, floatData);
+
+            // 3. Draw Natural Proportioned Athletic Shirt (1 : 1.25)
             drawRunningShirt(ctx, shirtX, shirtY, shirtW, shirtH, "");
 
-            // 3. Draw Float Graphic Artwork strictly in chest zone above bib
+            // 4. Draw Float Graphic Artwork strictly in chest zone above bib
             const chestW = shirtW * 0.56;
             const chestH = shirtH * 0.385;
             const chestTop = shirtY + shirtH * 0.168;
@@ -2904,14 +3223,14 @@ function renderFleetView(timeMs) {
                 drawPetesDragon(ctx, dummyBounds);
             }
 
-            // 4. Draw Mini runDisney Race Bib on lower torso
+            // 5. Draw Mini runDisney Race Bib on lower torso
             const bibW = shirtW * 0.52;
             const bibH = shirtH * 0.23;
             const bibX = shirtX + (shirtW - bibW) * 0.5;
             const bibY = shirtY + shirtH * 0.57;
             drawMiniRaceBib(ctx, bibX, bibY, bibW, bibH, floatData.num);
 
-            // 5. Draw Real 100-LED Configuration
+            // 6. Draw Real 100-LED Configuration
             const ledsArr = (pData && Array.isArray(pData.leds) && pData.leds.length > 0) ? pData.leds : null;
             if (ledsArr) {
                 for (let j = 0; j < ledsArr.length; j++) {
@@ -2924,14 +3243,14 @@ function renderFleetView(timeMs) {
                         // Bulb outer halo glow
                         if (isCurrentWaveFloat || fleetShowActive) {
                             ctx.beginPath();
-                            ctx.arc(lx, ly, 4.2, 0, Math.PI * 2);
-                            ctx.fillStyle = `rgba(${col.r}, ${col.g}, ${col.b}, 0.28)`;
+                            ctx.arc(lx, ly, 4.4, 0, Math.PI * 2);
+                            ctx.fillStyle = `rgba(${col.r}, ${col.g}, ${col.b}, 0.32)`;
                             ctx.fill();
                         }
 
                         // Core bulb dot
                         ctx.beginPath();
-                        ctx.arc(lx, ly, (isCurrentWaveFloat || fleetShowActive) ? 2.5 : 1.7, 0, Math.PI * 2);
+                        ctx.arc(lx, ly, (isCurrentWaveFloat || fleetShowActive) ? 2.6 : 1.8, 0, Math.PI * 2);
                         ctx.fillStyle = `rgba(${col.r}, ${col.g}, ${col.b}, ${col.alpha || 1})`;
                         ctx.fill();
                     } else {
@@ -2958,7 +3277,7 @@ function renderFleetView(timeMs) {
 
                     if (col.alpha > 0.02 && (col.r > 0 || col.g > 0 || col.b > 0)) {
                         ctx.beginPath();
-                        ctx.arc(lx, ly, (isCurrentWaveFloat || fleetShowActive) ? 3.2 : 2.0, 0, Math.PI * 2);
+                        ctx.arc(lx, ly, (isCurrentWaveFloat || fleetShowActive) ? 3.4 : 2.2, 0, Math.PI * 2);
                         ctx.fillStyle = `rgba(${col.r}, ${col.g}, ${col.b}, ${col.alpha || 1})`;
                         ctx.fill();
                     } else {
@@ -2970,51 +3289,37 @@ function renderFleetView(timeMs) {
                 }
             }
 
-            // 6. Draw Running Shorts & Legs Below Shirt
-            const shortsW = shirtW * 0.44;
-            const shortsH = shirtW * 0.35;
-            const shortsY = shirtY + shirtH * 0.93;
+            // 7. Draw Athletic Runner Lower Body (Shorts, Toned Legs, Socks, Running Shoes, Shadows)
+            const isLit = isCurrentWaveFloat || fleetShowActive || isRollCallReporting;
+            const glowColor = isRollCallReporting 
+                ? (isRollCallFinale ? { r: 0, g: 255, b: 80 } : hexToRgb(floatData.color || '#ffc107')) 
+                : (fleetShowActive ? hexToRgb(waveColor.hex || floatData.color || '#ffc107') : hexToRgb(floatData.color || '#ffffff'));
+            drawAthleticRunnerLowerBody(ctx, shirtX, shirtY, shirtW, shirtH, floatData, groundY, isLit, glowColor);
 
-            // Running Shorts (Black)
-            ctx.fillStyle = '#0a0d12';
-            ctx.fillRect(shirtX + shirtW * 0.28, shortsY, shortsW, shortsH);
-            ctx.strokeStyle = '#21262d';
-            ctx.strokeRect(shirtX + shirtW * 0.28, shortsY, shortsW, shortsH);
-
-            // Legs
-            ctx.fillStyle = '#484f58';
-            ctx.fillRect(shirtX + shirtW * 0.32, shortsY + shortsH, 6, 20);
-            ctx.fillRect(shirtX + shirtW * 0.58, shortsY + shortsH, 6, 20);
-
-            // Running Shoes (Accent Color)
-            ctx.fillStyle = floatData.color;
-            ctx.fillRect(shirtX + shirtW * 0.29, shortsY + shortsH + 20, 10, 5);
-            ctx.fillRect(shirtX + shirtW * 0.57, shortsY + shortsH + 20, 10, 5);
-
-            // 7. Float Name Tag Below Runner
-            ctx.fillStyle = isCurrentWaveFloat ? '#ffffff' : (isSelected ? '#58a6ff' : '#8b949e');
+            // 8. Float Name Tag & Character Description Below Runner on Road
+            ctx.fillStyle = isCurrentWaveFloat ? '#ffffff' : (isSelected ? '#58a6ff' : '#c9d1d9');
             ctx.font = 'bold 10px sans-serif';
             ctx.textAlign = 'center';
-            ctx.fillText(floatData.name, shirtX + shirtW * 0.5, shirtY + shirtH + 68);
+            ctx.fillText(floatData.name, shirtCX, roadY + 28);
 
-            ctx.fillStyle = isCurrentWaveFloat ? activeBibCol : (isSelected ? '#ffc107' : '#57606a');
+            ctx.fillStyle = isCurrentWaveFloat ? activeBibCol : (isSelected ? '#ffc107' : '#8b949e');
             ctx.font = '9px sans-serif';
-            ctx.fillText(floatData.tag, shirtX + shirtW * 0.5, shirtY + shirtH + 80);
+            ctx.fillText(floatData.tag, shirtCX, roadY + 39);
 
-            // 8. Highlight Frame (Hovered or Selected only - no color-changing rectangles during fleet show)
+            // 9. Highlight Frame (Hovered or Selected only)
             if (isSelected) {
                 ctx.save();
                 ctx.strokeStyle = '#388bfd';
                 ctx.lineWidth = 2;
                 ctx.shadowColor = '#388bfd';
                 ctx.shadowBlur = 8;
-                ctx.strokeRect(shirtX - 4, shirtY - 26, shirtW + 8, shirtH + 115);
+                ctx.strokeRect(shirtX - 8, shirtY - 34, shirtW + 16, groundY - shirtY + 80);
                 ctx.restore();
             } else if (isHovered) {
                 ctx.save();
                 ctx.strokeStyle = 'rgba(88, 166, 255, 0.6)';
                 ctx.lineWidth = 1.5;
-                ctx.strokeRect(shirtX - 4, shirtY - 26, shirtW + 8, shirtH + 115);
+                ctx.strokeRect(shirtX - 8, shirtY - 34, shirtW + 16, groundY - shirtY + 80);
                 ctx.restore();
             }
         } catch (err) {
@@ -10941,16 +11246,7 @@ window.initPowerBudgetCalculator = initPowerBudgetCalculator;
 // ============================================================================
 const radarIdentifyFlashes = {};
 
-const DEFAULT_FLEET_RADAR = [
-    { id: 1, name: "The Train", role: "LEADER", tag: "CASEY JR.", color: "#ff5e3a", icon: "🚂", status: "ONLINE", rssi: -44, voltage: 5.14, batteryPct: 99, lastSeenSec: 0.2 },
-    { id: 2, name: "Title Drum", role: "FOLLOWER", tag: "THE DRUM", color: "#f1e05a", icon: "🥁", status: "ONLINE", rssi: -52, voltage: 5.10, batteryPct: 97, lastSeenSec: 0.5 },
-    { id: 3, name: "The Turtle", role: "FOLLOWER", tag: "TURTLE", color: "#2ec4b6", icon: "🐢", status: "ONLINE", rssi: -58, voltage: 5.12, batteryPct: 98, lastSeenSec: 1.1 },
-    { id: 4, name: "The Snail", role: "FOLLOWER", tag: "SNAIL", color: "#ff007f", icon: "🐌", status: "ONLINE", rssi: -61, voltage: 5.08, batteryPct: 95, lastSeenSec: 1.4 },
-    { id: 5, name: "Cinderella", role: "FOLLOWER", tag: "COACH", color: "#05d9e8", icon: "🩵", status: "ONLINE", rssi: -63, voltage: 5.11, batteryPct: 96, lastSeenSec: 0.8 },
-    { id: 6, name: "Pete's Dragon", role: "FOLLOWER", tag: "ELLIOTT", color: "#39ff14", icon: "🐉", status: "ONLINE", rssi: -55, voltage: 5.15, batteryPct: 99, lastSeenSec: 0.4 },
-    { id: 7, name: "Flag & Eagle", role: "FOLLOWER", tag: "PATRIOTIC", color: "#388bfd", icon: "🦅", status: "ONLINE", rssi: -69, voltage: 5.09, batteryPct: 94, lastSeenSec: 2.1 }
-];
-
+// DEFAULT_FLEET_RADAR is declared at top of app.js
 let fleetRadarFloats = JSON.parse(JSON.stringify(DEFAULT_FLEET_RADAR));
 let fleetRadarScenario = 'perfect';
 
@@ -11276,16 +11572,23 @@ async function triggerRapidRollCall() {
     const rollCallBtn = document.getElementById('fleetRadarRapidRollCallBtn');
     if (rapidRollCallActive) return;
 
+    // Ensure we are viewing Fleet View so all 7 runners are immediately visible!
+    if (currentView !== 'fleet') {
+        currentView = 'fleet';
+        document.getElementById('fleetViewBtn')?.classList.add('active');
+        document.getElementById('singleViewBtn')?.classList.remove('active');
+    }
+
     rapidRollCallActive = true;
     rapidRollCallStartTime = performance.now();
 
     if (rollCallBtn) {
-        rollCallBtn.disabled = true;
-        rollCallBtn.innerHTML = `⚡ Rapid Roll Call Active (4s)...`;
+        rollCallBtn.style.pointerEvents = 'none';
+        rollCallBtn.innerHTML = `⚡ Attendance Wave Active (4s)...`;
         rollCallBtn.style.opacity = '0.85';
     }
 
-    showToast(`⚡ 4-Second Rapid Attendance Roll Call wave activated! (Double-Tap)`);
+    showToast(`⚡ 4-Second Rapid Attendance Roll Call wave activated! (Simulating BOOT Double-Tap)`);
 
     // Card glow animations matching each float's 500ms slot
     for (let slot = 0; slot < 7; slot++) {
@@ -11328,8 +11631,8 @@ async function triggerRapidRollCall() {
     setTimeout(() => {
         rapidRollCallActive = false;
         if (rollCallBtn) {
-            rollCallBtn.disabled = false;
-            rollCallBtn.innerHTML = `⚡ 4s Rapid Attendance Wave (Double-Tap)`;
+            rollCallBtn.style.pointerEvents = 'auto';
+            rollCallBtn.innerHTML = `⚡ 4s Rapid Attendance Wave <span style="font-size: 9.5px; opacity: 0.85; font-weight: normal; margin-left: 2px;">(Simulate BOOT Double-Tap)</span>`;
             rollCallBtn.style.opacity = '1';
         }
     }, 4000);
@@ -11381,7 +11684,14 @@ function initFleetRadar() {
 
     scanBtn?.addEventListener('click', scanFleetRadar);
     identifyAllBtn?.addEventListener('click', triggerIdentifyAllFloats);
-    rapidRollCallBtn?.addEventListener('click', triggerRapidRollCall);
+
+    // Support both single click and double-tap / double-click
+    function onRollCallTrigger(e) {
+        if (e) e.preventDefault();
+        triggerRapidRollCall();
+    }
+    rapidRollCallBtn?.addEventListener('click', onRollCallTrigger);
+    rapidRollCallBtn?.addEventListener('dblclick', onRollCallTrigger);
 
     scenarioSelect?.addEventListener('change', (e) => {
         applyRadarScenario(e.target.value);
