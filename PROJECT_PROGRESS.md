@@ -93,6 +93,22 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### Entry: Fixed Spurious Unsaved Changes Warning on Initial Startup
+* **Date:** 2026-09-26
+* **Milestone:** Milestone 5 - 7-Shirt Synchronized Fleet Show Choreography & Clean Startup Preset Loading
+* **Status:** Operational & Verified in Web Simulator.
+* **Notes:**
+  * **Root Cause Analysis:**
+    - On initial simulator boot, `defaultDragonImg.onload` invoked `scatterLedsOnGraphic(100, true)` before any user interaction, which called `markSingleShirtDirty()` and set `isSingleShirtDirty = true` upon page load.
+    - When navigating to the Fleet tab and switching to another runner (e.g. double-clicking "To Honor America"), `editRunnerInSingleView` detected the false dirty state and incorrectly triggered the unsaved changes warning dialog.
+  * **Resolution & Architecture:**
+    - Stripped the legacy `scatterLedsOnGraphic()` call from `defaultDragonImg.onload`, ensuring image loading only sets asset availability (`defaultDragonLoaded = true`).
+    - Added clean initial preset loading via `refreshPresetDropdown().then(() => loadProfile('server:petes_dragon.json'))` to guarantee the official Float 6 Pete's Dragon profile is loaded cleanly with `isSingleShirtDirty = false`.
+    - Added `markDirty = true` parameter to `scatterLedsOnGraphic()` and `autoOutlineCurrentGraphic()`, allowing programmatic fallback initialization without polluting the user dirty state.
+    - Updated `loadGraphicPreset()` to reset `isSingleShirtDirty = false` and update active runner lineup slot.
+    - Updated `switchSidebarTab()` to continuously track `lastSingleShirtTab` on single-shirt tab switches.
+  * **Cache-Busting:** Bumped script tag to `app.js?v=21` in `simulator/index.html`.
+
 ### Entry: Interactive Unsaved Costume Changes Prompt with Custom Profile Name Saving
 * **Date:** 2026-09-26
 * **Milestone:** Milestone 5 - 7-Shirt Synchronized Fleet Show Choreography & Unsaved Edits Workflow Protection

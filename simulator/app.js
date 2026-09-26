@@ -52,10 +52,6 @@ const defaultDragonImg = new Image();
 let defaultDragonLoaded = false;
 defaultDragonImg.onload = () => {
     defaultDragonLoaded = true;
-    // If starting fresh without saved profile, scatter 100 color-matched LEDs
-    if (leds.length === 0 || activePattern === 'steady_sparkle' || activePattern === 'color_match') {
-        scatterLedsOnGraphic(100, true);
-    }
 };
 defaultDragonImg.src = 'assets/petes_dragon.png';
 
@@ -6732,8 +6728,19 @@ async function loadProfile(sourceValue) {
     showToast(`📂 Loaded "${profileData.name || 'Profile'}"`);
 }
 
-// Initial Preset Load
-refreshPresetDropdown();
+// Initial Preset Load: Cleanly load Float 6 (Pete's Dragon) official preset without marking dirty
+refreshPresetDropdown().then(() => {
+    loadProfile('server:petes_dragon.json').then(() => {
+        isSingleShirtDirty = false;
+        const pSel = document.getElementById('presetSelect');
+        if (pSel) pSel.value = 'server:petes_dragon.json';
+    }).catch(() => {
+        if (leds.length === 0) {
+            initDefaultDragonLeds();
+        }
+        isSingleShirtDirty = false;
+    });
+});
 rebuildLedGroupMap();
 renderActiveGroupsList();
 
@@ -7785,7 +7792,7 @@ function rearrangeRemainingLedsOnGraphic(showNotification = true) {
 }
 
 // SCATTER 100 LEDs (Farthest-Point Sampling inside graphic with pixel color matching)
-function scatterLedsOnGraphic(targetCount = 100, colorMatch = true) {
+function scatterLedsOnGraphic(targetCount = 100, colorMatch = true, markDirty = true) {
     const targetW = 360;
     let targetH = 360;
 
@@ -7952,12 +7959,14 @@ function scatterLedsOnGraphic(targetCount = 100, colorMatch = true) {
     if (patSelect) patSelect.value = 'steady_sparkle';
 
     updateLedCountUI();
-    markSingleShirtDirty();
-    showToast(`🌈 ${targetCount} LEDs scattered & ordered along continuous wiring route!`);
+    if (markDirty) {
+        markSingleShirtDirty();
+        showToast(`🌈 ${targetCount} LEDs scattered & ordered along continuous wiring route!`);
+    }
 }
 
 // OUTLINE 50 LEDs (Moore-Neighbor Clockwise Boundary Tracing)
-function autoOutlineCurrentGraphic(targetCount = 50) {
+function autoOutlineCurrentGraphic(targetCount = 50, markDirty = true) {
     const targetW = 320;
     let targetH = 320;
 
@@ -8134,8 +8143,10 @@ function autoOutlineCurrentGraphic(targetCount = 50) {
     leds = newLeds;
     while (sparkles.length < leds.length) sparkles.push(0);
     updateLedCountUI();
-    markSingleShirtDirty();
-    showToast(`✨ ${targetCount} LEDs redistributed along graphic outline!`);
+    if (markDirty) {
+        markSingleShirtDirty();
+        showToast(`✨ ${targetCount} LEDs redistributed along graphic outline!`);
+    }
 }
 
 // Switch costume graphic preset (Pete's Dragon, Casey Jr., Cinderella's Coach, etc.)
@@ -8184,6 +8195,12 @@ async function loadGraphicPreset(type) {
             if (res.ok) {
                 const profileData = await res.json();
                 applyProfileData(profileData);
+                isSingleShirtDirty = false;
+                if (activeSingleShirtRunnerSlot !== null && activeSingleShirtRunnerSlot >= 0 && fleetRunners[activeSingleShirtRunnerSlot]) {
+                    fleetRunners[activeSingleShirtRunnerSlot].preset = `server:${presetFile}`;
+                    saveFleetLineupToStorage();
+                    renderFleetCards();
+                }
                 const pSel = document.getElementById('presetSelect');
                 if (pSel) pSel.value = `server:${presetFile}`;
                 showToast(`✨ Loaded ${profileData.name || type} preset!`);
@@ -9891,6 +9908,9 @@ if (flashReceiverBtn) {
 // SIDEBAR TASK TABS & TIMELINE COLLAPSE (THOROUGHBRED UI)
 // ============================================================================
 function switchSidebarTab(targetTabId) {
+    if (targetTabId !== 'tabFleet') {
+        lastSingleShirtTab = targetTabId;
+    }
     const tabBtns = document.querySelectorAll('.sidebar-tab-btn');
     const tabPanels = document.querySelectorAll('.tab-panel');
     tabBtns.forEach(btn => {
