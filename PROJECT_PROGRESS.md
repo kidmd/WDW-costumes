@@ -93,6 +93,19 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### Entry: Fixed Active Single-Shirt Editor State Clobbering When Re-Entering Single View From Fleet View
+* **Date:** 2026-09-26
+* **Milestone:** Milestone 5 - 7-Shirt Synchronized Fleet Show Choreography & Live Editor Session Preservation
+* **Status:** Operational & Verified in Web Simulator.
+* **Notes:**
+  * **Session Preservation Fix in `editRunnerInSingleView`:**
+    - Resolved issue where re-entering Single View from Fleet View for the active runner slot (e.g. Shirt 6 / Pete's Dragon) reloaded the saved preset file from disk, overwriting in-memory live modifications (such as switching from 100-LED scatter fill to 50-LED perimeter outline).
+    - If `slot === activeSingleShirtRunnerSlot`, `editRunnerInSingleView(slot)` now seamlessly transitions to the Single Shirt visualizer and restores the previous workflow tab without reloading preset data or wiping out the live in-memory LED state.
+    - If user attempts to switch to edit a different runner slot while `isSingleShirtDirty` is true, an interactive confirmation dialog warns them before discarding unsaved edits.
+  * **Comprehensive Editor Dirty-State Triggers:**
+    - Attached `markSingleShirtDirty()` to all single-shirt editing routines: `autoOutlineCurrentGraphic()`, `scatterLedsOnGraphic()`, `rearrangeRemainingLedsOnGraphic()`, `optimizeLedWiringOrder()`, `resetLedsBtn`, canvas LED drag-and-drop, animation group creation/updating/deletion, and firework cluster generation.
+  * **Cache-Busting:** Bumped `app.js` script tag to `?v=19` in `simulator/index.html`.
+
 ### Entry: Real-Time Single-Shirt Live Editor Synchronization & Unsaved Edit Status Badges on Fleet View
 * **Date:** 2026-09-26
 * **Milestone:** Milestone 5 - 7-Shirt Synchronized Fleet Show Choreography & Live Editor Integration

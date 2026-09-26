@@ -3016,7 +3016,29 @@ async function editRunnerInSingleView(slot) {
             stopFleetShow();
         }
 
-        // Record active single shirt slot and reset dirty state
+        // If user is already editing this runner slot, simply return to the single view
+        // without reloading and wiping out their active live in-memory edits!
+        if (slot === activeSingleShirtRunnerSlot) {
+            currentView = 'single';
+            document.getElementById('singleViewBtn')?.classList.add('active');
+            document.getElementById('fleetViewBtn')?.classList.remove('active');
+            const zt = document.querySelector('.zoom-toolbar');
+            if (zt) zt.style.display = 'flex';
+            resetZoom();
+            switchSidebarTab(lastSingleShirtTab || 'tabLayout');
+            showToast(`✏️ Returned to active single-shirt editor for Runner #${runner.num} (${runner.name})`);
+            return;
+        }
+
+        // Switching to a DIFFERENT runner:
+        // If there are unsaved edits on the current runner slot, ask user to confirm before discarding!
+        if (isSingleShirtDirty && activeSingleShirtRunnerSlot !== null && activeSingleShirtRunnerSlot >= 0 && fleetRunners[activeSingleShirtRunnerSlot]) {
+            const prevRunner = fleetRunners[activeSingleShirtRunnerSlot];
+            const proceed = confirm(`You have unsaved edits on Runner #${prevRunner.num} (${prevRunner.name}).\n\nDiscard unsaved edits and switch to edit Runner #${runner.num} (${runner.name})?`);
+            if (!proceed) return;
+        }
+
+        // Record new active single shirt slot and reset dirty state
         activeSingleShirtRunnerSlot = slot;
         isSingleShirtDirty = false;
 
@@ -4481,6 +4503,7 @@ function finishDrawGroup() {
 
     stopDrawGroupMode();
     selectGroupLeds(newGroup.id);
+    markSingleShirtDirty();
 
     if (autoRearrange) {
         showToast(`🎉 Saved group "${newGroup.name}" (${newGroup.ledIndices.length} LEDs) & filled graphic with remaining LEDs!`);
@@ -4561,6 +4584,7 @@ function applyGroupEffectToSelection() {
     rebuildLedGroupMap();
     renderActiveGroupsList();
     populateGroupForm(targetGroup);
+    markSingleShirtDirty();
 
     if (isNew) {
         showToast(`🎉 Saved new group "${targetGroup.name}" (${targetGroup.ledIndices.length} LEDs)!`);
@@ -4591,6 +4615,7 @@ function removeGroupEffectFromSelection() {
     rebuildLedGroupMap();
     renderActiveGroupsList();
     updateLedInspectorUI();
+    markSingleShirtDirty();
     showToast(`🗑️ Removed group effects from ${removedCount} LEDs.`);
 }
 
@@ -4605,6 +4630,7 @@ function deleteGroup(groupId) {
         rebuildLedGroupMap();
         renderActiveGroupsList();
         updateLedInspectorUI();
+        markSingleShirtDirty();
         showToast(`🗑️ Deleted animation group "${name}"`);
     }
 }
@@ -6241,6 +6267,7 @@ window.addEventListener('mouseup', (e) => {
                     updateLedInspectorUI();
                 }
             }
+            markSingleShirtDirty();
         }
         isDraggingLed = false;
         draggedLed = null;
@@ -6640,6 +6667,7 @@ if (bibScaleSlider) {
 
 document.getElementById('resetLedsBtn').addEventListener('click', () => {
     initDefaultDragonLeds();
+    markSingleShirtDirty();
 });
 
 // View Toggle
@@ -7597,6 +7625,7 @@ function rearrangeRemainingLedsOnGraphic(showNotification = true) {
     renderActiveGroupsList();
     updateLedInspectorUI();
     updateLedCountUI();
+    markSingleShirtDirty();
 
     if (showNotification) {
         showToast(`✨ Evenly rearranged ${targetCount} remaining LEDs across the graphic!`);
@@ -7771,6 +7800,7 @@ function scatterLedsOnGraphic(targetCount = 100, colorMatch = true) {
     if (patSelect) patSelect.value = 'steady_sparkle';
 
     updateLedCountUI();
+    markSingleShirtDirty();
     showToast(`🌈 ${targetCount} LEDs scattered & ordered along continuous wiring route!`);
 }
 
@@ -7952,6 +7982,7 @@ function autoOutlineCurrentGraphic(targetCount = 50) {
     leds = newLeds;
     while (sparkles.length < leds.length) sparkles.push(0);
     updateLedCountUI();
+    markSingleShirtDirty();
     showToast(`✨ ${targetCount} LEDs redistributed along graphic outline!`);
 }
 
@@ -8062,6 +8093,7 @@ if (optWiringBtn) {
     optWiringBtn.addEventListener('click', () => {
         if (!leds || leds.length <= 2) return;
         leds = optimizeLedWiringOrder(leds, 'bottom-left');
+        markSingleShirtDirty();
         showToast(`🔌 Renumbered ${leds.length} LEDs along continuous physical wiring route!`);
     });
 }
@@ -8335,6 +8367,7 @@ function deleteFireworksGroup(groupId) {
     renderCuesList();
     renderTimelineCueStrip();
     updateTimelineScrubberUI();
+    markSingleShirtDirty();
     showToast(`🗑️ Removed ${name}! Total LEDs: ${leds.length}.`);
 }
 
@@ -8461,6 +8494,7 @@ function generateFireworksCluster(centerNormX = 0.28, centerNormY = 0.22, rays =
 
     // Auto-place explosion cues on Master Timeline in Parade Cue Director!
     autoPlaceFireworksCues(fwGroup, false);
+    markSingleShirtDirty();
 
     showToast(`🎆 Created ${fwGroup.name} (All Rays ${chosenHex}) at (${Math.round(centerNormX*100)}%, ${Math.round(centerNormY*100)}%)! Total LEDs: ${leds.length}.`);
 }
