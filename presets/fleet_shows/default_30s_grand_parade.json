@@ -1,0 +1,139 @@
+{
+  "id": "default_30s_grand_parade",
+  "name": "30s Grand Electrical Parade Show",
+  "description": "Signature 30-second synchronized fleet routine featuring traveling waves, majestic pulses, center bursts, marquee wig-wags, sparkle storms, and grand finale.",
+  "version": "1.0",
+  "loopDuration": 30.0,
+  "createdAt": "2026-09-25T23:25:00Z",
+  "updatedAt": "2026-09-25T23:25:00Z",
+  "blocks": [
+    {
+      "id": "blk_01_intro_blackout",
+      "name": "Dramatic Blackout",
+      "type": "blackout",
+      "startTime": 0.0,
+      "duration": 1.0,
+      "params": {}
+    },
+    {
+      "id": "blk_02_forward_wave",
+      "name": "Forward Traveling Wave (1➔7)",
+      "type": "wave_forward",
+      "startTime": 1.0,
+      "duration": 1.5,
+      "params": {
+        "colorMode": "cycle_random",
+        "trailLengthShirts": 2.0,
+        "incandescentCrest": true
+      }
+    },
+    {
+      "id": "blk_03_reverse_wave",
+      "name": "Reverse Traveling Wave (7➔1)",
+      "type": "wave_reverse",
+      "startTime": 2.5,
+      "duration": 1.5,
+      "params": {
+        "colorMode": "match_previous",
+        "trailLengthShirts": 2.0,
+        "incandescentCrest": true
+      }
+    },
+    {
+      "id": "blk_04_fleet_pulse",
+      "name": "All-Fleet Majestic Breath",
+      "type": "fleet_pulse",
+      "startTime": 4.0,
+      "duration": 5.0,
+      "params": {
+        "colorMode": "match_previous",
+        "pulseSpeedBpm": 36,
+        "minBrightness": 0.28,
+        "peakFlare": true
+      }
+    },
+    {
+      "id": "blk_05_center_burst",
+      "name": "Center-Outward Energy Burst",
+      "type": "center_burst",
+      "startTime": 9.0,
+      "duration": 2.0,
+      "params": {
+        "colorMode": "cycle_random",
+        "peakFlare": true
+      }
+    },
+    {
+      "id": "blk_06_wig_wag",
+      "name": "Odd/Even Marquee Wig-Wag",
+      "type": "wig_wag",
+      "startTime": 11.0,
+      "duration": 2.5,
+      "params": {
+        "speedBpm": 120,
+        "colorA": "Belle Gold",
+        "colorB": "Alice Cyan"
+      }
+    },
+    {
+      "id": "blk_07_baton_chase",
+      "name": "Baton Leapfrog Chase",
+      "type": "baton_chase",
+      "startTime": 13.5,
+      "duration": 3.0,
+      "params": {
+        "direction": "1_to_7",
+        "colorMode": "cycle_random"
+      }
+    },
+    {
+      "id": "blk_08_mid_blackout",
+      "name": "Anticipation Blackout",
+      "type": "blackout",
+      "startTime": 16.5,
+      "duration": 1.0,
+      "params": {}
+    },
+    {
+      "id": "blk_09_sparkle_storm",
+      "name": "Starlight & Wave Twinkle Storm",
+      "type": "sparkle_storm",
+      "startTime": 17.5,
+      "duration": 4.0,
+      "params": {
+        "sparkleColorMix": "wave_and_white",
+        "density": 0.75
+      }
+    },
+    {
+      "id": "blk_10_ping_pong",
+      "name": "Ping-Pong Double Bounce",
+      "type": "ping_pong_wave",
+      "startTime": 21.5,
+      "duration": 3.0,
+      "params": {
+        "bounces": 2,
+        "colorMode": "cycle_random"
+      }
+    },
+    {
+      "id": "blk_11_grand_finale",
+      "name": "Grand Finale Carnival Crescendo",
+      "type": "grand_finale",
+      "startTime": 24.5,
+      "duration": 5.0,
+      "params": {
+        "speedBpm": 150,
+        "strobeClimax": true
+      }
+    },
+    {
+      "id": "blk_12_outro_blackout",
+      "name": "Curtain Blackout & Return",
+      "type": "blackout",
+      "startTime": 29.5,
+      "duration": 0.5,
+      "params": {}
+    }
+  ]
+}

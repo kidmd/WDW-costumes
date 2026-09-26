@@ -862,58 +862,123 @@
                 <!-- ======================================================== -->
                 <div id="tabFleet" class="tab-panel">
                     
-                    <!-- Fleet Header & Sync Controls -->
+                    <!-- SECTION 1: 30s Choreographed Fleet Show & One-Shot Activation -->
                     <div class="control-section">
-                        <div class="section-title">
-                            <span>Parade Fleet Synchronization</span>
+                        <div class="section-title" style="display: flex; justify-content: space-between; align-items: center;">
+                            <span>👑 30s Fleet Show Creator</span>
+                            <span id="fleetShowDurationBadge" class="val-badge" style="background: #21262d; color: #ffc107; font-size: 10px; font-weight: 700;">30.0s Total</span>
                         </div>
-                        <p style="font-size: 11px; color: var(--text-muted); line-height: 1.4; margin-bottom: 8px;">
-                            Configure costume presets for all 7 runners. Preview live wireless traveling wave, autonomous free-run, or master cues across the entire fleet.
+                        <p style="font-size: 11px; color: var(--text-muted); line-height: 1.4; margin-bottom: 10px;">
+                            The 7 shirts run individual float programs at baseline. Press below to activate the 30-second synchronized routine once across all 7 shirts, or press again to stop early.
                         </p>
 
-                        <!-- Fleet Sync Mode -->
-                        <div class="control-group">
-                            <label style="font-size: 11px; color: var(--text-muted); margin-bottom: 4px;">Fleet Animation Mode:</label>
-                            <div style="display: flex; gap: 4px;">
-                                <button type="button" id="fleetModeParadeBtn" class="action-btn primary" style="flex: 1.25; font-size: 10px; padding: 6px 3px; font-weight: 600;" title="20s Choreographed Routine: 1s Blackout ➔ 1s Wave 1➔7 (2-Shirt Trail) ➔ 1s Rev Wave 7➔1 ➔ 5s Wave Color Pulse ➔ 2s Color+White Sparkle ➔ 1s Blackout ➔ 9s Presets">👑 20s Routine</button>
-                                <button type="button" id="fleetModeWaveBtn" class="action-btn" style="flex: 0.95; font-size: 10px; padding: 6px 2px;" title="Simulate continuous ESP-NOW traveling wave pulse passing from Runner 1 to 7">🌊 Wave</button>
-                                <button type="button" id="fleetModeFreeBtn" class="action-btn" style="flex: 0.95; font-size: 10px; padding: 6px 2px;" title="Each shirt independently executes its assigned preset animation">⚡ Free-Run</button>
-                                <button type="button" id="fleetModeShowBtn" class="action-btn" style="flex: 0.95; font-size: 10px; padding: 6px 2px;" title="All 7 shirts synchronize to the master 90s parade sequence">🎬 Show</button>
-                            </div>
+                        <!-- Activation & Early Stop Button -->
+                        <div style="margin-bottom: 8px;">
+                            <button type="button" id="fleetShowActivateBtn" class="fleet-activate-btn">
+                                👑 Activate 30s Fleet Show
+                            </button>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; padding: 0 2px;">
+                            <span style="font-size: 10px; color: var(--text-muted);">⌨️ Hotkey: <kbd style="background: #21262d; color: #c9d1d9; padding: 1px 4px; border-radius: 3px; border: 1px solid #30363d; font-family: monospace;">Space</kbd> or <kbd style="background: #21262d; color: #c9d1d9; padding: 1px 4px; border-radius: 3px; border: 1px solid #30363d; font-family: monospace;">F</kbd></span>
+                            <span style="font-size: 10px; color: #38bdf8;">🛡️ 300ms Debounced</span>
                         </div>
 
-                        <!-- 20s Routine Sequence Info Card -->
-                        <div id="fleetRoutineInfoBox" style="margin-top: 8px; padding: 8px 10px; background: #0d1117; border-radius: 6px; border: 1px solid #30363d; font-size: 10.5px; color: #8b949e; line-height: 1.45;">
-                            <div style="font-weight: 600; color: #ffc107; margin-bottom: 3px; display: flex; justify-content: space-between; align-items: center;">
-                                <span>👑 20s Choreographed Parade Routine</span>
-                                <span id="fleetRoutinePhaseBadge" style="font-size: 10px; background: #21262d; color: #58a6ff; padding: 1px 6px; border-radius: 4px; font-family: monospace;">0.0s / 20.0s</span>
+                        <!-- Live Choreography Phase Monitor Box -->
+                        <div id="fleetShowStatusBox" style="padding: 8px 10px; background: #0d1117; border-radius: 6px; border: 1px solid #30363d; font-size: 10.5px; color: #8b949e; line-height: 1.45; margin-bottom: 10px;">
+                            <div style="font-weight: 600; color: #ffc107; margin-bottom: 4px; display: flex; justify-content: space-between; align-items: center;">
+                                <span id="fleetShowStatusTitle">⚡ Baseline Mode: Individual Presets</span>
+                                <span id="fleetShowTimeProgressBadge" style="font-size: 10px; background: #21262d; color: #58a6ff; padding: 1px 6px; border-radius: 4px; font-family: monospace;">Idle</span>
                             </div>
-                            <div style="margin-bottom: 4px; display: flex; align-items: center; gap: 6px;">
-                                <span style="font-size: 10px; color: var(--text-muted);">Current Cycle Wave Color:</span>
+                            <div id="fleetShowColorRow" style="display: flex; align-items: center; gap: 6px; margin-bottom: 4px;">
+                                <span style="font-size: 10px; color: var(--text-muted);">Active Cycle Color:</span>
                                 <span id="fleetRoutineColorBadge" style="font-size: 10px; background: #ffc107; color: #000; font-weight: 700; padding: 1px 7px; border-radius: 10px;">Belle Gold</span>
                             </div>
-                            <div>• <strong>0.0s – 1.0s (1s):</strong> All shirts totally black (off)</div>
-                            <div>• <strong>1.0s – 2.0s (1s):</strong> Light wave passes float 1 ➔ 7 (~2-shirt trailing decay)</div>
-                            <div>• <strong>2.0s – 3.0s (1s):</strong> Reverse wave float 7 ➔ 1 (~2-shirt trailing decay)</div>
-                            <div>• <strong>3.0s – 8.0s (5s):</strong> All LEDs pulse in wave color (5s synchronized breath)</div>
-                            <div>• <strong>8.0s – 10.0s (2s):</strong> Sparkle storm combining wave color & starlight white</div>
-                            <div>• <strong>10.0s – 11.0s (1s):</strong> All shirts totally black (off)</div>
-                            <div>• <strong>11.0s – 20.0s (9s):</strong> Individual float preset programs (Next color at 20s)</div>
+                            <div id="fleetShowActiveBlockText" style="font-size: 10px; color: #c9d1d9;">
+                                Ready. Press Activate to trigger 30s routine once.
+                            </div>
                         </div>
 
-                        <!-- Wave Cycle Speed Slider (for continuous wave mode) -->
-                        <div class="control-group" id="fleetWaveSpeedGroup" style="margin-top: 8px; display: none;">
+                        <!-- Fleet Show Selector & Save Bar -->
+                        <div class="control-group" style="margin-bottom: 8px;">
                             <div class="label-row" style="margin-bottom: 2px;">
-                                <span style="font-size: 11px; color: var(--text-muted);">Traveling Wave Cycle Speed:</span>
-                                <span id="fleetWaveSpeedVal" class="val-badge" style="font-size: 11px;">7.0s cycle</span>
+                                <span style="font-size: 10px; color: var(--text-muted);">Select Fleet Show Profile:</span>
+                                <button type="button" id="fleetSnap30Btn" style="background: none; border: none; color: #58a6ff; font-size: 10px; cursor: pointer; text-decoration: underline;" title="Adjust block durations to total exactly 30.0 seconds">Snap to 30.0s</button>
                             </div>
-                            <input type="range" id="fleetWaveSpeedSlider" min="30" max="140" value="70" step="5" style="accent-color: #ffc107;">
+                            <select id="fleetShowSelect" style="width: 100%; background: #0d1117; color: #fff; border: 1px solid #30363d; border-radius: 5px; padding: 5px 8px; font-size: 11px; font-weight: 500;">
+                                <option value="default_30s_grand_parade.json">👑 30s Grand Electrical Parade Show (Default)</option>
+                                <option value="classic_20s_routine.json">✨ Classic 20s Fleet Routine</option>
+                            </select>
                         </div>
+
+                        <div style="display: flex; gap: 6px; margin-bottom: 12px;">
+                            <button type="button" id="fleetSaveShowBtn" class="action-btn accent" style="flex: 1; font-size: 10px; padding: 6px;" title="Save current fleet show sequence to server and browser storage">
+                                💾 Save Show
+                            </button>
+                            <button type="button" id="fleetNewShowBtn" class="action-btn" style="flex: 0.9; font-size: 10px; padding: 6px;" title="Create a new blank fleet show routine">
+                                ➕ New Show
+                            </button>
+                        </div>
+
+                        <!-- Add Block Palette Dropdown & Button -->
+                        <div style="background: #0d1117; padding: 8px 10px; border-radius: 6px; border: 1px solid #30363d; margin-bottom: 12px;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                                <span style="font-size: 10.5px; font-weight: 600; color: #58a6ff;">➕ Add Choreography Block</span>
+                                <span style="font-size: 9.5px; color: var(--text-muted);">14 Types Available</span>
+                            </div>
+                            <div style="display: flex; gap: 6px;">
+                                <select id="fleetAddBlockTypeSelect" style="flex: 1.6; background: #161b22; color: #fff; border: 1px solid #30363d; border-radius: 4px; padding: 4px 6px; font-size: 10.5px;">
+                                    <optgroup label="Traveling Waves & Directional">
+                                        <option value="wave_forward">🌊 Forward Wave (1 ➔ 7)</option>
+                                        <option value="wave_reverse">🌊 Reverse Wave (7 ➔ 1)</option>
+                                        <option value="center_burst">🎆 Center-Outward Burst (4 ➔ 1 & 7)</option>
+                                        <option value="converge_center">🎯 Converge Inward (1 & 7 ➔ 4)</option>
+                                        <option value="baton_chase">🏃 Baton Leapfrog Chase</option>
+                                        <option value="ping_pong_wave">🏓 Ping-Pong Double Bounce</option>
+                                    </optgroup>
+                                    <optgroup label="Synchronous Illuminations">
+                                        <option value="fleet_pulse">💓 Synchronized Majestic Pulse</option>
+                                        <option value="sparkle_storm">✨ Starlight Sparkle Storm</option>
+                                        <option value="color_wash_chase">🎨 Color Wash Progressive Fill</option>
+                                        <option value="rainbow_sweep">🌈 Rainbow Fleet Sweep</option>
+                                        <option value="shimmer_drift">🌌 Shimmer & Twinkle Drift</option>
+                                    </optgroup>
+                                    <optgroup label="Theatrical & Dynamics">
+                                        <option value="wig_wag">🎪 Odd/Even Marquee Wig-Wag</option>
+                                        <option value="strobe_all">⚡ Grand Finale Strobe</option>
+                                        <option value="grand_finale">🎆 Carnival Finale Crescendo</option>
+                                        <option value="blackout">🌑 Theatrical Blackout (Off)</option>
+                                    </optgroup>
+                                </select>
+                                <button type="button" id="fleetAddBlockBtn" class="action-btn primary" style="flex: 0.8; font-size: 10.5px; padding: 4px 8px; font-weight: 600;">
+                                    ➕ Add
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Editable Block Stack Container -->
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                            <span style="font-size: 10.5px; font-weight: 600; color: #8b949e;">CHOREOGRAPHY STACK:</span>
+                            <span id="fleetBlockCountText" style="font-size: 10px; color: var(--text-muted);">12 Blocks</span>
+                        </div>
+                        <div id="fleetBlocksStackContainer" style="display: flex; flex-direction: column; gap: 6px; max-height: 380px; overflow-y: auto; padding-right: 2px;">
+                            <!-- Populated dynamically by app.js -->
+                        </div>
+
+                    </div>
+
+                    <!-- SECTION 2: 7-Runner Costume Lineup & Presets -->
+                    <div class="control-section" style="padding-bottom: 16px;">
+                        <div class="section-title">
+                            <span>7-Runner Baseline Presets</span>
+                        </div>
+                        <p style="font-size: 11px; color: var(--text-muted); line-height: 1.4; margin-bottom: 8px;">
+                            Individual costume programs executed when the 30s fleet show is not active. Double-click any card or press "Edit in Single View" to customize its artwork and LED animations.
+                        </p>
 
                         <!-- Global Lineup Actions -->
-                        <div style="display: flex; flex-direction: column; gap: 6px; margin-top: 10px;">
+                        <div style="display: flex; flex-direction: column; gap: 6px; margin-bottom: 10px;">
                             <div style="display: flex; gap: 6px;">
-                                <button type="button" id="fleetAssignAllCurrentBtn" class="action-btn" style="flex: 1; font-size: 10px; padding: 6px 6px;" title="Copy the current single-shirt editor design to all 7 runners">
+                                <button type="button" id="fleetAssignAllCurrentBtn" class="action-btn" style="flex: 1; font-size: 10px; padding: 6px 6px;" title="Copy current single-shirt editor design to all 7 runners">
                                     📋 Assign Editor to All
                                 </button>
                                 <button type="button" id="fleetResetDefaultsBtn" class="action-btn" style="flex: 1; font-size: 10px; padding: 6px 6px;" title="Restore official 7-float Electrical Parade roster presets">
@@ -924,13 +989,8 @@
                                 💾 Save Fleet Lineup
                             </button>
                         </div>
-                    </div>
 
-                    <!-- 7 Runner Slot Cards -->
-                    <div class="control-section" style="padding-bottom: 16px;">
-                        <div class="section-title">
-                            <span>7-Runner Costume Lineup</span>
-                        </div>
+                        <!-- 7 Runner Slot Cards -->
                         <div id="fleetRunnersContainer" style="display: flex; flex-direction: column; gap: 10px; margin-top: 6px;">
                             <!-- Populated dynamically by app.js -->
                         </div>

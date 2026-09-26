@@ -20,9 +20,9 @@ This guide walks you through every feature of the simulator, from placing and wi
 10. [Parade Cue Director (90-Second Theatrical Sequences)](#10-parade-cue-director-90-second-theatrical-sequences)
 11. [Lighting Patterns & Effects Library](#11-lighting-patterns--effects-library)
 12. [Profile Management, Saving & JSON Import/Export](#12-profile-management-saving--json-importexport)
-13. [7-Shirt Fleet Lineup & Preset Manager](#13-7-shirt-fleet-lineup--preset-manager)
+13. [7-Shirt Fleet Show Creator & Preset Manager](#13-7-shirt-fleet-show-creator--preset-manager)
 14. [Hardware Integration: Live Wi-Fi Streaming & Standalone USB Flashing](#14-hardware-integration-live-wi-fi-streaming--standalone-usb-flashing)
-15. [Dual-Mode ESP32 Firmware & Onboard Button Toggle](#15-dual-mode-esp32-firmware--onboard-button-toggle)
+15. [ESP32 Firmware: Debounced Button Control, Fleet Routine Trigger & Early Stop](#15-esp32-firmware-debounced-button-control-fleet-routine-trigger--early-stop)
 16. [Keyboard Shortcuts & Quick Reference Cheat Sheet](#16-keyboard-shortcuts--quick-reference-cheat-sheet)
 
 ---
@@ -539,11 +539,65 @@ Click **"💻 Export FastLED C++ Code"** (Section 5) to open the code modal:
 - Auto-generates the `runAutonomousShowSequence` routine matching your active timeline cues.
 - Click **"📋 Copy to Clipboard"** to paste directly into your Arduino or PlatformIO sketch!
 
-## 13. 7-Shirt Fleet Lineup & Preset Manager
+## 13. 7-Shirt Fleet Show Creator & Preset Manager
 
-The simulator includes a dedicated **7-Shirt Fleet Lineup & Preset Manager** (Tab 6 in the sidebar navigation or via the top header's **"7-Shirt Fleet Lineup"** view toggle).
+The simulator includes a dedicated **7-Shirt Fleet Show Creator & Preset Manager** (Tab 6 in the sidebar navigation or via the top header's **"7-Shirt Fleet Lineup"** view toggle).
 
-This feature coordinates costume profiles, LED mapping, and real-time animation synchronization across all 7 runners in the Main Street Electrical Parade fleet.
+This feature coordinates costume profiles, LED mapping, and real-time animation synchronization across all 7 runners in the Main Street Electrical Parade fleet, while providing a powerful block-based choreography studio for authoring synchronized fleet routines.
+
+### Baseline vs. One-Shot Fleet Routine Architecture
+- **Baseline Mode (Default):** All 7 shirts continuously run their own independent float programs and animation groups (e.g., Casey Jr's spinning wheels, Cinderella's pumpkin coach flourishes, Elliott's breathing crest, patriotic starbursts).
+- **One-Shot Fleet Routine Trigger:**
+  - Clicking the prominent **"⚡ ACTIVATE 30s FLEET SHOW"** button (`#fleetShowActivateBtn`) or pressing the **`[Space]`** / **`[F]`** hotkeys triggers the synchronized fleet routine once.
+  - The routine plays for its exact duration (e.g., 30.0 seconds), with a live phase countdown badge, active color pill indicator, and glowing canvas progress bar.
+  - Upon completion, all 7 shirts automatically transition back to their regular individual float programs!
+- **Early Stop / Exit:**
+  - Clicking the button while the fleet show is active (which transforms into a pulsing red **"⏹ STOP FLEET SHOW (EARLY RETURN)"** button), pressing `[Space]` / `[F]`, or tapping the physical ESP32 BOOT button immediately stops the routine and returns all 7 shirts to their baseline programs.
+- **Debounce Protection:**
+  - The activation button and keyboard hotkeys enforce a **300ms software debounce lockout** in the simulator to prevent accidental double-triggers.
+  - The physical ESP32 firmware enforces a **50ms hardware debounce** and **300ms inter-press lockout**.
+
+---
+
+### The 14 Fleet Block Types Palette
+The fleet choreography engine features 14 specialized multi-float lighting block types:
+1. 🌑 **Dramatic Blackout (`blackout`):** All 7 shirts go completely dark (unlit) for theatrical anticipation or scene transitions.
+2. 🌊 **Forward Wave (`wave_forward`):** High-energy light wave sweeping from Float 1 to Float 7 with an authentic ~2-shirt trailing decay of decreasing brightness and incandescent crest.
+3. 🔙 **Reverse Wave (`wave_reverse`):** Wave reversing direction from Float 7 to Float 1, maintaining the same wave color and 2-shirt trailing falloff.
+4. 💓 **All-Fleet Pulse (`fleet_pulse`):** All 700 LEDs across all costumes ignite in unison and breathe smoothly with peak flare.
+5. 💥 **Center Burst (`center_burst`):** Energy originates at center Float 4 (The Snail) and erupts symmetrically outward to Float 1 and Float 7.
+6. 🔀 **Converge to Center (`converge_center`):** Light beams ignite at outer Floats 1 and 7 and race inwards meeting at Float 4.
+7. 🎭 **Marquee Wig-Wag (`wig_wag`):** Odd floats (1, 3, 5, 7) and Even floats (2, 4, 6) alternate in an energetic parade marquee cadence (120 BPM).
+8. 🏃 **Baton Chase (`baton_chase`):** A high-intensity beam leaps from runner to runner sequentially down the parade line.
+9. ⛈️ **Sparkle Storm (`sparkle_storm`):** All 700 LEDs erupt into a dazzling sparkle storm combining high-frequency Starlight White flashes and wave color shimmers (75% density).
+10. 🏓 **Ping-Pong Wave (`ping_pong_wave`):** A traveling wave that rebounds back and forth across the 7 runners over multiple bounces.
+11. 🌈 **Color Wash Chase (`color_wash_chase`):** A progressive hue wash that rolls across the costumes, transitioning each float's base color.
+12. 🎡 **Rainbow Sweep (`rainbow_sweep`):** A full 360° spectrum sweep running across the entire 7-runner formation.
+13. ⚡ **All-Fleet Strobe (`strobe_all`):** High-frequency white and primary strobing for climatic musical accents.
+14. ✨ **Shimmer Drift (`shimmer_drift`):** Gentle ambient shimmer drifting smoothly across the lineup like stardust.
+
+---
+
+### Fleet Show Creator Studio Controls
+- **Fleet Routine Profile Dropdown (`#fleetShowSelect`):** Select pre-choreographed shows such as `30s Grand Electrical Parade Show` or `Classic 20s Fleet Routine`. Profiles are loaded dynamically via REST API from `presets/fleet_shows/*.json`.
+- **➕ Add Block (`#fleetAddBlockBtn`):** Pick any of the 14 block types from the palette and append it to the stack.
+- **Dynamic Block Stack Editor (`#fleetBlocksStackContainer`):**
+  - Displays each block's name, type, start time, duration, and parameter controls (speed BPM, trail length, color modes).
+  - Reorder blocks with **▲ Up** and **▼ Down** buttons.
+  - Duplicate blocks with **⎘ Duplicate**.
+  - Delete blocks with **✕ Delete**.
+  - During playback, the currently active block is highlighted with an emerald border and glowing indicator.
+- **⏱️ Snap to 30.0s (`#fleetSnap30Btn`):** Proportionately scales all block durations in the stack so the total sequence runtime equals exactly 30.0 seconds.
+- **💾 Save Show (`#fleetSaveShowBtn`):** Persists the show profile to the Python backend server (`presets/fleet_shows/<id>.json`) and browser storage.
+- **✨ New Show (`#fleetNewShowBtn`):** Initializes a fresh blank timeline for custom choreography.
+
+---
+
+### Master Timeline & Scrubber Integration
+- When viewing the 7-Shirt Fleet Lineup, the Master Timeline displays the Fleet Show track layers with color-coded block bars.
+- Clicking or dragging the timeline scrubber seeks smoothly through the fleet routine with full 700-LED fidelity.
+
+---
 
 ### The 7-Runner Roster & Float Assignments
 Each of the 7 runners is represented by a dedicated preset card and canvas athlete:
@@ -560,64 +614,101 @@ Each of the 7 runners is represented by a dedicated preset card and canvas athle
 
 ---
 
-### Fleet Synchronization Modes
-In the Fleet tab toolbar, you can select between 4 synchronized animation modes:
-
-1. 👑 **20s Routine (20-Second Choreographed Parade Routine — Default):**
-   - Implements the signature Main Street Electrical Parade fleet routine across all 7 costumes in an exact 20-second loop:
-     - **0.0s – 1.0s (1s):** **Blackout.** All 7 shirts go completely dark (off / unlit).
-     - **1.0s – 2.0s (1s):** **Forward Wave (Random Standard Color & ~2-Shirt Trail).** A brilliant wave of light sweeps across the fleet from Float 1 (`Casey Jr.`) through Float 7 (`To Honor America`) over 1 second. The wave selects a color at random from the 12 standard Disney palette colors (`Belle Gold`, `Alice Cyan`, `Coral Rose`, `Electric Pink`, `Electric Lime`, `Cinderella Blue`, `Cheshire Violet`, `Deep Indigo`, `Flame Orange`, `Starlight White`, `Dragon Green`, `Mickey Red`). Each float lights up with an intense white-hot core and an authentic **~2-shirt trailing decay** of decreasing brightness in the wave color.
-     - **2.0s – 3.0s (1s):** **Reverse Wave (Same Color & ~2-Shirt Trail).** The wave reverses direction, sweeping backward from Float 7 to Float 1 over 1 second, **maintaining the exact same color** and matching ~2-shirt trailing falloff.
-     - **3.0s – 8.0s (5s):** **All-Fleet Wave Color Pulse (5s Synchronized Breath).** All LEDs across all 7 shirts ignite in the wave color and execute 3 slow, majestic synchronized breath pulses (intensity oscillating between 28% and 100% with an incandescent white flare at peak breath).
-     - **8.0s – 10.0s (2s):** **Sparkle Storm (Wave Color + Starlight White).** All 7 costumes (700 LEDs) erupt into a dazzling sparkle storm combining high-frequency **Starlight White flashes** (`#ffffff`), brilliant **wave color bursts**, and soft pastel blended shimmers.
-     - **10.0s – 11.0s (1s):** **Blackout.** All 7 shirts go completely dark (off / unlit) for 1 second.
-     - **11.0s – 20.0s (9s):** **Individual Float Programs.** Each costume transitions smoothly into its assigned float preset programs (animation groups, rotating wheels, breathing effects, patriotic pulses, and custom artwork colors) for 9 seconds.
-     - **Loop & Color Rotation:** Seamlessly resets to Phase 1 every 20.0 seconds and switches to a **new, non-repeating random standard color** for the next cycle. A real-time timer badge, active color pill badge (`#fleetRoutineColorBadge`), and canvas header banner display the active phase, wave color name, and elapsed timestamp.
-
-2. 🌊 **Wave Sync (Continuous ESP-NOW Passing Wave):**
-   - Simulates the physical wireless traveling wave continuously passing sequentially from Runner 1 to Runner 7.
-   - The active float illuminates with a white-hot crest (`#ffffff`) and warm trailing glow, while the remaining 6 runners shimmer with their float's signature resting sparkle or gentle breathing glow.
-   - **Wave Speed Slider:** Adjust the full parade cycle duration from **3.0s to 14.0s** (default **7.0s** cycle, ~1.0s per runner).
-
-3. ⚡ **Free-Run (Autonomous Preset Animations):**
-   - Each runner executes their assigned costume preset and zone animation groups (e.g. Casey's spinning wheels and flashing headlight, Cinderella's dual wheels, Elliott's breathing flourish) independently in real time.
-
-4. 🎬 **Master Show (Synchronized 90-Second Sequence):**
-   - All 7 runners synchronize their lighting cues to the master 90-second timeline sequence.
-
----
-
-### Interactive 700-LED Canvas Preview
-In the 7-Shirt Fleet Lineup view (`renderFleetView`):
-- **Authentic Athletic Shirts (1 : 1.25 Proportions):** Scaled running shirts with athletic collar, raglan seams, running shorts, and color-matched running shoes along the parade course road.
-- **Float Vector & Image Artwork:** Renders the authentic Cricut SVG vector artwork or high-res image scaled into the chest zone strictly above the bib.
-- **runDisney Mini Bib:** Displays authentic runDisney 10K yellow Tyvek bib styling with individual runner Bib numbers (`#01` through `#07`) and BibBoards snap clamps.
-- **700 Real LEDs (100 per Runner):** The canvas plots all 100 LEDs from each runner's assigned preset, calculating dynamic RGB colors, bloom halo, and incandescent core intensity at 60 FPS.
-- **Interactive Selection:**
-  - **Hover:** Move your mouse over any runner to highlight their shirt on the course.
-  - **Click:** Click any runner shirt on canvas to select and highlight their card in the sidebar tab.
-  - **Double-Click:** Double-click any runner to instantly load their preset into the Single Shirt editor!
-
----
-
 ### Bidirectional Preset Workflow
 - **Assigning Presets to Runners:**
-  Every runner slot card has an **Assigned Costume Preset** dropdown. Select any server preset (`presets/*.json`) or custom profile from your browser cache (`localStorage`) to assign it to that runner. The canvas updates immediately.
+  Every runner slot card has an **Assigned Costume Preset** dropdown. Select any server preset (`presets/*.json`) or custom profile from your browser cache (`localStorage`) to assign it to that runner.
 - **✏️ Edit in Single View (1-Click or Double-Click):**
   Click the **"Edit in Single View"** button on any runner card (or **double-click the card / canvas runner**) to seamlessly transition the workspace into the Single Shirt Editor:
-  - **Full Preset Restoration:** Loads all 100 LED coordinates, sampled pixel colors, float vector artwork, animation groups (with full dual-compatibility for `ledIndices` and `indices`), speed BPM, brightness, and sequence cues.
-  - **Auto-Centered Viewport:** Automatically toggles canvas rendering to Single Shirt mode, activates the zoom toolbar, and resets zoom/pan (`resetZoom()`) so the runner's shirt is perfectly framed.
-  - **Sidebar Synchronization:** Switches sidebar navigation directly to the **🎨 Layout** tab (`tabLayout`) and synchronizes the **Quick-Load Profile** dropdown (`#presetSelect`) to match the active runner's preset.
-- **📥 Assign Editor:**
-  Click **"Assign Editor"** on a runner card to copy your active single-shirt editor design into that runner slot.
-- **📋 Assign Editor to All:**
-  Duplicates your current single-shirt design across all 7 runners with one click.
-- **🔁 Parade Defaults:**
-  Instantly resets all 7 runners to the official Electrical Parade float presets.
-- **💾 Save Fleet Lineup:**
-  Saves the complete 7-runner fleet configuration to `localStorage['msep_fleet_lineup']` and the server at `presets/fleet_lineup.json`.
+  - Loads all 100 LED coordinates, sampled pixel colors, float vector artwork, animation groups, speed BPM, brightness, and sequence cues.
+  - Automatically switches view mode to Single Shirt, activates the zoom toolbar, and centers the viewport (`resetZoom()`).
+  - Navigates the sidebar directly to the **🎨 Layout** tab (`tabLayout`) and synchronizes the **Quick-Load Profile** dropdown.
+- **📥 Assign Editor:** Copies your active single-shirt editor design into that runner slot.
+- **📋 Assign Editor to All:** Duplicates your current single-shirt design across all 7 runners with one click.
+- **🔁 Parade Defaults:** Instantly resets all 7 runners to the official Electrical Parade float presets.
+- **💾 Save Fleet Lineup:** Saves the complete 7-runner fleet configuration to `presets/fleet_lineup.json`.
 
 ---
+
+## 14. Hardware Integration: Live Wi-Fi Streaming & Standalone USB Flashing
+
+The simulator connects directly to physical ESP32 hardware via two powerful workflows:
+
+```
+[ BROWSER SIMULATOR ] ──(UDP Port 4210 @ 30 FPS)──▶ [ ESP32 NODE ] ──▶ [ WS2812B SHIRT ]
+```
+
+### Real-Time Live Wi-Fi UDP Streaming
+Preview animations on your physical shirt in real time without flashing:
+1. Connect your ESP32 to your local Wi-Fi network (or use the built-in `MSEP-Costume-AP` hotspot).
+2. In the simulator header, click **"📡 Wi-Fi Live Stream"** or the settings gear.
+3. Enter your Wi-Fi SSID, Password, and the target ESP32 IP address (or leave `255.255.255.255` for broadcast).
+4. Click **"▶ Start Live Wi-Fi Stream"**.
+5. The status indicator turns green: `Streaming (100 LEDs @ 30 FPS)`.
+6. As you scrub the timeline or hit play, the browser packs the RGB frame data into high-speed UDP packets on port `4210`. Your physical shirt mirrors the simulator screen with zero perceived latency!
+
+### One-Click Standalone USB Firmware Flashing (200 LEDs: 100 Front + 100 Back)
+When you are ready to prepare a shirt for autonomous use:
+1. Connect your ESP32 to your computer using a standard micro-USB or USB-C data cable.
+2. The top status indicator will detect your COM port and turn green: `● ESP32 on COMx (Ready)`.
+3. Click **"⚡ Flash to Connected ESP32"**.
+4. The simulator compiles and flashes standalone firmware configured for **200 LEDs**:
+   - **Front 100 LEDs (0 – 99):** Your custom-placed, color-matched chest artwork lighting.
+   - **Back 100 LEDs (100 – 199):** Real-time duplicate of the front animation for 360° visibility and battery life benchmarking.
+   - **Power Management:** FastLED power limit configured up to **2000 mA (2.0A)** for safe operation from portable 5V USB power banks.
+5. The live terminal modal displays compilation output and upload progress.
+6. Once complete, unplug the USB cable from your computer, plug the ESP32 into a 5V USB battery bank in your pocket, and your costume runs on its own!
+
+---
+
+## 15. ESP32 Firmware: Debounced Button Control, Fleet Routine Trigger & Early Stop
+
+The unified firmware in [`src/main.cpp`](file:///c:/Users/Kiddi/Desktop/WDW%20costumes/src/main.cpp) and [`arduino/MSEP_Costume/MSEP_Costume.ino`](file:///c:/Users/Kiddi/Desktop/WDW%20costumes/arduino/MSEP_Costume/MSEP_Costume.ino) implements the one-shot fleet show architecture with debounced button handling via the onboard **BOOT button** (`BUTTON_PIN 0`):
+
+### Short Tap BOOT Button (< 2.5s): One-Shot Trigger & Early Stop
+- **From Baseline (Idle):**
+  - Tapping the BOOT button (50ms–2500ms press with 300ms lockout) initiates the **30-Second Synchronized Fleet Routine** once.
+  - Automatically broadcasts an ESP-NOW sync trigger packet (`mode = 0x30`) to all listening peer costumes in range so the entire fleet initiates simultaneously.
+  - Advances through all 12 choreography phases (blackouts, forward wave, reverse wave, 5s fleet pulse, center burst, wig-wag, baton chase, sparkle storm, ping-pong, carnival finale).
+  - Automatically returns to the individual float program after 30.0 seconds.
+- **During Active Fleet Routine:**
+  - Tapping the BOOT button stops the routine early!
+  - Broadcasts an ESP-NOW cancellation packet (`mode = 0x00`) to all peer costumes.
+  - Displays **2 Amber Flashes** and returns immediately to the regular individual program.
+
+### Debounce Protocol
+- **Hardware Press Debounce:** Ignores contact bounce or electrical noise under 50ms (`pressDuration >= 50`).
+- **Software Lockout:** Enforces 300ms lockout between button releases (`now - lastButtonReleaseTime >= 300`) to prevent double-triggering.
+
+### 🎛️ Interactive Float ID Selector (Hold for 3 Seconds)
+Any board can be assigned to any of the 7 floats without touching code:
+1. **Hold the BOOT button for 3 seconds:** The LEDs flash **white 3 times** to enter Config Mode.
+2. **Visual Feedback:** The first `N` LEDs on the strip light up in that float's signature color (1=Red, 2=Gold/Amber, 3=Teal, 4=Pink, 5=Cyan, 6=Green, 7=Patriotic Blue). The onboard blue LED blinks `N` times in sequence.
+3. **Tap to Cycle:** Each short tap cycles `1 ➔ 2 ➔ 3 ➔ 4 ➔ 5 ➔ 6 ➔ 7 ➔ 1`.
+4. **Auto-Save:** Leave untouched for 4 seconds. The LEDs flash **green 4 times** and the Float ID is permanently saved to ESP32 NVS flash (`Preferences.h`).
+
+---
+
+## 16. Keyboard Shortcuts & Quick Reference Cheat Sheet
+
+| Key / Action | Context | Description |
+|---|---|---|
+| `Spacebar` / `F` | Fleet Lineup View | **Activate 30s Fleet Show / Stop Early** (300ms debounced one-shot trigger) |
+| `Spacebar` (Tap) | Single Shirt View | **Play / Pause** show sequence playback on the master timeline |
+| `Spacebar` (Hold) + Drag | Canvas | **Pan** the canvas workspace smoothly |
+| Right-Click + Drag | Canvas | **Pan** the canvas workspace |
+| Mouse Wheel | Canvas | **Zoom** in / out centered on cursor position |
+| `+` / `=` | Canvas | **Zoom In** (+20%) |
+| `-` / `_` | Canvas | **Zoom Out** (-20%) |
+| `0` | Canvas | **Reset Zoom** to default centered 100% view |
+| `Shift` + Drag | Canvas | **Marquee Box Select** multiple LEDs |
+| `Ctrl + A` / `Cmd + A` | Canvas | **Select All** LEDs |
+| `Enter` | Draw Mode | **Finish & Save** drawn path animation group (when $\ge 2$ LEDs placed) |
+| `Escape` | Draw Mode | **Cancel** drawing mode and revert uncommitted points |
+| `Escape` | Normal Mode | **Deselect All** LEDs |
+| Arrow Right `]` / `n` | LED Select | Select **Next LED** in wiring order |
+| Arrow Left `[` / `p` | LED Select | Select **Previous LED** in wiring order |
+| Click on Timeline Track | Timeline | **Seek playhead** to that exact second |
+| Click on Cue Block | Timeline | **Jump to cue start** and highlight cue card in editor |
 
 ## 14. Hardware Integration: Live Wi-Fi Streaming & Standalone USB Flashing
 

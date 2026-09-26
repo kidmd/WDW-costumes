@@ -1,0 +1,108 @@
+{
+  "id": "classic_20s_routine",
+  "name": "Classic 20s Fleet Routine",
+  "description": "The fast 20-second parade routine with forward wave, reverse wave, 5s breath pulse, sparkle storm, and grand finale.",
+  "version": "1.0",
+  "loopDuration": 20.0,
+  "createdAt": "2026-09-25T23:25:00Z",
+  "updatedAt": "2026-09-25T23:25:00Z",
+  "blocks": [
+    {
+      "id": "blk_20_01_blackout",
+      "name": "Intro Blackout",
+      "type": "blackout",
+      "startTime": 0.0,
+      "duration": 1.0,
+      "params": {}
+    },
+    {
+      "id": "blk_20_02_forward_wave",
+      "name": "Forward Wave (1➔7)",
+      "type": "wave_forward",
+      "startTime": 1.0,
+      "duration": 1.0,
+      "params": {
+        "colorMode": "cycle_random",
+        "trailLengthShirts": 2.0,
+        "incandescentCrest": true
+      }
+    },
+    {
+      "id": "blk_20_03_reverse_wave",
+      "name": "Reverse Wave (7➔1)",
+      "type": "wave_reverse",
+      "startTime": 2.0,
+      "duration": 1.0,
+      "params": {
+        "colorMode": "match_previous",
+        "trailLengthShirts": 2.0,
+        "incandescentCrest": true
+      }
+    },
+    {
+      "id": "blk_20_04_pulse",
+      "name": "All-Fleet Majestic Pulse",
+      "type": "fleet_pulse",
+      "startTime": 3.0,
+      "duration": 5.0,
+      "params": {
+        "colorMode": "match_previous",
+        "pulseSpeedBpm": 36,
+        "minBrightness": 0.28,
+        "peakFlare": true
+      }
+    },
+    {
+      "id": "blk_20_05_sparkle",
+      "name": "Sparkle Storm",
+      "type": "sparkle_storm",
+      "startTime": 8.0,
+      "duration": 2.0,
+      "params": {
+        "sparkleColorMix": "wave_and_white",
+        "density": 0.75
+      }
+    },
+    {
+      "id": "blk_20_06_center_burst",
+      "name": "Center-Outward Burst",
+      "type": "center_burst",
+      "startTime": 10.0,
+      "duration": 2.0,
+      "params": {
+        "colorMode": "cycle_random",
+        "peakFlare": true
+      }
+    },
+    {
+      "id": "blk_20_07_ping_pong",
+      "name": "Ping-Pong Double Wave",
+      "type": "ping_pong_wave",
+      "startTime": 12.0,
+      "duration": 3.0,
+      "params": {
+        "bounces": 2,
+        "colorMode": "cycle_random"
+      }
+    },
+    {
+      "id": "blk_20_08_finale",
+      "name": "Carnival Finale",
+      "type": "grand_finale",
+      "startTime": 15.0,
+      "duration": 4.0,
+      "params": {
+        "speedBpm": 140,
+        "strobeClimax": true
+      }
+    },
+    {
+      "id": "blk_20_09_outro",
+      "name": "Curtain Blackout",
+      "type": "blackout",
+      "startTime": 19.0,
+      "duration": 1.0,
+      "params": {}
+    }
+  ]
+}

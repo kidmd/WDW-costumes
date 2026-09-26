@@ -1918,6 +1918,439 @@ function getFleetRoutineWaveColor(timeMs) {
     return FLEET_WAVE_STANDARD_COLORS[idx];
 }
 
+// ============================================================================
+// 7-SHIRT FLEET SHOW CREATOR ENGINE & 14-BLOCK CHOREOGRAPHY DEFINITIONS
+// ============================================================================
+const FLEET_BLOCK_DEFS = {
+    'wave_forward': {
+        name: "Forward Wave (1 ➔ 7)",
+        icon: "🌊",
+        category: "waves",
+        defaultDuration: 1.5,
+        defaultParams: { colorMode: "cycle_random", trailLengthShirts: 2.0, incandescentCrest: true }
+    },
+    'wave_reverse': {
+        name: "Reverse Wave (7 ➔ 1)",
+        icon: "🌊",
+        category: "waves",
+        defaultDuration: 1.5,
+        defaultParams: { colorMode: "match_previous", trailLengthShirts: 2.0, incandescentCrest: true }
+    },
+    'fleet_pulse': {
+        name: "All-Fleet Majestic Breath",
+        icon: "💓",
+        category: "sync",
+        defaultDuration: 5.0,
+        defaultParams: { colorMode: "match_previous", pulseSpeedBpm: 36, minBrightness: 0.28, peakFlare: true }
+    },
+    'sparkle_storm': {
+        name: "Starlight Sparkle Storm",
+        icon: "✨",
+        category: "sync",
+        defaultDuration: 3.0,
+        defaultParams: { sparkleColorMix: "wave_and_white", density: 0.75 }
+    },
+    'center_burst': {
+        name: "Center-Outward Energy Burst",
+        icon: "🎆",
+        category: "waves",
+        defaultDuration: 2.0,
+        defaultParams: { colorMode: "cycle_random", peakFlare: true }
+    },
+    'converge_center': {
+        name: "Converge Inward (1 & 7 ➔ 4)",
+        icon: "🎯",
+        category: "waves",
+        defaultDuration: 2.0,
+        defaultParams: { colorMode: "cycle_random", peakFlare: true }
+    },
+    'wig_wag': {
+        name: "Odd/Even Marquee Wig-Wag",
+        icon: "🎪",
+        category: "theatrical",
+        defaultDuration: 2.5,
+        defaultParams: { speedBpm: 120, colorA: "Belle Gold", colorB: "Alice Cyan" }
+    },
+    'baton_chase': {
+        name: "Baton Leapfrog Chase",
+        icon: "🏃",
+        category: "waves",
+        defaultDuration: 3.0,
+        defaultParams: { direction: "1_to_7", colorMode: "cycle_random" }
+    },
+    'ping_pong_wave': {
+        name: "Ping-Pong Double Bounce",
+        icon: "🏓",
+        category: "waves",
+        defaultDuration: 3.0,
+        defaultParams: { bounces: 2, colorMode: "cycle_random" }
+    },
+    'color_wash_chase': {
+        name: "Color Wash Progressive Fill",
+        icon: "🎨",
+        category: "sync",
+        defaultDuration: 3.5,
+        defaultParams: { colorMode: "cycle_random" }
+    },
+    'rainbow_sweep': {
+        name: "Rainbow Fleet Sweep",
+        icon: "🌈",
+        category: "sync",
+        defaultDuration: 4.0,
+        defaultParams: { speedBpm: 120 }
+    },
+    'strobe_all': {
+        name: "Grand Finale Strobe",
+        icon: "⚡",
+        category: "theatrical",
+        defaultDuration: 2.0,
+        defaultParams: { speedBpm: 240, color: "Starlight White" }
+    },
+    'shimmer_drift': {
+        name: "Shimmer & Twinkle Drift",
+        icon: "🌌",
+        category: "sync",
+        defaultDuration: 4.0,
+        defaultParams: { colorMode: "match_previous" }
+    },
+    'grand_finale': {
+        name: "Carnival Finale Crescendo",
+        icon: "🎆",
+        category: "theatrical",
+        defaultDuration: 5.0,
+        defaultParams: { speedBpm: 150, strobeClimax: true }
+    },
+    'blackout': {
+        name: "Theatrical Blackout (Off)",
+        icon: "🌑",
+        category: "theatrical",
+        defaultDuration: 1.0,
+        defaultParams: {}
+    }
+};
+
+// Active Fleet Show Choreography State
+let activeFleetShow = null;
+let fleetShowActive = false; // True only while one-shot 30s routine is playing
+let fleetShowElapsedSec = 0.0;
+let fleetShowLastTimestamp = 0;
+let lastFleetTriggerTime = 0; // For 300ms software debounce
+let fleetShowCycleIndex = 0;
+let activeFleetShowLastColor = null;
+
+// Resolve dynamic color for a fleet block (palette cycle, match previous, or named Disney color)
+function getActiveFleetColor(colorMode, blockIndex) {
+    if (!colorMode || colorMode === 'cycle_random' || colorMode === 'palette_cycle') {
+        const count = FLEET_WAVE_STANDARD_COLORS.length;
+        const idx = ((fleetShowCycleIndex + (blockIndex || 0)) * 5) % count;
+        const col = FLEET_WAVE_STANDARD_COLORS[idx];
+        activeFleetShowLastColor = col;
+        return col;
+    }
+    if (colorMode === 'match_previous' && activeFleetShowLastColor) {
+        return activeFleetShowLastColor;
+    }
+    const matched = FLEET_WAVE_STANDARD_COLORS.find(c => c.name.toLowerCase() === String(colorMode).toLowerCase());
+    if (matched) {
+        activeFleetShowLastColor = matched;
+        return matched;
+    }
+    const defCol = FLEET_WAVE_STANDARD_COLORS[0];
+    activeFleetShowLastColor = defCol;
+    return defCol;
+}
+
+// Find the block active at a specific timestamp in the fleet routine
+function getActiveFleetBlock(elapsedSec) {
+    if (!activeFleetShow || !Array.isArray(activeFleetShow.blocks) || activeFleetShow.blocks.length === 0) return null;
+    const t = Math.max(0, elapsedSec);
+    for (let i = 0; i < activeFleetShow.blocks.length; i++) {
+        const b = activeFleetShow.blocks[i];
+        const start = b.startTime !== undefined ? b.startTime : 0;
+        const dur = b.duration || 1.0;
+        if (t >= start && t < (start + dur)) {
+            return { block: b, index: i, start, dur, localT: t - start };
+        }
+    }
+    const last = activeFleetShow.blocks[activeFleetShow.blocks.length - 1];
+    return { block: last, index: activeFleetShow.blocks.length - 1, start: last.startTime || 0, dur: last.duration || 1.0, localT: last.duration || 1.0 };
+}
+
+// Helper: Convert HSL to RGB
+function hslToRgb(h, s, l) {
+    s /= 100;
+    l /= 100;
+    const k = n => (n + h / 30) % 12;
+    const a = s * Math.min(l, 1 - l);
+    const f = n => l - a * Math.max(-1, Math.min(k(n) - 3, Math.min(9 - k(n), 1)));
+    return {
+        r: Math.round(255 * f(0)),
+        g: Math.round(255 * f(8)),
+        b: Math.round(255 * f(4))
+    };
+}
+
+// Evaluate LED color for a runner during active 30s fleet show
+function evalActiveFleetShowColor(runnerIndex, runner, presetData, ledIndex, totalLeds, timeMs, elapsedSec) {
+    const activeInfo = getActiveFleetBlock(elapsedSec);
+    if (!activeInfo) return { r: 0, g: 0, b: 0, alpha: 0.0 };
+
+    const block = activeInfo.block;
+    const bType = block.type || 'wave_forward';
+    const dur = Math.max(0.1, block.duration || 1.0);
+    const localT = Math.min(dur, Math.max(0, activeInfo.localT));
+    const localP = localT / dur; // 0.0 to 1.0
+    const params = block.params || {};
+
+    const waveColor = getActiveFleetColor(params.colorMode || 'cycle_random', activeInfo.index);
+    const ledsArr = (presetData && presetData.leds) ? presetData.leds : [];
+    const led = ledsArr[ledIndex] || {};
+    const ledNormX = (typeof led.x === 'number') ? led.x : (ledIndex / Math.max(1, totalLeds));
+    const globalPos = runnerIndex + ledNormX;
+
+    // 1. BLACKOUT
+    if (bType === 'blackout') {
+        return { r: 0, g: 0, b: 0, alpha: 0.0 };
+    }
+
+    // 2. FORWARD WAVE (1 ➔ 7)
+    if (bType === 'wave_forward') {
+        const sweepPos = -0.3 + localP * 7.6;
+        const delta = sweepPos - globalPos;
+        const trailLen = params.trailLengthShirts || 2.0;
+
+        if (delta < -0.35) {
+            return { r: 0, g: 0, b: 0, alpha: 0.0 };
+        } else if (delta < 0.0) {
+            const fRise = (delta + 0.35) / 0.35;
+            return { r: Math.round(waveColor.r * fRise * 0.9), g: Math.round(waveColor.g * fRise * 0.9), b: Math.round(waveColor.b * fRise * 0.9), alpha: fRise };
+        } else if (delta < 0.25) {
+            const crestMix = delta / 0.25;
+            const coreR = Math.min(255, Math.round(255 * (1.0 - 0.2 * crestMix) + waveColor.r * (0.2 * crestMix)));
+            const coreG = Math.min(255, Math.round(255 * (1.0 - 0.2 * crestMix) + waveColor.g * (0.2 * crestMix)));
+            const coreB = Math.min(255, Math.round(255 * (1.0 - 0.2 * crestMix) + waveColor.r * (0.2 * crestMix)));
+            return { r: coreR, g: coreG, b: coreB, alpha: 1.0 };
+        } else if (delta < (0.25 + trailLen)) {
+            const trailFraction = (delta - 0.25) / trailLen;
+            const decay = Math.pow(Math.max(0, 1.0 - trailFraction), 1.35);
+            return { r: Math.round(waveColor.r * decay), g: Math.round(waveColor.g * decay), b: Math.round(waveColor.b * decay), alpha: Math.max(0.0, decay * 0.95) };
+        } else {
+            return { r: 0, g: 0, b: 0, alpha: 0.0 };
+        }
+    }
+
+    // 3. REVERSE WAVE (7 ➔ 1)
+    if (bType === 'wave_reverse') {
+        const sweepPos = 7.3 - localP * 7.6;
+        const delta = globalPos - sweepPos;
+        const trailLen = params.trailLengthShirts || 2.0;
+
+        if (delta < -0.35) {
+            return { r: 0, g: 0, b: 0, alpha: 0.0 };
+        } else if (delta < 0.0) {
+            const fRise = (delta + 0.35) / 0.35;
+            return { r: Math.round(waveColor.r * fRise * 0.9), g: Math.round(waveColor.g * fRise * 0.9), b: Math.round(waveColor.b * fRise * 0.9), alpha: fRise };
+        } else if (delta < 0.25) {
+            const crestMix = delta / 0.25;
+            const coreR = Math.min(255, Math.round(255 * (1.0 - 0.2 * crestMix) + waveColor.r * (0.2 * crestMix)));
+            const coreG = Math.min(255, Math.round(255 * (1.0 - 0.2 * crestMix) + waveColor.r * (0.2 * crestMix)));
+            const coreB = Math.min(255, Math.round(255 * (1.0 - 0.2 * crestMix) + waveColor.r * (0.2 * crestMix)));
+            return { r: coreR, g: coreG, b: coreB, alpha: 1.0 };
+        } else if (delta < (0.25 + trailLen)) {
+            const trailFraction = (delta - 0.25) / trailLen;
+            const decay = Math.pow(Math.max(0, 1.0 - trailFraction), 1.35);
+            return { r: Math.round(waveColor.r * decay), g: Math.round(waveColor.g * decay), b: Math.round(waveColor.b * decay), alpha: Math.max(0.0, decay * 0.95) };
+        } else {
+            return { r: 0, g: 0, b: 0, alpha: 0.0 };
+        }
+    }
+
+    // 4. ALL-FLEET MAJESTIC BREATH PULSE
+    if (bType === 'fleet_pulse') {
+        const cycles = 3.0;
+        const breath = 0.5 + 0.5 * Math.sin(localP * Math.PI * 2.0 * cycles - Math.PI * 0.5);
+        const minBright = params.minBrightness || 0.28;
+        const intensity = minBright + (1.0 - minBright) * breath;
+        const boost = (breath > 0.82) ? Math.round((breath - 0.82) / 0.18 * 60) : 0;
+        return {
+            r: Math.min(255, Math.round(waveColor.r * intensity + boost)),
+            g: Math.min(255, Math.round(waveColor.g * intensity + boost)),
+            b: Math.min(255, Math.round(waveColor.b * intensity + boost)),
+            alpha: Math.max(0.35, intensity)
+        };
+    }
+
+    // 5. STARLIGHT SPARKLE STORM
+    if (bType === 'sparkle_storm') {
+        const frameBucket = Math.floor(timeMs / 45);
+        const hash = Math.sin(runnerIndex * 43.17 + ledIndex * 93.31 + frameBucket * 19.73) * 43758.5453;
+        const rnd = hash - Math.floor(hash);
+
+        if (rnd > 0.72) {
+            return { r: 255, g: 255, b: 255, alpha: 1.0 };
+        } else if (rnd > 0.40) {
+            return { r: waveColor.r, g: waveColor.g, b: waveColor.b, alpha: 0.98 };
+        } else if (rnd > 0.18) {
+            return {
+                r: Math.min(255, Math.round(waveColor.r * 0.55 + 255 * 0.45)),
+                g: Math.min(255, Math.round(waveColor.g * 0.55 + 255 * 0.45)),
+                b: Math.min(255, Math.round(waveColor.b * 0.55 + 255 * 0.45)),
+                alpha: 0.88
+            };
+        } else {
+            const shim = 0.22 + 0.32 * Math.sin((timeMs * 0.015) + ledIndex * 0.8 + runnerIndex * 1.5);
+            return { r: Math.round(waveColor.r * shim), g: Math.round(waveColor.g * shim), b: Math.round(waveColor.b * shim), alpha: Math.max(0.18, shim) };
+        }
+    }
+
+    // 6. CENTER-OUTWARD ENERGY BURST (Float 4 ➔ 1 & 7)
+    if (bType === 'center_burst') {
+        const distFromCenter = Math.abs(runnerIndex - 3.0) + (ledNormX - 0.5) * 0.5;
+        const blastRadius = localP * 4.2;
+        const delta = blastRadius - distFromCenter;
+
+        if (delta < -0.3) {
+            return { r: 0, g: 0, b: 0, alpha: 0.0 };
+        } else if (delta < 0.2) {
+            // White-hot shockwave front
+            return { r: 255, g: 255, b: 255, alpha: 1.0 };
+        } else if (delta < 1.6) {
+            const fade = 1.0 - (delta - 0.2) / 1.4;
+            return { r: Math.round(waveColor.r * fade), g: Math.round(waveColor.g * fade), b: Math.round(waveColor.b * fade), alpha: fade * 0.9 };
+        } else {
+            return { r: 0, g: 0, b: 0, alpha: 0.0 };
+        }
+    }
+
+    // 7. CONVERGE INWARD (Floats 1 & 7 ➔ Float 4)
+    if (bType === 'converge_center') {
+        const distInward = (runnerIndex <= 3) ? (runnerIndex + ledNormX) : (6.0 - runnerIndex + (1.0 - ledNormX));
+        const waveFront = localP * 3.8;
+        const delta = Math.abs(waveFront - distInward);
+
+        if (localP > 0.88 && runnerIndex === 3) {
+            // Central collision flash!
+            return { r: 255, g: 255, b: 255, alpha: 1.0 };
+        }
+        if (delta < 0.3) {
+            return { r: 255, g: 255, b: 255, alpha: 1.0 };
+        } else if (delta < 1.4) {
+            const f = 1.0 - (delta - 0.3) / 1.1;
+            return { r: Math.round(waveColor.r * f), g: Math.round(waveColor.g * f), b: Math.round(waveColor.b * f), alpha: f * 0.85 };
+        } else {
+            return { r: 0, g: 0, b: 0, alpha: 0.0 };
+        }
+    }
+
+    // 8. ODD/EVEN MARQUEE WIG-WAG
+    if (bType === 'wig_wag') {
+        const bpm = params.speedBpm || 120;
+        const beat = Math.floor(localT * (bpm / 60) * 2) % 2;
+        const isOdd = (runnerIndex % 2 === 1);
+        const activeGroup = (beat === 1) ? isOdd : !isOdd;
+
+        if (activeGroup) {
+            return { r: waveColor.r, g: waveColor.g, b: waveColor.b, alpha: 1.0 };
+        } else {
+            // Opposite floats soft accent or unlit
+            const dimCol = FLEET_WAVE_STANDARD_COLORS[(activeInfo.index + 3) % FLEET_WAVE_STANDARD_COLORS.length];
+            return { r: Math.round(dimCol.r * 0.15), g: Math.round(dimCol.g * 0.15), b: Math.round(dimCol.b * 0.15), alpha: 0.2 };
+        }
+    }
+
+    // 9. BATON LEAPFROG CHASE
+    if (bType === 'baton_chase') {
+        const activeFloat = Math.min(6, Math.floor(localP * 7.0));
+        if (runnerIndex === activeFloat) {
+            const spin = Math.sin((timeMs * 0.02) + ledIndex * 0.6) > 0.3 ? 1.0 : 0.4;
+            return { r: Math.min(255, Math.round(waveColor.r * spin + 60)), g: Math.min(255, Math.round(waveColor.g * spin + 60)), b: Math.min(255, Math.round(waveColor.b * spin + 60)), alpha: 1.0 };
+        } else {
+            const resting = 0.15 + 0.12 * Math.sin(timeMs * 0.005 + ledIndex);
+            return { r: Math.round(waveColor.r * resting), g: Math.round(waveColor.g * resting), b: Math.round(waveColor.b * resting), alpha: resting };
+        }
+    }
+
+    // 10. PING-PONG DOUBLE BOUNCE
+    if (bType === 'ping_pong_wave') {
+        const bouncePhase = (localP * 4.0) % 2.0; // 2 complete round-trips
+        const sweepPos = (bouncePhase < 1.0) ? (bouncePhase * 7.0) : (7.0 - (bouncePhase - 1.0) * 7.0);
+        const delta = Math.abs(sweepPos - globalPos);
+
+        if (delta < 0.25) {
+            return { r: 255, g: 255, b: 255, alpha: 1.0 };
+        } else if (delta < 1.5) {
+            const dec = Math.pow(1.0 - (delta - 0.25) / 1.25, 1.4);
+            return { r: Math.round(waveColor.r * dec), g: Math.round(waveColor.g * dec), b: Math.round(waveColor.b * dec), alpha: dec };
+        } else {
+            return { r: 0, g: 0, b: 0, alpha: 0.0 };
+        }
+    }
+
+    // 11. COLOR WASH PROGRESSIVE FILL
+    if (bType === 'color_wash_chase') {
+        const threshold = localP * 7.5;
+        if (runnerIndex < Math.floor(threshold)) {
+            // Already ignited: glowing steadily
+            const shim = 0.75 + 0.25 * Math.sin(timeMs * 0.006 + ledIndex * 0.4);
+            return { r: Math.round(waveColor.r * shim), g: Math.round(waveColor.g * shim), b: Math.round(waveColor.b * shim), alpha: 0.9 };
+        } else if (runnerIndex === Math.floor(threshold)) {
+            // Currently igniting: brilliant white flare
+            return { r: 255, g: 255, b: 255, alpha: 1.0 };
+        } else {
+            return { r: 0, g: 0, b: 0, alpha: 0.0 };
+        }
+    }
+
+    // 12. RAINBOW FLEET SWEEP
+    if (bType === 'rainbow_sweep') {
+        const hue = Math.floor((localP * 720) + (runnerIndex * 51) + (ledIndex * 2.2)) % 360;
+        const rgb = hslToRgb(hue, 100, 52);
+        return { r: rgb.r, g: rgb.g, b: rgb.b, alpha: 0.98 };
+    }
+
+    // 13. GRAND FINALE STROBE
+    if (bType === 'strobe_all') {
+        const flash = Math.sin(localT * Math.PI * 26.0) > 0.0;
+        if (flash) {
+            return { r: 255, g: 255, b: 255, alpha: 1.0 };
+        } else {
+            return { r: 0, g: 0, b: 0, alpha: 0.0 };
+        }
+    }
+
+    // 14. SHIMMER & TWINKLE DRIFT
+    if (bType === 'shimmer_drift') {
+        const wave = 0.5 + 0.5 * Math.sin(localP * Math.PI * 4.0 + runnerIndex * 0.9 + ledIndex * 0.2);
+        const spk = Math.sin(timeMs * 0.015 + runnerIndex * 13.7 + ledIndex * 31.3) > 0.85 ? 1.0 : wave;
+        return { r: Math.round(waveColor.r * spk), g: Math.round(waveColor.g * spk), b: Math.round(waveColor.b * spk), alpha: Math.max(0.2, spk) };
+    }
+
+    // 15. CARNIVAL FINALE CRESCENDO
+    if (bType === 'grand_finale') {
+        if (localP < 0.6) {
+            const p = localP / 0.6;
+            const sweep = (Math.sin(p * Math.PI * 6.0) * 0.5 + 0.5) * 7.0;
+            const delta = Math.abs(sweep - globalPos);
+            const intensity = 0.4 + 0.6 * p;
+            if (delta < 0.4) {
+                return { r: 255, g: 255, b: 255, alpha: 1.0 };
+            } else {
+                return { r: Math.round(waveColor.r * intensity), g: Math.round(waveColor.g * intensity), b: Math.round(waveColor.b * intensity), alpha: intensity };
+            }
+        } else {
+            // Climax strobe & sparkle explosion
+            const flash = Math.sin(localT * Math.PI * 30.0) > 0.2;
+            if (flash) {
+                return { r: 255, g: 255, b: 255, alpha: 1.0 };
+            } else {
+                return { r: waveColor.r, g: waveColor.g, b: waveColor.b, alpha: 0.9 };
+            }
+        }
+    }
+
+    return { r: 0, g: 0, b: 0, alpha: 0.0 };
+}
+
 // Compute dynamic color for an individual LED on one of the 7 runners
 function computeRunnerLedColor(runnerIndex, runner, presetData, ledIndex, totalLeds, timeMs, waveProgress, isCurrentWave) {
     const ledsArr = (presetData && presetData.leds) ? presetData.leds : [];
@@ -1925,217 +2358,152 @@ function computeRunnerLedColor(runnerIndex, runner, presetData, ledIndex, totalL
     const hasColor = !!led.color;
     const c = hasColor ? led.color : { r: 255, g: 255, b: 255 };
 
-    if (fleetSyncMode === 'parade_20s' || fleetSyncMode === 'parade_15s') {
-        const cycleMs = 20000;
-        const t = (timeMs % cycleMs) / 1000.0; // 0.0 to 20.0 seconds
-        const waveColor = getFleetRoutineWaveColor(timeMs);
-        
-        // 1. 0.0s – 1.0s (1s): All 7 shirts totally black (off / unlit)
-        if (t < 1.0) {
-            return { r: 0, g: 0, b: 0, alpha: 0.0 };
-        }
-        
-        // 2. 1.0s – 2.0s (1s): Wave of standard color passes forward from float 1 through float 7 (total time 1s)
-        // With trail of ~2 shirts of decreasing brightness of that color
-        if (t < 2.0) {
-            const p = t - 1.0; // 0.0 to 1.0
-            const sweepPos = -0.3 + p * 7.0; 
-            const ledNormX = (typeof led.x === 'number') ? led.x : (ledIndex / Math.max(1, totalLeds));
-            const globalPos = runnerIndex + ledNormX;
-            const delta = sweepPos - globalPos;
+    // 1. If 30-Second Fleet Show is Active: Evaluate Choreographed Block
+    if (fleetShowActive) {
+        return evalActiveFleetShowColor(runnerIndex, runner, presetData, ledIndex, totalLeds, timeMs, fleetShowElapsedSec);
+    }
 
-            if (delta < -0.35) {
-                return { r: 0, g: 0, b: 0, alpha: 0.0 };
-            } else if (delta < 0.0) {
-                const fRise = (delta + 0.35) / 0.35;
-                return {
-                    r: Math.round(waveColor.r * fRise * 0.9),
-                    g: Math.round(waveColor.g * fRise * 0.9),
-                    b: Math.round(waveColor.b * fRise * 0.9),
-                    alpha: fRise
-                };
-            } else if (delta < 0.25) {
-                const crestMix = delta / 0.25;
-                const coreR = Math.min(255, Math.round(255 * (1.0 - 0.2 * crestMix) + waveColor.r * (0.2 * crestMix)));
-                const coreG = Math.min(255, Math.round(255 * (1.0 - 0.2 * crestMix) + waveColor.r * (0.2 * crestMix)));
-                const coreB = Math.min(255, Math.round(255 * (1.0 - 0.2 * crestMix) + waveColor.r * (0.2 * crestMix)));
-                return {
-                    r: coreR,
-                    g: coreG,
-                    b: coreB,
-                    alpha: 1.0
-                };
-            } else if (delta < 2.25) {
-                // ~2-shirt trail of decreasing brightness of that color
-                const trailFraction = (delta - 0.25) / 2.0;
-                const decay = Math.pow(Math.max(0, 1.0 - trailFraction), 1.35);
-                return {
-                    r: Math.round(waveColor.r * decay),
-                    g: Math.round(waveColor.g * decay),
-                    b: Math.round(waveColor.b * decay),
-                    alpha: Math.max(0.0, decay * 0.95)
-                };
-            } else {
-                return { r: 0, g: 0, b: 0, alpha: 0.0 };
-            }
+    // 2. BASELINE MODE: Evaluate Float's Individual Preset Programs and Animation Groups
+    const pattern = (presetData && presetData.settings && presetData.settings.pattern) || 'steady_sparkle';
+    const bpm = (presetData && presetData.settings && presetData.settings.speedBpm) || 120;
+    const groups = (presetData && presetData.animationGroups) || [];
+    for (const grp of groups) {
+        if (Array.isArray(grp.indices) && grp.indices.includes(ledIndex)) {
+            const idxInGrp = grp.indices.indexOf(ledIndex);
+            return evalGroupEffect(grp, grp.effect, grp.speedBpm || bpm, grp.direction || 1, idxInGrp, grp.indices.length, timeMs, c);
         }
-        
-        // 3. 2.0s – 3.0s (1s): Wave in reverse from float 7 to float 1 over 1s (same standard color as forward wave)
-        // With trail of ~2 shirts of decreasing brightness of that color
-        if (t < 3.0) {
-            const p = t - 2.0; // 0.0 to 1.0
-            const sweepPos = 6.7 - p * 7.0;
-            const ledNormX = (typeof led.x === 'number') ? led.x : (ledIndex / Math.max(1, totalLeds));
-            const globalPos = runnerIndex + ledNormX;
-            const delta = globalPos - sweepPos;
+    }
+    return evalGlobalPattern(pattern, bpm, ledIndex, totalLeds, timeMs, c, hasColor);
+}
 
-            if (delta < -0.35) {
-                return { r: 0, g: 0, b: 0, alpha: 0.0 };
-            } else if (delta < 0.0) {
-                const fRise = (delta + 0.35) / 0.35;
-                return {
-                    r: Math.round(waveColor.r * fRise * 0.9),
-                    g: Math.round(waveColor.g * fRise * 0.9),
-                    b: Math.round(waveColor.b * fRise * 0.9),
-                    alpha: fRise
-                };
-            } else if (delta < 0.25) {
-                const crestMix = delta / 0.25;
-                const coreR = Math.min(255, Math.round(255 * (1.0 - 0.2 * crestMix) + waveColor.r * (0.2 * crestMix)));
-                const coreG = Math.min(255, Math.round(255 * (1.0 - 0.2 * crestMix) + waveColor.r * (0.2 * crestMix)));
-                const coreB = Math.min(255, Math.round(255 * (1.0 - 0.2 * crestMix) + waveColor.r * (0.2 * crestMix)));
-                return {
-                    r: coreR,
-                    g: coreG,
-                    b: coreB,
-                    alpha: 1.0
-                };
-            } else if (delta < 2.25) {
-                // ~2-shirt trail of decreasing brightness of that color
-                const trailFraction = (delta - 0.25) / 2.0;
-                const decay = Math.pow(Math.max(0, 1.0 - trailFraction), 1.35);
-                return {
-                    r: Math.round(waveColor.r * decay),
-                    g: Math.round(waveColor.g * decay),
-                    b: Math.round(waveColor.b * decay),
-                    alpha: Math.max(0.0, decay * 0.95)
-                };
-            } else {
-                return { r: 0, g: 0, b: 0, alpha: 0.0 };
-            }
-        }
-        
-        // 4. 3.0s – 8.0s (5s): Light all LEDs the same color as the wave, and slowly pulse for 5 seconds
-        if (t < 8.0) {
-            const tau = t - 3.0; // 0.0 to 5.0s
-            // Complete exactly 3 slow majestic breath pulses over the 5-second duration
-            const breath = 0.5 + 0.5 * Math.sin((tau / 5.0) * Math.PI * 6.0 - Math.PI * 0.5);
-            // Minimum glow at 0.28 to keep shirts glowing majestically, peaking at 1.0
-            const intensity = 0.28 + 0.72 * breath;
-            // Near peak of breath, add incandescent white flare
-            const boost = breath > 0.82 ? Math.round((breath - 0.82) / 0.18 * 60) : 0;
-            return {
-                r: Math.min(255, Math.round(waveColor.r * intensity + boost)),
-                g: Math.min(255, Math.round(waveColor.g * intensity + boost)),
-                b: Math.min(255, Math.round(waveColor.b * intensity + boost)),
-                alpha: Math.max(0.35, intensity)
-            };
-        }
-        
-        // 5. 8.0s – 10.0s (2s): Sparkle storm with a combination of that color and white across all 7 shirts
-        if (t < 10.0) {
-            const frameBucket = Math.floor(timeMs / 45);
-            const hash = Math.sin(runnerIndex * 43.17 + ledIndex * 93.31 + frameBucket * 19.73) * 43758.5453;
-            const rnd = hash - Math.floor(hash);
-            
-            if (rnd > 0.72) {
-                // Brilliant Starlight White sparkle
-                return { r: 255, g: 255, b: 255, alpha: 1.0 };
-            } else if (rnd > 0.40) {
-                // Pure vibrant wave color sparkle
-                return { r: waveColor.r, g: waveColor.g, b: waveColor.b, alpha: 0.98 };
-            } else if (rnd > 0.18) {
-                // Pastel blend of wave color and white
-                return {
-                    r: Math.min(255, Math.round(waveColor.r * 0.55 + 255 * 0.45)),
-                    g: Math.min(255, Math.round(waveColor.g * 0.55 + 255 * 0.45)),
-                    b: Math.min(255, Math.round(waveColor.b * 0.55 + 255 * 0.45)),
-                    alpha: 0.88
-                };
-            } else {
-                // Soft underlying wave color shimmer
-                const shim = 0.22 + 0.32 * Math.sin((timeMs * 0.015) + ledIndex * 0.8 + runnerIndex * 1.5);
-                return {
-                    r: Math.round(waveColor.r * shim),
-                    g: Math.round(waveColor.g * shim),
-                    b: Math.round(waveColor.b * shim),
-                    alpha: Math.max(0.18, shim)
-                };
-            }
-        }
-        
-        // 6. 10.0s – 11.0s (1s): Off for 1 second (totally black)
-        if (t < 11.0) {
-            return { r: 0, g: 0, b: 0, alpha: 0.0 };
-        }
-        
-        // 7. 11.0s – 20.0s (9s): Back to individual shirt programs
-        const pattern = (presetData && presetData.settings && presetData.settings.pattern) || 'steady_sparkle';
-        const bpm = (presetData && presetData.settings && presetData.settings.speedBpm) || 120;
-        const groups = (presetData && presetData.animationGroups) || [];
-        for (const grp of groups) {
-            if (Array.isArray(grp.indices) && grp.indices.includes(ledIndex)) {
-                const idxInGrp = grp.indices.indexOf(ledIndex);
-                return evalGroupEffect(grp, grp.effect, grp.speedBpm || bpm, grp.direction || 1, idxInGrp, grp.indices.length, timeMs, c);
-            }
-        }
-        return evalGlobalPattern(pattern, bpm, ledIndex, totalLeds, timeMs, c, hasColor);
-    } else if (fleetSyncMode === 'wave') {
-        if (isCurrentWave) {
-            const ledNorm = ledIndex / Math.max(1, totalLeds);
-            const dist = Math.abs(ledNorm - waveProgress);
-            if (dist < 0.14) {
-                return { r: 255, g: 255, b: 255, alpha: 1.0 }; // White hot center of passing wave
-            } else if (dist < 0.28) {
-                return { r: Math.min(255, c.r + 90), g: Math.min(255, c.g + 90), b: Math.min(255, c.b + 90), alpha: 0.95 }; // Warm crest
-            } else {
-                const spk = Math.sin((timeMs * 0.008) + ledIndex * 0.5) > 0.6 ? 1.0 : 0.45;
-                return { r: Math.round(c.r * spk), g: Math.round(c.g * spk), b: Math.round(c.b * spk), alpha: 0.75 * spk }; // Trail
-            }
-        } else {
-            // Idle float resting sparkle (keeps the float distinct, beautiful, and alive)
-            const shimmer = 0.35 + 0.35 * Math.sin((timeMs * 0.003) + ledIndex * 0.8 + runnerIndex);
-            const isSparkle = Math.sin((timeMs * 0.005) + ledIndex * 1.3) > 0.85;
-            const factor = isSparkle ? 0.95 : shimmer;
-            return {
-                r: Math.round(c.r * factor),
-                g: Math.round(c.g * factor),
-                b: Math.round(c.b * factor),
-                alpha: Math.max(0.3, factor)
-            };
-        }
-    } else if (fleetSyncMode === 'free') {
-        const pattern = (presetData && presetData.settings && presetData.settings.pattern) || 'steady_sparkle';
-        const bpm = (presetData && presetData.settings && presetData.settings.speedBpm) || 120;
-        const groups = (presetData && presetData.animationGroups) || [];
-        for (const grp of groups) {
-            if (Array.isArray(grp.indices) && grp.indices.includes(ledIndex)) {
-                const idxInGrp = grp.indices.indexOf(ledIndex);
-                return evalGroupEffect(grp, grp.effect, grp.speedBpm || bpm, grp.direction || 1, idxInGrp, grp.indices.length, timeMs, c);
-            }
-        }
-        return evalGlobalPattern(pattern, bpm, ledIndex, totalLeds, timeMs, c, hasColor);
-    } else { // 'show' mode (sequence cues synchronized to timeline)
-        const t = sequenceTime;
-        const cues = (presetData && presetData.sequence && presetData.sequence.cues) || sequenceCues || [];
-        const activeCues = cues.filter(q => t >= q.startTime && t < (q.startTime + q.duration));
-        if (activeCues.length > 0) {
-            const q = activeCues[0];
-            return evalGlobalPattern(q.effect, q.speedBpm || 120, ledIndex, totalLeds, timeMs, c, hasColor);
-        }
-        return evalGlobalPattern('steady_sparkle', 120, ledIndex, totalLeds, timeMs, c, hasColor);
+// ============================================================================
+// FLEET SHOW TRIGGER & 300MS SOFTWARE DEBOUNCE CONTROLLER
+// ============================================================================
+function triggerFleetShowToggle() {
+    const now = performance.now();
+    if (now - lastFleetTriggerTime < 300) {
+        console.log("Fleet show trigger debounced (<300ms)");
+        return;
+    }
+    lastFleetTriggerTime = now;
+
+    if (fleetShowActive) {
+        stopFleetShow();
+        showToast("⏹ Stopped Fleet Show early — reverted to baseline individual float programs");
+    } else {
+        startFleetShow();
+        showToast(`👑 Activated 30s Fleet Show: "${activeFleetShow?.name || 'Grand Parade'}"`);
     }
 }
+
+function startFleetShow() {
+    fleetShowActive = true;
+    fleetShowElapsedSec = 0.0;
+    fleetShowLastTimestamp = performance.now();
+    fleetShowCycleIndex++;
+    updateFleetShowUI();
+}
+
+function stopFleetShow() {
+    fleetShowActive = false;
+    fleetShowElapsedSec = 0.0;
+    updateFleetShowUI();
+}
+
+// Keep 30-Second Fleet Show Timeline and UI Synchronized
+function updateFleetShowTimeline(timeMs) {
+    if (!fleetShowActive) {
+        fleetShowLastTimestamp = timeMs;
+        return;
+    }
+    if (!fleetShowLastTimestamp) fleetShowLastTimestamp = timeMs;
+    const deltaSec = Math.max(0, (timeMs - fleetShowLastTimestamp) / 1000.0);
+    fleetShowLastTimestamp = timeMs;
+
+    const totalDur = (activeFleetShow && activeFleetShow.loopDuration) || 30.0;
+    fleetShowElapsedSec += deltaSec;
+
+    if (fleetShowElapsedSec >= totalDur) {
+        // Complete one-shot show and return to baseline!
+        stopFleetShow();
+        showToast("🏁 30s Fleet Show completed! Returned to individual float programs.");
+        return;
+    }
+
+    updateFleetShowUI();
+}
+
+// Update DOM elements reflecting fleet show progress and state
+function updateFleetShowUI() {
+    const actBtn = document.getElementById('fleetShowActivateBtn');
+    const statusTitle = document.getElementById('fleetShowStatusTitle');
+    const timeBadge = document.getElementById('fleetShowTimeProgressBadge');
+    const activeBlockText = document.getElementById('fleetShowActiveBlockText');
+    const colorBadge = document.getElementById('fleetRoutineColorBadge');
+    const durationBadge = document.getElementById('fleetShowDurationBadge');
+
+    const totalDur = (activeFleetShow && activeFleetShow.loopDuration) || 30.0;
+    if (durationBadge) durationBadge.textContent = `${totalDur.toFixed(1)}s Total`;
+
+    const activeInfo = getActiveFleetBlock(fleetShowElapsedSec);
+    const activeBlock = activeInfo ? activeInfo.block : null;
+    const waveColor = getActiveFleetColor(activeBlock?.params?.colorMode, activeInfo?.index);
+
+    if (colorBadge && waveColor) {
+        colorBadge.textContent = waveColor.name;
+        colorBadge.style.background = waveColor.hex;
+        const isDark = (waveColor.r * 0.299 + waveColor.g * 0.587 + waveColor.b * 0.114) < 140;
+        colorBadge.style.color = isDark ? '#ffffff' : '#000000';
+    }
+
+    if (actBtn) {
+        if (fleetShowActive) {
+            actBtn.classList.add('playing');
+            actBtn.textContent = `⏹ Stop Fleet Show (${fleetShowElapsedSec.toFixed(1)}s / ${totalDur.toFixed(1)}s)`;
+        } else {
+            actBtn.classList.remove('playing');
+            actBtn.textContent = `👑 Activate ${totalDur.toFixed(0)}s Fleet Show`;
+        }
+    }
+
+    if (statusTitle) {
+        if (fleetShowActive) {
+            statusTitle.textContent = `👑 SHOW ACTIVE: ${activeBlock ? activeBlock.name : 'Grand Routine'}`;
+        } else {
+            statusTitle.textContent = `⚡ Baseline Mode: Individual Presets`;
+        }
+    }
+
+    if (timeBadge) {
+        if (fleetShowActive) {
+            timeBadge.textContent = `${fleetShowElapsedSec.toFixed(1)}s / ${totalDur.toFixed(1)}s`;
+        } else {
+            timeBadge.textContent = 'Idle';
+        }
+    }
+
+    if (activeBlockText) {
+        if (fleetShowActive && activeBlock) {
+            activeBlockText.textContent = `Block #${activeInfo.index + 1}: ${activeBlock.name} (${activeBlock.startTime.toFixed(1)}s – ${(activeBlock.startTime + activeBlock.duration).toFixed(1)}s)`;
+        } else {
+            activeBlockText.textContent = `Ready. Press Activate to play ${totalDur.toFixed(0)}s routine once across all 7 shirts.`;
+        }
+    }
+
+    // Highlight active card in stack editor
+    const stackContainer = document.getElementById('fleetBlocksStackContainer');
+    if (stackContainer) {
+        stackContainer.querySelectorAll('.fleet-block-card').forEach((card, idx) => {
+            card.classList.toggle('active-block', fleetShowActive && activeInfo && activeInfo.index === idx);
+        });
+    }
+
+    // Keep Master Timeline scrubber synchronized if in Fleet View
+    if (currentView === 'fleet') {
+        updateTimelineScrubberUI();
+    }
+}
+
 
 // Draw Authentic Mini runDisney 10K Race Bib on miniature shirt
 function drawMiniRaceBib(cx, x, y, width, height, bibNumber) {
@@ -2197,89 +2565,40 @@ function renderFleetView(timeMs) {
     const shirtH = Math.floor(shirtW * 1.25); // ~125px (natural athletic dimensions!)
     const shirtY = h * 0.25; // Centered vertically in upper-mid canvas
 
-    // Master Traveling Wave & 15s Routine Timing
-    const runnerDuration = fleetWaveCycleDurationMs / totalFloats;
-    const masterWaveTime = (timeMs % fleetWaveCycleDurationMs);
-    const activeFloatIndex = Math.floor(masterWaveTime / runnerDuration);
-    const waveProgress = (masterWaveTime % runnerDuration) / runnerDuration;
+    // Fleet View Header & Mode Subtitle
+    const totalDur = (activeFleetShow && activeFleetShow.loopDuration) || 30.0;
+    const activeInfo = fleetShowActive ? getActiveFleetBlock(fleetShowElapsedSec) : null;
+    const activeBlock = activeInfo ? activeInfo.block : null;
+    const waveColor = activeBlock ? getActiveFleetColor(activeBlock.params?.colorMode, activeInfo.index) : FLEET_WAVE_STANDARD_COLORS[0];
 
-    // 20s Choreographed Parade Routine Timing
-    const tRoutine = (timeMs % 20000) / 1000.0;
-    const waveColor = getFleetRoutineWaveColor(timeMs);
-    let routineActiveFloat = -1;
-    let isPulsePhase = false;
-    let isSparkleStorm = false;
-    let isBlackout = false;
-
-    const isParadeRoutine = (fleetSyncMode === 'parade_20s' || fleetSyncMode === 'parade_15s');
-
-    if (isParadeRoutine) {
-        if (tRoutine < 1.0) {
-            isBlackout = true;
-        } else if (tRoutine < 2.0) {
-            routineActiveFloat = Math.min(6, Math.max(0, Math.floor((tRoutine - 1.0) * 7.0)));
-        } else if (tRoutine < 3.0) {
-            routineActiveFloat = Math.min(6, Math.max(0, Math.floor((1.0 - (tRoutine - 2.0)) * 7.0)));
-        } else if (tRoutine < 8.0) {
-            isPulsePhase = true;
-        } else if (tRoutine < 10.0) {
-            isSparkleStorm = true;
-        } else if (tRoutine < 11.0) {
-            isBlackout = true;
-        }
-
-        // Keep sidebar timing badge synchronized in real-time
-        const badge = document.getElementById('fleetRoutinePhaseBadge');
-        if (badge) {
-            let label = "Off";
-            if (tRoutine >= 1.0 && tRoutine < 2.0) label = `Wave 1➔7`;
-            else if (tRoutine >= 2.0 && tRoutine < 3.0) label = `Wave 7➔1`;
-            else if (tRoutine >= 3.0 && tRoutine < 8.0) label = "Pulse 5s";
-            else if (tRoutine >= 8.0 && tRoutine < 10.0) label = "Sparkle";
-            else if (tRoutine >= 10.0 && tRoutine < 11.0) label = "Off";
-            else if (tRoutine >= 11.0) label = "Programs";
-            badge.textContent = `${label} (${tRoutine.toFixed(1)}s / 20.0s)`;
-        }
-
-        // Keep sidebar current cycle wave color badge synchronized
-        const colBadge = document.getElementById('fleetRoutineColorBadge');
-        if (colBadge) {
-            colBadge.textContent = waveColor.name;
-            colBadge.style.background = waveColor.hex;
-            const isDark = (waveColor.r * 0.299 + waveColor.g * 0.587 + waveColor.b * 0.114) < 140;
-            colBadge.style.color = isDark ? '#ffffff' : '#000000';
-        }
-    }
-
-    // Header Title & Subtitle
     ctx.fillStyle = '#ffc107';
     ctx.font = 'bold 16px sans-serif';
     ctx.textAlign = 'center';
-    ctx.fillText("MAIN STREET ELECTRICAL PARADE — 7-RUNNER FLEET LINEUP", w * 0.5, h * 0.08);
 
-    let modeText = "🌊 ESP-NOW Traveling Wave Mode (Cycle: " + (fleetWaveCycleDurationMs / 1000).toFixed(1) + "s)";
-    if (isParadeRoutine) {
-        let phaseStr = "";
-        if (tRoutine < 1.0) phaseStr = "🌑 Phase 1: Blackout (Off)";
-        else if (tRoutine < 2.0) phaseStr = `🌊 Phase 2: Forward Wave 1➔7 [${waveColor.name}] (2-Shirt Trail)`;
-        else if (tRoutine < 3.0) phaseStr = `🌊 Phase 3: Reverse Wave 7➔1 [${waveColor.name}] (2-Shirt Trail)`;
-        else if (tRoutine < 8.0) phaseStr = `💓 Phase 4: Synchronized Pulse [${waveColor.name}] (5s Majestic Breath)`;
-        else if (tRoutine < 10.0) phaseStr = `✨ Phase 5: Sparkle Storm [${waveColor.name} + White]`;
-        else if (tRoutine < 11.0) phaseStr = "🌑 Phase 6: Blackout (Off)";
-        else {
-            const nextWaveCol = getFleetRoutineWaveColor(timeMs + 20000);
-            phaseStr = `🎪 Phase 7: Individual Float Programs (Next wave: ${nextWaveCol.name})`;
-        }
-        modeText = `👑 20s Parade Routine: ${phaseStr} (${tRoutine.toFixed(1)}s / 20.0s)`;
-    } else if (fleetSyncMode === 'free') {
-        modeText = "⚡ Autonomous Free-Run Mode (Individual Presets & Animation Groups)";
-    } else if (fleetSyncMode === 'show') {
-        modeText = "🎬 Synchronized Master Show Sequence (90-Second Parade Timeline)";
+    if (fleetShowActive) {
+        ctx.fillText("MAIN STREET ELECTRICAL PARADE — 👑 FLEET SHOW ACTIVE", w * 0.5, h * 0.08);
+        const blockName = activeBlock ? activeBlock.name : 'Grand Parade';
+        const modeText = `👑 Block #${(activeInfo ? activeInfo.index + 1 : 1)}: ${blockName} [${waveColor.name}] (${fleetShowElapsedSec.toFixed(1)}s / ${totalDur.toFixed(1)}s) — Press [Stop] or [F] to exit early`;
+        ctx.fillStyle = '#f0f6fc';
+        ctx.font = '12px sans-serif';
+        ctx.fillText(modeText, w * 0.5, h * 0.12);
+
+        // Sleek canvas progress bar under header
+        const progW = Math.min(500, w * 0.45);
+        const progH = 4;
+        const progX = (w - progW) / 2;
+        const progY = h * 0.142;
+        ctx.fillStyle = '#21262d';
+        ctx.fillRect(progX, progY, progW, progH);
+        ctx.fillStyle = waveColor.hex || '#ffc107';
+        ctx.fillRect(progX, progY, progW * Math.min(1.0, fleetShowElapsedSec / totalDur), progH);
+    } else {
+        ctx.fillText("MAIN STREET ELECTRICAL PARADE — 7-RUNNER FLEET LINEUP", w * 0.5, h * 0.08);
+        const modeText = "⚡ Baseline Mode: Individual Float Programs Running (Press [👑 Activate 30s Fleet Show] or [Space/F] to launch)";
+        ctx.fillStyle = '#8b949e';
+        ctx.font = '12px sans-serif';
+        ctx.fillText(modeText, w * 0.5, h * 0.12);
     }
-
-    ctx.fillStyle = '#8b949e';
-    ctx.font = '12px sans-serif';
-    ctx.fillText(modeText, w * 0.5, h * 0.12);
 
     // Draw Parade Course Road Surface
     ctx.fillStyle = '#161b22';
@@ -2297,8 +2616,23 @@ function renderFleetView(timeMs) {
     for (let i = 0; i < totalFloats; i++) {
         const shirtX = marginX + i * slotW + (slotW - shirtW) / 2;
         const floatData = fleetRunners[i] || DEFAULT_FLEET_ROSTER[i];
-        const isCurrentWaveFloat = (fleetSyncMode === 'wave' && i === activeFloatIndex) ||
-                                   (isParadeRoutine && i === routineActiveFloat);
+
+        let isCurrentWaveFloat = false;
+        if (fleetShowActive && activeBlock) {
+            const bType = activeBlock.type;
+            const dur = Math.max(0.1, activeBlock.duration || 1.0);
+            const localP = (activeInfo ? activeInfo.localT : 0) / dur;
+            if (bType === 'wave_forward') {
+                isCurrentWaveFloat = Math.abs((-0.3 + localP * 7.6) - i) < 0.9;
+            } else if (bType === 'wave_reverse') {
+                isCurrentWaveFloat = Math.abs((7.3 - localP * 7.6) - i) < 0.9;
+            } else if (bType === 'baton_chase') {
+                isCurrentWaveFloat = (i === Math.min(6, Math.floor(localP * 7.0)));
+            } else if (bType === 'fleet_pulse' || bType === 'sparkle_storm' || bType === 'strobe_all' || bType === 'grand_finale') {
+                isCurrentWaveFloat = true;
+            }
+        }
+
         const isHovered = (fleetHoveredRunner === i);
         const isSelected = (fleetSelectedRunner === i);
 
@@ -2306,7 +2640,7 @@ function renderFleetView(timeMs) {
         const pData = fleetPresetCache[floatData.preset] || null;
 
         // 1. Draw Runner Bib Number Badge Above Shirt
-        const activeBibCol = isParadeRoutine ? waveColor.hex : '#ffc107';
+        const activeBibCol = fleetShowActive ? (waveColor.hex || '#ffc107') : '#ffc107';
         ctx.fillStyle = isCurrentWaveFloat ? activeBibCol : (isSelected ? '#58a6ff' : '#8b949e');
         ctx.font = 'bold 11px monospace';
         ctx.textAlign = 'center';
@@ -2346,11 +2680,11 @@ function renderFleetView(timeMs) {
                 const led = ledsArr[j];
                 const lx = shirtX + led.x * shirtW;
                 const ly = shirtY + led.y * shirtH;
-                const col = computeRunnerLedColor(i, floatData, pData, j, ledsArr.length, timeMs, waveProgress, isCurrentWaveFloat);
+                const col = computeRunnerLedColor(i, floatData, pData, j, ledsArr.length, timeMs, 0, isCurrentWaveFloat);
 
                 if (col.alpha > 0.02 && (col.r > 0 || col.g > 0 || col.b > 0)) {
                     // Bulb outer halo glow
-                    if (isCurrentWaveFloat || isPulsePhase || isSparkleStorm) {
+                    if (isCurrentWaveFloat || fleetShowActive) {
                         ctx.beginPath();
                         ctx.arc(lx, ly, 4.2, 0, Math.PI * 2);
                         ctx.fillStyle = `rgba(${col.r}, ${col.g}, ${col.b}, 0.28)`;
@@ -2359,7 +2693,7 @@ function renderFleetView(timeMs) {
 
                     // Core bulb dot
                     ctx.beginPath();
-                    ctx.arc(lx, ly, (isCurrentWaveFloat || isPulsePhase || isSparkleStorm) ? 2.5 : 1.7, 0, Math.PI * 2);
+                    ctx.arc(lx, ly, (isCurrentWaveFloat || fleetShowActive) ? 2.5 : 1.7, 0, Math.PI * 2);
                     ctx.fillStyle = `rgba(${col.r}, ${col.g}, ${col.b}, ${col.alpha || 1})`;
                     ctx.fill();
                 } else {
@@ -2752,26 +3086,295 @@ function resetFleetLineupDefaults() {
     showToast("🔁 Restored official 7-float Electrical Parade lineup defaults!");
 }
 
-// Set Fleet Synchronization Mode
-function setFleetSyncMode(mode) {
-    if (mode === 'parade_15s') mode = 'parade_20s'; // Upgrade legacy 15s to 20s routine
-    fleetSyncMode = mode;
-    const paradeBtn = document.getElementById('fleetModeParadeBtn');
-    const waveBtn = document.getElementById('fleetModeWaveBtn');
-    const freeBtn = document.getElementById('fleetModeFreeBtn');
-    const showBtn = document.getElementById('fleetModeShowBtn');
-    const speedGroup = document.getElementById('fleetWaveSpeedGroup');
-    const routineInfoBox = document.getElementById('fleetRoutineInfoBox');
+// ============================================================================
+// FLEET SHOW CREATOR UI & CHOREOGRAPHY STACK EDITOR
+// ============================================================================
 
-    const isParade = (mode === 'parade_20s' || mode === 'parade_15s');
-    if (paradeBtn) paradeBtn.classList.toggle('primary', isParade);
-    if (waveBtn) waveBtn.classList.toggle('primary', mode === 'wave');
-    if (freeBtn) freeBtn.classList.toggle('primary', mode === 'free');
-    if (showBtn) showBtn.classList.toggle('primary', mode === 'show');
-    if (speedGroup) speedGroup.style.display = (mode === 'wave') ? 'block' : 'none';
-    if (routineInfoBox) routineInfoBox.style.display = isParade ? 'block' : 'none';
+// Render the choreography block cards inside the Fleet Show Creator stack
+function renderFleetBlocksEditor() {
+    const container = document.getElementById('fleetBlocksStackContainer');
+    const countText = document.getElementById('fleetBlockCountText');
+    const durationBadge = document.getElementById('fleetShowDurationBadge');
+    if (!container || !activeFleetShow) return;
 
-    saveFleetLineupToStorage();
+    const blocks = activeFleetShow.blocks || [];
+    if (countText) countText.textContent = `${blocks.length} Blocks`;
+    if (durationBadge) durationBadge.textContent = `${(activeFleetShow.loopDuration || 30.0).toFixed(1)}s Total`;
+
+    container.innerHTML = '';
+
+    blocks.forEach((block, idx) => {
+        const def = FLEET_BLOCK_DEFS[block.type] || { icon: "✨", name: block.name || "Block" };
+        const card = document.createElement('div');
+        const isCurrentActive = fleetShowActive && getActiveFleetBlock(fleetShowElapsedSec)?.index === idx;
+        card.className = `fleet-block-card ${isCurrentActive ? 'active-block' : ''}`;
+        card.setAttribute('data-index', idx);
+
+        const startTime = block.startTime || 0;
+        const endTime = startTime + (block.duration || 1.0);
+        const colorMode = block.params?.colorMode || 'cycle_random';
+
+        card.innerHTML = `
+            <div class="fleet-block-header">
+                <span class="fleet-block-title">
+                    <span>${def.icon}</span>
+                    <span>${idx + 1}. ${block.name || def.name}</span>
+                </span>
+                <span class="fleet-block-time-badge">${startTime.toFixed(1)}s – ${endTime.toFixed(1)}s (${(block.duration || 1.0).toFixed(1)}s)</span>
+            </div>
+            <div class="fleet-block-controls">
+                <div>
+                    <label style="font-size: 9.5px; color: var(--text-muted); display: block; margin-bottom: 2px;">Duration (sec):</label>
+                    <input type="number" class="fleet-block-dur-input" data-index="${idx}" min="0.1" max="30.0" step="0.1" value="${(block.duration || 1.0).toFixed(1)}" style="width: 100%; background: #0d1117; color: #fff; border: 1px solid #30363d; border-radius: 4px; padding: 3px 6px; font-size: 11px;">
+                </div>
+                <div>
+                    <label style="font-size: 9.5px; color: var(--text-muted); display: block; margin-bottom: 2px;">Color Dynamic:</label>
+                    <select class="fleet-block-color-select" data-index="${idx}" style="width: 100%; background: #0d1117; color: #fff; border: 1px solid #30363d; border-radius: 4px; padding: 3px 4px; font-size: 10.5px;">
+                        <option value="cycle_random" ${colorMode === 'cycle_random' ? 'selected' : ''}>🎨 Disney Palette Cycle</option>
+                        <option value="match_previous" ${colorMode === 'match_previous' ? 'selected' : ''}>🔗 Match Previous</option>
+                        ${FLEET_WAVE_STANDARD_COLORS.map(c => `
+                            <option value="${c.name}" ${colorMode === c.name ? 'selected' : ''}>🟡 ${c.name}</option>
+                        `).join('')}
+                    </select>
+                </div>
+            </div>
+            <div class="fleet-block-btn-row">
+                <button type="button" class="fleet-block-mini-btn btn-move-up" data-index="${idx}" title="Move Up (Earlier)" ${idx === 0 ? 'disabled style="opacity:0.4"' : ''}>▲</button>
+                <button type="button" class="fleet-block-mini-btn btn-move-down" data-index="${idx}" title="Move Down (Later)" ${idx === blocks.length - 1 ? 'disabled style="opacity:0.4"' : ''}>▼</button>
+                <button type="button" class="fleet-block-mini-btn btn-duplicate" data-index="${idx}" title="Duplicate this block">📋</button>
+                <button type="button" class="fleet-block-mini-btn danger btn-delete" data-index="${idx}" title="Delete block">🗑️</button>
+            </div>
+        `;
+
+        container.appendChild(card);
+    });
+}
+
+// Recalculate block start times and total loop duration
+function recalculateFleetBlockStartTimes() {
+    if (!activeFleetShow || !Array.isArray(activeFleetShow.blocks)) return;
+    let t = 0.0;
+    activeFleetShow.blocks.forEach(b => {
+        b.startTime = Math.round(t * 100) / 100;
+        t += (b.duration || 1.0);
+    });
+    activeFleetShow.loopDuration = Math.round(t * 100) / 100;
+}
+
+// Proportionally adjust block durations to total exactly 30.0 seconds
+function snapFleetShowTo30s() {
+    if (!activeFleetShow || !Array.isArray(activeFleetShow.blocks) || activeFleetShow.blocks.length === 0) return;
+    recalculateFleetBlockStartTimes();
+    const currentDur = activeFleetShow.loopDuration;
+    if (currentDur <= 0.01) return;
+
+    const scale = 30.0 / currentDur;
+    activeFleetShow.blocks.forEach(b => {
+        b.duration = Math.max(0.1, Math.round(b.duration * scale * 10) / 10);
+    });
+    recalculateFleetBlockStartTimes();
+    renderFleetBlocksEditor();
+    updateFleetShowUI();
+    if (currentView === 'fleet') renderTimelineLayers();
+    showToast(`⏱️ Adjusted all blocks to total exactly 30.0s!`);
+}
+
+// Add a new choreography block to the active fleet show
+function addFleetBlock(type) {
+    if (!activeFleetShow) return;
+    const def = FLEET_BLOCK_DEFS[type] || FLEET_BLOCK_DEFS['wave_forward'];
+    const newBlock = {
+        id: `blk_${Date.now()}_${Math.random().toString(36).substr(2, 4)}`,
+        name: def.name,
+        type: type,
+        startTime: activeFleetShow.loopDuration || 0.0,
+        duration: def.defaultDuration || 1.5,
+        params: JSON.parse(JSON.stringify(def.defaultParams || {}))
+    };
+    activeFleetShow.blocks.push(newBlock);
+    recalculateFleetBlockStartTimes();
+    renderFleetBlocksEditor();
+    updateFleetShowUI();
+    if (currentView === 'fleet') renderTimelineLayers();
+    showToast(`➕ Added "${def.name}" block to Fleet Show!`);
+}
+
+// Remove a block from active fleet show
+function removeFleetBlock(index) {
+    if (!activeFleetShow || !activeFleetShow.blocks[index]) return;
+    const name = activeFleetShow.blocks[index].name;
+    activeFleetShow.blocks.splice(index, 1);
+    recalculateFleetBlockStartTimes();
+    renderFleetBlocksEditor();
+    updateFleetShowUI();
+    if (currentView === 'fleet') renderTimelineLayers();
+    showToast(`🗑️ Removed block "${name}"`);
+}
+
+// Move a block earlier or later in sequence
+function moveFleetBlock(index, delta) {
+    if (!activeFleetShow) return;
+    const targetIdx = index + delta;
+    if (targetIdx < 0 || targetIdx >= activeFleetShow.blocks.length) return;
+    const item = activeFleetShow.blocks.splice(index, 1)[0];
+    activeFleetShow.blocks.splice(targetIdx, 0, item);
+    recalculateFleetBlockStartTimes();
+    renderFleetBlocksEditor();
+    updateFleetShowUI();
+    if (currentView === 'fleet') renderTimelineLayers();
+}
+
+// Duplicate a block
+function duplicateFleetBlock(index) {
+    if (!activeFleetShow || !activeFleetShow.blocks[index]) return;
+    const orig = activeFleetShow.blocks[index];
+    const clone = JSON.parse(JSON.stringify(orig));
+    clone.id = `blk_${Date.now()}_${Math.random().toString(36).substr(2, 4)}`;
+    clone.name = `${orig.name} (Copy)`;
+    activeFleetShow.blocks.splice(index + 1, 0, clone);
+    recalculateFleetBlockStartTimes();
+    renderFleetBlocksEditor();
+    updateFleetShowUI();
+    if (currentView === 'fleet') renderTimelineLayers();
+    showToast(`📋 Duplicated block "${orig.name}"!`);
+}
+
+// Save active fleet show to server and browser storage
+async function saveActiveFleetShow() {
+    if (!activeFleetShow) return;
+    recalculateFleetBlockStartTimes();
+    activeFleetShow.updatedAt = new Date().toISOString();
+
+    const filename = activeFleetShow.id.endsWith('.json') ? activeFleetShow.id : `${activeFleetShow.id}.json`;
+
+    // Save to localStorage
+    try {
+        localStorage.setItem(`msep_fleet_show_${activeFleetShow.id}`, JSON.stringify(activeFleetShow));
+        localStorage.setItem('msep_active_fleet_show_id', filename);
+    } catch (e) {}
+
+    // Save to server
+    try {
+        const res = await fetch('/api/save_fleet_show', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(activeFleetShow)
+        });
+        if (res.ok) {
+            showToast(`💾 Saved Fleet Show "${activeFleetShow.name}" to server!`);
+            await refreshFleetShowsDropdown();
+            return;
+        }
+    } catch (e) {
+        console.warn("Could not save fleet show to server:", e);
+    }
+    showToast(`💾 Saved Fleet Show "${activeFleetShow.name}" to browser storage!`);
+}
+
+// Load a fleet show from server or browser storage
+async function loadFleetShow(filename) {
+    if (!filename) return;
+    try {
+        const res = await fetch(`/api/fleet_show/${encodeURIComponent(filename)}`);
+        if (res.ok) {
+            const data = await res.json();
+            activeFleetShow = data;
+            recalculateFleetBlockStartTimes();
+            renderFleetBlocksEditor();
+            updateFleetShowUI();
+            if (currentView === 'fleet') renderTimelineLayers();
+            try { localStorage.setItem('msep_active_fleet_show_id', filename); } catch (e) {}
+            showToast(`👑 Loaded Fleet Show: "${activeFleetShow.name}" (${activeFleetShow.loopDuration.toFixed(1)}s)`);
+            return;
+        }
+    } catch (e) {}
+
+    try {
+        const raw = localStorage.getItem(`msep_fleet_show_${filename.replace('.json', '')}`);
+        if (raw) {
+            activeFleetShow = JSON.parse(raw);
+            recalculateFleetBlockStartTimes();
+            renderFleetBlocksEditor();
+            updateFleetShowUI();
+            if (currentView === 'fleet') renderTimelineLayers();
+            showToast(`👑 Loaded Fleet Show: "${activeFleetShow.name}" from local storage`);
+            return;
+        }
+    } catch (e) {}
+}
+
+// Refresh Fleet Shows Dropdown with server and local options
+async function refreshFleetShowsDropdown() {
+    const sel = document.getElementById('fleetShowSelect');
+    if (!sel) return;
+
+    let serverShows = [];
+    try {
+        const res = await fetch('/api/fleet_shows');
+        if (res.ok) serverShows = await res.json();
+    } catch (e) {}
+
+    const localShows = [];
+    try {
+        for (let i = 0; i < localStorage.length; i++) {
+            const k = localStorage.key(i);
+            if (k && k.startsWith('msep_fleet_show_')) {
+                try {
+                    const parsed = JSON.parse(localStorage.getItem(k));
+                    if (parsed && parsed.id) localShows.push(parsed);
+                } catch (e) {}
+            }
+        }
+    } catch (e) {}
+
+    const currentVal = activeFleetShow ? (activeFleetShow.id.endsWith('.json') ? activeFleetShow.id : `${activeFleetShow.id}.json`) : 'default_30s_grand_parade.json';
+
+    sel.innerHTML = `
+        <optgroup label="Official Fleet Shows">
+            ${serverShows.map(s => `
+                <option value="${s.filename}" ${s.filename === currentVal ? 'selected' : ''}>
+                    👑 ${s.name} (${s.loopDuration || 30}s)
+                </option>
+            `).join('')}
+        </optgroup>
+        ${localShows.length > 0 ? `
+            <optgroup label="Custom Saved Shows">
+                ${localShows.map(s => `
+                    <option value="${s.id}.json" ${(`${s.id}.json` === currentVal) ? 'selected' : ''}>
+                        💾 ${s.name} (${s.loopDuration || 30}s)
+                    </option>
+                `).join('')}
+            </optgroup>
+        ` : ''}
+    `;
+}
+
+// Create a new blank fleet show routine
+function createNewFleetShow() {
+    const showId = `fleet_show_${Date.now()}`;
+    activeFleetShow = {
+        id: showId,
+        name: "Custom 30s Fleet Routine",
+        description: "Custom user-designed synchronized 7-shirt fleet sequence",
+        version: "1.0",
+        loopDuration: 30.0,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        blocks: [
+            { id: "blk_1", name: "Dramatic Blackout", type: "blackout", startTime: 0.0, duration: 1.0, params: {} },
+            { id: "blk_2", name: "Forward Wave (1➔7)", type: "wave_forward", startTime: 1.0, duration: 2.0, params: { colorMode: "cycle_random", trailLengthShirts: 2.0 } },
+            { id: "blk_3", name: "All-Fleet Pulse", type: "fleet_pulse", startTime: 3.0, duration: 5.0, params: { colorMode: "match_previous" } },
+            { id: "blk_4", name: "Reverse Wave (7➔1)", type: "wave_reverse", startTime: 8.0, duration: 2.0, params: { colorMode: "match_previous", trailLengthShirts: 2.0 } },
+            { id: "blk_5", name: "Starlight Sparkle Storm", type: "sparkle_storm", startTime: 10.0, duration: 4.0, params: { sparkleColorMix: "wave_and_white" } },
+            { id: "blk_6", name: "Carnival Finale", type: "grand_finale", startTime: 14.0, duration: 5.0, params: {} }
+        ]
+    };
+    recalculateFleetBlockStartTimes();
+    snapFleetShowTo30s();
+    renderFleetBlocksEditor();
+    updateFleetShowUI();
+    if (currentView === 'fleet') renderTimelineLayers();
+    showToast(`✨ Created new Fleet Show! Customize blocks or Snap to 30s.`);
 }
 
 // Persist Lineup Configuration to LocalStorage and Backend
@@ -2794,22 +3397,6 @@ function saveFleetLineupToStorage() {
 // Load Lineup Configuration from Storage on Startup
 async function loadFleetLineupFromStorage() {
     try {
-        const savedMode = localStorage.getItem('msep_fleet_sync_mode');
-        if (savedMode) {
-            setFleetSyncMode(savedMode === 'parade_15s' ? 'parade_20s' : savedMode);
-        } else {
-            setFleetSyncMode('parade_20s');
-        }
-
-        const savedWave = localStorage.getItem('msep_fleet_wave_duration');
-        if (savedWave) {
-            fleetWaveCycleDurationMs = parseInt(savedWave) || 7000;
-            const slider = document.getElementById('fleetWaveSpeedSlider');
-            if (slider) slider.value = Math.round(fleetWaveCycleDurationMs / 100);
-            const valBadge = document.getElementById('fleetWaveSpeedVal');
-            if (valBadge) valBadge.textContent = `${(fleetWaveCycleDurationMs / 1000).toFixed(1)}s cycle`;
-        }
-
         const savedLineup = localStorage.getItem('msep_fleet_lineup');
         if (savedLineup) {
             const parsed = JSON.parse(savedLineup);
@@ -2837,30 +3424,111 @@ async function loadFleetLineupFromStorage() {
 
 // Initialize Fleet Lineup Manager controls and event listeners
 function initFleetManager() {
-    const paradeBtn = document.getElementById('fleetModeParadeBtn');
-    const waveBtn = document.getElementById('fleetModeWaveBtn');
-    const freeBtn = document.getElementById('fleetModeFreeBtn');
-    const showBtn = document.getElementById('fleetModeShowBtn');
-    const speedSlider = document.getElementById('fleetWaveSpeedSlider');
-    const speedVal = document.getElementById('fleetWaveSpeedVal');
+    const activateBtn = document.getElementById('fleetShowActivateBtn');
+    const showSelect = document.getElementById('fleetShowSelect');
+    const saveShowBtn = document.getElementById('fleetSaveShowBtn');
+    const newShowBtn = document.getElementById('fleetNewShowBtn');
+    const snap30Btn = document.getElementById('fleetSnap30Btn');
+    const addBlockBtn = document.getElementById('fleetAddBlockBtn');
+    const addBlockTypeSelect = document.getElementById('fleetAddBlockTypeSelect');
+    const stackContainer = document.getElementById('fleetBlocksStackContainer');
     const assignAllBtn = document.getElementById('fleetAssignAllCurrentBtn');
     const resetBtn = document.getElementById('fleetResetDefaultsBtn');
     const saveBtn = document.getElementById('fleetSaveConfigBtn');
+    const runnersContainer = document.getElementById('fleetRunnersContainer');
 
-    if (paradeBtn) paradeBtn.addEventListener('click', () => setFleetSyncMode('parade_20s'));
-    if (waveBtn) waveBtn.addEventListener('click', () => setFleetSyncMode('wave'));
-    if (freeBtn) freeBtn.addEventListener('click', () => setFleetSyncMode('free'));
-    if (showBtn) showBtn.addEventListener('click', () => setFleetSyncMode('show'));
-
-    if (speedSlider) {
-        speedSlider.addEventListener('input', (e) => {
-            const val = parseInt(e.target.value);
-            fleetWaveCycleDurationMs = val * 100;
-            if (speedVal) speedVal.textContent = `${(fleetWaveCycleDurationMs / 1000).toFixed(1)}s cycle`;
-            saveFleetLineupToStorage();
+    // 1. One-Shot Fleet Show Activation / Early Stop Trigger with 300ms software debounce
+    if (activateBtn) {
+        activateBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            triggerFleetShowToggle();
         });
     }
 
+    // 2. Global Hotkey: Spacebar or 'F' triggers or stops Fleet Show early
+    window.addEventListener('keydown', (e) => {
+        const activeTag = document.activeElement ? document.activeElement.tagName.toLowerCase() : '';
+        if (activeTag === 'input' || activeTag === 'textarea' || activeTag === 'select') return;
+        if (e.key === 'f' || e.key === 'F' || (e.code === 'Space' && currentView === 'fleet')) {
+            e.preventDefault();
+            triggerFleetShowToggle();
+        }
+    });
+
+    // 3. Show Selector, Save, New, Snap Buttons
+    if (showSelect) {
+        showSelect.addEventListener('change', (e) => {
+            loadFleetShow(e.target.value);
+        });
+    }
+    if (saveShowBtn) saveShowBtn.addEventListener('click', saveActiveFleetShow);
+    if (newShowBtn) newShowBtn.addEventListener('click', createNewFleetShow);
+    if (snap30Btn) snap30Btn.addEventListener('click', snapFleetShowTo30s);
+
+    if (addBlockBtn && addBlockTypeSelect) {
+        addBlockBtn.addEventListener('click', () => {
+            addFleetBlock(addBlockTypeSelect.value);
+        });
+    }
+
+    // 4. Event Delegation on Blocks Stack Container (Duration, ColorMode, Up, Down, Copy, Delete)
+    if (stackContainer) {
+        stackContainer.addEventListener('input', (e) => {
+            const durInput = e.target.closest('.fleet-block-dur-input');
+            if (durInput && activeFleetShow) {
+                const idx = parseInt(durInput.getAttribute('data-index'));
+                const val = parseFloat(durInput.value);
+                if (!isNaN(val) && val > 0 && activeFleetShow.blocks[idx]) {
+                    activeFleetShow.blocks[idx].duration = val;
+                    recalculateFleetBlockStartTimes();
+                    renderFleetBlocksEditor();
+                    updateFleetShowUI();
+                    if (currentView === 'fleet') renderTimelineLayers();
+                }
+            }
+        });
+
+        stackContainer.addEventListener('change', (e) => {
+            const colSelect = e.target.closest('.fleet-block-color-select');
+            if (colSelect && activeFleetShow) {
+                const idx = parseInt(colSelect.getAttribute('data-index'));
+                if (activeFleetShow.blocks[idx]) {
+                    if (!activeFleetShow.blocks[idx].params) activeFleetShow.blocks[idx].params = {};
+                    activeFleetShow.blocks[idx].params.colorMode = colSelect.value;
+                    updateFleetShowUI();
+                }
+            }
+        });
+
+        stackContainer.addEventListener('click', (e) => {
+            const btnMoveUp = e.target.closest('.btn-move-up');
+            if (btnMoveUp) {
+                const idx = parseInt(btnMoveUp.getAttribute('data-index'));
+                moveFleetBlock(idx, -1);
+                return;
+            }
+            const btnMoveDown = e.target.closest('.btn-move-down');
+            if (btnMoveDown) {
+                const idx = parseInt(btnMoveDown.getAttribute('data-index'));
+                moveFleetBlock(idx, 1);
+                return;
+            }
+            const btnDup = e.target.closest('.btn-duplicate');
+            if (btnDup) {
+                const idx = parseInt(btnDup.getAttribute('data-index'));
+                duplicateFleetBlock(idx);
+                return;
+            }
+            const btnDel = e.target.closest('.btn-delete');
+            if (btnDel) {
+                const idx = parseInt(btnDel.getAttribute('data-index'));
+                removeFleetBlock(idx);
+                return;
+            }
+        });
+    }
+
+    // 5. Lineup Toolbar Actions
     if (assignAllBtn) assignAllBtn.addEventListener('click', assignCurrentEditorToAllRunners);
     if (resetBtn) resetBtn.addEventListener('click', resetFleetLineupDefaults);
     if (saveBtn) {
@@ -2870,8 +3538,37 @@ function initFleetManager() {
         });
     }
 
+    // 6. Robust Event Delegation on 7-Runner Cards Container (Fixes Edit in Single View)
+    if (runnersContainer) {
+        runnersContainer.addEventListener('click', async (e) => {
+            const editBtn = e.target.closest('.fleet-edit-single-btn');
+            if (editBtn) {
+                e.preventDefault();
+                e.stopPropagation();
+                const slot = parseInt(editBtn.getAttribute('data-slot'));
+                await editRunnerInSingleView(slot);
+                return;
+            }
+
+            const copyBtn = e.target.closest('.fleet-copy-active-btn');
+            if (copyBtn) {
+                e.preventDefault();
+                e.stopPropagation();
+                const slot = parseInt(copyBtn.getAttribute('data-slot'));
+                assignCurrentEditorToRunner(slot);
+                return;
+            }
+        });
+    }
+
+    // 7. Load default fleet show and lineup
     loadFleetLineupFromStorage().then(() => {
         renderFleetCards();
+    });
+
+    refreshFleetShowsDropdown().then(() => {
+        const savedShow = localStorage.getItem('msep_active_fleet_show_id') || 'default_30s_grand_parade.json';
+        loadFleetShow(savedShow);
     });
 }
 
@@ -4109,6 +4806,23 @@ function updateTimelineScrubberUI() {
     const layersBadge = document.getElementById('timelineActiveLayersBadge');
     const cuesBadge = document.getElementById('timelineActiveCuesBadge');
 
+    if (currentView === 'fleet' && activeFleetShow) {
+        const totalDur = activeFleetShow.loopDuration || 30.0;
+        if (scrubber) {
+            scrubber.max = totalDur;
+            scrubber.value = fleetShowElapsedSec;
+        }
+        if (currTimeElem) currTimeElem.textContent = `${fleetShowElapsedSec.toFixed(1)}s`;
+        if (totalTimeElem) totalTimeElem.textContent = `${totalDur.toFixed(1)}s`;
+        if (needle) {
+            const pct = Math.max(0, Math.min(1, fleetShowElapsedSec / totalDur));
+            needle.style.left = `calc(115px + (100% - 115px) * ${pct})`;
+        }
+        if (layersBadge) layersBadge.textContent = '1 Track';
+        if (cuesBadge) cuesBadge.textContent = `${(activeFleetShow.blocks || []).length} Blocks`;
+        return;
+    }
+
     if (scrubber) {
         scrubber.max = sequenceLoopDuration;
         scrubber.value = sequenceTime;
@@ -4229,10 +4943,105 @@ function toggleSequenceMode(forceState) {
     }
 }
 
+// Render 7-Shirt Fleet Show choreography blocks along the master timeline
+function renderFleetShowTimelineLayers() {
+    const container = document.getElementById('timelineLayersContainer');
+    const marksContainer = document.getElementById('timelineRulerMarks');
+    if (!container || !activeFleetShow) return;
+
+    const totalDur = activeFleetShow.loopDuration || 30.0;
+
+    // 1. Render Dynamic Ruler Marks
+    if (marksContainer) {
+        marksContainer.innerHTML = '';
+        const tickCount = 6;
+        for (let i = 0; i <= tickCount; i++) {
+            const t = (totalDur * i) / tickCount;
+            const span = document.createElement('span');
+            span.className = 'ruler-tick';
+            span.textContent = `${t.toFixed(1)}s`;
+            marksContainer.appendChild(span);
+        }
+    }
+
+    container.innerHTML = '';
+
+    const blocks = activeFleetShow.blocks || [];
+    if (blocks.length === 0) {
+        container.innerHTML = `
+            <div style="font-size: 11px; color: var(--text-muted); font-style: italic; padding: 6px 12px; text-align: center; border: 1px dashed #30363d; border-radius: 4px;">
+                No fleet choreography blocks scheduled. Use the Fleet tab to add blocks.
+            </div>
+        `;
+        updateTimelineScrubberUI();
+        return;
+    }
+
+    // 2. Render Choreography Track Row
+    const row = document.createElement('div');
+    row.className = 'timeline-layer-row';
+
+    const header = document.createElement('div');
+    header.className = 'timeline-layer-header';
+    header.innerHTML = `
+        <span class="timeline-layer-name" title="7-Shirt Synchronized Fleet Show Choreography">👑 Fleet Show (${totalDur.toFixed(0)}s)</span>
+        <span class="timeline-layer-badge">${blocks.length}</span>
+    `;
+
+    const track = document.createElement('div');
+    track.className = 'timeline-layer-track';
+
+    track.addEventListener('click', (e) => {
+        const rect = track.getBoundingClientRect();
+        const clickX = e.clientX - rect.left;
+        const pct = Math.max(0, Math.min(1, clickX / rect.width));
+        fleetShowElapsedSec = pct * totalDur;
+        updateFleetShowUI();
+    });
+
+    blocks.forEach((blk, idx) => {
+        const def = FLEET_BLOCK_DEFS[blk.type] || { icon: "✨", name: blk.name };
+        const leftPct = ((blk.startTime || 0) / totalDur) * 100;
+        const widthPct = Math.max(1.8, ((blk.duration || 1.0) / totalDur) * 100);
+
+        const blockElem = document.createElement('div');
+        blockElem.className = 'cue-block group-layer';
+        blockElem.style.left = `${leftPct}%`;
+        blockElem.style.width = `${widthPct}%`;
+        blockElem.style.background = 'linear-gradient(135deg, rgba(255, 193, 7, 0.3), rgba(240, 136, 62, 0.45))';
+        blockElem.style.borderColor = '#ffc107';
+        blockElem.title = `${blk.name} (${(blk.startTime || 0).toFixed(1)}s – ${((blk.startTime || 0) + (blk.duration || 1.0)).toFixed(1)}s)`;
+
+        blockElem.innerHTML = `
+            <span style="font-size: 10px; margin-right: 3px;">${def.icon}</span>
+            <span class="cue-label" style="font-size: 10px; color: #fff;">${blk.name || def.name}</span>
+        `;
+
+        blockElem.addEventListener('click', (e) => {
+            e.stopPropagation();
+            fleetShowElapsedSec = blk.startTime || 0;
+            updateFleetShowUI();
+        });
+
+        track.appendChild(blockElem);
+    });
+
+    row.appendChild(header);
+    row.appendChild(track);
+    container.appendChild(row);
+
+    updateTimelineScrubberUI();
+}
+
 function renderTimelineLayers() {
     const container = document.getElementById('timelineLayersContainer');
     const marksContainer = document.getElementById('timelineRulerMarks');
     if (!container) return;
+
+    if (currentView === 'fleet' && activeFleetShow) {
+        renderFleetShowTimelineLayers();
+        return;
+    }
 
     // 1. Render Dynamic Ruler Marks
     if (marksContainer) {
@@ -4838,8 +5647,13 @@ if (toggleSequenceModeBtn) {
 const timelineScrubber = document.getElementById('timelineScrubber');
 if (timelineScrubber) {
     timelineScrubber.addEventListener('input', (e) => {
-        sequenceTime = parseFloat(e.target.value) || 0;
-        updateTimelineScrubberUI();
+        if (currentView === 'fleet' && activeFleetShow) {
+            fleetShowElapsedSec = parseFloat(e.target.value) || 0;
+            updateFleetShowUI();
+        } else {
+            sequenceTime = parseFloat(e.target.value) || 0;
+            updateTimelineScrubberUI();
+        }
     });
 }
 
@@ -5268,6 +6082,7 @@ canvas.addEventListener('dblclick', (e) => {
 // ============================================================================
 function animate(time) {
     updateSequenceTimeline(time);
+    updateFleetShowTimeline(time);
     if (currentView === 'single') {
         renderSingleShirtView(time);
     } else {

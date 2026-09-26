@@ -93,6 +93,34 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### Entry: 7-Shirt Fleet Show Creator Studio, 14 Block Types, One-Shot Debounced Trigger & ESP32 Parity
+* **Date:** 2026-09-25
+* **Milestone:** Milestone 5 - 7-Shirt Synchronized Fleet Show Choreography & Hardware Parity
+* **Status:** Operational & Verified in Web Simulator, Python Server, and ESP32 Unified Firmware (`src/main.cpp` & `arduino/MSEP_Costume/MSEP_Costume.ino`).
+* **Notes:**
+  * **Architectural Decoupling of Baseline vs. Fleet Routine:**
+    - Per user directive, individual float programs are treated as the baseline state rather than a sub-block inside the fleet sequence.
+    - All 7 shirts continuously render their individual float presets, rotating wheels, and animation groups until an activation button is triggered.
+    - Clicking the prominent **"⚡ ACTIVATE 30s FLEET SHOW"** button or pressing hotkeys `[Space]` / `[F]` initiates the 30-second synchronized routine once.
+    - Upon completion of the sequence (or when stopped early), all 7 costumes automatically return to their individual float programs.
+  * **Debounced Trigger & Early Stop Protocol:**
+    - **Simulator Debounce:** Integrated 300ms software lockout on `triggerFleetShowToggle()` and `Spacebar`/`F` hotkeys, preventing jitter or double triggering.
+    - **Early Return:** Hitting the activation button while the 30s show is running immediately terminates the routine and reverts all costumes to baseline.
+    - **ESP32 Hardware Parity:** Enforced 50ms hardware press debounce (`pressDuration >= 50 && pressDuration < 2500`) and 300ms software lockout between button releases (`now - lastButtonReleaseTime >= 300`) on the onboard BOOT button (GPIO 0). Short tap starts the 30s fleet routine once; tapping during playback stops it early and returns to baseline with 2 amber visual confirmation flashes.
+    - **ESP-NOW Peer-to-Peer Sync:** When any costume triggers or cancels the fleet routine, it broadcasts a packet (`mode = 0x30` start, `mode = 0x00` cancel) to `broadcastMac`. All listening peer nodes update `currentStandaloneMode` and sync their millisecond start offset in real time.
+  * **14-Block Choreography Palette & Block Stack Editor:**
+    - Implemented a complete choreography engine supporting 14 multi-float block types: `blackout`, `wave_forward` (~2-shirt decay and incandescent crest), `wave_reverse`, `fleet_pulse`, `center_burst`, `converge_center`, `wig_wag` (120 BPM odd/even marquee), `baton_chase`, `sparkle_storm` (75% density wave + white starlight storm), `ping_pong_wave`, `color_wash_chase`, `rainbow_sweep`, `strobe_all`, and `shimmer_drift`.
+    - Added full stack editor in Tab 6 allowing users to add blocks from the palette, reorder blocks (▲ / ▼), duplicate, delete, and adjust durations/parameters in real time.
+    - Added **"⏱️ Snap to 30.0s"** button that proportionately scales all block durations so total sequence runtime equals exactly 30.0 seconds.
+    - Added REST persistence endpoints in `simulator.py` (`/api/fleet_shows`, `/api/fleet_show/<f>`, `/api/save_fleet_show`) saving to `presets/fleet_shows/*.json` (including `default_30s_grand_parade.json` and `classic_20s_routine.json`).
+  * **Master Timeline & 7-Runner Integration:**
+    - Master timeline layers dynamically render color-coded fleet show blocks when viewing the 7-shirt fleet.
+    - Scrubber drag and click seeking fully supported during fleet playback.
+    - Verified 1-click **"✏️ Edit in Single View"** button and card double-click across all 7 runner slots.
+  * **ESP32 Arduino Core 2.x & 3.x Parity (Rule 5):**
+    - Fully mirrored `src/main.cpp` into `arduino/MSEP_Costume/MSEP_Costume.ino`.
+    - Enforced FastLED 5V 2000mA power limit and 200-LED duplicated configuration.
+
 ### Entry: 20-Second Choreographed Fleet Routine with ~2-Shirt Wave Trail, 5s Synchronized Pulse, and Color+White Sparkle Storm
 * **Date:** 2026-09-25
 * **Status:** Operational & Verified in Web Simulator and Python Server.

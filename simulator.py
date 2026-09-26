@@ -26,9 +26,11 @@ DEFAULT_PORT = 8000
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 SIMULATOR_DIR = os.path.join(BASE_DIR, "simulator")
 PRESETS_DIR = os.path.join(BASE_DIR, "presets")
+FLEET_SHOWS_DIR = os.path.join(PRESETS_DIR, "fleet_shows")
 
-# Ensure presets directory exists
+# Ensure presets and fleet_shows directories exist
 os.makedirs(PRESETS_DIR, exist_ok=True)
+os.makedirs(FLEET_SHOWS_DIR, exist_ok=True)
 
 class SimulatorRequestHandler(http.server.SimpleHTTPRequestHandler):
     def __init__(self, *args, **kwargs):
@@ -54,6 +56,11 @@ class SimulatorRequestHandler(http.server.SimpleHTTPRequestHandler):
             self.handle_get_wifi_config()
         elif parsed.path == "/api/fleet_config":
             self.handle_get_fleet_config()
+        elif parsed.path == "/api/fleet_shows":
+            self.handle_list_fleet_shows()
+        elif parsed.path.startswith("/api/fleet_show/"):
+            filename = urllib.parse.unquote(parsed.path[len("/api/fleet_show/"):])
+            self.handle_get_fleet_show(filename)
         elif parsed.path.startswith("/api/preset/"):
             filename = urllib.parse.unquote(parsed.path[len("/api/preset/"):])
             self.handle_get_preset(filename)
@@ -98,6 +105,8 @@ class SimulatorRequestHandler(http.server.SimpleHTTPRequestHandler):
             self.handle_save_preset()
         elif parsed.path == "/api/save_fleet_config":
             self.handle_save_fleet_config()
+        elif parsed.path == "/api/save_fleet_show":
+            self.handle_save_fleet_show()
         elif parsed.path == "/api/flash_firmware":
             self.handle_flash_firmware()
         elif parsed.path == "/api/stream_pixels":
@@ -211,7 +220,70 @@ class SimulatorRequestHandler(http.server.SimpleHTTPRequestHandler):
             self.send_response(200)
             self.send_header("Content-Type", "application/json")
             self.end_headers()
-            self.wfile.write(json.dumps({"success": True}).encode("utf-8"))
+        except Exception as e:
+            self.send_error(500, str(e))
+
+    def handle_list_fleet_shows(self):
+        try:
+            files = [f for f in os.listdir(FLEET_SHOWS_DIR) if f.endswith(".json")]
+            shows = []
+            for f in files:
+                filepath = os.path.join(FLEET_SHOWS_DIR, f)
+                try:
+                    with open(filepath, "r", encoding="utf-8") as pf:
+                        data = json.load(pf)
+                        shows.append({
+                            "filename": f,
+                            "id": data.get("id", f.replace(".json", "")),
+                            "name": data.get("name", f.replace(".json", "")),
+                            "description": data.get("description", ""),
+                            "loopDuration": data.get("loopDuration", 30.0),
+                            "blockCount": len(data.get("blocks", []))
+                        })
+                except Exception:
+                    shows.append({"filename": f, "name": f.replace(".json", "")})
+
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json")
+            self.end_headers()
+            self.wfile.write(json.dumps(shows, indent=2).encode("utf-8"))
+        except Exception as e:
+            self.send_error(500, str(e))
+
+    def handle_get_fleet_show(self, filename):
+        safe_name = os.path.basename(filename)
+        filepath = os.path.join(FLEET_SHOWS_DIR, safe_name)
+        if not os.path.exists(filepath):
+            self.send_error(404, "Fleet show not found")
+            return
+        try:
+            with open(filepath, "r", encoding="utf-8") as f:
+                content = f.read()
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json")
+            self.end_headers()
+            self.wfile.write(content.encode("utf-8"))
+        except Exception as e:
+            self.send_error(500, str(e))
+
+    def handle_save_fleet_show(self):
+        try:
+            content_length = int(self.headers.get("Content-Length", 0))
+            post_data = self.rfile.read(content_length)
+            show_data = json.loads(post_data.decode("utf-8"))
+
+            raw_name = show_data.get("name", show_data.get("id", "untitled_fleet_show"))
+            safe_name = "".join(c for c in raw_name if c.isalnum() or c in (' ', '_', '-')).rstrip()
+            safe_name = safe_name.replace(" ", "_").lower() + ".json"
+
+            filepath = os.path.join(FLEET_SHOWS_DIR, safe_name)
+            with open(filepath, "w", encoding="utf-8") as f:
+                json.dump(show_data, f, indent=2)
+
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json")
+            self.end_headers()
+            self.wfile.write(json.dumps({"success": True, "filename": safe_name}).encode("utf-8"))
         except Exception as e:
             self.send_error(500, str(e))
 

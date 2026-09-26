@@ -94,14 +94,14 @@ Once your board is flashed:
 - **Data Resistor:** A 220 Ω to 470 Ω resistor on the data wire between GPIO 16 and LED DIN is recommended.
 
 ### How to Use the Shirt:
-- **Autonomous Show Sequence (Default):** 
-  When you turn on the power bank, your ESP32 runs the complete **90-second theatrical parade sequence** (custom sampled artwork colors, starlight sparkles, wheel spin chases, breathing glow, and electrical wave).
-- **Mode Switching (Short Tap BOOT Button):**
-  Tap the onboard **BOOT button (GPIO 0)** once (short tap < 2.5s) to switch between modes. The LED strip gives immediate visual confirmation:
-  - 🔵 **2 Cyan Flashes**: Switched to **Autonomous Float Show** (plays custom artwork palette or float theme).
-  - 🟡 **2 Amber Flashes**: Switched to **ESP-NOW Fleet Sync** (locks wireless timing with the other runner shirts for synchronized golden marquee chases, sparkles, and traveling waves).
+- **Autonomous Float Program (Baseline Default):** 
+  When you power on your ESP32 with your battery bank, the costume runs its complete independent float sequence (custom artwork colors, starlight sparkles, wheel spin chases, breathing glow, and electrical waves) across all 200 LEDs (100 front + 100 back).
+- **One-Shot 30-Second Fleet Routine (Short Tap BOOT Button):**
+  - **Start Fleet Show:** Tap the onboard **BOOT button (GPIO 0)** once (short tap between 50ms and 2.5s) to trigger the **30-Second Synchronized Fleet Routine** once. The ESP32 broadcasts a wireless ESP-NOW trigger packet (`0x30`) so all runner costumes initiate the 30-second routine simultaneously. After 30.0 seconds, all shirts automatically return to their individual float programs.
+  - **Early Stop:** Tap the BOOT button while the 30-second routine is playing to stop it early. The ESP32 gives **2 Amber Flashes**, broadcasts a cancellation packet (`0x00`), and returns all costumes immediately to their baseline float programs.
+  - **Debounce Protection:** Enforces 50ms hardware contact debounce and 300ms software lockout between button releases to prevent accidental double-triggers.
 - **Float ID Selector (Long Hold BOOT Button for 3s):**
-  Hold the BOOT button for 3 seconds to reassign which Float you are (see below).
+  Hold the BOOT button for 3 seconds to enter Float ID configuration mode (Floats 1 through 7, see below).
 
 ---
 

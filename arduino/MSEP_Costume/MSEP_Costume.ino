@@ -8,7 +8,7 @@
 //    - Search for "FastLED" and click "Install" (by Daniel Garcia).
 // 3. Select ESP32 Board:
 //    - Go to Tools -> Board -> esp32 -> "ESP32 Dev Module"
-// 4. Select COM Port:
+//    - Select COM Port:
 //    - Connect your ESP32 via USB and choose its port in Tools -> Port.
 // 5. Click the "Upload" arrow button (top-left).
 // ============================================================================
@@ -122,8 +122,32 @@ uint32_t lastLocalTick = 0;
 
 uint8_t broadcastMac[] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
 
+#define BUTTON_PIN          0       // BOOT button on standard ESP32 DevKit
+#define SHOW_LOOP_MS        90000   // 90-second autonomous theatrical sequence
+
+enum StandaloneShowMode {
+    SHOW_MODE_AUTONOMOUS_SEQUENCE = 0,
+    SHOW_MODE_FLEET_SYNC          = 1,
+    SHOW_MODE_FLEET_30S_ROUTINE   = 2
+};
+
+StandaloneShowMode currentStandaloneMode = SHOW_MODE_AUTONOMOUS_SEQUENCE;
+StandaloneShowMode previousStandaloneMode = SHOW_MODE_AUTONOMOUS_SEQUENCE;
+uint32_t fleetRoutineStartTime = 0;
+uint8_t fleetRoutineCycle = 0;
+
+void broadcastFleetRoutinePacket(uint8_t mode, uint32_t masterMillis) {
+    ParadeSyncPacket packet;
+    packet.magic = 0xEE;
+    packet.mode = mode; // 0x30 = Start/Sync 30s Routine, 0x00 = Stop early
+    packet.masterMillis = masterMillis;
+    packet.activeFloat = myFloatNumber;
+    packet.waveHead = 0;
+    esp_now_send(broadcastMac, (uint8_t*)&packet, sizeof(packet));
+}
+
 // ============================================================================
-// ESP-NOW RECEIVE CALLBACK (Follower)
+// ESP-NOW RECEIVE CALLBACK (Follower & Fleet Peer)
 // Compatible with both ESP32 Arduino Core 2.x (const uint8_t*) and Core 3.x+ (esp_now_recv_info_t*)
 // ============================================================================
 #if defined(ESP_ARDUINO_VERSION_MAJOR) && (ESP_ARDUINO_VERSION_MAJOR >= 3)
@@ -135,11 +159,27 @@ void onDataReceive(const uint8_t *mac_addr, const uint8_t *incomingData, int len
         ParadeSyncPacket packet;
         memcpy(&packet, incomingData, sizeof(packet));
         if (packet.magic == 0xEE) {
-            currentPacket = packet;
-            packetReceived = true;
-            lastPacketTime = millis();
-            localSyncTime = packet.masterMillis;
-            lastLocalTick = millis();
+            if (packet.mode == 0x30) {
+                // Synchronized Fleet 30s routine trigger
+                if (currentStandaloneMode != SHOW_MODE_FLEET_30S_ROUTINE) {
+                    previousStandaloneMode = currentStandaloneMode;
+                }
+                currentStandaloneMode = SHOW_MODE_FLEET_30S_ROUTINE;
+                fleetRoutineStartTime = millis() - packet.masterMillis;
+                Serial.printf("[ESP-NOW] Fleet 30s Show triggered by Float %d (sync offset: %u ms)\n",
+                              packet.activeFloat, packet.masterMillis);
+            } else if (packet.mode == 0x00 && currentStandaloneMode == SHOW_MODE_FLEET_30S_ROUTINE) {
+                // Early stop commanded by peer
+                currentStandaloneMode = previousStandaloneMode;
+                Serial.printf("[ESP-NOW] Fleet 30s Show stopped early by Float %d -> reverting to baseline\n",
+                              packet.activeFloat);
+            } else {
+                currentPacket = packet;
+                packetReceived = true;
+                lastPacketTime = millis();
+                localSyncTime = packet.masterMillis;
+                lastLocalTick = millis();
+            }
         }
     }
 }
@@ -354,36 +394,30 @@ void runFleetSync(uint32_t now) {
 
 void configureEspNowRole() {
     isLeader = (myFloatNumber == 1);
+    
+    // Register broadcast peer so this node can transmit to all fleet costumes
+    esp_now_peer_info_t peerInfo = {};
+    memcpy(peerInfo.peer_addr, broadcastMac, 6);
+    peerInfo.channel = 0;
+    peerInfo.encrypt = false;
+    if (!esp_now_is_peer_exist(broadcastMac)) {
+        esp_now_add_peer(&peerInfo);
+    }
+    
+    // Register receive callback so this node can receive sync packets from any costume
+    esp_now_register_recv_cb(onDataReceive);
+
     if (isLeader) {
-        Serial.printf("[ROLE] *** LEADER (Float 1 - %s) ***\n", FLEET_ROSTER_INFO[0].name);
-        esp_now_peer_info_t peerInfo = {};
-        memcpy(peerInfo.peer_addr, broadcastMac, 6);
-        peerInfo.channel = 0;
-        peerInfo.encrypt = false;
-        if (!esp_now_is_peer_exist(broadcastMac)) {
-            esp_now_add_peer(&peerInfo);
-        }
-        Serial.println("[INFO] ESP-NOW Broadcast peer registered for Leader.");
+        Serial.printf("[ROLE] *** LEADER (Float 1 - %s) *** (ESP-NOW Tx/Rx ready)\n", FLEET_ROSTER_INFO[0].name);
     } else {
-        Serial.printf("[ROLE] >>> FOLLOWER (Float %d - %s) <<<\n", 
+        Serial.printf("[ROLE] >>> FOLLOWER (Float %d - %s) <<< (ESP-NOW Tx/Rx ready)\n", 
                       myFloatNumber, FLEET_ROSTER_INFO[myFloatNumber - 1].name);
-        esp_now_register_recv_cb(onDataReceive);
-        Serial.println("[INFO] ESP-NOW Receive callback registered for Follower.");
     }
 }
 
 // ============================================================================
 // HARDWARE BUTTON & STANDALONE SHOW SEQUENCE (Autonomous Float Mode)
 // ============================================================================
-#define BUTTON_PIN          0       // BOOT button on standard ESP32 DevKit
-#define SHOW_LOOP_MS        90000   // 90-second autonomous theatrical sequence
-
-enum StandaloneShowMode {
-    SHOW_MODE_AUTONOMOUS_SEQUENCE = 0,
-    SHOW_MODE_FLEET_SYNC          = 1
-};
-
-StandaloneShowMode currentStandaloneMode = SHOW_MODE_AUTONOMOUS_SEQUENCE;
 
 // Interactive Float ID Configuration via BOOT Button (Held for 3 seconds)
 void handleFloatConfigMode() {
@@ -592,6 +626,188 @@ void runAutonomousShowSequence(uint32_t now) {
 }
 
 // ============================================================================
+// 30-SECOND SYNCHRONIZED FLEET ROUTINE (One-Shot Grand Parade Show)
+// ============================================================================
+const CRGB STANDARD_FLEET_COLORS[7] = {
+    CRGB(255, 195, 20),   // 0: Belle Gold / Incandescent Amber
+    CRGB(40, 200, 255),   // 1: Cinderella Cyan
+    CRGB(255, 30, 150),   // 2: Cheshire Pink
+    CRGB(20, 255, 110),   // 3: Pete's Dragon Green
+    CRGB(240, 50, 50),    // 4: Parade Ruby Red
+    CRGB(170, 60, 255),   // 5: Magic Violet
+    CRGB(255, 130, 20)    // 6: Citrus Orange
+};
+
+void render30sFleetRoutine(uint32_t elapsedMs) {
+    uint8_t floatIdx = (myFloatNumber >= 1 && myFloatNumber <= 7) ? (myFloatNumber - 1) : 0;
+    CRGB routineColor = STANDARD_FLEET_COLORS[fleetRoutineCycle % 7];
+
+    if (elapsedMs < 1000) {
+        // Block 1: Dramatic Blackout (0.0s - 1.0s)
+        fill_solid(leds, FRONT_LEDS, CRGB::Black);
+    }
+    else if (elapsedMs < 2500) {
+        // Block 2: Forward Traveling Wave (1.0s - 2.5s, 1➔7)
+        float waveProgress = (float)(elapsedMs - 1000) / 1500.0f; // 0.0 to 1.0
+        float headPos = waveProgress * 6.0f; // 0.0 to 6.0 across floats
+        float dist = fabs((float)floatIdx - headPos);
+        float trailLength = 2.0f;
+
+        if (dist <= trailLength) {
+            float intensity = 1.0f - (dist / trailLength);
+            CRGB col = routineColor;
+            col.nscale8_video((uint8_t)(intensity * 255));
+            if (dist < 0.45f) {
+                // Incandescent White Crest
+                col = blend(col, CRGB(255, 245, 220), (uint8_t)((1.0f - (dist / 0.45f)) * 230));
+            }
+            fill_solid(leds, FRONT_LEDS, col);
+        } else {
+            fill_solid(leds, FRONT_LEDS, CRGB::Black);
+        }
+    }
+    else if (elapsedMs < 4000) {
+        // Block 3: Reverse Traveling Wave (2.5s - 4.0s, 7➔1)
+        float waveProgress = (float)(elapsedMs - 2500) / 1500.0f;
+        float headPos = 6.0f - (waveProgress * 6.0f);
+        float dist = fabs((float)floatIdx - headPos);
+        float trailLength = 2.0f;
+
+        if (dist <= trailLength) {
+            float intensity = 1.0f - (dist / trailLength);
+            CRGB col = routineColor;
+            col.nscale8_video((uint8_t)(intensity * 255));
+            if (dist < 0.45f) {
+                col = blend(col, CRGB(255, 245, 220), (uint8_t)((1.0f - (dist / 0.45f)) * 230));
+            }
+            fill_solid(leds, FRONT_LEDS, col);
+        } else {
+            fill_solid(leds, FRONT_LEDS, CRGB::Black);
+        }
+    }
+    else if (elapsedMs < 9000) {
+        // Block 4: All-Fleet Majestic Breath / Fleet Pulse (4.0s - 9.0s)
+        // 36 BPM breath in routineColor across all 7 shirts in perfect unison
+        uint8_t breath = beatsin8(36, 70, 255, fleetRoutineStartTime + 4000);
+        CRGB col = routineColor;
+        col.nscale8_video(breath);
+        if (breath > 240) {
+            // Peak flare
+            col = blend(col, CRGB(255, 255, 230), map(breath, 240, 255, 0, 180));
+        }
+        fill_solid(leds, FRONT_LEDS, col);
+    }
+    else if (elapsedMs < 11000) {
+        // Block 5: Center-Outward Energy Burst (9.0s - 11.0s)
+        // Center is Float 4 (index 3). Spreads outward 0 -> 3 distance over 2000ms
+        float burstProgress = (float)(elapsedMs - 9000) / 2000.0f;
+        float burstRadius = burstProgress * 3.5f;
+        float distFromCenter = fabs((float)floatIdx - 3.0f);
+        float ringDist = fabs(distFromCenter - burstRadius);
+
+        if (ringDist < 1.2f) {
+            float intensity = 1.0f - (ringDist / 1.2f);
+            CRGB col = STANDARD_FLEET_COLORS[(fleetRoutineCycle + 1) % 7];
+            col.nscale8_video((uint8_t)(intensity * 255));
+            if (ringDist < 0.35f) {
+                col = blend(col, CRGB(255, 255, 240), 220);
+            }
+            fill_solid(leds, FRONT_LEDS, col);
+        } else {
+            fill_solid(leds, FRONT_LEDS, CRGB::Black);
+        }
+    }
+    else if (elapsedMs < 13500) {
+        // Block 6: Odd/Even Marquee Wig-Wag (11.0s - 13.5s, 120 BPM)
+        uint8_t phase = ((elapsedMs - 11000) / 250) % 2;
+        bool isOddFloat = (myFloatNumber % 2 != 0);
+        CRGB goldCol = CRGB(255, 195, 20);
+        CRGB cyanCol = CRGB(40, 200, 255);
+
+        if ((phase == 0 && isOddFloat) || (phase == 1 && !isOddFloat)) {
+            fill_solid(leds, FRONT_LEDS, isOddFloat ? goldCol : cyanCol);
+        } else {
+            fill_solid(leds, FRONT_LEDS, CRGB::Black);
+        }
+    }
+    else if (elapsedMs < 16500) {
+        // Block 7: Baton Leapfrog Chase (13.5s - 16.5s)
+        uint8_t activeRunner = ((elapsedMs - 13500) / 428) % 7;
+        if (floatIdx == activeRunner) {
+            fill_solid(leds, FRONT_LEDS, CRGB(255, 245, 220));
+        } else {
+            CRGB dimBase = FLEET_ROSTER_INFO[floatIdx].color;
+            dimBase.nscale8_video(40);
+            fill_solid(leds, FRONT_LEDS, dimBase);
+        }
+    }
+    else if (elapsedMs < 17500) {
+        // Block 8: Anticipation Blackout (16.5s - 17.5s)
+        fill_solid(leds, FRONT_LEDS, CRGB::Black);
+    }
+    else if (elapsedMs < 21500) {
+        // Block 9: Starlight & Wave Twinkle Storm (17.5s - 21.5s, 4.0s)
+        // Base dim glow + 75% density random sparkling of wave color + white
+        CRGB dimBase = routineColor;
+        dimBase.nscale8_video(35);
+        fill_solid(leds, FRONT_LEDS, dimBase);
+
+        for (int i = 0; i < FRONT_LEDS; i++) {
+            if (random16(1000) < 140) { // Sparkling storm
+                if (random8(2) == 0) {
+                    leds[i] = routineColor;
+                } else {
+                    leds[i] = CRGB(255, 255, 240); // Bright white starlight
+                }
+            }
+        }
+    }
+    else if (elapsedMs < 24500) {
+        // Block 10: Ping-Pong Double Bounce (21.5s - 24.5s)
+        float bounceCycle = fmod((float)(elapsedMs - 21500) / 1500.0f, 2.0f);
+        float headPos = (bounceCycle < 1.0f) ? (bounceCycle * 6.0f) : ((2.0f - bounceCycle) * 6.0f);
+        float dist = fabs((float)floatIdx - headPos);
+
+        if (dist <= 1.8f) {
+            float intensity = 1.0f - (dist / 1.8f);
+            CRGB col = STANDARD_FLEET_COLORS[(fleetRoutineCycle + 2) % 7];
+            col.nscale8_video((uint8_t)(intensity * 255));
+            fill_solid(leds, FRONT_LEDS, col);
+        } else {
+            fill_solid(leds, FRONT_LEDS, CRGB::Black);
+        }
+    }
+    else if (elapsedMs < 29500) {
+        // Block 11: Grand Finale Carnival Crescendo (24.5s - 29.5s)
+        uint8_t hue = (elapsedMs * 3 / 10 + floatIdx * 36) % 256;
+        fill_solid(leds, FRONT_LEDS, CHSV(hue, 220, 255));
+
+        // Climax strobes in final 2 seconds
+        if (elapsedMs >= 27500 && ((elapsedMs / 70) % 2 == 0)) {
+            fill_solid(leds, FRONT_LEDS, CRGB(255, 255, 255));
+        }
+    }
+    else {
+        // Block 12: Curtain Blackout & Return (29.5s - 30.0s)
+        fill_solid(leds, FRONT_LEDS, CRGB::Black);
+    }
+
+    // Duplicate front 100 LEDs to back 100 LEDs for full 200-LED costume!
+    duplicateFrontToBack();
+
+    // Clear any extra LEDs beyond strand count
+    for (int i = NUM_LEDS; i < MAX_LEDS_CAPACITY; i++) {
+        leds[i] = CRGB::Black;
+    }
+
+    // Status LED blink cadence during fleet routine
+    digitalWrite(STATUS_LED_PIN, ((elapsedMs / 200) % 2 == 0) ? HIGH : LOW);
+
+    FastLED.show();
+    delay(15);
+}
+
+// ============================================================================
 // MAIN SETUP
 // ============================================================================
 void setup() {
@@ -693,10 +909,13 @@ void loop() {
     uint32_t now = millis();
 
     // 1. Hardware Button (BOOT button on GPIO 0)
-    // Short Tap (20ms - 2500ms): Toggle between Autonomous Show and Fleet Sync
+    // Short Tap (50ms - 2500ms):
+    //   - If idle / baseline: Trigger 30-Second Fleet Routine once and broadcast to peers
+    //   - If running 30s Fleet Routine: Stop early and return to baseline, broadcast stop to peers
     // Long Hold (>= 3 seconds): Enter Float ID Configuration Mode (1 to 7)
     static bool buttonWasPressed = false;
     static uint32_t buttonDownTime = 0;
+    static uint32_t lastButtonReleaseTime = 0;
     static bool longHoldHandled = false;
 
     bool isButtonPressed = (digitalRead(BUTTON_PIN) == LOW);
@@ -713,10 +932,17 @@ void loop() {
     } else if (!isButtonPressed && buttonWasPressed) {
         buttonWasPressed = false;
         uint32_t pressDuration = now - buttonDownTime;
-        if (!longHoldHandled && pressDuration >= 20 && pressDuration < 2500) {
-            if (currentStandaloneMode == SHOW_MODE_AUTONOMOUS_SEQUENCE) {
-                currentStandaloneMode = SHOW_MODE_FLEET_SYNC;
-                Serial.println("[MODE] Button pressed -> Switched to: ESP-NOW Fleet Sync");
+
+        // 50ms hardware press debounce and 300ms software lockout between button actions
+        if (!longHoldHandled && pressDuration >= 50 && pressDuration < 2500 && (now - lastButtonReleaseTime >= 300)) {
+            lastButtonReleaseTime = now;
+
+            if (currentStandaloneMode == SHOW_MODE_FLEET_30S_ROUTINE) {
+                // STOP EARLY: Return to baseline and broadcast stop to fleet
+                currentStandaloneMode = previousStandaloneMode;
+                broadcastFleetRoutinePacket(0x00, 0);
+                Serial.println("[FLEET] Early stop triggered via BOOT button -> returning to baseline.");
+                
                 // Visual confirmation on costume LED strip: 2 Amber/Gold flashes
                 for (int f = 0; f < 2; f++) {
                     fill_solid(leds, NUM_LEDS, CRGB(255, 140, 0));
@@ -729,19 +955,13 @@ void loop() {
                     delay(80);
                 }
             } else {
-                currentStandaloneMode = SHOW_MODE_AUTONOMOUS_SEQUENCE;
-                Serial.println("[MODE] Button pressed -> Switched to: Autonomous Float Show Sequence");
-                // Visual confirmation on costume LED strip: 2 Cyan flashes
-                for (int f = 0; f < 2; f++) {
-                    fill_solid(leds, NUM_LEDS, CRGB(0, 220, 255));
-                    FastLED.show();
-                    digitalWrite(STATUS_LED_PIN, HIGH);
-                    delay(120);
-                    fill_solid(leds, NUM_LEDS, CRGB::Black);
-                    FastLED.show();
-                    digitalWrite(STATUS_LED_PIN, LOW);
-                    delay(80);
-                }
+                // START 30s FLEET ROUTINE: Trigger once and broadcast start to fleet
+                fleetRoutineCycle++;
+                fleetRoutineStartTime = now;
+                previousStandaloneMode = currentStandaloneMode;
+                currentStandaloneMode = SHOW_MODE_FLEET_30S_ROUTINE;
+                broadcastFleetRoutinePacket(0x30, 0);
+                Serial.printf("[FLEET] 30s Fleet Show started via BOOT button! (Cycle #%u)\n", fleetRoutineCycle);
             }
         }
     }
@@ -788,7 +1008,16 @@ void loop() {
 
     // 4. If simulator is NOT streaming, run the selected standalone mode!
     if (!isLiveStreaming) {
-        if (currentStandaloneMode == SHOW_MODE_AUTONOMOUS_SEQUENCE) {
+        if (currentStandaloneMode == SHOW_MODE_FLEET_30S_ROUTINE) {
+            uint32_t elapsedMs = now - fleetRoutineStartTime;
+            if (elapsedMs < 30000) {
+                render30sFleetRoutine(elapsedMs);
+            } else {
+                // 30 seconds complete! Return automatically to regular individual program
+                currentStandaloneMode = previousStandaloneMode;
+                Serial.println("[FLEET] 30s Fleet Routine finished -> auto-returned to individual program.");
+            }
+        } else if (currentStandaloneMode == SHOW_MODE_AUTONOMOUS_SEQUENCE) {
             runAutonomousShowSequence(now);
         } else {
             runFleetSync(now);
