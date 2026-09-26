@@ -910,12 +910,20 @@
                             </select>
                         </div>
 
-                        <div style="display: flex; gap: 6px; margin-bottom: 12px;">
+                        <div style="display: flex; gap: 6px; margin-bottom: 6px;">
                             <button type="button" id="fleetSaveShowBtn" class="action-btn accent" style="flex: 1; font-size: 10px; padding: 6px;" title="Save current fleet show sequence to server and browser storage">
                                 💾 Save Show
                             </button>
                             <button type="button" id="fleetNewShowBtn" class="action-btn" style="flex: 0.9; font-size: 10px; padding: 6px;" title="Create a new blank fleet show routine">
                                 ➕ New Show
+                            </button>
+                        </div>
+                        <div style="display: flex; gap: 6px; margin-bottom: 12px;">
+                            <button type="button" id="fleetViewCppBtn" class="action-btn" style="flex: 1; font-size: 10px; padding: 6px; background: #161b22; border-color: #388bfd; color: #58a6ff;" title="Generate and view FastLED C++ code for this fleet show">
+                                📋 View C++ Code
+                            </button>
+                            <button type="button" id="fleetApplyFirmwareBtn" class="action-btn primary" style="flex: 1.2; font-size: 10px; padding: 6px; background: linear-gradient(135deg, #1f6feb, #388bfd); font-weight: 600;" title="Export this choreography directly into ESP32 firmware (src/main.cpp and Arduino sketch)">
+                                ⚡ Apply to Firmware
                             </button>
                         </div>
 
@@ -1307,6 +1315,6 @@
         </div>
     </div>
 
-    <script src="app.js?v=21"></script>
+    <script src="app.js?v=22"></script>
 </body>
 </html>

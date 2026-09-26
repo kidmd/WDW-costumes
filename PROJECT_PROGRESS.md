@@ -93,6 +93,23 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### Entry: 1-Click Fleet Show to Firmware Export, C++ Generator & Automated PlatformIO Build Verification
+* **Date:** 2026-09-26
+* **Milestone:** Milestone 5 - 7-Shirt Synchronized Fleet Show Choreography & C++ Firmware Export Pipeline
+* **Status:** Operational & Verified in Web Simulator and PlatformIO Build Toolchain.
+* **Notes:**
+  * **FastLED C++ Choreography Generator (`generateFleetRoutineCpp()`):**
+    - Built a full-fidelity translator in `simulator/app.js` that maps all 14 fleet choreography block types (`wave_forward`, `wave_reverse`, `fleet_pulse`, `sparkle_storm`, `center_burst`, `converge_center`, `wig_wag`, `baton_chase`, `ping_pong_wave`, `color_wash_chase`, `rainbow_sweep`, `strobe_all`, `shimmer_drift`, `grand_finale`, `blackout`) into a clean, readable `render30sFleetRoutine(uint32_t elapsedMs)` function.
+    - Handles color dynamics (`cycle_random`, `match_previous`, and standard parade signature hues) and front-to-back 200-LED duplication for 360° visibility.
+  * **Dual Interface Export Controls (`simulator/index.html`):**
+    - Added **"📋 View C++ Code"** (`#fleetViewCppBtn`): Opens the in-browser `#codeModal` to inspect and copy the generated FastLED routine with a single click.
+    - Added **"⚡ Apply to Firmware"** (`#fleetApplyFirmwareBtn`): Calls backend API `/api/export_fleet_routine` to directly write the routine to `src/main.cpp` and `arduino/MSEP_Costume/MSEP_Costume.ino` between sentinel markers.
+  * **Dynamic Routine Duration (`FLEET_ROUTINE_TOTAL_MS`):**
+    - Replaced hardcoded 30000ms loop limit with dynamic macro `#define FLEET_ROUTINE_TOTAL_MS`, allowing routines of arbitrary duration (e.g. 25.0s, 30.0s, 45.0s) to be played and stopped accurately on ESP32 hardware.
+  * **Automated PlatformIO Compilation Verification:**
+    - Integrated automated background `pio run` verification inside the backend endpoint, testing that the generated C++ builds with zero compiler or library errors before notifying the user.
+  * **Cache-Busting & Script Versioning:** Bumped script tag to `app.js?v=22` in `simulator/index.html`.
+
 ### Entry: Fixed Spurious Unsaved Changes Warning on Initial Startup
 * **Date:** 2026-09-26
 * **Milestone:** Milestone 5 - 7-Shirt Synchronized Fleet Show Choreography & Clean Startup Preset Loading

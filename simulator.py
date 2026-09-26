@@ -13,6 +13,8 @@ import webbrowser
 import threading
 import urllib.parse
 import socket
+import re
+import subprocess
 
 # UDP Pixel Streaming Socket
 udp_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -115,6 +117,8 @@ class SimulatorRequestHandler(http.server.SimpleHTTPRequestHandler):
             self.handle_save_wifi()
         elif parsed.path == "/api/flash_wifi_receiver":
             self.handle_flash_wifi_receiver()
+        elif parsed.path == "/api/export_fleet_routine":
+            self.handle_export_fleet_routine()
         else:
             self.send_error(404, "Endpoint not found")
 
@@ -284,6 +288,102 @@ class SimulatorRequestHandler(http.server.SimpleHTTPRequestHandler):
             self.send_header("Content-Type", "application/json")
             self.end_headers()
             self.wfile.write(json.dumps({"success": True, "filename": safe_name}).encode("utf-8"))
+        except Exception as e:
+            self.send_error(500, str(e))
+
+    def handle_export_fleet_routine(self):
+        try:
+            content_length = int(self.headers.get("Content-Length", 0))
+            post_data = self.rfile.read(content_length)
+            payload = json.loads(post_data.decode("utf-8"))
+
+            cpp_code = payload.get("cppCode", "").strip()
+            loop_duration = float(payload.get("loopDuration", 30.0))
+            total_ms = int(round(loop_duration * 1000))
+            show_name = payload.get("showName", "Custom Fleet Show")
+            verify_compile = bool(payload.get("verifyCompile", True))
+
+            if not cpp_code:
+                self.send_error(400, "Missing cppCode payload")
+                return
+
+            main_cpp_path = os.path.join(BASE_DIR, "src", "main.cpp")
+            ino_path = os.path.join(BASE_DIR, "arduino", "MSEP_Costume", "MSEP_Costume.ino")
+
+            begin_sentinel = "// >>>>> BEGIN AUTO-GENERATED FLEET ROUTINE >>>>>"
+            end_sentinel = "// <<<<< END AUTO-GENERATED FLEET ROUTINE <<<<<"
+
+            def update_file(file_path):
+                if not os.path.exists(file_path):
+                    return False, f"File not found: {file_path}"
+                with open(file_path, "r", encoding="utf-8") as f:
+                    content = f.read()
+
+                # 1. Update FLEET_ROUTINE_TOTAL_MS define
+                pattern_define = r"#define\s+FLEET_ROUTINE_TOTAL_MS\s+\d+[^\n]*"
+                new_define = f"#define FLEET_ROUTINE_TOTAL_MS {total_ms} // Auto-updated for {show_name} ({loop_duration:.1f}s)"
+                if re.search(pattern_define, content):
+                    content = re.sub(pattern_define, new_define, content)
+                else:
+                    pattern_show = r"(#define\s+SHOW_LOOP_MS\s+\d+[^\n]*\n)"
+                    content = re.sub(pattern_show, r"\1" + new_define + "\n", content)
+
+                # 2. Replace render30sFleetRoutine between sentinels
+                if begin_sentinel in content and end_sentinel in content:
+                    parts = content.split(begin_sentinel, 1)
+                    before = parts[0]
+                    after = parts[1].split(end_sentinel, 1)[1]
+                    content = before + begin_sentinel + "\n" + cpp_code + "\n" + end_sentinel + after
+                else:
+                    return False, f"Sentinels missing in {file_path}"
+
+                with open(file_path, "w", encoding="utf-8") as f:
+                    f.write(content)
+                return True, "OK"
+
+            ok_main, err_main = update_file(main_cpp_path)
+            ok_ino, err_ino = update_file(ino_path)
+
+            if not ok_main or not ok_ino:
+                self.send_response(500)
+                self.send_header("Content-Type", "application/json")
+                self.end_headers()
+                self.wfile.write(json.dumps({
+                    "success": False,
+                    "error": f"Failed updating files: main.cpp ({err_main}), MSEP_Costume.ino ({err_ino})"
+                }).encode("utf-8"))
+                return
+
+            compile_result = {"tested": False, "success": True, "output": ""}
+            if verify_compile:
+                try:
+                    cmd = [sys.executable, "-m", "platformio", "run"]
+                    res = subprocess.run(
+                        cmd,
+                        cwd=BASE_DIR,
+                        capture_output=True,
+                        text=True,
+                        timeout=60
+                    )
+                    compile_result["tested"] = True
+                    compile_result["success"] = (res.returncode == 0)
+                    compile_result["output"] = res.stdout[-600:] if res.stdout else res.stderr[-600:]
+                except Exception as ce:
+                    compile_result["tested"] = True
+                    compile_result["success"] = False
+                    compile_result["output"] = str(ce)
+
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json")
+            self.end_headers()
+            self.wfile.write(json.dumps({
+                "success": True,
+                "totalMs": total_ms,
+                "loopDuration": loop_duration,
+                "showName": show_name,
+                "compileResult": compile_result
+            }).encode("utf-8"))
+
         except Exception as e:
             self.send_error(500, str(e))
 
