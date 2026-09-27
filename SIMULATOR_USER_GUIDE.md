@@ -137,7 +137,10 @@ The sidebar navigation is organized into a clean **2-row × 3-column grid** that
      - 🎆 **Fireworks Stamper:** Radial starburst generator with serpentine wiring, radius scale, and color themes.
    - **Active Groups Browser:** Card list of all configured groups with instant selection, badge metrics, and deletion controls.
 
-4. **🎬 Tab 4: Show ("The Show Director & Cue Timeline"):**
+4. **🎬 Tab 4: Show ("Individual Float Routine & Cue Timeline"):**
+   - **Individual Standby Routine Scope:** Explicitly scripts theatrical animation sequences for **this specific float only** (e.g., carriage wheels spinning, dragon breath bursts, locomotive chuffing) while running autonomously between fleet shows.
+   - **Fleet Routine Priority & Override:** When a synchronized **Fleet Show** triggers (from Tab 5 or a physical ESP32 button press), the fleet routine temporarily overrides all 7 costumes. As soon as the fleet routine concludes, this float seamlessly resumes its individual show sequence or baseline pattern!
+   - **Active Float Banner & Fleet Quick-Jump:** An illuminated header displays the active float currently being sequenced (with signature accent styling) and includes a one-click jump button (`🏃 Fleet Tab ➔`) to transition directly to the 7-shirt fleet coordinator.
    - **Parade Cue Director:** 90-second Sequence Loop controls (Sequence ON/OFF, Loop duration, Example routines).
    - **Active Cue List:** Clean, scrollable cue cards displaying start time, duration, target layer/group, effect, BPM, and quick delete.
    - **Quick Cue Insertion:** `➕ Add Cue at Playhead`, `⚡ Auto-Schedule Bursts`.
@@ -480,9 +483,15 @@ The Master Timeline dynamically switches display and transport logic depending o
 
 ---
 
-## 9. Parade Cue Director (90-Second Theatrical Sequences)
+## 9. Parade Cue Director (Individual Float Standby Sequences)
 
-Located in Section 2 of the left sidebar, the **Parade Cue Director** is where you script and fine-tune your float's theatrical show sequence.
+Located in **Tab 4 (`🎬 Show`)** of the left sidebar, the **Parade Cue Director** scripts the theatrical 90-second timeline for the **active individual float** (e.g., Casey Jr.'s locomotive puffing, Cinderella's pumpkin wheels spinning, or Elliott's dragon crest flames).
+
+> [!IMPORTANT]
+> **Individual Standby vs. Synchronized Fleet Routine:**
+> * **Individual Routine (Tab 4):** Each of the 7 floats runs its own independent 90-second show sequence or continuous baseline pattern while running on the course.
+> * **Fleet Takeover (Tab 5):** When a runner single-taps their ESP32 onboard BOOT button or when you trigger the 30-second Fleet Routine in the **🏃 Fleet** tab, ESP-NOW wireless broadcasts immediately take over all 7 shirts to execute the synchronized routine (waves, synchronized pulses, sparkle storms).
+> * **Automatic Return:** The moment the 30-second fleet routine finishes, every float seamlessly returns to its individual show sequence or baseline program!
 
 ### Structuring a Cue
 Click **➕ Add Cue** to create a new cue card with the following settings:

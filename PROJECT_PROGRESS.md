@@ -93,6 +93,16 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### Entry: Individual Float Standby Cue Director & Fleet Show Scope Clarification
+* **Date:** 2026-09-26
+* **Milestone:** Milestone 5 - Studio Workflow & Architectural Clarity
+* **Status:** Operational & Synchronized across `simulator/index.html`, `simulator/app.js?v=40`, `SIMULATOR_USER_GUIDE.md`, and `PROJECT_PROGRESS.md`.
+* **Notes:**
+  * **Individual Standby Scope vs. Fleet Priority:** Clarified on the Show tab (`#tabDirector`) that the Parade Cue Director scripts theatrical cues exclusively for the active individual float while running in autonomous standby. Highlighted that when a synchronized Fleet Show is triggered (via Tab 5 or the physical ESP32 BOOT button), the fleet routine temporarily overrides all 7 costumes before automatically returning each float back to its individual timeline or baseline.
+  * **Interactive Standby Concept Card & Float Badge:** Added an illuminated concept card to `#tabDirector` featuring a dynamic badge (`#directorActiveFloatBadge`) showing the active float name/accent and a fast-jump button (`#directorGoToFleetBtn`) to switch directly to the Fleet Show Creator.
+  * **Master Timeline Track Label Differentiation:** Updated `renderTimelineLayers()` in `simulator/app.js` so that the left track label dynamically identifies the mode: displaying `FLOAT SHOW` for the single float's cue timeline and `FLEET SHOW` for the 30-second multi-shirt choreography track.
+  * **Cache Busting:** Bumped application script tag to `app.js?v=40` in `simulator/index.html`.
+
 ### Entry: Sidebar Tab Workflow Reordering & Garment Baseline Clarity
 * **Date:** 2026-09-26
 * **Milestone:** Milestone 5 - Studio Workflow & Architectural Clarity

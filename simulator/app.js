@@ -3678,6 +3678,15 @@ function updateActiveFloatUI(slot) {
             watermark.style.display = 'none';
         }
     }
+
+    // 7. Update Show Tab Active Float Badge
+    const directorBadge = document.getElementById('directorActiveFloatBadge');
+    if (directorBadge) {
+        directorBadge.textContent = `Float #${slot + 1}: ${info.name}`;
+        directorBadge.style.color = color;
+        directorBadge.style.borderColor = `${color}88`;
+        directorBadge.style.background = `${color}22`;
+    }
 }
 
 // Initialize Single Shirt 7-Button Float Switcher and Controls
@@ -6692,7 +6701,7 @@ function renderTimelineLayers() {
         return;
     }
 
-    if (labelCol) labelCol.textContent = 'TIMELINE';
+    if (labelCol) labelCol.textContent = 'FLOAT SHOW';
 
     // 1. Render Dynamic Ruler Marks
     if (marksContainer) {
@@ -8582,6 +8591,10 @@ document.getElementById('removeGroupEffectBtn')?.addEventListener('click', () =>
 // Group Creation Hub & Navigation Bindings
 document.getElementById('goToGroupsTabBtn')?.addEventListener('click', () => {
     if (typeof switchSidebarTab === 'function') switchSidebarTab('tabGroups');
+});
+
+document.getElementById('directorGoToFleetBtn')?.addEventListener('click', () => {
+    if (typeof switchSidebarTab === 'function') switchSidebarTab('tabFleet');
 });
 
 document.getElementById('quickActivateBoxSelectBtn')?.addEventListener('click', () => {
