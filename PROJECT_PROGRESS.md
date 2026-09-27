@@ -92,6 +92,29 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### Entry: Interactive Drag-to-Move Timeline Clips & Edge Trimming Handles
+* **Date:** 2026-09-26
+* **Milestone:** Milestone 4 - Single Shirt Master Timeline NLE Editing & Ergonomics
+* **Status:** Operational & Verified across Web Simulator (`index.html`, `style.css?v=33`, `app.js?v=33`) and Documentation.
+* **Notes:**
+  * **Interactive Edge Trim Handles (`.handle-left` & `.handle-right`):**
+    - Integrated dedicated 10px-wide hover grab handles on both borders of each timeline cue block with visual cues (`cursor: ew-resize`).
+    - **Left Handle Trimming:** Trags left or right to adjust `cue.startTime` while holding the end time (`origStart + origDur`) strictly locked in place, recalculating duration on the fly. Clamped to a minimum duration of 0.5s and bounded by $t \ge 0$.
+    - **Right Handle Trimming:** Drags left or right to adjust `cue.duration` while locking `cue.startTime` in place. Clamped to 0.5s minimum and bounded by timeline length (`sequenceLoopDuration`).
+  * **Direct Clip Body Moving / Slipping (`cursor: grab` / `cursor: grabbing`):**
+    - Clicking and dragging the central body of any cue block slides both `startTime` and its end boundary earlier or later across the timeline tracks without modifying the clip's duration.
+    - Clamped strictly within `[0, sequenceLoopDuration - duration]`.
+  * **Pointer Capture & Gesture Precision:**
+    - Employs pointer events (`pointerdown`, `pointermove`, `pointerup`, `pointercancel`) with `setPointerCapture` to guarantee uninterrupted tracking even when dragging rapidly above or below the 20px track lanes or outside the browser viewport.
+    - Enforces a 4-pixel movement threshold (`Math.abs(dx) >= 4`) to distinguish deliberate drag gestures from simple clicks. Quick taps cleanly seek the playhead and scroll the inspector to the clicked cue card without accidental position jumps.
+    - All movements and trims snap to a clean 0.1-second quantization grid.
+  * **Live High-Contrast Floating Tooltip (`.timeline-drag-tooltip`):**
+    - Projects an elevated timecode badge directly above the cursor displaying real-time coordinates: `Start: 12.4s | End: 28.6s (Dur: 16.2s)`.
+  * **Bidirectional Inspector Card Synchronization:**
+    - Live updates the corresponding cue card's `.cue-start-input`, `.cue-dur-input`, and header time badge in Section 2 (Parade Cue Director) in real time during drag.
+    - Automatically marks the costume dirty (`isSingleShirtDirty = true`) and triggers re-render on release.
+  * **Cache Busting Update:** Incremented stylesheet and script tags to `?v=33` in `simulator/index.html`.
+
 ### Entry: Idiot-Proof 5-Second Float Config Hold with Progressive Charging Indicator & Clean Abort
 * **Date:** 2026-09-26
 * **Milestone:** Milestone 3 - ESP32 Firmware & Hardware Interaction Hardening

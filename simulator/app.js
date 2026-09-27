@@ -6521,6 +6521,21 @@ function renderFleetShowTimelineLayers() {
     updateTimelineScrubberUI();
 }
 
+function syncCueCardInputs(cue) {
+    if (!cue) return;
+    const card = document.querySelector(`.cue-card[data-cue-id="${cue.id}"]`);
+    if (!card) return;
+    const startInput = card.querySelector('.cue-start-input');
+    const durInput = card.querySelector('.cue-dur-input');
+    const timeSpan = card.querySelector('.cue-card-header span[style*="monospace"]');
+    if (startInput) startInput.value = cue.startTime.toFixed(1);
+    if (durInput) durInput.value = cue.duration.toFixed(1);
+    if (timeSpan) {
+        const endVal = (cue.startTime + cue.duration).toFixed(1);
+        timeSpan.textContent = `${cue.startTime.toFixed(1)}s - ${endVal}s`;
+    }
+}
+
 function renderTimelineLayers() {
     const container = document.getElementById('timelineLayersContainer');
     const marksContainer = document.getElementById('timelineRulerMarks');
@@ -6649,7 +6664,13 @@ function renderTimelineLayers() {
             block.style.left = `${leftPct}%`;
             block.style.width = `${widthPct}%`;
             block.style.top = `${cue._subLane * 24 + 2}px`;
-            block.title = `${cue.name} (${cue.startTime.toFixed(1)}s - ${(cue.startTime + cue.duration).toFixed(1)}s) [Fade In: ${cue.fadeIn || 0}s, Out: ${cue.fadeOut || 0}s]`;
+            block.title = `${cue.name} (${cue.startTime.toFixed(1)}s - ${(cue.startTime + cue.duration).toFixed(1)}s)`;
+
+            // Left Resize / Trim Handle (drag to trim start time)
+            const leftHandle = document.createElement('div');
+            leftHandle.className = 'cue-resize-handle handle-left';
+            leftHandle.title = 'Drag left/right to trim clip start time';
+            block.appendChild(leftHandle);
 
             if (cue.fadeIn && cue.fadeIn > 0) {
                 const inPct = Math.min(40, (cue.fadeIn / cue.duration) * 100);
@@ -6661,7 +6682,7 @@ function renderTimelineLayers() {
 
             const title = document.createElement('span');
             title.className = 'cue-block-title';
-            title.textContent = `${cue.name} (${cue.duration.toFixed(0)}s)`;
+            title.textContent = `${cue.name} (${cue.duration.toFixed(1)}s)`;
             block.appendChild(title);
 
             if (cue.fadeOut && cue.fadeOut > 0) {
@@ -6672,16 +6693,197 @@ function renderTimelineLayers() {
                 block.appendChild(fadeDiv);
             }
 
-            block.addEventListener('click', (e) => {
+            // Right Resize / Trim Handle (drag to trim duration / end time)
+            const rightHandle = document.createElement('div');
+            rightHandle.className = 'cue-resize-handle handle-right';
+            rightHandle.title = 'Drag left/right to trim clip duration';
+            block.appendChild(rightHandle);
+
+            // Reusable floating timeline tooltip
+            let timelineTooltip = document.getElementById('timelineDragTooltip');
+            if (!timelineTooltip) {
+                timelineTooltip = document.createElement('div');
+                timelineTooltip.id = 'timelineDragTooltip';
+                timelineTooltip.className = 'timeline-drag-tooltip';
+                timelineTooltip.style.display = 'none';
+                document.body.appendChild(timelineTooltip);
+            }
+
+            // 1. LEFT HANDLE: Trim start time
+            leftHandle.addEventListener('pointerdown', (e) => {
                 e.stopPropagation();
-                sequenceTime = cue.startTime;
-                updateTimelineScrubberUI();
-                const card = document.querySelector(`.cue-card[data-cue-id="${cue.id}"]`);
-                if (card) {
-                    card.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-                    card.style.outline = '2px solid #58a6ff';
-                    setTimeout(() => card.style.outline = 'none', 1000);
-                }
+                e.preventDefault();
+                leftHandle.setPointerCapture(e.pointerId);
+
+                const startX = e.clientX;
+                const origStart = cue.startTime;
+                const origDur = cue.duration;
+                const origEnd = origStart + origDur;
+                const trackRect = track.getBoundingClientRect();
+                const secPerPx = sequenceLoopDuration / (trackRect.width || 1);
+
+                block.classList.add('dragging-resize');
+                leftHandle.classList.add('dragging');
+                timelineTooltip.style.display = 'block';
+
+                const onPointerMove = (ev) => {
+                    const dx = ev.clientX - startX;
+                    const deltaSec = dx * secPerPx;
+                    let newStart = origStart + deltaSec;
+                    newStart = Math.round(newStart * 10) / 10;
+                    newStart = Math.max(0, Math.min(origEnd - 0.5, newStart));
+                    const newDur = Math.round((origEnd - newStart) * 10) / 10;
+
+                    cue.startTime = newStart;
+                    cue.duration = newDur;
+
+                    block.style.left = `${(newStart / sequenceLoopDuration) * 100}%`;
+                    block.style.width = `${Math.max(1.0, (newDur / sequenceLoopDuration) * 100)}%`;
+                    title.textContent = `${cue.name} (${newDur.toFixed(1)}s)`;
+
+                    timelineTooltip.textContent = `◀ Trim Start: ${newStart.toFixed(1)}s | End: ${origEnd.toFixed(1)}s (Dur: ${newDur.toFixed(1)}s)`;
+                    timelineTooltip.style.left = `${ev.clientX}px`;
+                    timelineTooltip.style.top = `${trackRect.top - 14}px`;
+                };
+
+                const onPointerUp = (ev) => {
+                    leftHandle.removeEventListener('pointermove', onPointerMove);
+                    leftHandle.removeEventListener('pointerup', onPointerUp);
+                    leftHandle.removeEventListener('pointercancel', onPointerUp);
+                    block.classList.remove('dragging-resize');
+                    leftHandle.classList.remove('dragging');
+                    timelineTooltip.style.display = 'none';
+
+                    syncCueCardInputs(cue);
+                    isSingleShirtDirty = true;
+                    renderTimelineLayers();
+                };
+
+                leftHandle.addEventListener('pointermove', onPointerMove);
+                leftHandle.addEventListener('pointerup', onPointerUp);
+                leftHandle.addEventListener('pointercancel', onPointerUp);
+            });
+
+            // 2. RIGHT HANDLE: Trim duration / end time
+            rightHandle.addEventListener('pointerdown', (e) => {
+                e.stopPropagation();
+                e.preventDefault();
+                rightHandle.setPointerCapture(e.pointerId);
+
+                const startX = e.clientX;
+                const origStart = cue.startTime;
+                const origDur = cue.duration;
+                const origEnd = origStart + origDur;
+                const trackRect = track.getBoundingClientRect();
+                const secPerPx = sequenceLoopDuration / (trackRect.width || 1);
+
+                block.classList.add('dragging-resize');
+                rightHandle.classList.add('dragging');
+                timelineTooltip.style.display = 'block';
+
+                const onPointerMove = (ev) => {
+                    const dx = ev.clientX - startX;
+                    const deltaSec = dx * secPerPx;
+                    let newEnd = origEnd + deltaSec;
+                    newEnd = Math.round(newEnd * 10) / 10;
+                    newEnd = Math.max(origStart + 0.5, Math.min(sequenceLoopDuration, newEnd));
+                    const newDur = Math.round((newEnd - origStart) * 10) / 10;
+
+                    cue.duration = newDur;
+
+                    block.style.width = `${Math.max(1.0, (newDur / sequenceLoopDuration) * 100)}%`;
+                    title.textContent = `${cue.name} (${newDur.toFixed(1)}s)`;
+
+                    timelineTooltip.textContent = `▶ Trim End: ${newEnd.toFixed(1)}s | Start: ${origStart.toFixed(1)}s (Dur: ${newDur.toFixed(1)}s)`;
+                    timelineTooltip.style.left = `${ev.clientX}px`;
+                    timelineTooltip.style.top = `${trackRect.top - 14}px`;
+                };
+
+                const onPointerUp = (ev) => {
+                    rightHandle.removeEventListener('pointermove', onPointerMove);
+                    rightHandle.removeEventListener('pointerup', onPointerUp);
+                    rightHandle.removeEventListener('pointercancel', onPointerUp);
+                    block.classList.remove('dragging-resize');
+                    rightHandle.classList.remove('dragging');
+                    timelineTooltip.style.display = 'none';
+
+                    syncCueCardInputs(cue);
+                    isSingleShirtDirty = true;
+                    renderTimelineLayers();
+                };
+
+                rightHandle.addEventListener('pointermove', onPointerMove);
+                rightHandle.addEventListener('pointerup', onPointerUp);
+                rightHandle.addEventListener('pointercancel', onPointerUp);
+            });
+
+            // 3. BLOCK BODY: Move / Slip Clip on Timeline or Click to Seek
+            block.addEventListener('pointerdown', (e) => {
+                if (e.target === leftHandle || e.target === rightHandle) return;
+                e.stopPropagation();
+                e.preventDefault();
+                block.setPointerCapture(e.pointerId);
+
+                const startX = e.clientX;
+                const origStart = cue.startTime;
+                const dur = cue.duration;
+                const trackRect = track.getBoundingClientRect();
+                const secPerPx = sequenceLoopDuration / (trackRect.width || 1);
+                let hasDragged = false;
+
+                const onPointerMove = (ev) => {
+                    const dx = ev.clientX - startX;
+                    if (!hasDragged && Math.abs(dx) >= 4) {
+                        hasDragged = true;
+                        block.classList.add('dragging-move');
+                        timelineTooltip.style.display = 'block';
+                    }
+
+                    if (hasDragged) {
+                        const deltaSec = dx * secPerPx;
+                        let newStart = origStart + deltaSec;
+                        newStart = Math.round(newStart * 10) / 10;
+                        newStart = Math.max(0, Math.min(sequenceLoopDuration - dur, newStart));
+                        const newEnd = Math.round((newStart + dur) * 10) / 10;
+
+                        cue.startTime = newStart;
+
+                        block.style.left = `${(newStart / sequenceLoopDuration) * 100}%`;
+
+                        timelineTooltip.textContent = `↔ Move: ${newStart.toFixed(1)}s – ${newEnd.toFixed(1)}s (${dur.toFixed(1)}s)`;
+                        timelineTooltip.style.left = `${ev.clientX}px`;
+                        timelineTooltip.style.top = `${trackRect.top - 14}px`;
+                    }
+                };
+
+                const onPointerUp = (ev) => {
+                    block.removeEventListener('pointermove', onPointerMove);
+                    block.removeEventListener('pointerup', onPointerUp);
+                    block.removeEventListener('pointercancel', onPointerUp);
+
+                    if (hasDragged) {
+                        block.classList.remove('dragging-move');
+                        timelineTooltip.style.display = 'none';
+
+                        syncCueCardInputs(cue);
+                        isSingleShirtDirty = true;
+                        renderTimelineLayers();
+                    } else {
+                        // Click without drag -> seek playhead and highlight cue card
+                        sequenceTime = cue.startTime;
+                        updateTimelineScrubberUI();
+                        const card = document.querySelector(`.cue-card[data-cue-id="${cue.id}"]`);
+                        if (card) {
+                            card.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                            card.style.outline = '2px solid #58a6ff';
+                            setTimeout(() => card.style.outline = 'none', 1000);
+                        }
+                    }
+                };
+
+                block.addEventListener('pointermove', onPointerMove);
+                block.addEventListener('pointerup', onPointerUp);
+                block.addEventListener('pointercancel', onPointerUp);
             });
 
             track.appendChild(block);

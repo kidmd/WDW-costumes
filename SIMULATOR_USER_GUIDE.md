@@ -458,10 +458,15 @@ The Master Timeline dynamically switches display and transport logic depending o
   - **Track 1 (`🌐 Global Float`):** Displays all cues affecting the whole float baseline.
   - **Tracks 2+ (`🎡 [Group Name]`):** Displays cues targeting localized groups (e.g. `Front Wheel`, `Rear Wheel`, `Lanterns`).
 - **Automatic Sub-Lane Stacking:** When multiple cues on the same layer overlap in time (e.g., crossfading between two global cues), the track automatically expands into stacked sub-lanes so **both cues remain 100% visible** without overlapping or clipping!
-- **Interactive Cue Blocks:**
+- **Interactive Cue Blocks & NLE Drag-and-Drop Editing:**
   - Displays the cue's title, total duration, and visual fade-in/fade-out gradient indicators.
   - When a cue is actively firing, it lights up with a glowing white/cyan border.
-  - **Clicking any cue block** immediately seeks the playhead to that cue's start time and scrolls to its card in the sidebar editor.
+  - **Drag-to-Move (Slip Clip):** Click and drag the central body of any cue block (`cursor: grab` / `cursor: grabbing`) to slide its position earlier or later along the timeline without altering its duration. Snaps to clean 0.1s increments and stays bounded within the timeline loop length.
+  - **Left Edge Trimming (`.handle-left`):** Hover over the left border of a clip (`cursor: ew-resize`) and drag left or right to adjust the cue's **Start Time**. The right end time stays firmly locked in place while the start time and duration adjust dynamically (minimum duration clamped to 0.5s).
+  - **Right Edge Trimming (`.handle-right`):** Hover over the right border of a clip (`cursor: ew-resize`) and drag left or right to lengthen or shorten the cue's **Duration**. The start time stays locked in place.
+  - **Real-Time Floating Tooltip:** While dragging or trimming, an elevated cyan timecode badge floats directly above the cursor displaying live readouts: `Start: 12.4s | End: 28.6s (Dur: 16.2s)`.
+  - **Live Sidebar Synchronization:** Dragging or resizing immediately synchronizes the numeric inputs (`.cue-start-input`, `.cue-dur-input`) and time badges on the corresponding card in the Parade Cue Director and flags the shirt configuration as modified (`isSingleShirtDirty = true`).
+  - **Smart Click Discrimination:** A 4-pixel movement threshold ensures that short clicks without dragging cleanly jump the playhead to that cue's start time and smoothly scroll the sidebar directly to its editing card without accidental position shifts.
 - **Synchronized Playhead Needle:** A vertical cyan line extends across all tracks from top to bottom, moving smoothly with playback to show exactly which cues are active at the current moment.
 - **Seek Ruler:** Formatted time ticks (`00:00`, `00:15`, `00:30`, etc.) display along the top. Click or drag anywhere across the ruler or track lanes to scrub in real time.
 
@@ -909,6 +914,9 @@ You can flash any runner's ESP32 directly from Google Chrome or Microsoft Edge w
 | Arrow Left `[` / `p` | LED Select | Select **Previous LED** in wiring order |
 | Click on Timeline Track | Timeline | **Seek playhead** to that exact second |
 | Click on Cue Block | Timeline | **Jump to cue start** and highlight cue card in editor |
+| Drag Cue Block Body | Timeline | **Move / Slip Clip** left or right along timeline (0.1s snap) |
+| Drag Left Edge Handle | Timeline | **Trim Start Time** of clip (locks end time) |
+| Drag Right Edge Handle | Timeline | **Trim Duration** of clip (locks start time) |
 
 ---
 

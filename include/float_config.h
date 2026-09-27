@@ -2,7 +2,7 @@
 #define FLOAT_CONFIG_H
 
 #ifndef COMPILED_FLOAT_ID
-#define COMPILED_FLOAT_ID 1
+#define COMPILED_FLOAT_ID 6
 #endif
 
 #endif // FLOAT_CONFIG_H

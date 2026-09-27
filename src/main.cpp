@@ -929,9 +929,11 @@ void setup() {
         digitalWrite(STATUS_LED_PIN, LOW); // LED OFF = Offline / Fallback
         Serial.printf("[WIFI] Could NOT connect to '%s' (Status code: %d)\n", WIFI_SSID, WiFi.status());
         Serial.println("[WIFI] Scanning available 2.4 GHz Wi-Fi networks in range...");
-        int numNets = WiFi.scanNetworks();
-        if (numNets == 0) {
-            Serial.println("  [SCAN] No 2.4 GHz networks found in range.");
+        WiFi.disconnect(true);
+        delay(300);
+        int numNets = WiFi.scanNetworks(false, true);
+        if (numNets <= 0) {
+            Serial.printf("  [SCAN] Scan completed: %d networks found.\n", numNets);
         } else {
             for (int i = 0; i < numNets; i++) {
                 Serial.printf("  [SCAN] #%d: '%s' (Signal: %d dBm, Ch: %d)\n", 
