@@ -786,9 +786,14 @@
 
                     <!-- Configured Animation Groups List Card -->
                     <div class="control-section" id="activeGroupsContainer">
-                        <div class="section-title">
+                        <div class="section-title" style="display: flex; justify-content: space-between; align-items: center;">
                             <span>Configured Animation Groups</span>
-                            <span id="activeGroupsCountBadge" style="font-size: 10px; color: var(--accent-cyan); font-family: monospace;">0 Groups</span>
+                            <div style="display: flex; gap: 6px; align-items: center;">
+                                <button type="button" id="pasteGroupHeaderBtn" class="action-btn" style="font-size: 10px; padding: 2px 7px; border-color: #38bdf8; color: #38bdf8; font-weight: 600;" title="Paste copied animation group from clipboard onto active shirt using unused LED pool (Ctrl+V / Cmd+V)">
+                                    📋 Paste Group
+                                </button>
+                                <span id="activeGroupsCountBadge" style="font-size: 10px; color: var(--accent-cyan); font-family: monospace;">0 Groups</span>
+                            </div>
                         </div>
                         <p style="font-size: 11px; color: var(--text-muted); line-height: 1.35; margin-bottom: 6px;">
                             Click <strong>Select & Inspect</strong> to view member LEDs on canvas and edit group properties below.
@@ -1507,6 +1512,50 @@
                         </div>
                     </div>
 
+                    <!-- Group Transformations Suite Card (Rotate, Flip, Scale Spacing, Copy & Paste) -->
+                    <div id="groupTransformCard" style="margin-top: 6px; padding: 10px 12px; background: #0d1117; border-radius: 8px; border: 1px solid #30363d; display: flex; flex-direction: column; gap: 7px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <span style="font-size: 11px; font-weight: 600; color: #38bdf8;">🛠️ Group Transformations & Clipboard</span>
+                            <span id="groupTransformStatusBadge" style="font-size: 10px; color: #8b949e; font-family: monospace;">Group Tools</span>
+                        </div>
+
+                        <!-- Row 1: Copy & Paste -->
+                        <div style="display: flex; gap: 6px;">
+                            <button type="button" id="inspectorCopyGroupBtn" class="action-btn" style="flex: 1; font-size: 11px; padding: 5px 6px; border-color: rgba(56, 189, 248, 0.4); color: #38bdf8; font-weight: 600;" title="Copy active animation group to clipboard (Ctrl+C / Cmd+C)">
+                                📋 Copy Group
+                            </button>
+                            <button type="button" id="inspectorPasteGroupBtn" class="action-btn" style="flex: 1; font-size: 11px; padding: 5px 6px; border-color: rgba(56, 189, 248, 0.4); color: #38bdf8; font-weight: 600;" title="Paste copied group onto current shirt from unused pool (Ctrl+V / Cmd+V)">
+                                📋 Paste Group
+                            </button>
+                        </div>
+
+                        <!-- Row 2: Rotate & Flip -->
+                        <div style="display: flex; gap: 4px;">
+                            <button type="button" id="inspectorRotate90Btn" class="action-btn" style="flex: 1; font-size: 10px; padding: 4px 4px; font-weight: 600;" title="Rotate group 90° Clockwise around centroid (Ctrl+R / Cmd+R)">
+                                🔄 Rotate 90°
+                            </button>
+                            <button type="button" id="inspectorFlipHBtn" class="action-btn" style="flex: 1; font-size: 10px; padding: 4px 4px; font-weight: 600;" title="Flip group horizontally (Left/Right Mirror)">
+                                ↔️ Flip H
+                            </button>
+                            <button type="button" id="inspectorFlipVBtn" class="action-btn" style="flex: 1; font-size: 10px; padding: 4px 4px; font-weight: 600;" title="Flip group vertically (Top/Bottom Mirror)">
+                                ↕️ Flip V
+                            </button>
+                        </div>
+
+                        <!-- Row 3: LED Spacing Scaling (Expand / Contract) -->
+                        <div class="control-group" style="background: #161b22; padding: 6px 8px; border-radius: 6px; border: 1px solid #21262d; margin-top: 2px;">
+                            <div class="label-row" style="margin-bottom: 2px;">
+                                <span style="font-size: 10px; font-weight: 600; color: #c9d1d9;">🔍 Scale LED Spacing (Size):</span>
+                                <span id="inspectorScaleVal" class="val-badge" style="font-size: 10px; background: #21262d; color: #38bdf8; font-weight: 700;">100%</span>
+                            </div>
+                            <div style="display: flex; gap: 6px; align-items: center;">
+                                <button type="button" id="inspectorScaleDownBtn" class="action-btn" style="font-size: 10px; padding: 3px 8px; font-weight: 700;" title="Contract LED spacing by 10%">🔍- 90%</button>
+                                <input type="range" id="inspectorScaleSlider" min="50" max="200" value="100" style="flex: 1; accent-color: #38bdf8;">
+                                <button type="button" id="inspectorScaleUpBtn" class="action-btn" style="font-size: 10px; padding: 3px 8px; font-weight: 700;" title="Expand LED spacing by 10%">🔍+ 110%</button>
+                            </div>
+                        </div>
+                    </div>
+
                 </div>
 
             </div>
@@ -1678,6 +1727,6 @@
         </div>
     </div>
 
-    <script src="app.js?v=41"></script>
+    <script src="app.js?v=42"></script>
 </body>
 </html>

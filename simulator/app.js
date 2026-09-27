@@ -227,6 +227,42 @@ let animationGroups = [];
 let ledGroupMap = {}; // mapping: ledIndex -> { group, indexInGroup, groupSize }
 let selectedGroupId = null; // Track currently selected/editing animation group ID
 
+// Global Animation Group Clipboard State (with localStorage persistence)
+let copiedGroupClipboard = null;
+
+function saveGroupClipboardToStorage() {
+    if (!copiedGroupClipboard) {
+        try { localStorage.removeItem('msep_copied_group'); } catch (e) {}
+    } else {
+        try { localStorage.setItem('msep_copied_group', JSON.stringify(copiedGroupClipboard)); } catch (e) {}
+    }
+    updatePasteButtonState();
+}
+
+function loadGroupClipboardFromStorage() {
+    try {
+        const raw = localStorage.getItem('msep_copied_group');
+        if (raw) {
+            copiedGroupClipboard = JSON.parse(raw);
+        }
+    } catch (e) {}
+    updatePasteButtonState();
+}
+
+function updatePasteButtonState() {
+    const pasteHeaderBtn = document.getElementById('pasteGroupHeaderBtn');
+    const inspectorPasteBtn = document.getElementById('inspectorPasteGroupBtn');
+    const hasGroup = !!copiedGroupClipboard && Array.isArray(copiedGroupClipboard.relPositions) && copiedGroupClipboard.relPositions.length > 0;
+
+    [pasteHeaderBtn, inspectorPasteBtn].forEach(btn => {
+        if (btn) {
+            btn.disabled = !hasGroup;
+            btn.style.opacity = hasGroup ? '1.0' : '0.45';
+            btn.style.cursor = hasGroup ? 'pointer' : 'not-allowed';
+        }
+    });
+}
+
 function rebuildLedGroupMap() {
     ledGroupMap = {};
     for (const grp of animationGroups) {
@@ -5866,6 +5902,319 @@ function selectGroupLeds(groupId) {
     showToast(`🎯 Selected & Editing group "${grp.name}" (${selectedLeds.size} LEDs)!`);
 }
 
+// ----------------------------------------------------------------------------
+// GROUP TRANSFORMATIONS & CLIPBOARD ROUTINES
+// ----------------------------------------------------------------------------
+
+function sampleColorAtNormCoord(normX, normY) {
+    if (!leds || leds.length === 0) return { r: 255, g: 255, b: 255 };
+
+    const gb = getGraphicChestBounds();
+    const activeImg = getActiveGraphicImg();
+    const targetW = 360;
+    let targetH = 360;
+
+    const offCanvas = document.createElement('canvas');
+    const offCtx = offCanvas.getContext('2d');
+
+    if (activeImg) {
+        targetH = Math.max(120, Math.round(targetW * (activeImg.naturalHeight / activeImg.naturalWidth)));
+        offCanvas.width = targetW;
+        offCanvas.height = targetH;
+        offCtx.drawImage(activeImg, 0, 0, targetW, targetH);
+    } else {
+        offCanvas.width = targetW;
+        offCanvas.height = targetH;
+        drawPetesDragon(offCtx, { x: 0, y: 0, width: targetW, height: targetH });
+    }
+
+    const relX = Math.max(0, Math.min(1, (normX - gb.normX) / gb.normW));
+    const relY = Math.max(0, Math.min(1, (normY - gb.normY) / gb.normH));
+
+    const px = Math.floor(relX * targetW);
+    const py = Math.floor(relY * targetH);
+    if (px < 0 || px >= targetW || py < 0 || py >= targetH) return { r: 255, g: 255, b: 255 };
+
+    const p = offCtx.getImageData(px, py, 1, 1).data;
+    let col = { r: p[0], g: p[1], b: p[2] };
+    if (p[3] < 30) {
+        col = { r: 255, g: 255, b: 255 };
+    }
+    if (typeof boostLedVibrancy === 'function') {
+        col = boostLedVibrancy(col.r, col.g, col.b, relX, relY);
+    }
+    return col;
+}
+
+function copyGroup(groupId) {
+    const targetId = groupId || selectedGroupId;
+    const grp = animationGroups.find(g => g.id === targetId);
+    if (!grp || !grp.ledIndices || grp.ledIndices.length === 0) {
+        showToast('⚠️ Please select an animation group to copy!', 'warning');
+        return;
+    }
+
+    const normPositions = grp.ledIndices.map(idx => {
+        const l = leds[idx] || { x: 0.5, y: 0.35 };
+        return {
+            x: l.x,
+            y: l.y
+        };
+    });
+
+    copiedGroupClipboard = {
+        name: grp.name,
+        effect: grp.effect,
+        speedBpm: grp.speedBpm,
+        direction: grp.direction,
+        width: grp.width,
+        colorMode: grp.colorMode,
+        baselineEffect: grp.baselineEffect,
+        fireworkRays: grp.fireworkRays,
+        fireworkLedsPerRay: grp.fireworkLedsPerRay,
+        burstRadius: grp.burstRadius,
+        wiringMode: grp.wiringMode,
+        normPositions: normPositions,
+        relPositions: normPositions,
+        sourceSlot: activeSingleShirtRunnerSlot
+    };
+
+    saveGroupClipboardToStorage();
+    showToast(`📋 Copied animation group "${grp.name}" (${normPositions.length} LEDs) to clipboard!`);
+}
+
+function pasteGroup() {
+    if (!copiedGroupClipboard || (!Array.isArray(copiedGroupClipboard.normPositions) && !Array.isArray(copiedGroupClipboard.relPositions))) {
+        loadGroupClipboardFromStorage();
+    }
+    const positionsList = (copiedGroupClipboard && Array.isArray(copiedGroupClipboard.normPositions))
+        ? copiedGroupClipboard.normPositions
+        : (copiedGroupClipboard ? copiedGroupClipboard.relPositions : null);
+
+    if (!copiedGroupClipboard || !Array.isArray(positionsList) || positionsList.length === 0) {
+        showToast('⚠️ Clipboard is empty! Copy an animation group first.', 'warning');
+        return;
+    }
+
+    const totalLeds = leds ? leds.length : 100;
+    const assignedSet = new Set();
+    animationGroups.forEach(g => {
+        (g.ledIndices || []).forEach(idx => {
+            if (idx < totalLeds) assignedSet.add(idx);
+        });
+    });
+
+    const unassignedIndices = [];
+    for (let i = 0; i < totalLeds; i++) {
+        if (!assignedSet.has(i)) unassignedIndices.push(i);
+    }
+
+    const reqCount = positionsList.length;
+    if (unassignedIndices.length < reqCount) {
+        showToast(`⚠️ Target shirt only has ${unassignedIndices.length} unused LEDs available, but copied group requires ${reqCount} LEDs. Please delete or reduce existing groups first.`, 'warning');
+        return;
+    }
+
+    const allocatedIndices = unassignedIndices.slice(0, reqCount);
+    const gb = getGraphicChestBounds();
+    const isSameShirt = (copiedGroupClipboard.sourceSlot === activeSingleShirtRunnerSlot);
+    const offsetX = isSameShirt ? 0.03 : 0.0;
+    const offsetY = isSameShirt ? 0.03 : 0.0;
+
+    for (let i = 0; i < reqCount; i++) {
+        const ledIdx = allocatedIndices[i];
+        const pos = positionsList[i];
+
+        let rawX = (pos.x !== undefined) ? pos.x : (gb.normX + pos.relX * gb.normW);
+        let rawY = (pos.y !== undefined) ? pos.y : (gb.normY + pos.relY * gb.normH);
+
+        const normX = Math.max(0.04, Math.min(0.96, rawX + offsetX));
+        const normY = Math.max(0.04, Math.min(0.96, rawY + offsetY));
+
+        leds[ledIdx].x = parseFloat(normX.toFixed(4));
+        leds[ledIdx].y = parseFloat(normY.toFixed(4));
+        leds[ledIdx].color = sampleColorAtNormCoord(normX, normY);
+    }
+
+    const pastedName = isSameShirt ? `${copiedGroupClipboard.name} (Copy)` : copiedGroupClipboard.name;
+
+    const newGroup = {
+        id: 'grp_' + Date.now() + '_' + Math.floor(Math.random() * 1000),
+        name: pastedName,
+        ledIndices: [...allocatedIndices],
+        effect: copiedGroupClipboard.effect || 'chase',
+        speedBpm: copiedGroupClipboard.speedBpm || 140,
+        direction: copiedGroupClipboard.direction || 1,
+        width: copiedGroupClipboard.width || 3,
+        colorMode: copiedGroupClipboard.colorMode || 'original',
+        baselineEffect: copiedGroupClipboard.baselineEffect || 'inherit',
+        fireworkRays: copiedGroupClipboard.fireworkRays,
+        fireworkLedsPerRay: copiedGroupClipboard.fireworkLedsPerRay,
+        burstRadius: copiedGroupClipboard.burstRadius,
+        wiringMode: copiedGroupClipboard.wiringMode
+    };
+
+    animationGroups.push(newGroup);
+
+    const autoRearrange = document.getElementById('drawAutoRearrangeCheckbox')?.checked ?? true;
+    if (autoRearrange) {
+        rearrangeRemainingLedsOnGraphic(false);
+    } else {
+        rebuildLedGroupMap();
+        renderActiveGroupsList();
+    }
+
+    selectGroupLeds(newGroup.id);
+    markSingleShirtDirty();
+    showToast(`🎉 Pasted group "${newGroup.name}" (${reqCount} LEDs) from unused pool!`);
+}
+
+function getGroupCentroid(grp) {
+    if (!grp || !grp.ledIndices || grp.ledIndices.length === 0) return null;
+    let sumX = 0, sumY = 0;
+    let validCount = 0;
+    grp.ledIndices.forEach(idx => {
+        if (leds[idx]) {
+            sumX += leds[idx].x;
+            sumY += leds[idx].y;
+            validCount++;
+        }
+    });
+    if (validCount === 0) return null;
+    return { cx: sumX / validCount, cy: sumY / validCount };
+}
+
+function applyRigidGroupTransform(grp, transformFn) {
+    if (!grp || !grp.ledIndices || !grp.ledIndices.length) return false;
+    const c = getGroupCentroid(grp);
+    if (!c) return false;
+
+    for (let i = 0; i < grp.ledIndices.length; i++) {
+        const idx = grp.ledIndices[i];
+        if (!leds[idx]) continue;
+        const off = transformFn(leds[idx].x - c.cx, leds[idx].y - c.cy, c);
+        const nx = Math.max(0.01, Math.min(0.99, parseFloat((c.cx + off.rx).toFixed(4))));
+        const ny = Math.max(0.01, Math.min(0.99, parseFloat((c.cy + off.ry).toFixed(4))));
+
+        leds[idx].x = nx;
+        leds[idx].y = ny;
+        leds[idx].color = sampleColorAtNormCoord(nx, ny);
+    }
+    return true;
+}
+
+function rotateGroup(groupId, angleDegrees = 90) {
+    const targetId = groupId || selectedGroupId;
+    const grp = animationGroups.find(g => g.id === targetId);
+    if (!grp || !grp.ledIndices.length) {
+        showToast('⚠️ Select an animation group to rotate!', 'warning');
+        return;
+    }
+
+    const rad = (angleDegrees * Math.PI) / 180;
+    const cos = Math.cos(rad);
+    const sin = Math.sin(rad);
+
+    applyRigidGroupTransform(grp, (dx, dy) => {
+        const dxc = dx;
+        const dyc = dy * 1.25;
+
+        const rxc = dxc * cos - dyc * sin;
+        const ryc = dxc * sin + dyc * cos;
+
+        return {
+            rx: rxc,
+            ry: ryc / 1.25
+        };
+    });
+
+    const autoRearrange = document.getElementById('drawAutoRearrangeCheckbox')?.checked ?? true;
+    if (autoRearrange) {
+        rearrangeRemainingLedsOnGraphic(false);
+    } else {
+        rebuildLedGroupMap();
+        renderActiveGroupsList();
+    }
+    updateLedInspectorUI();
+    markSingleShirtDirty();
+    showToast(`🔄 Rotated "${grp.name}" by ${angleDegrees}°!`);
+}
+
+function flipGroupHorizontal(groupId) {
+    const targetId = groupId || selectedGroupId;
+    const grp = animationGroups.find(g => g.id === targetId);
+    if (!grp || !grp.ledIndices.length) {
+        showToast('⚠️ Select an animation group to flip!', 'warning');
+        return;
+    }
+
+    applyRigidGroupTransform(grp, (dx, dy) => ({
+        rx: -dx,
+        ry: dy
+    }));
+
+    const autoRearrange = document.getElementById('drawAutoRearrangeCheckbox')?.checked ?? true;
+    if (autoRearrange) {
+        rearrangeRemainingLedsOnGraphic(false);
+    } else {
+        rebuildLedGroupMap();
+        renderActiveGroupsList();
+    }
+    updateLedInspectorUI();
+    markSingleShirtDirty();
+    showToast(`↔️ Flipped "${grp.name}" horizontally!`);
+}
+
+function flipGroupVertical(groupId) {
+    const targetId = groupId || selectedGroupId;
+    const grp = animationGroups.find(g => g.id === targetId);
+    if (!grp || !grp.ledIndices.length) {
+        showToast('⚠️ Select an animation group to flip!', 'warning');
+        return;
+    }
+
+    applyRigidGroupTransform(grp, (dx, dy) => ({
+        rx: dx,
+        ry: -dy
+    }));
+
+    const autoRearrange = document.getElementById('drawAutoRearrangeCheckbox')?.checked ?? true;
+    if (autoRearrange) {
+        rearrangeRemainingLedsOnGraphic(false);
+    } else {
+        rebuildLedGroupMap();
+        renderActiveGroupsList();
+    }
+    updateLedInspectorUI();
+    markSingleShirtDirty();
+    showToast(`↕️ Flipped "${grp.name}" vertically!`);
+}
+
+function scaleGroup(groupId, scaleFactor = 1.10) {
+    const targetId = groupId || selectedGroupId;
+    const grp = animationGroups.find(g => g.id === targetId);
+    if (!grp || !grp.ledIndices.length) {
+        showToast('⚠️ Select an animation group to scale!', 'warning');
+        return;
+    }
+
+    applyRigidGroupTransform(grp, (dx, dy) => ({
+        rx: dx * scaleFactor,
+        ry: dy * scaleFactor
+    }));
+
+    const autoRearrange = document.getElementById('drawAutoRearrangeCheckbox')?.checked ?? true;
+    if (autoRearrange) {
+        rearrangeRemainingLedsOnGraphic(false);
+    } else {
+        rebuildLedGroupMap();
+        renderActiveGroupsList();
+    }
+    updateLedInspectorUI();
+    markSingleShirtDirty();
+    showToast(`🔍 Scaled LED spacing for "${grp.name}" (${Math.round(scaleFactor * 100)}%)!`);
+}
+
 function formatIndexSummary(indices) {
     if (!indices || indices.length === 0) return 'None';
     const sorted = [...indices].sort((a, b) => a - b);
@@ -6015,12 +6364,18 @@ function renderActiveGroupsList() {
                 <span class="group-pill group-pill-baseline">Idle: ${baselineLabel}</span>
                 <span class="group-pill" style="background: #21262d; color: #8b949e; border: 1px solid #30363d;" title="LED indices: ${arr.join(', ')}">LEDs: ${formatIndexSummary(arr)}</span>
             </div>
-            <div class="group-card-actions">
-                <button type="button" class="action-btn select-grp-btn" style="flex: 1; font-weight: 600;" title="Select and inspect all LEDs in this group">
-                    🎯 Select & Edit
+            <div class="group-card-actions" style="display: flex; gap: 4px; flex-wrap: wrap;">
+                <button type="button" class="action-btn select-grp-btn" style="flex: 1.2; font-weight: 600;" title="Select and inspect all LEDs in this group">
+                    🎯 Select
+                </button>
+                <button type="button" class="action-btn copy-card-grp-btn" style="font-weight: 600; color: #38bdf8; border-color: rgba(56, 189, 248, 0.4);" title="Copy group to clipboard (Ctrl+C / Cmd+C)">
+                    📋 Copy
+                </button>
+                <button type="button" class="action-btn rotate-card-grp-btn" style="font-weight: 600;" title="Rotate group 90° Clockwise">
+                    🔄 90°
                 </button>
                 <button type="button" class="action-btn add-cue-grp-btn" style="font-weight: 600; color: #58a6ff; border-color: rgba(56, 139, 253, 0.4);" title="Add a Show Cue for this group to the Master Timeline">
-                    ➕ Show Cue
+                    ➕ Cue
                 </button>
                 <button type="button" class="action-btn del-grp-btn" style="color: #ff7b72;" title="Delete group">
                     🗑️
@@ -6029,9 +6384,25 @@ function renderActiveGroupsList() {
         `;
 
         card.addEventListener('click', (e) => {
-            if (e.target.closest('.del-grp-btn') || e.target.closest('.add-cue-grp-btn')) return;
+            if (e.target.closest('.del-grp-btn') || e.target.closest('.add-cue-grp-btn') || e.target.closest('.copy-card-grp-btn') || e.target.closest('.rotate-card-grp-btn')) return;
             selectGroupLeds(grp.id);
         });
+
+        const copyCardBtn = card.querySelector('.copy-card-grp-btn');
+        if (copyCardBtn) {
+            copyCardBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                copyGroup(grp.id);
+            });
+        }
+
+        const rotateCardBtn = card.querySelector('.rotate-card-grp-btn');
+        if (rotateCardBtn) {
+            rotateCardBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                rotateGroup(grp.id, 90);
+            });
+        }
 
         const addCueBtn = card.querySelector('.add-cue-grp-btn');
         if (addCueBtn) {
@@ -7603,6 +7974,15 @@ window.addEventListener('keydown', (e) => {
             canvas.style.cursor = 'grab';
         }
         e.preventDefault();
+    } else if ((e.key === 'c' || e.key === 'C') && (e.ctrlKey || e.metaKey)) {
+        e.preventDefault();
+        copyGroup();
+    } else if ((e.key === 'v' || e.key === 'V') && (e.ctrlKey || e.metaKey)) {
+        e.preventDefault();
+        pasteGroup();
+    } else if ((e.key === 'r' || e.key === 'R') && (e.ctrlKey || e.metaKey)) {
+        e.preventDefault();
+        rotateGroup(null, 90);
     } else if ((e.key === 'a' || e.key === 'A') && (e.ctrlKey || e.metaKey)) {
         e.preventDefault();
         selectAllLeds();
@@ -7702,25 +8082,38 @@ canvas.addEventListener('mousedown', (e) => {
             // Shift / Ctrl click: toggle LED in multi-selection
             selectLed(clickedIdx, true);
         } else {
-            // Normal click: select single LED or drag entire multi-selection/firework
+            // Normal click: select single LED or drag entire animation group / multi-selection
             let isGroupDrag = false;
+            
+            // Priority A: Already part of active multi-selection
             if (selectedLeds.has(clickedIdx) && selectedLeds.size > 1) {
                 isGroupDrag = true;
                 selectedLed = clickedIdx;
                 updateLedInspectorUI();
             } else {
-                // Check if this LED belongs to an active fireworks group
-                const fwGroup = animationGroups.find(g => g.effect === 'fireworks' && g.ledIndices && g.ledIndices.includes(clickedIdx));
-                if (fwGroup) {
+                // Priority B: Check if LED belongs to an animation group
+                const grpEntry = ledGroupMap[clickedIdx];
+                const grp = grpEntry ? grpEntry.group : animationGroups.find(g => g.ledIndices && g.ledIndices.includes(clickedIdx));
+                if (grp && Array.isArray(grp.ledIndices) && grp.ledIndices.length > 1) {
                     isGroupDrag = true;
-                    activeFireworksGroupId = fwGroup.id;
-                    updateActiveFwDropdown();
-                    syncFireworksSliders(fwGroup.centerNormX, fwGroup.centerNormY, fwGroup.burstRadius, fwGroup.fireworkColor);
+                    selectedGroupId = grp.id;
                     selectedLeds.clear();
-                    for (const idx of fwGroup.ledIndices) selectedLeds.add(idx);
+                    for (const idx of grp.ledIndices) {
+                        if (idx < leds.length) selectedLeds.add(idx);
+                    }
                     selectedLed = clickedIdx;
+                    populateGroupForm(grp);
+
+                    if (grp.effect === 'fireworks') {
+                        activeFireworksGroupId = grp.id;
+                        updateActiveFwDropdown();
+                        syncFireworksSliders(grp.centerNormX, grp.centerNormY, grp.burstRadius, grp.fireworkColor);
+                    }
+
                     updateLedInspectorUI();
+                    renderActiveGroupsList();
                 } else {
+                    // Priority C: Single LED
                     selectLed(clickedIdx, false);
                 }
             }
@@ -7734,7 +8127,7 @@ canvas.addEventListener('mousedown', (e) => {
             multiDragStartNorm = canvasToNorm(worldX, worldY);
             multiDragInitialPositions.clear();
 
-            if (isGroupDrag) {
+            if (isGroupDrag || selectedLeds.size > 1) {
                 for (const idx of selectedLeds) {
                     if (leds[idx]) {
                         multiDragInitialPositions.set(idx, { x: leds[idx].x, y: leds[idx].y });
@@ -7927,13 +8320,13 @@ window.addEventListener('mouseup', (e) => {
 
     if (isDraggingLed && draggedLed !== null) {
         if (hasMovedSignificantly) {
-            if (activePattern === 'color_match' || (leds[draggedLed] && leds[draggedLed].color)) {
-                const newCol = sampleColorAtNorm(leds[draggedLed].x, leds[draggedLed].y);
-                if (newCol) {
-                    leds[draggedLed].color = newCol;
-                    updateLedInspectorUI();
+            for (const [idx] of multiDragInitialPositions.entries()) {
+                if (leds[idx] && typeof sampleColorAtNormCoord === 'function') {
+                    const newCol = sampleColorAtNormCoord(leds[idx].x, leds[idx].y);
+                    if (newCol) leds[idx].color = newCol;
                 }
             }
+            updateLedInspectorUI();
             markSingleShirtDirty();
         }
         isDraggingLed = false;
@@ -8587,6 +8980,45 @@ document.getElementById('inspectorClearBtn')?.addEventListener('click', () => de
 // Group Animation Controls Bindings
 document.getElementById('applyGroupEffectBtn')?.addEventListener('click', () => applyGroupEffectToSelection());
 document.getElementById('removeGroupEffectBtn')?.addEventListener('click', () => removeGroupEffectFromSelection());
+
+// Group Spatial Transformations & Clipboard Bindings
+document.getElementById('pasteGroupHeaderBtn')?.addEventListener('click', () => pasteGroup());
+document.getElementById('inspectorCopyGroupBtn')?.addEventListener('click', () => copyGroup());
+document.getElementById('inspectorPasteGroupBtn')?.addEventListener('click', () => pasteGroup());
+document.getElementById('inspectorRotate90Btn')?.addEventListener('click', () => rotateGroup(null, 90));
+document.getElementById('inspectorFlipHBtn')?.addEventListener('click', () => flipGroupHorizontal());
+document.getElementById('inspectorFlipVBtn')?.addEventListener('click', () => flipGroupVertical());
+document.getElementById('inspectorScaleDownBtn')?.addEventListener('click', () => {
+    scaleGroup(null, 0.90);
+    const slider = document.getElementById('inspectorScaleSlider');
+    const val = document.getElementById('inspectorScaleVal');
+    if (slider) slider.value = 90;
+    if (val) val.textContent = '90%';
+});
+document.getElementById('inspectorScaleUpBtn')?.addEventListener('click', () => {
+    scaleGroup(null, 1.10);
+    const slider = document.getElementById('inspectorScaleSlider');
+    const val = document.getElementById('inspectorScaleVal');
+    if (slider) slider.value = 110;
+    if (val) val.textContent = '110%';
+});
+
+const inspectorScaleSlider = document.getElementById('inspectorScaleSlider');
+let prevScaleVal = 100;
+inspectorScaleSlider?.addEventListener('input', (e) => {
+    const curVal = parseInt(e.target.value, 10);
+    const valBadge = document.getElementById('inspectorScaleVal');
+    if (valBadge) valBadge.textContent = `${curVal}%`;
+});
+inspectorScaleSlider?.addEventListener('change', (e) => {
+    const curVal = parseInt(e.target.value, 10);
+    const factor = curVal / prevScaleVal;
+    scaleGroup(null, factor);
+    prevScaleVal = curVal;
+});
+
+// Load persistent group clipboard state on startup
+loadGroupClipboardFromStorage();
 
 // Group Creation Hub & Navigation Bindings
 document.getElementById('goToGroupsTabBtn')?.addEventListener('click', () => {

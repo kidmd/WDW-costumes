@@ -236,6 +236,24 @@ The **Click-to-Draw Path Tool** lets you place sequential LEDs one-by-one direct
 - Includes corner placement presets (Top-Left, Top-Right, Center), Move X/Y sliders, Scale / Burst Radius slider (with S/M/L/XL quick buttons), Ray count, LEDs per ray, uniform ray color theme, and auto-scheduling explosion cues on the Master Timeline.
 - Serpentine wiring ensures maximum physical wire efficiency during costume assembly.
 
+#### 4. 🛠️ Mode 4: Group Transformations Suite & Clipboard (Copy, Paste, Rotate, Flip, Scale)
+The Animation Groups editor includes full spatial transformations and cross-shirt group clipboard support:
+- **📋 Copy & Paste Group (Within & Between Shirt Designs):**
+  - Click **`📋 Copy`** on any group card or in the docked Inspector dock, or press `Ctrl + C` (`Cmd + C`).
+  - Switch to any runner slot or shirt design (Float 1 through Float 7) and click **`📋 Paste Group`** (in the section header, Inspector, or press `Ctrl + V`).
+  - **100-LED Unused Pool Budget Guard:** Pasted LEDs are automatically allocated from the target shirt's unused LED pool. If the target shirt has fewer unused LEDs available than required, a toast warning blocks the action to maintain our 100-LED invariant.
+  - **Relative Coordinate Mapping & Artwork Color Sampling:** Member LEDs map relative to the target shirt's chest graphic area ($\text{relX}, \text{relY}$) and dynamically resample artwork pixel colors for a crisp visual match!
+- **🔄 Rotate Group (90° Quick Action & Continuous Angle):**
+  - Click **`🔄 Rotate 90°`** (or press `Ctrl + R`), or use card action **`🔄 90°`** to rotate member LEDs around the group's centroid $(\bar{x}, \bar{y})$.
+- **↔️ Flip Horizontal & ↕️ Flip Vertical:**
+  - Mirror groups across their bounding centroid to adapt left-shoulder or right-shoulder flourishes across paired costumes.
+- **🔍 Scale LED Spacing (Expanding / Contracting Size):**
+  - Click **`🔍+ 110%`** (Expand) or **`🔍- 90%`** (Contract), or use the continuous **Scale LED Spacing Slider (50% to 200%)** to adjust spacing between LEDs around the centroid while maintaining the exact geometric shape!
+- **🖱️ Group Canvas Dragging (Click & Drag Entire Group):**
+  - Simply click and drag **any LED** belonging to an animation group on the canvas. The entire group automatically selects and moves together as a unified cluster, preserving internal LED spacing while resampling underlying graphic colors upon release.
+- **Auto-Rearrange Integration:**
+  - After pasting or transforming a group, remaining unassigned LEDs ($100 - \text{total assigned}$) are **automatically redistributed** evenly across open graphic space using Farthest-Point Sampling.
+
 ---
 
 ### 👥 LED Allocation Overview & Active Groups Browser
@@ -246,8 +264,9 @@ The **Click-to-Draw Path Tool** lets you place sequential LEDs one-by-one direct
 - **Rich Interactive Group Cards (`#activeGroupsList`):**
   - **Header:** Group emoji icon (e.g., 🎆 for fireworks, 🎡 for chase, 🎪 for marquee), bold group name, and total LED count badge.
   - **Badges:** Effect pill (`🎡 Chase @ 140 BPM`), Starburst geometry details (for fireworks: ray count and burst radius), Resting Baseline pill (`Idle: Off / Unlit`), and physical LED index ranges (`LEDs: #0–15`).
-  - **Instant Selection & Canvas Focus:** Clicking anywhere on a group card or clicking **`🎯 Select & Edit`** highlights all member LEDs on the canvas, opens their properties in the docked Inspector, and marks the card with a glowing active border.
-  - **1-Click Show Cue Shortcut:** Click the **`➕ Show Cue`** button directly on any card to create a synchronized Show Cue on the Master Timeline—pre-configured with the group's effect and tempo—and immediately jump to the Parade Cue Director tab!
+  - **Action Buttons:** `🎯 Select`, `📋 Copy`, `🔄 90°`, `➕ Cue`, `🗑️ Delete`.
+  - **Instant Selection & Canvas Focus:** Clicking anywhere on a group card or clicking **`🎯 Select`** highlights all member LEDs on the canvas, opens their properties in the docked Inspector, and marks the card with a glowing active border.
+  - **1-Click Show Cue Shortcut:** Click the **`➕ Cue`** button directly on any card to create a synchronized Show Cue on the Master Timeline—pre-configured with the group's effect and tempo—and immediately jump to the Parade Cue Director tab!
   - **One-Click Deletion:** Click the red **🗑️** button to delete a group, return its LEDs to the global baseline, and clean up associated timeline cues.
 
 ### 🎨 Group Color Palette Override & Multi-LED Color Control
@@ -924,6 +943,9 @@ You can flash any runner's ESP32 directly from Google Chrome or Microsoft Edge w
 | `0` | Canvas | **Reset Zoom** to default centered 100% view |
 | `Shift` + Drag | Canvas | **Marquee Box Select** multiple LEDs |
 | `Ctrl + A` / `Cmd + A` | Canvas | **Select All** LEDs |
+| `Ctrl + C` / `Cmd + C` | Single Shirt View | **Copy Selected Group** to global clipboard |
+| `Ctrl + V` / `Cmd + V` | Single Shirt View | **Paste Copied Group** from unused LED pool onto current shirt |
+| `Ctrl + R` / `Cmd + R` | Single Shirt View | **Rotate Selected Group 90°** Clockwise around centroid |
 | `Enter` | Draw Mode | **Finish & Save** drawn path animation group (when $\ge 2$ LEDs placed) |
 | `Escape` | Draw Mode | **Cancel** drawing mode and revert uncommitted points |
 | `Escape` | Normal Mode | **Deselect All** LEDs |

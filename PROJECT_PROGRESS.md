@@ -93,7 +93,23 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
-### Entry: Renamed Tab 2 to Ambient & Tab 4 to Float Show
+### Entry: LED Group Copy, Paste, Rotate, Flip & Scale Spacing System
+* **Date:** 2026-09-27
+* **Milestone:** Milestone 5 - Studio Workflow & Animation Group Spatial Suite
+* **Status:** Operational & Synchronized across `simulator/app.js?v=42`, `simulator/index.html`, `SIMULATOR_USER_GUIDE.md`, and `PROJECT_PROGRESS.md`.
+* **Notes:**
+  * **Global Cross-Shirt Group Clipboard:** Added in-memory and `localStorage` persistent group clipboard (`copiedGroupClipboard`).
+  * **Cross-Shirt Copy/Paste:** Supports copying an animation group (flourish, serpentine path, fireworks burst) from one shirt design (e.g. Float 6 Pete's Dragon) and pasting onto any other shirt design (e.g. Float 1 Cinderella's Coach) or within the same shirt design.
+  * **100-LED Unused Pool Budget Guard:** Pasted LEDs are automatically allocated from the target shirt's unused LED pool. If the target shirt has fewer unassigned LEDs than required, a toast warning blocks the paste action to maintain our 100-LED invariant.
+  * **Relative Coordinates & Color Resampling:** Member LEDs map relative to the target shirt's chest graphic area ($\text{relX}, \text{relY}$) and dynamically resample target artwork pixel colors for a crisp visual match.
+  * **Group Spatial Transformations Suite:**
+    * **`🔄 Rotate 90°` & Quick Actions:** Rotates member LEDs around group centroid $(\bar{x}, \bar{y})$ with aspect correction.
+    * **`↔️ Flip Horizontal` & `↕️ Flip Vertical`:** Mirrors member LEDs across centroid $(\bar{x}, \bar{y})$ for symmetric costume pairing.
+    * **`🔍 Scale LED Spacing (Expand / Contract)`:** Adjusts physical spacing ($50\% \text{ to } 200\%$) between member LEDs around centroid while preserving exact shape.
+    * **`🖱️ Group Canvas Dragging`:** Clicking and dragging any LED in an animation group automatically selects and moves the entire group intact across the canvas, resampling artwork colors for all member LEDs upon release.
+  * **Automatic LED Rearranging:** Automatically redistributes remaining unassigned LEDs ($100 - \text{assigned}$) across open graphic space after pasting or transforming a group.
+  * **Keyboard Shortcuts:** Added `Ctrl + C` (Copy Group), `Ctrl + V` (Paste Group), and `Ctrl + R` (Rotate 90°) global hotkeys.
+  * **Cache Busting:** Bumped application script tag to `app.js?v=42` in `simulator/index.html`.
 * **Date:** 2026-09-26
 * **Milestone:** Milestone 5 - Studio Workflow & Architectural Clarity
 * **Status:** Operational & Synchronized across `simulator/index.html`, `simulator/app.js?v=41`, `SIMULATOR_USER_GUIDE.md`, and `PROJECT_PROGRESS.md`.
