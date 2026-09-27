@@ -999,7 +999,8 @@ void loop() {
     // 1. Hardware Button (BOOT button on GPIO 0)
     // - Double Tap (two quick taps within 400ms): 4-Second Rapid Attendance Roll Call (Mode 0x44)
     // - Single Tap (< 600ms, idle > 400ms): Toggle 30s Theatrical Fleet Routine (Mode 0x30 / 0x00)
-    // - Long Hold (>= 3 seconds): Enter Float ID Configuration Mode (1 to 7)
+    // - Long Hold (>= 5.0 seconds): Enter Float ID Configuration Mode (1 to 7)
+    // - Hold Progress (1.0s to 4.9s): White charging indicator (1 to 4 LEDs); release early cleanly aborts with zero changes!
     static bool buttonWasPressed = false;
     static uint32_t buttonDownTime = 0;
     static uint32_t lastButtonReleaseTime = 0;
@@ -1014,17 +1015,39 @@ void loop() {
         buttonDownTime = now;
         longHoldHandled = false;
     } else if (isButtonPressed && buttonWasPressed) {
-        if (!longHoldHandled && (now - buttonDownTime >= 3000)) {
-            longHoldHandled = true;
-            pendingTapCount = 0; // Cancel any pending taps
-            handleFloatConfigMode();
+        uint32_t holdElapsed = now - buttonDownTime;
+        if (!longHoldHandled) {
+            if (holdElapsed >= 5000) {
+                longHoldHandled = true;
+                pendingTapCount = 0; // Cancel any pending taps
+                handleFloatConfigMode();
+            } else if (holdElapsed >= 1000) {
+                // Progressive charging indicator (1 to 4 LEDs lit in white)
+                uint8_t chargeCount = (holdElapsed / 1000); // 1, 2, 3, or 4
+                if (chargeCount > 4) chargeCount = 4;
+
+                // Show charging indicator on first 'chargeCount' LEDs, remaining LEDs black
+                for (int i = 0; i < FRONT_LEDS; i++) {
+                    if (i < chargeCount) {
+                        leds[i] = CRGB(220, 220, 220); // Crisp white charging indicator
+                    } else {
+                        leds[i] = CRGB::Black;
+                    }
+                }
+                duplicateFrontToBack();
+                FastLED.show();
+            }
         }
     } else if (!isButtonPressed && buttonWasPressed) {
         buttonWasPressed = false;
         uint32_t pressDuration = now - buttonDownTime;
 
-        // 50ms hardware debounce
-        if (!longHoldHandled && pressDuration >= 50 && pressDuration < 2500) {
+        if (pressDuration >= 1000 && !longHoldHandled) {
+            Serial.printf("[BUTTON] Hold aborted after %u ms -> returning to baseline with zero changes.\n", pressDuration);
+        }
+
+        // Tap handling: strictly recognize intentional taps under 600ms (50ms hardware debounce)
+        if (!longHoldHandled && pressDuration >= 50 && pressDuration < 600) {
             if (pendingTapCount == 1 && (now - firstTapReleaseTime <= 400)) {
                 // SECOND TAP DETECTED within 400ms -> DOUBLE TAP!
                 pendingTapCount = 0;

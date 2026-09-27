@@ -39,8 +39,9 @@ Whenever any feature, UI control, slider, preset, firmware parameter, or hardwar
    - **LED Data Out:** GPIO 16 (with recommended 220 Ω to 470 Ω inline resistor).
    - **Mode / Float Selector Button:** GPIO 0 (onboard BOOT button) with internal pull-up and debouncing.
 4. **Visual Mode Confirmations:**
-   - Short tap (< 2.5s): 🔵 **2 Cyan Flashes** (Autonomous Show) vs. 🟡 **2 Amber Flashes** (ESP-NOW Fleet Sync).
-   - Long hold (3s): ⚪ **3 White Flashes** (Config Mode), pixel counter, and 🟢 **4 Green Flashes** (Auto-Save to NVS flash).
+   - Double tap (< 400ms): ⚡ **4-Second Rapid Attendance Roll Call** (sequential float wave order).
+   - Single tap (< 600ms): 🎆 **30-Second Theatrical Fleet Routine** toggle / early cancel.
+   - Long hold (>= 5s, with 1s–4s progressive white LED charging meter): ⚪ **3 White Flashes** (Float ID Config Mode), pixel counter, and 🟢 **4 Green Flashes** (Auto-Save to NVS flash). Aborting hold (< 5s) cleanly reverts to baseline without triggering show.
 
 ---
 

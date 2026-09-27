@@ -105,8 +105,8 @@ Once your board is flashed:
 - **One-Shot 30-Second Fleet Routine (Single Tap BOOT Button):**
   - **Start Fleet Show:** Tap the onboard **BOOT button (GPIO 0)** once (< 600ms) to trigger the **30-Second Synchronized Fleet Routine** once. The ESP32 broadcasts a wireless ESP-NOW trigger packet (`0x30`) so all runner costumes initiate the 30-second routine simultaneously. After 30.0 seconds, all shirts automatically return to their individual float programs.
   - **Early Stop:** Tap the BOOT button while the 30-second routine is playing to stop it early. The ESP32 gives **2 Amber Flashes**, broadcasts a cancellation packet (`0x00`), and returns all costumes immediately to their baseline float programs.
-- **Float ID Selector (Long Hold BOOT Button for 3s):**
-  Hold the BOOT button for 3 seconds to enter Float ID configuration mode (Floats 1 through 7, see below).
+- **Float ID Selector (Long Hold BOOT Button for 5s):**
+  Hold the BOOT button for 5 seconds to enter Float ID configuration mode (Floats 1 through 7, see below). A 1s–4s progressive white LED charging meter gives visual feedback while holding, and releasing before 5s cleanly aborts without triggering the show!
 
 ---
 
@@ -115,8 +115,9 @@ Once your board is flashed:
 You do **not** need to change any code to configure which float you are! Any ESP32 can be set to any float in the parade lineup using the onboard **BOOT button (GPIO 0)**, and your board permanently remembers its number in flash memory even when powered off.
 
 ### How to Configure:
-1. **Hold the BOOT button for 3 seconds:**
-   - The LEDs will flash **white 3 times** to signal you have entered Configuration Mode.
+1. **Hold the BOOT button for 5 seconds:**
+   - **Progressive Charging Meter (1s – 4s):** As you hold, crisp white LEDs light up one-by-one at each second mark (1s: 1 LED, 2s: 2 LEDs, 3s: 3 LEDs, 4s: 4 LEDs). If accidentally pressed, simply let go anytime before 5s to cancel cleanly back to normal baseline!
+   - **Enter Config Mode (5s):** The LEDs will flash **white 3 times** to signal you have entered Configuration Mode.
 2. **Read the Current Float Number:**
    - Look at the start of your LED strip: the first **N pixels** will light up in that float's signature color!
    - (If you don't have the LED strip plugged in, the onboard Blue LED blinks N times repeatedly).

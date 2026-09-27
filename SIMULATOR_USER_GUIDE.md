@@ -845,14 +845,18 @@ The unified firmware in [`src/main.cpp`](file:///c:/Users/Kiddi/Desktop/WDW%20co
   - Broadcasts an ESP-NOW cancellation packet (`mode = 0x00`) to all peer costumes.
   - Displays **2 Amber Flashes** and returns immediately to the regular individual program.
 
-### Debounce & Double-Tap Timing Protocol
+### Debounce, Charging Feedback & Hold-to-Abort Safety
 - **Hardware Press Debounce:** Ignores contact bounce or electrical noise under 50ms (`pressDuration >= 50`).
 - **Double-Tap Detection Window:** 400ms evaluation window between button releases (`now - firstTapReleaseTime <= 400`). If a second tap arrives within 400ms, it is executed immediately as a Double-Tap. If the 400ms window elapses without a second press, the single tap action is executed.
-- **Long Hold Cancellation:** Holding the button for $\ge 3.0$ seconds automatically cancels any pending tap actions and enters Float ID Configuration Mode.
+- **Accidental Press / Abort Window (1000ms – 4999ms):** If the button is pressed and held for more than 1 second, the board enters charging standby. Releasing anytime before 5.0 seconds cleanly cancels the hold and returns instantly to baseline with zero changes. Because taps are strictly `< 600ms`, an aborted hold never triggers the 30s fleet show.
+- **5-Second Idiot-Proof Hold Trigger:** Holding the button continuously for $\ge 5.0$ seconds automatically cancels any pending tap actions and enters Float ID Configuration Mode.
 
-### 🎛️ Interactive Float ID Selector (Hold for 3 Seconds)
-Any board can be assigned to any of the 7 floats without touching code:
-1. **Hold the BOOT button for 3 seconds:** The LEDs flash **white 3 times** to enter Config Mode.
+### 🎛️ Interactive Float ID Selector (Hold for 5 Seconds with Progressive Charging Meter)
+Any board can be reassigned to any of the 7 floats in the corral without touching code or opening a laptop:
+1. **Hold the BOOT button (GPIO 0):**
+   - **0s – 1s:** Normal baseline operation.
+   - **1s – 4s (Progressive Charging Meter):** Crisp white LEDs illuminate one-by-one at each second milestone (1s: 1 LED, 2s: 2 LEDs, 3s: 3 LEDs, 4s: 4 LEDs). If you let go at any point during this charging window, the hold is aborted and your shirt returns to normal baseline immediately without launching the show.
+   - **5s (Threshold Reached):** The LEDs flash **white 3 times** to enter Float ID Config Mode.
 2. **Visual Feedback:** The first `N` LEDs on the strip light up in that float's signature color (1=Red, 2=Gold/Amber, 3=Teal, 4=Pink, 5=Cyan, 6=Green, 7=Patriotic Blue). The onboard blue LED blinks `N` times in sequence.
 3. **Tap to Cycle:** Each short tap cycles `1 ➔ 2 ➔ 3 ➔ 4 ➔ 5 ➔ 6 ➔ 7 ➔ 1`.
 4. **Auto-Save:** Leave untouched for 4 seconds. The LEDs flash **green 4 times** and the Float ID is permanently saved to ESP32 NVS flash (`Preferences.h`). Float 1 automatically acts as Leader; Floats 2–7 act as Followers.

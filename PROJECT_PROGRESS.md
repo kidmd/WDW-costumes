@@ -92,6 +92,17 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### Entry: Idiot-Proof 5-Second Float Config Hold with Progressive Charging Indicator & Clean Abort
+* **Date:** 2026-09-26
+* **Milestone:** Milestone 3 - ESP32 Firmware & Hardware Interaction Hardening
+* **Status:** Operational & Verified across C++ Firmware (`src/main.cpp`), Arduino Sketch (`arduino/MSEP_Costume/MSEP_Costume.ino`), PlatformIO compilation, and Documentation.
+* **Notes:**
+  * **5-Second Hold Threshold:** Upgraded the Float ID Configuration Mode trigger on the ESP32 onboard BOOT button (GPIO 0) from 3000ms to 5000ms to prevent accidental reconfiguration from race-day belt/pocket bumps or nervous fidgeting in the corrals.
+  * **1s–4s Progressive White LED Charging Meter:** Holding the BOOT button for $\ge 1000\text{ ms}$ activates a real-time visual charging meter that lights up crisp white LEDs one-by-one at each 1-second milestone (1s: 1 LED, 2s: 2 LEDs, 3s: 3 LEDs, 4s: 4 LEDs), giving the runner intuitive visual feedback.
+  * **Hold-to-Abort Safety:** Releasing the button at any point between 1000ms and 4999ms cleanly aborts the hold action and immediately restores baseline animation without modifying Float ID or triggering show routines.
+  * **Strict Tap Boundary (< 600ms):** Single tap (< 600ms) toggles the 30s fleet routine, double tap (< 400ms) triggers the 4s rapid roll call, and intermediate aborted holds (1s–4.99s) are completely quarantined from triggering the theatrical show.
+  * **Dual-Core Synchronized:** Mirrored identical button state machine, charging meter, and serial logging across both `src/main.cpp` and `arduino/MSEP_Costume/MSEP_Costume.ino`. PlatformIO build verified with 0 errors.
+
 ### Entry: Visual Cleanliness - Removed Spotlight Effect & Visors from Runners
 * **Date:** 2026-09-26
 * **Milestone:** Milestone 5 - Realistic Runner Anatomy & Visual Cleanliness
