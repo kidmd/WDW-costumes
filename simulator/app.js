@@ -345,6 +345,170 @@ function initDefaultDragonLeds() {
     updateLedCountUI();
 }
 
+// ============================================================================
+// UNIVERSAL UNDO / REDO HISTORY ENGINE (Ctrl+Z / Ctrl+Y)
+// ============================================================================
+const MAX_UNDO_HISTORY = 50;
+let undoStack = [];
+let redoStack = [];
+let isApplyingHistory = false;
+let preDragStateSnapshot = null;
+
+function captureEditorSnapshot(actionName = 'Edit') {
+    return {
+        action: actionName,
+        timestamp: Date.now(),
+        leds: JSON.parse(JSON.stringify(leds)),
+        animationGroups: JSON.parse(JSON.stringify(animationGroups)),
+        selectedLeds: Array.from(selectedLeds),
+        selectedLed: selectedLed,
+        selectedGroupId: selectedGroupId,
+        graphicType: typeof currentGraphicType !== 'undefined' ? currentGraphicType : 'builtin_dragon',
+        customArtworkDataUrl: typeof customArtworkDataUrl !== 'undefined' ? customArtworkDataUrl : null
+    };
+}
+
+function recordHistory(actionName = 'Edit') {
+    if (isApplyingHistory) return;
+    const snapshot = captureEditorSnapshot(actionName);
+    undoStack.push(snapshot);
+    if (undoStack.length > MAX_UNDO_HISTORY) {
+        undoStack.shift();
+    }
+    redoStack = [];
+    updateUndoRedoUI();
+}
+
+function restoreEditorSnapshot(snapshot) {
+    if (!snapshot) return;
+    isApplyingHistory = true;
+    try {
+        // 1. Restore LEDs
+        if (Array.isArray(snapshot.leds)) {
+            leds = JSON.parse(JSON.stringify(snapshot.leds));
+            if (typeof sparkles !== 'undefined' && Array.isArray(sparkles)) {
+                while (sparkles.length < leds.length) sparkles.push(0);
+            }
+            if (typeof updateLedCountUI === 'function') updateLedCountUI();
+        }
+
+        // 2. Restore Animation Groups
+        if (Array.isArray(snapshot.animationGroups)) {
+            animationGroups = JSON.parse(JSON.stringify(snapshot.animationGroups)).map(g => {
+                const arr = Array.isArray(g.ledIndices) ? g.ledIndices : (Array.isArray(g.indices) ? g.indices : []);
+                return {
+                    ...g,
+                    ledIndices: arr,
+                    indices: arr
+                };
+            });
+        } else {
+            animationGroups = [];
+        }
+        if (typeof rebuildLedGroupMap === 'function') rebuildLedGroupMap();
+        if (typeof renderActiveGroupsList === 'function') renderActiveGroupsList();
+
+        // 3. Restore graphic type if changed
+        if (snapshot.graphicType && snapshot.graphicType !== currentGraphicType) {
+            currentGraphicType = snapshot.graphicType;
+            customArtworkDataUrl = snapshot.customArtworkDataUrl || null;
+            const graphicSelect = document.getElementById('graphicPresetSelect');
+            if (graphicSelect) {
+                graphicSelect.value = currentGraphicType;
+            }
+        }
+
+        // 4. Restore Selection
+        selectedLeds.clear();
+        if (Array.isArray(snapshot.selectedLeds)) {
+            for (const idx of snapshot.selectedLeds) {
+                if (idx < leds.length) selectedLeds.add(idx);
+            }
+        }
+        selectedLed = (snapshot.selectedLed !== null && snapshot.selectedLed !== undefined && snapshot.selectedLed < leds.length) ? snapshot.selectedLed : (selectedLeds.size > 0 ? Array.from(selectedLeds)[0] : null);
+        selectedGroupId = snapshot.selectedGroupId || null;
+
+        if (selectedGroupId && typeof populateGroupForm === 'function') {
+            const grp = animationGroups.find(g => g.id === selectedGroupId);
+            if (grp) populateGroupForm(grp);
+        }
+
+        if (typeof updateLedInspectorUI === 'function') updateLedInspectorUI();
+        if (typeof markSingleShirtDirty === 'function') markSingleShirtDirty();
+        if (typeof updatePasteButtonState === 'function') updatePasteButtonState();
+    } finally {
+        isApplyingHistory = false;
+    }
+}
+
+function undo() {
+    if (undoStack.length === 0) {
+        showToast("ℹ️ Nothing to undo");
+        return;
+    }
+    const currentAction = undoStack[undoStack.length - 1].action || 'Action';
+    const currentState = captureEditorSnapshot(currentAction);
+    redoStack.push(currentState);
+
+    const prevState = undoStack.pop();
+    restoreEditorSnapshot(prevState);
+    updateUndoRedoUI();
+    showToast(`↩️ Undid: ${prevState.action || 'action'}`);
+}
+
+function redo() {
+    if (redoStack.length === 0) {
+        showToast("ℹ️ Nothing to redo");
+        return;
+    }
+    const nextAction = redoStack[redoStack.length - 1].action || 'Action';
+    const currentState = captureEditorSnapshot(nextAction);
+    undoStack.push(currentState);
+
+    const nextState = redoStack.pop();
+    restoreEditorSnapshot(nextState);
+    updateUndoRedoUI();
+    showToast(`↪️ Redid: ${nextState.action || 'action'}`);
+}
+
+function clearHistoryStacks() {
+    undoStack = [];
+    redoStack = [];
+    preDragStateSnapshot = null;
+    updateUndoRedoUI();
+}
+
+function updateUndoRedoUI() {
+    const undoBtn = document.getElementById('undoBtn');
+    const redoBtn = document.getElementById('redoBtn');
+
+    if (undoBtn) {
+        const canUndo = undoStack.length > 0;
+        undoBtn.disabled = !canUndo;
+        if (canUndo) {
+            const nextUndoAction = undoStack[undoStack.length - 1].action || 'action';
+            undoBtn.title = `Undo: ${nextUndoAction} (Ctrl+Z / Cmd+Z)`;
+            undoBtn.style.opacity = '1';
+        } else {
+            undoBtn.title = `Undo (Ctrl+Z / Cmd+Z) - No actions to undo`;
+            undoBtn.style.opacity = '0.35';
+        }
+    }
+
+    if (redoBtn) {
+        const canRedo = redoStack.length > 0;
+        redoBtn.disabled = !canRedo;
+        if (canRedo) {
+            const nextRedoAction = redoStack[redoStack.length - 1].action || 'action';
+            redoBtn.title = `Redo: ${nextRedoAction} (Ctrl+Y / Cmd+Shift+Z)`;
+            redoBtn.style.opacity = '1';
+        } else {
+            redoBtn.title = `Redo (Ctrl+Y / Cmd+Shift+Z) - No actions to redo`;
+            redoBtn.style.opacity = '0.35';
+        }
+    }
+}
+
 // Shirt boundaries in Canvas Space (single shirt view)
 function getShirtBounds() {
     const w = canvas.width;
@@ -3814,6 +3978,7 @@ async function editRunnerInSingleView(slot) {
 
         // Apply preset to main editor (now runs with currentView === 'single' so individual timeline loads)
         applyProfileData(pData);
+        clearHistoryStacks();
 
         // If preset has no leds, generate 100 on graphic
         if (!leds || leds.length === 0) {
@@ -5729,6 +5894,24 @@ function finishDrawGroup() {
         baselineEffect: baselineEffect
     };
 
+    if (preDrawLedBackup) {
+        const preDrawSnapshot = {
+            action: `Draw Group "${rawName}"`,
+            timestamp: Date.now(),
+            leds: JSON.parse(JSON.stringify(preDrawLedBackup)),
+            animationGroups: JSON.parse(JSON.stringify(animationGroups)),
+            selectedLeds: [],
+            selectedLed: null,
+            selectedGroupId: null,
+            graphicType: typeof currentGraphicType !== 'undefined' ? currentGraphicType : 'builtin_dragon',
+            customArtworkDataUrl: typeof customArtworkDataUrl !== 'undefined' ? customArtworkDataUrl : null
+        };
+        undoStack.push(preDrawSnapshot);
+        if (undoStack.length > MAX_UNDO_HISTORY) undoStack.shift();
+        redoStack = [];
+        updateUndoRedoUI();
+    }
+
     preDrawLedBackup = null;
     animationGroups.push(newGroup);
 
@@ -5786,6 +5969,8 @@ function applyGroupEffectToSelection() {
 
     const isNew = !targetGroup;
 
+    recordHistory(isNew ? `Create Group "${rawName}"` : `Update Group "${rawName}"`);
+
     if (targetGroup) {
         targetGroup.name = rawName;
         targetGroup.effect = effect;
@@ -5836,6 +6021,8 @@ function applyGroupEffectToSelection() {
 function removeGroupEffectFromSelection() {
     if (selectedLeds.size === 0) return;
 
+    recordHistory('Remove Group Effects');
+
     let removedCount = 0;
     for (const idx of selectedLeds) {
         for (let g = animationGroups.length - 1; g >= 0; g--) {
@@ -5863,6 +6050,7 @@ function deleteGroup(groupId) {
     const idx = animationGroups.findIndex(g => g.id === groupId);
     if (idx !== -1) {
         const name = animationGroups[idx].name;
+        recordHistory(`Delete Group "${name}"`);
         animationGroups.splice(idx, 1);
         if (selectedGroupId === groupId) {
             resetGroupFormToDefaults();
@@ -6015,6 +6203,8 @@ function pasteGroup() {
         return;
     }
 
+    recordHistory(`Paste Group "${copiedGroupClipboard.name}"`);
+
     const allocatedIndices = unassignedIndices.slice(0, reqCount);
     const gb = getGraphicChestBounds();
     const isSameShirt = (copiedGroupClipboard.sourceSlot === activeSingleShirtRunnerSlot);
@@ -6111,6 +6301,8 @@ function rotateGroup(groupId, angleDegrees = 90) {
         return;
     }
 
+    recordHistory(`Rotate "${grp.name}" ${angleDegrees}°`);
+
     const rad = (angleDegrees * Math.PI) / 180;
     const cos = Math.cos(rad);
     const sin = Math.sin(rad);
@@ -6148,6 +6340,8 @@ function flipGroupHorizontal(groupId) {
         return;
     }
 
+    recordHistory(`Flip "${grp.name}" Horizontally`);
+
     applyRigidGroupTransform(grp, (dx, dy) => ({
         rx: -dx,
         ry: dy
@@ -6173,6 +6367,8 @@ function flipGroupVertical(groupId) {
         return;
     }
 
+    recordHistory(`Flip "${grp.name}" Vertically`);
+
     applyRigidGroupTransform(grp, (dx, dy) => ({
         rx: dx,
         ry: -dy
@@ -6197,6 +6393,8 @@ function scaleGroup(groupId, scaleFactor = 1.10) {
         showToast('⚠️ Select an animation group to scale!', 'warning');
         return;
     }
+
+    recordHistory(`Scale Spacing "${grp.name}" (${Math.round(scaleFactor * 100)}%)`);
 
     applyRigidGroupTransform(grp, (dx, dy) => ({
         rx: dx * scaleFactor,
@@ -7974,6 +8172,12 @@ window.addEventListener('keydown', (e) => {
             canvas.style.cursor = 'grab';
         }
         e.preventDefault();
+    } else if ((e.key === 'z' || e.key === 'Z') && (e.ctrlKey || e.metaKey) && !e.shiftKey) {
+        e.preventDefault();
+        undo();
+    } else if (((e.key === 'y' || e.key === 'Y') && (e.ctrlKey || e.metaKey)) || ((e.key === 'z' || e.key === 'Z') && (e.ctrlKey || e.metaKey) && e.shiftKey)) {
+        e.preventDefault();
+        redo();
     } else if ((e.key === 'c' || e.key === 'C') && (e.ctrlKey || e.metaKey)) {
         e.preventDefault();
         copyGroup();
@@ -8121,6 +8325,16 @@ canvas.addEventListener('mousedown', (e) => {
             draggedLed = clickedIdx;
             isDraggingLed = true;
             canvas.classList.add('dragging');
+
+            // Capture pre-drag state for Undo/Redo
+            if (isGroupDrag || selectedLeds.size > 1) {
+                const grpEntry = ledGroupMap[clickedIdx];
+                const grp = grpEntry ? grpEntry.group : animationGroups.find(g => g.ledIndices && g.ledIndices.includes(clickedIdx));
+                const grpName = grp ? grp.name : 'Group';
+                preDragStateSnapshot = captureEditorSnapshot(`Move Group "${grpName}"`);
+            } else {
+                preDragStateSnapshot = captureEditorSnapshot(`Move LED #${clickedIdx + 1}`);
+            }
 
             const worldX = (mx - panX) / zoomScale;
             const worldY = (my - panY) / zoomScale;
@@ -8328,6 +8542,15 @@ window.addEventListener('mouseup', (e) => {
             }
             updateLedInspectorUI();
             markSingleShirtDirty();
+            if (preDragStateSnapshot) {
+                undoStack.push(preDragStateSnapshot);
+                if (undoStack.length > MAX_UNDO_HISTORY) undoStack.shift();
+                redoStack = [];
+                updateUndoRedoUI();
+                preDragStateSnapshot = null;
+            }
+        } else {
+            preDragStateSnapshot = null;
         }
         isDraggingLed = false;
         draggedLed = null;
@@ -8751,6 +8974,7 @@ if (bibScaleSlider) {
 }
 
 document.getElementById('resetLedsBtn').addEventListener('click', () => {
+    recordHistory('Reset Layout');
     initDefaultDragonLeds();
     markSingleShirtDirty();
 });
@@ -8971,6 +9195,8 @@ if (boxSelectBtn) {
 
 document.getElementById('selectAllBtn')?.addEventListener('click', () => selectAllLeds());
 document.getElementById('clearSelectionBtn')?.addEventListener('click', () => deselectLed());
+document.getElementById('undoBtn')?.addEventListener('click', () => undo());
+document.getElementById('redoBtn')?.addEventListener('click', () => redo());
 
 // Inspector Multi-Selection Action Bar Bindings
 document.getElementById('inspectorSelectAllBtn')?.addEventListener('click', () => selectAllLeds());
@@ -9536,6 +9762,10 @@ function optimizeLedWiringOrder(points, startCorner = 'bottom-left') {
 function rearrangeRemainingLedsOnGraphic(showNotification = true) {
     if (!leds || leds.length === 0) return;
 
+    if (showNotification) {
+        recordHistory('Rearrange Remaining LEDs');
+    }
+
     // 1. Identify all grouped LEDs vs unassigned LEDs
     const allGroupedIndices = new Set();
     animationGroups.forEach(g => {
@@ -9764,6 +9994,10 @@ function rearrangeRemainingLedsOnGraphic(showNotification = true) {
 
 // SCATTER 100 LEDs (Farthest-Point Sampling inside graphic with pixel color matching)
 function scatterLedsOnGraphic(targetCount = 100, colorMatch = true, markDirty = true) {
+    if (markDirty) {
+        recordHistory('Scatter LEDs on Graphic');
+    }
+
     const targetW = 360;
     let targetH = 360;
 
@@ -10520,6 +10754,7 @@ function deleteFireworksGroup(groupId) {
     const idx = animationGroups.findIndex(g => g.id === groupId);
     if (idx === -1) return;
     const name = animationGroups[idx].name;
+    recordHistory(`Delete Fireworks "${name}"`);
     animationGroups.splice(idx, 1);
 
     // Remove cues for this fireworks group
@@ -12937,6 +13172,7 @@ if (document.readyState === 'loading') {
         initFleetManager();
         initPowerBudgetCalculator();
         initFleetRadar();
+        updateUndoRedoUI();
     });
 } else {
     initSidebarTabs();
@@ -12945,6 +13181,7 @@ if (document.readyState === 'loading') {
     initFleetManager();
     initPowerBudgetCalculator();
     initFleetRadar();
+    updateUndoRedoUI();
 }
 
 

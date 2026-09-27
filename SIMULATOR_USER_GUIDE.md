@@ -96,6 +96,14 @@ The central workspace renders an interactive, hardware-accelerated preview of yo
   - **Spacebar + Drag:** Hold the `Spacebar` (the cursor turns into a grab hand ✋) and drag with the left mouse button.
   - *Note:* A quick tap and release of the `Spacebar` (without dragging) toggles **Play / Pause** on the timeline!
 
+### Universal Undo / Redo Engine (`Ctrl+Z` / `Ctrl+Y`)
+- **50-Step Historical Memory Stack:** A non-destructive snapshot buffer records every garment modification across single LED drags, whole-group moves, 90° rotations, horizontal/vertical flips, spatial scaling, group pasting, group deletions, drawn paths, and automatic unassigned pool redistributions.
+- **Toolbar Buttons:** Dedicated **`↩️ Undo`** and **`↪️ Redo`** buttons in the floating canvas toolbar dynamically display the next action to be reversed or restored in their hover tooltip.
+- **Keyboard Shortcuts:**
+  - **Undo:** `Ctrl + Z` (Windows/Linux) or `Cmd + Z` (macOS).
+  - **Redo:** `Ctrl + Y` or `Ctrl + Shift + Z` (Windows/Linux) or `Cmd + Shift + Z` (macOS).
+- **Smart Drag Batching:** Moving an LED or an entire group captures the baseline at click-down and commits a single clean undo step only on mouseup if actual movement took place, preventing accidental clicks from creating blank undo steps.
+
 ---
 
 ## 4. Thoroughbred Workspace: 6 Task Tabs & Contextual Inspector Dock
@@ -943,6 +951,8 @@ You can flash any runner's ESP32 directly from Google Chrome or Microsoft Edge w
 | `0` | Canvas | **Reset Zoom** to default centered 100% view |
 | `Shift` + Drag | Canvas | **Marquee Box Select** multiple LEDs |
 | `Ctrl + A` / `Cmd + A` | Canvas | **Select All** LEDs |
+| `Ctrl + Z` / `Cmd + Z` | Canvas / Groups | **Undo** last action (LED/group moves, 90° rotations, flips, scales, pastes, deletes, scatters, rearranges) |
+| `Ctrl + Y` / `Ctrl + Shift + Z` | Canvas / Groups | **Redo** previously undone action |
 | `Ctrl + C` / `Cmd + C` | Single Shirt View | **Copy Selected Group** to global clipboard |
 | `Ctrl + V` / `Cmd + V` | Single Shirt View | **Paste Copied Group** from unused LED pool onto current shirt |
 | `Ctrl + R` / `Cmd + R` | Single Shirt View | **Rotate Selected Group 90°** Clockwise around centroid |

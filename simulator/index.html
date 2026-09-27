@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MSEP Costume LED Simulator - Pete's Dragon & 7-Shirt Fleet</title>
-    <link rel="stylesheet" href="style.css?v=34">
+    <link rel="stylesheet" href="style.css?v=35">
 </head>
 <body>
     <div id="toast" class="toast"></div>
@@ -42,6 +42,9 @@
                 <button id="drawGroupBtn" class="zoom-btn" title="Click-to-Draw Path: Click points on shirt to place LEDs in sequence">✏️ Draw Group</button>
                 <button id="selectAllBtn" class="zoom-btn" title="Select All LEDs (Ctrl+A)" style="font-size: 11px;">All</button>
                 <button id="clearSelectionBtn" class="zoom-btn" title="Deselect All (Esc)" style="font-size: 11px;">Clear</button>
+                <span style="display: inline-block; width: 1px; height: 16px; background: var(--border-color); margin: 0 2px;"></span>
+                <button id="undoBtn" class="zoom-btn" title="Undo (Ctrl+Z / Cmd+Z)" disabled style="font-size: 11px;">↩️ Undo</button>
+                <button id="redoBtn" class="zoom-btn" title="Redo (Ctrl+Y / Cmd+Shift+Z)" disabled style="font-size: 11px;">↪️ Redo</button>
             </div>
 
             <!-- Floating Drawing Helper Banner (Visible during Draw Mode) -->
@@ -1727,6 +1730,6 @@
         </div>
     </div>
 
-    <script src="app.js?v=42"></script>
+    <script src="app.js?v=43"></script>
 </body>
 </html>

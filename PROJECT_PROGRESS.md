@@ -93,6 +93,23 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### Entry: Universal Undo / Redo Engine (`Ctrl+Z` / `Ctrl+Y`) & Canvas Toolbar Integration
+* **Date:** 2026-09-27
+* **Milestone:** Milestone 5 - Studio Workflow & Non-Destructive Editing Engine
+* **Status:** Operational & Synchronized across `simulator/app.js?v=43`, `simulator/style.css?v=35`, `simulator/index.html`, `SIMULATOR_USER_GUIDE.md`, and `PROJECT_PROGRESS.md`.
+* **Notes:**
+  * **50-Step Non-Destructive Snapshot Stack:** Implemented a full-fidelity history engine (`undoStack` and `redoStack`) with deep serialization of `leds` coordinates/colors, `animationGroups`, selection sets, and artwork configuration.
+  * **Comprehensive Action Capture:**
+    * Canvas drags: Mousedown captures origin state; mouseup records a single clean undo step only if `hasMovedSignificantly === true` (eliminating false clicks).
+    * Group spatial transformations: `Rotate 90°`, `Flip Horizontal`, `Flip Vertical`, and `Scale Spacing`.
+    * Group lifecycle: `Create Group`, `Update Group`, `Delete Group`, and `Remove Group Effects`.
+    * Group clipboard: `Paste Group` from unused pool.
+    * Click-to-draw paths: Pre-draw LED backups saved and committed on path finish.
+    * Layout operations: `Rearrange Remaining LEDs`, `Scatter LEDs on Graphic`, and `Reset Layout`.
+  * **Floating Canvas Toolbar Controls:** Added reactive `↩️ Undo` and `↪️ Redo` buttons to the floating zoom toolbar with dynamic hover tooltips indicating the specific action to be reverted/restored, and clear disabled opacity when empty.
+  * **Keyboard Shortcuts:** Bound standard `Ctrl+Z` / `Cmd+Z` (Undo) and `Ctrl+Y` / `Ctrl+Shift+Z` / `Cmd+Shift+Z` (Redo) with form input guards.
+  * **Cache Busting:** Bumped application script tag to `app.js?v=43` and stylesheet to `style.css?v=35`.
+
 ### Entry: LED Group Copy, Paste, Rotate, Flip & Scale Spacing System
 * **Date:** 2026-09-27
 * **Milestone:** Milestone 5 - Studio Workflow & Animation Group Spatial Suite
