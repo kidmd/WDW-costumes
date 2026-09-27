@@ -93,6 +93,16 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### Entry: Custom Profile Persistence & Server Disk Preset Association
+* **Date:** 2026-09-26
+* **Milestone:** Milestone 5 - Profile Persistence Integrity
+* **Status:** Operational & Synchronized across `simulator/app.js?v=38`, `simulator/index.html`, and `PROJECT_PROGRESS.md`.
+* **Notes:**
+  * **Dual-Tier Profile Persistence:** Verified and guaranteed that custom float profiles saved under new names write directly to disk (`presets/<safe_name>.json`) via `/api/save_preset` while preserving the original defaults (`petes_dragon.json`, `casey_jr_train.json`, etc.) completely untouched.
+  * **Server Preset Lineup Association:** Updated `saveCurrentProfile` so that when a profile is saved under a new name, the active float in `fleet_lineup.json` and browser cache is immediately associated with `'server:' + result.filename`. When reopening the simulator tomorrow or on any browser/device, the float automatically loads your customized preset.
+  * **One-Time Storage Migration Guard:** Converted the legacy preset purge in `loadFleetLineupFromStorage` to a one-time migration (`msep_presets_cleanup_v1_done`), ensuring newly saved browser profiles are never accidentally erased on subsequent reloads.
+  * **Cache Busting:** Bumped application script tag to `app.js?v=38` in `simulator/index.html`.
+
 ### Entry: Unsaved Edits Modal Cancellation State Synchronization Fix
 * **Date:** 2026-09-26
 * **Milestone:** Milestone 5 - Single Shirt Editor State Integrity & Switcher UX

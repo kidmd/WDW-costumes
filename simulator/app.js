@@ -4651,9 +4651,10 @@ function saveFleetLineupToStorage() {
 // Load Lineup Configuration from Storage on Startup
 async function loadFleetLineupFromStorage() {
     try {
-        // Clear any stale legacy custom browser presets per user request
-        if (localStorage.getItem('msep_custom_presets')) {
+        // One-time cleanup of legacy pre-cleanup browser presets
+        if (!localStorage.getItem('msep_presets_cleanup_v1_done')) {
             localStorage.removeItem('msep_custom_presets');
+            localStorage.setItem('msep_presets_cleanup_v1_done', 'true');
         }
         const savedLineup = localStorage.getItem('msep_fleet_lineup');
         if (savedLineup) {
@@ -8040,7 +8041,15 @@ async function saveCurrentProfile(name) {
             body: JSON.stringify(profileData)
         });
         if (res.ok) {
-            showToast(`💾 Profile "${cleanName}" saved successfully!`);
+            const result = await res.json();
+            if (result && result.filename) {
+                fleetPresetCache['server:' + result.filename] = profileData;
+                if (activeSingleShirtRunnerSlot !== null && activeSingleShirtRunnerSlot >= 0 && fleetRunners[activeSingleShirtRunnerSlot]) {
+                    fleetRunners[activeSingleShirtRunnerSlot].preset = 'server:' + result.filename;
+                    saveFleetLineupToStorage();
+                }
+            }
+            showToast(`💾 Profile "${cleanName}" saved successfully to disk and browser!`);
         }
     } catch (e) {
         showToast(`💾 Profile "${cleanName}" saved to browser cache.`);
