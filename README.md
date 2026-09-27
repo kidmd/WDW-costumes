@@ -61,9 +61,10 @@ You don't need Git, Google Antigravity, or any programming tools:
 
 * [`SIMULATOR_QUICKSTART.md`](SIMULATOR_QUICKSTART.md): **⚡ Simulator Quickstart Guide (TL;DR)** — 2-minute cheat sheet for launching the simulator, moving/trimming timeline clips, testing the fleet show, and streaming to LEDs.
 * [`SIMULATOR_USER_GUIDE.md`](SIMULATOR_USER_GUIDE.md): **Complete User Guide & Theatrical Lighting Manual** for the browser simulator, multi-layer timeline, and ESP32 hardware flasher.
-* [`FLASHING_INSTRUCTIONS.md`](FLASHING_INSTRUCTIONS.md): **⚡ Quick Flashing Guide for the Brothers** (Double-click 1-click flasher, Web Browser flasher, and Arduino IDE).
+* [`FLASHING_INSTRUCTIONS.md`](FLASHING_INSTRUCTIONS.md): **⚡ Quick Flashing Guide for Family Runners & Crew** (Double-click 1-click flasher, Web Browser flasher, and Arduino IDE).
 * [`CRICUT_ARTWORK_GUIDE.md`](CRICUT_ARTWORK_GUIDE.md): **🎨 Cricut HTV Costume Artwork Guide** (Layered SVG cut files, color mats, heat press settings, and visual catalog).
 * [`PROJECT_PROGRESS.md`](PROJECT_PROGRESS.md): Live project milestones, wiring specifications, and development changelog.
+* `start_simulator.bat`: One-click Windows desktop simulator launcher.
 * `flash_firmware.bat`: One-click Windows desktop firmware flasher script.
 * `flash_firmware.command`: One-click Mac / Linux desktop firmware flasher script.
 * `arduino/MSEP_Costume/`: Ready-to-open native Arduino IDE sketch.

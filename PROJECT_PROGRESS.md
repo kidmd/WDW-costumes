@@ -103,13 +103,14 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
     - **Engineering / Build Team:** 3 brothers (2 of whom are running, plus 1 supporting brother helping build, code, and test).
   * **Redesigned 6-Step Quickstart Guide (`SIMULATOR_QUICKSTART.md`):**
     - Completely restructured the quickstart guide around the exact 6-step beginner journey requested by the team:
-      1. *How to Start the Simulator:* Running `python simulator.py` and opening `localhost:8000`.
+      1. *How to Start the Simulator:* Double-clicking `start_simulator.bat` (Windows) or running `python simulator.py` and opening `localhost:8000`.
       2. *How to Add a Graphic or Start with a Preset:* Selecting from 7 pre-calibrated float presets or uploading custom PNG/JPEG and scattering 100 color-matched LEDs above the #1952 bib.
       3. *How to Create Animation Groups:* Marquee-selecting LEDs on the canvas (`Shift + Drag`) and saving as a named group with dedicated timeline track lanes.
       4. *How to Use Groups to Create Cues:* Adding cue cards, selecting effects, setting duration, and slipping/trimming clips directly on the interactive timeline.
       5. *How to Create a Fleet Show:* Switching to Tab 6, chaining choreography blocks across the 30-second multi-shirt timeline, firing with `[F]`/`Spacebar`, and running corral roll call checks.
-      6. *How to Deploy Shows onto ESP32 Boards:* Using the 1-click browser Web Serial flasher or desktop scripts to bake float identities into NVS flash memory.
+      6. *How to Deploy Shows onto ESP32 Boards:* Using the 1-click browser Web Serial flasher or double-clicking `flash_firmware.bat` / `flash_firmware.command` to bake float identities into NVS flash memory.
     - Included the race-morning button cheatsheet (single-tap 30s show, double-tap 4s roll call, 5s config hold with charging meter).
+  * **One-Click Script Integration:** Integrated direct documentation links for `start_simulator.bat` and `flash_firmware.bat` across both `SIMULATOR_QUICKSTART.md` and `README.md`.
   * **UI Text Cleanliness:** Updated strings in `simulator/index.html` (battery power budget and corral radar headers/tooltips) to refer to all runners.
 
 ### Entry: Simulator Quickstart Guide (TL;DR Edition) Published

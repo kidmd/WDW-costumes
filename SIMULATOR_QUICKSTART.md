@@ -19,16 +19,19 @@ When you open the simulator, you'll see three main areas:
 
 ## 1. How to Start the Simulator
 
-1. Open a terminal or Command Prompt in the project folder.
-2. Run the local Python server:
-   ```bash
-   python simulator.py
-   ```
-3. Open your web browser (Chrome, Edge, or Brave recommended) and visit:
-   ```
-   http://localhost:8000
-   ```
-4. You're in! The simulator runs locally on your machine at 60 FPS.
+- **Option A — One-Click (Easiest on Windows):**
+  Just double-click **[`start_simulator.bat`](start_simulator.bat)** in the main project folder! It checks for Python and launches the server automatically.
+- **Option B — Command Prompt / Terminal:**
+  Open a terminal in the project folder and run:
+  ```bash
+  python simulator.py
+  ```
+
+Once running, open your web browser (Chrome, Edge, or Brave recommended) and visit:
+```
+http://localhost:8000
+```
+You're in! The simulator runs locally on your machine at 60 FPS.
 
 ---
 
@@ -108,8 +111,8 @@ Once you're happy with the designs, bake them into the microcontrollers for race
 4. Click **`⚡ Connect & Flash`**, choose your USB serial port, and click **Install**. Done in ~15 seconds!
 
 ### Method B: Double-Click Desktop Scripts
-- **Windows:** Double-click [`flash_firmware.bat`](flash_firmware.bat).
-- **Mac / Linux:** Double-click [`flash_firmware.command`](flash_firmware.command).
+- **Windows:** Double-click **[`flash_firmware.bat`](flash_firmware.bat)** in the main project folder. It auto-detects your connected ESP32, prompts you to press any key, and flashes the pre-compiled firmware in ~15 seconds with zero tools or drivers to install!
+- **Mac / Linux:** Double-click **[`flash_firmware.command`](flash_firmware.command)** *(or run `./flash_firmware.command` in Terminal)*.
 
 ---
 
