@@ -93,6 +93,25 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### Entry: Preset Cleanup & Carriage (No Horses) Fleet Default Integration
+* **Date:** 2026-09-26
+* **Milestone:** Milestone 5 - Fleet Profile Cleanliness & Asset Rationalization
+* **Status:** Operational & Synchronized across `presets/`, `presets/archive/`, `simulator.py`, `simulator/app.js?v=34`, and `simulator/index.html`.
+* **Notes:**
+  * **Strict 7-Float Default Roster:** Cleaned up the `presets/` directory to retain exclusively the official 7 fleet presets matching the 10K parade roster:
+    - **Float 1 (The Train):** `casey_jr_train.json`
+    - **Float 2 (Title Drum):** `title_drum.json`
+    - **Float 3 (The Turtle):** `spinning_turtle.json`
+    - **Float 4 (The Snail):** `spinning_snail.json`
+    - **Float 5 (Cinderella / Coach):** `carriage_nohorses.json` (replacing the horses variant)
+    - **Float 6 (Pete's Dragon):** `petes_dragon.json`
+    - **Float 7 (Flag & Eagle):** `honor_america_eagle.json`
+  * **Safe Archival (`presets/archive/`):** Moved 8 legacy and experimental preset variations (`cinderellas_coach.json`, `cinderellas_coach_both_wheel.json`, `cinderellas_coach_rear_wheel.json`, `pete_with_animated_bib_fluorish.json`, `petes_dragon_100_scatter_color.json`, `petes_dragon_default.json`, `spinning_turtle_100-led_vibrant_preset.json`, `to_honor_america_100-led_patriotic_preset_2.json`) into `presets/archive/` so they remain safely preserved without cluttering dropdowns.
+  * **Float 5 Integration:** Updated `presets/fleet_lineup.json` and `DEFAULT_FLEET_ROSTER` in `simulator/app.js` to link Float 5 directly to `carriage_nohorses.json` with `carriage_nohorses` artwork while preserving the Cinderella / COACH fleet branding.
+  * **API System File Filtering:** Updated `handle_list_presets` in `simulator.py` to filter out system files (`fleet_lineup.json`, `wifi_settings.json`, and directories), ensuring `/api/presets` returns strictly the 7 parade costume profiles.
+  * **Browser Storage Cleanup:** Added automated cleanup in `simulator/app.js` (`loadFleetLineupFromStorage`) to purge legacy custom presets from browser `localStorage` (`msep_custom_presets`), guaranteeing a clean, identical experience across all devices.
+  * **Cache Busting Update:** Bumped CSS and JS to `?v=34` in `simulator/index.html`.
+
 ### Entry: Family Running Crew Alignment & 6-Step Quickstart Redesign
 * **Date:** 2026-09-26
 * **Milestone:** Milestone 5 - Team Alignment & Beginner Onboarding

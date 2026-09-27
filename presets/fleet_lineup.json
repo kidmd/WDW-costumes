@@ -46,8 +46,8 @@
     "tag": "COACH",
     "color": "#48cae4",
     "accent": "Cyan",
-    "preset": "server:cinderellas_coach.json",
-    "defaultGraphic": "cinderella_coach"
+    "preset": "server:carriage_nohorses.json",
+    "defaultGraphic": "carriage_nohorses"
   },
   {
     "slot": 5,

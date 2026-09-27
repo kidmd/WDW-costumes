@@ -136,7 +136,8 @@ class SimulatorRequestHandler(http.server.SimpleHTTPRequestHandler):
 
     def handle_list_presets(self):
         try:
-            files = [f for f in os.listdir(PRESETS_DIR) if f.endswith(".json")]
+            ignore_files = {"fleet_lineup.json", "wifi_settings.json", "wifi_settings.example.json"}
+            files = [f for f in sorted(os.listdir(PRESETS_DIR)) if f.endswith(".json") and f not in ignore_files and os.path.isfile(os.path.join(PRESETS_DIR, f))]
             presets = []
             for f in files:
                 filepath = os.path.join(PRESETS_DIR, f)
