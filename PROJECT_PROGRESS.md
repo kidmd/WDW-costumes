@@ -85,8 +85,8 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 - [ ] **Next Up / Feature Queue (Imagineering Active Pipeline):**
   - [x] **Interactive Visual Timeline Block Editor:** Directly drag and stretch choreography block edges on the canvas timeline to adjust durations visually; drag-and-drop block reordering on timeline tracks.
-  - [ ] **Race-Day Battery Life & Power Budget Calculator:** Analytical battery capacity estimator (5,000 mAh / 10,000 mAh packs) modeling running pace (60–90 min 10K), average mA draw per runner, and 30s fleet show trigger frequency.
-  - [ ] **"Corral Roll Call" / ESP-NOW Fleet Radar Diagnostic:** Pre-race bench & corral RF sniffer verifying that Floats 1 through 7 are powered, connected, and responding on the sync channel before race start.
+  - [x] **Race-Day Battery Life & Power Budget Calculator:** Analytical battery capacity estimator (5,000 mAh / 10,000 mAh packs) modeling running pace (60–90 min 10K), average mA draw per runner, and 30s fleet show trigger frequency.
+  - [x] **"Corral Roll Call" / ESP-NOW Fleet Radar Diagnostic:** Pre-race bench & corral RF sniffer verifying that Floats 1 through 7 are powered, connected, and responding on the sync channel before race start.
 
 ---
 
