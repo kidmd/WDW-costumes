@@ -212,18 +212,7 @@
                         <div class="control-group" id="customUploadContainer" style="display: none; margin-top: 4px;">
                             <label style="font-size: 11px; color: var(--text-muted); margin-bottom: 2px;">Upload Image (PNG / SVG / JPG):</label>
                             <input type="file" id="artworkUpload" accept="image/*" style="font-size: 11px; color: var(--text-muted); width: 100%;">
-                        </div>
-                        <div style="display: flex; flex-direction: column; gap: 6px; margin-top: 6px;">
-                            <button id="scatterColorBtn" class="action-btn accent" style="font-weight: 600; font-size: 12px; padding: 7px;">
-                                🌈 Scatter 100 LEDs (Color-Match)
-                            </button>
-                            <button id="rearrangeRemainingLedsBtn" class="action-btn" style="font-size: 11px; padding: 6px; background: rgba(56, 189, 248, 0.12); border-color: rgba(56, 189, 248, 0.35); color: #38bdf8; font-weight: 600;" title="Evenly rearranges all non-grouped LEDs across the graphic to fill open space without moving any grouped LEDs">
-                                🔄 Fill Graphic with Remaining LEDs
-                            </button>
-                            <button id="autoOutlineBtn" class="action-btn" style="font-size: 11px; padding: 6px;">
-                                ✨ Auto-Outline Image (50 LEDs)
-                            </button>
-                            <button id="resetArtworkBtn" class="action-btn" style="font-size: 11px; display: none;" title="Restore default artwork">
+                            <button id="resetArtworkBtn" class="action-btn" style="font-size: 11px; margin-top: 6px; display: none; width: 100%;" title="Restore default artwork">
                                 🔄 Restore Preset Defaults
                             </button>
                         </div>
@@ -281,9 +270,9 @@
                         </div>
                         
                         <div class="control-group" style="display: flex; gap: 6px; margin-bottom: 6px;">
-                            <button id="quick100Btn" class="action-btn accent" style="flex: 1; font-size: 11px; padding: 5px 6px;">100 Scatter</button>
-                            <button id="quick50Btn" class="action-btn" style="flex: 1; font-size: 11px; padding: 5px 6px;">50 Outline</button>
-                            <button id="resampleColorsBtn" class="action-btn" style="flex: 1; font-size: 11px; padding: 5px 6px;" title="Sample colors from artwork under each LED">🎨 Sample</button>
+                            <button id="quick100Btn" class="action-btn accent" style="flex: 1; font-size: 11px; padding: 6px 4px; font-weight: 600;" title="Evenly scatter 100 LEDs across the character artwork with color sampling">🌈 100 Scatter</button>
+                            <button id="quick50Btn" class="action-btn" style="flex: 1; font-size: 11px; padding: 6px 4px; font-weight: 600;" title="Automatically trace outer contour of artwork with 50 LEDs">✨ 50 Outline</button>
+                            <button id="resampleColorsBtn" class="action-btn" style="flex: 1; font-size: 11px; padding: 6px 4px; font-weight: 600;" title="Sample colors from artwork under each LED">🎨 Sample</button>
                         </div>
 
                         <button id="rearrangeRemainingLedsBtn2" class="action-btn" style="width: 100%; font-size: 11px; padding: 7px 8px; margin-bottom: 6px; font-weight: 600; background: rgba(56, 189, 248, 0.12); border-color: rgba(56, 189, 248, 0.35); color: #38bdf8;" title="Evenly scatters and rearranges all non-grouped LEDs across the graphic to fill open space, preserving all existing groups">
@@ -1639,6 +1628,6 @@
         </div>
     </div>
 
-    <script src="app.js?v=35"></script>
+    <script src="app.js?v=36"></script>
 </body>
 </html>

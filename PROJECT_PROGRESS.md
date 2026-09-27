@@ -93,6 +93,21 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### Entry: Elimination of Duplicate LED Generation Buttons & Layout Toolbar Consolidation
+* **Date:** 2026-09-26
+* **Milestone:** Milestone 5 - Sidebar Cleanliness & Action Consolidation
+* **Status:** Operational & Synchronized across `simulator/index.html`, `simulator/app.js?v=36`, and `SIMULATOR_USER_GUIDE.md`.
+* **Notes:**
+  * **Removed Section 1 Redundancy:** Removed the duplicate cluster of buttons (`#scatterColorBtn`, `#autoOutlineBtn`, and `#rearrangeRemainingLedsBtn`) from Section 1 ("🎭 Active Parade Float & Character Artwork"), streamlining Section 1 exclusively for parade float selection, custom artwork uploads, and race bib clearance verification.
+  * **Consolidated Section 3 Toolbar:** Grouped all LED generation and routing controls cleanly under **Section 3: LED Layout & Wiring Route**:
+    - `🌈 100 Scatter` (`#quick100Btn`)
+    - `✨ 50 Outline` (`#quick50Btn`)
+    - `🎨 Sample Colors` (`#resampleColorsBtn`)
+    - `🔄 Fill Graphic with Remaining LEDs` (`#rearrangeRemainingLedsBtn2`)
+    - `🔌 Optimize Wiring Route (Shortest Snake)` (`#optimizeWiringBtn`)
+  * **Float-Aware Preset Restore:** Enhanced `#resetArtworkBtn` to intelligently restore the active float's official preset artwork (Casey Jr., Title Drum, Turtle, Snail, Coach, Elliott, or Eagle) instead of hardcoding to Pete's Dragon when reverting from custom image uploads.
+  * **Cache Busting:** Bumped application script tag to `app.js?v=36` in `simulator/index.html`.
+
 ### Entry: Single Shirt 7-Float Quick Switcher & Active Parade Float Banner
 * **Date:** 2026-09-26
 * **Milestone:** Milestone 5 - Single Shirt Editor Clarity & Direct Fleet Switching

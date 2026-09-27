@@ -9799,30 +9799,40 @@ if (optWiringBtn) {
     });
 }
 
-document.getElementById('scatterColorBtn').addEventListener('click', () => {
+document.getElementById('scatterColorBtn')?.addEventListener('click', () => {
     scatterLedsOnGraphic(100, true);
 });
 
-document.getElementById('quick100Btn').addEventListener('click', () => {
+document.getElementById('quick100Btn')?.addEventListener('click', () => {
     scatterLedsOnGraphic(100, true);
 });
 
-document.getElementById('autoOutlineBtn').addEventListener('click', () => {
+document.getElementById('autoOutlineBtn')?.addEventListener('click', () => {
     autoOutlineCurrentGraphic(50);
 });
 
-document.getElementById('quick50Btn').addEventListener('click', () => {
+document.getElementById('quick50Btn')?.addEventListener('click', () => {
     autoOutlineCurrentGraphic(50);
 });
 
-document.getElementById('resampleColorsBtn').addEventListener('click', () => {
+document.getElementById('resampleColorsBtn')?.addEventListener('click', () => {
     resampleAllLedColors();
 });
 
 const resetArtworkBtn = document.getElementById('resetArtworkBtn');
 if (resetArtworkBtn) {
     resetArtworkBtn.addEventListener('click', () => {
-        loadGraphicPreset('builtin_dragon');
+        const defaultMap = {
+            0: 'casey_jr_train',
+            1: 'title_drum',
+            2: 'spinning_turtle',
+            3: 'spinning_snail',
+            4: 'cinderellas_coach',
+            5: 'builtin_dragon',
+            6: 'honor_america_eagle'
+        };
+        const defaultKey = defaultMap[activeSingleShirtRunnerSlot] || 'builtin_dragon';
+        loadGraphicPreset(defaultKey);
     });
 }
 

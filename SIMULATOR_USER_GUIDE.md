@@ -111,11 +111,16 @@ The sidebar navigation is organized into a clean **2-row × 3-column grid** that
    - **🎭 Active Parade Float Banner & 7-Shirt Quick Switcher:** Unmistakable banner at the very top of the Layout tab showing exactly which float is being edited: Float number (#01 to #07), character name, parade role (`👑 Fleet Leader (Broadcast)` / `📡 Follower Float`), signature accent color, and lineup tag.
    - **⚡ 7-Button Float Switcher Grid:** Direct 1-click switcher buttons (`[ 1 ]` through `[ 7 ]`) featuring live glowing indicator dots in each float's signature color. Seamlessly switch between Casey Jr., Title Drum, Turtle, Snail, Cinderella's Coach, Pete's Dragon, and To Honor America with unsaved-change protection!
    - **🏷️ Top Navigation & Canvas Watermark Badge:** The top navigation tab updates dynamically (`👕 Single Shirt (#6 Elliott)`), while a translucent floating watermark badge in the top-left canvas corner keeps the active float number and name clearly visible while positioning LEDs.
-   - **Float / Character Artwork Picker:** Unified dropdown allowing quick selection between the 7 official parade floats or uploading custom graphics (PNG/SVG/JPG).
-   - **💾 Save & Export Custom Profiles:** Dedicated section for naming and saving custom design tweaks to browser cache, exporting standalone JSON costume files, or importing existing configurations.
-   - **LED Generation & Graphic Fill:** One-click `100 Scatter`, `50 Auto-Outline`, `Sample Colors`, and `🔄 Fill Graphic with Remaining LEDs` (redistributes non-grouped LEDs to fill open space without moving any grouped LEDs).
+   - **Float / Character Artwork Picker:** Unified dropdown allowing quick selection between the 7 official parade floats or uploading custom graphics (PNG/SVG/JPG), with a one-click `🔄 Restore Preset Defaults` button when custom artwork is active.
    - **runDisney 10K Race Bib (#1952):** Toggle overlay, height, and scale sliders to verify physical clearance.
-   - **Physical Wiring Route Optimizer:** Shortest-path snake wiring optimizer, Show Wiring Trace toggle, Show Numbers toggle.
+   - **💾 Save & Export Custom Profiles:** Dedicated section for naming and saving custom design tweaks to browser cache, exporting standalone JSON costume files, or importing existing configurations.
+   - **🔌 LED Placement & Wiring Route:** Consolidated toolbar uniting all bulb generation and routing in one dedicated location:
+     - `🌈 100 Scatter`: Evenly disperses 100 LEDs across the character with color matching.
+     - `✨ 50 Auto-Outline`: Traces the outer silhouette contour with 50 LEDs.
+     - `🎨 Sample`: Samples colors from the underlying artwork for each bulb.
+     - `🔄 Fill Graphic with Remaining LEDs`: Redistributes non-grouped LEDs to fill open space without moving any grouped LEDs.
+     - `🔌 Optimize Wiring Route`: Calculates the shortest serpentine continuous snake route.
+     - Wiring Trace and Bulb Number inspection toggles.
    - **Quick-Link to Groups:** Fast-jump button to the Groups Tab for drawing paths or stamping fireworks.
 
 2. **👥 Tab 2: Groups ("Group Creation Hub & Manager"):**
