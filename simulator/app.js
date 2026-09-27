@@ -3689,7 +3689,7 @@ function initSingleShirtFloatSelector() {
             const targetSlot = parseInt(btn.getAttribute('data-slot'), 10);
             if (isNaN(targetSlot)) return;
             await editRunnerInSingleView(targetSlot);
-            updateActiveFloatUI(targetSlot);
+            updateActiveFloatUI(activeSingleShirtRunnerSlot);
         });
     });
 
@@ -3701,7 +3701,7 @@ function initSingleShirtFloatSelector() {
 async function editRunnerInSingleView(slot) {
     try {
         const runner = fleetRunners[slot];
-        if (!runner) return;
+        if (!runner) return false;
 
         // If fleet show is active, stop it before switching to single view
         if (fleetShowActive) {
@@ -3720,7 +3720,7 @@ async function editRunnerInSingleView(slot) {
             switchSidebarTab(lastSingleShirtTab || 'tabLayout');
             updateActiveFloatUI(slot);
             showToast(`✏️ Returned to active single-shirt editor for Runner #${runner.num} (${runner.name})`);
-            return;
+            return true;
         }
 
         // Switching to a DIFFERENT runner:
@@ -3730,7 +3730,8 @@ async function editRunnerInSingleView(slot) {
             const modalResult = await confirmUnsavedEditsModal(prevRunner, runner);
 
             if (modalResult.action === 'cancel') {
-                return; // Stay where we are
+                updateActiveFloatUI(activeSingleShirtRunnerSlot);
+                return false; // Stay where we are!
             } else if (modalResult.action === 'save') {
                 await saveCurrentProfile(modalResult.name);
                 showToast(`💾 Saved Runner #${prevRunner.num} edits as "${modalResult.name}"!`);
@@ -3785,9 +3786,12 @@ async function editRunnerInSingleView(slot) {
 
         updateActiveFloatUI(slot);
         showToast(`✏️ Loaded Float #${runner.num} (${runner.name}) into Single Shirt Editor`);
+        return true;
     } catch (err) {
         console.error("Error editing runner in single view:", err);
         showToast(`⚠️ Error loading runner into editor: ${err.message}`);
+        updateActiveFloatUI(activeSingleShirtRunnerSlot);
+        return false;
     }
 }
 
@@ -9751,7 +9755,7 @@ if (graphicPresetSelect) {
         const targetSlot = floatToSlot[val];
         if (targetSlot !== undefined && targetSlot !== activeSingleShirtRunnerSlot) {
             await editRunnerInSingleView(targetSlot);
-            updateActiveFloatUI(targetSlot);
+            updateActiveFloatUI(activeSingleShirtRunnerSlot);
         } else {
             await loadGraphicPreset(val);
             updateActiveFloatUI(activeSingleShirtRunnerSlot);

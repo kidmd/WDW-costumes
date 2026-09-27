@@ -93,6 +93,18 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### Entry: Unsaved Edits Modal Cancellation State Synchronization Fix
+* **Date:** 2026-09-26
+* **Milestone:** Milestone 5 - Single Shirt Editor State Integrity & Switcher UX
+* **Status:** Operational & Synchronized across `simulator/index.html`, `simulator/app.js?v=37`, and `PROJECT_PROGRESS.md`.
+* **Notes:**
+  * **Resolved Cancellation Desynchronization:** Fixed a state desynchronization bug where cancelling out of the "Unsaved Edits" modal prompt (e.g., clicking Cancel, Escape, or backdrop when attempting to switch floats) left the right sidebar panel showing the target float while the canvas stayed on the original float.
+  * **Proper State Reversion:**
+    - Updated `editRunnerInSingleView` to explicitly call `updateActiveFloatUI(activeSingleShirtRunnerSlot)` and return `false` on cancellation.
+    - Updated `initSingleShirtFloatSelector` button click listener to synchronize with `activeSingleShirtRunnerSlot` instead of prematurely passing `targetSlot`.
+    - Updated `graphicPresetSelect` change listener to revert `<select>` value back to the active float if switching is aborted.
+  * **Cache Busting:** Bumped application script tag to `app.js?v=37` in `simulator/index.html`.
+
 ### Entry: Elimination of Duplicate LED Generation Buttons & Layout Toolbar Consolidation
 * **Date:** 2026-09-26
 * **Milestone:** Milestone 5 - Sidebar Cleanliness & Action Consolidation
