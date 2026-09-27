@@ -7,6 +7,7 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 * **GitHub Repository:** [kidmd/WDW-costumes](https://github.com/kidmd/WDW-costumes)
 * **Base Shirts:** Black moisture-wicking technical running shirts with glow-in-the-dark graphic outlines
 * **Lighting:** 5V WS2812B "Seed / Pebble" RGBIC fairy pixel strings (~1" to 2" spacing for discrete light bulb look)
+* **Runners & Engineering Team:** 7 family runners hitting the course together (2 brothers, 1 sister, 1 brother-in-law, and 3 sisters-in-law), supported and engineered by the 3 brothers (2 running, 1 supporting).
 * **Controller:** ESP32 Microcontrollers (1 per runner)
 * **Wireless Protocol:** ESP-NOW (connectionless 2.4GHz peer-to-peer broadcast; no router/hotspot needed)
 * **Power Source:** 5V USB portable power bank per runner
@@ -91,6 +92,25 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 ---
 
 ## Progress Log
+
+### Entry: Family Running Crew Alignment & 6-Step Quickstart Redesign
+* **Date:** 2026-09-26
+* **Milestone:** Milestone 5 - Team Alignment & Beginner Onboarding
+* **Status:** Operational & Synchronized across [`SIMULATOR_QUICKSTART.md`](SIMULATOR_QUICKSTART.md), [`SIMULATOR_USER_GUIDE.md`](SIMULATOR_USER_GUIDE.md), [`README.md`](README.md), [`FLASHING_INSTRUCTIONS.md`](FLASHING_INSTRUCTIONS.md), [`GEMINI.md`](GEMINI.md), and Web Simulator (`index.html`).
+* **Notes:**
+  * **Team Composition Clarification:** Formally updated all documentation and assistant rules to accurately represent the entire family running crew:
+    - **7 Runners on Course:** 2 brothers, 1 sister, 1 brother-in-law, and 3 sisters-in-law running the WDW 10K together.
+    - **Engineering / Build Team:** 3 brothers (2 of whom are running, plus 1 supporting brother helping build, code, and test).
+  * **Redesigned 6-Step Quickstart Guide (`SIMULATOR_QUICKSTART.md`):**
+    - Completely restructured the quickstart guide around the exact 6-step beginner journey requested by the team:
+      1. *How to Start the Simulator:* Running `python simulator.py` and opening `localhost:8000`.
+      2. *How to Add a Graphic or Start with a Preset:* Selecting from 7 pre-calibrated float presets or uploading custom PNG/JPEG and scattering 100 color-matched LEDs above the #1952 bib.
+      3. *How to Create Animation Groups:* Marquee-selecting LEDs on the canvas (`Shift + Drag`) and saving as a named group with dedicated timeline track lanes.
+      4. *How to Use Groups to Create Cues:* Adding cue cards, selecting effects, setting duration, and slipping/trimming clips directly on the interactive timeline.
+      5. *How to Create a Fleet Show:* Switching to Tab 6, chaining choreography blocks across the 30-second multi-shirt timeline, firing with `[F]`/`Spacebar`, and running corral roll call checks.
+      6. *How to Deploy Shows onto ESP32 Boards:* Using the 1-click browser Web Serial flasher or desktop scripts to bake float identities into NVS flash memory.
+    - Included the race-morning button cheatsheet (single-tap 30s show, double-tap 4s roll call, 5s config hold with charging meter).
+  * **UI Text Cleanliness:** Updated strings in `simulator/index.html` (battery power budget and corral radar headers/tooltips) to refer to all runners.
 
 ### Entry: Simulator Quickstart Guide (TL;DR Edition) Published
 * **Date:** 2026-09-26

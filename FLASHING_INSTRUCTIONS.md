@@ -1,7 +1,7 @@
-# ⚡ Quick Flashing Guide for the Brothers
+# ⚡ Quick Flashing Guide for Family Runners & Crew
 ### How to flash your ESP32 with the latest parade costume firmware in under 60 seconds
 
-Hey guys! If you just want to flash your ESP32 board without learning Git, Google Antigravity, or dealing with complex toolchains, this guide gives you **3 easy ways to do it**.
+Hey everyone! If you just want to flash your ESP32 board without learning Git, Google Antigravity, or dealing with complex toolchains, this guide gives you **3 easy ways to do it**.
 
 ---
 
@@ -100,7 +100,7 @@ Once your board is flashed:
 - **Autonomous Float Program (Baseline Default):** 
   When you power on your ESP32 with your battery bank, the costume runs its complete independent float sequence (custom artwork colors, starlight sparkles, wheel spin chases, breathing glow, and electrical waves) across all 200 LEDs (100 front + 100 back).
 - **4-Second Rapid Attendance Roll Call (Double-Tap BOOT Button):**
-  - **Check Fleet Attendance in Corral:** Quickly double-tap the **BOOT button (GPIO 0)** on *any* brother's board (two taps within 400ms) to trigger the **4-Second Rapid Attendance Wave**.
+  - **Check Fleet Attendance in Corral:** Quickly double-tap the **BOOT button (GPIO 0)** on *any* runner's board (two taps within 400ms) to trigger the **4-Second Rapid Attendance Wave**.
   - **Choreography:** Floats 1 through 7 light up one-by-one in their signature colors (500ms each) down the line while the other 6 stay dark, followed by all 7 costumes flashing bright emerald green together twice! At 4 seconds, every costume automatically returns to baseline. Requires zero phones or Wi-Fi!
 - **One-Shot 30-Second Fleet Routine (Single Tap BOOT Button):**
   - **Start Fleet Show:** Tap the onboard **BOOT button (GPIO 0)** once (< 600ms) to trigger the **30-Second Synchronized Fleet Routine** once. The ESP32 broadcasts a wireless ESP-NOW trigger packet (`0x30`) so all runner costumes initiate the 30-second routine simultaneously. After 30.0 seconds, all shirts automatically return to their individual float programs.

@@ -2,6 +2,8 @@
 
 This project powers synchronized, addressable LED lighting across **7 runner costumes** inspired by Disney's **Main Street Electrical Parade** for the Walt Disney World 10K.
 
+Worn by our **7-member family running team** (2 brothers, 1 sister, 1 brother-in-law, and 3 sisters-in-law) and engineered with love by the **3 brothers** (2 running, 1 supporting behind the scenes).
+
 ---
 
 ## The Concept
@@ -45,7 +47,7 @@ An **ESP32** microcontroller on each runner coordinates lighting patterns wirele
 
 ---
 
-## ⚡ Quick Start for Runners / Brothers (No Git Required!)
+## ⚡ Quick Start for Family Runners & Crew (No Git Required!)
 
 You don't need Git, Google Antigravity, or any programming tools:
 1. **Download:** Click the green **`<> Code`** button above ➔ **`Download ZIP`** (or [Click Here to Download ZIP](https://github.com/kidmd/WDW-costumes/archive/refs/heads/main.zip)).
