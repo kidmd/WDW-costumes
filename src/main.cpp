@@ -510,10 +510,10 @@ void handleFloatConfigMode() {
 
     // Entry alert: Flash white 3 times
     for (int f = 0; f < 3; f++) {
-        fill_solid(leds, NUM_LEDS, CRGB(200, 200, 200));
+        fill_solid(leds, NUM_LEDS, CRGB(240, 240, 240));
         FastLED.show();
         digitalWrite(STATUS_LED_PIN, HIGH);
-        delay(100);
+        delay(140);
         fill_solid(leds, NUM_LEDS, CRGB::Black);
         FastLED.show();
         digitalWrite(STATUS_LED_PIN, LOW);
@@ -1021,6 +1021,8 @@ void loop() {
                 longHoldHandled = true;
                 pendingTapCount = 0; // Cancel any pending taps
                 handleFloatConfigMode();
+                buttonWasPressed = false;
+                return;
             } else if (holdElapsed >= 1000) {
                 // Progressive charging indicator (1 to 4 LEDs lit in white)
                 uint8_t chargeCount = (holdElapsed / 1000); // 1, 2, 3, or 4
@@ -1029,13 +1031,14 @@ void loop() {
                 // Show charging indicator on first 'chargeCount' LEDs, remaining LEDs black
                 for (int i = 0; i < FRONT_LEDS; i++) {
                     if (i < chargeCount) {
-                        leds[i] = CRGB(220, 220, 220); // Crisp white charging indicator
+                        leds[i] = CRGB(255, 255, 255); // Crisp full-white charging indicator
                     } else {
                         leds[i] = CRGB::Black;
                     }
                 }
                 duplicateFrontToBack();
                 FastLED.show();
+                return; // Stop loop here so baseline show does not overwrite charging LEDs!
             }
         }
     } else if (!isButtonPressed && buttonWasPressed) {
