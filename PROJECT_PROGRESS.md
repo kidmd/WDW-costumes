@@ -92,6 +92,22 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### Entry: Simulator Quickstart Guide (TL;DR Edition) Published
+* **Date:** 2026-09-26
+* **Milestone:** Milestone 5 - Documentation Ergonomics & Runner Onboarding
+* **Status:** Operational & Published across [`SIMULATOR_QUICKSTART.md`](SIMULATOR_QUICKSTART.md), [`SIMULATOR_USER_GUIDE.md`](SIMULATOR_USER_GUIDE.md), and [`README.md`](README.md).
+* **Notes:**
+  * **Addressed TL;DR Friction:** Created a punchy, highly readable 2-minute quickstart guide specifically designed for the brothers and runners who need actionable answers fast without wading through the full 90-page technical manual.
+  * **Core Sections Covered:**
+    1. *10-Second Launch:* Starting the server and opening `localhost:8000`.
+    2. *3-Zone Layout at a Glance:* Workspace tabs, center canvas, inspector sidebar, and master timeline bar.
+    3. *"I Just Want To..." Workflow Cheatsheet:* One-step recipes for picking float presets, moving/trimming timeline clips, firing the 30-second synchronized fleet show, and checking pre-race corral radar.
+    4. *Live Wi-Fi Streaming to Real LEDs:* Setting up the bench test with IP routing or direct `MSEP-Costume-AP` hotspot.
+    5. *Flashing for Race Day:* 1-click in-simulator USB flashing, browser Web Serial flashing, and double-click desktop scripts.
+    6. *The Golden On-Costume Button Rule:* Race-morning cheat sheet for single-tap (30s show), double-tap (4s rapid attendance wave), 5s hold (Float ID config), and early abort safety.
+    7. *Consolidated Keyboard & Gesture Matrix:* Quick table for hotkeys, canvas navigation, and timeline trimming.
+  * **Cross-Linked Across Ecosystem:** Connected from `README.md`, top notice banner of `SIMULATOR_USER_GUIDE.md`, and project documentation indices.
+
 ### Entry: Interactive Drag-to-Move Timeline Clips & Edge Trimming Handles
 * **Date:** 2026-09-26
 * **Milestone:** Milestone 4 - Single Shirt Master Timeline NLE Editing & Ergonomics

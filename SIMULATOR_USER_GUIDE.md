@@ -5,6 +5,8 @@ Welcome to the **Main Street Electrical Parade (MSEP) Costume Simulator** — a 
 
 This guide walks you through every feature of the simulator, from placing and wiring your physical LEDs to orchestrating multi-layer 90-second parade show routines, live streaming to your ESP32, and compiling standalone firmware.
 
+> ⚡ **Short on time?** Check out the 2-minute [**Simulator Quickstart Guide (TL;DR)**](SIMULATOR_QUICKSTART.md) for quick-reference shortcuts, clip dragging/trimming, and flasher workflows!
+
 ---
 
 ## Table of Contents
