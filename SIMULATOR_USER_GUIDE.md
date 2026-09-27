@@ -104,8 +104,8 @@ The simulator features a streamlined, modern workspace inspired by creative suit
 
 ### The 6 Sidebar Tabs (2-Row Grid Layout)
 The sidebar navigation is organized into a clean **2-row × 3-column grid** that guarantees all 6 task buttons fit comfortably inside the 410px sidebar without any button clipping or horizontal scrolling:
-- **Row 1:** `🎨 Layout` | `👥 Groups` | `✨ Effects`
-- **Row 2:** `🎬 Show` | `⚡ Deploy` | `🏃 Fleet`
+- **Row 1:** `🎨 Layout` | `✨ Effects` | `👥 Groups`
+- **Row 2:** `🎬 Show` | `🏃 Fleet` | `⚡ Deploy`
 
 1. **🎨 Tab 1: Layout ("The Canvas Studio"):**
    - **🎭 Active Parade Float Banner & 7-Shirt Quick Switcher:** Unmistakable banner at the very top of the Layout tab showing exactly which float is being edited: Float number (#01 to #07), character name, parade role (`👑 Fleet Leader (Broadcast)` / `📡 Follower Float`), signature accent color, and lineup tag.
@@ -123,41 +123,39 @@ The sidebar navigation is organized into a clean **2-row × 3-column grid** that
      - Wiring Trace and Bulb Number inspection toggles.
    - **Quick-Link to Groups:** Fast-jump button to the Groups Tab for drawing paths or stamping fireworks.
 
-2. **👥 Tab 2: Groups ("Group Creation Hub & Manager"):**
-   - **LED Allocation Overview Box:** Real-time visual progress bar tracking how many LEDs are assigned to animation groups versus unassigned.
-   - **Unified Group Creation Hub:** 3 dedicated creation modes:
-     - 📦 **From Selection:** Save or update groups directly from canvas marquee box selections.
-     - ✏️ **Click-to-Draw Path:** Sequentially place LEDs directly on the shirt with a checkable option to auto-rearrange remaining unassigned LEDs to fill the graphic.
-     - 🎆 **Fireworks Stamper:** Relocated radial starburst generator with serpentine wiring, radius scale, and color themes.
-   - **Active Groups Browser:** Card list of all configured groups with instant selection, badge metrics, and deletion controls.
-
-3. **✨ Tab 3: Effects ("The FX Lab"):**
+2. **✨ Tab 2: Effects ("Garment Baseline Atmosphere"):**
+   - **Baseline Concept Clarity:** Clarifies the core architecture: these patterns, speeds, and sparkle dynamics set the continuous default look for all LEDs not assigned to a specialized 👥 Animation Group (such as spinning wheels, eyes, scales, or fireworks). Specialized groups overlay their own animations on top of this background canvas.
+   - **Real-Time Baseline Allocation Badge:** Displays live coverage metrics (e.g. `100 of 100 LEDs (100% Baseline)` or `64 of 100 LEDs (64% Baseline)` when groups exist).
    - **Baseline Lighting Pattern:** Select from 8 continuous baseline patterns (Steady Sparkle, Color Match, Fire Breath, Traveling Wave, Marquee, Fireworks, Photo Mode).
    - **Live Dynamics Tuning:** Speed/Tempo BPM slider, Sparkle Frequency, Green Hue/Shade, Master Brightness, LED Bloom Glow Size.
 
-4. **🎬 Tab 4: Director ("The Show Director"):**
+3. **👥 Tab 3: Groups ("Group Creation Hub & Manager"):**
+   - **LED Allocation Overview Box:** Real-time visual progress bar tracking how many LEDs are assigned to animation groups versus unassigned baseline.
+   - **Unified Group Creation Hub:** 3 dedicated creation modes:
+     - 📦 **From Selection:** Save or update groups directly from canvas marquee box selections.
+     - ✏️ **Click-to-Draw Path:** Sequentially place LEDs directly on the shirt with a checkable option to auto-rearrange remaining unassigned LEDs to fill the graphic.
+     - 🎆 **Fireworks Stamper:** Radial starburst generator with serpentine wiring, radius scale, and color themes.
+   - **Active Groups Browser:** Card list of all configured groups with instant selection, badge metrics, and deletion controls.
+
+4. **🎬 Tab 4: Show ("The Show Director & Cue Timeline"):**
    - **Parade Cue Director:** 90-second Sequence Loop controls (Sequence ON/OFF, Loop duration, Example routines).
    - **Active Cue List:** Clean, scrollable cue cards displaying start time, duration, target layer/group, effect, BPM, and quick delete.
    - **Quick Cue Insertion:** `➕ Add Cue at Playhead`, `⚡ Auto-Schedule Bursts`.
 
-5. **⚡ Tab 5: Hardware ("The Workshop"):**
+5. **🏃 Tab 5: Fleet ("7-Shirt Fleet Lineup & Routine Director"):**
+   - **👑 30s Choreographed Parade Routine:**
+     - Fully customizable multi-phase fleet routine coordinating all 7 costumes.
+     - One-shot activation (`[Space]` / `[F]` hotkeys or button) with automatic return to baseline float programs upon completion.
+     - Early return / emergency cancel support.
+   - **Corral Radar & Roll Call:** Live ping monitoring of all 7 ESP32 nodes in the starting corral.
+   - **Battery Life & Power Budget Calculator:** Real-time milliamp consumption modeling for 10K race endurance on portable 2.0A USB banks.
+   - **7 Runner Slot Cards (Bib #01 to #07):** Assign presets to each runner, view live LED counts and pattern pills.
+   - **1-Click Bidirectional Editing:** Jump any runner's preset directly into the Single Shirt editor (`✏️ Edit in Single View`), or copy the active single-shirt editor design to any runner or all 7 runners (`📥 Assign Editor`).
+
+6. **⚡ Tab 6: Deploy ("The Workshop & Hardware Hub"):**
    - **USB Standalone Flashing:** Auto-detected COM port, connection status badge, 1-Click Flash firmware, View/Copy C++ code modal.
    - **📡 Real-Time Wi-Fi Live Stream:** Stream live colors & animations directly to physical LEDs over Wi-Fi without flashing ROM. Wi-Fi credentials modal.
    - **Web Serial Flasher:** Quick launch button for zero-install browser-based flashing.
-
-6. **🏃 Tab 6: Fleet ("7-Shirt Fleet Lineup & Preset Manager"):**
-   - **👑 20s Choreographed Parade Routine (Default Mode):**
-     - **0.0s – 1.0s (1s):** All 7 shirts go totally black (off / unlit).
-     - **1.0s – 2.0s (1s):** Light wave sweeps forward from Float 1 through Float 7 in a randomly chosen standard Disney color (`Belle Gold`, `Alice Cyan`, `Coral Rose`, `Electric Pink`, `Electric Lime`, `Cinderella Blue`, `Cheshire Violet`, `Deep Indigo`, `Flame Orange`, `Starlight White`, `Dragon Green`, or `Mickey Red`). Features an incandescent crest and an authentic **~2-shirt trailing decay** of decreasing brightness in the wave color.
-     - **2.0s – 3.0s (1s):** The wave reverses direction, sweeping from Float 7 back to Float 1 in the **exact same color** as the forward pass, complete with matching ~2-shirt trailing falloff.
-     - **3.0s – 8.0s (5s):** **All-Fleet Wave Color Pulse (5s Synchronized Breath).** All LEDs across all 7 shirts ignite in the wave color and execute 3 slow, majestic synchronized breath pulses (intensity oscillating between 28% and 100% with an incandescent white flare at peak breath).
-     - **8.0s – 10.0s (2s):** Spectacular sparkle storm combining high-frequency **Starlight White flashes** (`#ffffff`), brilliant **wave color bursts**, and pastel blended shimmers across all 7 shirts (700 LEDs).
-     - **10.0s – 11.0s (1s):** All 7 shirts go totally black (off / unlit) for 1 second.
-     - **11.0s – 20.0s (9s):** Return to individual float preset programs (animation groups, artwork colors, custom effects) for 9 seconds.
-     - **Loop & Color Rotation:** Resets every 20.0 seconds and automatically rotates to a new, non-repeating random standard color for the next cycle. Live canvas banner and sidebar badges display the active wave color, phase, and countdown.
-   - **Alternative Modes:** 🌊 **Wave Sync** (continuous ESP-NOW wave with adjustable speed slider), ⚡ **Free-Run** (autonomous presets), and 🎬 **Master Show** (synchronized 90s cue timeline).
-   - **7 Runner Slot Cards (Bib #01 to #07):** Assign presets to each runner, view live LED counts and pattern pills.
-   - **1-Click Bidirectional Editing:** Jump any runner's preset directly into the Single Shirt editor (`✏️ Edit in Single View`), or copy the active single-shirt editor design to any runner or all 7 runners (`📥 Assign Editor`).
 
 ### 💡 Contextual Inspector Dock (Docked at Bottom of Sidebar)
 Instead of taking up vertical space in the middle of your workflow:
@@ -453,7 +451,7 @@ The Master Timeline dynamically switches display and transport logic depending o
      - `🎬 Sequence: ON/OFF`: Toggles between free-run baseline pattern and multi-cue show script.
    - **Interaction:** Clicking cue blocks seeks playhead time and highlights the corresponding cue card in the Parade Cue Director.
 
-2. **Fleet Tab Mode (`Fleet View` / Tab 6):**
+2. **Fleet Tab Mode (`Fleet View` / Tab 5):**
    - **Ruler & Duration:** 0.0s to 30.0s (or active fleet show duration) with decimal second ticks.
    - **Fleet Show Choreography Track:** Displays color-coded fleet block bars with block icons (e.g. 🌊 Forward Wave, 💓 Fleet Pulse, ⛈️ Sparkle Storm) spanning all 7 costumes.
    - **Transport Controls:**
@@ -579,7 +577,7 @@ Click **"💻 Export FastLED C++ Code"** (Section 5) to open the code modal:
 
 ## 13. 7-Shirt Fleet Show Creator & Preset Manager
 
-The simulator includes a dedicated **7-Shirt Fleet Show Creator & Preset Manager** (Tab 6 in the sidebar navigation or via the top header's **"7-Shirt Fleet Lineup"** view toggle).
+The simulator includes a dedicated **7-Shirt Fleet Show Creator & Preset Manager** (Tab 5 in the sidebar navigation or via the top header's **"7-Shirt Fleet Lineup"** view toggle).
 
 This feature coordinates costume profiles, LED mapping, and real-time animation synchronization across all 7 runners in the Main Street Electrical Parade fleet, while providing a powerful block-based choreography studio for authoring synchronized fleet routines.
 

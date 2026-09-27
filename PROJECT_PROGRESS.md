@@ -93,6 +93,22 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### Entry: Sidebar Tab Workflow Reordering & Garment Baseline Clarity
+* **Date:** 2026-09-26
+* **Milestone:** Milestone 5 - Studio Workflow & Architectural Clarity
+* **Status:** Operational & Synchronized across `simulator/index.html`, `simulator/app.js?v=39`, `SIMULATOR_USER_GUIDE.md`, and `PROJECT_PROGRESS.md`.
+* **Notes:**
+  * **Logical Tab Sequencing:** Reordered the 6 sidebar tabs to follow the natural creative pipeline:
+    1. `🎨 Layout`: Garment canvas, artwork placement, 100-LED contour/scatter, wiring route optimization, and runDisney 10K bib clearance.
+    2. `✨ Effects`: Garment baseline atmosphere setting the continuous default look for all non-grouped LEDs.
+    3. `👥 Groups`: Creation and management of specialized animation groups (wheels, eyes, breathing crests, starburst fireworks) running atop the baseline.
+    4. `🎬 Show`: Parade Cue Director and 90-second theatrical cue sequencing.
+    5. `🏃 Fleet`: 7-shirt fleet lineup, 30-second synchronized routine creator, pre-race corral radar, and battery endurance budget.
+    6. `⚡ Deploy`: USB standalone firmware flashing, ESP-NOW fleet broadcasting, and real-time Wi-Fi live streaming.
+  * **Garment Baseline Concept Card & Dynamic Badge:** Added an Imagineering concept card to the Effects tab with a live LED allocation badge (`#fxUngroupedCountBadge`) dynamically displaying non-grouped LED coverage (e.g., `100 of 100 LEDs (100% Baseline)` or `64 of 100 LEDs (64% Baseline)`) updated in real time as groups are created, modified, or loaded.
+  * **Seamless 2x3 Grid Navigation:** Perfectly preserved 2-row × 3-column button grid in the 410px sidebar (Row 1: Layout | Effects | Groups; Row 2: Show | Fleet | Deploy) with zero button clipping.
+  * **Cache Busting:** Bumped application script tag to `app.js?v=39` in `simulator/index.html`.
+
 ### Entry: Custom Profile Persistence & Server Disk Preset Association
 * **Date:** 2026-09-26
 * **Milestone:** Milestone 5 - Profile Persistence Integrity

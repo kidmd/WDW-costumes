@@ -110,33 +110,36 @@
         <!-- Controls Sidebar with Task-Oriented Tabs & Contextual Inspector -->
         <div class="controls-sidebar">
 
-            <!-- 5 Task-Oriented Sidebar Tabs -->
+            <!-- 6 Task-Oriented Sidebar Tabs (2-Row Grid: Row 1 = Costume Design, Row 2 = Show & Hardware) -->
             <div class="sidebar-tab-nav" role="tablist">
-                <button type="button" id="tabBtnLayout" class="sidebar-tab-btn active" data-tab="tabLayout" title="Costume Artwork, Placement & Fireworks">
+                <!-- Row 1: Costume Visual Design -->
+                <button type="button" id="tabBtnLayout" class="sidebar-tab-btn active" data-tab="tabLayout" title="Costume Artwork, Placement & Wiring Route">
                     <span class="tab-icon">🎨</span>
                     <span class="tab-label">Layout</span>
+                </button>
+                <button type="button" id="tabBtnFx" class="sidebar-tab-btn" data-tab="tabFx" title="Baseline Lighting Patterns for Non-Grouped LEDs">
+                    <span class="tab-icon">✨</span>
+                    <span class="tab-label">Effects</span>
                 </button>
                 <button type="button" id="tabBtnGroups" class="sidebar-tab-btn" data-tab="tabGroups" title="Browse and Manage Animation Groups">
                     <span class="tab-icon">👥</span>
                     <span class="tab-label">Groups</span>
                     <span id="tabGroupsBadge" class="tab-count-badge">0</span>
                 </button>
-                <button type="button" id="tabBtnFx" class="sidebar-tab-btn" data-tab="tabFx" title="Lighting Patterns & Animation Dynamics">
-                    <span class="tab-icon">✨</span>
-                    <span class="tab-label">Effects</span>
-                </button>
+
+                <!-- Row 2: Show Sequencing & Hardware Deployment -->
                 <button type="button" id="tabBtnDirector" class="sidebar-tab-btn" data-tab="tabDirector" title="Parade 90s Show Sequence & Master Cues">
                     <span class="tab-icon">🎬</span>
                     <span class="tab-label">Show</span>
-                </button>
-                <button type="button" id="tabBtnHardware" class="sidebar-tab-btn" data-tab="tabHardware" title="USB Flashing & Live Wi-Fi Stream">
-                    <span class="tab-icon">⚡</span>
-                    <span class="tab-label">Deploy</span>
                 </button>
                 <button type="button" id="tabBtnFleet" class="sidebar-tab-btn" data-tab="tabFleet" title="7-Shirt Fleet Lineup & Preset Assignments">
                     <span class="tab-icon">🏃</span>
                     <span class="tab-label">Fleet</span>
                     <span id="tabFleetBadge" class="tab-count-badge">7</span>
+                </button>
+                <button type="button" id="tabBtnHardware" class="sidebar-tab-btn" data-tab="tabHardware" title="USB Flashing & Live Wi-Fi Stream">
+                    <span class="tab-icon">⚡</span>
+                    <span class="tab-label">Deploy</span>
                 </button>
             </div>
 
@@ -317,7 +320,100 @@
                 </div>
 
                 <!-- ======================================================== -->
-                <!-- TAB 2: ANIMATION GROUPS MANAGER                          -->
+                <!-- TAB 2: LIGHTING EFFECTS (BASELINE GARMENT ATMOSPHERE)     -->
+                <!-- ======================================================== -->
+                <div id="tabFx" class="tab-panel">
+
+                    <!-- Garment Baseline Concept Clarification Card -->
+                    <div class="control-section" style="background: linear-gradient(135deg, rgba(56, 189, 248, 0.12) 0%, rgba(13, 17, 23, 0.85) 100%); border: 1px solid rgba(56, 189, 248, 0.35); border-radius: 8px; padding: 10px 12px; margin-bottom: 8px;">
+                        <div style="display: flex; align-items: flex-start; gap: 8px;">
+                            <span style="font-size: 20px; line-height: 1;">✨</span>
+                            <div style="flex: 1;">
+                                <div style="font-size: 12px; font-weight: 700; color: #fff; margin-bottom: 2px;">
+                                    Garment Baseline Lighting (Non-Grouped LEDs)
+                                </div>
+                                <p style="font-size: 11px; color: #8b949e; line-height: 1.4; margin: 0;">
+                                    These patterns, speeds, and sparkle dynamics set the <strong>continuous default look</strong> for all LEDs not assigned to a specialized <strong style="color: #38bdf8;">👥 Animation Group</strong> (such as spinning wheels, eyes, scales, or fireworks).
+                                </p>
+                            </div>
+                        </div>
+                        <div id="fxUngroupedLedsChip" style="margin-top: 8px; padding-top: 8px; border-top: 1px solid rgba(255,255,255,0.08); display: flex; align-items: center; justify-content: space-between; font-size: 11px;">
+                            <span style="color: var(--text-muted);">Baseline Coverage:</span>
+                            <span id="fxUngroupedCountBadge" style="background: rgba(56, 189, 248, 0.2); color: #38bdf8; font-weight: 700; padding: 1px 7px; border-radius: 10px; font-size: 10px; border: 1px solid rgba(56, 189, 248, 0.4);">100 of 100 LEDs (100% Baseline)</span>
+                        </div>
+                    </div>
+
+                    <!-- Baseline Lighting Pattern Selector -->
+                    <div class="control-section">
+                        <div class="section-title">
+                            <span>Default Background Pattern</span>
+                        </div>
+                        <div class="control-group">
+                            <label style="font-size: 11px; color: var(--text-muted); margin-bottom: 4px; display: block;">Pattern running on non-grouped bulbs:</label>
+                            <select id="patternSelect" style="background: #21262d; color: #fff; border: 1px solid #30363d; padding: 8px 12px; border-radius: 6px; outline: none; font-size: 13px; width: 100%;">
+                                <option value="steady_sparkle">✨ Steady Colors + Occasional Sparkle (No Breathing)</option>
+                                <option value="color_match">🌈 Color-Matched Breathing Glow + Sparkles</option>
+                                <option value="dragon_sparkle">🐉 Pete's Dragon: Green Glow + White Sparkles</option>
+                                <option value="fire_breath">🔥 Snout Fire-Breathing Pulse</option>
+                                <option value="traveling_wave">🌊 Traveling Parade Wave (ESP-NOW)</option>
+                                <option value="marquee">🎪 Classic Incandescent Marquee Chase</option>
+                                <option value="fireworks">🎆 Fireworks (Radiating Starburst)</option>
+                                <option value="photo_mode">📸 Castle Photo Mode (Solid Bright)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Live Dynamics & Tuning -->
+                    <div class="control-section">
+                        <div class="section-title">
+                            <span>Baseline Dynamics Tuning</span>
+                        </div>
+                        
+                        <div class="control-group">
+                            <div class="label-row">
+                                <span>Speed / Tempo</span>
+                                <span id="speedVal" class="val-badge">120 BPM</span>
+                            </div>
+                            <input type="range" id="speedSlider" min="60" max="220" value="120">
+                        </div>
+
+                        <div class="control-group">
+                            <div class="label-row">
+                                <span>Sparkle Frequency</span>
+                                <span id="sparkleVal" class="val-badge">1.5%</span>
+                            </div>
+                            <input type="range" id="sparkleSlider" min="0" max="10" step="0.05" value="1.5">
+                        </div>
+
+                        <div class="control-group">
+                            <div class="label-row">
+                                <span>Green Hue (Shade)</span>
+                                <span id="hueVal" class="val-badge">140° (Emerald)</span>
+                            </div>
+                            <input type="range" id="hueSlider" min="90" max="170" value="140">
+                        </div>
+
+                        <div class="control-group">
+                            <div class="label-row">
+                                <span>Brightness</span>
+                                <span id="brightVal" class="val-badge">80%</span>
+                            </div>
+                            <input type="range" id="brightnessSlider" min="10" max="100" value="80">
+                        </div>
+
+                        <div class="control-group">
+                            <div class="label-row">
+                                <span>LED Bloom / Glow Size</span>
+                                <span id="glowVal" class="val-badge">22px</span>
+                            </div>
+                            <input type="range" id="glowSlider" min="8" max="40" value="22">
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- ======================================================== -->
+                <!-- TAB 3: ANIMATION GROUPS MANAGER                          -->
                 <!-- ======================================================== -->
                 <div id="tabGroups" class="tab-panel">
 
@@ -707,80 +803,7 @@
                 </div>
 
                 <!-- ======================================================== -->
-                <!-- TAB 3: LIGHTING & FX                                     -->
-                <!-- ======================================================== -->
-                <div id="tabFx" class="tab-panel">
-
-                    <!-- Baseline Lighting Pattern -->
-                    <div class="control-section">
-                        <div class="section-title">
-                            <span>Baseline Lighting Pattern (Free-Run)</span>
-                        </div>
-                        <div class="control-group">
-                            <select id="patternSelect" style="background: #21262d; color: #fff; border: 1px solid #30363d; padding: 8px 12px; border-radius: 6px; outline: none; font-size: 13px;">
-                                <option value="steady_sparkle">✨ Steady Colors + Occasional Sparkle (No Breathing)</option>
-                                <option value="color_match">🌈 Color-Matched Breathing Glow + Sparkles</option>
-                                <option value="dragon_sparkle">🐉 Pete's Dragon: Green Glow + White Sparkles</option>
-                                <option value="fire_breath">🔥 Snout Fire-Breathing Pulse</option>
-                                <option value="traveling_wave">🌊 Traveling Parade Wave (ESP-NOW)</option>
-                                <option value="marquee">🎪 Classic Incandescent Marquee Chase</option>
-                                <option value="fireworks">🎆 Fireworks (Radiating Starburst)</option>
-                                <option value="photo_mode">📸 Castle Photo Mode (Solid Bright)</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <!-- Live Dynamics & Tuning -->
-                    <div class="control-section">
-                        <div class="section-title">
-                            <span>Live Dynamics Tuning</span>
-                        </div>
-                        
-                        <div class="control-group">
-                            <div class="label-row">
-                                <span>Speed / Tempo</span>
-                                <span id="speedVal" class="val-badge">120 BPM</span>
-                            </div>
-                            <input type="range" id="speedSlider" min="60" max="220" value="120">
-                        </div>
-
-                        <div class="control-group">
-                            <div class="label-row">
-                                <span>Sparkle Frequency</span>
-                                <span id="sparkleVal" class="val-badge">1.5%</span>
-                            </div>
-                            <input type="range" id="sparkleSlider" min="0" max="10" step="0.05" value="1.5">
-                        </div>
-
-                        <div class="control-group">
-                            <div class="label-row">
-                                <span>Green Hue (Shade)</span>
-                                <span id="hueVal" class="val-badge">140° (Emerald)</span>
-                            </div>
-                            <input type="range" id="hueSlider" min="90" max="170" value="140">
-                        </div>
-
-                        <div class="control-group">
-                            <div class="label-row">
-                                <span>Brightness</span>
-                                <span id="brightVal" class="val-badge">80%</span>
-                            </div>
-                            <input type="range" id="brightnessSlider" min="10" max="100" value="80">
-                        </div>
-
-                        <div class="control-group">
-                            <div class="label-row">
-                                <span>LED Bloom / Glow Size</span>
-                                <span id="glowVal" class="val-badge">22px</span>
-                            </div>
-                            <input type="range" id="glowSlider" min="8" max="40" value="22">
-                        </div>
-                    </div>
-
-                </div>
-
-                <!-- ======================================================== -->
-                <!-- TAB 3: SHOW DIRECTOR                                     -->
+                <!-- TAB 4: SHOW DIRECTOR                                     -->
                 <!-- ======================================================== -->
                 <div id="tabDirector" class="tab-panel">
 
@@ -822,196 +845,7 @@
                 </div>
 
                 <!-- ======================================================== -->
-                <!-- TAB 4: DEPLOY & HARDWARE                                 -->
-                <!-- ======================================================== -->
-                <div id="tabHardware" class="tab-panel">
-
-                    <!-- ESP32 Standalone Flashing (USB) -->
-                    <div class="control-section">
-                        <div class="section-title">
-                            <span>ESP32 Standalone Flashing (USB)</span>
-                        </div>
-                        <p style="font-size: 12px; color: var(--text-muted); line-height: 1.4;">
-                            Send your active LED layout, sampled colors, and sparkle mode directly to the ESP32 over USB in one click.
-                        </p>
-
-                        <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 6px; margin-bottom: 8px; padding: 6px 10px; background: #0d1117; border-radius: 6px; border: 1px solid var(--border-color);">
-                            <div style="display: flex; align-items: center; gap: 6px; font-size: 12px;">
-                                <span id="serialIndicatorDot" style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #8b949e;"></span>
-                                <span id="serialStatusText" style="color: var(--text-muted);">Checking USB connection...</span>
-                            </div>
-                            <button id="refreshSerialBtn" style="background: transparent; border: none; color: var(--accent-cyan); font-size: 12px; cursor: pointer;" title="Refresh COM Port Status">🔄</button>
-                        </div>
-
-                        <div style="margin-top: 8px; margin-bottom: 8px;">
-                            <label style="font-size: 11px; color: var(--text-muted); display: block; margin-bottom: 3px;">Assigned Float Role (Bakes into ESP32 NVS):</label>
-                            <select id="flashFloatSelect" style="width: 100%; font-size: 11px; padding: 6px 8px; background: #0d1117; color: var(--text-main); border: 1px solid var(--border-color); border-radius: 6px;">
-                                <option value="0">🎲 Generic / Auto (BOOT Button Selectable)</option>
-                                <option value="1">🚂 Float 1: The Train (👑 Master Leader)</option>
-                                <option value="2">🥁 Float 2: The Title Drum</option>
-                                <option value="3">🩵 Float 3: Cinderella's Coach</option>
-                                <option value="4">🏴‍☠️ Float 4: Peter Pan's Pirate Ship</option>
-                                <option value="5">🐘 Float 5: Dumbo the Flying Elephant</option>
-                                <option value="6" selected>🐉 Float 6: Pete's Dragon</option>
-                                <option value="7">🦅 Float 7: To Honor America</option>
-                            </select>
-                        </div>
-
-                        <div style="display: flex; flex-direction: column; gap: 8px;">
-                            <button id="flashEsp32Btn" class="action-btn primary" style="font-weight: 600; font-size: 13px; padding: 10px; background: linear-gradient(135deg, #238636, #2ea043);">
-                                ⚡ Flash Standalone Firmware (USB)
-                            </button>
-                            <button id="exportCodeBtn" class="action-btn" style="font-size: 12px;">
-                                📋 View / Copy C++ Code
-                            </button>
-                        </div>
-                    </div>
-
-                    <!-- Real-Time Wi-Fi Live Stream -->
-                    <div class="control-section" style="border: 1px solid #1f6feb; background: rgba(31, 111, 235, 0.08);">
-                        <div class="section-title" style="color: #58a6ff; display: flex; align-items: center; justify-content: space-between;">
-                            <span>📡 Real-Time Wi-Fi Stream</span>
-                            <span style="font-size: 10px; background: #1f6feb; color: #fff; padding: 2px 6px; border-radius: 10px; font-weight: 600;">LIVE</span>
-                        </div>
-                        <p style="font-size: 11px; color: var(--text-muted); line-height: 1.4; margin-top: 4px;">
-                            Test colors and animations on physical LEDs in real time over Wi-Fi without flashing ROM!
-                        </p>
-
-                        <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 8px; margin-bottom: 10px; padding: 6px 10px; background: #0d1117; border-radius: 6px; border: 1px solid var(--border-color);">
-                            <div style="display: flex; align-items: center; gap: 6px; font-size: 12px;">
-                                <span id="wifiStreamDot" style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #8b949e;"></span>
-                                <span id="wifiStreamStatusText" style="color: var(--text-muted);">Standby (Off)</span>
-                            </div>
-                            <button id="wifiSettingsBtn" type="button" onclick="openWifiModal()" class="action-btn" style="flex: none; background: #21262d; border: 1px solid #388bfd; color: #58a6ff; font-size: 11px; padding: 4px 8px; border-radius: 4px; cursor: pointer; display: flex; align-items: center; gap: 4px;" title="Configure Wi-Fi Credentials">⚙️ Settings</button>
-                        </div>
-
-                        <button id="toggleWifiStreamBtn" class="action-btn primary" style="font-weight: 600; font-size: 13px; padding: 10px; background: linear-gradient(135deg, #1f6feb, #388bfd); width: 100%;">
-                            ▶ Start Live Wi-Fi Stream
-                        </button>
-                    </div>
-
-                    <!-- Web Flasher Zero-Install Link -->
-                    <div class="control-section">
-                        <div class="section-title">
-                            <span>Zero-Install Browser Flasher</span>
-                        </div>
-                        <p style="font-size: 11px; color: var(--text-muted); line-height: 1.4;">
-                            Flash any of the 7 runner ESP32s directly through Chrome or Edge via Web Serial — no software or drivers required.
-                        </p>
-                        <a href="/web_flasher.html" target="_blank" class="action-btn" style="text-decoration: none; font-size: 12px; padding: 8px; margin-top: 4px; color: #3fb950; border-color: #2ea043; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 6px;">
-                            🚀 Open Web Serial Flasher Tab
-                        </a>
-                    </div>
-
-                    <!-- Race-Day Battery Life & Power Budget Calculator -->
-                    <div class="control-section" id="powerBudgetSection" style="border: 1px solid #238636; background: rgba(35, 134, 54, 0.06);">
-                        <div class="section-title" style="color: #3fb950; display: flex; align-items: center; justify-content: space-between;">
-                            <span>🔋 Race-Day Battery & Power Budget</span>
-                            <span id="powerSafetyBadge" style="font-size: 10px; background: rgba(46, 160, 67, 0.25); color: #3fb950; padding: 2px 6px; border-radius: 10px; font-weight: 600; border: 1px solid rgba(46, 160, 67, 0.4);">SAFE • 2.0A LIMIT</span>
-                        </div>
-                        <p style="font-size: 11px; color: var(--text-muted); line-height: 1.4; margin-top: 4px; margin-bottom: 10px;">
-                            Model race-day battery consumption across all 200 LEDs (100 front + 100 back) to guarantee no runner goes dark on course!
-                        </p>
-
-                        <!-- Primary Result Cards: Projected Battery Remaining & Total Runtime -->
-                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 12px;">
-                            <div style="background: #0d1117; border: 1px solid #30363d; border-radius: 8px; padding: 10px; text-align: center;">
-                                <div style="font-size: 10px; color: var(--text-muted); text-transform: uppercase; font-weight: 600; margin-bottom: 4px;">At Finish Line</div>
-                                <div id="batteryRemainingPct" style="font-size: 22px; font-weight: 700; color: #3fb950; font-family: monospace;">74%</div>
-                                <div id="batteryRemainingSubtext" style="font-size: 10px; color: #8b949e; margin-top: 2px;">🟢 High Buffer</div>
-                            </div>
-                            <div style="background: #0d1117; border: 1px solid #30363d; border-radius: 8px; padding: 10px; text-align: center;">
-                                <div style="font-size: 10px; color: var(--text-muted); text-transform: uppercase; font-weight: 600; margin-bottom: 4px;">Total Battery Life</div>
-                                <div id="batteryTotalHours" style="font-size: 22px; font-weight: 700; color: #58a6ff; font-family: monospace;">5.8 hrs</div>
-                                <div id="batteryTotalHoursSubtext" style="font-size: 10px; color: #8b949e; margin-top: 2px;">To 0% Empty</div>
-                            </div>
-                        </div>
-
-                        <!-- Progress Bar Visualizer for Finish Line Battery -->
-                        <div style="background: #0d1117; border-radius: 6px; padding: 6px 8px; border: 1px solid #30363d; margin-bottom: 12px;">
-                            <div style="display: flex; justify-content: space-between; font-size: 10px; color: var(--text-muted); margin-bottom: 4px;">
-                                <span>Battery Remaining at Finish</span>
-                                <span id="batteryUsedVsTotalText" style="font-family: monospace; color: #c9d1d9;">Used: 1,820 / 7,000 mAh (5V)</span>
-                            </div>
-                            <div style="height: 10px; background: #21262d; border-radius: 5px; overflow: hidden; position: relative;">
-                                <div id="batteryProgressBar" style="height: 100%; width: 74%; background: linear-gradient(90deg, #2ea043, #3fb950); border-radius: 5px; transition: width 0.3s ease, background 0.3s ease;"></div>
-                            </div>
-                        </div>
-
-                        <!-- Interactive Controls -->
-                        <div style="display: flex; flex-direction: column; gap: 10px; background: #0d1117; padding: 10px; border-radius: 8px; border: 1px solid #30363d; margin-bottom: 12px;">
-                            <!-- Power Bank Size Selector -->
-                            <div>
-                                <div style="display: flex; justify-content: space-between; font-size: 11px; margin-bottom: 4px;">
-                                    <label for="powerBankSizeSelect" style="color: var(--text-muted); font-weight: 600;">USB Power Bank Size:</label>
-                                    <span id="powerBankWhLabel" style="color: #58a6ff; font-family: monospace;">37.0 Wh (~7000 mAh @ 5V)</span>
-                                </div>
-                                <select id="powerBankSizeSelect" style="width: 100%; background: #161b22; color: #fff; border: 1px solid #30363d; border-radius: 5px; padding: 6px 8px; font-size: 11px;">
-                                    <option value="5000">🔋 5,000 mAh Slim Pocket Pack (~18.5 Wh)</option>
-                                    <option value="10000" selected>🔋 10,000 mAh Standard Pack (~37.0 Wh - Recommended)</option>
-                                    <option value="15000">🔋 15,000 mAh Endurance Pack (~55.5 Wh)</option>
-                                    <option value="20000">🔋 20,000 mAh High-Capacity Pack (~74.0 Wh)</option>
-                                </select>
-                            </div>
-
-                            <!-- Target Race Duration / Corral Time Slider -->
-                            <div>
-                                <div style="display: flex; justify-content: space-between; font-size: 11px; margin-bottom: 4px;">
-                                    <label for="raceDurationRange" style="color: var(--text-muted); font-weight: 600;">Race + Corral Duration:</label>
-                                    <span id="raceDurationLabel" style="color: #ffc107; font-weight: 700; font-family: monospace;">90 min (1.5 hrs)</span>
-                                </div>
-                                <input type="range" id="raceDurationRange" min="30" max="240" step="15" value="90" style="width: 100%;">
-                                <div style="display: flex; justify-content: space-between; font-size: 9.5px; color: var(--text-muted); margin-top: 2px;">
-                                    <span>30m (Sprint)</span>
-                                    <span>75m (10K Pace)</span>
-                                    <span>90m (Photo Walk)</span>
-                                    <span>4h (Corral Max)</span>
-                                </div>
-                            </div>
-
-                            <!-- Fleet Show Trigger Frequency -->
-                            <div>
-                                <div style="display: flex; justify-content: space-between; font-size: 11px; margin-bottom: 4px;">
-                                    <label for="showFrequencySelect" style="color: var(--text-muted); font-weight: 600;">30s Fleet Show Trigger Cadence:</label>
-                                    <span id="showCountLabel" style="color: #d2a8ff; font-family: monospace;">22 Shows (~11 min)</span>
-                                </div>
-                                <select id="showFrequencySelect" style="width: 100%; background: #161b22; color: #fff; border: 1px solid #30363d; border-radius: 5px; padding: 6px 8px; font-size: 11px;">
-                                    <option value="2">👑 Showstopper: Every 2 minutes (~30 shows/hr)</option>
-                                    <option value="4" selected>✨ Balanced: Every 4 minutes (~15 shows/hr - Recommended)</option>
-                                    <option value="8">📸 Occasional: Every 8 minutes (~7.5 shows/hr)</option>
-                                    <option value="0">⚡ Baseline Only: 0 fleet routine triggers</option>
-                                </select>
-                            </div>
-                        </div>
-
-                        <!-- Float Power Breakdown Table (Expandable) -->
-                        <div style="background: #0d1117; border-radius: 8px; border: 1px solid #30363d; overflow: hidden;">
-                            <div id="powerBreakdownToggle" style="padding: 8px 10px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; user-select: none;">
-                                <span style="font-size: 11px; font-weight: 600; color: #58a6ff;">📊 7-Float Power Roster Breakdown</span>
-                                <span id="powerBreakdownToggleIcon" style="font-size: 10px; color: var(--text-muted);">▼ Show</span>
-                            </div>
-                            <div id="powerBreakdownContent" style="display: none; padding: 6px 10px 10px 10px; border-top: 1px solid #21262d;">
-                                <table style="width: 100%; border-collapse: collapse; font-size: 10px; text-align: left;">
-                                    <thead>
-                                        <tr style="color: var(--text-muted); border-bottom: 1px solid #30363d;">
-                                            <th style="padding: 4px 2px;">Float # & Unit</th>
-                                            <th style="padding: 4px 2px; text-align: right;">Baseline mA</th>
-                                            <th style="padding: 4px 2px; text-align: right;">Show Peak</th>
-                                            <th style="padding: 4px 2px; text-align: right;">Finish %</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="powerBreakdownTableBody">
-                                        <!-- Dynamically generated rows for Floats 1 - 7 -->
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                    </div>
-
-                </div>
-
-                <!-- ======================================================== -->
-                <!-- TAB 6: 7-SHIRT FLEET LINEUP                              -->
+                <!-- TAB 5: 7-SHIRT FLEET LINEUP                              -->
                 <!-- ======================================================== -->
                 <div id="tabFleet" class="tab-panel">
                     
@@ -1260,6 +1094,195 @@
                             <!-- 7 Float Radar Status Cards Grid -->
                             <div id="fleetRadarGrid" style="display: flex; flex-direction: column; gap: 6px;">
                                 <!-- Populated dynamically by app.js -->
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- ======================================================== -->
+                <!-- TAB 6: DEPLOY & HARDWARE                                 -->
+                <!-- ======================================================== -->
+                <div id="tabHardware" class="tab-panel">
+
+                    <!-- ESP32 Standalone Flashing (USB) -->
+                    <div class="control-section">
+                        <div class="section-title">
+                            <span>ESP32 Standalone Flashing (USB)</span>
+                        </div>
+                        <p style="font-size: 12px; color: var(--text-muted); line-height: 1.4;">
+                            Send your active LED layout, sampled colors, and sparkle mode directly to the ESP32 over USB in one click.
+                        </p>
+
+                        <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 6px; margin-bottom: 8px; padding: 6px 10px; background: #0d1117; border-radius: 6px; border: 1px solid var(--border-color);">
+                            <div style="display: flex; align-items: center; gap: 6px; font-size: 12px;">
+                                <span id="serialIndicatorDot" style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #8b949e;"></span>
+                                <span id="serialStatusText" style="color: var(--text-muted);">Checking USB connection...</span>
+                            </div>
+                            <button id="refreshSerialBtn" style="background: transparent; border: none; color: var(--accent-cyan); font-size: 12px; cursor: pointer;" title="Refresh COM Port Status">🔄</button>
+                        </div>
+
+                        <div style="margin-top: 8px; margin-bottom: 8px;">
+                            <label style="font-size: 11px; color: var(--text-muted); display: block; margin-bottom: 3px;">Assigned Float Role (Bakes into ESP32 NVS):</label>
+                            <select id="flashFloatSelect" style="width: 100%; font-size: 11px; padding: 6px 8px; background: #0d1117; color: var(--text-main); border: 1px solid var(--border-color); border-radius: 6px;">
+                                <option value="0">🎲 Generic / Auto (BOOT Button Selectable)</option>
+                                <option value="1">🚂 Float 1: The Train (👑 Master Leader)</option>
+                                <option value="2">🥁 Float 2: The Title Drum</option>
+                                <option value="3">🩵 Float 3: Cinderella's Coach</option>
+                                <option value="4">🏴‍☠️ Float 4: Peter Pan's Pirate Ship</option>
+                                <option value="5">🐘 Float 5: Dumbo the Flying Elephant</option>
+                                <option value="6" selected>🐉 Float 6: Pete's Dragon</option>
+                                <option value="7">🦅 Float 7: To Honor America</option>
+                            </select>
+                        </div>
+
+                        <div style="display: flex; flex-direction: column; gap: 8px;">
+                            <button id="flashEsp32Btn" class="action-btn primary" style="font-weight: 600; font-size: 13px; padding: 10px; background: linear-gradient(135deg, #238636, #2ea043);">
+                                ⚡ Flash Standalone Firmware (USB)
+                            </button>
+                            <button id="exportCodeBtn" class="action-btn" style="font-size: 12px;">
+                                📋 View / Copy C++ Code
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Real-Time Wi-Fi Live Stream -->
+                    <div class="control-section" style="border: 1px solid #1f6feb; background: rgba(31, 111, 235, 0.08);">
+                        <div class="section-title" style="color: #58a6ff; display: flex; align-items: center; justify-content: space-between;">
+                            <span>📡 Real-Time Wi-Fi Stream</span>
+                            <span style="font-size: 10px; background: #1f6feb; color: #fff; padding: 2px 6px; border-radius: 10px; font-weight: 600;">LIVE</span>
+                        </div>
+                        <p style="font-size: 11px; color: var(--text-muted); line-height: 1.4; margin-top: 4px;">
+                            Test colors and animations on physical LEDs in real time over Wi-Fi without flashing ROM!
+                        </p>
+
+                        <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 8px; margin-bottom: 10px; padding: 6px 10px; background: #0d1117; border-radius: 6px; border: 1px solid var(--border-color);">
+                            <div style="display: flex; align-items: center; gap: 6px; font-size: 12px;">
+                                <span id="wifiStreamDot" style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #8b949e;"></span>
+                                <span id="wifiStreamStatusText" style="color: var(--text-muted);">Standby (Off)</span>
+                            </div>
+                            <button id="wifiSettingsBtn" type="button" onclick="openWifiModal()" class="action-btn" style="flex: none; background: #21262d; border: 1px solid #388bfd; color: #58a6ff; font-size: 11px; padding: 4px 8px; border-radius: 4px; cursor: pointer; display: flex; align-items: center; gap: 4px;" title="Configure Wi-Fi Credentials">⚙️ Settings</button>
+                        </div>
+
+                        <button id="toggleWifiStreamBtn" class="action-btn primary" style="font-weight: 600; font-size: 13px; padding: 10px; background: linear-gradient(135deg, #1f6feb, #388bfd); width: 100%;">
+                            ▶ Start Live Wi-Fi Stream
+                        </button>
+                    </div>
+
+                    <!-- Web Flasher Zero-Install Link -->
+                    <div class="control-section">
+                        <div class="section-title">
+                            <span>Zero-Install Browser Flasher</span>
+                        </div>
+                        <p style="font-size: 11px; color: var(--text-muted); line-height: 1.4;">
+                            Flash any of the 7 runner ESP32s directly through Chrome or Edge via Web Serial — no software or drivers required.
+                        </p>
+                        <a href="/web_flasher.html" target="_blank" class="action-btn" style="text-decoration: none; font-size: 12px; padding: 8px; margin-top: 4px; color: #3fb950; border-color: #2ea043; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 6px;">
+                            🚀 Open Web Serial Flasher Tab
+                        </a>
+                    </div>
+
+                    <!-- Race-Day Battery Life & Power Budget Calculator -->
+                    <div class="control-section" id="powerBudgetSection" style="border: 1px solid #238636; background: rgba(35, 134, 54, 0.06);">
+                        <div class="section-title" style="color: #3fb950; display: flex; align-items: center; justify-content: space-between;">
+                            <span>🔋 Race-Day Battery & Power Budget</span>
+                            <span id="powerSafetyBadge" style="font-size: 10px; background: rgba(46, 160, 67, 0.25); color: #3fb950; padding: 2px 6px; border-radius: 10px; font-weight: 600; border: 1px solid rgba(46, 160, 67, 0.4);">SAFE • 2.0A LIMIT</span>
+                        </div>
+                        <p style="font-size: 11px; color: var(--text-muted); line-height: 1.4; margin-top: 4px; margin-bottom: 10px;">
+                            Model race-day battery consumption across all 200 LEDs (100 front + 100 back) to guarantee no runner goes dark on course!
+                        </p>
+
+                        <!-- Primary Result Cards: Projected Battery Remaining & Total Runtime -->
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 12px;">
+                            <div style="background: #0d1117; border: 1px solid #30363d; border-radius: 8px; padding: 10px; text-align: center;">
+                                <div style="font-size: 10px; color: var(--text-muted); text-transform: uppercase; font-weight: 600; margin-bottom: 4px;">At Finish Line</div>
+                                <div id="batteryRemainingPct" style="font-size: 22px; font-weight: 700; color: #3fb950; font-family: monospace;">74%</div>
+                                <div id="batteryRemainingSubtext" style="font-size: 10px; color: #8b949e; margin-top: 2px;">🟢 High Buffer</div>
+                            </div>
+                            <div style="background: #0d1117; border: 1px solid #30363d; border-radius: 8px; padding: 10px; text-align: center;">
+                                <div style="font-size: 10px; color: var(--text-muted); text-transform: uppercase; font-weight: 600; margin-bottom: 4px;">Total Battery Life</div>
+                                <div id="batteryTotalHours" style="font-size: 22px; font-weight: 700; color: #58a6ff; font-family: monospace;">5.8 hrs</div>
+                                <div id="batteryTotalHoursSubtext" style="font-size: 10px; color: #8b949e; margin-top: 2px;">To 0% Empty</div>
+                            </div>
+                        </div>
+
+                        <!-- Progress Bar Visualizer for Finish Line Battery -->
+                        <div style="background: #0d1117; border-radius: 6px; padding: 6px 8px; border: 1px solid #30363d; margin-bottom: 12px;">
+                            <div style="display: flex; justify-content: space-between; font-size: 10px; color: var(--text-muted); margin-bottom: 4px;">
+                                <span>Battery Remaining at Finish</span>
+                                <span id="batteryUsedVsTotalText" style="font-family: monospace; color: #c9d1d9;">Used: 1,820 / 7,000 mAh (5V)</span>
+                            </div>
+                            <div style="height: 10px; background: #21262d; border-radius: 5px; overflow: hidden; position: relative;">
+                                <div id="batteryProgressBar" style="height: 100%; width: 74%; background: linear-gradient(90deg, #2ea043, #3fb950); border-radius: 5px; transition: width 0.3s ease, background 0.3s ease;"></div>
+                            </div>
+                        </div>
+
+                        <!-- Interactive Controls -->
+                        <div style="display: flex; flex-direction: column; gap: 10px; background: #0d1117; padding: 10px; border-radius: 8px; border: 1px solid #30363d; margin-bottom: 12px;">
+                            <!-- Power Bank Size Selector -->
+                            <div>
+                                <div style="display: flex; justify-content: space-between; font-size: 11px; margin-bottom: 4px;">
+                                    <label for="powerBankSizeSelect" style="color: var(--text-muted); font-weight: 600;">USB Power Bank Size:</label>
+                                    <span id="powerBankWhLabel" style="color: #58a6ff; font-family: monospace;">37.0 Wh (~7000 mAh @ 5V)</span>
+                                </div>
+                                <select id="powerBankSizeSelect" style="width: 100%; background: #161b22; color: #fff; border: 1px solid #30363d; border-radius: 5px; padding: 6px 8px; font-size: 11px;">
+                                    <option value="5000">🔋 5,000 mAh Slim Pocket Pack (~18.5 Wh)</option>
+                                    <option value="10000" selected>🔋 10,000 mAh Standard Pack (~37.0 Wh - Recommended)</option>
+                                    <option value="15000">🔋 15,000 mAh Endurance Pack (~55.5 Wh)</option>
+                                    <option value="20000">🔋 20,000 mAh High-Capacity Pack (~74.0 Wh)</option>
+                                </select>
+                            </div>
+
+                            <!-- Target Race Duration / Corral Time Slider -->
+                            <div>
+                                <div style="display: flex; justify-content: space-between; font-size: 11px; margin-bottom: 4px;">
+                                    <label for="raceDurationRange" style="color: var(--text-muted); font-weight: 600;">Race + Corral Duration:</label>
+                                    <span id="raceDurationLabel" style="color: #ffc107; font-weight: 700; font-family: monospace;">90 min (1.5 hrs)</span>
+                                </div>
+                                <input type="range" id="raceDurationRange" min="30" max="240" step="15" value="90" style="width: 100%;">
+                                <div style="display: flex; justify-content: space-between; font-size: 9.5px; color: var(--text-muted); margin-top: 2px;">
+                                    <span>30m (Sprint)</span>
+                                    <span>75m (10K Pace)</span>
+                                    <span>90m (Photo Walk)</span>
+                                    <span>4h (Corral Max)</span>
+                                </div>
+                            </div>
+
+                            <!-- Fleet Show Trigger Frequency -->
+                            <div>
+                                <div style="display: flex; justify-content: space-between; font-size: 11px; margin-bottom: 4px;">
+                                    <label for="showFrequencySelect" style="color: var(--text-muted); font-weight: 600;">30s Fleet Show Trigger Cadence:</label>
+                                    <span id="showCountLabel" style="color: #d2a8ff; font-family: monospace;">22 Shows (~11 min)</span>
+                                </div>
+                                <select id="showFrequencySelect" style="width: 100%; background: #161b22; color: #fff; border: 1px solid #30363d; border-radius: 5px; padding: 6px 8px; font-size: 11px;">
+                                    <option value="2">👑 Showstopper: Every 2 minutes (~30 shows/hr)</option>
+                                    <option value="4" selected>✨ Balanced: Every 4 minutes (~15 shows/hr - Recommended)</option>
+                                    <option value="8">📸 Occasional: Every 8 minutes (~7.5 shows/hr)</option>
+                                    <option value="0">⚡ Baseline Only: 0 fleet routine triggers</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Float Power Breakdown Table (Expandable) -->
+                        <div style="background: #0d1117; border-radius: 8px; border: 1px solid #30363d; overflow: hidden;">
+                            <div id="powerBreakdownToggle" style="padding: 8px 10px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; user-select: none;">
+                                <span style="font-size: 11px; font-weight: 600; color: #58a6ff;">📊 7-Float Power Roster Breakdown</span>
+                                <span id="powerBreakdownToggleIcon" style="font-size: 10px; color: var(--text-muted);">▼ Show</span>
+                            </div>
+                            <div id="powerBreakdownContent" style="display: none; padding: 6px 10px 10px 10px; border-top: 1px solid #21262d;">
+                                <table style="width: 100%; border-collapse: collapse; font-size: 10px; text-align: left;">
+                                    <thead>
+                                        <tr style="color: var(--text-muted); border-bottom: 1px solid #30363d;">
+                                            <th style="padding: 4px 2px;">Float # & Unit</th>
+                                            <th style="padding: 4px 2px; text-align: right;">Baseline mA</th>
+                                            <th style="padding: 4px 2px; text-align: right;">Show Peak</th>
+                                            <th style="padding: 4px 2px; text-align: right;">Finish %</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="powerBreakdownTableBody">
+                                        <!-- Dynamically generated rows for Floats 1 - 7 -->
+                                    </tbody>
+                                </table>
                             </div>
                         </div>
                     </div>
@@ -1628,6 +1651,6 @@
         </div>
     </div>
 
-    <script src="app.js?v=38"></script>
+    <script src="app.js?v=39"></script>
 </body>
 </html>

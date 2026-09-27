@@ -5911,6 +5911,11 @@ function renderActiveGroupsList() {
     if (groupedPctText) groupedPctText.textContent = `${assignedPct}% (${assignedCount} LEDs)`;
     if (ungroupedPctText) ungroupedPctText.textContent = `${unassignedPct}% (${unassignedCount} LEDs)`;
 
+    const fxUngroupedBadge = document.getElementById('fxUngroupedCountBadge');
+    if (fxUngroupedBadge) {
+        fxUngroupedBadge.textContent = `${unassignedCount} of ${totalCostumeLeds} LEDs (${unassignedPct}% Baseline)`;
+    }
+
     if (!container) return;
     container.innerHTML = '';
 
