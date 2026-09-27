@@ -912,7 +912,7 @@ void setup() {
         Serial.printf("[WIFI] Connecting to Home Wi-Fi '%s'...\n", WIFI_SSID);
         WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
         uint32_t t0 = millis();
-        while (WiFi.status() != WL_CONNECTED && millis() - t0 < 3500) {
+        while (WiFi.status() != WL_CONNECTED && millis() - t0 < 8000) {
             delay(100);
             Serial.print(".");
             digitalWrite(STATUS_LED_PIN, !digitalRead(STATUS_LED_PIN));
@@ -922,10 +922,23 @@ void setup() {
 #endif
 
     if (WiFi.status() == WL_CONNECTED) {
+        digitalWrite(STATUS_LED_PIN, HIGH); // Solid blue LED = Connected to Home Wi-Fi!
         Serial.print("[WIFI] Connected! IP Address: ");
         Serial.println(WiFi.localIP());
     } else {
-        Serial.println("[WIFI] Running in direct offline mode (ESP-NOW + Local Broadcast ready).");
+        digitalWrite(STATUS_LED_PIN, LOW); // LED OFF = Offline / Fallback
+        Serial.printf("[WIFI] Could NOT connect to '%s' (Status code: %d)\n", WIFI_SSID, WiFi.status());
+        Serial.println("[WIFI] Scanning available 2.4 GHz Wi-Fi networks in range...");
+        int numNets = WiFi.scanNetworks();
+        if (numNets == 0) {
+            Serial.println("  [SCAN] No 2.4 GHz networks found in range.");
+        } else {
+            for (int i = 0; i < numNets; i++) {
+                Serial.printf("  [SCAN] #%d: '%s' (Signal: %d dBm, Ch: %d)\n", 
+                              i + 1, WiFi.SSID(i).c_str(), WiFi.RSSI(i), WiFi.channel(i));
+            }
+        }
+        Serial.println("[WIFI] Running in direct offline mode (ESP-NOW ready).");
 #if defined(AP_SSID)
         // Also enable SoftAP so laptops can connect directly without home router
         WiFi.mode(WIFI_AP_STA);
