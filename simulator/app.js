@@ -1893,7 +1893,7 @@ const DEFAULT_FLEET_ROSTER = [
     { slot: 1, num: "02", name: "Title Drum", tag: "THE DRUM", color: "#ffb703", accent: "Gold", preset: "server:title_drum.json", defaultGraphic: "title_drum" },
     { slot: 2, num: "03", name: "The Turtle", tag: "TURTLE", color: "#2ec4b6", accent: "Teal", preset: "server:spinning_turtle.json", defaultGraphic: "spinning_turtle" },
     { slot: 3, num: "04", name: "The Snail", tag: "SNAIL", color: "#ff007f", accent: "Pink", preset: "server:spinning_snail.json", defaultGraphic: "spinning_snail" },
-    { slot: 4, num: "05", name: "Cinderella", tag: "COACH", color: "#48cae4", accent: "Cyan", preset: "server:carriage_nohorses.json", defaultGraphic: "carriage_nohorses" },
+    { slot: 4, num: "05", name: "Cinderella", tag: "COACH", color: "#48cae4", accent: "Cyan", preset: "server:cinderellas_coach_both_wheel.json", defaultGraphic: "cinderella_coach" },
     { slot: 5, num: "06", name: "Pete's Dragon", tag: "ELLIOTT", color: "#00ff88", accent: "Green", preset: "server:petes_dragon.json", defaultGraphic: "builtin_dragon" },
     { slot: 6, num: "07", name: "Flag & Eagle", tag: "HONOR AMERICA", color: "#3a86ff", accent: "Patriotic", preset: "server:honor_america_eagle.json", defaultGraphic: "honor_america_eagle" }
 ];
@@ -4559,10 +4559,10 @@ async function loadFleetLineupFromStorage() {
         fleetRunners = JSON.parse(JSON.stringify(DEFAULT_FLEET_ROSTER));
     }
 
-    // Ensure slot 4 (Cinderella/Coach) always defaults to carriage_nohorses.json
-    if (fleetRunners[4] && (fleetRunners[4].preset === 'server:cinderellas_coach.json' || !fleetRunners[4].preset || fleetRunners[4].preset.includes('cinderellas_coach'))) {
-        fleetRunners[4].preset = 'server:carriage_nohorses.json';
-        fleetRunners[4].defaultGraphic = 'carriage_nohorses';
+    // Ensure slot 4 (Cinderella/Coach) always defaults to cinderellas_coach_both_wheel.json
+    if (fleetRunners[4] && (fleetRunners[4].preset === 'server:cinderellas_coach.json' || fleetRunners[4].preset === 'server:carriage_nohorses.json' || !fleetRunners[4].preset || fleetRunners[4].preset.includes('cinderellas_coach') || fleetRunners[4].preset.includes('carriage_nohorses'))) {
+        fleetRunners[4].preset = 'server:cinderellas_coach_both_wheel.json';
+        fleetRunners[4].defaultGraphic = 'cinderella_coach';
     }
 
     // Preload all runner presets into cache in parallel
@@ -9561,9 +9561,9 @@ async function loadGraphicPreset(type) {
         'title_drum': 'title_drum.json',
         'spinning_turtle': 'spinning_turtle.json',
         'spinning_snail': 'spinning_snail.json',
-        'cinderellas_coach': 'carriage_nohorses.json',
-        'cinderella_coach': 'carriage_nohorses.json',
-        'carriage_nohorses': 'carriage_nohorses.json',
+        'cinderellas_coach': 'cinderellas_coach_both_wheel.json',
+        'cinderella_coach': 'cinderellas_coach_both_wheel.json',
+        'carriage_nohorses': 'cinderellas_coach_both_wheel.json',
         'builtin_dragon': 'petes_dragon.json',
         'petes_dragon': 'petes_dragon.json',
         'honor_america_eagle': 'honor_america_eagle.json'
