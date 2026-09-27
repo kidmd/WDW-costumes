@@ -104,8 +104,8 @@ The simulator features a streamlined, modern workspace inspired by creative suit
 
 ### The 6 Sidebar Tabs (2-Row Grid Layout)
 The sidebar navigation is organized into a clean **2-row × 3-column grid** that guarantees all 6 task buttons fit comfortably inside the 410px sidebar without any button clipping or horizontal scrolling:
-- **Row 1:** `🎨 Layout` | `✨ Effects` | `👥 Groups`
-- **Row 2:** `🎬 Show` | `🏃 Fleet` | `⚡ Deploy`
+- **Row 1:** `🎨 Layout` | `✨ Ambient` | `👥 Groups`
+- **Row 2:** `🎬 Float Show` | `🏃 Fleet` | `⚡ Deploy`
 
 1. **🎨 Tab 1: Layout ("The Canvas Studio"):**
    - **🎭 Active Parade Float Banner & 7-Shirt Quick Switcher:** Unmistakable banner at the very top of the Layout tab showing exactly which float is being edited: Float number (#01 to #07), character name, parade role (`👑 Fleet Leader (Broadcast)` / `📡 Follower Float`), signature accent color, and lineup tag.
@@ -123,7 +123,7 @@ The sidebar navigation is organized into a clean **2-row × 3-column grid** that
      - Wiring Trace and Bulb Number inspection toggles.
    - **Quick-Link to Groups:** Fast-jump button to the Groups Tab for drawing paths or stamping fireworks.
 
-2. **✨ Tab 2: Effects ("Garment Baseline Atmosphere"):**
+2. **✨ Tab 2: Ambient ("Garment Baseline Atmosphere"):**
    - **Baseline Concept Clarity:** Clarifies the core architecture: these patterns, speeds, and sparkle dynamics set the continuous default look for all LEDs not assigned to a specialized 👥 Animation Group (such as spinning wheels, eyes, scales, or fireworks). Specialized groups overlay their own animations on top of this background canvas.
    - **Real-Time Baseline Allocation Badge:** Displays live coverage metrics (e.g. `100 of 100 LEDs (100% Baseline)` or `64 of 100 LEDs (64% Baseline)` when groups exist).
    - **Baseline Lighting Pattern:** Select from 8 continuous baseline patterns (Steady Sparkle, Color Match, Fire Breath, Traveling Wave, Marquee, Fireworks, Photo Mode).
@@ -137,7 +137,7 @@ The sidebar navigation is organized into a clean **2-row × 3-column grid** that
      - 🎆 **Fireworks Stamper:** Radial starburst generator with serpentine wiring, radius scale, and color themes.
    - **Active Groups Browser:** Card list of all configured groups with instant selection, badge metrics, and deletion controls.
 
-4. **🎬 Tab 4: Show ("Individual Float Routine & Cue Timeline"):**
+4. **🎬 Tab 4: Float Show ("Individual Float Routine & Cue Timeline"):**
    - **Individual Standby Routine Scope:** Explicitly scripts theatrical animation sequences for **this specific float only** (e.g., carriage wheels spinning, dragon breath bursts, locomotive chuffing) while running autonomously between fleet shows.
    - **Fleet Routine Priority & Override:** When a synchronized **Fleet Show** triggers (from Tab 5 or a physical ESP32 button press), the fleet routine temporarily overrides all 7 costumes. As soon as the fleet routine concludes, this float seamlessly resumes its individual show sequence or baseline pattern!
    - **Active Float Banner & Fleet Quick-Jump:** An illuminated header displays the active float currently being sequenced (with signature accent styling) and includes a one-click jump button (`🏃 Fleet Tab ➔`) to transition directly to the 7-shirt fleet coordinator.

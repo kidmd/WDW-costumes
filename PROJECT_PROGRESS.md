@@ -93,6 +93,18 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### Entry: Renamed Tab 2 to Ambient & Tab 4 to Float Show
+* **Date:** 2026-09-26
+* **Milestone:** Milestone 5 - Studio Workflow & Architectural Clarity
+* **Status:** Operational & Synchronized across `simulator/index.html`, `simulator/app.js?v=41`, `SIMULATOR_USER_GUIDE.md`, and `PROJECT_PROGRESS.md`.
+* **Notes:**
+  * **UX Clarity Renaming (Option 2):** Renamed Tab 2 to `✨ Ambient` and Tab 4 to `🎬 Float Show`.
+  * **Eliminated Conceptual Ambiguity:**
+    * `✨ Ambient`: Instantly conveys that this tab controls the background/baseline atmosphere for all non-grouped LEDs.
+    * `🎬 Float Show`: Immediately contrasts with `🏃 Fleet`, clarifying that this timeline scripts the individual float's 90s standby sequence while `Fleet` coordinates all 7 shirts together.
+  * **Grid Layout Preserved:** `🎨 Layout` | `✨ Ambient` | `👥 Groups` / `🎬 Float Show` | `🏃 Fleet` | `⚡ Deploy`.
+  * **Cache Busting:** Bumped application script tag to `app.js?v=41` in `simulator/index.html`.
+
 ### Entry: Individual Float Standby Cue Director & Fleet Show Scope Clarification
 * **Date:** 2026-09-26
 * **Milestone:** Milestone 5 - Studio Workflow & Architectural Clarity
