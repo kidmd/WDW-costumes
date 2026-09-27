@@ -1889,13 +1889,13 @@ function renderSingleShirtView(timeMs) {
 // 7-SHIRT FLEET PARADE VIEW & PRESET MANAGER (NATURAL ATHLETIC PROPORTIONS)
 // ============================================================================
 const DEFAULT_FLEET_ROSTER = [
-    { slot: 0, num: "01", name: "The Train", tag: "CASEY JR.", color: "#e63946", accent: "Red", preset: "server:casey_jr_train.json", defaultGraphic: "casey_jr_train" },
-    { slot: 1, num: "02", name: "Title Drum", tag: "THE DRUM", color: "#ffb703", accent: "Gold", preset: "server:title_drum.json", defaultGraphic: "title_drum" },
-    { slot: 2, num: "03", name: "The Turtle", tag: "TURTLE", color: "#2ec4b6", accent: "Teal", preset: "server:spinning_turtle.json", defaultGraphic: "spinning_turtle" },
-    { slot: 3, num: "04", name: "The Snail", tag: "SNAIL", color: "#ff007f", accent: "Pink", preset: "server:spinning_snail.json", defaultGraphic: "spinning_snail" },
-    { slot: 4, num: "05", name: "Cinderella", tag: "COACH", color: "#48cae4", accent: "Cyan", preset: "server:cinderellas_coach_both_wheel.json", defaultGraphic: "cinderella_coach" },
-    { slot: 5, num: "06", name: "Pete's Dragon", tag: "ELLIOTT", color: "#00ff88", accent: "Green", preset: "server:petes_dragon.json", defaultGraphic: "builtin_dragon" },
-    { slot: 6, num: "07", name: "Flag & Eagle", tag: "HONOR AMERICA", color: "#3a86ff", accent: "Patriotic", preset: "server:honor_america_eagle.json", defaultGraphic: "honor_america_eagle" }
+    { slot: 0, num: "01", icon: "🚂", fullName: "The Train (Casey Jr.)", name: "The Train", tag: "CASEY JR.", color: "#e63946", accent: "Red", role: "👑 Fleet Leader (Broadcast)", preset: "server:casey_jr_train.json", defaultGraphic: "casey_jr_train" },
+    { slot: 1, num: "02", icon: "🥁", fullName: "Electrical Parade Drum", name: "Title Drum", tag: "THE DRUM", color: "#ffb703", accent: "Gold", role: "📡 Follower Float", preset: "server:title_drum.json", defaultGraphic: "title_drum" },
+    { slot: 2, num: "03", icon: "🐢", fullName: "The Spinning Turtle", name: "The Turtle", tag: "TURTLE", color: "#2ec4b6", accent: "Teal", role: "📡 Follower Float", preset: "server:spinning_turtle.json", defaultGraphic: "spinning_turtle" },
+    { slot: 3, num: "04", icon: "🐌", fullName: "The Spinning Snail", name: "The Snail", tag: "SNAIL", color: "#ff007f", accent: "Pink", role: "📡 Follower Float", preset: "server:spinning_snail.json", defaultGraphic: "spinning_snail" },
+    { slot: 4, num: "05", icon: "🩵", fullName: "Cinderella's Coach", name: "Cinderella", tag: "COACH", color: "#48cae4", accent: "Cyan", role: "📡 Follower Float", preset: "server:cinderellas_coach_both_wheel.json", defaultGraphic: "cinderella_coach" },
+    { slot: 5, num: "06", icon: "🐉", fullName: "Pete's Dragon (Elliott)", name: "Pete's Dragon", tag: "ELLIOTT", color: "#00ff88", accent: "Green", role: "📡 Follower Float", preset: "server:petes_dragon.json", defaultGraphic: "builtin_dragon" },
+    { slot: 6, num: "07", icon: "🦅", fullName: "To Honor America", name: "Flag & Eagle", tag: "HONOR AMERICA", color: "#3a86ff", accent: "Patriotic", role: "📡 Follower Float", preset: "server:honor_america_eagle.json", defaultGraphic: "honor_america_eagle" }
 ];
 
 let fleetRunners = JSON.parse(JSON.stringify(DEFAULT_FLEET_ROSTER));
@@ -3574,6 +3574,129 @@ function confirmUnsavedEditsModal(prevRunner, targetRunner) {
     });
 }
 
+// ============================================================================
+// SINGLE SHIRT ACTIVE FLOAT DISPLAY & QUICK SELECTOR
+// ============================================================================
+function updateActiveFloatUI(slot) {
+    if (slot === null || slot === undefined || isNaN(slot) || slot < 0 || slot >= DEFAULT_FLEET_ROSTER.length) {
+        slot = (activeSingleShirtRunnerSlot !== null && activeSingleShirtRunnerSlot >= 0 && activeSingleShirtRunnerSlot < DEFAULT_FLEET_ROSTER.length) ? activeSingleShirtRunnerSlot : 5;
+    }
+    const info = (fleetRunners && fleetRunners[slot]) ? fleetRunners[slot] : DEFAULT_FLEET_ROSTER[slot];
+    if (!info) return;
+
+    const icon = info.icon || (['🚂','🥁','🐢','🐌','🩵','🐉','🦅'][slot] || '👕');
+    const fullName = info.fullName || `${info.name} (${info.tag || 'Float ' + (slot+1)})`;
+    const role = info.role || (slot === 0 ? '👑 Fleet Leader (Broadcast)' : '📡 Follower Float');
+    const color = info.color || '#38bdf8';
+    const num = info.num || `0${slot + 1}`;
+
+    // 1. Update slot indicator text in section title
+    const slotIndicator = document.getElementById('activeFloatSlotIndicator');
+    if (slotIndicator) {
+        slotIndicator.textContent = `FLOAT ${slot + 1} OF 7`;
+        slotIndicator.style.color = color;
+    }
+
+    // 2. Update active float banner
+    const banner = document.getElementById('activeFloatBanner');
+    if (banner) {
+        banner.style.borderColor = `${color}88`;
+        banner.style.boxShadow = `0 2px 10px rgba(0, 0, 0, 0.4), 0 0 14px ${color}22`;
+        banner.style.background = `linear-gradient(135deg, ${color}15 0%, rgba(13, 17, 23, 0.85) 100%)`;
+        banner.innerHTML = `
+            <div style="display: flex; align-items: center; gap: 10px; min-width: 0;">
+                <div style="font-size: 26px; line-height: 1; filter: drop-shadow(0 0 6px ${color}88);">${icon}</div>
+                <div style="min-width: 0;">
+                    <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
+                        <span style="font-size: 10px; font-weight: 800; background: ${color}33; color: ${color}; border: 1px solid ${color}88; padding: 1px 6px; border-radius: 4px; letter-spacing: 0.5px;">FLOAT ${num}</span>
+                        <span style="font-size: 13px; font-weight: 700; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${fullName}</span>
+                    </div>
+                    <div style="font-size: 11px; color: var(--text-muted); margin-top: 2px; display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
+                        <span style="background: ${color}22; color: ${color}; border: 1px solid ${color}55; padding: 0 5px; border-radius: 3px; font-size: 9px; font-weight: 600;">${role}</span>
+                        <span>Lineup Tag: <strong style="color: ${color};">${info.tag || ''}</strong></span>
+                    </div>
+                </div>
+            </div>
+            <div style="text-align: right; flex-shrink: 0; margin-left: 8px;">
+                <span style="font-size: 9px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; display: block;">Accent</span>
+                <span style="font-size: 11px; font-weight: 700; color: ${color};">${info.accent || ''}</span>
+            </div>
+        `;
+    }
+
+    // 3. Update 7-button selector states (buttons 1 to 7)
+    const numBtns = document.querySelectorAll('#floatSelectorGrid .float-num-btn');
+    numBtns.forEach((btn) => {
+        const btnSlot = parseInt(btn.getAttribute('data-slot'), 10);
+        if (btnSlot === slot) {
+            btn.classList.add('active');
+            btn.style.setProperty('--float-accent', color);
+            btn.style.setProperty('--float-accent-bg', `${color}33`);
+            btn.style.setProperty('--float-accent-glow', `${color}66`);
+        } else {
+            btn.classList.remove('active');
+            btn.style.removeProperty('--float-accent');
+            btn.style.removeProperty('--float-accent-bg');
+            btn.style.removeProperty('--float-accent-glow');
+        }
+    });
+
+    // 4. Update Graphic Preset Dropdown selection (if not custom upload)
+    const graphicSelect = document.getElementById('graphicPresetSelect');
+    if (graphicSelect && currentGraphicType !== 'custom_image') {
+        const defaultMap = {
+            0: 'casey_jr_train',
+            1: 'title_drum',
+            2: 'spinning_turtle',
+            3: 'spinning_snail',
+            4: 'cinderellas_coach',
+            5: 'builtin_dragon',
+            6: 'honor_america_eagle'
+        };
+        const targetVal = defaultMap[slot];
+        if (targetVal) {
+            graphicSelect.value = targetVal;
+        }
+    }
+
+    // 5. Update Single Shirt top nav tab button text
+    const singleBtn = document.getElementById('singleViewBtn');
+    if (singleBtn) {
+        singleBtn.innerHTML = `<span>👕</span> Single Shirt (#${slot + 1} ${info.name})`;
+        singleBtn.title = `Currently editing Float #${slot + 1}: ${fullName}`;
+    }
+
+    // 6. Update Canvas Watermark badge
+    const watermark = document.getElementById('canvasFloatWatermark');
+    if (watermark) {
+        if (currentView === 'single') {
+            watermark.style.display = 'flex';
+            watermark.innerHTML = `${icon} <span style="color: #fff; font-weight: 500;">Float ${slot + 1}:</span> <span style="color: ${color}; font-weight: 700;">${fullName}</span>`;
+            watermark.style.borderColor = `${color}88`;
+            watermark.style.boxShadow = `0 4px 14px rgba(0, 0, 0, 0.6), 0 0 10px ${color}44`;
+        } else {
+            watermark.style.display = 'none';
+        }
+    }
+}
+
+// Initialize Single Shirt 7-Button Float Switcher and Controls
+function initSingleShirtFloatSelector() {
+    const numBtns = document.querySelectorAll('#floatSelectorGrid .float-num-btn');
+    numBtns.forEach((btn) => {
+        btn.addEventListener('click', async (e) => {
+            e.preventDefault();
+            const targetSlot = parseInt(btn.getAttribute('data-slot'), 10);
+            if (isNaN(targetSlot)) return;
+            await editRunnerInSingleView(targetSlot);
+            updateActiveFloatUI(targetSlot);
+        });
+    });
+
+    // Initial update of active float UI
+    updateActiveFloatUI(activeSingleShirtRunnerSlot);
+}
+
 // 1-Click Load Runner Preset into Single Shirt Editor
 async function editRunnerInSingleView(slot) {
     try {
@@ -3595,6 +3718,7 @@ async function editRunnerInSingleView(slot) {
             if (zt) zt.style.display = 'flex';
             resetZoom();
             switchSidebarTab(lastSingleShirtTab || 'tabLayout');
+            updateActiveFloatUI(slot);
             showToast(`✏️ Returned to active single-shirt editor for Runner #${runner.num} (${runner.name})`);
             return;
         }
@@ -3659,7 +3783,8 @@ async function editRunnerInSingleView(slot) {
             pSel.value = runner.preset;
         }
 
-        showToast(`✏️ Loaded Runner #${runner.num} (${runner.name}) into Single Shirt Editor`);
+        updateActiveFloatUI(slot);
+        showToast(`✏️ Loaded Float #${runner.num} (${runner.name}) into Single Shirt Editor`);
     } catch (err) {
         console.error("Error editing runner in single view:", err);
         showToast(`⚠️ Error loading runner into editor: ${err.message}`);
@@ -8217,6 +8342,7 @@ document.getElementById('singleViewBtn').addEventListener('click', () => {
     document.getElementById('fleetViewBtn').classList.remove('active');
     const zt = document.querySelector('.zoom-toolbar');
     if (zt) zt.style.display = 'flex';
+    updateActiveFloatUI(activeSingleShirtRunnerSlot);
     const activeTab = document.querySelector('.sidebar-tab-btn.active')?.getAttribute('data-tab');
     if (activeTab === 'tabFleet') {
         switchSidebarTab('tabLayout');
@@ -8233,6 +8359,7 @@ document.getElementById('fleetViewBtn').addEventListener('click', () => {
     document.getElementById('singleViewBtn').classList.remove('active');
     const zt = document.querySelector('.zoom-toolbar');
     if (zt) zt.style.display = 'none';
+    updateActiveFloatUI(activeSingleShirtRunnerSlot);
     switchSidebarTab('tabFleet');
 });
 
@@ -9603,8 +9730,32 @@ async function loadGraphicPreset(type) {
 // Graphic Preset Dropdown Handler
 const graphicPresetSelect = document.getElementById('graphicPresetSelect');
 if (graphicPresetSelect) {
-    graphicPresetSelect.addEventListener('change', (e) => {
-        loadGraphicPreset(e.target.value);
+    graphicPresetSelect.addEventListener('change', async (e) => {
+        const val = e.target.value;
+        if (val === 'custom_upload') {
+            await loadGraphicPreset(val);
+            return;
+        }
+        const floatToSlot = {
+            'casey_jr_train': 0,
+            'title_drum': 1,
+            'spinning_turtle': 2,
+            'spinning_snail': 3,
+            'cinderellas_coach': 4,
+            'cinderella_coach': 4,
+            'carriage_nohorses': 4,
+            'builtin_dragon': 5,
+            'petes_dragon': 5,
+            'honor_america_eagle': 6
+        };
+        const targetSlot = floatToSlot[val];
+        if (targetSlot !== undefined && targetSlot !== activeSingleShirtRunnerSlot) {
+            await editRunnerInSingleView(targetSlot);
+            updateActiveFloatUI(targetSlot);
+        } else {
+            await loadGraphicPreset(val);
+            updateActiveFloatUI(activeSingleShirtRunnerSlot);
+        }
     });
 }
 
@@ -12246,6 +12397,7 @@ function switchSidebarTab(targetTabId) {
         document.getElementById('fleetViewBtn')?.classList.remove('active');
         const zt = document.querySelector('.zoom-toolbar');
         if (zt) zt.style.display = 'flex';
+        updateActiveFloatUI(activeSingleShirtRunnerSlot);
     }
 
     // Master Timeline Synchronization: Individual shirt show vs Fleet show
@@ -12308,6 +12460,7 @@ if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', () => {
         initSidebarTabs();
         initTimelineCollapse();
+        initSingleShirtFloatSelector();
         initFleetManager();
         initPowerBudgetCalculator();
         initFleetRadar();
@@ -12315,6 +12468,7 @@ if (document.readyState === 'loading') {
 } else {
     initSidebarTabs();
     initTimelineCollapse();
+    initSingleShirtFloatSelector();
     initFleetManager();
     initPowerBudgetCalculator();
     initFleetRadar();

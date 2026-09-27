@@ -24,7 +24,13 @@
 
     <div class="main-layout">
         <!-- Canvas Viewport -->
-        <div class="canvas-container">
+        <div class="canvas-container" style="position: relative;">
+            <!-- Canvas Active Float Watermark Badge -->
+            <div id="canvasFloatWatermark" class="canvas-float-watermark">
+                <span id="canvasWatermarkIcon" style="font-size: 14px;">🐉</span>
+                <span id="canvasWatermarkText">FLOAT #6: PETE'S DRAGON</span>
+            </div>
+
             <!-- Floating Zoom & Pan Controls -->
             <div class="zoom-toolbar">
                 <button id="zoomInBtn" class="zoom-btn" title="Zoom In (+ or Scroll Up)">➕</button>
@@ -142,51 +148,64 @@
                 <!-- ======================================================== -->
                 <div id="tabLayout" class="tab-panel active">
                     
-                    <!-- 1. Costume Profiles & Presets -->
-                    <div class="control-section">
-                        <div class="section-title">
-                            <span>Costume Profiles & Presets</span>
+                    <!-- 1. Active Parade Float & Character Artwork -->
+                    <div class="control-section" style="background: linear-gradient(180deg, rgba(31, 111, 235, 0.1), rgba(13, 17, 23, 0.5)); border: 1px solid rgba(56, 139, 253, 0.35); border-radius: 8px; padding: 10px;">
+                        <div class="section-title" style="margin-bottom: 6px;">
+                            <span>🎭 Active Parade Float</span>
+                            <span id="activeFloatSlotIndicator" style="font-size: 10px; color: #58a6ff; font-weight: 600;">FLOAT 6 OF 7</span>
                         </div>
-                        <div class="control-group">
-                            <label style="font-size: 11px; color: var(--text-muted);">Quick-Load Profile:</label>
-                            <select id="presetSelect" style="background: #21262d; color: #fff; border: 1px solid #30363d; padding: 7px 10px; border-radius: 6px; outline: none; font-size: 12px;">
-                                <option value="">-- Select Saved Profile --</option>
-                            </select>
+
+                        <!-- Active Float Banner -->
+                        <div id="activeFloatBanner" class="active-float-banner">
+                            <!-- Populated dynamically by app.js -->
                         </div>
-                        <div class="control-group" style="margin-top: 2px;">
-                            <label style="font-size: 11px; color: var(--text-muted);">Save Configuration:</label>
-                            <div style="display: flex; gap: 6px;">
-                                <input type="text" id="profileNameInput" placeholder="Profile name (e.g. Cinderella Coach V1)" style="flex: 1; background: #0d1117; color: #fff; border: 1px solid #30363d; padding: 6px 10px; border-radius: 6px; font-size: 12px; outline: none;">
-                                <button id="saveProfileBtn" class="action-btn primary" style="flex: none; padding: 6px 12px; font-size: 12px;" title="Save profile to browser cache and server presets">💾 Save</button>
+
+                        <!-- 7-Shirt Selector Buttons (1 to 7) -->
+                        <div class="control-group" style="margin-top: 6px; margin-bottom: 6px;">
+                            <label style="font-size: 11px; color: var(--text-muted); display: flex; justify-content: space-between;">
+                                <span>Switch Shirt:</span>
+                                <span style="font-size: 10px; color: #8b949e;">Click 1–7 to edit</span>
+                            </label>
+                            <div class="float-selector-grid" id="floatSelectorGrid">
+                                <button type="button" class="float-num-btn" data-slot="0" title="Float 1: The Train (Casey Jr.)">
+                                    <span>1</span><span class="float-dot" style="--float-dot-color: #e63946;"></span>
+                                </button>
+                                <button type="button" class="float-num-btn" data-slot="1" title="Float 2: Electrical Parade Drum">
+                                    <span>2</span><span class="float-dot" style="--float-dot-color: #ffb703;"></span>
+                                </button>
+                                <button type="button" class="float-num-btn" data-slot="2" title="Float 3: The Spinning Turtle">
+                                    <span>3</span><span class="float-dot" style="--float-dot-color: #2ec4b6;"></span>
+                                </button>
+                                <button type="button" class="float-num-btn" data-slot="3" title="Float 4: The Spinning Snail">
+                                    <span>4</span><span class="float-dot" style="--float-dot-color: #ff007f;"></span>
+                                </button>
+                                <button type="button" class="float-num-btn" data-slot="4" title="Float 5: Cinderella's Coach (Both Wheels)">
+                                    <span>5</span><span class="float-dot" style="--float-dot-color: #48cae4;"></span>
+                                </button>
+                                <button type="button" class="float-num-btn active" data-slot="5" title="Float 6: Pete's Dragon (Elliott)">
+                                    <span>6</span><span class="float-dot" style="--float-dot-color: #00ff88;"></span>
+                                </button>
+                                <button type="button" class="float-num-btn" data-slot="6" title="Float 7: To Honor America (Flag & Eagle)">
+                                    <span>7</span><span class="float-dot" style="--float-dot-color: #3a86ff;"></span>
+                                </button>
                             </div>
                         </div>
-                        <div class="btn-row" style="margin-top: 4px; display: flex; gap: 6px;">
-                            <button id="downloadProfileBtn" class="action-btn" style="flex: 1; font-size: 11px; padding: 5px 8px;" title="Export and download this full costume configuration as JSON">⬇ Export JSON</button>
-                            <button id="importProfileBtn" class="action-btn" style="flex: 1; font-size: 11px; padding: 5px 8px;" title="Import a previously saved costume configuration JSON file">📂 Import JSON</button>
-                            <input type="file" id="importProfileFileInput" accept=".json,application/json" style="display: none;">
-                        </div>
-                    </div>
 
-                    <!-- 2. Shirt & Artwork Selection -->
-                    <div class="control-section">
-                        <div class="section-title">
-                            <span>Shirt & Character Artwork</span>
-                        </div>
+                        <!-- Float / Character Dropdown Selector -->
                         <div class="control-group">
-                            <label style="font-size: 11px; color: var(--text-muted); margin-bottom: 2px;">Costume Graphic:</label>
+                            <label style="font-size: 11px; color: var(--text-muted); margin-bottom: 2px;">Float / Character Artwork:</label>
                             <select id="graphicPresetSelect" style="background: #21262d; color: #fff; border: 1px solid #30363d; padding: 7px 10px; border-radius: 6px; outline: none; font-size: 12px; width: 100%;">
-                                <optgroup label="Official Electrical Parade Floats">
+                                <optgroup label="Official 7-Float Parade Roster">
                                     <option value="casey_jr_train">🚂 Float 01: Casey Jr. Locomotive</option>
                                     <option value="title_drum">🥁 Float 02: Electrical Parade Drum</option>
                                     <option value="spinning_turtle">🐢 Float 03: The Spinning Turtle</option>
                                     <option value="spinning_snail">🐌 Float 04: The Spinning Snail</option>
-                                    <option value="cinderellas_coach">🎃 Float 05: Cinderella's Coach</option>
-                                    <option value="carriage_nohorses">🎠 Float 05: Carriage (No Horses)</option>
+                                    <option value="cinderellas_coach">🩵 Float 05: Cinderella's Coach (Both Wheels)</option>
                                     <option value="builtin_dragon" selected>🐉 Float 06: Pete's Dragon (Elliott)</option>
                                     <option value="honor_america_eagle">🦅 Float 07: To Honor America (Eagle)</option>
                                 </optgroup>
-                                <optgroup label="Custom Artwork">
-                                    <option value="custom_upload">📁 Upload Custom Artwork...</option>
+                                <optgroup label="Custom Design">
+                                    <option value="custom_upload">📁 Upload Custom Artwork Image...</option>
                                 </optgroup>
                             </select>
                         </div>
@@ -194,7 +213,7 @@
                             <label style="font-size: 11px; color: var(--text-muted); margin-bottom: 2px;">Upload Image (PNG / SVG / JPG):</label>
                             <input type="file" id="artworkUpload" accept="image/*" style="font-size: 11px; color: var(--text-muted); width: 100%;">
                         </div>
-                        <div style="display: flex; flex-direction: column; gap: 6px; margin-top: 4px;">
+                        <div style="display: flex; flex-direction: column; gap: 6px; margin-top: 6px;">
                             <button id="scatterColorBtn" class="action-btn accent" style="font-weight: 600; font-size: 12px; padding: 7px;">
                                 🌈 Scatter 100 LEDs (Color-Match)
                             </button>
@@ -204,8 +223,8 @@
                             <button id="autoOutlineBtn" class="action-btn" style="font-size: 11px; padding: 6px;">
                                 ✨ Auto-Outline Image (50 LEDs)
                             </button>
-                            <button id="resetArtworkBtn" class="action-btn" style="font-size: 11px; display: none;" title="Restore default Pete's Dragon artwork">
-                                🔄 Restore Default Dragon
+                            <button id="resetArtworkBtn" class="action-btn" style="font-size: 11px; display: none;" title="Restore default artwork">
+                                🔄 Restore Preset Defaults
                             </button>
                         </div>
 
@@ -227,6 +246,31 @@
                                 <input type="range" id="bibScaleSlider" min="60" max="140" value="100" style="flex: 2;">
                                 <span id="bibScaleVal" style="font-size: 11px; color: var(--accent-cyan); font-family: monospace; width: 36px; text-align: right;">100%</span>
                             </div>
+                        </div>
+                    </div>
+
+                    <!-- 2. Save & Export Custom Profiles -->
+                    <div class="control-section">
+                        <div class="section-title">
+                            <span>💾 Save & Export Profiles</span>
+                        </div>
+                        <div class="control-group" style="margin-top: 2px;">
+                            <label style="font-size: 11px; color: var(--text-muted);">Save Current Edits:</label>
+                            <div style="display: flex; gap: 6px;">
+                                <input type="text" id="profileNameInput" placeholder="Profile name (e.g. My Custom Coach)" style="flex: 1; background: #0d1117; color: #fff; border: 1px solid #30363d; padding: 6px 10px; border-radius: 6px; font-size: 12px; outline: none;">
+                                <button id="saveProfileBtn" class="action-btn primary" style="flex: none; padding: 6px 12px; font-size: 12px;" title="Save profile to browser cache and server presets">💾 Save</button>
+                            </div>
+                        </div>
+                        <div class="btn-row" style="margin-top: 4px; display: flex; gap: 6px;">
+                            <button id="downloadProfileBtn" class="action-btn" style="flex: 1; font-size: 11px; padding: 5px 8px;" title="Export and download this full costume configuration as JSON">⬇ Export JSON</button>
+                            <button id="importProfileBtn" class="action-btn" style="flex: 1; font-size: 11px; padding: 5px 8px;" title="Import a previously saved costume configuration JSON file">📂 Import JSON</button>
+                            <input type="file" id="importProfileFileInput" accept=".json,application/json" style="display: none;">
+                        </div>
+                        <div class="control-group" style="margin-top: 6px;">
+                            <label style="font-size: 11px; color: var(--text-muted);">Load Saved Profile File:</label>
+                            <select id="presetSelect" style="background: #21262d; color: #fff; border: 1px solid #30363d; padding: 6px 10px; border-radius: 6px; outline: none; font-size: 11px; width: 100%;">
+                                <option value="">-- Select Saved Profile --</option>
+                            </select>
                         </div>
                     </div>
 
@@ -1595,6 +1639,6 @@
         </div>
     </div>
 
-    <script src="app.js?v=34"></script>
+    <script src="app.js?v=35"></script>
 </body>
 </html>

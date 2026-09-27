@@ -1598,6 +1598,94 @@ input:checked + .slider:before {
     color: #ffffff;
 }
 
+/* ==========================================================================
+   7-Float Single Shirt Selector & Active Float Banner
+   ========================================================================== */
+.active-float-banner {
+    background: #0d1117;
+    border: 1px solid var(--float-accent, #388bfd);
+    border-radius: 8px;
+    padding: 10px 12px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    transition: all 0.25s ease;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+    margin-bottom: 8px;
+}
+
+.float-selector-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 5px;
+    margin-bottom: 10px;
+}
+
+.float-num-btn {
+    background: #161b22;
+    border: 1px solid #30363d;
+    color: #8b949e;
+    font-size: 13px;
+    font-weight: 700;
+    padding: 7px 0;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    user-select: none;
+}
+
+.float-num-btn:hover {
+    border-color: #58a6ff;
+    color: #ffffff;
+    background: #21262d;
+    transform: translateY(-1px);
+}
+
+.float-num-btn.active {
+    background: var(--float-accent-bg, rgba(31, 111, 235, 0.25));
+    border-color: var(--float-accent, #58a6ff);
+    color: #ffffff;
+    box-shadow: 0 0 10px var(--float-accent-glow, rgba(88, 166, 255, 0.4));
+}
+
+.float-num-btn .float-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--float-dot-color, #8b949e);
+    transition: transform 0.2s ease;
+}
+
+.float-num-btn.active .float-dot {
+    transform: scale(1.3);
+}
+
+.canvas-float-watermark {
+    position: absolute;
+    top: 14px;
+    left: 14px;
+    pointer-events: none;
+    background: rgba(13, 17, 23, 0.85);
+    border: 1px solid var(--watermark-color, rgba(56, 139, 253, 0.5));
+    border-radius: 20px;
+    padding: 5px 12px;
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    font-size: 11px;
+    font-weight: 700;
+    color: #ffffff;
+    backdrop-filter: blur(6px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+    transition: all 0.25s ease;
+    z-index: 10;
+}
+
 
 
 

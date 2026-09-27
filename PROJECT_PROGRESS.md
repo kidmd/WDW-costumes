@@ -93,6 +93,18 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### Entry: Single Shirt 7-Float Quick Switcher & Active Parade Float Banner
+* **Date:** 2026-09-26
+* **Milestone:** Milestone 5 - Single Shirt Editor Clarity & Direct Fleet Switching
+* **Status:** Operational & Synchronized across `simulator/index.html`, `simulator/style.css`, `simulator/app.js?v=35`, and `SIMULATOR_USER_GUIDE.md`.
+* **Notes:**
+  * **Active Parade Float Banner (`#activeFloatBanner`):** Placed an informative status banner at the top of Section 1 in the Layout tab. Shows the active float number (`FLOAT 01` to `FLOAT 07`), character name, role (`👑 Fleet Leader (Broadcast)` / `📡 Follower Float`), signature accent color, and lineup tag.
+  * **7-Button Quick Switcher Grid (`#floatSelectorGrid`):** Built 7 dedicated 1-click switcher buttons (`[ 1 ]` to `[ 7 ]`) with glowing signature-color indicator dots. Clicking any button immediately switches the single shirt editor to that float, with unsaved-change protection (`confirmUnsavedEditsModal`).
+  * **Canvas Floating Watermark (`#canvasFloatWatermark`):** Added a sleek, translucent floating badge in the top-left corner of the canvas displaying the active float icon, number, and character name, ensuring crystal-clear context while arranging LEDs. Automatically hides when viewing the full fleet.
+  * **Dynamic Navigation Header (`#singleViewBtn`):** Updated the top view button to dynamically show which float is currently loaded (e.g., `👕 Single Shirt (#6 Elliott)`).
+  * **Unified Float & Artwork Picker (`#graphicPresetSelect`):** Replaced duplicate and confusing preset lists by establishing Section 1 as "🎭 Active Parade Float" (with the 7 floats and custom upload) and Section 2 as "💾 Save & Export Profiles" (for saving user modifications or importing JSON files).
+  * **Cache Busting:** Bumped application script tag to `app.js?v=35` in `simulator/index.html`.
+
 ### Entry: Preset Cleanup & Cinderella Both Wheels Fleet Default Integration
 * **Date:** 2026-09-26
 * **Milestone:** Milestone 5 - Fleet Profile Cleanliness & Coach Wheel Choreography

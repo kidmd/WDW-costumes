@@ -108,8 +108,11 @@ The sidebar navigation is organized into a clean **2-row × 3-column grid** that
 - **Row 2:** `🎬 Show` | `⚡ Deploy` | `🏃 Fleet`
 
 1. **🎨 Tab 1: Layout ("The Canvas Studio"):**
-   - **Costume Profiles:** Quick-load, save, and export/import full JSON profiles.
-   - **Shirt & Character Artwork:** Choose from built-in presets (Pete's Dragon, Cinderella's Coach, Carriage No Horses) or upload custom graphics.
+   - **🎭 Active Parade Float Banner & 7-Shirt Quick Switcher:** Unmistakable banner at the very top of the Layout tab showing exactly which float is being edited: Float number (#01 to #07), character name, parade role (`👑 Fleet Leader (Broadcast)` / `📡 Follower Float`), signature accent color, and lineup tag.
+   - **⚡ 7-Button Float Switcher Grid:** Direct 1-click switcher buttons (`[ 1 ]` through `[ 7 ]`) featuring live glowing indicator dots in each float's signature color. Seamlessly switch between Casey Jr., Title Drum, Turtle, Snail, Cinderella's Coach, Pete's Dragon, and To Honor America with unsaved-change protection!
+   - **🏷️ Top Navigation & Canvas Watermark Badge:** The top navigation tab updates dynamically (`👕 Single Shirt (#6 Elliott)`), while a translucent floating watermark badge in the top-left canvas corner keeps the active float number and name clearly visible while positioning LEDs.
+   - **Float / Character Artwork Picker:** Unified dropdown allowing quick selection between the 7 official parade floats or uploading custom graphics (PNG/SVG/JPG).
+   - **💾 Save & Export Custom Profiles:** Dedicated section for naming and saving custom design tweaks to browser cache, exporting standalone JSON costume files, or importing existing configurations.
    - **LED Generation & Graphic Fill:** One-click `100 Scatter`, `50 Auto-Outline`, `Sample Colors`, and `🔄 Fill Graphic with Remaining LEDs` (redistributes non-grouped LEDs to fill open space without moving any grouped LEDs).
    - **runDisney 10K Race Bib (#1952):** Toggle overlay, height, and scale sliders to verify physical clearance.
    - **Physical Wiring Route Optimizer:** Shortest-path snake wiring optimizer, Show Wiring Trace toggle, Show Numbers toggle.
