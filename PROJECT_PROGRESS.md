@@ -93,6 +93,18 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### Entry: Corral Standby Smooth Starlight Shimmer & Visible Midnight Base Calibration
+* **Date:** 2026-09-27
+* **Milestone:** Milestone 5 - Studio Workflow & Hardware Fleet Control
+* **Status:** Verified & Operational across `simulator/app.js?v=46`, `simulator/index.html`, `src/main.cpp`, `arduino/MSEP_Costume/MSEP_Costume.ino`, and `PROJECT_PROGRESS.md`.
+* **Notes:**
+  - Eliminated rapid/jittery 60ms discrete seed strobing in Corral Standby Mode, replacing it with an organic sine wave starlight shimmer (~1.6s period per pixel).
+  - Enhanced base standby glow to 25–28% of float theme color (`r/g/b >= 25`, `alpha = 0.55`) so all 100 costume LEDs remain clearly and serenely lit against the dark running shirt rather than looking unlit or dead.
+  - Calibrated `renderBulb()` in the simulator so dimmed LEDs maintain an opaque, glowing colored bead center (minimum 0.7 opacity) with gentle ambient glow.
+  - Implemented smooth starlight wave peaking: the top 30% of each pixel's sine wave smoothly blends from the dimmed base color into warm golden starlight (`CRGB(220, 200, 140)`) and back down.
+  - Synchronized firmware logic across `src/main.cpp` and `arduino/MSEP_Costume/MSEP_Costume.ino` using FastLED `sin8` and `blend()` per Rule 5.
+  - Bumped script cache query in `simulator/index.html` to `app.js?v=46`.
+
 ### Entry: Canvas Render Loop Standby Variable Scope & Bulb Alpha Fix
 * **Date:** 2026-09-27
 * **Milestone:** Milestone 5 - Studio Workflow & Hardware Fleet Control

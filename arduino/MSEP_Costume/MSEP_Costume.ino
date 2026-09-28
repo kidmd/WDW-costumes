@@ -151,19 +151,24 @@ void broadcastStandbyPacket(uint8_t mode) {
 }
 
 void renderCorralStandby(uint32_t t) {
-    // Ultra-low power starlight twinkle (<120mA draw) at 12% brightness
+    // Ultra-low power starlight shimmer (<120mA draw) with visible midnight float-glow
     uint8_t floatIdx = (myFloatNumber >= 1 && myFloatNumber <= 7) ? (myFloatNumber - 1) : 0;
     CRGB baseColor = FLEET_ROSTER_INFO[floatIdx].color;
     
-    // Deep midnight base glow (12% scaled)
-    CRGB dimBase = CRGB(baseColor.r / 8, baseColor.g / 8, baseColor.b / 8);
+    // Clearly visible deep midnight base glow (25% float color)
+    CRGB dimBase = CRGB(
+        max((int)(baseColor.r * 0.25), 10),
+        max((int)(baseColor.g * 0.25), 10),
+        max((int)(baseColor.b * 0.25), 10)
+    );
     fill_solid(leds, FRONT_LEDS, dimBase);
 
-    // Gentle slow-breathing starlight sparkle
-    uint16_t seed = (t / 60) + (myFloatNumber * 50);
+    // Calm, organic breathing starlight shimmer (~1.6s period per pixel, zero rapid strobing)
     for (int i = 0; i < FRONT_LEDS; i++) {
-        if (((seed + i * 17) % 23) == 0) {
-            leds[i] = CRGB(180, 160, 100); // Warm soft starlight sparkle
+        uint8_t wave = sin8((t / 7) + (i * 21)); // smooth 0..255 sine wave
+        if (wave > 220) {
+            uint8_t blendAmt = (wave - 220) * 7; // smooth 0..245 ramp
+            leds[i] = blend(dimBase, CRGB(220, 200, 140), blendAmt);
         }
     }
 }
