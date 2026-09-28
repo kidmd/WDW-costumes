@@ -93,6 +93,19 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### Entry: Ambient Pattern Selection Baked Into Firmware via AMBIENT_FALLBACK_PATTERN
+* **Date:** 2026-09-28
+* **Milestone:** Milestone 5 - Studio Workflow & Hardware Fleet Control
+* **Status:** Verified & Operational — commit `e3a443a`. Compile: RAM 14.3%, Flash 60.0%.
+* **Notes:**
+  - Root issue: the Ambient tab pattern selector (e.g. "Castle Photo Mode") was not honored at flash time — the ESP32 always ran the default steady sparkle regardless of what the user selected.
+  - Fix: added `AMBIENT_FALLBACK_PATTERN` define to the generated `include/costume_config.h`, baked from the simulator's `activePattern` at flash time. Values: `0=steady_sparkle`, `1=breathing_glow`, `5=photo_mode`.
+  - Added `renderAmbientFallback(uint32_t now)` helper function in both `src/main.cpp` and `arduino/MSEP_Costume/MSEP_Costume.ino` (Rule 5 mirror). Both inline ambient fallback loops replaced with a single call — no code duplication.
+  - `simulator.py`: parses new `ambientPattern` field from `/api/flash_firmware` payload; maps string values to numeric codes via `ambient_pattern_numeric_map`; writes `#define AMBIENT_FALLBACK_PATTERN {code}` into the header.
+  - `simulator/app.js`: flash payload now includes `ambientPattern: activePattern` so the user's ambient tab selection is preserved in silicon.
+  - `simulator/index.html`: bumped to `app.js?v=51` for cache refresh.
+  - Supported ambient modes baked at flash time: `photo_mode` (solid artwork, no sparkle), `breathing_glow` / `color_match` (pulsing artwork + optional sparkle), `steady_sparkle` / `dragon_sparkle` (default starlight effect). `fireworks`, `traveling_wave`, and `marquee` fall back to steady_sparkle as ambient (not suitable as resting modes).
+
 ### Entry: Unified Master Timeline & Seamless Ambient Artwork Fallback
 * **Date:** 2026-09-28
 * **Milestone:** Milestone 5 - Studio Workflow & Hardware Fleet Control
