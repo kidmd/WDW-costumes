@@ -1709,20 +1709,20 @@ function computeLedColor(index, totalLeds, timeMs) {
         const dimG = Math.max(25, Math.round(baseColor.g * 0.28));
         const dimB = Math.max(25, Math.round(baseColor.b * 0.28));
         
-        // Smooth sine wave starlight shimmer (calm ~1.6s period per pixel, zero rapid strobing)
-        const wave = Math.sin((timeMs * 0.0035) + (index * 0.55));
+        // Calm, sparse starlight twinkle: slow ~5s period, spatially scattered
+        const wave = Math.sin((timeMs * 0.0012) + (index * 1.9));
         let r = dimR;
         let g = dimG;
         let b = dimB;
         let alpha = 0.55;
 
-        // Peak of the sine cycle gently swells into warm golden starlight
-        if (wave > 0.70) {
-            const blendFactor = (wave - 0.70) / 0.30; // 0.0 to 1.0 smooth gradient
-            r = Math.round(dimR + (220 - dimR) * blendFactor);
-            g = Math.round(dimG + (200 - dimG) * blendFactor);
-            b = Math.round(dimB + (140 - dimB) * blendFactor);
-            alpha = 0.55 + (0.35 * blendFactor);
+        // Subtle shimmer on only ~5% of LEDs at any moment, gently dimmed
+        if (wave > 0.88) {
+            const blendFactor = (wave - 0.88) / 0.12; // 0.0 to 1.0 gentle swell
+            r = Math.min(255, Math.round(dimR + 45 * blendFactor));
+            g = Math.min(255, Math.round(dimG + 38 * blendFactor));
+            b = Math.min(255, Math.round(dimB + 20 * blendFactor));
+            alpha = 0.55 + (0.15 * blendFactor);
         }
 
         return { r, g, b, alpha };
@@ -2822,19 +2822,19 @@ function computeRunnerLedColor(runnerIndex, runner, presetData, ledIndex, totalL
         const dimG = Math.max(25, Math.round(baseColor.g * 0.28));
         const dimB = Math.max(25, Math.round(baseColor.b * 0.28));
         
-        // Smooth sine wave starlight shimmer (calm ~1.6s period per pixel)
-        const wave = Math.sin((timeMs * 0.0035) + (ledIndex * 0.55) + (runnerIndex * 1.3));
+        // Calm, sparse starlight twinkle: slow ~5s period, spatially scattered
+        const wave = Math.sin((timeMs * 0.0012) + (ledIndex * 1.9) + (runnerIndex * 2.3));
         let r = dimR;
         let g = dimG;
         let b = dimB;
         let alpha = 0.55;
 
-        if (wave > 0.70) {
-            const blendFactor = (wave - 0.70) / 0.30;
-            r = Math.round(dimR + (220 - dimR) * blendFactor);
-            g = Math.round(dimG + (200 - dimG) * blendFactor);
-            b = Math.round(dimB + (140 - dimB) * blendFactor);
-            alpha = 0.55 + (0.35 * blendFactor);
+        if (wave > 0.88) {
+            const blendFactor = (wave - 0.88) / 0.12;
+            r = Math.min(255, Math.round(dimR + 45 * blendFactor));
+            g = Math.min(255, Math.round(dimG + 38 * blendFactor));
+            b = Math.min(255, Math.round(dimB + 20 * blendFactor));
+            alpha = 0.55 + (0.15 * blendFactor);
         }
 
         return { r, g, b, alpha };

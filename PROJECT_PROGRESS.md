@@ -93,6 +93,18 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### Entry: Corral Standby Rate Reduction & Sparse Dim Twinkle Tuning
+* **Date:** 2026-09-27
+* **Milestone:** Milestone 5 - Studio Workflow & Hardware Fleet Control
+* **Status:** Verified & Operational across `simulator/app.js?v=47`, `simulator/index.html`, `src/main.cpp`, `arduino/MSEP_Costume/MSEP_Costume.ino`, and `PROJECT_PROGRESS.md`.
+* **Notes:**
+  - Slowed standby animation down ~3x to a calm ~5.1-second majestic period per pixel (`timeMs * 0.0012` in simulator, `t / 20` in firmware).
+  - Increased shimmer threshold to `wave > 0.88` (and `> 242` on FastLED `sin8`), restricting the subtle swell to only ~5% of pixels at any given moment.
+  - Scattered pixel phase distribution (`index * 1.9`) to dissolve perceived cohesive wave bands into sparse, isolated drifting stars.
+  - Dimmed shimmer target from bright white/gold to a gentle warm champagne boost (+45 max over the base dim color with 0.70 max alpha), preserving the tranquil midnight aesthetic while highlighting the baseline dim glow.
+  - Synchronized across simulator, C++ firmware, and Arduino sketch per Rule 5.
+  - Bumped script cache query in `simulator/index.html` to `app.js?v=47`.
+
 ### Entry: Corral Standby Smooth Starlight Shimmer & Visible Midnight Base Calibration
 * **Date:** 2026-09-27
 * **Milestone:** Milestone 5 - Studio Workflow & Hardware Fleet Control

@@ -163,12 +163,18 @@ void renderCorralStandby(uint32_t t) {
     );
     fill_solid(leds, FRONT_LEDS, dimBase);
 
-    // Calm, organic breathing starlight shimmer (~1.6s period per pixel, zero rapid strobing)
+    // Calm, very slow (~5s period), sparse starlight twinkle on ~5% of LEDs
+    CRGB subtleWarm = CRGB(
+        min(255, dimBase.r + 45),
+        min(255, dimBase.g + 38),
+        min(255, dimBase.b + 20)
+    );
+
     for (int i = 0; i < FRONT_LEDS; i++) {
-        uint8_t wave = sin8((t / 7) + (i * 21)); // smooth 0..255 sine wave
-        if (wave > 220) {
-            uint8_t blendAmt = (wave - 220) * 7; // smooth 0..245 ramp
-            leds[i] = blend(dimBase, CRGB(220, 200, 140), blendAmt);
+        uint8_t wave = sin8((t / 20) + (i * 47)); // very slow (~5.1s cycle), scattered pixels
+        if (wave > 242) { // only top ~5% peak
+            uint8_t blendAmt = (wave - 242) * 19; // 0..247 smooth ramp
+            leds[i] = blend(dimBase, subtleWarm, blendAmt);
         }
     }
 }
