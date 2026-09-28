@@ -40,7 +40,7 @@ struct CostumeCue {
 };
 
 const CostumeCue PROGMEM CUSTOM_SEQUENCE_CUES[1] = {
-    { 0, 20000, 1, 60 }
+    { 0, 20000, 1, 30 }
 };
 
 // Artwork Sampled Color Palette (PROGMEM Flash Storage)

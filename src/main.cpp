@@ -708,7 +708,7 @@ void runAutonomousShowSequence(uint32_t now) {
             uint8_t eff = pgm_read_byte(&CUSTOM_SEQUENCE_CUES[c].effect);
             uint16_t bpm = pgm_read_word(&CUSTOM_SEQUENCE_CUES[c].speedBpm);
             if (eff == 1) { // breathe
-                uint8_t breath = beatsin8(bpm / 2, 120, 255);
+                uint8_t breath = beatsin8(max((uint16_t)1, bpm), 20, 255, now, (uint8_t)(sMs % 256));
                 for (int i = 0; i < FRONT_LEDS && i < MAX_LEDS_CAPACITY; i++) {
 #if defined(HAS_CUSTOM_PALETTE) && HAS_CUSTOM_PALETTE
                     CRGB baseColor = ARTWORK_PALETTE[i];
