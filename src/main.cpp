@@ -129,6 +129,7 @@ StandaloneShowMode previousStandaloneMode = SHOW_MODE_AUTONOMOUS_SEQUENCE;
 uint32_t fleetRoutineStartTime = 0;
 uint8_t fleetRoutineCycle = 0;
 uint32_t rapidRollCallStartTime = 0;
+uint32_t autonomousShowStartTime = 0;
 
 void broadcastFleetRoutinePacket(uint8_t mode, uint32_t masterMillis) {
     ParadeSyncPacket packet;
@@ -302,6 +303,7 @@ void onDataReceive(const uint8_t *mac_addr, const uint8_t *incomingData, int len
                 // Wake from Corral Standby commanded by Leader/Peer
                 if (currentStandaloneMode == SHOW_MODE_CORRAL_STANDBY) {
                     currentStandaloneMode = previousStandaloneMode;
+                    autonomousShowStartTime = millis();
                 }
                 Serial.printf("[ESP-NOW] ☀️ Woke from Corral Standby Mode by Float %d\n", packet.activeFloat);
             } else {
@@ -655,7 +657,10 @@ void handleFloatConfigMode() {
 // ============================================================================
 void renderAmbientFallback(uint32_t now) {
 #if defined(AMBIENT_FALLBACK_PATTERN) && (AMBIENT_FALLBACK_PATTERN == COSTUME_PATTERN_BREATHING_GLOW)
-    uint8_t breath = beatsin8(COSTUME_SPEED_BPM / 2, 120, 255);
+    uint32_t beatMs = 60000 / max((uint16_t)20, (uint16_t)COSTUME_SPEED_BPM);
+    float normTime = (float)now / (float)beatMs;
+    float sine = sinf(normTime * 6.2831853f) * 0.5f + 0.5f;
+    uint8_t breath = (uint8_t)((0.15f + 0.85f * sine) * 255.0f);
 #endif
     for (int i = 0; i < FRONT_LEDS && i < MAX_LEDS_CAPACITY; i++) {
 #if defined(HAS_CUSTOM_PALETTE) && HAS_CUSTOM_PALETTE
@@ -693,7 +698,10 @@ void runAutonomousShowSequence(uint32_t now) {
     return;
 #endif
 
-    uint32_t seqTime = now % SHOW_LOOP_MS;
+    if (autonomousShowStartTime == 0) {
+        autonomousShowStartTime = now;
+    }
+    uint32_t seqTime = (now - autonomousShowStartTime) % SHOW_LOOP_MS;
 
 #if defined(ACTIVE_COSTUME_PATTERN) && (ACTIVE_COSTUME_PATTERN == COSTUME_PATTERN_AUTONOMOUS_90S)
     // ------------------------------------------------------------------------
@@ -707,8 +715,13 @@ void runAutonomousShowSequence(uint32_t now) {
         if (seqTime >= sMs && seqTime < eMs) {
             uint8_t eff = pgm_read_byte(&CUSTOM_SEQUENCE_CUES[c].effect);
             uint16_t bpm = pgm_read_word(&CUSTOM_SEQUENCE_CUES[c].speedBpm);
-            if (eff == 1) { // breathe
-                uint8_t breath = beatsin8(max((uint16_t)1, bpm), 20, 255, now, (uint8_t)(sMs % 256));
+            if (eff == 1) { // breathe / pulse
+                uint32_t beatMs = 60000 / max((uint16_t)20, bpm);
+                float normTime = (float)(now - autonomousShowStartTime) / (float)beatMs;
+                float sine = sinf(normTime * 6.2831853f) * 0.5f + 0.5f;
+                // High contrast smooth pulse from 15% dim to 100% radiant full power
+                float breathFactor = 0.15f + 0.85f * sine;
+                uint8_t breathScale = (uint8_t)(breathFactor * 255.0f);
                 for (int i = 0; i < FRONT_LEDS && i < MAX_LEDS_CAPACITY; i++) {
 #if defined(HAS_CUSTOM_PALETTE) && HAS_CUSTOM_PALETTE
                     CRGB baseColor = ARTWORK_PALETTE[i];
@@ -716,7 +729,7 @@ void runAutonomousShowSequence(uint32_t now) {
                     uint8_t floatIdx = (myFloatNumber >= 1 && myFloatNumber <= 7) ? (myFloatNumber - 1) : 0;
                     CRGB baseColor = FLEET_ROSTER_INFO[floatIdx].color;
 #endif
-                    baseColor.nscale8_video(breath);
+                    baseColor.nscale8_video(breathScale);
                     leds[i] = baseColor;
                 }
             } else if (eff == 2) { // fire_breath
@@ -755,8 +768,8 @@ void runAutonomousShowSequence(uint32_t now) {
             } else if (eff == 6) { // fireworks
                 renderFireworks(now);
             } else if (eff == 7) { // flash_slow — slow on/off blink (bpm controls speed)
-                uint8_t blinkPhase = beatsin8(max((uint16_t)1, bpm) / 4, 0, 255);
-                bool lit = (blinkPhase > 127);
+                uint32_t beatMs = 60000 / max((uint16_t)20, bpm);
+                bool lit = (((now - autonomousShowStartTime) / beatMs) % 2 == 0);
                 for (int i = 0; i < FRONT_LEDS && i < MAX_LEDS_CAPACITY; i++) {
 #if defined(HAS_CUSTOM_PALETTE) && HAS_CUSTOM_PALETTE
                     CRGB baseColor = ARTWORK_PALETTE[i];
@@ -1268,6 +1281,7 @@ void loop() {
             if (currentStandaloneMode == SHOW_MODE_CORRAL_STANDBY) {
                 // WAKE UP FROM CORRAL STANDBY
                 currentStandaloneMode = previousStandaloneMode;
+                autonomousShowStartTime = now;
 
                 // Visual confirmation: 1 Emerald Green flash
                 fill_solid(leds, NUM_LEDS, CRGB(0, 255, 80));

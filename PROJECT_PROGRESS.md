@@ -93,8 +93,16 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
-### Entry: Ambient Pattern Selection Baked Into Firmware via AMBIENT_FALLBACK_PATTERN
+### Entry: Mathematical Breathing Pulse Engine & Synchronized Relative Timeline Clock
 * **Date:** 2026-09-28
+* **Milestone:** Milestone 5 - Studio Workflow & Hardware Fleet Control
+* **Status:** Verified & Operational (`pio run` [SUCCESS], RAM: 14.3%, Flash: 60.3%).
+* **Notes:**
+  - Resolved timeline breathing pulse discrepancy on physical ESP32 where breathing cues appeared static or jumped abruptly:
+    1. **Dynamic Relative Show Clock (`autonomousShowStartTime`):** Previously, `runAutonomousShowSequence` calculated `seqTime = now % SHOW_LOOP_MS` using raw ESP32 boot uptime (`millis()`). Sitting in Corral Standby for 10-15 seconds caused the initial 20-second cue to be partially or completely skipped before the user woke the costume. Added `autonomousShowStartTime`, set precisely upon button wake or incoming ESP-NOW packet `0x51`, ensuring `seqTime = (now - autonomousShowStartTime) % SHOW_LOOP_MS` always begins at `0.0s` immediately upon activation.
+    2. **High-Contrast `sinf` Pulse Mathematics:** FastLED's `beatsin8` call was previously freezing because passing `now` as the timebase parameter resulted in `millis() - timebase == 0` every loop cycle, causing a frozen sine value. Replaced with direct hardware-accelerated `sinf(normTime * 2 * PI) * 0.5 + 0.5` where `normTime = elapsedMs / beatMs` (matching simulator `app.js` `evalGlobalPattern`), scaling smoothly from 15% dim baseline to 100% full radiant peak.
+    3. **Ambient Fallback Synchronization:** Applied the same smooth `sinf` formula to `renderAmbientFallback()` for `COSTUME_PATTERN_BREATHING_GLOW`.
+  - Rebuilt PlatformIO binary (`SUCCESS`) and mirrored all changes between `src/main.cpp` and `arduino/MSEP_Costume/MSEP_Costume.ino` per Rule 5.
 * **Milestone:** Milestone 5 - Studio Workflow & Hardware Fleet Control
 * **Status:** Verified & Operational — commit `e3a443a`. Compile: RAM 14.3%, Flash 60.0%.
 * **Notes:**
