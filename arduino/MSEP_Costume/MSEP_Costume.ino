@@ -931,36 +931,26 @@ void setup() {
     // 1. Initialize Wi-Fi in Station Mode (no router connection required for ESP-NOW)
     WiFi.mode(WIFI_STA);
     WiFi.disconnect();
-    delay(100);
+    delay(50);
 
-    // Also attempt connecting to local Wi-Fi if credentials configured
+    // Also attempt connecting to local Wi-Fi if credentials configured (Fast non-blocking 1.5s check)
 #if defined(WIFI_SSID) && defined(WIFI_PASSWORD)
-    Serial.printf("[WIFI] Connecting to '%s'...\n", WIFI_SSID);
-    WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
-    int attempts = 0;
-    while (WiFi.status() != WL_CONNECTED && attempts < 15) {
-        delay(200);
-        digitalWrite(STATUS_LED_PIN, !digitalRead(STATUS_LED_PIN));
-        attempts++;
+    String ssid = WIFI_SSID;
+    if (ssid.length() > 0 && ssid != "YourWiFiNetwork") {
+        Serial.printf("[WIFI] Connecting to '%s'...\n", WIFI_SSID);
+        WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
+        uint32_t t0 = millis();
+        while (WiFi.status() != WL_CONNECTED && millis() - t0 < 1500) {
+            delay(50);
+            digitalWrite(STATUS_LED_PIN, !digitalRead(STATUS_LED_PIN));
+        }
     }
     if (WiFi.status() == WL_CONNECTED) {
         Serial.printf("[WIFI] Connected! IP Address: %s\n", WiFi.localIP().toString().c_str());
         digitalWrite(STATUS_LED_PIN, HIGH);
     } else {
-        Serial.printf("[WIFI] Could NOT connect to '%s' (Status code: %d)\n", WIFI_SSID, WiFi.status());
-        Serial.println("[WIFI] Scanning available 2.4 GHz Wi-Fi networks in range...");
-        WiFi.disconnect(true);
-        delay(300);
-        int numNets = WiFi.scanNetworks(false, true);
-        if (numNets <= 0) {
-            Serial.printf("  [SCAN] Scan completed: %d networks found.\n", numNets);
-        } else {
-            for (int i = 0; i < numNets; i++) {
-                Serial.printf("  [SCAN] #%d: '%s' (Signal: %d dBm, Ch: %d)\n", 
-                              i + 1, WiFi.SSID(i).c_str(), WiFi.RSSI(i), WiFi.channel(i));
-            }
-        }
-        Serial.println("[WIFI] Running in direct offline mode (ESP-NOW ready).");
+        digitalWrite(STATUS_LED_PIN, LOW);
+        Serial.println("[WIFI] Offline mode active (ESP-NOW direct fleet sync ready).");
 #if defined(AP_SSID)
         // Also enable SoftAP so laptops can connect directly without home router
         WiFi.mode(WIFI_AP_STA);

@@ -26,11 +26,11 @@
 #define COLOR_ORDER                      RGB
 #define HAS_CUSTOM_PALETTE               1
 #define COSTUME_OVERRIDE_STANDALONE      1
-#define AMBIENT_FALLBACK_PATTERN         5
+#define AMBIENT_FALLBACK_PATTERN         0
 
 #define SHOW_LOOP_MS                     90000
 #define HAS_CUSTOM_SEQUENCE_CUES         1
-#define CUSTOM_SEQUENCE_CUE_COUNT        1
+#define CUSTOM_SEQUENCE_CUE_COUNT        2
 
 struct CostumeCue {
     uint32_t startMs;
@@ -39,8 +39,9 @@ struct CostumeCue {
     uint16_t speedBpm;
 };
 
-const CostumeCue PROGMEM CUSTOM_SEQUENCE_CUES[1] = {
-    { 0, 20000, 1, 120 }
+const CostumeCue PROGMEM CUSTOM_SEQUENCE_CUES[2] = {
+    { 0, 20000, 9, 120 },
+    { 20000, 40000, 10, 120 }
 };
 
 // Artwork Sampled Color Palette (PROGMEM Flash Storage)
