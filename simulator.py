@@ -469,7 +469,8 @@ class SimulatorRequestHandler(http.server.SimpleHTTPRequestHandler):
                 "traveling_wave": "COSTUME_PATTERN_TRAVELING_WAVE",
                 "marquee": "COSTUME_PATTERN_MARQUEE",
                 "photo_mode": "COSTUME_PATTERN_PHOTO_MODE",
-                "fireworks": "COSTUME_PATTERN_FIREWORKS"
+                "fireworks": "COSTUME_PATTERN_FIREWORKS",
+                "autonomous_90s": "COSTUME_PATTERN_AUTONOMOUS_90S"
             }
             active_pattern = pattern_map.get(pattern_str, "COSTUME_PATTERN_STEADY_SPARKLE")
             
@@ -497,6 +498,43 @@ class SimulatorRequestHandler(http.server.SimpleHTTPRequestHandler):
                 comma = "," if i < num_back - 1 else ""
                 palette_lines.append(f"    CRGB({r}, {g}, {b}){comma} // Back LED {num_front + i} (Duplicate of {i})")
             
+            sequence_cues = payload.get("sequenceCues", [])
+            seq_loop_duration = float(payload.get("sequenceLoopDuration", 90.0))
+            show_loop_ms = max(10000, int(seq_loop_duration * 1000))
+
+            cue_effect_map = {
+                "steady_sparkle": 0,
+                "breathe": 1,
+                "breathing_glow": 1,
+                "fire_breath": 2,
+                "traveling_wave": 3,
+                "marquee": 4,
+                "chase": 4,
+                "photo_mode": 5,
+                "fireworks": 6,
+                "pulse": 7,
+                "pulse_slow": 7
+            }
+
+            cue_lines = []
+            for q in sequence_cues:
+                start_ms = int(float(q.get("startTime", 0)) * 1000)
+                dur_ms = int(float(q.get("duration", 10)) * 1000)
+                end_ms = start_ms + dur_ms
+                eff_str = q.get("effect", "steady_sparkle")
+                eff_code = cue_effect_map.get(eff_str, 0)
+                bpm = int(q.get("speedBpm", 120))
+                cue_lines.append(f"    {{ {start_ms}, {end_ms}, {eff_code}, {bpm} }}")
+
+            has_cues = 1 if len(cue_lines) > 0 else 0
+            cue_count = len(cue_lines)
+            if cue_count == 0:
+                cues_code = "    { 0, 0, 0, 0 } // No cues on timeline: pure ambient programming fallback"
+                cue_count = 1
+                has_cues = 0
+            else:
+                cues_code = ",\n".join(cue_lines)
+            
             palette_code = "\n".join(palette_lines)
             
             header_content = f"""#ifndef COSTUME_CONFIG_H
@@ -517,6 +555,7 @@ class SimulatorRequestHandler(http.server.SimpleHTTPRequestHandler):
 #define COSTUME_PATTERN_TRAVELING_WAVE   3
 #define COSTUME_PATTERN_MARQUEE          4
 #define COSTUME_PATTERN_PHOTO_MODE       5
+#define COSTUME_PATTERN_AUTONOMOUS_90S   6
 
 #define ACTIVE_COSTUME_PATTERN           {active_pattern}
 #define COSTUME_SPEED_BPM                {speed_bpm}
@@ -526,6 +565,21 @@ class SimulatorRequestHandler(http.server.SimpleHTTPRequestHandler):
 #define COLOR_ORDER                      RGB
 #define HAS_CUSTOM_PALETTE               1
 #define COSTUME_OVERRIDE_STANDALONE      1
+
+#define SHOW_LOOP_MS                     {show_loop_ms}
+#define HAS_CUSTOM_SEQUENCE_CUES         {has_cues}
+#define CUSTOM_SEQUENCE_CUE_COUNT        {cue_count}
+
+struct CostumeCue {{
+    uint32_t startMs;
+    uint32_t endMs;
+    uint8_t effect;
+    uint16_t speedBpm;
+}};
+
+const CostumeCue PROGMEM CUSTOM_SEQUENCE_CUES[{cue_count}] = {{
+{cues_code}
+}};
 
 // Artwork Sampled Color Palette (PROGMEM Flash Storage)
 const CRGB PROGMEM ARTWORK_PALETTE[NUM_LEDS] = {{

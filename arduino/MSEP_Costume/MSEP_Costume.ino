@@ -647,62 +647,150 @@ void runAutonomousShowSequence(uint32_t now) {
 
     uint32_t seqTime = now % SHOW_LOOP_MS;
 
+#if defined(ACTIVE_COSTUME_PATTERN) && (ACTIVE_COSTUME_PATTERN == COSTUME_PATTERN_AUTONOMOUS_90S)
+    // ------------------------------------------------------------------------
+    // 90-SECOND THEATRICAL SHOW ROUTINE (Compiled Timeline Cues)
+    // ------------------------------------------------------------------------
+#if defined(HAS_CUSTOM_SEQUENCE_CUES) && HAS_CUSTOM_SEQUENCE_CUES
+    bool cueHandled = false;
+    for (int c = 0; c < CUSTOM_SEQUENCE_CUE_COUNT; c++) {
+        uint32_t sMs = pgm_read_dword(&CUSTOM_SEQUENCE_CUES[c].startMs);
+        uint32_t eMs = pgm_read_dword(&CUSTOM_SEQUENCE_CUES[c].endMs);
+        if (seqTime >= sMs && seqTime < eMs) {
+            uint8_t eff = pgm_read_byte(&CUSTOM_SEQUENCE_CUES[c].effect);
+            uint16_t bpm = pgm_read_word(&CUSTOM_SEQUENCE_CUES[c].speedBpm);
+            if (eff == 1) { // breathe
+                uint8_t breath = beatsin8(bpm / 2, 120, 255);
+                for (int i = 0; i < FRONT_LEDS && i < MAX_LEDS_CAPACITY; i++) {
 #if defined(HAS_CUSTOM_PALETTE) && HAS_CUSTOM_PALETTE
-    // ------------------------------------------------------------------------
-    // CUSTOM ARTWORK PALETTE (Sampled from Simulator Artwork)
-    // ------------------------------------------------------------------------
-    // Phase 1 (0 - 30s): Steady custom artwork colors with starlight sparkle
-    // Phase 2 (30 - 60s): Theatrical breathing glow pulsing on the custom palette
-    // Phase 3 (60 - 75s): Dynamic traveling chase across the costume
-    // Phase 4 (75 - 90s): Solo electrical parade wave
-    if (seqTime < 30000) {
+                    CRGB baseColor = ARTWORK_PALETTE[i];
+#else
+                    uint8_t floatIdx = (myFloatNumber >= 1 && myFloatNumber <= 7) ? (myFloatNumber - 1) : 0;
+                    CRGB baseColor = FLEET_ROSTER_INFO[floatIdx].color;
+#endif
+                    baseColor.nscale8_video(breath);
+                    leds[i] = baseColor;
+                    if (COSTUME_SPARKLE_RATE > 0 && random16(10000) < (uint16_t)(COSTUME_SPARKLE_RATE * 100)) {
+                        leds[i] = CRGB(255, 255, 240);
+                    }
+                }
+            } else if (eff == 2) { // fire_breath
+                renderFireworks(now);
+            } else if (eff == 3) { // traveling_wave
+                uint32_t waveTimer = now % 3000;
+                uint8_t waveHeadPos = map(waveTimer, 0, 3000, 0, FRONT_LEDS - 1);
+                renderTravelingWave(myFloatNumber, waveHeadPos);
+            } else if (eff == 4) { // chase / marquee
+                uint8_t step = (now / 120) % FRONT_LEDS;
+                for (int i = 0; i < FRONT_LEDS && i < MAX_LEDS_CAPACITY; i++) {
+                    int dist = (i - step + FRONT_LEDS) % FRONT_LEDS;
+                    if (dist < 8) {
+                        leds[i] = CRGB(255, 255, 220);
+                    } else {
+#if defined(HAS_CUSTOM_PALETTE) && HAS_CUSTOM_PALETTE
+                        CRGB dim = ARTWORK_PALETTE[i];
+#else
+                        uint8_t floatIdx = (myFloatNumber >= 1 && myFloatNumber <= 7) ? (myFloatNumber - 1) : 0;
+                        CRGB dim = FLEET_ROSTER_INFO[floatIdx].color;
+#endif
+                        dim.nscale8_video(60);
+                        leds[i] = dim;
+                    }
+                }
+            } else if (eff == 6) { // fireworks
+                renderFireworks(now);
+            } else { // 0: steady_sparkle / default
+                for (int i = 0; i < FRONT_LEDS && i < MAX_LEDS_CAPACITY; i++) {
+#if defined(HAS_CUSTOM_PALETTE) && HAS_CUSTOM_PALETTE
+                    leds[i] = ARTWORK_PALETTE[i];
+#else
+                    uint8_t floatIdx = (myFloatNumber >= 1 && myFloatNumber <= 7) ? (myFloatNumber - 1) : 0;
+                    leds[i] = FLEET_ROSTER_INFO[floatIdx].color;
+#endif
+                    if (COSTUME_SPARKLE_RATE > 0 && random16(10000) < (uint16_t)(COSTUME_SPARKLE_RATE * 100)) {
+                        leds[i] = CRGB(255, 255, 240);
+                    }
+                }
+            }
+            cueHandled = true;
+            break;
+        }
+    }
+    if (!cueHandled) {
+        // Fallback for gaps between cues: pure ambient programming
         for (int i = 0; i < FRONT_LEDS && i < MAX_LEDS_CAPACITY; i++) {
+#if defined(HAS_CUSTOM_PALETTE) && HAS_CUSTOM_PALETTE
             leds[i] = ARTWORK_PALETTE[i];
+#else
+            uint8_t floatIdx = (myFloatNumber >= 1 && myFloatNumber <= 7) ? (myFloatNumber - 1) : 0;
+            leds[i] = FLEET_ROSTER_INFO[floatIdx].color;
+#endif
             if (COSTUME_SPARKLE_RATE > 0 && random16(10000) < (uint16_t)(COSTUME_SPARKLE_RATE * 100)) {
                 leds[i] = CRGB(255, 255, 240);
-            }
-        }
-    } else if (seqTime < 60000) {
-        uint8_t breath = beatsin8(COSTUME_SPEED_BPM / 2, 120, 255);
-        for (int i = 0; i < FRONT_LEDS && i < MAX_LEDS_CAPACITY; i++) {
-            CRGB baseColor = ARTWORK_PALETTE[i];
-            baseColor.nscale8_video(breath);
-            leds[i] = baseColor;
-            if (COSTUME_SPARKLE_RATE > 0 && random16(10000) < (uint16_t)(COSTUME_SPARKLE_RATE * 100)) {
-                leds[i] = CRGB(255, 255, 240);
-            }
-        }
-    } else if (seqTime < 75000) {
-        uint8_t step = (now / 120) % FRONT_LEDS;
-        for (int i = 0; i < FRONT_LEDS && i < MAX_LEDS_CAPACITY; i++) {
-            int dist = (i - step + FRONT_LEDS) % FRONT_LEDS;
-            if (dist < 8) {
-                leds[i] = CRGB(255, 255, 220); // Bright chasing beam
-            } else {
-                CRGB dim = ARTWORK_PALETTE[i];
-                dim.nscale8_video(60);
-                leds[i] = dim;
-            }
-            if (COSTUME_SPARKLE_RATE > 0 && random16(10000) < (uint16_t)(COSTUME_SPARKLE_RATE * 100)) {
-                leds[i] = CRGB(255, 255, 240);
-            }
-        }
-    } else {
-        uint8_t step = (now / 100) % FRONT_LEDS;
-        for (int i = 0; i < FRONT_LEDS && i < MAX_LEDS_CAPACITY; i++) {
-            if (i == step) {
-                leds[i] = CRGB(255, 255, 255);
-            } else {
-                CRGB baseCol = ARTWORK_PALETTE[i];
-                baseCol.nscale8_video(140);
-                leds[i] = baseCol;
             }
         }
     }
 #else
-    // Default 7-float roster signature rendering
-    uint8_t floatIdx = (myFloatNumber >= 1 && myFloatNumber <= 7) ? (myFloatNumber - 1) : 0;
-    renderParadeSparkle(now);
+    // Fallback when HAS_CUSTOM_SEQUENCE_CUES is 0 (empty timeline): pure ambient programming!
+    for (int i = 0; i < FRONT_LEDS && i < MAX_LEDS_CAPACITY; i++) {
+#if defined(HAS_CUSTOM_PALETTE) && HAS_CUSTOM_PALETTE
+        leds[i] = ARTWORK_PALETTE[i];
+#else
+        uint8_t floatIdx = (myFloatNumber >= 1 && myFloatNumber <= 7) ? (myFloatNumber - 1) : 0;
+        leds[i] = FLEET_ROSTER_INFO[floatIdx].color;
+#endif
+        if (COSTUME_SPARKLE_RATE > 0 && random16(10000) < (uint16_t)(COSTUME_SPARKLE_RATE * 100)) {
+            leds[i] = CRGB(255, 255, 240);
+        }
+    }
+#endif
+#elif defined(ACTIVE_COSTUME_PATTERN) && (ACTIVE_COSTUME_PATTERN == COSTUME_PATTERN_BREATHING_GLOW)
+    // Continuous Breathing Glow
+    uint8_t breath = beatsin8(COSTUME_SPEED_BPM / 2, 120, 255);
+    for (int i = 0; i < FRONT_LEDS && i < MAX_LEDS_CAPACITY; i++) {
+#if defined(HAS_CUSTOM_PALETTE) && HAS_CUSTOM_PALETTE
+        CRGB baseColor = ARTWORK_PALETTE[i];
+#else
+        uint8_t floatIdx = (myFloatNumber >= 1 && myFloatNumber <= 7) ? (myFloatNumber - 1) : 0;
+        CRGB baseColor = FLEET_ROSTER_INFO[floatIdx].color;
+#endif
+        baseColor.nscale8_video(breath);
+        leds[i] = baseColor;
+        if (COSTUME_SPARKLE_RATE > 0 && random16(10000) < (uint16_t)(COSTUME_SPARKLE_RATE * 100)) {
+            leds[i] = CRGB(255, 255, 240);
+        }
+    }
+#elif defined(ACTIVE_COSTUME_PATTERN) && (ACTIVE_COSTUME_PATTERN == COSTUME_PATTERN_PHOTO_MODE)
+    // Continuous Photo Mode (Static Artwork)
+    for (int i = 0; i < FRONT_LEDS && i < MAX_LEDS_CAPACITY; i++) {
+#if defined(HAS_CUSTOM_PALETTE) && HAS_CUSTOM_PALETTE
+        leds[i] = ARTWORK_PALETTE[i];
+#else
+        uint8_t floatIdx = (myFloatNumber >= 1 && myFloatNumber <= 7) ? (myFloatNumber - 1) : 0;
+        leds[i] = FLEET_ROSTER_INFO[floatIdx].color;
+#endif
+    }
+#elif defined(ACTIVE_COSTUME_PATTERN) && (ACTIVE_COSTUME_PATTERN == COSTUME_PATTERN_MARQUEE)
+    renderMarqueeChase(now);
+#elif defined(ACTIVE_COSTUME_PATTERN) && (ACTIVE_COSTUME_PATTERN == COSTUME_PATTERN_TRAVELING_WAVE)
+    uint32_t waveTimer = now % 3000;
+    uint8_t waveHeadPos = map(waveTimer, 0, 3000, 0, FRONT_LEDS - 1);
+    renderTravelingWave(myFloatNumber, waveHeadPos);
+#else
+    // ------------------------------------------------------------------------
+    // DEFAULT SOLO PATTERN: Continuous Sampled Artwork + Starlight Sparkles (Option A)
+    // ------------------------------------------------------------------------
+    for (int i = 0; i < FRONT_LEDS && i < MAX_LEDS_CAPACITY; i++) {
+#if defined(HAS_CUSTOM_PALETTE) && HAS_CUSTOM_PALETTE
+        leds[i] = ARTWORK_PALETTE[i];
+#else
+        uint8_t floatIdx = (myFloatNumber >= 1 && myFloatNumber <= 7) ? (myFloatNumber - 1) : 0;
+        leds[i] = FLEET_ROSTER_INFO[floatIdx].color;
+#endif
+        if (COSTUME_SPARKLE_RATE > 0 && random16(10000) < (uint16_t)(COSTUME_SPARKLE_RATE * 100)) {
+            leds[i] = CRGB(255, 255, 240);
+        }
+    }
 #endif
 
     duplicateFrontToBack();

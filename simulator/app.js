@@ -306,7 +306,7 @@ function hexToRgb(hex) {
 // ============================================================================
 // PARADE CUE DIRECTOR (Autonomous 90s Float Show Sequence Engine)
 // ============================================================================
-let sequenceMode = false;           // false = Free-Run pattern, true = 90s Show Sequence
+let sequenceMode = true;           // Master timeline engine: always active and looping
 let sequenceLoopDuration = 90.0;    // Loop duration in seconds
 let sequenceTime = 0.0;            // Current timeline position in seconds
 let sequencePlaying = false;       // Playback state
@@ -6800,10 +6800,7 @@ function updateTimelineScrubberUI() {
         loopBtn.classList.toggle('active', sequenceLoop);
     }
     if (modeBtn) {
-        modeBtn.style.display = '';
-        modeBtn.textContent = sequenceMode ? '🎬 Sequence: ON' : '🎬 Sequence: OFF';
-        modeBtn.title = 'Toggle between Free-Run Pattern and Show Sequence';
-        modeBtn.classList.toggle('active', sequenceMode);
+        modeBtn.style.display = 'none';
     }
     if (scrubber) {
         scrubber.max = sequenceLoopDuration;
@@ -6850,8 +6847,8 @@ function updateTimelineScrubberUI() {
     }
     if (cuesBadge) {
         if (activeCueNames.length === 0) {
-            cuesBadge.textContent = sequenceMode ? 'No Cues Active' : 'Sequence Standby (Free-Run)';
-            cuesBadge.style.color = '#8b949e';
+            cuesBadge.textContent = sequenceCues.length === 0 ? 'Ambient Program (No Cues)' : 'Ambient Fallback (Between Cues)';
+            cuesBadge.style.color = '#3fb950';
         } else {
             cuesBadge.textContent = `Active (${activeCueNames.length}): ${activeCueNames.join(' + ')}`;
             cuesBadge.style.color = '#58a6ff';
@@ -6874,12 +6871,10 @@ function updateTimelinePlayBtn() {
 
 function togglePlayPause() {
     sequencePlaying = !sequencePlaying;
-    if (sequencePlaying && !sequenceMode) {
-        toggleSequenceMode(true);
-    }
+    sequenceMode = true;
     lastTimelineFrameTime = performance.now();
     updateTimelinePlayBtn();
-    showToast(sequencePlaying ? `▶ Playing show sequence (${formatTimelineTime(sequenceTime)})` : '⏸ Paused show sequence');
+    showToast(sequencePlaying ? `▶ Playing master timeline (${formatTimelineTime(sequenceTime)})` : '⏸ Paused master timeline');
 }
 
 function stopSequence() {
@@ -6891,42 +6886,11 @@ function stopSequence() {
 }
 
 function toggleSequenceMode(forceState) {
-    sequenceMode = (typeof forceState === 'boolean') ? forceState : !sequenceMode;
-
-    const btn1 = document.getElementById('toggleSequenceModeBtn');
-    const btn2 = document.getElementById('timelineModeToggle');
+    sequenceMode = true;
     const badge = document.getElementById('cueDirectorBadge');
-
-    if (sequenceMode) {
-        if (btn1) {
-            btn1.textContent = '⏹ Switch to Free-Run';
-            btn1.style.borderColor = '#d29922';
-            btn1.style.color = '#f0883e';
-        }
-        if (btn2) {
-            btn2.classList.add('active');
-            btn2.textContent = '🎬 Sequence: ON';
-        }
-        if (badge) {
-            badge.textContent = `${sequenceCues.length} Cues (Sequence ON)`;
-            badge.style.color = '#3fb950';
-        }
-        showToast('🎬 Show Sequence mode enabled! Running multi-cue timeline.');
-    } else {
-        if (btn1) {
-            btn1.textContent = '▶ Switch to Show Sequence';
-            btn1.style.borderColor = '#58a6ff';
-            btn1.style.color = '#58a6ff';
-        }
-        if (btn2) {
-            btn2.classList.remove('active');
-            btn2.textContent = '🎬 Sequence: OFF';
-        }
-        if (badge) {
-            badge.textContent = `${sequenceCues.length} Cues (Free-Run)`;
-            badge.style.color = 'var(--accent-cyan)';
-        }
-        showToast('🖱️ Free-Run pattern mode restored.');
+    if (badge) {
+        badge.textContent = sequenceCues.length === 0 ? '0 Cues (Ambient Fallback)' : `${sequenceCues.length} Cue${sequenceCues.length !== 1 ? 's' : ''}`;
+        badge.style.color = sequenceCues.length === 0 ? 'var(--accent-cyan)' : '#3fb950';
     }
 }
 
@@ -7690,7 +7654,8 @@ function renderCuesList() {
     if (!container) return;
 
     if (badge) {
-        badge.textContent = `${sequenceCues.length} Cues (${sequenceMode ? 'Sequence ON' : 'Free-Run'})`;
+        badge.textContent = sequenceCues.length === 0 ? '0 Cues (Ambient Fallback)' : `${sequenceCues.length} Cue${sequenceCues.length !== 1 ? 's' : ''}`;
+        badge.style.color = sequenceCues.length === 0 ? 'var(--accent-cyan)' : '#3fb950';
     }
 
     container.innerHTML = '';
@@ -8089,6 +8054,71 @@ function loadDragonShowTemplate() {
     showToast("🐉 Loaded Pete's Dragon 90s Parade Show Routine!");
 }
 
+function load90sTheatricalShowTemplate() {
+    sequenceLoopDuration = 90.0;
+    const loopInput = document.getElementById('sequenceLoopInput');
+    if (loopInput) loopInput.value = 90;
+
+    sequenceCues = [
+        {
+            id: 'cue_90s_1',
+            name: 'Phase 1: Sampled Starlight Sparkle',
+            startTime: 0.0,
+            duration: 30.0,
+            targetType: 'global',
+            groupId: '',
+            groupName: '',
+            effect: 'steady_sparkle',
+            speedBpm: 120,
+            fadeIn: 2.0,
+            fadeOut: 2.0
+        },
+        {
+            id: 'cue_90s_2',
+            name: 'Phase 2: Theatrical Breathing Glow',
+            startTime: 30.0,
+            duration: 30.0,
+            targetType: 'global',
+            groupId: '',
+            groupName: '',
+            effect: 'breathe',
+            speedBpm: 60,
+            fadeIn: 2.0,
+            fadeOut: 2.0
+        },
+        {
+            id: 'cue_90s_3',
+            name: 'Phase 3: Dynamic Traveling Chase Beam',
+            startTime: 60.0,
+            duration: 15.0,
+            targetType: 'global',
+            groupId: '',
+            groupName: '',
+            effect: 'chase',
+            speedBpm: 140,
+            fadeIn: 1.5,
+            fadeOut: 1.5
+        },
+        {
+            id: 'cue_90s_4',
+            name: 'Phase 4: Solo Electrical Parade Wave',
+            startTime: 75.0,
+            duration: 15.0,
+            targetType: 'global',
+            groupId: '',
+            groupName: '',
+            effect: 'traveling_wave',
+            speedBpm: 120,
+            fadeIn: 1.5,
+            fadeOut: 1.5
+        }
+    ];
+
+    renderCuesList();
+    toggleSequenceMode(true);
+    showToast("🎭 Loaded 90-Second Classic Theatrical Showcase!");
+}
+
 // ============================================================================
 // PARADE CUE DIRECTOR & MASTER TIMELINE EVENT LISTENERS
 // ============================================================================
@@ -8180,6 +8210,8 @@ if (sequenceTemplateSelect) {
             loadCinderellaShowTemplate();
         } else if (val === 'dragon_90s') {
             loadDragonShowTemplate();
+        } else if (val === 'classic_90s' || val === 'autonomous_90s') {
+            load90sTheatricalShowTemplate();
         } else if (val === 'clear_cues') {
             sequenceCues = [];
             renderCuesList();
@@ -12215,6 +12247,13 @@ function updateArmedFloatInfo() {
 async function triggerUsbFirmwareFlash(floatId = 0) {
     if (isFlashingFirmware) return;
 
+    // Auto-resolve floatId from active shirt runner slot if generic 0 was passed
+    let effectiveFloatId = floatId;
+    if (effectiveFloatId <= 0 && activeSingleShirtRunnerSlot !== undefined && activeSingleShirtRunnerSlot !== null) {
+        effectiveFloatId = activeSingleShirtRunnerSlot + 1; // e.g., slot 5 = Float 6 (Pete's Dragon)
+    }
+    if (effectiveFloatId <= 0) effectiveFloatId = 6; // Default to Float 6 (Pete's Dragon)
+
     if (!isSerialPortReady && detectedSerialPort) {
         flashModal.classList.add('open');
         flashStatusText.textContent = `⚠️ USB Port ${detectedSerialPort} Wedged (Windows Error 31)`;
@@ -12233,8 +12272,8 @@ async function triggerUsbFirmwareFlash(floatId = 0) {
         return;
     }
 
-    const floatMeta = FLEET_FLASHER_ROSTER.find(f => f.id === floatId) || FLEET_FLASHER_ROSTER[0];
-    const floatLabel = floatId > 0 ? `Float ${floatId}: ${floatMeta.name}` : "Generic Board";
+    const floatMeta = FLEET_FLASHER_ROSTER.find(f => f.id === effectiveFloatId) || FLEET_FLASHER_ROSTER[5];
+    const floatLabel = `Float ${effectiveFloatId}: ${floatMeta.name}`;
 
     // Close fleet flash modal if open
     closeFleetFlashModal();
@@ -12246,12 +12285,12 @@ async function triggerUsbFirmwareFlash(floatId = 0) {
     flashProgressBar.style.width = '20%';
     flashProgressBar.style.background = '#388bfd';
     flashDoneBtn.style.display = 'none';
-    flashTipText.textContent = `Baking ${floatLabel} into ESP32 NVS flash over USB...`;
+    flashTipText.textContent = `Baking ${floatLabel} (${floatMeta.role}) into ESP32 NVS flash over USB...`;
 
     flashTerminal.textContent = `[SIMULATOR] Preparing firmware for 200 LEDs (100 Front + 100 Back)...\n` +
         `[SIMULATOR] Assigned Float Role: ${floatLabel} (${floatMeta.role})\n` +
-        `[SIMULATOR] Active Pattern: ${activePattern}\n` +
-        `[SIMULATOR] Generating include/float_config.h (COMPILED_FLOAT_ID=${floatId})...\n` +
+        `[SIMULATOR] Active Pattern: Unified Master Timeline (${sequenceCues.length} cues, fallback: ambient)\n` +
+        `[SIMULATOR] Generating include/float_config.h (COMPILED_FLOAT_ID=${effectiveFloatId})...\n` +
         `[SIMULATOR] Connecting to ESP32...\n--------------------------------------------------\n`;
 
     isFlashingFirmware = true;
@@ -12271,13 +12310,15 @@ async function triggerUsbFirmwareFlash(floatId = 0) {
     try {
         const payload = {
             numLeds: leds.length || 100,
-            floatId: floatId,
-            pattern: activePattern,
+            floatId: effectiveFloatId,
+            pattern: 'autonomous_90s',
             speedBpm: params.speedBpm,
             sparkleRate: params.sparkleRate,
             greenHue: params.greenHue,
             brightness: params.brightness,
-            palette: leds.map(l => l.color || { r: 15, g: 255, b: 35 })
+            palette: leds.map(l => l.color || { r: 15, g: 255, b: 35 }),
+            sequenceCues: sequenceCues || [],
+            sequenceLoopDuration: sequenceLoopDuration || 90.0
         };
 
         const response = await fetch('/api/flash_firmware', {

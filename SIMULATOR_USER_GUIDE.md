@@ -479,19 +479,19 @@ The **Master Timeline Bar** is anchored at the bottom of the canvas view and ope
 - **⏹ Stop / Rewind:** Immediately stops playback and rewinds the playhead to `00:00.0`.
 - **Time Readout:** Displays current position down to tenths of a second alongside total loop length (`00:15.5 / 01:30.0`).
 - **🔁 Loop Button:** When active (green), playback seamlessly wraps from the end back to `00:00.0`.
-- **🎬 Sequence Mode Toggle:** Toggles between **Free-Run** (single continuous baseline pattern) and **Show Sequence** (timeline-driven theatrical cue playback).
+- **Unified Master Timeline Engine:** The timeline is always active and looping. When cues are scheduled on the timeline, they execute precisely during their scheduled intervals. When no cues are scheduled (an empty timeline) or during gaps between cues, the costume automatically falls back to its **ambient artwork programming** (the sampled chest graphic colors with rare starlight sparkles), while animation groups execute their resting baseline routines.
 
 ### Context-Aware Master Timeline (Single Shirt vs. Fleet Tab Modes)
 The Master Timeline dynamically switches display and transport logic depending on whether you are editing a single costume or orchestrating the 7-shirt fleet:
 
 1. **Single Shirt Editing Mode (`Single View` / Tabs 1–5):**
-   - **Ruler & Duration:** 0:00 to 01:30.0 (or custom loop duration up to 120s) with formatted MM:SS.S ticks.
+   - **Ruler & Duration:** 0:00 to 01:30.0 (or custom loop duration up to 300s) with formatted MM:SS.S ticks.
    - **Multi-Layer Tracks:** Displays `🌐 Global Float` and all localized `🎡 [Group Name]` lanes with automatic sub-lane stacking for overlapping cues.
    - **Transport Controls:**
-     - `▶` Play / `⏸` Pause: Controls the 90-second single-float show sequence (`Spacebar`).
+     - `▶` Play / `⏸` Pause: Controls playback along the master timeline (`Spacebar`).
      - `⏹` Stop: Rewinds cue sequence to `00:00.0`.
      - `🔁 Loop`: Toggles seamless continuous sequence looping.
-     - `🎬 Sequence: ON/OFF`: Toggles between free-run baseline pattern and multi-cue show script.
+     - **Status Badge:** Dynamically reports active cue names or displays `Ambient Program (Fallback)` during intervals without cues.
    - **Interaction:** Clicking cue blocks seeks playhead time and highlights the corresponding cue card in the Parade Cue Director.
 
 2. **Fleet Tab Mode (`Fleet View` / Tab 5):**
@@ -548,6 +548,11 @@ Click **➕ Add Cue** to create a new cue card with the following settings:
 
 ### 1-Click Example Show Routines
 Use the **Load Example Routine** dropdown to test fully orchestrated 90-second sequences:
+- **🎭 90s Classic Routine (4-Phase Showcase):**
+  - `0.0s – 30.0s`: Phase 1: Sampled Starlight Sparkle (Sampled artwork colors with starlight sparkle)
+  - `30.0s – 60.0s`: Phase 2: Theatrical Breathing Glow (Gentle breathing pulse)
+  - `60.0s – 75.0s`: Phase 3: Dynamic Traveling Chase Beam (8-LED white chasing beam)
+  - `75.0s – 90.0s`: Phase 4: Solo Electrical Parade Wave (Traveling wave on dim background)
 - **🎃 Cinderella 90s (Wheels & Lanterns):**
   - `0.0s – 25.0s`: Opening Starlight Sparkle (Global baseline)
   - `15.0s – 50.0s`: Carriage Wheels Spin (Group chase overlay)

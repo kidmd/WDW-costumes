@@ -93,6 +93,33 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### Entry: Unified Master Timeline & Seamless Ambient Artwork Fallback
+* **Date:** 2026-09-28
+* **Milestone:** Milestone 5 - Studio Workflow & Hardware Fleet Control
+* **Status:** Verified & Operational across `simulator/app.js?v=50`, `simulator/index.html`, `simulator.py`, `src/main.cpp`, `arduino/MSEP_Costume/MSEP_Costume.ino`, `PROJECT_PROGRESS.md`, and `SIMULATOR_USER_GUIDE.md`.
+* **Notes:**
+  - Removed artificial "Sequence: ON / OFF" mode toggle buttons from both the master timeline transport bar (`#timelineModeToggle`) and Parade Cue Director sidebar (`#toggleSequenceModeBtn`), unifying costume behavior into a single, permanently active timeline engine.
+  - Implemented seamless ambient fallback: when the timeline contains no cues at all (empty timeline) or during gaps between scheduled cues, the costume displays its calibrated ambient programming (`ARTWORK_PALETTE` sampled from the chest graphic + configured rare starlight sparkle rate) with animation groups executing their resting baseline routines.
+  - Eliminated legacy hardcoded 4-phase fallback show in `simulator.py`, `src/main.cpp`, and `arduino/MSEP_Costume/MSEP_Costume.ino`, preventing costumes with empty timelines from unexpectedly cycling through unintended dynamic phases (e.g. pink flashes, chase beams, traveling waves).
+  - Fixed float role assignment in USB firmware flashing: `triggerUsbFirmwareFlash` now auto-resolves `effectiveFloatId` from the active runner slot (e.g. Pete's Dragon = Float 6, Green Follower) and bakes `COMPILED_FLOAT_ID` directly into `include/float_config.h`.
+  - Confirmed follower button logic: on follower nodes (such as Float 6 Pete's Dragon), single tap functions purely to wake the costume from Corral Standby (with 1 emerald flash), while subsequent taps during running mode are ignored to preserve uninterrupted show execution.
+  - PlatformIO clean compilation verified (`pio run` [SUCCESS], RAM: 14.3%, Flash: 60.0%).
+  - Synchronized across simulator, C++ firmware, Arduino sketch, user guide, and project progress log per Rules 1 and 5.
+  - Bumped script cache version in `simulator/index.html` to `app.js?v=50`.
+
+### Entry: Decoupled Continuous Solo Float Pattern & Preserved 90s Theatrical Showcase
+* **Date:** 2026-09-28
+* **Milestone:** Milestone 5 - Studio Workflow & Hardware Fleet Control
+* **Status:** Verified & Operational across `simulator/app.js?v=48`, `simulator/index.html`, `simulator.py`, `src/main.cpp`, `arduino/MSEP_Costume/MSEP_Costume.ino`, `PROJECT_PROGRESS.md`, and `SIMULATOR_USER_GUIDE.md`.
+* **Notes:**
+  - Resolved discrepancy between ESP32 standalone loop and simulator free-run view where ESP32 previously forced a hardcoded 90-second 4-phase sequence (sparkle -> breath -> chase -> wave).
+  - Decoupled single continuous solo float mode (Option A) in firmware: `ACTIVE_COSTUME_PATTERN == COSTUME_PATTERN_STEADY_SPARKLE` now renders continuous sampled artwork colors with starlight sparkles endlessly without unexpected chase/wave interrupts.
+  - Added `#define COSTUME_PATTERN_AUTONOMOUS_90S 6` in `simulator.py` and C++ firmware (`src/main.cpp` & `MSEP_Costume.ino`) to preserve the entire 90s 4-phase routine.
+  - Added **"🎭 90s Classic Routine (4-Phase Showcase)"** preset in simulator Parade Cue Director dropdown and `load90sTheatricalShowTemplate()` function in `app.js` to populate the 4 cues onto the Master Timeline for visual editing/preview.
+  - Firmware compilation verified clean (`pio run`) with zero errors.
+  - Mirrored C++ firmware logic to Arduino IDE sketch (`arduino/MSEP_Costume/MSEP_Costume.ino`) per Rule 5.
+  - Bumped script cache query in `simulator/index.html` to `app.js?v=48`.
+
 ### Entry: Corral Standby Rate Reduction & Sparse Dim Twinkle Tuning
 * **Date:** 2026-09-27
 * **Milestone:** Milestone 5 - Studio Workflow & Hardware Fleet Control
