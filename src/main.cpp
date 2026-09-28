@@ -718,9 +718,6 @@ void runAutonomousShowSequence(uint32_t now) {
 #endif
                     baseColor.nscale8_video(breath);
                     leds[i] = baseColor;
-                    if (COSTUME_SPARKLE_RATE > 0 && random16(10000) < (uint16_t)(COSTUME_SPARKLE_RATE * 100)) {
-                        leds[i] = CRGB(255, 255, 240);
-                    }
                 }
             } else if (eff == 2) { // fire_breath
                 renderFireworks(now);
