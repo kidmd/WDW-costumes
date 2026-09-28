@@ -884,34 +884,34 @@ To ensure that **no runner goes dark on course** during the runDisney 10K, the D
 
 ---
 
-## 15. ESP32 Firmware: Debounced Button Control, Fleet Routine Trigger & Early Stop
+## 15. ESP32 Firmware: Leader-Centric Authority, Corral Standby Mode & Button Controls
 
-The unified firmware in [`src/main.cpp`](file:///c:/Users/Kiddi/Desktop/WDW%20costumes/src/main.cpp) and [`arduino/MSEP_Costume/MSEP_Costume.ino`](file:///c:/Users/Kiddi/Desktop/WDW%20costumes/arduino/MSEP_Costume/MSEP_Costume.ino) implements the one-shot fleet show architecture with debounced button handling via the onboard **BOOT button** (`BUTTON_PIN 0`):
+The unified firmware in [`src/main.cpp`](file:///c:/Users/Kiddi/Desktop/WDW%20costumes/src/main.cpp) and [`arduino/MSEP_Costume/MSEP_Costume.ino`](file:///c:/Users/Kiddi/Desktop/WDW%20costumes/arduino/MSEP_Costume/MSEP_Costume.ino) implements FastLED hardware power limiting (`FastLED.setMaxPowerInVoltsAndMilliamps(5, 2000)`), controls **200 LEDs** (100 front + 100 back duplicated), and enforces the **Leader-Centric Fleet Authority Model**:
 
-### ⚡ Double Tap BOOT Button (2 Taps within 400ms): 4-Second Rapid Attendance Roll Call
-- **Any Costume in the Fleet:** Double-tapping the BOOT button on *any* runner's board triggers the **4-Second Rapid Attendance Wave** (`mode = 0x44`).
-- **Zero Configuration Required:** The initiating costume immediately broadcasts an un-addressed ESP-NOW packet to all nearby runner boards.
-- **Roll Call Choreography (4000ms):**
-  - **Slots 0–6 (500ms each, 0.0s – 3.5s):** Floats 1 through 7 illuminate solo in their signature colors (1 Red ➔ 2 Gold ➔ 3 Teal ➔ 4 Pink ➔ 5 Cyan ➔ 6 Green ➔ 7 Blue). While one runner calls roll, all other 6 costumes stay completely unlit, spotlighting each runner individually.
-  - **Finale Slot (3.5s – 4.0s):** All 7 floats illuminate together in a synchronized **double emerald green flash** (`#00FF50`), visually signaling that all 7 runners are present and the fleet is linked.
-- **Auto-Revert:** At 4.0 seconds, every costume automatically returns to its baseline show program with zero manual intervention.
+### 👑 Leader-Centric Authority Model
+- **Float 1 (Casey Jr. / Master Leader):** Pulls the parade and holds master command over the fleet. The leader can wake all 7 floats from standby, trigger 4-second attendance roll calls, launch the 30-second fleet show, and put the whole group into battery-saving standby.
+- **Floats 2 to 7 (Followers):** Followers only have local control over their own shirt (waking or entering standby locally). Single-taps during active runs and double-taps are ignored on follower boards to ensure non-technical family runners never accidentally disrupt or cancel the parade show.
 
-### 👑 Single Tap BOOT Button (< 600ms, idle > 400ms): 30s Theatrical Fleet Routine
-- **From Baseline (Idle):**
-  - Tapping the BOOT button once initiates the **30-Second Synchronized Fleet Routine** once.
-  - Automatically broadcasts an ESP-NOW sync trigger packet (`mode = 0x30`) to all listening peer costumes in range so the entire fleet initiates simultaneously.
-  - Advances through all 12 choreography phases (blackouts, forward wave, reverse wave, 5s fleet pulse, center burst, wig-wag, baton chase, sparkle storm, ping-pong, carnival finale).
-  - Automatically returns to the individual float program after 30.0 seconds.
-- **During Active Fleet Routine or Roll Call:**
-  - Tapping the BOOT button stops the routine early!
-  - Broadcasts an ESP-NOW cancellation packet (`mode = 0x00`) to all peer costumes.
-  - Displays **2 Amber Flashes** and returns immediately to the regular individual program.
+### 🌙 Power-On Corral Standby Mode
+Upon plugging in USB power at 3:30 AM, all costumes boot directly into **Corral Standby Mode** (12% dim midnight starlight twinkle drawing **< 120mA**). This saves 80%+ of power bank energy during the 60–90 minute starting corral wait and prevents blinding fellow runners in line.
 
-### Debounce, Charging Feedback & Hold-to-Abort Safety
-- **Hardware Press Debounce:** Ignores contact bounce or electrical noise under 50ms (`pressDuration >= 50`).
-- **Double-Tap Detection Window:** 400ms evaluation window between button releases (`now - firstTapReleaseTime <= 400`). If a second tap arrives within 400ms, it is executed immediately as a Double-Tap. If the 400ms window elapses without a second press, the single tap action is executed.
-- **Accidental Press / Abort Window (1000ms – 4999ms):** If the button is pressed and held for more than 1 second, the board enters charging standby. Releasing anytime before 5.0 seconds cleanly cancels the hold and returns instantly to baseline with zero changes. Because taps are strictly `< 600ms`, an aborted hold never triggers the 30s fleet show.
-- **5-Second Idiot-Proof Hold Trigger:** Holding the button continuously for $\ge 5.0$ seconds automatically cancels any pending tap actions and enters Float ID Configuration Mode.
+### Hardware BOOT Button (GPIO 0) Controls:
+- **Power-Up (Plug USB):** Boots directly into **🌙 Corral Standby Mode** (12% dim starlight twinkle, < 120mA).
+- **Single Tap (< 600ms):**
+  - **In Standby Mode:** 
+    - 👑 *Leader:* Wakes **ENTIRE FLEET** to active parade mode (1 emerald green flash, broadcasts packet `0x51`).
+    - 👥 *Follower:* Wakes **THAT RUNNER ONLY** locally (no broadcast).
+  - **During Active Run:**
+    - 👑 *Leader:* Starts/stops the **30-Second Theatrical Fleet Routine** across all 7 floats (broadcasts packet `0x30` / `0x00`).
+    - 👥 *Follower:* Ignored (zero fleet disruption).
+- **Double Tap (2 quick taps within 400ms):**
+  - 👑 *Leader:* Triggers **⚡ 4-Second Rapid Attendance Roll Call** wave (slots 1..7 solo highlight + unison finale, broadcasts packet `0x44`).
+  - 👥 *Follower:* Ignored (roll call reserved for Leader).
+- **Triple Tap (3 quick taps within 600ms):**
+  - 👑 *Leader:* Drops **ENTIRE FLEET into Corral Standby Mode** (3 soft indigo pulses, broadcasts packet `0x50`).
+  - 👥 *Follower:* Drops **THAT RUNNER ONLY into Corral Standby Mode** (3 soft indigo pulses, local only).
+- **Long Hold (>= 5.0s):**
+  - **Float ID Configuration Mode:** Progressive 1s–4s white LED charging meter followed by 3 white entry flashes, tap to cycle Float ID $1 \dots 7$, auto-saves to NVS flash after 4 seconds of inactivity with 4 green flashes. Releasing before 5s cleanly aborts back to baseline with zero changes.
 
 ### 🎛️ Interactive Float ID Selector (Hold for 5 Seconds with Progressive Charging Meter)
 Any board can be reassigned to any of the 7 floats in the corral without touching code or opening a laptop:

@@ -93,6 +93,18 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### Entry: Leader-Centric Fleet Authority & Race-Day Corral Standby Mode
+* **Date:** 2026-09-27
+* **Milestone:** Milestone 5 - Studio Workflow & Hardware Fleet Control
+* **Status:** Operational & Synchronized across `src/main.cpp`, `arduino/MSEP_Costume/MSEP_Costume.ino`, `simulator/app.js`, `simulator/index.html`, `SIMULATOR_USER_GUIDE.md`, `README.md`, and `PROJECT_PROGRESS.md`.
+* **Notes:**
+  - Implemented **Power-On Corral Standby Default**: All costumes boot directly into a dim 12% midnight starlight twinkle (<120mA draw) upon plugging in USB power at 3:30 AM, preserving 80%+ battery life over the 60–90 minute corral wait and preventing glare for nearby runners.
+  - Established **Leader-Centric Fleet Authority Model**:
+    - **👑 Master Leader (Float 1 - Casey Jr.):** Single tap in Standby wakes entire fleet (`0x51`); single tap during active run starts/stops 30s fleet show (`0x30`/`0x00`); double tap triggers 4s attendance wave (`0x44`); triple tap drops entire fleet back to Standby (`0x50`).
+    - **👥 Follower (Floats 2 to 7):** Single tap in Standby wakes local costume only; single tap during active run and double tap are ignored to protect non-technical family members from accidental fleet disruption; triple tap drops local costume into Standby.
+  - Integrated Corral Wait Duration slider (0–120 min) into the Battery Life & Power Budget Calculator, dynamically computing mAh and runtime savings.
+  - Fully mirrored C++ firmware logic between `src/main.cpp` and `arduino/MSEP_Costume/MSEP_Costume.ino` per Rule 5.
+
 ### Entry: Pre-Built Shape & Flourish Stamp Library (Groups Tab Mode 3 Suite)
 * **Date:** 2026-09-27
 * **Milestone:** Milestone 5 - Studio Workflow & Visual Geometry Suite

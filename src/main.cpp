@@ -120,10 +120,11 @@ enum StandaloneShowMode {
     SHOW_MODE_AUTONOMOUS_SEQUENCE = 0,
     SHOW_MODE_FLEET_SYNC          = 1,
     SHOW_MODE_FLEET_30S_ROUTINE   = 2,
-    SHOW_MODE_RAPID_ROLL_CALL     = 3
+    SHOW_MODE_RAPID_ROLL_CALL     = 3,
+    SHOW_MODE_CORRAL_STANDBY      = 4
 };
 
-StandaloneShowMode currentStandaloneMode = SHOW_MODE_AUTONOMOUS_SEQUENCE;
+StandaloneShowMode currentStandaloneMode = SHOW_MODE_CORRAL_STANDBY;
 StandaloneShowMode previousStandaloneMode = SHOW_MODE_AUTONOMOUS_SEQUENCE;
 uint32_t fleetRoutineStartTime = 0;
 uint8_t fleetRoutineCycle = 0;
@@ -132,11 +133,39 @@ uint32_t rapidRollCallStartTime = 0;
 void broadcastFleetRoutinePacket(uint8_t mode, uint32_t masterMillis) {
     ParadeSyncPacket packet;
     packet.magic = 0xEE;
-    packet.mode = mode; // 0x30 = Start/Sync 30s Routine, 0x00 = Stop early
+    packet.mode = mode; // 0x30 = Start/Sync 30s Routine, 0x00 = Stop early, 0x50 = Standby, 0x51 = Wake
     packet.masterMillis = masterMillis;
     packet.activeFloat = myFloatNumber;
     packet.waveHead = 0;
     esp_now_send(broadcastMac, (uint8_t*)&packet, sizeof(packet));
+}
+
+void broadcastStandbyPacket(uint8_t mode) {
+    ParadeSyncPacket packet;
+    packet.magic = 0xEE;
+    packet.mode = mode; // 0x50 = Standby, 0x51 = Wake
+    packet.masterMillis = millis();
+    packet.activeFloat = myFloatNumber;
+    packet.waveHead = 0;
+    esp_now_send(broadcastMac, (uint8_t*)&packet, sizeof(packet));
+}
+
+void renderCorralStandby(uint32_t t) {
+    // Ultra-low power starlight twinkle (<120mA draw) at 12% brightness
+    uint8_t floatIdx = (myFloatNumber >= 1 && myFloatNumber <= 7) ? (myFloatNumber - 1) : 0;
+    CRGB baseColor = FLEET_ROSTER_INFO[floatIdx].color;
+    
+    // Deep midnight base glow (12% scaled)
+    CRGB dimBase = CRGB(baseColor.r / 8, baseColor.g / 8, baseColor.b / 8);
+    fill_solid(leds, FRONT_LEDS, dimBase);
+
+    // Gentle slow-breathing starlight sparkle
+    uint16_t seed = (t / 60) + (myFloatNumber * 50);
+    for (int i = 0; i < FRONT_LEDS; i++) {
+        if (((seed + i * 17) % 23) == 0) {
+            leds[i] = CRGB(180, 160, 100); // Warm soft starlight sparkle
+        }
+    }
 }
 
 // ============================================================================
@@ -254,6 +283,16 @@ void onDataReceive(const uint8_t *mac_addr, const uint8_t *incomingData, int len
                 // 4-Second Rapid Attendance Roll Call commanded by peer
                 startRapidRollCall(millis() - packet.masterMillis);
                 Serial.printf("[ESP-NOW] ⚡ Rapid Attendance Roll Call triggered by Float %d\n", packet.activeFloat);
+            } else if (packet.mode == 0x50) {
+                // Corral Standby Mode commanded by Leader/Peer
+                currentStandaloneMode = SHOW_MODE_CORRAL_STANDBY;
+                Serial.printf("[ESP-NOW] 🌙 Switched to Corral Standby Mode by Float %d\n", packet.activeFloat);
+            } else if (packet.mode == 0x51) {
+                // Wake from Corral Standby commanded by Leader/Peer
+                if (currentStandaloneMode == SHOW_MODE_CORRAL_STANDBY) {
+                    currentStandaloneMode = previousStandaloneMode;
+                }
+                Serial.printf("[ESP-NOW] ☀️ Woke from Corral Standby Mode by Float %d\n", packet.activeFloat);
             } else {
                 currentPacket = packet;
                 packetReceived = true;
@@ -1064,17 +1103,37 @@ void loop() {
             Serial.printf("[BUTTON] Hold aborted after %u ms -> returning to baseline with zero changes.\n", pressDuration);
         }
 
-        // Tap handling: strictly recognize intentional taps under 600ms (50ms hardware debounce)
+        // Tap handling: recognize intentional taps under 600ms (50ms hardware debounce)
         if (!longHoldHandled && pressDuration >= 50 && pressDuration < 600) {
-            if (pendingTapCount == 1 && (now - firstTapReleaseTime <= 400)) {
-                // SECOND TAP DETECTED within 400ms -> DOUBLE TAP!
+            if (pendingTapCount == 2 && (now - firstTapReleaseTime <= 600)) {
+                // TRIPLE TAP DETECTED!
                 pendingTapCount = 0;
                 lastButtonReleaseTime = now;
 
-                startRapidRollCall(now);
-                broadcastRapidRollCallPacket();
+                currentStandaloneMode = SHOW_MODE_CORRAL_STANDBY;
+                for (int f = 0; f < 3; f++) {
+                    fill_solid(leds, NUM_LEDS, CRGB(30, 60, 255)); // 3 Soft Indigo pulses
+                    FastLED.show();
+                    digitalWrite(STATUS_LED_PIN, HIGH);
+                    delay(80);
+                    fill_solid(leds, NUM_LEDS, CRGB::Black);
+                    FastLED.show();
+                    digitalWrite(STATUS_LED_PIN, LOW);
+                    delay(60);
+                }
+
+                if (isLeader) {
+                    broadcastStandbyPacket(0x50);
+                    Serial.println("[LEADER] 🌙 Triple Tap -> Dropped ENTIRE FLEET into Corral Standby Mode!");
+                } else {
+                    Serial.printf("[FOLLOWER] Float %d Triple Tap -> Dropped locally into Corral Standby Mode.\n", myFloatNumber);
+                }
+            } else if (pendingTapCount == 1 && (now - firstTapReleaseTime <= 400)) {
+                // SECOND TAP DETECTED -> DOUBLE TAP!
+                pendingTapCount = 2; // Arm for possible 3rd tap within 600ms total
+                lastButtonReleaseTime = now;
             } else {
-                // FIRST TAP DETECTED -> wait for potential second tap
+                // FIRST TAP DETECTED -> wait for potential second/third tap
                 pendingTapCount = 1;
                 firstTapReleaseTime = now;
                 lastButtonReleaseTime = now;
@@ -1082,35 +1141,69 @@ void loop() {
         }
     }
 
-    // Evaluate pending single-tap once the 400ms window expires and button is not currently held
-    if (pendingTapCount == 1 && !isButtonPressed && (now - firstTapReleaseTime > 400)) {
+    // Evaluate pending multi-tap once window expires and button is not currently held
+    if (pendingTapCount > 0 && !isButtonPressed && (now - firstTapReleaseTime > 400)) {
+        uint8_t tapType = pendingTapCount;
         pendingTapCount = 0;
 
-        if (currentStandaloneMode == SHOW_MODE_FLEET_30S_ROUTINE || currentStandaloneMode == SHOW_MODE_RAPID_ROLL_CALL) {
-            // STOP EARLY: Return to baseline and broadcast stop to fleet
-            currentStandaloneMode = previousStandaloneMode;
-            broadcastFleetRoutinePacket(0x00, 0);
-            Serial.println("[FLEET] Early stop triggered via BOOT button -> returning to baseline.");
-            
-            // Visual confirmation on costume LED strip: 2 Amber/Gold flashes
-            for (int f = 0; f < 2; f++) {
-                fill_solid(leds, NUM_LEDS, CRGB(255, 140, 0));
+        if (tapType == 1) {
+            // SINGLE TAP EVALUATION
+            if (currentStandaloneMode == SHOW_MODE_CORRAL_STANDBY) {
+                // WAKE UP FROM CORRAL STANDBY
+                currentStandaloneMode = previousStandaloneMode;
+
+                // Visual confirmation: 1 Emerald Green flash
+                fill_solid(leds, NUM_LEDS, CRGB(0, 255, 80));
                 FastLED.show();
                 digitalWrite(STATUS_LED_PIN, HIGH);
-                delay(120);
+                delay(150);
                 fill_solid(leds, NUM_LEDS, CRGB::Black);
                 FastLED.show();
                 digitalWrite(STATUS_LED_PIN, LOW);
-                delay(80);
+
+                if (isLeader) {
+                    broadcastStandbyPacket(0x51); // Wake entire fleet!
+                    Serial.println("[LEADER] ☀️ Single Tap -> Woke ENTIRE FLEET from Corral Standby!");
+                } else {
+                    Serial.printf("[FOLLOWER] Float %d Single Tap -> Woke locally from Corral Standby.\n", myFloatNumber);
+                }
+            } else if (isLeader) {
+                // LEADER ACTIVE RUN TOGGLE: 30s Fleet Show Routine
+                if (currentStandaloneMode == SHOW_MODE_FLEET_30S_ROUTINE || currentStandaloneMode == SHOW_MODE_RAPID_ROLL_CALL) {
+                    currentStandaloneMode = previousStandaloneMode;
+                    broadcastFleetRoutinePacket(0x00, 0);
+                    Serial.println("[LEADER] Early stop triggered via BOOT button -> returning to baseline.");
+                    
+                    for (int f = 0; f < 2; f++) {
+                        fill_solid(leds, NUM_LEDS, CRGB(255, 140, 0));
+                        FastLED.show();
+                        digitalWrite(STATUS_LED_PIN, HIGH);
+                        delay(120);
+                        fill_solid(leds, NUM_LEDS, CRGB::Black);
+                        FastLED.show();
+                        digitalWrite(STATUS_LED_PIN, LOW);
+                        delay(80);
+                    }
+                } else {
+                    fleetRoutineCycle++;
+                    fleetRoutineStartTime = now;
+                    previousStandaloneMode = currentStandaloneMode;
+                    currentStandaloneMode = SHOW_MODE_FLEET_30S_ROUTINE;
+                    broadcastFleetRoutinePacket(0x30, 0);
+                    Serial.printf("[LEADER] 30s Fleet Show started via BOOT button! (Cycle #%u)\n", fleetRoutineCycle);
+                }
+            } else {
+                Serial.printf("[FOLLOWER] Float %d single tap ignored while running (Show trigger reserved for Leader).\n", myFloatNumber);
             }
-        } else {
-            // START 30s FLEET ROUTINE: Trigger once and broadcast start to fleet
-            fleetRoutineCycle++;
-            fleetRoutineStartTime = now;
-            previousStandaloneMode = currentStandaloneMode;
-            currentStandaloneMode = SHOW_MODE_FLEET_30S_ROUTINE;
-            broadcastFleetRoutinePacket(0x30, 0);
-            Serial.printf("[FLEET] 30s Fleet Show started via BOOT button! (Cycle #%u)\n", fleetRoutineCycle);
+        } else if (tapType == 2) {
+            // DOUBLE TAP EVALUATION (LEADER ONLY)
+            if (isLeader) {
+                startRapidRollCall(now);
+                broadcastRapidRollCallPacket();
+                Serial.println("[LEADER] ⚡ 4-Second Rapid Attendance Roll Call started!");
+            } else {
+                Serial.printf("[FOLLOWER] Float %d double tap ignored (Roll call wave reserved for Leader).\n", myFloatNumber);
+            }
         }
     }
 
@@ -1187,7 +1280,12 @@ void loop() {
 
     // 4. If simulator is NOT streaming, run the selected standalone mode!
     if (!isLiveStreaming) {
-        if (currentStandaloneMode == SHOW_MODE_RAPID_ROLL_CALL) {
+        if (currentStandaloneMode == SHOW_MODE_CORRAL_STANDBY) {
+            renderCorralStandby(now);
+            duplicateFrontToBack();
+            FastLED.show();
+            delay(20);
+        } else if (currentStandaloneMode == SHOW_MODE_RAPID_ROLL_CALL) {
             uint32_t elapsedMs = now - rapidRollCallStartTime;
             if (elapsedMs < RAPID_ROLL_CALL_TOTAL_MS) {
                 renderRapidRollCall(elapsedMs);

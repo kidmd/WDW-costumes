@@ -346,6 +346,30 @@
                         </div>
                     </div>
 
+                    <!-- 🌙 Race-Day Corral Standby & Low-Power Mode Card -->
+                    <div class="control-section" style="border: 1px solid #1f6feb; background: rgba(31, 111, 235, 0.06); border-radius: 8px; padding: 10px 12px; margin-bottom: 12px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                            <div style="display: flex; align-items: center; gap: 6px;">
+                                <span style="font-size: 16px;">🌙</span>
+                                <span style="font-weight: 700; color: #58a6ff; font-size: 12px;">Corral Standby Mode (<120mA)</span>
+                            </div>
+                            <span id="standbyStatusPill" style="font-size: 10px; background: rgba(139, 148, 158, 0.2); color: #8b949e; padding: 2px 7px; border-radius: 10px; font-weight: 600; border: 1px solid rgba(139, 148, 158, 0.4);">
+                                OFF (Full Parade)
+                            </span>
+                        </div>
+                        <p style="font-size: 11px; color: var(--text-muted); line-height: 1.35; margin-bottom: 8px;">
+                            Power-on boot mode for the 60–90 min starting corral wait. Dim 12% midnight starlight twinkle saves 80%+ battery and prevents blinding nearby runners!
+                        </p>
+                        <div style="display: flex; gap: 6px;">
+                            <button type="button" id="toggleCorralStandbyBtn" class="action-btn" style="flex: 1; font-size: 11px; padding: 6px 8px; border-color: #1f6feb; color: #58a6ff; font-weight: 600;" title="Toggle Corral Standby Mode (Simulate Leader Triple-Tap or Power On)">
+                                🌙 Enter Standby Mode
+                            </button>
+                            <button type="button" id="wakeCorralStandbyBtn" class="action-btn accent" style="flex: 1; font-size: 11px; padding: 6px 8px; background: linear-gradient(135deg, #238636, #2ea043); border-color: #2ea043; font-weight: 600;" title="Wake Entire Fleet to Active Parade Mode (Simulate Leader Single-Tap)">
+                                ☀️ Wake Fleet
+                            </button>
+                        </div>
+                    </div>
+
                     <!-- Baseline Lighting Pattern Selector -->
                     <div class="control-section">
                         <div class="section-title">
@@ -1358,10 +1382,25 @@
                                 </select>
                             </div>
 
-                            <!-- Target Race Duration / Corral Time Slider -->
+                            <!-- Corral Standby Wait Duration Slider -->
                             <div>
                                 <div style="display: flex; justify-content: space-between; font-size: 11px; margin-bottom: 4px;">
-                                    <label for="raceDurationRange" style="color: var(--text-muted); font-weight: 600;">Race + Corral Duration:</label>
+                                    <label for="corralWaitRange" style="color: var(--text-muted); font-weight: 600;">🌙 Corral Standby Wait Time:</label>
+                                    <span id="corralWaitLabel" style="color: #58a6ff; font-weight: 700; font-family: monospace;">60 min (<120mA)</span>
+                                </div>
+                                <input type="range" id="corralWaitRange" min="0" max="120" step="15" value="60" style="width: 100%;">
+                                <div style="display: flex; justify-content: space-between; font-size: 9.5px; color: var(--text-muted); margin-top: 2px;">
+                                    <span>0m (Direct Start)</span>
+                                    <span>30m (Quick Corral)</span>
+                                    <span>60m (Standard Wait)</span>
+                                    <span>2h (Corral Max)</span>
+                                </div>
+                            </div>
+
+                            <!-- Target Race Duration / Course Time Slider -->
+                            <div>
+                                <div style="display: flex; justify-content: space-between; font-size: 11px; margin-bottom: 4px;">
+                                    <label for="raceDurationRange" style="color: var(--text-muted); font-weight: 600;">🏃 Active Course Run Duration:</label>
                                     <span id="raceDurationLabel" style="color: #ffc107; font-weight: 700; font-family: monospace;">90 min (1.5 hrs)</span>
                                 </div>
                                 <input type="range" id="raceDurationRange" min="30" max="240" step="15" value="90" style="width: 100%;">
@@ -1369,7 +1408,7 @@
                                     <span>30m (Sprint)</span>
                                     <span>75m (10K Pace)</span>
                                     <span>90m (Photo Walk)</span>
-                                    <span>4h (Corral Max)</span>
+                                    <span>4h (Course Max)</span>
                                 </div>
                             </div>
 

@@ -1698,6 +1698,28 @@ function evalGlobalPattern(pattern, bpm, index, totalLeds, timeMs, c, hasColor) 
 }
 
 function computeLedColor(index, totalLeds, timeMs) {
+    if (isCorralStandbyActive) {
+        const floatIdx = activeSingleShirtRunnerSlot || 0;
+        const floatObj = DEFAULT_FLEET_RADAR[floatIdx] || DEFAULT_FLEET_RADAR[0];
+        const baseColor = hexToRgb(floatObj ? floatObj.color : '#388bfd');
+        const dimR = Math.round(baseColor.r / 8);
+        const dimG = Math.round(baseColor.g / 8);
+        const dimB = Math.round(baseColor.b / 8);
+        
+        let spark = 0;
+        const seed = Math.floor(timeMs / 60) + (floatIdx * 50);
+        if (((seed + index * 17) % 23) === 0) {
+            spark = 1;
+        }
+
+        return {
+            r: spark ? 180 : dimR,
+            g: spark ? 160 : dimG,
+            b: spark ? 100 : dimB,
+            alpha: spark ? 0.8 : 0.15
+        };
+    }
+
     if (rapidRollCallActive) {
         const elapsed = timeMs - rapidRollCallStartTime;
         if (elapsed >= 0 && elapsed < 4000) {
@@ -12388,6 +12410,13 @@ function updatePowerBudgetCalculations() {
         raceDurationLabel.textContent = `${raceDurationMin} min (${(raceDurationMin / 60).toFixed(1)} hrs)`;
     }
 
+    const corralWaitRange = document.getElementById('corralWaitRange');
+    const corralWaitMin = corralWaitRange ? parseInt(corralWaitRange.value, 10) : 60;
+    const corralWaitLabel = document.getElementById('corralWaitLabel');
+    if (corralWaitLabel) {
+        corralWaitLabel.textContent = `${corralWaitMin} min (<120mA)`;
+    }
+
     // Number of 30-second shows
     let numShows = 0;
     if (showCadenceMin > 0) {
@@ -12404,12 +12433,22 @@ function updatePowerBudgetCalculations() {
 
     const tShowMin = numShows * 0.5;
     const tBaseMin = Math.max(0, raceDurationMin - tShowMin);
+    const tStandbyMin = corralWaitMin;
+    const totalTimeMin = raceDurationMin + tStandbyMin;
 
-    // Calculate Fleet Average
+    // Calculate Fleet Average (including Standby @ 110 mA)
     const fleetAvgBase = FLOAT_POWER_PROFILES.reduce((s, f) => s + f.baseMa, 0) / FLOAT_POWER_PROFILES.length;
     const fleetAvgShow = FLOAT_POWER_PROFILES.reduce((s, f) => s + f.showPeakMa, 0) / FLOAT_POWER_PROFILES.length;
-    const fleetAvgCurrent = Math.round(((fleetAvgBase * tBaseMin) + (fleetAvgShow * tShowMin)) / raceDurationMin);
-    const fleetUsedMah = Math.round(fleetAvgCurrent * (raceDurationMin / 60));
+    const fleetStandbyMa = 110;
+
+    const totalFleetMah = Math.round(
+        (fleetStandbyMa * (tStandbyMin / 60)) +
+        (fleetAvgBase * (tBaseMin / 60)) +
+        (fleetAvgShow * (tShowMin / 60))
+    );
+
+    const fleetAvgCurrent = Math.round(totalFleetMah / (totalTimeMin / 60));
+    const fleetUsedMah = totalFleetMah;
     const fleetRemainMah = Math.max(0, usable5vMah - fleetUsedMah);
     const fleetRemainPct = Math.max(0, Math.min(100, Math.round((fleetRemainMah / usable5vMah) * 100)));
     const fleetTotalHours = (usable5vMah / fleetAvgCurrent).toFixed(1);
@@ -12514,6 +12553,10 @@ function initPowerBudgetCalculator() {
     const breakdownToggleIcon = document.getElementById('powerBreakdownToggleIcon');
     const jumpBtn = document.getElementById('fleetJumpToBatteryBtn');
 
+    const corralWaitRange = document.getElementById('corralWaitRange');
+    const toggleCorralStandbyBtn = document.getElementById('toggleCorralStandbyBtn');
+    const wakeCorralStandbyBtn = document.getElementById('wakeCorralStandbyBtn');
+
     // Restore saved settings
     try {
         const savedSize = localStorage.getItem('msep_power_bank_size');
@@ -12522,11 +12565,41 @@ function initPowerBudgetCalculator() {
         if (savedDuration && durationRange) durationRange.value = savedDuration;
         const savedFreq = localStorage.getItem('msep_show_frequency');
         if (savedFreq && freqSelect) freqSelect.value = savedFreq;
+        const savedCorral = localStorage.getItem('msep_corral_wait');
+        if (savedCorral && corralWaitRange) corralWaitRange.value = savedCorral;
     } catch (e) {}
 
     bankSelect?.addEventListener('change', updatePowerBudgetCalculations);
     durationRange?.addEventListener('input', updatePowerBudgetCalculations);
     freqSelect?.addEventListener('change', updatePowerBudgetCalculations);
+    corralWaitRange?.addEventListener('input', (e) => {
+        try { localStorage.setItem('msep_corral_wait', e.target.value); } catch (err) {}
+        updatePowerBudgetCalculations();
+    });
+
+    function setStandbyUIState(active) {
+        isCorralStandbyActive = active;
+        const pill = document.getElementById('standbyStatusPill');
+        if (pill) {
+            pill.textContent = active ? '🌙 STANDBY ACTIVE (<120mA)' : 'OFF (Full Parade)';
+            pill.style.background = active ? 'rgba(31, 111, 235, 0.25)' : 'rgba(139, 148, 158, 0.2)';
+            pill.style.color = active ? '#58a6ff' : '#8b949e';
+            pill.style.borderColor = active ? 'rgba(56, 139, 253, 0.5)' : 'rgba(139, 148, 158, 0.4)';
+        }
+        if (toggleCorralStandbyBtn) {
+            toggleCorralStandbyBtn.textContent = active ? '☀️ Wake to Active Parade' : '🌙 Enter Standby Mode';
+        }
+    }
+
+    toggleCorralStandbyBtn?.addEventListener('click', () => {
+        setStandbyUIState(!isCorralStandbyActive);
+        showToast(isCorralStandbyActive ? '🌙 Entered Corral Standby Mode (12% Dim Twinkle <120mA)!' : '☀️ Woke Fleet to Active Parade Mode!');
+    });
+
+    wakeCorralStandbyBtn?.addEventListener('click', () => {
+        setStandbyUIState(false);
+        showToast('☀️ Leader Woke Entire Fleet to Active Parade Mode!');
+    });
 
     if (breakdownToggle && breakdownContent && breakdownToggleIcon) {
         breakdownToggle.addEventListener('click', () => {

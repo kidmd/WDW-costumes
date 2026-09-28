@@ -40,9 +40,16 @@ An **ESP32** microcontroller on each runner coordinates lighting patterns wirele
 * **Architecture:**
   * **Unit 1 (Leader / Transmitter):** Broadcasts timing ticks, BPM tempo, master brightness, and pattern triggers.
   * **Units 2–7 (Followers / Receivers):** Listen to broadcast packets, sync their internal animation clock, and calculate their position-based phase delay for traveling parade chases down the line of runners.
-* **On-the-Fly Button Controls (BOOT Button on GPIO 0):**
-  * **Double Tap (2 taps within 400ms):** Triggers **4-Second Rapid Attendance Roll Call** across the fleet (Floats 1..7 illuminate solo for 500ms in signature colors, followed by a 500ms unison double emerald green flash). Zero phones or routers needed!
-  * **Single Tap (< 600ms):** Toggles the **30-Second Theatrical Fleet Routine** once (press again to stop early and return to baseline).
+* **On-the-Fly Button Controls & Leader Authority (BOOT Button on GPIO 0):**
+  * **Power-Up (Plug USB):** Boots directly into **🌙 Corral Standby Mode** (12% dim midnight starlight twinkle, < 120mA), saving 80%+ battery during the 60–90 min wait.
+  * **Single Tap (< 600ms):**
+    * 👑 *Leader (Float 1):* Wakes **ENTIRE FLEET** from standby (or toggles the 30s Theatrical Fleet Routine during active runs).
+    * 👥 *Follower (Floats 2–7):* Wakes **THAT RUNNER ONLY** locally (ignored during active runs so non-technical runners never disrupt the fleet!).
+  * **Double Tap (2 taps within 400ms):**
+    * 👑 *Leader:* Triggers **⚡ 4-Second Rapid Attendance Roll Call** wave (Floats 1..7 illuminate solo for 500ms in signature colors, followed by a 500ms unison double emerald green flash across all 7 costumes).
+  * **Triple Tap (3 taps within 600ms):**
+    * 👑 *Leader:* Drops **ENTIRE FLEET into Corral Standby Mode**.
+    * 👥 *Follower:* Drops **THAT RUNNER ONLY into Corral Standby Mode**.
   * **Hold for 5 Seconds:** Enter **Float ID Configuration Mode** (1 to 7) with a 1s–4s progressive white LED charging meter and permanent NVS flash auto-save. Releasing before 5s cleanly aborts back to baseline without triggering show routines. No hardcoded MAC addresses required!
 
 ---

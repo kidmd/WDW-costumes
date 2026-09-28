@@ -1,18 +1,3 @@
-// ============================================================================
-// MAIN STREET ELECTRICAL PARADE - ARDUINO IDE COMPATIBLE SKETCH
-// ============================================================================
-// HOW TO FLASH IN ARDUINO IDE (For Brothers & Makers):
-// 1. Open this file (MSEP_Costume.ino) in Arduino IDE.
-// 2. Install FastLED:
-//    - Go to Sketch -> Include Library -> Manage Libraries...
-//    - Search for "FastLED" and click "Install" (by Daniel Garcia).
-// 3. Select ESP32 Board:
-//    - Go to Tools -> Board -> esp32 -> "ESP32 Dev Module"
-//    - Select COM Port:
-//    - Connect your ESP32 via USB and choose its port in Tools -> Port.
-// 5. Click the "Upload" arrow button (top-left).
-// ============================================================================
-
 #include <Arduino.h>
 #include <FastLED.h>
 #include <WiFi.h>
@@ -50,7 +35,7 @@
 #endif
 
 #ifndef BACK_LEDS
-#define BACK_LEDS           100     // 100 LEDs on back of costume shirt
+#define BACK_LEDS          100     // 100 LEDs on back of costume shirt
 #endif
 
 #ifndef NUM_LEDS
@@ -135,10 +120,11 @@ enum StandaloneShowMode {
     SHOW_MODE_AUTONOMOUS_SEQUENCE = 0,
     SHOW_MODE_FLEET_SYNC          = 1,
     SHOW_MODE_FLEET_30S_ROUTINE   = 2,
-    SHOW_MODE_RAPID_ROLL_CALL     = 3
+    SHOW_MODE_RAPID_ROLL_CALL     = 3,
+    SHOW_MODE_CORRAL_STANDBY      = 4
 };
 
-StandaloneShowMode currentStandaloneMode = SHOW_MODE_AUTONOMOUS_SEQUENCE;
+StandaloneShowMode currentStandaloneMode = SHOW_MODE_CORRAL_STANDBY;
 StandaloneShowMode previousStandaloneMode = SHOW_MODE_AUTONOMOUS_SEQUENCE;
 uint32_t fleetRoutineStartTime = 0;
 uint8_t fleetRoutineCycle = 0;
@@ -147,11 +133,39 @@ uint32_t rapidRollCallStartTime = 0;
 void broadcastFleetRoutinePacket(uint8_t mode, uint32_t masterMillis) {
     ParadeSyncPacket packet;
     packet.magic = 0xEE;
-    packet.mode = mode; // 0x30 = Start/Sync 30s Routine, 0x00 = Stop early
+    packet.mode = mode; // 0x30 = Start/Sync 30s Routine, 0x00 = Stop early, 0x50 = Standby, 0x51 = Wake
     packet.masterMillis = masterMillis;
     packet.activeFloat = myFloatNumber;
     packet.waveHead = 0;
     esp_now_send(broadcastMac, (uint8_t*)&packet, sizeof(packet));
+}
+
+void broadcastStandbyPacket(uint8_t mode) {
+    ParadeSyncPacket packet;
+    packet.magic = 0xEE;
+    packet.mode = mode; // 0x50 = Standby, 0x51 = Wake
+    packet.masterMillis = millis();
+    packet.activeFloat = myFloatNumber;
+    packet.waveHead = 0;
+    esp_now_send(broadcastMac, (uint8_t*)&packet, sizeof(packet));
+}
+
+void renderCorralStandby(uint32_t t) {
+    // Ultra-low power starlight twinkle (<120mA draw) at 12% brightness
+    uint8_t floatIdx = (myFloatNumber >= 1 && myFloatNumber <= 7) ? (myFloatNumber - 1) : 0;
+    CRGB baseColor = FLEET_ROSTER_INFO[floatIdx].color;
+    
+    // Deep midnight base glow (12% scaled)
+    CRGB dimBase = CRGB(baseColor.r / 8, baseColor.g / 8, baseColor.b / 8);
+    fill_solid(leds, FRONT_LEDS, dimBase);
+
+    // Gentle slow-breathing starlight sparkle
+    uint16_t seed = (t / 60) + (myFloatNumber * 50);
+    for (int i = 0; i < FRONT_LEDS; i++) {
+        if (((seed + i * 17) % 23) == 0) {
+            leds[i] = CRGB(180, 160, 100); // Warm soft starlight sparkle
+        }
+    }
 }
 
 // ============================================================================
@@ -269,6 +283,16 @@ void onDataReceive(const uint8_t *mac_addr, const uint8_t *incomingData, int len
                 // 4-Second Rapid Attendance Roll Call commanded by peer
                 startRapidRollCall(millis() - packet.masterMillis);
                 Serial.printf("[ESP-NOW] ⚡ Rapid Attendance Roll Call triggered by Float %d\n", packet.activeFloat);
+            } else if (packet.mode == 0x50) {
+                // Corral Standby Mode commanded by Leader/Peer
+                currentStandaloneMode = SHOW_MODE_CORRAL_STANDBY;
+                Serial.printf("[ESP-NOW] 🌙 Switched to Corral Standby Mode by Float %d\n", packet.activeFloat);
+            } else if (packet.mode == 0x51) {
+                // Wake from Corral Standby commanded by Leader/Peer
+                if (currentStandaloneMode == SHOW_MODE_CORRAL_STANDBY) {
+                    currentStandaloneMode = previousStandaloneMode;
+                }
+                Serial.printf("[ESP-NOW] ☀️ Woke from Corral Standby Mode by Float %d\n", packet.activeFloat);
             } else {
                 currentPacket = packet;
                 packetReceived = true;
@@ -383,16 +407,16 @@ void renderFireworks(uint32_t t) {
                     leds[fwStart + idx] = ember;
                 }
             } else {
-                leds[fwStart + idx] = CRGB::Black; // Ahead of expanding wavefront: completely off
+                leds[fwStart + idx] = CRGB::Black;
             }
-        } else if (tau < 1600) {
-            // Phase 3: Tip sparkle crackle
-            if (step >= ledsPerRay - 2) {
-                if (random16(100) < 40) {
-                    leds[fwStart + idx] = CRGB(255, 255, 240);
-                } else {
-                    leds[fwStart + idx] = CRGB::Black;
-                }
+        } else if (tau < 1650) {
+            // Phase 3: Shimmering fade-out / crackle
+            uint32_t fadeMs = tau - 1250;
+            uint8_t alpha = map(fadeMs, 0, 400, 255, 0);
+            if (random8() < alpha) {
+                CRGB spark = (step % 2 == 0) ? CRGB(255, 220, 150) : rayColor;
+                spark.nscale8_video(alpha);
+                leds[fwStart + idx] = spark;
             } else if (step == 0) {
                 // Persistent trailing anchor while tips crackle
                 leds[fwStart + idx] = CRGB(180, 110, 30);
@@ -443,36 +467,24 @@ void runFleetSync(uint32_t now) {
             case 2: renderTwinkle(now); break;
             case 3: renderTravelingWave(waveActiveFloat, waveHeadPos); break;
         }
-
-        // Heartbeat LED (1 Hz)
-        digitalWrite(STATUS_LED_PIN, (now / 500) % 2);
-
     } else {
-        // Follower Node
-        bool isConnected = (now - lastPacketTime < 2500);
-        localSyncTime += (now - lastLocalTick);
-        lastLocalTick = now;
-
-        uint8_t mode = isConnected ? currentPacket.mode : ((now / 10000) % 4);
-        uint32_t activeTime = isConnected ? localSyncTime : now;
-
-        switch (mode) {
-            case 0: renderMarqueeChase(activeTime); break;
-            case 1: renderParadeSparkle(activeTime); break;
-            case 2: renderTwinkle(activeTime); break;
-            case 3: 
-                if (isConnected) {
-                    renderTravelingWave(currentPacket.activeFloat, currentPacket.waveHead);
-                } else {
-                    renderMarqueeChase(now);
-                }
-                break;
-        }
-
-        if (isConnected) {
-            digitalWrite(STATUS_LED_PIN, HIGH);
+        // Follower Node: Sync animation to received packets
+        if (packetReceived && (now - lastPacketTime < 3000)) {
+            uint32_t syncedTime = localSyncTime + (now - lastLocalTick);
+            switch (currentPacket.mode) {
+                case 0: renderMarqueeChase(syncedTime); break;
+                case 1: renderParadeSparkle(syncedTime); break;
+                case 2: renderTwinkle(syncedTime); break;
+                case 3: renderTravelingWave(currentPacket.activeFloat, currentPacket.waveHead); break;
+            }
         } else {
-            digitalWrite(STATUS_LED_PIN, (now / 150) % 2);
+            // Fallback standalone animation if packet lost > 3 seconds
+            renderParadeSparkle(now);
+            if ((now / 2000) % 2 == 0) {
+                digitalWrite(STATUS_LED_PIN, (now / 150) % 2);
+            } else {
+                digitalWrite(STATUS_LED_PIN, LOW);
+            }
         }
     }
 
@@ -558,10 +570,9 @@ void handleFloatConfigMode() {
         duplicateFrontToBack();
         FastLED.show();
 
-        // 2. Blink onboard blue status LED to match float count (N blinks, then pause)
-        uint32_t blinkCycle = loopNow % (myFloatNumber * 300 + 800);
-        if (blinkCycle < (uint32_t)(myFloatNumber * 300)) {
-            uint32_t subCycle = blinkCycle % 300;
+        // 2. Status LED slow pulse
+        if ((loopNow / 300) % 2 == 0) {
+            uint32_t subCycle = loopNow % 300;
             digitalWrite(STATUS_LED_PIN, (subCycle < 150) ? HIGH : LOW);
         } else {
             digitalWrite(STATUS_LED_PIN, LOW);
@@ -661,58 +672,30 @@ void runAutonomousShowSequence(uint32_t now) {
                 dim.nscale8_video(60);
                 leds[i] = dim;
             }
+            if (COSTUME_SPARKLE_RATE > 0 && random16(10000) < (uint16_t)(COSTUME_SPARKLE_RATE * 100)) {
+                leds[i] = CRGB(255, 255, 240);
+            }
         }
     } else {
-        uint32_t waveTimer = now % 3000;
-        uint8_t waveHeadPos = map(waveTimer, 0, 3000, 0, FRONT_LEDS - 1);
-        renderTravelingWave(myFloatNumber, waveHeadPos);
+        uint8_t step = (now / 100) % FRONT_LEDS;
+        for (int i = 0; i < FRONT_LEDS && i < MAX_LEDS_CAPACITY; i++) {
+            if (i == step) {
+                leds[i] = CRGB(255, 255, 255);
+            } else {
+                CRGB baseCol = ARTWORK_PALETTE[i];
+                baseCol.nscale8_video(140);
+                leds[i] = baseCol;
+            }
+        }
     }
 #else
-    // ------------------------------------------------------------------------
-    // CHARACTER FLOAT THEMED SHOW (When no custom palette is compiled)
-    // ------------------------------------------------------------------------
+    // Default 7-float roster signature rendering
     uint8_t floatIdx = (myFloatNumber >= 1 && myFloatNumber <= 7) ? (myFloatNumber - 1) : 0;
-    CRGB charColor = FLEET_ROSTER_INFO[floatIdx].color;
-
-    // Phase 1 (0 - 30s): Character Signature Color Glow with Starlight Twinkle
-    // Phase 2 (30 - 60s): Gentle Breathing Glow on Float Colors
-    // Phase 3 (60 - 75s): Incandescent Marquee Chase
-    // Phase 4 (75 - 90s): Solo Electrical Wave
-    if (seqTime < 30000) {
-        fill_solid(leds, FRONT_LEDS, charColor);
-        for (int i = 0; i < FRONT_LEDS && i < MAX_LEDS_CAPACITY; i++) {
-            leds[i].nscale8_video(180);
-            if (random16(10000) < 150) { // 1.5% subtle starlight
-                leds[i] = CRGB(255, 255, 240);
-            }
-        }
-    } else if (seqTime < 60000) {
-        uint8_t breath = beatsin8(30, 80, 255);
-        for (int i = 0; i < FRONT_LEDS && i < MAX_LEDS_CAPACITY; i++) {
-            CRGB col = charColor;
-            col.nscale8_video(breath);
-            leds[i] = col;
-            if (random16(10000) < 150) {
-                leds[i] = CRGB(255, 255, 240);
-            }
-        }
-    } else if (seqTime < 75000) {
-        renderMarqueeChase(now);
-    } else {
-        uint32_t waveTimer = now % 3000;
-        uint8_t waveHeadPos = map(waveTimer, 0, 3000, 0, FRONT_LEDS - 1);
-        renderTravelingWave(myFloatNumber, waveHeadPos);
-    }
+    renderParadeSparkle(now);
 #endif
 
-    // Duplicate front 100 LEDs to back 100 LEDs for full 200-LED costume!
     duplicateFrontToBack();
 
-    // Status LED gentle breath during autonomous sequence
-    uint8_t breathLed = ((seqTime / 1000) % 2 == 0) ? HIGH : LOW;
-    digitalWrite(STATUS_LED_PIN, breathLed);
-
-    // Clear any extra LEDs beyond strand count
     for (int i = NUM_LEDS; i < MAX_LEDS_CAPACITY; i++) {
         leds[i] = CRGB::Black;
     }
@@ -720,228 +703,70 @@ void runAutonomousShowSequence(uint32_t now) {
     FastLED.show();
     delay(15);
 }
-
-// ============================================================================
-// 30-SECOND SYNCHRONIZED FLEET ROUTINE (One-Shot Grand Parade Show)
-// ============================================================================
-const CRGB STANDARD_FLEET_COLORS[7] = {
-    CRGB(255, 195, 20),   // 0: Belle Gold / Incandescent Amber
-    CRGB(40, 200, 255),   // 1: Cinderella Cyan
-    CRGB(255, 30, 150),   // 2: Cheshire Pink
-    CRGB(20, 255, 110),   // 3: Pete's Dragon Green
-    CRGB(240, 50, 50),    // 4: Parade Ruby Red
-    CRGB(170, 60, 255),   // 5: Magic Violet
-    CRGB(255, 130, 20)    // 6: Citrus Orange
-};
-
-// >>>>> BEGIN AUTO-GENERATED FLEET ROUTINE >>>>>
-// Auto-Generated FastLED Fleet Choreography Routine
-// Show Name: 30s Grand Electrical Parade Show
-// Total Duration: 30.0s (30000 ms)
-// Generated by Main Street Electrical Parade Simulator
 
 void render30sFleetRoutine(uint32_t elapsedMs) {
-    uint8_t floatIdx = (myFloatNumber >= 1 && myFloatNumber <= 7) ? (myFloatNumber - 1) : 0;
-    CRGB routineColor = STANDARD_FLEET_COLORS[fleetRoutineCycle % 7];
-
-    if (elapsedMs < 1000) {
-        // Block 1: Dramatic Blackout (0.0s - 1.0s)
-        fill_solid(leds, FRONT_LEDS, CRGB::Black);
-    }
-    else if (elapsedMs < 2500) {
-        // Block 2: Forward Traveling Wave (1➔7) (1.0s - 2.5s)
-        float waveProgress = (float)(elapsedMs - 1000) / 1500.0f;
-        float headPos = waveProgress * 6.0f;
-        float dist = fabs((float)floatIdx - headPos);
-        float trailLength = 2.0f;
-
-        if (dist <= trailLength) {
-            float intensity = 1.0f - (dist / trailLength);
-            CRGB col = STANDARD_FLEET_COLORS[(fleetRoutineCycle + 1) % 7];
-            col.nscale8_video((uint8_t)(intensity * 255));
-            if (dist < 0.45f) {
-                col = blend(col, CRGB(255, 245, 220), (uint8_t)((1.0f - (dist / 0.45f)) * 230));
-            }
-            fill_solid(leds, FRONT_LEDS, col);
-        } else {
-            fill_solid(leds, FRONT_LEDS, CRGB::Black);
-        }
-    }
-    else if (elapsedMs < 4000) {
-        // Block 3: Reverse Traveling Wave (7➔1) (2.5s - 4.0s)
-        float waveProgress = (float)(elapsedMs - 2500) / 1500.0f;
-        float headPos = 6.0f - (waveProgress * 6.0f);
-        float dist = fabs((float)floatIdx - headPos);
-        float trailLength = 2.0f;
-
-        if (dist <= trailLength) {
-            float intensity = 1.0f - (dist / trailLength);
-            CRGB col = routineColor;
-            col.nscale8_video((uint8_t)(intensity * 255));
-            if (dist < 0.45f) {
-                col = blend(col, CRGB(255, 245, 220), (uint8_t)((1.0f - (dist / 0.45f)) * 230));
-            }
-            fill_solid(leds, FRONT_LEDS, col);
-        } else {
-            fill_solid(leds, FRONT_LEDS, CRGB::Black);
-        }
-    }
-    else if (elapsedMs < 9000) {
-        // Block 4: All-Fleet Majestic Breath (4.0s - 9.0s)
-        uint8_t breath = beatsin8(36, 70, 255, fleetRoutineStartTime + 4000);
-        CRGB col = routineColor;
-        col.nscale8_video(breath);
-        if (breath > 240) {
-            col = blend(col, CRGB(255, 255, 230), map(breath, 240, 255, 0, 180));
-        }
-        fill_solid(leds, FRONT_LEDS, col);
-    }
-    else if (elapsedMs < 11000) {
-        // Block 5: Center-Outward Energy Burst (9.0s - 11.0s)
-        float burstProgress = (float)(elapsedMs - 9000) / 2000.0f;
-        float burstRadius = burstProgress * 3.5f;
-        float distFromCenter = fabs((float)floatIdx - 3.0f);
-        float ringDist = fabs(distFromCenter - burstRadius);
-
-        if (ringDist < 1.2f) {
-            float intensity = 1.0f - (ringDist / 1.2f);
-            CRGB col = STANDARD_FLEET_COLORS[(fleetRoutineCycle + 4) % 7];
-            col.nscale8_video((uint8_t)(intensity * 255));
-            if (ringDist < 0.35f) {
-                col = blend(col, CRGB(255, 255, 240), 220);
-            }
-            fill_solid(leds, FRONT_LEDS, col);
-        } else {
-            fill_solid(leds, FRONT_LEDS, CRGB::Black);
-        }
-    }
-    else if (elapsedMs < 13500) {
-        // Block 6: Odd/Even Marquee Wig-Wag (11.0s - 13.5s)
-        uint8_t phase = ((elapsedMs - 11000) / 250) % 2;
-        bool isOddFloat = (myFloatNumber % 2 != 0);
-        if ((phase == 0 && isOddFloat) || (phase == 1 && !isOddFloat)) {
-            fill_solid(leds, FRONT_LEDS, STANDARD_FLEET_COLORS[(fleetRoutineCycle + 5) % 7]);
-        } else {
-            fill_solid(leds, FRONT_LEDS, CRGB::Black);
-        }
-    }
-    else if (elapsedMs < 16500) {
-        // Block 7: Baton Leapfrog Chase (13.5s - 16.5s)
-        uint8_t activeRunner = ((elapsedMs - 13500) / 428) % 7;
-        if (floatIdx == activeRunner) {
-            fill_solid(leds, FRONT_LEDS, CRGB(255, 245, 220));
-        } else {
-            CRGB dimBase = FLEET_ROSTER_INFO[floatIdx].color;
-            dimBase.nscale8_video(40);
-            fill_solid(leds, FRONT_LEDS, dimBase);
-        }
-    }
-    else if (elapsedMs < 17500) {
-        // Block 8: Anticipation Blackout (16.5s - 17.5s)
-        fill_solid(leds, FRONT_LEDS, CRGB::Black);
-    }
-    else if (elapsedMs < 21500) {
-        // Block 9: Starlight & Wave Twinkle Storm (17.5s - 21.5s)
-        CRGB dimBase = STANDARD_FLEET_COLORS[(fleetRoutineCycle + 8) % 7];
-        dimBase.nscale8_video(35);
-        fill_solid(leds, FRONT_LEDS, dimBase);
-        for (int i = 0; i < FRONT_LEDS; i++) {
-            if (random16(1000) < 140) {
-                leds[i] = (random8(2) == 0) ? STANDARD_FLEET_COLORS[(fleetRoutineCycle + 8) % 7] : CRGB(255, 255, 240);
-            }
-        }
-    }
-    else if (elapsedMs < 24500) {
-        // Block 10: Ping-Pong Double Bounce (21.5s - 24.5s)
-        float bounceCycle = fmod((float)(elapsedMs - 21500) / (3000.0f / 2.0f), 2.0f);
-        float headPos = (bounceCycle < 1.0f) ? (bounceCycle * 6.0f) : ((2.0f - bounceCycle) * 6.0f);
-        float dist = fabs((float)floatIdx - headPos);
-
-        if (dist <= 1.8f) {
-            float intensity = 1.0f - (dist / 1.8f);
-            CRGB col = STANDARD_FLEET_COLORS[(fleetRoutineCycle + 9) % 7];
-            col.nscale8_video((uint8_t)(intensity * 255));
-            fill_solid(leds, FRONT_LEDS, col);
-        } else {
-            fill_solid(leds, FRONT_LEDS, CRGB::Black);
-        }
-    }
-    else if (elapsedMs < 29500) {
-        // Block 11: Grand Finale Carnival Crescendo (24.5s - 29.5s)
-        float p = (float)(elapsedMs - 24500) / 5000.0f;
-        uint8_t hue = (uint8_t)(elapsedMs * 3 / 10 + floatIdx * 36);
-        fill_solid(leds, FRONT_LEDS, CHSV(hue, 220, 255));
-        if (p >= 0.65f && ((elapsedMs / 70) % 2 == 0)) {
-            fill_solid(leds, FRONT_LEDS, CRGB(255, 255, 255));
-        }
-    }
-    else if (elapsedMs < 30000) {
-        // Block 12: Curtain Blackout & Return (29.5s - 30.0s)
-        fill_solid(leds, FRONT_LEDS, CRGB::Black);
-    }
-    else {
-        // Routine completed: blackout curtain
+    if (elapsedMs < 6000) {
+        renderMarqueeChase(elapsedMs);
+    } else if (elapsedMs < 12000) {
+        renderParadeSparkle(elapsedMs);
+    } else if (elapsedMs < 18000) {
+        renderTwinkle(elapsedMs);
+    } else if (elapsedMs < 25000) {
+        uint32_t waveTimer = elapsedMs - 12000;
+        uint8_t activeFloat = (waveTimer / 1000) + 1;
+        uint32_t floatTime = waveTimer % 1000;
+        uint8_t waveHeadPos = map(floatTime, 0, 1000, 0, FRONT_LEDS - 1);
+        renderTravelingWave(activeFloat, waveHeadPos);
+    } else if (elapsedMs < 30000) {
+        renderFireworks(elapsedMs);
+    } else {
         fill_solid(leds, FRONT_LEDS, CRGB::Black);
     }
 
-    // Duplicate front 100 LEDs to back 100 LEDs for full 200-LED costume!
     duplicateFrontToBack();
-
-    // Clear any extra LEDs beyond strand count
-    for (int i = NUM_LEDS; i < MAX_LEDS_CAPACITY; i++) {
-        leds[i] = CRGB::Black;
-    }
-
-    // Status LED blink cadence during fleet routine
-    digitalWrite(STATUS_LED_PIN, ((elapsedMs / 200) % 2 == 0) ? HIGH : LOW);
-
     FastLED.show();
-    delay(15);
 }
-// <<<<< END AUTO-GENERATED FLEET ROUTINE <<<<<
 
 // ============================================================================
-// MAIN SETUP
+// ARDUINO MAIN SETUP
 // ============================================================================
 void setup() {
-    WRITE_PERI_REG(RTC_CNTL_BROWN_OUT_REG, 0); // Disable transient brownout detector during startup
     Serial.begin(115200);
-    pinMode(STATUS_LED_PIN, OUTPUT);
-    pinMode(BUTTON_PIN, INPUT_PULLUP);
-    delay(300);
+    delay(500);
 
     Serial.println("\n========================================================");
-    Serial.println("  MAIN STREET ELECTRICAL PARADE - UNIFIED FIRMWARE");
-    Serial.println("  (Auto: ESP-NOW Fleet Sync + Real-Time Wi-Fi Streaming)");
-    Serial.println("========================================================");
+    Serial.println("  🏰 MAIN STREET ELECTRICAL PARADE - LED COSTUME FLEET");
+    Serial.println("  Walt Disney World 10K Synchronized Control System");
+    Serial.println("  Repository: https://github.com/kidmd/WDW-costumes");
+    Serial.println("========================================================\n");
 
-    // 1. Initialize Wi-Fi in Station Mode
+    // Disable brownout detector during high current spikes
+    WRITE_PERI_REG(RTC_CNTL_BROWN_OUT_REG, 0);
+
+    pinMode(STATUS_LED_PIN, OUTPUT);
+    digitalWrite(STATUS_LED_PIN, LOW);
+
+    pinMode(BUTTON_PIN, INPUT_PULLUP);
+
+    // 1. Initialize Wi-Fi in Station Mode (no router connection required for ESP-NOW)
     WiFi.mode(WIFI_STA);
     WiFi.disconnect();
     delay(100);
 
-    // Optional: Connect to Home Wi-Fi if credentials are configured
-#if defined(WIFI_SSID)
-    String ssid = WIFI_SSID;
-    if (ssid.length() > 0 && ssid != "YourWiFiNetwork") {
-        Serial.printf("[WIFI] Connecting to Home Wi-Fi '%s'...\n", WIFI_SSID);
-        WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
-        uint32_t t0 = millis();
-        while (WiFi.status() != WL_CONNECTED && millis() - t0 < 8000) {
-            delay(100);
-            Serial.print(".");
-            digitalWrite(STATUS_LED_PIN, !digitalRead(STATUS_LED_PIN));
-        }
-        Serial.println();
+    // Also attempt connecting to local Wi-Fi if credentials configured
+#if defined(WIFI_SSID) && defined(WIFI_PASSWORD)
+    Serial.printf("[WIFI] Connecting to '%s'...\n", WIFI_SSID);
+    WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
+    int attempts = 0;
+    while (WiFi.status() != WL_CONNECTED && attempts < 15) {
+        delay(200);
+        digitalWrite(STATUS_LED_PIN, !digitalRead(STATUS_LED_PIN));
+        attempts++;
     }
-#endif
-
     if (WiFi.status() == WL_CONNECTED) {
-        digitalWrite(STATUS_LED_PIN, HIGH); // Solid blue LED = Connected to Home Wi-Fi!
-        Serial.print("[WIFI] Connected! IP Address: ");
-        Serial.println(WiFi.localIP());
+        Serial.printf("[WIFI] Connected! IP Address: %s\n", WiFi.localIP().toString().c_str());
+        digitalWrite(STATUS_LED_PIN, HIGH);
     } else {
-        digitalWrite(STATUS_LED_PIN, LOW); // LED OFF = Offline / Fallback
         Serial.printf("[WIFI] Could NOT connect to '%s' (Status code: %d)\n", WIFI_SSID, WiFi.status());
         Serial.println("[WIFI] Scanning available 2.4 GHz Wi-Fi networks in range...");
         WiFi.disconnect(true);
@@ -963,6 +788,9 @@ void setup() {
         Serial.printf("[WIFI] Standalone Hotspot Active: '%s' (IP: %s)\n", AP_SSID, WiFi.softAPIP().toString().c_str());
 #endif
     }
+#else
+    Serial.println("[WIFI] Running in direct offline mode (ESP-NOW ready).");
+#endif
 
     // 2. Start UDP Stream Listener (Port 4210)
     udp.begin(UDP_STREAM_PORT);
@@ -1027,9 +855,18 @@ void loop() {
     uint32_t now = millis();
 
     // 1. Hardware Button (BOOT button on GPIO 0)
-    // - Double Tap (two quick taps within 400ms): 4-Second Rapid Attendance Roll Call (Mode 0x44)
-    // - Single Tap (< 600ms, idle > 400ms): Toggle 30s Theatrical Fleet Routine (Mode 0x30 / 0x00)
-    // - Long Hold (>= 5 seconds): Enter Float ID Configuration Mode (1 to 7) with 1s-4s white charging meter
+    // - Leader (Float 1):
+    //   - Power-on: Boots directly into Corral Standby Mode (<120mA)
+    //   - Single Tap in Standby: Wakes ENTIRE FLEET to active parade mode (Mode 0x51)
+    //   - Single Tap in Active Run: Starts/stops 30s Theatrical Fleet Show (Mode 0x30 / 0x00)
+    //   - Double Tap: Triggers 4s Rapid Attendance Roll Call wave across entire fleet (Mode 0x44)
+    //   - Triple Tap: Drops ENTIRE FLEET into Corral Standby Mode (Mode 0x50)
+    // - Followers (Floats 2-7):
+    //   - Single Tap in Standby: Wakes THAT RUNNER ONLY locally
+    //   - Single Tap in Active Run: Ignored (zero fleet disruption)
+    //   - Double Tap: Ignored (roll call reserved for Leader)
+    //   - Triple Tap: Drops THAT RUNNER ONLY into Corral Standby Mode
+    // - Long Hold (>= 5.0s): Float ID Configuration Mode (1 to 7)
     static bool buttonWasPressed = false;
     static uint32_t buttonDownTime = 0;
     static uint32_t lastButtonReleaseTime = 0;
@@ -1078,17 +915,37 @@ void loop() {
             Serial.printf("[BUTTON] Hold aborted after %u ms -> returning to baseline with zero changes.\n", pressDuration);
         }
 
-        // Tap handling: strictly recognize intentional taps under 600ms (50ms hardware debounce)
+        // Tap handling: recognize intentional taps under 600ms (50ms hardware debounce)
         if (!longHoldHandled && pressDuration >= 50 && pressDuration < 600) {
-            if (pendingTapCount == 1 && (now - firstTapReleaseTime <= 400)) {
-                // SECOND TAP DETECTED within 400ms -> DOUBLE TAP!
+            if (pendingTapCount == 2 && (now - firstTapReleaseTime <= 600)) {
+                // TRIPLE TAP DETECTED!
                 pendingTapCount = 0;
                 lastButtonReleaseTime = now;
 
-                startRapidRollCall(now);
-                broadcastRapidRollCallPacket();
+                currentStandaloneMode = SHOW_MODE_CORRAL_STANDBY;
+                for (int f = 0; f < 3; f++) {
+                    fill_solid(leds, NUM_LEDS, CRGB(30, 60, 255)); // 3 Soft Indigo pulses
+                    FastLED.show();
+                    digitalWrite(STATUS_LED_PIN, HIGH);
+                    delay(80);
+                    fill_solid(leds, NUM_LEDS, CRGB::Black);
+                    FastLED.show();
+                    digitalWrite(STATUS_LED_PIN, LOW);
+                    delay(60);
+                }
+
+                if (isLeader) {
+                    broadcastStandbyPacket(0x50);
+                    Serial.println("[LEADER] 🌙 Triple Tap -> Dropped ENTIRE FLEET into Corral Standby Mode!");
+                } else {
+                    Serial.printf("[FOLLOWER] Float %d Triple Tap -> Dropped locally into Corral Standby Mode.\n", myFloatNumber);
+                }
+            } else if (pendingTapCount == 1 && (now - firstTapReleaseTime <= 400)) {
+                // SECOND TAP DETECTED -> DOUBLE TAP!
+                pendingTapCount = 2; // Arm for possible 3rd tap within 600ms total
+                lastButtonReleaseTime = now;
             } else {
-                // FIRST TAP DETECTED -> wait for potential second tap
+                // FIRST TAP DETECTED -> wait for potential second/third tap
                 pendingTapCount = 1;
                 firstTapReleaseTime = now;
                 lastButtonReleaseTime = now;
@@ -1096,35 +953,69 @@ void loop() {
         }
     }
 
-    // Evaluate pending single-tap once the 400ms window expires and button is not currently held
-    if (pendingTapCount == 1 && !isButtonPressed && (now - firstTapReleaseTime > 400)) {
+    // Evaluate pending multi-tap once window expires and button is not currently held
+    if (pendingTapCount > 0 && !isButtonPressed && (now - firstTapReleaseTime > 400)) {
+        uint8_t tapType = pendingTapCount;
         pendingTapCount = 0;
 
-        if (currentStandaloneMode == SHOW_MODE_FLEET_30S_ROUTINE || currentStandaloneMode == SHOW_MODE_RAPID_ROLL_CALL) {
-            // STOP EARLY: Return to baseline and broadcast stop to fleet
-            currentStandaloneMode = previousStandaloneMode;
-            broadcastFleetRoutinePacket(0x00, 0);
-            Serial.println("[FLEET] Early stop triggered via BOOT button -> returning to baseline.");
-            
-            // Visual confirmation on costume LED strip: 2 Amber/Gold flashes
-            for (int f = 0; f < 2; f++) {
-                fill_solid(leds, NUM_LEDS, CRGB(255, 140, 0));
+        if (tapType == 1) {
+            // SINGLE TAP EVALUATION
+            if (currentStandaloneMode == SHOW_MODE_CORRAL_STANDBY) {
+                // WAKE UP FROM CORRAL STANDBY
+                currentStandaloneMode = previousStandaloneMode;
+
+                // Visual confirmation: 1 Emerald Green flash
+                fill_solid(leds, NUM_LEDS, CRGB(0, 255, 80));
                 FastLED.show();
                 digitalWrite(STATUS_LED_PIN, HIGH);
-                delay(120);
+                delay(150);
                 fill_solid(leds, NUM_LEDS, CRGB::Black);
                 FastLED.show();
                 digitalWrite(STATUS_LED_PIN, LOW);
-                delay(80);
+
+                if (isLeader) {
+                    broadcastStandbyPacket(0x51); // Wake entire fleet!
+                    Serial.println("[LEADER] ☀️ Single Tap -> Woke ENTIRE FLEET from Corral Standby!");
+                } else {
+                    Serial.printf("[FOLLOWER] Float %d Single Tap -> Woke locally from Corral Standby.\n", myFloatNumber);
+                }
+            } else if (isLeader) {
+                // LEADER ACTIVE RUN TOGGLE: 30s Fleet Show Routine
+                if (currentStandaloneMode == SHOW_MODE_FLEET_30S_ROUTINE || currentStandaloneMode == SHOW_MODE_RAPID_ROLL_CALL) {
+                    currentStandaloneMode = previousStandaloneMode;
+                    broadcastFleetRoutinePacket(0x00, 0);
+                    Serial.println("[LEADER] Early stop triggered via BOOT button -> returning to baseline.");
+                    
+                    for (int f = 0; f < 2; f++) {
+                        fill_solid(leds, NUM_LEDS, CRGB(255, 140, 0));
+                        FastLED.show();
+                        digitalWrite(STATUS_LED_PIN, HIGH);
+                        delay(120);
+                        fill_solid(leds, NUM_LEDS, CRGB::Black);
+                        FastLED.show();
+                        digitalWrite(STATUS_LED_PIN, LOW);
+                        delay(80);
+                    }
+                } else {
+                    fleetRoutineCycle++;
+                    fleetRoutineStartTime = now;
+                    previousStandaloneMode = currentStandaloneMode;
+                    currentStandaloneMode = SHOW_MODE_FLEET_30S_ROUTINE;
+                    broadcastFleetRoutinePacket(0x30, 0);
+                    Serial.printf("[LEADER] 30s Fleet Show started via BOOT button! (Cycle #%u)\n", fleetRoutineCycle);
+                }
+            } else {
+                Serial.printf("[FOLLOWER] Float %d single tap ignored while running (Show trigger reserved for Leader).\n", myFloatNumber);
             }
-        } else {
-            // START 30s FLEET ROUTINE: Trigger once and broadcast start to fleet
-            fleetRoutineCycle++;
-            fleetRoutineStartTime = now;
-            previousStandaloneMode = currentStandaloneMode;
-            currentStandaloneMode = SHOW_MODE_FLEET_30S_ROUTINE;
-            broadcastFleetRoutinePacket(0x30, 0);
-            Serial.printf("[FLEET] 30s Fleet Show started via BOOT button! (Cycle #%u)\n", fleetRoutineCycle);
+        } else if (tapType == 2) {
+            // DOUBLE TAP EVALUATION (LEADER ONLY)
+            if (isLeader) {
+                startRapidRollCall(now);
+                broadcastRapidRollCallPacket();
+                Serial.println("[LEADER] ⚡ 4-Second Rapid Attendance Roll Call started!");
+            } else {
+                Serial.printf("[FOLLOWER] Float %d double tap ignored (Roll call wave reserved for Leader).\n", myFloatNumber);
+            }
         }
     }
 
@@ -1201,7 +1092,12 @@ void loop() {
 
     // 4. If simulator is NOT streaming, run the selected standalone mode!
     if (!isLiveStreaming) {
-        if (currentStandaloneMode == SHOW_MODE_RAPID_ROLL_CALL) {
+        if (currentStandaloneMode == SHOW_MODE_CORRAL_STANDBY) {
+            renderCorralStandby(now);
+            duplicateFrontToBack();
+            FastLED.show();
+            delay(20);
+        } else if (currentStandaloneMode == SHOW_MODE_RAPID_ROLL_CALL) {
             uint32_t elapsedMs = now - rapidRollCallStartTime;
             if (elapsedMs < RAPID_ROLL_CALL_TOTAL_MS) {
                 renderRapidRollCall(elapsedMs);
