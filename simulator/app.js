@@ -1677,6 +1677,66 @@ function evalGlobalPattern(pattern, bpm, index, totalLeds, timeMs, c, hasColor) 
             }
             break;
         }
+        case 'flash_slow': {
+            const phase = (timeMs % (beatMs * 2)) / (beatMs * 2);
+            if (hasColor) {
+                r = c.r; g = c.g; b = c.b;
+            } else {
+                const rgb = hslToRgb(baseH / 360, 0.95, 0.50);
+                r = rgb.r; g = rgb.g; b = rgb.b;
+            }
+            brightness = phase < 0.5 ? 1.0 : 0.05;
+            break;
+        }
+        case 'write_on_off': {
+            const totalCycleMs = beatMs * 4;
+            const progress = (timeMs % totalCycleMs) / totalCycleMs;
+            if (hasColor) {
+                r = c.r; g = c.g; b = c.b;
+            } else {
+                const rgb = hslToRgb(baseH / 360, 0.95, 0.50);
+                r = rgb.r; g = rgb.g; b = rgb.b;
+            }
+            if (progress < 0.40) {
+                const litHead = (progress / 0.40) * totalLeds;
+                brightness = index <= litHead ? 1.0 : 0.05;
+            } else if (progress < 0.58) {
+                brightness = 1.0;
+            } else if (progress < 0.88) {
+                const offHead = ((progress - 0.58) / 0.30) * totalLeds;
+                brightness = index <= offHead ? 0.05 : 1.0;
+            } else {
+                brightness = 0.05;
+            }
+            break;
+        }
+        case 'sparkle_storm': {
+            const rand = Math.sin(timeMs * 0.05 + index * 37.1) * 0.5 + 0.5;
+            if (rand > 0.65) {
+                r = 255; g = 255; b = 240;
+                brightness = 1.0;
+            } else if (hasColor) {
+                r = c.r; g = c.g; b = c.b;
+                brightness = 0.15;
+            } else {
+                const rgb = hslToRgb(baseH / 360, 0.95, 0.35);
+                r = rgb.r; g = rgb.g; b = rgb.b;
+                brightness = 0.15;
+            }
+            break;
+        }
+        case 'rainbow_cycle': {
+            const hue = ((timeMs * 0.08 + index * (360 / Math.max(1, totalLeds))) % 360 + 360) % 360;
+            const rgb = hslToRgb(hue / 360, 0.95, 0.52);
+            r = rgb.r; g = rgb.g; b = rgb.b;
+            brightness = 1.0;
+            break;
+        }
+        case 'off': {
+            r = 0; g = 0; b = 0;
+            brightness = 0.0;
+            break;
+        }
         default: {
             if (hasColor) {
                 r = c.r; g = c.g; b = c.b;

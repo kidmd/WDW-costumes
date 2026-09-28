@@ -774,6 +774,34 @@ void runAutonomousShowSequence(uint32_t now) {
                         leds[i] = CRGB(255, 255, random8(200, 255));
                     }
                 }
+            } else if (eff == 9) { // write_on_off — theatrical progressive wipe
+                uint32_t totalCycleMs = (60000 / max((uint16_t)20, bpm)) * 4;
+                uint32_t progressMs = (now - autonomousShowStartTime) % totalCycleMs;
+                float progress = (float)progressMs / (float)totalCycleMs;
+                for (int i = 0; i < FRONT_LEDS && i < MAX_LEDS_CAPACITY; i++) {
+#if defined(HAS_CUSTOM_PALETTE) && HAS_CUSTOM_PALETTE
+                    CRGB baseColor = ARTWORK_PALETTE[i];
+#else
+                    uint8_t floatIdx = (myFloatNumber >= 1 && myFloatNumber <= 7) ? (myFloatNumber - 1) : 0;
+                    CRGB baseColor = FLEET_ROSTER_INFO[floatIdx].color;
+#endif
+                    if (progress < 0.40f) {
+                        float litHead = (progress / 0.40f) * FRONT_LEDS;
+                        leds[i] = (i <= (int)litHead) ? baseColor : CRGB::Black;
+                    } else if (progress < 0.58f) {
+                        leds[i] = baseColor;
+                    } else if (progress < 0.88f) {
+                        float offHead = ((progress - 0.58f) / 0.30f) * FRONT_LEDS;
+                        leds[i] = (i <= (int)offHead) ? CRGB::Black : baseColor;
+                    } else {
+                        leds[i] = CRGB::Black;
+                    }
+                }
+            } else if (eff == 10) { // rainbow_cycle — flowing chromatic wave
+                uint8_t hueOffset = (uint8_t)(((now - autonomousShowStartTime) * 256 / (60000 / max((uint16_t)20, bpm))) % 256);
+                for (int i = 0; i < FRONT_LEDS && i < MAX_LEDS_CAPACITY; i++) {
+                    leds[i] = CHSV(hueOffset + (i * 256 / FRONT_LEDS), 240, 255);
+                }
             } else { // 0: steady_sparkle / default
                 for (int i = 0; i < FRONT_LEDS && i < MAX_LEDS_CAPACITY; i++) {
 #if defined(HAS_CUSTOM_PALETTE) && HAS_CUSTOM_PALETTE

@@ -537,8 +537,8 @@ class SimulatorRequestHandler(http.server.SimpleHTTPRequestHandler):
                 "fireworks": 6,
                 "flash_slow": 7,       # Slow blink / flash
                 "sparkle_storm": 8,    # High-density sparkle burst
-                "write_on_off": 0,     # Theatrical write-on — falls back to steady_sparkle for now
-                "rainbow_cycle": 0     # Rainbow wave — falls back to steady_sparkle for now
+                "write_on_off": 9,     # Theatrical write-on
+                "rainbow_cycle": 10    # Rainbow wave
             }
 
             cue_lines = []
