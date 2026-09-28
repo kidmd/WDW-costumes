@@ -14,6 +14,7 @@ let activePattern = 'steady_sparkle'; // 'steady_sparkle', 'color_match', 'drago
 // Global Fleet Radar & Attendance Wave State
 let rapidRollCallActive = false;
 let rapidRollCallStartTime = 0;
+let isCorralStandbyActive = false;
 
 const DEFAULT_FLEET_RADAR = [
     { id: 1, name: "The Train", role: "LEADER", tag: "CASEY JR.", color: "#ff5e3a", icon: "🚂", status: "ONLINE", rssi: -44, voltage: 5.14, batteryPct: 99, lastSeenSec: 0.2 },
@@ -1699,24 +1700,24 @@ function evalGlobalPattern(pattern, bpm, index, totalLeds, timeMs, c, hasColor) 
 
 function computeLedColor(index, totalLeds, timeMs) {
     if (isCorralStandbyActive) {
-        const floatIdx = activeSingleShirtRunnerSlot || 0;
-        const floatObj = DEFAULT_FLEET_RADAR[floatIdx] || DEFAULT_FLEET_RADAR[0];
-        const baseColor = hexToRgb(floatObj ? floatObj.color : '#388bfd');
-        const dimR = Math.round(baseColor.r / 8);
-        const dimG = Math.round(baseColor.g / 8);
-        const dimB = Math.round(baseColor.b / 8);
+        const floatIdx = (activeSingleShirtRunnerSlot !== undefined && activeSingleShirtRunnerSlot !== null) ? activeSingleShirtRunnerSlot : 5;
+        const floatObj = (DEFAULT_FLEET_RADAR && DEFAULT_FLEET_RADAR[floatIdx]) ? DEFAULT_FLEET_RADAR[floatIdx] : (DEFAULT_FLEET_RADAR ? DEFAULT_FLEET_RADAR[0] : null);
+        const baseColor = (floatObj && floatObj.color && typeof hexToRgb === 'function') ? (hexToRgb(floatObj.color) || { r: 56, g: 139, b: 253 }) : { r: 56, g: 139, b: 253 };
+        const dimR = Math.max(12, Math.round(baseColor.r / 8));
+        const dimG = Math.max(12, Math.round(baseColor.g / 8));
+        const dimB = Math.max(12, Math.round(baseColor.b / 8));
         
         let spark = 0;
-        const seed = Math.floor(timeMs / 60) + (floatIdx * 50);
+        const seed = Math.floor(timeMs / 70) + (floatIdx * 50);
         if (((seed + index * 17) % 23) === 0) {
             spark = 1;
         }
 
         return {
-            r: spark ? 180 : dimR,
-            g: spark ? 160 : dimG,
-            b: spark ? 100 : dimB,
-            alpha: spark ? 0.8 : 0.15
+            r: spark ? 220 : dimR,
+            g: spark ? 200 : dimG,
+            b: spark ? 140 : dimB,
+            alpha: spark ? 0.85 : 0.2
         };
     }
 
@@ -1867,14 +1868,16 @@ function computeLedColor(index, totalLeds, timeMs) {
 }
 
 function renderBulb(cx, x, y, col, isHovered, isSelected, index) {
+    if (!col) return;
     const isLit = (col.alpha > 0.01) && (col.r > 2 || col.g > 2 || col.b > 2);
 
     if (isLit) {
         const glowRadius = params.glowSize;
+        const bulbAlpha = (col.alpha !== undefined) ? Math.max(0.15, Math.min(1.0, col.alpha)) : 1.0;
         const grad = cx.createRadialGradient(x, y, 1, x, y, glowRadius);
-        grad.addColorStop(0, `rgba(${col.r}, ${col.g}, ${col.b}, 0.9)`);
-        grad.addColorStop(0.3, `rgba(${col.r}, ${col.g}, ${col.b}, 0.45)`);
-        grad.addColorStop(0.7, `rgba(${col.r}, ${col.g}, ${col.b}, 0.12)`);
+        grad.addColorStop(0, `rgba(${col.r}, ${col.g}, ${col.b}, ${0.9 * bulbAlpha})`);
+        grad.addColorStop(0.3, `rgba(${col.r}, ${col.g}, ${col.b}, ${0.45 * bulbAlpha})`);
+        grad.addColorStop(0.7, `rgba(${col.r}, ${col.g}, ${col.b}, ${0.12 * bulbAlpha})`);
         grad.addColorStop(1, 'rgba(0, 0, 0, 0)');
 
         cx.fillStyle = grad;
@@ -1884,12 +1887,12 @@ function renderBulb(cx, x, y, col, isHovered, isSelected, index) {
 
         cx.beginPath();
         cx.arc(x, y, 4.5, 0, Math.PI * 2);
-        cx.fillStyle = `rgb(${Math.min(255, col.r + 40)}, ${Math.min(255, col.g + 40)}, ${Math.min(255, col.b + 40)})`;
+        cx.fillStyle = `rgba(${Math.min(255, col.r + 40)}, ${Math.min(255, col.g + 40)}, ${Math.min(255, col.b + 40)}, ${bulbAlpha})`;
         cx.fill();
 
         cx.beginPath();
         cx.arc(x, y, 2.0, 0, Math.PI * 2);
-        cx.fillStyle = 'rgba(255, 255, 255, 0.95)';
+        cx.fillStyle = `rgba(255, 255, 255, ${0.95 * bulbAlpha})`;
         cx.fill();
     } else {
         // Physical unlit LED bead (completely off)
@@ -2801,6 +2804,28 @@ function computeRunnerLedColor(runnerIndex, runner, presetData, ledIndex, totalL
         } else if (elapsed >= 4000) {
             rapidRollCallActive = false;
         }
+    }
+
+    // 0C. Corral Standby Mode (12% Dim Twinkle <120mA)
+    if (isCorralStandbyActive) {
+        const floatObj = (DEFAULT_FLEET_RADAR && DEFAULT_FLEET_RADAR[runnerIndex]) ? DEFAULT_FLEET_RADAR[runnerIndex] : (DEFAULT_FLEET_RADAR ? DEFAULT_FLEET_RADAR[0] : null);
+        const baseColor = (floatObj && floatObj.color && typeof hexToRgb === 'function') ? (hexToRgb(floatObj.color) || { r: 56, g: 139, b: 253 }) : { r: 56, g: 139, b: 253 };
+        const dimR = Math.max(12, Math.round(baseColor.r / 8));
+        const dimG = Math.max(12, Math.round(baseColor.g / 8));
+        const dimB = Math.max(12, Math.round(baseColor.b / 8));
+        
+        let spark = 0;
+        const seed = Math.floor(timeMs / 70) + (runnerIndex * 50);
+        if (((seed + ledIndex * 17) % 23) === 0) {
+            spark = 1;
+        }
+
+        return {
+            r: spark ? 220 : dimR,
+            g: spark ? 200 : dimG,
+            b: spark ? 140 : dimB,
+            alpha: spark ? 0.85 : 0.2
+        };
     }
 
     // 1. If 30-Second Fleet Show is Active: Evaluate Choreographed Block
@@ -12590,6 +12615,8 @@ function initPowerBudgetCalculator() {
             toggleCorralStandbyBtn.textContent = active ? '☀️ Wake to Active Parade' : '🌙 Enter Standby Mode';
         }
     }
+    window.setStandbyUIState = setStandbyUIState;
+    setStandbyUIState(isCorralStandbyActive);
 
     toggleCorralStandbyBtn?.addEventListener('click', () => {
         setStandbyUIState(!isCorralStandbyActive);

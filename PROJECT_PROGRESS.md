@@ -93,6 +93,17 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### Entry: Canvas Render Loop Standby Variable Scope & Bulb Alpha Fix
+* **Date:** 2026-09-27
+* **Milestone:** Milestone 5 - Studio Workflow & Hardware Fleet Control
+* **Status:** Verified & Operational (`simulator/app.js?v=45`, `simulator/index.html`).
+* **Notes:**
+  - Resolved simulator canvas freeze where lights would not render in either awakened or standby modes due to an uninitialized, undeclared identifier `isCorralStandbyActive` throwing a `ReferenceError` on the first animation tick.
+  - Declared `let isCorralStandbyActive = false;` in the top-level global scope in `simulator/app.js`.
+  - Added robust null-fallback guards and defensive defaults in `computeLedColor` and `computeRunnerLedColor` to ensure palette colors and sparkles compute reliably across Single Shirt and Fleet Canvas views.
+  - Enhanced `renderBulb` to properly scale glow and core brightness with `bulbAlpha` for authentic, gentle 12% ambient corral twinkle.
+  - Bumped script cache query in `simulator/index.html` to `app.js?v=45`.
+
 ### Entry: Leader-Centric Fleet Authority & Race-Day Corral Standby Mode
 * **Date:** 2026-09-27
 * **Milestone:** Milestone 5 - Studio Workflow & Hardware Fleet Control
