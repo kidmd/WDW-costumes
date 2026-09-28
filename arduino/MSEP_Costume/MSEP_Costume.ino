@@ -636,6 +636,41 @@ void handleFloatConfigMode() {
     Serial.println("[CONFIG] Configuration saved! Returned to normal operation.\n");
 }
 
+// ============================================================================
+// AMBIENT FALLBACK RENDERER (used between timeline cues and on empty timelines)
+// Respects AMBIENT_FALLBACK_PATTERN compiled from the simulator ambient tab selection
+// ============================================================================
+void renderAmbientFallback(uint32_t now) {
+#if defined(AMBIENT_FALLBACK_PATTERN) && (AMBIENT_FALLBACK_PATTERN == COSTUME_PATTERN_BREATHING_GLOW)
+    uint8_t breath = beatsin8(COSTUME_SPEED_BPM / 2, 120, 255);
+#endif
+    for (int i = 0; i < FRONT_LEDS && i < MAX_LEDS_CAPACITY; i++) {
+#if defined(HAS_CUSTOM_PALETTE) && HAS_CUSTOM_PALETTE
+        CRGB baseColor = ARTWORK_PALETTE[i];
+#else
+        uint8_t floatIdx = (myFloatNumber >= 1 && myFloatNumber <= 7) ? (myFloatNumber - 1) : 0;
+        CRGB baseColor = FLEET_ROSTER_INFO[floatIdx].color;
+#endif
+#if defined(AMBIENT_FALLBACK_PATTERN) && (AMBIENT_FALLBACK_PATTERN == COSTUME_PATTERN_PHOTO_MODE)
+        // Castle Photo Mode: solid artwork colors, no sparkle
+        leds[i] = baseColor;
+#elif defined(AMBIENT_FALLBACK_PATTERN) && (AMBIENT_FALLBACK_PATTERN == COSTUME_PATTERN_BREATHING_GLOW)
+        // Breathing Glow: pulse artwork colors in and out
+        baseColor.nscale8_video(breath);
+        leds[i] = baseColor;
+        if (COSTUME_SPARKLE_RATE > 0 && random16(10000) < (uint16_t)(COSTUME_SPARKLE_RATE * 100)) {
+            leds[i] = CRGB(255, 255, 240);
+        }
+#else
+        // Default: Steady Sparkle – artwork colors with occasional starlight
+        leds[i] = baseColor;
+        if (COSTUME_SPARKLE_RATE > 0 && random16(10000) < (uint16_t)(COSTUME_SPARKLE_RATE * 100)) {
+            leds[i] = CRGB(255, 255, 240);
+        }
+#endif
+    }
+}
+
 void runAutonomousShowSequence(uint32_t now) {
 #if defined(ACTIVE_COSTUME_PATTERN) && (ACTIVE_COSTUME_PATTERN == COSTUME_PATTERN_FIREWORKS)
     renderFireworks(now);
@@ -717,32 +752,10 @@ void runAutonomousShowSequence(uint32_t now) {
         }
     }
     if (!cueHandled) {
-        // Fallback for gaps between cues: pure ambient programming
-        for (int i = 0; i < FRONT_LEDS && i < MAX_LEDS_CAPACITY; i++) {
-#if defined(HAS_CUSTOM_PALETTE) && HAS_CUSTOM_PALETTE
-            leds[i] = ARTWORK_PALETTE[i];
-#else
-            uint8_t floatIdx = (myFloatNumber >= 1 && myFloatNumber <= 7) ? (myFloatNumber - 1) : 0;
-            leds[i] = FLEET_ROSTER_INFO[floatIdx].color;
-#endif
-            if (COSTUME_SPARKLE_RATE > 0 && random16(10000) < (uint16_t)(COSTUME_SPARKLE_RATE * 100)) {
-                leds[i] = CRGB(255, 255, 240);
-            }
-        }
+        renderAmbientFallback(now); // Gaps between cues: use configured ambient program
     }
 #else
-    // Fallback when HAS_CUSTOM_SEQUENCE_CUES is 0 (empty timeline): pure ambient programming!
-    for (int i = 0; i < FRONT_LEDS && i < MAX_LEDS_CAPACITY; i++) {
-#if defined(HAS_CUSTOM_PALETTE) && HAS_CUSTOM_PALETTE
-        leds[i] = ARTWORK_PALETTE[i];
-#else
-        uint8_t floatIdx = (myFloatNumber >= 1 && myFloatNumber <= 7) ? (myFloatNumber - 1) : 0;
-        leds[i] = FLEET_ROSTER_INFO[floatIdx].color;
-#endif
-        if (COSTUME_SPARKLE_RATE > 0 && random16(10000) < (uint16_t)(COSTUME_SPARKLE_RATE * 100)) {
-            leds[i] = CRGB(255, 255, 240);
-        }
-    }
+    renderAmbientFallback(now); // Empty timeline: use configured ambient program
 #endif
 #elif defined(ACTIVE_COSTUME_PATTERN) && (ACTIVE_COSTUME_PATTERN == COSTUME_PATTERN_BREATHING_GLOW)
     // Continuous Breathing Glow

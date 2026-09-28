@@ -455,6 +455,7 @@ class SimulatorRequestHandler(http.server.SimpleHTTPRequestHandler):
             num_back = num_front
             total_leds = num_front + num_back  # 200 LEDs (100 front + 100 back duplicated)
             pattern_str = payload.get("pattern", "steady_sparkle")
+            ambient_pattern_str = payload.get("ambientPattern", "steady_sparkle")
             speed_bpm = int(payload.get("speedBpm", 120))
             sparkle_rate = float(payload.get("sparkleRate", 1.5))
             green_hue = int(payload.get("greenHue", 140))
@@ -464,6 +465,8 @@ class SimulatorRequestHandler(http.server.SimpleHTTPRequestHandler):
             
             pattern_map = {
                 "steady_sparkle": "COSTUME_PATTERN_STEADY_SPARKLE",
+                "color_match": "COSTUME_PATTERN_BREATHING_GLOW",
+                "dragon_sparkle": "COSTUME_PATTERN_STEADY_SPARKLE",
                 "breathing_glow": "COSTUME_PATTERN_BREATHING_GLOW",
                 "fire_breath": "COSTUME_PATTERN_FIRE_BREATH",
                 "traveling_wave": "COSTUME_PATTERN_TRAVELING_WAVE",
@@ -473,6 +476,22 @@ class SimulatorRequestHandler(http.server.SimpleHTTPRequestHandler):
                 "autonomous_90s": "COSTUME_PATTERN_AUTONOMOUS_90S"
             }
             active_pattern = pattern_map.get(pattern_str, "COSTUME_PATTERN_STEADY_SPARKLE")
+
+            # Ambient fallback pattern: numeric code baked into AMBIENT_FALLBACK_PATTERN define
+            # Matches the pattern constants: 0=steady_sparkle, 1=breathing_glow, 5=photo_mode, etc.
+            ambient_pattern_numeric_map = {
+                "steady_sparkle": 0,
+                "color_match": 1,
+                "dragon_sparkle": 0,
+                "breathing_glow": 1,
+                "fire_breath": 2,
+                "traveling_wave": 3,
+                "marquee": 4,
+                "photo_mode": 5,
+                "fireworks": 0,  # fireworks as ambient fallback not supported; default to steady
+                "autonomous_90s": 0
+            }
+            ambient_fallback_code = ambient_pattern_numeric_map.get(ambient_pattern_str, 0)
             
             palette_lines = []
             # 1. Front LEDs (0 to num_front - 1)
@@ -565,6 +584,7 @@ class SimulatorRequestHandler(http.server.SimpleHTTPRequestHandler):
 #define COLOR_ORDER                      RGB
 #define HAS_CUSTOM_PALETTE               1
 #define COSTUME_OVERRIDE_STANDALONE      1
+#define AMBIENT_FALLBACK_PATTERN         {ambient_fallback_code}
 
 #define SHOW_LOOP_MS                     {show_loop_ms}
 #define HAS_CUSTOM_SEQUENCE_CUES         {has_cues}

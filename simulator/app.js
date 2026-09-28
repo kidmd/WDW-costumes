@@ -12312,6 +12312,7 @@ async function triggerUsbFirmwareFlash(floatId = 0) {
             numLeds: leds.length || 100,
             floatId: effectiveFloatId,
             pattern: 'autonomous_90s',
+            ambientPattern: activePattern,   // User's selected ambient mode (steady_sparkle, photo_mode, breathing_glow, etc.)
             speedBpm: params.speedBpm,
             sparkleRate: params.sparkleRate,
             greenHue: params.greenHue,

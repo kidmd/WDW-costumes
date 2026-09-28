@@ -16,15 +16,31 @@
 #define COSTUME_PATTERN_TRAVELING_WAVE   3
 #define COSTUME_PATTERN_MARQUEE          4
 #define COSTUME_PATTERN_PHOTO_MODE       5
+#define COSTUME_PATTERN_AUTONOMOUS_90S   6
 
-#define ACTIVE_COSTUME_PATTERN           COSTUME_PATTERN_STEADY_SPARKLE
-#define COSTUME_SPEED_BPM                60
-#define COSTUME_SPARKLE_RATE             0.25
+#define ACTIVE_COSTUME_PATTERN           COSTUME_PATTERN_AUTONOMOUS_90S
+#define COSTUME_SPEED_BPM                120
+#define COSTUME_SPARKLE_RATE             1.5
 #define COSTUME_GREEN_HUE                140
 #define COSTUME_BRIGHTNESS               68
 #define COLOR_ORDER                      RGB
 #define HAS_CUSTOM_PALETTE               1
 #define COSTUME_OVERRIDE_STANDALONE      1
+
+#define SHOW_LOOP_MS                     90000
+#define HAS_CUSTOM_SEQUENCE_CUES         0
+#define CUSTOM_SEQUENCE_CUE_COUNT        1
+
+struct CostumeCue {
+    uint32_t startMs;
+    uint32_t endMs;
+    uint8_t effect;
+    uint16_t speedBpm;
+};
+
+const CostumeCue PROGMEM CUSTOM_SEQUENCE_CUES[1] = {
+    { 0, 0, 0, 0 } // No cues on timeline: pure ambient programming fallback
+};
 
 // Artwork Sampled Color Palette (PROGMEM Flash Storage)
 const CRGB PROGMEM ARTWORK_PALETTE[NUM_LEDS] = {
