@@ -93,7 +93,15 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
-### Entry: Mathematical Breathing Pulse Engine & Synchronized Relative Timeline Clock
+### Entry: Feature 10 — Timeline Hover-Scrubbing & Live Cue Quantization / Grid Snapping
+* **Date:** 2026-09-28
+* **Milestone:** Milestone 5 - Studio Workflow & Hardware Fleet Control
+* **Status:** Verified & Operational across `simulator/app.js?v=52` and `simulator/index.html`.
+* **Notes:**
+  - Implemented **Interactive Hover-Scrubbing Engine (`initTimelineHoverScrub`)**: moving the mouse cursor over the timeline ruler or cue tracks displays a cyan ghost needle (`#timelineGhostNeedle`) and floating tooltip displaying `⏱️ timestamp | cue info`. Real-time canvas lighting updates continuously (`isHoverScrubbing` & `hoverScrubTime`) without needing to press Play.
+  - Implemented **Cue Quantization & Grid Snapping**: added a live **Grid Snap** selector (`Off`, `0.5s`, `1.0s`, `2.0s`) and a **🎯 Quantize** button in the timeline transport bar (`#timelineQuantizeBtn`). Automatically snaps fractional cue start times and durations to clean grid intervals (integrated with `Ctrl+Z` Undo/Redo stack via `pushUndoState`).
+  - Updated cue dragging and resizing event handlers (left handle trim, right handle trim, block move) to obey active `gridSnapInterval`.
+  - Verified JavaScript syntax via `node -c simulator/app.js` (SUCCESS) and bumped asset version to `app.js?v=52`.
 * **Date:** 2026-09-28
 * **Milestone:** Milestone 5 - Studio Workflow & Hardware Fleet Control
 * **Status:** Verified & Operational (`pio run` [SUCCESS], RAM: 14.3%, Flash: 60.3%).

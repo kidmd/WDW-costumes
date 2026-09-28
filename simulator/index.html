@@ -80,6 +80,17 @@
                         <span id="timelineActiveCuesBadge" class="timeline-badge cues-badge">Sequence Standby</span>
                     </div>
                     <button id="timelineLoopToggle" class="timeline-btn active" title="Toggle Sequence Loop">🔁 Loop</button>
+                    <!-- Quantize & Grid Snap Control Cluster -->
+                    <div class="timeline-snap-cluster" style="display: flex; align-items: center; gap: 4px; margin-left: 6px;">
+                        <span style="font-size: 11px; color: #8b949e; font-weight: 600;">Snap:</span>
+                        <select id="timelineGridSnapSelect" class="timeline-btn" style="background: #0d1117; color: #58a6ff; border: 1px solid #30363d; border-radius: 4px; padding: 2px 6px; font-size: 11px; font-weight: 600;" title="Live Grid Snapping Interval">
+                            <option value="0">Off</option>
+                            <option value="0.5" selected>0.5s Grid</option>
+                            <option value="1.0">1.0s Grid</option>
+                            <option value="2.0">2.0s Grid</option>
+                        </select>
+                        <button id="timelineQuantizeBtn" class="timeline-btn" title="Snap all cues on timeline to clean grid intervals" style="border-color: #388bfd; color: #388bfd;">🎯 Quantize</button>
+                    </div>
                     <button id="timelineCollapseBtn" class="timeline-btn" title="Collapse / Expand Timeline Tracks" style="margin-left: auto;">⤢ Minimize</button>
                 </div>
 
@@ -97,6 +108,7 @@
                 <!-- Multi-Layer Cue Tracks Container -->
                 <div class="timeline-layers-wrapper" id="timelineLayersWrapper">
                     <div id="timelinePlayheadNeedle" class="timeline-playhead-needle"></div>
+                    <div id="timelineGhostNeedle" style="position: absolute; top: 0; bottom: 0; width: 2px; background: rgba(56, 139, 253, 0.7); pointer-events: none; display: none; z-index: 100; box-shadow: 0 0 8px rgba(56, 139, 253, 0.8);"></div>
                     <div id="timelineFloatingTooltip" style="position: fixed; display: none; pointer-events: none; z-index: 10000; background: rgba(13, 17, 23, 0.95); color: #58a6ff; border: 1px solid #388bfd; border-radius: 6px; padding: 4px 10px; font-size: 11px; font-weight: 600; box-shadow: 0 4px 14px rgba(0,0,0,0.6); transform: translate(-50%, -125%); white-space: nowrap; backdrop-filter: blur(4px);"></div>
                     <div class="timeline-layers-container" id="timelineLayersContainer">
                         <!-- Dynamic Multi-Layer Tracks Rendered by app.js -->
@@ -1858,6 +1870,6 @@
         </div>
     </div>
 
-    <script src="app.js?v=51"></script>
+    <script src="app.js?v=52"></script>
 </body>
 </html>

@@ -314,6 +314,11 @@ let sequenceLoop = true;           // Loop back to 0:00
 let sequenceCues = [];             // Array of cue objects
 let lastTimelineFrameTime = performance.now();
 
+// Feature 10: Hover-Scrubbing & Grid Snap State
+let gridSnapInterval = 0.5;        // Default: 0.5s grid snapping (0 = off)
+let isHoverScrubbing = false;      // True when hovering over timeline ruler/tracks
+let hoverScrubTime = 0.0;          // Microsecond timestamp under cursor during hover-scrub
+
 // LEDs array: [{ x, y, color: {r, g, b} }]
 let leds = [];
 
@@ -1760,20 +1765,21 @@ function computeLedColor(index, totalLeds, timeMs) {
     // MODE A: SHOW SEQUENCE PLAYBACK (Parade Cue Director)
     // ========================================================================
     if (sequenceMode) {
-        const t = sequenceTime;
+        const t = (isHoverScrubbing && !sequencePlaying) ? hoverScrubTime : sequenceTime;
+        const effectiveTimeMs = (isHoverScrubbing && !sequencePlaying) ? (hoverScrubTime * 1000) : timeMs;
 
         // 1. Evaluate Active Global Cues
         const activeGlobalCues = sequenceCues.filter(q => q.targetType === 'global' && t >= q.startTime && t < (q.startTime + q.duration));
 
         let baseColor = null;
         if (activeGlobalCues.length === 0) {
-            baseColor = evalGlobalPattern(activePattern, params.speedBpm, index, totalLeds, timeMs, c, hasColor);
+            baseColor = evalGlobalPattern(activePattern, params.speedBpm, index, totalLeds, effectiveTimeMs, c, hasColor);
         } else if (activeGlobalCues.length === 1) {
             const q = activeGlobalCues[0];
-            const col = evalGlobalPattern(q.effect, q.speedBpm, index, totalLeds, timeMs, c, hasColor);
+            const col = evalGlobalPattern(q.effect, q.speedBpm, index, totalLeds, effectiveTimeMs, c, hasColor);
             const w = getCueWeight(q, t);
             if (w < 1.0) {
-                const restCol = evalGlobalPattern('steady_sparkle', 120, index, totalLeds, timeMs, c, hasColor);
+                const restCol = evalGlobalPattern('steady_sparkle', 120, index, totalLeds, effectiveTimeMs, c, hasColor);
                 baseColor = {
                     r: Math.round(restCol.r * (1 - w) + col.r * w),
                     g: Math.round(restCol.g * (1 - w) + col.g * w),
@@ -1794,7 +1800,7 @@ function computeLedColor(index, totalLeds, timeMs) {
             let blR = 0, blG = 0, blB = 0, blA = 0;
             for (let i = 0; i < activeGlobalCues.length; i++) {
                 const q = activeGlobalCues[i];
-                const col = evalGlobalPattern(q.effect, q.speedBpm, index, totalLeds, timeMs, c, hasColor);
+                const col = evalGlobalPattern(q.effect, q.speedBpm, index, totalLeds, effectiveTimeMs, c, hasColor);
                 const normW = totalW > 0 ? (weights[i] / totalW) : (1 / activeGlobalCues.length);
                 blR += col.r * normW;
                 blG += col.g * normW;
@@ -7476,7 +7482,11 @@ function renderTimelineLayers() {
                     const dx = ev.clientX - startX;
                     const deltaSec = dx * secPerPx;
                     let newStart = origStart + deltaSec;
-                    newStart = Math.round(newStart * 10) / 10;
+                    if (gridSnapInterval > 0) {
+                        newStart = Math.round(newStart / gridSnapInterval) * gridSnapInterval;
+                    } else {
+                        newStart = Math.round(newStart * 10) / 10;
+                    }
                     newStart = Math.max(0, Math.min(origEnd - 0.5, newStart));
                     const newDur = Math.round((origEnd - newStart) * 10) / 10;
 
@@ -7531,8 +7541,12 @@ function renderTimelineLayers() {
                     const dx = ev.clientX - startX;
                     const deltaSec = dx * secPerPx;
                     let newEnd = origEnd + deltaSec;
-                    newEnd = Math.round(newEnd * 10) / 10;
-                    newEnd = Math.max(origStart + 0.5, Math.min(sequenceLoopDuration, newEnd));
+                    if (gridSnapInterval > 0) {
+                        newEnd = Math.round(newEnd / gridSnapInterval) * gridSnapInterval;
+                    } else {
+                        newEnd = Math.round(newEnd * 10) / 10;
+                    }
+                    newEnd = Math.max(origStart + (gridSnapInterval > 0 ? gridSnapInterval : 0.5), Math.min(sequenceLoopDuration, newEnd));
                     const newDur = Math.round((newEnd - origStart) * 10) / 10;
 
                     cue.duration = newDur;
@@ -7588,7 +7602,11 @@ function renderTimelineLayers() {
                     if (hasDragged) {
                         const deltaSec = dx * secPerPx;
                         let newStart = origStart + deltaSec;
-                        newStart = Math.round(newStart * 10) / 10;
+                        if (gridSnapInterval > 0) {
+                            newStart = Math.round(newStart / gridSnapInterval) * gridSnapInterval;
+                        } else {
+                            newStart = Math.round(newStart * 10) / 10;
+                        }
                         newStart = Math.max(0, Math.min(sequenceLoopDuration - dur, newStart));
                         const newEnd = Math.round((newStart + dur) * 10) / 10;
 
@@ -8200,6 +8218,119 @@ if (sequenceLoopInput) {
 const addCueBtn = document.getElementById('addCueBtn');
 if (addCueBtn) {
     addCueBtn.addEventListener('click', () => addCue());
+}
+
+// ============================================================================
+// FEATURE 10: CUE QUANTIZATION & TIMELINE HOVER-SCRUBBING ENGINE
+// ============================================================================
+function quantizeCue(cue, interval) {
+    if (!interval || interval <= 0) return;
+    const newStart = Math.round(cue.startTime / interval) * interval;
+    const newDur = Math.max(interval, Math.round(cue.duration / interval) * interval);
+    cue.startTime = Math.max(0, Math.min(sequenceLoopDuration - newDur, Math.round(newStart * 10) / 10));
+    cue.duration = Math.round(newDur * 10) / 10;
+}
+
+function quantizeAllCues(interval = gridSnapInterval) {
+    if (sequenceCues.length === 0) {
+        showToast("⚠️ No cues on timeline to quantize!");
+        return;
+    }
+    const quantInterval = (interval && interval > 0) ? interval : 0.5;
+    pushUndoState("Quantize All Cues");
+    sequenceCues.forEach(q => quantizeCue(q, quantInterval));
+    renderTimelineLayers();
+    renderCueCards();
+    isSingleShirtDirty = true;
+    showToast(`🎯 Quantized ${sequenceCues.length} cue${sequenceCues.length !== 1 ? 's' : ''} to ${quantInterval}s grid!`);
+}
+
+const timelineGridSnapSelect = document.getElementById('timelineGridSnapSelect');
+if (timelineGridSnapSelect) {
+    timelineGridSnapSelect.addEventListener('change', (e) => {
+        gridSnapInterval = parseFloat(e.target.value) || 0;
+        showToast(gridSnapInterval > 0 ? `🎯 Grid Snap set to ${gridSnapInterval}s` : "🎯 Grid Snap OFF");
+    });
+}
+
+const timelineQuantizeBtn = document.getElementById('timelineQuantizeBtn');
+if (timelineQuantizeBtn) {
+    timelineQuantizeBtn.addEventListener('click', () => {
+        quantizeAllCues(gridSnapInterval > 0 ? gridSnapInterval : 0.5);
+    });
+}
+
+function initTimelineHoverScrub() {
+    const rulerWrapper = document.getElementById('timelineRulerWrapper');
+    const layersWrapper = document.getElementById('timelineLayersWrapper');
+    const ghostNeedle = document.getElementById('timelineGhostNeedle');
+    const tooltip = document.getElementById('timelineFloatingTooltip');
+
+    if (!rulerWrapper || !layersWrapper) return;
+
+    function handleTimelineHover(e) {
+        if (sequencePlaying) {
+            if (ghostNeedle) ghostNeedle.style.display = 'none';
+            if (tooltip) tooltip.style.display = 'none';
+            isHoverScrubbing = false;
+            return;
+        }
+
+        const rect = layersWrapper.getBoundingClientRect();
+        const labelColWidth = 115;
+        const mouseX = e.clientX - rect.left - labelColWidth;
+        const trackWidth = rect.width - labelColWidth;
+
+        if (mouseX < 0 || mouseX > trackWidth || trackWidth <= 0) {
+            if (ghostNeedle) ghostNeedle.style.display = 'none';
+            if (tooltip) tooltip.style.display = 'none';
+            isHoverScrubbing = false;
+            return;
+        }
+
+        const pct = mouseX / trackWidth;
+        const hoverSec = Math.max(0, Math.min(sequenceLoopDuration, pct * sequenceLoopDuration));
+        
+        isHoverScrubbing = true;
+        hoverScrubTime = hoverSec;
+
+        // Position Ghost Needle
+        if (ghostNeedle) {
+            ghostNeedle.style.display = 'block';
+            ghostNeedle.style.left = `${labelColWidth + mouseX}px`;
+        }
+
+        // Find active cues at hover timestamp
+        const activeCues = sequenceCues.filter(q => hoverSec >= q.startTime && hoverSec < (q.startTime + q.duration));
+        const cueText = activeCues.length > 0 ? activeCues.map(c => c.name).join(', ') : 'Ambient Fallback';
+
+        // Position Floating Tooltip
+        if (tooltip) {
+            tooltip.style.display = 'block';
+            tooltip.style.left = `${e.clientX}px`;
+            tooltip.style.top = `${rect.top - 10}px`;
+            tooltip.innerHTML = `⏱️ <strong>${hoverSec.toFixed(1)}s</strong> <span style="color:#8b949e">| ${cueText}</span>`;
+        }
+
+        // Trigger real-time canvas redraw for hover preview
+        if (typeof requestAnimationFrame === 'function') {
+            requestAnimationFrame(() => {
+                if (typeof drawCanvas === 'function') drawCanvas();
+            });
+        }
+    }
+
+    function handleTimelineLeave() {
+        isHoverScrubbing = false;
+        if (ghostNeedle) ghostNeedle.style.display = 'none';
+        if (tooltip) tooltip.style.display = 'none';
+        if (typeof drawCanvas === 'function') drawCanvas();
+    }
+
+    [rulerWrapper, layersWrapper].forEach(container => {
+        container.addEventListener('mousemove', handleTimelineHover);
+        container.addEventListener('mouseleave', handleTimelineLeave);
+    });
 }
 
 const sequenceTemplateSelect = document.getElementById('sequenceTemplateSelect');
@@ -13615,6 +13746,7 @@ if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', () => {
         initSidebarTabs();
         initTimelineCollapse();
+        initTimelineHoverScrub();
         initSingleShirtFloatSelector();
         initFleetManager();
         initPowerBudgetCalculator();
@@ -13624,6 +13756,7 @@ if (document.readyState === 'loading') {
 } else {
     initSidebarTabs();
     initTimelineCollapse();
+    initTimelineHoverScrub();
     initSingleShirtFloatSelector();
     initFleetManager();
     initPowerBudgetCalculator();
