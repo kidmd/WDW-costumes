@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MSEP Costume LED Simulator - Pete's Dragon & 7-Shirt Fleet</title>
-    <link rel="stylesheet" href="style.css?v=35">
+    <link rel="stylesheet" href="style.css?v=36">
 </head>
 <body>
     <div id="toast" class="toast"></div>
@@ -472,8 +472,8 @@
                             <button type="button" id="creationModeDrawBtn" class="creation-mode-btn" title="Click on shirt to place sequential LEDs one-by-one">
                                 ✏️ Click-to-Draw
                             </button>
-                            <button type="button" id="creationModeFwBtn" class="creation-mode-btn" title="Stamp a radial firework starburst">
-                                🎆 Fireworks
+                            <button type="button" id="creationModeFwBtn" class="creation-mode-btn" title="Stamp pre-built shapes, flourishes, and fireworks starbursts">
+                                🌟 Stamp Library
                             </button>
                         </div>
 
@@ -662,15 +662,104 @@
                             </div>
                         </div>
 
-                        <!-- PANEL 3: Fireworks Stamper (Relocated from tabLayout) -->
+                        <!-- PANEL 3: Shape & Flourish Stamp Library -->
                         <div id="creationPanelFw" class="creation-panel" style="display: none;">
-                            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px;">
-                                <span style="font-size: 11px; font-weight: 600; color: #ff7b72;">360° Starburst Preset</span>
-                                <span id="fwLedCountBadge" style="background: #ff7b72; color: #000; font-weight: 700; padding: 2px 7px; border-radius: 12px; font-size: 10px;">20 LEDs (Serpentine)</span>
+                            <!-- Shape Picker Grid -->
+                            <div style="margin-bottom: 8px;">
+                                <label style="font-size: 10px; color: var(--text-muted); display: block; margin-bottom: 4px;">Choose Shape / Flourish Stamp:</label>
+                                <div id="stampTypePicker" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px;">
+                                    <button type="button" class="action-btn stamp-type-btn active" data-shape="fireworks" style="font-size: 10px; padding: 4px 2px;" title="Multi-ray radial fireworks burst">🎆 Fireworks</button>
+                                    <button type="button" class="action-btn stamp-type-btn" data-shape="circle" style="font-size: 10px; padding: 4px 2px;" title="Circle or wheel ring">⭕ Circle</button>
+                                    <button type="button" class="action-btn stamp-type-btn" data-shape="arch" style="font-size: 10px; padding: 4px 2px;" title="Curved arch or roof canopy">🌈 Arch</button>
+                                    <button type="button" class="action-btn stamp-type-btn" data-shape="wave" style="font-size: 10px; padding: 4px 2px;" title="Serpentine sine wave puff">🌊 Wave</button>
+                                    <button type="button" class="action-btn stamp-type-btn" data-shape="star" style="font-size: 10px; padding: 4px 2px;" title="Radiating star or sparkle">⭐ Star</button>
+                                    <button type="button" class="action-btn stamp-type-btn" data-shape="line" style="font-size: 10px; padding: 4px 2px;" title="Straight line or border bar">▬ Line</button>
+                                </div>
                             </div>
-                            <p style="font-size: 11px; color: var(--text-muted); line-height: 1.35; margin-bottom: 6px;">
-                                Multi-ray radial explosion with serpentine wiring and dark sky idle resets.
-                            </p>
+
+                            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px;">
+                                <span id="stampHeaderTitle" style="font-size: 11px; font-weight: 600; color: #ff7b72;">🎆 360° Fireworks Starburst</span>
+                                <span id="fwLedCountBadge" style="background: #ff7b72; color: #000; font-weight: 700; padding: 2px 7px; border-radius: 12px; font-size: 10px;">20 LEDs</span>
+                            </div>
+
+                            <!-- Dynamic Shape Extra Controls Box -->
+                            <div id="shapeParamsBox" style="background: #0d1117; padding: 6px 8px; border-radius: 6px; border: 1px solid #30363d; margin-bottom: 8px; display: none;">
+                                <div id="shapeCircleControls" class="shape-control-sub" style="display: none;">
+                                    <div style="display: flex; gap: 6px; margin-bottom: 4px;">
+                                        <div style="flex: 1;">
+                                            <label style="font-size: 9px; color: var(--text-muted); display: block;">LED Count:</label>
+                                            <input type="number" id="stampCircleCount" value="12" min="4" max="30" style="background: #161b22; color: #fff; border: 1px solid #30363d; border-radius: 4px; padding: 2px 4px; font-size: 10px; width: 100%;">
+                                        </div>
+                                        <div style="flex: 1;">
+                                            <label style="font-size: 9px; color: var(--text-muted); display: block;">Arc Span (°):</label>
+                                            <input type="number" id="stampCircleArc" value="360" min="60" max="360" step="30" style="background: #161b22; color: #fff; border: 1px solid #30363d; border-radius: 4px; padding: 2px 4px; font-size: 10px; width: 100%;">
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div id="shapeArchControls" class="shape-control-sub" style="display: none;">
+                                    <div style="display: flex; gap: 6px; margin-bottom: 4px;">
+                                        <div style="flex: 1;">
+                                            <label style="font-size: 9px; color: var(--text-muted); display: block;">LED Count:</label>
+                                            <input type="number" id="stampArchCount" value="10" min="4" max="24" style="background: #161b22; color: #fff; border: 1px solid #30363d; border-radius: 4px; padding: 2px 4px; font-size: 10px; width: 100%;">
+                                        </div>
+                                        <div style="flex: 1;">
+                                            <label style="font-size: 9px; color: var(--text-muted); display: block;">Curvature:</label>
+                                            <select id="stampArchDir" style="background: #161b22; color: #fff; border: 1px solid #30363d; border-radius: 4px; padding: 2px 4px; font-size: 10px; width: 100%;">
+                                                <option value="up">Upright Dome (∩)</option>
+                                                <option value="down">Inverted Bowl (∪)</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div id="shapeWaveControls" class="shape-control-sub" style="display: none;">
+                                    <div style="display: flex; gap: 6px; margin-bottom: 4px;">
+                                        <div style="flex: 1;">
+                                            <label style="font-size: 9px; color: var(--text-muted); display: block;">LED Count:</label>
+                                            <input type="number" id="stampWaveCount" value="12" min="6" max="30" style="background: #161b22; color: #fff; border: 1px solid #30363d; border-radius: 4px; padding: 2px 4px; font-size: 10px; width: 100%;">
+                                        </div>
+                                        <div style="flex: 1;">
+                                            <label style="font-size: 9px; color: var(--text-muted); display: block;">Cycles (Waves):</label>
+                                            <input type="number" id="stampWaveCycles" value="2" min="1" max="5" style="background: #161b22; color: #fff; border: 1px solid #30363d; border-radius: 4px; padding: 2px 4px; font-size: 10px; width: 100%;">
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div id="shapeStarControls" class="shape-control-sub" style="display: none;">
+                                    <div style="display: flex; gap: 6px; margin-bottom: 4px;">
+                                        <div style="flex: 1;">
+                                            <label style="font-size: 9px; color: var(--text-muted); display: block;">Star Points:</label>
+                                            <select id="stampStarPoints" style="background: #161b22; color: #fff; border: 1px solid #30363d; border-radius: 4px; padding: 2px 4px; font-size: 10px; width: 100%;">
+                                                <option value="4">4-Point Sparkle</option>
+                                                <option value="5" selected>5-Point Star</option>
+                                            </select>
+                                        </div>
+                                        <div style="flex: 1;">
+                                            <label style="font-size: 9px; color: var(--text-muted); display: block;">LED Count:</label>
+                                            <input type="number" id="stampStarCount" value="10" min="8" max="30" style="background: #161b22; color: #fff; border: 1px solid #30363d; border-radius: 4px; padding: 2px 4px; font-size: 10px; width: 100%;">
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div id="shapeLineControls" class="shape-control-sub" style="display: none;">
+                                    <div style="display: flex; gap: 6px; margin-bottom: 4px;">
+                                        <div style="flex: 1;">
+                                            <label style="font-size: 9px; color: var(--text-muted); display: block;">LED Count:</label>
+                                            <input type="number" id="stampLineCount" value="8" min="3" max="24" style="background: #161b22; color: #fff; border: 1px solid #30363d; border-radius: 4px; padding: 2px 4px; font-size: 10px; width: 100%;">
+                                        </div>
+                                        <div style="flex: 1;">
+                                            <label style="font-size: 9px; color: var(--text-muted); display: block;">Orientation:</label>
+                                            <select id="stampLineAngle" style="background: #161b22; color: #fff; border: 1px solid #30363d; border-radius: 4px; padding: 2px 4px; font-size: 10px; width: 100%;">
+                                                <option value="0">Horizontal (─)</option>
+                                                <option value="90">Vertical (│)</option>
+                                                <option value="45">Diagonal (╱)</option>
+                                                <option value="135">Diagonal (╲)</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
 
                             <!-- Active Firework Selector (when multiple fireworks exist) -->
                             <div id="activeFwRow" style="margin-bottom: 8px; display: none; background: #0d1117; padding: 6px 8px; border-radius: 6px; border: 1px solid #30363d;">
@@ -684,11 +773,12 @@
                             <!-- Corner / Position Presets -->
                             <div style="margin-bottom: 8px;">
                                 <label style="font-size: 10px; color: var(--text-muted); display: block; margin-bottom: 3px;">Position Placement:</label>
-                                <div style="display: flex; gap: 4px;">
+                                <div style="display: flex; gap: 4px; margin-bottom: 4px;">
                                     <button type="button" id="fwPosTopLeftBtn" class="action-btn" style="flex: 1; font-size: 10px; padding: 4px 2px; font-weight: 600; color: #ff7b72;" title="Upper-left chest corner (Default)">↖ Top-Left</button>
                                     <button type="button" id="fwPosTopRightBtn" class="action-btn" style="flex: 1; font-size: 10px; padding: 4px 2px;" title="Upper-right chest corner">↗ Top-Right</button>
                                     <button type="button" id="fwPosCenterBtn" class="action-btn" style="flex: 1; font-size: 10px; padding: 4px 2px;" title="Center chest">⏺ Center</button>
                                 </div>
+                                <button type="button" id="stampClickCanvasBtn" class="action-btn" style="width: 100%; font-size: 10px; padding: 4px 2px; border-color: #388bfd; color: #58a6ff;" title="Click anywhere on shirt canvas to set centroid coordinates">🎯 Click Canvas to Place</button>
                             </div>
 
                             <!-- Position & Scale Geometry Box -->
@@ -770,7 +860,7 @@
                             <!-- Actions -->
                             <div style="display: flex; flex-direction: column; gap: 6px;">
                                 <button type="button" id="stampFireworksBtn" class="action-btn accent" style="background: linear-gradient(135deg, #ff7b72, #d2a8ff); border-color: #ff7b72; font-weight: 600; font-size: 11px; padding: 7px 6px;">
-                                    🎆 Stamp Fireworks Burst (+ Add Another)
+                                    🌟 Stamp Shape / Flourish (+ Add Another)
                                 </button>
                                 <button type="button" id="redistributeRemainingBtn" class="action-btn" style="font-size: 11px; padding: 5px;" title="Re-distribute non-firework LEDs across the entire graphic while keeping the firework intact">
                                     🔄 Re-distribute Other LEDs (Full Graphic)
@@ -1730,6 +1820,6 @@
         </div>
     </div>
 
-    <script src="app.js?v=43"></script>
+    <script src="app.js?v=44"></script>
 </body>
 </html>

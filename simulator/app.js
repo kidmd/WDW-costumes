@@ -8267,6 +8267,24 @@ canvas.addEventListener('mousedown', (e) => {
         return;
     }
 
+    // Click-to-Place Stamp Mode Handler
+    if (isClickCanvasToPlaceActive) {
+        const worldX = (mx - panX) / zoomScale;
+        const worldY = (my - panY) / zoomScale;
+        const norm = canvasToNorm(worldX, worldY);
+        const clampX = Math.max(0.08, Math.min(0.92, norm.x));
+        const clampY = Math.max(0.08, Math.min(0.92, norm.y));
+        stampSelectedShape(clampX, clampY);
+        isClickCanvasToPlaceActive = false;
+        const clickBtn = document.getElementById('stampClickCanvasBtn');
+        if (clickBtn) {
+            clickBtn.classList.remove('active');
+            clickBtn.textContent = '🎯 Click Canvas to Place';
+        }
+        canvas.style.cursor = 'default';
+        return;
+    }
+
     // Left-click: Screen space hit test
     let clickedIdx = -1;
     for (let i = 0; i < leds.length; i++) {
@@ -11027,6 +11045,218 @@ function setFireworksRadius(radPct) {
     }
 }
 
+// ============================================================================
+// PARAMETRIC SHAPE GENERATORS & SHAPE STAMP LIBRARY ENGINE
+// ============================================================================
+let currentSelectedStampShape = 'fireworks';
+let isClickCanvasToPlaceActive = false;
+
+function generateCirclePoints(cx, cy, radius, count, arcDegrees = 360, rotationDeg = 0) {
+    const pts = [];
+    const arcRad = (arcDegrees * Math.PI) / 180;
+    const rotRad = (rotationDeg * Math.PI) / 180;
+    const isClosed = (arcDegrees >= 360);
+    const denom = isClosed ? count : Math.max(1, count - 1);
+
+    for (let i = 0; i < count; i++) {
+        const t = i / denom;
+        const theta = rotRad - Math.PI / 2 + t * arcRad;
+        const rx = radius * Math.cos(theta);
+        const ry = (radius * Math.sin(theta)) / 1.25;
+        pts.push({ x: cx + rx, y: cy + ry });
+    }
+    return pts;
+}
+
+function generateArchPoints(cx, cy, spanW, heightH, count, isInverted = false) {
+    const pts = [];
+    const mult = isInverted ? 1 : -1;
+    for (let i = 0; i < count; i++) {
+        const t = count > 1 ? i / (count - 1) : 0.5;
+        const u = 2 * t - 1;
+        const rx = u * (spanW / 2);
+        const ry = mult * (1 - u * u) * (heightH / 1.25);
+        pts.push({ x: cx + rx, y: cy + ry });
+    }
+    return pts;
+}
+
+function generateWavePoints(cx, cy, lengthL, amplitudeA, cycles, count, isVertical = false) {
+    const pts = [];
+    for (let i = 0; i < count; i++) {
+        const t = count > 1 ? i / (count - 1) : 0.5;
+        const offsetPrimary = (t - 0.5) * lengthL;
+        const offsetSine = Math.sin(2 * Math.PI * cycles * t) * (amplitudeA / 1.25);
+        if (isVertical) {
+            pts.push({ x: cx + offsetSine, y: cy + offsetPrimary });
+        } else {
+            pts.push({ x: cx + offsetPrimary, y: cy + offsetSine });
+        }
+    }
+    return pts;
+}
+
+function generateStarPoints(cx, cy, outerR, innerR, points = 5, totalCount = 10) {
+    const vertices = [];
+    const numVerts = points * 2;
+    for (let i = 0; i < numVerts; i++) {
+        const theta = -Math.PI / 2 + i * (Math.PI / points);
+        const r = (i % 2 === 0) ? outerR : innerR;
+        vertices.push({
+            x: cx + r * Math.cos(theta),
+            y: cy + (r * Math.sin(theta)) / 1.25
+        });
+    }
+
+    const pts = [];
+    const totalSegs = vertices.length;
+    for (let i = 0; i < totalCount; i++) {
+        const t = (i / totalCount) * totalSegs;
+        const segIdx = Math.floor(t) % totalSegs;
+        const nextIdx = (segIdx + 1) % totalSegs;
+        const segT = t - Math.floor(t);
+        const v1 = vertices[segIdx];
+        const v2 = vertices[nextIdx];
+        pts.push({
+            x: v1.x + (v2.x - v1.x) * segT,
+            y: v1.y + (v2.y - v1.y) * segT
+        });
+    }
+    return pts;
+}
+
+function generateLinePoints(cx, cy, lengthL, angleDeg = 0, count = 8) {
+    const pts = [];
+    const rad = (angleDeg * Math.PI) / 180;
+    const cos = Math.cos(rad);
+    const sin = Math.sin(rad);
+    for (let i = 0; i < count; i++) {
+        const t = count > 1 ? i / (count - 1) : 0.5;
+        const dist = (t - 0.5) * lengthL;
+        const rx = dist * cos;
+        const ry = (dist * sin) / 1.25;
+        pts.push({ x: cx + rx, y: cy + ry });
+    }
+    return pts;
+}
+
+function stampSelectedShape(customCx = null, customCy = null) {
+    if (currentSelectedStampShape === 'fireworks') {
+        const rays = parseInt(document.getElementById('fwRaysSelect')?.value || '5', 10);
+        const lpr = parseInt(document.getElementById('fwLedsPerRaySelect')?.value || '4', 10);
+        const radPct = parseInt(document.getElementById('fwRadiusSlider')?.value || '13', 10);
+        const burstRadius = radPct / 100;
+
+        let cx = customCx !== null ? customCx : (parseInt(document.getElementById('fwPosXSlider')?.value || '28', 10) / 100);
+        let cy = customCy !== null ? customCy : (parseInt(document.getElementById('fwPosYSlider')?.value || '22', 10) / 100);
+
+        const colorVal = document.getElementById('fwColorSelect')?.value;
+        const customPicker = document.getElementById('fwCustomColorPicker');
+        const colorToUse = (colorVal === 'custom') ? (customPicker?.value || '#ffb703') : (colorVal || '#ffb703');
+
+        recordHistory('Stamp Fireworks Starburst');
+        generateFireworksCluster(cx, cy, rays, lpr, burstRadius, true, colorToUse);
+        return;
+    }
+
+    let cx = customCx !== null ? customCx : (parseInt(document.getElementById('fwPosXSlider')?.value || '50', 10) / 100);
+    let cy = customCy !== null ? customCy : (parseInt(document.getElementById('fwPosYSlider')?.value || '35', 10) / 100);
+    const radPct = parseInt(document.getElementById('fwRadiusSlider')?.value || '13', 10);
+    const sizeScale = radPct / 100;
+
+    let pts = [];
+    let shapeName = 'Shape';
+    let reqCount = 10;
+
+    if (currentSelectedStampShape === 'circle') {
+        reqCount = parseInt(document.getElementById('stampCircleCount')?.value || '12', 10);
+        const arc = parseInt(document.getElementById('stampCircleArc')?.value || '360', 10);
+        shapeName = `Circle Wheel (${reqCount} LEDs)`;
+        pts = generateCirclePoints(cx, cy, sizeScale, reqCount, arc);
+    } else if (currentSelectedStampShape === 'arch') {
+        reqCount = parseInt(document.getElementById('stampArchCount')?.value || '10', 10);
+        const dir = document.getElementById('stampArchDir')?.value || 'up';
+        shapeName = `Arch Canopy (${reqCount} LEDs)`;
+        pts = generateArchPoints(cx, cy, sizeScale * 2.2, sizeScale * 1.2, reqCount, dir === 'down');
+    } else if (currentSelectedStampShape === 'wave') {
+        reqCount = parseInt(document.getElementById('stampWaveCount')?.value || '12', 10);
+        const cycles = parseInt(document.getElementById('stampWaveCycles')?.value || '2', 10);
+        shapeName = `Serpentine Wave (${reqCount} LEDs)`;
+        pts = generateWavePoints(cx, cy, sizeScale * 2.5, sizeScale * 0.8, cycles, reqCount);
+    } else if (currentSelectedStampShape === 'star') {
+        reqCount = parseInt(document.getElementById('stampStarCount')?.value || '10', 10);
+        const numPoints = parseInt(document.getElementById('stampStarPoints')?.value || '5', 10);
+        shapeName = `${numPoints}-Point Star (${reqCount} LEDs)`;
+        pts = generateStarPoints(cx, cy, sizeScale * 1.2, sizeScale * 0.5, numPoints, reqCount);
+    } else if (currentSelectedStampShape === 'line') {
+        reqCount = parseInt(document.getElementById('stampLineCount')?.value || '8', 10);
+        const angle = parseInt(document.getElementById('stampLineAngle')?.value || '0', 10);
+        shapeName = `Straight Line (${reqCount} LEDs)`;
+        pts = generateLinePoints(cx, cy, sizeScale * 2.5, angle, reqCount);
+    }
+
+    if (!pts || pts.length === 0) return;
+
+    const totalLeds = leds ? leds.length : 100;
+    const assignedSet = new Set();
+    animationGroups.forEach(g => {
+        (g.ledIndices || []).forEach(idx => {
+            if (idx < totalLeds) assignedSet.add(idx);
+        });
+    });
+
+    const unassignedIndices = [];
+    for (let i = 0; i < totalLeds; i++) {
+        if (!assignedSet.has(i)) unassignedIndices.push(i);
+    }
+
+    if (unassignedIndices.length < pts.length) {
+        showToast(`⚠️ Target shirt only has ${unassignedIndices.length} unused LEDs available, but stamp requires ${pts.length} LEDs!`, 'warning');
+        return;
+    }
+
+    recordHistory(`Stamp ${shapeName}`);
+
+    const allocatedIndices = unassignedIndices.slice(0, pts.length);
+    for (let i = 0; i < pts.length; i++) {
+        const ledIdx = allocatedIndices[i];
+        const p = pts[i];
+        const nx = Math.max(0.04, Math.min(0.96, parseFloat(p.x.toFixed(4))));
+        const ny = Math.max(0.04, Math.min(0.96, parseFloat(p.y.toFixed(4))));
+        leds[ledIdx].x = nx;
+        leds[ledIdx].y = ny;
+        if (typeof sampleColorAtNormCoord === 'function') {
+            leds[ledIdx].color = sampleColorAtNormCoord(nx, ny);
+        }
+    }
+
+    const newGroup = {
+        id: 'grp_stamp_' + Date.now(),
+        name: shapeName,
+        ledIndices: [...allocatedIndices],
+        effect: 'chase',
+        speedBpm: 140,
+        direction: 1,
+        width: 3,
+        colorMode: 'original',
+        baselineEffect: 'inherit'
+    };
+
+    animationGroups.push(newGroup);
+
+    const autoRearrange = document.getElementById('drawAutoRearrangeCheckbox')?.checked ?? true;
+    if (autoRearrange) {
+        rearrangeRemainingLedsOnGraphic(false);
+    } else {
+        rebuildLedGroupMap();
+        renderActiveGroupsList();
+    }
+
+    selectGroupLeds(newGroup.id);
+    markSingleShirtDirty();
+    showToast(`🎉 Stamped ${newGroup.name} onto shirt!`);
+}
+
 function syncFireworksSliders(cx, cy, radius, color) {
     const xSlider = document.getElementById('fwPosXSlider');
     const xVal = document.getElementById('fwPosXVal');
@@ -11334,6 +11564,11 @@ function autoPlaceFireworksCues(fwGroup, clearExisting = false) {
 
 if (stampFwBtn) {
     stampFwBtn.addEventListener('click', () => {
+        if (currentSelectedStampShape && currentSelectedStampShape !== 'fireworks') {
+            stampSelectedShape();
+            return;
+        }
+
         const rays = parseInt(fwRaysSelect?.value || '5', 10);
         const lpr = parseInt(fwLedsPerRaySelect?.value || '4', 10);
         const radPct = parseInt(fwRadiusSlider?.value || '13', 10);
@@ -11426,6 +11661,64 @@ if (fwAddCueBtn) {
             updateTimelineScrubberUI();
         }
         showToast(`🎆 Added ${fwGroup.name} explosion cue at ${startSec.toFixed(1)}s on timeline!`);
+    });
+}
+
+// Shape Type Picker Event Listeners
+document.querySelectorAll('.stamp-type-btn').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+        const shape = e.currentTarget.getAttribute('data-shape');
+        currentSelectedStampShape = shape;
+        document.querySelectorAll('.stamp-type-btn').forEach(b => b.classList.remove('active'));
+        e.currentTarget.classList.add('active');
+
+        const paramsBox = document.getElementById('shapeParamsBox');
+        const headerTitle = document.getElementById('stampHeaderTitle');
+        document.querySelectorAll('.shape-control-sub').forEach(el => el.style.display = 'none');
+
+        if (shape === 'fireworks') {
+            if (paramsBox) paramsBox.style.display = 'none';
+            if (headerTitle) headerTitle.textContent = '🎆 360° Fireworks Starburst';
+        } else {
+            if (paramsBox) paramsBox.style.display = 'block';
+            if (shape === 'circle') {
+                const sub = document.getElementById('shapeCircleControls');
+                if (sub) sub.style.display = 'block';
+                if (headerTitle) headerTitle.textContent = '⭕ Circle / Wheel Ring';
+            } else if (shape === 'arch') {
+                const sub = document.getElementById('shapeArchControls');
+                if (sub) sub.style.display = 'block';
+                if (headerTitle) headerTitle.textContent = '🌈 Arch / Roof Canopy';
+            } else if (shape === 'wave') {
+                const sub = document.getElementById('shapeWaveControls');
+                if (sub) sub.style.display = 'block';
+                if (headerTitle) headerTitle.textContent = '🌊 Wave / Serpentine Puff';
+            } else if (shape === 'star') {
+                const sub = document.getElementById('shapeStarControls');
+                if (sub) sub.style.display = 'block';
+                if (headerTitle) headerTitle.textContent = '⭐ Star / Sparkle Burst';
+            } else if (shape === 'line') {
+                const sub = document.getElementById('shapeLineControls');
+                if (sub) sub.style.display = 'block';
+                if (headerTitle) headerTitle.textContent = '▬ Straight Line / Border Bar';
+            }
+        }
+    });
+});
+
+const clickCanvasBtn = document.getElementById('stampClickCanvasBtn');
+if (clickCanvasBtn) {
+    clickCanvasBtn.addEventListener('click', () => {
+        isClickCanvasToPlaceActive = !isClickCanvasToPlaceActive;
+        clickCanvasBtn.classList.toggle('active', isClickCanvasToPlaceActive);
+        if (isClickCanvasToPlaceActive) {
+            clickCanvasBtn.textContent = '🎯 Click on Shirt Canvas now...';
+            canvas.style.cursor = 'crosshair';
+            showToast('🎯 Click anywhere on the shirt canvas to place stamp center!');
+        } else {
+            clickCanvasBtn.textContent = '🎯 Click Canvas to Place';
+            canvas.style.cursor = 'default';
+        }
     });
 }
 

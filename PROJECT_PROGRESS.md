@@ -93,6 +93,17 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### Entry: Pre-Built Shape & Flourish Stamp Library (Groups Tab Mode 3 Suite)
+* **Date:** 2026-09-27
+* **Milestone:** Milestone 5 - Studio Workflow & Visual Geometry Suite
+* **Status:** Operational & Synchronized across `simulator/app.js?v=44`, `simulator/style.css?v=36`, `simulator/index.html`, `SIMULATOR_USER_GUIDE.md`, `README.md`, and `PROJECT_PROGRESS.md`.
+* **Notes:**
+  - Upgraded Mode 3 in the `👥 Groups` tab to **🌟 Stamp Library**, establishing a parametric shape creation hub alongside the existing `🎆 Fireworks` Starburst generator.
+  - Built 5 parametric flourish tools with aspect-ratio ($1 : 1.25$) jersey coordinate correction: **Circle / Wheel**, **Arch / Canopy**, **Wave / Serpentine Puff**, **Star / Sparkle**, and **Straight Line / Ruler**.
+  - Added interactive **🎯 Click Canvas to Place** centroid positioning mode alongside quick centroid presets (Center Chest, Upper Arch, Left/Right Shoulder, Waist).
+  - Maintained strict 100-LED costume budget invariant by drawing pixels from unassigned LEDs and auto-redistributing remaining unassigned LEDs cleanly.
+  - Fully integrated with Universal Undo / Redo engine (`Ctrl+Z` / `Ctrl+Y`).
+
 ### Entry: Universal Undo / Redo Engine (`Ctrl+Z` / `Ctrl+Y`) & Canvas Toolbar Integration
 * **Date:** 2026-09-27
 * **Milestone:** Milestone 5 - Studio Workflow & Non-Destructive Editing Engine

@@ -239,10 +239,23 @@ The **Click-to-Draw Path Tool** lets you place sequential LEDs one-by-one direct
   - Located on the Layout Tab (`🎨 Layout`) under both Shirt Artwork and LED Layout (`🔄 Fill Graphic with Remaining LEDs`).
   - At any time, clicking this button scans all currently assigned groups and evenly redistributes all remaining non-grouped LEDs across the open areas of the character graphic without modifying any grouped LEDs or changing total LED count (always 100). Perfect for refreshing the background layout if points ever become uneven or after editing groups!
 
-#### 3. 🎆 Mode 3: Fireworks Stamper (Relocated from Layout)
-- Stamp multi-ray radial starburst fireworks directly from the Groups tab.
-- Includes corner placement presets (Top-Left, Top-Right, Center), Move X/Y sliders, Scale / Burst Radius slider (with S/M/L/XL quick buttons), Ray count, LEDs per ray, uniform ray color theme, and auto-scheduling explosion cues on the Master Timeline.
-- Serpentine wiring ensures maximum physical wire efficiency during costume assembly.
+#### 3. 🌟 Mode 3: Shape & Flourish Stamp Library
+The **Stamp Library** combines our **Fireworks Starburst Generator** with a full suite of parametric geometric shape stamps:
+- **Shape Selection Grid:**
+  - 💥 **Fireworks Starburst:** Multi-ray radial explosion with serpentine wiring, customizable burst radius, uniform/custom ray colors, and timeline cue auto-scheduling.
+  - ⭕ **Circle / Wheel:** Perfect for Cinderella's carriage wheels, Casey Jr.'s locomotive drivers, and turtle shell rings (configurable radius, LED count 4–30, and full $360^\circ$ vs. arc span).
+  - 🌈 **Arch / Canopy:** Parabolic and catenary arches for carriage roofs, dragon brows, and turtle shell domes (upright vs. inverted curvature).
+  - 🌊 **Wave / Serpentine:** Sine wave puffs for locomotive steam trails, Elliott's dragon fire breath, and water ripples (configurable amplitude, length, and 1–5 cycle count).
+  - ⭐ **Star / Sparkle:** 4-point sparkles and 5-point starbursts for Disney starlight flourishes.
+  - ▬ **Straight Line / Ruler:** Evenly-spaced horizontal, vertical, or diagonal line bars for marquee borders, flag stripes, and cowcatcher slats.
+- **Position Placement Options:**
+  - Quick Presets: `↖ Top-Left`, `↗ Top-Right`, `⏺ Center`.
+  - Precision Sliders: Move X% and Move Y% sliders.
+  - **`🎯 Click Canvas to Place`**: Click anywhere on the garment canvas to drop the stamp centroid $(\bar{x}, \bar{y})$ directly at your cursor location!
+- **Automatic Budget & Unused Pool Management:**
+  - Every stamped shape verifies available unassigned LEDs to enforce the **100-LED invariant**.
+  - Automatically resamples underlying graphic pixel colors and redistributes remaining unassigned LEDs across open graphic space.
+  - Fully integrated with the **Universal Undo / Redo Engine (`Ctrl+Z`)**.
 
 #### 4. 🛠️ Mode 4: Group Transformations Suite & Clipboard (Copy, Paste, Rotate, Flip, Scale)
 The Animation Groups editor includes full spatial transformations and cross-shirt group clipboard support:
