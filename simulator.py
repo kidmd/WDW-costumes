@@ -525,14 +525,20 @@ class SimulatorRequestHandler(http.server.SimpleHTTPRequestHandler):
                 "steady_sparkle": 0,
                 "breathe": 1,
                 "breathing_glow": 1,
+                "color_match": 1,      # Color-Matched Breathing Glow
+                "pulse": 1,            # Breathing Glow Pulse
+                "pulse_slow": 1,       # Slow breathing
                 "fire_breath": 2,
                 "traveling_wave": 3,
                 "marquee": 4,
                 "chase": 4,
-                "photo_mode": 5,
+                "photo_mode": 5,       # Solid lit, no sparkle
+                "off": 5,              # Repurposed: LEDs off — we handle via bpm=0 sentinel
                 "fireworks": 6,
-                "pulse": 7,
-                "pulse_slow": 7
+                "flash_slow": 7,       # Slow blink / flash
+                "sparkle_storm": 8,    # High-density sparkle burst
+                "write_on_off": 0,     # Theatrical write-on — falls back to steady_sparkle for now
+                "rainbow_cycle": 0     # Rainbow wave — falls back to steady_sparkle for now
             }
 
             cue_lines = []

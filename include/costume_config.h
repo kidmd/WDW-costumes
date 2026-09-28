@@ -26,9 +26,10 @@
 #define COLOR_ORDER                      RGB
 #define HAS_CUSTOM_PALETTE               1
 #define COSTUME_OVERRIDE_STANDALONE      1
+#define AMBIENT_FALLBACK_PATTERN         5
 
 #define SHOW_LOOP_MS                     90000
-#define HAS_CUSTOM_SEQUENCE_CUES         0
+#define HAS_CUSTOM_SEQUENCE_CUES         1
 #define CUSTOM_SEQUENCE_CUE_COUNT        1
 
 struct CostumeCue {
@@ -39,7 +40,7 @@ struct CostumeCue {
 };
 
 const CostumeCue PROGMEM CUSTOM_SEQUENCE_CUES[1] = {
-    { 0, 0, 0, 0 } // No cues on timeline: pure ambient programming fallback
+    { 0, 20000, 7, 60 }
 };
 
 // Artwork Sampled Color Palette (PROGMEM Flash Storage)

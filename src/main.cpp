@@ -745,8 +745,38 @@ void runAutonomousShowSequence(uint32_t now) {
                         leds[i] = dim;
                     }
                 }
+            } else if (eff == 5) { // photo_mode / off — solid artwork, zero sparkle
+                for (int i = 0; i < FRONT_LEDS && i < MAX_LEDS_CAPACITY; i++) {
+#if defined(HAS_CUSTOM_PALETTE) && HAS_CUSTOM_PALETTE
+                    leds[i] = ARTWORK_PALETTE[i];
+#else
+                    uint8_t floatIdx = (myFloatNumber >= 1 && myFloatNumber <= 7) ? (myFloatNumber - 1) : 0;
+                    leds[i] = FLEET_ROSTER_INFO[floatIdx].color;
+#endif
+                    // No sparkle — perfect for photo moments
+                }
             } else if (eff == 6) { // fireworks
                 renderFireworks(now);
+            } else if (eff == 7) { // flash_slow — slow on/off blink (bpm controls speed)
+                uint8_t blinkPhase = beatsin8(max((uint16_t)1, bpm) / 4, 0, 255);
+                bool lit = (blinkPhase > 127);
+                for (int i = 0; i < FRONT_LEDS && i < MAX_LEDS_CAPACITY; i++) {
+#if defined(HAS_CUSTOM_PALETTE) && HAS_CUSTOM_PALETTE
+                    CRGB baseColor = ARTWORK_PALETTE[i];
+#else
+                    uint8_t floatIdx = (myFloatNumber >= 1 && myFloatNumber <= 7) ? (myFloatNumber - 1) : 0;
+                    CRGB baseColor = FLEET_ROSTER_INFO[floatIdx].color;
+#endif
+                    leds[i] = lit ? baseColor : CRGB::Black;
+                }
+            } else if (eff == 8) { // sparkle_storm — all white sparkle burst
+                fill_solid(leds, FRONT_LEDS, CRGB::Black);
+                uint16_t storms = max((uint16_t)10, (uint16_t)(COSTUME_SPARKLE_RATE * 200 + 500));
+                for (int i = 0; i < FRONT_LEDS && i < MAX_LEDS_CAPACITY; i++) {
+                    if (random16(1000) < storms / FRONT_LEDS + 50) {
+                        leds[i] = CRGB(255, 255, random8(200, 255));
+                    }
+                }
             } else { // 0: steady_sparkle / default
                 for (int i = 0; i < FRONT_LEDS && i < MAX_LEDS_CAPACITY; i++) {
 #if defined(HAS_CUSTOM_PALETTE) && HAS_CUSTOM_PALETTE
