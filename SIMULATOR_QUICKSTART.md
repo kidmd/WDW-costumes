@@ -10,10 +10,10 @@
 ## 🧭 The Simulator Layout at a Glance
 
 When you open the simulator, you'll see three main areas:
-- **Top Tabs:** Switch between **Single View** (customize individual floats) and **Fleet View** (orchestrate the 7-runner synchronized show).
-- **Center Canvas:** Visual preview of the running shirt with 100 LEDs, authentic glow, and race bib clearance.
-- **Left Sidebar:** Controls for artwork presets, animation groups, cue creation, and hardware flashing.
-- **Bottom Timeline Bar:** The transport controls (`▶ Play`, `⏸ Pause`, `⏹ Stop`) and cue tracks.
+- **6 Task Sidebar Tabs:** Organized into a 2-row grid (`🎨 Layout`, `✨ Ambient`, `👥 Groups`, `🎬 Float Show`, `🏃 Fleet`, `⚡ Deploy`).
+- **Center Canvas:** Visual preview of the running shirt with 100 LEDs, authentic glow bloom, and official runDisney 10K race bib (#1952) clearance.
+- **Contextual Inspector Dock:** Docked at the bottom of the sidebar for inspecting LED numbers, setting colors, and configuring zone groups.
+- **Bottom Timeline Bar:** Transport controls (`▶ Play`, `⏸ Pause`, `⏹ Stop`), timeline hover-scrubbing, grid quantization, and collapsible cue tracks.
 
 ---
 
@@ -118,14 +118,21 @@ Once you're happy with the designs, bake them into the microcontrollers for race
 
 ## 🎛️ Race Morning Button Cheatsheet (BOOT / GPIO 0)
 
-Every runner's costume has one button (`BOOT` pin on the ESP32). Here is how it works on race morning:
+Upon plugging in USB power at 3:30 AM, **all costumes boot directly into 🌙 Corral Standby Mode** (12% dim midnight starlight twinkle drawing **< 120mA**) to save 80%+ of battery life during the 60–90 minute corral wait.
 
-| Gesture | Action | What Happens |
-|---|---|---|
-| **Single Tap** (< 600ms) | 🎆 **30s Fleet Routine** | Fires the synchronized fleet show across all 7 shirts! Tap again to cancel early. |
-| **Double Tap** (< 400ms) | ⚡ **4s Roll Call Wave** | Quick corral check: Floats 1➔7 flash solo for 500ms down the line, followed by a double emerald-green unison flash. |
-| **Hold 5s** (Wait for 4 white dots) | ⚪ **Float ID Config** | Progressive 1s–4s white charging meter, then sets Float ID (1–7). |
-| **Release Hold Early** (< 5s) | 🛡️ **Safe Abort** | Cleanly cancels hold and restores normal lights without triggering any show. |
+The BOOT button behavior depends on whether the node is configured as **👑 Master Leader (Float 1 - Casey Jr.)** or **📡 Follower (Floats 2–7)** to protect non-technical family runners from accidental show disruption:
+
+| Gesture | Role | Action | What Happens |
+|---|---|---|---|
+| **Power-On (Plug USB)** | All Floats | 🌙 **Corral Standby** | Boots into 12% dim midnight starlight twinkle (<120mA draw). |
+| **Single Tap** (< 600ms) | **👑 Leader (Float 1)** | ☀️ **Wake Fleet / Fleet Show** | **In Standby:** Wakes **entire fleet** to active parade mode (`0x51`).<br>**During Active Run:** Toggles/cancels the **30s Fleet Show** (`0x30`). |
+| | **📡 Follower (Floats 2–7)** | ☀️ **Wake Local Only** | **In Standby:** Wakes **that local shirt only**.<br>**During Active Run:** *Ignored* (zero fleet disruption). |
+| **Double Tap** (< 400ms) | **👑 Leader (Float 1)** | ⚡ **4s Roll Call Wave** | Triggers 4-second attendance wave across Floats 1➔7 followed by unison double emerald-green flash (`0x44`). |
+| | **📡 Follower (Floats 2–7)** | 🛡️ **Protected** | *Ignored* (roll call reserved for Leader). |
+| **Triple Tap** (< 600ms) | **👑 Leader (Float 1)** | 🌙 **Fleet Standby** | Drops **ENTIRE FLEET back into Corral Standby Mode** (`0x50`). |
+| | **📡 Follower (Floats 2–7)** | 🌙 **Local Standby** | Drops **that local shirt only** into Corral Standby Mode. |
+| **Long Hold** ($\ge$ 5s) | All Floats | ⚪ **Float ID Config** | Progressive 1s–4s white LED charging meter $\rightarrow$ 3 white flashes $\rightarrow$ tap to cycle Float ID (1–7) $\rightarrow$ 4 green flashes (Auto-Save to NVS). |
+| **Release Hold Early** (< 5s) | All Floats | 🛡️ **Safe Abort** | Cleanly aborts hold and restores current pattern without changing Float ID or triggering show. |
 
 ---
 
