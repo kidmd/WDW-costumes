@@ -191,6 +191,19 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
   - Synchronized across simulator, C++ firmware, and Arduino sketch per Rule 5.
   - Bumped script cache query in `simulator/index.html` to `app.js?v=47`.
 
+### Entry: Multi-Group Phase Sync, Anti-Phase Dual Wheels & Master-Follower Tempo Linking (Groups Tab Suite)
+* **Date:** 2026-09-28
+* **Milestone:** Milestone 5 - Studio Workflow & Visual Geometry Suite
+* **Status:** Operational & Synchronized across `simulator/app.js?v=55`, `simulator/index.html`, `SIMULATOR_USER_GUIDE.md`, and `PROJECT_PROGRESS.md`.
+* **Notes:**
+  - Implemented **Multi-Group Phase Sync ($0^\circ \dots 360^\circ$)** in `simulator/app.js`: groups calculate $\Delta t_{\text{phase}} = (\text{phaseOffsetDeg} / 360.0) \times T_{\text{beat}}$ and evaluate animations on $\text{effectiveTimeMs} = \text{timeMs} + \Delta t_{\text{phase}}$.
+  - Added Phase Offset Slider and 4 Quick Preset Buttons (`0° Sync`, `90° Quad`, `180° Anti`, `270°`) with live badge feedback (`#groupPhaseValHub`).
+  - Perfected dual-wheel mechanical realism (e.g. Cinderella's Coach / Casey Jr.): front wheel at $0^\circ$, rear wheel at $180^\circ$ Anti-Phase.
+  - Implemented **🔗 Master-Follower Tempo Linking** (`#groupSyncWithSelectHub`): child groups dynamically inherit their master group's `speedBpm` while maintaining independent phase offsets.
+  - Added **🔀 Auto-Stagger Phase** (`#autoStaggerPhaseBtn`): automatically distributes $360^\circ / N$ evenly across all active groups with full `Ctrl+Z` Undo/Redo integration.
+  - Rendered phase badges and master-follower linkage tags on active group cards in `#activeGroupsList`.
+  - Bumped script cache query in `simulator/index.html` to `app.js?v=55`.
+
 ### Entry: Corral Standby Smooth Starlight Shimmer & Visible Midnight Base Calibration
 * **Date:** 2026-09-27
 * **Milestone:** Milestone 5 - Studio Workflow & Hardware Fleet Control

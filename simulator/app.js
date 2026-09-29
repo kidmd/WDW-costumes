@@ -1252,8 +1252,19 @@ function drawPetesDragon(cx, s) {
 // ============================================================================
 
 function evalGroupEffect(grp, effect, bpm, dir, grpIndex, grpSize, timeMs, c) {
-    const grpBeatMs = 60000 / Math.max(20, bpm || 120);
-    const grpNormTime = timeMs / grpBeatMs;
+    let effectiveBpm = bpm;
+    if (!effectiveBpm) {
+        if (grp && grp.syncWithGroupId) {
+            const parentGrp = animationGroups.find(g => g.id === grp.syncWithGroupId);
+            if (parentGrp && parentGrp.speedBpm) effectiveBpm = parentGrp.speedBpm;
+        }
+        if (!effectiveBpm) effectiveBpm = (grp && grp.speedBpm) ? grp.speedBpm : 120;
+    }
+    const grpBeatMs = 60000 / Math.max(20, effectiveBpm);
+    const phaseOffsetDeg = (grp && grp.phaseOffsetDeg !== undefined) ? grp.phaseOffsetDeg : 0;
+    const phaseOffsetMs = (phaseOffsetDeg / 360.0) * grpBeatMs;
+    const effectiveTimeMs = timeMs + phaseOffsetMs;
+    const grpNormTime = effectiveTimeMs / grpBeatMs;
     const direction = dir || 1;
 
     let baseR = c ? c.r : 255;
@@ -1291,7 +1302,7 @@ function evalGroupEffect(grp, effect, bpm, dir, grpIndex, grpSize, timeMs, c) {
             break;
         }
         case 'flash_slow': {
-            const phase = (timeMs % (grpBeatMs * 2)) / (grpBeatMs * 2);
+            const phase = (effectiveTimeMs % (grpBeatMs * 2)) / (grpBeatMs * 2);
             grpIntensity = phase < 0.5 ? 1.0 : 0.08;
             break;
         }
@@ -1302,7 +1313,7 @@ function evalGroupEffect(grp, effect, bpm, dir, grpIndex, grpSize, timeMs, c) {
         }
         case 'write_on_off': {
             const totalCycleMs = grpBeatMs * 4;
-            const progress = (timeMs % totalCycleMs) / totalCycleMs;
+            const progress = (effectiveTimeMs % totalCycleMs) / totalCycleMs;
             if (progress < 0.40) {
                 const litHead = (progress / 0.40) * grpSize;
                 grpIntensity = (direction >= 0 ? (grpIndex <= litHead) : ((grpSize - 1 - grpIndex) <= litHead)) ? 1.0 : 0.05;
@@ -1317,7 +1328,7 @@ function evalGroupEffect(grp, effect, bpm, dir, grpIndex, grpSize, timeMs, c) {
             break;
         }
         case 'sparkle_storm': {
-            const rand = Math.sin(timeMs * 0.05 + grpIndex * 37.1) * 0.5 + 0.5;
+            const rand = Math.sin(effectiveTimeMs * 0.05 + grpIndex * 37.1) * 0.5 + 0.5;
             if (rand > 0.65) {
                 grpIntensity = 1.0;
                 baseR = Math.min(255, baseR + 80);
@@ -1335,7 +1346,7 @@ function evalGroupEffect(grp, effect, bpm, dir, grpIndex, grpSize, timeMs, c) {
             break;
         }
         case 'rainbow_cycle': {
-            const hue = ((timeMs * 0.08 * direction + grpIndex * (360 / grpSize)) % 360 + 360) % 360;
+            const hue = ((effectiveTimeMs * 0.08 * direction + grpIndex * (360 / grpSize)) % 360 + 360) % 360;
             const rgb = hslToRgb(hue / 360, 0.95, 0.52);
             baseR = rgb.r; baseG = rgb.g; baseB = rgb.b;
             grpIntensity = 1.0;
@@ -1360,7 +1371,7 @@ function evalGroupEffect(grp, effect, bpm, dir, grpIndex, grpSize, timeMs, c) {
 
             // Cycle timing based on BPM (faster BPM = more frequent bursts)
             const cycleMs = grpBeatMs * 3.0; // e.g. 1500ms at 120 BPM
-            const tau = (timeMs % cycleMs) / cycleMs; // 0.0 to 1.0
+            const tau = (effectiveTimeMs % cycleMs) / cycleMs; // 0.0 to 1.0
 
             // All rays of a firework group share the exact same uniform color
             let fwR = 255, fwG = 195, fwB = 45; // Golden Amber signature default
@@ -5553,12 +5564,16 @@ function populateGroupForm(grp) {
     const dirDoc = document.getElementById('groupDirectionSelect');
     const baseHub = document.getElementById('groupBaselineSelectHub');
     const baseDoc = document.getElementById('groupBaselineSelect');
+    const phaseHub = document.getElementById('groupPhaseSliderHub');
+    const phaseValHub = document.getElementById('groupPhaseValHub');
+    const syncSelectHub = document.getElementById('groupSyncWithSelectHub');
 
     const nameVal = grp.name || '';
     const effVal = grp.effect || 'chase';
     const spdVal = grp.speedBpm || 140;
     const dirVal = String(grp.direction || 1);
     const baseVal = grp.baselineEffect || (effVal === 'fireworks' ? 'off' : 'inherit');
+    const phaseVal = (grp.phaseOffsetDeg !== undefined) ? grp.phaseOffsetDeg : 0;
 
     if (nameHub) nameHub.value = nameVal;
     if (nameDoc) nameDoc.value = nameVal;
@@ -5572,6 +5587,29 @@ function populateGroupForm(grp) {
     if (dirDoc) dirDoc.value = dirVal;
     if (baseHub) baseHub.value = baseVal;
     if (baseDoc) baseDoc.value = baseVal;
+
+    if (phaseHub) phaseHub.value = phaseVal;
+    if (phaseValHub) {
+        let phaseLabel = `${phaseVal}°`;
+        if (phaseVal === 0) phaseLabel += ' (Synced)';
+        else if (phaseVal === 90) phaseLabel += ' (Quarter)';
+        else if (phaseVal === 180) phaseLabel += ' (Anti-Phase)';
+        else if (phaseVal === 270) phaseLabel += ' (3/4 Phase)';
+        phaseValHub.textContent = phaseLabel;
+    }
+
+    if (syncSelectHub) {
+        syncSelectHub.innerHTML = '<option value="">None (Independent Speed)</option>';
+        for (const other of animationGroups) {
+            if (other.id !== grp.id) {
+                const opt = document.createElement('option');
+                opt.value = other.id;
+                opt.textContent = `🔗 ${other.name} (${other.speedBpm} BPM)`;
+                syncSelectHub.appendChild(opt);
+            }
+        }
+        syncSelectHub.value = grp.syncWithGroupId || '';
+    }
 
     // Toggle Fireworks Burst Radius row if firework
     const fwRow = document.getElementById('groupFwRadiusRow');
@@ -5618,6 +5656,9 @@ function resetGroupFormToDefaults() {
     const dirDoc = document.getElementById('groupDirectionSelect');
     const baseHub = document.getElementById('groupBaselineSelectHub');
     const baseDoc = document.getElementById('groupBaselineSelect');
+    const phaseHub = document.getElementById('groupPhaseSliderHub');
+    const phaseValHub = document.getElementById('groupPhaseValHub');
+    const syncSelectHub = document.getElementById('groupSyncWithSelectHub');
 
     if (nameHub) nameHub.value = '';
     if (nameDoc) nameDoc.value = '';
@@ -5631,6 +5672,18 @@ function resetGroupFormToDefaults() {
     if (dirDoc) dirDoc.value = '1';
     if (baseHub) baseHub.value = 'inherit';
     if (baseDoc) baseDoc.value = 'inherit';
+    if (phaseHub) phaseHub.value = 0;
+    if (phaseValHub) phaseValHub.textContent = '0° (Synced)';
+    if (syncSelectHub) {
+        syncSelectHub.innerHTML = '<option value="">None (Independent Speed)</option>';
+        for (const other of animationGroups) {
+            const opt = document.createElement('option');
+            opt.value = other.id;
+            opt.textContent = `🔗 ${other.name} (${other.speedBpm} BPM)`;
+            syncSelectHub.appendChild(opt);
+        }
+        syncSelectHub.value = '';
+    }
 
     const fwRow = document.getElementById('groupFwRadiusRow');
     if (fwRow) fwRow.style.display = 'none';
@@ -6196,12 +6249,16 @@ function applyGroupEffectToSelection() {
     const speedSlider = document.getElementById('groupSpeedSliderHub') || document.getElementById('groupSpeedSlider');
     const dirSelect = document.getElementById('groupDirectionSelectHub') || document.getElementById('groupDirectionSelect');
     const baselineSelect = document.getElementById('groupBaselineSelectHub') || document.getElementById('groupBaselineSelect');
+    const phaseSlider = document.getElementById('groupPhaseSliderHub');
+    const syncSelect = document.getElementById('groupSyncWithSelectHub');
 
     const rawName = (nameInput?.value || '').trim() || (targetGroup ? targetGroup.name : `Zone (${selectedLeds.size} LEDs)`);
     const effect = effectSelect?.value || 'chase';
     const speedBpm = parseInt(speedSlider?.value || '140', 10);
     const direction = parseInt(dirSelect?.value || '1', 10);
     const baselineEffect = baselineSelect?.value || (effect === 'fireworks' ? 'off' : 'inherit');
+    const phaseOffsetDeg = parseInt(phaseSlider?.value || '0', 10);
+    const syncWithGroupId = syncSelect?.value || null;
 
     if (!targetGroup && rawName) {
         targetGroup = animationGroups.find(g => g.name.toLowerCase() === rawName.toLowerCase());
@@ -6217,6 +6274,8 @@ function applyGroupEffectToSelection() {
         targetGroup.speedBpm = speedBpm;
         targetGroup.direction = direction;
         targetGroup.baselineEffect = baselineEffect;
+        targetGroup.phaseOffsetDeg = phaseOffsetDeg;
+        targetGroup.syncWithGroupId = syncWithGroupId;
         if (selectedLeds.size >= 2) {
             targetGroup.ledIndices = Array.from(selectedLeds).sort((a, b) => a - b);
         }
@@ -6230,6 +6289,8 @@ function applyGroupEffectToSelection() {
             effect: effect,
             speedBpm: speedBpm,
             direction: direction,
+            phaseOffsetDeg: phaseOffsetDeg,
+            syncWithGroupId: syncWithGroupId,
             width: 3,
             colorMode: 'original',
             baselineEffect: baselineEffect
@@ -6788,6 +6849,19 @@ function renderActiveGroupsList() {
             extraPillHtml = `<span class="group-pill group-pill-burst">🎆 ${grp.fireworkRays || 5} Rays • R: ${rPct}%</span>`;
         }
 
+        let phasePillHtml = '';
+        if (grp.syncWithGroupId) {
+            const parentGrp = animationGroups.find(g => g.id === grp.syncWithGroupId);
+            const pName = parentGrp ? parentGrp.name : 'Master';
+            const deg = grp.phaseOffsetDeg || 0;
+            phasePillHtml = `<span class="group-pill" style="background: rgba(88, 166, 255, 0.15); color: #58a6ff; border: 1px solid rgba(88, 166, 255, 0.4);" title="Synced to ${pName}">🔗 ${pName} (+${deg}°)</span>`;
+        } else if (grp.phaseOffsetDeg && grp.phaseOffsetDeg > 0) {
+            let pDesc = `${grp.phaseOffsetDeg}°`;
+            if (grp.phaseOffsetDeg === 180) pDesc += ' Anti';
+            else if (grp.phaseOffsetDeg === 90) pDesc += ' Quad';
+            phasePillHtml = `<span class="group-pill" style="background: rgba(163, 113, 247, 0.15); color: #d2a8ff; border: 1px solid rgba(163, 113, 247, 0.4);">🔄 Phase: ${pDesc}</span>`;
+        }
+
         card.innerHTML = `
             <div class="group-card-header">
                 <div class="group-card-title-wrap">
@@ -6799,6 +6873,7 @@ function renderActiveGroupsList() {
             <div class="group-card-badges">
                 <span class="group-pill group-pill-effect">${label} @ ${grp.speedBpm} BPM</span>
                 ${extraPillHtml}
+                ${phasePillHtml}
                 <span class="group-pill group-pill-baseline">Idle: ${baselineLabel}</span>
                 <span class="group-pill" style="background: #21262d; color: #8b949e; border: 1px solid #30363d;" title="LED indices: ${arr.join(', ')}">LEDs: ${formatIndexSummary(arr)}</span>
             </div>
@@ -10093,6 +10168,89 @@ const syncGroupBaseline = (val) => {
 };
 baseHub?.addEventListener('change', (e) => syncGroupBaseline(e.target.value));
 baseDoc?.addEventListener('change', (e) => syncGroupBaseline(e.target.value));
+
+// Phase Offset & Sync Synchronization (Feature 8)
+const phaseHub = document.getElementById('groupPhaseSliderHub');
+const phaseValHub = document.getElementById('groupPhaseValHub');
+const syncPhaseVal = (val) => {
+    const num = parseInt(val, 10);
+    if (phaseHub && phaseHub.value !== String(num)) phaseHub.value = num;
+    if (phaseValHub) {
+        let label = `${num}°`;
+        if (num === 0) label += ' (Synced)';
+        else if (num === 90) label += ' (Quarter)';
+        else if (num === 180) label += ' (Anti-Phase)';
+        else if (num === 270) label += ' (3/4 Phase)';
+        phaseValHub.textContent = label;
+    }
+    if (selectedGroupId) {
+        const grp = animationGroups.find(g => g.id === selectedGroupId);
+        if (grp) {
+            grp.phaseOffsetDeg = num;
+            renderActiveGroupsList();
+            markSingleShirtDirty();
+        }
+    }
+};
+phaseHub?.addEventListener('input', (e) => syncPhaseVal(e.target.value));
+
+document.querySelectorAll('.grp-phase-preset-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+        const deg = parseInt(btn.getAttribute('data-deg') || '0', 10);
+        syncPhaseVal(deg);
+    });
+});
+
+const syncSelectHub = document.getElementById('groupSyncWithSelectHub');
+syncSelectHub?.addEventListener('change', (e) => {
+    const masterId = e.target.value || null;
+    if (selectedGroupId) {
+        const grp = animationGroups.find(g => g.id === selectedGroupId);
+        if (grp) {
+            grp.syncWithGroupId = masterId;
+            renderActiveGroupsList();
+            markSingleShirtDirty();
+            if (masterId) {
+                const parent = animationGroups.find(g => g.id === masterId);
+                if (parent) showToast(`🔗 Linked "${grp.name}" tempo to "${parent.name}"!`);
+            }
+        }
+    }
+});
+
+function autoStaggerPhaseAcrossGroups() {
+    if (!animationGroups || animationGroups.length === 0) {
+        showToast('⚠️ No animation groups to stagger. Create groups first!');
+        return;
+    }
+    if (animationGroups.length === 1) {
+        animationGroups[0].phaseOffsetDeg = 0;
+        showToast('ℹ️ 1 group: Phase set to 0° (In-Phase)');
+        renderActiveGroupsList();
+        if (selectedGroupId === animationGroups[0].id) {
+            populateGroupForm(animationGroups[0]);
+        }
+        markSingleShirtDirty();
+        return;
+    }
+
+    recordHistory('Auto-Stagger Group Phases');
+
+    const step = Math.round(360 / animationGroups.length);
+    animationGroups.forEach((grp, idx) => {
+        grp.phaseOffsetDeg = (idx * step) % 360;
+    });
+
+    renderActiveGroupsList();
+    if (selectedGroupId) {
+        const sel = animationGroups.find(g => g.id === selectedGroupId);
+        if (sel) populateGroupForm(sel);
+    }
+    markSingleShirtDirty();
+    showToast(`🔀 Auto-staggered ${animationGroups.length} groups evenly (${step}° step: 0°, ${step}°...)!`);
+}
+
+document.getElementById('autoStaggerPhaseBtn')?.addEventListener('click', () => autoStaggerPhaseAcrossGroups());
 
 // Hub Panel 2: Click-to-Draw Actions
 const drawGroupBtn = document.getElementById('drawGroupBtn');

@@ -628,6 +628,31 @@
                                 </div>
                             </div>
 
+                            <!-- Phase Offset & Multi-Group Sync Controls (Feature 8) -->
+                            <div style="background: rgba(88, 166, 255, 0.06); border: 1px solid rgba(88, 166, 255, 0.25); border-radius: 6px; padding: 7px 9px; margin-bottom: 8px;">
+                                <div class="label-row" style="margin-bottom: 3px;">
+                                    <span style="font-size: 10.5px; font-weight: 600; color: #58a6ff;">🔄 Phase Offset (0°–360°):</span>
+                                    <span id="groupPhaseValHub" class="val-badge" style="font-size: 10px; background: #1f6feb; color: #fff;">0° (Synced)</span>
+                                </div>
+                                <input type="range" id="groupPhaseSliderHub" min="0" max="360" step="5" value="0" style="width: 100%; accent-color: #58a6ff; margin-bottom: 5px;">
+                                
+                                <!-- Quick Phase Preset Buttons -->
+                                <div style="display: flex; gap: 4px; margin-bottom: 6px;">
+                                    <button type="button" class="action-btn grp-phase-preset-btn" data-deg="0" style="flex: 1; font-size: 9.5px; padding: 3px 2px;" title="0° In-Phase (Exact Sync)">0° Sync</button>
+                                    <button type="button" class="action-btn grp-phase-preset-btn" data-deg="90" style="flex: 1; font-size: 9.5px; padding: 3px 2px;" title="90° Quarter-Phase (+25% Delay)">90° Quad</button>
+                                    <button type="button" class="action-btn grp-phase-preset-btn" data-deg="180" style="flex: 1; font-size: 9.5px; padding: 3px 2px;" title="180° Anti-Phase (Opposite / Alternating Wheels)">180° Anti</button>
+                                    <button type="button" class="action-btn grp-phase-preset-btn" data-deg="270" style="flex: 1; font-size: 9.5px; padding: 3px 2px;" title="270° Three-Quarter (+75% Delay)">270°</button>
+                                </div>
+
+                                <!-- Master Group Tempo Link Dropdown -->
+                                <div style="display: flex; align-items: center; justify-content: space-between; gap: 6px;">
+                                    <label for="groupSyncWithSelectHub" style="font-size: 10px; color: var(--text-muted); white-space: nowrap;">🔗 Sync Speed With:</label>
+                                    <select id="groupSyncWithSelectHub" style="background: #0d1117; color: #fff; border: 1px solid #30363d; border-radius: 4px; padding: 3px 6px; font-size: 10px; flex: 1; outline: none;">
+                                        <option value="">None (Independent Speed)</option>
+                                    </select>
+                                </div>
+                            </div>
+
                             <div class="control-group" style="margin-bottom: 8px;">
                                 <label style="font-size: 10.5px; color: var(--text-muted); display: block; margin-bottom: 2px;">Idle / Resting Baseline:</label>
                                 <select id="groupBaselineSelectHub" style="width: 100%; background: #0d1117; color: #fff; border: 1px solid #30363d; border-radius: 5px; padding: 5px 6px; font-size: 11px;">
@@ -979,9 +1004,12 @@
                     <div class="control-section" id="activeGroupsContainer">
                         <div class="section-title" style="display: flex; justify-content: space-between; align-items: center;">
                             <span>Configured Animation Groups</span>
-                            <div style="display: flex; gap: 6px; align-items: center;">
+                            <div style="display: flex; gap: 4px; align-items: center;">
+                                <button type="button" id="autoStaggerPhaseBtn" class="action-btn" style="font-size: 10px; padding: 2px 7px; border-color: #a371f7; color: #d2a8ff; font-weight: 600;" title="Evenly distribute 360° phase offsets across all active groups (e.g. 0°, 180° for 2 wheels)">
+                                    🔀 Auto-Stagger Phase
+                                </button>
                                 <button type="button" id="pasteGroupHeaderBtn" class="action-btn" style="font-size: 10px; padding: 2px 7px; border-color: #38bdf8; color: #38bdf8; font-weight: 600;" title="Paste copied animation group from clipboard onto active shirt using unused LED pool (Ctrl+V / Cmd+V)">
-                                    📋 Paste Group
+                                    📋 Paste
                                 </button>
                                 <span id="activeGroupsCountBadge" style="font-size: 10px; color: var(--accent-cyan); font-family: monospace;">0 Groups</span>
                             </div>
@@ -1933,6 +1961,6 @@
         </div>
     </div>
 
-    <script src="app.js?v=54"></script>
+    <script src="app.js?v=55"></script>
 </body>
 </html>

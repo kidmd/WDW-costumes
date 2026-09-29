@@ -311,6 +311,14 @@ Creating and editing groups is seamlessly integrated into both the Group Creatio
    - **Immutable ID Preservation:** Clicking **`💾 Update Group`** saves changes directly to the existing group in-place using its unique group ID. Renaming a group updates its name immediately without creating unwanted duplicates or losing member LED assignments.
 3. **Group Configuration Parameters:**
    - **Direction:** Select **Forward (➡️)** or **Reverse (⬅️)** for directional chase animations (crucial for ensuring left and right carriage wheels appear to roll forward!).
+    - **🔄 Phase Offset ($0^\circ \dots 360^\circ$) & Dual-Wheel Anti-Phase:**
+      - Adjust the **Phase Offset Slider ($0^\circ \dots 360^\circ$)** to control the exact rotational or wave timing of the group relative to the global beat clock ($\text{effectiveTimeMs} = \text{timeMs} + \frac{\text{deg}}{360} \cdot T_{\text{beat}}$).
+      - **Quick Preset Badges:** One-click presets for `0° (Synced)`, `90° (Quarter Phase)`, `180° (Anti-Phase)`, and `270° (3/4 Phase)`.
+      - **Dual Wheel Anti-Phase Simulation:** Set the front carriage wheel to $0^\circ$ and the rear carriage wheel to $180^\circ$ so that as one wheel's spoke crests at 12 o'clock, the other crests at 6 o'clock—creating mesmerizing organic mechanical realism!
+    - **🔗 Sync Speed With (Master-Follower Tempo Coupling):**
+      - Link any child group to a master group (e.g., link *Rear Wheel* to *Front Wheel*). Whenever you modify the master group's BPM slider, all follower groups dynamically inherit the new tempo in real time while maintaining their independent phase offsets!
+    - **🔀 Auto-Stagger Phase Button:**
+      - In the Active Groups section header, click **`🔀 Auto-Stagger Phase`** to automatically divide and distribute full $360^\circ$ phase cycles evenly across all active groups ($360^\circ / N$). Perfect for multi-tier turtle/snail whorls or starburst cascades. Fully undoable via `Ctrl+Z`.
    - **Group Effect:** Choose an effect from the dropdown:
      - *🎡 Chase / Wheel Spin:* Chases illuminated heads around the ring.
      - *💓 Breathing Glow Pulse:* Pulses the group in sync or out of phase with the baseline.
