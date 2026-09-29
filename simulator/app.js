@@ -877,12 +877,12 @@ function drawRaceBib(cx, s) {
 
     cx.save();
 
-    // Authentic runDisney bib dimensions: ~7.5" wide by 8.0" tall
+    // Authentic runDisney bib dimensions: 8.0" wide by 7.0" high (relative to 18" x 24" shirt model)
     // Scaled realistically onto athletic running shirt with user scale multiplier
     const scale = (params.bibScale !== undefined ? params.bibScale : 1.0);
-    const baseBibW = s.width * 0.375;
+    const baseBibW = s.width * (8.0 / 18.0); // 8.0" wide on 18.0" wide shirt (~0.4444 * s.width)
     const bibW = baseBibW * scale;
-    const bibH = bibW * (8.0 / 7.5); // ~ 1.067 aspect ratio
+    const bibH = bibW * (7.0 / 8.0); // 7.0" high for 8.0" wide (0.875 aspect ratio)
     const bibX = s.x + (s.width - bibW) / 2;
     const bibY = s.y + s.height * (params.bibYOffset !== undefined ? params.bibYOffset : 0.57);
 
@@ -3618,8 +3618,8 @@ function renderFleetView(timeMs) {
             }
 
             // 5. Draw Mini runDisney Race Bib on lower torso
-            const bibW = shirtW * 0.52;
-            const bibH = shirtH * 0.23;
+            const bibW = shirtW * (8.0 / 18.0);
+            const bibH = bibW * (7.0 / 8.0);
             const bibX = shirtX + (shirtW - bibW) * 0.5;
             const bibY = shirtY + shirtH * 0.57;
             drawMiniRaceBib(ctx, bibX, bibY, bibW, bibH, floatData.num);

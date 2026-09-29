@@ -93,6 +93,17 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### Entry: Calibrated Default Race Bib Dimensions (8.0" Wide × 7.0" High)
+* **Date:** 2026-09-28
+* **Milestone:** Milestone 5 - Studio Workflow & Hardware Fleet Control
+* **Status:** Verified & Operational in `simulator/app.js?v=54` and `simulator/index.html`.
+* **Notes:**
+  - Updated **runDisney 10K Race Bib Overlay Math (`drawRaceBib` & `drawMiniRaceBib`)**:
+    - Calibrated default bib width to **8.0 inches** relative to the 18.0" wide shirt model (`baseBibW = s.width * (8.0 / 18.0)` = ~44.44% of shirt width).
+    - Calibrated default bib height to **7.0 inches** (`bibH = bibW * (7.0 / 8.0)` = 0.875 aspect ratio).
+    - Applied identical 8" × 7" aspect ratio scaling across both Single Shirt canvas view and Fleet Lineup overview cards.
+  - Verified JavaScript syntax via `node -c simulator/app.js` (SUCCESS) and updated asset cache version to `app.js?v=54`.
+
 ### Entry: Feature 2 (Physical Wire Tension Heatmap) & Feature 3 (Bilateral Symmetry & Mirror Tool)
 * **Date:** 2026-09-28
 * **Milestone:** Milestone 5 - Studio Workflow & Hardware Fleet Control

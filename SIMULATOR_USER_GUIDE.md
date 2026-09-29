@@ -422,7 +422,7 @@ All artwork graphics are automatically scaled to sit comfortably in the chest ar
 - **Automatic Clearance:** Leaves a clean fabric margin between the bottom-most LEDs and the top of the race bib, ensuring no LEDs or wiring sit directly under bib clamp points.
 
 ### 🏷️ runDisney 10K Race Bib (#1952) with Chip & Dale
-Section 4 features an authentic runDisney race bib overlay on the lower torso to verify physical clearance with your running gear:
+Section 4 features an authentic runDisney race bib overlay (default **8.0" wide by 7.0" high**, matching physical runDisney bib specs on an 18" x 24" running shirt) on the lower torso to verify physical clearance with your running gear:
 - **Mostly Yellow Tyvek Theme:** Official sunny yellow gradient background (`#fef9c3` to `#facc15`), golden amber trim (`#ca8a04`), subtle athletic speed chevrons, and red/blue racing side stripes.
 - **Official Chip 'n' Dale Mascots:**
   - **Chip (Left Flank):** Chocolate chip black nose, single centered buck tooth, dark chocolate brown fur, cream muzzle, and red runner's headband.
