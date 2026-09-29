@@ -55,6 +55,9 @@ let params = {
     brightness: 85,
     glowSize: 20,
     showWiring: false,
+    showWireTension: false,
+    showSymmetryAxis: false,
+    liveSymmetryDrag: false,
     showNumbers: false,
     reflectiveShine: true,
     showBib: true,
@@ -215,6 +218,7 @@ let hoveredLed = null;
 let isDraggingLed = false;
 let multiDragStartNorm = null;
 let multiDragInitialPositions = new Map();
+let liveSymmetryPartners = new Map();
 
 // Click-to-Draw Sequential Path State
 let isDrawGroupMode = false;
@@ -2082,22 +2086,133 @@ function renderSingleShirtView(timeMs) {
     drawPetesDragon(ctx, s);
     drawRaceBib(ctx, s);
 
-    if (params.showWiring && leds.length > 1) {
+    // Bilateral Symmetry Centerline Guide (x = 50%)
+    if (params.showSymmetryAxis) {
         ctx.save();
+        const topPt = normToCanvas({ x: 0.5, y: 0.08 });
+        const botPt = normToCanvas({ x: 0.5, y: 0.92 });
+        
+        // Vertical dashed symmetry axis
         ctx.beginPath();
-        const p0 = normToCanvas(leds[0]);
-        ctx.moveTo(p0.x, p0.y);
-        for (let i = 1; i < leds.length; i++) {
-            const pt = normToCanvas(leds[i]);
-            ctx.lineTo(pt.x, pt.y);
-        }
-        ctx.strokeStyle = 'rgba(255, 193, 7, 0.55)';
-        ctx.lineWidth = 1.8;
-        ctx.setLineDash([5, 4]);
+        ctx.moveTo(topPt.x, topPt.y);
+        ctx.lineTo(botPt.x, botPt.y);
+        ctx.strokeStyle = 'rgba(168, 85, 247, 0.85)';
+        ctx.lineWidth = 2.0;
+        ctx.setLineDash([8, 6]);
         ctx.stroke();
         ctx.setLineDash([]);
 
+        // Top Axis Label Badge
+        ctx.fillStyle = 'rgba(168, 85, 247, 0.95)';
+        ctx.font = 'bold 11px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'bottom';
+        ctx.fillText('🪞 50% Symmetry Axis', topPt.x, topPt.y - 6);
+        
+        // Small arrows on axis
+        ctx.beginPath();
+        ctx.moveTo(topPt.x - 4, topPt.y);
+        ctx.lineTo(topPt.x, topPt.y - 5);
+        ctx.lineTo(topPt.x + 4, topPt.y);
+        ctx.moveTo(botPt.x - 4, botPt.y);
+        ctx.lineTo(botPt.x, botPt.y + 5);
+        ctx.lineTo(botPt.x + 4, botPt.y);
+        ctx.strokeStyle = 'rgba(168, 85, 247, 0.9)';
+        ctx.lineWidth = 2.0;
+        ctx.stroke();
+
+        ctx.restore();
+    }
+
+    // Wire Tension Heatmap or Standard Wiring Trace
+    if ((params.showWireTension || params.showWiring) && leds.length > 1) {
+        ctx.save();
+        const W_IN = 18.0;
+        const H_IN = 24.0;
+
+        if (params.showWireTension) {
+            // Draw each segment with tension-coded color & thickness
+            for (let i = 0; i < leds.length - 1; i++) {
+                const p1 = normToCanvas(leds[i]);
+                const p2 = normToCanvas(leds[i + 1]);
+                const dxIn = (leds[i + 1].x - leds[i].x) * W_IN;
+                const dyIn = (leds[i + 1].y - leds[i].y) * H_IN;
+                const distIn = Math.hypot(dxIn, dyIn);
+
+                let strokeCol = 'rgba(0, 255, 136, 0.8)'; // Green slack (<1.8")
+                let lineW = 2.0;
+                let isAlert = false;
+
+                if (distIn >= 2.40) {
+                    strokeCol = 'rgba(255, 51, 102, 0.95)'; // Red alert (>2.4")
+                    lineW = 3.6;
+                    isAlert = true;
+                } else if (distIn >= 1.80) {
+                    strokeCol = 'rgba(255, 193, 7, 0.85)'; // Yellow snug (1.8-2.4")
+                    lineW = 2.6;
+                }
+
+                ctx.beginPath();
+                ctx.moveTo(p1.x, p1.y);
+                ctx.lineTo(p2.x, p2.y);
+                ctx.strokeStyle = strokeCol;
+                ctx.lineWidth = lineW;
+                if (!isAlert) {
+                    ctx.setLineDash([5, 4]);
+                } else {
+                    ctx.setLineDash([]);
+                }
+                ctx.stroke();
+                ctx.setLineDash([]);
+
+                // If over-stretched alert or hovered or zoomed, render distance label at segment midpoint
+                if (isAlert || (hoveredLed === i || hoveredLed === i + 1) || (selectedLed === i || selectedLed === i + 1) || zoomScale > 1.4) {
+                    const midX = (p1.x + p2.x) / 2;
+                    const midY = (p1.y + p2.y) / 2;
+
+                    ctx.save();
+                    ctx.fillStyle = isAlert ? 'rgba(255, 51, 102, 0.9)' : 'rgba(13, 17, 23, 0.85)';
+                    ctx.strokeStyle = isAlert ? '#fff' : strokeCol;
+                    ctx.lineWidth = 1;
+                    const tagTxt = `${distIn.toFixed(1)}"`;
+                    ctx.font = 'bold 9px monospace';
+                    const tw = ctx.measureText(tagTxt).width;
+                    ctx.fillRect(midX - tw / 2 - 3, midY - 6, tw + 6, 12);
+                    ctx.strokeRect(midX - tw / 2 - 3, midY - 6, tw + 6, 12);
+                    ctx.fillStyle = isAlert ? '#fff' : '#e6edf3';
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    ctx.fillText(tagTxt, midX, midY);
+                    ctx.restore();
+                }
+
+                // Alert glowing ring at the over-tension joint
+                if (isAlert) {
+                    ctx.beginPath();
+                    ctx.arc(p2.x, p2.y, 8 + Math.sin(timeMs * 0.008) * 2, 0, Math.PI * 2);
+                    ctx.strokeStyle = 'rgba(255, 51, 102, 0.8)';
+                    ctx.lineWidth = 2.0;
+                    ctx.stroke();
+                }
+            }
+        } else {
+            // Standard gold dashed wiring trace
+            ctx.beginPath();
+            const p0 = normToCanvas(leds[0]);
+            ctx.moveTo(p0.x, p0.y);
+            for (let i = 1; i < leds.length; i++) {
+                const pt = normToCanvas(leds[i]);
+                ctx.lineTo(pt.x, pt.y);
+            }
+            ctx.strokeStyle = 'rgba(255, 193, 7, 0.55)';
+            ctx.lineWidth = 1.8;
+            ctx.setLineDash([5, 4]);
+            ctx.stroke();
+            ctx.setLineDash([]);
+        }
+
         // Highlight Start LED 0 (Green indicator ring)
+        const p0 = normToCanvas(leds[0]);
         ctx.beginPath();
         ctx.arc(p0.x, p0.y, 9.5, 0, Math.PI * 2);
         ctx.strokeStyle = '#00ff88';
@@ -8652,6 +8767,28 @@ canvas.addEventListener('mousedown', (e) => {
                     multiDragInitialPositions.set(clickedIdx, { x: leds[clickedIdx].x, y: leds[clickedIdx].y });
                 }
             }
+
+            // Find symmetrical partners if Live Symmetry Drag is active
+            liveSymmetryPartners.clear();
+            if (params.liveSymmetryDrag) {
+                for (const [dragIdx, initPos] of multiDragInitialPositions.entries()) {
+                    const targetX = 1.0 - initPos.x;
+                    const targetY = initPos.y;
+                    let bestPartner = -1;
+                    let bestDist = 0.045; // max tolerance
+                    for (let j = 0; j < leds.length; j++) {
+                        if (j === dragIdx || multiDragInitialPositions.has(j) || liveSymmetryPartners.has(j)) continue;
+                        const d = Math.hypot(leds[j].x - targetX, leds[j].y - targetY);
+                        if (d < bestDist) {
+                            bestDist = d;
+                            bestPartner = j;
+                        }
+                    }
+                    if (bestPartner !== -1 && leds[bestPartner]) {
+                        liveSymmetryPartners.set(bestPartner, { x: leds[bestPartner].x, y: leds[bestPartner].y });
+                    }
+                }
+            }
         }
     } else {
         // Clicked background
@@ -8728,7 +8865,7 @@ canvas.addEventListener('mousemove', (e) => {
         const worldY = (my - panY) / zoomScale;
         const norm = canvasToNorm(worldX, worldY);
 
-        if (multiDragInitialPositions.size > 1 && multiDragStartNorm) {
+        if (multiDragStartNorm) {
             const dx = norm.x - multiDragStartNorm.x;
             const dy = norm.y - multiDragStartNorm.y;
 
@@ -8736,6 +8873,16 @@ canvas.addEventListener('mousemove', (e) => {
                 if (leds[idx]) {
                     leds[idx].x = Math.max(0.05, Math.min(0.95, parseFloat((initialPos.x + dx).toFixed(4))));
                     leds[idx].y = Math.max(0.05, Math.min(0.95, parseFloat((initialPos.y + dy).toFixed(4))));
+                }
+            }
+
+            // Sync symmetrical partner movement (dx is inverted across centerline)
+            if (params.liveSymmetryDrag && liveSymmetryPartners.size > 0) {
+                for (const [pIdx, pInit] of liveSymmetryPartners.entries()) {
+                    if (leds[pIdx]) {
+                        leds[pIdx].x = Math.max(0.05, Math.min(0.95, parseFloat((pInit.x - dx).toFixed(4))));
+                        leds[pIdx].y = Math.max(0.05, Math.min(0.95, parseFloat((pInit.y + dy).toFixed(4))));
+                    }
                 }
             }
 
@@ -8760,6 +8907,9 @@ canvas.addEventListener('mousemove', (e) => {
         }
 
         updateLedInspectorCoords();
+        if (params.showWireTension || params.showWiring) {
+            updateWireTensionUI();
+        }
         return;
     }
 
@@ -8840,7 +8990,18 @@ window.addEventListener('mouseup', (e) => {
                     if (newCol) leds[idx].color = newCol;
                 }
             }
+            if (params.liveSymmetryDrag && liveSymmetryPartners.size > 0) {
+                for (const [pIdx] of liveSymmetryPartners.entries()) {
+                    if (leds[pIdx] && typeof sampleColorAtNormCoord === 'function') {
+                        const newCol = sampleColorAtNormCoord(leds[pIdx].x, leds[pIdx].y);
+                        if (newCol) leds[pIdx].color = newCol;
+                    }
+                }
+            }
             updateLedInspectorUI();
+            if (params.showWireTension || params.showWiring) {
+                updateWireTensionUI();
+            }
             markSingleShirtDirty();
             if (preDragStateSnapshot) {
                 undoStack.push(preDragStateSnapshot);
@@ -8856,6 +9017,7 @@ window.addEventListener('mouseup', (e) => {
         draggedLed = null;
         multiDragStartNorm = null;
         multiDragInitialPositions.clear();
+        liveSymmetryPartners.clear();
         canvas.classList.remove('dragging');
     }
 });
@@ -9233,10 +9395,49 @@ document.getElementById('glowSlider').addEventListener('input', (e) => {
 
 document.getElementById('showWiringToggle').addEventListener('change', (e) => {
     params.showWiring = e.target.checked;
+    updateWireTensionUI();
+    markSingleShirtDirty();
+});
+
+document.getElementById('showWireTensionToggle')?.addEventListener('change', (e) => {
+    params.showWireTension = e.target.checked;
+    updateWireTensionUI();
+    markSingleShirtDirty();
+});
+
+document.getElementById('inspectMaxSpanBtn')?.addEventListener('click', () => {
+    const metrics = calculateWireTensionMetrics();
+    if (metrics.segments.length === 0) return;
+    selectedLeds.clear();
+    selectedLeds.add(metrics.maxSpanFrom);
+    selectedLeds.add(metrics.maxSpanTo);
+    selectedLed = metrics.maxSpanTo;
+    updateLedInspectorUI();
+    focusOnLed(metrics.maxSpanFrom);
+    showToast(`🔍 Longest wire span: #${metrics.maxSpanFrom} → #${metrics.maxSpanTo} (${metrics.maxSpanInches.toFixed(2)}")`);
+    markSingleShirtDirty();
+});
+
+document.getElementById('showSymmetryAxisToggle')?.addEventListener('change', (e) => {
+    params.showSymmetryAxis = e.target.checked;
+    markSingleShirtDirty();
+});
+
+document.getElementById('liveSymmetryDragToggle')?.addEventListener('change', (e) => {
+    params.liveSymmetryDrag = e.target.checked;
+});
+
+document.getElementById('mirrorLeftToRightBtn')?.addEventListener('click', () => {
+    mirrorLeftToRight();
+});
+
+document.getElementById('mirrorRightToLeftBtn')?.addEventListener('click', () => {
+    mirrorRightToLeft();
 });
 
 document.getElementById('showNumbersToggle').addEventListener('change', (e) => {
     params.showNumbers = e.target.checked;
+    markSingleShirtDirty();
 });
 
 const showBibToggle = document.getElementById('showBibToggle');
@@ -9320,6 +9521,262 @@ function showToast(message) {
     }, 3000);
 }
 
+// ============================================================================
+// FEATURE 2: WIRE TENSION & PHYSICAL SPACING ENGINE
+// ============================================================================
+const SHIRT_PHYSICAL_WIDTH_IN = 18.0;
+const SHIRT_PHYSICAL_HEIGHT_IN = 24.0;
+
+function calculateWireTensionMetrics() {
+    if (!leds || leds.length < 2) {
+        return {
+            totalLengthInches: 0,
+            avgPitchInches: 0,
+            maxSpanInches: 0,
+            maxSpanFrom: 0,
+            maxSpanTo: 0,
+            overStretchedCount: 0,
+            snugCount: 0,
+            slackCount: 0,
+            segments: []
+        };
+    }
+    let totalLen = 0;
+    let maxSpan = 0;
+    let maxFrom = 0;
+    let maxTo = 0;
+    let overCount = 0;
+    let snugCount = 0;
+    let slackCount = 0;
+    const segments = [];
+
+    for (let i = 0; i < leds.length - 1; i++) {
+        const p1 = leds[i];
+        const p2 = leds[i + 1];
+        const dx = (p2.x - p1.x) * SHIRT_PHYSICAL_WIDTH_IN;
+        const dy = (p2.y - p1.y) * SHIRT_PHYSICAL_HEIGHT_IN;
+        const dist = Math.hypot(dx, dy);
+        totalLen += dist;
+        if (dist > maxSpan) {
+            maxSpan = dist;
+            maxFrom = i;
+            maxTo = i + 1;
+        }
+        let status = 'slack';
+        if (dist >= 2.40) {
+            status = 'alert';
+            overCount++;
+        } else if (dist >= 1.80) {
+            status = 'snug';
+            snugCount++;
+        } else {
+            slackCount++;
+        }
+        segments.push({
+            from: i,
+            to: i + 1,
+            distInches: dist,
+            status: status
+        });
+    }
+
+    return {
+        totalLengthInches: totalLen,
+        avgPitchInches: totalLen / (leds.length - 1),
+        maxSpanInches: maxSpan,
+        maxSpanFrom: maxFrom,
+        maxSpanTo: maxTo,
+        overStretchedCount: overCount,
+        snugCount: snugCount,
+        slackCount: slackCount,
+        segments: segments
+    };
+}
+
+function updateWireTensionUI() {
+    const card = document.getElementById('wireTensionMetricsCard');
+    if (!card) return;
+    if (params.showWireTension || params.showWiring) {
+        card.style.display = 'block';
+    } else {
+        card.style.display = 'none';
+        return;
+    }
+
+    const metrics = calculateWireTensionMetrics();
+    const totalLengthVal = document.getElementById('tensionTotalLengthVal');
+    if (totalLengthVal) {
+        const ft = (metrics.totalLengthInches / 12.0).toFixed(1);
+        totalLengthVal.textContent = `${metrics.totalLengthInches.toFixed(1)}" (${ft} ft)`;
+    }
+
+    const avgPitchVal = document.getElementById('tensionAvgPitchVal');
+    if (avgPitchVal) {
+        avgPitchVal.textContent = `${metrics.avgPitchInches.toFixed(2)}"`;
+    }
+
+    const maxSpanVal = document.getElementById('tensionMaxSpanVal');
+    if (maxSpanVal) {
+        maxSpanVal.textContent = `${metrics.maxSpanInches.toFixed(2)}" (#${metrics.maxSpanFrom} → #${metrics.maxSpanTo})`;
+    }
+
+    const statusBadge = document.getElementById('tensionStatusBadge');
+    if (statusBadge) {
+        if (metrics.overStretchedCount > 0) {
+            statusBadge.style.background = 'rgba(255, 51, 102, 0.2)';
+            statusBadge.style.color = '#ff4d6d';
+            statusBadge.style.borderColor = 'rgba(255, 51, 102, 0.5)';
+            statusBadge.textContent = `⚠️ ${metrics.overStretchedCount} Alert (>2.4")`;
+        } else if (metrics.maxSpanInches >= 1.80) {
+            statusBadge.style.background = 'rgba(255, 193, 7, 0.15)';
+            statusBadge.style.color = '#ffb703';
+            statusBadge.style.borderColor = 'rgba(255, 193, 7, 0.4)';
+            statusBadge.textContent = `🟡 Snug (${metrics.maxSpanInches.toFixed(1)}" max)`;
+        } else {
+            statusBadge.style.background = 'rgba(0, 255, 136, 0.15)';
+            statusBadge.style.color = '#00ff88';
+            statusBadge.style.borderColor = 'rgba(0, 255, 136, 0.4)';
+            statusBadge.textContent = `🟢 Slack (<1.8")`;
+        }
+    }
+}
+
+// ============================================================================
+// FEATURE 3: BILATERAL SYMMETRY & MIRRORING ENGINE
+// ============================================================================
+function mirrorLeftToRight() {
+    if (!leds || leds.length === 0) return;
+    recordHistory('Mirror Left to Right');
+
+    const leftLeds = [];
+    const centerLeds = [];
+
+    for (let i = 0; i < leds.length; i++) {
+        const l = leds[i];
+        if (Math.abs(l.x - 0.50) <= 0.015) {
+            centerLeds.push({ ...l, x: 0.50, origIdx: i });
+        } else if (l.x < 0.50) {
+            leftLeds.push({ ...l, origIdx: i });
+        }
+    }
+
+    if (leftLeds.length === 0 && centerLeds.length === 0) {
+        showToast('⚠️ No LEDs found on left half (x < 50%) to mirror');
+        return;
+    }
+
+    // Sort left LEDs by Y (top to bottom), then X (left to right) for clean snake order
+    leftLeds.sort((a, b) => a.y - b.y || a.x - b.x);
+
+    const newLeds = [];
+    // Add center LEDs first (up to remaining count)
+    for (const cl of centerLeds) {
+        if (newLeds.length < 100) {
+            let col = { ...cl.color };
+            if (typeof sampleColorAtNormCoord === 'function') {
+                const sampled = sampleColorAtNormCoord(0.50, cl.y);
+                if (sampled) col = sampled;
+            }
+            newLeds.push({ x: 0.50, y: cl.y, color: col });
+        }
+    }
+
+    const availableSlots = 100 - newLeds.length;
+    const maxPairs = Math.floor(availableSlots / 2);
+    const pairsToTake = Math.min(leftLeds.length, maxPairs);
+
+    for (let i = 0; i < pairsToTake; i++) {
+        const left = leftLeds[i];
+        const rightX = parseFloat((1.0 - left.x).toFixed(4));
+        let leftCol = { ...left.color };
+        let rightCol = { ...left.color };
+        if (typeof sampleColorAtNormCoord === 'function') {
+            const sampledL = sampleColorAtNormCoord(left.x, left.y);
+            if (sampledL) leftCol = sampledL;
+            const sampledR = sampleColorAtNormCoord(rightX, left.y);
+            if (sampledR) rightCol = sampledR;
+        }
+        newLeds.push({ x: left.x, y: left.y, color: leftCol });
+        newLeds.push({ x: rightX, y: left.y, color: rightCol });
+    }
+
+    leds = newLeds;
+    if (typeof sparkles !== 'undefined' && Array.isArray(sparkles)) {
+        while (sparkles.length < leds.length) sparkles.push(0);
+    }
+
+    updateLedCountUI();
+    rebuildLedGroupMap();
+    markSingleShirtDirty();
+    showToast(`🪞 Mirrored Left to Right: ${leds.length} symmetrical LEDs created!`);
+}
+
+function mirrorRightToLeft() {
+    if (!leds || leds.length === 0) return;
+    recordHistory('Mirror Right to Left');
+
+    const rightLeds = [];
+    const centerLeds = [];
+
+    for (let i = 0; i < leds.length; i++) {
+        const l = leds[i];
+        if (Math.abs(l.x - 0.50) <= 0.015) {
+            centerLeds.push({ ...l, x: 0.50, origIdx: i });
+        } else if (l.x > 0.50) {
+            rightLeds.push({ ...l, origIdx: i });
+        }
+    }
+
+    if (rightLeds.length === 0 && centerLeds.length === 0) {
+        showToast('⚠️ No LEDs found on right half (x > 50%) to mirror');
+        return;
+    }
+
+    // Sort right LEDs by Y (top to bottom), then X (right to left)
+    rightLeds.sort((a, b) => a.y - b.y || b.x - a.x);
+
+    const newLeds = [];
+    for (const cl of centerLeds) {
+        if (newLeds.length < 100) {
+            let col = { ...cl.color };
+            if (typeof sampleColorAtNormCoord === 'function') {
+                const sampled = sampleColorAtNormCoord(0.50, cl.y);
+                if (sampled) col = sampled;
+            }
+            newLeds.push({ x: 0.50, y: cl.y, color: col });
+        }
+    }
+
+    const availableSlots = 100 - newLeds.length;
+    const maxPairs = Math.floor(availableSlots / 2);
+    const pairsToTake = Math.min(rightLeds.length, maxPairs);
+
+    for (let i = 0; i < pairsToTake; i++) {
+        const right = rightLeds[i];
+        const leftX = parseFloat((1.0 - right.x).toFixed(4));
+        let leftCol = { ...right.color };
+        let rightCol = { ...right.color };
+        if (typeof sampleColorAtNormCoord === 'function') {
+            const sampledL = sampleColorAtNormCoord(leftX, right.y);
+            if (sampledL) leftCol = sampledL;
+            const sampledR = sampleColorAtNormCoord(right.x, right.y);
+            if (sampledR) rightCol = sampledR;
+        }
+        newLeds.push({ x: leftX, y: right.y, color: leftCol });
+        newLeds.push({ x: right.x, y: right.y, color: rightCol });
+    }
+
+    leds = newLeds;
+    if (typeof sparkles !== 'undefined' && Array.isArray(sparkles)) {
+        while (sparkles.length < leds.length) sparkles.push(0);
+    }
+
+    updateLedCountUI();
+    rebuildLedGroupMap();
+    markSingleShirtDirty();
+    showToast(`🪞 Mirrored Right to Left: ${leds.length} symmetrical LEDs created!`);
+}
+
 function updateLedCountUI() {
     const title = document.getElementById('ledCountTitle');
     if (title) {
@@ -9337,6 +9794,7 @@ function updateLedCountUI() {
         selectedLed = leds.length > 0 ? leds.length - 1 : null;
         updateLedInspectorUI();
     }
+    updateWireTensionUI();
 }
 
 // ============================================================================

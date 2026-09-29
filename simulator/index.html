@@ -308,6 +308,44 @@
                             </label>
                         </div>
 
+                        <!-- Wire Tension & Physical Pitch Heatmap -->
+                        <div class="toggle-row" style="margin-bottom: 4px;">
+                            <span id="wireTensionLabel" style="font-size: 11px; color: #38bdf8; font-weight: 500;">🧵 Wire Tension Heatmap</span>
+                            <label class="switch">
+                                <input type="checkbox" id="showWireTensionToggle">
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+
+                        <!-- Live Wire Tension & Spacing Metrics Card -->
+                        <div id="wireTensionMetricsCard" style="background: rgba(13, 17, 23, 0.85); border: 1px solid rgba(56, 189, 248, 0.3); border-radius: 6px; padding: 8px 10px; margin-bottom: 6px; font-size: 11px; display: none;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+                                <span style="color: var(--text-muted);">Strand Physical Run:</span>
+                                <span id="tensionTotalLengthVal" style="font-weight: 700; color: #58a6ff; font-family: monospace;">0.0" (0.0 ft)</span>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+                                <span style="color: var(--text-muted);">Avg LED Pitch:</span>
+                                <span id="tensionAvgPitchVal" style="font-weight: 700; color: #e6edf3; font-family: monospace;">0.0"</span>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                                <span style="color: var(--text-muted);">Max Stretch Span:</span>
+                                <span id="tensionMaxSpanVal" style="font-weight: 700; color: #ffb703; font-family: monospace;">0.0" (#0 &rarr; #1)</span>
+                            </div>
+                            <div style="display: flex; align-items: center; justify-content: space-between; padding-top: 5px; border-top: 1px solid rgba(255,255,255,0.08);">
+                                <span id="tensionStatusBadge" style="font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: 4px; background: rgba(0, 255, 136, 0.15); color: #00ff88; border: 1px solid rgba(0, 255, 136, 0.4);">
+                                    🟢 Slack (<1.8")
+                                </span>
+                                <button type="button" id="inspectMaxSpanBtn" class="action-btn" style="font-size: 10px; padding: 2px 8px; border-color: #ffb703; color: #ffb703;" title="Select and focus on the two LEDs with the widest physical span">
+                                    🔍 Inspect Max Span
+                                </button>
+                            </div>
+                            <div style="margin-top: 6px; font-size: 9.5px; color: #8b949e; display: flex; justify-content: space-between; border-top: 1px dashed rgba(255,255,255,0.06); padding-top: 4px;">
+                                <span style="color: #00ff88;">🟢 &lt;1.8" Slack</span>
+                                <span style="color: #ffb703;">🟡 1.8–2.4" Snug</span>
+                                <span style="color: #ff4d6d;">🔴 &gt;2.4" Alert</span>
+                            </div>
+                        </div>
+
                         <div class="toggle-row">
                             <span style="font-size: 11px;">Show Bulb Numbers</span>
                             <label class="switch">
@@ -319,6 +357,31 @@
                         <div class="btn-row" style="margin-top: 6px;">
                             <button id="resetLedsBtn" class="action-btn" style="font-size: 11px; padding: 5px 8px;">Reset Layout</button>
                             <button id="saveLayoutBtn" class="action-btn" style="font-size: 11px; padding: 5px 8px;">Download JSON</button>
+                        </div>
+                    </div>
+
+                    <!-- 3b. Bilateral Symmetry & Mirroring Tool -->
+                    <div class="control-section" style="background: rgba(168, 85, 247, 0.08); border: 1px solid rgba(168, 85, 247, 0.35); border-radius: 8px; padding: 10px; margin-top: 10px;">
+                        <div class="section-title" style="margin-bottom: 6px; color: #d8b4fe;">
+                            <span>🪞 Bilateral Symmetry & Mirror</span>
+                        </div>
+                        <div class="toggle-row" style="margin-bottom: 6px;">
+                            <span style="font-size: 11px; color: #e9d5ff;">Show Centerline Axis (x = 50%)</span>
+                            <label class="switch">
+                                <input type="checkbox" id="showSymmetryAxisToggle">
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                        <div class="toggle-row" style="margin-bottom: 8px;">
+                            <span style="font-size: 11px; color: #e9d5ff;">Live Mirror Drag (Sync Paired LEDs)</span>
+                            <label class="switch">
+                                <input type="checkbox" id="liveSymmetryDragToggle">
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                        <div class="btn-row" style="display: flex; gap: 6px;">
+                            <button type="button" id="mirrorLeftToRightBtn" class="action-btn" style="flex: 1; font-size: 11px; padding: 6px 4px; font-weight: 600; border-color: rgba(168, 85, 247, 0.6); color: #d8b4fe; background: rgba(168, 85, 247, 0.12);" title="Reflect left half LEDs (x < 50%) to right half (x > 50%)">⇄ Mirror Left &rarr; Right</button>
+                            <button type="button" id="mirrorRightToLeftBtn" class="action-btn" style="flex: 1; font-size: 11px; padding: 6px 4px; font-weight: 600; border-color: rgba(168, 85, 247, 0.6); color: #d8b4fe; background: rgba(168, 85, 247, 0.12);" title="Reflect right half LEDs (x > 50%) to left half (x < 50%)">⇆ Mirror Right &rarr; Left</button>
                         </div>
                     </div>
 

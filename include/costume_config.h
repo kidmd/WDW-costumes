@@ -19,8 +19,8 @@
 #define COSTUME_PATTERN_AUTONOMOUS_90S   6
 
 #define ACTIVE_COSTUME_PATTERN           COSTUME_PATTERN_AUTONOMOUS_90S
-#define COSTUME_SPEED_BPM                120
-#define COSTUME_SPARKLE_RATE             1.5
+#define COSTUME_SPEED_BPM                76
+#define COSTUME_SPARKLE_RATE             0.55
 #define COSTUME_GREEN_HUE                140
 #define COSTUME_BRIGHTNESS               68
 #define COLOR_ORDER                      RGB
@@ -41,7 +41,7 @@ struct CostumeCue {
 
 const CostumeCue PROGMEM CUSTOM_SEQUENCE_CUES[2] = {
     { 0, 20000, 9, 120 },
-    { 20000, 40000, 10, 120 }
+    { 33000, 53000, 10, 120 }
 };
 
 // Artwork Sampled Color Palette (PROGMEM Flash Storage)

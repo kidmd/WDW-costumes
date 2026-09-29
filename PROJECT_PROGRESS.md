@@ -93,6 +93,25 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### Entry: Feature 2 (Physical Wire Tension Heatmap) & Feature 3 (Bilateral Symmetry & Mirror Tool)
+* **Date:** 2026-09-28
+* **Milestone:** Milestone 5 - Studio Workflow & Hardware Fleet Control
+* **Status:** Verified & Operational across `simulator/app.js?v=53` and `simulator/index.html`.
+* **Notes:**
+  - Implemented **Feature 2: Physical LED Wire Tension & Spacing Heatmap (`calculateWireTensionMetrics`, `updateWireTensionUI`)**:
+    - Modeled real garment dimensions ($18" \times 24"$) with Euclidean segment distance in physical inches between consecutive pixels ($i \rightarrow i+1$).
+    - Color-coded segment rendering directly on the canvas:
+      - 🟢 **Slack Spacing (`< 1.80"`):** `#00ff88` (comfortable slack for sewing and runner stride flexion).
+      - 🟡 **Snug Spacing (`1.80" – 2.40"`):** `#ffc107` (nominal pitch).
+      - 🔴 **Over-Stretched Alert (`> 2.40"`):** `#ff3366` with glowing stroke, pulsing danger ring, and mid-segment dimension tags (e.g. `2.6"`).
+    - Added **Live Wire Tension & Spacing Metrics Card (`#wireTensionMetricsCard`)**: tracks Total Strand Physical Run (e.g., `114.2" / 9.5 ft`), Average Pitch (`1.15"`), Max Stretch Span (`#42 → #43`), and Live Status Badge (`🟢 Slack` / `🟡 Snug` / `⚠️ Alert`).
+    - Added **`🔍 Inspect Max Span`** action button: immediately selects and centers the two LEDs with the longest physical span.
+  - Implemented **Feature 3: Bilateral Symmetry & Mirror Guide Tool (`mirrorLeftToRight`, `mirrorRightToLeft`)**:
+    - Added **Symmetry Centerline Axis Guide (`params.showSymmetryAxis`)**: renders a vertical dashed purple/cyan axis at $x = 0.50$ with illuminated label badges and arrows.
+    - Added **Live Symmetry Drag Mode (`params.liveSymmetryDrag`)**: automatically mirrors movements across $x = 0.50$ for symmetrical partner LEDs when dragging single bulbs or grouped clusters on canvas in real time.
+    - Added **`⇄ Mirror Left → Right`** and **`⇆ Mirror Right → Left`** action buttons: sorts LEDs top-to-bottom and reflects coordinates ($x_{\text{new}} = 1.0 - x$, $y_{\text{new}} = y$), samples artwork colors under mirrored bulbs, preserves animation groups, and commits clean snapshots to the `Ctrl+Z` Undo stack.
+  - Verified JavaScript syntax via `node -c simulator/app.js` (SUCCESS) and updated asset cache version to `app.js?v=53`.
+
 ### Entry: Feature 10 — Timeline Hover-Scrubbing & Live Cue Quantization / Grid Snapping
 * **Date:** 2026-09-28
 * **Milestone:** Milestone 5 - Studio Workflow & Hardware Fleet Control

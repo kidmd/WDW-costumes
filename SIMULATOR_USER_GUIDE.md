@@ -128,7 +128,12 @@ The sidebar navigation is organized into a clean **2-row × 3-column grid** that
      - `🎨 Sample`: Samples colors from the underlying artwork for each bulb.
      - `🔄 Fill Graphic with Remaining LEDs`: Redistributes non-grouped LEDs to fill open space without moving any grouped LEDs.
      - `🔌 Optimize Wiring Route`: Calculates the shortest serpentine continuous snake route.
-     - Wiring Trace and Bulb Number inspection toggles.
+     - `Show Wiring Trace` and `Show Bulb Numbers` inspection toggles.
+     - **🧵 Wire Tension & Physical Spacing Heatmap:** Real-time physical distance validation between consecutive LEDs ($18" \times 24"$ garment model). Color-codes segments as 🟢 Slack (`<1.8"`), 🟡 Snug (`1.8–2.4"`), or 🔴 Alert (`>2.4"`), displays strand metrics (total length, average pitch, max span), and includes a `🔍 Inspect Max Span` tool to immediately locate tight spans.
+   - **🪞 Bilateral Symmetry & Mirror Tool:**
+     - `Show Centerline Axis (x = 50%)`: Dashed purple/cyan vertical guide with illuminated badges for precise centering.
+     - `Live Mirror Drag (Sync Paired LEDs)`: Dragging any bulb automatically mirrors the movement of its symmetrical partner across the centerline in real time.
+     - `⇄ Mirror Left → Right` / `⇆ Mirror Right → Left`: 1-click reflection that clones coordinates, preserves animation groups, auto-samples colors, and commits to Undo history.
    - **Quick-Link to Groups:** Fast-jump button to the Groups Tab for drawing paths or stamping fireworks.
 
 2. **✨ Tab 2: Ambient ("Garment Baseline Atmosphere"):**
