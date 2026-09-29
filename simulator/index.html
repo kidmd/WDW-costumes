@@ -272,6 +272,9 @@
                             <button id="importProfileBtn" class="action-btn" style="flex: 1; font-size: 11px; padding: 5px 8px;" title="Import a previously saved costume configuration JSON file">📂 Import JSON</button>
                             <input type="file" id="importProfileFileInput" accept=".json,application/json" style="display: none;">
                         </div>
+                        <div style="margin-top: 4px;">
+                            <button type="button" id="layoutExportAllFleetBtn" class="action-btn" style="width: 100%; font-size: 10.5px; padding: 5px 8px; background: rgba(56, 189, 248, 0.08); border-color: rgba(56, 189, 248, 0.3); color: #38bdf8; display: flex; align-items: center; justify-content: center; gap: 5px;" title="Export the complete 7-float parade configuration suite as a master JSON bundle">📦 Export All 7 Floats (Master Fleet JSON)</button>
+                        </div>
                         <div class="control-group" style="margin-top: 6px;">
                             <label style="font-size: 11px; color: var(--text-muted);">Load Saved Profile File:</label>
                             <select id="presetSelect" style="background: #21262d; color: #fff; border: 1px solid #30363d; padding: 6px 10px; border-radius: 6px; outline: none; font-size: 11px; width: 100%;">
@@ -1263,6 +1266,16 @@
                             <button type="button" id="fleetSaveConfigBtn" class="action-btn accent" style="width: 100%; font-size: 11px; padding: 7px; background: linear-gradient(135deg, #1f6feb, #388bfd); border-color: #388bfd; font-weight: 600;">
                                 💾 Save Fleet Lineup
                             </button>
+                            <!-- Master Fleet Bundle Suite Controls -->
+                            <div style="display: flex; gap: 6px; background: rgba(56, 189, 248, 0.08); border: 1px solid rgba(56, 189, 248, 0.3); border-radius: 6px; padding: 6px; margin-top: 2px;">
+                                <button type="button" id="fleetExportBundleBtn" class="action-btn" style="flex: 1; font-size: 10.5px; padding: 6px 6px; background: linear-gradient(135deg, #1f6feb, #388bfd); color: #fff; font-weight: 600; display: inline-flex; align-items: center; justify-content: center; gap: 4px;" title="Export all 7 costume designs, LED coordinates, zone groups, standalone cues, and 30s fleet choreography to a single master JSON file">
+                                    📥 Export Fleet Bundle
+                                </button>
+                                <button type="button" id="fleetImportBundleBtn" class="action-btn" style="flex: 1; font-size: 10.5px; padding: 6px 6px; background: linear-gradient(135deg, #8957e5, #a371f7); color: #fff; font-weight: 600; display: inline-flex; align-items: center; justify-content: center; gap: 4px;" title="Import a full 7-float master parade configuration JSON bundle">
+                                    📂 Import Fleet Bundle
+                                </button>
+                                <input type="file" id="fleetImportBundleFileInput" accept=".json,application/json" style="display: none;">
+                            </div>
                         </div>
 
                         <!-- 7 Runner Slot Cards -->
@@ -1961,6 +1974,52 @@
         </div>
     </div>
 
-    <script src="app.js?v=55"></script>
+    <!-- Fleet Bundle Import Confirmation Modal -->
+    <div id="fleetBundleImportModal" style="display: none; position: fixed; inset: 0; background: rgba(0, 0, 0, 0.82); backdrop-filter: blur(4px); z-index: 9999; justify-content: center; align-items: center; padding: 16px;">
+        <div style="background: #161b22; border: 1px solid #30363d; border-radius: 12px; max-width: 580px; width: 100%; box-shadow: 0 16px 40px rgba(0, 0, 0, 0.6); overflow: hidden; display: flex; flex-direction: column; max-height: 90vh;">
+            <div style="padding: 14px 18px; background: linear-gradient(135deg, #1f6feb, #8957e5); display: flex; justify-content: space-between; align-items: center;">
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <span style="font-size: 20px;">📦</span>
+                    <div>
+                        <h3 style="margin: 0; font-size: 14px; font-weight: 700; color: #fff;">Import Master Fleet Parade Bundle</h3>
+                        <span id="importBundleHeaderSubtitle" style="font-size: 10.5px; color: rgba(255, 255, 255, 0.85);">Review parade suite and select floats to apply</span>
+                    </div>
+                </div>
+                <button type="button" id="closeFleetBundleModalBtn" style="background: transparent; border: none; color: #fff; font-size: 18px; cursor: pointer; padding: 2px 6px;">✕</button>
+            </div>
+            <div style="padding: 14px 18px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px;">
+                <div id="importBundleMetadataBox" style="background: #0d1117; border: 1px solid #30363d; border-radius: 8px; padding: 10px 12px; font-size: 11px; line-height: 1.5; color: #8b949e;">
+                    <!-- Populated dynamically by app.js -->
+                </div>
+                <div>
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                        <span style="font-size: 11px; font-weight: 600; color: #c9d1d9;">Select Floats to Import:</span>
+                        <div style="display: flex; gap: 6px;">
+                            <button type="button" id="importBundleSelectAllBtn" style="background: none; border: none; color: #58a6ff; font-size: 10.5px; cursor: pointer; text-decoration: underline;">Select All</button>
+                            <span style="color: #484f58;">|</span>
+                            <button type="button" id="importBundleDeselectAllBtn" style="background: none; border: none; color: #58a6ff; font-size: 10.5px; cursor: pointer; text-decoration: underline;">Deselect All</button>
+                        </div>
+                    </div>
+                    <div id="importBundleFloatsList" style="display: flex; flex-direction: column; gap: 6px; max-height: 220px; overflow-y: auto;">
+                        <!-- Checkable Float Cards rendered dynamically -->
+                    </div>
+                </div>
+                <div style="display: flex; align-items: center; gap: 8px; background: rgba(235, 179, 56, 0.08); border: 1px solid rgba(235, 179, 56, 0.3); border-radius: 6px; padding: 8px 10px;">
+                    <input type="checkbox" id="importBundleChoreographyToggle" checked style="accent-color: #e3b341; width: 14px; height: 14px; cursor: pointer;">
+                    <label for="importBundleChoreographyToggle" style="font-size: 11px; color: #e3b341; font-weight: 500; cursor: pointer;">
+                        Import 30s Master Choreography Sequence (<span id="importBundleChoreoBlockCount">12 Blocks</span>)
+                    </label>
+                </div>
+            </div>
+            <div style="padding: 12px 18px; background: #0d1117; border-top: 1px solid #30363d; display: flex; justify-content: space-between; align-items: center;">
+                <button type="button" id="cancelFleetBundleModalBtn" class="action-btn" style="padding: 6px 14px; font-size: 11.5px;">Cancel</button>
+                <button type="button" id="confirmFleetBundleApplyBtn" class="action-btn primary" style="padding: 7px 18px; font-size: 12px; background: linear-gradient(135deg, #238636, #2ea043); font-weight: 600; display: inline-flex; align-items: center; gap: 6px;">
+                    ⚡ Apply Selected Floats to Fleet
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js?v=56"></script>
 </body>
 </html>

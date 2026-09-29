@@ -14388,6 +14388,375 @@ function initSidebarTabs() {
     }
 }
 
+
+// ============================================================================
+// MASTER FLEET PARADE BUNDLE EXPORT & IMPORT ENGINE
+// ============================================================================
+
+let pendingImportBundleData = null;
+
+// Export all 7 costume designs, LED coordinates, zone groups, standalone cues, and 30s fleet choreography to a single master JSON file
+async function exportMasterFleetBundleJson() {
+    try {
+        // 1. Sync current single-shirt editor state to active runner slot in memory
+        if (activeSingleShirtRunnerSlot !== null && activeSingleShirtRunnerSlot >= 0 && activeSingleShirtRunnerSlot < fleetRunners.length) {
+            const currentSlot = activeSingleShirtRunnerSlot;
+            const currentRunner = fleetRunners[currentSlot];
+            const currentEditorState = {
+                name: currentRunner.name || `Float ${currentSlot + 1}`,
+                floatName: `Float ${currentSlot + 1} - ${currentRunner.name}`,
+                savedAt: new Date().toISOString(),
+                ledCount: leds.length,
+                leds: JSON.parse(JSON.stringify(leds)),
+                graphicType: currentGraphicType,
+                customArtworkDataUrl: customArtworkDataUrl,
+                animationGroups: JSON.parse(JSON.stringify(animationGroups)),
+                settings: {
+                    pattern: activePattern,
+                    speedBpm: params.speedBpm,
+                    sparkleRate: params.sparkleRate,
+                    greenHue: params.greenHue,
+                    brightness: params.brightness,
+                    glowSize: params.glowSize
+                },
+                sequence: {
+                    loopDuration: sequenceLoopDuration,
+                    cues: JSON.parse(JSON.stringify(sequenceCues))
+                }
+            };
+            const cacheKey = `custom_slot_${currentSlot}_${Date.now()}`;
+            fleetPresetCache[cacheKey] = currentEditorState;
+            currentRunner.preset = cacheKey;
+        }
+
+        // 2. Resolve complete preset data for all 7 floats
+        const floatsExport = {};
+        for (let i = 0; i < fleetRunners.length; i++) {
+            const runner = fleetRunners[i];
+            const presetData = await getPresetDataForRunner(runner) || {};
+            
+            floatsExport[String(i + 1)] = {
+                slot: i,
+                num: runner.num || String(i + 1).padStart(2, '0'),
+                name: runner.name || DEFAULT_FLEET_ROSTER[i].name,
+                fullName: runner.fullName || DEFAULT_FLEET_ROSTER[i].fullName,
+                icon: runner.icon || DEFAULT_FLEET_ROSTER[i].icon,
+                color: runner.color || DEFAULT_FLEET_ROSTER[i].color,
+                role: runner.role || DEFAULT_FLEET_ROSTER[i].role,
+                graphicType: presetData.graphicType || runner.defaultGraphic || DEFAULT_FLEET_ROSTER[i].defaultGraphic,
+                customArtworkDataUrl: presetData.customArtworkDataUrl || null,
+                ledCount: (presetData.leds && presetData.leds.length) || (presetData.ledCount || 100),
+                leds: presetData.leds || [],
+                animationGroups: presetData.animationGroups || [],
+                settings: presetData.settings || {
+                    pattern: 'steady_sparkle',
+                    speedBpm: 120,
+                    sparkleRate: 5,
+                    greenHue: 140,
+                    brightness: 255,
+                    glowSize: 18
+                },
+                sequence: presetData.sequence || {
+                    loopDuration: 90.0,
+                    cues: []
+                }
+            };
+        }
+
+        // 3. Assemble the Master Bundle
+        const masterBundle = {
+            project: "Main Street Electrical Parade (WDW 10K)",
+            bundleType: "MasterFleetParadeSuite",
+            version: "1.0",
+            exportTimestamp: new Date().toISOString(),
+            paradeName: "Main Street Electrical Parade 10K Fleet Show",
+            totalFloats: fleetRunners.length,
+            fleetChoreography: {
+                showDuration: (activeFleetShow && activeFleetShow.loopDuration) || 30.0,
+                name: (activeFleetShow && activeFleetShow.name) || "30s Grand Electrical Parade Show",
+                blocks: (activeFleetShow && activeFleetShow.blocks) ? JSON.parse(JSON.stringify(activeFleetShow.blocks)) : []
+            },
+            floats: floatsExport
+        };
+
+        // 4. Download file
+        const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(masterBundle, null, 2));
+        const dlAnchor = document.createElement('a');
+        dlAnchor.setAttribute("href", dataStr);
+        const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
+        const filename = `msep_fleet_parade_master_${timestamp}.json`;
+        dlAnchor.setAttribute("download", filename);
+        document.body.appendChild(dlAnchor);
+        dlAnchor.click();
+        document.body.removeChild(dlAnchor);
+
+        showToast(`📦 Exported complete 7-Float Parade Suite (${filename})!`);
+    } catch (err) {
+        console.error("Error exporting master fleet bundle:", err);
+        showToast("⚠️ Failed to export master fleet bundle: " + err.message);
+    }
+}
+
+// Open and populate the Import Master Fleet Bundle Confirmation Modal
+function openFleetBundleImportModal(bundleData, fileName) {
+    if (!bundleData || (!bundleData.floats && !bundleData.runners && !Array.isArray(bundleData))) {
+        showToast("⚠️ Invalid master fleet bundle JSON structure!");
+        return;
+    }
+
+    pendingImportBundleData = bundleData;
+
+    const modal = document.getElementById('fleetBundleImportModal');
+    const metaBox = document.getElementById('importBundleMetadataBox');
+    const floatsList = document.getElementById('importBundleFloatsList');
+    const choreoToggle = document.getElementById('importBundleChoreographyToggle');
+    const choreoBlockCountSpan = document.getElementById('importBundleChoreoBlockCount');
+
+    if (!modal || !metaBox || !floatsList) return;
+
+    // Normalizing floats object
+    let floatsMap = bundleData.floats || {};
+    if (Array.isArray(bundleData)) {
+        floatsMap = {};
+        bundleData.forEach((item, idx) => {
+            floatsMap[String(idx + 1)] = item;
+        });
+    } else if (bundleData.runners && typeof bundleData.runners === 'object') {
+        floatsMap = bundleData.runners;
+    }
+
+    const paradeTitle = bundleData.paradeName || bundleData.name || fileName || "MSEP Fleet Suite";
+    const exportTime = bundleData.exportTimestamp ? new Date(bundleData.exportTimestamp).toLocaleString() : "Unknown date";
+    const numFloatsInFile = Object.keys(floatsMap).length;
+    const choreoBlocks = (bundleData.fleetChoreography && bundleData.fleetChoreography.blocks) ? bundleData.fleetChoreography.blocks : [];
+
+    // 1. Populate metadata summary
+    metaBox.innerHTML = `
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+            <strong style="color: #58a6ff; font-size: 12px;">${paradeTitle}</strong>
+            <span style="font-size: 10px; background: #21262d; color: #ffc107; padding: 2px 6px; border-radius: 4px;">${numFloatsInFile} Floats Included</span>
+        </div>
+        <div style="color: #8b949e; font-size: 10.5px;">
+            <div>📅 Exported: <strong>${exportTime}</strong></div>
+            <div>👑 30s Choreography: <strong>${choreoBlocks.length} Blocks</strong> (${(bundleData.fleetChoreography?.showDuration || 30.0).toFixed(1)}s loop)</div>
+        </div>
+    `;
+
+    if (choreoBlockCountSpan) {
+        choreoBlockCountSpan.textContent = `${choreoBlocks.length} Blocks`;
+    }
+    if (choreoToggle) {
+        choreoToggle.checked = choreoBlocks.length > 0;
+        choreoToggle.disabled = choreoBlocks.length === 0;
+    }
+
+    // 2. Populate float selection list
+    floatsList.innerHTML = '';
+    for (let slot = 0; slot < 7; slot++) {
+        const floatNum = String(slot + 1);
+        const floatData = floatsMap[floatNum] || floatsMap[slot] || null;
+        const defaultInfo = DEFAULT_FLEET_ROSTER[slot];
+        
+        const card = document.createElement('div');
+        card.style.cssText = `
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 7px 10px;
+            background: #0d1117;
+            border: 1px solid ${floatData ? '#30363d' : 'rgba(255,255,255,0.05)'};
+            border-radius: 6px;
+            font-size: 11px;
+            opacity: ${floatData ? '1.0' : '0.5'};
+        `;
+
+        const ledCount = floatData ? (floatData.leds ? floatData.leds.length : (floatData.ledCount || 100)) : 0;
+        const groupsCount = floatData && floatData.animationGroups ? floatData.animationGroups.length : 0;
+        const cuesCount = floatData && floatData.sequence && floatData.sequence.cues ? floatData.sequence.cues.length : 0;
+
+        card.innerHTML = `
+            <div style="display: flex; align-items: center; gap: 8px;">
+                <input type="checkbox" class="import-float-checkbox" data-slot="${slot}" data-key="${floatNum}" ${floatData ? 'checked' : 'disabled'} style="accent-color: #388bfd; width: 14px; height: 14px; cursor: pointer;">
+                <span style="font-size: 16px;">${floatData?.icon || defaultInfo.icon}</span>
+                <div>
+                    <div style="font-weight: 600; color: #fff;">
+                        Float ${slot + 1}: ${floatData?.name || defaultInfo.name}
+                    </div>
+                    <div style="font-size: 10px; color: var(--text-muted);">
+                        ${floatData ? `${ledCount} LEDs · ${groupsCount} Groups · ${cuesCount} Standalone Cues` : 'Not included in bundle file'}
+                    </div>
+                </div>
+            </div>
+            <span style="font-size: 10px; color: ${defaultInfo.color}; font-weight: 700; background: rgba(255,255,255,0.05); padding: 2px 6px; border-radius: 4px;">
+                ${defaultInfo.tag}
+            </span>
+        `;
+
+        floatsList.appendChild(card);
+    }
+
+    modal.style.display = 'flex';
+}
+
+// Apply selected floats and choreography from imported master bundle
+async function applyMasterFleetBundle(bundleData) {
+    if (!bundleData) return;
+
+    try {
+        pushUndoState("Import Master Fleet Parade Bundle");
+
+        let floatsMap = bundleData.floats || {};
+        if (Array.isArray(bundleData)) {
+            floatsMap = {};
+            bundleData.forEach((item, idx) => {
+                floatsMap[String(idx + 1)] = item;
+            });
+        } else if (bundleData.runners && typeof bundleData.runners === 'object') {
+            floatsMap = bundleData.runners;
+        }
+
+        const checkboxes = document.querySelectorAll('.import-float-checkbox:checked');
+        let importedCount = 0;
+
+        for (const cb of checkboxes) {
+            const slot = parseInt(cb.getAttribute('data-slot'));
+            const key = cb.getAttribute('data-key');
+            const floatData = floatsMap[key] || floatsMap[slot];
+            if (!floatData || slot < 0 || slot >= fleetRunners.length) continue;
+
+            const runner = fleetRunners[slot];
+            const cacheKey = `imported_bundle_slot_${slot}_${Date.now()}`;
+
+            const normalizedPreset = {
+                name: floatData.name || runner.name,
+                floatName: `Float ${slot + 1} - ${floatData.name || runner.name}`,
+                savedAt: floatData.savedAt || new Date().toISOString(),
+                ledCount: (floatData.leds && floatData.leds.length) || floatData.ledCount || 100,
+                leds: floatData.leds || [],
+                graphicType: floatData.graphicType || runner.defaultGraphic || DEFAULT_FLEET_ROSTER[slot].defaultGraphic,
+                customArtworkDataUrl: floatData.customArtworkDataUrl || null,
+                animationGroups: floatData.animationGroups || [],
+                settings: floatData.settings || {
+                    pattern: 'steady_sparkle',
+                    speedBpm: 120,
+                    sparkleRate: 5,
+                    greenHue: 140,
+                    brightness: 255,
+                    glowSize: 18
+                },
+                sequence: floatData.sequence || {
+                    loopDuration: 90.0,
+                    cues: []
+                }
+            };
+
+            fleetPresetCache[cacheKey] = normalizedPreset;
+            runner.preset = cacheKey;
+
+            // If this float is currently active in the Single Shirt editor, update editor in place
+            if (activeSingleShirtRunnerSlot === slot) {
+                applyProfileData(normalizedPreset);
+            }
+
+            importedCount++;
+        }
+
+        // 2. Import 30s Choreography if toggled
+        const choreoToggle = document.getElementById('importBundleChoreographyToggle');
+        if (choreoToggle && choreoToggle.checked && bundleData.fleetChoreography && Array.isArray(bundleData.fleetChoreography.blocks)) {
+            if (!activeFleetShow) {
+                activeFleetShow = {
+                    id: 'imported_master_parade.json',
+                    name: bundleData.fleetChoreography.name || 'Imported 30s Master Parade',
+                    loopDuration: bundleData.fleetChoreography.showDuration || 30.0,
+                    blocks: []
+                };
+            }
+            activeFleetShow.blocks = JSON.parse(JSON.stringify(bundleData.fleetChoreography.blocks));
+            activeFleetShow.loopDuration = bundleData.fleetChoreography.showDuration || 30.0;
+            recalculateFleetBlockStartTimes();
+            renderFleetBlocksEditor();
+        }
+
+        // 3. Save lineup and update UI
+        saveFleetLineupToStorage();
+        renderFleetCards();
+        renderActiveGroupsList();
+        renderTimelineCues();
+
+        const modal = document.getElementById('fleetBundleImportModal');
+        if (modal) modal.style.display = 'none';
+
+        showToast(`🎉 Applied ${importedCount} Floats from Master Fleet Parade Bundle!`);
+    } catch (err) {
+        console.error("Error applying master fleet bundle:", err);
+        showToast("⚠️ Error applying bundle: " + err.message);
+    }
+}
+
+// Bind Master Fleet Parade Bundle event listeners
+function initMasterFleetBundleControls() {
+    const fleetExportBtn = document.getElementById('fleetExportBundleBtn');
+    const layoutExportAllBtn = document.getElementById('layoutExportAllFleetBtn');
+    const fleetImportBtn = document.getElementById('fleetImportBundleBtn');
+    const fleetImportFileInput = document.getElementById('fleetImportBundleFileInput');
+    const modal = document.getElementById('fleetBundleImportModal');
+    const closeModalBtn = document.getElementById('closeFleetBundleModalBtn');
+    const cancelModalBtn = document.getElementById('cancelFleetBundleModalBtn');
+    const confirmApplyBtn = document.getElementById('confirmFleetBundleApplyBtn');
+    const selectAllBtn = document.getElementById('importBundleSelectAllBtn');
+    const deselectAllBtn = document.getElementById('importBundleDeselectAllBtn');
+
+    if (fleetExportBtn) fleetExportBtn.addEventListener('click', exportMasterFleetBundleJson);
+    if (layoutExportAllBtn) layoutExportAllBtn.addEventListener('click', exportMasterFleetBundleJson);
+
+    if (fleetImportBtn && fleetImportFileInput) {
+        fleetImportBtn.addEventListener('click', () => fleetImportFileInput.click());
+        fleetImportFileInput.addEventListener('change', (e) => {
+            const file = e.target.files && e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (evt) => {
+                    try {
+                        const parsed = JSON.parse(evt.target.result);
+                        openFleetBundleImportModal(parsed, file.name);
+                    } catch (err) {
+                        showToast("⚠️ Failed to parse JSON file: " + err.message);
+                    }
+                };
+                reader.readAsText(file);
+            }
+            e.target.value = '';
+        });
+    }
+
+    if (closeModalBtn && modal) {
+        closeModalBtn.addEventListener('click', () => { modal.style.display = 'none'; });
+    }
+    if (cancelModalBtn && modal) {
+        cancelModalBtn.addEventListener('click', () => { modal.style.display = 'none'; });
+    }
+
+    if (selectAllBtn) {
+        selectAllBtn.addEventListener('click', () => {
+            document.querySelectorAll('.import-float-checkbox:not(:disabled)').forEach(cb => { cb.checked = true; });
+        });
+    }
+    if (deselectAllBtn) {
+        deselectAllBtn.addEventListener('click', () => {
+            document.querySelectorAll('.import-float-checkbox:not(:disabled)').forEach(cb => { cb.checked = false; });
+        });
+    }
+
+    if (confirmApplyBtn) {
+        confirmApplyBtn.addEventListener('click', () => {
+            if (pendingImportBundleData) {
+                applyMasterFleetBundle(pendingImportBundleData);
+            }
+        });
+    }
+}
+
 function initTimelineCollapse() {
     const timelineCollapseBtn = document.getElementById('timelineCollapseBtn');
     const timelineBar = document.getElementById('timelineBar');
@@ -14427,6 +14796,8 @@ if (document.readyState === 'loading') {
         initFleetManager();
         initPowerBudgetCalculator();
         initFleetRadar();
+    initMasterFleetBundleControls();
+        initMasterFleetBundleControls();
         updateUndoRedoUI();
     });
 } else {

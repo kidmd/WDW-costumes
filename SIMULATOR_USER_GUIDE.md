@@ -620,6 +620,20 @@ The **Sparkle Frequency Slider** in Section 3 supports fine decimal percentages 
 
 You can save and export complete costume profiles so you never lose your LED arrangements, group definitions, or cue timelines.
 
+### 📦 Master Fleet Parade Bundle (Export & Import All 7 Floats)
+Beyond saving single costume profiles, the simulator lets you export and import the **complete 7-float parade configuration** (all 7 costume float designs, LED coordinate placements, zone animation groups, standalone timeline cues, baseline ambient dynamics, and 30s fleet choreography blocks) in a single unified JSON file (`msep_fleet_parade_master.json`).
+
+- **📥 Export Master Fleet Bundle:**
+  - Available on the `🏃 Tab 5: Fleet` tab (under 7-Runner Lineup) and on `🎨 Tab 1: Layout` (`📦 Export All 7 Floats`).
+  - Captures in-memory modifications from all 7 runner slots and current single-shirt editor states.
+  - Generates a timestamped JSON bundle file (`msep_fleet_parade_master_YYYY-MM-DD.json`).
+- **📂 Import Master Fleet Bundle with Selective-Float Modal:**
+  - Click **`📂 Import Fleet Bundle`** on the Fleet tab to load any master parade JSON bundle.
+  - An interactive **Import Confirmation Modal** appears displaying bundle metadata, export timestamp, parade title, and 30s choreography block count.
+  - **Selective Checkbox Grid:** Select specific floats to overwrite (or use **Select All** / **Deselect All**), with real-time metrics showing LED counts, group counts, and standalone cues for each float in the bundle.
+  - Toggle whether to import the master 30s fleet choreography blocks.
+  - Integrated with the **Universal Undo / Redo Engine (`Ctrl+Z`)** so you can safely preview or revert applied bundles with one keystroke.
+
 ### Saving Profiles
 1. Enter a name in the **Profile Name** input (e.g., `Cinderella_Final_Costume`).
 2. Click **💾 Save Profile**.

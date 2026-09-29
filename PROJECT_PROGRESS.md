@@ -191,6 +191,21 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
   - Synchronized across simulator, C++ firmware, and Arduino sketch per Rule 5.
   - Bumped script cache query in `simulator/index.html` to `app.js?v=47`.
 
+### Entry: Master Fleet Parade Show Suite Export/Import (Master JSON Bundle Engine)
+* **Date:** 2026-09-28
+* **Milestone:** Milestone 5 - Studio Workflow & Hardware Fleet Control
+* **Status:** Operational & Synchronized across `simulator/app.js?v=56`, `simulator/index.html`, `SIMULATOR_USER_GUIDE.md`, and `PROJECT_PROGRESS.md`.
+* **Notes:**
+  - Implemented **Master Fleet Parade Suite Export Engine (`exportMasterFleetBundleJson`)**:
+    - Gathers complete costume configurations for all 7 runner slots (100 LED coordinates, sampled colors, zone animation groups, standalone timeline cues, and ambient dynamics) plus the 30s synchronized fleet choreography blocks into a single standardized master JSON bundle (`msep_fleet_parade_master_[TIMESTAMP].json`).
+    - Added export action buttons on `🏃 Tab 5: Fleet` (`📥 Export Fleet Bundle`) and `🎨 Tab 1: Layout` (`📦 Export All 7 Floats`).
+  - Implemented **Master Fleet Parade Suite Import Engine (`openFleetBundleImportModal`, `applyMasterFleetBundle`)**:
+    - Interactive **Import Confirmation Modal (`#fleetBundleImportModal`)** displaying bundle title, export timestamp, float breakdown, and choreography block count.
+    - Selective float checkable card list with **Select All** and **Deselect All** controls, allowing selective imports without overwriting unwanted slots.
+    - Optional toggle to import/merge 30s choreography blocks.
+    - Synchronized with `Ctrl+Z` Universal Undo/Redo history stack via `pushUndoState`.
+  - Bumped script cache query in `simulator/index.html` to `app.js?v=56`.
+
 ### Entry: Multi-Group Phase Sync, Anti-Phase Dual Wheels & Master-Follower Tempo Linking (Groups Tab Suite)
 * **Date:** 2026-09-28
 * **Milestone:** Milestone 5 - Studio Workflow & Visual Geometry Suite
