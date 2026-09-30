@@ -66,6 +66,8 @@ You don't need Git, Google Antigravity, or any programming tools:
 
 ## Project Structure & Documentation
 
+* [`RACE_DAY_PACKING_CHECKLIST.md`](RACE_DAY_PACKING_CHECKLIST.md): **🏰 Race Day Packing Checklist & Field Manual** — Pre-race hardware checklist, spare ESP32s, battery survival, repair toolkit, weather kit, and countdown timeline for the 7-runner family team.
+* [`CRICUT_MASTER_SVG_USER_GUIDE.md`](CRICUT_MASTER_SVG_USER_GUIDE.md): **✂️ Cricut Master SVG User Guide** — Step-by-step instructions for Cricut Design Space, multi-layer HTV cutting, and heat-press registration.
 * [`SIMULATOR_QUICKSTART.md`](SIMULATOR_QUICKSTART.md): **⚡ Simulator Quickstart Guide (TL;DR)** — 2-minute cheat sheet for launching the simulator, moving/trimming timeline clips, testing the fleet show, and streaming to LEDs.
 * [`SIMULATOR_USER_GUIDE.md`](SIMULATOR_USER_GUIDE.md): **Complete User Guide & Theatrical Lighting Manual** for the browser simulator, multi-layer timeline, and ESP32 hardware flasher.
 * [`FLASHING_INSTRUCTIONS.md`](FLASHING_INSTRUCTIONS.md): **⚡ Quick Flashing Guide for Family Runners & Crew** (Double-click 1-click flasher, Web Browser flasher, and Arduino IDE).

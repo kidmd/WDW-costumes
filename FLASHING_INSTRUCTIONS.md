@@ -151,4 +151,5 @@ You do **not** need to change any code to configure which float you are! Any ESP
 | **Colors look swapped (e.g. green instead of red)** | WS2812B strands use `RGB` or `GRB` color order. The firmware is calibrated for `RGB` by default. |
 
 ---
-*Questions or need a different float preset? Check `SIMULATOR_USER_GUIDE.md` or ask!*
+*Questions or need a different float preset? Check `SIMULATOR_USER_GUIDE.md`.*  
+*Heading out for race weekend? Make sure to review the complete **[`RACE_DAY_PACKING_CHECKLIST.md`](RACE_DAY_PACKING_CHECKLIST.md)** for power bank readiness, spare ESP32s, and corral countdown procedures!*

@@ -950,6 +950,9 @@ To ensure that **no runner goes dark on course** during the runDisney 10K, the D
   - **Expandable Roster Breakdown:** Click `▼ Show` to inspect exact baseline mA, show peak mA, finish %, and total runtime for each runner's float.
   - **One-Click Quick Jump:** Click the **"🔋 Battery Budget"** badge in the 30s Fleet Show Creator header to immediately view and test power metrics.
 
+> 🎒 **Field Preparation & Race Morning Operations:**  
+> For the complete pre-race hardware packing checklist, power bank prep, emergency repair kit, and chronological corral countdown playbook, see the **[`RACE_DAY_PACKING_CHECKLIST.md`](RACE_DAY_PACKING_CHECKLIST.md)**.
+
 ---
 
 ## 15. ESP32 Firmware: Leader-Centric Authority, Corral Standby Mode & Button Controls

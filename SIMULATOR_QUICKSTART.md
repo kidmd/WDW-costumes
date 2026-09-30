@@ -144,6 +144,8 @@ The BOOT button behavior depends on whether the node is configured as **👑 Mas
 
 ## 📚 Where to Go Next
 
+- 🎒 **[RACE_DAY_PACKING_CHECKLIST.md](RACE_DAY_PACKING_CHECKLIST.md)**: Master packing checklist, power bank prep, emergency repairs, and race morning corral countdown for the 7-runner family team!
+- ✂️ **[CRICUT_MASTER_SVG_USER_GUIDE.md](CRICUT_MASTER_SVG_USER_GUIDE.md)**: Foolproof brother's guide for cutting and heat-pressing HTV vinyl with pre-aligned pill cutouts.
 - 📖 **[SIMULATOR_USER_GUIDE.md](SIMULATOR_USER_GUIDE.md)**: The full technical manual covering physical wiring optimization, FastLED power budgeting, and advanced effects.
 - ⚡ **[FLASHING_INSTRUCTIONS.md](FLASHING_INSTRUCTIONS.md)**: Flashing options, USB drivers, and troubleshooting.
 - 🎨 **[CRICUT_ARTWORK_GUIDE.md](CRICUT_ARTWORK_GUIDE.md)**: Heat transfer vinyl (HTV) cut files and shirt press instructions.

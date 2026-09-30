@@ -93,6 +93,15 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### Entry: Comprehensive Race Day Packing Checklist & Field Operations Manual
+* **Date:** 2026-09-30
+* **Milestone:** Milestone 5 - Studio Workflow & Hardware Fleet Control
+* **Status:** Complete & Published (`RACE_DAY_PACKING_CHECKLIST.md`).
+* **Notes:**
+  - Published comprehensive master packing checklist and race morning operational field guide for the 7-runner family team (2 brothers, 1 sister, 1 brother-in-law, 3 sisters-in-law) engineered by the 3 brothers.
+  - Covers electronics rigging (7 primary + 3 spare ESP32s, Ziploc moisture barriers, short 1ft power cables), battery management (10,000 mAh packs, keep-alive verification, hotel multi-port charging hub), costume rigging (FlipBelts, BibBoards snap clearance, wire anti-friction tape), hotel/field repair kit (portable soldering iron, solder-seal butt connectors, resistors, monofilament), and Florida pre-dawn weather survival (clear ponchos, hand warmers, throwaway layers).
+  - Outlines chronological race morning timeline from 02:30 AM wake-up through 03:45 AM corral standby check, 04:30 AM rapid attendance wave (double-tap BOOT), 04:55 AM fleet wake (single-tap BOOT), and on-course 30s theatrical show triggers.
+
 ### Entry: In-Simulator 1-Click Fleet ROM Binary Rebuilder
 * **Date:** 2026-09-30
 * **Milestone:** Milestone 5 - Studio Workflow & Hardware Fleet Control
