@@ -1307,9 +1307,56 @@ function evalGroupEffect(grp, effect, bpm, dir, grpIndex, grpSize, timeMs, c) {
             grpIntensity = phase < 0.5 ? 1.0 : 0.08;
             break;
         }
+        case 'steady_sparkle': {
+            if (sparkles[grpIndex] > 0) {
+                const sp = sparkles[grpIndex];
+                baseR = Math.round(baseR * (1 - sp) + 255 * sp);
+                baseG = Math.round(baseG * (1 - sp) + 255 * sp);
+                baseB = Math.round(baseB * (1 - sp) + 240 * sp);
+                grpIntensity = Math.min(1.0, 0.85 + sp * 0.4);
+            } else {
+                grpIntensity = 0.85;
+            }
+            break;
+        }
+        case 'color_match':
+        case 'breathe':
+        case 'pulse_slow':
         case 'pulse': {
             const sine = Math.sin(grpNormTime * Math.PI * 2) * 0.5 + 0.5;
             grpIntensity = 0.18 + 0.82 * sine;
+            break;
+        }
+        case 'comet': {
+            const head = ((grpNormTime * direction) % grpSize + grpSize) % grpSize;
+            const tailLen = Math.max(3, Math.min(grpSize * 0.75, 12));
+            let dist = (direction >= 0) ? (head - grpIndex) : (grpIndex - head);
+            if (dist < 0) dist += grpSize;
+            if (dist < tailLen) {
+                const fade = Math.exp(-dist * (2.8 / tailLen));
+                grpIntensity = 0.08 + 0.92 * fade;
+                if (dist < 0.9) {
+                    baseR = Math.min(255, baseR + 90);
+                    baseG = Math.min(255, baseG + 90);
+                    baseB = Math.min(255, baseB + 90);
+                }
+            } else {
+                grpIntensity = 0.08;
+            }
+            break;
+        }
+        case 'scanner': {
+            const cycle = (effectiveTimeMs / grpBeatMs) % 2.0;
+            const pos = cycle <= 1.0 ? cycle * (grpSize - 1) : (2.0 - cycle) * (grpSize - 1);
+            const dist = Math.abs(grpIndex - pos);
+            const sigma = Math.max(1.2, grpSize * 0.15);
+            const wake = Math.exp(-(dist * dist) / (2 * sigma * sigma));
+            grpIntensity = 0.10 + 0.90 * wake;
+            if (dist < 0.85) {
+                baseR = Math.min(255, baseR + 80);
+                baseG = Math.min(255, baseG + 80);
+                baseB = Math.min(255, baseB + 80);
+            }
             break;
         }
         case 'write_on_off': {
@@ -1459,6 +1506,86 @@ function evalGroupEffect(grp, effect, bpm, dir, grpIndex, grpSize, timeMs, c) {
                 // Phase 4: Rest / Burst ended - baseline completely unlit / off
                 grpIntensity = 0.0;
             }
+            break;
+        }
+        case 'color_wipe': {
+            const totalCycleMs = grpBeatMs * 4;
+            const progress = (effectiveTimeMs % totalCycleMs) / totalCycleMs;
+            if (progress < 0.40) {
+                const litHead = (progress / 0.40) * grpSize;
+                grpIntensity = (direction >= 0 ? (grpIndex <= litHead) : ((grpSize - 1 - grpIndex) <= litHead)) ? 1.0 : 0.05;
+            } else if (progress < 0.58) {
+                grpIntensity = 1.0;
+            } else if (progress < 0.88) {
+                const offHead = ((progress - 0.58) / 0.30) * grpSize;
+                grpIntensity = (direction >= 0 ? (grpIndex <= offHead) : ((grpSize - 1 - grpIndex) <= offHead)) ? 0.05 : 1.0;
+            } else {
+                grpIntensity = 0.05;
+            }
+            break;
+        }
+        case 'pixie_dust': {
+            const drift = Math.sin(grpNormTime * 1.5 + grpIndex * 0.4) * 0.3 + 0.7;
+            const twinkle = Math.sin(effectiveTimeMs * 0.05 + grpIndex * 43.17) * 0.5 + 0.5;
+            if (twinkle > 0.75) {
+                grpIntensity = 1.0;
+                baseR = Math.min(255, baseR + 110);
+                baseG = Math.min(255, baseG + 110);
+                baseB = Math.min(255, baseB + 110);
+            } else {
+                grpIntensity = 0.15 + 0.45 * drift;
+            }
+            break;
+        }
+        case 'filament_glow': {
+            const warmDrift = Math.sin(effectiveTimeMs * 0.007 + grpIndex * 13.7) * 0.09 +
+                              Math.sin(effectiveTimeMs * 0.019 + grpIndex * 31.9) * 0.05;
+            grpIntensity = 0.80 + warmDrift;
+            baseR = Math.min(255, Math.round(baseR * 1.08 + 15));
+            baseG = Math.round(baseG * 0.94 + 5);
+            baseB = Math.round(baseB * 0.70);
+            break;
+        }
+        case 'candle_flicker': {
+            const f = 0.55 + 0.25 * Math.sin(effectiveTimeMs * 0.016 + grpIndex * 19.3) +
+                             0.15 * Math.sin(effectiveTimeMs * 0.042 + grpIndex * 47.7) +
+                             0.05 * Math.sin(effectiveTimeMs * 0.095 + grpIndex * 89.1);
+            grpIntensity = Math.max(0.20, Math.min(1.0, f));
+            baseR = 255;
+            baseG = Math.min(255, Math.max(110, Math.round(baseG * 0.85 + 40)));
+            baseB = Math.min(120, Math.round(baseB * 0.35));
+            break;
+        }
+        case 'tidal_ripple': {
+            const center = (grpSize - 1) / 2;
+            const normDist = Math.abs(grpIndex - center) / Math.max(1, center);
+            const wavePhase = (grpNormTime * direction) - (normDist * 2.0);
+            const wave = Math.sin(wavePhase * Math.PI) * 0.5 + 0.5;
+            grpIntensity = 0.15 + 0.85 * Math.pow(wave, 1.8);
+            break;
+        }
+        case 'piston_chug': {
+            const strokeProgress = (grpNormTime * 2) % 1.0;
+            const strokeIdx = Math.floor(grpNormTime * 2) % 4;
+            if (strokeIdx === 0 || strokeIdx === 2) {
+                const decay = Math.exp(-strokeProgress * 4.5);
+                grpIntensity = 0.15 + 0.85 * decay;
+                if (strokeProgress < 0.25) {
+                    baseR = Math.min(255, baseR + 70);
+                    baseG = Math.min(255, baseG + 70);
+                    baseB = Math.min(255, baseB + 70);
+                }
+            } else {
+                grpIntensity = 0.15 + 0.20 * Math.sin(strokeProgress * Math.PI);
+            }
+            break;
+        }
+        case 'photo_mode': {
+            grpIntensity = 1.0;
+            break;
+        }
+        case 'dim_glow': {
+            grpIntensity = 0.22;
             break;
         }
         default:
@@ -1748,6 +1875,174 @@ function evalGlobalPattern(pattern, bpm, index, totalLeds, timeMs, c, hasColor) 
             brightness = 1.0;
             break;
         }
+        case 'comet': {
+            const head = ((normTime * 2) % totalLeds + totalLeds) % totalLeds;
+            const tailLen = Math.max(8, totalLeds * 0.15);
+            let dist = head - index;
+            if (dist < 0) dist += totalLeds;
+            if (dist < tailLen) {
+                const fade = Math.exp(-dist * (2.8 / tailLen));
+                const effIntensity = 0.08 + 0.92 * fade;
+                if (hasColor) {
+                    r = Math.floor(c.r * effIntensity);
+                    g = Math.floor(c.g * effIntensity);
+                    b = Math.floor(c.b * effIntensity);
+                } else {
+                    const rgb = hslToRgb(baseH / 360, 0.95, 0.50 * effIntensity);
+                    r = rgb.r; g = rgb.g; b = rgb.b;
+                }
+                if (dist < 1.0) {
+                    r = Math.min(255, r + 90);
+                    g = Math.min(255, g + 90);
+                    b = Math.min(255, b + 90);
+                }
+                brightness = 1.0;
+            } else {
+                if (hasColor) {
+                    r = Math.floor(c.r * 0.08); g = Math.floor(c.g * 0.08); b = Math.floor(c.b * 0.08);
+                } else {
+                    r = 15; g = 15; b = 15;
+                }
+                brightness = 0.2;
+            }
+            break;
+        }
+        case 'scanner': {
+            const cycle = normTime % 2.0;
+            const head = cycle <= 1.0 ? cycle * (totalLeds - 1) : (2.0 - cycle) * (totalLeds - 1);
+            const dist = Math.abs(index - head);
+            const sigma = Math.max(2.0, totalLeds * 0.05);
+            const wake = Math.exp(-(dist * dist) / (2 * sigma * sigma));
+            const effIntensity = 0.10 + 0.90 * wake;
+            if (hasColor) {
+                r = Math.floor(c.r * effIntensity);
+                g = Math.floor(c.g * effIntensity);
+                b = Math.floor(c.b * effIntensity);
+            } else {
+                const rgb = hslToRgb(baseH / 360, 0.95, 0.50 * effIntensity);
+                r = rgb.r; g = rgb.g; b = rgb.b;
+            }
+            if (dist < 1.0) {
+                r = Math.min(255, r + 80);
+                g = Math.min(255, g + 80);
+                b = Math.min(255, b + 80);
+            }
+            brightness = 1.0;
+            break;
+        }
+        case 'color_wipe': {
+            const totalCycleMs = beatMs * 4;
+            const progress = (timeMs % totalCycleMs) / totalCycleMs;
+            let lit = false;
+            if (progress < 0.40) {
+                lit = index <= (progress / 0.40) * totalLeds;
+            } else if (progress < 0.58) {
+                lit = true;
+            } else if (progress < 0.88) {
+                lit = index > ((progress - 0.58) / 0.30) * totalLeds;
+            } else {
+                lit = false;
+            }
+            const eff = lit ? 1.0 : 0.06;
+            if (hasColor) {
+                r = Math.floor(c.r * eff); g = Math.floor(c.g * eff); b = Math.floor(c.b * eff);
+            } else {
+                const rgb = hslToRgb(baseH / 360, 0.95, 0.50 * eff);
+                r = rgb.r; g = rgb.g; b = rgb.b;
+            }
+            brightness = lit ? 1.0 : 0.15;
+            break;
+        }
+        case 'pixie_dust': {
+            const drift = Math.sin(normTime * 1.5 + index * 0.25) * 0.3 + 0.7;
+            const twinkle = Math.sin(timeMs * 0.05 + index * 73.19) * 0.5 + 0.5;
+            if (hasColor) {
+                r = Math.floor(c.r * drift); g = Math.floor(c.g * drift); b = Math.floor(c.b * drift);
+            } else {
+                const rgb = hslToRgb(baseH / 360, 0.95, 0.50 * drift);
+                r = rgb.r; g = rgb.g; b = rgb.b;
+            }
+            if (twinkle > 0.72) {
+                r = Math.min(255, r + 110);
+                g = Math.min(255, g + 110);
+                b = Math.min(255, b + 110);
+                brightness = 1.0;
+            } else {
+                brightness = 0.5 * drift;
+            }
+            break;
+        }
+        case 'filament_glow': {
+            const warmDrift = Math.sin(timeMs * 0.007 + index * 13.7) * 0.09 +
+                              Math.sin(timeMs * 0.019 + index * 31.9) * 0.05;
+            const eff = 0.80 + warmDrift;
+            if (hasColor) {
+                r = Math.min(255, Math.floor((c.r * 1.08 + 15) * eff));
+                g = Math.floor((c.g * 0.94 + 5) * eff);
+                b = Math.floor((c.b * 0.70) * eff);
+            } else {
+                r = Math.floor(255 * eff);
+                g = Math.floor(180 * eff);
+                b = Math.floor(45 * eff);
+            }
+            brightness = 0.85;
+            break;
+        }
+        case 'candle_flicker': {
+            const f = 0.55 + 0.25 * Math.sin(timeMs * 0.016 + index * 19.3) +
+                             0.15 * Math.sin(timeMs * 0.042 + index * 47.7) +
+                             0.05 * Math.sin(timeMs * 0.095 + index * 89.1);
+            const eff = Math.max(0.20, Math.min(1.0, f));
+            if (hasColor) {
+                r = Math.min(255, Math.floor(255 * eff));
+                g = Math.min(255, Math.floor(Math.max(110, c.g * 0.85 + 40) * eff));
+                b = Math.min(120, Math.floor(c.b * 0.35 * eff));
+            } else {
+                r = Math.floor(255 * eff);
+                g = Math.floor(150 * eff);
+                b = Math.floor(30 * eff);
+            }
+            brightness = 0.9;
+            break;
+        }
+        case 'tidal_ripple': {
+            const center = (totalLeds - 1) / 2;
+            const normDist = Math.abs(index - center) / Math.max(1, center);
+            const wavePhase = (normTime * 2) - (normDist * 2.0);
+            const wave = Math.sin(wavePhase * Math.PI) * 0.5 + 0.5;
+            const eff = 0.15 + 0.85 * Math.pow(wave, 1.8);
+            if (hasColor) {
+                r = Math.floor(c.r * eff); g = Math.floor(c.g * eff); b = Math.floor(c.b * eff);
+            } else {
+                const rgb = hslToRgb(baseH / 360, 0.95, 0.50 * eff);
+                r = rgb.r; g = rgb.g; b = rgb.b;
+            }
+            brightness = eff;
+            break;
+        }
+        case 'piston_chug': {
+            const strokeProgress = (normTime * 2) % 1.0;
+            const strokeIdx = Math.floor(normTime * 2) % 4;
+            let eff = 0.15;
+            let punch = false;
+            if (strokeIdx === 0 || strokeIdx === 2) {
+                eff = 0.15 + 0.85 * Math.exp(-strokeProgress * 4.5);
+                if (strokeProgress < 0.25) punch = true;
+            } else {
+                eff = 0.15 + 0.20 * Math.sin(strokeProgress * Math.PI);
+            }
+            if (hasColor) {
+                r = Math.floor(c.r * eff); g = Math.floor(c.g * eff); b = Math.floor(c.b * eff);
+            } else {
+                const rgb = hslToRgb(baseH / 360, 0.95, 0.50 * eff);
+                r = rgb.r; g = rgb.g; b = rgb.b;
+            }
+            if (punch) {
+                r = Math.min(255, r + 70); g = Math.min(255, g + 70); b = Math.min(255, b + 70);
+            }
+            brightness = eff;
+            break;
+        }
         case 'off': {
             r = 0; g = 0; b = 0;
             brightness = 0.0;
@@ -1901,23 +2196,14 @@ function computeLedColor(index, totalLeds, timeMs) {
             let grpBaselineCol;
             if (groupBaseline === 'off') {
                 grpBaselineCol = { r: 0, g: 0, b: 0, alpha: 0 };
-            } else if (groupBaseline === 'steady_sparkle') {
-                grpBaselineCol = evalGlobalPattern('steady_sparkle', 120, index, totalLeds, timeMs, c, hasColor);
-            } else if (groupBaseline === 'dim_glow') {
-                const baseR = (grp.customColor && grp.colorMode === 'custom') ? grp.customColor.r : (c ? c.r : 255);
-                const baseG = (grp.customColor && grp.colorMode === 'custom') ? grp.customColor.g : (c ? c.g : 200);
-                const baseB = (grp.customColor && grp.colorMode === 'custom') ? grp.customColor.b : (c ? c.b : 50);
-                grpBaselineCol = { r: Math.round(baseR * 0.22), g: Math.round(baseG * 0.22), b: Math.round(baseB * 0.22), alpha: 0.35 };
-            } else if (groupBaseline === 'breathe' || groupBaseline === 'pulse_slow') {
-                const sine = Math.sin((timeMs / 1000) * Math.PI) * 0.5 + 0.5; // ~30 BPM gentle breath
-                const baseR = (grp.customColor && grp.colorMode === 'custom') ? grp.customColor.r : (c ? c.r : 255);
-                const baseG = (grp.customColor && grp.colorMode === 'custom') ? grp.customColor.g : (c ? c.g : 200);
-                const baseB = (grp.customColor && grp.colorMode === 'custom') ? grp.customColor.b : (c ? c.b : 50);
-                const intensity = 0.08 + 0.32 * sine;
-                grpBaselineCol = { r: Math.round(baseR * intensity), g: Math.round(baseG * intensity), b: Math.round(baseB * intensity), alpha: intensity };
+            } else if (groupBaseline === 'inherit' || !groupBaseline) {
+                if (grp.colorMode === 'custom' && grp.customColor) {
+                    grpBaselineCol = evalGlobalPattern(activePattern, params.speedBpm, index, totalLeds, timeMs, grp.customColor, true);
+                } else {
+                    grpBaselineCol = baseColor;
+                }
             } else {
-                // 'inherit' or default: follow overall global baseline
-                grpBaselineCol = baseColor;
+                grpBaselineCol = evalGroupEffect(grp, groupBaseline, grp.speedBpm || params.speedBpm, grp.direction || 1, grpEntry.indexInGroup, grpEntry.groupSize, timeMs, c);
             }
 
             if (activeGrpCue) {
@@ -1947,10 +2233,18 @@ function computeLedColor(index, totalLeds, timeMs) {
     // ========================================================================
     if (grpEntry && grpEntry.group) {
         const grp = grpEntry.group;
-        if (grp.effect === 'off') {
+        const baseline = grp.baselineEffect || grp.baseline || 'inherit';
+        if (baseline === 'off' || grp.effect === 'off') {
             return { r: 0, g: 0, b: 0, alpha: 0 };
         }
-        return evalGroupEffect(grp, grp.effect, grp.speedBpm, grp.direction, grpEntry.indexInGroup, grpEntry.groupSize, timeMs, c);
+        if (baseline !== 'inherit') {
+            return evalGroupEffect(grp, baseline, grp.speedBpm || params.speedBpm, grp.direction || 1, grpEntry.indexInGroup, grpEntry.groupSize, timeMs, c);
+        }
+        if (grp.effect && grp.effect !== 'off' && grp.effect !== 'inherit') {
+            return evalGroupEffect(grp, grp.effect, grp.speedBpm || params.speedBpm, grp.direction || 1, grpEntry.indexInGroup, grpEntry.groupSize, timeMs, c);
+        }
+        const effectiveColor = (grp.colorMode === 'custom' && grp.customColor) ? grp.customColor : c;
+        return evalGlobalPattern(activePattern, params.speedBpm, index, totalLeds, timeMs, effectiveColor, hasColor || (grp.colorMode === 'custom'));
     }
 
     return evalGlobalPattern(activePattern, params.speedBpm, index, totalLeds, timeMs, c, hasColor);
@@ -8556,17 +8850,25 @@ function renderCuesList() {
 
     const effectOptions = [
         { id: 'steady_sparkle', label: '✨ Steady Colors + Sparkles' },
-        { id: 'color_match', label: '🌈 Color-Matched Breathing Glow' },
-        { id: 'chase', label: '🎡 Chase / Wheel Spin' },
-        { id: 'pulse', label: '💓 Breathing Glow Pulse' },
-        { id: 'flash_slow', label: '💡 Slow Flashing / Blink' },
-        { id: 'write_on_off', label: '✍️ Theatrical Write-On/Off' },
-        { id: 'sparkle_storm', label: '✨ Sparkle Storm' },
-        { id: 'marquee', label: '🎪 Theater Marquee' },
+        { id: 'color_match', label: '🌬️ Slo-Glo Breath' },
+        { id: 'comet', label: '☄️ Meteor / Comet Trail' },
+        { id: 'scanner', label: '🛸 Larson Scanner' },
+        { id: 'color_wipe', label: '✍️ Color Wipe / Progressive Fill' },
+        { id: 'pixie_dust', label: '💫 Pixie Dust Drift' },
+        { id: 'filament_glow', label: '⚡ Vintage 1972 Filament' },
+        { id: 'candle_flicker', label: '🕯️ Candle / Lantern Flame' },
+        { id: 'tidal_ripple', label: '🌊 Tidal Ripple' },
+        { id: 'piston_chug', label: '🚂 Locomotive Piston Chug' },
+        { id: 'marquee', label: '🎪 Classic Marquee Chase' },
+        { id: 'fireworks', label: '🎆 Fireworks Starburst' },
         { id: 'rainbow_cycle', label: '🌈 Rainbow Color Wave' },
+        { id: 'photo_mode', label: '📸 Castle Photo Mode (Solid)' },
+        { id: 'chase', label: '🎡 Chase / Wheel Spin' },
+        { id: 'flash_slow', label: '💡 Slow Flashing / Blink' },
+        { id: 'sparkle_storm', label: '✨ Sparkle Storm' },
+        { id: 'write_on_off', label: '✍️ Theatrical Write-On/Off' },
         { id: 'traveling_wave', label: '🌊 Traveling Parade Wave' },
         { id: 'fire_breath', label: '🔥 Snout Fire Breath' },
-        { id: 'fireworks', label: '🎆 Fireworks Starburst' },
         { id: 'off', label: '🌑 Off / Completely Unlit' }
     ];
 

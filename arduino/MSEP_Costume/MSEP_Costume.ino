@@ -643,12 +643,20 @@ void handleFloatConfigMode() {
 // Respects AMBIENT_FALLBACK_PATTERN compiled from the simulator ambient tab selection
 // ============================================================================
 void renderAmbientFallback(uint32_t now) {
-#if defined(AMBIENT_FALLBACK_PATTERN) && (AMBIENT_FALLBACK_PATTERN == COSTUME_PATTERN_BREATHING_GLOW)
     uint32_t beatMs = 60000 / max((uint16_t)20, (uint16_t)COSTUME_SPEED_BPM);
-    float normTime = (float)now / (float)beatMs;
-    float sine = sinf(normTime * 6.2831853f) * 0.5f + 0.5f;
-    uint8_t breath = (uint8_t)((0.15f + 0.85f * sine) * 255.0f);
+#if defined(AMBIENT_FALLBACK_PATTERN) && (AMBIENT_FALLBACK_PATTERN == COSTUME_PATTERN_BREATHING_GLOW)
+    uint8_t breath = beatsin8(COSTUME_SPEED_BPM / 2, 40, 255);
+#elif defined(AMBIENT_FALLBACK_PATTERN) && (AMBIENT_FALLBACK_PATTERN == COSTUME_PATTERN_COMET)
+    uint8_t cometHead = ((now / max((uint32_t)10, beatMs / 8)) % FRONT_LEDS);
+#elif defined(AMBIENT_FALLBACK_PATTERN) && (AMBIENT_FALLBACK_PATTERN == COSTUME_PATTERN_SCANNER)
+    uint8_t scanPos = beatsin8(COSTUME_SPEED_BPM / 2, 0, FRONT_LEDS - 1);
+#elif defined(AMBIENT_FALLBACK_PATTERN) && (AMBIENT_FALLBACK_PATTERN == COSTUME_PATTERN_COLOR_WIPE)
+    uint32_t wipeCycle = now % (beatMs * 4);
+    float wipeProg = (float)wipeCycle / (float)(beatMs * 4);
+#elif defined(AMBIENT_FALLBACK_PATTERN) && (AMBIENT_FALLBACK_PATTERN == COSTUME_PATTERN_PISTON_CHUG)
+    uint8_t chugStep = ((now / max((uint32_t)20, beatMs / 2)) % 4);
 #endif
+
     for (int i = 0; i < FRONT_LEDS && i < MAX_LEDS_CAPACITY; i++) {
 #if defined(HAS_CUSTOM_PALETTE) && HAS_CUSTOM_PALETTE
         CRGB baseColor = ARTWORK_PALETTE[i];
@@ -656,15 +664,94 @@ void renderAmbientFallback(uint32_t now) {
         uint8_t floatIdx = (myFloatNumber >= 1 && myFloatNumber <= 7) ? (myFloatNumber - 1) : 0;
         CRGB baseColor = FLEET_ROSTER_INFO[floatIdx].color;
 #endif
+
 #if defined(AMBIENT_FALLBACK_PATTERN) && (AMBIENT_FALLBACK_PATTERN == COSTUME_PATTERN_PHOTO_MODE)
-        // Castle Photo Mode: solid artwork colors, no sparkle
         leds[i] = baseColor;
 #elif defined(AMBIENT_FALLBACK_PATTERN) && (AMBIENT_FALLBACK_PATTERN == COSTUME_PATTERN_BREATHING_GLOW)
-        // Breathing Glow: pulse artwork colors in and out
         baseColor.nscale8_video(breath);
         leds[i] = baseColor;
         if (COSTUME_SPARKLE_RATE > 0 && random16(10000) < (uint16_t)(COSTUME_SPARKLE_RATE * 100)) {
             leds[i] = CRGB(255, 255, 240);
+        }
+#elif defined(AMBIENT_FALLBACK_PATTERN) && (AMBIENT_FALLBACK_PATTERN == COSTUME_PATTERN_COMET)
+        int dist = (cometHead - i + FRONT_LEDS) % FRONT_LEDS;
+        if (dist < 10) {
+            uint8_t fade = 255 - (dist * 25);
+            CRGB c = baseColor;
+            c.nscale8_video(fade);
+            if (dist == 0) c += CRGB(120, 120, 120);
+            leds[i] = c;
+        } else {
+            CRGB dim = baseColor;
+            dim.nscale8_video(25);
+            leds[i] = dim;
+        }
+#elif defined(AMBIENT_FALLBACK_PATTERN) && (AMBIENT_FALLBACK_PATTERN == COSTUME_PATTERN_SCANNER)
+        int dist = abs(i - scanPos);
+        if (dist < 6) {
+            uint8_t fade = 255 - (dist * 42);
+            CRGB c = baseColor;
+            c.nscale8_video(fade);
+            if (dist == 0) c += CRGB(100, 100, 100);
+            leds[i] = c;
+        } else {
+            CRGB dim = baseColor;
+            dim.nscale8_video(25);
+            leds[i] = dim;
+        }
+#elif defined(AMBIENT_FALLBACK_PATTERN) && (AMBIENT_FALLBACK_PATTERN == COSTUME_PATTERN_COLOR_WIPE)
+        if (wipeProg < 0.40f) {
+            float litHead = (wipeProg / 0.40f) * FRONT_LEDS;
+            leds[i] = (i <= (int)litHead) ? baseColor : CRGB::Black;
+        } else if (wipeProg < 0.58f) {
+            leds[i] = baseColor;
+        } else if (wipeProg < 0.88f) {
+            float offHead = ((wipeProg - 0.58f) / 0.30f) * FRONT_LEDS;
+            leds[i] = (i <= (int)offHead) ? CRGB::Black : baseColor;
+        } else {
+            leds[i] = CRGB::Black;
+        }
+#elif defined(AMBIENT_FALLBACK_PATTERN) && (AMBIENT_FALLBACK_PATTERN == COSTUME_PATTERN_PIXIE_DUST)
+        uint8_t wave = beatsin8(COSTUME_SPEED_BPM / 3, 40, 180, 0, i * 4);
+        baseColor.nscale8_video(wave);
+        if (random16(1000) < 18) {
+            leds[i] = CRGB(255, 255, 240);
+        } else {
+            leds[i] = baseColor;
+        }
+#elif defined(AMBIENT_FALLBACK_PATTERN) && (AMBIENT_FALLBACK_PATTERN == COSTUME_PATTERN_FILAMENT_GLOW)
+        uint8_t drift = inoise8(i * 40, now / 20);
+        uint8_t bright = map(drift, 0, 255, 170, 255);
+        baseColor.nscale8_video(bright);
+        baseColor.r = qadd8(baseColor.r, 20);
+        baseColor.b = qsub8(baseColor.b, 35);
+        leds[i] = baseColor;
+#elif defined(AMBIENT_FALLBACK_PATTERN) && (AMBIENT_FALLBACK_PATTERN == COSTUME_PATTERN_CANDLE_FLICKER)
+        uint8_t flick = inoise8(i * 60, now / 8);
+        uint8_t bright = map(flick, 0, 255, 60, 255);
+        CRGB flame = CRGB(255, 150, 30);
+        flame.nscale8_video(bright);
+        leds[i] = flame;
+#elif defined(AMBIENT_FALLBACK_PATTERN) && (AMBIENT_FALLBACK_PATTERN == COSTUME_PATTERN_TIDAL_RIPPLE)
+        uint8_t wave = beatsin8(COSTUME_SPEED_BPM / 2, 40, 255, 0, abs(i - (FRONT_LEDS / 2)) * 8);
+        baseColor.nscale8_video(wave);
+        leds[i] = baseColor;
+#elif defined(AMBIENT_FALLBACK_PATTERN) && (AMBIENT_FALLBACK_PATTERN == COSTUME_PATTERN_PISTON_CHUG)
+        if (chugStep == 0 || chugStep == 2) {
+            leds[i] = baseColor + CRGB(70, 70, 70);
+        } else {
+            baseColor.nscale8_video(60);
+            leds[i] = baseColor;
+        }
+#elif defined(AMBIENT_FALLBACK_PATTERN) && (AMBIENT_FALLBACK_PATTERN == COSTUME_PATTERN_RAINBOW_CYCLE)
+        uint8_t hueOffset = (uint8_t)(((now) * 256 / beatMs) % 256);
+        leds[i] = CHSV(hueOffset + (i * 256 / FRONT_LEDS), 240, 255);
+#elif defined(AMBIENT_FALLBACK_PATTERN) && (AMBIENT_FALLBACK_PATTERN == COSTUME_PATTERN_MARQUEE)
+        uint8_t step = ((now * 3) / beatMs) % 3;
+        if ((i + step) % 3 == 0) {
+            leds[i] = CRGB(255, 200, 40);
+        } else {
+            leds[i] = CRGB(15, 12, 5);
         }
 #else
         // Default: Steady Sparkle – artwork colors with occasional starlight
@@ -766,15 +853,60 @@ void runAutonomousShowSequence(uint32_t now) {
 #endif
                     leds[i] = lit ? baseColor : CRGB::Black;
                 }
-            } else if (eff == 8) { // sparkle_storm — all white sparkle burst
-                fill_solid(leds, FRONT_LEDS, CRGB::Black);
-                uint16_t storms = max((uint16_t)10, (uint16_t)(COSTUME_SPARKLE_RATE * 200 + 500));
+            } else if (eff == 8) { // comet / chase
+                uint32_t beatMs = 60000 / max((uint16_t)20, bpm);
+                uint8_t cometHead = ((now / max((uint32_t)10, beatMs / 8)) % FRONT_LEDS);
                 for (int i = 0; i < FRONT_LEDS && i < MAX_LEDS_CAPACITY; i++) {
-                    if (random16(1000) < storms / FRONT_LEDS + 50) {
-                        leds[i] = CRGB(255, 255, random8(200, 255));
+                    int dist = (cometHead - i + FRONT_LEDS) % FRONT_LEDS;
+                    if (dist < 10) {
+                        uint8_t fade = 255 - (dist * 25);
+#if defined(HAS_CUSTOM_PALETTE) && HAS_CUSTOM_PALETTE
+                        CRGB c = ARTWORK_PALETTE[i];
+#else
+                        uint8_t floatIdx = (myFloatNumber >= 1 && myFloatNumber <= 7) ? (myFloatNumber - 1) : 0;
+                        CRGB c = FLEET_ROSTER_INFO[floatIdx].color;
+#endif
+                        c.nscale8_video(fade);
+                        if (dist == 0) c += CRGB(120, 120, 120);
+                        leds[i] = c;
+                    } else {
+#if defined(HAS_CUSTOM_PALETTE) && HAS_CUSTOM_PALETTE
+                        CRGB dim = ARTWORK_PALETTE[i];
+#else
+                        uint8_t floatIdx = (myFloatNumber >= 1 && myFloatNumber <= 7) ? (myFloatNumber - 1) : 0;
+                        CRGB dim = FLEET_ROSTER_INFO[floatIdx].color;
+#endif
+                        dim.nscale8_video(25);
+                        leds[i] = dim;
                     }
                 }
-            } else if (eff == 9) { // write_on_off — theatrical progressive wipe
+            } else if (eff == 9) { // scanner
+                uint8_t scanPos = beatsin8(bpm / 2, 0, FRONT_LEDS - 1);
+                for (int i = 0; i < FRONT_LEDS && i < MAX_LEDS_CAPACITY; i++) {
+                    int dist = abs(i - scanPos);
+                    if (dist < 6) {
+                        uint8_t fade = 255 - (dist * 42);
+#if defined(HAS_CUSTOM_PALETTE) && HAS_CUSTOM_PALETTE
+                        CRGB c = ARTWORK_PALETTE[i];
+#else
+                        uint8_t floatIdx = (myFloatNumber >= 1 && myFloatNumber <= 7) ? (myFloatNumber - 1) : 0;
+                        CRGB c = FLEET_ROSTER_INFO[floatIdx].color;
+#endif
+                        c.nscale8_video(fade);
+                        if (dist == 0) c += CRGB(100, 100, 100);
+                        leds[i] = c;
+                    } else {
+#if defined(HAS_CUSTOM_PALETTE) && HAS_CUSTOM_PALETTE
+                        CRGB dim = ARTWORK_PALETTE[i];
+#else
+                        uint8_t floatIdx = (myFloatNumber >= 1 && myFloatNumber <= 7) ? (myFloatNumber - 1) : 0;
+                        CRGB dim = FLEET_ROSTER_INFO[floatIdx].color;
+#endif
+                        dim.nscale8_video(25);
+                        leds[i] = dim;
+                    }
+                }
+            } else if (eff == 10) { // write_on_off / color_wipe
                 uint32_t totalCycleMs = (60000 / max((uint16_t)20, bpm)) * 4;
                 uint32_t progressMs = (now - autonomousShowStartTime) % totalCycleMs;
                 float progress = (float)progressMs / (float)totalCycleMs;
@@ -797,10 +929,86 @@ void runAutonomousShowSequence(uint32_t now) {
                         leds[i] = CRGB::Black;
                     }
                 }
-            } else if (eff == 10) { // rainbow_cycle — flowing chromatic wave
+            } else if (eff == 11) { // pixie_dust
+                for (int i = 0; i < FRONT_LEDS && i < MAX_LEDS_CAPACITY; i++) {
+                    uint8_t wave = beatsin8(bpm / 3, 40, 180, 0, i * 4);
+#if defined(HAS_CUSTOM_PALETTE) && HAS_CUSTOM_PALETTE
+                    CRGB c = ARTWORK_PALETTE[i];
+#else
+                    uint8_t floatIdx = (myFloatNumber >= 1 && myFloatNumber <= 7) ? (myFloatNumber - 1) : 0;
+                    CRGB c = FLEET_ROSTER_INFO[floatIdx].color;
+#endif
+                    c.nscale8_video(wave);
+                    if (random16(1000) < 22) {
+                        leds[i] = CRGB(255, 255, 240);
+                    } else {
+                        leds[i] = c;
+                    }
+                }
+            } else if (eff == 12) { // filament_glow
+                for (int i = 0; i < FRONT_LEDS && i < MAX_LEDS_CAPACITY; i++) {
+                    uint8_t drift = inoise8(i * 40, now / 20);
+                    uint8_t bright = map(drift, 0, 255, 170, 255);
+#if defined(HAS_CUSTOM_PALETTE) && HAS_CUSTOM_PALETTE
+                    CRGB c = ARTWORK_PALETTE[i];
+#else
+                    uint8_t floatIdx = (myFloatNumber >= 1 && myFloatNumber <= 7) ? (myFloatNumber - 1) : 0;
+                    CRGB c = FLEET_ROSTER_INFO[floatIdx].color;
+#endif
+                    c.nscale8_video(bright);
+                    c.r = qadd8(c.r, 20);
+                    c.b = qsub8(c.b, 35);
+                    leds[i] = c;
+                }
+            } else if (eff == 13) { // candle_flicker
+                for (int i = 0; i < FRONT_LEDS && i < MAX_LEDS_CAPACITY; i++) {
+                    uint8_t flick = inoise8(i * 60, now / 8);
+                    uint8_t bright = map(flick, 0, 255, 60, 255);
+                    CRGB flame = CRGB(255, 150, 30);
+                    flame.nscale8_video(bright);
+                    leds[i] = flame;
+                }
+            } else if (eff == 14) { // tidal_ripple
+                for (int i = 0; i < FRONT_LEDS && i < MAX_LEDS_CAPACITY; i++) {
+                    uint8_t wave = beatsin8(bpm / 2, 40, 255, 0, abs(i - (FRONT_LEDS / 2)) * 8);
+#if defined(HAS_CUSTOM_PALETTE) && HAS_CUSTOM_PALETTE
+                    CRGB c = ARTWORK_PALETTE[i];
+#else
+                    uint8_t floatIdx = (myFloatNumber >= 1 && myFloatNumber <= 7) ? (myFloatNumber - 1) : 0;
+                    CRGB c = FLEET_ROSTER_INFO[floatIdx].color;
+#endif
+                    c.nscale8_video(wave);
+                    leds[i] = c;
+                }
+            } else if (eff == 15) { // piston_chug
+                uint32_t beatMs = 60000 / max((uint16_t)20, bpm);
+                uint8_t chugStep = ((now / max((uint32_t)20, beatMs / 2)) % 4);
+                for (int i = 0; i < FRONT_LEDS && i < MAX_LEDS_CAPACITY; i++) {
+#if defined(HAS_CUSTOM_PALETTE) && HAS_CUSTOM_PALETTE
+                    CRGB baseColor = ARTWORK_PALETTE[i];
+#else
+                    uint8_t floatIdx = (myFloatNumber >= 1 && myFloatNumber <= 7) ? (myFloatNumber - 1) : 0;
+                    CRGB baseColor = FLEET_ROSTER_INFO[floatIdx].color;
+#endif
+                    if (chugStep == 0 || chugStep == 2) {
+                        leds[i] = baseColor + CRGB(70, 70, 70);
+                    } else {
+                        baseColor.nscale8_video(60);
+                        leds[i] = baseColor;
+                    }
+                }
+            } else if (eff == 16) { // rainbow_cycle — flowing chromatic wave
                 uint8_t hueOffset = (uint8_t)(((now - autonomousShowStartTime) * 256 / (60000 / max((uint16_t)20, bpm))) % 256);
                 for (int i = 0; i < FRONT_LEDS && i < MAX_LEDS_CAPACITY; i++) {
                     leds[i] = CHSV(hueOffset + (i * 256 / FRONT_LEDS), 240, 255);
+                }
+            } else if (eff == 18) { // sparkle_storm — all white sparkle burst
+                fill_solid(leds, FRONT_LEDS, CRGB::Black);
+                uint16_t storms = max((uint16_t)10, (uint16_t)(COSTUME_SPARKLE_RATE * 200 + 500));
+                for (int i = 0; i < FRONT_LEDS && i < MAX_LEDS_CAPACITY; i++) {
+                    if (random16(1000) < storms / FRONT_LEDS + 50) {
+                        leds[i] = CRGB(255, 255, random8(200, 255));
+                    }
                 }
             } else { // 0: steady_sparkle / default
                 for (int i = 0; i < FRONT_LEDS && i < MAX_LEDS_CAPACITY; i++) {

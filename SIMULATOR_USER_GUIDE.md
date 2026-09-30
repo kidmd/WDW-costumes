@@ -335,13 +335,23 @@ Creating and editing groups is seamlessly integrated into both the Group Creatio
      - *Dynamic Radius Slider:* Continuously scale the explosion radius from **5%** (tight, compact burst) to **28%** (wide, theatrical starburst across the entire upper torso).
      - *Quick Preset Buttons:* Instant one-click size presets: **S (8%)**, **M (13% - Default)**, **L (18%)**, and **XL (24%)** with visual active-state highlighting.
      - *Bidirectional Live Sync:* Adjusting size in the Group Inspector instantly synchronizes the Section 5a Fireworks Generator card, updates LED positions on the canvas, recalculates wiring lengths, and reflects across all inspector coordinate readouts.
-   - **Resting Baseline Effect (When Idle / No Cue):** Configure what the group does when resting outside active timeline cues in Sequence Mode:
+   - **Resting Baseline Effect (When Idle / No Cue):** Configure what the group does when resting outside active timeline cues in Sequence Mode (100% option parity with Tab 2 Ambient patterns):
      - *🌐 Follow Overall Baseline (Default):* The group seamlessly follows the overall float background pattern/cue (e.g. `steady_sparkle`), matching all non-grouped float LEDs.
      - *🌑 Off / Completely Unlit:* The group stays 100% dark (pitch black) outside active cues. Default for fireworks, and ideal for theatrical accents like carriage lanterns, Elliott's dragon fire breathing, or Casey Jr.'s headlight until detonated/triggered on the timeline!
-     - *✨ Gentle Starlight Sparkle:* Gentle starlight twinkling on group pixels.
-     - *💡 Dim Static Glow:* Ambient resting glow (~22% brightness) in the group's artwork or custom color.
-     - *🌬️ Calm Breathing Glow:* Gentle ~30 BPM breathing glow.
-     - *💓 Slow Resting Pulse:* Soft rhythmic heartbeat pulse.
+     - *✨ Steady Colors + Occasional Sparkle:* Calm starlight twinkling on group pixels.
+     - *🌬️ Slo-Glo Breath (Color-Matched Glow):* Gentle ~30–45 BPM breathing glow preserving sampled artwork hues.
+     - *☄️ Meteor / Comet Trail:* Continuous looping comet head with a glowing exponential tail circling group perimeters.
+     - *🛸 Larson Scanner (Ping-Pong Sweep):* Dynamic back-and-forth beam sweep with smooth turnaround wakes.
+     - *✍️ Color Wipe / Progressive Fill:* 4-phase write-on fill, radiant hold, wipe-off, and rest.
+     - *💫 Pixie Dust Drift:* Drifting starlight shimmer cascade rolling across the group.
+     - *⚡ Vintage 1972 Filament:* Micro-voltage analog warmth mimicking Walt Disney World's original incandescent parade bulbs.
+     - *🕯️ Candle / Lantern Flame:* Warm amber/gold organic flame flicker with random multi-harmonic micro-jitter.
+     - *🌊 Tidal Ripple:* Radial wavefront expanding and contracting from group centroid.
+     - *🚂 Locomotive Piston Chug:* 4-stroke mechanical cadence pulse with sharp power stroke and exhaust.
+     - *🎪 Classic Marquee Chase:* 3-phase chasing incandescent border.
+     - *🎆 Fireworks (Radiating Starburst):* Full pyrotechnic explosion sequence.
+     - *🌈 Rainbow Wave:* Flowing chromatic wave across the group.
+     - *📸 Castle Photo Mode:* 100% solid maximum radiance for photo stops.
      - *Cue Crossfading:* When an active cue on that group fires, the show engine smoothly crossfades from the group's configured resting baseline into the active cue effect, and seamlessly returns to baseline when the cue ends.
 
 ---
@@ -602,21 +612,24 @@ Use the **Load Example Routine** dropdown to test fully orchestrated 90-second s
 
 ## 10. Lighting Patterns & Effects Library
 
-The simulator includes 11 specialized algorithms designed specifically for parade floats:
+The simulator includes a unified library of 14 specialized algorithms available across Whole-Shirt Ambient (Tab 2), Group Resting Baselines (Tab 3 & Inspector), and Timed Show Cues (Tab 4):
 
 | Effect ID | Effect Name | Description | Best Suited For |
 |---|---|---|---|
 | `steady_sparkle` | **Steady Colors + Sparkles** | Holds constant artwork color palette with occasional incandescent starlight twinkles. | Entry / ambient float scenes |
-| `color_match` | **Color-Matched Breathing Glow** | Organic sinusoidal breathing pulse that preserves true sampled artwork hues. | Main float bodies |
-| `chase` | **Chase / Wheel Spin** | Directional traveling pulse that rotates around closed loops or lines. | Carriage wheels, rims, borders |
-| `pulse` | **Breathing Glow Pulse** | Rhythmic swelling heartbeat glow. | Lanterns, dragon scales, accents |
-| `flash_slow` | **Slow Flashing / Blink** | Alternating on/off flashing cycle. | Warning lanterns, beacons, stars |
-| `write_on_off` | **Theatrical Write-On / Write-Off** | Successively turns on LEDs one-by-one from start to finish, then wipes them off. | Float entrances and grand reveals |
-| `sparkle_storm` | **Sparkle Storm** | High-energy flurry of white incandescent flashes. | Magic moments, fairy dust, wand taps |
-| `marquee` | **Theater Marquee Chase** | 3-phase alternating incandescent bulb chase (dots 1, 2, 3). | Outer float frames, title drums |
-| `traveling_wave` | **Traveling Parade Wave** | Intense illuminated wave head with fading comet tail. | Float-to-float ESP-NOW sync, finales |
-| `fire_breath` | **Snout Fire Breath** | Flickering flame simulation in amber, orange, and red hues. | Pete's Dragon snout, torches |
+| `color_match` | **Slo-Glo Breath (Color-Matched Glow)** | Organic sinusoidal breathing pulse that preserves true sampled artwork hues (~30-45 BPM). | Main float bodies & idle groups |
+| `comet` | **Meteor / Comet Trail** | High-velocity white-hot comet head shooting along wiring/group perimeter with fading exponential tail. | Wheels, locomotive borders, shooting stars |
+| `scanner` | **Larson Scanner (Ping-Pong Sweep)** | Dynamic back-and-forth beam sweep with smooth turnaround wakes and radiant core. | Cowls, dragon wings, sweeping searchlights |
+| `color_wipe` | **Color Wipe / Progressive Fill** | 4-phase write-on fill along wiring path, radiant hold, wipe-off, and brief dark rest. | Float entrances, theatrical reveals |
+| `pixie_dust` | **Pixie Dust Drift** | Shimmering starlight cascade combining traveling swell envelopes with diamond sparkle bursts. | Fairy wings, magic wands, musical crescendos |
+| `filament_glow` | **Vintage 1972 Filament** | Analog micro-voltage warmth mimicking Walt Disney World's original 1972 incandescent bulbs. | Antique marquees, vintage Edison looks |
+| `candle_flicker` | **Candle / Lantern Flame** | Warm amber/gold organic flame flicker with random multi-harmonic micro-jitter. | Carriage lanterns, torches, Elliott nostrils |
+| `tidal_ripple` | **Tidal Ripple** | Outward-expanding and contracting concentric wavefront from group or float centroid. | Water ripples, shockwaves, radial pulses |
+| `piston_chug` | **Locomotive Piston Chug** | 4-stroke mechanical cadence pulse with sharp power stroke and soft exhaust compression. | Casey Jr. boiler, train wheels, driving rhythms |
+| `marquee` | **Theater Marquee Chase** | 3-phase alternating incandescent bulb chase (dots 1, 2, 3). | Outer float frames, title drum borders |
 | `fireworks` | **Fireworks Starburst** | 4-phase pyrotechnic explosion with center flash, outward expanding fire trails, and starlight tip crackle. | Finales, celestial bursts, chest stars |
+| `rainbow_cycle` | **Rainbow Color Wave** | Flowing chromatic wave cycling across the strand or group contour. | Vibrant rainbow flourishes, electric transitions |
+| `photo_mode` | **Castle Photo Mode** | 100% solid maximum brightness with zero sparkle for crisp, clear photos. | Photo stops, character meet-and-greets |
 
 ---
 

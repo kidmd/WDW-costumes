@@ -93,6 +93,30 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### Entry: 14 Unified Fairy-Light & Parade Animation Sequences Across 3-Layer Architecture
+* **Date:** 2026-09-30
+* **Milestone:** Milestone 3 & Milestone 4 - Lighting Engine & Parade Show Sequencing
+* **Status:** Complete & Verified (`simulator/app.js?v=62`, `simulator/index.html`, `simulator.py`, `src/main.cpp`, `arduino/MSEP_Costume/MSEP_Costume.ino`, and `include/costume_config.h`).
+* **Notes:**
+  - Designed and deployed an expanded unified library of 14 animation sequences inspired by commercial addressable RGBIC fairy light controllers and classic Disney Main Street Electrical Parade theatrical effects:
+    1. `steady_sparkle` (✨ Steady Colors + Occasional Sparkle)
+    2. `color_match` (🌬️ Slo-Glo Breath / Color-Matched Glow)
+    3. `comet` (☄️ Meteor / Comet Trail with blazing white-hot core & exponential decay)
+    4. `scanner` (🛸 Larson Scanner / Knight Rider ping-pong sweep with turnaround wakes)
+    5. `color_wipe` (✍️ Theatrical write-on fill, radiant hold, wipe-off, and rest)
+    6. `pixie_dust` (💫 Cascading starlight waves with crystalline diamond twinkle flashes)
+    7. `filament_glow` (⚡ Vintage 1972 Walt Disney World incandescent micro-voltage analog drift)
+    8. `candle_flicker` (🕯️ Organic multi-harmonic amber/gold lantern & torch flame flicker)
+    9. `tidal_ripple` (🌊 Outward-expanding concentric ripple waves from centroid)
+    10. `piston_chug` (🚂 Casey Jr. 4-stroke mechanical locomotive cadence pulse)
+    11. `marquee` (🎪 3-phase chasing incandescent border)
+    12. `fireworks` (🎆 4-phase radiating starburst with ignition, expansion, and tip crackle)
+    13. `rainbow_cycle` (🌈 Smooth chromatic wave cycling)
+    14. `photo_mode` (📸 100% solid maximum radiance for crisp race photos)
+  - **100% Option Parity:** Harmonized Tab 2 (`#patternSelect`), Tab 3 Group Hub (`#groupBaselineSelectHub`), Tab 3 Draw Mode (`#drawGroupBaselineSelect`), and the Contextual Inspector Dock (`#groupBaselineSelect`) so that group resting baseline options mirror the ambient palette 1:1, plus dedicated group states (`🌐 Follow Overall Baseline (Inherit)` and `🌑 Off / Completely Unlit`).
+  - **3-Layer Crossfading Show Engine:** In `simulator/app.js`, groups smoothly evaluate their resting baseline when idle, crossfade into active cues scheduled on the 90s Master Timeline, and seamlessly return to baseline upon cue completion.
+  - **FastLED C++ Firmware Parity:** Mirrored all 14 sequences and defines into `src/main.cpp` and `arduino/MSEP_Costume/MSEP_Costume.ino` using fixed-point integer routines (`beatsin8`, `inoise8`, `qadd8`, `qsub8`), compiled cleanly with PlatformIO (`SUCCESS Took 18.12s`, 14.3% RAM, 60.6% Flash), and regenerated all 8 float ROM binaries in `firmware/`.
+
 ### Entry: Comprehensive Race Day Packing Checklist & Field Operations Manual
 * **Date:** 2026-09-30
 * **Milestone:** Milestone 5 - Studio Workflow & Hardware Fleet Control

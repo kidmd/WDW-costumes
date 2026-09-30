@@ -475,6 +475,16 @@ class SimulatorRequestHandler(http.server.SimpleHTTPRequestHandler):
                 "marquee": "COSTUME_PATTERN_MARQUEE",
                 "photo_mode": "COSTUME_PATTERN_PHOTO_MODE",
                 "fireworks": "COSTUME_PATTERN_FIREWORKS",
+                "comet": "COSTUME_PATTERN_COMET",
+                "scanner": "COSTUME_PATTERN_SCANNER",
+                "color_wipe": "COSTUME_PATTERN_COLOR_WIPE",
+                "write_on_off": "COSTUME_PATTERN_COLOR_WIPE",
+                "pixie_dust": "COSTUME_PATTERN_PIXIE_DUST",
+                "filament_glow": "COSTUME_PATTERN_FILAMENT_GLOW",
+                "candle_flicker": "COSTUME_PATTERN_CANDLE_FLICKER",
+                "tidal_ripple": "COSTUME_PATTERN_TIDAL_RIPPLE",
+                "piston_chug": "COSTUME_PATTERN_PISTON_CHUG",
+                "rainbow_cycle": "COSTUME_PATTERN_RAINBOW_CYCLE",
                 "autonomous_90s": "COSTUME_PATTERN_AUTONOMOUS_90S"
             }
             active_pattern = pattern_map.get(pattern_str, "COSTUME_PATTERN_STEADY_SPARKLE")
@@ -490,7 +500,17 @@ class SimulatorRequestHandler(http.server.SimpleHTTPRequestHandler):
                 "traveling_wave": 3,
                 "marquee": 4,
                 "photo_mode": 5,
-                "fireworks": 0,  # fireworks as ambient fallback not supported; default to steady
+                "fireworks": 7,
+                "comet": 8,
+                "scanner": 9,
+                "color_wipe": 10,
+                "write_on_off": 10,
+                "pixie_dust": 11,
+                "filament_glow": 12,
+                "candle_flicker": 13,
+                "tidal_ripple": 14,
+                "piston_chug": 15,
+                "rainbow_cycle": 16,
                 "autonomous_90s": 0
             }
             ambient_fallback_code = ambient_pattern_numeric_map.get(ambient_pattern_str, 0)
@@ -533,14 +553,22 @@ class SimulatorRequestHandler(http.server.SimpleHTTPRequestHandler):
                 "fire_breath": 2,
                 "traveling_wave": 3,
                 "marquee": 4,
-                "chase": 4,
+                "chase": 8,            # chase maps to comet/chase
                 "photo_mode": 5,       # Solid lit, no sparkle
                 "off": 5,              # Repurposed: LEDs off — we handle via bpm=0 sentinel
                 "fireworks": 6,
                 "flash_slow": 7,       # Slow blink / flash
                 "sparkle_storm": 8,    # High-density sparkle burst
-                "write_on_off": 9,     # Theatrical write-on
-                "rainbow_cycle": 10    # Rainbow wave
+                "write_on_off": 10,    # Theatrical write-on
+                "color_wipe": 10,
+                "rainbow_cycle": 16,   # Rainbow wave
+                "comet": 8,
+                "scanner": 9,
+                "pixie_dust": 11,
+                "filament_glow": 12,
+                "candle_flicker": 13,
+                "tidal_ripple": 14,
+                "piston_chug": 15
             }
 
             cue_lines = []
@@ -583,6 +611,16 @@ class SimulatorRequestHandler(http.server.SimpleHTTPRequestHandler):
 #define COSTUME_PATTERN_MARQUEE          4
 #define COSTUME_PATTERN_PHOTO_MODE       5
 #define COSTUME_PATTERN_AUTONOMOUS_90S   6
+#define COSTUME_PATTERN_FIREWORKS        7
+#define COSTUME_PATTERN_COMET            8
+#define COSTUME_PATTERN_SCANNER          9
+#define COSTUME_PATTERN_COLOR_WIPE       10
+#define COSTUME_PATTERN_PIXIE_DUST       11
+#define COSTUME_PATTERN_FILAMENT_GLOW    12
+#define COSTUME_PATTERN_CANDLE_FLICKER   13
+#define COSTUME_PATTERN_TIDAL_RIPPLE     14
+#define COSTUME_PATTERN_PISTON_CHUG      15
+#define COSTUME_PATTERN_RAINBOW_CYCLE    16
 
 #define ACTIVE_COSTUME_PATTERN           {active_pattern}
 #define COSTUME_SPEED_BPM                {speed_bpm}
