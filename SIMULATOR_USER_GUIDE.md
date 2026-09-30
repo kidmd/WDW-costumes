@@ -129,6 +129,8 @@ The sidebar navigation is organized into a clean **2-row × 3-column grid** that
      - `🔄 Fill Graphic with Remaining LEDs`: Redistributes non-grouped LEDs to fill open space without moving any grouped LEDs.
      - `🔌 Optimize Wiring Route`: Calculates the shortest serpentine continuous snake route.
      - `Show Wiring Trace` and `Show Bulb Numbers` inspection toggles.
+     - **🧵 Show Vinyl Pill Slots (6×3mm) & Tangent Pebble LEDs:** Toggles ultra-realistic fabrication view modeling the physical mesh pinnie vest. Renders the exact $6.0\,\text{mm} \times 3.0\,\text{mm}$ HTV vinyl pill cutout exposing the dark mesh weave, with tangent-aligned $4.0\,\text{mm} \times 3.0\,\text{mm}$ clear epoxy resin pebble LEDs oriented along the natural flow of the wire to minimize wire bending and solder fatigue.
+     - **✂️ Export Cut SVG (with 6×3mm Pill Slots):** 1-Click button in Section 2 to export production-ready Cricut cut files with the $6\times 3\,\text{mm}$ slots pre-punched at the calculated tangent angles for all 100 LEDs.
      - **🧵 Wire Tension & Physical Spacing Heatmap:** Real-time physical distance validation between consecutive LEDs ($18" \times 24"$ garment model). Color-codes segments as 🟢 Slack (`<1.8"`), 🟡 Snug (`1.8–2.4"`), or 🔴 Alert (`>2.4"`), displays strand metrics (total length, average pitch, max span), and includes a `🔍 Inspect Max Span` tool to immediately locate tight spans.
    - **🪞 Bilateral Symmetry & Mirror Tool:**
      - `Show Centerline Axis (x = 50%)`: Dashed purple/cyan vertical guide with illuminated badges for precise centering.

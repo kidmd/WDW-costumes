@@ -269,6 +269,7 @@
                         </div>
                         <div class="btn-row" style="margin-top: 4px; display: flex; gap: 6px;">
                             <button id="downloadProfileBtn" class="action-btn" style="flex: 1; font-size: 11px; padding: 5px 8px;" title="Export and download this full costume configuration as JSON">⬇ Export JSON</button>
+                            <button id="exportCricutSvgBtn" class="action-btn" style="flex: 1; font-size: 11px; padding: 5px 8px; background: rgba(255, 183, 3, 0.12); border-color: rgba(255, 183, 3, 0.4); color: #ffb703;" title="Export production-ready Cricut SVG cut files with 6x3mm tangent pill cutouts pre-punched for all 100 LEDs">✂️ Export Cut SVG</button>
                             <button id="importProfileBtn" class="action-btn" style="flex: 1; font-size: 11px; padding: 5px 8px;" title="Import a previously saved costume configuration JSON file">📂 Import JSON</button>
                             <input type="file" id="importProfileFileInput" accept=".json,application/json" style="display: none;">
                         </div>
@@ -307,6 +308,15 @@
                             <span id="wiringLabel" style="font-size: 11px;">Show Wiring Trace (0 &rarr; 99)</span>
                             <label class="switch">
                                 <input type="checkbox" id="showWiringToggle">
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+
+                        <!-- 6x3mm Vinyl Weave Slots (Pinnie Mesh Cutouts) -->
+                        <div class="toggle-row" style="margin-bottom: 4px;">
+                            <span id="pillSlotsLabel" style="font-size: 11px; color: #ffb703; font-weight: 500;">🧵 Show Vinyl Pill Slots (6×3mm)</span>
+                            <label class="switch">
+                                <input type="checkbox" id="showPillSlotsToggle">
                                 <span class="slider"></span>
                             </label>
                         </div>
@@ -2020,6 +2030,6 @@
         </div>
     </div>
 
-    <script src="app.js?v=56"></script>
+    <script src="app.js?v=57"></script>
 </body>
 </html>

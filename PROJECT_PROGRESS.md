@@ -191,6 +191,21 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
   - Synchronized across simulator, C++ firmware, and Arduino sketch per Rule 5.
   - Bumped script cache query in `simulator/index.html` to `app.js?v=47`.
 
+### Entry: 6mm × 3mm Vinyl Pill Slots, Tangent Pebble LEDs & Sample-First Cutouts
+* **Date:** 2026-09-29
+* **Milestone:** Milestone 5 - Studio Workflow & Hardware Fleet Control
+* **Status:** Operational & Synchronized across `simulator/app.js?v=57`, `simulator/index.html`, `SIMULATOR_USER_GUIDE.md`, and `PROJECT_PROGRESS.md`.
+* **Notes:**
+  - Implemented **Sample-First, Cut-After Workflow**: Moving or re-positioning LEDs samples the intact underlying vinyl graphic at 1-point center first (`sampleColorAtNorm`), guaranteeing 100% fast, deterministic color matching before rendering the cutout.
+  - Implemented **Dynamic Wire Tangent Auto-Orientation (`getLedTangentAngle`)**: Automatically calculates tangent vector $\vec{T}_i = \mathbf{P}_{i+1} - \mathbf{P}_{i-1}$ along the continuous wiring route, aligning pill slots and pebble LEDs with the natural flow of the wire to eliminate sharp $90^\circ$ bends and solder fatigue.
+  - Implemented **True-Scale Fabrication Rendering (`renderBulb`)**:
+    - Modeled $6.0\,\text{mm} \times 3.0\,\text{mm}$ rounded rectangular capsule cutouts in the HTV vinyl layer with dark polyester mesh pinnie weave backing and eyelet perforations.
+    - Modeled $4.0\,\text{mm} \times 3.0\,\text{mm}$ clear epoxy resin pebble LEDs with silicon micro-die chip, specular dome highlight, and directional elliptical bloom.
+  - Added **`🧵 Show Vinyl Pill Slots (6×3mm)`** toggle switch in Layout Tab Section 3 (`#showPillSlotsToggle`) with `localStorage` persistence.
+  - Added **`✂️ Export Cut SVG` (`exportCricutSvgWithPillSlots`)**: 1-click generator in Section 2 exporting production-ready Cricut SVG cut files with $6\times 3\,\text{mm}$ tangent pill slots pre-punched for all 100 LEDs.
+  - Preserved 100% of Layout tab functionality: direct canvas dragging, `100 Scatter`, `50 Outline`, `Fill Graphic`, and `Ctrl+Z` Undo all work seamlessly.
+  - Bumped script cache query in `simulator/index.html` to `app.js?v=57`.
+
 ### Entry: Master Fleet Parade Show Suite Export/Import (Master JSON Bundle Engine)
 * **Date:** 2026-09-28
 * **Milestone:** Milestone 5 - Studio Workflow & Hardware Fleet Control

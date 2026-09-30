@@ -56,6 +56,7 @@ let params = {
     glowSize: 20,
     showWiring: false,
     showWireTension: false,
+    showPillSlots: false,
     showSymmetryAxis: false,
     liveSymmetryDrag: false,
     showNumbers: false,
@@ -1955,42 +1956,230 @@ function computeLedColor(index, totalLeds, timeMs) {
     return evalGlobalPattern(activePattern, params.speedBpm, index, totalLeds, timeMs, c, hasColor);
 }
 
+
+// Calculate tangent angle of the continuous wiring path at LED index i
+function getLedTangentAngle(index, ledsList) {
+    const list = ledsList || leds;
+    if (!list || list.length === 0) return 0;
+    if (list.length === 1) return 0;
+
+    const curr = normToCanvas(list[index]);
+    let prev = (index > 0) ? normToCanvas(list[index - 1]) : curr;
+    let next = (index < list.length - 1) ? normToCanvas(list[index + 1]) : curr;
+
+    if (index === 0) {
+        return Math.atan2(next.y - curr.y, next.x - curr.x);
+    }
+    if (index === list.length - 1) {
+        return Math.atan2(curr.y - prev.y, curr.x - prev.x);
+    }
+    // Interior points: smooth chord tangent (next - prev)
+    return Math.atan2(next.y - prev.y, next.x - prev.x);
+}
+
+
+// Export production-ready Cricut SVG cut files with 6x3mm tangent pill cutouts pre-punched for all 100 LEDs
+function exportCricutSvgWithPillSlots() {
+    try {
+        const floatNames = {
+            'casey_jr_train': 'casey_jr_train',
+            'title_drum': 'title_drum',
+            'spinning_turtle': 'spinning_turtle',
+            'spinning_snail': 'spinning_snail',
+            'cinderellas_coach': 'cinderella_coach',
+            'cinderella_coach': 'cinderella_coach',
+            'carriage_nohorses': 'cinderella_coach',
+            'builtin_dragon': 'petes_dragon',
+            'petes_dragon': 'petes_dragon',
+            'honor_america_eagle': 'honor_america_eagle'
+        };
+        const svgBaseName = floatNames[currentGraphicType] || 'costume_graphic';
+        
+        // Build SVG knockout elements for all LEDs
+        // Graphic chest area in viewBox 0 0 800 600
+        const gb = getGraphicChestBounds();
+        let slotCutoutsSvg = '';
+
+        for (let i = 0; i < leds.length; i++) {
+            const l = leds[i];
+            const relX = (l.x - gb.normX) / gb.normW;
+            const relY = (l.y - gb.normY) / gb.normH;
+            if (relX < -0.05 || relX > 1.05 || relY < -0.05 || relY > 1.05) continue;
+
+            const svgX = (relX * 800).toFixed(1);
+            const svgY = (relY * 600).toFixed(1);
+            const angleDeg = (getLedTangentAngle(i, leds) * 180 / Math.PI).toFixed(1);
+
+            // 6mm x 3mm pill slot scaled to 800x600 SVG coordinates (~14px x 7px)
+            slotCutoutsSvg += `    <rect x="-7.0" y="-3.5" width="14.0" height="7.0" rx="3.5" transform="translate(${svgX}, ${svgY}) rotate(${angleDeg})" fill="#000000" stroke="#ff0055" stroke-width="1.0" class="cricut-led-slot" data-led="${i}" />\n`;
+        }
+
+        const fullSvg = `<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600" width="100%" height="100%">
+  <!-- Main Street Electrical Parade - Cricut HTV Cut Layer with 6x3mm LED Pill Slots -->
+  <!-- Generated for: ${svgBaseName.toUpperCase()} | 100 LEDs Tangent-Aligned -->
+  <defs>
+    <style>
+      .cricut-led-slot { fill: #000000; stroke: #ff0055; stroke-width: 1.2; }
+    </style>
+  </defs>
+
+  <g id="Layer_LED_Pill_Slots_6x3mm">
+${slotCutoutsSvg}  </g>
+</svg>`;
+
+        const blob = new Blob([fullSvg], { type: 'image/svg+xml;charset=utf-8' });
+        const dlAnchor = document.createElement('a');
+        dlAnchor.href = URL.createObjectURL(blob);
+        dlAnchor.download = `${svgBaseName}_cricut_6x3mm_slots.svg`;
+        document.body.appendChild(dlAnchor);
+        dlAnchor.click();
+        document.body.removeChild(dlAnchor);
+
+        showToast(`✂️ Exported ${svgBaseName}_cricut_6x3mm_slots.svg (${leds.length} Pill Slots)!`);
+    } catch (err) {
+        console.error("Error exporting Cricut SVG:", err);
+        showToast("⚠️ Failed to export Cricut SVG: " + err.message);
+    }
+}
+
 function renderBulb(cx, x, y, col, isHovered, isSelected, index) {
     if (!col) return;
     const isLit = (col.alpha > 0.01) && (col.r > 2 || col.g > 2 || col.b > 2);
+    const bulbAlpha = (col.alpha !== undefined) ? Math.max(0.35, Math.min(1.0, col.alpha)) : 1.0;
 
-    if (isLit) {
-        const glowRadius = params.glowSize;
-        const bulbAlpha = (col.alpha !== undefined) ? Math.max(0.35, Math.min(1.0, col.alpha)) : 1.0;
-        const grad = cx.createRadialGradient(x, y, 1, x, y, glowRadius);
-        grad.addColorStop(0, `rgba(${col.r}, ${col.g}, ${col.b}, ${0.85 * bulbAlpha})`);
-        grad.addColorStop(0.3, `rgba(${col.r}, ${col.g}, ${col.b}, ${0.45 * bulbAlpha})`);
-        grad.addColorStop(0.7, `rgba(${col.r}, ${col.g}, ${col.b}, ${0.12 * bulbAlpha})`);
-        grad.addColorStop(1, 'rgba(0, 0, 0, 0)');
+    if (params.showPillSlots) {
+        // Physical scale: 18.0 inch wide garment (457.2 mm)
+        const s = getShirtBounds();
+        const ppm = s.width / 457.2;
+        const slotW = Math.max(12, 6.0 * ppm); // 6mm slot width
+        const slotH = Math.max(6, 3.0 * ppm);  // 3mm slot height
+        const ledW = Math.max(8, 4.0 * ppm);   // 4mm pebble LED width
+        const ledH = Math.max(5.5, 3.0 * ppm); // 3mm pebble LED height
+        const angle = getLedTangentAngle(index, leds);
 
-        cx.fillStyle = grad;
-        cx.beginPath();
-        cx.arc(x, y, glowRadius, 0, Math.PI * 2);
-        cx.fill();
+        cx.save();
+        cx.translate(x, y);
+        cx.rotate(angle);
 
+        // 1. Vinyl Cutout Hole (6mm x 3mm Pill Capsule)
+        // Shows dark pinnie mesh fabric underneath where vinyl was cut away
         cx.beginPath();
-        cx.arc(x, y, 4.5, 0, Math.PI * 2);
-        cx.fillStyle = `rgba(${Math.min(255, col.r + 35)}, ${Math.min(255, col.g + 35)}, ${Math.min(255, col.b + 35)}, ${Math.max(0.7, bulbAlpha)})`;
+        if (typeof cx.roundRect === 'function') {
+            cx.roundRect(-slotW / 2, -slotH / 2, slotW, slotH, slotH / 2);
+        } else {
+            cx.ellipse(0, 0, slotW / 2, slotH / 2, 0, 0, Math.PI * 2);
+        }
+        cx.fillStyle = '#0a0d12'; // Dark pinnie mesh fabric backing
         cx.fill();
-
-        cx.beginPath();
-        cx.arc(x, y, 2.0, 0, Math.PI * 2);
-        cx.fillStyle = `rgba(255, 255, 255, ${0.9 * bulbAlpha})`;
-        cx.fill();
-    } else {
-        // Physical unlit LED bead (completely off)
-        cx.beginPath();
-        cx.arc(x, y, 3.5, 0, Math.PI * 2);
-        cx.fillStyle = 'rgba(22, 26, 33, 0.85)';
-        cx.fill();
-        cx.strokeStyle = 'rgba(75, 82, 95, 0.45)';
-        cx.lineWidth = 1;
+        cx.strokeStyle = 'rgba(255, 255, 255, 0.40)'; // Clean laser/blade cut vinyl edge
+        cx.lineWidth = 1.0;
         cx.stroke();
+
+        // 2. Visible mesh weave eyelet perforations inside the cutout
+        const eyeletSpacing = slotW * 0.28;
+        cx.fillStyle = '#040608';
+        cx.beginPath();
+        cx.arc(-eyeletSpacing, 0, slotH * 0.26, 0, Math.PI * 2);
+        cx.arc(eyeletSpacing, 0, slotH * 0.26, 0, Math.PI * 2);
+        cx.fill();
+
+        // 3. Flat 3-conductor ribbon wire entering/exiting through mesh eyelets
+        cx.strokeStyle = 'rgba(180, 185, 195, 0.45)';
+        cx.lineWidth = Math.max(1.2, 1.0 * ppm);
+        cx.beginPath();
+        cx.moveTo(-slotW / 2, 0); cx.lineTo(-ledW / 2, 0);
+        cx.moveTo(ledW / 2, 0); cx.lineTo(slotW / 2, 0);
+        cx.stroke();
+
+        // 4. Glow Bloom (Elliptical radiating from the lens)
+        if (isLit) {
+            const glowR = params.glowSize;
+            const grad = cx.createRadialGradient(0, 0, 1, 0, 0, glowR);
+            grad.addColorStop(0, `rgba(${col.r}, ${col.g}, ${col.b}, ${0.85 * bulbAlpha})`);
+            grad.addColorStop(0.35, `rgba(${col.r}, ${col.g}, ${col.b}, ${0.45 * bulbAlpha})`);
+            grad.addColorStop(0.75, `rgba(${col.r}, ${col.g}, ${col.b}, ${0.12 * bulbAlpha})`);
+            grad.addColorStop(1, 'rgba(0, 0, 0, 0)');
+
+            cx.fillStyle = grad;
+            cx.beginPath();
+            cx.ellipse(0, 0, glowR * 1.15, glowR * 0.90, 0, 0, Math.PI * 2);
+            cx.fill();
+        }
+
+        // 5. 4mm x 3mm Clear Epoxy Resin Pebble Capsule
+        cx.beginPath();
+        if (typeof cx.roundRect === 'function') {
+            cx.roundRect(-ledW / 2, -ledH / 2, ledW, ledH, ledH / 2);
+        } else {
+            cx.ellipse(0, 0, ledW / 2, ledH / 2, 0, 0, Math.PI * 2);
+        }
+
+        if (isLit) {
+            cx.fillStyle = `rgba(${Math.min(255, col.r + 35)}, ${Math.min(255, col.g + 35)}, ${Math.min(255, col.b + 35)}, ${Math.max(0.85, bulbAlpha)})`;
+            cx.fill();
+            cx.strokeStyle = 'rgba(255, 255, 255, 0.75)';
+            cx.lineWidth = 0.8;
+            cx.stroke();
+
+            // Inner intense white emission core
+            cx.beginPath();
+            cx.ellipse(0, 0, ledW * 0.35, ledH * 0.35, 0, 0, Math.PI * 2);
+            cx.fillStyle = `rgba(255, 255, 255, ${0.95 * bulbAlpha})`;
+            cx.fill();
+        } else {
+            cx.fillStyle = 'rgba(25, 30, 38, 0.90)';
+            cx.fill();
+            cx.strokeStyle = 'rgba(75, 82, 95, 0.6)';
+            cx.lineWidth = 0.8;
+            cx.stroke();
+
+            // Unlit silicone micro-die chip center
+            cx.fillStyle = 'rgba(160, 140, 90, 0.7)';
+            cx.fillRect(-ledW * 0.15, -ledH * 0.15, ledW * 0.3, ledH * 0.3);
+        }
+
+        // 6. Resin dome top specular gloss highlight
+        cx.beginPath();
+        cx.ellipse(-ledW * 0.15, -ledH * 0.22, ledW * 0.25, ledH * 0.12, -0.1, 0, Math.PI * 2);
+        cx.fillStyle = 'rgba(255, 255, 255, 0.65)';
+        cx.fill();
+
+        cx.restore();
+    } else {
+        // Standard Circular Light Bulb
+        if (isLit) {
+            const glowRadius = params.glowSize;
+            const grad = cx.createRadialGradient(x, y, 1, x, y, glowRadius);
+            grad.addColorStop(0, `rgba(${col.r}, ${col.g}, ${col.b}, ${0.85 * bulbAlpha})`);
+            grad.addColorStop(0.3, `rgba(${col.r}, ${col.g}, ${col.b}, ${0.45 * bulbAlpha})`);
+            grad.addColorStop(0.7, `rgba(${col.r}, ${col.g}, ${col.b}, ${0.12 * bulbAlpha})`);
+            grad.addColorStop(1, 'rgba(0, 0, 0, 0)');
+
+            cx.fillStyle = grad;
+            cx.beginPath();
+            cx.arc(x, y, glowRadius, 0, Math.PI * 2);
+            cx.fill();
+
+            cx.beginPath();
+            cx.arc(x, y, 4.5, 0, Math.PI * 2);
+            cx.fillStyle = `rgba(${Math.min(255, col.r + 35)}, ${Math.min(255, col.g + 35)}, ${Math.min(255, col.b + 35)}, ${Math.max(0.7, bulbAlpha)})`;
+            cx.fill();
+
+            cx.beginPath();
+            cx.arc(x, y, 2.0, 0, Math.PI * 2);
+            cx.fillStyle = `rgba(255, 255, 255, ${0.9 * bulbAlpha})`;
+            cx.fill();
+        } else {
+            // Physical unlit LED bead (completely off)
+            cx.beginPath();
+            cx.arc(x, y, 3.5, 0, Math.PI * 2);
+            cx.fillStyle = 'rgba(22, 26, 33, 0.85)';
+            cx.fill();
+            cx.strokeStyle = 'rgba(75, 82, 95, 0.45)';
+            cx.lineWidth = 1;
+            cx.stroke();
+        }
     }
 
     if (isSelected) {
@@ -9472,6 +9661,16 @@ document.getElementById('showWiringToggle').addEventListener('change', (e) => {
     params.showWiring = e.target.checked;
     updateWireTensionUI();
     markSingleShirtDirty();
+});
+
+document.getElementById('showPillSlotsToggle')?.addEventListener('change', (e) => {
+    params.showPillSlots = e.target.checked;
+    try { localStorage.setItem('msep_show_pill_slots', params.showPillSlots ? 'true' : 'false'); } catch (err) {}
+    markSingleShirtDirty();
+});
+
+document.getElementById('exportCricutSvgBtn')?.addEventListener('click', () => {
+    exportCricutSvgWithPillSlots();
 });
 
 document.getElementById('showWireTensionToggle')?.addEventListener('change', (e) => {
