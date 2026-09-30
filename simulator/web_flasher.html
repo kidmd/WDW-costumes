@@ -605,9 +605,9 @@
             armedRolePill.textContent = '📡 Fleet Follower';
         }
 
-        // Re-inject esp-web-install-button with targeted manifest
+        // Re-inject esp-web-install-button with targeted manifest (relative path works on both localhost & GitHub Pages)
         const host = document.getElementById('installButtonHost');
-        const manifestUrl = flt.id > 0 ? `/firmware/manifest_float${flt.id}.json` : `/firmware/manifest.json`;
+        const manifestUrl = flt.id > 0 ? `../firmware/manifest_float${flt.id}.json` : `../firmware/manifest.json`;
 
         host.innerHTML = `
             <esp-web-install-button manifest="${manifestUrl}">
