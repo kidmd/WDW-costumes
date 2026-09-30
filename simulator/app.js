@@ -1978,45 +1978,442 @@ function getLedTangentAngle(index, ledsList) {
 }
 
 
-// Export production-ready Cricut SVG cut files with 6x3mm tangent pill cutouts pre-punched for all 100 LEDs
-function exportCricutSvgWithPillSlots() {
-    try {
-        const floatNames = {
-            'casey_jr_train': 'casey_jr_train',
-            'title_drum': 'title_drum',
-            'spinning_turtle': 'spinning_turtle',
-            'spinning_snail': 'spinning_snail',
-            'cinderellas_coach': 'cinderella_coach',
-            'cinderella_coach': 'cinderella_coach',
-            'carriage_nohorses': 'cinderella_coach',
-            'builtin_dragon': 'petes_dragon',
-            'petes_dragon': 'petes_dragon',
-            'honor_america_eagle': 'honor_america_eagle'
-        };
-        const svgBaseName = floatNames[currentGraphicType] || 'costume_graphic';
-        
-        // Build SVG knockout elements for all LEDs
-        // Graphic chest area in viewBox 0 0 800 600
-        const gb = getGraphicChestBounds();
-        let slotCutoutsSvg = '';
+// ============================================================================
+// 🎨 CRICUT HTV MULTI-LAYER SVG EXPORT SUITE WITH 6×3mm PILL SLOTS
+// ============================================================================
 
-        for (let i = 0; i < leds.length; i++) {
-            const l = leds[i];
-            const relX = (l.x - gb.normX) / gb.normW;
-            const relY = (l.y - gb.normY) / gb.normH;
-            if (relX < -0.05 || relX > 1.05 || relY < -0.05 || relY > 1.05) continue;
+const CRICUT_FLOAT_CONFIG = {
+    'petes_dragon': {
+        floatId: 6,
+        name: "Pete's Dragon (Elliott)",
+        role: "FOLLOWER",
+        tag: "FAN FAVORITE",
+        svgFile: "petes_dragon.svg",
+        layers: [
+            { id: "Layer_1_Green_Vinyl", name: "Emerald Body & Legs", hex: "#00ff88", r: 0, g: 255, b: 136 },
+            { id: "Layer_2_Pink_Vinyl", name: "Pink Crest, Wings & Spines", hex: "#ff007f", r: 255, g: 25, b: 230 },
+            { id: "Layer_3_Orange_Vinyl", name: "Marigold Flame & Belly", hex: "#fb8500", r: 251, g: 133, b: 0 },
+            { id: "Layer_4_White_Vinyl", name: "White Details & Eye", hex: "#ffffff", r: 255, g: 255, b: 255 }
+        ]
+    },
+    'builtin_dragon': {
+        floatId: 6,
+        name: "Pete's Dragon (Elliott)",
+        role: "FOLLOWER",
+        tag: "FAN FAVORITE",
+        svgFile: "petes_dragon.svg",
+        layers: [
+            { id: "Layer_1_Green_Vinyl", name: "Emerald Body & Legs", hex: "#00ff88", r: 0, g: 255, b: 136 },
+            { id: "Layer_2_Pink_Vinyl", name: "Pink Crest, Wings & Spines", hex: "#ff007f", r: 255, g: 25, b: 230 },
+            { id: "Layer_3_Orange_Vinyl", name: "Marigold Flame & Belly", hex: "#fb8500", r: 251, g: 133, b: 0 },
+            { id: "Layer_4_White_Vinyl", name: "White Details & Eye", hex: "#ffffff", r: 255, g: 255, b: 255 }
+        ]
+    },
+    'casey_jr_train': {
+        floatId: 1,
+        name: "Casey Jr. Locomotive",
+        role: "LEADER",
+        tag: "PARADE ENGINE",
+        svgFile: "casey_jr_train.svg",
+        layers: [
+            { id: "Layer_1_Red_Vinyl", name: "Crimson Boiler & Cab", hex: "#e63946", r: 230, g: 57, b: 70 },
+            { id: "Layer_2_Cyan_Vinyl", name: "Cyan Roof & Trim", hex: "#48cae4", r: 72, g: 202, b: 228 },
+            { id: "Layer_3_Gold_Vinyl", name: "Gold Cowcatcher & Wheels", hex: "#ffb703", r: 255, g: 183, b: 3 },
+            { id: "Layer_4_White_Vinyl", name: "White Headlight & Steam", hex: "#ffffff", r: 255, g: 255, b: 255 }
+        ]
+    },
+    'title_drum': {
+        floatId: 2,
+        name: "The Title Drum",
+        role: "FOLLOWER",
+        tag: "MARQUEE",
+        svgFile: "title_drum.svg",
+        layers: [
+            { id: "Layer_1_Blue_Vinyl", name: "Navy Drum Backdrop", hex: "#1d3557", r: 29, g: 53, b: 87 },
+            { id: "Layer_2_Gold_Vinyl", name: "Gold Marquee Rim", hex: "#ffb703", r: 255, g: 183, b: 3 },
+            { id: "Layer_3_Cyan_Vinyl", name: "Cyan Banners", hex: "#48cae4", r: 72, g: 202, b: 228 },
+            { id: "Layer_4_White_Vinyl", name: "White Bulbs & Text", hex: "#ffffff", r: 255, g: 255, b: 255 }
+        ]
+    },
+    'spinning_turtle': {
+        floatId: 3,
+        name: "The Spinning Turtle",
+        role: "FOLLOWER",
+        tag: "SPINNING",
+        svgFile: "spinning_turtle.svg",
+        layers: [
+            { id: "Layer_1_Green_Vinyl", name: "Teal Turtle Body", hex: "#2ec4b6", r: 46, g: 196, b: 182 },
+            { id: "Layer_2_Red_Vinyl", name: "Red Bow Tie", hex: "#e63946", r: 230, g: 57, b: 70 },
+            { id: "Layer_3_Yellow_Vinyl", name: "Yellow Shell & Glasses", hex: "#ffb703", r: 255, g: 183, b: 3 },
+            { id: "Layer_4_White_Vinyl", name: "White Shell Bulbs", hex: "#ffffff", r: 255, g: 255, b: 255 }
+        ]
+    },
+    'spinning_snail': {
+        floatId: 4,
+        name: "The Spinning Snail",
+        role: "FOLLOWER",
+        tag: "SPINNING",
+        svgFile: "spinning_snail.svg",
+        layers: [
+            { id: "Layer_1_Yellow_Vinyl", name: "Golden Shell Spiral", hex: "#ffb703", r: 255, g: 183, b: 3 },
+            { id: "Layer_2_Pink_Vinyl", name: "Pink Snail Body", hex: "#ff007f", r: 255, g: 0, b: 127 },
+            { id: "Layer_3_Cyan_Vinyl", name: "Cyan Stalks & Shell Accents", hex: "#48cae4", r: 72, g: 202, b: 228 },
+            { id: "Layer_4_White_Vinyl", name: "White Eyes & Accents", hex: "#ffffff", r: 255, g: 255, b: 255 }
+        ]
+    },
+    'cinderella_coach': {
+        floatId: 5,
+        name: "Cinderella's Coach",
+        role: "FOLLOWER",
+        tag: "FAIRY TALE",
+        svgFile: "cinderella_coach.svg",
+        layers: [
+            { id: "Layer_1_Cyan_Vinyl", name: "Cyan Pumpkin Drapes", hex: "#48cae4", r: 72, g: 202, b: 228 },
+            { id: "Layer_2_Gold_Vinyl", name: "Gold Filigree & Wheels", hex: "#ffb703", r: 255, g: 183, b: 3 },
+            { id: "Layer_3_White_Vinyl", name: "White Fairy Sparkles", hex: "#ffffff", r: 255, g: 255, b: 255 }
+        ]
+    },
+    'cinderellas_coach': {
+        floatId: 5,
+        name: "Cinderella's Coach",
+        role: "FOLLOWER",
+        tag: "FAIRY TALE",
+        svgFile: "cinderella_coach.svg",
+        layers: [
+            { id: "Layer_1_Cyan_Vinyl", name: "Cyan Pumpkin Drapes", hex: "#48cae4", r: 72, g: 202, b: 228 },
+            { id: "Layer_2_Gold_Vinyl", name: "Gold Filigree & Wheels", hex: "#ffb703", r: 255, g: 183, b: 3 },
+            { id: "Layer_3_White_Vinyl", name: "White Fairy Sparkles", hex: "#ffffff", r: 255, g: 255, b: 255 }
+        ]
+    },
+    'carriage_nohorses': {
+        floatId: 5,
+        name: "Carriage (No Horses)",
+        role: "FOLLOWER",
+        tag: "FAIRY TALE",
+        svgFile: "cinderella_coach.svg",
+        layers: [
+            { id: "Layer_1_Cyan_Vinyl", name: "Cyan Pumpkin Drapes", hex: "#48cae4", r: 72, g: 202, b: 228 },
+            { id: "Layer_2_Gold_Vinyl", name: "Gold Filigree & Wheels", hex: "#ffb703", r: 255, g: 183, b: 3 },
+            { id: "Layer_3_White_Vinyl", name: "White Fairy Sparkles", hex: "#ffffff", r: 255, g: 255, b: 255 }
+        ]
+    },
+    'honor_america_eagle': {
+        floatId: 7,
+        name: "To Honor America",
+        role: "FOLLOWER",
+        tag: "FINALE",
+        svgFile: "honor_america_eagle.svg",
+        layers: [
+            { id: "Layer_1_Blue_Vinyl", name: "Navy Starfield & Wings", hex: "#1d3557", r: 29, g: 53, b: 87 },
+            { id: "Layer_2_Red_Vinyl", name: "Crimson Flag Stripes", hex: "#e63946", r: 230, g: 57, b: 70 },
+            { id: "Layer_3_Gold_Vinyl", name: "Gold Eagle Beak & Trim", hex: "#ffb703", r: 255, g: 183, b: 3 },
+            { id: "Layer_4_White_Vinyl", name: "Crisp White Stars & Head", hex: "#ffffff", r: 255, g: 255, b: 255 }
+        ]
+    }
+};
 
-            const svgX = (relX * 800).toFixed(1);
-            const svgY = (relY * 600).toFixed(1);
-            const angleDeg = (getLedTangentAngle(i, leds) * 180 / Math.PI).toFixed(1);
+function generateRegistrationCrosshairsSvg() {
+    return `  <!-- HTV Heat Press Registration Marks (4 Corners for Multi-Color Vinyl Layering) -->
+  <g id="Layer_0_Registration_Crosshairs" stroke="#888888" stroke-width="1.5" fill="none">
+    <!-- Top-Left Crosshair -->
+    <path d="M 15 25 L 35 25 M 25 15 L 25 35" />
+    <circle cx="25" cy="25" r="5" />
+    <!-- Top-Right Crosshair -->
+    <path d="M 765 25 L 785 25 M 775 15 L 775 35" />
+    <circle cx="775" cy="25" r="5" />
+    <!-- Bottom-Left Crosshair -->
+    <path d="M 15 575 L 35 575 M 25 565 L 25 585" />
+    <circle cx="25" cy="25" r="5" />
+    <!-- Bottom-Right Crosshair -->
+    <path d="M 765 575 L 785 575 M 775 565 L 775 585" />
+    <circle cx="775" cy="575" r="5" />
+  </g>\n`;
+}
 
-            // 6mm x 3mm pill slot scaled to 800x600 SVG coordinates (~14px x 7px)
-            slotCutoutsSvg += `    <rect x="-7.0" y="-3.5" width="14.0" height="7.0" rx="3.5" transform="translate(${svgX}, ${svgY}) rotate(${angleDeg})" fill="#000000" stroke="#ff0055" stroke-width="1.0" class="cricut-led-slot" data-led="${i}" />\n`;
+async function fetchMasterSvgText(filename) {
+    const urls = [
+        `assets/cricut_svg/${filename}`,
+        `/assets/cricut_svg/${filename}`,
+        `simulator/assets/cricut_svg/${filename}`
+    ];
+    for (const url of urls) {
+        try {
+            const res = await fetch(url);
+            if (res.ok) {
+                const text = await res.text();
+                if (text && text.includes('<svg')) return text;
+            }
+        } catch (e) {}
+    }
+    return null;
+}
+
+function calculateLedCutoutData(layers) {
+    const gb = getGraphicChestBounds();
+    let allCutoutsXml = '';
+    const layerCutouts = {};
+    const layerLedCounts = {};
+    layers.forEach(l => {
+        layerCutouts[l.id] = '';
+        layerLedCounts[l.id] = 0;
+    });
+
+    const isPeteDragon = (currentGraphicType === 'builtin_dragon' || currentGraphicType === 'petes_dragon');
+
+    for (let i = 0; i < leds.length; i++) {
+        const l = leds[i];
+        const relX = (l.x - gb.normX) / gb.normW;
+        const relY = (l.y - gb.normY) / gb.normH;
+        if (relX < -0.05 || relX > 1.05 || relY < -0.05 || relY > 1.05) continue;
+
+        const svgX = (relX * 800).toFixed(1);
+        const svgY = (relY * 600).toFixed(1);
+        const angleDeg = (getLedTangentAngle(i, leds) * 180 / Math.PI).toFixed(1);
+
+        let bestLayer = layers[0];
+
+        if (isPeteDragon) {
+            // Pete's Dragon: Treat hair crest, wings, and spines on tail uniformly as Pink (Layer 2)
+            if ((l.color.r > 190 && l.color.b > 170 && l.color.g < 120) ||
+                (relY < 0.16 && relX > 0.25 && relX < 0.75) ||
+                (relY >= 0.58 && relX >= 0.65) ||
+                (relY >= 0.22 && relY <= 0.55 && ((relX >= 0.20 && relX <= 0.45) || (relX >= 0.58 && relX <= 0.94)))) {
+                bestLayer = layers.find(lay => lay.id === 'Layer_2_Pink_Vinyl') || layers[1];
+            } else if (l.color.r > 190 && l.color.g > 70 && l.color.b < 80) {
+                bestLayer = layers.find(lay => lay.id === 'Layer_3_Orange_Vinyl') || layers[2];
+            } else if (l.color.r > 220 && l.color.g > 220 && l.color.b > 220) {
+                bestLayer = layers.find(lay => lay.id === 'Layer_4_White_Vinyl') || layers[3];
+            } else {
+                bestLayer = layers.find(lay => lay.id === 'Layer_1_Green_Vinyl') || layers[0];
+            }
+        } else {
+            // Euclidean distance in RGB color space to match closest mat color
+            let minD = 1e9;
+            for (const lay of layers) {
+                const dr = l.color.r - lay.r;
+                const dg = l.color.g - lay.g;
+                const db = l.color.b - lay.b;
+                const d = dr * dr + dg * dg + db * db;
+                if (d < minD) {
+                    minD = d;
+                    bestLayer = lay;
+                }
+            }
         }
 
-        const fullSvg = `<?xml version="1.0" encoding="UTF-8"?>
+        layerLedCounts[bestLayer.id] = (layerLedCounts[bestLayer.id] || 0) + 1;
+
+        // 6.0mm x 3.0mm pill slot scaled to 800x600 SVG coordinates (~14px x 7px)
+        const rectXml = `    <rect x="-7.0" y="-3.5" width="14.0" height="7.0" rx="3.5" transform="translate(${svgX}, ${svgY}) rotate(${angleDeg})" fill="#000000" stroke="${bestLayer.hex}" stroke-width="1.0" class="cricut-led-slot" data-led="${i}" data-layer="${bestLayer.id}" />\n`;
+        allCutoutsXml += rectXml;
+        if (layerCutouts[bestLayer.id] !== undefined) {
+            layerCutouts[bestLayer.id] += rectXml;
+        }
+    }
+
+    return { allCutoutsXml, layerCutouts, layerLedCounts };
+}
+
+function downloadSvgBlob(svgContent, filename) {
+    const blob = new Blob([svgContent], { type: 'image/svg+xml;charset=utf-8' });
+    const dlAnchor = document.createElement('a');
+    dlAnchor.href = URL.createObjectURL(blob);
+    dlAnchor.download = filename;
+    document.body.appendChild(dlAnchor);
+    dlAnchor.click();
+    document.body.removeChild(dlAnchor);
+}
+
+function generateSingleMatSvg(rawSvgText, targetLayer, cutoutsForLayer) {
+    try {
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(rawSvgText, "image/svg+xml");
+        const svgEl = doc.querySelector('svg');
+        if (!svgEl) return null;
+
+        // Strip other color vinyl layers
+        const allGroups = Array.from(svgEl.querySelectorAll('g[id^="Layer_"]'));
+        for (const g of allGroups) {
+            if (g.id !== targetLayer.id) {
+                g.remove();
+            }
+        }
+
+        // Append 4-Corner Registration Crosshairs
+        const regParser = new DOMParser();
+        const regDoc = regParser.parseFromString(`<svg xmlns="http://www.w3.org/2000/svg">${generateRegistrationCrosshairsSvg()}</svg>`, "image/svg+xml");
+        const regGroup = regDoc.querySelector('#Layer_0_Registration_Crosshairs');
+        if (regGroup) {
+            svgEl.appendChild(doc.importNode(regGroup, true));
+        }
+
+        // Append this mat's cutouts
+        const cutsParser = new DOMParser();
+        const cutsXml = `<g id="Layer_Cutouts_${targetLayer.id}" stroke="${targetLayer.hex}" fill="#000000" stroke-width="1.0">\n${cutoutsForLayer}\n</g>`;
+        const cutsDoc = cutsParser.parseFromString(`<svg xmlns="http://www.w3.org/2000/svg">${cutsXml}</svg>`, "image/svg+xml");
+        const cutsGroup = cutsDoc.querySelector(`#Layer_Cutouts_${targetLayer.id}`);
+        if (cutsGroup) {
+            svgEl.appendChild(doc.importNode(cutsGroup, true));
+        }
+
+        return new XMLSerializer().serializeToString(doc);
+    } catch (e) {
+        console.error("Error creating single mat SVG:", e);
+        return null;
+    }
+}
+
+// Global cached state for open Cricut export dialog
+let currentCricutExportPackage = null;
+
+// Opens the Cricut HTV Multi-Layer Cut File Exporter Modal
+async function exportCricutSvgWithPillSlots() {
+    try {
+        const modal = document.getElementById('cricutExportModal');
+        if (!modal) {
+            showToast("⚠️ Cricut export modal element not found.");
+            return;
+        }
+
+        const floatKey = currentGraphicType || 'builtin_dragon';
+        const floatConfig = CRICUT_FLOAT_CONFIG[floatKey] || CRICUT_FLOAT_CONFIG['petes_dragon'];
+        const svgBaseName = floatConfig.svgFile.replace('.svg', '');
+
+        // Fetch master vector artwork
+        let rawSvgText = await fetchMasterSvgText(floatConfig.svgFile);
+        if (!rawSvgText) {
+            showToast("⚠️ Loading artwork SVG... Using fallback template.");
+            rawSvgText = `<?xml version="1.0" encoding="UTF-8"?>\n<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600" width="100%" height="100%">\n<g id="Layer_1_Base_Vinyl" fill="#00ff88"></g>\n</svg>`;
+        }
+
+        // Calculate 100 pill cutouts & assign to layers
+        const cutoutsData = calculateLedCutoutData(floatConfig.layers);
+
+        // Store package in cache
+        currentCricutExportPackage = {
+            floatConfig,
+            svgBaseName,
+            rawSvgText,
+            cutoutsData
+        };
+
+        // Render Float Info in Modal Header
+        const infoEl = document.getElementById('cricutExportFloatInfo');
+        if (infoEl) {
+            infoEl.innerHTML = `
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <span style="font-size: 24px;">🐲</span>
+                    <div>
+                        <div style="display: flex; align-items: center; gap: 6px;">
+                            <strong style="font-size: 13px; color: #fff;">${floatConfig.name}</strong>
+                            <span style="font-size: 9px; padding: 2px 6px; border-radius: 4px; background: rgba(0, 255, 136, 0.2); color: #00ff88; border: 1px solid rgba(0, 255, 136, 0.4); font-weight: 700;">FLOAT ${floatConfig.floatId}</span>
+                        </div>
+                        <span style="font-size: 11px; color: #8b949e;">${leds.length} LEDs • 6×3mm Tangent Pill Slots • ${floatConfig.layers.length} Color Vinyl Mats</span>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Render Mat-by-Mat Cards
+        const gridEl = document.getElementById('cricutMatListGrid');
+        if (gridEl) {
+            gridEl.innerHTML = floatConfig.layers.map((layer, idx) => {
+                const count = cutoutsData.layerLedCounts[layer.id] || 0;
+                return `
+                    <div style="background: #161b22; border: 1px solid #30363d; border-radius: 6px; padding: 8px 10px; display: flex; justify-content: space-between; align-items: center;">
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <span style="width: 12px; height: 12px; border-radius: 3px; background: ${layer.hex}; display: inline-block; border: 1px solid rgba(255,255,255,0.2);"></span>
+                            <div>
+                                <div style="font-size: 11.5px; font-weight: 600; color: #e6edf3;">Mat ${idx + 1}: ${layer.name}</div>
+                                <div style="font-size: 10px; color: #8b949e;">${count} LED cutouts</div>
+                            </div>
+                        </div>
+                        <button type="button" class="action-btn download-single-mat-btn" data-layer-id="${layer.id}" style="padding: 4px 8px; font-size: 10.5px;">
+                            ⬇️ SVG
+                        </button>
+                    </div>
+                `;
+            }).join('');
+
+            // Bind single mat download buttons
+            gridEl.querySelectorAll('.download-single-mat-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const layerId = e.currentTarget.getAttribute('data-layer-id');
+                    const targetLayer = floatConfig.layers.find(l => l.id === layerId);
+                    if (!targetLayer) return;
+
+                    const matSvg = generateSingleMatSvg(rawSvgText, targetLayer, cutoutsData.layerCutouts[targetLayer.id] || '');
+                    if (matSvg) {
+                        const filename = `${svgBaseName}_mat_${targetLayer.id.toLowerCase().replace('layer_', '')}.svg`;
+                        downloadSvgBlob(matSvg, filename);
+                        showToast(`✂️ Downloaded ${filename}`);
+                    }
+                });
+            });
+        }
+
+        // Show Modal
+        modal.style.display = 'flex';
+
+    } catch (err) {
+        console.error("Error opening Cricut export dialog:", err);
+        showToast("⚠️ Could not open Cricut export dialog: " + err.message);
+    }
+}
+
+function closeCricutExportModal() {
+    const modal = document.getElementById('cricutExportModal');
+    if (modal) modal.style.display = 'none';
+}
+
+// Master All-in-One Download Handler
+document.getElementById('downloadMasterCricutSvgBtn')?.addEventListener('click', () => {
+    if (!currentCricutExportPackage) return;
+    const { floatConfig, svgBaseName, rawSvgText, cutoutsData } = currentCricutExportPackage;
+
+    const regMarks = generateRegistrationCrosshairsSvg();
+    const cutoutsGroup = `  <!-- LAYER 5: 6x3mm LED PILL SLOT CUTOUTS (Tangent-Aligned for Wire Ribbon) -->
+  <g id="Layer_LED_Pill_Slots_6x3mm">
+${cutoutsData.allCutoutsXml}  </g>\n`;
+
+    let masterSvg = rawSvgText;
+    if (masterSvg.includes('</svg>')) {
+        masterSvg = masterSvg.replace('</svg>', `${regMarks}\n${cutoutsGroup}</svg>`);
+    } else {
+        masterSvg = `${masterSvg}\n${regMarks}\n${cutoutsGroup}\n</svg>`;
+    }
+
+    const filename = `${svgBaseName}_cricut_full_artwork_with_6x3mm_slots.svg`;
+    downloadSvgBlob(masterSvg, filename);
+    showToast(`🌟 Downloaded Master Multi-Layer Cricut Cut SVG: ${filename}`);
+});
+
+// Download All Mats Handler
+document.getElementById('downloadAllMatsZipBtn')?.addEventListener('click', async () => {
+    if (!currentCricutExportPackage) return;
+    const { floatConfig, svgBaseName, rawSvgText, cutoutsData } = currentCricutExportPackage;
+
+    for (let i = 0; i < floatConfig.layers.length; i++) {
+        const targetLayer = floatConfig.layers[i];
+        const matSvg = generateSingleMatSvg(rawSvgText, targetLayer, cutoutsData.layerCutouts[targetLayer.id] || '');
+        if (matSvg) {
+            const filename = `${svgBaseName}_mat_${i + 1}_${targetLayer.id.toLowerCase().replace('layer_', '')}.svg`;
+            downloadSvgBlob(matSvg, filename);
+            await new Promise(r => setTimeout(r, 160)); // Stagger downloads cleanly
+        }
+    }
+    showToast(`📦 Downloaded all ${floatConfig.layers.length} color mat cut files!`);
+});
+
+// Download Holes-Only Cut Layer Handler
+document.getElementById('downloadHolesOnlySvgBtn')?.addEventListener('click', () => {
+    if (!currentCricutExportPackage) return;
+    const { svgBaseName, cutoutsData } = currentCricutExportPackage;
+    const regMarks = generateRegistrationCrosshairsSvg();
+
+    const holesSvg = `<?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600" width="100%" height="100%">
-  <!-- Main Street Electrical Parade - Cricut HTV Cut Layer with 6x3mm LED Pill Slots -->
+  <!-- Main Street Electrical Parade - Standalone 6x3mm LED Pill Slot Cut Layer -->
   <!-- Generated for: ${svgBaseName.toUpperCase()} | 100 LEDs Tangent-Aligned -->
   <defs>
     <style>
@@ -2024,24 +2421,19 @@ function exportCricutSvgWithPillSlots() {
     </style>
   </defs>
 
+${regMarks}
   <g id="Layer_LED_Pill_Slots_6x3mm">
-${slotCutoutsSvg}  </g>
+${cutoutsData.allCutoutsXml}  </g>
 </svg>`;
 
-        const blob = new Blob([fullSvg], { type: 'image/svg+xml;charset=utf-8' });
-        const dlAnchor = document.createElement('a');
-        dlAnchor.href = URL.createObjectURL(blob);
-        dlAnchor.download = `${svgBaseName}_cricut_6x3mm_slots.svg`;
-        document.body.appendChild(dlAnchor);
-        dlAnchor.click();
-        document.body.removeChild(dlAnchor);
+    const filename = `${svgBaseName}_cricut_6x3mm_slots_only.svg`;
+    downloadSvgBlob(holesSvg, filename);
+    showToast(`🕳️ Downloaded ${filename} (${leds.length} Pill Slots)!`);
+});
 
-        showToast(`✂️ Exported ${svgBaseName}_cricut_6x3mm_slots.svg (${leds.length} Pill Slots)!`);
-    } catch (err) {
-        console.error("Error exporting Cricut SVG:", err);
-        showToast("⚠️ Failed to export Cricut SVG: " + err.message);
-    }
-}
+document.getElementById('closeCricutExportModalBtn')?.addEventListener('click', closeCricutExportModal);
+document.getElementById('closeCricutExportModalBottomBtn')?.addEventListener('click', closeCricutExportModal);
+
 
 function renderBulb(cx, x, y, col, isHovered, isSelected, index) {
     if (!col) return;
@@ -10615,14 +11007,6 @@ function boostLedVibrancy(r, g, b, relX, relY) {
         return boostCustomImageColor(r, g, b);
     }
 
-    // --- Pete's Dragon Built-in Preset Enhancement ---
-    // If pixel is near-black line art, contour, or dark shadow (< 60):
-    // Default to vibrant dragon green for the built-in dragon graphic.
-    const maxVal = Math.max(r, g, b);
-    if (maxVal < 60) {
-        return { r: 15, g: 255, b: 35 };
-    }
-
     // Convert to HSV to evaluate dominant hue and saturation
     const rNorm = r / 255.0;
     const gNorm = g / 255.0;
@@ -10644,36 +11028,68 @@ function boostLedVibrancy(r, g, b, relX, relY) {
         if (hue < 0) hue += 360;
     }
 
-    // 1. Pete's Dragon Hair Crest / Tuft (at the top of the head: relY < 0.12):
-    // Produce vivid Disney flame orange hair!
-    if (currentGraphicType === 'builtin_dragon' && relY !== undefined && relY < 0.12 && relX > 0.35 && relX < 0.62) {
-        return { r: 255, g: 120, b: 0 };
+    const isPeteDragon = (currentGraphicType === 'builtin_dragon' || currentGraphicType === 'petes_dragon');
+    const DISNEY_DRAGON_PINK = { r: 255, g: 25, b: 230 }; // #ff19e6 / FastLED CRGB(255, 25, 230)
+
+    // --- Pete's Dragon: Hair Crest, Wings & Tail Spines are ALL the Same Color Pink ---
+    if (isPeteDragon) {
+        // 1. Wild jagged hair crest on head (top)
+        if (relY !== undefined && relY < 0.16 && relX > 0.25 && relX < 0.75) {
+            return DISNEY_DRAGON_PINK;
+        }
+
+        // 2. Cute little dragon wings (upper chest/back left & right flanks)
+        if (relY !== undefined && relY >= 0.22 && relY <= 0.55 &&
+            ((relX >= 0.20 && relX <= 0.45) || (relX >= 0.58 && relX <= 0.94)) &&
+            (hue >= 255 || hue <= 45 || r > g || b > g || delta > 0.08)) {
+            return DISNEY_DRAGON_PINK;
+        }
+
+        // 3. Spines on the tail and dorsal back plates (running down back into sweeping tail)
+        if (relY !== undefined && relY >= 0.58 && relX >= 0.65 &&
+            (hue >= 255 || hue <= 45 || r > g || b > g || delta > 0.08)) {
+            return DISNEY_DRAGON_PINK;
+        }
+
+        // 4. Dorsal spine spikes along upper back curve
+        if (relY !== undefined && relY >= 0.18 && relY <= 0.65 && relX >= 0.55 && relX <= 0.88 &&
+            (hue >= 255 || hue <= 45 || r > g || b > g || delta > 0.08)) {
+            return DISNEY_DRAGON_PINK;
+        }
     }
 
-    // 2. Wings / Pink / Magenta / Violet:
+    // 5. General Wings / Pink / Magenta / Violet Hue:
     // Electric Disney Hot Pink: equal punch on Red & Blue with minimal green
-    if ((hue >= 265 || hue <= 15) && (r > g + 8 || b > g || delta > 0.12)) {
-        return { r: 255, g: 25, b: 230 };
+    if ((hue >= 260 || hue <= 20) && (r > g + 4 || b > g || delta > 0.10)) {
+        return DISNEY_DRAGON_PINK;
     }
 
-    // 3. Orange / Red (Hue 15° to 55°):
+    // --- Pete's Dragon Built-in Preset Line Art / Shadow Enhancement ---
+    // If pixel is near-black contour or dark shadow (< 60):
+    // Default to vibrant dragon green for the dragon body.
+    const maxVal = Math.max(r, g, b);
+    if (maxVal < 60) {
+        return { r: 15, g: 255, b: 35 };
+    }
+
+    // 6. Orange / Red (Hue 15° to 55°):
     if (hue > 15 && hue < 55 && r > g + 15) {
         return { r: 255, g: 120, b: 0 };
     }
 
-    // 4. Lime Green / Yellow-Green Underbelly (Hue 55° to 95°):
+    // 7. Lime Green / Yellow-Green Underbelly (Hue 55° to 95°):
     if (hue >= 55 && hue < 95) {
         const rLed = Math.min(100, Math.max(50, Math.round(r * 0.7)));
         return { r: rLed, g: 255, b: 15 };
     }
 
-    // 5. Cyan / Sky Blue (Hue 175° to 260°):
+    // 8. Cyan / Sky Blue (Hue 175° to 260°):
     if (hue >= 175 && hue < 260) {
         const gLed = Math.min(220, Math.max(80, Math.round(g * 0.9)));
         return { r: 0, g: gLed, b: 255 };
     }
 
-    // 6. Emerald Dragon Green Body (Hue 95° to 175°, or default):
+    // 9. Emerald Dragon Green Body (Hue 95° to 175°, or default):
     return {
         r: Math.min(40, Math.max(10, Math.round(r * 0.3))),
         g: 255,

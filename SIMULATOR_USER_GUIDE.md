@@ -130,7 +130,7 @@ The sidebar navigation is organized into a clean **2-row × 3-column grid** that
      - `🔌 Optimize Wiring Route`: Calculates the shortest serpentine continuous snake route.
      - `Show Wiring Trace` and `Show Bulb Numbers` inspection toggles.
      - **🧵 Show Vinyl Pill Slots (6×3mm) & Tangent Pebble LEDs:** Toggles ultra-realistic fabrication view modeling the physical mesh pinnie vest. Renders the exact $6.0\,\text{mm} \times 3.0\,\text{mm}$ HTV vinyl pill cutout exposing the dark mesh weave, with tangent-aligned $4.0\,\text{mm} \times 3.0\,\text{mm}$ clear epoxy resin pebble LEDs oriented along the natural flow of the wire to minimize wire bending and solder fatigue.
-     - **✂️ Export Cut SVG (with 6×3mm Pill Slots):** 1-Click button in Section 2 to export production-ready Cricut cut files with the $6\times 3\,\text{mm}$ slots pre-punched at the calculated tangent angles for all 100 LEDs.
+     - **✂️ Export Cut SVG (with 6×3mm Pill Slots):** 1-Click button in Section 2 opening the **Cricut HTV Cut File Exporter Modal**. Allows instant download of the complete multi-layer artwork with pre-punched tangent pill slots, mat-by-mat SVGs for each color vinyl sheet with 4-corner heat press registration marks, or standalone cutout templates.
      - **🧵 Wire Tension & Physical Spacing Heatmap:** Real-time physical distance validation between consecutive LEDs ($18" \times 24"$ garment model). Color-codes segments as 🟢 Slack (`<1.8"`), 🟡 Snug (`1.8–2.4"`), or 🔴 Alert (`>2.4"`), displays strand metrics (total length, average pitch, max span), and includes a `🔍 Inspect Max Span` tool to immediately locate tight spans.
    - **🪞 Bilateral Symmetry & Mirror Tool:**
      - `Show Centerline Axis (x = 50%)`: Dashed purple/cyan vertical guide with illuminated badges for precise centering.
@@ -456,7 +456,7 @@ Section 4 features an authentic runDisney race bib overlay (default **8.0" wide 
    - It samples the true RGB pixel color beneath each LED, automatically creating a color-matched palette!
 5. Click **"🔄 Resample Colors from Artwork"** at any time to re-sample pixel values if you change or replace the artwork.
 
-### ✂️ Cricut Heat Transfer Vinyl (HTV) Cut Files
+### ✂️ Cricut Heat Transfer Vinyl (HTV) Cut Files & Exporter Suite
 Production-ready layered vector SVG files for all 7 floats are included in `assets/cricut_svg/`:
 - **The Train / Casey Jr.:** [`assets/cricut_svg/casey_jr_train.svg`](assets/cricut_svg/casey_jr_train.svg) (4 mats: Red, Gold, Cyan, White)
 - **The Title Drum:** [`assets/cricut_svg/title_drum.svg`](assets/cricut_svg/title_drum.svg) (4 mats: Navy, Gold, Cyan, White)
@@ -467,6 +467,23 @@ Production-ready layered vector SVG files for all 7 floats are included in `asse
 - **To Honor America (Flag & Eagle):** [`assets/cricut_svg/honor_america_eagle.svg`](assets/cricut_svg/honor_america_eagle.svg) (4 mats: Blue, Red, Gold, White)
 - **Interactive Visual Catalog:** Double-click [`assets/cricut_svg/cricut_catalog.html`](assets/cricut_svg/cricut_catalog.html) to inspect layers, preview specs, and download files.
 - See **[`CRICUT_ARTWORK_GUIDE.md`](CRICUT_ARTWORK_GUIDE.md)** for complete step-by-step Cricut Design Space upload, mat mirroring, multi-layer tack press temps, and LED attachment guides.
+
+#### 🌟 1-Click Cricut Cut Exporter Modal (`✂️ Export Cut SVG`)
+Clicking **`✂️ Export Cut SVG`** on Tab 1 (Layout) opens a dedicated production dialog with 3 export workflows:
+1. **🌟 Master All-in-One Multi-Layer SVG (Recommended for Cricut):**
+   - Combines the full multi-colored vector character artwork with all 100 tangent-oriented $6.0\,\text{mm} \times 3.0\,\text{mm}$ pill slots and 4-corner heat press registration marks into a single SVG file.
+   - Cricut Design Space automatically parses the file and sorts each color onto its own cutting mat, with the pill cutouts already positioned in place!
+2. **🎨 Mat-by-Mat SVGs (Single Color Mats):**
+   - Individual download buttons for each color vinyl sheet (e.g. Green Mat, Pink Mat, Orange Mat, White Mat).
+   - Each file isolates one color layer, includes 4-corner registration crosshairs, and embeds only the pill cutouts sitting on that specific color.
+   - Includes a **`📦 Download All Mats`** button to download all color sheets in one sequence.
+3. **🕳️ Standalone 100-Pill Cutouts Layer:**
+   - Isolated $6\times 3\,\text{mm}$ pill cutouts layer with 4 registration crosshairs (ideal for custom templates or manual overlay).
+
+#### 🐲 Pete's Dragon Uniform Pink Crest, Wings & Tail Spines Rule
+In both the pixel sampling engine (`boostLedVibrancy`) and the Cricut cut exporter:
+- The **Wild Jagged Hair Crest** on the head, the **Dragon Wings**, and the **Dorsal Spine Plates & Tail Spines** are all uniformly classified as signature **Disney Pink** (`CRGB(255, 25, 230)` / `#ff007f`).
+- Pixels sampled across these zones are protected against dark line art or green shadow misclassification and automatically route to **Mat 2: Pink HTV Vinyl**.
 
 ---
 
