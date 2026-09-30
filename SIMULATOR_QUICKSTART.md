@@ -104,14 +104,20 @@ Once individual floats have their baseline looks, orchestrate the synchronized r
 
 Once you're happy with the designs, bake them into the microcontrollers for race day:
 
-### Method A: Web Browser Flasher (Easiest — Chrome or Edge)
+### Method A: Web Browser Flasher (Zero-Install — Chrome or Edge)
+- **If Simulator is Running on your PC:** Click the green **`⚡ Web Flasher`** button in the top-right header (or open `http://localhost:8000/web_flasher.html`).
+- **If on a Blank / Brother's Laptop (Nothing Downloaded):** Open the public GitHub link directly:  
+  👉 **`https://kidmd.github.io/WDW-costumes/simulator/web_flasher.html`**
 1. Plug the ESP32 into your computer using a USB data cable.
-2. In the simulator, click the green **`⚡ Web Flasher`** link in the top-right header (or click `⚡ Flash Float...` on Tab 6).
-3. Click your assigned runner float card (e.g., 🚂 **Float 1: Casey Jr.** for the leader, or **Floats 2–7** for followers).
-4. Click **`⚡ Connect & Flash`**, choose your USB serial port, and click **Install**. Done in ~15 seconds!
+2. Click your assigned runner float card (e.g. 🚂 **Float 1: Casey Jr.**, 🐢 **Float 3: The Turtle**, 🐉 **Float 6: Pete's Dragon**).
+3. Click **`⚡ Connect & Flash`**, choose your USB serial port, and click **Install**. Done in ~15 seconds with zero drivers, compilers, or software to install!
 
-### Method B: Double-Click Desktop Scripts
-- **Windows:** Double-click **[`flash_firmware.bat`](flash_firmware.bat)** in the main project folder. It auto-detects your connected ESP32, prompts you to press any key, and flashes the pre-compiled firmware in ~15 seconds with zero tools or drivers to install!
+### Method B: In-Simulator Custom C++ Compiler (Deploy Tab)
+- Located on **Tab 6: Deploy & Hardware** ➔ **`⚡ Flash Standalone Firmware (USB)`**.
+- *Note:* This uses PlatformIO (pre-installed on your development PC) to re-compile custom C++ code and upload on the fly. `start_simulator.bat` launches Python for the simulator; if PlatformIO is not installed on a secondary computer, simply use the **Web Flasher (Method A)** instead!
+
+### Method C: Double-Click Desktop Scripts
+- **Windows:** Double-click **[`flash_firmware.bat`](flash_firmware.bat)** in the main project folder. It auto-detects your connected ESP32 and flashes the pre-compiled firmware in ~15 seconds.
 - **Mac / Linux:** Double-click **[`flash_firmware.command`](flash_firmware.command)** *(or run `./flash_firmware.command` in Terminal)*.
 
 ---

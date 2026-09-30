@@ -891,6 +891,23 @@ Preview animations on physical shirts in real time without flashing ROM:
    - When viewing or editing an individual shirt in the Layout or Patterns tabs, the simulator streams universal Opcode `0x01` frames. Any single ESP32 on your desk immediately mirrors the design you are currently painting or sequencing.
 5. **Zero Perceived Latency:** At 30 FPS, the entire 7-float lineup consumes just ~65 KB/sec (~0.5 Mbps) of UDP broadcast bandwidth. High-performance non-blocking queue draining ensures instant responsiveness with zero packet queuing lag.
 
+### USB Firmware Flashing Workflows (In-Simulator Compiler vs Zero-Install Web Flasher)
+
+The project provides two complementary flashing methods to suit both developers and family members:
+
+#### Method 1: Zero-Install Browser Web Flasher (`web_flasher.html` — Recommended for Family)
+- **Local URL (When Simulator is Running):** `http://localhost:8000/web_flasher.html` *(or click **`⚡ Web Flasher`** in the top header)*.
+- **Standalone Cloud URL (For Blank Laptops / Nothing Downloaded):** `https://kidmd.github.io/WDW-costumes/simulator/web_flasher.html`.
+- **How It Works:** Uses the HTML5 **Web Serial API** built into Google Chrome and Microsoft Edge. Flashes pre-compiled `.bin` binaries directly into the ESP32 in ~15 seconds with **zero Python, zero compilers, zero drivers, and zero software installation**.
+- **Role Assignment:** Click any float card (1 through 7) to arm that runner's identity, plug in USB, and click **Install**.
+
+#### Method 2: In-Simulator Custom C++ Compiler (Deploy Tab — For Lead Developer)
+- **Location:** **Tab 6: Deploy & Hardware** ➔ **`⚡ Flash Standalone Firmware (USB)`**.
+- **How It Works:** Compiles your active custom colors, sampled palette, and timeline cue triggers on the fly using **PlatformIO** installed on the development PC.
+- **Note:** `start_simulator.bat` launches Python for the browser visualizer. If PlatformIO is not installed on a secondary computer, use **Method 1 (Web Flasher)** instead.
+
+---
+
 ### One-Click Standalone USB Firmware Flashing (200 LEDs: 100 Front + 100 Back)
 When you are ready to prepare a shirt for autonomous use:
 1. Connect your ESP32 to your computer using a standard micro-USB or USB-C data cable.
