@@ -655,6 +655,16 @@ void handleFloatConfigMode() {
 // AMBIENT FALLBACK RENDERER (used between timeline cues and on empty timelines)
 // Respects AMBIENT_FALLBACK_PATTERN compiled from the simulator ambient tab selection
 // ============================================================================
+static inline CRGB getSparkleColor() {
+#if defined(COSTUME_SPARKLE_STYLE) && (COSTUME_SPARKLE_STYLE == 1)
+    return CRGB(255, 255, 255); // Diamond cool white
+#elif defined(COSTUME_SPARKLE_STYLE) && (COSTUME_SPARKLE_STYLE == 2)
+    return CRGB(255, 215, 40);  // Pixie dust golden amber
+#else
+    return CRGB(255, 240, 200); // 2700K incandescent filament warm white
+#endif
+}
+
 void renderAmbientFallback(uint32_t now) {
     uint32_t beatMs = 60000 / max((uint16_t)20, (uint16_t)COSTUME_SPEED_BPM);
 #if defined(AMBIENT_FALLBACK_PATTERN) && (AMBIENT_FALLBACK_PATTERN == COSTUME_PATTERN_BREATHING_GLOW)
@@ -671,11 +681,24 @@ void renderAmbientFallback(uint32_t now) {
 #endif
 
     for (int i = 0; i < FRONT_LEDS && i < MAX_LEDS_CAPACITY; i++) {
-#if defined(HAS_CUSTOM_PALETTE) && HAS_CUSTOM_PALETTE
+#if defined(COSTUME_AMBIENT_COLOR_MODE) && (COSTUME_AMBIENT_COLOR_MODE == 1)
+        uint8_t floatIdx = (myFloatNumber >= 1 && myFloatNumber <= 7) ? (myFloatNumber - 1) : 0;
+        CRGB baseColor = FLEET_ROSTER_INFO[floatIdx].color;
+#elif defined(COSTUME_AMBIENT_COLOR_MODE) && (COSTUME_AMBIENT_COLOR_MODE == 2)
+        CRGB baseColor = CRGB(255, 210, 120);
+#elif defined(COSTUME_AMBIENT_COLOR_MODE) && (COSTUME_AMBIENT_COLOR_MODE == 3) && defined(AMBIENT_CUSTOM_COLOR_RGB)
+        CRGB baseColor = AMBIENT_CUSTOM_COLOR_RGB;
+#elif defined(HAS_CUSTOM_PALETTE) && HAS_CUSTOM_PALETTE
         CRGB baseColor = ARTWORK_PALETTE[i];
 #else
         uint8_t floatIdx = (myFloatNumber >= 1 && myFloatNumber <= 7) ? (myFloatNumber - 1) : 0;
         CRGB baseColor = FLEET_ROSTER_INFO[floatIdx].color;
+#endif
+
+#if defined(COSTUME_AMBIENT_DIRECTION) && (COSTUME_AMBIENT_DIRECTION < 0)
+        int effIdx = FRONT_LEDS - 1 - i;
+#else
+        int effIdx = i;
 #endif
 
 #if defined(AMBIENT_FALLBACK_PATTERN) && (AMBIENT_FALLBACK_PATTERN == COSTUME_PATTERN_PHOTO_MODE)
@@ -684,10 +707,10 @@ void renderAmbientFallback(uint32_t now) {
         baseColor.nscale8_video(breath);
         leds[i] = baseColor;
         if (COSTUME_SPARKLE_RATE > 0 && random16(10000) < (uint16_t)(COSTUME_SPARKLE_RATE * 100)) {
-            leds[i] = CRGB(255, 255, 240);
+            leds[i] = getSparkleColor();
         }
 #elif defined(AMBIENT_FALLBACK_PATTERN) && (AMBIENT_FALLBACK_PATTERN == COSTUME_PATTERN_COMET)
-        int dist = (cometHead - i + FRONT_LEDS) % FRONT_LEDS;
+        int dist = (cometHead - effIdx + FRONT_LEDS) % FRONT_LEDS;
         if (dist < 10) {
             uint8_t fade = 255 - (dist * 25);
             CRGB c = baseColor;
@@ -700,7 +723,7 @@ void renderAmbientFallback(uint32_t now) {
             leds[i] = dim;
         }
 #elif defined(AMBIENT_FALLBACK_PATTERN) && (AMBIENT_FALLBACK_PATTERN == COSTUME_PATTERN_SCANNER)
-        int dist = abs(i - scanPos);
+        int dist = abs(effIdx - scanPos);
         if (dist < 6) {
             uint8_t fade = 255 - (dist * 42);
             CRGB c = baseColor;
@@ -715,12 +738,12 @@ void renderAmbientFallback(uint32_t now) {
 #elif defined(AMBIENT_FALLBACK_PATTERN) && (AMBIENT_FALLBACK_PATTERN == COSTUME_PATTERN_COLOR_WIPE)
         if (wipeProg < 0.40f) {
             float litHead = (wipeProg / 0.40f) * FRONT_LEDS;
-            leds[i] = (i <= (int)litHead) ? baseColor : CRGB::Black;
+            leds[i] = (effIdx <= (int)litHead) ? baseColor : CRGB::Black;
         } else if (wipeProg < 0.58f) {
             leds[i] = baseColor;
         } else if (wipeProg < 0.88f) {
             float offHead = ((wipeProg - 0.58f) / 0.30f) * FRONT_LEDS;
-            leds[i] = (i <= (int)offHead) ? CRGB::Black : baseColor;
+            leds[i] = (effIdx <= (int)offHead) ? CRGB::Black : baseColor;
         } else {
             leds[i] = CRGB::Black;
         }
@@ -728,7 +751,7 @@ void renderAmbientFallback(uint32_t now) {
         uint8_t wave = beatsin8(COSTUME_SPEED_BPM / 3, 40, 180, 0, i * 4);
         baseColor.nscale8_video(wave);
         if (random16(1000) < 18) {
-            leds[i] = CRGB(255, 255, 240);
+            leds[i] = getSparkleColor();
         } else {
             leds[i] = baseColor;
         }
@@ -757,10 +780,19 @@ void renderAmbientFallback(uint32_t now) {
             leds[i] = baseColor;
         }
 #elif defined(AMBIENT_FALLBACK_PATTERN) && (AMBIENT_FALLBACK_PATTERN == COSTUME_PATTERN_RAINBOW_CYCLE)
+#if defined(COSTUME_AMBIENT_DIRECTION) && (COSTUME_AMBIENT_DIRECTION < 0)
+        uint8_t hueOffset = (uint8_t)(((now) * 256 / beatMs) % 256);
+        leds[i] = CHSV(hueOffset - (i * 256 / FRONT_LEDS), 240, 255);
+#else
         uint8_t hueOffset = (uint8_t)(((now) * 256 / beatMs) % 256);
         leds[i] = CHSV(hueOffset + (i * 256 / FRONT_LEDS), 240, 255);
+#endif
 #elif defined(AMBIENT_FALLBACK_PATTERN) && (AMBIENT_FALLBACK_PATTERN == COSTUME_PATTERN_MARQUEE)
+#if defined(COSTUME_AMBIENT_DIRECTION) && (COSTUME_AMBIENT_DIRECTION < 0)
+        uint8_t step = 3 - (((now * 3) / beatMs) % 3);
+#else
         uint8_t step = ((now * 3) / beatMs) % 3;
+#endif
         if ((i + step) % 3 == 0) {
             leds[i] = CRGB(255, 200, 40);
         } else {
@@ -770,7 +802,7 @@ void renderAmbientFallback(uint32_t now) {
         // Default: Steady Sparkle – artwork colors with occasional starlight
         leds[i] = baseColor;
         if (COSTUME_SPARKLE_RATE > 0 && random16(10000) < (uint16_t)(COSTUME_SPARKLE_RATE * 100)) {
-            leds[i] = CRGB(255, 255, 240);
+            leds[i] = getSparkleColor();
         }
 #endif
     }

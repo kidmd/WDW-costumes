@@ -37,6 +37,10 @@
 #define HAS_CUSTOM_PALETTE               1
 #define COSTUME_OVERRIDE_STANDALONE      1
 #define AMBIENT_FALLBACK_PATTERN         0
+#define COSTUME_AMBIENT_DIRECTION        1
+#define COSTUME_SPARKLE_STYLE            0
+#define COSTUME_AMBIENT_COLOR_MODE       0
+#define AMBIENT_CUSTOM_COLOR_RGB         CRGB(255, 183, 3)
 
 #define SHOW_LOOP_MS                     90000
 #define HAS_CUSTOM_SEQUENCE_CUES         1

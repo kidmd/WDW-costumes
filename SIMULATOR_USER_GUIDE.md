@@ -141,8 +141,22 @@ The sidebar navigation is organized into a clean **2-row × 3-column grid** that
 2. **✨ Tab 2: Ambient ("Garment Baseline Atmosphere"):**
    - **Baseline Concept Clarity:** Clarifies the core architecture: these patterns, speeds, and sparkle dynamics set the continuous default look for all LEDs not assigned to a specialized 👥 Animation Group (such as spinning wheels, eyes, scales, or fireworks). Specialized groups overlay their own animations on top of this background canvas.
    - **Real-Time Baseline Allocation Badge:** Displays live coverage metrics (e.g. `100 of 100 LEDs (100% Baseline)` or `64 of 100 LEDs (64% Baseline)` when groups exist).
-   - **Baseline Lighting Pattern:** Select from 8 continuous baseline patterns (Steady Sparkle, Color Match, Fire Breath, Traveling Wave, Marquee, Fireworks, Photo Mode).
-   - **Live Dynamics Tuning:** Speed/Tempo BPM slider, Sparkle Frequency, Green Hue/Shade, Master Brightness, LED Bloom Glow Size.
+   - **Baseline Lighting Pattern & Direction:** Select from continuous background patterns (Steady Sparkle, Color Match, Fire Breath, Traveling Wave, Marquee, Fireworks, Photo Mode, Comet, Scanner, Color Wipe, Pixie Dust, etc.) with selectable **Travel Direction** (`Forward ➡️ Head to Tail` or `Reverse ⬅️ Tail to Head`) matching the animation direction conventions of Tabs 3 and 4.
+   - **Microcontroller Firmware Dynamics (ESP32 Flash):**
+     - **Speed / Tempo BPM with Quick Chips:** Adjust continuous animation tempo via slider or one-touch speed chips: `🚶 90 BPM` (Parade Walk), `🏃 120 BPM` (MSEP Cadence), `⚡ 144 BPM` (Upbeat Swing), `🚀 180 BPM` (Theatrical Sprint).
+     - **Sparkle Frequency with Quick Chips:** Regulate random starlight frequency from 0% to 10% via slider or instant chips: `🌑 0%` (Static/Clean), `✨ 0.5%` (Subtle Starlight), `🌟 1.5%` (Classic Main Street), `💫 3.5%` (Enchanted Swarm).
+     - **Sparkle Appearance & Color Temperature:** Selectable filament starlight styles:
+       - `✨ Warm 2700K Filament (Soft Golden White)`: Replicates vintage Edison filament light bulbs.
+       - `💎 Diamond Cool White (Pure Starlight)`: High-energy crisp white starlight.
+       - `🌟 Pixie Dust Golden Amber`: Rich fantasy amber-gold starlight.
+     - **Ambient Color Palette Mode:** Switch between 4 palette engines:
+       - `🎨 Sampled Artwork Colors`: Default multi-color palette sampled directly from character artwork pixels.
+       - `🏰 Float Signature Theme Color`: Automatically tint the garment baseline to the float's official theme color (Casey Jr. Locomotive Red, Drum Gold, Turtle Shell Teal, Snail Magenta, Cinderella Sky Blue, Pete's Dragon Emerald, America Patriot Red/White/Blue).
+       - `💡 Vintage Incandescent`: 2700K warm-white uniform wash replicating classical parade bulb strings.
+       - `🎯 Custom Uniform Color`: User-selected uniform tint with live color picker.
+     - **Hardware LED Output:** Hardware brightness slider strictly governed by FastLED hardware power limits (5V, 2000mA max).
+     - *(Note: Legacy single-float green hue slider has been retired in favor of the full 4-mode color palette system; the 140° emerald hue is retained silently as a procedural fallback for Pete's Dragon).*
+   - **Simulator Display Optics (Browser Canvas Only):** Visually separated preview control for **LED Bloom / Glow Radius** (8px to 40px) to simulate optical light diffusion on fabric without affecting compiled ESP32 firmware.
 
 3. **👥 Tab 3: Groups ("Group Creation Hub & Manager"):**
    - **LED Allocation Overview Box:** Real-time visual progress bar tracking how many LEDs are assigned to animation groups versus unassigned baseline.

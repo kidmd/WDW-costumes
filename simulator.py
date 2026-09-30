@@ -458,6 +458,24 @@ class SimulatorRequestHandler(http.server.SimpleHTTPRequestHandler):
             total_leds = num_front + num_back  # 200 LEDs (100 front + 100 back duplicated)
             pattern_str = payload.get("pattern", "steady_sparkle")
             ambient_pattern_str = payload.get("ambientPattern", "steady_sparkle")
+            ambient_dir = int(payload.get("ambientDirection", 1))
+            sparkle_style = payload.get("sparkleStyle", "incandescent")
+            ambient_color_mode = payload.get("ambientColorMode", "artwork")
+            ambient_custom_hex = str(payload.get("ambientCustomColor", "#ffb703")).lstrip("#")
+            
+            sparkle_style_map = {"incandescent": 0, "diamond": 1, "gold": 2}
+            sparkle_style_code = sparkle_style_map.get(sparkle_style, 0)
+            
+            color_mode_map = {"artwork": 0, "float_theme": 1, "vintage_warm": 2, "custom": 3}
+            color_mode_code = color_mode_map.get(ambient_color_mode, 0)
+            
+            try:
+                c_r = int(ambient_custom_hex[0:2], 16)
+                c_g = int(ambient_custom_hex[2:4], 16)
+                c_b = int(ambient_custom_hex[4:6], 16)
+            except Exception:
+                c_r, c_g, c_b = 255, 183, 3
+
             speed_bpm = int(payload.get("speedBpm", 120))
             sparkle_rate = float(payload.get("sparkleRate", 1.5))
             green_hue = int(payload.get("greenHue", 140))
@@ -631,6 +649,10 @@ class SimulatorRequestHandler(http.server.SimpleHTTPRequestHandler):
 #define HAS_CUSTOM_PALETTE               1
 #define COSTUME_OVERRIDE_STANDALONE      1
 #define AMBIENT_FALLBACK_PATTERN         {ambient_fallback_code}
+#define COSTUME_AMBIENT_DIRECTION        {ambient_dir}
+#define COSTUME_SPARKLE_STYLE            {sparkle_style_code}
+#define COSTUME_AMBIENT_COLOR_MODE       {color_mode_code}
+#define AMBIENT_CUSTOM_COLOR_RGB         CRGB({c_r}, {c_g}, {c_b})
 
 #define SHOW_LOOP_MS                     {show_loop_ms}
 #define HAS_CUSTOM_SEQUENCE_CUES         {has_cues}

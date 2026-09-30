@@ -93,8 +93,23 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
-### Entry: 14 Unified Fairy-Light & Parade Animation Sequences Across 3-Layer Architecture
+### Entry: Tab 2 (Ambient Tab) Baseline Dynamics Modernization & Firmware Engine Sync
 * **Date:** 2026-09-30
+* **Milestone:** Milestone 3 & Milestone 4 - Lighting Engine & Parade Show Sequencing
+* **Status:** Complete & Verified (`simulator/app.js?v=63`, `simulator/index.html`, `simulator.py`, `src/main.cpp`, `arduino/MSEP_Costume/MSEP_Costume.ino`, `include/costume_config.h`, and `build_fleet_binaries.py`).
+* **Notes:**
+  - **Modernized Tab 2 Baseline Dynamics Section:**
+    - **Replaced Legacy Single-Float Slider:** Retired the obsolete Elliott Green Hue slider from the UI while preserving a silent 140° emerald procedural fallback in code.
+    - **Ambient Travel Direction:** Added `#ambientDirectionSelect` (`Forward ➡️ Head to Tail` vs `Reverse ⬅️ Tail to Head`) to baseline dynamics, fully integrated with traveling patterns (`comet`, `scanner`, `color_wipe`, `marquee`, `traveling_wave`, `chase`, `rainbow_cycle`).
+    - **Sparkle Color & Temperature Selector:** Added `#sparkleStyleSelect` supporting `Warm 2700K Filament (255, 240, 200)`, `Diamond Cool White (255, 255, 255)`, and `Pixie Dust Golden Amber (255, 215, 40)`.
+    - **Ambient Color Palette Mode:** Added `#ambientColorModeSelect` supporting `Sampled Artwork Colors` (default), `Float Signature Theme Color` (auto-mapped to each float's official palette), `Vintage Incandescent (2700K Warm White)`, and `Custom Uniform Color` (with `#ambientCustomColorPicker`).
+    - **One-Touch Quick Chips:** Deployed instant clickable chips for Tempo (`90`, `120`, `144`, `180 BPM`) and Sparkle Frequency (`0%`, `0.5%`, `1.5%`, `3.5%`).
+    - **Display Optics Separation:** Visually separated `LED Bloom / Glow Radius` into a dedicated sub-card labeled `🖥️ Simulator Display Optics (Browser Canvas Only)` to distinguish browser canvas simulation from ESP32 hardware flash settings.
+  - **ESP32 Firmware & Toolchain Verification:**
+    - Updated `renderAmbientFallback(uint32_t now)` across `src/main.cpp` and `arduino/MSEP_Costume/MSEP_Costume.ino` with zero-overhead preprocessor macros (`COSTUME_AMBIENT_DIRECTION`, `COSTUME_SPARKLE_STYLE`, `COSTUME_AMBIENT_COLOR_MODE`, `AMBIENT_CUSTOM_COLOR_RGB`).
+    - Verified compilation with PlatformIO (`pio run`) — 0 errors, 0 warnings.
+    - Regenerated all 8 production fleet ROM binaries (Generic + Floats 1 through 7) via `build_fleet_binaries.py`.
+
 * **Milestone:** Milestone 3 & Milestone 4 - Lighting Engine & Parade Show Sequencing
 * **Status:** Complete & Verified (`simulator/app.js?v=62`, `simulator/index.html`, `simulator.py`, `src/main.cpp`, `arduino/MSEP_Costume/MSEP_Costume.ino`, and `include/costume_config.h`).
 * **Notes:**

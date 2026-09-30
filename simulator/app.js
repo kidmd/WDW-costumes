@@ -51,7 +51,11 @@ function markSingleShirtDirty() {
 let params = {
     speedBpm: 120,
     sparkleRate: 1.5,
-    greenHue: 140, // 100 = lime, 140 = emerald, 165 = seafoam
+    sparkleStyle: 'incandescent', // 'incandescent', 'diamond', 'gold'
+    ambientColorMode: 'artwork',   // 'artwork', 'float_theme', 'vintage_warm', 'custom'
+    ambientCustomColor: '#ffb703',
+    direction: 1,                 // 1 = forward, -1 = reverse
+    greenHue: 140, // 100 = lime, 140 = emerald, 165 = seafoam (procedural fallback)
     brightness: 85,
     glowSize: 20,
     showWiring: false,
@@ -1602,36 +1606,61 @@ function evalGroupEffect(grp, effect, bpm, dir, grpIndex, grpSize, timeMs, c) {
     };
 }
 
-function evalGlobalPattern(pattern, bpm, index, totalLeds, timeMs, c, hasColor) {
+function getSparkleRgb(style) {
+    if (style === 'diamond') return { r: 255, g: 255, b: 255 };
+    if (style === 'gold') return { r: 255, g: 215, b: 40 };
+    return { r: 255, g: 240, b: 200 }; // default: warm 2700K incandescent filament
+}
+
+function evalGlobalPattern(pattern, bpm, index, totalLeds, timeMs, c, hasColor, isGroupOverride = false) {
     const beatMs = 60000 / Math.max(20, bpm || params.speedBpm || 120);
     const normTime = timeMs / beatMs;
-    const baseH = params.greenHue;
+    const baseH = params.greenHue || 140;
+    const dir = params.direction || 1;
 
+    let effC = c;
+    let effHasColor = hasColor;
+    if (!isGroupOverride && params.ambientColorMode && params.ambientColorMode !== 'artwork') {
+        if (params.ambientColorMode === 'float_theme') {
+            const floatIdx = (typeof activeSingleShirtRunnerSlot === 'number' && activeSingleShirtRunnerSlot >= 0) ? activeSingleShirtRunnerSlot : 0;
+            const floatObj = (DEFAULT_FLEET_RADAR && DEFAULT_FLEET_RADAR[floatIdx]) ? DEFAULT_FLEET_RADAR[floatIdx] : null;
+            effC = (floatObj && floatObj.color && typeof hexToRgb === 'function') ? (hexToRgb(floatObj.color) || { r: 56, g: 139, b: 253 }) : { r: 56, g: 139, b: 253 };
+            effHasColor = true;
+        } else if (params.ambientColorMode === 'vintage_warm') {
+            effC = { r: 255, g: 210, b: 120 };
+            effHasColor = true;
+        } else if (params.ambientColorMode === 'custom') {
+            effC = (typeof hexToRgb === 'function') ? (hexToRgb(params.ambientCustomColor || '#ffb703') || { r: 255, g: 183, b: 3 }) : { r: 255, g: 183, b: 3 };
+            effHasColor = true;
+        }
+    }
+
+    const spkCol = getSparkleRgb(params.sparkleStyle);
     let r = 0, g = 255, b = 100, brightness = params.brightness / 100;
 
     switch (pattern) {
         case 'steady_sparkle': {
-            if (hasColor) {
-                r = c.r; g = c.g; b = c.b;
+            if (effHasColor) {
+                r = effC.r; g = effC.g; b = effC.b;
             } else {
                 const rgb = hslToRgb(baseH / 360, 0.95, 0.50);
                 r = rgb.r; g = rgb.g; b = rgb.b;
             }
             if (sparkles[index] > 0) {
                 const sp = sparkles[index];
-                r = Math.round(r * (1 - sp) + 255 * sp);
-                g = Math.round(g * (1 - sp) + 255 * sp);
-                b = Math.round(b * (1 - sp) + 240 * sp);
+                r = Math.round(r * (1 - sp) + spkCol.r * sp);
+                g = Math.round(g * (1 - sp) + spkCol.g * sp);
+                b = Math.round(b * (1 - sp) + spkCol.b * sp);
                 brightness = Math.min(1.0, brightness + sp * 0.4);
             }
             break;
         }
         case 'color_match': {
-            if (hasColor) {
+            if (effHasColor) {
                 const breath = 0.72 + 0.28 * Math.sin(normTime * 2 + index * 0.18);
-                r = Math.floor(c.r * breath);
-                g = Math.floor(c.g * breath);
-                b = Math.floor(c.b * breath);
+                r = Math.floor(effC.r * breath);
+                g = Math.floor(effC.g * breath);
+                b = Math.floor(effC.b * breath);
             } else {
                 const breath = 0.75 + 0.25 * Math.sin(normTime * 2 + index * 0.15);
                 const rgb = hslToRgb(baseH / 360, 0.95, 0.50 * breath);
@@ -1639,19 +1668,19 @@ function evalGlobalPattern(pattern, bpm, index, totalLeds, timeMs, c, hasColor) 
             }
             if (sparkles[index] > 0) {
                 const sp = sparkles[index];
-                r = Math.round(r * (1 - sp) + 255 * sp);
-                g = Math.round(g * (1 - sp) + 255 * sp);
-                b = Math.round(b * (1 - sp) + 240 * sp);
+                r = Math.round(r * (1 - sp) + spkCol.r * sp);
+                g = Math.round(g * (1 - sp) + spkCol.g * sp);
+                b = Math.round(b * (1 - sp) + spkCol.b * sp);
                 brightness = Math.min(1.0, brightness + sp * 0.4);
             }
             break;
         }
         case 'dragon_sparkle': {
-            if (hasColor) {
+            if (effHasColor) {
                 const breath = 0.75 + 0.25 * Math.sin(normTime * 2 + index * 0.15);
-                r = Math.floor(c.r * breath);
-                g = Math.floor(c.g * breath);
-                b = Math.floor(c.b * breath);
+                r = Math.floor(effC.r * breath);
+                g = Math.floor(effC.g * breath);
+                b = Math.floor(effC.b * breath);
             } else {
                 const breath = 0.75 + 0.25 * Math.sin(normTime * 2 + index * 0.15);
                 const h = baseH + Math.sin(index * 0.4) * 8;
@@ -1660,9 +1689,9 @@ function evalGlobalPattern(pattern, bpm, index, totalLeds, timeMs, c, hasColor) 
             }
             if (sparkles[index] > 0) {
                 const sp = sparkles[index];
-                r = r * (1 - sp) + 255 * sp;
-                g = g * (1 - sp) + 255 * sp;
-                b = b * (1 - sp) + 230 * sp;
+                r = Math.round(r * (1 - sp) + spkCol.r * sp);
+                g = Math.round(g * (1 - sp) + spkCol.g * sp);
+                b = Math.round(b * (1 - sp) + spkCol.b * sp);
                 brightness = Math.min(1.0, brightness + sp * 0.5);
             }
             break;
@@ -1673,8 +1702,8 @@ function evalGlobalPattern(pattern, bpm, index, totalLeds, timeMs, c, hasColor) 
                 r = 255;
                 g = Math.floor(60 + fire * 100);
                 b = 10;
-            } else if (hasColor) {
-                r = c.r; g = c.g; b = c.b;
+            } else if (effHasColor) {
+                r = effC.r; g = effC.g; b = effC.b;
             } else {
                 const rgb = hslToRgb(baseH / 360, 0.85, 0.45);
                 r = rgb.r; g = rgb.g; b = rgb.b;
@@ -1682,19 +1711,20 @@ function evalGlobalPattern(pattern, bpm, index, totalLeds, timeMs, c, hasColor) 
             break;
         }
         case 'traveling_wave': {
+            const effectiveIndex = (dir === -1) ? (totalLeds - 1 - index) : index;
             const waveCycle = (timeMs % 2000) / 2000;
             const head = waveCycle * totalLeds;
-            const dist = Math.abs(index - head);
+            const dist = Math.abs(effectiveIndex - head);
             if (dist < 4.0) {
                 const intensity = Math.max(0, 1 - (dist / 4.0));
                 r = 255 * intensity;
                 g = 255 * intensity;
                 b = Math.floor(220 * intensity);
                 brightness = 1.0;
-            } else if (hasColor) {
-                r = Math.floor(c.r * 0.5);
-                g = Math.floor(c.g * 0.5);
-                b = Math.floor(c.b * 0.5);
+            } else if (effHasColor) {
+                r = Math.floor(effC.r * 0.5);
+                g = Math.floor(effC.g * 0.5);
+                b = Math.floor(effC.b * 0.5);
                 brightness = 0.4;
             } else {
                 const rgb = hslToRgb(baseH / 360, 0.9, 0.25);
@@ -1705,11 +1735,12 @@ function evalGlobalPattern(pattern, bpm, index, totalLeds, timeMs, c, hasColor) 
         }
         case 'marquee': {
             const step = Math.floor(normTime * 3) % 3;
-            if ((index + step) % 3 === 0) {
-                if (hasColor) {
-                    r = Math.min(255, c.r + 50);
-                    g = Math.min(255, c.g + 50);
-                    b = Math.min(255, c.b + 50);
+            const effStep = (dir === -1) ? (3 - step) % 3 : step;
+            if ((index + effStep) % 3 === 0) {
+                if (effHasColor) {
+                    r = Math.min(255, effC.r + 50);
+                    g = Math.min(255, effC.g + 50);
+                    b = Math.min(255, effC.b + 50);
                 } else {
                     r = 255; g = 150; b = 30;
                 }
@@ -1721,8 +1752,8 @@ function evalGlobalPattern(pattern, bpm, index, totalLeds, timeMs, c, hasColor) 
             break;
         }
         case 'photo_mode': {
-            if (hasColor) {
-                r = c.r; g = c.g; b = c.b;
+            if (effHasColor) {
+                r = effC.r; g = effC.g; b = effC.b;
             } else if (index % 2 === 0) {
                 const rgb = hslToRgb(baseH / 360, 1.0, 0.55);
                 r = rgb.r; g = rgb.g; b = rgb.b;
@@ -1734,10 +1765,10 @@ function evalGlobalPattern(pattern, bpm, index, totalLeds, timeMs, c, hasColor) 
         }
         case 'pulse': {
             const breath = 0.35 + 0.65 * (Math.sin(normTime * Math.PI * 2) * 0.5 + 0.5);
-            if (hasColor) {
-                r = Math.floor(c.r * breath);
-                g = Math.floor(c.g * breath);
-                b = Math.floor(c.b * breath);
+            if (effHasColor) {
+                r = Math.floor(effC.r * breath);
+                g = Math.floor(effC.g * breath);
+                b = Math.floor(effC.b * breath);
             } else {
                 const rgb = hslToRgb(baseH / 360, 0.95, 0.50 * breath);
                 r = rgb.r; g = rgb.g; b = rgb.b;
@@ -1745,14 +1776,15 @@ function evalGlobalPattern(pattern, bpm, index, totalLeds, timeMs, c, hasColor) 
             break;
         }
         case 'chase': {
+            const effectiveIndex = (dir === -1) ? (totalLeds - 1 - index) : index;
             const head = (normTime * 2) % totalLeds;
-            const dist = Math.abs(index - head);
+            const dist = Math.abs(effectiveIndex - head);
             const fade = Math.max(0, 1 - (dist / 8));
             const intensity = 0.15 + 0.85 * fade;
-            if (hasColor) {
-                r = Math.floor(c.r * intensity);
-                g = Math.floor(c.g * intensity);
-                b = Math.floor(c.b * intensity);
+            if (effHasColor) {
+                r = Math.floor(effC.r * intensity);
+                g = Math.floor(effC.g * intensity);
+                b = Math.floor(effC.b * intensity);
             } else {
                 const rgb = hslToRgb(baseH / 360, 0.95, 0.50 * intensity);
                 r = rgb.r; g = rgb.g; b = rgb.b;
@@ -1858,8 +1890,8 @@ function evalGlobalPattern(pattern, bpm, index, totalLeds, timeMs, c, hasColor) 
             if (rand > 0.65) {
                 r = 255; g = 255; b = 240;
                 brightness = 1.0;
-            } else if (hasColor) {
-                r = c.r; g = c.g; b = c.b;
+            } else if (effHasColor) {
+                r = effC.r; g = effC.g; b = effC.b;
                 brightness = 0.15;
             } else {
                 const rgb = hslToRgb(baseH / 360, 0.95, 0.35);
@@ -1869,24 +1901,25 @@ function evalGlobalPattern(pattern, bpm, index, totalLeds, timeMs, c, hasColor) 
             break;
         }
         case 'rainbow_cycle': {
-            const hue = ((timeMs * 0.08 + index * (360 / Math.max(1, totalLeds))) % 360 + 360) % 360;
+            const hue = ((timeMs * 0.08 * dir + index * (360 / Math.max(1, totalLeds))) % 360 + 360) % 360;
             const rgb = hslToRgb(hue / 360, 0.95, 0.52);
             r = rgb.r; g = rgb.g; b = rgb.b;
             brightness = 1.0;
             break;
         }
         case 'comet': {
+            const effectiveIndex = (dir === -1) ? (totalLeds - 1 - index) : index;
             const head = ((normTime * 2) % totalLeds + totalLeds) % totalLeds;
             const tailLen = Math.max(8, totalLeds * 0.15);
-            let dist = head - index;
+            let dist = head - effectiveIndex;
             if (dist < 0) dist += totalLeds;
             if (dist < tailLen) {
                 const fade = Math.exp(-dist * (2.8 / tailLen));
                 const effIntensity = 0.08 + 0.92 * fade;
-                if (hasColor) {
-                    r = Math.floor(c.r * effIntensity);
-                    g = Math.floor(c.g * effIntensity);
-                    b = Math.floor(c.b * effIntensity);
+                if (effHasColor) {
+                    r = Math.floor(effC.r * effIntensity);
+                    g = Math.floor(effC.g * effIntensity);
+                    b = Math.floor(effC.b * effIntensity);
                 } else {
                     const rgb = hslToRgb(baseH / 360, 0.95, 0.50 * effIntensity);
                     r = rgb.r; g = rgb.g; b = rgb.b;
@@ -1898,8 +1931,8 @@ function evalGlobalPattern(pattern, bpm, index, totalLeds, timeMs, c, hasColor) 
                 }
                 brightness = 1.0;
             } else {
-                if (hasColor) {
-                    r = Math.floor(c.r * 0.08); g = Math.floor(c.g * 0.08); b = Math.floor(c.b * 0.08);
+                if (effHasColor) {
+                    r = Math.floor(effC.r * 0.08); g = Math.floor(effC.g * 0.08); b = Math.floor(effC.b * 0.08);
                 } else {
                     r = 15; g = 15; b = 15;
                 }
@@ -1909,15 +1942,16 @@ function evalGlobalPattern(pattern, bpm, index, totalLeds, timeMs, c, hasColor) 
         }
         case 'scanner': {
             const cycle = normTime % 2.0;
-            const head = cycle <= 1.0 ? cycle * (totalLeds - 1) : (2.0 - cycle) * (totalLeds - 1);
+            let head = cycle <= 1.0 ? cycle * (totalLeds - 1) : (2.0 - cycle) * (totalLeds - 1);
+            if (dir === -1) head = (totalLeds - 1) - head;
             const dist = Math.abs(index - head);
             const sigma = Math.max(2.0, totalLeds * 0.05);
             const wake = Math.exp(-(dist * dist) / (2 * sigma * sigma));
             const effIntensity = 0.10 + 0.90 * wake;
-            if (hasColor) {
-                r = Math.floor(c.r * effIntensity);
-                g = Math.floor(c.g * effIntensity);
-                b = Math.floor(c.b * effIntensity);
+            if (effHasColor) {
+                r = Math.floor(effC.r * effIntensity);
+                g = Math.floor(effC.g * effIntensity);
+                b = Math.floor(effC.b * effIntensity);
             } else {
                 const rgb = hslToRgb(baseH / 360, 0.95, 0.50 * effIntensity);
                 r = rgb.r; g = rgb.g; b = rgb.b;
@@ -1933,19 +1967,20 @@ function evalGlobalPattern(pattern, bpm, index, totalLeds, timeMs, c, hasColor) 
         case 'color_wipe': {
             const totalCycleMs = beatMs * 4;
             const progress = (timeMs % totalCycleMs) / totalCycleMs;
+            const effectiveIndex = (dir === -1) ? (totalLeds - 1 - index) : index;
             let lit = false;
             if (progress < 0.40) {
-                lit = index <= (progress / 0.40) * totalLeds;
+                lit = effectiveIndex <= (progress / 0.40) * totalLeds;
             } else if (progress < 0.58) {
                 lit = true;
             } else if (progress < 0.88) {
-                lit = index > ((progress - 0.58) / 0.30) * totalLeds;
+                lit = effectiveIndex > ((progress - 0.58) / 0.30) * totalLeds;
             } else {
                 lit = false;
             }
             const eff = lit ? 1.0 : 0.06;
-            if (hasColor) {
-                r = Math.floor(c.r * eff); g = Math.floor(c.g * eff); b = Math.floor(c.b * eff);
+            if (effHasColor) {
+                r = Math.floor(effC.r * eff); g = Math.floor(effC.g * eff); b = Math.floor(effC.b * eff);
             } else {
                 const rgb = hslToRgb(baseH / 360, 0.95, 0.50 * eff);
                 r = rgb.r; g = rgb.g; b = rgb.b;
@@ -1956,16 +1991,16 @@ function evalGlobalPattern(pattern, bpm, index, totalLeds, timeMs, c, hasColor) 
         case 'pixie_dust': {
             const drift = Math.sin(normTime * 1.5 + index * 0.25) * 0.3 + 0.7;
             const twinkle = Math.sin(timeMs * 0.05 + index * 73.19) * 0.5 + 0.5;
-            if (hasColor) {
-                r = Math.floor(c.r * drift); g = Math.floor(c.g * drift); b = Math.floor(c.b * drift);
+            if (effHasColor) {
+                r = Math.floor(effC.r * drift); g = Math.floor(effC.g * drift); b = Math.floor(effC.b * drift);
             } else {
                 const rgb = hslToRgb(baseH / 360, 0.95, 0.50 * drift);
                 r = rgb.r; g = rgb.g; b = rgb.b;
             }
             if (twinkle > 0.72) {
-                r = Math.min(255, r + 110);
-                g = Math.min(255, g + 110);
-                b = Math.min(255, b + 110);
+                r = Math.min(255, r + Math.round(spkCol.r * 0.45));
+                g = Math.min(255, g + Math.round(spkCol.g * 0.45));
+                b = Math.min(255, b + Math.round(spkCol.b * 0.45));
                 brightness = 1.0;
             } else {
                 brightness = 0.5 * drift;
@@ -1976,10 +2011,10 @@ function evalGlobalPattern(pattern, bpm, index, totalLeds, timeMs, c, hasColor) 
             const warmDrift = Math.sin(timeMs * 0.007 + index * 13.7) * 0.09 +
                               Math.sin(timeMs * 0.019 + index * 31.9) * 0.05;
             const eff = 0.80 + warmDrift;
-            if (hasColor) {
-                r = Math.min(255, Math.floor((c.r * 1.08 + 15) * eff));
-                g = Math.floor((c.g * 0.94 + 5) * eff);
-                b = Math.floor((c.b * 0.70) * eff);
+            if (effHasColor) {
+                r = Math.min(255, Math.floor((effC.r * 1.08 + 15) * eff));
+                g = Math.floor((effC.g * 0.94 + 5) * eff);
+                b = Math.floor((effC.b * 0.70) * eff);
             } else {
                 r = Math.floor(255 * eff);
                 g = Math.floor(180 * eff);
@@ -1993,10 +2028,10 @@ function evalGlobalPattern(pattern, bpm, index, totalLeds, timeMs, c, hasColor) 
                              0.15 * Math.sin(timeMs * 0.042 + index * 47.7) +
                              0.05 * Math.sin(timeMs * 0.095 + index * 89.1);
             const eff = Math.max(0.20, Math.min(1.0, f));
-            if (hasColor) {
+            if (effHasColor) {
                 r = Math.min(255, Math.floor(255 * eff));
-                g = Math.min(255, Math.floor(Math.max(110, c.g * 0.85 + 40) * eff));
-                b = Math.min(120, Math.floor(c.b * 0.35 * eff));
+                g = Math.min(255, Math.floor(Math.max(110, effC.g * 0.85 + 40) * eff));
+                b = Math.min(120, Math.floor(effC.b * 0.35 * eff));
             } else {
                 r = Math.floor(255 * eff);
                 g = Math.floor(150 * eff);
@@ -2011,8 +2046,8 @@ function evalGlobalPattern(pattern, bpm, index, totalLeds, timeMs, c, hasColor) 
             const wavePhase = (normTime * 2) - (normDist * 2.0);
             const wave = Math.sin(wavePhase * Math.PI) * 0.5 + 0.5;
             const eff = 0.15 + 0.85 * Math.pow(wave, 1.8);
-            if (hasColor) {
-                r = Math.floor(c.r * eff); g = Math.floor(c.g * eff); b = Math.floor(c.b * eff);
+            if (effHasColor) {
+                r = Math.floor(effC.r * eff); g = Math.floor(effC.g * eff); b = Math.floor(effC.b * eff);
             } else {
                 const rgb = hslToRgb(baseH / 360, 0.95, 0.50 * eff);
                 r = rgb.r; g = rgb.g; b = rgb.b;
@@ -2031,8 +2066,8 @@ function evalGlobalPattern(pattern, bpm, index, totalLeds, timeMs, c, hasColor) 
             } else {
                 eff = 0.15 + 0.20 * Math.sin(strokeProgress * Math.PI);
             }
-            if (hasColor) {
-                r = Math.floor(c.r * eff); g = Math.floor(c.g * eff); b = Math.floor(c.b * eff);
+            if (effHasColor) {
+                r = Math.floor(effC.r * eff); g = Math.floor(effC.g * eff); b = Math.floor(effC.b * eff);
             } else {
                 const rgb = hslToRgb(baseH / 360, 0.95, 0.50 * eff);
                 r = rgb.r; g = rgb.g; b = rgb.b;
@@ -2049,8 +2084,8 @@ function evalGlobalPattern(pattern, bpm, index, totalLeds, timeMs, c, hasColor) 
             break;
         }
         default: {
-            if (hasColor) {
-                r = c.r; g = c.g; b = c.b;
+            if (effHasColor) {
+                r = effC.r; g = effC.g; b = effC.b;
             } else {
                 const rgb = hslToRgb(baseH / 360, 0.95, 0.50);
                 r = rgb.r; g = rgb.g; b = rgb.b;
@@ -2198,7 +2233,7 @@ function computeLedColor(index, totalLeds, timeMs) {
                 grpBaselineCol = { r: 0, g: 0, b: 0, alpha: 0 };
             } else if (groupBaseline === 'inherit' || !groupBaseline) {
                 if (grp.colorMode === 'custom' && grp.customColor) {
-                    grpBaselineCol = evalGlobalPattern(activePattern, params.speedBpm, index, totalLeds, timeMs, grp.customColor, true);
+                    grpBaselineCol = evalGlobalPattern(activePattern, params.speedBpm, index, totalLeds, timeMs, grp.customColor, true, true);
                 } else {
                     grpBaselineCol = baseColor;
                 }
@@ -2244,7 +2279,7 @@ function computeLedColor(index, totalLeds, timeMs) {
             return evalGroupEffect(grp, grp.effect, grp.speedBpm || params.speedBpm, grp.direction || 1, grpEntry.indexInGroup, grpEntry.groupSize, timeMs, c);
         }
         const effectiveColor = (grp.colorMode === 'custom' && grp.customColor) ? grp.customColor : c;
-        return evalGlobalPattern(activePattern, params.speedBpm, index, totalLeds, timeMs, effectiveColor, hasColor || (grp.colorMode === 'custom'));
+        return evalGlobalPattern(activePattern, params.speedBpm, index, totalLeds, timeMs, effectiveColor, hasColor || (grp.colorMode === 'custom'), grp.colorMode === 'custom');
     }
 
     return evalGlobalPattern(activePattern, params.speedBpm, index, totalLeds, timeMs, c, hasColor);
@@ -5179,8 +5214,12 @@ function assignCurrentEditorToRunner(slot) {
         animationGroups: JSON.parse(JSON.stringify(animationGroups)),
         settings: {
             pattern: activePattern,
+            direction: params.direction || 1,
             speedBpm: params.speedBpm,
             sparkleRate: params.sparkleRate,
+            sparkleStyle: params.sparkleStyle || 'incandescent',
+            ambientColorMode: params.ambientColorMode || 'artwork',
+            ambientCustomColor: params.ambientCustomColor || '#ffb703',
             greenHue: params.greenHue,
             brightness: params.brightness,
             glowSize: params.glowSize
@@ -5215,8 +5254,12 @@ function assignCurrentEditorToAllRunners() {
             animationGroups: JSON.parse(JSON.stringify(animationGroups)),
             settings: {
                 pattern: activePattern,
+                direction: params.direction || 1,
                 speedBpm: params.speedBpm,
                 sparkleRate: params.sparkleRate,
+                sparkleStyle: params.sparkleStyle || 'incandescent',
+                ambientColorMode: params.ambientColorMode || 'artwork',
+                ambientCustomColor: params.ambientCustomColor || '#ffb703',
                 greenHue: params.greenHue,
                 brightness: params.brightness,
                 glowSize: params.glowSize
@@ -10090,8 +10133,12 @@ async function saveCurrentProfile(name) {
         animationGroups: animationGroups,
         settings: {
             pattern: activePattern,
+            direction: params.direction || 1,
             speedBpm: params.speedBpm,
             sparkleRate: params.sparkleRate,
+            sparkleStyle: params.sparkleStyle || 'incandescent',
+            ambientColorMode: params.ambientColorMode || 'artwork',
+            ambientCustomColor: params.ambientCustomColor || '#ffb703',
             greenHue: params.greenHue,
             brightness: params.brightness,
             glowSize: params.glowSize
@@ -10223,6 +10270,28 @@ function applyProfileData(profileData) {
             const spkVal = document.getElementById('sparkleVal');
             if (spkVal) spkVal.textContent = `${params.sparkleRate.toFixed(params.sparkleRate < 1 ? 2 : 1)}%`;
         }
+        if (s.direction !== undefined) {
+            params.direction = parseInt(s.direction) || 1;
+            const dirSel = document.getElementById('ambientDirectionSelect');
+            if (dirSel) dirSel.value = params.direction.toString();
+        }
+        if (s.sparkleStyle !== undefined) {
+            params.sparkleStyle = s.sparkleStyle;
+            const spkStyleSel = document.getElementById('sparkleStyleSelect');
+            if (spkStyleSel) spkStyleSel.value = s.sparkleStyle;
+        }
+        if (s.ambientColorMode !== undefined) {
+            params.ambientColorMode = s.ambientColorMode;
+            const modeSel = document.getElementById('ambientColorModeSelect');
+            if (modeSel) modeSel.value = s.ambientColorMode;
+            const customRow = document.getElementById('ambientCustomColorRow');
+            if (customRow) customRow.style.display = (s.ambientColorMode === 'custom') ? 'flex' : 'none';
+        }
+        if (s.ambientCustomColor !== undefined) {
+            params.ambientCustomColor = s.ambientCustomColor;
+            const picker = document.getElementById('ambientCustomColorPicker');
+            if (picker) picker.value = s.ambientCustomColor;
+        }
         if (s.greenHue !== undefined) {
             params.greenHue = s.greenHue;
             const hue = document.getElementById('hueSlider');
@@ -10353,10 +10422,29 @@ document.getElementById('patternSelect').addEventListener('change', (e) => {
     markSingleShirtDirty();
 });
 
+document.getElementById('ambientDirectionSelect')?.addEventListener('change', (e) => {
+    params.direction = parseInt(e.target.value) || 1;
+    markSingleShirtDirty();
+});
+
 document.getElementById('speedSlider').addEventListener('input', (e) => {
     params.speedBpm = parseInt(e.target.value);
     document.getElementById('speedVal').textContent = `${params.speedBpm} BPM`;
     markSingleShirtDirty();
+});
+
+document.querySelectorAll('.tempo-chip').forEach(btn => {
+    btn.addEventListener('click', () => {
+        const bpm = parseInt(btn.dataset.bpm);
+        if (!isNaN(bpm)) {
+            params.speedBpm = bpm;
+            const slider = document.getElementById('speedSlider');
+            if (slider) slider.value = bpm;
+            const val = document.getElementById('speedVal');
+            if (val) val.textContent = `${bpm} BPM`;
+            markSingleShirtDirty();
+        }
+    });
 });
 
 document.getElementById('sparkleSlider').addEventListener('input', (e) => {
@@ -10365,9 +10453,43 @@ document.getElementById('sparkleSlider').addEventListener('input', (e) => {
     markSingleShirtDirty();
 });
 
-document.getElementById('hueSlider').addEventListener('input', (e) => {
+document.querySelectorAll('.sparkle-chip').forEach(btn => {
+    btn.addEventListener('click', () => {
+        const rate = parseFloat(btn.dataset.rate);
+        if (!isNaN(rate)) {
+            params.sparkleRate = rate;
+            const slider = document.getElementById('sparkleSlider');
+            if (slider) slider.value = rate;
+            const val = document.getElementById('sparkleVal');
+            if (val) val.textContent = `${rate.toFixed(rate < 1 ? 2 : 1)}%`;
+            markSingleShirtDirty();
+        }
+    });
+});
+
+document.getElementById('sparkleStyleSelect')?.addEventListener('change', (e) => {
+    params.sparkleStyle = e.target.value;
+    markSingleShirtDirty();
+});
+
+document.getElementById('ambientColorModeSelect')?.addEventListener('change', (e) => {
+    params.ambientColorMode = e.target.value;
+    const row = document.getElementById('ambientCustomColorRow');
+    if (row) {
+        row.style.display = (params.ambientColorMode === 'custom') ? 'flex' : 'none';
+    }
+    markSingleShirtDirty();
+});
+
+document.getElementById('ambientCustomColorPicker')?.addEventListener('input', (e) => {
+    params.ambientCustomColor = e.target.value;
+    markSingleShirtDirty();
+});
+
+document.getElementById('hueSlider')?.addEventListener('input', (e) => {
     params.greenHue = parseInt(e.target.value);
-    document.getElementById('hueVal').textContent = `${params.greenHue}°`;
+    const hv = document.getElementById('hueVal');
+    if (hv) hv.textContent = `${params.greenHue}°`;
     markSingleShirtDirty();
 });
 
@@ -13604,8 +13726,12 @@ function exportCurrentProfileJson() {
         animationGroups: animationGroups,
         settings: {
             pattern: activePattern,
+            direction: params.direction || 1,
             speedBpm: params.speedBpm,
             sparkleRate: params.sparkleRate,
+            sparkleStyle: params.sparkleStyle || 'incandescent',
+            ambientColorMode: params.ambientColorMode || 'artwork',
+            ambientCustomColor: params.ambientCustomColor || '#ffb703',
             greenHue: params.greenHue,
             brightness: params.brightness,
             glowSize: params.glowSize
@@ -14069,6 +14195,10 @@ async function triggerUsbFirmwareFlash(floatId = 0) {
             floatId: effectiveFloatId,
             pattern: 'autonomous_90s',
             ambientPattern: activePattern,   // User's selected ambient mode (steady_sparkle, photo_mode, breathing_glow, etc.)
+            ambientDirection: params.direction || 1,
+            sparkleStyle: params.sparkleStyle || 'incandescent',
+            ambientColorMode: params.ambientColorMode || 'artwork',
+            ambientCustomColor: params.ambientCustomColor || '#ffb703',
             speedBpm: params.speedBpm,
             sparkleRate: params.sparkleRate,
             greenHue: params.greenHue,
@@ -15391,8 +15521,12 @@ async function exportMasterFleetBundleJson() {
                 animationGroups: JSON.parse(JSON.stringify(animationGroups)),
                 settings: {
                     pattern: activePattern,
+                    direction: params.direction || 1,
                     speedBpm: params.speedBpm,
                     sparkleRate: params.sparkleRate,
+                    sparkleStyle: params.sparkleStyle || 'incandescent',
+                    ambientColorMode: params.ambientColorMode || 'artwork',
+                    ambientCustomColor: params.ambientCustomColor || '#ffb703',
                     greenHue: params.greenHue,
                     brightness: params.brightness,
                     glowSize: params.glowSize
