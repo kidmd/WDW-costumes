@@ -1444,7 +1444,7 @@
                         </button>
                     </div>
 
-                    <!-- Web Flasher Zero-Install Link -->
+                    <!-- Web Flasher Zero-Install Link & ROM Rebuilder -->
                     <div class="control-section">
                         <div class="section-title">
                             <span>Zero-Install Browser Flasher</span>
@@ -1452,9 +1452,14 @@
                         <p style="font-size: 11px; color: var(--text-muted); line-height: 1.4;">
                             Flash any of the 7 runner ESP32s directly through Chrome or Edge via Web Serial — no software or drivers required.
                         </p>
-                        <a href="/web_flasher.html" target="_blank" class="action-btn" style="text-decoration: none; font-size: 12px; padding: 8px; margin-top: 4px; color: #3fb950; border-color: #2ea043; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 6px;">
-                            🚀 Open Web Serial Flasher Tab
-                        </a>
+                        <div style="display: flex; gap: 6px; margin-top: 6px;">
+                            <a href="/web_flasher.html" target="_blank" class="action-btn" style="flex: 1.2; text-decoration: none; font-size: 11px; padding: 8px; color: #3fb950; border-color: #2ea043; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 4px;" title="Open zero-install browser flasher tab">
+                                🚀 Open Web Flasher
+                            </a>
+                            <button type="button" id="rebuildFleetBinariesBtn" class="action-btn" style="flex: 1; font-size: 11px; padding: 8px; color: #58a6ff; border-color: #388bfd; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 4px;" title="Rebuild ROM binaries for all 7 floats from current C++ firmware">
+                                🔨 Rebuild ROMs
+                            </button>
+                        </div>
                     </div>
 
                     <!-- Race-Day Battery Life & Power Budget Calculator -->
@@ -2105,6 +2110,6 @@
         </div>
     </div>
 
-    <script src="app.js?v=60"></script>
+    <script src="app.js?v=61"></script>
 </body>
 </html>

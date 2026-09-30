@@ -93,6 +93,14 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### Entry: In-Simulator 1-Click Fleet ROM Binary Rebuilder
+* **Date:** 2026-09-30
+* **Milestone:** Milestone 5 - Studio Workflow & Hardware Fleet Control
+* **Status:** Complete & Verified (`simulator/app.js?v=61`, `simulator/index.html`, and `simulator.py`).
+* **Notes:**
+  - Added dedicated **`🔨 Rebuild ROMs`** button in the **Deploy & Hardware Tab** alongside the Web Flasher link.
+  - Clicking this button executes `build_fleet_binaries.py` asynchronously via the `/api/build_fleet_binaries` backend endpoint, recompiling all 7 float ROM binaries (`firmware_float1.bin` through `firmware_float7.bin` + `firmware.bin`) directly from the active C++ firmware in the background and syncing them to the `firmware/` directory for instant Web Flashing.
+
 ### Entry: Web Audio Baroque Hoedown Synthesizer & Fleet Roster Web Flasher Alignment
 * **Date:** 2026-09-30
 * **Milestone:** Milestone 5 - Studio Workflow & Hardware Fleet Control

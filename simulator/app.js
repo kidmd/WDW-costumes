@@ -13849,6 +13849,32 @@ if (executeFleetFlashUsbBtn) {
     });
 }
 
+const rebuildFleetBinariesBtn = document.getElementById('rebuildFleetBinariesBtn');
+if (rebuildFleetBinariesBtn) {
+    rebuildFleetBinariesBtn.addEventListener('click', async () => {
+        rebuildFleetBinariesBtn.disabled = true;
+        rebuildFleetBinariesBtn.textContent = '⏳ Building...';
+        showToast('🔨 Building ROM binaries for all 7 floats in background...');
+
+        try {
+            const resp = await fetch('/api/build_fleet_binaries');
+            const data = await resp.json();
+            if (data.success) {
+                showToast('✅ Fleet ROM rebuild initiated! Files syncing to firmware folder.');
+            } else {
+                showToast('❌ Rebuild failed: ' + (data.error || 'Unknown error'));
+            }
+        } catch (e) {
+            showToast('⚠️ Could not connect to simulator backend: ' + e.message);
+        } finally {
+            setTimeout(() => {
+                rebuildFleetBinariesBtn.disabled = false;
+                rebuildFleetBinariesBtn.textContent = '🔨 Rebuild ROMs';
+            }, 3000);
+        }
+    });
+}
+
 const closeFleetFlashModalBtn = document.getElementById('closeFleetFlashModalBtn');
 if (closeFleetFlashModalBtn) {
     closeFleetFlashModalBtn.addEventListener('click', closeFleetFlashModal);
