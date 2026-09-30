@@ -93,6 +93,28 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### Entry: Tab 3 (Animation Groups) & Tab 4 (Float Show) Refinements & Effect Parity
+* **Date:** 2026-09-30
+* **Milestone:** Milestone 3 & Milestone 4 - Lighting Engine & Theatrical Parade Sequencing
+* **Status:** Complete & Verified (`simulator/app.js?v=64`, `simulator/index.html`, `build_fleet_binaries.py`).
+* **Notes:**
+  - **Tab 3 & Docked Inspector Effect & Color Parity:**
+    - Unified all 16+ animation effects across `groupEffectSelectHub` (Selection Hub), `drawGroupEffectSelect` (Click-to-Draw), and `groupEffectSelect` (Docked Group Inspector), exposing `comet`, `scanner`, `color_wipe`, `pixie_dust`, `filament_glow`, `candle_flicker`, `tidal_ripple`, `piston_chug`, `photo_mode`, and `steady_sparkle`.
+    - Integrated one-touch tempo quick chips (`🚶 90`, `🏃 120`, `⚡ 144`, `🚀 180 BPM`) beneath `groupSpeedSliderHub`, `drawGroupSpeedSlider`, and `groupSpeedSlider` (Inspector).
+    - Added dedicated **Custom Hex Color Pickers** (`<input type="color">`) alongside the 12 Disney preset swatches in both the Tab 3 Hub (`#groupCustomColorPickerHub`) and the docked Group Inspector (`#groupCustomColorPickerInspector`), allowing custom group coloring without requiring deselect/reselect cycles.
+  - **Tab 4 (Float Show / Cue Director) Enhancements:**
+    - Added **Per-Cue Direction Control** (`<select class="cue-direction-select">`) supporting `➡️ Forward` and `⬅️ Reverse` for all individual cue cards.
+    - Updated `evalGlobalPattern()` with an optional `directionOverride` parameter and wired `computeLedColor()` to pass `q.direction`, allowing global cues (like traveling waves, comet sweeps, and marquees) to reverse direction independently during show sequences.
+    - Added one-touch **Duration Quick Chips** (`5s`, `10s`, `15s`, `30s`) and **Tempo BPM Quick Chips** (`90`, `120`, `144`, `180`) right inside each cue card.
+    - Expanded the 90-second example routines in `#sequenceTemplateSelect` with 3 float-themed showcases:
+      - 🚂 **Casey Jr. 90s Routine (`casey_locomotive_90s`):** Opening steam sparkle, 144 BPM piston chug acceleration, 180 BPM high-speed comet sweep, and 144 BPM circus marquee finale.
+      - 🐢 **Turtle & Snail 90s Routine (`turtle_snail_spin_90s`):** 90 BPM enchanted garden pixie dust, 120 BPM concentric shell spin chase, 120 BPM tidal ripple expansion, and 144 BPM rainbow shell spiral finale.
+      - 🎆 **America Grand Finale 90s Routine (`patriotic_grand_finale_90s`):** Patriotic starlight sparkle, 144 BPM traveling electrical parade wave, 140 BPM grand starburst fireworks, and 180 BPM golden age 1972 theater marquee.
+  - **Verification & Toolchain:**
+    - `node --check simulator/app.js` passed with 0 errors.
+    - PlatformIO compilation (`pio run`) succeeded in release mode (RAM: 14.3%, Flash: 60.6%).
+    - Regenerated all 8 production fleet ROM binaries via `build_fleet_binaries.py` (all succeeded).
+
 ### Entry: Tab 2 (Ambient Tab) Baseline Dynamics Modernization & Firmware Engine Sync
 * **Date:** 2026-09-30
 * **Milestone:** Milestone 3 & Milestone 4 - Lighting Engine & Parade Show Sequencing

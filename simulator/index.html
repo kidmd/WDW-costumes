@@ -669,12 +669,23 @@
                                     <label style="font-size: 10.5px; color: var(--text-muted); display: block; margin-bottom: 2px;">Animation Effect:</label>
                                     <select id="groupEffectSelectHub" style="width: 100%; background: #0d1117; color: #fff; border: 1px solid #30363d; border-radius: 5px; padding: 5px 6px; font-size: 11px;">
                                         <option value="chase">🎡 Chase / Wheel Spin</option>
-                                        <option value="flash_slow">💡 Slow Flashing / Blink</option>
                                         <option value="pulse">💓 Breathing Glow Pulse</option>
                                         <option value="write_on_off">✍️ Write-On / Write-Off</option>
+                                        <option value="flash_slow">💡 Slow Flashing / Blink</option>
                                         <option value="sparkle_storm">✨ Sparkle Storm</option>
+                                        <option value="steady_sparkle">✨ Steady Sparkle (Sampled)</option>
+                                        <option value="comet">☄️ Meteor / Comet Trail</option>
+                                        <option value="scanner">🛸 Larson Scanner (Ping-Pong)</option>
+                                        <option value="color_wipe">🖌️ Color Wipe / Fill</option>
+                                        <option value="pixie_dust">💫 Pixie Dust Drift</option>
+                                        <option value="filament_glow">⚡ Vintage 1972 Filament</option>
+                                        <option value="candle_flicker">🕯️ Candle / Lantern Flame</option>
+                                        <option value="tidal_ripple">🌊 Tidal Ripple</option>
+                                        <option value="piston_chug">🚂 Locomotive Piston Chug</option>
                                         <option value="marquee">🎪 Theater Marquee</option>
                                         <option value="rainbow_cycle">🌈 Rainbow Color Wave</option>
+                                        <option value="fireworks">🎆 Fireworks Starburst</option>
+                                        <option value="photo_mode">📸 Castle Photo Mode (Solid)</option>
                                         <option value="off">🌑 Off / Completely Unlit</option>
                                     </select>
                                 </div>
@@ -687,13 +698,17 @@
                                 </div>
                             </div>
 
-                            <div style="display: flex; gap: 8px; align-items: center; margin-bottom: 6px;">
-                                <div style="flex: 1;">
-                                    <div class="label-row" style="margin-bottom: 2px;">
-                                        <span style="font-size: 10px; color: var(--text-muted);">Speed (BPM):</span>
-                                        <span id="groupSpeedValHub" class="val-badge" style="font-size: 10px;">140 BPM</span>
-                                    </div>
-                                    <input type="range" id="groupSpeedSliderHub" min="30" max="300" value="140" style="width: 100%; accent-color: var(--accent-gold);">
+                            <div style="margin-bottom: 6px;">
+                                <div class="label-row" style="margin-bottom: 2px;">
+                                    <span style="font-size: 10px; color: var(--text-muted);">Speed (BPM):</span>
+                                    <span id="groupSpeedValHub" class="val-badge" style="font-size: 10px;">140 BPM</span>
+                                </div>
+                                <input type="range" id="groupSpeedSliderHub" min="30" max="300" value="140" style="width: 100%; accent-color: var(--accent-gold);">
+                                <div class="grp-tempo-chips" style="display: flex; gap: 4px; margin-top: 4px;">
+                                    <button type="button" class="action-btn grp-tempo-chip" data-bpm="90" style="flex: 1; font-size: 9px; padding: 2px 2px;" title="90 BPM (Gentle Stroll / Waltz)">🚶 90</button>
+                                    <button type="button" class="action-btn grp-tempo-chip" data-bpm="120" style="flex: 1; font-size: 9px; padding: 2px 2px;" title="120 BPM (Parade March / Steady Run)">🏃 120</button>
+                                    <button type="button" class="action-btn grp-tempo-chip" data-bpm="144" style="flex: 1; font-size: 9px; padding: 2px 2px; font-weight: 600; color: var(--accent-gold);" title="144 BPM (Original Baroque Hoedown Tempo)">⚡ 144</button>
+                                    <button type="button" class="action-btn grp-tempo-chip" data-bpm="180" style="flex: 1; font-size: 9px; padding: 2px 2px;" title="180 BPM (High-Cadence Disney 10K Sprint)">🚀 180</button>
                                 </div>
                             </div>
 
@@ -764,6 +779,11 @@
                                     <button type="button" class="palette-swatch-btn" data-r="255" data-g="60" data-b="120" style="background: #ff3c78;" title="Coral Rose"></button>
                                     <button type="button" class="palette-swatch-btn" data-r="40" data-g="16" data-b="120" style="background: #281078;" title="Deep Indigo"></button>
                                 </div>
+                                <div style="display: flex; align-items: center; gap: 8px; margin-top: 5px; background: #0d1117; padding: 4px 8px; border-radius: 5px; border: 1px solid #30363d;">
+                                    <span style="font-size: 10px; color: var(--text-muted);">Custom Hex:</span>
+                                    <input type="color" id="groupCustomColorPickerHub" value="#ffb703" style="width: 26px; height: 22px; padding: 0; border: 1px solid #58a6ff; border-radius: 4px; background: transparent; cursor: pointer;">
+                                    <span id="groupCustomColorHexLabelHub" style="font-family: monospace; font-size: 10px; color: #58a6ff;">#FFB703</span>
+                                </div>
                             </div>
 
                             <div style="display: flex; gap: 6px;">
@@ -812,12 +832,23 @@
                                     <label style="font-size: 10.5px; color: var(--text-muted); display: block; margin-bottom: 2px;">Animation Effect:</label>
                                     <select id="drawGroupEffectSelect" style="width: 100%; background: #0d1117; color: #fff; border: 1px solid #30363d; border-radius: 5px; padding: 5px 6px; font-size: 11px;">
                                         <option value="chase" selected>🎡 Chase / Wheel Spin</option>
-                                        <option value="write_on_off">✍️ Write-On / Write-Off</option>
                                         <option value="pulse">💓 Breathing Glow Pulse</option>
+                                        <option value="write_on_off">✍️ Write-On / Write-Off</option>
                                         <option value="flash_slow">💡 Slow Flashing / Blink</option>
                                         <option value="sparkle_storm">✨ Sparkle Storm</option>
+                                        <option value="steady_sparkle">✨ Steady Sparkle (Sampled)</option>
+                                        <option value="comet">☄️ Meteor / Comet Trail</option>
+                                        <option value="scanner">🛸 Larson Scanner (Ping-Pong)</option>
+                                        <option value="color_wipe">🖌️ Color Wipe / Fill</option>
+                                        <option value="pixie_dust">💫 Pixie Dust Drift</option>
+                                        <option value="filament_glow">⚡ Vintage 1972 Filament</option>
+                                        <option value="candle_flicker">🕯️ Candle / Lantern Flame</option>
+                                        <option value="tidal_ripple">🌊 Tidal Ripple</option>
+                                        <option value="piston_chug">🚂 Locomotive Piston Chug</option>
                                         <option value="marquee">🎪 Theater Marquee</option>
                                         <option value="rainbow_cycle">🌈 Rainbow Color Wave</option>
+                                        <option value="fireworks">🎆 Fireworks Starburst</option>
+                                        <option value="photo_mode">📸 Castle Photo Mode (Solid)</option>
                                         <option value="off">🌑 Off / Completely Unlit</option>
                                     </select>
                                 </div>
@@ -830,13 +861,17 @@
                                 </div>
                             </div>
 
-                            <div style="display: flex; gap: 8px; align-items: center; margin-bottom: 6px;">
-                                <div style="flex: 1;">
-                                    <div class="label-row" style="margin-bottom: 2px;">
-                                        <span style="font-size: 10px; color: var(--text-muted);">Speed (BPM):</span>
-                                        <span id="drawGroupSpeedVal" class="val-badge" style="font-size: 10px;">140 BPM</span>
-                                    </div>
-                                    <input type="range" id="drawGroupSpeedSlider" min="30" max="300" value="140" style="width: 100%; accent-color: var(--accent-gold);">
+                            <div style="margin-bottom: 6px;">
+                                <div class="label-row" style="margin-bottom: 2px;">
+                                    <span style="font-size: 10px; color: var(--text-muted);">Speed (BPM):</span>
+                                    <span id="drawGroupSpeedVal" class="val-badge" style="font-size: 10px;">140 BPM</span>
+                                </div>
+                                <input type="range" id="drawGroupSpeedSlider" min="30" max="300" value="140" style="width: 100%; accent-color: var(--accent-gold);">
+                                <div class="draw-grp-tempo-chips" style="display: flex; gap: 4px; margin-top: 4px;">
+                                    <button type="button" class="action-btn draw-grp-tempo-chip" data-bpm="90" style="flex: 1; font-size: 9px; padding: 2px 2px;" title="90 BPM (Gentle Stroll / Waltz)">🚶 90</button>
+                                    <button type="button" class="action-btn draw-grp-tempo-chip" data-bpm="120" style="flex: 1; font-size: 9px; padding: 2px 2px;" title="120 BPM (Parade March / Steady Run)">🏃 120</button>
+                                    <button type="button" class="action-btn draw-grp-tempo-chip" data-bpm="144" style="flex: 1; font-size: 9px; padding: 2px 2px; font-weight: 600; color: var(--accent-gold);" title="144 BPM (Original Baroque Hoedown Tempo)">⚡ 144</button>
+                                    <button type="button" class="action-btn draw-grp-tempo-chip" data-bpm="180" style="flex: 1; font-size: 9px; padding: 2px 2px;" title="180 BPM (High-Cadence Disney 10K Sprint)">🚀 180</button>
                                 </div>
                             </div>
 
@@ -1170,7 +1205,10 @@
                                 <option value="">-- Load Example Routine --</option>
                                 <option value="classic_90s">🎭 90s Classic Routine (4-Phase Showcase)</option>
                                 <option value="cinderella_90s">🎃 Cinderella 90s (Wheels & Lanterns)</option>
-                                <option value="dragon_90s">🐉 Pete's Dragon 90s (Crest Flame)</option>
+                                <option value="dragon_90s">🐉 Pete's Dragon 90s (Crest Flame & Snout)</option>
+                                <option value="casey_locomotive_90s">🚂 Casey Jr. 90s (Pistons & Marquee)</option>
+                                <option value="turtle_snail_spin_90s">🐢 Turtle & Snail 90s (Shell Spin & Ripple)</option>
+                                <option value="patriotic_grand_finale_90s">🎆 America Grand Finale 90s (Fireworks)</option>
                                 <option value="clear_cues">🗑️ Clear All Cues</option>
                             </select>
                             <button id="addCueBtn" class="action-btn primary" style="flex: none; font-size: 11px; padding: 5px 10px; font-weight: 600;" title="Add a new cue at the current playhead time">➕ Add Cue</button>
@@ -1786,13 +1824,23 @@
                             <label style="font-size: 10px; color: var(--text-muted); margin-bottom: 2px;">Effect Pattern:</label>
                             <select id="groupEffectSelect" style="background: #0d1117; color: #fff; border: 1px solid #30363d; border-radius: 4px; padding: 5px 8px; font-size: 11px; width: 100%;">
                                 <option value="chase">🎡 Chase / Rotating Wheels (Spin)</option>
-                                <option value="flash_slow">💡 Slow Flashing (Blink)</option>
                                 <option value="pulse">💓 Pulsating / Breathing Glow</option>
                                 <option value="write_on_off">✍️ Write-On / Write-Off (Wipe)</option>
+                                <option value="flash_slow">💡 Slow Flashing (Blink)</option>
                                 <option value="sparkle_storm">✨ Sparkle Storm (Glitter)</option>
+                                <option value="steady_sparkle">✨ Steady Sparkle (Sampled)</option>
+                                <option value="comet">☄️ Meteor / Comet Trail</option>
+                                <option value="scanner">🛸 Larson Scanner (Ping-Pong)</option>
+                                <option value="color_wipe">🖌️ Color Wipe / Progressive Fill</option>
+                                <option value="pixie_dust">💫 Pixie Dust Drift</option>
+                                <option value="filament_glow">⚡ Vintage 1972 Filament</option>
+                                <option value="candle_flicker">🕯️ Candle / Lantern Flame</option>
+                                <option value="tidal_ripple">🌊 Tidal Ripple</option>
+                                <option value="piston_chug">🚂 Locomotive Piston Chug</option>
                                 <option value="marquee">🎪 Theater Marquee</option>
                                 <option value="rainbow_cycle">🌈 Rainbow Color Wave</option>
                                 <option value="fireworks">🎆 Fireworks (Radiating Starburst)</option>
+                                <option value="photo_mode">📸 Castle Photo Mode (Solid)</option>
                                 <option value="off">🌑 Off / Completely Unlit</option>
                             </select>
                         </div>
@@ -1803,6 +1851,12 @@
                                 <span id="groupSpeedVal" class="val-badge" style="font-size: 10px;">140 BPM</span>
                             </div>
                             <input type="range" id="groupSpeedSlider" min="40" max="280" value="140">
+                            <div class="grp-tempo-chips-inspector" style="display: flex; gap: 4px; margin-top: 4px;">
+                                <button type="button" class="action-btn grp-tempo-chip-inspector" data-bpm="90" style="flex: 1; font-size: 9px; padding: 2px 2px;" title="90 BPM (Gentle Stroll / Waltz)">🚶 90</button>
+                                <button type="button" class="action-btn grp-tempo-chip-inspector" data-bpm="120" style="flex: 1; font-size: 9px; padding: 2px 2px;" title="120 BPM (Parade March / Steady Run)">🏃 120</button>
+                                <button type="button" class="action-btn grp-tempo-chip-inspector" data-bpm="144" style="flex: 1; font-size: 9px; padding: 2px 2px; font-weight: 600; color: var(--accent-gold);" title="144 BPM (Original Baroque Hoedown Tempo)">⚡ 144</button>
+                                <button type="button" class="action-btn grp-tempo-chip-inspector" data-bpm="180" style="flex: 1; font-size: 9px; padding: 2px 2px;" title="180 BPM (High-Cadence Disney 10K Sprint)">🚀 180</button>
+                            </div>
                         </div>
 
                         <div style="display: flex; gap: 8px; align-items: center;">
@@ -1833,6 +1887,27 @@
                                 <option value="rainbow_cycle">🌈 Rainbow Wave</option>
                                 <option value="photo_mode">📸 Castle Photo Mode (Solid Bright)</option>
                             </select>
+                        </div>
+
+                        <!-- Group Color Override in Inspector -->
+                        <div class="control-group" style="margin-top: 2px;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 3px;">
+                                <label style="font-size: 10px; color: var(--text-muted);">Group Color Override:</label>
+                                <button type="button" id="resetGroupArtworkColorBtnInspector" style="background: none; border: none; color: #58a6ff; font-size: 9.5px; cursor: pointer; text-decoration: underline;" title="Reset group LEDs to artwork-sampled colors">Use Artwork</button>
+                            </div>
+                            <div style="display: grid; grid-template-columns: repeat(6, 1fr); gap: 3px;">
+                                <button type="button" class="palette-swatch-btn grp-insp-swatch" data-r="0" data-g="255" data-b="35" style="background: #00ff23; height: 18px;" title="Dragon Green"></button>
+                                <button type="button" class="palette-swatch-btn grp-insp-swatch" data-r="255" data-g="120" data-b="0" style="background: #ff7800; height: 18px;" title="Flame Orange"></button>
+                                <button type="button" class="palette-swatch-btn grp-insp-swatch" data-r="255" data-g="25" data-b="230" style="background: #ff19e6; height: 18px;" title="Electric Pink"></button>
+                                <button type="button" class="palette-swatch-btn grp-insp-swatch" data-r="0" data-g="119" data-b="255" style="background: #0077ff; height: 18px;" title="Cinderella Blue"></button>
+                                <button type="button" class="palette-swatch-btn grp-insp-swatch" data-r="255" data-g="193" data-b="7" style="background: #ffc107; height: 18px;" title="Belle Gold"></button>
+                                <button type="button" class="palette-swatch-btn grp-insp-swatch" data-r="255" data-g="250" data-b="242" style="background: #fffaf2; border: 1px solid #ccc; height: 18px;" title="Starlight White"></button>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 6px; margin-top: 4px; background: #0d1117; padding: 3px 6px; border-radius: 4px; border: 1px solid #30363d;">
+                                <span style="font-size: 9.5px; color: var(--text-muted);">Custom:</span>
+                                <input type="color" id="groupCustomColorPickerInspector" value="#ffb703" style="width: 22px; height: 18px; padding: 0; border: 1px solid #58a6ff; border-radius: 3px; background: transparent; cursor: pointer;">
+                                <span id="groupCustomColorHexLabelInspector" style="font-family: monospace; font-size: 9.5px; color: #58a6ff;">#FFB703</span>
+                            </div>
                         </div>
 
                         <!-- Fireworks Specific Scale/Radius in Group Inspector -->
@@ -2195,6 +2270,6 @@
         </div>
     </div>
 
-    <script src="app.js?v=63"></script>
+    <script src="app.js?v=64"></script>
 </body>
 </html>

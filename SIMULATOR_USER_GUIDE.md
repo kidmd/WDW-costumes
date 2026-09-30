@@ -160,18 +160,22 @@ The sidebar navigation is organized into a clean **2-row × 3-column grid** that
 
 3. **👥 Tab 3: Groups ("Group Creation Hub & Manager"):**
    - **LED Allocation Overview Box:** Real-time visual progress bar tracking how many LEDs are assigned to animation groups versus unassigned baseline.
-   - **Unified Group Creation Hub:** 3 dedicated creation modes:
-     - 📦 **From Selection:** Save or update groups directly from canvas marquee box selections.
-     - ✏️ **Click-to-Draw Path:** Sequentially place LEDs directly on the shirt with a checkable option to auto-rearrange remaining unassigned LEDs to fill the graphic.
+   - **Unified Group Creation Hub:** 3 dedicated creation modes with full 16+ effect parity and one-touch tempo quick chips (`🚶 90`, `🏃 120`, `⚡ 144`, `🚀 180 BPM`):
+     - 📦 **From Selection:** Save or update groups directly from canvas marquee box selections with 12 Disney palette swatches plus a native **Custom Hex Color Picker**.
+     - ✏️ **Click-to-Draw Path:** Sequentially place LEDs directly on the shirt with full effect selection, speed chips, and a checkable option to auto-rearrange remaining unassigned LEDs to fill the graphic.
      - 🎆 **Fireworks Stamper:** Radial starburst generator with serpentine wiring, radius scale, and color themes.
+   - **Docked Group Inspector Parity:** Selecting any group or member LED exposes identical 16+ animation effects, one-touch tempo chips, directional controls, palette swatches, and a dedicated **Custom Hex Color Picker** directly in the docked Inspector card.
    - **Active Groups Browser:** Card list of all configured groups with instant selection, badge metrics, and deletion controls.
 
 4. **🎬 Tab 4: Float Show ("Individual Float Routine & Cue Timeline"):**
    - **Individual Standby Routine Scope:** Explicitly scripts theatrical animation sequences for **this specific float only** (e.g., carriage wheels spinning, dragon breath bursts, locomotive chuffing) while running autonomously between fleet shows.
    - **Fleet Routine Priority & Override:** When a synchronized **Fleet Show** triggers (from Tab 5 or a physical ESP32 button press), the fleet routine temporarily overrides all 7 costumes. As soon as the fleet routine concludes, this float seamlessly resumes its individual show sequence or baseline pattern!
    - **Active Float Banner & Fleet Quick-Jump:** An illuminated header displays the active float currently being sequenced (with signature accent styling) and includes a one-click jump button (`🏃 Fleet Tab ➔`) to transition directly to the 7-shirt fleet coordinator.
-   - **Parade Cue Director:** 90-second Sequence Loop controls (Sequence ON/OFF, Loop duration, Example routines).
-   - **Active Cue List:** Clean, scrollable cue cards displaying start time, duration, target layer/group, effect, BPM, and quick delete.
+   - **Parade Cue Director & Per-Cue Customization:**
+     - **90-Second Sequence Loop:** Sequence ON/OFF toggle, loop duration input, and expanded library of 6 float-themed example routines.
+     - **Per-Cue Direction Control:** Independent travel direction selector (`➡️ Forward` / `⬅️ Reverse`) per cue card, allowing traveling waves, sweeps, or comets to reverse on cue.
+     - **One-Touch Quick Chips:** Instant duration chips (`5s`, `10s`, `15s`, `30s`) and tempo BPM chips (`90`, `120`, `144`, `180`) right inside each cue card.
+   - **Active Cue List:** Clean, scrollable cue cards displaying start time, duration, target layer/group, effect, direction, BPM, and quick delete.
    - **Quick Cue Insertion:** `➕ Add Cue at Playhead`, `⚡ Auto-Schedule Bursts`.
 
 5. **🏃 Tab 5: Fleet ("7-Shirt Fleet Lineup & Routine Director"):**
@@ -593,11 +597,12 @@ Located in **Tab 4 (`🎬 Show`)** of the left sidebar, the **Parade Cue Directo
 Click **➕ Add Cue** to create a new cue card with the following settings:
 - **Cue Name:** A custom theatrical label (e.g., `Carriage Wheels Spin`, `Snout Fire Breath`, or automatic `[Group Name] Routine`).
 - **Target Layer:** Select either `🌐 Global Float` or any active animation group (e.g. `🎡 Group: Front Wheel`).
-  - **Group Preset Inheritance:** When an animation group is selected in the Target Layer dropdown (or when clicking **`➕ Add Cue`** while a group is active), the cue automatically inherits the **Pattern / Effect** and **BPM (Tempo)** configured when the group was created, saving setup time while still allowing you to freely change the effect in the dropdown!
-- **Pattern / Effect:** Select from the 12 built-in lighting effects (see Section 10).
+  - **Group Preset Inheritance:** When an animation group is selected in the Target Layer dropdown (or when clicking **`➕ Add Cue`** while a group is active), the cue automatically inherits the **Pattern / Effect**, **Direction**, and **BPM (Tempo)** configured when the group was created, saving setup time while still allowing you to freely change the effect in the dropdown!
+- **Pattern / Effect:** Select from the unified library of 16+ built-in lighting effects (see Section 10).
+- **Direction:** Select `➡️ Forward` or `⬅️ Reverse` for traveling animations (comet sweeps, marquee chases, waves, Larson scans).
 - **Start Time (s):** Time offset in seconds from the beginning of the show loop (0.5s resolution).
-- **Duration (s):** How long the cue runs before fading out.
-- **BPM (Tempo):** The speed of the animation during this specific cue (30–280 BPM).
+- **Duration (s):** How long the cue runs before fading out (with instant quick chips: `5s`, `10s`, `15s`, `30s`).
+- **BPM (Tempo):** The speed of the animation during this specific cue (with instant quick chips: `90`, `120`, `144`, `180 BPM`).
 - **Crossfades (Fade In / Fade Out):**
   - **In (s):** Smooth ramp-up blend from baseline color into the effect (`0.0s` for an instant cut, up to `5.0s` for a soft cinematic blend).
   - **Out (s):** Smooth ramp-down blend back into the baseline pattern.
@@ -615,23 +620,42 @@ Use the **Load Example Routine** dropdown to test fully orchestrated 90-second s
   - `25.0s – 65.0s`: Royal Carriage Breathing Glow (Warm golden float glow)
   - `35.0s – 60.0s`: Carriage Lanterns Breathing Pulse (Group pulse overlay)
   - `60.0s – 90.0s`: Grand Finale Electrical Wave (Cascading electrical wave)
-- **🐉 Pete's Dragon 90s (Crest Flame):**
+- **🐉 Pete's Dragon 90s (Crest Flame & Snout):**
   - `0.0s – 30.0s`: Comic Starlight Sparkle
   - `20.0s – 50.0s`: Flame Hair Crest Fire Pulse
   - `30.0s – 65.0s`: Snout Fire-Breathing Pulse
   - `65.0s – 90.0s`: Broadway Electrical Marquee Finale
+- **🚂 Casey Jr. 90s (Pistons & Marquee):**
+  - `0.0s – 25.0s`: Opening Steam & Sparkle (Sampled starlight)
+  - `20.0s – 50.0s`: Piston Chug Acceleration (Locomotive pistons chugging at 144 BPM)
+  - `45.0s – 75.0s`: Full Head of Steam Comet Sweep (180 BPM comet trail)
+  - `70.0s – 90.0s`: Casey Jr. Circus Marquee Finale (Classic 144 BPM incandescent marquee)
+- **🐢 Turtle & Snail 90s (Shell Spin & Ripple):**
+  - `0.0s – 30.0s`: Enchanted Garden Pixie Dust (Gentle 90 BPM golden sparkle drift)
+  - `25.0s – 60.0s`: Rotating Shell Spin (120 BPM concentric shell spin chase)
+  - `55.0s – 80.0s`: Tidal Ripple Expansion (120 BPM concentric expanding wavefront)
+  - `75.0s – 90.0s`: Rainbow Shell Spiral Finale (144 BPM vibrant chromatic wave)
+- **🎆 America Grand Finale 90s (Fireworks & Marquee):**
+  - `0.0s – 25.0s`: Red White & Blue Starlight (Steady patriotic sampled sparkle)
+  - `20.0s – 50.0s`: Main Street Parade Wave (144 BPM traveling electrical wave)
+  - `45.0s – 75.0s`: Grand Starburst Fireworks (140 BPM pyrotechnic explosions)
+  - `70.0s – 90.0s`: Golden Age 1972 Theater Marquee (High-cadence 180 BPM grand finale chase)
 - **🗑️ Clear All Cues:** Wipes the cue list clean so you can start from scratch.
 
 ---
 
 ## 10. Lighting Patterns & Effects Library
 
-The simulator includes a unified library of 14 specialized algorithms available across Whole-Shirt Ambient (Tab 2), Group Resting Baselines (Tab 3 & Inspector), and Timed Show Cues (Tab 4):
+The simulator includes a unified library of 18 specialized algorithms available across Whole-Shirt Ambient (Tab 2), Group Creation & Docked Inspector (Tab 3), and Timed Show Cues (Tab 4):
 
 | Effect ID | Effect Name | Description | Best Suited For |
 |---|---|---|---|
-| `steady_sparkle` | **Steady Colors + Sparkles** | Holds constant artwork color palette with occasional incandescent starlight twinkles. | Entry / ambient float scenes |
-| `color_match` | **Slo-Glo Breath (Color-Matched Glow)** | Organic sinusoidal breathing pulse that preserves true sampled artwork hues (~30-45 BPM). | Main float bodies & idle groups |
+| `chase` | **Chase / Wheel Spin** | Concentric or sequential single-point circulating chase with exponential decay wake. | Carriage wheels, train drivers, shell spirals |
+| `pulse` / `color_match` | **Breathing Glow / Slo-Glo** | Organic sinusoidal breathing pulse that preserves true sampled artwork hues (~30-60 BPM). | Main float bodies, resting groups, warm accents |
+| `write_on_off` | **Theatrical Write-On / Off** | Sequential progressive draw-on to full radiance, hold, and progressive wipe-off. | Entrances, flourish accents, musical wipes |
+| `flash_slow` | **Slow Flashing / Blink** | Classical synchronized rhythmic on/off beacon blinking. | Headlights, signals, warning markers |
+| `sparkle_storm` | **Sparkle Storm (Glitter)** | High-density diamond sparkle blizzard cascading across member LEDs. | Starbursts, pixie wands, climaxes |
+| `steady_sparkle` | **Steady Colors + Sparkles** | Holds constant artwork color palette with occasional incandescent starlight twinkles. | Entry / ambient float scenes, resting baseline |
 | `comet` | **Meteor / Comet Trail** | High-velocity white-hot comet head shooting along wiring/group perimeter with fading exponential tail. | Wheels, locomotive borders, shooting stars |
 | `scanner` | **Larson Scanner (Ping-Pong Sweep)** | Dynamic back-and-forth beam sweep with smooth turnaround wakes and radiant core. | Cowls, dragon wings, sweeping searchlights |
 | `color_wipe` | **Color Wipe / Progressive Fill** | 4-phase write-on fill along wiring path, radiant hold, wipe-off, and brief dark rest. | Float entrances, theatrical reveals |
@@ -641,9 +665,11 @@ The simulator includes a unified library of 14 specialized algorithms available 
 | `tidal_ripple` | **Tidal Ripple** | Outward-expanding and contracting concentric wavefront from group or float centroid. | Water ripples, shockwaves, radial pulses |
 | `piston_chug` | **Locomotive Piston Chug** | 4-stroke mechanical cadence pulse with sharp power stroke and soft exhaust compression. | Casey Jr. boiler, train wheels, driving rhythms |
 | `marquee` | **Theater Marquee Chase** | 3-phase alternating incandescent bulb chase (dots 1, 2, 3). | Outer float frames, title drum borders |
+| `traveling_wave` | **Traveling Parade Wave** | Electrical parade wavefront cascading smoothly across the garment contour. | Grand finales, dynamic transitions |
 | `fireworks` | **Fireworks Starburst** | 4-phase pyrotechnic explosion with center flash, outward expanding fire trails, and starlight tip crackle. | Finales, celestial bursts, chest stars |
 | `rainbow_cycle` | **Rainbow Color Wave** | Flowing chromatic wave cycling across the strand or group contour. | Vibrant rainbow flourishes, electric transitions |
 | `photo_mode` | **Castle Photo Mode** | 100% solid maximum brightness with zero sparkle for crisp, clear photos. | Photo stops, character meet-and-greets |
+| `off` | **Off / Completely Unlit** | Complete blackout (0% intensity) for dramatic contrast or dormant stage cues. | Dark baseline, firework dormancy |
 
 ---
 

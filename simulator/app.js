@@ -1612,11 +1612,13 @@ function getSparkleRgb(style) {
     return { r: 255, g: 240, b: 200 }; // default: warm 2700K incandescent filament
 }
 
-function evalGlobalPattern(pattern, bpm, index, totalLeds, timeMs, c, hasColor, isGroupOverride = false) {
+function evalGlobalPattern(pattern, bpm, index, totalLeds, timeMs, c, hasColor, isGroupOverride = false, directionOverride = null) {
     const beatMs = 60000 / Math.max(20, bpm || params.speedBpm || 120);
     const normTime = timeMs / beatMs;
     const baseH = params.greenHue || 140;
-    const dir = params.direction || 1;
+    const dir = (directionOverride !== null && directionOverride !== undefined)
+        ? ((directionOverride === -1 || directionOverride === '-1' || directionOverride === 'reverse') ? -1 : 1)
+        : (params.direction || 1);
 
     let effC = c;
     let effHasColor = hasColor;
@@ -2182,7 +2184,7 @@ function computeLedColor(index, totalLeds, timeMs) {
             baseColor = evalGlobalPattern(activePattern, params.speedBpm, index, totalLeds, effectiveTimeMs, c, hasColor);
         } else if (activeGlobalCues.length === 1) {
             const q = activeGlobalCues[0];
-            const col = evalGlobalPattern(q.effect, q.speedBpm, index, totalLeds, effectiveTimeMs, c, hasColor);
+            const col = evalGlobalPattern(q.effect, q.speedBpm, index, totalLeds, effectiveTimeMs, c, hasColor, false, q.direction);
             const w = getCueWeight(q, t);
             if (w < 1.0) {
                 const restCol = evalGlobalPattern('steady_sparkle', 120, index, totalLeds, effectiveTimeMs, c, hasColor);
@@ -2206,7 +2208,7 @@ function computeLedColor(index, totalLeds, timeMs) {
             let blR = 0, blG = 0, blB = 0, blA = 0;
             for (let i = 0; i < activeGlobalCues.length; i++) {
                 const q = activeGlobalCues[i];
-                const col = evalGlobalPattern(q.effect, q.speedBpm, index, totalLeds, effectiveTimeMs, c, hasColor);
+                const col = evalGlobalPattern(q.effect, q.speedBpm, index, totalLeds, effectiveTimeMs, c, hasColor, false, q.direction);
                 const normW = totalW > 0 ? (weights[i] / totalW) : (1 / activeGlobalCues.length);
                 blR += col.r * normW;
                 blG += col.g * normW;
@@ -2244,7 +2246,8 @@ function computeLedColor(index, totalLeds, timeMs) {
             if (activeGrpCue) {
                 // Synchronize animation phase to cue onset time so cue effects explode/trigger precisely on cue!
                 const cueTimeMs = Math.max(0, (t - activeGrpCue.startTime) * 1000);
-                const grpCol = evalGroupEffect(grp, activeGrpCue.effect, activeGrpCue.speedBpm, activeGrpCue.direction, grpEntry.indexInGroup, grpEntry.groupSize, cueTimeMs, c);
+                const cueDir = (activeGrpCue.direction !== undefined) ? activeGrpCue.direction : (grp.direction || 1);
+                const grpCol = evalGroupEffect(grp, activeGrpCue.effect, activeGrpCue.speedBpm, cueDir, grpEntry.indexInGroup, grpEntry.groupSize, cueTimeMs, c);
                 const w = getCueWeight(activeGrpCue, t);
 
                 // Blend smoothly from group resting baseline into active cue animation
@@ -8934,36 +8937,55 @@ function renderCuesList() {
                 </div>
             </div>
 
-            <!-- Target Layer & Effect Selection -->
+            <!-- Target Layer, Effect & Direction Selection -->
             <div class="cue-card-row">
-                <div style="flex: 1.1;">
+                <div style="flex: 1;">
                     <label style="font-size: 10px; color: var(--text-muted); display: block;">Target Layer:</label>
                     <select class="cue-target-select" style="width: 100%; background: #0d1117; color: #fff; border: 1px solid #30363d; border-radius: 4px; padding: 4px; font-size: 11px;">
                         <option value="global" ${cue.targetType === 'global' ? 'selected' : ''}>🌐 Global Float</option>
                         ${animationGroups.map(g => `<option value="group:${g.id}" ${cue.targetType === 'group' && cue.groupId === g.id ? 'selected' : ''}>🎡 Group: ${g.name}</option>`).join('')}
                     </select>
                 </div>
-                <div style="flex: 1.3;">
+                <div style="flex: 1.2;">
                     <label style="font-size: 10px; color: var(--text-muted); display: block;">Pattern / Effect:</label>
                     <select class="cue-effect-select" style="width: 100%; background: #0d1117; color: #fff; border: 1px solid #30363d; border-radius: 4px; padding: 4px; font-size: 11px;">
                         ${effectOptions.map(e => `<option value="${e.id}" ${cue.effect === e.id ? 'selected' : ''}>${e.label}</option>`).join('')}
                     </select>
                 </div>
+                <div style="flex: 0.8;">
+                    <label style="font-size: 10px; color: var(--text-muted); display: block;">Direction:</label>
+                    <select class="cue-direction-select" style="width: 100%; background: #0d1117; color: #fff; border: 1px solid #30363d; border-radius: 4px; padding: 4px; font-size: 11px;">
+                        <option value="1" ${(cue.direction === 1 || cue.direction === '1' || !cue.direction || cue.direction === 'forward') ? 'selected' : ''}>➡️ Fwd</option>
+                        <option value="-1" ${(cue.direction === -1 || cue.direction === '-1' || cue.direction === 'reverse') ? 'selected' : ''}>⬅️ Rev</option>
+                    </select>
+                </div>
             </div>
 
-            <!-- Start Time, Duration & BPM -->
+            <!-- Start Time, Duration & BPM with Quick Chips -->
             <div class="cue-card-row">
-                <div style="flex: 1;">
+                <div style="flex: 0.9;">
                     <label style="font-size: 10px; color: var(--text-muted); display: block;">Start (s):</label>
                     <input type="number" class="cue-start-input" step="0.5" min="0" max="${sequenceLoopDuration}" value="${cue.startTime}" style="width: 100%; background: #0d1117; color: #fff; border: 1px solid #30363d; border-radius: 4px; padding: 4px; font-size: 11px; text-align: center;">
                 </div>
-                <div style="flex: 1;">
-                    <label style="font-size: 10px; color: var(--text-muted); display: block;">Duration (s):</label>
+                <div style="flex: 1.1;">
+                    <label style="font-size: 10px; color: var(--text-muted); display: block;">Dur (s):</label>
                     <input type="number" class="cue-dur-input" step="0.5" min="1" max="${sequenceLoopDuration}" value="${cue.duration}" style="width: 100%; background: #0d1117; color: #fff; border: 1px solid #30363d; border-radius: 4px; padding: 4px; font-size: 11px; text-align: center;">
+                    <div style="display: flex; gap: 2px; margin-top: 2px;">
+                        <button type="button" class="action-btn cue-dur-chip" data-dur="5" style="flex: 1; font-size: 8px; padding: 1px 0;" title="5s">5s</button>
+                        <button type="button" class="action-btn cue-dur-chip" data-dur="10" style="flex: 1; font-size: 8px; padding: 1px 0;" title="10s">10s</button>
+                        <button type="button" class="action-btn cue-dur-chip" data-dur="15" style="flex: 1; font-size: 8px; padding: 1px 0;" title="15s">15s</button>
+                        <button type="button" class="action-btn cue-dur-chip" data-dur="30" style="flex: 1; font-size: 8px; padding: 1px 0;" title="30s">30s</button>
+                    </div>
                 </div>
-                <div style="flex: 1;">
+                <div style="flex: 1.1;">
                     <label style="font-size: 10px; color: var(--text-muted); display: block;">BPM:</label>
                     <input type="number" class="cue-bpm-input" min="30" max="280" value="${cue.speedBpm || 120}" style="width: 100%; background: #0d1117; color: #fff; border: 1px solid #30363d; border-radius: 4px; padding: 4px; font-size: 11px; text-align: center;">
+                    <div style="display: flex; gap: 2px; margin-top: 2px;">
+                        <button type="button" class="action-btn cue-bpm-chip" data-bpm="90" style="flex: 1; font-size: 8px; padding: 1px 0;" title="90 BPM">90</button>
+                        <button type="button" class="action-btn cue-bpm-chip" data-bpm="120" style="flex: 1; font-size: 8px; padding: 1px 0;" title="120 BPM">120</button>
+                        <button type="button" class="action-btn cue-bpm-chip" data-bpm="144" style="flex: 1; font-size: 8px; padding: 1px 0; font-weight: 600; color: var(--accent-gold);" title="144 BPM">144</button>
+                        <button type="button" class="action-btn cue-bpm-chip" data-bpm="180" style="flex: 1; font-size: 8px; padding: 1px 0;" title="180 BPM">180</button>
+                    </div>
                 </div>
             </div>
 
@@ -9007,6 +9029,11 @@ function renderCuesList() {
                         const bpmInput = card.querySelector('.cue-bpm-input');
                         if (bpmInput) bpmInput.value = grp.speedBpm;
                     }
+                    if (grp.direction !== undefined) {
+                        cue.direction = grp.direction;
+                        const dirSelect = card.querySelector('.cue-direction-select');
+                        if (dirSelect) dirSelect.value = grp.direction;
+                    }
                     // If cue has default name, update to reflect group name
                     if (cue.name.startsWith('Cue #') || cue.name.endsWith(' Routine')) {
                         cue.name = `${grp.name} Routine`;
@@ -9027,6 +9054,11 @@ function renderCuesList() {
             renderTimelineCueStrip();
         });
 
+        card.querySelector('.cue-direction-select').addEventListener('change', (e) => {
+            cue.direction = parseInt(e.target.value, 10);
+            markSingleShirtDirty();
+        });
+
         card.querySelector('.cue-start-input').addEventListener('change', (e) => {
             cue.startTime = Math.max(0, parseFloat(e.target.value) || 0);
             renderTimelineCueStrip();
@@ -9037,8 +9069,30 @@ function renderCuesList() {
             renderTimelineCueStrip();
         });
 
+        card.querySelectorAll('.cue-dur-chip').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const val = parseFloat(btn.dataset.dur);
+                cue.duration = val;
+                const durInput = card.querySelector('.cue-dur-input');
+                if (durInput) durInput.value = val;
+                renderTimelineCueStrip();
+                updateTimelineScrubberUI();
+                markSingleShirtDirty();
+            });
+        });
+
         card.querySelector('.cue-bpm-input').addEventListener('change', (e) => {
             cue.speedBpm = Math.max(20, parseInt(e.target.value) || 120);
+        });
+
+        card.querySelectorAll('.cue-bpm-chip').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const val = parseInt(btn.dataset.bpm, 10);
+                cue.speedBpm = val;
+                const bpmInput = card.querySelector('.cue-bpm-input');
+                if (bpmInput) bpmInput.value = val;
+                markSingleShirtDirty();
+            });
         });
 
         card.querySelector('.cue-fade-in-input').addEventListener('change', (e) => {
@@ -9069,6 +9123,7 @@ function addCue(options = {}) {
     let groupName = options.groupName;
     let effect = options.effect;
     let speedBpm = options.speedBpm;
+    let direction = options.direction;
 
     // If options didn't specify target, but an animation group is currently selected in the UI:
     if (!targetType && !groupId && selectedGroupId) {
@@ -9091,11 +9146,13 @@ function addCue(options = {}) {
             if (!groupName) groupName = grp.name;
             if (!effect) effect = grp.effect || 'chase';
             if (!speedBpm) speedBpm = grp.speedBpm || 140;
+            if (direction === undefined && grp.direction !== undefined) direction = grp.direction;
         }
     }
 
     if (!effect) effect = 'color_match';
     if (!speedBpm) speedBpm = 120;
+    if (direction === undefined) direction = 1;
 
     const defaultName = (targetType === 'group' && groupName)
         ? `${groupName} Routine`
@@ -9110,6 +9167,7 @@ function addCue(options = {}) {
         groupId: groupId,
         groupName: groupName,
         effect: effect,
+        direction: direction,
         speedBpm: speedBpm,
         fadeIn: options.fadeIn !== undefined ? options.fadeIn : 1.5,
         fadeOut: options.fadeOut !== undefined ? options.fadeOut : 1.5
@@ -9345,6 +9403,219 @@ function load90sTheatricalShowTemplate() {
     showToast("🎭 Loaded 90-Second Classic Theatrical Showcase!");
 }
 
+function loadCaseyLocomotiveShowTemplate() {
+    sequenceLoopDuration = 90.0;
+    const loopInput = document.getElementById('sequenceLoopInput');
+    if (loopInput) loopInput.value = 90;
+
+    let wheelGrp = animationGroups.find(g => g.name.toLowerCase().includes('wheel') || g.name.toLowerCase().includes('piston'));
+
+    sequenceCues = [
+        {
+            id: 'cue_casey_1',
+            name: 'Opening Steam & Sparkle',
+            startTime: 0.0,
+            duration: 25.0,
+            targetType: 'global',
+            groupId: '',
+            groupName: '',
+            effect: 'steady_sparkle',
+            direction: 1,
+            speedBpm: 120,
+            fadeIn: 2.0,
+            fadeOut: 2.0
+        },
+        {
+            id: 'cue_casey_2',
+            name: 'Piston Chug Acceleration',
+            startTime: 20.0,
+            duration: 30.0,
+            targetType: wheelGrp ? 'group' : 'global',
+            groupId: wheelGrp ? wheelGrp.id : '',
+            groupName: wheelGrp ? wheelGrp.name : 'Locomotive Pistons',
+            effect: 'piston_chug',
+            direction: 1,
+            speedBpm: 144,
+            fadeIn: 1.5,
+            fadeOut: 1.5
+        },
+        {
+            id: 'cue_casey_3',
+            name: 'Full Head of Steam Comet Sweep',
+            startTime: 45.0,
+            duration: 30.0,
+            targetType: 'global',
+            groupId: '',
+            groupName: '',
+            effect: 'comet',
+            direction: 1,
+            speedBpm: 180,
+            fadeIn: 2.0,
+            fadeOut: 2.0
+        },
+        {
+            id: 'cue_casey_4',
+            name: 'Casey Jr. Circus Marquee Finale',
+            startTime: 70.0,
+            duration: 20.0,
+            targetType: 'global',
+            groupId: '',
+            groupName: '',
+            effect: 'marquee',
+            direction: 1,
+            speedBpm: 144,
+            fadeIn: 1.5,
+            fadeOut: 2.0
+        }
+    ];
+
+    renderCuesList();
+    toggleSequenceMode(true);
+    showToast("🚂 Loaded Casey Jr. 90s Locomotive Parade Routine!");
+}
+
+function loadTurtleSnailShowTemplate() {
+    sequenceLoopDuration = 90.0;
+    const loopInput = document.getElementById('sequenceLoopInput');
+    if (loopInput) loopInput.value = 90;
+
+    let shellGrp = animationGroups.find(g => g.name.toLowerCase().includes('shell') || g.name.toLowerCase().includes('spiral') || g.name.toLowerCase().includes('wheel'));
+
+    sequenceCues = [
+        {
+            id: 'cue_turtle_1',
+            name: 'Enchanted Garden Pixie Dust',
+            startTime: 0.0,
+            duration: 30.0,
+            targetType: 'global',
+            groupId: '',
+            groupName: '',
+            effect: 'pixie_dust',
+            direction: 1,
+            speedBpm: 90,
+            fadeIn: 2.0,
+            fadeOut: 2.0
+        },
+        {
+            id: 'cue_turtle_2',
+            name: 'Rotating Shell Spin',
+            startTime: 25.0,
+            duration: 35.0,
+            targetType: shellGrp ? 'group' : 'global',
+            groupId: shellGrp ? shellGrp.id : '',
+            groupName: shellGrp ? shellGrp.name : 'Turtle Shell',
+            effect: 'chase',
+            direction: 1,
+            speedBpm: 120,
+            fadeIn: 1.5,
+            fadeOut: 1.5
+        },
+        {
+            id: 'cue_turtle_3',
+            name: 'Tidal Ripple Expansion',
+            startTime: 55.0,
+            duration: 25.0,
+            targetType: 'global',
+            groupId: '',
+            groupName: '',
+            effect: 'tidal_ripple',
+            direction: 1,
+            speedBpm: 120,
+            fadeIn: 2.0,
+            fadeOut: 1.5
+        },
+        {
+            id: 'cue_turtle_4',
+            name: 'Rainbow Shell Spiral Finale',
+            startTime: 75.0,
+            duration: 15.0,
+            targetType: 'global',
+            groupId: '',
+            groupName: '',
+            effect: 'rainbow_cycle',
+            direction: 1,
+            speedBpm: 144,
+            fadeIn: 1.5,
+            fadeOut: 2.0
+        }
+    ];
+
+    renderCuesList();
+    toggleSequenceMode(true);
+    showToast("🐢 Loaded Turtle & Snail 90s Parade Routine!");
+}
+
+function loadPatrioticFinaleShowTemplate() {
+    sequenceLoopDuration = 90.0;
+    const loopInput = document.getElementById('sequenceLoopInput');
+    if (loopInput) loopInput.value = 90;
+
+    let fwGrp = animationGroups.find(g => g.name.toLowerCase().includes('firework') || g.name.toLowerCase().includes('burst') || g.name.toLowerCase().includes('star'));
+
+    sequenceCues = [
+        {
+            id: 'cue_patriotic_1',
+            name: 'Red White & Blue Starlight',
+            startTime: 0.0,
+            duration: 25.0,
+            targetType: 'global',
+            groupId: '',
+            groupName: '',
+            effect: 'steady_sparkle',
+            direction: 1,
+            speedBpm: 120,
+            fadeIn: 2.0,
+            fadeOut: 2.0
+        },
+        {
+            id: 'cue_patriotic_2',
+            name: 'Main Street Parade Wave',
+            startTime: 20.0,
+            duration: 30.0,
+            targetType: 'global',
+            groupId: '',
+            groupName: '',
+            effect: 'traveling_wave',
+            direction: 1,
+            speedBpm: 144,
+            fadeIn: 1.5,
+            fadeOut: 1.5
+        },
+        {
+            id: 'cue_patriotic_3',
+            name: 'Grand Starburst Fireworks',
+            startTime: 45.0,
+            duration: 30.0,
+            targetType: fwGrp ? 'group' : 'global',
+            groupId: fwGrp ? fwGrp.id : '',
+            groupName: fwGrp ? fwGrp.name : 'Grand Starburst',
+            effect: 'fireworks',
+            direction: 1,
+            speedBpm: 140,
+            fadeIn: 2.0,
+            fadeOut: 2.0
+        },
+        {
+            id: 'cue_patriotic_4',
+            name: 'Golden Age 1972 Theater Marquee',
+            startTime: 70.0,
+            duration: 20.0,
+            targetType: 'global',
+            groupId: '',
+            groupName: '',
+            effect: 'marquee',
+            direction: 1,
+            speedBpm: 180,
+            fadeIn: 1.5,
+            fadeOut: 2.0
+        }
+    ];
+
+    renderCuesList();
+    toggleSequenceMode(true);
+    showToast("🎆 Loaded America Grand Finale 90s Parade Routine!");
+}
+
 // ============================================================================
 // PARADE CUE DIRECTOR & MASTER TIMELINE EVENT LISTENERS
 // ============================================================================
@@ -9549,6 +9820,12 @@ if (sequenceTemplateSelect) {
             loadCinderellaShowTemplate();
         } else if (val === 'dragon_90s') {
             loadDragonShowTemplate();
+        } else if (val === 'casey_locomotive_90s') {
+            loadCaseyLocomotiveShowTemplate();
+        } else if (val === 'turtle_snail_spin_90s') {
+            loadTurtleSnailShowTemplate();
+        } else if (val === 'patriotic_grand_finale_90s') {
+            loadPatrioticFinaleShowTemplate();
         } else if (val === 'classic_90s' || val === 'autonomous_90s') {
             load90sTheatricalShowTemplate();
         } else if (val === 'clear_cues') {
@@ -11033,6 +11310,99 @@ document.getElementById('resetGroupArtworkColorBtnHub')?.addEventListener('click
     }
     updateLedInspectorUI();
     showToast(`🎨 Restored original artwork colors for ${restored} LEDs!`);
+});
+
+function applyGroupCustomColor(hex) {
+    if (!hex) return;
+    const rgb = hexToRgb(hex);
+    if (!rgb) return;
+    if (selectedLeds.size === 0 && (selectedLed === null || !leds[selectedLed])) {
+        if (leds.length > 0) selectLed(0);
+        else return;
+    }
+    setSelectedLedColor(rgb.r, rgb.g, rgb.b);
+    if (selectedGroupId) {
+        const activeGrp = animationGroups.find(g => g.id === selectedGroupId);
+        if (activeGrp) {
+            activeGrp.colorMode = 'custom';
+            activeGrp.customColor = rgb;
+        }
+    }
+    const label = selectedGroupId ? `group` : `${selectedLeds.size || 1} LEDs`;
+    showToast(`🎨 Applied custom color ${hex.toUpperCase()} to ${label}`);
+}
+
+const grpCustomPickerHub = document.getElementById('groupCustomColorPickerHub');
+if (grpCustomPickerHub) {
+    grpCustomPickerHub.addEventListener('input', (e) => {
+        const hex = e.target.value;
+        const lbl = document.getElementById('groupCustomColorHexLabelHub');
+        if (lbl) lbl.textContent = hex.toUpperCase();
+    });
+    grpCustomPickerHub.addEventListener('change', (e) => {
+        applyGroupCustomColor(e.target.value);
+    });
+}
+
+const grpCustomPickerInspector = document.getElementById('groupCustomColorPickerInspector');
+if (grpCustomPickerInspector) {
+    grpCustomPickerInspector.addEventListener('input', (e) => {
+        const hex = e.target.value;
+        const lbl = document.getElementById('groupCustomColorHexLabelInspector');
+        if (lbl) lbl.textContent = hex.toUpperCase();
+    });
+    grpCustomPickerInspector.addEventListener('change', (e) => {
+        applyGroupCustomColor(e.target.value);
+    });
+}
+
+document.getElementById('resetGroupArtworkColorBtnInspector')?.addEventListener('click', () => {
+    document.getElementById('resetGroupArtworkColorBtnHub')?.click();
+});
+
+// Group Tempo Quick Chips Listeners (Tab 3 Hub, Draw Mode & Inspector)
+document.querySelectorAll('.grp-tempo-chip').forEach(btn => {
+    btn.addEventListener('click', () => {
+        const bpm = parseInt(btn.dataset.bpm, 10);
+        const slider = document.getElementById('groupSpeedSliderHub');
+        const badge = document.getElementById('groupSpeedValHub');
+        if (slider) slider.value = bpm;
+        if (badge) badge.textContent = `${bpm} BPM`;
+        if (selectedGroupId) {
+            const grp = animationGroups.find(g => g.id === selectedGroupId);
+            if (grp) grp.speedBpm = bpm;
+        }
+        markSingleShirtDirty();
+        showToast(`⚡ Set group speed to ${bpm} BPM`);
+    });
+});
+
+document.querySelectorAll('.draw-grp-tempo-chip').forEach(btn => {
+    btn.addEventListener('click', () => {
+        const bpm = parseInt(btn.dataset.bpm, 10);
+        const slider = document.getElementById('drawGroupSpeedSlider');
+        const badge = document.getElementById('drawGroupSpeedVal');
+        if (slider) slider.value = bpm;
+        if (badge) badge.textContent = `${bpm} BPM`;
+        markSingleShirtDirty();
+        showToast(`⚡ Set drawn group speed to ${bpm} BPM`);
+    });
+});
+
+document.querySelectorAll('.grp-tempo-chip-inspector').forEach(btn => {
+    btn.addEventListener('click', () => {
+        const bpm = parseInt(btn.dataset.bpm, 10);
+        const slider = document.getElementById('groupSpeedSlider');
+        const badge = document.getElementById('groupSpeedVal');
+        if (slider) slider.value = bpm;
+        if (badge) badge.textContent = `${bpm} BPM`;
+        if (selectedGroupId) {
+            const grp = animationGroups.find(g => g.id === selectedGroupId);
+            if (grp) grp.speedBpm = bpm;
+        }
+        markSingleShirtDirty();
+        showToast(`⚡ Set group tempo to ${bpm} BPM`);
+    });
 });
 
 document.getElementById('inspectorSampleBtn')?.addEventListener('click', () => {
