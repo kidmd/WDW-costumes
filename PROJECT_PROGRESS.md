@@ -93,6 +93,18 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### Entry: Web Audio Baroque Hoedown Synthesizer & Fleet Roster Web Flasher Alignment
+* **Date:** 2026-09-30
+* **Milestone:** Milestone 5 - Studio Workflow & Hardware Fleet Control
+* **Status:** Complete & Verified (`simulator/app.js?v=60`, `simulator/index.html`, and `simulator/web_flasher.html`).
+* **Notes:**
+  - **Zero-Install Web Flasher Fleet Alignment (`simulator/web_flasher.html` & `firmware/manifest_float*.json`):**
+    - Synchronized all 7 float manifests and the Web Serial Flasher UI with the official 7-runner roster (1: The Train / Casey Jr., 2: The Title Drum, 3: The Spinning Turtle, 4: The Spinning Snail, 5: Cinderella's Coach, 6: Pete's Dragon, 7: To Honor America).
+    - Preserved 200-LED safety configurations, 5V 2000mA power budgets, and bootloader/partition offsets.
+  - **Baroque Hoedown Synthesizer Engine (`BaroqueHoedownSynth`):**
+    - Built a pure Web Audio API chiptune/electro-synthesizer engine (using square lead with resonant lowpass filter envelope and triangle bass) recreating the iconic *Baroque Hoedown* theme.
+    - Added header toggle button (`🎵 Music: OFF / ON`) and automatic tempo-synced playback triggers when initiating the 30-Second Theatrical Fleet Show.
+
 ### Entry: Cricut Master SVG User Guide & Registration Crosshair Workflow
 * **Date:** 2026-09-30
 * **Milestone:** Milestone 5 - Studio Workflow & Hardware Fleet Control

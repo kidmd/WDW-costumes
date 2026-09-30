@@ -3685,6 +3685,9 @@ function startFleetShow() {
     fleetShowCycleIndex++;
     updateFleetShowUI();
     updateTimelinePlayBtn();
+    if (typeof baroqueSynth !== 'undefined') {
+        baroqueSynth.onFleetShowStart();
+    }
 }
 
 function stopFleetShow() {
@@ -3692,6 +3695,9 @@ function stopFleetShow() {
     fleetShowElapsedSec = 0.0;
     updateFleetShowUI();
     updateTimelinePlayBtn();
+    if (typeof baroqueSynth !== 'undefined') {
+        baroqueSynth.onFleetShowStop();
+    }
 }
 
 // Keep 30-Second Fleet Show Timeline and UI Synchronized
@@ -15427,6 +15433,212 @@ function initTimelineCollapse() {
     }
 }
 
+// ============================================================================
+// 🎵 WEB AUDIO API: BAROQUE HOEDOWN PARADE SYNTHESIZER
+// ============================================================================
+class BaroqueHoedownSynth {
+    constructor() {
+        this.ctx = null;
+        this.isPlaying = false;
+        this.musicEnabled = false;
+        this.timer = null;
+        this.stepIndex = 0;
+        this.tempoBpm = 130;
+    }
+
+    initAudioContext() {
+        if (!this.ctx) {
+            const AudioCtx = window.AudioContext || window.webkitAudioContext;
+            if (AudioCtx) {
+                this.ctx = new AudioCtx();
+            }
+        }
+        if (this.ctx && this.ctx.state === 'suspended') {
+            this.ctx.resume();
+        }
+    }
+
+    toggleMusic() {
+        this.initAudioContext();
+        this.musicEnabled = !this.musicEnabled;
+        this.updateButtonUI();
+
+        if (this.musicEnabled) {
+            this.start();
+            showToast("🎵 Baroque Hoedown synthesizer activated!");
+        } else {
+            this.stop();
+            showToast("🔇 Music muted");
+        }
+    }
+
+    updateButtonUI() {
+        const btn = document.getElementById('audioToggleBtn');
+        if (!btn) return;
+        if (this.musicEnabled) {
+            btn.textContent = '🎵 Music: ON';
+            btn.style.borderColor = '#39c5bb';
+            btn.style.color = '#39c5bb';
+            btn.style.background = 'rgba(57, 197, 187, 0.15)';
+        } else {
+            btn.textContent = '🎵 Music: OFF';
+            btn.style.borderColor = '#bc8cff';
+            btn.style.color = '#bc8cff';
+            btn.style.background = 'transparent';
+        }
+    }
+
+    getScore() {
+        const D3 = 146.83, E3 = 164.81, Fs3 = 185.00, G3 = 196.00, A3 = 220.00, B3 = 246.94, Cs4 = 277.18;
+        const D4 = 293.66, E4 = 329.63, Fs4 = 369.99, G4 = 392.00, A4 = 440.00, B4 = 493.88, Cs5 = 554.37;
+        const D5 = 587.33, E5 = 659.25, Fs5 = 739.99, G5 = 783.99, A5 = 880.00, B5 = 987.77, Cs6 = 1108.73, D6 = 1174.66, E6 = 1318.51, Fs6 = 1479.98;
+
+        return [
+            // Measure 1
+            { lead: D5, bass: D3 }, { lead: 0, bass: 0 },
+            { lead: Fs5, bass: A3 }, { lead: 0, bass: 0 },
+            { lead: A5, bass: D3 }, { lead: 0, bass: 0 },
+            { lead: D6, bass: A3 }, { lead: 0, bass: 0 },
+            { lead: Cs6, bass: D3 }, { lead: B5, bass: 0 },
+            { lead: A5, bass: A3 }, { lead: G5, bass: 0 },
+            { lead: Fs5, bass: D3 }, { lead: E5, bass: A3 },
+            { lead: D5, bass: D3 }, { lead: D5, bass: 0 },
+
+            // Measure 2
+            { lead: E5, bass: A3 }, { lead: 0, bass: 0 },
+            { lead: Fs5, bass: Cs4 }, { lead: 0, bass: 0 },
+            { lead: G5, bass: A3 }, { lead: 0, bass: 0 },
+            { lead: B5, bass: Cs4 }, { lead: 0, bass: 0 },
+            { lead: A5, bass: A3 }, { lead: G5, bass: 0 },
+            { lead: Fs5, bass: Cs4 }, { lead: E5, bass: 0 },
+            { lead: D5, bass: D3 }, { lead: 0, bass: 0 },
+            { lead: 0, bass: A3 }, { lead: 0, bass: 0 },
+
+            // Measure 3
+            { lead: Fs5, bass: D3 }, { lead: A5, bass: 0 },
+            { lead: D6, bass: A3 }, { lead: Fs5, bass: 0 },
+            { lead: A5, bass: D3 }, { lead: D6, bass: 0 },
+            { lead: Fs6, bass: A3 }, { lead: 0, bass: 0 },
+            { lead: E6, bass: G3 }, { lead: D6, bass: 0 },
+            { lead: Cs6, bass: A3 }, { lead: B5, bass: 0 },
+            { lead: A5, bass: A3 }, { lead: A5, bass: 0 },
+            { lead: 0, bass: 0 }, { lead: 0, bass: 0 },
+
+            // Measure 4 (Theme Turnaround)
+            { lead: G5, bass: G3 }, { lead: 0, bass: 0 },
+            { lead: B5, bass: D4 }, { lead: 0, bass: 0 },
+            { lead: A5, bass: A3 }, { lead: 0, bass: 0 },
+            { lead: Cs6, bass: E4 }, { lead: 0, bass: 0 },
+            { lead: D6, bass: D3 }, { lead: 0, bass: 0 },
+            { lead: Fs5, bass: A3 }, { lead: 0, bass: 0 },
+            { lead: D5, bass: D3 }, { lead: 0, bass: 0 },
+            { lead: 0, bass: 0 }, { lead: 0, bass: 0 }
+        ];
+    }
+
+    playNote(leadFreq, bassFreq, durSec) {
+        if (!this.ctx) return;
+        const now = this.ctx.currentTime;
+
+        // Lead synth (Vintage Moog Square with Lowpass filter pluck)
+        if (leadFreq > 0) {
+            const osc = this.ctx.createOscillator();
+            const filter = this.ctx.createBiquadFilter();
+            const gain = this.ctx.createGain();
+
+            osc.type = 'square';
+            osc.frequency.setValueAtTime(leadFreq, now);
+
+            filter.type = 'lowpass';
+            filter.frequency.setValueAtTime(3200, now);
+            filter.frequency.exponentialRampToValueAtTime(400, now + durSec * 0.9);
+            filter.Q.setValueAtTime(3.5, now);
+
+            gain.gain.setValueAtTime(0.12, now);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + durSec * 0.95);
+
+            osc.connect(filter);
+            filter.connect(gain);
+            gain.connect(this.ctx.destination);
+
+            osc.start(now);
+            osc.stop(now + durSec);
+        }
+
+        // Bass synth (Warm punchy triangle)
+        if (bassFreq > 0) {
+            const bOsc = this.ctx.createOscillator();
+            const bFilter = this.ctx.createBiquadFilter();
+            const bGain = this.ctx.createGain();
+
+            bOsc.type = 'triangle';
+            bOsc.frequency.setValueAtTime(bassFreq, now);
+
+            bFilter.type = 'lowpass';
+            bFilter.frequency.setValueAtTime(450, now);
+
+            bGain.gain.setValueAtTime(0.22, now);
+            bGain.gain.exponentialRampToValueAtTime(0.001, now + durSec * 0.85);
+
+            bOsc.connect(bFilter);
+            bFilter.connect(bGain);
+            bGain.connect(this.ctx.destination);
+
+            bOsc.start(now);
+            bOsc.stop(now + durSec);
+        }
+    }
+
+    start() {
+        this.initAudioContext();
+        if (this.isPlaying) return;
+        this.isPlaying = true;
+        this.stepIndex = 0;
+
+        const score = this.getScore();
+        const stepTimeSec = (60.0 / this.tempoBpm) / 4.0; // 16th note timing
+
+        this.timer = setInterval(() => {
+            if (!this.isPlaying) return;
+            const step = score[this.stepIndex % score.length];
+            this.playNote(step.lead, step.bass, stepTimeSec);
+            this.stepIndex++;
+        }, stepTimeSec * 1000);
+    }
+
+    stop() {
+        this.isPlaying = false;
+        if (this.timer) {
+            clearInterval(this.timer);
+            this.timer = null;
+        }
+        this.stepIndex = 0;
+    }
+
+    onFleetShowStart() {
+        if (this.musicEnabled) {
+            this.start();
+        }
+    }
+
+    onFleetShowStop() {
+        if (!this.musicEnabled) {
+            this.stop();
+        }
+    }
+}
+
+const baroqueSynth = new BaroqueHoedownSynth();
+
+function initBaroqueSynth() {
+    const btn = document.getElementById('audioToggleBtn');
+    if (btn) {
+        btn.addEventListener('click', () => {
+            baroqueSynth.toggleMusic();
+        });
+    }
+}
+
 // Initialize on load
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', () => {
@@ -15437,8 +15649,8 @@ if (document.readyState === 'loading') {
         initFleetManager();
         initPowerBudgetCalculator();
         initFleetRadar();
-    initMasterFleetBundleControls();
         initMasterFleetBundleControls();
+        initBaroqueSynth();
         updateUndoRedoUI();
     });
 } else {
@@ -15449,6 +15661,8 @@ if (document.readyState === 'loading') {
     initFleetManager();
     initPowerBudgetCalculator();
     initFleetRadar();
+    initMasterFleetBundleControls();
+    initBaroqueSynth();
     updateUndoRedoUI();
 }
 
