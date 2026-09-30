@@ -3092,17 +3092,20 @@ function renderSingleShirtView(timeMs) {
                 const dyIn = (leds[i + 1].y - leds[i].y) * H_IN;
                 const distIn = Math.hypot(dxIn, dyIn);
 
-                let strokeCol = 'rgba(0, 255, 136, 0.8)'; // Green slack (<1.8")
-                let lineW = 2.0;
+                let strokeCol = 'rgba(0, 255, 136, 0.85)'; // Green optimal slack (1.77" - 3.35" / 4.5cm - 8.5cm)
+                let lineW = 2.2;
                 let isAlert = false;
 
-                if (distIn >= 2.40) {
-                    strokeCol = 'rgba(255, 51, 102, 0.95)'; // Red alert (>2.4")
+                if (distIn > 3.62) {
+                    strokeCol = 'rgba(255, 51, 102, 0.95)'; // Red alert (>3.62" / >9.2cm taut)
                     lineW = 3.6;
                     isAlert = true;
-                } else if (distIn >= 1.80) {
-                    strokeCol = 'rgba(255, 193, 7, 0.85)'; // Yellow snug (1.8-2.4")
+                } else if (distIn > 3.35) {
+                    strokeCol = 'rgba(255, 193, 7, 0.85)'; // Yellow snug (3.35" - 3.62" / 8.5cm - 9.2cm)
                     lineW = 2.6;
+                } else if (distIn < 1.77) {
+                    strokeCol = 'rgba(56, 189, 248, 0.85)'; // Blue fold warning (<1.77" / <4.5cm excessive slack)
+                    lineW = 1.8;
                 }
 
                 ctx.beginPath();
@@ -10949,9 +10952,15 @@ function calculateWireTensionMetrics() {
     let maxTo = 0;
     let overCount = 0;
     let snugCount = 0;
-    let slackCount = 0;
+    let optimalCount = 0;
+    let foldingCount = 0;
     const segments = [];
 
+    // Calibrated for 10.0cm (3.937") physical wire pitch:
+    // Excessive fold: < 1.77" (< 4.5 cm, leaves > 2.16" / 5.5cm slack to fold!)
+    // Optimal Sweet Spot: 1.77" to 3.35" (4.5 cm to 8.5 cm, gentle 0.6"-2.1" curve, ZERO folds!)
+    // Snug: 3.35" to 3.62" (8.5 cm to 9.2 cm, minimal slack)
+    // Over-stretched Alert: > 3.62" (> 9.2 cm, risks pulling or breaking 10cm wire)
     for (let i = 0; i < leds.length - 1; i++) {
         const p1 = leds[i];
         const p2 = leds[i + 1];
@@ -10964,15 +10973,20 @@ function calculateWireTensionMetrics() {
             maxFrom = i;
             maxTo = i + 1;
         }
-        let status = 'slack';
-        if (dist >= 2.40) {
+
+        let status = 'optimal';
+        if (dist > 3.62) {
             status = 'alert';
             overCount++;
-        } else if (dist >= 1.80) {
+        } else if (dist > 3.35) {
             status = 'snug';
             snugCount++;
+        } else if (dist < 1.77) {
+            status = 'folding';
+            foldingCount++;
         } else {
-            slackCount++;
+            status = 'optimal';
+            optimalCount++;
         }
         segments.push({
             from: i,
@@ -10990,7 +11004,8 @@ function calculateWireTensionMetrics() {
         maxSpanTo: maxTo,
         overStretchedCount: overCount,
         snugCount: snugCount,
-        slackCount: slackCount,
+        optimalCount: optimalCount,
+        foldingCount: foldingCount,
         segments: segments
     };
 }
@@ -11014,7 +11029,8 @@ function updateWireTensionUI() {
 
     const avgPitchVal = document.getElementById('tensionAvgPitchVal');
     if (avgPitchVal) {
-        avgPitchVal.textContent = `${metrics.avgPitchInches.toFixed(2)}"`;
+        const cm = (metrics.avgPitchInches * 2.54).toFixed(1);
+        avgPitchVal.textContent = `${metrics.avgPitchInches.toFixed(2)}" (${cm} cm)`;
     }
 
     const maxSpanVal = document.getElementById('tensionMaxSpanVal');
@@ -11028,17 +11044,22 @@ function updateWireTensionUI() {
             statusBadge.style.background = 'rgba(255, 51, 102, 0.2)';
             statusBadge.style.color = '#ff4d6d';
             statusBadge.style.borderColor = 'rgba(255, 51, 102, 0.5)';
-            statusBadge.textContent = `⚠️ ${metrics.overStretchedCount} Alert (>2.4")`;
-        } else if (metrics.maxSpanInches >= 1.80) {
+            statusBadge.textContent = `⚠️ ${metrics.overStretchedCount} Taut (>3.6")`;
+        } else if (metrics.foldingCount > 10) {
+            statusBadge.style.background = 'rgba(56, 189, 248, 0.15)';
+            statusBadge.style.color = '#38bdf8';
+            statusBadge.style.borderColor = 'rgba(56, 189, 248, 0.4)';
+            statusBadge.textContent = `🔵 ${metrics.foldingCount} Fold (<1.8")`;
+        } else if (metrics.snugCount > 0) {
             statusBadge.style.background = 'rgba(255, 193, 7, 0.15)';
             statusBadge.style.color = '#ffb703';
             statusBadge.style.borderColor = 'rgba(255, 193, 7, 0.4)';
-            statusBadge.textContent = `🟡 Snug (${metrics.maxSpanInches.toFixed(1)}" max)`;
+            statusBadge.textContent = `🟡 ${metrics.snugCount} Snug (3.3-3.6")`;
         } else {
             statusBadge.style.background = 'rgba(0, 255, 136, 0.15)';
             statusBadge.style.color = '#00ff88';
             statusBadge.style.borderColor = 'rgba(0, 255, 136, 0.4)';
-            statusBadge.textContent = `🟢 Slack (<1.8")`;
+            statusBadge.textContent = `🟢 ${metrics.optimalCount} Optimal (10cm Slack)`;
         }
     }
 }
@@ -12034,38 +12055,67 @@ function resampleAllLedColors() {
 }
 
 // ============================================================================
-// CONTINUOUS PHYSICAL WIRING ROUTING (Shortest Path: Nearest-Neighbor + 2-Opt)
-// Sorts and renumbers LEDs so LED[i+1] is always immediately adjacent to LED[i].
-// Minimizes wire travel, prevents crisscrossing, and makes costume sewing easy!
+// CONTINUOUS PHYSICAL WIRING ROUTING (Slack-Targeted for 10cm Physical Wire Pitch)
+// Sorts and renumbers LEDs so consecutive hops (LED[i] -> LED[i+1]) maintain the ideal
+// ~6.0cm to 8.0cm span on the garment, leaving gentle ~2-4cm natural slack (ZERO folding)!
 // ============================================================================
 function optimizeLedWiringOrder(points, startCorner = 'bottom-left') {
     if (!points || points.length <= 2) return points;
 
     const n = points.length;
 
+    // Physical garment scale (18.0" wide x 24.0" high converted to cm)
+    const W_CM = 18.0 * 2.54; // 45.72 cm
+    const H_CM = 24.0 * 2.54; // 60.96 cm
+    const TARGET_CM = 6.8;    // Ideal 10cm wire span on shirt (~3.2cm gentle slack)
+    const MAX_CM = 9.2;       // Maximum reach limit for 10cm physical wire
+    const MIN_CM = 4.5;       // Folding penalty threshold (<4.5cm requires >5.5cm fold)
+
+    // Distance helper in physical centimeters
+    const distCm = (pA, pB) => {
+        const dx = (pA.x - pB.x) * W_CM;
+        const dy = (pA.y - pB.y) * H_CM;
+        return Math.hypot(dx, dy);
+    };
+
+    // Cost function for a wire segment:
+    // Heavily penalizes unreachable segments (>9.2cm) and excessive wire folding (<4.5cm).
+    // Rewards sweet spot spans (4.5cm - 8.5cm, ~1.8" - 3.3") where wire hangs naturally with zero folds.
+    const edgeCost = (d) => {
+        if (d > MAX_CM) {
+            return 1000.0 + (d - MAX_CM) * 50.0;
+        } else if (d < MIN_CM) {
+            return (MIN_CM - d) * (MIN_CM - d) * 4.0 + Math.abs(d - TARGET_CM);
+        } else if (d > 8.5) {
+            return (d - 8.5) * 3.0 + Math.abs(d - TARGET_CM);
+        } else {
+            return Math.abs(d - TARGET_CM);
+        }
+    };
+
     // 1. Pick starting LED (e.g. bottom-left near the waist / battery pack)
     let startIdx = 0;
-    let bestScore = Infinity;
+    let bestScore = -Infinity;
 
     for (let i = 0; i < n; i++) {
         let score;
         const p = points[i];
         if (startCorner === 'bottom-left') {
-            score = (1.0 - p.y) * 1.5 + p.x;
+            score = p.y * 1.5 - p.x;
         } else if (startCorner === 'bottom-center') {
-            score = (1.0 - p.y) * 1.5 + Math.abs(p.x - 0.5);
+            score = p.y * 1.5 - Math.abs(p.x - 0.5);
         } else if (startCorner === 'bottom-right') {
-            score = (1.0 - p.y) * 1.5 + (1.0 - p.x);
+            score = p.y * 1.5 - (1.0 - p.x);
         } else { // top-left
-            score = p.y * 1.5 + p.x;
+            score = -p.y * 1.5 - p.x;
         }
-        if (score < bestScore) {
+        if (score > bestScore) {
             bestScore = score;
             startIdx = i;
         }
     }
 
-    // 2. Nearest Neighbor Tour Construction
+    // 2. Slack-Targeted Tour Construction
     const unvisited = new Set();
     for (let i = 0; i < n; i++) {
         if (i !== startIdx) unvisited.add(i);
@@ -12074,62 +12124,48 @@ function optimizeLedWiringOrder(points, startCorner = 'bottom-left') {
     const path = [startIdx];
     while (unvisited.size > 0) {
         const curr = path[path.length - 1];
-        let nearest = -1;
-        let minD = Infinity;
+        let bestCand = -1;
+        let bestC = Infinity;
 
         for (const idx of unvisited) {
-            const dx = points[curr].x - points[idx].x;
-            const dy = points[curr].y - points[idx].y;
-            const d = dx * dx + dy * dy;
-            if (d < minD) {
-                minD = d;
-                nearest = idx;
+            const d = distCm(points[curr], points[idx]);
+            const c = edgeCost(d);
+            if (c < bestC) {
+                bestC = c;
+                bestCand = idx;
             }
         }
 
-        path.push(nearest);
-        unvisited.delete(nearest);
+        path.push(bestCand);
+        unvisited.delete(bestCand);
     }
 
-    // Distance helper
-    const dist = (a, b) => Math.hypot(points[a].x - points[b].x, points[a].y - points[b].y);
-
-    // 3. 2-Opt Optimization Pass (Untangles crossovers & minimizes total physical wire length)
+    // 3. Slack-Targeted 2-Opt Optimization Pass (eliminates folds & overstretched segments)
     let improved = true;
     let iterations = 0;
-    while (improved && iterations < 60) {
+    while (improved && iterations < 50) {
         improved = false;
         iterations++;
         for (let i = 0; i < n - 2; i++) {
             for (let j = i + 2; j < n; j++) {
-                if (j === n - 1) {
-                    const dCur = dist(path[i], path[i + 1]);
-                    const dNew = dist(path[i], path[j]);
-                    if (dNew < dCur - 1e-5) {
-                        let left = i + 1, right = j;
-                        while (left < right) {
-                            const tmp = path[left];
-                            path[left] = path[right];
-                            path[right] = tmp;
-                            left++;
-                            right--;
-                        }
-                        improved = true;
+                const pI = points[path[i]];
+                const pI1 = points[path[i + 1]];
+                const pJ = points[path[j]];
+                const pJ1 = (j < n - 1) ? points[path[j + 1]] : null;
+
+                const cCur = edgeCost(distCm(pI, pI1)) + (pJ1 ? edgeCost(distCm(pJ, pJ1)) : 0);
+                const cNew = edgeCost(distCm(pI, pJ)) + (pJ1 ? edgeCost(distCm(pI1, pJ1)) : 0);
+
+                if (cNew < cCur - 1e-4) {
+                    let left = i + 1, right = j;
+                    while (left < right) {
+                        const tmp = path[left];
+                        path[left] = path[right];
+                        path[right] = tmp;
+                        left++;
+                        right--;
                     }
-                } else {
-                    const dCur = dist(path[i], path[i + 1]) + dist(path[j], path[j + 1]);
-                    const dNew = dist(path[i], path[j]) + dist(path[i + 1], path[j + 1]);
-                    if (dNew < dCur - 1e-5) {
-                        let left = i + 1, right = j;
-                        while (left < right) {
-                            const tmp = path[left];
-                            path[left] = path[right];
-                            path[right] = tmp;
-                            left++;
-                            right--;
-                        }
-                        improved = true;
-                    }
+                    improved = true;
                 }
             }
         }

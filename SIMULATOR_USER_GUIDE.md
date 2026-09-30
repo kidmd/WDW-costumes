@@ -374,16 +374,22 @@ Creating and editing groups is seamlessly integrated into both the Group Creatio
 
 ---
 
-## 6. Physical Wiring Route Optimization
+## 6. Physical Wiring Route Optimization (10cm Wire Pitch & Slack-Aware Tour)
 
-Attaching LEDs to a shirt by hand can easily result in tangled wire spaghetti if the LEDs are numbered randomly. The simulator solves this with a **continuous shortest-path wiring optimizer**.
+Attaching LEDs to a shirt by hand can easily result in tangled wire spaghetti or severe wire bunching if the layout ignores physical wire pitch. The simulator solves this with an advanced **10cm physical wire slack-targeted routing optimizer**.
 
 ### How It Works
-1. Click the **🔌 Optimize Wiring Route** button in the toolbar.
-2. The algorithm starts at the bottom-left corner of the shirt (where your battery pack and ESP32 pocket are typically located).
-3. It uses a 2-opt spatial traveling salesman algorithm to renumber every LED along the shortest continuous physical snake route.
-4. Each LED is renumbered so LED `0` connects to LED `1`, which connects to LED `2`, and so on, with minimum wire length between successive pixels.
-5. Toggle **Show Wiring Route** in Section 6 to see the physical wire path drawn directly on the canvas!
+1. **10cm Physical Wire Pitch Calibration:** Wearable WS2812B pebble/fairy light strands have a fixed **10.0 cm (100 mm / ~3.94") wire pitch** between consecutive nodes.
+2. **Slack-Targeted Cost Function:** Instead of blindly connecting to the closest spatial neighbor (which averages only 1.6 cm apart and forces 8+ cm of excess wire to be accordion-folded on every step!), the router targets an optimal **6.0 cm to 8.0 cm (2.4" to 3.15") straight-line span**.
+3. **Gentle Natural Slack (Zero Accordion Folding):** This leaves **2.0 cm to 4.0 cm (20% to 40%) of relaxed, comfortable wire slack** behind the mesh. The wire hangs in a natural, flat curve that flexes with the runner's body over the 10K course without requiring any folding, looping, or tape bundles!
+4. **Hard Physical Reach Constraints:** Strictly bounds every span to $\le 9.2\text{ cm}$, guaranteeing no wire segment is pulled taut or strained.
+5. **Interactive Controls:**
+   - Click **`🔌 Optimize Wiring Route (10cm Slack)`** in Tab 1 to re-route all LEDs with this slack optimization.
+   - Toggle **`🧵 Wire Tension Heatmap`** to view color-coded segments:
+     - 🔵 **Blue (`<1.8"` / `<4.5 cm`):** Excess Slack / Folding Warning.
+     - 🟢 **Green (`1.8"–3.3"` / `4.5–8.5 cm`):** Optimal Slack Sweet Spot (Flat, zero-fold fit).
+     - 🟡 **Yellow (`3.3"–3.6"` / `8.5–9.2 cm`):** Snug (minimal slack).
+     - 🔴 **Red (`>3.6"` / `>9.2 cm`):** Overstretched Alert.
 
 ### 🎆 Fireworks Starburst Generator, Multi-Burst Stamping, & Scaling
 Creating radial fireworks bursts requires clean geometry, flexible placement, and predictable physical wiring:

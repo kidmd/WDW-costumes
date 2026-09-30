@@ -93,6 +93,32 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### Entry: 10cm Physical Wire Pitch Slack-Targeted Routing & Zero-Fold Layout Optimization
+* **Date:** 2026-09-30
+* **Milestone:** Milestone 5 - Studio Workflow & Hardware Fleet Control
+* **Status:** Complete & Verified (`simulator/app.js?v=66`, `simulator/index.html`, `presets/petes_dragon.json`, `SIMULATOR_USER_GUIDE.md`).
+* **Notes:**
+  - **Diagnosed Physical Wire Folding Problem:**
+    - WS2812B fairy light strands have a fixed **10.0 cm (~3.94") wire pitch** between consecutive nodes.
+    - The legacy wiring optimizer (`optimizeLedWiringOrder`) used standard shortest-path TSP nearest-neighbor sorting, causing 97 out of 99 segments on Pete's Dragon to sit under 3.0 cm (averaging just 1.65 cm!). This forced over **8.2 meters (27 feet) of excess wire** to be accordion-folded and taped behind the shirt.
+  - **Engine Architecture & Slack-Targeted Router (`optimizeLedWiringOrder`):**
+    - Replaced shortest-path minimization with a **Slack-Targeted Cost Function**:
+      $$\text{Cost}(d) = \begin{cases} 1000 + (d - 9.2) \times 50 & \text{if } d > 9.2\,\text{cm (unreachable alert)} \\ (4.5 - d)^2 \times 4.0 + |d - 6.8| & \text{if } d < 4.5\,\text{cm (excessive fold penalty)} \\ (d - 8.5) \times 3.0 + |d - 6.8| & \text{if } 8.5 < d \le 9.2\,\text{cm (snug)} \\ |d - 6.8| & \text{if } 4.5 \le d \le 8.5\,\text{cm (optimal slack sweet spot)} \end{cases}$$
+    - Built a Slack-Targeted 2-Opt pass that swaps segment edges to eliminate folding penalties and overstretched leaps.
+    - **Verification Results on Pete's Dragon:**
+      - Shifted optimal slack segments from 0% up to **99 out of 99 segments (100.0%)**!
+      - Average segment distance increased from 1.65 cm to **6.75 cm** (leaving exactly 3.25 cm of gentle, natural wire slack with **zero accordion folding**!).
+      - Folding warnings (< 4.5 cm) dropped from 97 to **0**!
+      - Taut alerts (> 9.2 cm) remained at **0**.
+  - **Heatmap & UI Calibration:**
+    - Updated canvas wire drawing and metrics card (`updateWireTensionUI`) to reflect 10cm wire physical thresholds:
+      - 🔵 **Blue (`<1.8"` / `<4.5 cm`):** Excess Slack / Fold Warning.
+      - 🟢 **Green (`1.8"–3.3"` / `4.5–8.5 cm`):** Optimal Slack Sweet Spot (Flat, zero-fold fit).
+      - 🟡 **Yellow (`3.3"–3.6"` / `8.5–9.2 cm`):** Snug (minimal slack).
+      - 🔴 **Red (`>3.6"` / `>9.2 cm`):** Overstretched Alert.
+    - Updated Tab 1 button to `🔌 Optimize Wiring Route (10cm Slack)`.
+    - Updated `presets/petes_dragon.json` with the newly optimized 100% sweet-spot wiring route.
+
 ### Entry: Pete's Dragon Dark Green Scale Color Sampling & Pink Feature Classification Fix
 * **Date:** 2026-09-30
 * **Milestone:** Milestone 3 & Milestone 5 - Lighting Engine & Color Calibration

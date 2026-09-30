@@ -301,8 +301,8 @@
                             🔄 Fill Graphic with Remaining LEDs
                         </button>
 
-                        <button id="optimizeWiringBtn" class="action-btn" style="width: 100%; font-size: 11px; padding: 7px 8px; margin-bottom: 6px; font-weight: 600; background: rgba(31, 111, 235, 0.25); border-color: rgba(56, 139, 253, 0.4);" title="Sort and renumber LEDs so each bulb connects to its nearest neighbor along a continuous physical wire route">
-                            🔌 Optimize Wiring Route (Shortest Snake)
+                        <button id="optimizeWiringBtn" class="action-btn" style="width: 100%; font-size: 11px; padding: 7px 8px; margin-bottom: 6px; font-weight: 600; background: rgba(31, 111, 235, 0.25); border-color: rgba(56, 139, 253, 0.4);" title="Sort and renumber LEDs so each bulb connects at optimal 10cm wire pitch (~6-8cm span, gentle slack, zero folding)">
+                            🔌 Optimize Wiring Route (10cm Slack)
                         </button>
 
                         <div class="toggle-row" style="margin-bottom: 4px;">
@@ -354,9 +354,10 @@
                                 </button>
                             </div>
                             <div style="margin-top: 6px; font-size: 9.5px; color: #8b949e; display: flex; justify-content: space-between; border-top: 1px dashed rgba(255,255,255,0.06); padding-top: 4px;">
-                                <span style="color: #00ff88;">🟢 &lt;1.8" Slack</span>
-                                <span style="color: #ffb703;">🟡 1.8–2.4" Snug</span>
-                                <span style="color: #ff4d6d;">🔴 &gt;2.4" Alert</span>
+                                <span style="color: #38bdf8;">🔵 &lt;1.8" Fold</span>
+                                <span style="color: #00ff88;">🟢 1.8–3.3" Optimal Slack</span>
+                                <span style="color: #ffb703;">🟡 3.3–3.6" Snug</span>
+                                <span style="color: #ff4d6d;">🔴 &gt;3.6" Taut</span>
                             </div>
                         </div>
 
@@ -2270,6 +2271,6 @@
         </div>
     </div>
 
-    <script src="app.js?v=65"></script>
+    <script src="app.js?v=66"></script>
 </body>
 </html>
