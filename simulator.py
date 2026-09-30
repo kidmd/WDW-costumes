@@ -655,7 +655,17 @@ const CRGB PROGMEM ARTWORK_PALETTE[NUM_LEDS] = {{
             stdout, _ = proc.communicate(timeout=120)
             success = (proc.returncode == 0)
             user_error = None
-            if not success:
+            if success:
+                try:
+                    pio_fw = os.path.join(BASE_DIR, ".pio", "build", "esp32dev", "firmware.bin")
+                    firmware_dir = os.path.join(BASE_DIR, "firmware")
+                    if os.path.exists(pio_fw):
+                        shutil.copy2(pio_fw, os.path.join(firmware_dir, "firmware.bin"))
+                        if float_id > 0:
+                            shutil.copy2(pio_fw, os.path.join(firmware_dir, f"firmware_float{float_id}.bin"))
+                except Exception as cpy_err:
+                    print(f"[WARN] Failed copying binary to firmware folder: {cpy_err}")
+            else:
                 if "not functioning" in stdout or "Error 31" in stdout or "PermissionError(13" in stdout:
                     user_error = f"USB Port {port} is unresponsive (Windows Error 31). Please UNPLUG the USB cable from the ESP32, wait 2 seconds, and plug it back in. Then click Flash again."
                 elif "Wrong boot mode detected" in stdout or "needs to be in download mode" in stdout:

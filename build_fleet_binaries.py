@@ -12,9 +12,9 @@ PIO_BUILD_DIR = os.path.join(BASE_DIR, ".pio", "build", "esp32dev")
 FLOATS = [
     {"id": 1, "name": "The Train", "role": "LEADER", "tag": "CASEY JR."},
     {"id": 2, "name": "The Title Drum", "role": "FOLLOWER", "tag": "THE DRUM"},
-    {"id": 3, "name": "Cinderella's Coach", "role": "FOLLOWER", "tag": "CINDERELLA"},
-    {"id": 4, "name": "Peter Pan's Pirate Ship", "role": "FOLLOWER", "tag": "PETER PAN"},
-    {"id": 5, "name": "Dumbo the Flying Elephant", "role": "FOLLOWER", "tag": "DUMBO"},
+    {"id": 3, "name": "The Spinning Turtle", "role": "FOLLOWER", "tag": "TURTLE"},
+    {"id": 4, "name": "The Spinning Snail", "role": "FOLLOWER", "tag": "SNAIL"},
+    {"id": 5, "name": "Cinderella's Coach", "role": "FOLLOWER", "tag": "COACH"},
     {"id": 6, "name": "Pete's Dragon", "role": "FOLLOWER", "tag": "ELLIOTT"},
     {"id": 7, "name": "To Honor America", "role": "FOLLOWER", "tag": "FLAG & EAGLE"},
 ]
