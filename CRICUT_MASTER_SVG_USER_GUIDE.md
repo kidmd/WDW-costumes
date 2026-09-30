@@ -48,7 +48,24 @@ When the SVG loads, Cricut sees distinct layers in the **Layers Panel** on the r
 1. Click **Ungroup** at the top of the Layers panel to separate the groups.
 2. Select the **Green Body** layer and the **Green Pill Slots**, then click the **Attach** (paperclip icon) at the bottom of the Layers panel. *(This locks the holes to the green vinyl so the blade cuts them out of the green sheet in their exact spots).*
 3. Select the **Pink Features** (hair/wings/spines) and the **Pink Pill Slots**, then click **Attach**.
-4. *(Optional)* If you don't want to cut the corner registration marks, simply click the **eye icon** next to `Layer_0_Registration_Crosshairs` to hide them.
+
+---
+
+### 🎯 Pro-Tip: How the 4-Corner Alignment Markers Work (Registration Marks)
+
+The 4 crosshairs in the corners (`Layer_0_Registration_Crosshairs`) are optional but give you **sub-millimeter layering precision**:
+
+#### 1. Does the Cricut Machine Scan Them?
+- **No optical scanning is needed.** The Cricut blade physically cuts 4 tiny crosshairs into the corners of each vinyl sheet if you attach them to your layers.
+
+#### 2. The 2 Big Benefits:
+- **Prevents Cricut Scrambling Pieces:** If you attach the 4 corner marks to the Pink layer AND to the Green layer, Cricut will not try to pack the pink pieces into the top corner to save material. It preserves the exact spacing between the pink hair up top and the pink tail spines at the bottom!
+- **Zero-Guesswork Heat Pressing:**
+  1. When pressing the **Green Body**, place a tiny piece of blue painter's tape or heat-resistant tape under each of the 4 corner crosshairs on the vest. Press for 10s. The green crosshairs will stick to the tape (not the shirt).
+  2. When pressing the **Pink Accents**, simply look through the clear carrier sheet and line up the **pink crosshairs directly on top of the green crosshairs on the tape**.
+  3. All hair, wings, and spines will snap into perfect anatomical alignment. Peel off the tape and crosshairs when finished!
+
+*(Note: If your brother prefers to eyeball the alignment naturally, simply click the **eye icon** next to `Layer_0_Registration_Crosshairs` in Cricut Design Space to hide them before clicking Make It).*
 
 ---
 

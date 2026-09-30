@@ -93,6 +93,14 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### Entry: Cricut Master SVG User Guide & Registration Crosshair Workflow
+* **Date:** 2026-09-30
+* **Milestone:** Milestone 5 - Studio Workflow & Hardware Fleet Control
+* **Status:** Complete & Verified (`CRICUT_MASTER_SVG_USER_GUIDE.md`).
+* **Notes:**
+  - Published comprehensive standalone brother's guide for cutting multi-layer HTV costumes in Cricut Design Space.
+  - Added dedicated explanation and instructions for the 4-corner alignment markers (`Layer_0_Registration_Crosshairs`), detailing how "Attach" prevents Cricut mat shape scrambling and how temporary tape registration enables zero-guesswork, sub-millimeter multi-layer heat press alignment.
+
 ### Entry: Authentic Clipart Pete's Dragon Cricut Vectorization & Dynamic SVG Coordinate Engine
 * **Date:** 2026-09-29
 * **Milestone:** Milestone 5 - Studio Workflow & Hardware Fleet Control
