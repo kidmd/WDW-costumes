@@ -13857,7 +13857,10 @@ if (rebuildFleetBinariesBtn) {
         showToast('🔨 Building ROM binaries for all 7 floats in background...');
 
         try {
-            const resp = await fetch('/api/build_fleet_binaries');
+            const resp = await fetch('/api/build_fleet_binaries', { method: 'POST' });
+            if (!resp.ok) {
+                throw new Error(`Server returned HTTP ${resp.status}`);
+            }
             const data = await resp.json();
             if (data.success) {
                 showToast('✅ Fleet ROM rebuild initiated! Files syncing to firmware folder.');
@@ -13865,7 +13868,7 @@ if (rebuildFleetBinariesBtn) {
                 showToast('❌ Rebuild failed: ' + (data.error || 'Unknown error'));
             }
         } catch (e) {
-            showToast('⚠️ Could not connect to simulator backend: ' + e.message);
+            showToast('⚠️ Rebuild trigger error: ' + e.message);
         } finally {
             setTimeout(() => {
                 rebuildFleetBinariesBtn.disabled = false;

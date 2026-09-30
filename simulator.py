@@ -63,6 +63,8 @@ class SimulatorRequestHandler(http.server.SimpleHTTPRequestHandler):
             self.handle_list_fleet_shows()
         elif parsed.path == "/api/fleet_radar":
             self.handle_get_fleet_radar()
+        elif parsed.path == "/api/build_fleet_binaries":
+            self.handle_build_fleet_binaries()
         elif parsed.path.startswith("/api/fleet_show/"):
             filename = urllib.parse.unquote(parsed.path[len("/api/fleet_show/"):])
             self.handle_get_fleet_show(filename)
