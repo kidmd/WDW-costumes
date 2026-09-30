@@ -93,23 +93,27 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
-### Entry: Multi-Layer Cricut HTV Cut Exporter Suite & Uniform Pink Pete's Dragon Classification
+### Entry: Authentic Clipart Pete's Dragon Cricut Vectorization & Dynamic SVG Coordinate Engine
 * **Date:** 2026-09-29
 * **Milestone:** Milestone 5 - Studio Workflow & Hardware Fleet Control
-* **Status:** Verified & Operational across `simulator/app.js?v=58`, `simulator/index.html`, and `assets/cricut_svg/`.
+* **Status:** Verified & Operational across `simulator/app.js?v=59`, `simulator/index.html`, and `assets/cricut_svg/petes_dragon.svg`.
 * **Notes:**
-  - **Multi-Layer Cricut HTV Cut Exporter Suite (`exportCricutSvgWithPillSlots`, `buildCricutExportPackage`):**
-    - Upgraded 1-click **`✂️ Export Cut SVG`** button to open a dedicated **Cricut HTV Cut File Exporter Modal** (`#cricutExportModal`).
-    - **Master All-in-One Multi-Layer SVG:** Combines the active float's full multi-colored vector artwork (e.g. Green Body, Pink Wings/Crest/Spines, Marigold Flame/Belly, White Details) with all 100 tangent-oriented $6.0\,\text{mm} \times 3.0\,\text{mm}$ pill slots and 4-corner heat press registration crosshairs into a single file. Cricut Design Space automatically parses the file and sorts each color onto its own cutting mat with all holes aligned in place.
-    - **Mat-by-Mat SVGs (Single Color Mats):** Generates dedicated cut SVGs for each individual vinyl color sheet (e.g. `petes_dragon_mat_1_green.svg`, `petes_dragon_mat_2_pink.svg`, etc.) with each mat's specific pill cutouts and registration crosshairs. Includes a **`📦 Download All Mats`** button with staggered download dispatch.
-    - **Standalone Pill Slots Layer:** Allows exporting the isolated 100-slot cutouts layer with 4-corner registration marks.
-  - **Pete's Dragon Uniform Pink Classification Rule (`boostLedVibrancy`):**
-    - Updated character pixel sampling logic so that the **Wild Jagged Hair Crest** on the head, the **Dragon Wings**, and the **Dorsal Spine Plates & Tail Spines** are all uniformly classified as signature **Disney Pink** (`CRGB(255, 25, 230)` / `#ff007f`).
-    - Prioritized feature zone detection over dark line art and shadow fallbacks, ensuring pixels across hair, wings, and spines never accidentally turn into body green.
+  - **Authentic Clipart Pete's Dragon Vectorization (`assets/cricut_svg/petes_dragon.svg`):**
+    - Replaced previous placeholder doodle with authentic Disney clipart vectorization generated directly from `assets/petes_dragon.png` (matching 100% of the simulator canvas silhouette, pose, and proportions).
+    - Preserved exact $300 \times 425$ aspect ratio scaled to high-resolution vector canvas (`viewBox="0 0 600 850"`).
+    - Integrated multi-layer HTV structure:
+      - `Layer_0_Clipart_Artwork`: Embedded high-resolution clipart reference for visual inspection and Print-then-Cut.
+      - `Layer_1_Green_Vinyl`: Smooth Catmull-Rom cubic Bézier vector cut path of Elliott's emerald body silhouette.
+      - `Layer_2_Pink_Vinyl`: Smooth Catmull-Rom cubic Bézier vector cut paths of the wild hair crest, wings, and dorsal/tail spine plates.
+  - **Dynamic SVG Coordinate & Physical Scale Engine (`calculateLedCutoutData`, `getSvgViewBoxDimensions`):**
+    - Removed hardcoded $800 \times 600$ assumptions; dynamically parses `viewBox` width and height from the loaded SVG (`600×850` for Pete's Dragon, `800×600` for other floats).
+    - Accurately scales $6.0\,\text{mm} \times 3.0\,\text{mm}$ pill slots to the SVG's coordinate system based on the real-world 18.0" (457.2mm) garment model (`pillW = 6.0 * (svgW / graphicWidthMm)`).
+    - Dynamically anchors 4-corner heat press registration crosshairs to the corners of the active SVG viewBox.
   - **Verification:**
+    - Verified sub-millimeter LED alignment overlay against `assets/petes_dragon.png` (100% of 100 LEDs inside graphic bounds; hair, wings, spines, and body align with zero offset).
     - Verified JavaScript syntax via `node --check simulator/app.js` (SUCCESS).
     - Verified PlatformIO build via `pio run` (SUCCESS, RAM: 14.3%, Flash: 60.4%).
-    - Bumped script version to `app.js?v=58`.
+    - Bumped script version to `app.js?v=59`.
 
 ### Entry: Calibrated Default Race Bib Dimensions (8.0" Wide × 7.0" High)
 * **Date:** 2026-09-28

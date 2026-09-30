@@ -1990,10 +1990,8 @@ const CRICUT_FLOAT_CONFIG = {
         tag: "FAN FAVORITE",
         svgFile: "petes_dragon.svg",
         layers: [
-            { id: "Layer_1_Green_Vinyl", name: "Emerald Body & Legs", hex: "#00ff88", r: 0, g: 255, b: 136 },
-            { id: "Layer_2_Pink_Vinyl", name: "Pink Crest, Wings & Spines", hex: "#ff007f", r: 255, g: 25, b: 230 },
-            { id: "Layer_3_Orange_Vinyl", name: "Marigold Flame & Belly", hex: "#fb8500", r: 251, g: 133, b: 0 },
-            { id: "Layer_4_White_Vinyl", name: "White Details & Eye", hex: "#ffffff", r: 255, g: 255, b: 255 }
+            { id: "Layer_1_Green_Vinyl", name: "Emerald Body & Legs", hex: "#00cc66", r: 0, g: 204, b: 102 },
+            { id: "Layer_2_Pink_Vinyl", name: "Pink Crest, Wings & Spines", hex: "#ff007f", r: 255, g: 25, b: 230 }
         ]
     },
     'builtin_dragon': {
@@ -2003,10 +2001,8 @@ const CRICUT_FLOAT_CONFIG = {
         tag: "FAN FAVORITE",
         svgFile: "petes_dragon.svg",
         layers: [
-            { id: "Layer_1_Green_Vinyl", name: "Emerald Body & Legs", hex: "#00ff88", r: 0, g: 255, b: 136 },
-            { id: "Layer_2_Pink_Vinyl", name: "Pink Crest, Wings & Spines", hex: "#ff007f", r: 255, g: 25, b: 230 },
-            { id: "Layer_3_Orange_Vinyl", name: "Marigold Flame & Belly", hex: "#fb8500", r: 251, g: 133, b: 0 },
-            { id: "Layer_4_White_Vinyl", name: "White Details & Eye", hex: "#ffffff", r: 255, g: 255, b: 255 }
+            { id: "Layer_1_Green_Vinyl", name: "Emerald Body & Legs", hex: "#00cc66", r: 0, g: 204, b: 102 },
+            { id: "Layer_2_Pink_Vinyl", name: "Pink Crest, Wings & Spines", hex: "#ff007f", r: 255, g: 25, b: 230 }
         ]
     },
     'casey_jr_train': {
@@ -2112,21 +2108,38 @@ const CRICUT_FLOAT_CONFIG = {
     }
 };
 
-function generateRegistrationCrosshairsSvg() {
+function getSvgViewBoxDimensions(rawSvgText) {
+    if (!rawSvgText) return { width: 800, height: 600 };
+    const match = rawSvgText.match(/viewBox=["']\s*0\s+0\s+(\d+(?:\.\d+)?)\s+(\d+(?:\.\d+)?)\s*["']/);
+    if (match) {
+        return { width: parseFloat(match[1]), height: parseFloat(match[2]) };
+    }
+    return { width: 800, height: 600 };
+}
+
+function generateRegistrationCrosshairsSvg(svgW = 800, svgH = 600) {
+    const pad = Math.min(25, svgW * 0.05);
+    const x1 = pad, y1 = pad;
+    const x2 = svgW - pad, y2 = pad;
+    const x3 = pad, y3 = svgH - pad;
+    const x4 = svgW - pad, y4 = svgH - pad;
+    const arm = Math.max(8, svgW * 0.015);
+    const r = Math.max(4, svgW * 0.008);
+
     return `  <!-- HTV Heat Press Registration Marks (4 Corners for Multi-Color Vinyl Layering) -->
   <g id="Layer_0_Registration_Crosshairs" stroke="#888888" stroke-width="1.5" fill="none">
     <!-- Top-Left Crosshair -->
-    <path d="M 15 25 L 35 25 M 25 15 L 25 35" />
-    <circle cx="25" cy="25" r="5" />
+    <path d="M ${x1 - arm} ${y1} L ${x1 + arm} ${y1} M ${x1} ${y1 - arm} L ${x1} ${y1 + arm}" />
+    <circle cx="${x1}" cy="${y1}" r="${r}" />
     <!-- Top-Right Crosshair -->
-    <path d="M 765 25 L 785 25 M 775 15 L 775 35" />
-    <circle cx="775" cy="25" r="5" />
+    <path d="M ${x2 - arm} ${y2} L ${x2 + arm} ${y2} M ${x2} ${y2 - arm} L ${x2} ${y2 + arm}" />
+    <circle cx="${x2}" cy="${y2}" r="${r}" />
     <!-- Bottom-Left Crosshair -->
-    <path d="M 15 575 L 35 575 M 25 565 L 25 585" />
-    <circle cx="25" cy="25" r="5" />
+    <path d="M ${x3 - arm} ${y3} L ${x3 + arm} ${y3} M ${x3} ${y3 - arm} L ${x3} ${y3 + arm}" />
+    <circle cx="${x3}" cy="${y3}" r="${r}" />
     <!-- Bottom-Right Crosshair -->
-    <path d="M 765 575 L 785 575 M 775 565 L 775 585" />
-    <circle cx="775" cy="575" r="5" />
+    <path d="M ${x4 - arm} ${y4} L ${x4 + arm} ${y4} M ${x4} ${y4 - arm} L ${x4} ${y4 + arm}" />
+    <circle cx="${x4}" cy="${y4}" r="${r}" />
   </g>\n`;
 }
 
@@ -2148,8 +2161,22 @@ async function fetchMasterSvgText(filename) {
     return null;
 }
 
-function calculateLedCutoutData(layers) {
+function calculateLedCutoutData(layers, rawSvgText) {
     const gb = getGraphicChestBounds();
+    const { width: svgW, height: svgH } = getSvgViewBoxDimensions(rawSvgText);
+
+    // Physical garment width = 18.0 inches (457.2 mm)
+    const garmentWidthMm = 457.2;
+    const graphicWidthMm = Math.max(10, gb.normW * garmentWidthMm);
+    const unitsPerMm = svgW / graphicWidthMm;
+
+    // 6.0mm x 3.0mm pill slot scaled to SVG coordinate system
+    const pillW = parseFloat((6.0 * unitsPerMm).toFixed(1));
+    const pillH = parseFloat((3.0 * unitsPerMm).toFixed(1));
+    const halfW = parseFloat((pillW / 2).toFixed(1));
+    const halfH = parseFloat((pillH / 2).toFixed(1));
+    const rx = parseFloat((pillH / 2).toFixed(1));
+
     let allCutoutsXml = '';
     const layerCutouts = {};
     const layerLedCounts = {};
@@ -2166,8 +2193,8 @@ function calculateLedCutoutData(layers) {
         const relY = (l.y - gb.normY) / gb.normH;
         if (relX < -0.05 || relX > 1.05 || relY < -0.05 || relY > 1.05) continue;
 
-        const svgX = (relX * 800).toFixed(1);
-        const svgY = (relY * 600).toFixed(1);
+        const svgX = (relX * svgW).toFixed(1);
+        const svgY = (relY * svgH).toFixed(1);
         const angleDeg = (getLedTangentAngle(i, leds) * 180 / Math.PI).toFixed(1);
 
         let bestLayer = layers[0];
@@ -2179,15 +2206,11 @@ function calculateLedCutoutData(layers) {
                 (relY >= 0.58 && relX >= 0.65) ||
                 (relY >= 0.22 && relY <= 0.55 && ((relX >= 0.20 && relX <= 0.45) || (relX >= 0.58 && relX <= 0.94)))) {
                 bestLayer = layers.find(lay => lay.id === 'Layer_2_Pink_Vinyl') || layers[1];
-            } else if (l.color.r > 190 && l.color.g > 70 && l.color.b < 80) {
-                bestLayer = layers.find(lay => lay.id === 'Layer_3_Orange_Vinyl') || layers[2];
-            } else if (l.color.r > 220 && l.color.g > 220 && l.color.b > 220) {
-                bestLayer = layers.find(lay => lay.id === 'Layer_4_White_Vinyl') || layers[3];
             } else {
                 bestLayer = layers.find(lay => lay.id === 'Layer_1_Green_Vinyl') || layers[0];
             }
         } else {
-            // Euclidean distance in RGB color space to match closest mat color
+            // General Euclidean distance in RGB color space
             let minD = 1e9;
             for (const lay of layers) {
                 const dr = l.color.r - lay.r;
@@ -2203,15 +2226,14 @@ function calculateLedCutoutData(layers) {
 
         layerLedCounts[bestLayer.id] = (layerLedCounts[bestLayer.id] || 0) + 1;
 
-        // 6.0mm x 3.0mm pill slot scaled to 800x600 SVG coordinates (~14px x 7px)
-        const rectXml = `    <rect x="-7.0" y="-3.5" width="14.0" height="7.0" rx="3.5" transform="translate(${svgX}, ${svgY}) rotate(${angleDeg})" fill="#000000" stroke="${bestLayer.hex}" stroke-width="1.0" class="cricut-led-slot" data-led="${i}" data-layer="${bestLayer.id}" />\n`;
+        const rectXml = `    <rect x="-${halfW}" y="-${halfH}" width="${pillW}" height="${pillH}" rx="${rx}" transform="translate(${svgX}, ${svgY}) rotate(${angleDeg})" fill="#000000" stroke="${bestLayer.hex}" stroke-width="1.2" class="cricut-led-slot" data-led="${i}" data-layer="${bestLayer.id}" />\n`;
         allCutoutsXml += rectXml;
         if (layerCutouts[bestLayer.id] !== undefined) {
             layerCutouts[bestLayer.id] += rectXml;
         }
     }
 
-    return { allCutoutsXml, layerCutouts, layerLedCounts };
+    return { allCutoutsXml, layerCutouts, layerLedCounts, svgW, svgH };
 }
 
 function downloadSvgBlob(svgContent, filename) {
@@ -2224,12 +2246,16 @@ function downloadSvgBlob(svgContent, filename) {
     document.body.removeChild(dlAnchor);
 }
 
-function generateSingleMatSvg(rawSvgText, targetLayer, cutoutsForLayer) {
+function generateSingleMatSvg(rawSvgText, targetLayer, cutoutsForLayer, svgW = 800, svgH = 600) {
     try {
         const parser = new DOMParser();
         const doc = parser.parseFromString(rawSvgText, "image/svg+xml");
         const svgEl = doc.querySelector('svg');
         if (!svgEl) return null;
+
+        // Strip clipart image reference if cutting pure vinyl mat
+        const clipart = svgEl.querySelector('#Layer_0_Clipart_Artwork');
+        if (clipart) clipart.remove();
 
         // Strip other color vinyl layers
         const allGroups = Array.from(svgEl.querySelectorAll('g[id^="Layer_"]'));
@@ -2241,7 +2267,7 @@ function generateSingleMatSvg(rawSvgText, targetLayer, cutoutsForLayer) {
 
         // Append 4-Corner Registration Crosshairs
         const regParser = new DOMParser();
-        const regDoc = regParser.parseFromString(`<svg xmlns="http://www.w3.org/2000/svg">${generateRegistrationCrosshairsSvg()}</svg>`, "image/svg+xml");
+        const regDoc = regParser.parseFromString(`<svg xmlns="http://www.w3.org/2000/svg">${generateRegistrationCrosshairsSvg(svgW, svgH)}</svg>`, "image/svg+xml");
         const regGroup = regDoc.querySelector('#Layer_0_Registration_Crosshairs');
         if (regGroup) {
             svgEl.appendChild(doc.importNode(regGroup, true));
@@ -2249,7 +2275,7 @@ function generateSingleMatSvg(rawSvgText, targetLayer, cutoutsForLayer) {
 
         // Append this mat's cutouts
         const cutsParser = new DOMParser();
-        const cutsXml = `<g id="Layer_Cutouts_${targetLayer.id}" stroke="${targetLayer.hex}" fill="#000000" stroke-width="1.0">\n${cutoutsForLayer}\n</g>`;
+        const cutsXml = `<g id="Layer_Cutouts_${targetLayer.id}" stroke="${targetLayer.hex}" fill="#000000" stroke-width="1.2">\n${cutoutsForLayer}\n</g>`;
         const cutsDoc = cutsParser.parseFromString(`<svg xmlns="http://www.w3.org/2000/svg">${cutsXml}</svg>`, "image/svg+xml");
         const cutsGroup = cutsDoc.querySelector(`#Layer_Cutouts_${targetLayer.id}`);
         if (cutsGroup) {
@@ -2283,11 +2309,11 @@ async function exportCricutSvgWithPillSlots() {
         let rawSvgText = await fetchMasterSvgText(floatConfig.svgFile);
         if (!rawSvgText) {
             showToast("⚠️ Loading artwork SVG... Using fallback template.");
-            rawSvgText = `<?xml version="1.0" encoding="UTF-8"?>\n<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600" width="100%" height="100%">\n<g id="Layer_1_Base_Vinyl" fill="#00ff88"></g>\n</svg>`;
+            rawSvgText = `<?xml version="1.0" encoding="UTF-8"?>\n<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 850" width="100%" height="100%">\n<g id="Layer_1_Base_Vinyl" fill="#00cc66"></g>\n</svg>`;
         }
 
-        // Calculate 100 pill cutouts & assign to layers
-        const cutoutsData = calculateLedCutoutData(floatConfig.layers);
+        // Calculate 100 pill cutouts & assign to layers based on actual SVG viewBox
+        const cutoutsData = calculateLedCutoutData(floatConfig.layers, rawSvgText);
 
         // Store package in cache
         currentCricutExportPackage = {
@@ -2308,7 +2334,7 @@ async function exportCricutSvgWithPillSlots() {
                             <strong style="font-size: 13px; color: #fff;">${floatConfig.name}</strong>
                             <span style="font-size: 9px; padding: 2px 6px; border-radius: 4px; background: rgba(0, 255, 136, 0.2); color: #00ff88; border: 1px solid rgba(0, 255, 136, 0.4); font-weight: 700;">FLOAT ${floatConfig.floatId}</span>
                         </div>
-                        <span style="font-size: 11px; color: #8b949e;">${leds.length} LEDs • 6×3mm Tangent Pill Slots • ${floatConfig.layers.length} Color Vinyl Mats</span>
+                        <span style="font-size: 11px; color: #8b949e;">${leds.length} LEDs • 6×3mm Tangent Pill Slots (${cutoutsData.svgW}×${cutoutsData.svgH} Canvas Match) • ${floatConfig.layers.length} Color Vinyl Mats</span>
                     </div>
                 </div>
             `;
@@ -2342,7 +2368,7 @@ async function exportCricutSvgWithPillSlots() {
                     const targetLayer = floatConfig.layers.find(l => l.id === layerId);
                     if (!targetLayer) return;
 
-                    const matSvg = generateSingleMatSvg(rawSvgText, targetLayer, cutoutsData.layerCutouts[targetLayer.id] || '');
+                    const matSvg = generateSingleMatSvg(rawSvgText, targetLayer, cutoutsData.layerCutouts[targetLayer.id] || '', cutoutsData.svgW, cutoutsData.svgH);
                     if (matSvg) {
                         const filename = `${svgBaseName}_mat_${targetLayer.id.toLowerCase().replace('layer_', '')}.svg`;
                         downloadSvgBlob(matSvg, filename);
@@ -2371,8 +2397,8 @@ document.getElementById('downloadMasterCricutSvgBtn')?.addEventListener('click',
     if (!currentCricutExportPackage) return;
     const { floatConfig, svgBaseName, rawSvgText, cutoutsData } = currentCricutExportPackage;
 
-    const regMarks = generateRegistrationCrosshairsSvg();
-    const cutoutsGroup = `  <!-- LAYER 5: 6x3mm LED PILL SLOT CUTOUTS (Tangent-Aligned for Wire Ribbon) -->
+    const regMarks = generateRegistrationCrosshairsSvg(cutoutsData.svgW, cutoutsData.svgH);
+    const cutoutsGroup = `  <!-- LAYER: 6x3mm LED PILL SLOT CUTOUTS (Tangent-Aligned for Wire Ribbon) -->
   <g id="Layer_LED_Pill_Slots_6x3mm">
 ${cutoutsData.allCutoutsXml}  </g>\n`;
 
@@ -2395,7 +2421,7 @@ document.getElementById('downloadAllMatsZipBtn')?.addEventListener('click', asyn
 
     for (let i = 0; i < floatConfig.layers.length; i++) {
         const targetLayer = floatConfig.layers[i];
-        const matSvg = generateSingleMatSvg(rawSvgText, targetLayer, cutoutsData.layerCutouts[targetLayer.id] || '');
+        const matSvg = generateSingleMatSvg(rawSvgText, targetLayer, cutoutsData.layerCutouts[targetLayer.id] || '', cutoutsData.svgW, cutoutsData.svgH);
         if (matSvg) {
             const filename = `${svgBaseName}_mat_${i + 1}_${targetLayer.id.toLowerCase().replace('layer_', '')}.svg`;
             downloadSvgBlob(matSvg, filename);
@@ -2409,10 +2435,10 @@ document.getElementById('downloadAllMatsZipBtn')?.addEventListener('click', asyn
 document.getElementById('downloadHolesOnlySvgBtn')?.addEventListener('click', () => {
     if (!currentCricutExportPackage) return;
     const { svgBaseName, cutoutsData } = currentCricutExportPackage;
-    const regMarks = generateRegistrationCrosshairsSvg();
+    const regMarks = generateRegistrationCrosshairsSvg(cutoutsData.svgW, cutoutsData.svgH);
 
     const holesSvg = `<?xml version="1.0" encoding="UTF-8"?>
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600" width="100%" height="100%">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${cutoutsData.svgW} ${cutoutsData.svgH}" width="100%" height="100%">
   <!-- Main Street Electrical Parade - Standalone 6x3mm LED Pill Slot Cut Layer -->
   <!-- Generated for: ${svgBaseName.toUpperCase()} | 100 LEDs Tangent-Aligned -->
   <defs>
