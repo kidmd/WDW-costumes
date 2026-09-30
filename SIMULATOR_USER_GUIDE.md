@@ -510,8 +510,9 @@ Clicking **`✂️ Export Cut SVG`** on Tab 1 (Layout) opens a dedicated product
 
 #### 🐲 Pete's Dragon Uniform Pink Crest, Wings & Tail Spines Rule
 In both the pixel sampling engine (`boostLedVibrancy`) and the Cricut cut exporter:
-- The **Wild Jagged Hair Crest** on the head, the **Dragon Wings**, and the **Dorsal Spine Plates & Tail Spines** are all uniformly classified as signature **Disney Pink** (`CRGB(255, 25, 230)` / `#ff007f`).
-- Pixels sampled across these zones are protected against dark line art or green shadow misclassification and automatically route to **Mat 2: Pink HTV Vinyl**.
+- **Strict Green Scale Protection:** Any pixel with a dominant green channel or hue in the yellow-green to cyan-green spectrum (55° to 180°)—including dark green scale shading, contours, and lime underbelly tones—is strictly guarded and guaranteed to resolve to vibrant dragon green (`#00cc66` / `CRGB(15, 255, 35)`). Green scales are never misclassified as pink regardless of spatial bounding boxes.
+- **Authentic Dragon Pink Features:** The **Wild Jagged Hair Crest** on the head, the **Dragon Wings**, and the **Dorsal Spine Plates & Tail Spines** are uniformly classified as signature **Disney Dragon Pink** (`CRGB(255, 25, 230)` / `#ff19e6` / `#ff007f`).
+- Pixels sampled across these genuine pink zones are protected against dark line art or green shadow misclassification and automatically route to **Mat 2: Pink HTV Vinyl**.
 
 ---
 

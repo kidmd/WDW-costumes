@@ -2532,11 +2532,14 @@ function calculateLedCutoutData(layers, rawSvgText) {
         let bestLayer = layers[0];
 
         if (isPeteDragon) {
-            // Pete's Dragon: Treat hair crest, wings, and spines on tail uniformly as Pink (Layer 2)
-            if ((l.color.r > 190 && l.color.b > 170 && l.color.g < 120) ||
+            // Pete's Dragon: Green LEDs ALWAYS map to Layer 1 Green Vinyl
+            const isGreenLed = (l.color && l.color.g > l.color.r && l.color.g > l.color.b) || (l.color && l.color.g > 140 && l.color.r < 100);
+            if (isGreenLed) {
+                bestLayer = layers.find(lay => lay.id === 'Layer_1_Green_Vinyl') || layers[0];
+            } else if ((l.color && l.color.r > 190 && l.color.b > 170 && l.color.g < 120) ||
                 (relY < 0.16 && relX > 0.25 && relX < 0.75) ||
                 (relY >= 0.58 && relX >= 0.65) ||
-                (relY >= 0.22 && relY <= 0.55 && ((relX >= 0.20 && relX <= 0.45) || (relX >= 0.58 && relX <= 0.94)))) {
+                (relY >= 0.20 && relY <= 0.58 && ((relX >= 0.20 && relX <= 0.45) || (relX >= 0.58 && relX <= 0.94)))) {
                 bestLayer = layers.find(lay => lay.id === 'Layer_2_Pink_Vinyl') || layers[1];
             } else {
                 bestLayer = layers.find(lay => lay.id === 'Layer_1_Green_Vinyl') || layers[0];
@@ -11854,47 +11857,71 @@ function boostLedVibrancy(r, g, b, relX, relY) {
         if (hue < 0) hue += 360;
     }
 
+    const maxVal = Math.max(r, g, b);
     const isPeteDragon = (currentGraphicType === 'builtin_dragon' || currentGraphicType === 'petes_dragon');
     const DISNEY_DRAGON_PINK = { r: 255, g: 25, b: 230 }; // #ff19e6 / FastLED CRGB(255, 25, 230)
 
-    // --- Pete's Dragon: Hair Crest, Wings & Tail Spines are ALL the Same Color Pink ---
+    // --- RULE 1: Any Green Pixel (Light, Medium, or Dark) MUST ALWAYS Resolve to Vibrant Dragon Green ---
+    // A green pixel (dominant green channel or hue in yellow-green to cyan-green 55°-180°) must NEVER sample as pink!
+    const isGreenPixel = (g > r && g > b) || (hue >= 55 && hue <= 180);
+    if (isGreenPixel) {
+        // Dark contour / scale shadow on green body (< 60):
+        if (maxVal < 60) {
+            return { r: 15, g: 255, b: 35 };
+        }
+        // Lime Green / Yellow-Green Underbelly (Hue 55° to 95°):
+        if (hue >= 55 && hue < 95) {
+            const rLed = Math.min(100, Math.max(50, Math.round(r * 0.7)));
+            return { r: rLed, g: 255, b: 15 };
+        }
+        // Emerald Dragon Green Body (Hue 95° to 180°, or standard dragon green scale):
+        return {
+            r: Math.min(40, Math.max(10, Math.round(r * 0.3))),
+            g: 255,
+            b: Math.min(60, Math.max(25, Math.round(b * 0.4)))
+        };
+    }
+
+    // --- RULE 2: Pete's Dragon Authentic Disney Pink Features (Hair Crest, Wings, Dorsal Plates & Tail Spines) ---
+    // Only non-green pixels reach this section!
     if (isPeteDragon) {
+        // Genuinely pink/magenta hue (hue in 255°-360° or 0°-45°) with dominant red or blue over green
+        const isPinkHue = (hue >= 255 || hue <= 45) && (r > g || b > g || delta > 0.08);
+
         // 1. Wild jagged hair crest on head (top)
-        if (relY !== undefined && relY < 0.16 && relX > 0.25 && relX < 0.75) {
+        if (relY !== undefined && relY < 0.16 && relX > 0.25 && relX < 0.75 && (r > g || b > g || isPinkHue)) {
             return DISNEY_DRAGON_PINK;
         }
 
         // 2. Cute little dragon wings (upper chest/back left & right flanks)
-        if (relY !== undefined && relY >= 0.22 && relY <= 0.55 &&
-            ((relX >= 0.20 && relX <= 0.45) || (relX >= 0.58 && relX <= 0.94)) &&
-            (hue >= 255 || hue <= 45 || r > g || b > g || delta > 0.08)) {
+        if (relY !== undefined && relY >= 0.20 && relY <= 0.58 &&
+            ((relX >= 0.20 && relX <= 0.45) || (relX >= 0.58 && relX <= 0.94)) && isPinkHue) {
             return DISNEY_DRAGON_PINK;
         }
 
-        // 3. Spines on the tail and dorsal back plates (running down back into sweeping tail)
-        if (relY !== undefined && relY >= 0.58 && relX >= 0.65 &&
-            (hue >= 255 || hue <= 45 || r > g || b > g || delta > 0.08)) {
+        // 3. Spines on the tail (running down back into sweeping tail)
+        if (relY !== undefined && relY >= 0.58 && relX >= 0.65 && isPinkHue) {
             return DISNEY_DRAGON_PINK;
         }
 
         // 4. Dorsal spine spikes along upper back curve
-        if (relY !== undefined && relY >= 0.18 && relY <= 0.65 && relX >= 0.55 && relX <= 0.88 &&
-            (hue >= 255 || hue <= 45 || r > g || b > g || delta > 0.08)) {
+        if (relY !== undefined && relY >= 0.18 && relY <= 0.65 && relX >= 0.55 && relX <= 0.88 && isPinkHue) {
             return DISNEY_DRAGON_PINK;
         }
     }
 
     // 5. General Wings / Pink / Magenta / Violet Hue:
     // Electric Disney Hot Pink: equal punch on Red & Blue with minimal green
-    if ((hue >= 260 || hue <= 20) && (r > g + 4 || b > g || delta > 0.10)) {
+    if ((hue >= 260 || hue <= 25) && (r > g + 4 || b > g)) {
         return DISNEY_DRAGON_PINK;
     }
 
-    // --- Pete's Dragon Built-in Preset Line Art / Shadow Enhancement ---
+    // --- Pete's Dragon Dark Line Art / Shadow Enhancement ---
     // If pixel is near-black contour or dark shadow (< 60):
-    // Default to vibrant dragon green for the dragon body.
-    const maxVal = Math.max(r, g, b);
     if (maxVal < 60) {
+        if (r > g || b > g) {
+            return DISNEY_DRAGON_PINK;
+        }
         return { r: 15, g: 255, b: 35 };
     }
 
@@ -11915,7 +11942,7 @@ function boostLedVibrancy(r, g, b, relX, relY) {
         return { r: 0, g: gLed, b: 255 };
     }
 
-    // 9. Emerald Dragon Green Body (Hue 95° to 175°, or default):
+    // 9. Emerald Dragon Green Body Fallback:
     return {
         r: Math.min(40, Math.max(10, Math.round(r * 0.3))),
         g: 255,

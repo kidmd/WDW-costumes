@@ -93,6 +93,25 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### Entry: Pete's Dragon Dark Green Scale Color Sampling & Pink Feature Classification Fix
+* **Date:** 2026-09-30
+* **Milestone:** Milestone 3 & Milestone 5 - Lighting Engine & Color Calibration
+* **Status:** Complete & Verified (`simulator/app.js?v=65`, `assets/petes_dragon.png`, `SIMULATOR_USER_GUIDE.md`).
+* **Notes:**
+  - **Diagnosed False Pink Sampling on Dark Green Dragon Scales:**
+    - In commit `df2f644`, the bounding box conditions for Pete's Dragon wings, tail, and dorsal spine plates included a boolean logic bug where `|| delta > 0.08` was evaluated disjunctively. Because all saturated green scales (both medium and dark green body pixels) have `delta = max - min > 0.08` (often 0.15 to 0.45), green pixels across Pete's back, flanks, legs, and tail were inadvertently forced into `DISNEY_DRAGON_PINK` (`CRGB(255, 25, 230)`).
+    - Furthermore, dark green contour/shadow enhancement (`maxVal < 60`) was positioned after these pink checks, causing dark green line art and scale shadows to sample as hot pink.
+  - **Engine Architecture & Guard Rules Implemented:**
+    - **Strict Green Pixel Guard:** Introduced `isGreenPixel = (g > r && g > b) || (hue >= 55 && hue <= 180)` at the very entrance of `boostLedVibrancy()`. Any green pixel (light underbelly, medium body, or dark green contour) immediately routes to green LED output:
+      - Dark shadows / contours (`maxVal < 60`): `{ r: 15, g: 255, b: 35 }` (vibrant dragon green).
+      - Lime underbelly (`55° <= hue < 95°`): `{ r: rLed, g: 255, b: 15 }`.
+      - Emerald body (`95° <= hue <= 180°`): `{ r: 10..40, g: 255, b: 25..60 }`.
+    - **Authentic Dragon Pink Features:** Restrained Pete's Dragon pink classification to non-green pixels with genuine pink/magenta hue (`(hue >= 255 || hue <= 45) && (r > g || b > g)`) for the wild head hair crest, wings, dorsal back plates, and tail spines.
+    - **Cricut Multi-Layer Exporter Sync:** Updated layer routing in `simulator/app.js` (line ~2534) so that green LEDs are strictly mapped to `Layer_1_Green_Vinyl` rather than pink vinyl.
+  - **Verification:**
+    - Node test across all 60,010 pixels of `assets/petes_dragon.png` verified **51,697 green pixels** (49,295 emerald body + 1,509 dark green contour + 893 lime underbelly) and **8,338 pink pixels** (crest, wings, spines), with **0 green pixels sampled as pink**.
+    - `node --check simulator/app.js` passed with 0 errors.
+
 ### Entry: Tab 3 (Animation Groups) & Tab 4 (Float Show) Refinements & Effect Parity
 * **Date:** 2026-09-30
 * **Milestone:** Milestone 3 & Milestone 4 - Lighting Engine & Theatrical Parade Sequencing
