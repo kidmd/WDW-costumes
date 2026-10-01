@@ -482,6 +482,7 @@
                                 <option value="fireworks">🎆 Fireworks (Radiating Starburst)</option>
                                 <option value="rainbow_cycle">🌈 Rainbow Wave</option>
                                 <option value="photo_mode">📸 Castle Photo Mode (Solid Bright)</option>
+                                <option value="off">🌑 All Off / Completely Dark (Blackout)</option>
                             </select>
                         </div>
                         <div class="control-group" style="margin-top: 8px; display: flex; gap: 8px; align-items: center;">
@@ -504,14 +505,14 @@
                         <div class="control-group">
                             <div class="label-row" style="margin-bottom: 3px;">
                                 <span>Speed / Tempo</span>
-                                <span id="speedVal" class="val-badge">120 BPM</span>
+                                <span id="speedVal" class="val-badge">48 BPM</span>
                             </div>
-                            <input type="range" id="speedSlider" min="60" max="220" value="120" style="width: 100%; accent-color: var(--accent-gold);">
+                            <input type="range" id="speedSlider" min="20" max="180" value="48" style="width: 100%; accent-color: var(--accent-gold);">
                             <div style="display: flex; gap: 4px; margin-top: 5px;">
-                                <button type="button" class="preset-chip tempo-chip" data-bpm="90" style="flex: 1; font-size: 10px; background: #21262d; border: 1px solid #30363d; border-radius: 4px; color: #c9d1d9; padding: 2px 4px; cursor: pointer;">🚶 90</button>
+                                <button type="button" class="preset-chip tempo-chip" data-bpm="30" style="flex: 1; font-size: 10px; background: #21262d; border: 1px solid #30363d; border-radius: 4px; color: #c9d1d9; padding: 2px 4px; cursor: pointer;">🧘 30</button>
+                                <button type="button" class="preset-chip tempo-chip" data-bpm="48" style="flex: 1; font-size: 10px; background: #21262d; border: 1px solid #30363d; border-radius: 4px; color: #c9d1d9; padding: 2px 4px; cursor: pointer;">✨ 48</button>
+                                <button type="button" class="preset-chip tempo-chip" data-bpm="72" style="flex: 1; font-size: 10px; background: #21262d; border: 1px solid #30363d; border-radius: 4px; color: #c9d1d9; padding: 2px 4px; cursor: pointer;">🚶 72</button>
                                 <button type="button" class="preset-chip tempo-chip" data-bpm="120" style="flex: 1; font-size: 10px; background: #21262d; border: 1px solid #30363d; border-radius: 4px; color: #c9d1d9; padding: 2px 4px; cursor: pointer;">🏃 120</button>
-                                <button type="button" class="preset-chip tempo-chip" data-bpm="144" style="flex: 1; font-size: 10px; background: #21262d; border: 1px solid #30363d; border-radius: 4px; color: #c9d1d9; padding: 2px 4px; cursor: pointer;">⚡ 144</button>
-                                <button type="button" class="preset-chip tempo-chip" data-bpm="180" style="flex: 1; font-size: 10px; background: #21262d; border: 1px solid #30363d; border-radius: 4px; color: #c9d1d9; padding: 2px 4px; cursor: pointer;">🚀 180</button>
                             </div>
                         </div>
 

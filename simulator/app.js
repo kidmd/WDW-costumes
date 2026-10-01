@@ -49,7 +49,7 @@ function markSingleShirtDirty() {
 
 // Control parameters
 let params = {
-    speedBpm: 120,
+    speedBpm: 48,
     sparkleRate: 1.5,
     sparkleStyle: 'incandescent', // 'incandescent', 'diamond', 'gold'
     ambientColorMode: 'artwork',   // 'artwork', 'float_theme', 'vintage_warm', 'custom'
@@ -1885,12 +1885,12 @@ function evalGlobalPattern(pattern, bpm, index, totalLeds, timeMs, c, hasColor, 
         }
         case 'color_match': {
             if (effHasColor) {
-                const breath = 0.72 + 0.28 * Math.sin(normTime * 2 + index * 0.18);
+                const breath = 0.72 + 0.28 * Math.sin(normTime * Math.PI + index * 0.15);
                 r = Math.floor(effC.r * breath);
                 g = Math.floor(effC.g * breath);
                 b = Math.floor(effC.b * breath);
             } else {
-                const breath = 0.75 + 0.25 * Math.sin(normTime * 2 + index * 0.15);
+                const breath = 0.75 + 0.25 * Math.sin(normTime * Math.PI + index * 0.12);
                 const rgb = hslToRgb(baseH / 360, 0.95, 0.50 * breath);
                 r = rgb.r; g = rgb.g; b = rgb.b;
             }
@@ -1905,12 +1905,12 @@ function evalGlobalPattern(pattern, bpm, index, totalLeds, timeMs, c, hasColor, 
         }
         case 'dragon_sparkle': {
             if (effHasColor) {
-                const breath = 0.75 + 0.25 * Math.sin(normTime * 2 + index * 0.15);
+                const breath = 0.75 + 0.25 * Math.sin(normTime * Math.PI + index * 0.15);
                 r = Math.floor(effC.r * breath);
                 g = Math.floor(effC.g * breath);
                 b = Math.floor(effC.b * breath);
             } else {
-                const breath = 0.75 + 0.25 * Math.sin(normTime * 2 + index * 0.15);
+                const breath = 0.75 + 0.25 * Math.sin(normTime * Math.PI + index * 0.15);
                 const h = baseH + Math.sin(index * 0.4) * 8;
                 const rgb = hslToRgb(h / 360, 0.95, 0.50 * breath);
                 r = rgb.r; g = rgb.g; b = rgb.b;
@@ -1940,7 +1940,8 @@ function evalGlobalPattern(pattern, bpm, index, totalLeds, timeMs, c, hasColor, 
         }
         case 'traveling_wave': {
             const sm = getSpatialMetrics();
-            const waveCycle = (timeMs % 2000) / 2000;
+            const wavePeriodMs = Math.max(1200, beatMs * 3.0);
+            const waveCycle = (timeMs % wavePeriodMs) / wavePeriodMs;
             const headX = (dir === -1) ? (1.0 - waveCycle) : waveCycle;
             const ledX = (sm && sm.normX && sm.normX[index] !== undefined) ? sm.normX[index] : (index / Math.max(1, totalLeds));
             const waveWidth = 0.14;
@@ -1996,7 +1997,7 @@ function evalGlobalPattern(pattern, bpm, index, totalLeds, timeMs, c, hasColor, 
             break;
         }
         case 'pulse': {
-            const breath = 0.35 + 0.65 * (Math.sin(normTime * Math.PI * 2) * 0.5 + 0.5);
+            const breath = 0.35 + 0.65 * (Math.sin(normTime * Math.PI) * 0.5 + 0.5);
             if (effHasColor) {
                 r = Math.floor(effC.r * breath);
                 g = Math.floor(effC.g * breath);
@@ -2012,7 +2013,7 @@ function evalGlobalPattern(pattern, bpm, index, totalLeds, timeMs, c, hasColor, 
             const effRank = (sm && sm.rankYBottomUp && sm.rankYBottomUp[index] !== undefined)
                 ? (dir === -1 ? sm.rankYTopDown[index] : sm.rankYBottomUp[index])
                 : ((dir === -1) ? (totalLeds - 1 - index) : index);
-            const head = (normTime * 2) % totalLeds;
+            const head = (normTime * 0.6) % totalLeds;
             const dist = Math.abs(effRank - head);
             const fade = Math.max(0, 1 - (dist / 8));
             const intensity = 0.15 + 0.85 * fade;
@@ -2144,7 +2145,8 @@ function evalGlobalPattern(pattern, bpm, index, totalLeds, timeMs, c, hasColor, 
             const spatialPos = (sm && sm.normX && sm.normX[index] !== undefined)
                 ? (sm.normX[index] * 0.7 + sm.normY[index] * 0.3)
                 : (index / Math.max(1, totalLeds));
-            const hue = ((timeMs * 0.08 * dir + spatialPos * 360) % 360 + 360) % 360;
+            const hueCycleMs = Math.max(2500, beatMs * 8.0);
+            const hue = (((timeMs / hueCycleMs) * 360 * dir + spatialPos * 360) % 360 + 360) % 360;
             const rgb = hslToRgb(hue / 360, 0.95, 0.52);
             r = rgb.r; g = rgb.g; b = rgb.b;
             brightness = 1.0;
@@ -2155,7 +2157,7 @@ function evalGlobalPattern(pattern, bpm, index, totalLeds, timeMs, c, hasColor, 
             const effRank = (sm && sm.rankYBottomUp && sm.rankYBottomUp[index] !== undefined)
                 ? (dir === -1 ? sm.rankYTopDown[index] : sm.rankYBottomUp[index])
                 : ((dir === -1) ? (totalLeds - 1 - index) : index);
-            const head = ((normTime * 2) % totalLeds + totalLeds) % totalLeds;
+            const head = ((normTime * 0.45) % totalLeds + totalLeds) % totalLeds;
             const tailLen = Math.max(8, totalLeds * 0.15);
             let dist = head - effRank;
             if (dist < 0) dist += totalLeds;
@@ -2188,14 +2190,14 @@ function evalGlobalPattern(pattern, bpm, index, totalLeds, timeMs, c, hasColor, 
         }
         case 'scanner': {
             const sm = getSpatialMetrics();
-            const cycle = normTime % 2.0;
+            const cycle = (normTime / 2.0) % 2.0;
             let headX = cycle <= 1.0 ? cycle : (2.0 - cycle);
             if (dir === -1) headX = 1.0 - headX;
             const ledX = (sm && sm.normX && sm.normX[index] !== undefined)
                 ? sm.normX[index]
                 : (index / Math.max(1, totalLeds - 1));
             const dist = Math.abs(ledX - headX);
-            const sigma = 0.08;
+            const sigma = 0.09;
             const wake = Math.exp(-(dist * dist) / (2 * sigma * sigma));
             const effIntensity = 0.10 + 0.90 * wake;
             if (effHasColor) {
@@ -2298,7 +2300,7 @@ function evalGlobalPattern(pattern, bpm, index, totalLeds, timeMs, c, hasColor, 
             const normDist = (sm && sm.normRadius && sm.normRadius[index] !== undefined)
                 ? sm.normRadius[index]
                 : (Math.abs(index - (totalLeds - 1) / 2) / Math.max(1, (totalLeds - 1) / 2));
-            const wavePhase = (normTime * 2 * dir) - (normDist * 2.5);
+            const wavePhase = (normTime * 0.75 * dir) - (normDist * 2.2);
             const wave = Math.sin(wavePhase * Math.PI) * 0.5 + 0.5;
             const eff = 0.15 + 0.85 * Math.pow(wave, 1.8);
             if (effHasColor) {
@@ -2311,8 +2313,8 @@ function evalGlobalPattern(pattern, bpm, index, totalLeds, timeMs, c, hasColor, 
             break;
         }
         case 'piston_chug': {
-            const strokeProgress = (normTime * 2) % 1.0;
-            const strokeIdx = Math.floor(normTime * 2) % 4;
+            const strokeProgress = (normTime * 1.0) % 1.0;
+            const strokeIdx = Math.floor(normTime * 1.0) % 4;
             let eff = 0.15;
             let punch = false;
             if (strokeIdx === 0 || strokeIdx === 2) {
@@ -2334,9 +2336,7 @@ function evalGlobalPattern(pattern, bpm, index, totalLeds, timeMs, c, hasColor, 
             break;
         }
         case 'off': {
-            r = 0; g = 0; b = 0;
-            brightness = 0.0;
-            break;
+            return { r: 0, g: 0, b: 0, alpha: 0 };
         }
         default: {
             if (effHasColor) {

@@ -677,7 +677,13 @@ The simulator includes a unified library of 18 specialized algorithms available 
 | `fireworks` | **Fireworks Starburst** | 4-phase pyrotechnic explosion with center flash, outward expanding fire trails, and starlight tip crackle. | Finales, celestial bursts, chest stars |
 | `rainbow_cycle` | **Rainbow Color Wave** | Flowing chromatic wave cycling across the strand or group contour. | Vibrant rainbow flourishes, electric transitions |
 | `photo_mode` | **Castle Photo Mode** | 100% solid maximum brightness with zero sparkle for crisp, clear photos. | Photo stops, character meet-and-greets |
-| `off` | **Off / Completely Unlit** | Complete blackout (0% intensity) for dramatic contrast or dormant stage cues. | Dark baseline, firework dormancy |
+| `off` | **Off / Completely Unlit** | Complete blackout (0% intensity) for dramatic contrast, dormant stage cues, or unlit baseline. | Dark baseline, countdown blackouts, dormant groups |
+
+### Ambient Baseline Tempo & Theatrical Cadence
+Ambient baseline patterns operate with a calm, cinematic default tempo of **48 BPM** (adjustable from **20 to 180 BPM** via the Speed / Tempo slider in Tab 2).
+- **Organic Breath Rate:** `Slo-Glo Breath` cycles at a relaxed 24 breaths/minute, mimicking a resting living creature rather than rapid strobing.
+- **Continuous Directional Sweeps:** Larson scanners, comets, and tidal ripples respond proportionally to the tempo slider, allowing slow majestic glides or rapid theatrical flourishes.
+- **Universal Blackout (`off`):** Selecting `🌑 All Off / Completely Dark` zeroes all LEDs with 0% current draw, enabling floats to begin dormant in total darkness until a cue or fleet routine wakes them.
 
 ### 2D Spatial Lighting Engine (Coordinate-Aware Animations)
 In real-world garment wiring, LEDs are routed non-linearly across branches and contours to minimize wire tension and optimize slack. As a result, adjacent physical bulbs often have discontinuous electrical index numbers (e.g., LED #14 might sit physically next to LED #58).

@@ -847,6 +847,8 @@ void renderAmbientFallback(uint32_t now) {
         } else {
             leds[i] = CRGB(15, 12, 5);
         }
+#elif defined(AMBIENT_FALLBACK_PATTERN) && (AMBIENT_FALLBACK_PATTERN == COSTUME_PATTERN_OFF)
+        leds[i] = CRGB::Black;
 #else
         // Default: Steady Sparkle – artwork colors with occasional starlight
         leds[i] = baseColor;
@@ -1152,6 +1154,8 @@ void runAutonomousShowSequence(uint32_t now) {
                     leds[i] = CHSV(hueOffset + (i * 256 / FRONT_LEDS), 240, 255);
 #endif
                 }
+            } else if (eff == 17) { // off / blackout
+                fill_solid(leds, FRONT_LEDS, CRGB::Black);
             } else if (eff == 18) { // sparkle_storm — all white sparkle burst
                 fill_solid(leds, FRONT_LEDS, CRGB::Black);
                 uint16_t storms = max((uint16_t)10, (uint16_t)(COSTUME_SPARKLE_RATE * 200 + 500));

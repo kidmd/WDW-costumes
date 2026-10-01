@@ -93,6 +93,29 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### Entry: Ambient Baseline "All Off" & Theatrical Speed Recalibration
+* **Date:** 2026-10-01
+* **Milestone:** Milestone 4 - Lighting Engine & Theatrical Controls
+* **Status:** Complete & Verified (`simulator/index.html`, `simulator/app.js`, `simulator.py`, `src/main.cpp`, `arduino/MSEP_Costume/MSEP_Costume.ino`, `include/costume_config.h`).
+* **Notes:**
+  - **"All Off" / Blackout Mode Across All Layers:**
+    - Added `🌑 All Off / Completely Dark (Blackout)` to the ambient baseline pattern selector (`#patternSelect` in Tab 2).
+    - Added `#define COSTUME_PATTERN_OFF 17` across `include/costume_config.h`, `simulator.py`, `src/main.cpp`, and `arduino/MSEP_Costume/MSEP_Costume.ino`.
+    - In ESP32 firmware, both `renderAmbientFallback()` and `runAutonomousShowSequence()` now immediately execute `fill_solid(leds, FRONT_LEDS, CRGB::Black)` when `COSTUME_PATTERN_OFF` or cue `eff == 17` is active.
+    - Simulator engine returns `{ r: 0, g: 0, b: 0, alpha: 0 }` for instant zero-draw blackouts.
+  - **Theatrical Speed Recalibration:**
+    - Expanded ambient tempo slider range to `20 – 180 BPM` with a calm, majestic default of **48 BPM** (formerly 120 BPM march speed).
+    - Added quick tempo preset chips: `[ 🧘 30 Serene ]`, `[ ✨ 48 Majestic ]`, `[ 🚶 72 Stroll ]`, and `[ 🏃 120 Allegro ]`.
+    - Retuned mathematical frequency multipliers across `evalGlobalPattern`:
+      - **Slo-Glo Breath (`color_match` & `dragon_sparkle`):** Reduced from $2\times$ over-oscillation to $\pi$ radians per beat, yielding 24 deep, organic breaths per minute at 48 BPM instead of 240 hyperventilating breaths/min.
+      - **Larson Scanner (`scanner`):** Expanded traversal period to 4 beats for an imposing, stately 5.0-second beam sweep.
+      - **Tidal Ripple (`tidal_ripple`):** Slowed outward radial wave phase to $0.75\times$ for serene, unhurried water-ring expansion.
+      - **Traveling Wave & Rainbow Cycle:** Removed hardcoded millisecond timers and tied wavelength propagation directly to the BPM tempo slider.
+      - **Comet & Piston Chug:** Re-geared to smooth, cinematic cadence.
+  - **Hardware Verification:**
+    - Built cleanly in PlatformIO (`RAM: 14.3%`, `Flash: 60.6%`).
+    - Auto-synced `firmware/firmware.bin` for Web Serial browser flashing.
+
 ### Entry: Pete's Dragon Smoke Groups Restoration & Group Sequence Engine
 * **Date:** 2026-10-01
 * **Milestone:** Milestone 5 - Studio Workflow & Preset Library

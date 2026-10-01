@@ -529,7 +529,8 @@ class SimulatorRequestHandler(http.server.SimpleHTTPRequestHandler):
                 "tidal_ripple": "COSTUME_PATTERN_TIDAL_RIPPLE",
                 "piston_chug": "COSTUME_PATTERN_PISTON_CHUG",
                 "rainbow_cycle": "COSTUME_PATTERN_RAINBOW_CYCLE",
-                "autonomous_90s": "COSTUME_PATTERN_AUTONOMOUS_90S"
+                "autonomous_90s": "COSTUME_PATTERN_AUTONOMOUS_90S",
+                "off": "COSTUME_PATTERN_OFF"
             }
             active_pattern = pattern_map.get(pattern_str, "COSTUME_PATTERN_STEADY_SPARKLE")
 
@@ -555,6 +556,7 @@ class SimulatorRequestHandler(http.server.SimpleHTTPRequestHandler):
                 "tidal_ripple": 14,
                 "piston_chug": 15,
                 "rainbow_cycle": 16,
+                "off": 17,
                 "autonomous_90s": 0
             }
             ambient_fallback_code = ambient_pattern_numeric_map.get(ambient_pattern_str, 0)
@@ -599,7 +601,7 @@ class SimulatorRequestHandler(http.server.SimpleHTTPRequestHandler):
                 "marquee": 4,
                 "chase": 8,            # chase maps to comet/chase
                 "photo_mode": 5,       # Solid lit, no sparkle
-                "off": 5,              # Repurposed: LEDs off — we handle via bpm=0 sentinel
+                "off": 17,             # All Off / Completely Dark
                 "fireworks": 6,
                 "flash_slow": 7,       # Slow blink / flash
                 "sparkle_storm": 8,    # High-density sparkle burst
@@ -705,6 +707,7 @@ class SimulatorRequestHandler(http.server.SimpleHTTPRequestHandler):
 #define COSTUME_PATTERN_TIDAL_RIPPLE     14
 #define COSTUME_PATTERN_PISTON_CHUG      15
 #define COSTUME_PATTERN_RAINBOW_CYCLE    16
+#define COSTUME_PATTERN_OFF              17
 
 #define ACTIVE_COSTUME_PATTERN           {active_pattern}
 #define COSTUME_SPEED_BPM                {speed_bpm}
