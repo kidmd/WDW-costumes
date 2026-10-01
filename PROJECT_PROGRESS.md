@@ -104,8 +104,9 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
     - Shifted the snail's neck/body color from dull brown to a vibrant reddish-pink (`#ff007f` / rich parade magenta) in the Disney Electrical Parade aesthetic.
   - **Turtle Graphic Background, Palette Simplification & Outline Enhancement:**
     - Stripped off-white studio background and interior lens transparency from `Turtle.png` to generate a crisp transparent PNG.
-    - Simplified the turtle's color palette:
-      - Greens consolidated into **2 distinct parade shades**: Bright Emerald Green (`#00a86b` / shell windows & eye lens) and Deep Turtle Green (`#184a2e` / head, neck, and body).
+    - Updated the turtle's color palette:
+      - Head and neck facets recolored from green to authentic **Disney Parade Golden Yellow** (`#f5ba13`), matching the iconic Electrical Parade float character design.
+      - Greens consolidated into **2 distinct parade shades**: Bright Emerald Green (`#00a86b` / glowing shell windows) and Deep Turtle Green (`#184a2e` / flippers and feet).
       - Blues unified to a single rich Shell Navy Blue (`#214e78` for shell matrix grid and pupil).
       - Reds unified to a single vivid Parade Red (`#e11d2e` for tie and mouth).
     - Preserved original lead solder line art and added fine anti-aliased contour tracing along the nose bridge and snout to maintain crisp facial definition.
