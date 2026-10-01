@@ -104,6 +104,31 @@ class SimulatorRequestHandler(http.server.SimpleHTTPRequestHandler):
             else:
                 self.send_error(404, "Guide not found")
                 return
+        elif parsed.path.startswith("/assets/"):
+            rel_asset = urllib.parse.unquote(parsed.path[len("/assets/"):])
+            # Check simulator/assets first, then root assets
+            asset_path = os.path.join(SIMULATOR_DIR, "assets", rel_asset)
+            if not os.path.exists(asset_path):
+                asset_path = os.path.join(BASE_DIR, "assets", rel_asset)
+            if os.path.exists(asset_path) and os.path.isfile(asset_path):
+                self.send_response(200)
+                if asset_path.endswith(".png"):
+                    self.send_header("Content-Type", "image/png")
+                elif asset_path.endswith(".jpg") or asset_path.endswith(".jpeg"):
+                    self.send_header("Content-Type", "image/jpeg")
+                elif asset_path.endswith(".svg"):
+                    self.send_header("Content-Type", "image/svg+xml")
+                else:
+                    self.send_header("Content-Type", "application/octet-stream")
+                self.send_header("Content-Length", str(os.path.getsize(asset_path)))
+                self.send_header("Access-Control-Allow-Origin", "*")
+                self.end_headers()
+                with open(asset_path, "rb") as f:
+                    self.wfile.write(f.read())
+                return
+            else:
+                self.send_error(404, "Asset file not found")
+                return
         else:
             super().do_GET()
 
