@@ -530,7 +530,8 @@ class SimulatorRequestHandler(http.server.SimpleHTTPRequestHandler):
                 "piston_chug": "COSTUME_PATTERN_PISTON_CHUG",
                 "rainbow_cycle": "COSTUME_PATTERN_RAINBOW_CYCLE",
                 "autonomous_90s": "COSTUME_PATTERN_AUTONOMOUS_90S",
-                "off": "COSTUME_PATTERN_OFF"
+                "off": "COSTUME_PATTERN_OFF",
+                "mouse_scamper": "COSTUME_PATTERN_MOUSE_SCAMPER"
             }
             active_pattern = pattern_map.get(pattern_str, "COSTUME_PATTERN_STEADY_SPARKLE")
 
@@ -557,6 +558,7 @@ class SimulatorRequestHandler(http.server.SimpleHTTPRequestHandler):
                 "piston_chug": 15,
                 "rainbow_cycle": 16,
                 "off": 17,
+                "mouse_scamper": 18,
                 "autonomous_90s": 0
             }
             ambient_fallback_code = ambient_pattern_numeric_map.get(ambient_pattern_str, 0)
@@ -708,6 +710,7 @@ class SimulatorRequestHandler(http.server.SimpleHTTPRequestHandler):
 #define COSTUME_PATTERN_PISTON_CHUG      15
 #define COSTUME_PATTERN_RAINBOW_CYCLE    16
 #define COSTUME_PATTERN_OFF              17
+#define COSTUME_PATTERN_MOUSE_SCAMPER    18
 
 #define ACTIVE_COSTUME_PATTERN           {active_pattern}
 #define COSTUME_SPEED_BPM                {speed_bpm}

@@ -93,6 +93,24 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### Entry: 2D Scurrying Mouse ("Graphic Explorer") Animation Engine
+* **Date:** 2026-10-01
+* **Milestone:** Milestone 4 - Lighting Engine & Theatrical Controls
+* **Status:** Complete & Verified (`simulator/index.html`, `simulator/app.js`, `simulator.py`, `include/costume_config.h`, `src/main.cpp`, `arduino/MSEP_Costume/MSEP_Costume.ino`, `firmware/*`).
+* **Notes:**
+  - **Theatrical Concept & 2D Motion Model:**
+    - Designed and implemented `🐭 Scurrying Mouse (Graphic Explorer)` (`mouse_scamper`, ID: 18) for ambient baselines, timeline show cues, and animation groups.
+    - Rather than a simple 1D linear counter, the "mouse" travels across the full 2D Cartesian plane $(M_x(t), M_y(t))$ using a multi-harmonic wanderer with non-linear sprint warping ($t + 0.38 \sin(2.8t) + 0.18 \sin(5.2t)$).
+    - Darts across the entire graphic interior and exterior with sudden directional zig-zags, rapid exploratory sprints, and brief sniffing micro-pauses.
+    - Each physical LED calculates its Euclidean distance $d_i = \sqrt{(x_i - M_x)^2 + (y_i - M_y)^2}$ from the mouse, illuminating a piercing starlight-white spark at the nose ($d_i < 0.07$) and generating an organic Gaussian light wake trail ($\sigma = 0.13$) in the float's sampled artwork/theme color.
+  - **Full UI & Control Integration:**
+    - Added to Tab 2 Default Background Pattern dropdown (`#patternSelect`), Group Hub & Inspector effects and baseline selectors, and Master Sequence Cue dropdowns.
+    - Fully bound to tempo speed slider (20–180 BPM) for curious exploring (30–48 BPM) or hyperactive cartoon dashes (120+ BPM).
+  - **ESP32 Dual-Core Firmware & Fleet ROM Rebuild:**
+    - Integrated coordinate-aware integer distance calculations in `renderAmbientFallback()` and `runAutonomousShowSequence()` in `src/main.cpp` and `arduino/MSEP_Costume/MSEP_Costume.ino` using `SPATIAL_X_BYTE[i]` and `SPATIAL_Y_BYTE[i]` with FastLED trigonometric LUTs.
+    - Compiled cleanly in PlatformIO (`RAM: 14.3%`, `Flash: 60.6%`).
+    - Recompiled and updated all 8 float ROM binaries (`firmware.bin` generic + `firmware_float1.bin` through `firmware_float7.bin`) and manifests via `build_fleet_binaries.py`.
+
 ### Entry: Meteor Streak Speed-Up & Pixie Dust / Candle Flicker Smoothness Calibration
 * **Date:** 2026-10-01
 * **Milestone:** Milestone 4 - Lighting Engine & Theatrical Controls
