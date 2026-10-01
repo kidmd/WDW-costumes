@@ -98,6 +98,7 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 * **Milestone:** Milestone 4 - Lighting Engine & Theatrical Controls
 * **Status:** Complete & Verified (`simulator/index.html`, `simulator/app.js`, `simulator.py`, `include/costume_config.h`, `src/main.cpp`, `arduino/MSEP_Costume/MSEP_Costume.ino`, `firmware/*`).
 * **Notes:**
+  - **Smooth Trajectory with Meteor Point & Tail Optics:** Calibrated the scurrying mouse to follow the smooth 2D multi-harmonic roaming trajectory (identical continuous movement path as the flashlight) while concentrating light into a blazing single-pixel point head with a tight, fast-fading exponential meteor tail falloff.
   - **Flashlight / Searchlight Roam (`flashlight`, ID: 18):**
     - Retains the 2D Cartesian roaming light pool $(M_x(t), M_y(t))$ with smooth multi-harmonic wandering and a Gaussian beam wake ($\sigma = 0.14$).
     - Piercing center beam illumination ($d_i < 0.08$) illuminating the float's sampled artwork or theme palette as if a searchlight is sweeping across the runner's chest.
