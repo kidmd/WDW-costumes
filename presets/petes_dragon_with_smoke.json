@@ -911,11 +911,11 @@
       "id": "grp_1790654796500_801",
       "name": "smoke",
       "ledIndices": [
-        0,
-        1,
-        2,
-        3,
-        4
+        85,
+        27,
+        25,
+        51,
+        49
       ],
       "effect": "write_on_off",
       "speedBpm": 60,
@@ -924,11 +924,11 @@
       "colorMode": "custom",
       "baselineEffect": "off",
       "indices": [
-        0,
-        1,
-        2,
-        3,
-        4
+        85,
+        27,
+        25,
+        51,
+        49
       ],
       "customColor": {
         "r": 255,
@@ -942,11 +942,11 @@
       "id": "grp_1790654816379_573",
       "name": "smoke (Copy)",
       "ledIndices": [
-        5,
-        6,
-        7,
-        8,
-        9
+        12,
+        14,
+        93,
+        96,
+        98
       ],
       "effect": "write_on_off",
       "speedBpm": 140,
@@ -955,11 +955,11 @@
       "colorMode": "custom",
       "baselineEffect": "off",
       "indices": [
-        5,
-        6,
-        7,
-        8,
-        9
+        12,
+        14,
+        93,
+        96,
+        98
       ],
       "customColor": {
         "r": 255,

@@ -93,6 +93,20 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### Entry: Pete's Dragon Smoke Groups Restoration & Group Sequence Engine
+* **Date:** 2026-10-01
+* **Milestone:** Milestone 5 - Studio Workflow & Preset Library
+* **Status:** Complete & Verified (`presets/petes_dragon_with_smoke.json`, `presets/petes_dragon_100-led_vibrant_color_scatter.json`, `simulator/app.js`).
+* **Notes:**
+  - **Smoke Nostril Puff Restoration:**
+    - Traced historical coordinates from git before 10cm pitch re-wiring and mapped the 10 nostril smoke LEDs ($dist = 0.0000$) to their current electrical IDs:
+      - **Smoke 1 (Right Nostril Puff):** Remapped to `[85, 27, 25, 51, 49]` (nostril root $\rightarrow$ mid puff $\rightarrow$ outer tip $\rightarrow$ return curl).
+      - **Smoke 2 (Left Nostril Puff):** Remapped to `[12, 14, 93, 96, 98]` (nostril root $\rightarrow$ mid puff $\rightarrow$ outer tip $\rightarrow$ return curl).
+    - Preserved all group properties: 60 BPM / 140 BPM speeds, custom warm smoke colors (`#fffaf2`), `write_on_off` effect, unlit baseline mode, and synchronized $t = 18.0\text{s}$ show cues.
+  - **Group-Level Animation Engine Refinement (`simulator/app.js`):**
+    - Refined `evalGroupEffect` for `write_on_off`, `color_wipe`, and `marquee` to prioritize user-defined group member order (`grpIndex`) over global vertical Cartesian rank ($Y$).
+    - Ensures localized groups (nostril smoke puffs, wheel perimeters, directional flourishes) write and travel outward along their designed physical path rather than filling vertically.
+
 ### Entry: 2D Spatial Lighting Engine & Coordinate-Aware Animation Overhaul
 * **Date:** 2026-10-01
 * **Milestone:** Milestone 4 - Lighting Engine & Visual Effects

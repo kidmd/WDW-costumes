@@ -1585,9 +1585,7 @@ function evalGroupEffect(grp, effect, bpm, dir, grpIndex, grpSize, timeMs, c) {
         case 'write_on_off': {
             const totalCycleMs = grpBeatMs * 4;
             const progress = (effectiveTimeMs % totalCycleMs) / totalCycleMs;
-            const effRank = (grpEntry && grpEntry.rankYBottomUp !== undefined)
-                ? (direction >= 0 ? grpEntry.rankYBottomUp : grpEntry.rankYTopDown)
-                : (direction >= 0 ? grpIndex : ((grpSize - 1) - grpIndex));
+            const effRank = (direction >= 0 ? grpIndex : ((grpSize - 1) - grpIndex));
             if (progress < 0.40) {
                 const litHead = (progress / 0.40) * grpSize;
                 grpIntensity = (effRank <= litHead) ? 1.0 : 0.05;
@@ -1614,9 +1612,7 @@ function evalGroupEffect(grp, effect, bpm, dir, grpIndex, grpSize, timeMs, c) {
             break;
         }
         case 'marquee': {
-            const effRank = (grpEntry && grpEntry.rankYBottomUp !== undefined)
-                ? grpEntry.rankYBottomUp
-                : grpIndex;
+            const effRank = (direction >= 0 ? grpIndex : ((grpSize - 1) - grpIndex));
             const step = Math.floor(grpNormTime * 2 * direction) % 3;
             const posInStep = ((effRank + step) % 3 + 3) % 3;
             grpIntensity = posInStep === 0 ? 1.0 : 0.12;
@@ -1743,9 +1739,7 @@ function evalGroupEffect(grp, effect, bpm, dir, grpIndex, grpSize, timeMs, c) {
         case 'color_wipe': {
             const totalCycleMs = grpBeatMs * 4;
             const progress = (effectiveTimeMs % totalCycleMs) / totalCycleMs;
-            const effRank = (grpEntry && grpEntry.rankYBottomUp !== undefined)
-                ? (direction >= 0 ? grpEntry.rankYBottomUp : grpEntry.rankYTopDown)
-                : (direction >= 0 ? grpIndex : ((grpSize - 1) - grpIndex));
+            const effRank = (direction >= 0 ? grpIndex : ((grpSize - 1) - grpIndex));
             if (progress < 0.40) {
                 const litHead = (progress / 0.40) * grpSize;
                 grpIntensity = (effRank <= litHead) ? 1.0 : 0.05;
