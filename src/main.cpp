@@ -679,15 +679,23 @@ void renderAmbientFallback(uint32_t now) {
     float wipeProg = (float)wipeCycle / (float)(beatMs * 4);
 #elif defined(AMBIENT_FALLBACK_PATTERN) && (AMBIENT_FALLBACK_PATTERN == COSTUME_PATTERN_PISTON_CHUG)
     uint8_t chugStep = ((now / max((uint32_t)20, beatMs / 2)) % 4);
-#elif defined(AMBIENT_FALLBACK_PATTERN) && (AMBIENT_FALLBACK_PATTERN == COSTUME_PATTERN_MOUSE_SCAMPER)
+#elif defined(AMBIENT_FALLBACK_PATTERN) && (AMBIENT_FALLBACK_PATTERN == COSTUME_PATTERN_FLASHLIGHT)
     uint32_t speedTime = (uint64_t)now * COSTUME_SPEED_BPM / 60;
-    uint8_t sprintWarp = (uint8_t)((speedTime / 6) + (sin8(speedTime / 12) / 3));
+    uint8_t roamWarp = (uint8_t)(speedTime / 8);
 #if defined(COSTUME_AMBIENT_DIRECTION) && (COSTUME_AMBIENT_DIRECTION < 0)
-    uint8_t mouseX = 128 + ((int8_t)(sin8(sprintWarp * 2) - 128) * 85 / 128) - ((int8_t)(sin8(sprintWarp * 5) - 128) * 35 / 128);
+    uint8_t roamX = 128 + ((int8_t)(sin8(roamWarp * 2) - 128) * 85 / 128) - ((int8_t)(sin8(roamWarp * 5) - 128) * 35 / 128);
 #else
-    uint8_t mouseX = 128 + ((int8_t)(sin8(sprintWarp * 2) - 128) * 85 / 128) + ((int8_t)(sin8(sprintWarp * 5) - 128) * 35 / 128);
+    uint8_t roamX = 128 + ((int8_t)(sin8(roamWarp * 2) - 128) * 85 / 128) + ((int8_t)(sin8(roamWarp * 5) - 128) * 35 / 128);
 #endif
-    uint8_t mouseY = 128 + ((int8_t)(cos8(sprintWarp * 2) - 128) * 80 / 128) + ((int8_t)(sin8(sprintWarp * 4) - 128) * 40 / 128);
+    uint8_t roamY = 128 + ((int8_t)(cos8(roamWarp * 2) - 128) * 80 / 128) + ((int8_t)(sin8(roamWarp * 4) - 128) * 40 / 128);
+#elif defined(AMBIENT_FALLBACK_PATTERN) && (AMBIENT_FALLBACK_PATTERN == COSTUME_PATTERN_MOUSE_SCAMPER)
+    uint32_t passMs = max((uint32_t)800, (uint32_t)(beatMs * 3 / 2));
+    uint8_t sprintWarp = (sin8((uint64_t)now * 256 / passMs) * 12 / 256) + (cos8((uint64_t)now * 512 / passMs) * 6 / 256);
+#if defined(COSTUME_AMBIENT_DIRECTION) && (COSTUME_AMBIENT_DIRECTION < 0)
+    uint8_t scamperHead = (uint8_t)((FRONT_LEDS - 1) - (((uint64_t)now * FRONT_LEDS / passMs + sprintWarp) % FRONT_LEDS));
+#else
+    uint8_t scamperHead = (uint8_t)(((uint64_t)now * FRONT_LEDS / passMs + sprintWarp) % FRONT_LEDS);
+#endif
 #endif
 
     for (int i = 0; i < FRONT_LEDS && i < MAX_LEDS_CAPACITY; i++) {
@@ -860,18 +868,18 @@ void renderAmbientFallback(uint32_t now) {
         } else {
             leds[i] = CRGB(15, 12, 5);
         }
-#elif defined(AMBIENT_FALLBACK_PATTERN) && (AMBIENT_FALLBACK_PATTERN == COSTUME_PATTERN_MOUSE_SCAMPER)
+#elif defined(AMBIENT_FALLBACK_PATTERN) && (AMBIENT_FALLBACK_PATTERN == COSTUME_PATTERN_FLASHLIGHT)
 #if defined(HAS_SPATIAL_METRICS) && HAS_SPATIAL_METRICS
         uint8_t ledX = pgm_read_byte(&SPATIAL_X_BYTE[i]);
         uint8_t ledY = pgm_read_byte(&SPATIAL_Y_BYTE[i]);
-        int16_t dx = (int16_t)ledX - (int16_t)mouseX;
-        int16_t dy = (int16_t)ledY - (int16_t)mouseY;
+        int16_t dx = (int16_t)ledX - (int16_t)roamX;
+        int16_t dy = (int16_t)ledY - (int16_t)roamY;
         uint16_t distSq = (dx * dx + dy * dy);
-        if (distSq < 450) {
-            uint8_t fade = 255 - (distSq * 255 / 450);
+        if (distSq < 550) {
+            uint8_t fade = 255 - (distSq * 255 / 550);
             CRGB c = baseColor;
             c.nscale8_video(fade);
-            if (distSq < 90) c += CRGB(130, 130, 110);
+            if (distSq < 110) c += CRGB(100, 100, 100);
             leds[i] = c;
         } else {
             CRGB dim = baseColor;
@@ -884,7 +892,7 @@ void renderAmbientFallback(uint32_t now) {
             uint8_t fade = 255 - (dist * 30);
             CRGB c = baseColor;
             c.nscale8_video(fade);
-            if (dist == 0) c += CRGB(120, 120, 100);
+            if (dist == 0) c += CRGB(100, 100, 100);
             leds[i] = c;
         } else {
             CRGB dim = baseColor;
@@ -892,6 +900,19 @@ void renderAmbientFallback(uint32_t now) {
             leds[i] = dim;
         }
 #endif
+#elif defined(AMBIENT_FALLBACK_PATTERN) && (AMBIENT_FALLBACK_PATTERN == COSTUME_PATTERN_MOUSE_SCAMPER)
+        int dist = (scamperHead - effIdx + FRONT_LEDS) % FRONT_LEDS;
+        if (dist < 20) {
+            uint8_t fade = 255 - (dist * 12);
+            CRGB c = baseColor;
+            c.nscale8_video(fade);
+            if (dist == 0) c += CRGB(130, 130, 130);
+            leds[i] = c;
+        } else {
+            CRGB dim = baseColor;
+            dim.nscale8_video(20);
+            leds[i] = dim;
+        }
 #elif defined(AMBIENT_FALLBACK_PATTERN) && (AMBIENT_FALLBACK_PATTERN == COSTUME_PATTERN_OFF)
         leds[i] = CRGB::Black;
 #else
@@ -1201,11 +1222,11 @@ void runAutonomousShowSequence(uint32_t now) {
                 }
             } else if (eff == 17) { // off / blackout
                 fill_solid(leds, FRONT_LEDS, CRGB::Black);
-            } else if (eff == 18) { // mouse_scamper — 2D graphic roaming mouse
+            } else if (eff == 18) { // flashlight / searchlight roam
                 uint32_t speedTime = (uint64_t)(now - autonomousShowStartTime) * bpm / 60;
-                uint8_t sprintWarp = (uint8_t)((speedTime / 6) + (sin8(speedTime / 12) / 3));
-                uint8_t mouseX = 128 + ((int8_t)(sin8(sprintWarp * 2) - 128) * 85 / 128) + ((int8_t)(sin8(sprintWarp * 5) - 128) * 35 / 128);
-                uint8_t mouseY = 128 + ((int8_t)(cos8(sprintWarp * 2) - 128) * 80 / 128) + ((int8_t)(sin8(sprintWarp * 4) - 128) * 40 / 128);
+                uint8_t roamWarp = (uint8_t)(speedTime / 8);
+                uint8_t roamX = 128 + ((int8_t)(sin8(roamWarp * 2) - 128) * 85 / 128) + ((int8_t)(sin8(roamWarp * 5) - 128) * 35 / 128);
+                uint8_t roamY = 128 + ((int8_t)(cos8(roamWarp * 2) - 128) * 80 / 128) + ((int8_t)(sin8(roamWarp * 4) - 128) * 40 / 128);
                 for (int i = 0; i < FRONT_LEDS && i < MAX_LEDS_CAPACITY; i++) {
 #if defined(HAS_CUSTOM_PALETTE) && HAS_CUSTOM_PALETTE
                     CRGB baseColor = ARTWORK_PALETTE[i];
@@ -1216,14 +1237,14 @@ void runAutonomousShowSequence(uint32_t now) {
 #if defined(HAS_SPATIAL_METRICS) && HAS_SPATIAL_METRICS
                     uint8_t ledX = pgm_read_byte(&SPATIAL_X_BYTE[i]);
                     uint8_t ledY = pgm_read_byte(&SPATIAL_Y_BYTE[i]);
-                    int16_t dx = (int16_t)ledX - (int16_t)mouseX;
-                    int16_t dy = (int16_t)ledY - (int16_t)mouseY;
+                    int16_t dx = (int16_t)ledX - (int16_t)roamX;
+                    int16_t dy = (int16_t)ledY - (int16_t)roamY;
                     uint16_t distSq = (dx * dx + dy * dy);
-                    if (distSq < 450) {
-                        uint8_t fade = 255 - (distSq * 255 / 450);
+                    if (distSq < 550) {
+                        uint8_t fade = 255 - (distSq * 255 / 550);
                         CRGB c = baseColor;
                         c.nscale8_video(fade);
-                        if (distSq < 90) c += CRGB(130, 130, 110);
+                        if (distSq < 110) c += CRGB(100, 100, 100);
                         leds[i] = c;
                     } else {
                         CRGB dim = baseColor;
@@ -1234,12 +1255,28 @@ void runAutonomousShowSequence(uint32_t now) {
                     leds[i] = baseColor;
 #endif
                 }
-            } else if (eff == 19) { // sparkle_storm — all white sparkle burst
-                fill_solid(leds, FRONT_LEDS, CRGB::Black);
-                uint16_t storms = max((uint16_t)10, (uint16_t)(COSTUME_SPARKLE_RATE * 200 + 500));
+            } else if (eff == 19) { // mouse_scamper — single dot + long fading tail racing all over the graphic
+                uint32_t passMs = max((uint32_t)800, (uint32_t)(60000 / max((uint16_t)20, bpm) * 3 / 2));
+                uint8_t sprintWarp = (sin8((uint64_t)now * 256 / passMs) * 12 / 256) + (cos8((uint64_t)now * 512 / passMs) * 6 / 256);
+                uint8_t scamperHead = (uint8_t)(((uint64_t)now * FRONT_LEDS / passMs + sprintWarp) % FRONT_LEDS);
                 for (int i = 0; i < FRONT_LEDS && i < MAX_LEDS_CAPACITY; i++) {
-                    if (random16(1000) < storms / FRONT_LEDS + 50) {
-                        leds[i] = CRGB(255, 255, random8(200, 255));
+#if defined(HAS_CUSTOM_PALETTE) && HAS_CUSTOM_PALETTE
+                    CRGB baseColor = ARTWORK_PALETTE[i];
+#else
+                    uint8_t floatIdx = (myFloatNumber >= 1 && myFloatNumber <= 7) ? (myFloatNumber - 1) : 0;
+                    CRGB baseColor = FLEET_ROSTER_INFO[floatIdx].color;
+#endif
+                    int dist = (scamperHead - i + FRONT_LEDS) % FRONT_LEDS;
+                    if (dist < 20) {
+                        uint8_t fade = 255 - (dist * 12);
+                        CRGB c = baseColor;
+                        c.nscale8_video(fade);
+                        if (dist == 0) c += CRGB(130, 130, 130);
+                        leds[i] = c;
+                    } else {
+                        CRGB dim = baseColor;
+                        dim.nscale8_video(20);
+                        leds[i] = dim;
                     }
                 }
             } else { // 0: steady_sparkle / default

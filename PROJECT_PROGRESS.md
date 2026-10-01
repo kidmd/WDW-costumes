@@ -93,6 +93,23 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### Entry: Flashlight Roam & Scurrying Mouse (Single Dot + Long Tail) Separation
+* **Date:** 2026-10-01
+* **Milestone:** Milestone 4 - Lighting Engine & Theatrical Controls
+* **Status:** Complete & Verified (`simulator/index.html`, `simulator/app.js`, `simulator.py`, `include/costume_config.h`, `src/main.cpp`, `arduino/MSEP_Costume/MSEP_Costume.ino`, `firmware/*`).
+* **Notes:**
+  - **Flashlight / Searchlight Roam (`flashlight`, ID: 18):**
+    - Retains the 2D Cartesian roaming light pool $(M_x(t), M_y(t))$ with smooth multi-harmonic wandering and a Gaussian beam wake ($\sigma = 0.14$).
+    - Piercing center beam illumination ($d_i < 0.08$) illuminating the float's sampled artwork or theme palette as if a searchlight is sweeping across the runner's chest.
+  - **Scurrying Mouse (`mouse_scamper`, ID: 19):**
+    - Redesigned from the 2D pool into a true **Single Ultra-Bright Point (1 LED)** with a **long glowing tail (~20 LEDs)** that scampers along the physical LED strand order.
+    - Implemented non-linear pacing with sprint warping: $t + \text{warp}$, creating rapid cartoon dashes, sudden directional turns, and micro pauses across the graphic.
+    - Point spark head shines with blazing white brilliance ($+130$ RGB) while the 20-LED tail exponentially decays in the sampled artwork hue ($e^{-\text{dist} \cdot 2.8 / \text{tailLen}}$), with resting baseline at 8% intensity.
+  - **Simulator & Hardware Full Parity:**
+    - Integrated across all simulator selectors (Ambient Baseline Tab 2, Group Creation Hub, Draw Mode, Group Inspector, and Master Sequence Cue Director).
+    - C++ firmware support in `renderAmbientFallback()` and `runAutonomousShowSequence()` in both `src/main.cpp` and `arduino/MSEP_Costume/MSEP_Costume.ino`.
+    - Compiled cleanly with PlatformIO and regenerated all 8 dedicated float binaries in `firmware/`.
+
 ### Entry: 2D Scurrying Mouse ("Graphic Explorer") Animation Engine
 * **Date:** 2026-10-01
 * **Milestone:** Milestone 4 - Lighting Engine & Theatrical Controls

@@ -1816,27 +1816,44 @@ function evalGroupEffect(grp, effect, bpm, dir, grpIndex, grpSize, timeMs, c) {
             grpIntensity = 1.0;
             break;
         }
-        case 'mouse_scamper': {
-            const t = grpNormTime * 1.6;
-            const sprintWarp = t + 0.38 * Math.sin(t * 2.8) + 0.18 * Math.sin(t * 5.2);
-            const mouseX = 0.50 + 0.40 * (Math.sin(sprintWarp * 1.2 * direction) * 0.65 + Math.sin(sprintWarp * 2.7) * 0.35);
-            const mouseY = 0.50 + 0.40 * (Math.cos(sprintWarp * 0.9) * 0.60 + Math.sin(sprintWarp * 2.3 * direction) * 0.40);
-
+        case 'flashlight': {
+            const t = grpNormTime * 1.2;
+            const wanderX = 0.50 + 0.38 * (Math.sin(t * 1.1 * direction) * 0.70 + Math.sin(t * 2.3) * 0.30);
+            const wanderY = 0.50 + 0.38 * (Math.cos(t * 0.8) * 0.70 + Math.sin(t * 1.9 * direction) * 0.30);
             const ledX = (grpEntry && grpEntry.normX !== undefined) ? grpEntry.normX : (grpIndex / Math.max(1, grpSize - 1));
             const ledY = (grpEntry && grpEntry.normY !== undefined) ? grpEntry.normY : 0.5;
-
-            const dx = ledX - mouseX;
-            const dy = ledY - mouseY;
+            const dx = ledX - wanderX;
+            const dy = ledY - wanderY;
             const dist = Math.sqrt(dx * dx + dy * dy);
-
-            const sigma = Math.max(0.12, 1.4 / Math.max(2, grpSize));
-            const wake = Math.exp(-(dist * dist) / (2 * sigma * sigma));
-            grpIntensity = 0.08 + 0.92 * wake;
-
-            if (dist < 0.08) {
-                baseR = Math.min(255, baseR + 130);
-                baseG = Math.min(255, baseG + 130);
-                baseB = Math.min(255, baseB + 110);
+            const sigma = Math.max(0.14, 1.6 / Math.max(2, grpSize));
+            const beam = Math.exp(-(dist * dist) / (2 * sigma * sigma));
+            grpIntensity = 0.08 + 0.92 * beam;
+            if (dist < 0.09) {
+                baseR = Math.min(255, baseR + 100);
+                baseG = Math.min(255, baseG + 100);
+                baseB = Math.min(255, baseB + 100);
+            }
+            break;
+        }
+        case 'mouse_scamper': {
+            const scamperMs = Math.max(800, grpBeatMs * 1.5);
+            const sprintPhase = (effectiveTimeMs / scamperMs) * direction * grpSize;
+            const sprintWarp = Math.sin((effectiveTimeMs / scamperMs) * 3.2) * Math.min(12, grpSize * 0.25) +
+                               Math.cos((effectiveTimeMs / scamperMs) * 6.5) * Math.min(6, grpSize * 0.12);
+            const head = (((sprintPhase + sprintWarp) % grpSize) + grpSize) % grpSize;
+            const tailLen = Math.max(5, Math.min(grpSize * 0.40, 20));
+            let dist = (direction >= 0) ? (head - grpIndex) : (grpIndex - head);
+            if (dist < 0) dist += grpSize;
+            if (dist < tailLen) {
+                const fade = Math.exp(-dist * (2.8 / tailLen));
+                grpIntensity = 0.08 + 0.92 * fade;
+                if (dist < 1.0) {
+                    baseR = Math.min(255, baseR + 130);
+                    baseG = Math.min(255, baseG + 130);
+                    baseB = Math.min(255, baseB + 130);
+                }
+            } else {
+                grpIntensity = 0.08;
             }
             break;
         }
@@ -2363,36 +2380,19 @@ function evalGlobalPattern(pattern, bpm, index, totalLeds, timeMs, c, hasColor, 
             brightness = eff;
             break;
         }
-        case 'mouse_scamper': {
+        case 'flashlight': {
             const sm = getSpatialMetrics();
-            const t = normTime * 1.6;
-            // Non-linear pacing: fast scurrying bursts, rapid directional darts, and brief sniff pauses
-            const sprintWarp = t + 0.38 * Math.sin(t * 2.8) + 0.18 * Math.sin(t * 5.2);
-            
-            // Continuous 2D path roaming across the entire chest graphic space [0.12, 0.88]
-            const mouseX = 0.50 + 0.38 * (
-                Math.sin(sprintWarp * 1.15 * dir) * 0.65 +
-                Math.sin(sprintWarp * 2.70) * 0.35
-            );
-            const mouseY = 0.50 + 0.38 * (
-                Math.cos(sprintWarp * 0.85) * 0.60 +
-                Math.sin(sprintWarp * 2.30 * dir) * 0.40
-            );
-
-            // LED spatial coordinates on graphic
+            const t = normTime * 1.2;
+            const wanderX = 0.50 + 0.38 * (Math.sin(t * 1.1 * dir) * 0.70 + Math.sin(t * 2.3) * 0.30);
+            const wanderY = 0.50 + 0.38 * (Math.cos(t * 0.8) * 0.70 + Math.sin(t * 1.9 * dir) * 0.30);
             const ledX = (sm && sm.normX && sm.normX[index] !== undefined) ? sm.normX[index] : (index / Math.max(1, totalLeds));
             const ledY = (sm && sm.normY && sm.normY[index] !== undefined) ? sm.normY[index] : 0.5;
-
-            // 2D Euclidean distance to mouse head
-            const dx = ledX - mouseX;
-            const dy = ledY - mouseY;
+            const dx = ledX - wanderX;
+            const dy = ledY - wanderY;
             const dist = Math.sqrt(dx * dx + dy * dy);
-
-            // Trailing wake: organic Gaussian falloff for the mouse's light trail
-            const sigma = 0.13;
-            const wake = Math.exp(-(dist * dist) / (2 * sigma * sigma));
-            const effIntensity = 0.08 + 0.92 * wake;
-
+            const sigma = 0.14;
+            const beam = Math.exp(-(dist * dist) / (2 * sigma * sigma));
+            const effIntensity = 0.08 + 0.92 * beam;
             if (effHasColor) {
                 r = Math.floor(effC.r * effIntensity);
                 g = Math.floor(effC.g * effIntensity);
@@ -2401,15 +2401,48 @@ function evalGlobalPattern(pattern, bpm, index, totalLeds, timeMs, c, hasColor, 
                 const rgb = hslToRgb(baseH / 360, 0.95, 0.50 * effIntensity);
                 r = rgb.r; g = rgb.g; b = rgb.b;
             }
-
-            // Blazing bright white/gold leading spark on the mouse head
-            if (dist < 0.07) {
-                r = Math.min(255, r + 130);
-                g = Math.min(255, g + 130);
+            if (dist < 0.08) {
+                r = Math.min(255, r + 110);
+                g = Math.min(255, g + 110);
                 b = Math.min(255, b + 110);
                 brightness = 1.0;
             } else {
-                brightness = Math.max(0.15, wake);
+                brightness = Math.max(0.15, beam);
+            }
+            break;
+        }
+        case 'mouse_scamper': {
+            const scamperPassMs = Math.max(800, beatMs * 1.5);
+            const sprintPhase = (timeMs / scamperPassMs) * totalLeds * dir;
+            const sprintWarp = Math.sin((timeMs / scamperPassMs) * 3.2) * 12.0 + Math.cos((timeMs / scamperPassMs) * 6.5) * 6.0;
+            const head = (((sprintPhase + sprintWarp) % totalLeds) + totalLeds) % totalLeds;
+            const tailLen = Math.max(12, Math.min(totalLeds * 0.25, 20));
+            let dist = (dir >= 0) ? (head - index) : (index - head);
+            if (dist < 0) dist += totalLeds;
+            if (dist < tailLen) {
+                const fade = Math.exp(-dist * (2.8 / tailLen));
+                const effIntensity = 0.08 + 0.92 * fade;
+                if (effHasColor) {
+                    r = Math.floor(effC.r * effIntensity);
+                    g = Math.floor(effC.g * effIntensity);
+                    b = Math.floor(effC.b * effIntensity);
+                } else {
+                    const rgb = hslToRgb(baseH / 360, 0.95, 0.50 * effIntensity);
+                    r = rgb.r; g = rgb.g; b = rgb.b;
+                }
+                if (dist < 1.0) {
+                    r = Math.min(255, r + 130);
+                    g = Math.min(255, g + 130);
+                    b = Math.min(255, b + 130);
+                }
+                brightness = 1.0;
+            } else {
+                if (effHasColor) {
+                    r = Math.floor(effC.r * 0.08); g = Math.floor(effC.g * 0.08); b = Math.floor(effC.b * 0.08);
+                } else {
+                    r = 15; g = 15; b = 15;
+                }
+                brightness = 0.2;
             }
             break;
         }

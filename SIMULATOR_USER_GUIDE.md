@@ -370,6 +370,8 @@ Creating and editing groups is seamlessly integrated into both the Group Creatio
      - *🎆 Fireworks (Radiating Starburst):* Full pyrotechnic explosion sequence.
      - *🌈 Rainbow Wave:* Flowing chromatic wave across the group.
      - *📸 Castle Photo Mode:* 100% solid maximum radiance for photo stops.
+     - *🔦 Flashlight / Searchlight Roam:* 2D roaming light pool wandering smoothly across the garment with a soft Gaussian beam wake.
+     - *🐭 Scurrying Mouse (Single Dot + Tail):* Single ultra-bright point (1 LED) with a long trailing glowing tail (~20 LEDs) that races and scampers along the strand in non-linear bursts with quick direction reversals.
      - *Cue Crossfading:* When an active cue on that group fires, the show engine smoothly crossfades from the group's configured resting baseline into the active cue effect, and seamlessly returns to baseline when the cue ends.
 
 ---
