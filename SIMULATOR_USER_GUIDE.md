@@ -679,6 +679,16 @@ The simulator includes a unified library of 18 specialized algorithms available 
 | `photo_mode` | **Castle Photo Mode** | 100% solid maximum brightness with zero sparkle for crisp, clear photos. | Photo stops, character meet-and-greets |
 | `off` | **Off / Completely Unlit** | Complete blackout (0% intensity) for dramatic contrast or dormant stage cues. | Dark baseline, firework dormancy |
 
+### 2D Spatial Lighting Engine (Coordinate-Aware Animations)
+In real-world garment wiring, LEDs are routed non-linearly across branches and contours to minimize wire tension and optimize slack. As a result, adjacent physical bulbs often have discontinuous electrical index numbers (e.g., LED #14 might sit physically next to LED #58).
+
+To prevent animations from jumping erratically across wire branches, the simulator and firmware use a **2D Spatial Lighting Engine**:
+- **Normalized Spatial Coordinates ($x, y$):** Every LED's 2D coordinate on the shirt is mapped into continuous spatial bounds.
+- **Physical Progressive Fill (`color_wipe` / `write_on_off`):** Lights LEDs strictly in physical vertical order (bottom hem $\rightarrow$ chest $\rightarrow$ collar when `dir = 1`, or top-down when `dir = -1`), creating a smooth, organic fluid-fill effect regardless of electrical wiring route.
+- **Directional Sweeps & Planar Waves (`traveling_wave`, `scanner`):** Larson scanner beams and traveling parade waves sweep smoothly across horizontal space along physical $X$ coordinates.
+- **Centroid-Based Radial Waves (`tidal_ripple`):** Ripples expand outwardly from the true 2D physical centroid $(\bar{x}, \bar{y})$ of the float or group.
+- **Zero-Overhead Microcontroller Optimization:** When flashing firmware or exporting C++, the spatial ranks and normalized coordinates are pre-computed into compact 8-bit PROGMEM flash lookup tables (`SPATIAL_RANK_Y`, `SPATIAL_X_BYTE`, `SPATIAL_Y_BYTE`, `SPATIAL_RADIUS_BYTE`). The ESP32 executes smooth 60 FPS spatial lighting sweeps with zero floating-point math overhead or memory allocation.
+
 ---
 
 ## 11. Decimal Sparkle Frequency & Starlight Twinkle

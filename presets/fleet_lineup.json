@@ -26,7 +26,7 @@
     "tag": "TURTLE",
     "color": "#2ec4b6",
     "accent": "Teal",
-    "preset": "server:spinning_turtle.json",
+    "preset": "server:spinning_turtle_100-led_vibrant_preset.json",
     "defaultGraphic": "spinning_turtle"
   },
   {
@@ -36,7 +36,7 @@
     "tag": "SNAIL",
     "color": "#ff007f",
     "accent": "Pink",
-    "preset": "server:spinning_snail.json",
+    "preset": "server:spinning_snail_100-led_vibrant_preset.json",
     "defaultGraphic": "spinning_snail"
   },
   {

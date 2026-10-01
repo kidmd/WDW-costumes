@@ -16,6 +16,7 @@ import socket
 import re
 import subprocess
 import time
+import math
 
 # UDP Pixel Streaming Socket
 udp_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -634,6 +635,46 @@ class SimulatorRequestHandler(http.server.SimpleHTTPRequestHandler):
                 cues_code = ",\n".join(cue_lines)
             
             palette_code = "\n".join(palette_lines)
+
+            # 2D Spatial Metrics Generation (X, Y, Bottom-Up Rank, and Centroid Radius)
+            coords = payload.get("coords", [])
+            led_pts = []
+            for i in range(num_front):
+                if i < len(coords) and isinstance(coords[i], dict):
+                    px = float(coords[i].get("x", 0.5))
+                    py = float(coords[i].get("y", 0.5))
+                else:
+                    px, py = 0.5, float(i) / max(1, num_front - 1)
+                led_pts.append((px, py))
+
+            min_x = min(p[0] for p in led_pts) if led_pts else 0.0
+            max_x = max(p[0] for p in led_pts) if led_pts else 1.0
+            min_y = min(p[1] for p in led_pts) if led_pts else 0.0
+            max_y = max(p[1] for p in led_pts) if led_pts else 1.0
+            cx = sum(p[0] for p in led_pts) / max(1, len(led_pts))
+            cy = sum(p[1] for p in led_pts) / max(1, len(led_pts))
+            span_x = max(0.001, max_x - min_x)
+            span_y = max(0.001, max_y - min_y)
+
+            radii = [math.hypot(p[0] - cx, p[1] - cy) for p in led_pts]
+            max_r = max(radii) if radii and max(radii) > 0.001 else 1.0
+
+            # Rank Y descending (bottom-up: highest y on shirt is rank 0, lowest y is num_front - 1)
+            y_indices = list(range(num_front))
+            y_indices.sort(key=lambda idx: (-led_pts[idx][1], led_pts[idx][0]))
+            rank_y_bottom_up = [0] * num_front
+            for rank, idx in enumerate(y_indices):
+                rank_y_bottom_up[idx] = rank
+
+            spatial_rank_y_lines = [f"    {rank_y_bottom_up[i]}" + ("," if i < num_front - 1 else "") + f" // Front LED {i}" for i in range(num_front)]
+            spatial_x_lines = [f"    {int(max(0, min(255, (led_pts[i][0] - min_x) / span_x * 255)))}" + ("," if i < num_front - 1 else "") + f" // Front LED {i}" for i in range(num_front)]
+            spatial_y_lines = [f"    {int(max(0, min(255, (led_pts[i][1] - min_y) / span_y * 255)))}" + ("," if i < num_front - 1 else "") + f" // Front LED {i}" for i in range(num_front)]
+            spatial_radius_lines = [f"    {int(max(0, min(255, radii[i] / max_r * 255)))}" + ("," if i < num_front - 1 else "") + f" // Front LED {i}" for i in range(num_front)]
+
+            spatial_rank_y_code = "\n".join(spatial_rank_y_lines)
+            spatial_x_code = "\n".join(spatial_x_lines)
+            spatial_y_code = "\n".join(spatial_y_lines)
+            spatial_radius_code = "\n".join(spatial_radius_lines)
             
             header_content = f"""#ifndef COSTUME_CONFIG_H
 #define COSTUME_CONFIG_H
@@ -682,6 +723,7 @@ class SimulatorRequestHandler(http.server.SimpleHTTPRequestHandler):
 #define SHOW_LOOP_MS                     {show_loop_ms}
 #define HAS_CUSTOM_SEQUENCE_CUES         {has_cues}
 #define CUSTOM_SEQUENCE_CUE_COUNT        {cue_count}
+#define HAS_SPATIAL_METRICS              1
 
 struct CostumeCue {{
     uint32_t startMs;
@@ -697,6 +739,24 @@ const CostumeCue PROGMEM CUSTOM_SEQUENCE_CUES[{cue_count}] = {{
 // Artwork Sampled Color Palette (PROGMEM Flash Storage)
 const CRGB PROGMEM ARTWORK_PALETTE[NUM_LEDS] = {{
 {palette_code}
+}};
+
+// 2D Spatial Metrics (PROGMEM Flash Storage)
+// Allows 60 FPS spatial lighting sweeps without floating-point math
+const uint8_t PROGMEM SPATIAL_RANK_Y[FRONT_LEDS] = {{
+{spatial_rank_y_code}
+}};
+
+const uint8_t PROGMEM SPATIAL_X_BYTE[FRONT_LEDS] = {{
+{spatial_x_code}
+}};
+
+const uint8_t PROGMEM SPATIAL_Y_BYTE[FRONT_LEDS] = {{
+{spatial_y_code}
+}};
+
+const uint8_t PROGMEM SPATIAL_RADIUS_BYTE[FRONT_LEDS] = {{
+{spatial_radius_code}
 }};
 
 #endif // COSTUME_CONFIG_H

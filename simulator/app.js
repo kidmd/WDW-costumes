@@ -304,12 +304,64 @@ function rebuildLedGroupMap() {
         const arr = Array.isArray(grp.ledIndices) ? grp.ledIndices : (Array.isArray(grp.indices) ? grp.indices : []);
         grp.ledIndices = arr;
         grp.indices = arr;
-        for (let pos = 0; pos < arr.length; pos++) {
+        const grpSize = arr.length;
+        if (grpSize === 0) continue;
+
+        let gMinX = Infinity, gMaxX = -Infinity, gMinY = Infinity, gMaxY = -Infinity;
+        let gSumX = 0, gSumY = 0;
+        for (let pos = 0; pos < grpSize; pos++) {
             const idx = arr[pos];
+            const p = leds[idx] || { x: 0.5, y: 0.5 };
+            const x = (typeof p.x === 'number') ? p.x : 0.5;
+            const y = (typeof p.y === 'number') ? p.y : 0.5;
+            gSumX += x; gSumY += y;
+            if (x < gMinX) gMinX = x;
+            if (x > gMaxX) gMaxX = x;
+            if (y < gMinY) gMinY = y;
+            if (y > gMaxY) gMaxY = y;
+        }
+        const gCx = gSumX / grpSize;
+        const gCy = gSumY / grpSize;
+        const gSpanX = Math.max(0.001, gMaxX - gMinX);
+        const gSpanY = Math.max(0.001, gMaxY - gMinY);
+
+        let gMaxR = 0.001;
+        const gRadii = new Float32Array(grpSize);
+        for (let pos = 0; pos < grpSize; pos++) {
+            const idx = arr[pos];
+            const p = leds[idx] || { x: 0.5, y: 0.5 };
+            const r = Math.hypot((p.x || 0.5) - gCx, (p.y || 0.5) - gCy);
+            gRadii[pos] = r;
+            if (r > gMaxR) gMaxR = r;
+        }
+
+        const orderYDesc = Array.from({ length: grpSize }, (_, i) => i);
+        orderYDesc.sort((a, b) => {
+            const pA = leds[arr[a]] || { y: 0.5, x: 0.5 };
+            const pB = leds[arr[b]] || { y: 0.5, x: 0.5 };
+            if (Math.abs(pB.y - pA.y) > 0.0001) return pB.y - pA.y;
+            return (pA.x || 0.5) - (pB.x || 0.5);
+        });
+        const grpRankYBottomUp = new Int32Array(grpSize);
+        const grpRankYTopDown = new Int32Array(grpSize);
+        for (let r = 0; r < grpSize; r++) {
+            const pIdx = orderYDesc[r];
+            grpRankYBottomUp[pIdx] = r;
+            grpRankYTopDown[pIdx] = (grpSize - 1) - r;
+        }
+
+        for (let pos = 0; pos < grpSize; pos++) {
+            const idx = arr[pos];
+            const p = leds[idx] || { x: 0.5, y: 0.5 };
             ledGroupMap[idx] = {
                 group: grp,
                 indexInGroup: pos,
-                groupSize: arr.length
+                groupSize: grpSize,
+                normX: ((p.x || 0.5) - gMinX) / gSpanX,
+                normY: ((p.y || 0.5) - gMinY) / gSpanY,
+                normRadius: gRadii[pos] / gMaxR,
+                rankYBottomUp: grpRankYBottomUp[pos],
+                rankYTopDown: grpRankYTopDown[pos]
             };
         }
     }
@@ -1277,8 +1329,146 @@ function drawPetesDragon(cx, s) {
 }
 
 // ============================================================================
-// LIGHTING ENGINE (Modular Multi-Layer Pattern & Group Evaluator)
+// 2D SPATIAL METRICS ENGINE (Physics-Aware Lighting & Contoured Sweep Architecture)
+// Calculates continuous spatial coordinates, centroid, bounds, and sorted spatial ranks
+// so animations (Progressive Fill, Wave, Ripple, Scanner, Rainbow) map to physical fabric
+// geometry rather than electrical wiring strand sequence.
 // ============================================================================
+let cachedSpatialMetrics = null;
+let spatialMetricsLedsRef = null;
+
+function recomputeSpatialMetrics(targetLeds = leds) {
+    if (!targetLeds || targetLeds.length === 0) {
+        cachedSpatialMetrics = {
+            count: 0,
+            centroid: { x: 0.5, y: 0.5 },
+            minX: 0, maxX: 1, minY: 0, maxY: 1,
+            spanX: 1, spanY: 1, maxRadius: 1,
+            normX: [], normY: [], normYBottomUp: [], normRadius: [],
+            rankYBottomUp: [], rankYTopDown: [], rankXLeftRight: [], rankXRightLeft: [], rankRadius: []
+        };
+        spatialMetricsLedsRef = targetLeds;
+        return cachedSpatialMetrics;
+    }
+
+    const n = targetLeds.length;
+    let sumX = 0, sumY = 0;
+    let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
+
+    for (let i = 0; i < n; i++) {
+        const p = targetLeds[i] || { x: 0.5, y: 0.5 };
+        const x = (typeof p.x === 'number') ? p.x : 0.5;
+        const y = (typeof p.y === 'number') ? p.y : 0.5;
+        sumX += x;
+        sumY += y;
+        if (x < minX) minX = x;
+        if (x > maxX) maxX = x;
+        if (y < minY) minY = y;
+        if (y > maxY) maxY = y;
+    }
+
+    const cx = sumX / n;
+    const cy = sumY / n;
+    const spanX = Math.max(0.001, maxX - minX);
+    const spanY = Math.max(0.001, maxY - minY);
+
+    // Compute radii from centroid
+    let maxR = 0.001;
+    const radii = new Float32Array(n);
+    for (let i = 0; i < n; i++) {
+        const p = targetLeds[i] || { x: 0.5, y: 0.5 };
+        const dx = ((typeof p.x === 'number' ? p.x : 0.5) - cx);
+        const dy = ((typeof p.y === 'number' ? p.y : 0.5) - cy);
+        const r = Math.hypot(dx, dy);
+        radii[i] = r;
+        if (r > maxR) maxR = r;
+    }
+
+    // Normalized coordinates
+    const normX = new Float32Array(n);
+    const normY = new Float32Array(n);
+    const normYBottomUp = new Float32Array(n);
+    const normRadius = new Float32Array(n);
+
+    for (let i = 0; i < n; i++) {
+        const p = targetLeds[i] || { x: 0.5, y: 0.5 };
+        const px = (typeof p.x === 'number') ? p.x : 0.5;
+        const py = (typeof p.y === 'number') ? p.y : 0.5;
+        normX[i] = Math.max(0, Math.min(1, (px - minX) / spanX));
+        normY[i] = Math.max(0, Math.min(1, (py - minY) / spanY)); // 0 top, 1 bottom
+        normYBottomUp[i] = 1.0 - normY[i];                         // 0 bottom, 1 top
+        normRadius[i] = Math.max(0, Math.min(1, radii[i] / maxR));
+    }
+
+    // Sorted ranks:
+    // 1. Bottom-up: Highest y is 0 (bottom-most on shirt), lowest y is n-1 (top-most near neck)
+    const indicesByYDesc = Array.from({ length: n }, (_, i) => i);
+    indicesByYDesc.sort((a, b) => {
+        const pA = targetLeds[a] || { y: 0.5, x: 0.5 };
+        const pB = targetLeds[b] || { y: 0.5, x: 0.5 };
+        const yA = typeof pA.y === 'number' ? pA.y : 0.5;
+        const yB = typeof pB.y === 'number' ? pB.y : 0.5;
+        if (Math.abs(yB - yA) > 0.0001) return yB - yA;
+        const xA = typeof pA.x === 'number' ? pA.x : 0.5;
+        const xB = typeof pB.x === 'number' ? pB.x : 0.5;
+        return xA - xB;
+    });
+    const rankYBottomUp = new Int32Array(n);
+    const rankYTopDown = new Int32Array(n);
+    for (let r = 0; r < n; r++) {
+        const idx = indicesByYDesc[r];
+        rankYBottomUp[idx] = r;
+        rankYTopDown[idx] = (n - 1) - r;
+    }
+
+    // 2. Left-to-Right: Lowest x is 0, highest x is n-1
+    const indicesByXAsc = Array.from({ length: n }, (_, i) => i);
+    indicesByXAsc.sort((a, b) => {
+        const pA = targetLeds[a] || { x: 0.5, y: 0.5 };
+        const pB = targetLeds[b] || { x: 0.5, y: 0.5 };
+        const xA = typeof pA.x === 'number' ? pA.x : 0.5;
+        const xB = typeof pB.x === 'number' ? pB.x : 0.5;
+        if (Math.abs(xA - xB) > 0.0001) return xA - xB;
+        const yA = typeof pA.y === 'number' ? pA.y : 0.5;
+        const yB = typeof pB.y === 'number' ? pB.y : 0.5;
+        return yA - yB;
+    });
+    const rankXLeftRight = new Int32Array(n);
+    const rankXRightLeft = new Int32Array(n);
+    for (let r = 0; r < n; r++) {
+        const idx = indicesByXAsc[r];
+        rankXLeftRight[idx] = r;
+        rankXRightLeft[idx] = (n - 1) - r;
+    }
+
+    // 3. Radial: Center outward
+    const indicesByRadius = Array.from({ length: n }, (_, i) => i);
+    indicesByRadius.sort((a, b) => radii[a] - radii[b]);
+    const rankRadius = new Int32Array(n);
+    for (let r = 0; r < n; r++) {
+        rankRadius[indicesByRadius[r]] = r;
+    }
+
+    cachedSpatialMetrics = {
+        count: n,
+        centroid: { x: cx, y: cy },
+        minX, maxX, minY, maxY,
+        spanX, spanY, maxRadius: maxR,
+        normX, normY, normYBottomUp, normRadius,
+        rankYBottomUp, rankYTopDown,
+        rankXLeftRight, rankXRightLeft,
+        rankRadius
+    };
+    spatialMetricsLedsRef = targetLeds;
+    return cachedSpatialMetrics;
+}
+
+function getSpatialMetrics() {
+    if (cachedSpatialMetrics && spatialMetricsLedsRef === leds && cachedSpatialMetrics.count === leds.length) {
+        return cachedSpatialMetrics;
+    }
+    return recomputeSpatialMetrics(leds);
+}
 
 function evalGroupEffect(grp, effect, bpm, dir, grpIndex, grpSize, timeMs, c) {
     let effectiveBpm = bpm;
@@ -1307,6 +1497,8 @@ function evalGroupEffect(grp, effect, bpm, dir, grpIndex, grpSize, timeMs, c) {
     }
 
     let grpIntensity = 1.0;
+    const actualLedIndex = (grp && grp.ledIndices && grp.ledIndices[grpIndex] !== undefined) ? grp.ledIndices[grpIndex] : grpIndex;
+    const grpEntry = ledGroupMap[actualLedIndex];
 
     switch (effect) {
         case 'off': {
@@ -1375,12 +1567,15 @@ function evalGroupEffect(grp, effect, bpm, dir, grpIndex, grpSize, timeMs, c) {
         }
         case 'scanner': {
             const cycle = (effectiveTimeMs / grpBeatMs) % 2.0;
-            const pos = cycle <= 1.0 ? cycle * (grpSize - 1) : (2.0 - cycle) * (grpSize - 1);
-            const dist = Math.abs(grpIndex - pos);
-            const sigma = Math.max(1.2, grpSize * 0.15);
+            const pos = cycle <= 1.0 ? cycle : (2.0 - cycle);
+            const ledX = (grpEntry && grpEntry.normX !== undefined)
+                ? (direction >= 0 ? grpEntry.normX : (1.0 - grpEntry.normX))
+                : (grpIndex / Math.max(1, grpSize - 1));
+            const dist = Math.abs(ledX - pos);
+            const sigma = Math.max(0.12, 1.2 / Math.max(2, grpSize));
             const wake = Math.exp(-(dist * dist) / (2 * sigma * sigma));
             grpIntensity = 0.10 + 0.90 * wake;
-            if (dist < 0.85) {
+            if (dist < 0.10) {
                 baseR = Math.min(255, baseR + 80);
                 baseG = Math.min(255, baseG + 80);
                 baseB = Math.min(255, baseB + 80);
@@ -1390,14 +1585,17 @@ function evalGroupEffect(grp, effect, bpm, dir, grpIndex, grpSize, timeMs, c) {
         case 'write_on_off': {
             const totalCycleMs = grpBeatMs * 4;
             const progress = (effectiveTimeMs % totalCycleMs) / totalCycleMs;
+            const effRank = (grpEntry && grpEntry.rankYBottomUp !== undefined)
+                ? (direction >= 0 ? grpEntry.rankYBottomUp : grpEntry.rankYTopDown)
+                : (direction >= 0 ? grpIndex : ((grpSize - 1) - grpIndex));
             if (progress < 0.40) {
                 const litHead = (progress / 0.40) * grpSize;
-                grpIntensity = (direction >= 0 ? (grpIndex <= litHead) : ((grpSize - 1 - grpIndex) <= litHead)) ? 1.0 : 0.05;
+                grpIntensity = (effRank <= litHead) ? 1.0 : 0.05;
             } else if (progress < 0.58) {
                 grpIntensity = 1.0;
             } else if (progress < 0.88) {
                 const offHead = ((progress - 0.58) / 0.30) * grpSize;
-                grpIntensity = (direction >= 0 ? (grpIndex <= offHead) : ((grpSize - 1 - grpIndex) <= offHead)) ? 0.05 : 1.0;
+                grpIntensity = (effRank <= offHead) ? 0.05 : 1.0;
             } else {
                 grpIntensity = 0.05;
             }
@@ -1416,13 +1614,19 @@ function evalGroupEffect(grp, effect, bpm, dir, grpIndex, grpSize, timeMs, c) {
             break;
         }
         case 'marquee': {
+            const effRank = (grpEntry && grpEntry.rankYBottomUp !== undefined)
+                ? grpEntry.rankYBottomUp
+                : grpIndex;
             const step = Math.floor(grpNormTime * 2 * direction) % 3;
-            const posInStep = ((grpIndex + step) % 3 + 3) % 3;
+            const posInStep = ((effRank + step) % 3 + 3) % 3;
             grpIntensity = posInStep === 0 ? 1.0 : 0.12;
             break;
         }
         case 'rainbow_cycle': {
-            const hue = ((effectiveTimeMs * 0.08 * direction + grpIndex * (360 / grpSize)) % 360 + 360) % 360;
+            const spatialPos = (grpEntry && grpEntry.normX !== undefined)
+                ? (grpEntry.normX * 0.7 + grpEntry.normY * 0.3)
+                : (grpIndex / Math.max(1, grpSize));
+            const hue = ((effectiveTimeMs * 0.08 * direction + spatialPos * 360) % 360 + 360) % 360;
             const rgb = hslToRgb(hue / 360, 0.95, 0.52);
             baseR = rgb.r; baseG = rgb.g; baseB = rgb.b;
             grpIntensity = 1.0;
@@ -1539,14 +1743,17 @@ function evalGroupEffect(grp, effect, bpm, dir, grpIndex, grpSize, timeMs, c) {
         case 'color_wipe': {
             const totalCycleMs = grpBeatMs * 4;
             const progress = (effectiveTimeMs % totalCycleMs) / totalCycleMs;
+            const effRank = (grpEntry && grpEntry.rankYBottomUp !== undefined)
+                ? (direction >= 0 ? grpEntry.rankYBottomUp : grpEntry.rankYTopDown)
+                : (direction >= 0 ? grpIndex : ((grpSize - 1) - grpIndex));
             if (progress < 0.40) {
                 const litHead = (progress / 0.40) * grpSize;
-                grpIntensity = (direction >= 0 ? (grpIndex <= litHead) : ((grpSize - 1 - grpIndex) <= litHead)) ? 1.0 : 0.05;
+                grpIntensity = (effRank <= litHead) ? 1.0 : 0.05;
             } else if (progress < 0.58) {
                 grpIntensity = 1.0;
             } else if (progress < 0.88) {
                 const offHead = ((progress - 0.58) / 0.30) * grpSize;
-                grpIntensity = (direction >= 0 ? (grpIndex <= offHead) : ((grpSize - 1 - grpIndex) <= offHead)) ? 0.05 : 1.0;
+                grpIntensity = (effRank <= offHead) ? 0.05 : 1.0;
             } else {
                 grpIntensity = 0.05;
             }
@@ -1585,9 +1792,10 @@ function evalGroupEffect(grp, effect, bpm, dir, grpIndex, grpSize, timeMs, c) {
             break;
         }
         case 'tidal_ripple': {
-            const center = (grpSize - 1) / 2;
-            const normDist = Math.abs(grpIndex - center) / Math.max(1, center);
-            const wavePhase = (grpNormTime * direction) - (normDist * 2.0);
+            const normDist = (grpEntry && grpEntry.normRadius !== undefined)
+                ? grpEntry.normRadius
+                : (Math.abs(grpIndex - (grpSize - 1) / 2) / Math.max(1, (grpSize - 1) / 2));
+            const wavePhase = (grpNormTime * direction) - (normDist * 2.5);
             const wave = Math.sin(wavePhase * Math.PI) * 0.5 + 0.5;
             grpIntensity = 0.15 + 0.85 * Math.pow(wave, 1.8);
             break;
@@ -1737,32 +1945,36 @@ function evalGlobalPattern(pattern, bpm, index, totalLeds, timeMs, c, hasColor, 
             break;
         }
         case 'traveling_wave': {
-            const effectiveIndex = (dir === -1) ? (totalLeds - 1 - index) : index;
+            const sm = getSpatialMetrics();
             const waveCycle = (timeMs % 2000) / 2000;
-            const head = waveCycle * totalLeds;
-            const dist = Math.abs(effectiveIndex - head);
-            if (dist < 4.0) {
-                const intensity = Math.max(0, 1 - (dist / 4.0));
+            const headX = (dir === -1) ? (1.0 - waveCycle) : waveCycle;
+            const ledX = (sm && sm.normX && sm.normX[index] !== undefined) ? sm.normX[index] : (index / Math.max(1, totalLeds));
+            const waveWidth = 0.14;
+            const dist = Math.abs(ledX - headX);
+            if (dist < waveWidth) {
+                const intensity = Math.max(0, 1.0 - (dist / waveWidth));
                 r = 255 * intensity;
                 g = 255 * intensity;
                 b = Math.floor(220 * intensity);
                 brightness = 1.0;
             } else if (effHasColor) {
-                r = Math.floor(effC.r * 0.5);
-                g = Math.floor(effC.g * 0.5);
-                b = Math.floor(effC.b * 0.5);
-                brightness = 0.4;
+                r = Math.floor(effC.r * 0.4);
+                g = Math.floor(effC.g * 0.4);
+                b = Math.floor(effC.b * 0.4);
+                brightness = 0.35;
             } else {
                 const rgb = hslToRgb(baseH / 360, 0.9, 0.25);
                 r = rgb.r; g = rgb.g; b = rgb.b;
-                brightness = 0.35;
+                brightness = 0.30;
             }
             break;
         }
         case 'marquee': {
+            const sm = getSpatialMetrics();
+            const effRank = (sm && sm.rankYBottomUp && sm.rankYBottomUp[index] !== undefined) ? sm.rankYBottomUp[index] : index;
             const step = Math.floor(normTime * 3) % 3;
             const effStep = (dir === -1) ? (3 - step) % 3 : step;
-            if ((index + effStep) % 3 === 0) {
+            if ((effRank + effStep) % 3 === 0) {
                 if (effHasColor) {
                     r = Math.min(255, effC.r + 50);
                     g = Math.min(255, effC.g + 50);
@@ -1802,9 +2014,12 @@ function evalGlobalPattern(pattern, bpm, index, totalLeds, timeMs, c, hasColor, 
             break;
         }
         case 'chase': {
-            const effectiveIndex = (dir === -1) ? (totalLeds - 1 - index) : index;
+            const sm = getSpatialMetrics();
+            const effRank = (sm && sm.rankYBottomUp && sm.rankYBottomUp[index] !== undefined)
+                ? (dir === -1 ? sm.rankYTopDown[index] : sm.rankYBottomUp[index])
+                : ((dir === -1) ? (totalLeds - 1 - index) : index);
             const head = (normTime * 2) % totalLeds;
-            const dist = Math.abs(effectiveIndex - head);
+            const dist = Math.abs(effRank - head);
             const fade = Math.max(0, 1 - (dist / 8));
             const intensity = 0.15 + 0.85 * fade;
             if (effHasColor) {
@@ -1892,6 +2107,10 @@ function evalGlobalPattern(pattern, bpm, index, totalLeds, timeMs, c, hasColor, 
         case 'write_on_off': {
             const totalCycleMs = beatMs * 4;
             const progress = (timeMs % totalCycleMs) / totalCycleMs;
+            const sm = getSpatialMetrics();
+            const effRank = (sm && sm.rankYBottomUp && sm.rankYBottomUp[index] !== undefined)
+                ? (dir === -1 ? sm.rankYTopDown[index] : sm.rankYBottomUp[index])
+                : ((dir === -1) ? (totalLeds - 1 - index) : index);
             if (hasColor) {
                 r = c.r; g = c.g; b = c.b;
             } else {
@@ -1900,12 +2119,12 @@ function evalGlobalPattern(pattern, bpm, index, totalLeds, timeMs, c, hasColor, 
             }
             if (progress < 0.40) {
                 const litHead = (progress / 0.40) * totalLeds;
-                brightness = index <= litHead ? 1.0 : 0.05;
+                brightness = effRank <= litHead ? 1.0 : 0.05;
             } else if (progress < 0.58) {
                 brightness = 1.0;
             } else if (progress < 0.88) {
                 const offHead = ((progress - 0.58) / 0.30) * totalLeds;
-                brightness = index <= offHead ? 0.05 : 1.0;
+                brightness = effRank <= offHead ? 0.05 : 1.0;
             } else {
                 brightness = 0.05;
             }
@@ -1927,17 +2146,24 @@ function evalGlobalPattern(pattern, bpm, index, totalLeds, timeMs, c, hasColor, 
             break;
         }
         case 'rainbow_cycle': {
-            const hue = ((timeMs * 0.08 * dir + index * (360 / Math.max(1, totalLeds))) % 360 + 360) % 360;
+            const sm = getSpatialMetrics();
+            const spatialPos = (sm && sm.normX && sm.normX[index] !== undefined)
+                ? (sm.normX[index] * 0.7 + sm.normY[index] * 0.3)
+                : (index / Math.max(1, totalLeds));
+            const hue = ((timeMs * 0.08 * dir + spatialPos * 360) % 360 + 360) % 360;
             const rgb = hslToRgb(hue / 360, 0.95, 0.52);
             r = rgb.r; g = rgb.g; b = rgb.b;
             brightness = 1.0;
             break;
         }
         case 'comet': {
-            const effectiveIndex = (dir === -1) ? (totalLeds - 1 - index) : index;
+            const sm = getSpatialMetrics();
+            const effRank = (sm && sm.rankYBottomUp && sm.rankYBottomUp[index] !== undefined)
+                ? (dir === -1 ? sm.rankYTopDown[index] : sm.rankYBottomUp[index])
+                : ((dir === -1) ? (totalLeds - 1 - index) : index);
             const head = ((normTime * 2) % totalLeds + totalLeds) % totalLeds;
             const tailLen = Math.max(8, totalLeds * 0.15);
-            let dist = head - effectiveIndex;
+            let dist = head - effRank;
             if (dist < 0) dist += totalLeds;
             if (dist < tailLen) {
                 const fade = Math.exp(-dist * (2.8 / tailLen));
@@ -1967,11 +2193,15 @@ function evalGlobalPattern(pattern, bpm, index, totalLeds, timeMs, c, hasColor, 
             break;
         }
         case 'scanner': {
+            const sm = getSpatialMetrics();
             const cycle = normTime % 2.0;
-            let head = cycle <= 1.0 ? cycle * (totalLeds - 1) : (2.0 - cycle) * (totalLeds - 1);
-            if (dir === -1) head = (totalLeds - 1) - head;
-            const dist = Math.abs(index - head);
-            const sigma = Math.max(2.0, totalLeds * 0.05);
+            let headX = cycle <= 1.0 ? cycle : (2.0 - cycle);
+            if (dir === -1) headX = 1.0 - headX;
+            const ledX = (sm && sm.normX && sm.normX[index] !== undefined)
+                ? sm.normX[index]
+                : (index / Math.max(1, totalLeds - 1));
+            const dist = Math.abs(ledX - headX);
+            const sigma = 0.08;
             const wake = Math.exp(-(dist * dist) / (2 * sigma * sigma));
             const effIntensity = 0.10 + 0.90 * wake;
             if (effHasColor) {
@@ -1982,7 +2212,7 @@ function evalGlobalPattern(pattern, bpm, index, totalLeds, timeMs, c, hasColor, 
                 const rgb = hslToRgb(baseH / 360, 0.95, 0.50 * effIntensity);
                 r = rgb.r; g = rgb.g; b = rgb.b;
             }
-            if (dist < 1.0) {
+            if (dist < 0.05) {
                 r = Math.min(255, r + 80);
                 g = Math.min(255, g + 80);
                 b = Math.min(255, b + 80);
@@ -1993,14 +2223,17 @@ function evalGlobalPattern(pattern, bpm, index, totalLeds, timeMs, c, hasColor, 
         case 'color_wipe': {
             const totalCycleMs = beatMs * 4;
             const progress = (timeMs % totalCycleMs) / totalCycleMs;
-            const effectiveIndex = (dir === -1) ? (totalLeds - 1 - index) : index;
+            const sm = getSpatialMetrics();
+            const effRank = (sm && sm.rankYBottomUp && sm.rankYBottomUp[index] !== undefined)
+                ? (dir === -1 ? sm.rankYTopDown[index] : sm.rankYBottomUp[index])
+                : ((dir === -1) ? (totalLeds - 1 - index) : index);
             let lit = false;
             if (progress < 0.40) {
-                lit = effectiveIndex <= (progress / 0.40) * totalLeds;
+                lit = effRank <= (progress / 0.40) * totalLeds;
             } else if (progress < 0.58) {
                 lit = true;
             } else if (progress < 0.88) {
-                lit = effectiveIndex > ((progress - 0.58) / 0.30) * totalLeds;
+                lit = effRank > ((progress - 0.58) / 0.30) * totalLeds;
             } else {
                 lit = false;
             }
@@ -2067,9 +2300,11 @@ function evalGlobalPattern(pattern, bpm, index, totalLeds, timeMs, c, hasColor, 
             break;
         }
         case 'tidal_ripple': {
-            const center = (totalLeds - 1) / 2;
-            const normDist = Math.abs(index - center) / Math.max(1, center);
-            const wavePhase = (normTime * 2) - (normDist * 2.0);
+            const sm = getSpatialMetrics();
+            const normDist = (sm && sm.normRadius && sm.normRadius[index] !== undefined)
+                ? sm.normRadius[index]
+                : (Math.abs(index - (totalLeds - 1) / 2) / Math.max(1, (totalLeds - 1) / 2));
+            const wavePhase = (normTime * 2 * dir) - (normDist * 2.5);
             const wave = Math.sin(wavePhase * Math.PI) * 0.5 + 0.5;
             const eff = 0.15 + 0.85 * Math.pow(wave, 1.8);
             if (effHasColor) {
@@ -14691,6 +14926,7 @@ async function triggerUsbFirmwareFlash(floatId = 0) {
             greenHue: params.greenHue,
             brightness: params.brightness,
             palette: leds.map(l => l.color || { r: 15, g: 255, b: 35 }),
+            coords: leds.map(l => ({ x: (typeof l.x === 'number' ? l.x : 0.5), y: (typeof l.y === 'number' ? l.y : 0.5) })),
             sequenceCues: sequenceCues || [],
             sequenceLoopDuration: sequenceLoopDuration || 90.0
         };

@@ -723,6 +723,22 @@ void renderAmbientFallback(uint32_t now) {
             leds[i] = dim;
         }
 #elif defined(AMBIENT_FALLBACK_PATTERN) && (AMBIENT_FALLBACK_PATTERN == COSTUME_PATTERN_SCANNER)
+#if defined(HAS_SPATIAL_METRICS) && HAS_SPATIAL_METRICS
+        uint8_t ledX = pgm_read_byte(&SPATIAL_X_BYTE[i]);
+        uint8_t scanPos = beatsin8(COSTUME_SPEED_BPM / 2, 10, 245);
+        int dist = abs((int)ledX - (int)scanPos);
+        if (dist < 26) {
+            uint8_t fade = 255 - (dist * 9);
+            CRGB c = baseColor;
+            c.nscale8_video(fade);
+            if (dist < 8) c += CRGB(100, 100, 100);
+            leds[i] = c;
+        } else {
+            CRGB dim = baseColor;
+            dim.nscale8_video(25);
+            leds[i] = dim;
+        }
+#else
         int dist = abs(effIdx - scanPos);
         if (dist < 6) {
             uint8_t fade = 255 - (dist * 42);
@@ -735,15 +751,24 @@ void renderAmbientFallback(uint32_t now) {
             dim.nscale8_video(25);
             leds[i] = dim;
         }
+#endif
 #elif defined(AMBIENT_FALLBACK_PATTERN) && (AMBIENT_FALLBACK_PATTERN == COSTUME_PATTERN_COLOR_WIPE)
+#if defined(HAS_SPATIAL_METRICS) && HAS_SPATIAL_METRICS
+        uint8_t effRank = pgm_read_byte(&SPATIAL_RANK_Y[i]);
+#if defined(COSTUME_AMBIENT_DIRECTION) && (COSTUME_AMBIENT_DIRECTION < 0)
+        effRank = (FRONT_LEDS - 1) - effRank;
+#endif
+#else
+        int effRank = effIdx;
+#endif
         if (wipeProg < 0.40f) {
             float litHead = (wipeProg / 0.40f) * FRONT_LEDS;
-            leds[i] = (effIdx <= (int)litHead) ? baseColor : CRGB::Black;
+            leds[i] = (effRank <= (int)litHead) ? baseColor : CRGB::Black;
         } else if (wipeProg < 0.58f) {
             leds[i] = baseColor;
         } else if (wipeProg < 0.88f) {
             float offHead = ((wipeProg - 0.58f) / 0.30f) * FRONT_LEDS;
-            leds[i] = (effIdx <= (int)offHead) ? CRGB::Black : baseColor;
+            leds[i] = (effRank <= (int)offHead) ? CRGB::Black : baseColor;
         } else {
             leds[i] = CRGB::Black;
         }
@@ -769,9 +794,16 @@ void renderAmbientFallback(uint32_t now) {
         flame.nscale8_video(bright);
         leds[i] = flame;
 #elif defined(AMBIENT_FALLBACK_PATTERN) && (AMBIENT_FALLBACK_PATTERN == COSTUME_PATTERN_TIDAL_RIPPLE)
+#if defined(HAS_SPATIAL_METRICS) && HAS_SPATIAL_METRICS
+        uint8_t rad = pgm_read_byte(&SPATIAL_RADIUS_BYTE[i]);
+        uint8_t wave = beatsin8(COSTUME_SPEED_BPM / 2, 40, 255, 0, rad);
+        baseColor.nscale8_video(wave);
+        leds[i] = baseColor;
+#else
         uint8_t wave = beatsin8(COSTUME_SPEED_BPM / 2, 40, 255, 0, abs(i - (FRONT_LEDS / 2)) * 8);
         baseColor.nscale8_video(wave);
         leds[i] = baseColor;
+#endif
 #elif defined(AMBIENT_FALLBACK_PATTERN) && (AMBIENT_FALLBACK_PATTERN == COSTUME_PATTERN_PISTON_CHUG)
         if (chugStep == 0 || chugStep == 2) {
             leds[i] = baseColor + CRGB(70, 70, 70);
@@ -780,6 +812,17 @@ void renderAmbientFallback(uint32_t now) {
             leds[i] = baseColor;
         }
 #elif defined(AMBIENT_FALLBACK_PATTERN) && (AMBIENT_FALLBACK_PATTERN == COSTUME_PATTERN_RAINBOW_CYCLE)
+#if defined(HAS_SPATIAL_METRICS) && HAS_SPATIAL_METRICS
+        uint8_t ledX = pgm_read_byte(&SPATIAL_X_BYTE[i]);
+        uint8_t ledY = pgm_read_byte(&SPATIAL_Y_BYTE[i]);
+        uint8_t spatialPos = (uint8_t)(((uint16_t)ledX * 180 + (uint16_t)ledY * 76) / 256);
+        uint8_t hueOffset = (uint8_t)(((now) * 256 / beatMs) % 256);
+#if defined(COSTUME_AMBIENT_DIRECTION) && (COSTUME_AMBIENT_DIRECTION < 0)
+        leds[i] = CHSV(hueOffset - spatialPos, 240, 255);
+#else
+        leds[i] = CHSV(hueOffset + spatialPos, 240, 255);
+#endif
+#else
 #if defined(COSTUME_AMBIENT_DIRECTION) && (COSTUME_AMBIENT_DIRECTION < 0)
         uint8_t hueOffset = (uint8_t)(((now) * 256 / beatMs) % 256);
         leds[i] = CHSV(hueOffset - (i * 256 / FRONT_LEDS), 240, 255);
@@ -787,13 +830,19 @@ void renderAmbientFallback(uint32_t now) {
         uint8_t hueOffset = (uint8_t)(((now) * 256 / beatMs) % 256);
         leds[i] = CHSV(hueOffset + (i * 256 / FRONT_LEDS), 240, 255);
 #endif
+#endif
 #elif defined(AMBIENT_FALLBACK_PATTERN) && (AMBIENT_FALLBACK_PATTERN == COSTUME_PATTERN_MARQUEE)
+#if defined(HAS_SPATIAL_METRICS) && HAS_SPATIAL_METRICS
+        uint8_t effRank = pgm_read_byte(&SPATIAL_RANK_Y[i]);
+#else
+        uint8_t effRank = i;
+#endif
 #if defined(COSTUME_AMBIENT_DIRECTION) && (COSTUME_AMBIENT_DIRECTION < 0)
         uint8_t step = 3 - (((now * 3) / beatMs) % 3);
 #else
         uint8_t step = ((now * 3) / beatMs) % 3;
 #endif
-        if ((i + step) % 3 == 0) {
+        if ((effRank + step) % 3 == 0) {
             leds[i] = CRGB(255, 200, 40);
         } else {
             leds[i] = CRGB(15, 12, 5);
@@ -926,6 +975,34 @@ void runAutonomousShowSequence(uint32_t now) {
                     }
                 }
             } else if (eff == 9) { // scanner
+#if defined(HAS_SPATIAL_METRICS) && HAS_SPATIAL_METRICS
+                uint8_t scanPos = beatsin8(bpm / 2, 10, 245);
+                for (int i = 0; i < FRONT_LEDS && i < MAX_LEDS_CAPACITY; i++) {
+                    uint8_t ledX = pgm_read_byte(&SPATIAL_X_BYTE[i]);
+                    int dist = abs((int)ledX - (int)scanPos);
+                    if (dist < 26) {
+                        uint8_t fade = 255 - (dist * 9);
+#if defined(HAS_CUSTOM_PALETTE) && HAS_CUSTOM_PALETTE
+                        CRGB c = ARTWORK_PALETTE[i];
+#else
+                        uint8_t floatIdx = (myFloatNumber >= 1 && myFloatNumber <= 7) ? (myFloatNumber - 1) : 0;
+                        CRGB c = FLEET_ROSTER_INFO[floatIdx].color;
+#endif
+                        c.nscale8_video(fade);
+                        if (dist < 8) c += CRGB(100, 100, 100);
+                        leds[i] = c;
+                    } else {
+#if defined(HAS_CUSTOM_PALETTE) && HAS_CUSTOM_PALETTE
+                        CRGB dim = ARTWORK_PALETTE[i];
+#else
+                        uint8_t floatIdx = (myFloatNumber >= 1 && myFloatNumber <= 7) ? (myFloatNumber - 1) : 0;
+                        CRGB dim = FLEET_ROSTER_INFO[floatIdx].color;
+#endif
+                        dim.nscale8_video(25);
+                        leds[i] = dim;
+                    }
+                }
+#else
                 uint8_t scanPos = beatsin8(bpm / 2, 0, FRONT_LEDS - 1);
                 for (int i = 0; i < FRONT_LEDS && i < MAX_LEDS_CAPACITY; i++) {
                     int dist = abs(i - scanPos);
@@ -951,6 +1028,7 @@ void runAutonomousShowSequence(uint32_t now) {
                         leds[i] = dim;
                     }
                 }
+#endif
             } else if (eff == 10) { // write_on_off / color_wipe
                 uint32_t totalCycleMs = (60000 / max((uint16_t)20, bpm)) * 4;
                 uint32_t progressMs = (now - autonomousShowStartTime) % totalCycleMs;
@@ -962,14 +1040,19 @@ void runAutonomousShowSequence(uint32_t now) {
                     uint8_t floatIdx = (myFloatNumber >= 1 && myFloatNumber <= 7) ? (myFloatNumber - 1) : 0;
                     CRGB baseColor = FLEET_ROSTER_INFO[floatIdx].color;
 #endif
+#if defined(HAS_SPATIAL_METRICS) && HAS_SPATIAL_METRICS
+                    uint8_t effRank = pgm_read_byte(&SPATIAL_RANK_Y[i]);
+#else
+                    uint8_t effRank = i;
+#endif
                     if (progress < 0.40f) {
                         float litHead = (progress / 0.40f) * FRONT_LEDS;
-                        leds[i] = (i <= (int)litHead) ? baseColor : CRGB::Black;
+                        leds[i] = (effRank <= (int)litHead) ? baseColor : CRGB::Black;
                     } else if (progress < 0.58f) {
                         leds[i] = baseColor;
                     } else if (progress < 0.88f) {
                         float offHead = ((progress - 0.58f) / 0.30f) * FRONT_LEDS;
-                        leds[i] = (i <= (int)offHead) ? CRGB::Black : baseColor;
+                        leds[i] = (effRank <= (int)offHead) ? CRGB::Black : baseColor;
                     } else {
                         leds[i] = CRGB::Black;
                     }
@@ -1014,6 +1097,20 @@ void runAutonomousShowSequence(uint32_t now) {
                     leds[i] = flame;
                 }
             } else if (eff == 14) { // tidal_ripple
+#if defined(HAS_SPATIAL_METRICS) && HAS_SPATIAL_METRICS
+                for (int i = 0; i < FRONT_LEDS && i < MAX_LEDS_CAPACITY; i++) {
+                    uint8_t rad = pgm_read_byte(&SPATIAL_RADIUS_BYTE[i]);
+                    uint8_t wave = beatsin8(bpm / 2, 40, 255, 0, rad);
+#if defined(HAS_CUSTOM_PALETTE) && HAS_CUSTOM_PALETTE
+                    CRGB c = ARTWORK_PALETTE[i];
+#else
+                    uint8_t floatIdx = (myFloatNumber >= 1 && myFloatNumber <= 7) ? (myFloatNumber - 1) : 0;
+                    CRGB c = FLEET_ROSTER_INFO[floatIdx].color;
+#endif
+                    c.nscale8_video(wave);
+                    leds[i] = c;
+                }
+#else
                 for (int i = 0; i < FRONT_LEDS && i < MAX_LEDS_CAPACITY; i++) {
                     uint8_t wave = beatsin8(bpm / 2, 40, 255, 0, abs(i - (FRONT_LEDS / 2)) * 8);
 #if defined(HAS_CUSTOM_PALETTE) && HAS_CUSTOM_PALETTE
@@ -1025,6 +1122,7 @@ void runAutonomousShowSequence(uint32_t now) {
                     c.nscale8_video(wave);
                     leds[i] = c;
                 }
+#endif
             } else if (eff == 15) { // piston_chug
                 uint32_t beatMs = 60000 / max((uint16_t)20, bpm);
                 uint8_t chugStep = ((now / max((uint32_t)20, beatMs / 2)) % 4);
@@ -1045,7 +1143,14 @@ void runAutonomousShowSequence(uint32_t now) {
             } else if (eff == 16) { // rainbow_cycle — flowing chromatic wave
                 uint8_t hueOffset = (uint8_t)(((now - autonomousShowStartTime) * 256 / (60000 / max((uint16_t)20, bpm))) % 256);
                 for (int i = 0; i < FRONT_LEDS && i < MAX_LEDS_CAPACITY; i++) {
+#if defined(HAS_SPATIAL_METRICS) && HAS_SPATIAL_METRICS
+                    uint8_t ledX = pgm_read_byte(&SPATIAL_X_BYTE[i]);
+                    uint8_t ledY = pgm_read_byte(&SPATIAL_Y_BYTE[i]);
+                    uint8_t spatialPos = (uint8_t)(((uint16_t)ledX * 180 + (uint16_t)ledY * 76) / 256);
+                    leds[i] = CHSV(hueOffset + spatialPos, 240, 255);
+#else
                     leds[i] = CHSV(hueOffset + (i * 256 / FRONT_LEDS), 240, 255);
+#endif
                 }
             } else if (eff == 18) { // sparkle_storm — all white sparkle burst
                 fill_solid(leds, FRONT_LEDS, CRGB::Black);
