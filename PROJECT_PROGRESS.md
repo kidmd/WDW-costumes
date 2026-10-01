@@ -93,6 +93,27 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### Entry: Wire Tension Heatmap Metric Units (cm) & Single-LED Wire Isolation
+* **Date:** 2026-09-30
+* **Milestone:** Milestone 5 - Studio Workflow & Hardware Fleet Control
+* **Status:** Complete & Verified (`simulator/app.js?v=67`, `simulator/index.html`, `SIMULATOR_USER_GUIDE.md`).
+* **Notes:**
+  - **Metric Units Conversion (cm / m):**
+    - Updated `calculateWireTensionMetrics()`, `updateWireTensionUI()`, canvas wire tooltip tags, and the sidebar metrics card from imperial inches (`"`) to metric centimeters (`cm`) and meters (`m`).
+    - Strand physical run formatted as `${distCm.toFixed(1)} cm (${(distCm/100).toFixed(2)} m)`.
+    - Segment tags on canvas display directly in cm (e.g. `6.8 cm`).
+    - Legend and status badges calibrated to cm thresholds:
+      - 🔵 **Blue (`<4.5 cm`):** Excess Slack / Folding Warning.
+      - 🟢 **Green (`4.5–8.5 cm`):** Optimal Slack Sweet Spot (Flat zero-fold curve).
+      - 🟡 **Yellow (`8.5–9.2 cm`):** Snug (minimal slack).
+      - 🔴 **Red (`>9.2 cm`):** Overstretched Alert (Taut).
+  - **Single-LED Wire Isolation:**
+    - When an individual LED is selected on the canvas (`selectedLed !== null` or `selectedLeds.size === 1`), both the Wire Tension Heatmap and Standard Wiring Trace automatically isolate to only draw:
+      - **Incoming Wire:** Segment from LED $i-1 \rightarrow i$ (if $i > 0$).
+      - **Outgoing Wire:** Segment from LED $i \rightarrow i+1$ (if $i < N - 1$).
+    - Hides all other wire lines to eliminate background visual clutter while inspecting or fine-tuning single bulb positions.
+    - When multiple LEDs or no LEDs are selected, the full wiring trace across all 100 LEDs is displayed.
+
 ### Entry: 10cm Physical Wire Pitch Slack-Targeted Routing & Zero-Fold Layout Optimization
 * **Date:** 2026-09-30
 * **Milestone:** Milestone 5 - Studio Workflow & Hardware Fleet Control

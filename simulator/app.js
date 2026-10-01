@@ -3080,31 +3080,40 @@ function renderSingleShirtView(timeMs) {
     // Wire Tension Heatmap or Standard Wiring Trace
     if ((params.showWireTension || params.showWiring) && leds.length > 1) {
         ctx.save();
-        const W_IN = 18.0;
-        const H_IN = 24.0;
+        const SHIRT_PHYSICAL_WIDTH_CM = 18.0 * 2.54;
+        const SHIRT_PHYSICAL_HEIGHT_CM = 24.0 * 2.54;
+
+        const singleSelIdx = (selectedLeds && selectedLeds.size === 1)
+            ? Array.from(selectedLeds)[0]
+            : (selectedLed !== null && (!selectedLeds || selectedLeds.size <= 1) ? selectedLed : null);
 
         if (params.showWireTension) {
             // Draw each segment with tension-coded color & thickness
             for (let i = 0; i < leds.length - 1; i++) {
+                // If a single LED is selected, isolate and only render incoming (i === singleSelIdx - 1) and outgoing (i === singleSelIdx) wires
+                if (singleSelIdx !== null && i !== singleSelIdx - 1 && i !== singleSelIdx) {
+                    continue;
+                }
+
                 const p1 = normToCanvas(leds[i]);
                 const p2 = normToCanvas(leds[i + 1]);
-                const dxIn = (leds[i + 1].x - leds[i].x) * W_IN;
-                const dyIn = (leds[i + 1].y - leds[i].y) * H_IN;
-                const distIn = Math.hypot(dxIn, dyIn);
+                const dxCm = (leds[i + 1].x - leds[i].x) * SHIRT_PHYSICAL_WIDTH_CM;
+                const dyCm = (leds[i + 1].y - leds[i].y) * SHIRT_PHYSICAL_HEIGHT_CM;
+                const distCm = Math.hypot(dxCm, dyCm);
 
-                let strokeCol = 'rgba(0, 255, 136, 0.85)'; // Green optimal slack (1.77" - 3.35" / 4.5cm - 8.5cm)
+                let strokeCol = 'rgba(0, 255, 136, 0.85)'; // Green optimal slack (4.5cm - 8.5cm)
                 let lineW = 2.2;
                 let isAlert = false;
 
-                if (distIn > 3.62) {
-                    strokeCol = 'rgba(255, 51, 102, 0.95)'; // Red alert (>3.62" / >9.2cm taut)
+                if (distCm > 9.2) {
+                    strokeCol = 'rgba(255, 51, 102, 0.95)'; // Red alert (>9.2cm taut)
                     lineW = 3.6;
                     isAlert = true;
-                } else if (distIn > 3.35) {
-                    strokeCol = 'rgba(255, 193, 7, 0.85)'; // Yellow snug (3.35" - 3.62" / 8.5cm - 9.2cm)
+                } else if (distCm > 8.5) {
+                    strokeCol = 'rgba(255, 193, 7, 0.85)'; // Yellow snug (8.5cm - 9.2cm)
                     lineW = 2.6;
-                } else if (distIn < 1.77) {
-                    strokeCol = 'rgba(56, 189, 248, 0.85)'; // Blue fold warning (<1.77" / <4.5cm excessive slack)
+                } else if (distCm < 4.5) {
+                    strokeCol = 'rgba(56, 189, 248, 0.85)'; // Blue fold warning (<4.5cm excessive slack)
                     lineW = 1.8;
                 }
 
@@ -3121,8 +3130,10 @@ function renderSingleShirtView(timeMs) {
                 ctx.stroke();
                 ctx.setLineDash([]);
 
-                // If over-stretched alert or hovered or zoomed, render distance label at segment midpoint
-                if (isAlert || (hoveredLed === i || hoveredLed === i + 1) || (selectedLed === i || selectedLed === i + 1) || zoomScale > 1.4) {
+                // If over-stretched alert or hovered or selected or zoomed, render distance label at segment midpoint
+                const isHoverSegment = (hoveredLed === i || hoveredLed === i + 1);
+                const isSelectedSegment = (singleSelIdx !== null && (singleSelIdx === i || singleSelIdx === i + 1)) || (selectedLed === i || selectedLed === i + 1);
+                if (isAlert || isHoverSegment || isSelectedSegment || zoomScale > 1.4) {
                     const midX = (p1.x + p2.x) / 2;
                     const midY = (p1.y + p2.y) / 2;
 
@@ -3130,7 +3141,7 @@ function renderSingleShirtView(timeMs) {
                     ctx.fillStyle = isAlert ? 'rgba(255, 51, 102, 0.9)' : 'rgba(13, 17, 23, 0.85)';
                     ctx.strokeStyle = isAlert ? '#fff' : strokeCol;
                     ctx.lineWidth = 1;
-                    const tagTxt = `${distIn.toFixed(1)}"`;
+                    const tagTxt = `${distCm.toFixed(1)} cm`;
                     ctx.font = 'bold 9px monospace';
                     const tw = ctx.measureText(tagTxt).width;
                     ctx.fillRect(midX - tw / 2 - 3, midY - 6, tw + 6, 12);
@@ -3154,11 +3165,27 @@ function renderSingleShirtView(timeMs) {
         } else {
             // Standard gold dashed wiring trace
             ctx.beginPath();
-            const p0 = normToCanvas(leds[0]);
-            ctx.moveTo(p0.x, p0.y);
-            for (let i = 1; i < leds.length; i++) {
-                const pt = normToCanvas(leds[i]);
-                ctx.lineTo(pt.x, pt.y);
+            if (singleSelIdx !== null) {
+                // If a single LED is selected, only draw incoming and outgoing wires
+                if (singleSelIdx > 0) {
+                    const pInFrom = normToCanvas(leds[singleSelIdx - 1]);
+                    const pInTo = normToCanvas(leds[singleSelIdx]);
+                    ctx.moveTo(pInFrom.x, pInFrom.y);
+                    ctx.lineTo(pInTo.x, pInTo.y);
+                }
+                if (singleSelIdx < leds.length - 1) {
+                    const pOutFrom = normToCanvas(leds[singleSelIdx]);
+                    const pOutTo = normToCanvas(leds[singleSelIdx + 1]);
+                    ctx.moveTo(pOutFrom.x, pOutFrom.y);
+                    ctx.lineTo(pOutTo.x, pOutTo.y);
+                }
+            } else {
+                const p0 = normToCanvas(leds[0]);
+                ctx.moveTo(p0.x, p0.y);
+                for (let i = 1; i < leds.length; i++) {
+                    const pt = normToCanvas(leds[i]);
+                    ctx.lineTo(pt.x, pt.y);
+                }
             }
             ctx.strokeStyle = 'rgba(255, 193, 7, 0.55)';
             ctx.lineWidth = 1.8;
@@ -3167,21 +3194,24 @@ function renderSingleShirtView(timeMs) {
             ctx.setLineDash([]);
         }
 
-        // Highlight Start LED 0 (Green indicator ring)
-        const p0 = normToCanvas(leds[0]);
-        ctx.beginPath();
-        ctx.arc(p0.x, p0.y, 9.5, 0, Math.PI * 2);
-        ctx.strokeStyle = '#00ff88';
-        ctx.lineWidth = 2.5;
-        ctx.stroke();
+        // Highlight Start LED 0 (Green indicator ring) and End LED (Red indicator ring)
+        if (singleSelIdx === null || singleSelIdx === 0) {
+            const p0 = normToCanvas(leds[0]);
+            ctx.beginPath();
+            ctx.arc(p0.x, p0.y, 9.5, 0, Math.PI * 2);
+            ctx.strokeStyle = '#00ff88';
+            ctx.lineWidth = 2.5;
+            ctx.stroke();
+        }
 
-        // Highlight End LED (Red indicator ring)
-        const pEnd = normToCanvas(leds[leds.length - 1]);
-        ctx.beginPath();
-        ctx.arc(pEnd.x, pEnd.y, 9.5, 0, Math.PI * 2);
-        ctx.strokeStyle = '#ff4d6d';
-        ctx.lineWidth = 2.5;
-        ctx.stroke();
+        if (singleSelIdx === null || singleSelIdx === leds.length - 1) {
+            const pEnd = normToCanvas(leds[leds.length - 1]);
+            ctx.beginPath();
+            ctx.arc(pEnd.x, pEnd.y, 9.5, 0, Math.PI * 2);
+            ctx.strokeStyle = '#ff4d6d';
+            ctx.lineWidth = 2.5;
+            ctx.stroke();
+        }
         ctx.restore();
     }
 
@@ -10819,7 +10849,7 @@ document.getElementById('inspectMaxSpanBtn')?.addEventListener('click', () => {
     selectedLed = metrics.maxSpanTo;
     updateLedInspectorUI();
     focusOnLed(metrics.maxSpanFrom);
-    showToast(`🔍 Longest wire span: #${metrics.maxSpanFrom} → #${metrics.maxSpanTo} (${metrics.maxSpanInches.toFixed(2)}")`);
+    showToast(`🔍 Longest wire span: #${metrics.maxSpanFrom} → #${metrics.maxSpanTo} (${metrics.maxSpanCm.toFixed(1)} cm)`);
     markSingleShirtDirty();
 });
 
@@ -10929,20 +10959,21 @@ function showToast(message) {
 // ============================================================================
 // FEATURE 2: WIRE TENSION & PHYSICAL SPACING ENGINE
 // ============================================================================
-const SHIRT_PHYSICAL_WIDTH_IN = 18.0;
-const SHIRT_PHYSICAL_HEIGHT_IN = 24.0;
+const SHIRT_PHYSICAL_WIDTH_CM = 18.0 * 2.54;
+const SHIRT_PHYSICAL_HEIGHT_CM = 24.0 * 2.54;
 
 function calculateWireTensionMetrics() {
     if (!leds || leds.length < 2) {
         return {
-            totalLengthInches: 0,
-            avgPitchInches: 0,
-            maxSpanInches: 0,
+            totalLengthCm: 0,
+            avgPitchCm: 0,
+            maxSpanCm: 0,
             maxSpanFrom: 0,
             maxSpanTo: 0,
             overStretchedCount: 0,
             snugCount: 0,
-            slackCount: 0,
+            optimalCount: 0,
+            foldingCount: 0,
             segments: []
         };
     }
@@ -10956,16 +10987,16 @@ function calculateWireTensionMetrics() {
     let foldingCount = 0;
     const segments = [];
 
-    // Calibrated for 10.0cm (3.937") physical wire pitch:
-    // Excessive fold: < 1.77" (< 4.5 cm, leaves > 2.16" / 5.5cm slack to fold!)
-    // Optimal Sweet Spot: 1.77" to 3.35" (4.5 cm to 8.5 cm, gentle 0.6"-2.1" curve, ZERO folds!)
-    // Snug: 3.35" to 3.62" (8.5 cm to 9.2 cm, minimal slack)
-    // Over-stretched Alert: > 3.62" (> 9.2 cm, risks pulling or breaking 10cm wire)
+    // Calibrated for 10.0cm physical wire pitch:
+    // Excessive fold: < 4.5 cm (leaves > 5.5cm excess slack requiring folding)
+    // Optimal Sweet Spot: 4.5 cm to 8.5 cm (gentle curve, zero folds)
+    // Snug: 8.5 cm to 9.2 cm (minimal slack)
+    // Over-stretched Alert: > 9.2 cm (risks pulling or breaking 10.0cm wire)
     for (let i = 0; i < leds.length - 1; i++) {
         const p1 = leds[i];
         const p2 = leds[i + 1];
-        const dx = (p2.x - p1.x) * SHIRT_PHYSICAL_WIDTH_IN;
-        const dy = (p2.y - p1.y) * SHIRT_PHYSICAL_HEIGHT_IN;
+        const dx = (p2.x - p1.x) * SHIRT_PHYSICAL_WIDTH_CM;
+        const dy = (p2.y - p1.y) * SHIRT_PHYSICAL_HEIGHT_CM;
         const dist = Math.hypot(dx, dy);
         totalLen += dist;
         if (dist > maxSpan) {
@@ -10975,13 +11006,13 @@ function calculateWireTensionMetrics() {
         }
 
         let status = 'optimal';
-        if (dist > 3.62) {
+        if (dist > 9.2) {
             status = 'alert';
             overCount++;
-        } else if (dist > 3.35) {
+        } else if (dist > 8.5) {
             status = 'snug';
             snugCount++;
-        } else if (dist < 1.77) {
+        } else if (dist < 4.5) {
             status = 'folding';
             foldingCount++;
         } else {
@@ -10991,15 +11022,15 @@ function calculateWireTensionMetrics() {
         segments.push({
             from: i,
             to: i + 1,
-            distInches: dist,
+            distCm: dist,
             status: status
         });
     }
 
     return {
-        totalLengthInches: totalLen,
-        avgPitchInches: totalLen / (leds.length - 1),
-        maxSpanInches: maxSpan,
+        totalLengthCm: totalLen,
+        avgPitchCm: totalLen / (leds.length - 1),
+        maxSpanCm: maxSpan,
         maxSpanFrom: maxFrom,
         maxSpanTo: maxTo,
         overStretchedCount: overCount,
@@ -11023,19 +11054,18 @@ function updateWireTensionUI() {
     const metrics = calculateWireTensionMetrics();
     const totalLengthVal = document.getElementById('tensionTotalLengthVal');
     if (totalLengthVal) {
-        const ft = (metrics.totalLengthInches / 12.0).toFixed(1);
-        totalLengthVal.textContent = `${metrics.totalLengthInches.toFixed(1)}" (${ft} ft)`;
+        const m = (metrics.totalLengthCm / 100.0).toFixed(2);
+        totalLengthVal.textContent = `${metrics.totalLengthCm.toFixed(1)} cm (${m} m)`;
     }
 
     const avgPitchVal = document.getElementById('tensionAvgPitchVal');
     if (avgPitchVal) {
-        const cm = (metrics.avgPitchInches * 2.54).toFixed(1);
-        avgPitchVal.textContent = `${metrics.avgPitchInches.toFixed(2)}" (${cm} cm)`;
+        avgPitchVal.textContent = `${metrics.avgPitchCm.toFixed(1)} cm`;
     }
 
     const maxSpanVal = document.getElementById('tensionMaxSpanVal');
     if (maxSpanVal) {
-        maxSpanVal.textContent = `${metrics.maxSpanInches.toFixed(2)}" (#${metrics.maxSpanFrom} → #${metrics.maxSpanTo})`;
+        maxSpanVal.textContent = `${metrics.maxSpanCm.toFixed(1)} cm (#${metrics.maxSpanFrom} → #${metrics.maxSpanTo})`;
     }
 
     const statusBadge = document.getElementById('tensionStatusBadge');
@@ -11044,17 +11074,17 @@ function updateWireTensionUI() {
             statusBadge.style.background = 'rgba(255, 51, 102, 0.2)';
             statusBadge.style.color = '#ff4d6d';
             statusBadge.style.borderColor = 'rgba(255, 51, 102, 0.5)';
-            statusBadge.textContent = `⚠️ ${metrics.overStretchedCount} Taut (>3.6")`;
+            statusBadge.textContent = `⚠️ ${metrics.overStretchedCount} Taut (>9.2 cm)`;
         } else if (metrics.foldingCount > 10) {
             statusBadge.style.background = 'rgba(56, 189, 248, 0.15)';
             statusBadge.style.color = '#38bdf8';
             statusBadge.style.borderColor = 'rgba(56, 189, 248, 0.4)';
-            statusBadge.textContent = `🔵 ${metrics.foldingCount} Fold (<1.8")`;
+            statusBadge.textContent = `🔵 ${metrics.foldingCount} Fold (<4.5 cm)`;
         } else if (metrics.snugCount > 0) {
             statusBadge.style.background = 'rgba(255, 193, 7, 0.15)';
             statusBadge.style.color = '#ffb703';
             statusBadge.style.borderColor = 'rgba(255, 193, 7, 0.4)';
-            statusBadge.textContent = `🟡 ${metrics.snugCount} Snug (3.3-3.6")`;
+            statusBadge.textContent = `🟡 ${metrics.snugCount} Snug (8.5–9.2 cm)`;
         } else {
             statusBadge.style.background = 'rgba(0, 255, 136, 0.15)';
             statusBadge.style.color = '#00ff88';

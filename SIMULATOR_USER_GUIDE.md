@@ -131,7 +131,7 @@ The sidebar navigation is organized into a clean **2-row × 3-column grid** that
      - `Show Wiring Trace` and `Show Bulb Numbers` inspection toggles.
      - **🧵 Show Vinyl Pill Slots (6×3mm) & Tangent Pebble LEDs:** Toggles ultra-realistic fabrication view modeling the physical mesh pinnie vest. Renders the exact $6.0\,\text{mm} \times 3.0\,\text{mm}$ HTV vinyl pill cutout exposing the dark mesh weave, with tangent-aligned $4.0\,\text{mm} \times 3.0\,\text{mm}$ clear epoxy resin pebble LEDs oriented along the natural flow of the wire to minimize wire bending and solder fatigue.
      - **✂️ Export Cut SVG (with 6×3mm Pill Slots):** 1-Click button in Section 2 opening the **Cricut HTV Cut File Exporter Modal**. Allows instant download of the complete multi-layer artwork with pre-punched tangent pill slots, mat-by-mat SVGs for each color vinyl sheet with 4-corner heat press registration marks, or standalone cutout templates.
-     - **🧵 Wire Tension & Physical Spacing Heatmap:** Real-time physical distance validation between consecutive LEDs ($18" \times 24"$ garment model). Color-codes segments as 🟢 Slack (`<1.8"`), 🟡 Snug (`1.8–2.4"`), or 🔴 Alert (`>2.4"`), displays strand metrics (total length, average pitch, max span), and includes a `🔍 Inspect Max Span` tool to immediately locate tight spans.
+      - **🧵 Wire Tension & Physical Spacing Heatmap (in cm) & Single-LED Wire Isolation:** Real-time physical distance validation between consecutive LEDs ($18" \times 24"$ garment model) displayed in centimeters (`cm`) and meters (`m`). Color-codes segments as 🔵 Fold (`<4.5 cm`), 🟢 Optimal Slack (`4.5–8.5 cm`), 🟡 Snug (`8.5–9.2 cm`), or 🔴 Taut Alert (`>9.2 cm`), displays strand metrics (total length, average pitch, max span), and includes a `🔍 Inspect Max Span` tool to immediately locate tight spans. Selecting any single LED on canvas automatically isolates and displays only its incoming ($i-1 \rightarrow i$) and outgoing ($i \rightarrow i+1$) wire segments, eliminating visual clutter!
    - **🪞 Bilateral Symmetry & Mirror Tool:**
      - `Show Centerline Axis (x = 50%)`: Dashed purple/cyan vertical guide with illuminated badges for precise centering.
      - `Live Mirror Drag (Sync Paired LEDs)`: Dragging any bulb automatically mirrors the movement of its symmetrical partner across the centerline in real time.
@@ -386,10 +386,11 @@ Attaching LEDs to a shirt by hand can easily result in tangled wire spaghetti or
 5. **Interactive Controls:**
    - Click **`🔌 Optimize Wiring Route (10cm Slack)`** in Tab 1 to re-route all LEDs with this slack optimization.
    - Toggle **`🧵 Wire Tension Heatmap`** to view color-coded segments:
-     - 🔵 **Blue (`<1.8"` / `<4.5 cm`):** Excess Slack / Folding Warning.
-     - 🟢 **Green (`1.8"–3.3"` / `4.5–8.5 cm`):** Optimal Slack Sweet Spot (Flat, zero-fold fit).
-     - 🟡 **Yellow (`3.3"–3.6"` / `8.5–9.2 cm`):** Snug (minimal slack).
-     - 🔴 **Red (`>3.6"` / `>9.2 cm`):** Overstretched Alert.
+      - 🔵 **Blue (`<4.5 cm`):** Excess Slack / Folding Warning.
+      - 🟢 **Green (`4.5–8.5 cm`):** Optimal Slack Sweet Spot (Flat, zero-fold fit).
+      - 🟡 **Yellow (`8.5–9.2 cm`):** Snug (minimal slack).
+      - 🔴 **Red (`>9.2 cm`):** Overstretched Alert (Taut).
+   - **Single LED Selection Isolation:** Selecting any individual LED automatically isolates the wiring visualization to only the segment arriving at the LED ($i-1 \rightarrow i$) and the segment departing from it ($i \rightarrow i+1$), removing background wire clutter for focused alignment.
 
 ### 🎆 Fireworks Starburst Generator, Multi-Burst Stamping, & Scaling
 Creating radial fireworks bursts requires clean geometry, flexible placement, and predictable physical wiring:
