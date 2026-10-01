@@ -670,7 +670,8 @@ void renderAmbientFallback(uint32_t now) {
 #if defined(AMBIENT_FALLBACK_PATTERN) && (AMBIENT_FALLBACK_PATTERN == COSTUME_PATTERN_BREATHING_GLOW)
     uint8_t breath = beatsin8(COSTUME_SPEED_BPM / 2, 40, 255);
 #elif defined(AMBIENT_FALLBACK_PATTERN) && (AMBIENT_FALLBACK_PATTERN == COSTUME_PATTERN_COMET)
-    uint8_t cometHead = ((now / max((uint32_t)10, beatMs / 8)) % FRONT_LEDS);
+    uint32_t passMs = max((uint32_t)900, (uint32_t)(beatMs * 3 / 2));
+    uint8_t cometHead = (uint8_t)(((uint64_t)now * FRONT_LEDS / passMs) % FRONT_LEDS);
 #elif defined(AMBIENT_FALLBACK_PATTERN) && (AMBIENT_FALLBACK_PATTERN == COSTUME_PATTERN_SCANNER)
     uint8_t scanPos = beatsin8(COSTUME_SPEED_BPM / 2, 0, FRONT_LEDS - 1);
 #elif defined(AMBIENT_FALLBACK_PATTERN) && (AMBIENT_FALLBACK_PATTERN == COSTUME_PATTERN_COLOR_WIPE)
@@ -711,15 +712,15 @@ void renderAmbientFallback(uint32_t now) {
         }
 #elif defined(AMBIENT_FALLBACK_PATTERN) && (AMBIENT_FALLBACK_PATTERN == COSTUME_PATTERN_COMET)
         int dist = (cometHead - effIdx + FRONT_LEDS) % FRONT_LEDS;
-        if (dist < 10) {
-            uint8_t fade = 255 - (dist * 25);
+        if (dist < 18) {
+            uint8_t fade = 255 - (dist * 14);
             CRGB c = baseColor;
             c.nscale8_video(fade);
             if (dist == 0) c += CRGB(120, 120, 120);
             leds[i] = c;
         } else {
             CRGB dim = baseColor;
-            dim.nscale8_video(25);
+            dim.nscale8_video(20);
             leds[i] = dim;
         }
 #elif defined(AMBIENT_FALLBACK_PATTERN) && (AMBIENT_FALLBACK_PATTERN == COSTUME_PATTERN_SCANNER)
@@ -773,9 +774,9 @@ void renderAmbientFallback(uint32_t now) {
             leds[i] = CRGB::Black;
         }
 #elif defined(AMBIENT_FALLBACK_PATTERN) && (AMBIENT_FALLBACK_PATTERN == COSTUME_PATTERN_PIXIE_DUST)
-        uint8_t wave = beatsin8(COSTUME_SPEED_BPM / 3, 40, 180, 0, i * 4);
+        uint8_t wave = beatsin8(COSTUME_SPEED_BPM / 4, 80, 210, 0, i * 4);
         baseColor.nscale8_video(wave);
-        if (random16(1000) < 18) {
+        if (random16(1000) < 12) {
             leds[i] = getSparkleColor();
         } else {
             leds[i] = baseColor;
@@ -788,8 +789,8 @@ void renderAmbientFallback(uint32_t now) {
         baseColor.b = qsub8(baseColor.b, 35);
         leds[i] = baseColor;
 #elif defined(AMBIENT_FALLBACK_PATTERN) && (AMBIENT_FALLBACK_PATTERN == COSTUME_PATTERN_CANDLE_FLICKER)
-        uint8_t flick = inoise8(i * 60, now / 8);
-        uint8_t bright = map(flick, 0, 255, 60, 255);
+        uint8_t flick = inoise8(i * 35, now / 24);
+        uint8_t bright = map(flick, 0, 255, 110, 255);
         CRGB flame = CRGB(255, 150, 30);
         flame.nscale8_video(bright);
         leds[i] = flame;

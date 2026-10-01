@@ -1548,14 +1548,15 @@ function evalGroupEffect(grp, effect, bpm, dir, grpIndex, grpSize, timeMs, c) {
             break;
         }
         case 'comet': {
-            const head = ((grpNormTime * direction) % grpSize + grpSize) % grpSize;
+            const grpCometMs = Math.max(600, grpBeatMs * 1.2);
+            const head = (((effectiveTimeMs / grpCometMs) * direction * grpSize) % grpSize + grpSize) % grpSize;
             const tailLen = Math.max(3, Math.min(grpSize * 0.75, 12));
             let dist = (direction >= 0) ? (head - grpIndex) : (grpIndex - head);
             if (dist < 0) dist += grpSize;
             if (dist < tailLen) {
                 const fade = Math.exp(-dist * (2.8 / tailLen));
                 grpIntensity = 0.08 + 0.92 * fade;
-                if (dist < 0.9) {
+                if (dist < 1.0) {
                     baseR = Math.min(255, baseR + 90);
                     baseG = Math.min(255, baseG + 90);
                     baseB = Math.min(255, baseB + 90);
@@ -1754,15 +1755,16 @@ function evalGroupEffect(grp, effect, bpm, dir, grpIndex, grpSize, timeMs, c) {
             break;
         }
         case 'pixie_dust': {
-            const drift = Math.sin(grpNormTime * 1.5 + grpIndex * 0.4) * 0.3 + 0.7;
-            const twinkle = Math.sin(effectiveTimeMs * 0.05 + grpIndex * 43.17) * 0.5 + 0.5;
-            if (twinkle > 0.75) {
-                grpIntensity = 1.0;
-                baseR = Math.min(255, baseR + 110);
-                baseG = Math.min(255, baseG + 110);
-                baseB = Math.min(255, baseB + 110);
+            const drift = Math.sin(grpNormTime * 0.5 + grpIndex * 0.25) * 0.22 + 0.78;
+            const twinkle = Math.sin(effectiveTimeMs * 0.006 + grpIndex * 37.17) * 0.5 + 0.5;
+            if (twinkle > 0.82) {
+                const twFactor = Math.pow((twinkle - 0.82) / 0.18, 1.5);
+                grpIntensity = Math.min(1.0, 0.65 * drift + 0.35 * twFactor);
+                baseR = Math.min(255, baseR + Math.round(110 * twFactor));
+                baseG = Math.min(255, baseG + Math.round(110 * twFactor));
+                baseB = Math.min(255, baseB + Math.round(110 * twFactor));
             } else {
-                grpIntensity = 0.15 + 0.45 * drift;
+                grpIntensity = 0.55 * drift;
             }
             break;
         }
@@ -1776,10 +1778,10 @@ function evalGroupEffect(grp, effect, bpm, dir, grpIndex, grpSize, timeMs, c) {
             break;
         }
         case 'candle_flicker': {
-            const f = 0.55 + 0.25 * Math.sin(effectiveTimeMs * 0.016 + grpIndex * 19.3) +
-                             0.15 * Math.sin(effectiveTimeMs * 0.042 + grpIndex * 47.7) +
-                             0.05 * Math.sin(effectiveTimeMs * 0.095 + grpIndex * 89.1);
-            grpIntensity = Math.max(0.20, Math.min(1.0, f));
+            const slowDraft = Math.sin(effectiveTimeMs * 0.002 + grpIndex * 5.1) * 0.12;
+            const flameWaver = Math.sin(effectiveTimeMs * 0.008 + grpIndex * 17.3) * 0.09 +
+                               Math.sin(effectiveTimeMs * 0.018 + grpIndex * 37.7) * 0.05;
+            grpIntensity = Math.max(0.40, Math.min(1.0, 0.78 + slowDraft + flameWaver));
             baseR = 255;
             baseG = Math.min(255, Math.max(110, Math.round(baseG * 0.85 + 40)));
             baseB = Math.min(120, Math.round(baseB * 0.35));
@@ -2157,8 +2159,9 @@ function evalGlobalPattern(pattern, bpm, index, totalLeds, timeMs, c, hasColor, 
             const effRank = (sm && sm.rankYBottomUp && sm.rankYBottomUp[index] !== undefined)
                 ? (dir === -1 ? sm.rankYTopDown[index] : sm.rankYBottomUp[index])
                 : ((dir === -1) ? (totalLeds - 1 - index) : index);
-            const head = ((normTime * 0.45) % totalLeds + totalLeds) % totalLeds;
-            const tailLen = Math.max(8, totalLeds * 0.15);
+            const cometPassMs = Math.max(900, beatMs * 1.5);
+            const head = (((timeMs / cometPassMs) * totalLeds) % totalLeds + totalLeds) % totalLeds;
+            const tailLen = Math.max(12, totalLeds * 0.22);
             let dist = head - effRank;
             if (dist < 0) dist += totalLeds;
             if (dist < tailLen) {
@@ -2172,10 +2175,10 @@ function evalGlobalPattern(pattern, bpm, index, totalLeds, timeMs, c, hasColor, 
                     const rgb = hslToRgb(baseH / 360, 0.95, 0.50 * effIntensity);
                     r = rgb.r; g = rgb.g; b = rgb.b;
                 }
-                if (dist < 1.0) {
-                    r = Math.min(255, r + 90);
-                    g = Math.min(255, g + 90);
-                    b = Math.min(255, b + 90);
+                if (dist < 1.2) {
+                    r = Math.min(255, r + 110);
+                    g = Math.min(255, g + 110);
+                    b = Math.min(255, b + 110);
                 }
                 brightness = 1.0;
             } else {
@@ -2244,21 +2247,22 @@ function evalGlobalPattern(pattern, bpm, index, totalLeds, timeMs, c, hasColor, 
             break;
         }
         case 'pixie_dust': {
-            const drift = Math.sin(normTime * 1.5 + index * 0.25) * 0.3 + 0.7;
-            const twinkle = Math.sin(timeMs * 0.05 + index * 73.19) * 0.5 + 0.5;
+            const drift = Math.sin(normTime * 0.5 + index * 0.18) * 0.22 + 0.78;
+            const twinkle = Math.sin(timeMs * 0.006 + index * 37.17) * 0.5 + 0.5;
             if (effHasColor) {
                 r = Math.floor(effC.r * drift); g = Math.floor(effC.g * drift); b = Math.floor(effC.b * drift);
             } else {
                 const rgb = hslToRgb(baseH / 360, 0.95, 0.50 * drift);
                 r = rgb.r; g = rgb.g; b = rgb.b;
             }
-            if (twinkle > 0.72) {
-                r = Math.min(255, r + Math.round(spkCol.r * 0.45));
-                g = Math.min(255, g + Math.round(spkCol.g * 0.45));
-                b = Math.min(255, b + Math.round(spkCol.b * 0.45));
-                brightness = 1.0;
+            if (twinkle > 0.82) {
+                const twFactor = Math.pow((twinkle - 0.82) / 0.18, 1.5);
+                r = Math.min(255, r + Math.round(spkCol.r * 0.7 * twFactor));
+                g = Math.min(255, g + Math.round(spkCol.g * 0.7 * twFactor));
+                b = Math.min(255, b + Math.round(spkCol.b * 0.7 * twFactor));
+                brightness = Math.min(1.0, 0.65 * drift + 0.35 * twFactor);
             } else {
-                brightness = 0.5 * drift;
+                brightness = 0.55 * drift;
             }
             break;
         }
@@ -2279,10 +2283,10 @@ function evalGlobalPattern(pattern, bpm, index, totalLeds, timeMs, c, hasColor, 
             break;
         }
         case 'candle_flicker': {
-            const f = 0.55 + 0.25 * Math.sin(timeMs * 0.016 + index * 19.3) +
-                             0.15 * Math.sin(timeMs * 0.042 + index * 47.7) +
-                             0.05 * Math.sin(timeMs * 0.095 + index * 89.1);
-            const eff = Math.max(0.20, Math.min(1.0, f));
+            const slowDraft = Math.sin(timeMs * 0.002 + index * 5.1) * 0.12;
+            const flameWaver = Math.sin(timeMs * 0.008 + index * 17.3) * 0.09 +
+                               Math.sin(timeMs * 0.018 + index * 37.7) * 0.05;
+            const eff = Math.max(0.40, Math.min(1.0, 0.78 + slowDraft + flameWaver));
             if (effHasColor) {
                 r = Math.min(255, Math.floor(255 * eff));
                 g = Math.min(255, Math.floor(Math.max(110, effC.g * 0.85 + 40) * eff));
