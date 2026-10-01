@@ -763,20 +763,23 @@ void renderAmbientFallback(uint32_t now) {
 #elif defined(AMBIENT_FALLBACK_PATTERN) && (AMBIENT_FALLBACK_PATTERN == COSTUME_PATTERN_PIXIE_DUST)
         uint8_t wave = beatsin8(COSTUME_SPEED_BPM / 4, 80, 210, 0, i * 4);
         baseColor.nscale8_video(wave);
-        if (random16(1000) < 12) {
+        uint16_t sparkleThreshold = map(COSTUME_SPEED_BPM, 20, 180, 6, 28);
+        if (random16(1000) < sparkleThreshold) {
             leds[i] = getSparkleColor();
         } else {
             leds[i] = baseColor;
         }
 #elif defined(AMBIENT_FALLBACK_PATTERN) && (AMBIENT_FALLBACK_PATTERN == COSTUME_PATTERN_FILAMENT_GLOW)
-        uint8_t drift = inoise8(i * 40, now / 20);
+        uint32_t speedTime = (uint64_t)now * COSTUME_SPEED_BPM / 60;
+        uint8_t drift = inoise8(i * 40, speedTime / 16);
         uint8_t bright = map(drift, 0, 255, 170, 255);
         baseColor.nscale8_video(bright);
         baseColor.r = qadd8(baseColor.r, 20);
         baseColor.b = qsub8(baseColor.b, 35);
         leds[i] = baseColor;
 #elif defined(AMBIENT_FALLBACK_PATTERN) && (AMBIENT_FALLBACK_PATTERN == COSTUME_PATTERN_CANDLE_FLICKER)
-        uint8_t flick = inoise8(i * 35, now / 24);
+        uint32_t speedTime = (uint64_t)now * COSTUME_SPEED_BPM / 60;
+        uint8_t flick = inoise8(i * 35, speedTime / 18);
         uint8_t bright = map(flick, 0, 255, 110, 255);
         CRGB flame = CRGB(255, 150, 30);
         flame.nscale8_video(bright);

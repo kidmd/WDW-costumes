@@ -1601,7 +1601,7 @@ function evalGroupEffect(grp, effect, bpm, dir, grpIndex, grpSize, timeMs, c) {
             break;
         }
         case 'sparkle_storm': {
-            const rand = Math.sin(effectiveTimeMs * 0.05 + grpIndex * 37.1) * 0.5 + 0.5;
+            const rand = Math.sin(grpNormTime * 12.0 + grpIndex * 37.1) * 0.5 + 0.5;
             if (rand > 0.65) {
                 grpIntensity = 1.0;
                 baseR = Math.min(255, baseR + 80);
@@ -1755,8 +1755,8 @@ function evalGroupEffect(grp, effect, bpm, dir, grpIndex, grpSize, timeMs, c) {
             break;
         }
         case 'pixie_dust': {
-            const drift = Math.sin(grpNormTime * 0.5 + grpIndex * 0.25) * 0.22 + 0.78;
-            const twinkle = Math.sin(effectiveTimeMs * 0.006 + grpIndex * 37.17) * 0.5 + 0.5;
+            const drift = Math.sin(grpNormTime * Math.PI * 0.5 + grpIndex * 0.25) * 0.22 + 0.78;
+            const twinkle = Math.sin(grpNormTime * 6.0 + grpIndex * 37.17) * 0.5 + 0.5;
             if (twinkle > 0.82) {
                 const twFactor = Math.pow((twinkle - 0.82) / 0.18, 1.5);
                 grpIntensity = Math.min(1.0, 0.65 * drift + 0.35 * twFactor);
@@ -1769,8 +1769,8 @@ function evalGroupEffect(grp, effect, bpm, dir, grpIndex, grpSize, timeMs, c) {
             break;
         }
         case 'filament_glow': {
-            const warmDrift = Math.sin(effectiveTimeMs * 0.007 + grpIndex * 13.7) * 0.09 +
-                              Math.sin(effectiveTimeMs * 0.019 + grpIndex * 31.9) * 0.05;
+            const warmDrift = Math.sin(grpNormTime * 2.5 + grpIndex * 13.7) * 0.09 +
+                              Math.sin(grpNormTime * 6.0 + grpIndex * 31.9) * 0.05;
             grpIntensity = 0.80 + warmDrift;
             baseR = Math.min(255, Math.round(baseR * 1.08 + 15));
             baseG = Math.round(baseG * 0.94 + 5);
@@ -1778,9 +1778,9 @@ function evalGroupEffect(grp, effect, bpm, dir, grpIndex, grpSize, timeMs, c) {
             break;
         }
         case 'candle_flicker': {
-            const slowDraft = Math.sin(effectiveTimeMs * 0.002 + grpIndex * 5.1) * 0.12;
-            const flameWaver = Math.sin(effectiveTimeMs * 0.008 + grpIndex * 17.3) * 0.09 +
-                               Math.sin(effectiveTimeMs * 0.018 + grpIndex * 37.7) * 0.05;
+            const slowDraft = Math.sin(grpNormTime * 1.2 + grpIndex * 5.1) * 0.12;
+            const flameWaver = Math.sin(grpNormTime * 4.5 + grpIndex * 17.3) * 0.09 +
+                               Math.sin(grpNormTime * 9.8 + grpIndex * 37.7) * 0.05;
             grpIntensity = Math.max(0.40, Math.min(1.0, 0.78 + slowDraft + flameWaver));
             baseR = 255;
             baseG = Math.min(255, Math.max(110, Math.round(baseG * 0.85 + 40)));
@@ -2128,7 +2128,7 @@ function evalGlobalPattern(pattern, bpm, index, totalLeds, timeMs, c, hasColor, 
             break;
         }
         case 'sparkle_storm': {
-            const rand = Math.sin(timeMs * 0.05 + index * 37.1) * 0.5 + 0.5;
+            const rand = Math.sin(normTime * 12.0 + index * 37.1) * 0.5 + 0.5;
             if (rand > 0.65) {
                 r = 255; g = 255; b = 240;
                 brightness = 1.0;
@@ -2247,8 +2247,8 @@ function evalGlobalPattern(pattern, bpm, index, totalLeds, timeMs, c, hasColor, 
             break;
         }
         case 'pixie_dust': {
-            const drift = Math.sin(normTime * 0.5 + index * 0.18) * 0.22 + 0.78;
-            const twinkle = Math.sin(timeMs * 0.006 + index * 37.17) * 0.5 + 0.5;
+            const drift = Math.sin(normTime * Math.PI * 0.5 + index * 0.18) * 0.22 + 0.78;
+            const twinkle = Math.sin(normTime * 6.0 + index * 37.17) * 0.5 + 0.5;
             if (effHasColor) {
                 r = Math.floor(effC.r * drift); g = Math.floor(effC.g * drift); b = Math.floor(effC.b * drift);
             } else {
@@ -2267,8 +2267,8 @@ function evalGlobalPattern(pattern, bpm, index, totalLeds, timeMs, c, hasColor, 
             break;
         }
         case 'filament_glow': {
-            const warmDrift = Math.sin(timeMs * 0.007 + index * 13.7) * 0.09 +
-                              Math.sin(timeMs * 0.019 + index * 31.9) * 0.05;
+            const warmDrift = Math.sin(normTime * 2.5 + index * 13.7) * 0.09 +
+                              Math.sin(normTime * 6.0 + index * 31.9) * 0.05;
             const eff = 0.80 + warmDrift;
             if (effHasColor) {
                 r = Math.min(255, Math.floor((effC.r * 1.08 + 15) * eff));
@@ -2283,9 +2283,9 @@ function evalGlobalPattern(pattern, bpm, index, totalLeds, timeMs, c, hasColor, 
             break;
         }
         case 'candle_flicker': {
-            const slowDraft = Math.sin(timeMs * 0.002 + index * 5.1) * 0.12;
-            const flameWaver = Math.sin(timeMs * 0.008 + index * 17.3) * 0.09 +
-                               Math.sin(timeMs * 0.018 + index * 37.7) * 0.05;
+            const slowDraft = Math.sin(normTime * 1.2 + index * 5.1) * 0.12;
+            const flameWaver = Math.sin(normTime * 4.5 + index * 17.3) * 0.09 +
+                               Math.sin(normTime * 9.8 + index * 37.7) * 0.05;
             const eff = Math.max(0.40, Math.min(1.0, 0.78 + slowDraft + flameWaver));
             if (effHasColor) {
                 r = Math.min(255, Math.floor(255 * eff));

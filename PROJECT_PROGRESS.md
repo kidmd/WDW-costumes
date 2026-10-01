@@ -103,13 +103,15 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
     - Tied pass duration directly to tempo: `cometPassMs = Math.max(900, beatMs * 1.5)` (traverses entire shirt in 1.2s to 1.8s) with radiant starlight white leading head and 22-pixel fading glowing tail.
     - Updated both global `evalGlobalPattern` and localized group `evalGroupEffect`.
   - **Pixie Dust (`pixie_dust`):**
-    - Eliminated high-frequency 8 Hz strobe oscillation (`sin(timeMs * 0.05)`).
-    - Replaced with slow, magical undulating wave (0.5 rad/beat, ~3.5s drift) and gentle soft starlight twinkle using subtle threshold fade (`twFactor^1.5` over 0.82 threshold).
+    - Eliminated hardcoded millisecond time terms. Bound ambient luminous drift ($\pi/2\text{ rad/beat}$) and starlight twinkles ($6.0\text{ rad/beat}$) directly to `normTime` / `grpNormTime`.
+    - Speed slider (20–180 BPM) now directly accelerates and decelerates both the fairy drift waves and sparkle frequencies in real time.
   - **Candle / Lantern Flicker (`candle_flicker`):**
-    - Eliminated 15 Hz micro-jitter buzzing (`sin(timeMs * 0.095)`).
-    - Calibrated organic flame dynamics: warm gold/amber baseline (~78% brightness) combined with slow 0.3 Hz thermal draft and gentle 1.5–2.5 Hz flame flutter.
+    - Bound thermal draft ($1.2\text{ rad/beat}$) and dual flame flutter harmonics ($4.5\text{ rad/beat}$ and $9.8\text{ rad/beat}$) directly to `normTime` / `grpNormTime`.
+    - Adjusting the speed slider now visibly speeds up or slows down the organic flame flutter and lantern sway across both global baseline and group animations.
+  - **Sparkle Storm & Filament Glow:**
+    - Converted static `timeMs` to `normTime` / `grpNormTime` across `evalGlobalPattern` and `evalGroupEffect`.
   - **ESP32 Dual-Firmware Synchronization & Verification:**
-    - Mirrored all timing and math updates in `renderAmbientFallback()` within `src/main.cpp` and `arduino/MSEP_Costume/MSEP_Costume.ino`.
+    - Bound noise sample rates in `renderAmbientFallback()` within `src/main.cpp` and `arduino/MSEP_Costume/MSEP_Costume.ino` to `(now * COSTUME_SPEED_BPM / 60)`.
     - Verified compilation via PlatformIO with 0 errors (`RAM: 14.3%`, `Flash: 60.6%`).
     - Synced fresh binary artifact to `firmware/firmware.bin`.
 
