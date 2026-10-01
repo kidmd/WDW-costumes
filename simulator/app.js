@@ -94,6 +94,22 @@ carriageNoHorsesImg.onload = () => {
 };
 carriageNoHorsesImg.src = 'assets/Carriage_nohorses.png';
 
+// Spinning Turtle Artwork (High-res transparent PNG)
+const spinningTurtleImg = new Image();
+let spinningTurtleLoaded = false;
+spinningTurtleImg.onload = () => {
+    spinningTurtleLoaded = true;
+};
+spinningTurtleImg.src = 'assets/spinning_turtle.png';
+
+// Spinning Snail Artwork (High-res transparent PNG)
+const spinningSnailImg = new Image();
+let spinningSnailLoaded = false;
+spinningSnailImg.onload = () => {
+    spinningSnailLoaded = true;
+};
+spinningSnailImg.src = 'assets/spinning_snail.png';
+
 // Custom artwork image (if user uploads one or loads one from preset)
 let customArtworkImg = null;
 let currentGraphicType = 'builtin_dragon'; // 'builtin_dragon', 'cinderellas_coach', 'carriage_nohorses', 'casey_jr_train', 'title_drum', 'spinning_turtle', 'spinning_snail', 'honor_america_eagle', or 'custom_image'
@@ -103,8 +119,8 @@ let customArtworkDataUrl = null;
 const floatArtworkImgs = {
     'casey_jr_train': new Image(),
     'title_drum': new Image(),
-    'spinning_turtle': new Image(),
-    'spinning_snail': new Image(),
+    'spinning_turtle': spinningTurtleImg,
+    'spinning_snail': spinningSnailImg,
     'cinderella_coach': new Image(),
     'cinderellas_coach': new Image(),
     'petes_dragon': new Image(),
@@ -113,8 +129,8 @@ const floatArtworkImgs = {
 };
 floatArtworkImgs['casey_jr_train'].src = 'assets/cricut_svg/casey_jr_train.svg';
 floatArtworkImgs['title_drum'].src = 'assets/cricut_svg/title_drum.svg';
-floatArtworkImgs['spinning_turtle'].src = 'assets/cricut_svg/spinning_turtle.svg';
-floatArtworkImgs['spinning_snail'].src = 'assets/cricut_svg/spinning_snail.svg';
+floatArtworkImgs['spinning_turtle'].src = 'assets/spinning_turtle.png';
+floatArtworkImgs['spinning_snail'].src = 'assets/spinning_snail.png';
 floatArtworkImgs['cinderella_coach'].src = 'assets/cricut_svg/cinderella_coach.svg';
 floatArtworkImgs['cinderellas_coach'].src = 'assets/cricut_svg/cinderella_coach.svg';
 floatArtworkImgs['petes_dragon'].src = 'assets/cricut_svg/petes_dragon.svg';
@@ -125,6 +141,14 @@ function getGraphicImgForType(gType) {
     if (!gType) return defaultDragonImg;
     if (gType === 'custom_image' && customArtworkImg && customArtworkImg.complete && customArtworkImg.naturalWidth > 0) {
         return customArtworkImg;
+    }
+    if (gType === 'spinning_turtle') {
+        if (spinningTurtleImg && spinningTurtleImg.naturalWidth > 0) return spinningTurtleImg;
+        return floatArtworkImgs['spinning_turtle'];
+    }
+    if (gType === 'spinning_snail') {
+        if (spinningSnailImg && spinningSnailImg.naturalWidth > 0) return spinningSnailImg;
+        return floatArtworkImgs['spinning_snail'];
     }
     if (gType === 'cinderellas_coach' || gType === 'cinderella_coach') {
         if (cinderellasCoachImg && cinderellasCoachImg.naturalWidth > 0) return cinderellasCoachImg;
@@ -11882,8 +11906,8 @@ function boostCustomImageColor(r, g, b) {
 
 // Boost vibrancy and saturation of sampled colors so physical WS2812B LEDs shine with true character colors
 function boostLedVibrancy(r, g, b, relX, relY) {
-    // If user uploaded a custom graphic, selected Cinderella's Coach, or Carriage (No Horses), preserve and boost authentic colors!
-    if (currentGraphicType === 'custom_image' || currentGraphicType === 'cinderellas_coach' || currentGraphicType === 'carriage_nohorses') {
+    // If user uploaded a custom graphic, selected Cinderella's Coach, Carriage (No Horses), Spinning Turtle, or Spinning Snail, preserve and boost authentic colors!
+    if (currentGraphicType === 'custom_image' || currentGraphicType === 'cinderellas_coach' || currentGraphicType === 'carriage_nohorses' || currentGraphicType === 'spinning_turtle' || currentGraphicType === 'spinning_snail') {
         return boostCustomImageColor(r, g, b);
     }
 

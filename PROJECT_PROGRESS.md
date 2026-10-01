@@ -93,6 +93,26 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### Entry: Snail & Turtle Custom Graphics Clean Background Transparency, Palette Simplification & Default Integration
+* **Date:** 2026-10-01
+* **Milestone:** Milestone 5 - Studio Workflow & Graphic Asset Suite
+* **Status:** Complete & Verified (`assets/spinning_snail.png`, `assets/spinning_turtle.png`, `assets/Snail.png`, `assets/Turtle.png`, `simulator/app.js`).
+* **Notes:**
+  - **Snail Graphic Background & Palette Adjustment:**
+    - Cleaned all non-essential white studio backdrop and ground shadow from `Snail.png` to create a 100% transparent PNG backdrop.
+    - Preserved crisp spiral lights, antenna bulbs, and mouth features while eliminating stray floor reflection specks.
+    - Shifted the snail's neck/body color from dull brown to a vibrant reddish-pink (`#ff007f` / rich parade magenta) in the Disney Electrical Parade aesthetic.
+  - **Turtle Graphic Background, Palette Simplification & Outline Enhancement:**
+    - Stripped off-white studio background and interior lens transparency from `Turtle.png` to generate a crisp transparent PNG.
+    - Simplified the turtle's color palette:
+      - Greens consolidated into **2 distinct parade shades**: Bright Emerald Green (`#00a86b` / shell windows & eye lens) and Deep Turtle Green (`#184a2e` / head, neck, and body).
+      - Blues unified to a single rich Shell Navy Blue (`#214e78` for shell matrix grid and pupil).
+      - Reds unified to a single vivid Parade Red (`#e11d2e` for tie and mouth).
+    - Preserved original lead solder line art and added fine anti-aliased contour tracing along the nose bridge and snout to maintain crisp facial definition.
+  - **Simulator Engine Integration:**
+    - Configured `spinning_turtle.png` and `spinning_snail.png` as default visual backdrops for Float 03 (The Spinning Turtle) and Float 04 (The Spinning Snail) in `simulator/app.js`.
+    - Added both float types to `boostLedVibrancy` custom color rendering to ensure sampled physical LEDs pop with vibrant character colors.
+
 ### Entry: Wire Tension Heatmap Metric Units (cm) & Single-LED Wire Isolation
 * **Date:** 2026-09-30
 * **Milestone:** Milestone 5 - Studio Workflow & Hardware Fleet Control
