@@ -93,6 +93,20 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### Entry: EasyEDA Standard Compatibility Fix (KiCad 5 Module & Edge.Cuts Syntax)
+* **Date:** 2026-10-03
+* **Milestone:** Milestone 4 - Flexible PCB (FPC) Fabrication R&D
+* **Status:** Complete & Verified (`pcb/petes_dragon_easyeda.zip`, `pcb/petes_dragon_fpc.kicad_pcb`).
+* **Notes:**
+  - **Diagnosed Footprint & Outline Absence in EasyEDA Standard:**
+    - The user screenshot of EasyEDA Standard (`easyeda.com/editor`) showed only red copper traces without footprints or board outline.
+    - Root cause: EasyEDA Standard's KiCad importer was built for KiCad 4/5 syntax. KiCad 6+ renamed `(module ...)` to `(footprint ...)` and `(gr_line ...)` to `(gr_poly ...)`. EasyEDA Standard's parser successfully imported `(segment ...)` tracks but silently skipped the newer `(footprint ...)` and `(gr_poly ...)` elements.
+  - **Refactored to Universal KiCad 5 S-Expression Format:**
+    - Updated `scripts/generate_pcb_project.py` to output KiCad 5 header `(kicad_pcb (version 20171130))`.
+    - Converted all 201 components (100x WS2812B-2020 LEDs, 100x 0402 capacitors, 1x JST-PH connector) to standard KiCad 5 `(module ...)` syntax with `(fp_text ...)` and `(fp_line ...)` silkscreen boundaries.
+    - Converted `Edge.Cuts` board contour to 58 contiguous `(gr_line ...)` segments so EasyEDA Standard recognizes the `BoardOutline` layer.
+    - Verified balanced S-expressions (12,247 open/close parens) and updated `pcb/petes_dragon_easyeda.zip`.
+
 ### Entry: EasyEDA / KiCad Turnkey ZIP Package & Copper Tracks Export
 * **Date:** 2026-10-03
 * **Milestone:** Milestone 4 - Flexible PCB (FPC) Fabrication R&D

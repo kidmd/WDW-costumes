@@ -226,21 +226,31 @@ with open(cpl_path, "w", encoding="utf-8") as f:
     # Place JST connector near LED 1 (lower foot)
     f.write(f'J1,{round(led_positions_mm[0]["x"] - 5.0, 2)},{round(led_positions_mm[0]["y"] + 4.0, 2)},Top,180\n')
 
-# 7. Generate Native KiCad 7/8 PCB File (.kicad_pcb)
+# 7. Generate KiCad 5 Compatible PCB File for EasyEDA Standard & JLCPCB
+# EasyEDA Standard uses a KiCad 5 parser: requires (module ...) instead of (footprint ...)
+# and (gr_line ...) instead of (gr_poly ...) for Edge.Cuts board outline!
 kicad_path = os.path.join(PCB_DIR, "petes_dragon_fpc.kicad_pcb")
-kicad_header = """(kicad_pcb (version 20221018) (generator pcbnew)
-  (general (thickness 0.15))
-  (paper "A4")
+kicad_header = """(kicad_pcb (version 20171130) (host pcbnew "(5.1.9)-1")
+  (general
+    (thickness 0.15)
+    (drawings 0)
+    (tracks 0)
+    (zones 0)
+    (modules 201)
+    (nets 104)
+  )
+  (page A4)
   (layers
-    (0 "F.Cu" signal)
-    (31 "B.Cu" signal)
-    (36 "B.SilkS" user "B.Silkscreen")
-    (37 "F.SilkS" user "F.Silkscreen")
-    (38 "B.Mask" user)
-    (39 "F.Mask" user)
-    (44 "Edge.Cuts" user)
+    (0 F.Cu signal)
+    (31 B.Cu signal)
+    (36 B.SilkS user)
+    (37 F.SilkS user)
+    (38 B.Mask user)
+    (39 F.Mask user)
+    (44 Edge.Cuts user)
   )
   (setup
+    (last_trace_width 0.25)
     (pad_to_mask_clearance 0.05)
     (solder_mask_min_width 0.1)
   )
@@ -253,35 +263,81 @@ kicad_nets = ""
 for i in range(1, len(led_positions_mm) + 1):
     kicad_nets += f'  (net {i+2} "DATA_{i}")\n'
 
-kicad_outline_pts = " ".join([f"(xy {pt[0]} {pt[1]})" for pt in contour_pts_mm])
-kicad_outline = f"""  (gr_poly
-    (pts {kicad_outline_pts})
-    (stroke (width 0.15) (type solid)) (layer "Edge.Cuts")
+# Board Outline on Edge.Cuts using contiguous gr_line segments
+kicad_outline = ""
+num_contour_pts = len(contour_pts_mm)
+for i in range(num_contour_pts):
+    p1 = contour_pts_mm[i]
+    p2 = contour_pts_mm[(i + 1) % num_contour_pts]
+    kicad_outline += f'  (gr_line (start {p1[0]} {p1[1]}) (end {p2[0]} {p2[1]}) (layer Edge.Cuts) (width 0.15))\n'
+
+# Component Footprints using KiCad 5 (module ...) syntax
+kicad_fps = ""
+
+# JST-PH 3P Connector near back foot
+j1_x = round(led_positions_mm[0]["x"] - 5.0, 2)
+j1_y = round(led_positions_mm[0]["y"] + 4.0, 2)
+kicad_fps += f"""  (module "Connector_JST:JST_PH_S3B-PH-SM4-TB_1x03-1MP_P2.00mm_Horizontal" (layer F.Cu) (tedit 5D5A6E4F)
+    (at {j1_x} {j1_y} 180)
+    (descr "JST PH 3-pin connector")
+    (tags "JST PH 3P")
+    (path "/j1")
+    (fp_text reference "J1" (at 0 -2.5 180) (layer F.SilkS)
+      (effects (font (size 0.8 0.8) (thickness 0.15)))
+    )
+    (fp_text value "JST-PH-3P" (at 0 2.5 180) (layer F.Fab)
+      (effects (font (size 0.8 0.8) (thickness 0.15)))
+    )
+    (pad 1 smd rect (at -2.0 0 180) (size 1.0 1.6) (layers F.Cu F.Paste F.Mask) (net 1 "+5V"))
+    (pad 2 smd rect (at 0 0 180) (size 1.0 1.6) (layers F.Cu F.Paste F.Mask) (net 3 "DATA_1"))
+    (pad 3 smd rect (at 2.0 0 180) (size 1.0 1.6) (layers F.Cu F.Paste F.Mask) (net 2 "GND"))
   )
 """
 
-kicad_fps = ""
 for d in led_positions_mm:
     idx = d["id"]
     x = d["x"]
     y = d["y"]
     net_in = 2 + idx
     net_out = 3 + idx
-    kicad_fps += f"""  (footprint "LED_SMD:LED_WS2812B_PLCC4_2.0x2.0mm" (layer "F.Cu")
-    (at {x} {y} 0)
-    (property "Reference" "{d['ref']}" (at 0 -1.8 0) (layer "F.SilkS") (effects (font (size 0.6 0.6) (thickness 0.12))))
-    (property "Value" "WS2812B-2020" (at 0 1.8 0) (layer "F.Fab") (effects (font (size 0.5 0.5) (thickness 0.1))))
-    (pad "1" smd rect (at -0.85 -0.65) (size 0.6 0.5) (layers "F.Cu" "F.Paste" "F.Mask") (net 1 "+5V"))
-    (pad "2" smd rect (at -0.85 0.65) (size 0.6 0.5) (layers "F.Cu" "F.Paste" "F.Mask") (net {net_out} "DATA_{idx+1}"))
-    (pad "3" smd rect (at 0.85 0.65) (size 0.6 0.5) (layers "F.Cu" "F.Paste" "F.Mask") (net 2 "GND"))
-    (pad "4" smd rect (at 0.85 -0.65) (size 0.6 0.5) (layers "F.Cu" "F.Paste" "F.Mask") (net {net_in} "DATA_{idx}"))
+    # WS2812B-2020 LED Module
+    kicad_fps += f"""  (module "LED_SMD:LED_WS2812B_PLCC4_2.0x2.0mm" (layer F.Cu) (tedit 5D5A6E4F)
+    (at {x} {y})
+    (descr "WS2812B-2020 Addressable RGB LED")
+    (tags "WS2812B 2020")
+    (path "/led_{idx}")
+    (fp_text reference "{d['ref']}" (at 0 -1.8) (layer F.SilkS)
+      (effects (font (size 0.6 0.6) (thickness 0.12)))
+    )
+    (fp_text value "WS2812B-2020" (at 0 1.8) (layer F.Fab)
+      (effects (font (size 0.5 0.5) (thickness 0.1)))
+    )
+    (fp_line (start -1.0 -1.0) (end 1.0 -1.0) (layer F.SilkS) (width 0.12))
+    (fp_line (start 1.0 -1.0) (end 1.0 1.0) (layer F.SilkS) (width 0.12))
+    (fp_line (start 1.0 1.0) (end -1.0 1.0) (layer F.SilkS) (width 0.12))
+    (fp_line (start -1.0 1.0) (end -1.0 -1.0) (layer F.SilkS) (width 0.12))
+    (pad 1 smd rect (at -0.85 -0.65) (size 0.6 0.5) (layers F.Cu F.Paste F.Mask) (net 1 "+5V"))
+    (pad 2 smd rect (at -0.85 0.65) (size 0.6 0.5) (layers F.Cu F.Paste F.Mask) (net {net_out} "DATA_{idx+1}"))
+    (pad 3 smd rect (at 0.85 0.65) (size 0.6 0.5) (layers F.Cu F.Paste F.Mask) (net 2 "GND"))
+    (pad 4 smd rect (at 0.85 -0.65) (size 0.6 0.5) (layers F.Cu F.Paste F.Mask) (net {net_in} "DATA_{idx}"))
   )
-  (footprint "Capacitor_SMD:C_0402_1005Metric" (layer "F.Cu")
+  (module "Capacitor_SMD:C_0402_1005Metric" (layer F.Cu) (tedit 5B301BBE)
     (at {round(x+2.2, 2)} {y} 90)
-    (property "Reference" "{d['cap_ref']}" (at 0 -1.0 0) (layer "F.SilkS") (effects (font (size 0.4 0.4) (thickness 0.08))))
-    (property "Value" "100nF" (at 0 1.0 0) (layer "F.Fab") (effects (font (size 0.4 0.4) (thickness 0.08))))
-    (pad "1" smd roundrect (at -0.48 0) (size 0.56 0.62) (layers "F.Cu" "F.Paste" "F.Mask") (roundrect_rratio 0.25) (net 1 "+5V"))
-    (pad "2" smd roundrect (at 0.48 0) (size 0.56 0.62) (layers "F.Cu" "F.Paste" "F.Mask") (roundrect_rratio 0.25) (net 2 "GND"))
+    (descr "100nF 0402 Bypass Capacitor")
+    (tags "C0402")
+    (path "/cap_{idx}")
+    (fp_text reference "{d['cap_ref']}" (at 0 -1.0 90) (layer F.SilkS)
+      (effects (font (size 0.4 0.4) (thickness 0.08)))
+    )
+    (fp_text value "100nF" (at 0 1.0 90) (layer F.Fab)
+      (effects (font (size 0.4 0.4) (thickness 0.08)))
+    )
+    (fp_line (start -0.6 -0.3) (end 0.6 -0.3) (layer F.SilkS) (width 0.1))
+    (fp_line (start 0.6 -0.3) (end 0.6 0.3) (layer F.SilkS) (width 0.1))
+    (fp_line (start 0.6 0.3) (end -0.6 0.3) (layer F.SilkS) (width 0.1))
+    (fp_line (start -0.6 0.3) (end -0.6 -0.3) (layer F.SilkS) (width 0.1))
+    (pad 1 smd rect (at -0.48 0 90) (size 0.56 0.62) (layers F.Cu F.Paste F.Mask) (net 1 "+5V"))
+    (pad 2 smd rect (at 0.48 0 90) (size 0.56 0.62) (layers F.Cu F.Paste F.Mask) (net 2 "GND"))
   )
 """
 
@@ -295,7 +351,7 @@ for i in range(len(led_positions_mm) - 1):
     p1_y = round(d1["y"] + 0.65, 2)
     p2_x = round(d2["x"] + 0.85, 2)
     p2_y = round(d2["y"] - 0.65, 2)
-    kicad_tracks += f'  (segment (start {p1_x} {p1_y}) (end {p2_x} {p2_y}) (width 0.25) (layer "F.Cu") (net {net_id}))\n'
+    kicad_tracks += f'  (segment (start {p1_x} {p1_y}) (end {p2_x} {p2_y}) (width 0.25) (layer F.Cu) (net {net_id}))\n'
 
 with open(kicad_path, "w", encoding="utf-8") as f:
     f.write(kicad_header + kicad_nets + kicad_outline + kicad_fps + kicad_tracks + ")\n")
