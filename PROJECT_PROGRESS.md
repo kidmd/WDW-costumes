@@ -93,6 +93,23 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### Entry: PCB Nearest-Neighbor (2-Opt) Daisy-Chain Routing Optimization
+* **Date:** 2026-10-03
+* **Milestone:** Milestone 4 - Flexible PCB (FPC) Fabrication R&D
+* **Status:** Complete & Verified (`scripts/generate_pcb_project.py`, `pcb/pcb_preview.html`, `pcb/petes_dragon_fpc.kicad_pcb`, `pcb/petes_dragon_cpl.csv`).
+* **Notes:**
+  - **Fairy Light vs. PCB Routing Decoupling:**
+    - Kept the original 6–8cm fairy light spacing and physical wiring sequence strictly intact in `simulator/app.js` and `presets/petes_dragon_chris.json` so wearable wire slack simulation is unaffected.
+    - Decoupled the PCB copper trace routing in `scripts/generate_pcb_project.py` so that PCB traces no longer mirror the physical fairy light node order.
+  - **2-Opt Nearest-Neighbor Daisy Chain:**
+    - Computed an optimal nearest-neighbor Euclidean TSP tour with 2-opt edge-swap refinement starting at bottom-left connector J1 near Pete's back foot.
+    - Daisy-chain trace distance dropped from 12.65 units down to 2.13 units (**83.2% shorter total trace length**).
+    - Eliminated all criss-crossing hops across the dragon's torso, creating clean, short ~5–10mm interconnecting traces between adjacent LEDs.
+  - **Regenerated KiCad, CPL, and Interactive Web Inspector:**
+    - Updated `pcb/petes_dragon_fpc.kicad_pcb` netlist and copper segments.
+    - Updated `pcb/petes_dragon_cpl.csv` with optimized component indices D1..D100.
+    - Updated `pcb/pcb_preview.html` SVG copper lines and animated DIN data flow along the neighbor-to-neighbor path.
+
 ### Entry: High-Res Transparent Pete's Dragon Asset & Turnkey Flex PCB (FPC) Demo Suite
 * **Date:** 2026-10-03
 * **Milestone:** Milestone 4 - Lighting Engine & Custom Fabrication R&D

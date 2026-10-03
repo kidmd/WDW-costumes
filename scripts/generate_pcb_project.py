@@ -41,21 +41,77 @@ else:
         dragon_data = json.load(f)
         leds = dragon_data.get("leds", [])
 
+# 3. Load 100 LED coordinates & optimize PCB daisy-chain route (Neighbor-to-Neighbor)
+preset_path = os.path.join(PRESETS_DIR, "petes_dragon_chris.json")
+if not os.path.exists(preset_path):
+    preset_path = os.path.join(PRESETS_DIR, "fleet_lineup.json")
+    with open(preset_path, "r", encoding="utf-8") as f:
+        fleet = json.load(f)
+        dragon_data = fleet.get("floats", {}).get("6", {})
+        leds = dragon_data.get("leds", [])
+else:
+    with open(preset_path, "r", encoding="utf-8") as f:
+        dragon_data = json.load(f)
+        leds = dragon_data.get("leds", [])
+
+# Extract relative coordinates for daisy-chain optimization
+raw_coords = []
+for l in leds:
+    rx = (l.get("x", 0.5) - normX) / normW
+    ry = (l.get("y", 0.5) - normY) / normH
+    raw_coords.append((rx, ry))
+
+n = len(raw_coords)
+coords_arr = np.array(raw_coords)
+
+# Start node at the bottom-left foot/tail (closest to power entry connector J1)
+start_idx = int(np.argmin(coords_arr[:, 0] - coords_arr[:, 1]))
+
+unvisited = set(range(n))
+order = [start_idx]
+unvisited.remove(start_idx)
+
+while unvisited:
+    curr = order[-1]
+    dists = [(np.hypot(coords_arr[curr][0] - coords_arr[c][0], coords_arr[curr][1] - coords_arr[c][1]), c) for c in unvisited]
+    dists.sort()
+    next_node = dists[0][1]
+    order.append(next_node)
+    unvisited.remove(next_node)
+
+# 2-opt untangling algorithm for smooth planar routing
+def two_opt(route, pts):
+    best = route[:]
+    improved = True
+    while improved:
+        improved = False
+        for i in range(1, len(best) - 2):
+            for j in range(i + 1, len(best)):
+                if j - i == 1: continue
+                d1 = np.hypot(pts[best[i-1]][0] - pts[best[i]][0], pts[best[i-1]][1] - pts[best[i]][1]) + \
+                     np.hypot(pts[best[j-1]][0] - pts[best[j]][0], pts[best[j-1]][1] - pts[best[j]][1])
+                d2 = np.hypot(pts[best[i-1]][0] - pts[best[j-1]][0], pts[best[i-1]][1] - pts[best[j-1]][1]) + \
+                     np.hypot(pts[best[i]][0] - pts[best[j]][0], pts[best[i]][1] - pts[best[j]][1])
+                if d2 < d1:
+                    best[i:j] = reversed(best[i:j])
+                    improved = True
+    return best
+
+optimized_order = two_opt(order, coords_arr)
+
 led_positions_mm = []
-for i, l in enumerate(leds):
-    # Normalized relative coordinates within the dragon graphic (0.0 to 1.0)
-    rel_x = (l.get("x", 0.5) - normX) / normW
-    rel_y = (l.get("y", 0.5) - normY) / normH
-    
-    # Scale to physical millimeters on the board
+for new_idx, orig_idx in enumerate(optimized_order):
+    l = leds[orig_idx]
+    rel_x, rel_y = raw_coords[orig_idx]
     px = round(rel_x * WIDTH_MM, 2)
     py = round(rel_y * HEIGHT_MM, 2)
     col = l.get("color", {"r": 0, "g": 255, "b": 100})
     
     led_positions_mm.append({
-        "id": i + 1,
-        "ref": f"LED{i+1}",
-        "cap_ref": f"C{i+1}",
+        "id": new_idx + 1,
+        "orig_id": orig_idx,
+        "ref": f"LED{new_idx+1}",
+        "cap_ref": f"C{new_idx+1}",
         "rel_x": round(rel_x, 4),
         "rel_y": round(rel_y, 4),
         "x": px,
