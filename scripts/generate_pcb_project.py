@@ -341,20 +341,78 @@ for d in led_positions_mm:
   )
 """
 
-# KiCad Top Copper Track Segments connecting DOUT -> DIN daisy chain
+# KiCad Complete Power, Ground & Data Track Segments + Vias
 kicad_tracks = ""
+
+# J1 Power Entry Tracks
+led1 = led_positions_mm[0]
+j1_5v = (15.66, 173.6)
+j1_data = (13.66, 173.6)
+j1_gnd = (11.66, 173.6)
+
+led1_5v = (round(led1["x"] - 0.85, 2), round(led1["y"] - 0.65, 2))
+led1_din = (round(led1["x"] + 0.85, 2), round(led1["y"] - 0.65, 2))
+led1_gnd_via = (round(led1["x"] + 2.2, 2), round(led1["y"] + 1.2, 2))
+
+# J1 to LED1 tracks
+kicad_tracks += f'  (segment (start {j1_5v[0]} {j1_5v[1]}) (end {led1_5v[0]} {led1_5v[1]}) (width 0.6) (layer F.Cu) (net 1))\n'
+kicad_tracks += f'  (segment (start {j1_data[0]} {j1_data[1]}) (end {led1_din[0]} {led1_din[1]}) (width 0.3) (layer F.Cu) (net 3))\n'
+kicad_tracks += f'  (via (at {j1_gnd[0]} {j1_gnd[1]}) (size 0.8) (drill 0.4) (layers F.Cu B.Cu) (net 2))\n'
+kicad_tracks += f'  (segment (start {j1_gnd[0]} {j1_gnd[1]}) (end {led1_gnd_via[0]} {led1_gnd_via[1]}) (width 0.6) (layer B.Cu) (net 2))\n'
+
+# Per-LED local decoupling tracks and GND vias
+for d in led_positions_mm:
+    x = d["x"]
+    y = d["y"]
+    p_5v = (round(x - 0.85, 2), round(y - 0.65, 2))
+    p_gnd = (round(x + 0.85, 2), round(y + 0.65, 2))
+    c_5v = (round(x + 2.2, 2), round(y - 0.48, 2))
+    c_gnd = (round(x + 2.2, 2), round(y + 0.48, 2))
+    gnd_via = (round(x + 2.2, 2), round(y + 1.2, 2))
+    
+    # Local decoupling tracks (LED to Capacitor)
+    kicad_tracks += f'  (segment (start {p_5v[0]} {p_5v[1]}) (end {c_5v[0]} {c_5v[1]}) (width 0.4) (layer F.Cu) (net 1))\n'
+    kicad_tracks += f'  (segment (start {p_gnd[0]} {p_gnd[1]}) (end {c_gnd[0]} {c_gnd[1]}) (width 0.4) (layer F.Cu) (net 2))\n'
+    kicad_tracks += f'  (segment (start {c_gnd[0]} {c_gnd[1]}) (end {gnd_via[0]} {gnd_via[1]}) (width 0.4) (layer F.Cu) (net 2))\n'
+    kicad_tracks += f'  (via (at {gnd_via[0]} {gnd_via[1]}) (size 0.8) (drill 0.4) (layers F.Cu B.Cu) (net 2))\n'
+
+# Inter-LED Daisy-Chain Tracks (DATA on F.Cu, +5V power rail on F.Cu, and GND return bus on B.Cu)
 for i in range(len(led_positions_mm) - 1):
     d1 = led_positions_mm[i]
     d2 = led_positions_mm[i + 1]
+    
+    # 1. Serial DATA: DOUT (LED i) -> DIN (LED i+1) on F.Cu
     net_id = 3 + d1["id"]
-    p1_x = round(d1["x"] - 0.85, 2)
-    p1_y = round(d1["y"] + 0.65, 2)
-    p2_x = round(d2["x"] + 0.85, 2)
-    p2_y = round(d2["y"] - 0.65, 2)
-    kicad_tracks += f'  (segment (start {p1_x} {p1_y}) (end {p2_x} {p2_y}) (width 0.25) (layer F.Cu) (net {net_id}))\n'
+    p1_dout = (round(d1["x"] - 0.85, 2), round(d1["y"] + 0.65, 2))
+    p2_din = (round(d2["x"] + 0.85, 2), round(d2["y"] - 0.65, 2))
+    kicad_tracks += f'  (segment (start {p1_dout[0]} {p1_dout[1]}) (end {p2_din[0]} {p2_din[1]}) (width 0.25) (layer F.Cu) (net {net_id}))\n'
+    
+    # 2. +5V Power Rail: Cap i 5V pad -> Cap i+1 5V pad on F.Cu (0.5mm wide copper)
+    c1_5v = (round(d1["x"] + 2.2, 2), round(d1["y"] - 0.48, 2))
+    c2_5v = (round(d2["x"] + 2.2, 2), round(d2["y"] - 0.48, 2))
+    kicad_tracks += f'  (segment (start {c1_5v[0]} {c1_5v[1]}) (end {c2_5v[0]} {c2_5v[1]}) (width 0.5) (layer F.Cu) (net 1))\n'
+    
+    # 3. GND Return Bus: GND via i -> GND via i+1 on B.Cu (0.6mm wide copper on bottom layer)
+    v1_gnd = (round(d1["x"] + 2.2, 2), round(d1["y"] + 1.2, 2))
+    v2_gnd = (round(d2["x"] + 2.2, 2), round(d2["y"] + 1.2, 2))
+    kicad_tracks += f'  (segment (start {v1_gnd[0]} {v1_gnd[1]}) (end {v2_gnd[0]} {v2_gnd[1]}) (width 0.6) (layer B.Cu) (net 2))\n'
+
+# Add Solid Ground Plane Copper Pour (Zone) on Bottom Layer (B.Cu)
+zone_pts = " ".join([f"(xy {pt[0]} {pt[1]})" for pt in contour_pts_mm])
+kicad_zone = f"""  (zone (net 2) (net_name "GND") (layer B.Cu) (tstamp 0) (hatch edge 0.5)
+    (connect_pads yes (clearance 0.25))
+    (min_thickness 0.25)
+    (fill yes (arc_segments 16) (thermal_gap 0.25) (thermal_bridge_width 0.3))
+    (polygon
+      (pts
+        {zone_pts}
+      )
+    )
+  )
+"""
 
 with open(kicad_path, "w", encoding="utf-8") as f:
-    f.write(kicad_header + kicad_nets + kicad_outline + kicad_fps + kicad_tracks + ")\n")
+    f.write(kicad_header + kicad_nets + kicad_outline + kicad_fps + kicad_tracks + kicad_zone + ")\n")
 
 # Generate KiCad Project File (.kicad_pro)
 kicad_pro_path = os.path.join(PCB_DIR, "petes_dragon_fpc.kicad_pro")
@@ -560,10 +618,12 @@ html_content = f"""<!DOCTYPE html>
   </div>
 
   <div class="ctrl-row">
-    <button id="toggleGraphicBtn" class="active" onclick="toggleLayer('dragonGraphic')">🎨 Toggle Dragon Art</button>
-    <button id="toggleTracesBtn" class="active" onclick="toggleLayer('copperTraces')">⚡ Toggle Copper Data Traces</button>
-    <button id="toggleOutlineBtn" class="active" onclick="toggleLayer('boardOutline')">✂️ Board Outline (Edge.Cuts)</button>
-    <button id="toggleLedsBtn" class="active" onclick="toggleLayer('smtLeds')">💡 Toggle SMD LEDs</button>
+    <button id="toggleGraphicBtn" class="active" onclick="toggleLayer('dragonGraphic')">🎨 Dragon Art</button>
+    <button id="toggleOutlineBtn" class="active" onclick="toggleLayer('boardOutline')">✂️ Board Outline</button>
+    <button id="toggleDataBtn" class="active" onclick="toggleLayer('dataTraces')">⚡ Data Traces</button>
+    <button id="togglePowerBtn" class="active" onclick="toggleLayer('powerTraces')">🔋 +5V Power Rail</button>
+    <button id="toggleGndBtn" class="active" onclick="toggleLayer('groundTraces')">🛡️ GND Bus & Vias</button>
+    <button id="toggleLedsBtn" class="active" onclick="toggleLayer('smtLeds')">💡 SMD LEDs</button>
     <button id="animateDataBtn" onclick="toggleDataStream()">✨ Animate DIN Flow</button>
     <a href="petes_dragon_easyeda.zip" download style="text-decoration:none;"><button style="background: #238636; border-color: #2ea043; font-weight: 600;">📥 Download EasyEDA / KiCad ZIP</button></a>
   </div>
@@ -590,15 +650,64 @@ html_content = f"""<!DOCTYPE html>
             <image href="../assets/petes_dragon_transparent.png" x="0" y="0" width="{WIDTH_MM}" height="{HEIGHT_MM}" preserveAspectRatio="none" />
           </g>
 
-          <!-- Copper Data Daisy-Chain Traces (DOUT -> DIN) -->
-          <g id="copperTraces">
+          <!-- Ground Return Bus & Vias on Bottom Layer (B.Cu - Blue/Cyan) -->
+          <g id="groundTraces">
 """
 
-# Add copper traces connecting consecutive LEDs
+# J1 GND to LED1 via
+html_content += f'            <line x1="{j1_gnd[0]}" y1="{j1_gnd[1]}" x2="{led1_gnd_via[0]}" y2="{led1_gnd_via[1]}" stroke="#00b4d8" stroke-width="0.7" stroke-dasharray="2,1" />\n'
+html_content += f'            <circle cx="{j1_gnd[0]}" cy="{j1_gnd[1]}" r="0.7" fill="#0077b6" stroke="#90e0ef" stroke-width="0.2" />\n'
+
 for i in range(len(led_positions_mm) - 1):
-    p1 = led_positions_mm[i]
-    p2 = led_positions_mm[i + 1]
-    html_content += f'            <line x1="{p1["x"]}" y1="{p1["y"]}" x2="{p2["x"]}" y2="{p2["y"]}" stroke="#f0883e" stroke-width="0.6" stroke-linecap="round" />\n'
+    d1 = led_positions_mm[i]
+    d2 = led_positions_mm[i + 1]
+    v1_x = round(d1["x"] + 2.2, 2)
+    v1_y = round(d1["y"] + 1.2, 2)
+    v2_x = round(d2["x"] + 2.2, 2)
+    v2_y = round(d2["y"] + 1.2, 2)
+    html_content += f'            <line x1="{v1_x}" y1="{v1_y}" x2="{v2_x}" y2="{v2_y}" stroke="#00b4d8" stroke-width="0.7" stroke-dasharray="2,1" />\n'
+    html_content += f'            <circle cx="{v1_x}" cy="{v1_y}" r="0.7" fill="#0077b6" stroke="#90e0ef" stroke-width="0.2" />\n'
+
+# Last via
+last_v_x = round(led_positions_mm[-1]["x"] + 2.2, 2)
+last_v_y = round(led_positions_mm[-1]["y"] + 1.2, 2)
+html_content += f'            <circle cx="{last_v_x}" cy="{last_v_y}" r="0.7" fill="#0077b6" stroke="#90e0ef" stroke-width="0.2" />\n'
+
+html_content += """          </g>
+
+          <!-- +5V Power Rail on Top Layer (F.Cu - Red/Amber) -->
+          <g id="powerTraces">
+"""
+
+# J1 5V to LED1
+html_content += f'            <line x1="{j1_5v[0]}" y1="{j1_5v[1]}" x2="{led1_5v[0]}" y2="{led1_5v[1]}" stroke="#ef233c" stroke-width="0.7" />\n'
+
+for i in range(len(led_positions_mm) - 1):
+    d1 = led_positions_mm[i]
+    d2 = led_positions_mm[i + 1]
+    c1_x = round(d1["x"] + 2.2, 2)
+    c1_y = round(d1["y"] - 0.48, 2)
+    c2_x = round(d2["x"] + 2.2, 2)
+    c2_y = round(d2["y"] - 0.48, 2)
+    html_content += f'            <line x1="{c1_x}" y1="{c1_y}" x2="{c2_x}" y2="{c2_y}" stroke="#ef233c" stroke-width="0.7" />\n'
+
+html_content += """          </g>
+
+          <!-- Copper Data Daisy-Chain Traces (DOUT -> DIN on TopLayer - Orange) -->
+          <g id="dataTraces">
+"""
+
+# J1 data to LED1
+html_content += f'            <line x1="{j1_data[0]}" y1="{j1_data[1]}" x2="{led1_din[0]}" y2="{led1_din[1]}" stroke="#f0883e" stroke-width="0.6" stroke-linecap="round" />\n'
+
+for i in range(len(led_positions_mm) - 1):
+    d1 = led_positions_mm[i]
+    d2 = led_positions_mm[i + 1]
+    p1_dout_x = round(d1["x"] - 0.85, 2)
+    p1_dout_y = round(d1["y"] + 0.65, 2)
+    p2_din_x = round(d2["x"] + 0.85, 2)
+    p2_din_y = round(d2["y"] - 0.65, 2)
+    html_content += f'            <line x1="{p1_dout_x}" y1="{p1_dout_y}" x2="{p2_din_x}" y2="{p2_din_y}" stroke="#f0883e" stroke-width="0.6" stroke-linecap="round" />\n'
 
 html_content += """          </g>
 

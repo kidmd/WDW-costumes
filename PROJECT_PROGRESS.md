@@ -93,6 +93,21 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### Entry: Complete 3-Rail Power & Ground Routing Architecture (+5V Bus, GND Vias & B.Cu Plane)
+* **Date:** 2026-10-03
+* **Milestone:** Milestone 4 - Flexible PCB (FPC) Fabrication R&D
+* **Status:** Complete & Verified (`pcb/petes_dragon_easyeda.zip`, `pcb/petes_dragon_fpc.kicad_pcb`, `pcb/pcb_preview.html`).
+* **Notes:**
+  - **Full 3-Rail Electrical Routing:**
+    - Upgraded PCB layout from a single serial data line to a production-grade 3-rail power architecture (600 copper segments, 101 plated vias, 1 ground plane zone):
+      1. **Serial DATA Rail (Net 3..102 on `TopLayer` / `F.Cu`):** 99 neighbor-to-neighbor daisy-chain traces (0.25mm width) connecting DOUT to DIN.
+      2. **+5V Power Rail (Net 1 on `TopLayer` / `F.Cu`):** 0.6mm main feed from J1 connector, 100 local bypass decoupling traces (0.4mm), and 99 inter-LED power bus traces (0.5mm) linking all capacitor and LED +5V pads to prevent voltage drop.
+      3. **GND Return Bus & Ground Plane (Net 2 on `BottomLayer` / `B.Cu`):** 101 plated through-hole vias (0.8mm pad, 0.4mm drill) dropping GND connections directly to a solid copper ground plane zone covering the entire dragon shape, backed by a 0.6mm wide daisy-chained GND return bus.
+  - **100% Unrouted Airwires (Ratsnest) Elimination:**
+    - All 201 nodes across +5V and GND now have physical copper interconnects, completely eliminating unrouted ratsnest lines in EasyEDA.
+  - **Interactive 3-Rail Layer Inspection in Web Preview:**
+    - Updated `pcb/pcb_preview.html` with dedicated toggle controls for `⚡ Data Traces`, `🔋 +5V Power Rail`, and `🛡️ GND Bus & Vias`.
+
 ### Entry: EasyEDA Standard Compatibility Fix (KiCad 5 Module & Edge.Cuts Syntax)
 * **Date:** 2026-10-03
 * **Milestone:** Milestone 4 - Flexible PCB (FPC) Fabrication R&D
