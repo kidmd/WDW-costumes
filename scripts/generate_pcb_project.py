@@ -608,14 +608,8 @@ html_content = f"""<!DOCTYPE html>
     flex: 1;
     accent-color: #58a6ff;
   }}
-  .led-node.lit .led-halo {{
-    opacity: 0.75;
-  }}
-  .led-node.lit .led-core {{
-    filter: drop-shadow(0 0 1.2px #ffffff);
-  }}
-  .led-node .led-halo, .led-node .led-core {{
-    transition: all 0.25s ease-out;
+  .led-node rect.led-pkg, .led-node rect.led-die {{
+    transition: all 0.2s ease-out;
   }}
 </style>
 </head>
@@ -730,9 +724,8 @@ for d in led_positions_mm:
     hex_col = f'#{c.get("r",0):02x}{c.get("g",255):02x}{c.get("b",100):02x}'
     html_content += f"""            <!-- {d["ref"]} -->
             <g class="led-node" data-id="{d["id"]}" data-color="{hex_col}" transform="translate({d["x"]}, {d["y"]})">
-              <circle class="led-halo" cx="0" cy="0" r="2.6" fill="{hex_col}" opacity="0" pointer-events="none" />
-              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
-              <circle class="led-core" cx="0" cy="0" r="0.75" fill="{hex_col}" />
+              <rect class="led-pkg" x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
+              <rect class="led-die" x="-0.7" y="-0.7" width="1.4" height="1.4" fill="{hex_col}" rx="0.2" />
               <rect x="1.3" y="-0.4" width="0.8" height="0.8" fill="#a07a30" stroke="#444" stroke-width="0.1" title="{d['cap_ref']} (0402 100nF Cap)" />
             </g>
 """
@@ -828,22 +821,24 @@ function toggleLightAll() {{
   const btn = document.getElementById('lightAllBtn');
   if (btn) {{
     btn.classList.toggle('active', allLedsLit);
-    btn.innerHTML = allLedsLit ? '🌟 LEDs Lit (Click to Turn Off)' : '✨ Light Up All LEDs';
+    btn.innerHTML = allLedsLit ? '🌟 LEDs Lit (Turn Off)' : '✨ Light Up All LEDs';
     btn.style.background = allLedsLit ? '#b08800' : '';
     btn.style.borderColor = allLedsLit ? '#ffd166' : '';
   }}
   const nodes = document.querySelectorAll('.led-node');
   nodes.forEach(node => {{
     node.classList.toggle('lit', allLedsLit);
-    const halo = node.querySelector('.led-halo');
-    const core = node.querySelector('.led-core');
+    const pkg = node.querySelector('.led-pkg');
+    const die = node.querySelector('.led-die');
     const col = node.getAttribute('data-color') || '#00ff88';
-    if (halo) {{
-      halo.setAttribute('opacity', allLedsLit ? '0.75' : '0');
+    if (pkg) {{
+      pkg.setAttribute('fill', allLedsLit ? col : '#ffffff');
+      pkg.setAttribute('stroke', allLedsLit ? '#ffffff' : '#222222');
+      pkg.setAttribute('stroke-width', allLedsLit ? '0.2' : '0.15');
     }}
-    if (core) {{
-      core.setAttribute('r', allLedsLit ? '1.15' : '0.75');
-      core.setAttribute('fill', col);
+    if (die) {{
+      die.setAttribute('fill', allLedsLit ? '#ffffff' : col);
+      die.setAttribute('opacity', allLedsLit ? '0.75' : '1.0');
     }}
   }});
 }}
@@ -859,25 +854,28 @@ function toggleDataStream() {{
     streamTimer = setInterval(() => {{
       const nodes = document.querySelectorAll('.led-node');
       nodes.forEach((node, idx) => {{
-        const core = node.querySelector('.led-core');
-        const halo = node.querySelector('.led-halo');
+        const pkg = node.querySelector('.led-pkg');
+        const die = node.querySelector('.led-die');
         const col = node.getAttribute('data-color') || '#00ff88';
         const dist = Math.abs(idx - streamIdx);
-        if (dist < 4) {{
-          if (core) {{
-            core.setAttribute('r', '1.45');
-            core.setAttribute('fill', '#ffffff');
+        if (dist < 3) {{
+          if (pkg) {{
+            pkg.setAttribute('fill', '#ffffff');
+            pkg.setAttribute('stroke', '#ffffff');
           }}
-          if (halo) {{
-            halo.setAttribute('opacity', '1.0');
+          if (die) {{
+            die.setAttribute('fill', '#ffd166');
+            die.setAttribute('opacity', '1.0');
           }}
         }} else {{
-          if (core) {{
-            core.setAttribute('r', allLedsLit ? '1.15' : '0.75');
-            core.setAttribute('fill', col);
+          if (pkg) {{
+            pkg.setAttribute('fill', allLedsLit ? col : '#ffffff');
+            pkg.setAttribute('stroke', allLedsLit ? '#ffffff' : '#222222');
+            pkg.setAttribute('stroke-width', allLedsLit ? '0.2' : '0.15');
           }}
-          if (halo) {{
-            halo.setAttribute('opacity', allLedsLit ? '0.75' : '0');
+          if (die) {{
+            die.setAttribute('fill', allLedsLit ? '#ffffff' : col);
+            die.setAttribute('opacity', allLedsLit ? '0.75' : '1.0');
           }}
         }}
       }});
@@ -886,15 +884,17 @@ function toggleDataStream() {{
   }} else {{
     clearInterval(streamTimer);
     document.querySelectorAll('.led-node').forEach(node => {{
-      const core = node.querySelector('.led-core');
-      const halo = node.querySelector('.led-halo');
+      const pkg = node.querySelector('.led-pkg');
+      const die = node.querySelector('.led-die');
       const col = node.getAttribute('data-color') || '#00ff88';
-      if (core) {{
-        core.setAttribute('r', allLedsLit ? '1.15' : '0.75');
-        core.setAttribute('fill', col);
+      if (pkg) {{
+        pkg.setAttribute('fill', allLedsLit ? col : '#ffffff');
+        pkg.setAttribute('stroke', allLedsLit ? '#ffffff' : '#222222');
+        pkg.setAttribute('stroke-width', allLedsLit ? '0.2' : '0.15');
       }}
-      if (halo) {{
-        halo.setAttribute('opacity', allLedsLit ? '0.75' : '0');
+      if (die) {{
+        die.setAttribute('fill', allLedsLit ? '#ffffff' : col);
+        die.setAttribute('opacity', allLedsLit ? '0.75' : '1.0');
       }}
     }});
   }}

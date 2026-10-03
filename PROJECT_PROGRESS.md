@@ -93,6 +93,16 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### Entry: Clean Square LED Package Rendering (Removed Halo & Glow Blur) in PCB Preview
+* **Date:** 2026-10-03
+* **Milestone:** Milestone 4 - Flexible PCB (FPC) Fabrication R&D & Visual Simulation
+* **Status:** Complete & Verified (`pcb/pcb_preview.html`, `scripts/generate_pcb_project.py`).
+* **Notes:**
+  - **Crisp SMD 2020 Physical Geometry:**
+    - Per user inspection requirements, removed fuzzy radial halos (`.led-halo`) and SVG drop-shadow blur filters from the interactive PCB inspector.
+    - Rendered each addressable pixel as an authentic $2.0\text{ mm} \times 2.0\text{ mm}$ square package (`<rect class="led-pkg">`) with an inner $1.4\text{ mm} \times 1.4\text{ mm}$ optical emitter die (`<rect class="led-die">`).
+    - When illuminated via **"✨ Light Up All LEDs"** or during live animation, the square packages light up cleanly in Pete's dragon theme colors (emerald green body, golden tail lantern) without obscuring adjacent copper traces, pads, or 0402 bypass capacitors.
+
 ### Entry: Interactive "Light Up All LEDs" Illumination Simulation in PCB Preview
 * **Date:** 2026-10-03
 * **Milestone:** Milestone 4 - Flexible PCB (FPC) Fabrication R&D & Visual Simulation

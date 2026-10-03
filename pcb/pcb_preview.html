@@ -140,14 +140,8 @@
     flex: 1;
     accent-color: #58a6ff;
   }
-  .led-node.lit .led-halo {
-    opacity: 0.75;
-  }
-  .led-node.lit .led-core {
-    filter: drop-shadow(0 0 1.2px #ffffff);
-  }
-  .led-node .led-halo, .led-node .led-core {
-    transition: all 0.25s ease-out;
+  .led-node rect.led-pkg, .led-node rect.led-die {
+    transition: all 0.2s ease-out;
   }
 </style>
 </head>
@@ -609,702 +603,602 @@
           <g id="smtLeds">
             <!-- LED1 -->
             <g class="led-node" data-id="1" data-color="#0bfe00" transform="translate(18.66, 169.6)">
-              <circle class="led-halo" cx="0" cy="0" r="2.6" fill="#0bfe00" opacity="0" pointer-events="none" />
-              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
-              <circle class="led-core" cx="0" cy="0" r="0.75" fill="#0bfe00" />
+              <rect class="led-pkg" x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
+              <rect class="led-die" x="-0.7" y="-0.7" width="1.4" height="1.4" fill="#0bfe00" rx="0.2" />
               <rect x="1.3" y="-0.4" width="0.8" height="0.8" fill="#a07a30" stroke="#444" stroke-width="0.1" title="C1 (0402 100nF Cap)" />
             </g>
             <!-- LED2 -->
             <g class="led-node" data-id="2" data-color="#00fe01" transform="translate(24.71, 162.85)">
-              <circle class="led-halo" cx="0" cy="0" r="2.6" fill="#00fe01" opacity="0" pointer-events="none" />
-              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
-              <circle class="led-core" cx="0" cy="0" r="0.75" fill="#00fe01" />
+              <rect class="led-pkg" x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
+              <rect class="led-die" x="-0.7" y="-0.7" width="1.4" height="1.4" fill="#00fe01" rx="0.2" />
               <rect x="1.3" y="-0.4" width="0.8" height="0.8" fill="#a07a30" stroke="#444" stroke-width="0.1" title="C2 (0402 100nF Cap)" />
             </g>
             <!-- LED3 -->
             <g class="led-node" data-id="3" data-color="#fffaf2" transform="translate(32.51, 171.33)">
-              <circle class="led-halo" cx="0" cy="0" r="2.6" fill="#fffaf2" opacity="0" pointer-events="none" />
-              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
-              <circle class="led-core" cx="0" cy="0" r="0.75" fill="#fffaf2" />
+              <rect class="led-pkg" x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
+              <rect class="led-die" x="-0.7" y="-0.7" width="1.4" height="1.4" fill="#fffaf2" rx="0.2" />
               <rect x="1.3" y="-0.4" width="0.8" height="0.8" fill="#a07a30" stroke="#444" stroke-width="0.1" title="C3 (0402 100nF Cap)" />
             </g>
             <!-- LED4 -->
             <g class="led-node" data-id="4" data-color="#f3d900" transform="translate(50.97, 172.48)">
-              <circle class="led-halo" cx="0" cy="0" r="2.6" fill="#f3d900" opacity="0" pointer-events="none" />
-              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
-              <circle class="led-core" cx="0" cy="0" r="0.75" fill="#f3d900" />
+              <rect class="led-pkg" x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
+              <rect class="led-die" x="-0.7" y="-0.7" width="1.4" height="1.4" fill="#f3d900" rx="0.2" />
               <rect x="1.3" y="-0.4" width="0.8" height="0.8" fill="#a07a30" stroke="#444" stroke-width="0.1" title="C4 (0402 100nF Cap)" />
             </g>
             <!-- LED5 -->
             <g class="led-node" data-id="5" data-color="#00fe01" transform="translate(60.2, 171.33)">
-              <circle class="led-halo" cx="0" cy="0" r="2.6" fill="#00fe01" opacity="0" pointer-events="none" />
-              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
-              <circle class="led-core" cx="0" cy="0" r="0.75" fill="#00fe01" />
+              <rect class="led-pkg" x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
+              <rect class="led-die" x="-0.7" y="-0.7" width="1.4" height="1.4" fill="#00fe01" rx="0.2" />
               <rect x="1.3" y="-0.4" width="0.8" height="0.8" fill="#a07a30" stroke="#444" stroke-width="0.1" title="C5 (0402 100nF Cap)" />
             </g>
             <!-- LED6 -->
             <g class="led-node" data-id="6" data-color="#00fe01" transform="translate(56.97, 158.64)">
-              <circle class="led-halo" cx="0" cy="0" r="2.6" fill="#00fe01" opacity="0" pointer-events="none" />
-              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
-              <circle class="led-core" cx="0" cy="0" r="0.75" fill="#00fe01" />
+              <rect class="led-pkg" x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
+              <rect class="led-die" x="-0.7" y="-0.7" width="1.4" height="1.4" fill="#00fe01" rx="0.2" />
               <rect x="1.3" y="-0.4" width="0.8" height="0.8" fill="#a07a30" stroke="#444" stroke-width="0.1" title="C6 (0402 100nF Cap)" />
             </g>
             <!-- LED7 -->
             <g class="led-node" data-id="7" data-color="#00fe01" transform="translate(46.35, 164.98)">
-              <circle class="led-halo" cx="0" cy="0" r="2.6" fill="#00fe01" opacity="0" pointer-events="none" />
-              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
-              <circle class="led-core" cx="0" cy="0" r="0.75" fill="#00fe01" />
+              <rect class="led-pkg" x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
+              <rect class="led-die" x="-0.7" y="-0.7" width="1.4" height="1.4" fill="#00fe01" rx="0.2" />
               <rect x="1.3" y="-0.4" width="0.8" height="0.8" fill="#a07a30" stroke="#444" stroke-width="0.1" title="C7 (0402 100nF Cap)" />
             </g>
             <!-- LED8 -->
             <g class="led-node" data-id="8" data-color="#05fe00" transform="translate(41.74, 157.48)">
-              <circle class="led-halo" cx="0" cy="0" r="2.6" fill="#05fe00" opacity="0" pointer-events="none" />
-              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
-              <circle class="led-core" cx="0" cy="0" r="0.75" fill="#05fe00" />
+              <rect class="led-pkg" x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
+              <rect class="led-die" x="-0.7" y="-0.7" width="1.4" height="1.4" fill="#05fe00" rx="0.2" />
               <rect x="1.3" y="-0.4" width="0.8" height="0.8" fill="#a07a30" stroke="#444" stroke-width="0.1" title="C8 (0402 100nF Cap)" />
             </g>
             <!-- LED9 -->
             <g class="led-node" data-id="9" data-color="#fffaf2" transform="translate(37.72, 150.21)">
-              <circle class="led-halo" cx="0" cy="0" r="2.6" fill="#fffaf2" opacity="0" pointer-events="none" />
-              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
-              <circle class="led-core" cx="0" cy="0" r="0.75" fill="#fffaf2" />
+              <rect class="led-pkg" x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
+              <rect class="led-die" x="-0.7" y="-0.7" width="1.4" height="1.4" fill="#fffaf2" rx="0.2" />
               <rect x="1.3" y="-0.4" width="0.8" height="0.8" fill="#a07a30" stroke="#444" stroke-width="0.1" title="C9 (0402 100nF Cap)" />
             </g>
             <!-- LED10 -->
             <g class="led-node" data-id="10" data-color="#00fe01" transform="translate(32.51, 154.02)">
-              <circle class="led-halo" cx="0" cy="0" r="2.6" fill="#00fe01" opacity="0" pointer-events="none" />
-              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
-              <circle class="led-core" cx="0" cy="0" r="0.75" fill="#00fe01" />
+              <rect class="led-pkg" x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
+              <rect class="led-die" x="-0.7" y="-0.7" width="1.4" height="1.4" fill="#00fe01" rx="0.2" />
               <rect x="1.3" y="-0.4" width="0.8" height="0.8" fill="#a07a30" stroke="#444" stroke-width="0.1" title="C10 (0402 100nF Cap)" />
             </g>
             <!-- LED11 -->
             <g class="led-node" data-id="11" data-color="#fffaf2" transform="translate(23.09, 149.87)">
-              <circle class="led-halo" cx="0" cy="0" r="2.6" fill="#fffaf2" opacity="0" pointer-events="none" />
-              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
-              <circle class="led-core" cx="0" cy="0" r="0.75" fill="#fffaf2" />
+              <rect class="led-pkg" x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
+              <rect class="led-die" x="-0.7" y="-0.7" width="1.4" height="1.4" fill="#fffaf2" rx="0.2" />
               <rect x="1.3" y="-0.4" width="0.8" height="0.8" fill="#a07a30" stroke="#444" stroke-width="0.1" title="C11 (0402 100nF Cap)" />
             </g>
             <!-- LED12 -->
             <g class="led-node" data-id="12" data-color="#00fe02" transform="translate(21.39, 141.21)">
-              <circle class="led-halo" cx="0" cy="0" r="2.6" fill="#00fe02" opacity="0" pointer-events="none" />
-              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
-              <circle class="led-core" cx="0" cy="0" r="0.75" fill="#00fe02" />
+              <rect class="led-pkg" x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
+              <rect class="led-die" x="-0.7" y="-0.7" width="1.4" height="1.4" fill="#00fe02" rx="0.2" />
               <rect x="1.3" y="-0.4" width="0.8" height="0.8" fill="#a07a30" stroke="#444" stroke-width="0.1" title="C12 (0402 100nF Cap)" />
             </g>
             <!-- LED13 -->
             <g class="led-node" data-id="13" data-color="#00ff00" transform="translate(21.43, 138.16)">
-              <circle class="led-halo" cx="0" cy="0" r="2.6" fill="#00ff00" opacity="0" pointer-events="none" />
-              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
-              <circle class="led-core" cx="0" cy="0" r="0.75" fill="#00ff00" />
+              <rect class="led-pkg" x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
+              <rect class="led-die" x="-0.7" y="-0.7" width="1.4" height="1.4" fill="#00ff00" rx="0.2" />
               <rect x="1.3" y="-0.4" width="0.8" height="0.8" fill="#a07a30" stroke="#444" stroke-width="0.1" title="C13 (0402 100nF Cap)" />
             </g>
             <!-- LED14 -->
             <g class="led-node" data-id="14" data-color="#00fe01" transform="translate(31.86, 142.48)">
-              <circle class="led-halo" cx="0" cy="0" r="2.6" fill="#00fe01" opacity="0" pointer-events="none" />
-              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
-              <circle class="led-core" cx="0" cy="0" r="0.75" fill="#00fe01" />
+              <rect class="led-pkg" x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
+              <rect class="led-die" x="-0.7" y="-0.7" width="1.4" height="1.4" fill="#00fe01" rx="0.2" />
               <rect x="1.3" y="-0.4" width="0.8" height="0.8" fill="#a07a30" stroke="#444" stroke-width="0.1" title="C14 (0402 100nF Cap)" />
             </g>
             <!-- LED15 -->
             <g class="led-node" data-id="15" data-color="#00fe00" transform="translate(30.66, 129.79)">
-              <circle class="led-halo" cx="0" cy="0" r="2.6" fill="#00fe00" opacity="0" pointer-events="none" />
-              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
-              <circle class="led-core" cx="0" cy="0" r="0.75" fill="#00fe00" />
+              <rect class="led-pkg" x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
+              <rect class="led-die" x="-0.7" y="-0.7" width="1.4" height="1.4" fill="#00fe00" rx="0.2" />
               <rect x="1.3" y="-0.4" width="0.8" height="0.8" fill="#a07a30" stroke="#444" stroke-width="0.1" title="C15 (0402 100nF Cap)" />
             </g>
             <!-- LED16 -->
             <g class="led-node" data-id="16" data-color="#feed00" transform="translate(21.43, 118.83)">
-              <circle class="led-halo" cx="0" cy="0" r="2.6" fill="#feed00" opacity="0" pointer-events="none" />
-              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
-              <circle class="led-core" cx="0" cy="0" r="0.75" fill="#feed00" />
+              <rect class="led-pkg" x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
+              <rect class="led-die" x="-0.7" y="-0.7" width="1.4" height="1.4" fill="#feed00" rx="0.2" />
               <rect x="1.3" y="-0.4" width="0.8" height="0.8" fill="#a07a30" stroke="#444" stroke-width="0.1" title="C16 (0402 100nF Cap)" />
             </g>
             <!-- LED17 -->
             <g class="led-node" data-id="17" data-color="#fe00fe" transform="translate(15.43, 107.87)">
-              <circle class="led-halo" cx="0" cy="0" r="2.6" fill="#fe00fe" opacity="0" pointer-events="none" />
-              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
-              <circle class="led-core" cx="0" cy="0" r="0.75" fill="#fe00fe" />
+              <rect class="led-pkg" x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
+              <rect class="led-die" x="-0.7" y="-0.7" width="1.4" height="1.4" fill="#fe00fe" rx="0.2" />
               <rect x="1.3" y="-0.4" width="0.8" height="0.8" fill="#a07a30" stroke="#444" stroke-width="0.1" title="C17 (0402 100nF Cap)" />
             </g>
             <!-- LED18 -->
             <g class="led-node" data-id="18" data-color="#00fe00" transform="translate(26.05, 111.33)">
-              <circle class="led-halo" cx="0" cy="0" r="2.6" fill="#00fe00" opacity="0" pointer-events="none" />
-              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
-              <circle class="led-core" cx="0" cy="0" r="0.75" fill="#00fe00" />
+              <rect class="led-pkg" x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
+              <rect class="led-die" x="-0.7" y="-0.7" width="1.4" height="1.4" fill="#00fe00" rx="0.2" />
               <rect x="1.3" y="-0.4" width="0.8" height="0.8" fill="#a07a30" stroke="#444" stroke-width="0.1" title="C18 (0402 100nF Cap)" />
             </g>
             <!-- LED19 -->
             <g class="led-node" data-id="19" data-color="#05fe00" transform="translate(32.51, 118.83)">
-              <circle class="led-halo" cx="0" cy="0" r="2.6" fill="#05fe00" opacity="0" pointer-events="none" />
-              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
-              <circle class="led-core" cx="0" cy="0" r="0.75" fill="#05fe00" />
+              <rect class="led-pkg" x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
+              <rect class="led-die" x="-0.7" y="-0.7" width="1.4" height="1.4" fill="#05fe00" rx="0.2" />
               <rect x="1.3" y="-0.4" width="0.8" height="0.8" fill="#a07a30" stroke="#444" stroke-width="0.1" title="C19 (0402 100nF Cap)" />
             </g>
             <!-- LED20 -->
             <g class="led-node" data-id="20" data-color="#0afd00" transform="translate(41.14, 134.98)">
-              <circle class="led-halo" cx="0" cy="0" r="2.6" fill="#0afd00" opacity="0" pointer-events="none" />
-              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
-              <circle class="led-core" cx="0" cy="0" r="0.75" fill="#0afd00" />
+              <rect class="led-pkg" x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
+              <rect class="led-die" x="-0.7" y="-0.7" width="1.4" height="1.4" fill="#0afd00" rx="0.2" />
               <rect x="1.3" y="-0.4" width="0.8" height="0.8" fill="#a07a30" stroke="#444" stroke-width="0.1" title="C20 (0402 100nF Cap)" />
             </g>
             <!-- LED21 -->
             <g class="led-node" data-id="21" data-color="#fffaf2" transform="translate(49.26, 135.1)">
-              <circle class="led-halo" cx="0" cy="0" r="2.6" fill="#fffaf2" opacity="0" pointer-events="none" />
-              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
-              <circle class="led-core" cx="0" cy="0" r="0.75" fill="#fffaf2" />
+              <rect class="led-pkg" x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
+              <rect class="led-die" x="-0.7" y="-0.7" width="1.4" height="1.4" fill="#fffaf2" rx="0.2" />
               <rect x="1.3" y="-0.4" width="0.8" height="0.8" fill="#a07a30" stroke="#444" stroke-width="0.1" title="C21 (0402 100nF Cap)" />
             </g>
             <!-- LED22 -->
             <g class="led-node" data-id="22" data-color="#00fe01" transform="translate(53.74, 125.18)">
-              <circle class="led-halo" cx="0" cy="0" r="2.6" fill="#00fe01" opacity="0" pointer-events="none" />
-              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
-              <circle class="led-core" cx="0" cy="0" r="0.75" fill="#00fe01" />
+              <rect class="led-pkg" x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
+              <rect class="led-die" x="-0.7" y="-0.7" width="1.4" height="1.4" fill="#00fe01" rx="0.2" />
               <rect x="1.3" y="-0.4" width="0.8" height="0.8" fill="#a07a30" stroke="#444" stroke-width="0.1" title="C22 (0402 100nF Cap)" />
             </g>
             <!-- LED23 -->
             <g class="led-node" data-id="23" data-color="#fffaf2" transform="translate(59.5, 131.75)">
-              <circle class="led-halo" cx="0" cy="0" r="2.6" fill="#fffaf2" opacity="0" pointer-events="none" />
-              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
-              <circle class="led-core" cx="0" cy="0" r="0.75" fill="#fffaf2" />
+              <rect class="led-pkg" x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
+              <rect class="led-die" x="-0.7" y="-0.7" width="1.4" height="1.4" fill="#fffaf2" rx="0.2" />
               <rect x="1.3" y="-0.4" width="0.8" height="0.8" fill="#a07a30" stroke="#444" stroke-width="0.1" title="C23 (0402 100nF Cap)" />
             </g>
             <!-- LED24 -->
             <g class="led-node" data-id="24" data-color="#00fe01" transform="translate(64.81, 134.41)">
-              <circle class="led-halo" cx="0" cy="0" r="2.6" fill="#00fe01" opacity="0" pointer-events="none" />
-              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
-              <circle class="led-core" cx="0" cy="0" r="0.75" fill="#00fe01" />
+              <rect class="led-pkg" x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
+              <rect class="led-die" x="-0.7" y="-0.7" width="1.4" height="1.4" fill="#00fe01" rx="0.2" />
               <rect x="1.3" y="-0.4" width="0.8" height="0.8" fill="#a07a30" stroke="#444" stroke-width="0.1" title="C24 (0402 100nF Cap)" />
             </g>
             <!-- LED25 -->
             <g class="led-node" data-id="25" data-color="#00fe01" transform="translate(72.47, 128.87)">
-              <circle class="led-halo" cx="0" cy="0" r="2.6" fill="#00fe01" opacity="0" pointer-events="none" />
-              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
-              <circle class="led-core" cx="0" cy="0" r="0.75" fill="#00fe01" />
+              <rect class="led-pkg" x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
+              <rect class="led-die" x="-0.7" y="-0.7" width="1.4" height="1.4" fill="#00fe01" rx="0.2" />
               <rect x="1.3" y="-0.4" width="0.8" height="0.8" fill="#a07a30" stroke="#444" stroke-width="0.1" title="C25 (0402 100nF Cap)" />
             </g>
             <!-- LED26 -->
             <g class="led-node" data-id="26" data-color="#00fe0a" transform="translate(63.43, 120.56)">
-              <circle class="led-halo" cx="0" cy="0" r="2.6" fill="#00fe0a" opacity="0" pointer-events="none" />
-              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
-              <circle class="led-core" cx="0" cy="0" r="0.75" fill="#00fe0a" />
+              <rect class="led-pkg" x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
+              <rect class="led-die" x="-0.7" y="-0.7" width="1.4" height="1.4" fill="#00fe0a" rx="0.2" />
               <rect x="1.3" y="-0.4" width="0.8" height="0.8" fill="#a07a30" stroke="#444" stroke-width="0.1" title="C26 (0402 100nF Cap)" />
             </g>
             <!-- LED27 -->
             <g class="led-node" data-id="27" data-color="#00fe05" transform="translate(53.74, 114.22)">
-              <circle class="led-halo" cx="0" cy="0" r="2.6" fill="#00fe05" opacity="0" pointer-events="none" />
-              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
-              <circle class="led-core" cx="0" cy="0" r="0.75" fill="#00fe05" />
+              <rect class="led-pkg" x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
+              <rect class="led-die" x="-0.7" y="-0.7" width="1.4" height="1.4" fill="#00fe05" rx="0.2" />
               <rect x="1.3" y="-0.4" width="0.8" height="0.8" fill="#a07a30" stroke="#444" stroke-width="0.1" title="C27 (0402 100nF Cap)" />
             </g>
             <!-- LED28 -->
             <g class="led-node" data-id="28" data-color="#fffaf2" transform="translate(43.12, 115.95)">
-              <circle class="led-halo" cx="0" cy="0" r="2.6" fill="#fffaf2" opacity="0" pointer-events="none" />
-              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
-              <circle class="led-core" cx="0" cy="0" r="0.75" fill="#fffaf2" />
+              <rect class="led-pkg" x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
+              <rect class="led-die" x="-0.7" y="-0.7" width="1.4" height="1.4" fill="#fffaf2" rx="0.2" />
               <rect x="1.3" y="-0.4" width="0.8" height="0.8" fill="#a07a30" stroke="#444" stroke-width="0.1" title="C28 (0402 100nF Cap)" />
             </g>
             <!-- LED29 -->
             <g class="led-node" data-id="29" data-color="#00f600" transform="translate(47.74, 104.99)">
-              <circle class="led-halo" cx="0" cy="0" r="2.6" fill="#00f600" opacity="0" pointer-events="none" />
-              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
-              <circle class="led-core" cx="0" cy="0" r="0.75" fill="#00f600" />
+              <rect class="led-pkg" x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
+              <rect class="led-die" x="-0.7" y="-0.7" width="1.4" height="1.4" fill="#00f600" rx="0.2" />
               <rect x="1.3" y="-0.4" width="0.8" height="0.8" fill="#a07a30" stroke="#444" stroke-width="0.1" title="C29 (0402 100nF Cap)" />
             </g>
             <!-- LED30 -->
             <g class="led-node" data-id="30" data-color="#00fe01" transform="translate(64.81, 109.6)">
-              <circle class="led-halo" cx="0" cy="0" r="2.6" fill="#00fe01" opacity="0" pointer-events="none" />
-              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
-              <circle class="led-core" cx="0" cy="0" r="0.75" fill="#00fe01" />
+              <rect class="led-pkg" x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
+              <rect class="led-die" x="-0.7" y="-0.7" width="1.4" height="1.4" fill="#00fe01" rx="0.2" />
               <rect x="1.3" y="-0.4" width="0.8" height="0.8" fill="#a07a30" stroke="#444" stroke-width="0.1" title="C30 (0402 100nF Cap)" />
             </g>
             <!-- LED31 -->
             <g class="led-node" data-id="31" data-color="#00fe01" transform="translate(74.96, 118.72)">
-              <circle class="led-halo" cx="0" cy="0" r="2.6" fill="#00fe01" opacity="0" pointer-events="none" />
-              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
-              <circle class="led-core" cx="0" cy="0" r="0.75" fill="#00fe01" />
+              <rect class="led-pkg" x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
+              <rect class="led-die" x="-0.7" y="-0.7" width="1.4" height="1.4" fill="#00fe01" rx="0.2" />
               <rect x="1.3" y="-0.4" width="0.8" height="0.8" fill="#a07a30" stroke="#444" stroke-width="0.1" title="C31 (0402 100nF Cap)" />
             </g>
             <!-- LED32 -->
             <g class="led-node" data-id="32" data-color="#fffaf2" transform="translate(83.27, 124.83)">
-              <circle class="led-halo" cx="0" cy="0" r="2.6" fill="#fffaf2" opacity="0" pointer-events="none" />
-              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
-              <circle class="led-core" cx="0" cy="0" r="0.75" fill="#fffaf2" />
+              <rect class="led-pkg" x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
+              <rect class="led-die" x="-0.7" y="-0.7" width="1.4" height="1.4" fill="#fffaf2" rx="0.2" />
               <rect x="1.3" y="-0.4" width="0.8" height="0.8" fill="#a07a30" stroke="#444" stroke-width="0.1" title="C32 (0402 100nF Cap)" />
             </g>
             <!-- LED33 -->
             <g class="led-node" data-id="33" data-color="#00fe00" transform="translate(91.12, 121.72)">
-              <circle class="led-halo" cx="0" cy="0" r="2.6" fill="#00fe00" opacity="0" pointer-events="none" />
-              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
-              <circle class="led-core" cx="0" cy="0" r="0.75" fill="#00fe00" />
+              <rect class="led-pkg" x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
+              <rect class="led-die" x="-0.7" y="-0.7" width="1.4" height="1.4" fill="#00fe00" rx="0.2" />
               <rect x="1.3" y="-0.4" width="0.8" height="0.8" fill="#a07a30" stroke="#444" stroke-width="0.1" title="C33 (0402 100nF Cap)" />
             </g>
             <!-- LED34 -->
             <g class="led-node" data-id="34" data-color="#00fe01" transform="translate(92.5, 134.41)">
-              <circle class="led-halo" cx="0" cy="0" r="2.6" fill="#00fe01" opacity="0" pointer-events="none" />
-              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
-              <circle class="led-core" cx="0" cy="0" r="0.75" fill="#00fe01" />
+              <rect class="led-pkg" x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
+              <rect class="led-die" x="-0.7" y="-0.7" width="1.4" height="1.4" fill="#00fe01" rx="0.2" />
               <rect x="1.3" y="-0.4" width="0.8" height="0.8" fill="#a07a30" stroke="#444" stroke-width="0.1" title="C34 (0402 100nF Cap)" />
             </g>
             <!-- LED35 -->
             <g class="led-node" data-id="35" data-color="#fefe00" transform="translate(101.73, 137.29)">
-              <circle class="led-halo" cx="0" cy="0" r="2.6" fill="#fefe00" opacity="0" pointer-events="none" />
-              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
-              <circle class="led-core" cx="0" cy="0" r="0.75" fill="#fefe00" />
+              <rect class="led-pkg" x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
+              <rect class="led-die" x="-0.7" y="-0.7" width="1.4" height="1.4" fill="#fefe00" rx="0.2" />
               <rect x="1.3" y="-0.4" width="0.8" height="0.8" fill="#a07a30" stroke="#444" stroke-width="0.1" title="C35 (0402 100nF Cap)" />
             </g>
             <!-- LED36 -->
             <g class="led-node" data-id="36" data-color="#fefe00" transform="translate(100.35, 148.25)">
-              <circle class="led-halo" cx="0" cy="0" r="2.6" fill="#fefe00" opacity="0" pointer-events="none" />
-              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
-              <circle class="led-core" cx="0" cy="0" r="0.75" fill="#fefe00" />
+              <rect class="led-pkg" x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
+              <rect class="led-die" x="-0.7" y="-0.7" width="1.4" height="1.4" fill="#fefe00" rx="0.2" />
               <rect x="1.3" y="-0.4" width="0.8" height="0.8" fill="#a07a30" stroke="#444" stroke-width="0.1" title="C36 (0402 100nF Cap)" />
             </g>
             <!-- LED37 -->
             <g class="led-node" data-id="37" data-color="#00fe01" transform="translate(87.89, 143.64)">
-              <circle class="led-halo" cx="0" cy="0" r="2.6" fill="#00fe01" opacity="0" pointer-events="none" />
-              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
-              <circle class="led-core" cx="0" cy="0" r="0.75" fill="#00fe01" />
+              <rect class="led-pkg" x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
+              <rect class="led-die" x="-0.7" y="-0.7" width="1.4" height="1.4" fill="#00fe01" rx="0.2" />
               <rect x="1.3" y="-0.4" width="0.8" height="0.8" fill="#a07a30" stroke="#444" stroke-width="0.1" title="C37 (0402 100nF Cap)" />
             </g>
             <!-- LED38 -->
             <g class="led-node" data-id="38" data-color="#fffaf2" transform="translate(79.44, 139.89)">
-              <circle class="led-halo" cx="0" cy="0" r="2.6" fill="#fffaf2" opacity="0" pointer-events="none" />
-              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
-              <circle class="led-core" cx="0" cy="0" r="0.75" fill="#fffaf2" />
+              <rect class="led-pkg" x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
+              <rect class="led-die" x="-0.7" y="-0.7" width="1.4" height="1.4" fill="#fffaf2" rx="0.2" />
               <rect x="1.3" y="-0.4" width="0.8" height="0.8" fill="#a07a30" stroke="#444" stroke-width="0.1" title="C38 (0402 100nF Cap)" />
             </g>
             <!-- LED39 -->
             <g class="led-node" data-id="39" data-color="#fffaf2" transform="translate(56.46, 144.1)">
-              <circle class="led-halo" cx="0" cy="0" r="2.6" fill="#fffaf2" opacity="0" pointer-events="none" />
-              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
-              <circle class="led-core" cx="0" cy="0" r="0.75" fill="#fffaf2" />
+              <rect class="led-pkg" x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
+              <rect class="led-die" x="-0.7" y="-0.7" width="1.4" height="1.4" fill="#fffaf2" rx="0.2" />
               <rect x="1.3" y="-0.4" width="0.8" height="0.8" fill="#a07a30" stroke="#444" stroke-width="0.1" title="C39 (0402 100nF Cap)" />
             </g>
             <!-- LED40 -->
             <g class="led-node" data-id="40" data-color="#00fe01" transform="translate(63.43, 146.52)">
-              <circle class="led-halo" cx="0" cy="0" r="2.6" fill="#00fe01" opacity="0" pointer-events="none" />
-              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
-              <circle class="led-core" cx="0" cy="0" r="0.75" fill="#00fe01" />
+              <rect class="led-pkg" x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
+              <rect class="led-die" x="-0.7" y="-0.7" width="1.4" height="1.4" fill="#00fe01" rx="0.2" />
               <rect x="1.3" y="-0.4" width="0.8" height="0.8" fill="#a07a30" stroke="#444" stroke-width="0.1" title="C40 (0402 100nF Cap)" />
             </g>
             <!-- LED41 -->
             <g class="led-node" data-id="41" data-color="#00fe01" transform="translate(74.04, 151.14)">
-              <circle class="led-halo" cx="0" cy="0" r="2.6" fill="#00fe01" opacity="0" pointer-events="none" />
-              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
-              <circle class="led-core" cx="0" cy="0" r="0.75" fill="#00fe01" />
+              <rect class="led-pkg" x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
+              <rect class="led-die" x="-0.7" y="-0.7" width="1.4" height="1.4" fill="#00fe01" rx="0.2" />
               <rect x="1.3" y="-0.4" width="0.8" height="0.8" fill="#a07a30" stroke="#444" stroke-width="0.1" title="C41 (0402 100nF Cap)" />
             </g>
             <!-- LED42 -->
             <g class="led-node" data-id="42" data-color="#fcff02" transform="translate(86.5, 154.02)">
-              <circle class="led-halo" cx="0" cy="0" r="2.6" fill="#fcff02" opacity="0" pointer-events="none" />
-              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
-              <circle class="led-core" cx="0" cy="0" r="0.75" fill="#fcff02" />
+              <rect class="led-pkg" x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
+              <rect class="led-die" x="-0.7" y="-0.7" width="1.4" height="1.4" fill="#fcff02" rx="0.2" />
               <rect x="1.3" y="-0.4" width="0.8" height="0.8" fill="#a07a30" stroke="#444" stroke-width="0.1" title="C42 (0402 100nF Cap)" />
             </g>
             <!-- LED43 -->
             <g class="led-node" data-id="43" data-color="#fefe00" transform="translate(80.04, 162.1)">
-              <circle class="led-halo" cx="0" cy="0" r="2.6" fill="#fefe00" opacity="0" pointer-events="none" />
-              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
-              <circle class="led-core" cx="0" cy="0" r="0.75" fill="#fefe00" />
+              <rect class="led-pkg" x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
+              <rect class="led-die" x="-0.7" y="-0.7" width="1.4" height="1.4" fill="#fefe00" rx="0.2" />
               <rect x="1.3" y="-0.4" width="0.8" height="0.8" fill="#a07a30" stroke="#444" stroke-width="0.1" title="C43 (0402 100nF Cap)" />
             </g>
             <!-- LED44 -->
             <g class="led-node" data-id="44" data-color="#00fb08" transform="translate(70.81, 162.1)">
-              <circle class="led-halo" cx="0" cy="0" r="2.6" fill="#00fb08" opacity="0" pointer-events="none" />
-              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
-              <circle class="led-core" cx="0" cy="0" r="0.75" fill="#00fb08" />
+              <rect class="led-pkg" x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
+              <rect class="led-die" x="-0.7" y="-0.7" width="1.4" height="1.4" fill="#00fb08" rx="0.2" />
               <rect x="1.3" y="-0.4" width="0.8" height="0.8" fill="#a07a30" stroke="#444" stroke-width="0.1" title="C44 (0402 100nF Cap)" />
             </g>
             <!-- LED45 -->
             <g class="led-node" data-id="45" data-color="#00fe01" transform="translate(72.66, 171.33)">
-              <circle class="led-halo" cx="0" cy="0" r="2.6" fill="#00fe01" opacity="0" pointer-events="none" />
-              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
-              <circle class="led-core" cx="0" cy="0" r="0.75" fill="#00fe01" />
+              <rect class="led-pkg" x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
+              <rect class="led-die" x="-0.7" y="-0.7" width="1.4" height="1.4" fill="#00fe01" rx="0.2" />
               <rect x="1.3" y="-0.4" width="0.8" height="0.8" fill="#a07a30" stroke="#444" stroke-width="0.1" title="C45 (0402 100nF Cap)" />
             </g>
             <!-- LED46 -->
             <g class="led-node" data-id="46" data-color="#fffaf2" transform="translate(70.81, 180.56)">
-              <circle class="led-halo" cx="0" cy="0" r="2.6" fill="#fffaf2" opacity="0" pointer-events="none" />
-              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
-              <circle class="led-core" cx="0" cy="0" r="0.75" fill="#fffaf2" />
+              <rect class="led-pkg" x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
+              <rect class="led-die" x="-0.7" y="-0.7" width="1.4" height="1.4" fill="#fffaf2" rx="0.2" />
               <rect x="1.3" y="-0.4" width="0.8" height="0.8" fill="#a07a30" stroke="#444" stroke-width="0.1" title="C46 (0402 100nF Cap)" />
             </g>
             <!-- LED47 -->
             <g class="led-node" data-id="47" data-color="#fffaf2" transform="translate(81.89, 180.56)">
-              <circle class="led-halo" cx="0" cy="0" r="2.6" fill="#fffaf2" opacity="0" pointer-events="none" />
-              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
-              <circle class="led-core" cx="0" cy="0" r="0.75" fill="#fffaf2" />
+              <rect class="led-pkg" x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
+              <rect class="led-die" x="-0.7" y="-0.7" width="1.4" height="1.4" fill="#fffaf2" rx="0.2" />
               <rect x="1.3" y="-0.4" width="0.8" height="0.8" fill="#a07a30" stroke="#444" stroke-width="0.1" title="C47 (0402 100nF Cap)" />
             </g>
             <!-- LED48 -->
             <g class="led-node" data-id="48" data-color="#fefe00" transform="translate(83.27, 171.33)">
-              <circle class="led-halo" cx="0" cy="0" r="2.6" fill="#fefe00" opacity="0" pointer-events="none" />
-              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
-              <circle class="led-core" cx="0" cy="0" r="0.75" fill="#fefe00" />
+              <rect class="led-pkg" x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
+              <rect class="led-die" x="-0.7" y="-0.7" width="1.4" height="1.4" fill="#fefe00" rx="0.2" />
               <rect x="1.3" y="-0.4" width="0.8" height="0.8" fill="#a07a30" stroke="#444" stroke-width="0.1" title="C48 (0402 100nF Cap)" />
             </g>
             <!-- LED49 -->
             <g class="led-node" data-id="49" data-color="#fdff00" transform="translate(98.5, 175.94)">
-              <circle class="led-halo" cx="0" cy="0" r="2.6" fill="#fdff00" opacity="0" pointer-events="none" />
-              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
-              <circle class="led-core" cx="0" cy="0" r="0.75" fill="#fdff00" />
+              <rect class="led-pkg" x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
+              <rect class="led-die" x="-0.7" y="-0.7" width="1.4" height="1.4" fill="#fdff00" rx="0.2" />
               <rect x="1.3" y="-0.4" width="0.8" height="0.8" fill="#a07a30" stroke="#444" stroke-width="0.1" title="C49 (0402 100nF Cap)" />
             </g>
             <!-- LED50 -->
             <g class="led-node" data-id="50" data-color="#00fe01" transform="translate(110.96, 172.48)">
-              <circle class="led-halo" cx="0" cy="0" r="2.6" fill="#00fe01" opacity="0" pointer-events="none" />
-              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
-              <circle class="led-core" cx="0" cy="0" r="0.75" fill="#00fe01" />
+              <rect class="led-pkg" x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
+              <rect class="led-die" x="-0.7" y="-0.7" width="1.4" height="1.4" fill="#00fe01" rx="0.2" />
               <rect x="1.3" y="-0.4" width="0.8" height="0.8" fill="#a07a30" stroke="#444" stroke-width="0.1" title="C50 (0402 100nF Cap)" />
             </g>
             <!-- LED51 -->
             <g class="led-node" data-id="51" data-color="#fffaf2" transform="translate(123.42, 177.1)">
-              <circle class="led-halo" cx="0" cy="0" r="2.6" fill="#fffaf2" opacity="0" pointer-events="none" />
-              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
-              <circle class="led-core" cx="0" cy="0" r="0.75" fill="#fffaf2" />
+              <rect class="led-pkg" x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
+              <rect class="led-die" x="-0.7" y="-0.7" width="1.4" height="1.4" fill="#fffaf2" rx="0.2" />
               <rect x="1.3" y="-0.4" width="0.8" height="0.8" fill="#a07a30" stroke="#444" stroke-width="0.1" title="C51 (0402 100nF Cap)" />
             </g>
             <!-- LED52 -->
             <g class="led-node" data-id="52" data-color="#00fe00" transform="translate(120.19, 167.87)">
-              <circle class="led-halo" cx="0" cy="0" r="2.6" fill="#00fe00" opacity="0" pointer-events="none" />
-              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
-              <circle class="led-core" cx="0" cy="0" r="0.75" fill="#00fe00" />
+              <rect class="led-pkg" x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
+              <rect class="led-die" x="-0.7" y="-0.7" width="1.4" height="1.4" fill="#00fe00" rx="0.2" />
               <rect x="1.3" y="-0.4" width="0.8" height="0.8" fill="#a07a30" stroke="#444" stroke-width="0.1" title="C52 (0402 100nF Cap)" />
             </g>
             <!-- LED53 -->
             <g class="led-node" data-id="53" data-color="#00fe00" transform="translate(110.96, 158.64)">
-              <circle class="led-halo" cx="0" cy="0" r="2.6" fill="#00fe00" opacity="0" pointer-events="none" />
-              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
-              <circle class="led-core" cx="0" cy="0" r="0.75" fill="#00fe00" />
+              <rect class="led-pkg" x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
+              <rect class="led-die" x="-0.7" y="-0.7" width="1.4" height="1.4" fill="#00fe00" rx="0.2" />
               <rect x="1.3" y="-0.4" width="0.8" height="0.8" fill="#a07a30" stroke="#444" stroke-width="0.1" title="C53 (0402 100nF Cap)" />
             </g>
             <!-- LED54 -->
             <g class="led-node" data-id="54" data-color="#fefe00" transform="translate(97.11, 162.1)">
-              <circle class="led-halo" cx="0" cy="0" r="2.6" fill="#fefe00" opacity="0" pointer-events="none" />
-              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
-              <circle class="led-core" cx="0" cy="0" r="0.75" fill="#fefe00" />
+              <rect class="led-pkg" x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
+              <rect class="led-die" x="-0.7" y="-0.7" width="1.4" height="1.4" fill="#fefe00" rx="0.2" />
               <rect x="1.3" y="-0.4" width="0.8" height="0.8" fill="#a07a30" stroke="#444" stroke-width="0.1" title="C54 (0402 100nF Cap)" />
             </g>
             <!-- LED55 -->
             <g class="led-node" data-id="55" data-color="#00ff05" transform="translate(110.96, 148.25)">
-              <circle class="led-halo" cx="0" cy="0" r="2.6" fill="#00ff05" opacity="0" pointer-events="none" />
-              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
-              <circle class="led-core" cx="0" cy="0" r="0.75" fill="#00ff05" />
+              <rect class="led-pkg" x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
+              <rect class="led-die" x="-0.7" y="-0.7" width="1.4" height="1.4" fill="#00ff05" rx="0.2" />
               <rect x="1.3" y="-0.4" width="0.8" height="0.8" fill="#a07a30" stroke="#444" stroke-width="0.1" title="C55 (0402 100nF Cap)" />
             </g>
             <!-- LED56 -->
             <g class="led-node" data-id="56" data-color="#00fe01" transform="translate(112.34, 137.29)">
-              <circle class="led-halo" cx="0" cy="0" r="2.6" fill="#00fe01" opacity="0" pointer-events="none" />
-              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
-              <circle class="led-core" cx="0" cy="0" r="0.75" fill="#00fe01" />
+              <rect class="led-pkg" x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
+              <rect class="led-die" x="-0.7" y="-0.7" width="1.4" height="1.4" fill="#00fe01" rx="0.2" />
               <rect x="1.3" y="-0.4" width="0.8" height="0.8" fill="#a07a30" stroke="#444" stroke-width="0.1" title="C56 (0402 100nF Cap)" />
             </g>
             <!-- LED57 -->
             <g class="led-node" data-id="57" data-color="#fdf200" transform="translate(103.11, 125.18)">
-              <circle class="led-halo" cx="0" cy="0" r="2.6" fill="#fdf200" opacity="0" pointer-events="none" />
-              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
-              <circle class="led-core" cx="0" cy="0" r="0.75" fill="#fdf200" />
+              <rect class="led-pkg" x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
+              <rect class="led-die" x="-0.7" y="-0.7" width="1.4" height="1.4" fill="#fdf200" rx="0.2" />
               <rect x="1.3" y="-0.4" width="0.8" height="0.8" fill="#a07a30" stroke="#444" stroke-width="0.1" title="C57 (0402 100nF Cap)" />
             </g>
             <!-- LED58 -->
             <g class="led-node" data-id="58" data-color="#f5fd00" transform="translate(115.57, 118.83)">
-              <circle class="led-halo" cx="0" cy="0" r="2.6" fill="#f5fd00" opacity="0" pointer-events="none" />
-              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
-              <circle class="led-core" cx="0" cy="0" r="0.75" fill="#f5fd00" />
+              <rect class="led-pkg" x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
+              <rect class="led-die" x="-0.7" y="-0.7" width="1.4" height="1.4" fill="#f5fd00" rx="0.2" />
               <rect x="1.3" y="-0.4" width="0.8" height="0.8" fill="#a07a30" stroke="#444" stroke-width="0.1" title="C58 (0402 100nF Cap)" />
             </g>
             <!-- LED59 -->
             <g class="led-node" data-id="59" data-color="#fffe00" transform="translate(120.19, 107.87)">
-              <circle class="led-halo" cx="0" cy="0" r="2.6" fill="#fffe00" opacity="0" pointer-events="none" />
-              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
-              <circle class="led-core" cx="0" cy="0" r="0.75" fill="#fffe00" />
+              <rect class="led-pkg" x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
+              <rect class="led-die" x="-0.7" y="-0.7" width="1.4" height="1.4" fill="#fffe00" rx="0.2" />
               <rect x="1.3" y="-0.4" width="0.8" height="0.8" fill="#a07a30" stroke="#444" stroke-width="0.1" title="C59 (0402 100nF Cap)" />
             </g>
             <!-- LED60 -->
             <g class="led-node" data-id="60" data-color="#fefe00" transform="translate(120.19, 98.64)">
-              <circle class="led-halo" cx="0" cy="0" r="2.6" fill="#fefe00" opacity="0" pointer-events="none" />
-              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
-              <circle class="led-core" cx="0" cy="0" r="0.75" fill="#fefe00" />
+              <rect class="led-pkg" x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
+              <rect class="led-die" x="-0.7" y="-0.7" width="1.4" height="1.4" fill="#fefe00" rx="0.2" />
               <rect x="1.3" y="-0.4" width="0.8" height="0.8" fill="#a07a30" stroke="#444" stroke-width="0.1" title="C60 (0402 100nF Cap)" />
             </g>
             <!-- LED61 -->
             <g class="led-node" data-id="61" data-color="#fefe00" transform="translate(125.22, 92.82)">
-              <circle class="led-halo" cx="0" cy="0" r="2.6" fill="#fefe00" opacity="0" pointer-events="none" />
-              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
-              <circle class="led-core" cx="0" cy="0" r="0.75" fill="#fefe00" />
+              <rect class="led-pkg" x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
+              <rect class="led-die" x="-0.7" y="-0.7" width="1.4" height="1.4" fill="#fefe00" rx="0.2" />
               <rect x="1.3" y="-0.4" width="0.8" height="0.8" fill="#a07a30" stroke="#444" stroke-width="0.1" title="C61 (0402 100nF Cap)" />
             </g>
             <!-- LED62 -->
             <g class="led-node" data-id="62" data-color="#00fe00" transform="translate(124.02, 85.61)">
-              <circle class="led-halo" cx="0" cy="0" r="2.6" fill="#00fe00" opacity="0" pointer-events="none" />
-              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
-              <circle class="led-core" cx="0" cy="0" r="0.75" fill="#00fe00" />
+              <rect class="led-pkg" x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
+              <rect class="led-die" x="-0.7" y="-0.7" width="1.4" height="1.4" fill="#00fe00" rx="0.2" />
               <rect x="1.3" y="-0.4" width="0.8" height="0.8" fill="#a07a30" stroke="#444" stroke-width="0.1" title="C62 (0402 100nF Cap)" />
             </g>
             <!-- LED63 -->
             <g class="led-node" data-id="63" data-color="#00fe01" transform="translate(145.11, 91.14)">
-              <circle class="led-halo" cx="0" cy="0" r="2.6" fill="#00fe01" opacity="0" pointer-events="none" />
-              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
-              <circle class="led-core" cx="0" cy="0" r="0.75" fill="#00fe01" />
+              <rect class="led-pkg" x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
+              <rect class="led-die" x="-0.7" y="-0.7" width="1.4" height="1.4" fill="#00fe01" rx="0.2" />
               <rect x="1.3" y="-0.4" width="0.8" height="0.8" fill="#a07a30" stroke="#444" stroke-width="0.1" title="C63 (0402 100nF Cap)" />
             </g>
             <!-- LED64 -->
             <g class="led-node" data-id="64" data-color="#00fe01" transform="translate(140.49, 98.64)">
-              <circle class="led-halo" cx="0" cy="0" r="2.6" fill="#00fe01" opacity="0" pointer-events="none" />
-              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
-              <circle class="led-core" cx="0" cy="0" r="0.75" fill="#00fe01" />
+              <rect class="led-pkg" x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
+              <rect class="led-die" x="-0.7" y="-0.7" width="1.4" height="1.4" fill="#00fe01" rx="0.2" />
               <rect x="1.3" y="-0.4" width="0.8" height="0.8" fill="#a07a30" stroke="#444" stroke-width="0.1" title="C64 (0402 100nF Cap)" />
             </g>
             <!-- LED65 -->
             <g class="led-node" data-id="65" data-color="#00fd00" transform="translate(141.88, 107.87)">
-              <circle class="led-halo" cx="0" cy="0" r="2.6" fill="#00fd00" opacity="0" pointer-events="none" />
-              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
-              <circle class="led-core" cx="0" cy="0" r="0.75" fill="#00fd00" />
+              <rect class="led-pkg" x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
+              <rect class="led-die" x="-0.7" y="-0.7" width="1.4" height="1.4" fill="#00fd00" rx="0.2" />
               <rect x="1.3" y="-0.4" width="0.8" height="0.8" fill="#a07a30" stroke="#444" stroke-width="0.1" title="C65 (0402 100nF Cap)" />
             </g>
             <!-- LED66 -->
             <g class="led-node" data-id="66" data-color="#00fe01" transform="translate(151.11, 101.53)">
-              <circle class="led-halo" cx="0" cy="0" r="2.6" fill="#00fe01" opacity="0" pointer-events="none" />
-              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
-              <circle class="led-core" cx="0" cy="0" r="0.75" fill="#00fe01" />
+              <rect class="led-pkg" x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
+              <rect class="led-die" x="-0.7" y="-0.7" width="1.4" height="1.4" fill="#00fe01" rx="0.2" />
               <rect x="1.3" y="-0.4" width="0.8" height="0.8" fill="#a07a30" stroke="#444" stroke-width="0.1" title="C66 (0402 100nF Cap)" />
             </g>
             <!-- LED67 -->
             <g class="led-node" data-id="67" data-color="#00fe12" transform="translate(161.72, 103.26)">
-              <circle class="led-halo" cx="0" cy="0" r="2.6" fill="#00fe12" opacity="0" pointer-events="none" />
-              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
-              <circle class="led-core" cx="0" cy="0" r="0.75" fill="#00fe12" />
+              <rect class="led-pkg" x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
+              <rect class="led-die" x="-0.7" y="-0.7" width="1.4" height="1.4" fill="#00fe12" rx="0.2" />
               <rect x="1.3" y="-0.4" width="0.8" height="0.8" fill="#a07a30" stroke="#444" stroke-width="0.1" title="C67 (0402 100nF Cap)" />
             </g>
             <!-- LED68 -->
             <g class="led-node" data-id="68" data-color="#00fe01" transform="translate(157.11, 92.3)">
-              <circle class="led-halo" cx="0" cy="0" r="2.6" fill="#00fe01" opacity="0" pointer-events="none" />
-              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
-              <circle class="led-core" cx="0" cy="0" r="0.75" fill="#00fe01" />
+              <rect class="led-pkg" x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
+              <rect class="led-die" x="-0.7" y="-0.7" width="1.4" height="1.4" fill="#00fe01" rx="0.2" />
               <rect x="1.3" y="-0.4" width="0.8" height="0.8" fill="#a07a30" stroke="#444" stroke-width="0.1" title="C68 (0402 100nF Cap)" />
             </g>
             <!-- LED69 -->
             <g class="led-node" data-id="69" data-color="#00fe01" transform="translate(151.34, 84.57)">
-              <circle class="led-halo" cx="0" cy="0" r="2.6" fill="#00fe01" opacity="0" pointer-events="none" />
-              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
-              <circle class="led-core" cx="0" cy="0" r="0.75" fill="#00fe01" />
+              <rect class="led-pkg" x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
+              <rect class="led-die" x="-0.7" y="-0.7" width="1.4" height="1.4" fill="#00fe01" rx="0.2" />
               <rect x="1.3" y="-0.4" width="0.8" height="0.8" fill="#a07a30" stroke="#444" stroke-width="0.1" title="C69 (0402 100nF Cap)" />
             </g>
             <!-- LED70 -->
             <g class="led-node" data-id="70" data-color="#00fe07" transform="translate(160.34, 81.91)">
-              <circle class="led-halo" cx="0" cy="0" r="2.6" fill="#00fe07" opacity="0" pointer-events="none" />
-              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
-              <circle class="led-core" cx="0" cy="0" r="0.75" fill="#00fe07" />
+              <rect class="led-pkg" x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
+              <rect class="led-die" x="-0.7" y="-0.7" width="1.4" height="1.4" fill="#00fe07" rx="0.2" />
               <rect x="1.3" y="-0.4" width="0.8" height="0.8" fill="#a07a30" stroke="#444" stroke-width="0.1" title="C70 (0402 100nF Cap)" />
             </g>
             <!-- LED71 -->
             <g class="led-node" data-id="71" data-color="#00fe0b" transform="translate(160.34, 72.68)">
-              <circle class="led-halo" cx="0" cy="0" r="2.6" fill="#00fe0b" opacity="0" pointer-events="none" />
-              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
-              <circle class="led-core" cx="0" cy="0" r="0.75" fill="#00fe0b" />
+              <rect class="led-pkg" x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
+              <rect class="led-die" x="-0.7" y="-0.7" width="1.4" height="1.4" fill="#00fe0b" rx="0.2" />
               <rect x="1.3" y="-0.4" width="0.8" height="0.8" fill="#a07a30" stroke="#444" stroke-width="0.1" title="C71 (0402 100nF Cap)" />
             </g>
             <!-- LED72 -->
             <g class="led-node" data-id="72" data-color="#00fe01" transform="translate(152.35, 69.45)">
-              <circle class="led-halo" cx="0" cy="0" r="2.6" fill="#00fe01" opacity="0" pointer-events="none" />
-              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
-              <circle class="led-core" cx="0" cy="0" r="0.75" fill="#00fe01" />
+              <rect class="led-pkg" x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
+              <rect class="led-die" x="-0.7" y="-0.7" width="1.4" height="1.4" fill="#00fe01" rx="0.2" />
               <rect x="1.3" y="-0.4" width="0.8" height="0.8" fill="#a07a30" stroke="#444" stroke-width="0.1" title="C72 (0402 100nF Cap)" />
             </g>
             <!-- LED73 -->
             <g class="led-node" data-id="73" data-color="#00fe01" transform="translate(145.34, 62.36)">
-              <circle class="led-halo" cx="0" cy="0" r="2.6" fill="#00fe01" opacity="0" pointer-events="none" />
-              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
-              <circle class="led-core" cx="0" cy="0" r="0.75" fill="#00fe01" />
+              <rect class="led-pkg" x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
+              <rect class="led-die" x="-0.7" y="-0.7" width="1.4" height="1.4" fill="#00fe01" rx="0.2" />
               <rect x="1.3" y="-0.4" width="0.8" height="0.8" fill="#a07a30" stroke="#444" stroke-width="0.1" title="C73 (0402 100nF Cap)" />
             </g>
             <!-- LED74 -->
             <g class="led-node" data-id="74" data-color="#00fe00" transform="translate(157.11, 49.61)">
-              <circle class="led-halo" cx="0" cy="0" r="2.6" fill="#00fe00" opacity="0" pointer-events="none" />
-              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
-              <circle class="led-core" cx="0" cy="0" r="0.75" fill="#00fe00" />
+              <rect class="led-pkg" x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
+              <rect class="led-die" x="-0.7" y="-0.7" width="1.4" height="1.4" fill="#00fe00" rx="0.2" />
               <rect x="1.3" y="-0.4" width="0.8" height="0.8" fill="#a07a30" stroke="#444" stroke-width="0.1" title="C74 (0402 100nF Cap)" />
             </g>
             <!-- LED75 -->
             <g class="led-node" data-id="75" data-color="#fe00f8" transform="translate(146.49, 50.76)">
-              <circle class="led-halo" cx="0" cy="0" r="2.6" fill="#fe00f8" opacity="0" pointer-events="none" />
-              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
-              <circle class="led-core" cx="0" cy="0" r="0.75" fill="#fe00f8" />
+              <rect class="led-pkg" x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
+              <rect class="led-die" x="-0.7" y="-0.7" width="1.4" height="1.4" fill="#fe00f8" rx="0.2" />
               <rect x="1.3" y="-0.4" width="0.8" height="0.8" fill="#a07a30" stroke="#444" stroke-width="0.1" title="C75 (0402 100nF Cap)" />
             </g>
             <!-- LED76 -->
             <g class="led-node" data-id="76" data-color="#fa00fe" transform="translate(135.88, 47.88)">
-              <circle class="led-halo" cx="0" cy="0" r="2.6" fill="#fa00fe" opacity="0" pointer-events="none" />
-              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
-              <circle class="led-core" cx="0" cy="0" r="0.75" fill="#fa00fe" />
+              <rect class="led-pkg" x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
+              <rect class="led-die" x="-0.7" y="-0.7" width="1.4" height="1.4" fill="#fa00fe" rx="0.2" />
               <rect x="1.3" y="-0.4" width="0.8" height="0.8" fill="#a07a30" stroke="#444" stroke-width="0.1" title="C76 (0402 100nF Cap)" />
             </g>
             <!-- LED77 -->
             <g class="led-node" data-id="77" data-color="#00fe00" transform="translate(121.57, 52.49)">
-              <circle class="led-halo" cx="0" cy="0" r="2.6" fill="#00fe00" opacity="0" pointer-events="none" />
-              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
-              <circle class="led-core" cx="0" cy="0" r="0.75" fill="#00fe00" />
+              <rect class="led-pkg" x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
+              <rect class="led-die" x="-0.7" y="-0.7" width="1.4" height="1.4" fill="#00fe00" rx="0.2" />
               <rect x="1.3" y="-0.4" width="0.8" height="0.8" fill="#a07a30" stroke="#444" stroke-width="0.1" title="C77 (0402 100nF Cap)" />
             </g>
             <!-- LED78 -->
             <g class="led-node" data-id="78" data-color="#00f700" transform="translate(131.26, 57.11)">
-              <circle class="led-halo" cx="0" cy="0" r="2.6" fill="#00f700" opacity="0" pointer-events="none" />
-              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
-              <circle class="led-core" cx="0" cy="0" r="0.75" fill="#00f700" />
+              <rect class="led-pkg" x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
+              <rect class="led-die" x="-0.7" y="-0.7" width="1.4" height="1.4" fill="#00f700" rx="0.2" />
               <rect x="1.3" y="-0.4" width="0.8" height="0.8" fill="#a07a30" stroke="#444" stroke-width="0.1" title="C78 (0402 100nF Cap)" />
             </g>
             <!-- LED79 -->
             <g class="led-node" data-id="79" data-color="#00fe04" transform="translate(129.42, 66.34)">
-              <circle class="led-halo" cx="0" cy="0" r="2.6" fill="#00fe04" opacity="0" pointer-events="none" />
-              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
-              <circle class="led-core" cx="0" cy="0" r="0.75" fill="#00fe04" />
+              <rect class="led-pkg" x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
+              <rect class="led-die" x="-0.7" y="-0.7" width="1.4" height="1.4" fill="#00fe04" rx="0.2" />
               <rect x="1.3" y="-0.4" width="0.8" height="0.8" fill="#a07a30" stroke="#444" stroke-width="0.1" title="C79 (0402 100nF Cap)" />
             </g>
             <!-- LED80 -->
             <g class="led-node" data-id="80" data-color="#00fe01" transform="translate(135.23, 68.3)">
-              <circle class="led-halo" cx="0" cy="0" r="2.6" fill="#00fe01" opacity="0" pointer-events="none" />
-              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
-              <circle class="led-core" cx="0" cy="0" r="0.75" fill="#00fe01" />
+              <rect class="led-pkg" x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
+              <rect class="led-die" x="-0.7" y="-0.7" width="1.4" height="1.4" fill="#00fe01" rx="0.2" />
               <rect x="1.3" y="-0.4" width="0.8" height="0.8" fill="#a07a30" stroke="#444" stroke-width="0.1" title="C80 (0402 100nF Cap)" />
             </g>
             <!-- LED81 -->
             <g class="led-node" data-id="81" data-color="#00fe01" transform="translate(144.14, 72.28)">
-              <circle class="led-halo" cx="0" cy="0" r="2.6" fill="#00fe01" opacity="0" pointer-events="none" />
-              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
-              <circle class="led-core" cx="0" cy="0" r="0.75" fill="#00fe01" />
+              <rect class="led-pkg" x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
+              <rect class="led-die" x="-0.7" y="-0.7" width="1.4" height="1.4" fill="#00fe01" rx="0.2" />
               <rect x="1.3" y="-0.4" width="0.8" height="0.8" fill="#a07a30" stroke="#444" stroke-width="0.1" title="C81 (0402 100nF Cap)" />
             </g>
             <!-- LED82 -->
             <g class="led-node" data-id="82" data-color="#00fe01" transform="translate(140.49, 83.07)">
-              <circle class="led-halo" cx="0" cy="0" r="2.6" fill="#00fe01" opacity="0" pointer-events="none" />
-              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
-              <circle class="led-core" cx="0" cy="0" r="0.75" fill="#00fe01" />
+              <rect class="led-pkg" x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
+              <rect class="led-die" x="-0.7" y="-0.7" width="1.4" height="1.4" fill="#00fe01" rx="0.2" />
               <rect x="1.3" y="-0.4" width="0.8" height="0.8" fill="#a07a30" stroke="#444" stroke-width="0.1" title="C82 (0402 100nF Cap)" />
             </g>
             <!-- LED83 -->
             <g class="led-node" data-id="83" data-color="#00fe01" transform="translate(132.65, 78.45)">
-              <circle class="led-halo" cx="0" cy="0" r="2.6" fill="#00fe01" opacity="0" pointer-events="none" />
-              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
-              <circle class="led-core" cx="0" cy="0" r="0.75" fill="#00fe01" />
+              <rect class="led-pkg" x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
+              <rect class="led-die" x="-0.7" y="-0.7" width="1.4" height="1.4" fill="#00fe01" rx="0.2" />
               <rect x="1.3" y="-0.4" width="0.8" height="0.8" fill="#a07a30" stroke="#444" stroke-width="0.1" title="C83 (0402 100nF Cap)" />
             </g>
             <!-- LED84 -->
             <g class="led-node" data-id="84" data-color="#ea00fb" transform="translate(118.8, 83.07)">
-              <circle class="led-halo" cx="0" cy="0" r="2.6" fill="#ea00fb" opacity="0" pointer-events="none" />
-              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
-              <circle class="led-core" cx="0" cy="0" r="0.75" fill="#ea00fb" />
+              <rect class="led-pkg" x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
+              <rect class="led-die" x="-0.7" y="-0.7" width="1.4" height="1.4" fill="#ea00fb" rx="0.2" />
               <rect x="1.3" y="-0.4" width="0.8" height="0.8" fill="#a07a30" stroke="#444" stroke-width="0.1" title="C84 (0402 100nF Cap)" />
             </g>
             <!-- LED85 -->
             <g class="led-node" data-id="85" data-color="#00fc00" transform="translate(114.19, 91.14)">
-              <circle class="led-halo" cx="0" cy="0" r="2.6" fill="#00fc00" opacity="0" pointer-events="none" />
-              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
-              <circle class="led-core" cx="0" cy="0" r="0.75" fill="#00fc00" />
+              <rect class="led-pkg" x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
+              <rect class="led-die" x="-0.7" y="-0.7" width="1.4" height="1.4" fill="#00fc00" rx="0.2" />
               <rect x="1.3" y="-0.4" width="0.8" height="0.8" fill="#a07a30" stroke="#444" stroke-width="0.1" title="C85 (0402 100nF Cap)" />
             </g>
             <!-- LED86 -->
             <g class="led-node" data-id="86" data-color="#fe00fe" transform="translate(106.34, 96.91)">
-              <circle class="led-halo" cx="0" cy="0" r="2.6" fill="#fe00fe" opacity="0" pointer-events="none" />
-              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
-              <circle class="led-core" cx="0" cy="0" r="0.75" fill="#fe00fe" />
+              <rect class="led-pkg" x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
+              <rect class="led-die" x="-0.7" y="-0.7" width="1.4" height="1.4" fill="#fe00fe" rx="0.2" />
               <rect x="1.3" y="-0.4" width="0.8" height="0.8" fill="#a07a30" stroke="#444" stroke-width="0.1" title="C86 (0402 100nF Cap)" />
             </g>
             <!-- LED87 -->
             <g class="led-node" data-id="87" data-color="#faf600" transform="translate(110.96, 107.87)">
-              <circle class="led-halo" cx="0" cy="0" r="2.6" fill="#faf600" opacity="0" pointer-events="none" />
-              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
-              <circle class="led-core" cx="0" cy="0" r="0.75" fill="#faf600" />
+              <rect class="led-pkg" x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
+              <rect class="led-die" x="-0.7" y="-0.7" width="1.4" height="1.4" fill="#faf600" rx="0.2" />
               <rect x="1.3" y="-0.4" width="0.8" height="0.8" fill="#a07a30" stroke="#444" stroke-width="0.1" title="C87 (0402 100nF Cap)" />
             </g>
             <!-- LED88 -->
             <g class="led-node" data-id="88" data-color="#f700fe" transform="translate(100.35, 111.33)">
-              <circle class="led-halo" cx="0" cy="0" r="2.6" fill="#f700fe" opacity="0" pointer-events="none" />
-              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
-              <circle class="led-core" cx="0" cy="0" r="0.75" fill="#f700fe" />
+              <rect class="led-pkg" x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
+              <rect class="led-die" x="-0.7" y="-0.7" width="1.4" height="1.4" fill="#f700fe" rx="0.2" />
               <rect x="1.3" y="-0.4" width="0.8" height="0.8" fill="#a07a30" stroke="#444" stroke-width="0.1" title="C88 (0402 100nF Cap)" />
             </g>
             <!-- LED89 -->
             <g class="led-node" data-id="89" data-color="#ef00f8" transform="translate(103.11, 81.91)">
-              <circle class="led-halo" cx="0" cy="0" r="2.6" fill="#ef00f8" opacity="0" pointer-events="none" />
-              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
-              <circle class="led-core" cx="0" cy="0" r="0.75" fill="#ef00f8" />
+              <rect class="led-pkg" x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
+              <rect class="led-die" x="-0.7" y="-0.7" width="1.4" height="1.4" fill="#ef00f8" rx="0.2" />
               <rect x="1.3" y="-0.4" width="0.8" height="0.8" fill="#a07a30" stroke="#444" stroke-width="0.1" title="C89 (0402 100nF Cap)" />
             </g>
             <!-- LED90 -->
             <g class="led-node" data-id="90" data-color="#fa00fe" transform="translate(93.88, 84.8)">
-              <circle class="led-halo" cx="0" cy="0" r="2.6" fill="#fa00fe" opacity="0" pointer-events="none" />
-              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
-              <circle class="led-core" cx="0" cy="0" r="0.75" fill="#fa00fe" />
+              <rect class="led-pkg" x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
+              <rect class="led-die" x="-0.7" y="-0.7" width="1.4" height="1.4" fill="#fa00fe" rx="0.2" />
               <rect x="1.3" y="-0.4" width="0.8" height="0.8" fill="#a07a30" stroke="#444" stroke-width="0.1" title="C90 (0402 100nF Cap)" />
             </g>
             <!-- LED91 -->
             <g class="led-node" data-id="91" data-color="#fe00fd" transform="translate(92.5, 95.76)">
-              <circle class="led-halo" cx="0" cy="0" r="2.6" fill="#fe00fd" opacity="0" pointer-events="none" />
-              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
-              <circle class="led-core" cx="0" cy="0" r="0.75" fill="#fe00fd" />
+              <rect class="led-pkg" x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
+              <rect class="led-die" x="-0.7" y="-0.7" width="1.4" height="1.4" fill="#fe00fd" rx="0.2" />
               <rect x="1.3" y="-0.4" width="0.8" height="0.8" fill="#a07a30" stroke="#444" stroke-width="0.1" title="C91 (0402 100nF Cap)" />
             </g>
             <!-- LED92 -->
             <g class="led-node" data-id="92" data-color="#fe00fe" transform="translate(91.12, 106.14)">
-              <circle class="led-halo" cx="0" cy="0" r="2.6" fill="#fe00fe" opacity="0" pointer-events="none" />
-              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
-              <circle class="led-core" cx="0" cy="0" r="0.75" fill="#fe00fe" />
+              <rect class="led-pkg" x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
+              <rect class="led-die" x="-0.7" y="-0.7" width="1.4" height="1.4" fill="#fe00fe" rx="0.2" />
               <rect x="1.3" y="-0.4" width="0.8" height="0.8" fill="#a07a30" stroke="#444" stroke-width="0.1" title="C92 (0402 100nF Cap)" />
             </g>
             <!-- LED93 -->
             <g class="led-node" data-id="93" data-color="#ea3142" transform="translate(83.27, 112.49)">
-              <circle class="led-halo" cx="0" cy="0" r="2.6" fill="#ea3142" opacity="0" pointer-events="none" />
-              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
-              <circle class="led-core" cx="0" cy="0" r="0.75" fill="#ea3142" />
+              <rect class="led-pkg" x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
+              <rect class="led-die" x="-0.7" y="-0.7" width="1.4" height="1.4" fill="#ea3142" rx="0.2" />
               <rect x="1.3" y="-0.4" width="0.8" height="0.8" fill="#a07a30" stroke="#444" stroke-width="0.1" title="C93 (0402 100nF Cap)" />
             </g>
             <!-- LED94 -->
             <g class="led-node" data-id="94" data-color="#f800f4" transform="translate(75.43, 106.14)">
-              <circle class="led-halo" cx="0" cy="0" r="2.6" fill="#f800f4" opacity="0" pointer-events="none" />
-              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
-              <circle class="led-core" cx="0" cy="0" r="0.75" fill="#f800f4" />
+              <rect class="led-pkg" x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
+              <rect class="led-die" x="-0.7" y="-0.7" width="1.4" height="1.4" fill="#f800f4" rx="0.2" />
               <rect x="1.3" y="-0.4" width="0.8" height="0.8" fill="#a07a30" stroke="#444" stroke-width="0.1" title="C94 (0402 100nF Cap)" />
             </g>
             <!-- LED95 -->
             <g class="led-node" data-id="95" data-color="#f800f4" transform="translate(74.04, 95.76)">
-              <circle class="led-halo" cx="0" cy="0" r="2.6" fill="#f800f4" opacity="0" pointer-events="none" />
-              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
-              <circle class="led-core" cx="0" cy="0" r="0.75" fill="#f800f4" />
+              <rect class="led-pkg" x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
+              <rect class="led-die" x="-0.7" y="-0.7" width="1.4" height="1.4" fill="#f800f4" rx="0.2" />
               <rect x="1.3" y="-0.4" width="0.8" height="0.8" fill="#a07a30" stroke="#444" stroke-width="0.1" title="C95 (0402 100nF Cap)" />
             </g>
             <!-- LED96 -->
             <g class="led-node" data-id="96" data-color="#f800f5" transform="translate(60.2, 96.91)">
-              <circle class="led-halo" cx="0" cy="0" r="2.6" fill="#f800f5" opacity="0" pointer-events="none" />
-              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
-              <circle class="led-core" cx="0" cy="0" r="0.75" fill="#f800f5" />
+              <rect class="led-pkg" x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
+              <rect class="led-die" x="-0.7" y="-0.7" width="1.4" height="1.4" fill="#f800f5" rx="0.2" />
               <rect x="1.3" y="-0.4" width="0.8" height="0.8" fill="#a07a30" stroke="#444" stroke-width="0.1" title="C96 (0402 100nF Cap)" />
             </g>
             <!-- LED97 -->
             <g class="led-node" data-id="97" data-color="#df00f8" transform="translate(68.04, 81.91)">
-              <circle class="led-halo" cx="0" cy="0" r="2.6" fill="#df00f8" opacity="0" pointer-events="none" />
-              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
-              <circle class="led-core" cx="0" cy="0" r="0.75" fill="#df00f8" />
+              <rect class="led-pkg" x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
+              <rect class="led-die" x="-0.7" y="-0.7" width="1.4" height="1.4" fill="#df00f8" rx="0.2" />
               <rect x="1.3" y="-0.4" width="0.8" height="0.8" fill="#a07a30" stroke="#444" stroke-width="0.1" title="C97 (0402 100nF Cap)" />
             </g>
             <!-- LED98 -->
             <g class="led-node" data-id="98" data-color="#f900ea" transform="translate(56.97, 72.68)">
-              <circle class="led-halo" cx="0" cy="0" r="2.6" fill="#f900ea" opacity="0" pointer-events="none" />
-              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
-              <circle class="led-core" cx="0" cy="0" r="0.75" fill="#f900ea" />
+              <rect class="led-pkg" x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
+              <rect class="led-die" x="-0.7" y="-0.7" width="1.4" height="1.4" fill="#f900ea" rx="0.2" />
               <rect x="1.3" y="-0.4" width="0.8" height="0.8" fill="#a07a30" stroke="#444" stroke-width="0.1" title="C98 (0402 100nF Cap)" />
             </g>
             <!-- LED99 -->
             <g class="led-node" data-id="99" data-color="#ec00f9" transform="translate(58.35, 84.8)">
-              <circle class="led-halo" cx="0" cy="0" r="2.6" fill="#ec00f9" opacity="0" pointer-events="none" />
-              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
-              <circle class="led-core" cx="0" cy="0" r="0.75" fill="#ec00f9" />
+              <rect class="led-pkg" x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
+              <rect class="led-die" x="-0.7" y="-0.7" width="1.4" height="1.4" fill="#ec00f9" rx="0.2" />
               <rect x="1.3" y="-0.4" width="0.8" height="0.8" fill="#a07a30" stroke="#444" stroke-width="0.1" title="C99 (0402 100nF Cap)" />
             </g>
             <!-- LED100 -->
             <g class="led-node" data-id="100" data-color="#fc00ee" transform="translate(49.12, 87.68)">
-              <circle class="led-halo" cx="0" cy="0" r="2.6" fill="#fc00ee" opacity="0" pointer-events="none" />
-              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
-              <circle class="led-core" cx="0" cy="0" r="0.75" fill="#fc00ee" />
+              <rect class="led-pkg" x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
+              <rect class="led-die" x="-0.7" y="-0.7" width="1.4" height="1.4" fill="#fc00ee" rx="0.2" />
               <rect x="1.3" y="-0.4" width="0.8" height="0.8" fill="#a07a30" stroke="#444" stroke-width="0.1" title="C100 (0402 100nF Cap)" />
             </g>
           </g>
@@ -1398,22 +1292,24 @@ function toggleLightAll() {
   const btn = document.getElementById('lightAllBtn');
   if (btn) {
     btn.classList.toggle('active', allLedsLit);
-    btn.innerHTML = allLedsLit ? '🌟 LEDs Lit (Click to Turn Off)' : '✨ Light Up All LEDs';
+    btn.innerHTML = allLedsLit ? '🌟 LEDs Lit (Turn Off)' : '✨ Light Up All LEDs';
     btn.style.background = allLedsLit ? '#b08800' : '';
     btn.style.borderColor = allLedsLit ? '#ffd166' : '';
   }
   const nodes = document.querySelectorAll('.led-node');
   nodes.forEach(node => {
     node.classList.toggle('lit', allLedsLit);
-    const halo = node.querySelector('.led-halo');
-    const core = node.querySelector('.led-core');
+    const pkg = node.querySelector('.led-pkg');
+    const die = node.querySelector('.led-die');
     const col = node.getAttribute('data-color') || '#00ff88';
-    if (halo) {
-      halo.setAttribute('opacity', allLedsLit ? '0.75' : '0');
+    if (pkg) {
+      pkg.setAttribute('fill', allLedsLit ? col : '#ffffff');
+      pkg.setAttribute('stroke', allLedsLit ? '#ffffff' : '#222222');
+      pkg.setAttribute('stroke-width', allLedsLit ? '0.2' : '0.15');
     }
-    if (core) {
-      core.setAttribute('r', allLedsLit ? '1.15' : '0.75');
-      core.setAttribute('fill', col);
+    if (die) {
+      die.setAttribute('fill', allLedsLit ? '#ffffff' : col);
+      die.setAttribute('opacity', allLedsLit ? '0.75' : '1.0');
     }
   });
 }
@@ -1429,25 +1325,28 @@ function toggleDataStream() {
     streamTimer = setInterval(() => {
       const nodes = document.querySelectorAll('.led-node');
       nodes.forEach((node, idx) => {
-        const core = node.querySelector('.led-core');
-        const halo = node.querySelector('.led-halo');
+        const pkg = node.querySelector('.led-pkg');
+        const die = node.querySelector('.led-die');
         const col = node.getAttribute('data-color') || '#00ff88';
         const dist = Math.abs(idx - streamIdx);
-        if (dist < 4) {
-          if (core) {
-            core.setAttribute('r', '1.45');
-            core.setAttribute('fill', '#ffffff');
+        if (dist < 3) {
+          if (pkg) {
+            pkg.setAttribute('fill', '#ffffff');
+            pkg.setAttribute('stroke', '#ffffff');
           }
-          if (halo) {
-            halo.setAttribute('opacity', '1.0');
+          if (die) {
+            die.setAttribute('fill', '#ffd166');
+            die.setAttribute('opacity', '1.0');
           }
         } else {
-          if (core) {
-            core.setAttribute('r', allLedsLit ? '1.15' : '0.75');
-            core.setAttribute('fill', col);
+          if (pkg) {
+            pkg.setAttribute('fill', allLedsLit ? col : '#ffffff');
+            pkg.setAttribute('stroke', allLedsLit ? '#ffffff' : '#222222');
+            pkg.setAttribute('stroke-width', allLedsLit ? '0.2' : '0.15');
           }
-          if (halo) {
-            halo.setAttribute('opacity', allLedsLit ? '0.75' : '0');
+          if (die) {
+            die.setAttribute('fill', allLedsLit ? '#ffffff' : col);
+            die.setAttribute('opacity', allLedsLit ? '0.75' : '1.0');
           }
         }
       });
@@ -1456,15 +1355,17 @@ function toggleDataStream() {
   } else {
     clearInterval(streamTimer);
     document.querySelectorAll('.led-node').forEach(node => {
-      const core = node.querySelector('.led-core');
-      const halo = node.querySelector('.led-halo');
+      const pkg = node.querySelector('.led-pkg');
+      const die = node.querySelector('.led-die');
       const col = node.getAttribute('data-color') || '#00ff88';
-      if (core) {
-        core.setAttribute('r', allLedsLit ? '1.15' : '0.75');
-        core.setAttribute('fill', col);
+      if (pkg) {
+        pkg.setAttribute('fill', allLedsLit ? col : '#ffffff');
+        pkg.setAttribute('stroke', allLedsLit ? '#ffffff' : '#222222');
+        pkg.setAttribute('stroke-width', allLedsLit ? '0.2' : '0.15');
       }
-      if (halo) {
-        halo.setAttribute('opacity', allLedsLit ? '0.75' : '0');
+      if (die) {
+        die.setAttribute('fill', allLedsLit ? '#ffffff' : col);
+        die.setAttribute('opacity', allLedsLit ? '0.75' : '1.0');
       }
     });
   }
