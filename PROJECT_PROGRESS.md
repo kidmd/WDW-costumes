@@ -93,6 +93,19 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### Entry: Interactive "Light Up All LEDs" Illumination Simulation in PCB Preview
+* **Date:** 2026-10-03
+* **Milestone:** Milestone 4 - Flexible PCB (FPC) Fabrication R&D & Visual Simulation
+* **Status:** Complete & Verified (`pcb/pcb_preview.html`, `scripts/generate_pcb_project.py`).
+* **Notes:**
+  - **Full 100-LED Illumination Mode:**
+    - Added an interactive **"✨ Light Up All LEDs"** button to the PCB Inspector control bar.
+    - Clicking illuminates all 100 LEDs with radiant halos (`r=2.6mm`, `opacity=0.75`) in Pete's authentic parade color palette (chartreuse green body, warm golden-amber tail lantern, and fiery accents).
+    - LED cores expand to `r=1.15mm` with drop-shadow bloom.
+  - **Seamless DIN Pulse Integration:**
+    - The animated DIN flow pulse (`toggleDataStream()`) can be run concurrently with the lit state, creating an ultra-bright traveling white spark packet (`r=1.45mm`, `opacity=1.0`) sweeping over the illuminated background.
+    - Toggling the button off cleanly returns the board to unlit inspection mode.
+
 ### Entry: Complete 3-Rail Power & Ground Routing Architecture (+5V Bus, GND Vias & B.Cu Plane)
 * **Date:** 2026-10-03
 * **Milestone:** Milestone 4 - Flexible PCB (FPC) Fabrication R&D

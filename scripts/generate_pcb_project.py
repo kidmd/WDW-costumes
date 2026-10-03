@@ -608,6 +608,15 @@ html_content = f"""<!DOCTYPE html>
     flex: 1;
     accent-color: #58a6ff;
   }}
+  .led-node.lit .led-halo {{
+    opacity: 0.75;
+  }}
+  .led-node.lit .led-core {{
+    filter: drop-shadow(0 0 1.2px #ffffff);
+  }}
+  .led-node .led-halo, .led-node .led-core {{
+    transition: all 0.25s ease-out;
+  }}
 </style>
 </head>
 <body>
@@ -624,7 +633,8 @@ html_content = f"""<!DOCTYPE html>
     <button id="togglePowerBtn" class="active" onclick="toggleLayer('powerTraces')">🔋 +5V Power Rail</button>
     <button id="toggleGndBtn" class="active" onclick="toggleLayer('groundTraces')">🛡️ GND Bus & Vias</button>
     <button id="toggleLedsBtn" class="active" onclick="toggleLayer('smtLeds')">💡 SMD LEDs</button>
-    <button id="animateDataBtn" onclick="toggleDataStream()">✨ Animate DIN Flow</button>
+    <button id="lightAllBtn" onclick="toggleLightAll()" style="font-weight: 600;">✨ Light Up All LEDs</button>
+    <button id="animateDataBtn" onclick="toggleDataStream()">🌊 Animate DIN Flow</button>
     <a href="petes_dragon_easyeda.zip" download style="text-decoration:none;"><button style="background: #238636; border-color: #2ea043; font-weight: 600;">📥 Download EasyEDA / KiCad ZIP</button></a>
   </div>
 
@@ -719,9 +729,10 @@ for d in led_positions_mm:
     c = d["color"]
     hex_col = f'#{c.get("r",0):02x}{c.get("g",255):02x}{c.get("b",100):02x}'
     html_content += f"""            <!-- {d["ref"]} -->
-            <g class="led-node" data-id="{d["id"]}" transform="translate({d["x"]}, {d["y"]})">
+            <g class="led-node" data-id="{d["id"]}" data-color="{hex_col}" transform="translate({d["x"]}, {d["y"]})">
+              <circle class="led-halo" cx="0" cy="0" r="2.6" fill="{hex_col}" opacity="0" pointer-events="none" />
               <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
-              <circle cx="0" cy="0" r="0.75" fill="{hex_col}" />
+              <circle class="led-core" cx="0" cy="0" r="0.75" fill="{hex_col}" />
               <rect x="1.3" y="-0.4" width="0.8" height="0.8" fill="#a07a30" stroke="#444" stroke-width="0.1" title="{d['cap_ref']} (0402 100nF Cap)" />
             </g>
 """
@@ -811,6 +822,32 @@ function setArtOpacity(val) {{
   document.getElementById('artOpacityVal').textContent = val + '%';
 }}
 
+let allLedsLit = false;
+function toggleLightAll() {{
+  allLedsLit = !allLedsLit;
+  const btn = document.getElementById('lightAllBtn');
+  if (btn) {{
+    btn.classList.toggle('active', allLedsLit);
+    btn.innerHTML = allLedsLit ? '🌟 LEDs Lit (Click to Turn Off)' : '✨ Light Up All LEDs';
+    btn.style.background = allLedsLit ? '#b08800' : '';
+    btn.style.borderColor = allLedsLit ? '#ffd166' : '';
+  }}
+  const nodes = document.querySelectorAll('.led-node');
+  nodes.forEach(node => {{
+    node.classList.toggle('lit', allLedsLit);
+    const halo = node.querySelector('.led-halo');
+    const core = node.querySelector('.led-core');
+    const col = node.getAttribute('data-color') || '#00ff88';
+    if (halo) {{
+      halo.setAttribute('opacity', allLedsLit ? '0.75' : '0');
+    }}
+    if (core) {{
+      core.setAttribute('r', allLedsLit ? '1.15' : '0.75');
+      core.setAttribute('fill', col);
+    }}
+  }});
+}}
+
 let isStreaming = false;
 let streamTimer = null;
 let streamIdx = 0;
@@ -820,24 +857,45 @@ function toggleDataStream() {{
   if (btn) btn.classList.toggle('active', isStreaming);
   if (isStreaming) {{
     streamTimer = setInterval(() => {{
-      const nodes = document.querySelectorAll('.led-node circle');
-      nodes.forEach((n, idx) => {{
+      const nodes = document.querySelectorAll('.led-node');
+      nodes.forEach((node, idx) => {{
+        const core = node.querySelector('.led-core');
+        const halo = node.querySelector('.led-halo');
+        const col = node.getAttribute('data-color') || '#00ff88';
         const dist = Math.abs(idx - streamIdx);
         if (dist < 4) {{
-          n.setAttribute('r', '1.3');
-          n.setAttribute('fill', '#ffffff');
+          if (core) {{
+            core.setAttribute('r', '1.45');
+            core.setAttribute('fill', '#ffffff');
+          }}
+          if (halo) {{
+            halo.setAttribute('opacity', '1.0');
+          }}
         }} else {{
-          n.setAttribute('r', '0.75');
-          n.setAttribute('fill', '#00ff88');
+          if (core) {{
+            core.setAttribute('r', allLedsLit ? '1.15' : '0.75');
+            core.setAttribute('fill', col);
+          }}
+          if (halo) {{
+            halo.setAttribute('opacity', allLedsLit ? '0.75' : '0');
+          }}
         }}
       }});
       streamIdx = (streamIdx + 1) % 100;
     }}, 40);
   }} else {{
     clearInterval(streamTimer);
-    document.querySelectorAll('.led-node circle').forEach(n => {{
-      n.setAttribute('r', '0.75');
-      n.setAttribute('fill', '#00ff88');
+    document.querySelectorAll('.led-node').forEach(node => {{
+      const core = node.querySelector('.led-core');
+      const halo = node.querySelector('.led-halo');
+      const col = node.getAttribute('data-color') || '#00ff88';
+      if (core) {{
+        core.setAttribute('r', allLedsLit ? '1.15' : '0.75');
+        core.setAttribute('fill', col);
+      }}
+      if (halo) {{
+        halo.setAttribute('opacity', allLedsLit ? '0.75' : '0');
+      }}
     }});
   }}
 }}
