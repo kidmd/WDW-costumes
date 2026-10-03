@@ -11,9 +11,6 @@
     --border: #30363d;
     --text: #c9d1d9;
     --accent: #00ff88;
-    --fpc-gold: #c29d38;
-    --trace-copper: #e08c38;
-    --led-chip: #ffffff;
   }
   body {
     margin: 0;
@@ -23,7 +20,7 @@
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   }
   .container {
-    max-width: 1200px;
+    max-width: 1280px;
     margin: 0 auto;
   }
   h1 {
@@ -44,7 +41,7 @@
   }
   .grid {
     display: grid;
-    grid-template-columns: 1fr 340px;
+    grid-template-columns: 1fr 360px;
     gap: 20px;
     margin-top: 16px;
   }
@@ -60,7 +57,7 @@
     border-radius: 8px;
     border: 1px solid var(--border);
     overflow: hidden;
-    height: 640px;
+    height: 720px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -131,34 +128,40 @@
     color: #8b949e;
     font-weight: 600;
   }
+  .slider-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin-top: 10px;
+    font-size: 12px;
+  }
+  input[type="range"] {
+    flex: 1;
+    accent-color: #58a6ff;
+  }
 </style>
 </head>
 <body>
 <div class="container">
-  <h1>🐉 Pete's Dragon Custom Flex PCB (FPC) Suite <span class="badge">100 SMD LEDs Pre-Routed</span></h1>
+  <h1>🐉 Pete's Dragon Custom Flex PCB (FPC) Inspector <span class="badge">1:1 Coincident Alignment</span></h1>
   <div style="color: #8b949e; font-size: 14px; margin-bottom: 16px;">
-    Turnkey Flexible Polyimide (0.15mm Kapton) circuit board designed from simulator coordinates for factory SMT assembly.
+    Turnkey Flexible Polyimide circuit board layout with 100 micro addressable LEDs aligned with 100% precision over your transparent Pete's Dragon artwork!
   </div>
 
   <div class="ctrl-row">
     <button id="toggleGraphicBtn" class="active" onclick="toggleLayer('dragonGraphic')">🎨 Toggle Dragon Art</button>
     <button id="toggleTracesBtn" class="active" onclick="toggleLayer('copperTraces')">⚡ Toggle Copper Data Traces</button>
-    <button id="togglePowerBtn" class="active" onclick="toggleLayer('powerRails')">🔋 Toggle +5V / GND Rails</button>
     <button id="toggleOutlineBtn" class="active" onclick="toggleLayer('boardOutline')">✂️ Board Outline (Edge.Cuts)</button>
-    <button id="toggleLanternBtn" class="active" onclick="toggleLanternGlow()">🏮 Tail Lantern Glow</button>
+    <button id="toggleLedsBtn" class="active" onclick="toggleLayer('smtLeds')">💡 Toggle SMD LEDs</button>
     <button id="animateDataBtn" onclick="toggleDataStream()">✨ Animate DIN Flow</button>
   </div>
 
   <div class="grid">
     <div class="card" style="padding: 10px;">
       <div class="viewer-box">
-        <svg id="pcbSvg" viewBox="0 0 240 200">
+        <svg id="pcbSvg" viewBox="-8 -8 201.0 238.1">
           <defs>
-            <radialGradient id="glowGrad" cx="50%" cy="50%" r="50%">
-              <stop offset="0%" stop-color="#00ff88" stop-opacity="0.9" />
-              <stop offset="40%" stop-color="#00ff88" stop-opacity="0.4" />
-              <stop offset="100%" stop-color="#00ff88" stop-opacity="0" />
-            </radialGradient>
             <radialGradient id="lanternGrad" cx="50%" cy="50%" r="50%">
               <stop offset="0%" stop-color="#ffb703" stop-opacity="1.0" />
               <stop offset="50%" stop-color="#fb8500" stop-opacity="0.5" />
@@ -166,743 +169,730 @@
             </radialGradient>
           </defs>
 
-          <!-- Board Background (Gold Polyimide FPC) -->
+          <!-- Board Background (Laser-Cut Gold Polyimide Flex FPC Outline) -->
           <g id="boardOutline">
-            <path d="M 30,165 Q 25,120 40,95 Q 60,70 95,75 Q 110,65 140,55 Q 165,30 180,35 Q 205,45 200,80 Q 185,95 160,115 Q 155,145 165,165 Q 130,175 90,170 Q 50,175 30,165 Z" fill="#b38a2e" fill-opacity="0.25" stroke="#e5b84c" stroke-width="1.2" stroke-dasharray="3,2" />
+            <path d="M 161.14,47.93 L 136.2,44.03 L 117.98,49.67 L 126.66,62.25 L 122.97,73.52 L 114.73,77.86 L 111.04,90.01 L 104.1,77.86 L 91.52,77.43 L 85.45,109.96 L 69.84,77.64 L 58.56,69.4 L 48.15,71.14 L 46.41,102.59 L 35.57,111.04 L 19.52,100.85 L 11.71,105.84 L 20.6,127.96 L 14.1,145.1 L 15.83,171.77 L 73.96,184.57 L 105.19,176.11 L 126.23,179.8 L 125.79,167.87 L 112.13,154.42 L 114.73,128.83 L 129.91,98.47 L 143.36,111.7 L 164.4,106.06 L 164.4,73.74 L 157.24,65.93 Z" fill="#b38a2e" fill-opacity="0.22" stroke="#e5b84c" stroke-width="0.8" stroke-dasharray="3,1.5" />
           </g>
 
-          <!-- Dragon Artwork Overlay -->
-          <g id="dragonGraphic" opacity="0.4">
-            <image href="../assets/petes_dragon_transparent.png" x="20" y="20" width="195" height="155" preserveAspectRatio="xMidYMid meet" />
-          </g>
-
-          <!-- Power Rails (+5V & GND Polygons) -->
-          <g id="powerRails" opacity="0.6">
-            <path d="M 32,163 Q 27,122 42,97 Q 62,72 97,77 Q 112,67 142,57 Q 167,32 182,37 Q 203,47 198,78 Q 183,93 158,113 Q 153,143 163,163 Z" fill="none" stroke="#da3633" stroke-width="1.8" stroke-opacity="0.5" />
-            <path d="M 35,160 Q 30,125 45,100 Q 65,75 100,80 Q 115,70 145,60 Q 170,35 185,40 Q 195,50 190,80 Q 175,100 150,120 Q 145,150 155,160 Z" fill="none" stroke="#238636" stroke-width="1.8" stroke-opacity="0.5" />
+          <!-- Dragon Artwork Overlay (100% Coincident Dimension: 185mm x 222.1mm) -->
+          <g id="dragonGraphic" opacity="0.65">
+            <image href="../assets/petes_dragon_transparent.png" x="0" y="0" width="185.0" height="222.09" preserveAspectRatio="none" />
           </g>
 
           <!-- Copper Data Daisy-Chain Traces (DOUT -> DIN) -->
           <g id="copperTraces">
-            <line x1="28.2" y1="153.626" x2="62.948" y2="95.104" stroke="#f0883e" stroke-width="0.7" stroke-linecap="round" />
-            <line x1="62.948" y1="95.104" x2="41.916" y2="155.454" stroke="#f0883e" stroke-width="0.7" stroke-linecap="round" />
-            <line x1="41.916" y1="155.454" x2="81.51" y2="110.588" stroke="#f0883e" stroke-width="0.7" stroke-linecap="round" />
-            <line x1="81.51" y1="110.588" x2="132.579" y2="64.868" stroke="#f0883e" stroke-width="0.7" stroke-linecap="round" />
-            <line x1="132.579" y1="64.868" x2="69.348" y2="76.816" stroke="#f0883e" stroke-width="0.7" stroke-linecap="round" />
-            <line x1="69.348" y1="76.816" x2="79.864" y2="145.701" stroke="#f0883e" stroke-width="0.7" stroke-linecap="round" />
-            <line x1="79.864" y1="145.701" x2="119.64" y2="88.398" stroke="#f0883e" stroke-width="0.7" stroke-linecap="round" />
-            <line x1="119.64" y1="88.398" x2="143.689" y2="46.58" stroke="#f0883e" stroke-width="0.7" stroke-linecap="round" />
-            <line x1="143.689" y1="46.58" x2="102.724" y2="64.014" stroke="#f0883e" stroke-width="0.7" stroke-linecap="round" />
-            <line x1="102.724" y1="64.014" x2="168.561" y2="51.213" stroke="#f0883e" stroke-width="0.7" stroke-linecap="round" />
-            <line x1="168.561" y1="51.213" x2="111.868" y2="60.966" stroke="#f0883e" stroke-width="0.7" stroke-linecap="round" />
-            <line x1="111.868" y1="60.966" x2="62.948" y2="106.686" stroke="#f0883e" stroke-width="0.7" stroke-linecap="round" />
-            <line x1="62.948" y1="106.686" x2="122.841" y2="70.72" stroke="#f0883e" stroke-width="0.7" stroke-linecap="round" />
-            <line x1="122.841" y1="70.72" x2="73.92" y2="116.44" stroke="#f0883e" stroke-width="0.7" stroke-linecap="round" />
-            <line x1="73.92" y1="116.44" x2="127.413" y2="62.186" stroke="#f0883e" stroke-width="0.7" stroke-linecap="round" />
-            <line x1="127.413" y1="62.186" x2="72.549" y2="101.81" stroke="#f0883e" stroke-width="0.7" stroke-linecap="round" />
-            <line x1="72.549" y1="101.81" x2="107.296" y2="160.331" stroke="#f0883e" stroke-width="0.7" stroke-linecap="round" />
-            <line x1="107.296" y1="160.331" x2="83.979" y2="99.859" stroke="#f0883e" stroke-width="0.7" stroke-linecap="round" />
-            <line x1="83.979" y1="99.859" x2="141.129" y2="57.309" stroke="#f0883e" stroke-width="0.7" stroke-linecap="round" />
-            <line x1="141.129" y1="57.309" x2="110.496" y2="119.488" stroke="#f0883e" stroke-width="0.7" stroke-linecap="round" />
-            <line x1="110.496" y1="119.488" x2="148.901" y2="62.186" stroke="#f0883e" stroke-width="0.7" stroke-linecap="round" />
-            <line x1="148.901" y1="62.186" x2="84.436" y2="86.57" stroke="#f0883e" stroke-width="0.7" stroke-linecap="round" />
-            <line x1="84.436" y1="86.57" x2="137.928" y2="44.507" stroke="#f0883e" stroke-width="0.7" stroke-linecap="round" />
-            <line x1="137.928" y1="44.507" x2="99.981" y2="103.029" stroke="#f0883e" stroke-width="0.7" stroke-linecap="round" />
-            <line x1="99.981" y1="103.029" x2="41.916" y2="137.166" stroke="#f0883e" stroke-width="0.7" stroke-linecap="round" />
-            <line x1="41.916" y1="137.166" x2="109.125" y2="131.07" stroke="#f0883e" stroke-width="0.7" stroke-linecap="round" />
-            <line x1="109.125" y1="131.07" x2="57.004" y2="85.35" stroke="#f0883e" stroke-width="0.7" stroke-linecap="round" />
-            <line x1="57.004" y1="85.35" x2="89.008" y2="145.701" stroke="#f0883e" stroke-width="0.7" stroke-linecap="round" />
-            <line x1="89.008" y1="145.701" x2="30.944" y2="120.402" stroke="#f0883e" stroke-width="0.7" stroke-linecap="round" />
-            <line x1="30.944" y1="120.402" x2="95.409" y2="137.166" stroke="#f0883e" stroke-width="0.7" stroke-linecap="round" />
-            <line x1="95.409" y1="137.166" x2="128.784" y2="78.645" stroke="#f0883e" stroke-width="0.7" stroke-linecap="round" />
-            <line x1="128.784" y1="78.645" x2="165.36" y2="26.829" stroke="#f0883e" stroke-width="0.7" stroke-linecap="round" />
-            <line x1="165.36" y1="26.829" x2="150.273" y2="88.398" stroke="#f0883e" stroke-width="0.7" stroke-linecap="round" />
-            <line x1="150.273" y1="88.398" x2="154.845" y2="28.048" stroke="#f0883e" stroke-width="0.7" stroke-linecap="round" />
-            <line x1="154.845" y1="28.048" x2="128.784" y2="88.398" stroke="#f0883e" stroke-width="0.7" stroke-linecap="round" />
-            <line x1="128.784" y1="88.398" x2="83.064" y2="134.118" stroke="#f0883e" stroke-width="0.7" stroke-linecap="round" />
-            <line x1="83.064" y1="134.118" x2="30.944" y2="99.981" stroke="#f0883e" stroke-width="0.7" stroke-linecap="round" />
-            <line x1="30.944" y1="99.981" x2="69.348" y2="155.454" stroke="#f0883e" stroke-width="0.7" stroke-linecap="round" />
-            <line x1="69.348" y1="155.454" x2="73.92" y2="90.227" stroke="#f0883e" stroke-width="0.7" stroke-linecap="round" />
-            <line x1="73.92" y1="90.227" x2="34.19" y2="146.493" stroke="#f0883e" stroke-width="0.7" stroke-linecap="round" />
-            <line x1="34.19" y1="146.493" x2="105.924" y2="145.701" stroke="#f0883e" stroke-width="0.7" stroke-linecap="round" />
-            <line x1="105.924" y1="145.701" x2="50.466" y2="117.05" stroke="#f0883e" stroke-width="0.7" stroke-linecap="round" />
-            <line x1="50.466" y1="117.05" x2="90.837" y2="165.208" stroke="#f0883e" stroke-width="0.7" stroke-linecap="round" />
-            <line x1="90.837" y1="165.208" x2="41.276" y2="124.974" stroke="#f0883e" stroke-width="0.7" stroke-linecap="round" />
-            <line x1="41.276" y1="124.974" x2="67.52" y2="64.014" stroke="#f0883e" stroke-width="0.7" stroke-linecap="round" />
-            <line x1="67.52" y1="64.014" x2="47.083" y2="133.143" stroke="#f0883e" stroke-width="0.7" stroke-linecap="round" />
-            <line x1="47.083" y1="133.143" x2="119.64" y2="131.07" stroke="#f0883e" stroke-width="0.7" stroke-linecap="round" />
-            <line x1="119.64" y1="131.07" x2="153.473" y2="70.72" stroke="#f0883e" stroke-width="0.7" stroke-linecap="round" />
-            <line x1="153.473" y1="70.72" x2="101.352" y2="116.44" stroke="#f0883e" stroke-width="0.7" stroke-linecap="round" />
-            <line x1="101.352" y1="116.44" x2="159.417" y2="81.693" stroke="#f0883e" stroke-width="0.7" stroke-linecap="round" />
-            <line x1="159.417" y1="81.693" x2="144.329" y2="25.0" stroke="#f0883e" stroke-width="0.7" stroke-linecap="round" />
-            <line x1="144.329" y1="25.0" x2="169.932" y2="83.522" stroke="#f0883e" stroke-width="0.7" stroke-linecap="round" />
-            <line x1="169.932" y1="83.522" x2="130.156" y2="29.877" stroke="#f0883e" stroke-width="0.7" stroke-linecap="round" />
-            <line x1="130.156" y1="29.877" x2="165.36" y2="71.939" stroke="#f0883e" stroke-width="0.7" stroke-linecap="round" />
-            <line x1="165.36" y1="71.939" x2="99.981" y2="86.57" stroke="#f0883e" stroke-width="0.7" stroke-linecap="round" />
-            <line x1="99.981" y1="86.57" x2="153.702" y2="40.301" stroke="#f0883e" stroke-width="0.7" stroke-linecap="round" />
-            <line x1="153.702" y1="40.301" x2="109.125" y2="92.056" stroke="#f0883e" stroke-width="0.7" stroke-linecap="round" />
-            <line x1="109.125" y1="92.056" x2="41.916" y2="99.981" stroke="#f0883e" stroke-width="0.7" stroke-linecap="round" />
-            <line x1="41.916" y1="99.981" x2="81.693" y2="155.454" stroke="#f0883e" stroke-width="0.7" stroke-linecap="round" />
-            <line x1="81.693" y1="155.454" x2="52.432" y2="96.933" stroke="#f0883e" stroke-width="0.7" stroke-linecap="round" />
-            <line x1="52.432" y1="96.933" x2="92.208" y2="155.454" stroke="#f0883e" stroke-width="0.7" stroke-linecap="round" />
-            <line x1="92.208" y1="155.454" x2="40.088" y2="111.563" stroke="#f0883e" stroke-width="0.7" stroke-linecap="round" />
-            <line x1="40.088" y1="111.563" x2="79.864" y2="165.208" stroke="#f0883e" stroke-width="0.7" stroke-linecap="round" />
-            <line x1="79.864" y1="165.208" x2="111.868" y2="106.686" stroke="#f0883e" stroke-width="0.7" stroke-linecap="round" />
-            <line x1="111.868" y1="106.686" x2="152.513" y2="50.786" stroke="#f0883e" stroke-width="0.7" stroke-linecap="round" />
-            <line x1="152.513" y1="50.786" x2="83.064" y2="75.597" stroke="#f0883e" stroke-width="0.7" stroke-linecap="round" />
-            <line x1="83.064" y1="75.597" x2="148.901" y2="78.645" stroke="#f0883e" stroke-width="0.7" stroke-linecap="round" />
-            <line x1="148.901" y1="78.645" x2="119.64" y2="142.043" stroke="#f0883e" stroke-width="0.7" stroke-linecap="round" />
-            <line x1="119.64" y1="142.043" x2="51.06" y2="140.824" stroke="#f0883e" stroke-width="0.7" stroke-linecap="round" />
-            <line x1="51.06" y1="140.824" x2="119.64" y2="156.674" stroke="#f0883e" stroke-width="0.7" stroke-linecap="round" />
-            <line x1="119.64" y1="156.674" x2="68.663" y2="113.636" stroke="#f0883e" stroke-width="0.7" stroke-linecap="round" />
-            <line x1="68.663" y1="113.636" x2="58.376" y2="67.062" stroke="#f0883e" stroke-width="0.7" stroke-linecap="round" />
-            <line x1="58.376" y1="67.062" x2="30.898" y2="123.633" stroke="#f0883e" stroke-width="0.7" stroke-linecap="round" />
-            <line x1="30.898" y1="123.633" x2="92.208" y2="106.321" stroke="#f0883e" stroke-width="0.7" stroke-linecap="round" />
-            <line x1="92.208" y1="106.321" x2="32.59" y2="132.777" stroke="#f0883e" stroke-width="0.7" stroke-linecap="round" />
-            <line x1="32.59" y1="132.777" x2="96.78" y2="126.194" stroke="#f0883e" stroke-width="0.7" stroke-linecap="round" />
-            <line x1="96.78" y1="126.194" x2="133.768" y2="72.488" stroke="#f0883e" stroke-width="0.7" stroke-linecap="round" />
-            <line x1="133.768" y1="72.488" x2="88.414" y2="122.231" stroke="#f0883e" stroke-width="0.7" stroke-linecap="round" />
-            <line x1="88.414" y1="122.231" x2="35.516" y2="92.056" stroke="#f0883e" stroke-width="0.7" stroke-linecap="round" />
-            <line x1="35.516" y1="92.056" x2="60.204" y2="156.674" stroke="#f0883e" stroke-width="0.7" stroke-linecap="round" />
-            <line x1="60.204" y1="156.674" x2="128.784" y2="151.797" stroke="#f0883e" stroke-width="0.7" stroke-linecap="round" />
-            <line x1="128.784" y1="151.797" x2="92.208" y2="93.275" stroke="#f0883e" stroke-width="0.7" stroke-linecap="round" />
-            <line x1="92.208" y1="93.275" x2="55.632" y2="148.749" stroke="#f0883e" stroke-width="0.7" stroke-linecap="round" />
-            <line x1="55.632" y1="148.749" x2="25.0" y2="88.398" stroke="#f0883e" stroke-width="0.7" stroke-linecap="round" />
-            <line x1="25.0" y1="88.398" x2="66.148" y2="142.043" stroke="#f0883e" stroke-width="0.7" stroke-linecap="round" />
-            <line x1="66.148" y1="142.043" x2="131.985" y2="161.55" stroke="#f0883e" stroke-width="0.7" stroke-linecap="round" />
-            <line x1="131.985" y1="161.55" x2="72.549" y2="129.242" stroke="#f0883e" stroke-width="0.7" stroke-linecap="round" />
-            <line x1="72.549" y1="129.242" x2="115.068" y2="76.816" stroke="#f0883e" stroke-width="0.7" stroke-linecap="round" />
-            <line x1="115.068" y1="76.816" x2="58.513" y2="117.172" stroke="#f0883e" stroke-width="0.7" stroke-linecap="round" />
-            <line x1="58.513" y1="117.172" x2="66.148" y2="51.213" stroke="#f0883e" stroke-width="0.7" stroke-linecap="round" />
-            <line x1="66.148" y1="51.213" x2="65.645" y2="126.681" stroke="#f0883e" stroke-width="0.7" stroke-linecap="round" />
-            <line x1="65.645" y1="126.681" x2="77.121" y2="60.966" stroke="#f0883e" stroke-width="0.7" stroke-linecap="round" />
-            <line x1="77.121" y1="60.966" x2="139.757" y2="34.754" stroke="#f0883e" stroke-width="0.7" stroke-linecap="round" />
-            <line x1="139.757" y1="34.754" x2="124.212" y2="99.981" stroke="#f0883e" stroke-width="0.7" stroke-linecap="round" />
-            <line x1="124.212" y1="99.981" x2="160.651" y2="47.799" stroke="#f0883e" stroke-width="0.7" stroke-linecap="round" />
-            <line x1="160.651" y1="47.799" x2="101.352" y2="75.597" stroke="#f0883e" stroke-width="0.7" stroke-linecap="round" />
-            <line x1="101.352" y1="75.597" x2="168.561" y2="60.966" stroke="#f0883e" stroke-width="0.7" stroke-linecap="round" />
-            <line x1="168.561" y1="60.966" x2="121.012" y2="119.488" stroke="#f0883e" stroke-width="0.7" stroke-linecap="round" />
-            <line x1="121.012" y1="119.488" x2="159.645" y2="63.771" stroke="#f0883e" stroke-width="0.7" stroke-linecap="round" />
+            <line x1="18.66" y1="169.6" x2="53.74" y2="114.22" stroke="#f0883e" stroke-width="0.6" stroke-linecap="round" />
+            <line x1="53.74" y1="114.22" x2="32.51" y2="171.33" stroke="#f0883e" stroke-width="0.6" stroke-linecap="round" />
+            <line x1="32.51" y1="171.33" x2="72.47" y2="128.87" stroke="#f0883e" stroke-width="0.6" stroke-linecap="round" />
+            <line x1="72.47" y1="128.87" x2="124.02" y2="85.61" stroke="#f0883e" stroke-width="0.6" stroke-linecap="round" />
+            <line x1="124.02" y1="85.61" x2="60.2" y2="96.91" stroke="#f0883e" stroke-width="0.6" stroke-linecap="round" />
+            <line x1="60.2" y1="96.91" x2="70.81" y2="162.1" stroke="#f0883e" stroke-width="0.6" stroke-linecap="round" />
+            <line x1="70.81" y1="162.1" x2="110.96" y2="107.87" stroke="#f0883e" stroke-width="0.6" stroke-linecap="round" />
+            <line x1="110.96" y1="107.87" x2="135.23" y2="68.3" stroke="#f0883e" stroke-width="0.6" stroke-linecap="round" />
+            <line x1="135.23" y1="68.3" x2="93.88" y2="84.8" stroke="#f0883e" stroke-width="0.6" stroke-linecap="round" />
+            <line x1="93.88" y1="84.8" x2="160.34" y2="72.68" stroke="#f0883e" stroke-width="0.6" stroke-linecap="round" />
+            <line x1="160.34" y1="72.68" x2="103.11" y2="81.91" stroke="#f0883e" stroke-width="0.6" stroke-linecap="round" />
+            <line x1="103.11" y1="81.91" x2="53.74" y2="125.18" stroke="#f0883e" stroke-width="0.6" stroke-linecap="round" />
+            <line x1="53.74" y1="125.18" x2="114.19" y2="91.14" stroke="#f0883e" stroke-width="0.6" stroke-linecap="round" />
+            <line x1="114.19" y1="91.14" x2="64.81" y2="134.41" stroke="#f0883e" stroke-width="0.6" stroke-linecap="round" />
+            <line x1="64.81" y1="134.41" x2="118.8" y2="83.07" stroke="#f0883e" stroke-width="0.6" stroke-linecap="round" />
+            <line x1="118.8" y1="83.07" x2="63.43" y2="120.56" stroke="#f0883e" stroke-width="0.6" stroke-linecap="round" />
+            <line x1="63.43" y1="120.56" x2="98.5" y2="175.94" stroke="#f0883e" stroke-width="0.6" stroke-linecap="round" />
+            <line x1="98.5" y1="175.94" x2="74.96" y2="118.72" stroke="#f0883e" stroke-width="0.6" stroke-linecap="round" />
+            <line x1="74.96" y1="118.72" x2="132.65" y2="78.45" stroke="#f0883e" stroke-width="0.6" stroke-linecap="round" />
+            <line x1="132.65" y1="78.45" x2="101.73" y2="137.29" stroke="#f0883e" stroke-width="0.6" stroke-linecap="round" />
+            <line x1="101.73" y1="137.29" x2="140.49" y2="83.07" stroke="#f0883e" stroke-width="0.6" stroke-linecap="round" />
+            <line x1="140.49" y1="83.07" x2="75.43" y2="106.14" stroke="#f0883e" stroke-width="0.6" stroke-linecap="round" />
+            <line x1="75.43" y1="106.14" x2="129.42" y2="66.34" stroke="#f0883e" stroke-width="0.6" stroke-linecap="round" />
+            <line x1="129.42" y1="66.34" x2="91.12" y2="121.72" stroke="#f0883e" stroke-width="0.6" stroke-linecap="round" />
+            <line x1="91.12" y1="121.72" x2="32.51" y2="154.02" stroke="#f0883e" stroke-width="0.6" stroke-linecap="round" />
+            <line x1="32.51" y1="154.02" x2="100.35" y2="148.25" stroke="#f0883e" stroke-width="0.6" stroke-linecap="round" />
+            <line x1="100.35" y1="148.25" x2="47.74" y2="104.99" stroke="#f0883e" stroke-width="0.6" stroke-linecap="round" />
+            <line x1="47.74" y1="104.99" x2="80.04" y2="162.1" stroke="#f0883e" stroke-width="0.6" stroke-linecap="round" />
+            <line x1="80.04" y1="162.1" x2="21.43" y2="138.16" stroke="#f0883e" stroke-width="0.6" stroke-linecap="round" />
+            <line x1="21.43" y1="138.16" x2="86.5" y2="154.02" stroke="#f0883e" stroke-width="0.6" stroke-linecap="round" />
+            <line x1="86.5" y1="154.02" x2="120.19" y2="98.64" stroke="#f0883e" stroke-width="0.6" stroke-linecap="round" />
+            <line x1="120.19" y1="98.64" x2="157.11" y2="49.61" stroke="#f0883e" stroke-width="0.6" stroke-linecap="round" />
+            <line x1="157.11" y1="49.61" x2="141.88" y2="107.87" stroke="#f0883e" stroke-width="0.6" stroke-linecap="round" />
+            <line x1="141.88" y1="107.87" x2="146.49" y2="50.76" stroke="#f0883e" stroke-width="0.6" stroke-linecap="round" />
+            <line x1="146.49" y1="50.76" x2="120.19" y2="107.87" stroke="#f0883e" stroke-width="0.6" stroke-linecap="round" />
+            <line x1="120.19" y1="107.87" x2="74.04" y2="151.14" stroke="#f0883e" stroke-width="0.6" stroke-linecap="round" />
+            <line x1="74.04" y1="151.14" x2="21.43" y2="118.83" stroke="#f0883e" stroke-width="0.6" stroke-linecap="round" />
+            <line x1="21.43" y1="118.83" x2="60.2" y2="171.33" stroke="#f0883e" stroke-width="0.6" stroke-linecap="round" />
+            <line x1="60.2" y1="171.33" x2="64.81" y2="109.6" stroke="#f0883e" stroke-width="0.6" stroke-linecap="round" />
+            <line x1="64.81" y1="109.6" x2="24.71" y2="162.85" stroke="#f0883e" stroke-width="0.6" stroke-linecap="round" />
+            <line x1="24.71" y1="162.85" x2="97.11" y2="162.1" stroke="#f0883e" stroke-width="0.6" stroke-linecap="round" />
+            <line x1="97.11" y1="162.1" x2="41.14" y2="134.98" stroke="#f0883e" stroke-width="0.6" stroke-linecap="round" />
+            <line x1="41.14" y1="134.98" x2="81.89" y2="180.56" stroke="#f0883e" stroke-width="0.6" stroke-linecap="round" />
+            <line x1="81.89" y1="180.56" x2="31.86" y2="142.48" stroke="#f0883e" stroke-width="0.6" stroke-linecap="round" />
+            <line x1="31.86" y1="142.48" x2="58.35" y2="84.8" stroke="#f0883e" stroke-width="0.6" stroke-linecap="round" />
+            <line x1="58.35" y1="84.8" x2="37.72" y2="150.21" stroke="#f0883e" stroke-width="0.6" stroke-linecap="round" />
+            <line x1="37.72" y1="150.21" x2="110.96" y2="148.25" stroke="#f0883e" stroke-width="0.6" stroke-linecap="round" />
+            <line x1="110.96" y1="148.25" x2="145.11" y2="91.14" stroke="#f0883e" stroke-width="0.6" stroke-linecap="round" />
+            <line x1="145.11" y1="91.14" x2="92.5" y2="134.41" stroke="#f0883e" stroke-width="0.6" stroke-linecap="round" />
+            <line x1="92.5" y1="134.41" x2="151.11" y2="101.53" stroke="#f0883e" stroke-width="0.6" stroke-linecap="round" />
+            <line x1="151.11" y1="101.53" x2="135.88" y2="47.88" stroke="#f0883e" stroke-width="0.6" stroke-linecap="round" />
+            <line x1="135.88" y1="47.88" x2="161.72" y2="103.26" stroke="#f0883e" stroke-width="0.6" stroke-linecap="round" />
+            <line x1="161.72" y1="103.26" x2="121.57" y2="52.49" stroke="#f0883e" stroke-width="0.6" stroke-linecap="round" />
+            <line x1="121.57" y1="52.49" x2="157.11" y2="92.3" stroke="#f0883e" stroke-width="0.6" stroke-linecap="round" />
+            <line x1="157.11" y1="92.3" x2="91.12" y2="106.14" stroke="#f0883e" stroke-width="0.6" stroke-linecap="round" />
+            <line x1="91.12" y1="106.14" x2="145.34" y2="62.36" stroke="#f0883e" stroke-width="0.6" stroke-linecap="round" />
+            <line x1="145.34" y1="62.36" x2="100.35" y2="111.33" stroke="#f0883e" stroke-width="0.6" stroke-linecap="round" />
+            <line x1="100.35" y1="111.33" x2="32.51" y2="118.83" stroke="#f0883e" stroke-width="0.6" stroke-linecap="round" />
+            <line x1="32.51" y1="118.83" x2="72.66" y2="171.33" stroke="#f0883e" stroke-width="0.6" stroke-linecap="round" />
+            <line x1="72.66" y1="171.33" x2="43.12" y2="115.95" stroke="#f0883e" stroke-width="0.6" stroke-linecap="round" />
+            <line x1="43.12" y1="115.95" x2="83.27" y2="171.33" stroke="#f0883e" stroke-width="0.6" stroke-linecap="round" />
+            <line x1="83.27" y1="171.33" x2="30.66" y2="129.79" stroke="#f0883e" stroke-width="0.6" stroke-linecap="round" />
+            <line x1="30.66" y1="129.79" x2="70.81" y2="180.56" stroke="#f0883e" stroke-width="0.6" stroke-linecap="round" />
+            <line x1="70.81" y1="180.56" x2="103.11" y2="125.18" stroke="#f0883e" stroke-width="0.6" stroke-linecap="round" />
+            <line x1="103.11" y1="125.18" x2="144.14" y2="72.28" stroke="#f0883e" stroke-width="0.6" stroke-linecap="round" />
+            <line x1="144.14" y1="72.28" x2="74.04" y2="95.76" stroke="#f0883e" stroke-width="0.6" stroke-linecap="round" />
+            <line x1="74.04" y1="95.76" x2="140.49" y2="98.64" stroke="#f0883e" stroke-width="0.6" stroke-linecap="round" />
+            <line x1="140.49" y1="98.64" x2="110.96" y2="158.64" stroke="#f0883e" stroke-width="0.6" stroke-linecap="round" />
+            <line x1="110.96" y1="158.64" x2="41.74" y2="157.48" stroke="#f0883e" stroke-width="0.6" stroke-linecap="round" />
+            <line x1="41.74" y1="157.48" x2="110.96" y2="172.48" stroke="#f0883e" stroke-width="0.6" stroke-linecap="round" />
+            <line x1="110.96" y1="172.48" x2="59.5" y2="131.75" stroke="#f0883e" stroke-width="0.6" stroke-linecap="round" />
+            <line x1="59.5" y1="131.75" x2="49.12" y2="87.68" stroke="#f0883e" stroke-width="0.6" stroke-linecap="round" />
+            <line x1="49.12" y1="87.68" x2="21.39" y2="141.21" stroke="#f0883e" stroke-width="0.6" stroke-linecap="round" />
+            <line x1="21.39" y1="141.21" x2="83.27" y2="124.83" stroke="#f0883e" stroke-width="0.6" stroke-linecap="round" />
+            <line x1="83.27" y1="124.83" x2="23.09" y2="149.87" stroke="#f0883e" stroke-width="0.6" stroke-linecap="round" />
+            <line x1="23.09" y1="149.87" x2="87.89" y2="143.64" stroke="#f0883e" stroke-width="0.6" stroke-linecap="round" />
+            <line x1="87.89" y1="143.64" x2="125.22" y2="92.82" stroke="#f0883e" stroke-width="0.6" stroke-linecap="round" />
+            <line x1="125.22" y1="92.82" x2="79.44" y2="139.89" stroke="#f0883e" stroke-width="0.6" stroke-linecap="round" />
+            <line x1="79.44" y1="139.89" x2="26.05" y2="111.33" stroke="#f0883e" stroke-width="0.6" stroke-linecap="round" />
+            <line x1="26.05" y1="111.33" x2="50.97" y2="172.48" stroke="#f0883e" stroke-width="0.6" stroke-linecap="round" />
+            <line x1="50.97" y1="172.48" x2="120.19" y2="167.87" stroke="#f0883e" stroke-width="0.6" stroke-linecap="round" />
+            <line x1="120.19" y1="167.87" x2="83.27" y2="112.49" stroke="#f0883e" stroke-width="0.6" stroke-linecap="round" />
+            <line x1="83.27" y1="112.49" x2="46.35" y2="164.98" stroke="#f0883e" stroke-width="0.6" stroke-linecap="round" />
+            <line x1="46.35" y1="164.98" x2="15.43" y2="107.87" stroke="#f0883e" stroke-width="0.6" stroke-linecap="round" />
+            <line x1="15.43" y1="107.87" x2="56.97" y2="158.64" stroke="#f0883e" stroke-width="0.6" stroke-linecap="round" />
+            <line x1="56.97" y1="158.64" x2="123.42" y2="177.1" stroke="#f0883e" stroke-width="0.6" stroke-linecap="round" />
+            <line x1="123.42" y1="177.1" x2="63.43" y2="146.52" stroke="#f0883e" stroke-width="0.6" stroke-linecap="round" />
+            <line x1="63.43" y1="146.52" x2="106.34" y2="96.91" stroke="#f0883e" stroke-width="0.6" stroke-linecap="round" />
+            <line x1="106.34" y1="96.91" x2="49.26" y2="135.1" stroke="#f0883e" stroke-width="0.6" stroke-linecap="round" />
+            <line x1="49.26" y1="135.1" x2="56.97" y2="72.68" stroke="#f0883e" stroke-width="0.6" stroke-linecap="round" />
+            <line x1="56.97" y1="72.68" x2="56.46" y2="144.1" stroke="#f0883e" stroke-width="0.6" stroke-linecap="round" />
+            <line x1="56.46" y1="144.1" x2="68.04" y2="81.91" stroke="#f0883e" stroke-width="0.6" stroke-linecap="round" />
+            <line x1="68.04" y1="81.91" x2="131.26" y2="57.11" stroke="#f0883e" stroke-width="0.6" stroke-linecap="round" />
+            <line x1="131.26" y1="57.11" x2="115.57" y2="118.83" stroke="#f0883e" stroke-width="0.6" stroke-linecap="round" />
+            <line x1="115.57" y1="118.83" x2="152.35" y2="69.45" stroke="#f0883e" stroke-width="0.6" stroke-linecap="round" />
+            <line x1="152.35" y1="69.45" x2="92.5" y2="95.76" stroke="#f0883e" stroke-width="0.6" stroke-linecap="round" />
+            <line x1="92.5" y1="95.76" x2="160.34" y2="81.91" stroke="#f0883e" stroke-width="0.6" stroke-linecap="round" />
+            <line x1="160.34" y1="81.91" x2="112.34" y2="137.29" stroke="#f0883e" stroke-width="0.6" stroke-linecap="round" />
+            <line x1="112.34" y1="137.29" x2="151.34" y2="84.57" stroke="#f0883e" stroke-width="0.6" stroke-linecap="round" />
           </g>
 
           <!-- 100x WS2812B-2020 SMT LEDs + 0402 Bypass Caps -->
           <g id="smtLeds">
             <!-- LED1 -->
-            <g class="led-node" data-id="1" transform="translate(28.2, 153.626)">
-              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#333333" stroke-width="0.2" rx="0.3" />
+            <g class="led-node" data-id="1" transform="translate(18.66, 169.6)">
+              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
               <circle cx="0" cy="0" r="0.75" fill="#0bfe00" />
-              <rect x="1.4" y="-0.4" width="1.0" height="0.8" fill="#a07a30" stroke="#555" stroke-width="0.1" title="C1 (0402 100nF)" />
+              <rect x="1.3" y="-0.4" width="0.8" height="0.8" fill="#a07a30" stroke="#444" stroke-width="0.1" title="C1 (0402 100nF Cap)" />
             </g>
             <!-- LED2 -->
-            <g class="led-node" data-id="2" transform="translate(62.948, 95.104)">
-              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#333333" stroke-width="0.2" rx="0.3" />
+            <g class="led-node" data-id="2" transform="translate(53.74, 114.22)">
+              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
               <circle cx="0" cy="0" r="0.75" fill="#00fe05" />
-              <rect x="1.4" y="-0.4" width="1.0" height="0.8" fill="#a07a30" stroke="#555" stroke-width="0.1" title="C2 (0402 100nF)" />
+              <rect x="1.3" y="-0.4" width="0.8" height="0.8" fill="#a07a30" stroke="#444" stroke-width="0.1" title="C2 (0402 100nF Cap)" />
             </g>
             <!-- LED3 -->
-            <g class="led-node" data-id="3" transform="translate(41.916, 155.454)">
-              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#333333" stroke-width="0.2" rx="0.3" />
+            <g class="led-node" data-id="3" transform="translate(32.51, 171.33)">
+              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
               <circle cx="0" cy="0" r="0.75" fill="#fffaf2" />
-              <rect x="1.4" y="-0.4" width="1.0" height="0.8" fill="#a07a30" stroke="#555" stroke-width="0.1" title="C3 (0402 100nF)" />
+              <rect x="1.3" y="-0.4" width="0.8" height="0.8" fill="#a07a30" stroke="#444" stroke-width="0.1" title="C3 (0402 100nF Cap)" />
             </g>
             <!-- LED4 -->
-            <g class="led-node" data-id="4" transform="translate(81.51, 110.588)">
-              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#333333" stroke-width="0.2" rx="0.3" />
+            <g class="led-node" data-id="4" transform="translate(72.47, 128.87)">
+              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
               <circle cx="0" cy="0" r="0.75" fill="#00fe01" />
-              <rect x="1.4" y="-0.4" width="1.0" height="0.8" fill="#a07a30" stroke="#555" stroke-width="0.1" title="C4 (0402 100nF)" />
+              <rect x="1.3" y="-0.4" width="0.8" height="0.8" fill="#a07a30" stroke="#444" stroke-width="0.1" title="C4 (0402 100nF Cap)" />
             </g>
             <!-- LED5 -->
-            <g class="led-node" data-id="5" transform="translate(132.579, 64.868)">
-              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#333333" stroke-width="0.2" rx="0.3" />
+            <g class="led-node" data-id="5" transform="translate(124.02, 85.61)">
+              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
               <circle cx="0" cy="0" r="0.75" fill="#00fe00" />
-              <rect x="1.4" y="-0.4" width="1.0" height="0.8" fill="#a07a30" stroke="#555" stroke-width="0.1" title="C5 (0402 100nF)" />
+              <rect x="1.3" y="-0.4" width="0.8" height="0.8" fill="#a07a30" stroke="#444" stroke-width="0.1" title="C5 (0402 100nF Cap)" />
             </g>
             <!-- LED6 -->
-            <g class="led-node" data-id="6" transform="translate(69.348, 76.816)">
-              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#333333" stroke-width="0.2" rx="0.3" />
+            <g class="led-node" data-id="6" transform="translate(60.2, 96.91)">
+              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
               <circle cx="0" cy="0" r="0.75" fill="#f800f5" />
-              <rect x="1.4" y="-0.4" width="1.0" height="0.8" fill="#a07a30" stroke="#555" stroke-width="0.1" title="C6 (0402 100nF)" />
+              <rect x="1.3" y="-0.4" width="0.8" height="0.8" fill="#a07a30" stroke="#444" stroke-width="0.1" title="C6 (0402 100nF Cap)" />
             </g>
             <!-- LED7 -->
-            <g class="led-node" data-id="7" transform="translate(79.864, 145.701)">
-              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#333333" stroke-width="0.2" rx="0.3" />
+            <g class="led-node" data-id="7" transform="translate(70.81, 162.1)">
+              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
               <circle cx="0" cy="0" r="0.75" fill="#00fb08" />
-              <rect x="1.4" y="-0.4" width="1.0" height="0.8" fill="#a07a30" stroke="#555" stroke-width="0.1" title="C7 (0402 100nF)" />
+              <rect x="1.3" y="-0.4" width="0.8" height="0.8" fill="#a07a30" stroke="#444" stroke-width="0.1" title="C7 (0402 100nF Cap)" />
             </g>
             <!-- LED8 -->
-            <g class="led-node" data-id="8" transform="translate(119.64, 88.398)">
-              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#333333" stroke-width="0.2" rx="0.3" />
+            <g class="led-node" data-id="8" transform="translate(110.96, 107.87)">
+              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
               <circle cx="0" cy="0" r="0.75" fill="#faf600" />
-              <rect x="1.4" y="-0.4" width="1.0" height="0.8" fill="#a07a30" stroke="#555" stroke-width="0.1" title="C8 (0402 100nF)" />
+              <rect x="1.3" y="-0.4" width="0.8" height="0.8" fill="#a07a30" stroke="#444" stroke-width="0.1" title="C8 (0402 100nF Cap)" />
             </g>
             <!-- LED9 -->
-            <g class="led-node" data-id="9" transform="translate(143.689, 46.58)">
-              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#333333" stroke-width="0.2" rx="0.3" />
+            <g class="led-node" data-id="9" transform="translate(135.23, 68.3)">
+              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
               <circle cx="0" cy="0" r="0.75" fill="#00fe01" />
-              <rect x="1.4" y="-0.4" width="1.0" height="0.8" fill="#a07a30" stroke="#555" stroke-width="0.1" title="C9 (0402 100nF)" />
+              <rect x="1.3" y="-0.4" width="0.8" height="0.8" fill="#a07a30" stroke="#444" stroke-width="0.1" title="C9 (0402 100nF Cap)" />
             </g>
             <!-- LED10 -->
-            <g class="led-node" data-id="10" transform="translate(102.724, 64.014)">
-              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#333333" stroke-width="0.2" rx="0.3" />
+            <g class="led-node" data-id="10" transform="translate(93.88, 84.8)">
+              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
               <circle cx="0" cy="0" r="0.75" fill="#fa00fe" />
-              <rect x="1.4" y="-0.4" width="1.0" height="0.8" fill="#a07a30" stroke="#555" stroke-width="0.1" title="C10 (0402 100nF)" />
+              <rect x="1.3" y="-0.4" width="0.8" height="0.8" fill="#a07a30" stroke="#444" stroke-width="0.1" title="C10 (0402 100nF Cap)" />
             </g>
             <!-- LED11 -->
-            <g class="led-node" data-id="11" transform="translate(168.561, 51.213)">
-              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#333333" stroke-width="0.2" rx="0.3" />
+            <g class="led-node" data-id="11" transform="translate(160.34, 72.68)">
+              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
               <circle cx="0" cy="0" r="0.75" fill="#00fe0b" />
-              <rect x="1.4" y="-0.4" width="1.0" height="0.8" fill="#a07a30" stroke="#555" stroke-width="0.1" title="C11 (0402 100nF)" />
+              <rect x="1.3" y="-0.4" width="0.8" height="0.8" fill="#a07a30" stroke="#444" stroke-width="0.1" title="C11 (0402 100nF Cap)" />
             </g>
             <!-- LED12 -->
-            <g class="led-node" data-id="12" transform="translate(111.868, 60.966)">
-              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#333333" stroke-width="0.2" rx="0.3" />
+            <g class="led-node" data-id="12" transform="translate(103.11, 81.91)">
+              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
               <circle cx="0" cy="0" r="0.75" fill="#ef00f8" />
-              <rect x="1.4" y="-0.4" width="1.0" height="0.8" fill="#a07a30" stroke="#555" stroke-width="0.1" title="C12 (0402 100nF)" />
+              <rect x="1.3" y="-0.4" width="0.8" height="0.8" fill="#a07a30" stroke="#444" stroke-width="0.1" title="C12 (0402 100nF Cap)" />
             </g>
             <!-- LED13 -->
-            <g class="led-node" data-id="13" transform="translate(62.948, 106.686)">
-              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#333333" stroke-width="0.2" rx="0.3" />
+            <g class="led-node" data-id="13" transform="translate(53.74, 125.18)">
+              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
               <circle cx="0" cy="0" r="0.75" fill="#00fe01" />
-              <rect x="1.4" y="-0.4" width="1.0" height="0.8" fill="#a07a30" stroke="#555" stroke-width="0.1" title="C13 (0402 100nF)" />
+              <rect x="1.3" y="-0.4" width="0.8" height="0.8" fill="#a07a30" stroke="#444" stroke-width="0.1" title="C13 (0402 100nF Cap)" />
             </g>
             <!-- LED14 -->
-            <g class="led-node" data-id="14" transform="translate(122.841, 70.72)">
-              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#333333" stroke-width="0.2" rx="0.3" />
+            <g class="led-node" data-id="14" transform="translate(114.19, 91.14)">
+              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
               <circle cx="0" cy="0" r="0.75" fill="#00fc00" />
-              <rect x="1.4" y="-0.4" width="1.0" height="0.8" fill="#a07a30" stroke="#555" stroke-width="0.1" title="C14 (0402 100nF)" />
+              <rect x="1.3" y="-0.4" width="0.8" height="0.8" fill="#a07a30" stroke="#444" stroke-width="0.1" title="C14 (0402 100nF Cap)" />
             </g>
             <!-- LED15 -->
-            <g class="led-node" data-id="15" transform="translate(73.92, 116.44)">
-              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#333333" stroke-width="0.2" rx="0.3" />
+            <g class="led-node" data-id="15" transform="translate(64.81, 134.41)">
+              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
               <circle cx="0" cy="0" r="0.75" fill="#00fe01" />
-              <rect x="1.4" y="-0.4" width="1.0" height="0.8" fill="#a07a30" stroke="#555" stroke-width="0.1" title="C15 (0402 100nF)" />
+              <rect x="1.3" y="-0.4" width="0.8" height="0.8" fill="#a07a30" stroke="#444" stroke-width="0.1" title="C15 (0402 100nF Cap)" />
             </g>
             <!-- LED16 -->
-            <g class="led-node" data-id="16" transform="translate(127.413, 62.186)">
-              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#333333" stroke-width="0.2" rx="0.3" />
+            <g class="led-node" data-id="16" transform="translate(118.8, 83.07)">
+              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
               <circle cx="0" cy="0" r="0.75" fill="#ea00fb" />
-              <rect x="1.4" y="-0.4" width="1.0" height="0.8" fill="#a07a30" stroke="#555" stroke-width="0.1" title="C16 (0402 100nF)" />
+              <rect x="1.3" y="-0.4" width="0.8" height="0.8" fill="#a07a30" stroke="#444" stroke-width="0.1" title="C16 (0402 100nF Cap)" />
             </g>
             <!-- LED17 -->
-            <g class="led-node" data-id="17" transform="translate(72.549, 101.81)">
-              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#333333" stroke-width="0.2" rx="0.3" />
+            <g class="led-node" data-id="17" transform="translate(63.43, 120.56)">
+              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
               <circle cx="0" cy="0" r="0.75" fill="#00fe0a" />
-              <rect x="1.4" y="-0.4" width="1.0" height="0.8" fill="#a07a30" stroke="#555" stroke-width="0.1" title="C17 (0402 100nF)" />
+              <rect x="1.3" y="-0.4" width="0.8" height="0.8" fill="#a07a30" stroke="#444" stroke-width="0.1" title="C17 (0402 100nF Cap)" />
             </g>
             <!-- LED18 -->
-            <g class="led-node" data-id="18" transform="translate(107.296, 160.331)">
-              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#333333" stroke-width="0.2" rx="0.3" />
+            <g class="led-node" data-id="18" transform="translate(98.5, 175.94)">
+              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
               <circle cx="0" cy="0" r="0.75" fill="#fdff00" />
-              <rect x="1.4" y="-0.4" width="1.0" height="0.8" fill="#a07a30" stroke="#555" stroke-width="0.1" title="C18 (0402 100nF)" />
+              <rect x="1.3" y="-0.4" width="0.8" height="0.8" fill="#a07a30" stroke="#444" stroke-width="0.1" title="C18 (0402 100nF Cap)" />
             </g>
             <!-- LED19 -->
-            <g class="led-node" data-id="19" transform="translate(83.979, 99.859)">
-              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#333333" stroke-width="0.2" rx="0.3" />
+            <g class="led-node" data-id="19" transform="translate(74.96, 118.72)">
+              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
               <circle cx="0" cy="0" r="0.75" fill="#00fe01" />
-              <rect x="1.4" y="-0.4" width="1.0" height="0.8" fill="#a07a30" stroke="#555" stroke-width="0.1" title="C19 (0402 100nF)" />
+              <rect x="1.3" y="-0.4" width="0.8" height="0.8" fill="#a07a30" stroke="#444" stroke-width="0.1" title="C19 (0402 100nF Cap)" />
             </g>
             <!-- LED20 -->
-            <g class="led-node" data-id="20" transform="translate(141.129, 57.309)">
-              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#333333" stroke-width="0.2" rx="0.3" />
+            <g class="led-node" data-id="20" transform="translate(132.65, 78.45)">
+              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
               <circle cx="0" cy="0" r="0.75" fill="#00fe01" />
-              <rect x="1.4" y="-0.4" width="1.0" height="0.8" fill="#a07a30" stroke="#555" stroke-width="0.1" title="C20 (0402 100nF)" />
+              <rect x="1.3" y="-0.4" width="0.8" height="0.8" fill="#a07a30" stroke="#444" stroke-width="0.1" title="C20 (0402 100nF Cap)" />
             </g>
             <!-- LED21 -->
-            <g class="led-node" data-id="21" transform="translate(110.496, 119.488)">
-              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#333333" stroke-width="0.2" rx="0.3" />
+            <g class="led-node" data-id="21" transform="translate(101.73, 137.29)">
+              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
               <circle cx="0" cy="0" r="0.75" fill="#fefe00" />
-              <rect x="1.4" y="-0.4" width="1.0" height="0.8" fill="#a07a30" stroke="#555" stroke-width="0.1" title="C21 (0402 100nF)" />
+              <rect x="1.3" y="-0.4" width="0.8" height="0.8" fill="#a07a30" stroke="#444" stroke-width="0.1" title="C21 (0402 100nF Cap)" />
             </g>
             <!-- LED22 -->
-            <g class="led-node" data-id="22" transform="translate(148.901, 62.186)">
-              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#333333" stroke-width="0.2" rx="0.3" />
+            <g class="led-node" data-id="22" transform="translate(140.49, 83.07)">
+              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
               <circle cx="0" cy="0" r="0.75" fill="#00fe01" />
-              <rect x="1.4" y="-0.4" width="1.0" height="0.8" fill="#a07a30" stroke="#555" stroke-width="0.1" title="C22 (0402 100nF)" />
+              <rect x="1.3" y="-0.4" width="0.8" height="0.8" fill="#a07a30" stroke="#444" stroke-width="0.1" title="C22 (0402 100nF Cap)" />
             </g>
             <!-- LED23 -->
-            <g class="led-node" data-id="23" transform="translate(84.436, 86.57)">
-              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#333333" stroke-width="0.2" rx="0.3" />
+            <g class="led-node" data-id="23" transform="translate(75.43, 106.14)">
+              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
               <circle cx="0" cy="0" r="0.75" fill="#f800f4" />
-              <rect x="1.4" y="-0.4" width="1.0" height="0.8" fill="#a07a30" stroke="#555" stroke-width="0.1" title="C23 (0402 100nF)" />
+              <rect x="1.3" y="-0.4" width="0.8" height="0.8" fill="#a07a30" stroke="#444" stroke-width="0.1" title="C23 (0402 100nF Cap)" />
             </g>
             <!-- LED24 -->
-            <g class="led-node" data-id="24" transform="translate(137.928, 44.507)">
-              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#333333" stroke-width="0.2" rx="0.3" />
+            <g class="led-node" data-id="24" transform="translate(129.42, 66.34)">
+              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
               <circle cx="0" cy="0" r="0.75" fill="#00fe04" />
-              <rect x="1.4" y="-0.4" width="1.0" height="0.8" fill="#a07a30" stroke="#555" stroke-width="0.1" title="C24 (0402 100nF)" />
+              <rect x="1.3" y="-0.4" width="0.8" height="0.8" fill="#a07a30" stroke="#444" stroke-width="0.1" title="C24 (0402 100nF Cap)" />
             </g>
             <!-- LED25 -->
-            <g class="led-node" data-id="25" transform="translate(99.981, 103.029)">
-              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#333333" stroke-width="0.2" rx="0.3" />
+            <g class="led-node" data-id="25" transform="translate(91.12, 121.72)">
+              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
               <circle cx="0" cy="0" r="0.75" fill="#00fe00" />
-              <rect x="1.4" y="-0.4" width="1.0" height="0.8" fill="#a07a30" stroke="#555" stroke-width="0.1" title="C25 (0402 100nF)" />
+              <rect x="1.3" y="-0.4" width="0.8" height="0.8" fill="#a07a30" stroke="#444" stroke-width="0.1" title="C25 (0402 100nF Cap)" />
             </g>
             <!-- LED26 -->
-            <g class="led-node" data-id="26" transform="translate(41.916, 137.166)">
-              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#333333" stroke-width="0.2" rx="0.3" />
+            <g class="led-node" data-id="26" transform="translate(32.51, 154.02)">
+              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
               <circle cx="0" cy="0" r="0.75" fill="#00fe01" />
-              <rect x="1.4" y="-0.4" width="1.0" height="0.8" fill="#a07a30" stroke="#555" stroke-width="0.1" title="C26 (0402 100nF)" />
+              <rect x="1.3" y="-0.4" width="0.8" height="0.8" fill="#a07a30" stroke="#444" stroke-width="0.1" title="C26 (0402 100nF Cap)" />
             </g>
             <!-- LED27 -->
-            <g class="led-node" data-id="27" transform="translate(109.125, 131.07)">
-              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#333333" stroke-width="0.2" rx="0.3" />
+            <g class="led-node" data-id="27" transform="translate(100.35, 148.25)">
+              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
               <circle cx="0" cy="0" r="0.75" fill="#fefe00" />
-              <rect x="1.4" y="-0.4" width="1.0" height="0.8" fill="#a07a30" stroke="#555" stroke-width="0.1" title="C27 (0402 100nF)" />
+              <rect x="1.3" y="-0.4" width="0.8" height="0.8" fill="#a07a30" stroke="#444" stroke-width="0.1" title="C27 (0402 100nF Cap)" />
             </g>
             <!-- LED28 -->
-            <g class="led-node" data-id="28" transform="translate(57.004, 85.35)">
-              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#333333" stroke-width="0.2" rx="0.3" />
+            <g class="led-node" data-id="28" transform="translate(47.74, 104.99)">
+              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
               <circle cx="0" cy="0" r="0.75" fill="#00f600" />
-              <rect x="1.4" y="-0.4" width="1.0" height="0.8" fill="#a07a30" stroke="#555" stroke-width="0.1" title="C28 (0402 100nF)" />
+              <rect x="1.3" y="-0.4" width="0.8" height="0.8" fill="#a07a30" stroke="#444" stroke-width="0.1" title="C28 (0402 100nF Cap)" />
             </g>
             <!-- LED29 -->
-            <g class="led-node" data-id="29" transform="translate(89.008, 145.701)">
-              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#333333" stroke-width="0.2" rx="0.3" />
+            <g class="led-node" data-id="29" transform="translate(80.04, 162.1)">
+              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
               <circle cx="0" cy="0" r="0.75" fill="#fefe00" />
-              <rect x="1.4" y="-0.4" width="1.0" height="0.8" fill="#a07a30" stroke="#555" stroke-width="0.1" title="C29 (0402 100nF)" />
+              <rect x="1.3" y="-0.4" width="0.8" height="0.8" fill="#a07a30" stroke="#444" stroke-width="0.1" title="C29 (0402 100nF Cap)" />
             </g>
             <!-- LED30 -->
-            <g class="led-node" data-id="30" transform="translate(30.944, 120.402)">
-              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#333333" stroke-width="0.2" rx="0.3" />
+            <g class="led-node" data-id="30" transform="translate(21.43, 138.16)">
+              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
               <circle cx="0" cy="0" r="0.75" fill="#00ff00" />
-              <rect x="1.4" y="-0.4" width="1.0" height="0.8" fill="#a07a30" stroke="#555" stroke-width="0.1" title="C30 (0402 100nF)" />
+              <rect x="1.3" y="-0.4" width="0.8" height="0.8" fill="#a07a30" stroke="#444" stroke-width="0.1" title="C30 (0402 100nF Cap)" />
             </g>
             <!-- LED31 -->
-            <g class="led-node" data-id="31" transform="translate(95.409, 137.166)">
-              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#333333" stroke-width="0.2" rx="0.3" />
+            <g class="led-node" data-id="31" transform="translate(86.5, 154.02)">
+              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
               <circle cx="0" cy="0" r="0.75" fill="#fcff02" />
-              <rect x="1.4" y="-0.4" width="1.0" height="0.8" fill="#a07a30" stroke="#555" stroke-width="0.1" title="C31 (0402 100nF)" />
+              <rect x="1.3" y="-0.4" width="0.8" height="0.8" fill="#a07a30" stroke="#444" stroke-width="0.1" title="C31 (0402 100nF Cap)" />
             </g>
             <!-- LED32 -->
-            <g class="led-node" data-id="32" transform="translate(128.784, 78.645)">
-              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#333333" stroke-width="0.2" rx="0.3" />
+            <g class="led-node" data-id="32" transform="translate(120.19, 98.64)">
+              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
               <circle cx="0" cy="0" r="0.75" fill="#fefe00" />
-              <rect x="1.4" y="-0.4" width="1.0" height="0.8" fill="#a07a30" stroke="#555" stroke-width="0.1" title="C32 (0402 100nF)" />
+              <rect x="1.3" y="-0.4" width="0.8" height="0.8" fill="#a07a30" stroke="#444" stroke-width="0.1" title="C32 (0402 100nF Cap)" />
             </g>
             <!-- LED33 -->
-            <g class="led-node" data-id="33" transform="translate(165.36, 26.829)">
-              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#333333" stroke-width="0.2" rx="0.3" />
+            <g class="led-node" data-id="33" transform="translate(157.11, 49.61)">
+              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
               <circle cx="0" cy="0" r="0.75" fill="#00fe00" />
-              <rect x="1.4" y="-0.4" width="1.0" height="0.8" fill="#a07a30" stroke="#555" stroke-width="0.1" title="C33 (0402 100nF)" />
+              <rect x="1.3" y="-0.4" width="0.8" height="0.8" fill="#a07a30" stroke="#444" stroke-width="0.1" title="C33 (0402 100nF Cap)" />
             </g>
             <!-- LED34 -->
-            <g class="led-node" data-id="34" transform="translate(150.273, 88.398)">
-              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#333333" stroke-width="0.2" rx="0.3" />
+            <g class="led-node" data-id="34" transform="translate(141.88, 107.87)">
+              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
               <circle cx="0" cy="0" r="0.75" fill="#00fd00" />
-              <rect x="1.4" y="-0.4" width="1.0" height="0.8" fill="#a07a30" stroke="#555" stroke-width="0.1" title="C34 (0402 100nF)" />
+              <rect x="1.3" y="-0.4" width="0.8" height="0.8" fill="#a07a30" stroke="#444" stroke-width="0.1" title="C34 (0402 100nF Cap)" />
             </g>
             <!-- LED35 -->
-            <g class="led-node" data-id="35" transform="translate(154.845, 28.048)">
-              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#333333" stroke-width="0.2" rx="0.3" />
+            <g class="led-node" data-id="35" transform="translate(146.49, 50.76)">
+              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
               <circle cx="0" cy="0" r="0.75" fill="#fe00f8" />
-              <rect x="1.4" y="-0.4" width="1.0" height="0.8" fill="#a07a30" stroke="#555" stroke-width="0.1" title="C35 (0402 100nF)" />
+              <rect x="1.3" y="-0.4" width="0.8" height="0.8" fill="#a07a30" stroke="#444" stroke-width="0.1" title="C35 (0402 100nF Cap)" />
             </g>
             <!-- LED36 -->
-            <g class="led-node" data-id="36" transform="translate(128.784, 88.398)">
-              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#333333" stroke-width="0.2" rx="0.3" />
+            <g class="led-node" data-id="36" transform="translate(120.19, 107.87)">
+              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
               <circle cx="0" cy="0" r="0.75" fill="#fffe00" />
-              <rect x="1.4" y="-0.4" width="1.0" height="0.8" fill="#a07a30" stroke="#555" stroke-width="0.1" title="C36 (0402 100nF)" />
+              <rect x="1.3" y="-0.4" width="0.8" height="0.8" fill="#a07a30" stroke="#444" stroke-width="0.1" title="C36 (0402 100nF Cap)" />
             </g>
             <!-- LED37 -->
-            <g class="led-node" data-id="37" transform="translate(83.064, 134.118)">
-              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#333333" stroke-width="0.2" rx="0.3" />
+            <g class="led-node" data-id="37" transform="translate(74.04, 151.14)">
+              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
               <circle cx="0" cy="0" r="0.75" fill="#00fe01" />
-              <rect x="1.4" y="-0.4" width="1.0" height="0.8" fill="#a07a30" stroke="#555" stroke-width="0.1" title="C37 (0402 100nF)" />
+              <rect x="1.3" y="-0.4" width="0.8" height="0.8" fill="#a07a30" stroke="#444" stroke-width="0.1" title="C37 (0402 100nF Cap)" />
             </g>
             <!-- LED38 -->
-            <g class="led-node" data-id="38" transform="translate(30.944, 99.981)">
-              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#333333" stroke-width="0.2" rx="0.3" />
+            <g class="led-node" data-id="38" transform="translate(21.43, 118.83)">
+              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
               <circle cx="0" cy="0" r="0.75" fill="#feed00" />
-              <rect x="1.4" y="-0.4" width="1.0" height="0.8" fill="#a07a30" stroke="#555" stroke-width="0.1" title="C38 (0402 100nF)" />
+              <rect x="1.3" y="-0.4" width="0.8" height="0.8" fill="#a07a30" stroke="#444" stroke-width="0.1" title="C38 (0402 100nF Cap)" />
             </g>
             <!-- LED39 -->
-            <g class="led-node" data-id="39" transform="translate(69.348, 155.454)">
-              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#333333" stroke-width="0.2" rx="0.3" />
+            <g class="led-node" data-id="39" transform="translate(60.2, 171.33)">
+              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
               <circle cx="0" cy="0" r="0.75" fill="#00fe01" />
-              <rect x="1.4" y="-0.4" width="1.0" height="0.8" fill="#a07a30" stroke="#555" stroke-width="0.1" title="C39 (0402 100nF)" />
+              <rect x="1.3" y="-0.4" width="0.8" height="0.8" fill="#a07a30" stroke="#444" stroke-width="0.1" title="C39 (0402 100nF Cap)" />
             </g>
             <!-- LED40 -->
-            <g class="led-node" data-id="40" transform="translate(73.92, 90.227)">
-              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#333333" stroke-width="0.2" rx="0.3" />
+            <g class="led-node" data-id="40" transform="translate(64.81, 109.6)">
+              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
               <circle cx="0" cy="0" r="0.75" fill="#00fe01" />
-              <rect x="1.4" y="-0.4" width="1.0" height="0.8" fill="#a07a30" stroke="#555" stroke-width="0.1" title="C40 (0402 100nF)" />
+              <rect x="1.3" y="-0.4" width="0.8" height="0.8" fill="#a07a30" stroke="#444" stroke-width="0.1" title="C40 (0402 100nF Cap)" />
             </g>
             <!-- LED41 -->
-            <g class="led-node" data-id="41" transform="translate(34.19, 146.493)">
-              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#333333" stroke-width="0.2" rx="0.3" />
+            <g class="led-node" data-id="41" transform="translate(24.71, 162.85)">
+              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
               <circle cx="0" cy="0" r="0.75" fill="#00fe01" />
-              <rect x="1.4" y="-0.4" width="1.0" height="0.8" fill="#a07a30" stroke="#555" stroke-width="0.1" title="C41 (0402 100nF)" />
+              <rect x="1.3" y="-0.4" width="0.8" height="0.8" fill="#a07a30" stroke="#444" stroke-width="0.1" title="C41 (0402 100nF Cap)" />
             </g>
             <!-- LED42 -->
-            <g class="led-node" data-id="42" transform="translate(105.924, 145.701)">
-              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#333333" stroke-width="0.2" rx="0.3" />
+            <g class="led-node" data-id="42" transform="translate(97.11, 162.1)">
+              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
               <circle cx="0" cy="0" r="0.75" fill="#fefe00" />
-              <rect x="1.4" y="-0.4" width="1.0" height="0.8" fill="#a07a30" stroke="#555" stroke-width="0.1" title="C42 (0402 100nF)" />
+              <rect x="1.3" y="-0.4" width="0.8" height="0.8" fill="#a07a30" stroke="#444" stroke-width="0.1" title="C42 (0402 100nF Cap)" />
             </g>
             <!-- LED43 -->
-            <g class="led-node" data-id="43" transform="translate(50.466, 117.05)">
-              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#333333" stroke-width="0.2" rx="0.3" />
+            <g class="led-node" data-id="43" transform="translate(41.14, 134.98)">
+              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
               <circle cx="0" cy="0" r="0.75" fill="#0afd00" />
-              <rect x="1.4" y="-0.4" width="1.0" height="0.8" fill="#a07a30" stroke="#555" stroke-width="0.1" title="C43 (0402 100nF)" />
+              <rect x="1.3" y="-0.4" width="0.8" height="0.8" fill="#a07a30" stroke="#444" stroke-width="0.1" title="C43 (0402 100nF Cap)" />
             </g>
             <!-- LED44 -->
-            <g class="led-node" data-id="44" transform="translate(90.837, 165.208)">
-              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#333333" stroke-width="0.2" rx="0.3" />
+            <g class="led-node" data-id="44" transform="translate(81.89, 180.56)">
+              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
               <circle cx="0" cy="0" r="0.75" fill="#fffaf2" />
-              <rect x="1.4" y="-0.4" width="1.0" height="0.8" fill="#a07a30" stroke="#555" stroke-width="0.1" title="C44 (0402 100nF)" />
+              <rect x="1.3" y="-0.4" width="0.8" height="0.8" fill="#a07a30" stroke="#444" stroke-width="0.1" title="C44 (0402 100nF Cap)" />
             </g>
             <!-- LED45 -->
-            <g class="led-node" data-id="45" transform="translate(41.276, 124.974)">
-              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#333333" stroke-width="0.2" rx="0.3" />
+            <g class="led-node" data-id="45" transform="translate(31.86, 142.48)">
+              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
               <circle cx="0" cy="0" r="0.75" fill="#00fe01" />
-              <rect x="1.4" y="-0.4" width="1.0" height="0.8" fill="#a07a30" stroke="#555" stroke-width="0.1" title="C45 (0402 100nF)" />
+              <rect x="1.3" y="-0.4" width="0.8" height="0.8" fill="#a07a30" stroke="#444" stroke-width="0.1" title="C45 (0402 100nF Cap)" />
             </g>
             <!-- LED46 -->
-            <g class="led-node" data-id="46" transform="translate(67.52, 64.014)">
-              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#333333" stroke-width="0.2" rx="0.3" />
+            <g class="led-node" data-id="46" transform="translate(58.35, 84.8)">
+              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
               <circle cx="0" cy="0" r="0.75" fill="#ec00f9" />
-              <rect x="1.4" y="-0.4" width="1.0" height="0.8" fill="#a07a30" stroke="#555" stroke-width="0.1" title="C46 (0402 100nF)" />
+              <rect x="1.3" y="-0.4" width="0.8" height="0.8" fill="#a07a30" stroke="#444" stroke-width="0.1" title="C46 (0402 100nF Cap)" />
             </g>
             <!-- LED47 -->
-            <g class="led-node" data-id="47" transform="translate(47.083, 133.143)">
-              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#333333" stroke-width="0.2" rx="0.3" />
+            <g class="led-node" data-id="47" transform="translate(37.72, 150.21)">
+              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
               <circle cx="0" cy="0" r="0.75" fill="#fffaf2" />
-              <rect x="1.4" y="-0.4" width="1.0" height="0.8" fill="#a07a30" stroke="#555" stroke-width="0.1" title="C47 (0402 100nF)" />
+              <rect x="1.3" y="-0.4" width="0.8" height="0.8" fill="#a07a30" stroke="#444" stroke-width="0.1" title="C47 (0402 100nF Cap)" />
             </g>
             <!-- LED48 -->
-            <g class="led-node" data-id="48" transform="translate(119.64, 131.07)">
-              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#333333" stroke-width="0.2" rx="0.3" />
+            <g class="led-node" data-id="48" transform="translate(110.96, 148.25)">
+              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
               <circle cx="0" cy="0" r="0.75" fill="#00ff05" />
-              <rect x="1.4" y="-0.4" width="1.0" height="0.8" fill="#a07a30" stroke="#555" stroke-width="0.1" title="C48 (0402 100nF)" />
+              <rect x="1.3" y="-0.4" width="0.8" height="0.8" fill="#a07a30" stroke="#444" stroke-width="0.1" title="C48 (0402 100nF Cap)" />
             </g>
             <!-- LED49 -->
-            <g class="led-node" data-id="49" transform="translate(153.473, 70.72)">
-              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#333333" stroke-width="0.2" rx="0.3" />
+            <g class="led-node" data-id="49" transform="translate(145.11, 91.14)">
+              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
               <circle cx="0" cy="0" r="0.75" fill="#00fe01" />
-              <rect x="1.4" y="-0.4" width="1.0" height="0.8" fill="#a07a30" stroke="#555" stroke-width="0.1" title="C49 (0402 100nF)" />
+              <rect x="1.3" y="-0.4" width="0.8" height="0.8" fill="#a07a30" stroke="#444" stroke-width="0.1" title="C49 (0402 100nF Cap)" />
             </g>
             <!-- LED50 -->
-            <g class="led-node" data-id="50" transform="translate(101.352, 116.44)">
-              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#333333" stroke-width="0.2" rx="0.3" />
+            <g class="led-node" data-id="50" transform="translate(92.5, 134.41)">
+              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
               <circle cx="0" cy="0" r="0.75" fill="#00fe01" />
-              <rect x="1.4" y="-0.4" width="1.0" height="0.8" fill="#a07a30" stroke="#555" stroke-width="0.1" title="C50 (0402 100nF)" />
+              <rect x="1.3" y="-0.4" width="0.8" height="0.8" fill="#a07a30" stroke="#444" stroke-width="0.1" title="C50 (0402 100nF Cap)" />
             </g>
             <!-- LED51 -->
-            <g class="led-node" data-id="51" transform="translate(159.417, 81.693)">
-              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#333333" stroke-width="0.2" rx="0.3" />
+            <g class="led-node" data-id="51" transform="translate(151.11, 101.53)">
+              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
               <circle cx="0" cy="0" r="0.75" fill="#00fe01" />
-              <rect x="1.4" y="-0.4" width="1.0" height="0.8" fill="#a07a30" stroke="#555" stroke-width="0.1" title="C51 (0402 100nF)" />
+              <rect x="1.3" y="-0.4" width="0.8" height="0.8" fill="#a07a30" stroke="#444" stroke-width="0.1" title="C51 (0402 100nF Cap)" />
             </g>
             <!-- LED52 -->
-            <g class="led-node" data-id="52" transform="translate(144.329, 25.0)">
-              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#333333" stroke-width="0.2" rx="0.3" />
+            <g class="led-node" data-id="52" transform="translate(135.88, 47.88)">
+              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
               <circle cx="0" cy="0" r="0.75" fill="#fa00fe" />
-              <rect x="1.4" y="-0.4" width="1.0" height="0.8" fill="#a07a30" stroke="#555" stroke-width="0.1" title="C52 (0402 100nF)" />
+              <rect x="1.3" y="-0.4" width="0.8" height="0.8" fill="#a07a30" stroke="#444" stroke-width="0.1" title="C52 (0402 100nF Cap)" />
             </g>
             <!-- LED53 -->
-            <g class="led-node" data-id="53" transform="translate(169.932, 83.522)">
-              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#333333" stroke-width="0.2" rx="0.3" />
+            <g class="led-node" data-id="53" transform="translate(161.72, 103.26)">
+              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
               <circle cx="0" cy="0" r="0.75" fill="#00fe12" />
-              <rect x="1.4" y="-0.4" width="1.0" height="0.8" fill="#a07a30" stroke="#555" stroke-width="0.1" title="C53 (0402 100nF)" />
+              <rect x="1.3" y="-0.4" width="0.8" height="0.8" fill="#a07a30" stroke="#444" stroke-width="0.1" title="C53 (0402 100nF Cap)" />
             </g>
             <!-- LED54 -->
-            <g class="led-node" data-id="54" transform="translate(130.156, 29.877)">
-              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#333333" stroke-width="0.2" rx="0.3" />
+            <g class="led-node" data-id="54" transform="translate(121.57, 52.49)">
+              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
               <circle cx="0" cy="0" r="0.75" fill="#00fe00" />
-              <rect x="1.4" y="-0.4" width="1.0" height="0.8" fill="#a07a30" stroke="#555" stroke-width="0.1" title="C54 (0402 100nF)" />
+              <rect x="1.3" y="-0.4" width="0.8" height="0.8" fill="#a07a30" stroke="#444" stroke-width="0.1" title="C54 (0402 100nF Cap)" />
             </g>
             <!-- LED55 -->
-            <g class="led-node" data-id="55" transform="translate(165.36, 71.939)">
-              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#333333" stroke-width="0.2" rx="0.3" />
+            <g class="led-node" data-id="55" transform="translate(157.11, 92.3)">
+              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
               <circle cx="0" cy="0" r="0.75" fill="#00fe01" />
-              <rect x="1.4" y="-0.4" width="1.0" height="0.8" fill="#a07a30" stroke="#555" stroke-width="0.1" title="C55 (0402 100nF)" />
+              <rect x="1.3" y="-0.4" width="0.8" height="0.8" fill="#a07a30" stroke="#444" stroke-width="0.1" title="C55 (0402 100nF Cap)" />
             </g>
             <!-- LED56 -->
-            <g class="led-node" data-id="56" transform="translate(99.981, 86.57)">
-              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#333333" stroke-width="0.2" rx="0.3" />
+            <g class="led-node" data-id="56" transform="translate(91.12, 106.14)">
+              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
               <circle cx="0" cy="0" r="0.75" fill="#fe00fe" />
-              <rect x="1.4" y="-0.4" width="1.0" height="0.8" fill="#a07a30" stroke="#555" stroke-width="0.1" title="C56 (0402 100nF)" />
+              <rect x="1.3" y="-0.4" width="0.8" height="0.8" fill="#a07a30" stroke="#444" stroke-width="0.1" title="C56 (0402 100nF Cap)" />
             </g>
             <!-- LED57 -->
-            <g class="led-node" data-id="57" transform="translate(153.702, 40.301)">
-              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#333333" stroke-width="0.2" rx="0.3" />
+            <g class="led-node" data-id="57" transform="translate(145.34, 62.36)">
+              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
               <circle cx="0" cy="0" r="0.75" fill="#00fe01" />
-              <rect x="1.4" y="-0.4" width="1.0" height="0.8" fill="#a07a30" stroke="#555" stroke-width="0.1" title="C57 (0402 100nF)" />
+              <rect x="1.3" y="-0.4" width="0.8" height="0.8" fill="#a07a30" stroke="#444" stroke-width="0.1" title="C57 (0402 100nF Cap)" />
             </g>
             <!-- LED58 -->
-            <g class="led-node" data-id="58" transform="translate(109.125, 92.056)">
-              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#333333" stroke-width="0.2" rx="0.3" />
+            <g class="led-node" data-id="58" transform="translate(100.35, 111.33)">
+              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
               <circle cx="0" cy="0" r="0.75" fill="#f700fe" />
-              <rect x="1.4" y="-0.4" width="1.0" height="0.8" fill="#a07a30" stroke="#555" stroke-width="0.1" title="C58 (0402 100nF)" />
+              <rect x="1.3" y="-0.4" width="0.8" height="0.8" fill="#a07a30" stroke="#444" stroke-width="0.1" title="C58 (0402 100nF Cap)" />
             </g>
             <!-- LED59 -->
-            <g class="led-node" data-id="59" transform="translate(41.916, 99.981)">
-              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#333333" stroke-width="0.2" rx="0.3" />
+            <g class="led-node" data-id="59" transform="translate(32.51, 118.83)">
+              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
               <circle cx="0" cy="0" r="0.75" fill="#05fe00" />
-              <rect x="1.4" y="-0.4" width="1.0" height="0.8" fill="#a07a30" stroke="#555" stroke-width="0.1" title="C59 (0402 100nF)" />
+              <rect x="1.3" y="-0.4" width="0.8" height="0.8" fill="#a07a30" stroke="#444" stroke-width="0.1" title="C59 (0402 100nF Cap)" />
             </g>
             <!-- LED60 -->
-            <g class="led-node" data-id="60" transform="translate(81.693, 155.454)">
-              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#333333" stroke-width="0.2" rx="0.3" />
+            <g class="led-node" data-id="60" transform="translate(72.66, 171.33)">
+              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
               <circle cx="0" cy="0" r="0.75" fill="#00fe01" />
-              <rect x="1.4" y="-0.4" width="1.0" height="0.8" fill="#a07a30" stroke="#555" stroke-width="0.1" title="C60 (0402 100nF)" />
+              <rect x="1.3" y="-0.4" width="0.8" height="0.8" fill="#a07a30" stroke="#444" stroke-width="0.1" title="C60 (0402 100nF Cap)" />
             </g>
             <!-- LED61 -->
-            <g class="led-node" data-id="61" transform="translate(52.432, 96.933)">
-              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#333333" stroke-width="0.2" rx="0.3" />
+            <g class="led-node" data-id="61" transform="translate(43.12, 115.95)">
+              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
               <circle cx="0" cy="0" r="0.75" fill="#fffaf2" />
-              <rect x="1.4" y="-0.4" width="1.0" height="0.8" fill="#a07a30" stroke="#555" stroke-width="0.1" title="C61 (0402 100nF)" />
+              <rect x="1.3" y="-0.4" width="0.8" height="0.8" fill="#a07a30" stroke="#444" stroke-width="0.1" title="C61 (0402 100nF Cap)" />
             </g>
             <!-- LED62 -->
-            <g class="led-node" data-id="62" transform="translate(92.208, 155.454)">
-              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#333333" stroke-width="0.2" rx="0.3" />
+            <g class="led-node" data-id="62" transform="translate(83.27, 171.33)">
+              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
               <circle cx="0" cy="0" r="0.75" fill="#fefe00" />
-              <rect x="1.4" y="-0.4" width="1.0" height="0.8" fill="#a07a30" stroke="#555" stroke-width="0.1" title="C62 (0402 100nF)" />
+              <rect x="1.3" y="-0.4" width="0.8" height="0.8" fill="#a07a30" stroke="#444" stroke-width="0.1" title="C62 (0402 100nF Cap)" />
             </g>
             <!-- LED63 -->
-            <g class="led-node" data-id="63" transform="translate(40.088, 111.563)">
-              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#333333" stroke-width="0.2" rx="0.3" />
+            <g class="led-node" data-id="63" transform="translate(30.66, 129.79)">
+              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
               <circle cx="0" cy="0" r="0.75" fill="#00fe00" />
-              <rect x="1.4" y="-0.4" width="1.0" height="0.8" fill="#a07a30" stroke="#555" stroke-width="0.1" title="C63 (0402 100nF)" />
+              <rect x="1.3" y="-0.4" width="0.8" height="0.8" fill="#a07a30" stroke="#444" stroke-width="0.1" title="C63 (0402 100nF Cap)" />
             </g>
             <!-- LED64 -->
-            <g class="led-node" data-id="64" transform="translate(79.864, 165.208)">
-              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#333333" stroke-width="0.2" rx="0.3" />
+            <g class="led-node" data-id="64" transform="translate(70.81, 180.56)">
+              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
               <circle cx="0" cy="0" r="0.75" fill="#fffaf2" />
-              <rect x="1.4" y="-0.4" width="1.0" height="0.8" fill="#a07a30" stroke="#555" stroke-width="0.1" title="C64 (0402 100nF)" />
+              <rect x="1.3" y="-0.4" width="0.8" height="0.8" fill="#a07a30" stroke="#444" stroke-width="0.1" title="C64 (0402 100nF Cap)" />
             </g>
             <!-- LED65 -->
-            <g class="led-node" data-id="65" transform="translate(111.868, 106.686)">
-              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#333333" stroke-width="0.2" rx="0.3" />
+            <g class="led-node" data-id="65" transform="translate(103.11, 125.18)">
+              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
               <circle cx="0" cy="0" r="0.75" fill="#fdf200" />
-              <rect x="1.4" y="-0.4" width="1.0" height="0.8" fill="#a07a30" stroke="#555" stroke-width="0.1" title="C65 (0402 100nF)" />
+              <rect x="1.3" y="-0.4" width="0.8" height="0.8" fill="#a07a30" stroke="#444" stroke-width="0.1" title="C65 (0402 100nF Cap)" />
             </g>
             <!-- LED66 -->
-            <g class="led-node" data-id="66" transform="translate(152.513, 50.786)">
-              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#333333" stroke-width="0.2" rx="0.3" />
+            <g class="led-node" data-id="66" transform="translate(144.14, 72.28)">
+              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
               <circle cx="0" cy="0" r="0.75" fill="#00fe01" />
-              <rect x="1.4" y="-0.4" width="1.0" height="0.8" fill="#a07a30" stroke="#555" stroke-width="0.1" title="C66 (0402 100nF)" />
+              <rect x="1.3" y="-0.4" width="0.8" height="0.8" fill="#a07a30" stroke="#444" stroke-width="0.1" title="C66 (0402 100nF Cap)" />
             </g>
             <!-- LED67 -->
-            <g class="led-node" data-id="67" transform="translate(83.064, 75.597)">
-              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#333333" stroke-width="0.2" rx="0.3" />
+            <g class="led-node" data-id="67" transform="translate(74.04, 95.76)">
+              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
               <circle cx="0" cy="0" r="0.75" fill="#f800f4" />
-              <rect x="1.4" y="-0.4" width="1.0" height="0.8" fill="#a07a30" stroke="#555" stroke-width="0.1" title="C67 (0402 100nF)" />
+              <rect x="1.3" y="-0.4" width="0.8" height="0.8" fill="#a07a30" stroke="#444" stroke-width="0.1" title="C67 (0402 100nF Cap)" />
             </g>
             <!-- LED68 -->
-            <g class="led-node" data-id="68" transform="translate(148.901, 78.645)">
-              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#333333" stroke-width="0.2" rx="0.3" />
+            <g class="led-node" data-id="68" transform="translate(140.49, 98.64)">
+              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
               <circle cx="0" cy="0" r="0.75" fill="#00fe01" />
-              <rect x="1.4" y="-0.4" width="1.0" height="0.8" fill="#a07a30" stroke="#555" stroke-width="0.1" title="C68 (0402 100nF)" />
+              <rect x="1.3" y="-0.4" width="0.8" height="0.8" fill="#a07a30" stroke="#444" stroke-width="0.1" title="C68 (0402 100nF Cap)" />
             </g>
             <!-- LED69 -->
-            <g class="led-node" data-id="69" transform="translate(119.64, 142.043)">
-              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#333333" stroke-width="0.2" rx="0.3" />
+            <g class="led-node" data-id="69" transform="translate(110.96, 158.64)">
+              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
               <circle cx="0" cy="0" r="0.75" fill="#00fe00" />
-              <rect x="1.4" y="-0.4" width="1.0" height="0.8" fill="#a07a30" stroke="#555" stroke-width="0.1" title="C69 (0402 100nF)" />
+              <rect x="1.3" y="-0.4" width="0.8" height="0.8" fill="#a07a30" stroke="#444" stroke-width="0.1" title="C69 (0402 100nF Cap)" />
             </g>
             <!-- LED70 -->
-            <g class="led-node" data-id="70" transform="translate(51.06, 140.824)">
-              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#333333" stroke-width="0.2" rx="0.3" />
+            <g class="led-node" data-id="70" transform="translate(41.74, 157.48)">
+              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
               <circle cx="0" cy="0" r="0.75" fill="#05fe00" />
-              <rect x="1.4" y="-0.4" width="1.0" height="0.8" fill="#a07a30" stroke="#555" stroke-width="0.1" title="C70 (0402 100nF)" />
+              <rect x="1.3" y="-0.4" width="0.8" height="0.8" fill="#a07a30" stroke="#444" stroke-width="0.1" title="C70 (0402 100nF Cap)" />
             </g>
             <!-- LED71 -->
-            <g class="led-node" data-id="71" transform="translate(119.64, 156.674)">
-              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#333333" stroke-width="0.2" rx="0.3" />
+            <g class="led-node" data-id="71" transform="translate(110.96, 172.48)">
+              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
               <circle cx="0" cy="0" r="0.75" fill="#00fe01" />
-              <rect x="1.4" y="-0.4" width="1.0" height="0.8" fill="#a07a30" stroke="#555" stroke-width="0.1" title="C71 (0402 100nF)" />
+              <rect x="1.3" y="-0.4" width="0.8" height="0.8" fill="#a07a30" stroke="#444" stroke-width="0.1" title="C71 (0402 100nF Cap)" />
             </g>
             <!-- LED72 -->
-            <g class="led-node" data-id="72" transform="translate(68.663, 113.636)">
-              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#333333" stroke-width="0.2" rx="0.3" />
+            <g class="led-node" data-id="72" transform="translate(59.5, 131.75)">
+              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
               <circle cx="0" cy="0" r="0.75" fill="#fffaf2" />
-              <rect x="1.4" y="-0.4" width="1.0" height="0.8" fill="#a07a30" stroke="#555" stroke-width="0.1" title="C72 (0402 100nF)" />
+              <rect x="1.3" y="-0.4" width="0.8" height="0.8" fill="#a07a30" stroke="#444" stroke-width="0.1" title="C72 (0402 100nF Cap)" />
             </g>
             <!-- LED73 -->
-            <g class="led-node" data-id="73" transform="translate(58.376, 67.062)">
-              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#333333" stroke-width="0.2" rx="0.3" />
+            <g class="led-node" data-id="73" transform="translate(49.12, 87.68)">
+              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
               <circle cx="0" cy="0" r="0.75" fill="#fc00ee" />
-              <rect x="1.4" y="-0.4" width="1.0" height="0.8" fill="#a07a30" stroke="#555" stroke-width="0.1" title="C73 (0402 100nF)" />
+              <rect x="1.3" y="-0.4" width="0.8" height="0.8" fill="#a07a30" stroke="#444" stroke-width="0.1" title="C73 (0402 100nF Cap)" />
             </g>
             <!-- LED74 -->
-            <g class="led-node" data-id="74" transform="translate(30.898, 123.633)">
-              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#333333" stroke-width="0.2" rx="0.3" />
+            <g class="led-node" data-id="74" transform="translate(21.39, 141.21)">
+              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
               <circle cx="0" cy="0" r="0.75" fill="#00fe02" />
-              <rect x="1.4" y="-0.4" width="1.0" height="0.8" fill="#a07a30" stroke="#555" stroke-width="0.1" title="C74 (0402 100nF)" />
+              <rect x="1.3" y="-0.4" width="0.8" height="0.8" fill="#a07a30" stroke="#444" stroke-width="0.1" title="C74 (0402 100nF Cap)" />
             </g>
             <!-- LED75 -->
-            <g class="led-node" data-id="75" transform="translate(92.208, 106.321)">
-              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#333333" stroke-width="0.2" rx="0.3" />
+            <g class="led-node" data-id="75" transform="translate(83.27, 124.83)">
+              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
               <circle cx="0" cy="0" r="0.75" fill="#fffaf2" />
-              <rect x="1.4" y="-0.4" width="1.0" height="0.8" fill="#a07a30" stroke="#555" stroke-width="0.1" title="C75 (0402 100nF)" />
+              <rect x="1.3" y="-0.4" width="0.8" height="0.8" fill="#a07a30" stroke="#444" stroke-width="0.1" title="C75 (0402 100nF Cap)" />
             </g>
             <!-- LED76 -->
-            <g class="led-node" data-id="76" transform="translate(32.59, 132.777)">
-              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#333333" stroke-width="0.2" rx="0.3" />
+            <g class="led-node" data-id="76" transform="translate(23.09, 149.87)">
+              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
               <circle cx="0" cy="0" r="0.75" fill="#fffaf2" />
-              <rect x="1.4" y="-0.4" width="1.0" height="0.8" fill="#a07a30" stroke="#555" stroke-width="0.1" title="C76 (0402 100nF)" />
+              <rect x="1.3" y="-0.4" width="0.8" height="0.8" fill="#a07a30" stroke="#444" stroke-width="0.1" title="C76 (0402 100nF Cap)" />
             </g>
             <!-- LED77 -->
-            <g class="led-node" data-id="77" transform="translate(96.78, 126.194)">
-              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#333333" stroke-width="0.2" rx="0.3" />
+            <g class="led-node" data-id="77" transform="translate(87.89, 143.64)">
+              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
               <circle cx="0" cy="0" r="0.75" fill="#00fe01" />
-              <rect x="1.4" y="-0.4" width="1.0" height="0.8" fill="#a07a30" stroke="#555" stroke-width="0.1" title="C77 (0402 100nF)" />
+              <rect x="1.3" y="-0.4" width="0.8" height="0.8" fill="#a07a30" stroke="#444" stroke-width="0.1" title="C77 (0402 100nF Cap)" />
             </g>
             <!-- LED78 -->
-            <g class="led-node" data-id="78" transform="translate(133.768, 72.488)">
-              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#333333" stroke-width="0.2" rx="0.3" />
+            <g class="led-node" data-id="78" transform="translate(125.22, 92.82)">
+              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
               <circle cx="0" cy="0" r="0.75" fill="#fefe00" />
-              <rect x="1.4" y="-0.4" width="1.0" height="0.8" fill="#a07a30" stroke="#555" stroke-width="0.1" title="C78 (0402 100nF)" />
+              <rect x="1.3" y="-0.4" width="0.8" height="0.8" fill="#a07a30" stroke="#444" stroke-width="0.1" title="C78 (0402 100nF Cap)" />
             </g>
             <!-- LED79 -->
-            <g class="led-node" data-id="79" transform="translate(88.414, 122.231)">
-              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#333333" stroke-width="0.2" rx="0.3" />
+            <g class="led-node" data-id="79" transform="translate(79.44, 139.89)">
+              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
               <circle cx="0" cy="0" r="0.75" fill="#fffaf2" />
-              <rect x="1.4" y="-0.4" width="1.0" height="0.8" fill="#a07a30" stroke="#555" stroke-width="0.1" title="C79 (0402 100nF)" />
+              <rect x="1.3" y="-0.4" width="0.8" height="0.8" fill="#a07a30" stroke="#444" stroke-width="0.1" title="C79 (0402 100nF Cap)" />
             </g>
             <!-- LED80 -->
-            <g class="led-node" data-id="80" transform="translate(35.516, 92.056)">
-              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#333333" stroke-width="0.2" rx="0.3" />
+            <g class="led-node" data-id="80" transform="translate(26.05, 111.33)">
+              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
               <circle cx="0" cy="0" r="0.75" fill="#00fe00" />
-              <rect x="1.4" y="-0.4" width="1.0" height="0.8" fill="#a07a30" stroke="#555" stroke-width="0.1" title="C80 (0402 100nF)" />
+              <rect x="1.3" y="-0.4" width="0.8" height="0.8" fill="#a07a30" stroke="#444" stroke-width="0.1" title="C80 (0402 100nF Cap)" />
             </g>
             <!-- LED81 -->
-            <g class="led-node" data-id="81" transform="translate(60.204, 156.674)">
-              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#333333" stroke-width="0.2" rx="0.3" />
+            <g class="led-node" data-id="81" transform="translate(50.97, 172.48)">
+              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
               <circle cx="0" cy="0" r="0.75" fill="#f3d900" />
-              <rect x="1.4" y="-0.4" width="1.0" height="0.8" fill="#a07a30" stroke="#555" stroke-width="0.1" title="C81 (0402 100nF)" />
+              <rect x="1.3" y="-0.4" width="0.8" height="0.8" fill="#a07a30" stroke="#444" stroke-width="0.1" title="C81 (0402 100nF Cap)" />
             </g>
             <!-- LED82 -->
-            <g class="led-node" data-id="82" transform="translate(128.784, 151.797)">
-              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#333333" stroke-width="0.2" rx="0.3" />
+            <g class="led-node" data-id="82" transform="translate(120.19, 167.87)">
+              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
               <circle cx="0" cy="0" r="0.75" fill="#00fe00" />
-              <rect x="1.4" y="-0.4" width="1.0" height="0.8" fill="#a07a30" stroke="#555" stroke-width="0.1" title="C82 (0402 100nF)" />
+              <rect x="1.3" y="-0.4" width="0.8" height="0.8" fill="#a07a30" stroke="#444" stroke-width="0.1" title="C82 (0402 100nF Cap)" />
             </g>
             <!-- LED83 -->
-            <g class="led-node" data-id="83" transform="translate(92.208, 93.275)">
-              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#333333" stroke-width="0.2" rx="0.3" />
+            <g class="led-node" data-id="83" transform="translate(83.27, 112.49)">
+              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
               <circle cx="0" cy="0" r="0.75" fill="#ea3142" />
-              <rect x="1.4" y="-0.4" width="1.0" height="0.8" fill="#a07a30" stroke="#555" stroke-width="0.1" title="C83 (0402 100nF)" />
+              <rect x="1.3" y="-0.4" width="0.8" height="0.8" fill="#a07a30" stroke="#444" stroke-width="0.1" title="C83 (0402 100nF Cap)" />
             </g>
             <!-- LED84 -->
-            <g class="led-node" data-id="84" transform="translate(55.632, 148.749)">
-              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#333333" stroke-width="0.2" rx="0.3" />
+            <g class="led-node" data-id="84" transform="translate(46.35, 164.98)">
+              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
               <circle cx="0" cy="0" r="0.75" fill="#00fe01" />
-              <rect x="1.4" y="-0.4" width="1.0" height="0.8" fill="#a07a30" stroke="#555" stroke-width="0.1" title="C84 (0402 100nF)" />
+              <rect x="1.3" y="-0.4" width="0.8" height="0.8" fill="#a07a30" stroke="#444" stroke-width="0.1" title="C84 (0402 100nF Cap)" />
             </g>
             <!-- LED85 -->
-            <g class="led-node" data-id="85" transform="translate(25.0, 88.398)">
-              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#333333" stroke-width="0.2" rx="0.3" />
+            <g class="led-node" data-id="85" transform="translate(15.43, 107.87)">
+              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
               <circle cx="0" cy="0" r="0.75" fill="#fe00fe" />
-              <rect x="1.4" y="-0.4" width="1.0" height="0.8" fill="#a07a30" stroke="#555" stroke-width="0.1" title="C85 (0402 100nF)" />
+              <rect x="1.3" y="-0.4" width="0.8" height="0.8" fill="#a07a30" stroke="#444" stroke-width="0.1" title="C85 (0402 100nF Cap)" />
             </g>
             <!-- LED86 -->
-            <g class="led-node" data-id="86" transform="translate(66.148, 142.043)">
-              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#333333" stroke-width="0.2" rx="0.3" />
+            <g class="led-node" data-id="86" transform="translate(56.97, 158.64)">
+              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
               <circle cx="0" cy="0" r="0.75" fill="#00fe01" />
-              <rect x="1.4" y="-0.4" width="1.0" height="0.8" fill="#a07a30" stroke="#555" stroke-width="0.1" title="C86 (0402 100nF)" />
+              <rect x="1.3" y="-0.4" width="0.8" height="0.8" fill="#a07a30" stroke="#444" stroke-width="0.1" title="C86 (0402 100nF Cap)" />
             </g>
             <!-- LED87 -->
-            <g class="led-node" data-id="87" transform="translate(131.985, 161.55)">
-              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#333333" stroke-width="0.2" rx="0.3" />
+            <g class="led-node" data-id="87" transform="translate(123.42, 177.1)">
+              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
               <circle cx="0" cy="0" r="0.75" fill="#fffaf2" />
-              <rect x="1.4" y="-0.4" width="1.0" height="0.8" fill="#a07a30" stroke="#555" stroke-width="0.1" title="C87 (0402 100nF)" />
+              <rect x="1.3" y="-0.4" width="0.8" height="0.8" fill="#a07a30" stroke="#444" stroke-width="0.1" title="C87 (0402 100nF Cap)" />
             </g>
             <!-- LED88 -->
-            <g class="led-node" data-id="88" transform="translate(72.549, 129.242)">
-              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#333333" stroke-width="0.2" rx="0.3" />
+            <g class="led-node" data-id="88" transform="translate(63.43, 146.52)">
+              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
               <circle cx="0" cy="0" r="0.75" fill="#00fe01" />
-              <rect x="1.4" y="-0.4" width="1.0" height="0.8" fill="#a07a30" stroke="#555" stroke-width="0.1" title="C88 (0402 100nF)" />
+              <rect x="1.3" y="-0.4" width="0.8" height="0.8" fill="#a07a30" stroke="#444" stroke-width="0.1" title="C88 (0402 100nF Cap)" />
             </g>
             <!-- LED89 -->
-            <g class="led-node" data-id="89" transform="translate(115.068, 76.816)">
-              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#333333" stroke-width="0.2" rx="0.3" />
+            <g class="led-node" data-id="89" transform="translate(106.34, 96.91)">
+              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
               <circle cx="0" cy="0" r="0.75" fill="#fe00fe" />
-              <rect x="1.4" y="-0.4" width="1.0" height="0.8" fill="#a07a30" stroke="#555" stroke-width="0.1" title="C89 (0402 100nF)" />
+              <rect x="1.3" y="-0.4" width="0.8" height="0.8" fill="#a07a30" stroke="#444" stroke-width="0.1" title="C89 (0402 100nF Cap)" />
             </g>
             <!-- LED90 -->
-            <g class="led-node" data-id="90" transform="translate(58.513, 117.172)">
-              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#333333" stroke-width="0.2" rx="0.3" />
+            <g class="led-node" data-id="90" transform="translate(49.26, 135.1)">
+              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
               <circle cx="0" cy="0" r="0.75" fill="#fffaf2" />
-              <rect x="1.4" y="-0.4" width="1.0" height="0.8" fill="#a07a30" stroke="#555" stroke-width="0.1" title="C90 (0402 100nF)" />
+              <rect x="1.3" y="-0.4" width="0.8" height="0.8" fill="#a07a30" stroke="#444" stroke-width="0.1" title="C90 (0402 100nF Cap)" />
             </g>
             <!-- LED91 -->
-            <g class="led-node" data-id="91" transform="translate(66.148, 51.213)">
-              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#333333" stroke-width="0.2" rx="0.3" />
+            <g class="led-node" data-id="91" transform="translate(56.97, 72.68)">
+              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
               <circle cx="0" cy="0" r="0.75" fill="#f900ea" />
-              <rect x="1.4" y="-0.4" width="1.0" height="0.8" fill="#a07a30" stroke="#555" stroke-width="0.1" title="C91 (0402 100nF)" />
+              <rect x="1.3" y="-0.4" width="0.8" height="0.8" fill="#a07a30" stroke="#444" stroke-width="0.1" title="C91 (0402 100nF Cap)" />
             </g>
             <!-- LED92 -->
-            <g class="led-node" data-id="92" transform="translate(65.645, 126.681)">
-              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#333333" stroke-width="0.2" rx="0.3" />
+            <g class="led-node" data-id="92" transform="translate(56.46, 144.1)">
+              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
               <circle cx="0" cy="0" r="0.75" fill="#fffaf2" />
-              <rect x="1.4" y="-0.4" width="1.0" height="0.8" fill="#a07a30" stroke="#555" stroke-width="0.1" title="C92 (0402 100nF)" />
+              <rect x="1.3" y="-0.4" width="0.8" height="0.8" fill="#a07a30" stroke="#444" stroke-width="0.1" title="C92 (0402 100nF Cap)" />
             </g>
             <!-- LED93 -->
-            <g class="led-node" data-id="93" transform="translate(77.121, 60.966)">
-              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#333333" stroke-width="0.2" rx="0.3" />
+            <g class="led-node" data-id="93" transform="translate(68.04, 81.91)">
+              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
               <circle cx="0" cy="0" r="0.75" fill="#df00f8" />
-              <rect x="1.4" y="-0.4" width="1.0" height="0.8" fill="#a07a30" stroke="#555" stroke-width="0.1" title="C93 (0402 100nF)" />
+              <rect x="1.3" y="-0.4" width="0.8" height="0.8" fill="#a07a30" stroke="#444" stroke-width="0.1" title="C93 (0402 100nF Cap)" />
             </g>
             <!-- LED94 -->
-            <g class="led-node" data-id="94" transform="translate(139.757, 34.754)">
-              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#333333" stroke-width="0.2" rx="0.3" />
+            <g class="led-node" data-id="94" transform="translate(131.26, 57.11)">
+              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
               <circle cx="0" cy="0" r="0.75" fill="#00f700" />
-              <rect x="1.4" y="-0.4" width="1.0" height="0.8" fill="#a07a30" stroke="#555" stroke-width="0.1" title="C94 (0402 100nF)" />
+              <rect x="1.3" y="-0.4" width="0.8" height="0.8" fill="#a07a30" stroke="#444" stroke-width="0.1" title="C94 (0402 100nF Cap)" />
             </g>
             <!-- LED95 -->
-            <g class="led-node" data-id="95" transform="translate(124.212, 99.981)">
-              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#333333" stroke-width="0.2" rx="0.3" />
+            <g class="led-node" data-id="95" transform="translate(115.57, 118.83)">
+              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
               <circle cx="0" cy="0" r="0.75" fill="#f5fd00" />
-              <rect x="1.4" y="-0.4" width="1.0" height="0.8" fill="#a07a30" stroke="#555" stroke-width="0.1" title="C95 (0402 100nF)" />
+              <rect x="1.3" y="-0.4" width="0.8" height="0.8" fill="#a07a30" stroke="#444" stroke-width="0.1" title="C95 (0402 100nF Cap)" />
             </g>
             <!-- LED96 -->
-            <g class="led-node" data-id="96" transform="translate(160.651, 47.799)">
-              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#333333" stroke-width="0.2" rx="0.3" />
+            <g class="led-node" data-id="96" transform="translate(152.35, 69.45)">
+              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
               <circle cx="0" cy="0" r="0.75" fill="#00fe01" />
-              <rect x="1.4" y="-0.4" width="1.0" height="0.8" fill="#a07a30" stroke="#555" stroke-width="0.1" title="C96 (0402 100nF)" />
+              <rect x="1.3" y="-0.4" width="0.8" height="0.8" fill="#a07a30" stroke="#444" stroke-width="0.1" title="C96 (0402 100nF Cap)" />
             </g>
             <!-- LED97 -->
-            <g class="led-node" data-id="97" transform="translate(101.352, 75.597)">
-              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#333333" stroke-width="0.2" rx="0.3" />
+            <g class="led-node" data-id="97" transform="translate(92.5, 95.76)">
+              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
               <circle cx="0" cy="0" r="0.75" fill="#fe00fd" />
-              <rect x="1.4" y="-0.4" width="1.0" height="0.8" fill="#a07a30" stroke="#555" stroke-width="0.1" title="C97 (0402 100nF)" />
+              <rect x="1.3" y="-0.4" width="0.8" height="0.8" fill="#a07a30" stroke="#444" stroke-width="0.1" title="C97 (0402 100nF Cap)" />
             </g>
             <!-- LED98 -->
-            <g class="led-node" data-id="98" transform="translate(168.561, 60.966)">
-              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#333333" stroke-width="0.2" rx="0.3" />
+            <g class="led-node" data-id="98" transform="translate(160.34, 81.91)">
+              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
               <circle cx="0" cy="0" r="0.75" fill="#00fe07" />
-              <rect x="1.4" y="-0.4" width="1.0" height="0.8" fill="#a07a30" stroke="#555" stroke-width="0.1" title="C98 (0402 100nF)" />
+              <rect x="1.3" y="-0.4" width="0.8" height="0.8" fill="#a07a30" stroke="#444" stroke-width="0.1" title="C98 (0402 100nF Cap)" />
             </g>
             <!-- LED99 -->
-            <g class="led-node" data-id="99" transform="translate(121.012, 119.488)">
-              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#333333" stroke-width="0.2" rx="0.3" />
+            <g class="led-node" data-id="99" transform="translate(112.34, 137.29)">
+              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
               <circle cx="0" cy="0" r="0.75" fill="#00fe01" />
-              <rect x="1.4" y="-0.4" width="1.0" height="0.8" fill="#a07a30" stroke="#555" stroke-width="0.1" title="C99 (0402 100nF)" />
+              <rect x="1.3" y="-0.4" width="0.8" height="0.8" fill="#a07a30" stroke="#444" stroke-width="0.1" title="C99 (0402 100nF Cap)" />
             </g>
             <!-- LED100 -->
-            <g class="led-node" data-id="100" transform="translate(159.645, 63.771)">
-              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#333333" stroke-width="0.2" rx="0.3" />
+            <g class="led-node" data-id="100" transform="translate(151.34, 84.57)">
+              <rect x="-1.0" y="-1.0" width="2.0" height="2.0" fill="#ffffff" stroke="#222" stroke-width="0.15" rx="0.25" />
               <circle cx="0" cy="0" r="0.75" fill="#00fe01" />
-              <rect x="1.4" y="-0.4" width="1.0" height="0.8" fill="#a07a30" stroke="#555" stroke-width="0.1" title="C100 (0402 100nF)" />
+              <rect x="1.3" y="-0.4" width="0.8" height="0.8" fill="#a07a30" stroke="#444" stroke-width="0.1" title="C100 (0402 100nF Cap)" />
             </g>
           </g>
 
-          <!-- Tail Lantern Glowing Node -->
-          <g id="tailLantern" transform="translate(32, 108)">
-            <circle cx="0" cy="0" r="9.0" fill="url(#lanternGrad)" />
-            <rect x="-1.8" y="-2.8" width="3.6" height="5.6" fill="none" stroke="#ffb703" stroke-width="0.6" rx="0.5" />
-            <line x1="-1.8" y1="0" x2="1.8" y2="0" stroke="#ffb703" stroke-width="0.4" />
-          </g>
-
-          <!-- J1 3-Pin Input Connector -->
-          <g id="j1Connector" transform="translate(26, 166)">
-            <rect x="-3" y="-2" width="6" height="4" fill="#21262d" stroke="#58a6ff" stroke-width="0.5" rx="0.5" />
-            <text x="0" y="-3" fill="#58a6ff" font-size="2.4" text-anchor="middle" font-family="monospace">+5V DIN GND</text>
-            <circle cx="-1.8" cy="0" r="0.4" fill="#da3633" />
-            <circle cx="0" cy="0" r="0.4" fill="#f0883e" />
-            <circle cx="1.8" cy="0" r="0.4" fill="#238636" />
+          <!-- Power/Data Input Connector (JST-PH 3P) -->
+          <g id="j1Connector" transform="translate(13.66, 173.6)">
+            <rect x="-3" y="-2" width="6" height="4" fill="#21262d" stroke="#58a6ff" stroke-width="0.4" rx="0.4" />
+            <text x="0" y="-2.6" fill="#58a6ff" font-size="1.8" text-anchor="middle" font-family="monospace">+5V DIN GND</text>
+            <circle cx="-1.8" cy="0" r="0.35" fill="#da3633" />
+            <circle cx="0" cy="0" r="0.35" fill="#f0883e" />
+            <circle cx="1.8" cy="0" r="0.35" fill="#238636" />
           </g>
         </svg>
       </div>
@@ -910,8 +900,15 @@
 
     <div>
       <div class="card">
-        <h3 style="margin-top: 0; color: #fff; font-size: 15px;">📊 Board Specifications</h3>
-        <div class="stat-grid">
+        <h3 style="margin-top: 0; color: #fff; font-size: 15px;">📊 Board Dimensions & Specs</h3>
+        
+        <div class="slider-row">
+          <span style="color: #8b949e;">Artwork Opacity:</span>
+          <input type="range" id="artOpacitySlider" min="0" max="100" value="65" oninput="setArtOpacity(this.value)">
+          <span id="artOpacityVal" style="color: #fff; font-family: monospace; width: 36px; text-align: right;">65%</span>
+        </div>
+
+        <div class="stat-grid" style="margin-top: 14px;">
           <div class="stat-box">
             <div class="stat-val">100</div>
             <div class="stat-lbl">WS2812B-2020 LEDs</div>
@@ -921,12 +918,12 @@
             <div class="stat-lbl">0402 Bypass Caps</div>
           </div>
           <div class="stat-box">
-            <div class="stat-val">0.15 mm</div>
-            <div class="stat-lbl">Flex PCB Thickness</div>
+            <div class="stat-val">185.0×222.09 mm</div>
+            <div class="stat-lbl">Physical Board Size (7.3"×8.7")</div>
           </div>
           <div class="stat-box">
-            <div class="stat-val">185×145 mm</div>
-            <div class="stat-lbl">Chest Dimensions</div>
+            <div class="stat-val">0.15 mm</div>
+            <div class="stat-lbl">Flex FPC Polyimide</div>
           </div>
         </div>
 
@@ -944,11 +941,11 @@
 
         <div style="margin-top: 18px; padding-top: 14px; border-top: 1px solid var(--border);">
           <div style="font-size: 12px; color: #8b949e; line-height: 1.5;">
-            ✅ <strong>Turnkey Files Generated:</strong>
+            ✅ <strong>Turnkey Manufacturing Files:</strong>
             <ul style="margin: 6px 0 0 16px; padding: 0;">
-              <li><code>pcb/petes_dragon_bom.csv</code></li>
-              <li><code>pcb/petes_dragon_cpl.csv</code></li>
-              <li><code>pcb/petes_dragon_fpc.kicad_pcb</code></li>
+              <li><code>pcb/petes_dragon_bom.csv</code> (Parts)</li>
+              <li><code>pcb/petes_dragon_cpl.csv</code> (Pick & Place)</li>
+              <li><code>pcb/petes_dragon_fpc.kicad_pcb</code> (KiCad)</li>
             </ul>
           </div>
         </div>
@@ -965,9 +962,10 @@ function toggleLayer(id) {
   el.style.display = isHidden ? '' : 'none';
 }
 
-function toggleLanternGlow() {
-  const el = document.getElementById('tailLantern');
-  if (el) el.style.display = el.style.display === 'none' ? '' : 'none';
+function setArtOpacity(val) {
+  const el = document.getElementById('dragonGraphic');
+  if (el) el.setAttribute('opacity', val / 100);
+  document.getElementById('artOpacityVal').textContent = val + '%';
 }
 
 let isStreaming = false;

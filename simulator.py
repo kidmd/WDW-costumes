@@ -130,6 +130,30 @@ class SimulatorRequestHandler(http.server.SimpleHTTPRequestHandler):
             else:
                 self.send_error(404, "Asset file not found")
                 return
+        elif parsed.path.startswith("/pcb/"):
+            rel_pcb = urllib.parse.unquote(parsed.path[len("/pcb/"):])
+            if not rel_pcb or rel_pcb == "/":
+                rel_pcb = "pcb_preview.html"
+            pcb_file = os.path.join(BASE_DIR, "pcb", rel_pcb)
+            if os.path.exists(pcb_file) and os.path.isfile(pcb_file):
+                self.send_response(200)
+                if pcb_file.endswith(".html"):
+                    self.send_header("Content-Type", "text/html; charset=utf-8")
+                elif pcb_file.endswith(".csv"):
+                    self.send_header("Content-Type", "text/csv; charset=utf-8")
+                elif pcb_file.endswith(".kicad_pcb"):
+                    self.send_header("Content-Type", "text/plain; charset=utf-8")
+                else:
+                    self.send_header("Content-Type", "application/octet-stream")
+                self.send_header("Content-Length", str(os.path.getsize(pcb_file)))
+                self.send_header("Access-Control-Allow-Origin", "*")
+                self.end_headers()
+                with open(pcb_file, "rb") as f:
+                    self.wfile.write(f.read())
+                return
+            else:
+                self.send_error(404, "PCB file not found")
+                return
         else:
             super().do_GET()
 
