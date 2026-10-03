@@ -93,8 +93,20 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
-### Entry: True 2D Spatial Coordinate Calibration & Extended History Tail for Scurrying Mouse
-* **Date:** 2026-10-02
+### Entry: High-Res Transparent Pete's Dragon Asset & Turnkey Flex PCB (FPC) Demo Suite
+* **Date:** 2026-10-03
+* **Milestone:** Milestone 4 - Lighting Engine & Custom Fabrication R&D
+* **Status:** Complete & Verified (`assets/petes_dragon_transparent.png`, `pcb/*`, `scripts/generate_pcb_project.py`).
+* **Notes:**
+  - **Transparent Artwork Extraction:**
+    - Cleaned and converted high-res Pete's Dragon artwork (with tail-hanging lantern) into a transparent PNG (`assets/petes_dragon_transparent.png`).
+    - Preserved 100% of the internal black linework (nostrils, pupils, mouth, claws, belly ribs, wing ridges, and tail lantern frame) while making all exterior and concave regions (between tail and back, between wings, under jaw) transparent.
+  - **Turnkey Flex PCB (FPC) Generation Suite:**
+    - Developed automated Python generator `scripts/generate_pcb_project.py` mapping simulator $(x, y)$ coordinates to physical PCB design files.
+    - Generated JLCPCB SMT Bill of Materials (`pcb/petes_dragon_bom.csv`) with LCSC part numbers for WS2812B-2020 LEDs (`C2843818`) and 0402 100nF bypass capacitors (`C1525`).
+    - Generated JLCPCB Pick-and-Place Centroid File (`pcb/petes_dragon_cpl.csv`).
+    - Generated native KiCad PCB project (`pcb/petes_dragon_fpc.kicad_pcb`) with `Edge.Cuts` dragon contour, daisy-chained data traces (`DOUT -> DIN`), and power rails.
+    - Created interactive 2D/3D web inspector (`pcb/pcb_preview.html`) allowing layer toggling, data stream animation, and spec inspection.
 * **Milestone:** Milestone 4 - Lighting Engine & Theatrical Controls
 * **Status:** Complete & Verified (`simulator/app.js`, `src/main.cpp`, `arduino/MSEP_Costume/MSEP_Costume.ino`, `firmware/*`).
 * **Notes:**
