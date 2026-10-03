@@ -93,6 +93,21 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### Entry: Turnkey SMT Assembly Export (JLCPCB BOM & CPL Centroid Bundle)
+* **Date:** 2026-10-03
+* **Milestone:** Milestone 4 - Flexible PCB (FPC) Fabrication R&D
+* **Status:** Complete & Verified (`pcb/petes_dragon_smt_assembly.zip`, `pcb/petes_dragon_bom.csv`, `pcb/petes_dragon_cpl.csv`).
+* **Notes:**
+  - **Turnkey SMT Machine Assembly Support:**
+    - Generated standardized JLCPCB-formatted Bill of Materials (`petes_dragon_bom.csv`) mapped directly to verified LCSC warehouse parts:
+      1. `LED1–LED100`: WS2812B-2020 SMD Addressable RGB LEDs (LCSC #`C2843818`).
+      2. `C1–C100`: 100nF (0.1µF) 50V 0402 ceramic decoupling capacitors (LCSC #`C1525`).
+      3. `J1`: JST-PH-3P 2.0mm SMT horizontal header for power/data entry (LCSC #`C145946`).
+    - Generated Pick & Place centroid list (`petes_dragon_cpl.csv`) with exact $(X, Y)$ coordinate offsets and component rotations for all 201 SMT parts.
+  - **Single-Click Assembly Bundle:**
+    - Packaged `petes_dragon_smt_assembly.zip` containing both CSVs for drag-and-drop quoting on JLCPCB.
+    - Updated `pcb/pcb_preview.html` with direct download buttons and sidebar references.
+
 ### Entry: Clean Square LED Package Rendering (Removed Halo & Glow Blur) in PCB Preview
 * **Date:** 2026-10-03
 * **Milestone:** Milestone 4 - Flexible PCB (FPC) Fabrication R&D & Visual Simulation

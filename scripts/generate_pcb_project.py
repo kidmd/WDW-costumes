@@ -459,6 +459,12 @@ kicad_zip_path = os.path.join(PCB_DIR, "petes_dragon_kicad.zip")
 with open(zip_path, "rb") as f_in, open(kicad_zip_path, "wb") as f_out:
     f_out.write(f_in.read())
 
+# Dedicated SMT Assembly ZIP (BOM + CPL for JLCPCB)
+smt_zip_path = os.path.join(PCB_DIR, "petes_dragon_smt_assembly.zip")
+with zipfile.ZipFile(smt_zip_path, "w", zipfile.ZIP_DEFLATED) as zf:
+    zf.write(bom_path, "petes_dragon_bom.csv")
+    zf.write(cpl_path, "petes_dragon_cpl.csv")
+
 # 8. Generate Interactive Web Inspector HTML (100% 1:1 Coincident Alignment)
 preview_path = os.path.join(PCB_DIR, "pcb_preview.html")
 
@@ -629,7 +635,8 @@ html_content = f"""<!DOCTYPE html>
     <button id="toggleLedsBtn" class="active" onclick="toggleLayer('smtLeds')">💡 SMD LEDs</button>
     <button id="lightAllBtn" onclick="toggleLightAll()" style="font-weight: 600;">✨ Light Up All LEDs</button>
     <button id="animateDataBtn" onclick="toggleDataStream()">🌊 Animate DIN Flow</button>
-    <a href="petes_dragon_easyeda.zip" download style="text-decoration:none;"><button style="background: #238636; border-color: #2ea043; font-weight: 600;">📥 Download EasyEDA / KiCad ZIP</button></a>
+    <a href="petes_dragon_easyeda.zip" download style="text-decoration:none;"><button style="background: #238636; border-color: #2ea043; font-weight: 600;">📥 PCB Gerber ZIP</button></a>
+    <a href="petes_dragon_smt_assembly.zip" download style="text-decoration:none;"><button style="background: #1f6feb; border-color: #388bfd; font-weight: 600;">📦 SMT Assembly ZIP (BOM + CPL)</button></a>
   </div>
 
   <div class="grid">
@@ -790,9 +797,9 @@ html_content += f"""          </g>
             ✅ <strong>Turnkey Manufacturing Files:</strong>
             <ul style="margin: 6px 0 0 16px; padding: 0;">
               <li><a href="petes_dragon_easyeda.zip" download style="color:#58a6ff; font-weight:600;"><code>petes_dragon_easyeda.zip</code> (EasyEDA/KiCad Package)</a></li>
-              <li><code>pcb/petes_dragon_bom.csv</code> (Parts BOM)</li>
-              <li><code>pcb/petes_dragon_cpl.csv</code> (Pick & Place)</li>
-              <li><code>pcb/petes_dragon_fpc.kicad_pcb</code> (KiCad PCB)</li>
+              <li><a href="petes_dragon_smt_assembly.zip" download style="color:#58a6ff; font-weight:600;"><code>petes_dragon_smt_assembly.zip</code> (BOM + CPL Bundle)</a></li>
+              <li><a href="petes_dragon_bom.csv" download style="color:#8b949e;"><code>petes_dragon_bom.csv</code> (Parts BOM)</a></li>
+              <li><a href="petes_dragon_cpl.csv" download style="color:#8b949e;"><code>petes_dragon_cpl.csv</code> (Pick & Place)</a></li>
             </ul>
           </div>
         </div>
