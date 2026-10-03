@@ -678,8 +678,8 @@ The simulator includes a unified library of 18 specialized algorithms available 
 | `traveling_wave` | **Traveling Parade Wave** | Electrical parade wavefront cascading smoothly across the garment contour. | Grand finales, dynamic transitions |
 | `fireworks` | **Fireworks Starburst** | 4-phase pyrotechnic explosion with center flash, outward expanding fire trails, and starlight tip crackle. | Finales, celestial bursts, chest stars |
 | `rainbow_cycle` | **Rainbow Color Wave** | Flowing chromatic wave cycling across the strand or group contour. | Vibrant rainbow flourishes, electric transitions |
-| `photo_mode` | **Castle Photo Mode** | 100% solid maximum brightness with zero sparkle for crisp, clear photos. | Photo stops, character meet-and-greets |
-| `mouse_scamper` | **Scurrying Mouse (Graphic Explorer)** | High-energy 2D roaming spark darting all across the graphic's interior and exterior surface with sudden sprint pivots and a glowing trailing light wake. | Whimsical character motion, playful roaming, high-energy flourishes |
+| `mouse_scamper` | **Scurrying Mouse (Single Dot + Tail)** | Single ultra-bright head dot darting smoothly across 2D space with a directional history tail showing where the mouse has scampered (no circular spotlight halo). | Whimsical character motion, playful roaming, high-energy flourishes |
+| `flashlight` | **Flashlight / Searchlight Roam** | Continuous 2D roaming circular light pool sweeping across the float's sampled artwork like a focused searchlight. | Theatrical inspection, focused searchlights, nighttime reveals |
 | `off` | **Off / Completely Unlit** | Complete blackout (0% intensity) for dramatic contrast, dormant stage cues, or unlit baseline. | Dark baseline, countdown blackouts, dormant groups |
 
 ### Ambient Baseline Tempo & Theatrical Cadence

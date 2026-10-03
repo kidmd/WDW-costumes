@@ -676,14 +676,15 @@ void renderAmbientFallback(uint32_t now) {
 #endif
     uint8_t roamY = 128 + ((int8_t)(cos8(roamWarp * 2) - 128) * 80 / 128) + ((int8_t)(sin8(roamWarp * 4) - 128) * 40 / 128);
 #elif defined(AMBIENT_FALLBACK_PATTERN) && (AMBIENT_FALLBACK_PATTERN == COSTUME_PATTERN_MOUSE_SCAMPER)
-    uint32_t scamperMs = max((uint32_t)800, (uint32_t)(beatMs * 3 / 2));
-    uint8_t scamperT = (uint8_t)(((uint64_t)now * 256 / scamperMs) * 2);
+    uint32_t scamperPassMs = max((uint32_t)700, (uint32_t)(beatMs * 3 / 2));
+    uint8_t tCurr = (uint8_t)(((uint64_t)now * 256 / scamperPassMs) * 2);
 #if defined(COSTUME_AMBIENT_DIRECTION) && (COSTUME_AMBIENT_DIRECTION < 0)
-    uint8_t mouseX = 128 + ((int8_t)(sin8(scamperT * 2) - 128) * 85 / 128) - ((int8_t)(sin8(scamperT * 5) - 128) * 35 / 128);
+    int8_t mouseDir = -1;
 #else
-    uint8_t mouseX = 128 + ((int8_t)(sin8(scamperT * 2) - 128) * 85 / 128) + ((int8_t)(sin8(scamperT * 5) - 128) * 35 / 128);
+    int8_t mouseDir = 1;
 #endif
-    uint8_t mouseY = 128 + ((int8_t)(cos8(scamperT * 2) - 128) * 80 / 128) + ((int8_t)(sin8(scamperT * 4) - 128) * 40 / 128);
+    uint8_t headX = 128 + ((int8_t)(sin8(tCurr * 11 / 10 * mouseDir) - 128) * 85 / 128) + ((int8_t)(sin8(tCurr * 23 / 10) - 128) * 35 / 128);
+    uint8_t headY = 128 + ((int8_t)(cos8(tCurr * 8 / 10) - 128) * 80 / 128) + ((int8_t)(sin8(tCurr * 19 / 10 * mouseDir) - 128) * 40 / 128);
 #endif
 
     for (int i = 0; i < FRONT_LEDS && i < MAX_LEDS_CAPACITY; i++) {
@@ -892,14 +893,33 @@ void renderAmbientFallback(uint32_t now) {
 #if defined(HAS_SPATIAL_METRICS) && HAS_SPATIAL_METRICS
         uint8_t ledX = pgm_read_byte(&SPATIAL_X_BYTE[i]);
         uint8_t ledY = pgm_read_byte(&SPATIAL_Y_BYTE[i]);
-        int16_t dx = (int16_t)ledX - (int16_t)mouseX;
-        int16_t dy = (int16_t)ledY - (int16_t)mouseY;
-        uint16_t distSq = (dx * dx + dy * dy);
-        if (distSq < 280) {
-            uint8_t fade = 255 - (distSq * 255 / 280);
+        int16_t dx = (int16_t)ledX - (int16_t)headX;
+        int16_t dy = (int16_t)ledY - (int16_t)headY;
+        uint16_t dHeadSq = (dx * dx + dy * dy);
+
+        // Check historical path behind the head
+        uint8_t maxTailFade = 0;
+        for (uint8_t s = 1; s <= 6; s++) {
+            uint8_t tPast = tCurr - (s * 8 * mouseDir);
+            uint8_t pastX = 128 + ((int8_t)(sin8(tPast * 11 / 10 * mouseDir) - 128) * 85 / 128) + ((int8_t)(sin8(tPast * 23 / 10) - 128) * 35 / 128);
+            uint8_t pastY = 128 + ((int8_t)(cos8(tPast * 8 / 10) - 128) * 80 / 128) + ((int8_t)(sin8(tPast * 19 / 10 * mouseDir) - 128) * 40 / 128);
+            int16_t pdx = (int16_t)ledX - (int16_t)pastX;
+            int16_t pdy = (int16_t)ledY - (int16_t)pastY;
+            uint16_t pDistSq = (pdx * pdx + pdy * pdy);
+            if (pDistSq < 160) {
+                uint8_t tube = 255 - (pDistSq * 255 / 160);
+                uint8_t age = 255 - (s * 36);
+                uint8_t cand = ((uint16_t)tube * age) / 255;
+                if (cand > maxTailFade) maxTailFade = cand;
+            }
+        }
+
+        if (dHeadSq < 70) {
+            CRGB c = baseColor + CRGB(150, 150, 150);
+            leds[i] = c;
+        } else if (maxTailFade > 15) {
             CRGB c = baseColor;
-            c.nscale8_video(fade);
-            if (distSq < 45) c += CRGB(140, 140, 140);
+            c.nscale8_video(maxTailFade);
             leds[i] = c;
         } else {
             CRGB dim = baseColor;
@@ -1262,9 +1282,11 @@ void runAutonomousShowSequence(uint32_t now) {
                     leds[i] = baseColor;
 #endif
                 }
-            } else if (eff == 19) { // mouse_scamper — single dot + sharp meteor tail racing along strand
+            } else if (eff == 19) { // mouse_scamper — single dot + directional meteor tail tracking 2D location
                 uint32_t scamperPassMs = max((uint32_t)700, (uint32_t)(60000 / max((uint16_t)20, bpm) * 3 / 2));
-                uint8_t scamperHead = (uint8_t)(((uint64_t)(now - autonomousShowStartTime) * FRONT_LEDS / scamperPassMs) % FRONT_LEDS);
+                uint8_t tCurr = (uint8_t)(((uint64_t)(now - autonomousShowStartTime) * 256 / scamperPassMs) * 2);
+                uint8_t headX = 128 + ((int8_t)(sin8(tCurr * 11 / 10) - 128) * 85 / 128) + ((int8_t)(sin8(tCurr * 23 / 10) - 128) * 35 / 128);
+                uint8_t headY = 128 + ((int8_t)(cos8(tCurr * 8 / 10) - 128) * 80 / 128) + ((int8_t)(sin8(tCurr * 19 / 10) - 128) * 40 / 128);
                 for (int i = 0; i < FRONT_LEDS && i < MAX_LEDS_CAPACITY; i++) {
 #if defined(HAS_CUSTOM_PALETTE) && HAS_CUSTOM_PALETTE
                     CRGB baseColor = ARTWORK_PALETTE[i];
@@ -1272,11 +1294,46 @@ void runAutonomousShowSequence(uint32_t now) {
                     uint8_t floatIdx = (myFloatNumber >= 1 && myFloatNumber <= 7) ? (myFloatNumber - 1) : 0;
                     CRGB baseColor = FLEET_ROSTER_INFO[floatIdx].color;
 #endif
-                    int dist = (scamperHead - i + FRONT_LEDS) % FRONT_LEDS;
-                    if (dist < 18) {
-                        uint8_t fade = 255 - (dist * 14);
+#if defined(HAS_SPATIAL_METRICS) && HAS_SPATIAL_METRICS
+                    uint8_t ledX = pgm_read_byte(&SPATIAL_X_BYTE[i]);
+                    uint8_t ledY = pgm_read_byte(&SPATIAL_Y_BYTE[i]);
+                    int16_t dx = (int16_t)ledX - (int16_t)headX;
+                    int16_t dy = (int16_t)ledY - (int16_t)headY;
+                    uint16_t dHeadSq = (dx * dx + dy * dy);
+
+                    uint8_t maxTailFade = 0;
+                    for (uint8_t s = 1; s <= 6; s++) {
+                        uint8_t tPast = tCurr - (s * 8);
+                        uint8_t pastX = 128 + ((int8_t)(sin8(tPast * 11 / 10) - 128) * 85 / 128) + ((int8_t)(sin8(tPast * 23 / 10) - 128) * 35 / 128);
+                        uint8_t pastY = 128 + ((int8_t)(cos8(tPast * 8 / 10) - 128) * 80 / 128) + ((int8_t)(sin8(tPast * 19 / 10) - 128) * 40 / 128);
+                        int16_t pdx = (int16_t)ledX - (int16_t)pastX;
+                        int16_t pdy = (int16_t)ledY - (int16_t)pastY;
+                        uint16_t pDistSq = (pdx * pdx + pdy * pdy);
+                        if (pDistSq < 160) {
+                            uint8_t tube = 255 - (pDistSq * 255 / 160);
+                            uint8_t age = 255 - (s * 36);
+                            uint8_t cand = ((uint16_t)tube * age) / 255;
+                            if (cand > maxTailFade) maxTailFade = cand;
+                        }
+                    }
+
+                    if (dHeadSq < 70) {
+                        CRGB c = baseColor + CRGB(150, 150, 150);
+                        leds[i] = c;
+                    } else if (maxTailFade > 15) {
                         CRGB c = baseColor;
-                        c.nscale8_video(fade);
+                        c.nscale8_video(maxTailFade);
+                        leds[i] = c;
+                    } else {
+                        CRGB dim = baseColor;
+                        dim.nscale8_video(20);
+                        leds[i] = dim;
+                    }
+#else
+                    int dist = (tCurr - i + FRONT_LEDS) % FRONT_LEDS;
+                    if (dist < 12) {
+                        CRGB c = baseColor;
+                        c.nscale8_video(255 - dist * 20);
                         if (dist == 0) c += CRGB(140, 140, 140);
                         leds[i] = c;
                     } else {
@@ -1284,6 +1341,7 @@ void runAutonomousShowSequence(uint32_t now) {
                         dim.nscale8_video(20);
                         leds[i] = dim;
                     }
+#endif
                 }
             } else { // 0: steady_sparkle / default
                 for (int i = 0; i < FRONT_LEDS && i < MAX_LEDS_CAPACITY; i++) {
