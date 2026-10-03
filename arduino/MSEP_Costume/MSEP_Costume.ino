@@ -897,24 +897,24 @@ void renderAmbientFallback(uint32_t now) {
         int16_t dy = (int16_t)ledY - (int16_t)headY;
         uint16_t dHeadSq = (dx * dx + dy * dy);
 
-        // Check historical path behind the head
+        // Check historical path behind the head (long graceful tail)
         uint8_t maxTailFade = 0;
-        for (uint8_t s = 1; s <= 6; s++) {
-            uint8_t tPast = tCurr - (s * 8 * mouseDir);
+        for (uint8_t s = 1; s <= 16; s++) {
+            uint8_t tPast = tCurr - (s * 5 * mouseDir);
             uint8_t pastX = 128 + ((int8_t)(sin8(tPast * 11 / 10 * mouseDir) - 128) * 85 / 128) + ((int8_t)(sin8(tPast * 23 / 10) - 128) * 35 / 128);
             uint8_t pastY = 128 + ((int8_t)(cos8(tPast * 8 / 10) - 128) * 80 / 128) + ((int8_t)(sin8(tPast * 19 / 10 * mouseDir) - 128) * 40 / 128);
             int16_t pdx = (int16_t)ledX - (int16_t)pastX;
             int16_t pdy = (int16_t)ledY - (int16_t)pastY;
             uint16_t pDistSq = (pdx * pdx + pdy * pdy);
-            if (pDistSq < 160) {
-                uint8_t tube = 255 - (pDistSq * 255 / 160);
-                uint8_t age = 255 - (s * 36);
+            if (pDistSq < 130) {
+                uint8_t tube = 255 - (pDistSq * 255 / 130);
+                uint8_t age = 255 - (s * 12);
                 uint8_t cand = ((uint16_t)tube * age) / 255;
                 if (cand > maxTailFade) maxTailFade = cand;
             }
         }
 
-        if (dHeadSq < 70) {
+        if (dHeadSq < 45) {
             CRGB c = baseColor + CRGB(150, 150, 150);
             leds[i] = c;
         } else if (maxTailFade > 15) {
@@ -1302,22 +1302,22 @@ void runAutonomousShowSequence(uint32_t now) {
                     uint16_t dHeadSq = (dx * dx + dy * dy);
 
                     uint8_t maxTailFade = 0;
-                    for (uint8_t s = 1; s <= 6; s++) {
-                        uint8_t tPast = tCurr - (s * 8);
+                    for (uint8_t s = 1; s <= 16; s++) {
+                        uint8_t tPast = tCurr - (s * 5);
                         uint8_t pastX = 128 + ((int8_t)(sin8(tPast * 11 / 10) - 128) * 85 / 128) + ((int8_t)(sin8(tPast * 23 / 10) - 128) * 35 / 128);
                         uint8_t pastY = 128 + ((int8_t)(cos8(tPast * 8 / 10) - 128) * 80 / 128) + ((int8_t)(sin8(tPast * 19 / 10) - 128) * 40 / 128);
                         int16_t pdx = (int16_t)ledX - (int16_t)pastX;
                         int16_t pdy = (int16_t)ledY - (int16_t)pastY;
                         uint16_t pDistSq = (pdx * pdx + pdy * pdy);
-                        if (pDistSq < 160) {
-                            uint8_t tube = 255 - (pDistSq * 255 / 160);
-                            uint8_t age = 255 - (s * 36);
+                        if (pDistSq < 130) {
+                            uint8_t tube = 255 - (pDistSq * 255 / 130);
+                            uint8_t age = 255 - (s * 12);
                             uint8_t cand = ((uint16_t)tube * age) / 255;
                             if (cand > maxTailFade) maxTailFade = cand;
                         }
                     }
 
-                    if (dHeadSq < 70) {
+                    if (dHeadSq < 45) {
                         CRGB c = baseColor + CRGB(150, 150, 150);
                         leds[i] = c;
                     } else if (maxTailFade > 15) {

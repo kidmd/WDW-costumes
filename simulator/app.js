@@ -1848,9 +1848,9 @@ function evalGroupEffect(grp, effect, bpm, dir, grpIndex, grpSize, timeMs, c) {
             const dHead = Math.hypot(ledX - headX, ledY - headY);
 
             let maxTailFade = 0.0;
-            const historySteps = 12;
-            const historySpanT = 0.55;
-            const captureRadius = 0.085;
+            const historySteps = 24;
+            const historySpanT = 1.6; // Extended long trailing path
+            const captureRadius = 0.075; // Focused narrow tube
 
             for (let s = 1; s <= historySteps; s++) {
                 const frac = s / historySteps;
@@ -1860,14 +1860,15 @@ function evalGroupEffect(grp, effect, bpm, dir, grpIndex, grpSize, timeMs, c) {
                 const dPast = Math.hypot(ledX - pastX, ledY - pastY);
                 if (dPast < captureRadius) {
                     const tubeFalloff = 1.0 - (dPast / captureRadius);
-                    const ageFalloff = Math.exp(-frac * 2.6);
+                    const ageFalloff = 1.0 - (frac * 0.80); // Smooth gradual falloff along the tail
                     const cand = tubeFalloff * ageFalloff;
                     if (cand > maxTailFade) maxTailFade = cand;
                 }
             }
 
-            if (dHead < 0.075) {
-                const headIntensity = 1.0 - (dHead / 0.075);
+            if (dHead < 0.055) {
+                // Single focused bright head point
+                const headIntensity = 1.0 - (dHead / 0.055);
                 grpIntensity = 1.0;
                 baseR = Math.min(255, baseR + Math.round(150 * headIntensity));
                 baseG = Math.min(255, baseG + Math.round(150 * headIntensity));
@@ -2449,11 +2450,11 @@ function evalGlobalPattern(pattern, bpm, index, totalLeds, timeMs, c, hasColor, 
             // Distance to current head
             const dHead = Math.hypot(ledX - headX, ledY - headY);
 
-            // Sample the historical path behind the head (where the mouse has just been)
+            // Sample the historical path behind the head with a long graceful tail
             let maxTailFade = 0.0;
-            const historySteps = 12;
-            const historySpanT = 0.55; // Path length in time parameter
-            const captureRadius = 0.085; // Tight tube along the path
+            const historySteps = 24;
+            const historySpanT = 1.6; // Extended long trailing path
+            const captureRadius = 0.075; // Focused narrow tube
 
             for (let s = 1; s <= historySteps; s++) {
                 const frac = s / historySteps;
@@ -2463,15 +2464,15 @@ function evalGlobalPattern(pattern, bpm, index, totalLeds, timeMs, c, hasColor, 
                 const dPast = Math.hypot(ledX - pastX, ledY - pastY);
                 if (dPast < captureRadius) {
                     const tubeFalloff = 1.0 - (dPast / captureRadius);
-                    const ageFalloff = Math.exp(-frac * 2.6); // Decays as the trail gets older
+                    const ageFalloff = 1.0 - (frac * 0.80); // Smooth gradual falloff along the tail
                     const cand = tubeFalloff * ageFalloff;
                     if (cand > maxTailFade) maxTailFade = cand;
                 }
             }
 
-            if (dHead < 0.075) {
-                // Leading bright dot (1 sharp point)
-                const headIntensity = 1.0 - (dHead / 0.075);
+            if (dHead < 0.055) {
+                // Leading bright dot (single sharp spark)
+                const headIntensity = 1.0 - (dHead / 0.055);
                 if (effHasColor) {
                     r = effC.r; g = effC.g; b = effC.b;
                 } else {

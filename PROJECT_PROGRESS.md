@@ -93,7 +93,7 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
-### Entry: True 2D Spatial Coordinate Calibration & History Trail for Scurrying Mouse
+### Entry: True 2D Spatial Coordinate Calibration & Extended History Tail for Scurrying Mouse
 * **Date:** 2026-10-02
 * **Milestone:** Milestone 4 - Lighting Engine & Theatrical Controls
 * **Status:** Complete & Verified (`simulator/app.js`, `src/main.cpp`, `arduino/MSEP_Costume/MSEP_Costume.ino`, `firmware/*`).
@@ -102,11 +102,10 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
     - Corrected the mouse scamper rendering engine across the Simulator (`simulator/app.js`), ESP32 C++ firmware (`src/main.cpp`), and Arduino sketch (`arduino/MSEP_Costume/MSEP_Costume.ino`).
     - Because LEDs on the costume are positioned via 2D spatial placement (Farthest-Point Sampling / manual node layout) rather than straight spatial order along the strand, indexing by `(head - index)` caused LEDs to flash scattered and disjointed across the shirt.
     - Switched mouse head and trail evaluation to physical 2D coordinates: `(normX, normY)` in the Simulator and `SPATIAL_X_BYTE[i]`, `SPATIAL_Y_BYTE[i]` (`0..255`) in firmware.
-  - **Directional History Path Tail (Eliminating Radial Flashlight Pool):**
-    - Replaced the circular Euclidean radius equation with a **temporal history path sampler**.
-    - The engine samples past trajectory positions $(M_x(t - \Delta t), M_y(t - \Delta t))$ for 6 discrete past timestamps along the path.
-    - Only LEDs falling within a tight cylindrical tube ($r < 0.085$ normalized / $d^2 < 160$ byte units) around the recent path are illuminated, exponentially decaying by age ($e^{-\text{age} \cdot 2.6}$).
-    - LEDs ahead, beside, or outside the past path remain at clean ambient resting intensity (8%), producing a distinct, sharp head dot (single bright spark) and an organic directional trail that shows exactly where the mouse has scampered.
+  - **Extended Directional History Tail & Sharp 1-LED Head:**
+    - Tightened the leading spark radius ($d_{\text{head}} < 0.055$ / $d^2 < 45$) so only a single leading LED ignites with the blazing white nose spark, eliminating multi-bulb clumping.
+    - Extended the historical trajectory length ($historySpanT = 1.6$ normalized / 16 sample steps at $s \times 5$ byte ticks) and implemented a smooth gradual decay ($1.0 - 0.80 \times \text{frac}$) down to 20% intensity at the tail tip.
+    - This renders a long, graceful trailing ribbon of LEDs charting where the mouse has scampered across the chest, maintaining crisp directional movement without a radial flashlight halo.
   - **Full Platform Parity & Firmware Synchronization:**
     - Verified identical behavior across simulator global patterns, group effects, and cue 19 timeline cues.
     - PlatformIO build verified; all 8 fleet ROM binaries recompiled and verified.

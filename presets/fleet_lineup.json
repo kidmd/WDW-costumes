@@ -56,7 +56,7 @@
     "tag": "ELLIOTT",
     "color": "#00ff88",
     "accent": "Green",
-    "preset": "server:petes_dragon_chris.json",
+    "preset": "server:petes_dragon.json",
     "defaultGraphic": "builtin_dragon"
   },
   {
