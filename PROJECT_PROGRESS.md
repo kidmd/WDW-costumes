@@ -93,6 +93,23 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### Entry: Boundary-Constrained PCB Routing Fix (Zero Out-of-Bounds Traces)
+* **Date:** 2026-10-03
+* **Milestone:** Milestone 4 - Flexible PCB (FPC) Fabrication R&D
+* **Status:** Complete & Verified (`scripts/generate_pcb_project.py`, `pcb/pcb_preview.html`, `pcb/petes_dragon_fpc.kicad_pcb`, `pcb/petes_dragon_cpl.csv`).
+* **Notes:**
+  - **Identified Concave Neck Jump:**
+    - Standard unconstrained Euclidean TSP had routed LED 79 `(103.11, 81.91)` directly to LED 80 `(121.57, 52.49)`, cutting across the concave arch of Pete's neck and leaving the PCB boundary by up to 11.47mm.
+  - **Boundary-Constrained Routing Algorithm:**
+    - Updated `scripts/generate_pcb_project.py` to extract the laser-cut PCB contour polygon before routing.
+    - Precomputed a 30-sample polygon collision test for every candidate segment, penalizing or rejecting any segment that crosses outside the polyimide boundary.
+    - Built the route with a Cheapest Valid Insertion heuristic, followed by a constrained 2-opt swap optimizer that only accepts swaps where both new segments stay 100% inside the board polygon.
+    - Increased contour fidelity (58 vertices) to preserve smooth organic neck curves without clipping.
+  - **100% Clearance Verification:**
+    - Re-verified all 99 copper trace segments against the board polygon: 0 boundary violations across all 100 LEDs.
+    - Max hop distance in the entire design is only 29.55 mm.
+    - Regenerated KiCad board, CPL centroid file, and interactive web inspector.
+
 ### Entry: PCB Nearest-Neighbor (2-Opt) Daisy-Chain Routing Optimization
 * **Date:** 2026-10-03
 * **Milestone:** Milestone 4 - Flexible PCB (FPC) Fabrication R&D

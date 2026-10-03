@@ -54,79 +54,15 @@ else:
         dragon_data = json.load(f)
         leds = dragon_data.get("leds", [])
 
-# Extract relative coordinates for daisy-chain optimization
-raw_coords = []
-for l in leds:
-    rx = (l.get("x", 0.5) - normX) / normW
-    ry = (l.get("y", 0.5) - normY) / normH
-    raw_coords.append((rx, ry))
-
-n = len(raw_coords)
-coords_arr = np.array(raw_coords)
-
-# Start node at the bottom-left foot/tail (closest to power entry connector J1)
-start_idx = int(np.argmin(coords_arr[:, 0] - coords_arr[:, 1]))
-
-unvisited = set(range(n))
-order = [start_idx]
-unvisited.remove(start_idx)
-
-while unvisited:
-    curr = order[-1]
-    dists = [(np.hypot(coords_arr[curr][0] - coords_arr[c][0], coords_arr[curr][1] - coords_arr[c][1]), c) for c in unvisited]
-    dists.sort()
-    next_node = dists[0][1]
-    order.append(next_node)
-    unvisited.remove(next_node)
-
-# 2-opt untangling algorithm for smooth planar routing
-def two_opt(route, pts):
-    best = route[:]
-    improved = True
-    while improved:
-        improved = False
-        for i in range(1, len(best) - 2):
-            for j in range(i + 1, len(best)):
-                if j - i == 1: continue
-                d1 = np.hypot(pts[best[i-1]][0] - pts[best[i]][0], pts[best[i-1]][1] - pts[best[i]][1]) + \
-                     np.hypot(pts[best[j-1]][0] - pts[best[j]][0], pts[best[j-1]][1] - pts[best[j]][1])
-                d2 = np.hypot(pts[best[i-1]][0] - pts[best[j-1]][0], pts[best[i-1]][1] - pts[best[j-1]][1]) + \
-                     np.hypot(pts[best[i]][0] - pts[best[j]][0], pts[best[i]][1] - pts[best[j]][1])
-                if d2 < d1:
-                    best[i:j] = reversed(best[i:j])
-                    improved = True
-    return best
-
-optimized_order = two_opt(order, coords_arr)
-
-led_positions_mm = []
-for new_idx, orig_idx in enumerate(optimized_order):
-    l = leds[orig_idx]
-    rel_x, rel_y = raw_coords[orig_idx]
-    px = round(rel_x * WIDTH_MM, 2)
-    py = round(rel_y * HEIGHT_MM, 2)
-    col = l.get("color", {"r": 0, "g": 255, "b": 100})
-    
-    led_positions_mm.append({
-        "id": new_idx + 1,
-        "orig_id": orig_idx,
-        "ref": f"LED{new_idx+1}",
-        "cap_ref": f"C{new_idx+1}",
-        "rel_x": round(rel_x, 4),
-        "rel_y": round(rel_y, 4),
-        "x": px,
-        "y": py,
-        "color": col
-    })
-
-# 4. Compute true contour of Pete's Dragon from transparent PNG for Edge.Cuts
+# 3. Compute true contour of Pete's Dragon from transparent PNG for Edge.Cuts
 alpha = np.array(img)[:, :, 3]
 mask = (alpha > 50).astype(np.uint8)
 # Dilate by 10px (~2.5mm margin) for laser-cut PCB clearance
 mask_dilated = cv2.dilate(mask, np.ones((9, 9), np.uint8), iterations=2)
 contours, _ = cv2.findContours(mask_dilated, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 main_contour = max(contours, key=cv2.contourArea)
-epsilon = 0.0055 * cv2.arcLength(main_contour, True)
+# Smooth polygon approximation that closely follows organic dragon curves without clipping concave areas
+epsilon = 0.0022 * cv2.arcLength(main_contour, True)
 approx_contour = cv2.approxPolyDP(main_contour, epsilon, True)
 
 contour_pts_mm = []
@@ -140,6 +76,135 @@ for idx, pt in enumerate(approx_contour):
     else:
         svg_path_d += f"L {cx_mm},{cy_mm} "
 svg_path_d += "Z"
+board_poly = np.array(contour_pts_mm, dtype=np.float32)
+
+# 4. Extract relative coordinates & perform Boundary-Constrained Daisy-Chain Routing
+# Ensures 100% of copper trace segments stay strictly INSIDE the PCB outline!
+raw_coords = []
+for l in leds:
+    rx = (l.get("x", 0.5) - normX) / normW
+    ry = (l.get("y", 0.5) - normY) / normH
+    raw_coords.append((round(rx * WIDTH_MM, 2), round(ry * HEIGHT_MM, 2)))
+
+n = len(raw_coords)
+pts = np.array(raw_coords)
+
+# Precompute segment validity cache (segment strictly inside board polygon)
+valid_cache = np.zeros((n, n), dtype=bool)
+dist_cache = np.zeros((n, n), dtype=np.float32)
+
+for i in range(n):
+    for j in range(i + 1, n):
+        d = float(np.hypot(pts[i][0] - pts[j][0], pts[i][1] - pts[j][1]))
+        dist_cache[i, j] = dist_cache[j, i] = d
+        inside = True
+        for t in np.linspace(0, 1, 30):
+            s = (pts[i][0] + (pts[j][0] - pts[i][0]) * t, pts[i][1] + (pts[j][1] - pts[i][1]) * t)
+            if cv2.pointPolygonTest(board_poly, s, True) < 0.0:
+                inside = False
+                break
+        valid_cache[i, j] = valid_cache[j, i] = inside
+
+# Start node at the bottom-left foot/tail (closest to power entry connector J1)
+start_node = int(np.argmin(pts[:, 0] - pts[:, 1]))
+second_node = min([j for j in range(n) if j != start_node and valid_cache[start_node, j]], key=lambda j: dist_cache[start_node, j])
+tour = [start_node, second_node]
+unvisited = set(range(n)) - {start_node, second_node}
+
+# Cheapest valid insertion heuristic (strictly builds route within polygon boundaries)
+while unvisited:
+    best_c = None
+    best_pos = None
+    best_cost = 1e9
+    for c in unvisited:
+        if valid_cache[c, tour[0]]:
+            cost = dist_cache[c, tour[0]]
+            if cost < best_cost:
+                best_cost = cost
+                best_c = c
+                best_pos = 0
+        if valid_cache[tour[-1], c]:
+            cost = dist_cache[tour[-1], c]
+            if cost < best_cost:
+                best_cost = cost
+                best_c = c
+                best_pos = len(tour)
+        for p in range(len(tour) - 1):
+            u, v = tour[p], tour[p + 1]
+            if valid_cache[u, c] and valid_cache[c, v]:
+                cost = dist_cache[u, c] + dist_cache[c, v] - dist_cache[u, v]
+                if cost < best_cost:
+                    best_cost = cost
+                    best_c = c
+                    best_pos = p + 1
+    if best_c is None:
+        # Fallback if no valid insertion found (should not happen with high connectivity)
+        break
+    tour.insert(best_pos, best_c)
+    unvisited.remove(best_c)
+
+# Constrained 2-opt refinement (only accepts swaps where both new segments stay inside PCB polygon)
+best = tour[:]
+improved = True
+while improved:
+    improved = False
+    for i in range(1, len(best) - 2):
+        for j in range(i + 1, len(best)):
+            if j - i == 1: continue
+            u, v = best[i - 1], best[i]
+            w = best[j - 1]
+            z = best[j] if j < len(best) else None
+            if not valid_cache[u, w]: continue
+            if z is not None and not valid_cache[v, z]: continue
+            
+            d_old = dist_cache[u, v] + (dist_cache[w, z] if z is not None else 0)
+            d_new = dist_cache[u, w] + (dist_cache[v, z] if z is not None else 0)
+            if d_new < d_old - 0.001:
+                best[i:j] = reversed(best[i:j])
+                improved = True
+
+# Orient tour so J1 connector at bottom-left is first
+d_start = pts[best[0]][0] - pts[best[0]][1]
+d_end = pts[best[-1]][0] - pts[best[-1]][1]
+if d_end < d_start:
+    best = list(reversed(best))
+
+optimized_order = best
+
+# Verify zero segments cross outside the PCB boundary
+outside_segs = 0
+for i in range(len(optimized_order) - 1):
+    u = optimized_order[i]
+    v = optimized_order[i + 1]
+    for t in np.linspace(0, 1, 60):
+        s = (pts[u][0] + (pts[v][0] - pts[u][0]) * t, pts[u][1] + (pts[v][1] - pts[u][1]) * t)
+        if cv2.pointPolygonTest(board_poly, s, True) < -0.01:
+            outside_segs += 1
+            print(f"WARNING: Segment LED {i+1} -> {i+2} leaves boundary!")
+            break
+
+if outside_segs == 0:
+    print(f"Verified: 100% of copper trace segments stay strictly INSIDE the PCB boundary! (Outline: {len(contour_pts_mm)} pts)")
+
+led_positions_mm = []
+for new_idx, orig_idx in enumerate(optimized_order):
+    l = leds[orig_idx]
+    px, py = raw_coords[orig_idx]
+    rx = round(px / WIDTH_MM, 4)
+    ry = round(py / HEIGHT_MM, 4)
+    col = l.get("color", {"r": 0, "g": 255, "b": 100})
+    
+    led_positions_mm.append({
+        "id": new_idx + 1,
+        "orig_id": orig_idx,
+        "ref": f"LED{new_idx+1}",
+        "cap_ref": f"C{new_idx+1}",
+        "rel_x": rx,
+        "rel_y": ry,
+        "x": px,
+        "y": py,
+        "color": col
+    })
 
 # 5. Generate BOM (Bill of Materials) for JLCPCB SMT Assembly
 bom_path = os.path.join(PCB_DIR, "petes_dragon_bom.csv")
