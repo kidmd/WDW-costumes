@@ -285,8 +285,65 @@ for d in led_positions_mm:
   )
 """
 
+# KiCad Top Copper Track Segments connecting DOUT -> DIN daisy chain
+kicad_tracks = ""
+for i in range(len(led_positions_mm) - 1):
+    d1 = led_positions_mm[i]
+    d2 = led_positions_mm[i + 1]
+    net_id = 3 + d1["id"]
+    p1_x = round(d1["x"] - 0.85, 2)
+    p1_y = round(d1["y"] + 0.65, 2)
+    p2_x = round(d2["x"] + 0.85, 2)
+    p2_y = round(d2["y"] - 0.65, 2)
+    kicad_tracks += f'  (segment (start {p1_x} {p1_y}) (end {p2_x} {p2_y}) (width 0.25) (layer "F.Cu") (net {net_id}))\n'
+
 with open(kicad_path, "w", encoding="utf-8") as f:
-    f.write(kicad_header + kicad_nets + kicad_outline + kicad_fps + ")\n")
+    f.write(kicad_header + kicad_nets + kicad_outline + kicad_fps + kicad_tracks + ")\n")
+
+# Generate KiCad Project File (.kicad_pro)
+kicad_pro_path = os.path.join(PCB_DIR, "petes_dragon_fpc.kicad_pro")
+kicad_pro_data = {
+    "meta": {
+        "filename": "petes_dragon_fpc.kicad_pro",
+        "version": 1
+    },
+    "net_settings": {
+        "classes": [
+            {
+                "clearance": 0.15,
+                "name": "Default",
+                "track_width": 0.25,
+                "via_diameter": 0.6,
+                "via_drill": 0.3
+            }
+        ]
+    },
+    "pcbnew": {
+        "page_type": "A4"
+    }
+}
+with open(kicad_pro_path, "w", encoding="utf-8") as f:
+    json.dump(kicad_pro_data, f, indent=2)
+
+# Generate Legacy KiCad Project File (.pro)
+legacy_pro_path = os.path.join(PCB_DIR, "petes_dragon_fpc.pro")
+with open(legacy_pro_path, "w", encoding="utf-8") as f:
+    f.write("[general]\nversion=1\n")
+
+# Package ZIP archive for EasyEDA and KiCad Import
+import zipfile
+zip_path = os.path.join(PCB_DIR, "petes_dragon_easyeda.zip")
+with zipfile.ZipFile(zip_path, "w", zipfile.ZIP_DEFLATED) as zf:
+    zf.write(kicad_path, "petes_dragon_fpc.kicad_pcb")
+    zf.write(kicad_pro_path, "petes_dragon_fpc.kicad_pro")
+    zf.write(legacy_pro_path, "petes_dragon_fpc.pro")
+    zf.write(bom_path, "petes_dragon_bom.csv")
+    zf.write(cpl_path, "petes_dragon_cpl.csv")
+
+# Also write alias petes_dragon_kicad.zip
+kicad_zip_path = os.path.join(PCB_DIR, "petes_dragon_kicad.zip")
+with open(zip_path, "rb") as f_in, open(kicad_zip_path, "wb") as f_out:
+    f_out.write(f_in.read())
 
 # 8. Generate Interactive Web Inspector HTML (100% 1:1 Coincident Alignment)
 preview_path = os.path.join(PCB_DIR, "pcb_preview.html")
@@ -452,6 +509,7 @@ html_content = f"""<!DOCTYPE html>
     <button id="toggleOutlineBtn" class="active" onclick="toggleLayer('boardOutline')">✂️ Board Outline (Edge.Cuts)</button>
     <button id="toggleLedsBtn" class="active" onclick="toggleLayer('smtLeds')">💡 Toggle SMD LEDs</button>
     <button id="animateDataBtn" onclick="toggleDataStream()">✨ Animate DIN Flow</button>
+    <a href="petes_dragon_easyeda.zip" download style="text-decoration:none;"><button style="background: #238636; border-color: #2ea043; font-weight: 600;">📥 Download EasyEDA / KiCad ZIP</button></a>
   </div>
 
   <div class="grid">
@@ -562,9 +620,10 @@ html_content += f"""          </g>
           <div style="font-size: 12px; color: #8b949e; line-height: 1.5;">
             ✅ <strong>Turnkey Manufacturing Files:</strong>
             <ul style="margin: 6px 0 0 16px; padding: 0;">
-              <li><code>pcb/petes_dragon_bom.csv</code> (Parts)</li>
+              <li><a href="petes_dragon_easyeda.zip" download style="color:#58a6ff; font-weight:600;"><code>petes_dragon_easyeda.zip</code> (EasyEDA/KiCad Package)</a></li>
+              <li><code>pcb/petes_dragon_bom.csv</code> (Parts BOM)</li>
               <li><code>pcb/petes_dragon_cpl.csv</code> (Pick & Place)</li>
-              <li><code>pcb/petes_dragon_fpc.kicad_pcb</code> (KiCad)</li>
+              <li><code>pcb/petes_dragon_fpc.kicad_pcb</code> (KiCad PCB)</li>
             </ul>
           </div>
         </div>

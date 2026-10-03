@@ -93,6 +93,23 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### Entry: EasyEDA / KiCad Turnkey ZIP Package & Copper Tracks Export
+* **Date:** 2026-10-03
+* **Milestone:** Milestone 4 - Flexible PCB (FPC) Fabrication R&D
+* **Status:** Complete & Verified (`pcb/petes_dragon_easyeda.zip`, `pcb/petes_dragon_kicad.zip`, `pcb/petes_dragon_fpc.kicad_pro`, `pcb/petes_dragon_fpc.kicad_pcb`).
+* **Notes:**
+  - **EasyEDA KiCad Import Package:**
+    - Structured and generated `pcb/petes_dragon_easyeda.zip` (and `petes_dragon_kicad.zip`) containing all required project files:
+      - `petes_dragon_fpc.kicad_pcb` (Board outline, 100 LEDs, 100 bypass capacitors, JST connector, and copper data tracks).
+      - `petes_dragon_fpc.kicad_pro` (KiCad 6/7/8 JSON project configuration).
+      - `petes_dragon_fpc.pro` (Legacy project configuration for older parsers).
+      - `petes_dragon_bom.csv` (Bill of Materials with LCSC part numbers).
+      - `petes_dragon_cpl.csv` (Pick-and-place centroid coordinates).
+  - **KiCad Copper Track Segments:**
+    - Exported 99 `(segment (start ...) (end ...) (width 0.25) (layer "F.Cu") (net ...))` records connecting DOUT of LED $k$ to DIN of LED $k+1$ so EasyEDA imports fully routed traces on `F.Cu`.
+  - **One-Click Web Inspector Download:**
+    - Added a green **"📥 Download EasyEDA / KiCad ZIP"** button to `pcb/pcb_preview.html` control header and sidebar.
+
 ### Entry: Boundary-Constrained PCB Routing Fix (Zero Out-of-Bounds Traces)
 * **Date:** 2026-10-03
 * **Milestone:** Milestone 4 - Flexible PCB (FPC) Fabrication R&D
