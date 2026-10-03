@@ -1836,22 +1836,15 @@ function evalGroupEffect(grp, effect, bpm, dir, grpIndex, grpSize, timeMs, c) {
             break;
         }
         case 'mouse_scamper': {
-            const scamperMs = Math.max(800, grpBeatMs * 1.5);
-            const t = (effectiveTimeMs / scamperMs) * 2.0;
-            const wanderX = 0.50 + 0.38 * (Math.sin(t * 1.1 * direction) * 0.70 + Math.sin(t * 2.3) * 0.30);
-            const wanderY = 0.50 + 0.38 * (Math.cos(t * 0.8) * 0.70 + Math.sin(t * 1.9 * direction) * 0.30);
-            const ledX = (grpEntry && grpEntry.normX !== undefined) ? grpEntry.normX : (grpIndex / Math.max(1, grpSize - 1));
-            const ledY = (grpEntry && grpEntry.normY !== undefined) ? grpEntry.normY : 0.5;
-            const dx = ledX - wanderX;
-            const dy = ledY - wanderY;
-            const dist = Math.sqrt(dx * dx + dy * dy);
-            
-            // Meteor-like shape: tight bright head dot and fast exponential tail falloff
-            const tailRadius = 0.28;
-            if (dist < tailRadius) {
-                const fade = Math.exp(-dist * (4.2 / tailRadius));
+            const scamperMs = Math.max(700, grpBeatMs * 1.5);
+            const head = (((effectiveTimeMs / scamperMs) * direction * grpSize) % grpSize + grpSize) % grpSize;
+            const tailLen = Math.max(3, Math.min(grpSize * 0.40, 16));
+            let dist = (direction >= 0) ? (head - grpIndex) : (grpIndex - head);
+            if (dist < 0) dist += grpSize;
+            if (dist < tailLen) {
+                const fade = Math.exp(-dist * (3.0 / tailLen));
                 grpIntensity = 0.08 + 0.92 * fade;
-                if (dist < 0.06) {
+                if (dist < 1.0) {
                     baseR = Math.min(255, baseR + 130);
                     baseG = Math.min(255, baseG + 130);
                     baseB = Math.min(255, baseB + 130);
@@ -2416,21 +2409,13 @@ function evalGlobalPattern(pattern, bpm, index, totalLeds, timeMs, c, hasColor, 
             break;
         }
         case 'mouse_scamper': {
-            const sm = getSpatialMetrics();
-            const scamperPassMs = Math.max(800, beatMs * 1.5);
-            const t = (timeMs / scamperPassMs) * 2.0;
-            const wanderX = 0.50 + 0.38 * (Math.sin(t * 1.1 * dir) * 0.70 + Math.sin(t * 2.3) * 0.30);
-            const wanderY = 0.50 + 0.38 * (Math.cos(t * 0.8) * 0.70 + Math.sin(t * 1.9 * dir) * 0.30);
-            const ledX = (sm && sm.normX && sm.normX[index] !== undefined) ? sm.normX[index] : (index / Math.max(1, totalLeds));
-            const ledY = (sm && sm.normY && sm.normY[index] !== undefined) ? sm.normY[index] : 0.5;
-            const dx = ledX - wanderX;
-            const dy = ledY - wanderY;
-            const dist = Math.sqrt(dx * dx + dy * dy);
-
-            // Meteor-like shape: tight bright head dot and fast exponential tail falloff
-            const tailRadius = 0.28;
-            if (dist < tailRadius) {
-                const fade = Math.exp(-dist * (4.2 / tailRadius));
+            const scamperPassMs = Math.max(700, beatMs * 1.5);
+            const head = (((timeMs / scamperPassMs) * totalLeds * dir) % totalLeds + totalLeds) % totalLeds;
+            const tailLen = Math.max(8, Math.min(totalLeds * 0.20, 18));
+            let dist = (dir >= 0) ? (head - index) : (index - head);
+            if (dist < 0) dist += totalLeds;
+            if (dist < tailLen) {
+                const fade = Math.exp(-dist * (3.0 / tailLen));
                 const effIntensity = 0.08 + 0.92 * fade;
                 if (effHasColor) {
                     r = Math.floor(effC.r * effIntensity);
@@ -2440,7 +2425,7 @@ function evalGlobalPattern(pattern, bpm, index, totalLeds, timeMs, c, hasColor, 
                     const rgb = hslToRgb(baseH / 360, 0.95, 0.50 * effIntensity);
                     r = rgb.r; g = rgb.g; b = rgb.b;
                 }
-                if (dist < 0.06) {
+                if (dist < 1.0) {
                     r = Math.min(255, r + 140);
                     g = Math.min(255, g + 140);
                     b = Math.min(255, b + 140);

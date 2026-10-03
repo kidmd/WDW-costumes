@@ -1262,11 +1262,9 @@ void runAutonomousShowSequence(uint32_t now) {
                     leds[i] = baseColor;
 #endif
                 }
-            } else if (eff == 19) { // mouse_scamper — single dot + sharp meteor tail following 2D smooth trajectory
-                uint32_t scamperMs = max((uint32_t)800, (uint32_t)(60000 / max((uint16_t)20, bpm) * 3 / 2));
-                uint8_t scamperT = (uint8_t)(((uint64_t)(now - autonomousShowStartTime) * 256 / scamperMs) * 2);
-                uint8_t mouseX = 128 + ((int8_t)(sin8(scamperT * 2) - 128) * 85 / 128) + ((int8_t)(sin8(scamperT * 5) - 128) * 35 / 128);
-                uint8_t mouseY = 128 + ((int8_t)(cos8(scamperT * 2) - 128) * 80 / 128) + ((int8_t)(sin8(scamperT * 4) - 128) * 40 / 128);
+            } else if (eff == 19) { // mouse_scamper — single dot + sharp meteor tail racing along strand
+                uint32_t scamperPassMs = max((uint32_t)700, (uint32_t)(60000 / max((uint16_t)20, bpm) * 3 / 2));
+                uint8_t scamperHead = (uint8_t)(((uint64_t)(now - autonomousShowStartTime) * FRONT_LEDS / scamperPassMs) % FRONT_LEDS);
                 for (int i = 0; i < FRONT_LEDS && i < MAX_LEDS_CAPACITY; i++) {
 #if defined(HAS_CUSTOM_PALETTE) && HAS_CUSTOM_PALETTE
                     CRGB baseColor = ARTWORK_PALETTE[i];
@@ -1274,27 +1272,9 @@ void runAutonomousShowSequence(uint32_t now) {
                     uint8_t floatIdx = (myFloatNumber >= 1 && myFloatNumber <= 7) ? (myFloatNumber - 1) : 0;
                     CRGB baseColor = FLEET_ROSTER_INFO[floatIdx].color;
 #endif
-#if defined(HAS_SPATIAL_METRICS) && HAS_SPATIAL_METRICS
-                    uint8_t ledX = pgm_read_byte(&SPATIAL_X_BYTE[i]);
-                    uint8_t ledY = pgm_read_byte(&SPATIAL_Y_BYTE[i]);
-                    int16_t dx = (int16_t)ledX - (int16_t)mouseX;
-                    int16_t dy = (int16_t)ledY - (int16_t)mouseY;
-                    uint16_t distSq = (dx * dx + dy * dy);
-                    if (distSq < 280) {
-                        uint8_t fade = 255 - (distSq * 255 / 280);
-                        CRGB c = baseColor;
-                        c.nscale8_video(fade);
-                        if (distSq < 45) c += CRGB(140, 140, 140);
-                        leds[i] = c;
-                    } else {
-                        CRGB dim = baseColor;
-                        dim.nscale8_video(20);
-                        leds[i] = dim;
-                    }
-#else
-                    int dist = abs(i - ((now / max((uint32_t)10, scamperMs / 8)) % FRONT_LEDS));
-                    if (dist < 8) {
-                        uint8_t fade = 255 - (dist * 30);
+                    int dist = (scamperHead - i + FRONT_LEDS) % FRONT_LEDS;
+                    if (dist < 18) {
+                        uint8_t fade = 255 - (dist * 14);
                         CRGB c = baseColor;
                         c.nscale8_video(fade);
                         if (dist == 0) c += CRGB(140, 140, 140);
@@ -1304,7 +1284,6 @@ void runAutonomousShowSequence(uint32_t now) {
                         dim.nscale8_video(20);
                         leds[i] = dim;
                     }
-#endif
                 }
             } else { // 0: steady_sparkle / default
                 for (int i = 0; i < FRONT_LEDS && i < MAX_LEDS_CAPACITY; i++) {
