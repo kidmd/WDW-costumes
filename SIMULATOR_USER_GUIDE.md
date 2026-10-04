@@ -1101,7 +1101,49 @@ You can flash any runner's ESP32 directly from Google Chrome or Microsoft Edge w
 
 ---
 
-## 16. Keyboard Shortcuts & Quick Reference Cheat Sheet
+## 16. 3D-Printable Flexible Wearable TPU Panels (Snapmaker U1 / 95A TPU)
+
+For runners who want an ultra-clean, rugged armor shell holding their 100 addressable fairy light pixels ("seed/pebble" LEDs on black 3-strand enameled wire), the project includes an automated parametric 3D panel pipeline:
+
+```
+Transparent Asset + Simulator Preset
+      │
+      ▼
+scripts/generate_3d_panel.py
+      ├── 3d_panels/petes_dragon_tpu_panel.scad   (Parametric OpenSCAD Source)
+      ├── 3d_panels/tpu_panel_preview.html        (Interactive 3D WebGL Inspector)
+      └── 3d_panels/petes_dragon_specs.json       (Mechanical Coordinates & Sizing)
+```
+
+### 🦺 Wearable Architecture & Specs:
+1. **Material & Geometry:**
+   - **Filament:** 95A Flexible TPU (e.g., Polymaker PolyFlex, Overture TPU).
+   - **Thickness:** 2.0 mm flat wearable plate ($185 \text{ mm W} \times 222.1 \text{ mm H}$).
+   - **Flat Bed Printing:** Prints completely flat on the Snapmaker U1 build plate with **ZERO supports** required. 95A TPU naturally wraps over the runner's chest contours and flexes smoothly during running strides.
+2. **Rear Press-Fit LED Pockets & Front Optical Windows:**
+   - **Rear Pockets:** $\varnothing 5.4\text{ mm} \times 1.4\text{ mm}$ depth recesses with slight friction-retention bevel, perfectly sized for standard $5.0\text{ mm} \times 3.2\text{ mm}$ resin teardrop fairy light pixels.
+   - **Front Optical Windows:** $\varnothing 3.2\text{ mm}$ through-holes centered over each pocket so the raw LED emitter lens shines forward unobstructed with 100% optical punch and zero light attenuation.
+3. **Daisy-Chain Wire Tracks & Slack Wells:**
+   - **Underside Wire Channels:** $1.8\text{ mm wide} \times 1.2\text{ mm deep}$ recessed tracks guiding the 3-strand black enameled wire sequentially from LED 1 to LED 100.
+   - **Expansion Slack Wells:** 94 circular chambers ($\varnothing 8.0\text{ mm} \times 1.2\text{ mm}$ depth) at segments where LED-to-LED spacing is $< 18\text{ mm}$, providing space to loop extra wire flat without pushing against the runner's shirt.
+4. **Garment Tagging Gun Attachment System:**
+   - **18 Engineered Fastener Points:** 13 perimeter eyelets spaced ~30mm apart + 5 interior anchor points in void regions.
+   - **Fastener Holes:** $\varnothing 2.2\text{ mm}$ through-holes sized for standard $1.8\text{ mm}$ tagging gun needles.
+   - **Countersunk Recesses:** $\varnothing 4.8\text{ mm} \times 0.6\text{ mm}$ front face recesses allowing standard 10mm polypropylene garment fastener T-bars (Kimble tags) to seat flush and sweat-proof against black running shirts.
+
+### 🖨️ Snapmaker U1 95A TPU Slicing Profile:
+- **Nozzle Temp:** 220°C – 230°C (0.4mm nozzle).
+- **Bed Temp:** 50°C (PEI textured sheet).
+- **Print Speed:** 30 mm/s (First layer: 15 mm/s).
+- **Layer Height:** 0.20 mm.
+- **Infill:** 100% Solid.
+- **Retraction:** 1.8 mm @ 20 mm/s (Direct Drive).
+- **Filament Weight:** ~48 grams of TPU.
+- **Print Duration:** ~1 hr 45 min.
+
+---
+
+## 17. Keyboard Shortcuts & Quick Reference Cheat Sheet
 
 | Key / Action | Context | Description |
 |---|---|---|

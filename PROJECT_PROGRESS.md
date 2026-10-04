@@ -93,6 +93,27 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### Entry: 3D-Printable Flexible TPU Chest Panel Generator (Snapmaker U1 / 95A TPU / OpenSCAD)
+* **Date:** 2026-10-04
+* **Milestone:** Milestone 5 - 3D-Printable Flexible Wearable TPU Panel Fabrication
+* **Status:** Complete & Verified (`scripts/generate_3d_panel.py`, `3d_panels/petes_dragon_tpu_panel.scad`, `3d_panels/tpu_panel_preview.html`, `3d_panels/petes_dragon_specs.json`).
+* **Notes:**
+  - **Fairy Light Armor Architecture:**
+    - Designed flexible 95A TPU chest panels for Snapmaker U1 3D printer to house 100 addressable fairy light pixels ("seed/pebble" resin beads on 3-strand black enameled wire).
+    - Modeled as a flat 2.0mm thick wearable plate: prints 100% flat on the build plate with zero supports, allowing 95A TPU to wrap naturally over runner chest contours without rigidity.
+  - **Rear Pockets & Front Optical Windows:**
+    - Rear press-fit pockets (Ø5.4mm × 1.4mm depth) firmly seat standard 5.0mm teardrop resin LEDs with a slight friction bevel.
+    - Front optical apertures (Ø3.2mm through-holes) let raw LED emitters shine through forward with maximum optical punch and zero light attenuation.
+  - **Rear Daisy-Chain Wire Channels & Slack Wells:**
+    - Recessed underside wire tracks (1.8mm wide × 1.2mm deep) guide the 3-strand enameled wire sequentially from LED 1 to 100.
+    - Added 94 expansion slack coiling wells (Ø8.0mm × 1.2mm depth) for LED pairs with spacing < 18mm, allowing runners to loop extra wire flat without pinching or bulging against the shirt.
+  - **Integrated Tagging Gun Attachment System:**
+    - Engineered 18 garment fastener tabs (13 perimeter + 5 interior voids) featuring 2.2mm needle pass-through holes and 4.8mm × 0.6mm front countersunk recesses.
+    - Allows standard 10mm plastic tagging gun barbs (Kimble tags) to anchor the panel flush to black running shirts quickly, sweat-proof, and race-durable.
+  - **Parametric OpenSCAD Model & Interactive 3D Web Inspector:**
+    - Emitted `3d_panels/petes_dragon_tpu_panel.scad` with parametric customizer variables (`panel_thickness`, `led_pocket_dia`, `wire_channel_width`, `slack_well_dia`, `fastener_hole_dia`).
+    - Built interactive WebGL/Three.js 3D viewer (`3d_panels/tpu_panel_preview.html`) with layer toggles, front/back camera views, X-ray wireframe, live DIN fairy light data streaming simulation, and complete Snapmaker U1 95A TPU slicing profile.
+
 ### Entry: Turnkey SMT Assembly Export (JLCPCB BOM & CPL Centroid Bundle)
 * **Date:** 2026-10-03
 * **Milestone:** Milestone 4 - Flexible PCB (FPC) Fabrication R&D
