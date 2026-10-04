@@ -154,6 +154,30 @@ class SimulatorRequestHandler(http.server.SimpleHTTPRequestHandler):
             else:
                 self.send_error(404, "PCB file not found")
                 return
+        elif parsed.path.startswith("/3d_panels/"):
+            rel_panel = urllib.parse.unquote(parsed.path[len("/3d_panels/"):])
+            if not rel_panel or rel_panel == "/":
+                rel_panel = "tpu_panel_preview.html"
+            panel_file = os.path.join(BASE_DIR, "3d_panels", rel_panel)
+            if os.path.exists(panel_file) and os.path.isfile(panel_file):
+                self.send_response(200)
+                if panel_file.endswith(".html"):
+                    self.send_header("Content-Type", "text/html; charset=utf-8")
+                elif panel_file.endswith(".json"):
+                    self.send_header("Content-Type", "application/json; charset=utf-8")
+                elif panel_file.endswith(".scad") or panel_file.endswith(".stl"):
+                    self.send_header("Content-Type", "application/octet-stream")
+                else:
+                    self.send_header("Content-Type", "text/plain; charset=utf-8")
+                self.send_header("Content-Length", str(os.path.getsize(panel_file)))
+                self.send_header("Access-Control-Allow-Origin", "*")
+                self.end_headers()
+                with open(panel_file, "rb") as f:
+                    self.wfile.write(f.read())
+                return
+            else:
+                self.send_error(404, "3D Panel file not found")
+                return
         else:
             super().do_GET()
 
