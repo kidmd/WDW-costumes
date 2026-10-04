@@ -7,6 +7,8 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/exporters/STLExporter.js"></script>
+<script src="https://unpkg.com/three-mesh-bvh@0.7.3/build/index.umd.cjs"></script>
+<script src="https://unpkg.com/three-bvh-csg@0.0.16/build/index.umd.cjs"></script>
 <style>
   :root {
     --bg: #070a0f;
@@ -966,15 +968,61 @@ function exportAndDownloadSTL() {
     alert("3D Panel geometry is still initializing. Please wait a moment.");
     return;
   }
-  const exporter = new THREE.STLExporter();
-  // Export binary STL for compact size and broad slicer compatibility
-  const result = exporter.parse(panelMesh, { binary: true });
-  const blob = new Blob([result], { type: 'application/octet-stream' });
-  const link = document.createElement('a');
-  link.href = URL.createObjectURL(blob);
-  link.download = 'petes_dragon_tpu_panel.stl';
-  link.click();
-  URL.revokeObjectURL(link.href);
+  
+  const statusBanner = document.getElementById('view-banner');
+  const origText = statusBanner.innerHTML;
+  statusBanner.innerHTML = "⏳ GENERATING DETAILED STL...";
+  
+  setTimeout(() => {
+    try {
+      const exporter = new THREE.STLExporter();
+      
+      // Build a dedicated export group containing:
+      // 1. The base TPU panel (with holes)
+      // 2. The 13 integrated snap-retention bridges
+      // 3. The 3D recessed channel bed walls & floors
+      // 4. The 3D rear LED pocket well walls & floor shelves
+      const exportGroup = new THREE.Group();
+      
+      // Clone base plate
+      const panelClone = panelMesh.clone();
+      exportGroup.add(panelClone);
+      
+      // Clone retention snap clips (vital for physical printing!)
+      if (clipsGroup) {
+        const clipsClone = clipsGroup.clone();
+        exportGroup.add(clipsClone);
+      }
+      
+      // Clone recessed trench beds and sidewalls
+      if (channelsGroup) {
+        const channelsClone = channelsGroup.clone();
+        exportGroup.add(channelsClone);
+      }
+      
+      // Clone cylindrical well walls and floors
+      if (pocketsGroup) {
+        const pocketsClone = pocketsGroup.clone();
+        exportGroup.add(pocketsClone);
+      }
+
+      // Export binary STL containing ALL physical panel features
+      const result = exporter.parse(exportGroup, { binary: true });
+      const blob = new Blob([result], { type: 'application/octet-stream' });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = 'petes_dragon_tpu_panel.stl';
+      link.click();
+      URL.revokeObjectURL(link.href);
+      
+      statusBanner.innerHTML = "✅ STL EXPORTED SUCCESSFULLY!";
+      setTimeout(() => { statusBanner.innerHTML = origText; }, 3000);
+    } catch (err) {
+      console.error("STL Export Error:", err);
+      alert("Error generating STL: " + err.message);
+      statusBanner.innerHTML = origText;
+    }
+  }, 50);
 }
 
 window.addEventListener('resize', () => {
