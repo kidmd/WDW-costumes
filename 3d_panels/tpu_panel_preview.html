@@ -264,7 +264,7 @@
     <span class="badge badge-snap">Snapmaker U1 Flat Print</span>
   </div>
   <div style="display:flex; gap:8px;">
-    <button class="btn" style="background:#0284c7; color:#fff;" onclick="exportAndDownloadSTL()">📦 Export & Download STL (.stl)</button>
+    <button class="btn" style="background:#0284c7; color:#fff;" onclick="downloadStl()">📦 Download Slicer STL (.stl)</button>
     <button class="btn" style="background:#059669; color:#fff;" onclick="downloadScad()">📥 Download OpenSCAD (.scad)</button>
   </div>
 </div>
@@ -963,74 +963,11 @@ function downloadScad() {
   window.location.href = 'petes_dragon_tpu_panel.scad';
 }
 
-function exportAndDownloadSTL() {
-  if (!panelMesh) {
-    alert("3D Panel geometry is still initializing. Please wait a moment.");
-    return;
-  }
-  
-  const statusBanner = document.getElementById('view-banner');
-  const origText = statusBanner.innerHTML;
-  statusBanner.innerHTML = "⏳ GENERATING DETAILED STL...";
-  
-  setTimeout(() => {
-    try {
-      const exporter = new THREE.STLExporter();
-      
-      // Build a dedicated export group containing:
-      // 1. The base TPU panel (with holes)
-      // 2. The 13 integrated snap-retention bridges
-      // 3. The 3D recessed channel bed walls & floors
-      // 4. The 3D rear LED pocket well walls & floor shelves
-      const exportGroup = new THREE.Group();
-      
-      // Add panel mesh directly (clone)
-      const pClone = panelMesh.clone(true);
-      exportGroup.add(pClone);
-      
-      // Add clips
-      if (clipsGroup) {
-        const cClone = clipsGroup.clone(true);
-        exportGroup.add(cClone);
-      }
-      
-      // Add channels
-      if (channelsGroup) {
-        const chClone = channelsGroup.clone(true);
-        exportGroup.add(chClone);
-      }
-      
-      // Add pockets
-      if (pocketsGroup) {
-        const pkClone = pocketsGroup.clone(true);
-        exportGroup.add(pkClone);
-      }
-
-      // CRITICAL: Force scene graph matrices to compute world coordinates for all descendants!
-      scene.add(exportGroup);
-      exportGroup.updateMatrixWorld(true);
-
-      // Export binary STL
-      const result = exporter.parse(exportGroup, { binary: true });
-      
-      // Remove temporary export group from live render scene
-      scene.remove(exportGroup);
-
-      const blob = new Blob([result], { type: 'application/octet-stream' });
-      const link = document.createElement('a');
-      link.href = URL.createObjectURL(blob);
-      link.download = 'petes_dragon_tpu_panel.stl';
-      link.click();
-      URL.revokeObjectURL(link.href);
-      
-      statusBanner.innerHTML = "✅ STL EXPORTED SUCCESSFULLY!";
-      setTimeout(() => { statusBanner.innerHTML = origText; }, 3000);
-    } catch (err) {
-      console.error("STL Export Error:", err);
-      alert("Error generating STL: " + err.message);
-      statusBanner.innerHTML = origText;
-    }
-  }, 50);
+function downloadStl() {
+  const link = document.createElement('a');
+  link.href = 'petes_dragon_tpu_panel.stl';
+  link.download = 'petes_dragon_tpu_panel.stl';
+  link.click();
 }
 
 window.addEventListener('resize', () => {

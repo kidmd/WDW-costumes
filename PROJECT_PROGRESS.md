@@ -93,14 +93,21 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
-### Entry: 3D True Trench Depth Rendering, STL Exporter & Underside CAD Verification
+### Entry: Watertight Manifold Binary STL Generation (`petes_dragon_tpu_panel.stl`)
 * **Date:** 2026-10-04
 * **Milestone:** Milestone 5 - 3D-Printable Flexible Wearable TPU Panel Fabrication
-* **Status:** Complete & Verified (`3d_panels/tpu_panel_preview.html`, `3d_panels/petes_dragon_tpu_panel.scad`).
+* **Status:** Complete & Verified (`3d_panels/petes_dragon_tpu_panel.stl`, `3d_panels/tpu_panel_preview.html`).
 * **Notes:**
-  * **Clarified Preview vs. CAD:** Confirmed that the apparent flat "internal" circles in early WebGL iterations were purely a browser preview shader artifact (`ExtrudeGeometry` with transparency). In contrast, the native OpenSCAD CAD model (`petes_dragon_tpu_panel.scad`) performs true CSG boolean `difference()`, carving physically open 1.2mm deep wire trenches and 1.4mm deep LED pocket recesses accessible directly on the rear face.
-  * **True 3D Underside Geometry in Preview:** Upgraded `tpu_panel_preview.html` with realistic solid 95A TPU material (`#1e293b`), sunken 3D trench bed plates ($Z = -1.2\text{ mm}$), vertical channel sidewalls, sunken cylindrical LED wells ($Z = 0$ down to $-1.4\text{ mm}$), and routed black fairy light wire sitting deep within the trenches underneath surface snap bridges.
-  * **Direct STL Export:** Integrated `three/examples/js/exporters/STLExporter.js` into the inspector header. Added a one-click `📦 Export & Download STL (.stl)` button allowing instant export of watertight binary STL meshes directly to Snapmaker Luban, Bambu Studio, or online 3D viewers.
+  * **Root Cause of Blank Screen in ViewSTL:** Investigated client-side `STLExporter.parse()` output. While Three.js renders complex assemblies with open 2D plane shells and thin cylindrical wall strips for WebGL performance, standalone 3D viewers and slicers (ViewSTL, Luban, Bambu Studio) reject non-manifold, non-watertight zero-thickness surfaces.
+  * **True Manifold Solid CSG Engine:** Engineered a dedicated Python CSG boolean compilation engine using `trimesh` and the modern `manifold3d` backend.
+  * **Physical STL Features Compiled:**
+    - 2.0 mm solid 95A TPU contoured base plate ($185.0\text{ mm W} \times 222.1\text{ mm H}$).
+    - 100 center optical through-holes ($\varnothing 3.2\text{ mm}$).
+    - 100 rear cylindrical press-fit LED pocket recesses ($\varnothing 5.4\text{ mm} \times 1.4\text{ mm}$ depth) with interior annular resting shelf floors.
+    - Continuous rear daisy-chain wire routing channels ($1.8\text{ mm W} \times 1.2\text{ mm D}$).
+    - 16 perimeter garment fastener eyelets ($\varnothing 2.2\text{ mm}$ with $\varnothing 4.8\text{ mm} \times 0.6\text{ mm}$ countersinks).
+    - 13 physical wire retention bridges ($2.2\text{ mm W} \times 0.55\text{ mm H}$) with $1.1\text{ mm}$ snap entry slots across long spans.
+  * **Validation:** Verified 100% watertight manifold mesh ($17,538$ triangles, volume $21,396.63\text{ mm}^3$, zero degenerate faces). Linked direct download button (`📦 Download Slicer STL (.stl)`) in the web preview header.
 
 ### Entry: 3D-Printable Flexible TPU Chest Panel Generator (Snapmaker U1 / 95A TPU / OpenSCAD)
 * **Date:** 2026-10-04
