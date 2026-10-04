@@ -984,30 +984,38 @@ function exportAndDownloadSTL() {
       // 4. The 3D rear LED pocket well walls & floor shelves
       const exportGroup = new THREE.Group();
       
-      // Clone base plate
-      const panelClone = panelMesh.clone();
-      exportGroup.add(panelClone);
+      // Add panel mesh directly (clone)
+      const pClone = panelMesh.clone(true);
+      exportGroup.add(pClone);
       
-      // Clone retention snap clips (vital for physical printing!)
+      // Add clips
       if (clipsGroup) {
-        const clipsClone = clipsGroup.clone();
-        exportGroup.add(clipsClone);
+        const cClone = clipsGroup.clone(true);
+        exportGroup.add(cClone);
       }
       
-      // Clone recessed trench beds and sidewalls
+      // Add channels
       if (channelsGroup) {
-        const channelsClone = channelsGroup.clone();
-        exportGroup.add(channelsClone);
+        const chClone = channelsGroup.clone(true);
+        exportGroup.add(chClone);
       }
       
-      // Clone cylindrical well walls and floors
+      // Add pockets
       if (pocketsGroup) {
-        const pocketsClone = pocketsGroup.clone();
-        exportGroup.add(pocketsClone);
+        const pkClone = pocketsGroup.clone(true);
+        exportGroup.add(pkClone);
       }
 
-      // Export binary STL containing ALL physical panel features
+      // CRITICAL: Force scene graph matrices to compute world coordinates for all descendants!
+      scene.add(exportGroup);
+      exportGroup.updateMatrixWorld(true);
+
+      // Export binary STL
       const result = exporter.parse(exportGroup, { binary: true });
+      
+      // Remove temporary export group from live render scene
+      scene.remove(exportGroup);
+
       const blob = new Blob([result], { type: 'application/octet-stream' });
       const link = document.createElement('a');
       link.href = URL.createObjectURL(blob);
