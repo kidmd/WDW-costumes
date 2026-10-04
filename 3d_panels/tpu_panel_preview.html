@@ -6,6 +6,7 @@
 <title>Pete's Dragon 3D-Printable Flexible TPU Panel Inspector (Precision Build)</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/exporters/STLExporter.js"></script>
 <style>
   :root {
     --bg: #070a0f;
@@ -260,7 +261,8 @@
     <span class="badge badge-clip" style="background:#0284c7;">📌 16 Perimeter Fasteners</span>
     <span class="badge badge-snap">Snapmaker U1 Flat Print</span>
   </div>
-  <div>
+  <div style="display:flex; gap:8px;">
+    <button class="btn" style="background:#0284c7; color:#fff;" onclick="exportAndDownloadSTL()">📦 Export & Download STL (.stl)</button>
     <button class="btn" style="background:#059669; color:#fff;" onclick="downloadScad()">📥 Download OpenSCAD (.scad)</button>
   </div>
 </div>
@@ -525,13 +527,10 @@ function build3DModel() {
   // Do NOT call geom.center()! Keeps exact mathematical concentricity!
   const geom = new THREE.ExtrudeGeometry(shape, extrudeSettings);
 
-  const mat = new THREE.MeshPhysicalMaterial({
-    color: 0x18202c,
-    roughness: 0.4,
+  const mat = new THREE.MeshStandardMaterial({
+    color: 0x1e293b,
+    roughness: 0.65,
     metalness: 0.15,
-    transmission: 0.1,
-    opacity: 0.95,
-    transparent: true,
     side: THREE.DoubleSide
   });
 
@@ -540,15 +539,21 @@ function build3DModel() {
   panelMesh.position.set(0, 0, -SPECS.panel_thickness_mm / 2.0);
   scene.add(panelMesh);
 
-  // 2. 3D Recessed Wire Channels (Continuous 3D Groove Canals)
+  // 2. 3D Recessed Wire Channels (Open 1.2mm deep trench beds with vertical sidewalls)
   channelsGroup = new THREE.Group();
-  const trenchMat = new THREE.MeshStandardMaterial({
-    color: 0x0284c7,
-    roughness: 0.5,
-    metalness: 0.3,
-    emissive: 0x013a5e,
-    emissiveIntensity: 0.3
+  const trenchBedMat = new THREE.MeshStandardMaterial({
+    color: 0x0284c7, // Vibrant cyan-blue floor bed
+    roughness: 0.4,
+    metalness: 0.2
   });
+  const trenchWallMat = new THREE.MeshStandardMaterial({
+    color: 0x0369a1, // Darker blue channel sidewalls
+    roughness: 0.5,
+    metalness: 0.2
+  });
+
+  const chW = SPECS.wire_channel_width_mm;
+  const chD = SPECS.wire_channel_depth_mm;
 
   SPECS.wire_segments.forEach(seg => {
     const p1 = seg[0];
@@ -560,49 +565,84 @@ function build3DModel() {
     const mx = (p1[0] + p2[0]) / 2.0 - cx;
     const my = (p1[1] + p2[1]) / 2.0 - cy;
 
-    const trenchGeom = new THREE.BoxGeometry(len, SPECS.wire_channel_width_mm, SPECS.wire_channel_depth_mm);
-    const trenchMesh = new THREE.Mesh(trenchGeom, trenchMat);
-    trenchMesh.position.set(mx, my, -1.0 + SPECS.wire_channel_depth_mm / 2.0);
-    trenchMesh.rotation.z = angle;
-    channelsGroup.add(trenchMesh);
+    // Sunken floor plate at Z = -chD (-1.2mm)
+    const floorGeom = new THREE.PlaneGeometry(len, chW);
+    const floorMesh = new THREE.Mesh(floorGeom, trenchBedMat);
+    floorMesh.position.set(mx, my, -chD + 0.01);
+    floorMesh.rotation.z = angle;
+    channelsGroup.add(floorMesh);
+
+    // Left sidewall plate from Z = 0 down to Z = -chD
+    const wallGeom = new THREE.PlaneGeometry(len, chD);
+    const wallL = new THREE.Mesh(wallGeom, trenchWallMat);
+    wallL.position.set(mx, my, -chD / 2.0);
+    wallL.rotation.z = angle;
+    wallL.rotation.x = Math.PI / 2;
+    wallL.translateZ(-chW / 2.0);
+    channelsGroup.add(wallL);
+
+    // Right sidewall plate
+    const wallR = new THREE.Mesh(wallGeom, trenchWallMat);
+    wallR.position.set(mx, my, -chD / 2.0);
+    wallR.rotation.z = angle;
+    wallR.rotation.x = Math.PI / 2;
+    wallR.translateZ(chW / 2.0);
+    channelsGroup.add(wallR);
   });
   scene.add(channelsGroup);
 
-  // 3. Rear LED Pockets (Clean Concentric Cylinders, Ø5.4mm)
+  // 3. Rear LED Pockets (True 1.4mm Sunken Cylindrical Wells)
   pocketsGroup = new THREE.Group();
-  const pocketMat = new THREE.MeshStandardMaterial({
-    color: 0xff9100,
-    roughness: 0.3,
+  const pocketWellMat = new THREE.MeshStandardMaterial({
+    color: 0xf97316, // Vibrant safety orange
+    roughness: 0.4,
     metalness: 0.2,
-    emissive: 0x663300,
-    emissiveIntensity: 0.25
+    side: THREE.DoubleSide
   });
-  const pocketGeom = new THREE.RingGeometry(SPECS.led_pocket_dia_mm / 2 - 0.3, SPECS.led_pocket_dia_mm / 2 + 0.4, 24);
+  const pocketFloorMat = new THREE.MeshStandardMaterial({
+    color: 0xe11d48, // Rose accent floor
+    roughness: 0.4,
+    metalness: 0.2
+  });
+
+  const pR = SPECS.led_pocket_dia_mm / 2.0; // 2.7mm radius
+  const pD = SPECS.led_pocket_depth_mm;     // 1.4mm depth
+  const wR = SPECS.led_window_dia_mm / 2.0; // 1.6mm window radius
+
+  const wellCylGeom = new THREE.CylinderGeometry(pR, pR, pD, 24, 1, true);
+  const wellFloorGeom = new THREE.RingGeometry(wR, pR, 24);
 
   SPECS.ordered_leds.forEach(l => {
-    const ringMesh = new THREE.Mesh(pocketGeom, pocketMat);
-    ringMesh.position.set(l.x - cx, l.y - cy, -1.02);
-    pocketsGroup.add(ringMesh);
+    // Open cylindrical bore from Z = 0 down to Z = -pD (-1.4mm)
+    const wellCyl = new THREE.Mesh(wellCylGeom, pocketWellMat);
+    wellCyl.rotation.x = Math.PI / 2;
+    wellCyl.position.set(l.x - cx, l.y - cy, -pD / 2.0);
+    pocketsGroup.add(wellCyl);
+
+    // Sunken shelf floor at Z = -pD (-1.4mm)
+    const wellFloor = new THREE.Mesh(wellFloorGeom, pocketFloorMat);
+    wellFloor.position.set(l.x - cx, l.y - cy, -pD + 0.01);
+    pocketsGroup.add(wellFloor);
   });
   scene.add(pocketsGroup);
 
-  // 4. Glowing Route Guide Line
+  // 4. Glowing Route Guide Line (Runs along bottom of trench)
   guideGroup = new THREE.Group();
-  const guidePoints = SPECS.ordered_leds.map(l => new THREE.Vector3(l.x - cx, l.y - cy, -1.35));
+  const guidePoints = SPECS.ordered_leds.map(l => new THREE.Vector3(l.x - cx, l.y - cy, -1.25));
   const guideGeom = new THREE.BufferGeometry().setFromPoints(guidePoints);
   const guideMat = new THREE.LineBasicMaterial({ color: 0x00f5ff, linewidth: 3 });
   const guideLine = new THREE.Line(guideGeom, guideMat);
   guideGroup.add(guideLine);
   scene.add(guideGroup);
 
-  // 5. 13 Safe Wire Snap-Retention Clips (Only on spans >= 15mm!)
+  // 5. 13 Safe Wire Snap-Retention Clips (Bridge at Z = 0 across 1.8mm channel)
   clipsGroup = new THREE.Group();
   const clipMat = new THREE.MeshStandardMaterial({
-    color: 0x00e5ff,
-    roughness: 0.3,
-    metalness: 0.3,
-    emissive: 0x007799,
-    emissiveIntensity: 0.3
+    color: 0x00f5ff,
+    roughness: 0.2,
+    metalness: 0.4,
+    emissive: 0x0088aa,
+    emissiveIntensity: 0.4
   });
 
   SPECS.wire_clips.forEach(c => {
@@ -610,22 +650,23 @@ function build3DModel() {
     const my = c.y - cy;
     const rad = (c.angle * Math.PI) / 180.0;
 
-    const fGeom = new THREE.BoxGeometry(2.2, 0.7, 0.55);
+    // Bridge sitting on the surface (Z = -0.27mm to 0.27mm), pinching wire below
+    const fGeom = new THREE.BoxGeometry(2.2, 0.65, 0.55);
     const fMeshL = new THREE.Mesh(fGeom, clipMat);
-    fMeshL.position.set(mx, my, -1.25);
+    fMeshL.position.set(mx, my, 0.0);
     fMeshL.rotation.z = rad;
     fMeshL.translateY(-0.75);
     clipsGroup.add(fMeshL);
 
     const fMeshR = new THREE.Mesh(fGeom, clipMat);
-    fMeshR.position.set(mx, my, -1.25);
+    fMeshR.position.set(mx, my, 0.0);
     fMeshR.rotation.z = rad;
     fMeshR.translateY(0.75);
     clipsGroup.add(fMeshR);
   });
   scene.add(clipsGroup);
 
-  // 6. 3D Black Fairy Light Wire (Continuous 3D Cylindrical Cable)
+  // 6. 3D Black Fairy Light Wire (Sitting deep inside the -1.2mm deep trench!)
   wiresGroup = new THREE.Group();
   const wireMat = new THREE.MeshStandardMaterial({
     color: 0x111111,
@@ -643,15 +684,16 @@ function build3DModel() {
     const mx = (p1[0] + p2[0]) / 2.0 - cx;
     const my = (p1[1] + p2[1]) / 2.0 - cy;
 
-    const cylGeom = new THREE.CylinderGeometry(0.55, 0.55, len, 10);
+    const cylGeom = new THREE.CylinderGeometry(0.5, 0.5, len, 10);
     const wireCyl = new THREE.Mesh(cylGeom, wireMat);
     wireCyl.rotation.z = angle - Math.PI / 2;
+    // Deep inside channel at Z = -0.65mm (under the 0.0mm surface clips)
     wireCyl.position.set(mx, my, -0.65);
     wiresGroup.add(wireCyl);
   });
   scene.add(wiresGroup);
 
-  // 7. 3D Resin LED Bulbs (100% Mathematically Centered in Holes!)
+  // 7. 3D Resin LED Bulbs (Seated deep in -1.4mm pockets, shining through window)
   bulbsGroup = new THREE.Group();
   const bulbResinMat = new THREE.MeshPhysicalMaterial({
     color: 0xa7f3d0,
@@ -667,13 +709,13 @@ function build3DModel() {
     const c = l.color || {r: 0, g: 255, b: 100};
     const bulbMesh = new THREE.Mesh(bulbGeom, bulbResinMat);
     bulbMesh.scale.set(1.0, 1.0, 0.65);
-    bulbMesh.position.set(l.x - cx, l.y - cy, -0.5);
+    bulbMesh.position.set(l.x - cx, l.y - cy, -0.8);
     bulbMesh.userData = { id: l.id, x: l.x, y: l.y, color: c };
 
     const coreGeom = new THREE.BoxGeometry(0.8, 0.8, 0.4);
     const coreMat = new THREE.MeshBasicMaterial({ color: new THREE.Color(`rgb(${c.r},${c.g},${c.b})`) });
     const coreMesh = new THREE.Mesh(coreGeom, coreMat);
-    coreMesh.position.set(l.x - cx, l.y - cy, -0.5);
+    coreMesh.position.set(l.x - cx, l.y - cy, -0.8);
 
     bulbsGroup.add(bulbMesh);
     bulbsGroup.add(coreMesh);
@@ -776,7 +818,8 @@ function setShellOpacity(val) {
       panelMesh.visible = true;
       document.getElementById('layer-shell').checked = true;
       panelMesh.material.opacity = op;
-      panelMesh.material.transparent = true;
+      panelMesh.material.transparent = (val < 99);
+      panelMesh.material.needsUpdate = true;
     }
   }
 }
@@ -916,6 +959,22 @@ function onMouseMove(event) {
 
 function downloadScad() {
   window.location.href = 'petes_dragon_tpu_panel.scad';
+}
+
+function exportAndDownloadSTL() {
+  if (!panelMesh) {
+    alert("3D Panel geometry is still initializing. Please wait a moment.");
+    return;
+  }
+  const exporter = new THREE.STLExporter();
+  // Export binary STL for compact size and broad slicer compatibility
+  const result = exporter.parse(panelMesh, { binary: true });
+  const blob = new Blob([result], { type: 'application/octet-stream' });
+  const link = document.createElement('a');
+  link.href = URL.createObjectURL(blob);
+  link.download = 'petes_dragon_tpu_panel.stl';
+  link.click();
+  URL.revokeObjectURL(link.href);
 }
 
 window.addEventListener('resize', () => {

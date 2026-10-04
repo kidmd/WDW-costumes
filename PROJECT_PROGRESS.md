@@ -93,6 +93,15 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### Entry: 3D True Trench Depth Rendering, STL Exporter & Underside CAD Verification
+* **Date:** 2026-10-04
+* **Milestone:** Milestone 5 - 3D-Printable Flexible Wearable TPU Panel Fabrication
+* **Status:** Complete & Verified (`3d_panels/tpu_panel_preview.html`, `3d_panels/petes_dragon_tpu_panel.scad`).
+* **Notes:**
+  * **Clarified Preview vs. CAD:** Confirmed that the apparent flat "internal" circles in early WebGL iterations were purely a browser preview shader artifact (`ExtrudeGeometry` with transparency). In contrast, the native OpenSCAD CAD model (`petes_dragon_tpu_panel.scad`) performs true CSG boolean `difference()`, carving physically open 1.2mm deep wire trenches and 1.4mm deep LED pocket recesses accessible directly on the rear face.
+  * **True 3D Underside Geometry in Preview:** Upgraded `tpu_panel_preview.html` with realistic solid 95A TPU material (`#1e293b`), sunken 3D trench bed plates ($Z = -1.2\text{ mm}$), vertical channel sidewalls, sunken cylindrical LED wells ($Z = 0$ down to $-1.4\text{ mm}$), and routed black fairy light wire sitting deep within the trenches underneath surface snap bridges.
+  * **Direct STL Export:** Integrated `three/examples/js/exporters/STLExporter.js` into the inspector header. Added a one-click `📦 Export & Download STL (.stl)` button allowing instant export of watertight binary STL meshes directly to Snapmaker Luban, Bambu Studio, or online 3D viewers.
+
 ### Entry: 3D-Printable Flexible TPU Chest Panel Generator (Snapmaker U1 / 95A TPU / OpenSCAD)
 * **Date:** 2026-10-04
 * **Milestone:** Milestone 5 - 3D-Printable Flexible Wearable TPU Panel Fabrication
