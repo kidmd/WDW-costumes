@@ -10,7 +10,7 @@ Features:
 - Physical retaining snap collars over 100 rear LED pockets (5.4mm dia)
 - Physical center spool posts in slack relief wells (8.0mm dia)
 - Standard 10mm garment tagging gun fastener eyelets & countersinks
-- Rich Three.js 3D Inspector with real trenches, clips, wires, and bulbs
+- Interactive 3D Inspector with Shell Removal / Ghosting & 1-100 LED Wire Tracking
 
 Outputs:
 - 3d_panels/petes_dragon_tpu_panel.scad
@@ -199,13 +199,11 @@ for i in range(len(ordered_leds) - 1):
     total_direct_wire_len += seg_len
     wire_segments.append([p1, p2, round(seg_len, 2)])
     
-    # Calculate wire retention clip position (at midpoint of segment)
     mid_x = round((p1[0] + p2[0]) / 2.0, 2)
     mid_y = round((p1[1] + p2[1]) / 2.0, 2)
     angle_rad = math.atan2(p2[1] - p1[1], p2[0] - p1[0])
     angle_deg = round(math.degrees(angle_rad), 2)
     
-    # Add wire clip if segment is long enough (>= 8mm)
     if seg_len >= 8.0:
         wire_clips.append({
             "id": i + 1,
@@ -215,7 +213,6 @@ for i in range(len(ordered_leds) - 1):
             "seg_len": round(seg_len, 2)
         })
     
-    # If LEDs are close (< 18mm), insert an expansion slack pocket with center spool pin
     if seg_len < 18.0:
         slack_wells.append({
             "id": i + 1,
@@ -281,7 +278,6 @@ print(f"Tagging Gun Fastener Tabs: {len(all_fastener_tabs)} total ({len(filtered
 
 # ========================================================
 # 6. GENERATE ENHANCED OPENSCAD SOURCE (.scad)
-# Includes physical snap-retention clips & spool posts!
 # ========================================================
 scad_poly_pts = ",\n    ".join([f"[{p[0]:.2f}, {p[1]:.2f}]" for p in contour_pts])
 scad_led_pts = ",\n    ".join([f"[{l['x']:.2f}, {l['y']:.2f}]" for l in ordered_leds])
@@ -336,7 +332,6 @@ fastener_csk_dia      = 4.8;    // Front countersink diameter for 10mm plastic T
 fastener_csk_depth    = 0.6;    // Front countersink depth so T-bar sits flush (mm)
 
 /* [Curvature Preview] */
-// 0 = Flat (RECOMMENDED for 95A TPU: prints without supports & naturally wraps chest)
 bend_radius           = 0;
 
 // ----------------------------------------------------------------------------
@@ -359,7 +354,6 @@ slack_wells = [
     {scad_slack_pts}
 ];
 
-// Wire clips [x, y, angle_deg]
 wire_clips = [
     {scad_clip_data}
 ];
@@ -409,25 +403,20 @@ module all_fastener_countersinks_2d() {{
     }}
 }}
 
-// Additive retention features (Wire bridge clips & Spool posts)
 module additive_retention_features() {{
-    // 1. Wire snap retention clips (Overhanging bridge clips)
     if (enable_wire_clips) {{
         for (c = wire_clips) {{
             translate([c[0], c[1], 0])
                 rotate([0, 0, c[2]])
                     difference() {{
-                        // Bridge over channel
                         translate([-clip_bridge_width/2, -wire_channel_width*0.9, 0])
                             cube([clip_bridge_width, wire_channel_width*1.8, clip_bridge_thick]);
-                        // Center snap push-through pinch slit
                         translate([-clip_bridge_width/2 - 0.1, -clip_entry_slot/2, -0.1])
                             cube([clip_bridge_width + 0.2, clip_entry_slot, clip_bridge_thick + 0.2]);
                     }}
         }}
     }}
 
-    // 2. Center spool posts in slack wells
     if (enable_spool_posts) {{
         for (w = slack_wells) {{
             translate([w[0], w[1], 0])
@@ -436,46 +425,33 @@ module additive_retention_features() {{
     }}
 }}
 
-// ----------------------------------------------------------------------------
-// 3D MAIN PANEL ASSEMBLY
-// Z = 0 is the BACK FACE (shirt-facing side with pockets and wire channels)
-// Z = panel_thickness is the FRONT FACE (world-facing side with optical windows)
-// ----------------------------------------------------------------------------
-
 module tpu_chest_panel_flat() {{
     union() {{
         difference() {{
-            // 1. Base Contoured Solid Plate
             linear_extrude(height = panel_thickness)
                 dragon_silhouette_2d();
 
-            // 2. Optical Through-Windows & Fastener Needle Holes
             translate([0, 0, -0.1])
                 linear_extrude(height = panel_thickness + 0.2)
                     all_through_holes_2d();
 
-            // 3. Rear Wire Channels & Slack Wells (Cut into back face: Z = 0 to wire_channel_depth)
             translate([0, 0, -0.1])
                 linear_extrude(height = wire_channel_depth + 0.1)
                     all_wire_channels_2d();
 
-            // 4. Rear LED Pockets (Cut into back face: Z = 0 to led_pocket_depth)
             translate([0, 0, -0.1])
                 linear_extrude(height = led_pocket_depth + 0.1)
                     all_led_pockets_2d();
 
-            // 5. Front Countersunk Recesses for 10mm Fastener T-Bars
             translate([0, 0, panel_thickness - fastener_csk_depth])
                 linear_extrude(height = fastener_csk_depth + 0.1)
                     all_fastener_countersinks_2d();
         }}
 
-        // 6. Integrated Flexible Retention Clips & Spool Posts
         additive_retention_features();
     }}
 }}
 
-// Render the panel
 tpu_chest_panel_flat();
 """
 
@@ -483,7 +459,7 @@ scad_file_path = os.path.join(PANELS_DIR, "petes_dragon_tpu_panel.scad")
 with open(scad_file_path, "w", encoding="utf-8") as f:
     f.write(scad_content)
 
-print(f"Saved OpenSCAD file: {scad_file_path} ({len(scad_content)} bytes)")
+print(f"Saved OpenSCAD file: {scad_file_path}")
 
 # ========================================================
 # 7. GENERATE SPECS JSON
@@ -522,8 +498,12 @@ print(f"Saved Specs JSON: {specs_file_path}")
 
 # ========================================================
 # 8. GENERATE INTERACTIVE 3D WEB INSPECTOR (tpu_panel_preview.html)
-# Features TRUE 3D volumetric trenches, physical snap clips,
-# 3D black fairy light wire, and 3D resin LED teardrop bulbs!
+# Features:
+# - Instant "Remove Shell / Wire Harness Only" toggle
+# - Smooth Shell Opacity Slider (0% to 100%)
+# - Numbered Badges (1-100) on all LEDs with Start/End markers
+# - Glowing Route Trace path
+# - Interactive hover tooltip showing LED coordinates & wire lengths
 # ========================================================
 html_content = f"""<!DOCTYPE html>
 <html lang="en">
@@ -618,9 +598,33 @@ html_content = f"""<!DOCTYPE html>
   .btn:hover {{ background: #334155; border-color: var(--accent-cyan); color: #fff; }}
   .btn.active {{ background: #0891b2; color: #fff; border-color: #00e5ff; }}
   
+  .mode-controls {{
+    position: absolute;
+    top: 48px;
+    left: 12px;
+    display: flex;
+    gap: 6px;
+    z-index: 10;
+    flex-wrap: wrap;
+  }}
+  .btn-mode {{
+    background: rgba(15, 23, 42, 0.9);
+    border-color: #334155;
+    font-size: 11px;
+    font-weight: 700;
+  }}
+  .btn-mode.active {{ background: #2563eb; border-color: #60a5fa; color: #fff; }}
+  .btn-remove {{
+    background: #e11d48;
+    color: #fff;
+    border-color: #f43f5e;
+  }}
+  .btn-remove:hover {{ background: #be123c; }}
+  .btn-remove.active {{ background: #be123c; border-color: #fda4af; }}
+
   .zoom-controls {{
     position: absolute;
-    top: 52px;
+    top: 84px;
     left: 12px;
     display: flex;
     gap: 6px;
@@ -629,8 +633,9 @@ html_content = f"""<!DOCTYPE html>
   .btn-zoom {{
     background: rgba(15, 23, 42, 0.85);
     border-color: #334155;
-    font-size: 11px;
+    font-size: 10px;
     color: #38bdf8;
+    padding: 4px 8px;
   }}
   .btn-zoom:hover {{ background: #0284c7; color: #fff; }}
   
@@ -666,6 +671,21 @@ html_content = f"""<!DOCTYPE html>
   }}
   .hud-stat {{ display: flex; flex-direction: column; }}
   .hud-val {{ color: var(--accent); font-weight: 700; font-size: 13px; }}
+
+  .tooltip-card {{
+    position: absolute;
+    bottom: 12px;
+    right: 12px;
+    background: rgba(15, 23, 42, 0.95);
+    border: 1px solid #00e5ff;
+    border-radius: 6px;
+    padding: 8px 12px;
+    font-size: 11px;
+    color: #fff;
+    pointer-events: none;
+    min-width: 200px;
+    display: none;
+  }}
   
   .sidebar {{ display: flex; flex-direction: column; gap: 12px; max-height: 720px; overflow-y: auto; }}
   .section-title {{
@@ -690,6 +710,20 @@ html_content = f"""<!DOCTYPE html>
   .layer-label {{ display: flex; align-items: center; gap: 8px; }}
   .color-dot {{ width: 10px; height: 10px; border-radius: 50%; }}
   
+  .slider-row {{
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 0;
+    border-bottom: 1px solid #1e293b;
+    font-size: 11px;
+  }}
+  .slider-row input[type="range"] {{
+    flex: 1;
+    accent-color: #00e5ff;
+    cursor: pointer;
+  }}
+
   .spec-grid {{
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -705,17 +739,6 @@ html_content = f"""<!DOCTYPE html>
   .spec-lbl {{ color: var(--text-dim); font-size: 10px; }}
   .spec-num {{ color: #fff; font-weight: 600; font-size: 12px; margin-top: 2px; }}
 
-  .print-guide {{
-    background: #0b0f17;
-    border-left: 3px solid #00e5ff;
-    padding: 10px;
-    border-radius: 0 6px 6px 0;
-    font-size: 11px;
-    line-height: 1.5;
-    color: var(--text-dim);
-  }}
-  .print-guide strong {{ color: #fff; }}
-  
   .pulse-btn {{
     width: 100%;
     background: linear-gradient(135deg, #059669, #0284c7);
@@ -752,47 +775,60 @@ html_content = f"""<!DOCTYPE html>
 <div class="grid">
   <!-- 3D Viewport -->
   <div class="card viewport-container">
+    <!-- View Switcher -->
     <div class="view-controls">
-      <button class="btn active" id="btn-back" onclick="setView('back')">🔄 Underside Assembly (Back Face)</button>
-      <button class="btn" id="btn-front" onclick="setView('front')">👕 Race-Day Exterior (Front Face)</button>
+      <button class="btn active" id="btn-back" onclick="setView('back')">🔄 Underside (Back Face)</button>
+      <button class="btn" id="btn-front" onclick="setView('front')">👕 Exterior (Front Face)</button>
       <button class="btn" id="btn-iso" onclick="setView('iso')">Isometric 3D</button>
       <button class="btn" id="btn-xray" onclick="toggleXray()">Toggle X-Ray</button>
     </div>
 
+    <!-- Shell Removal & Wire Isolation Modes -->
+    <div class="mode-controls">
+      <button class="btn btn-mode active" id="btn-shell-solid" onclick="setShellMode('solid')">🛡️ Solid Shell (100%)</button>
+      <button class="btn btn-mode" id="btn-shell-ghost" onclick="setShellMode('ghost')">👻 Ghost Shell (15%)</button>
+      <button class="btn btn-mode btn-remove" id="btn-shell-remove" onclick="setShellMode('remove')">❌ Remove Shell (Wire Harness Only)</button>
+      <button class="btn btn-mode" id="btn-numbers" style="background:#7c3aed; color:#fff;" onclick="toggleNumbers()">🔢 Show LED Numbers (1-100)</button>
+    </div>
+
+    <!-- Quick Feature Zooms -->
     <div class="zoom-controls">
-      <button class="btn btn-zoom" onclick="zoomToFeature('clip')">🔍 Zoom to Wire Snap Clip</button>
+      <button class="btn btn-zoom" onclick="zoomToFeature('start')">🟢 Zoom to Start (#1 Battery In)</button>
+      <button class="btn btn-zoom" onclick="zoomToFeature('clip')">🔍 Zoom to Wire Clip</button>
       <button class="btn btn-zoom" onclick="zoomToFeature('pocket')">🔍 Zoom to LED Pocket</button>
       <button class="btn btn-zoom" onclick="zoomToFeature('slack')">🔍 Zoom to Slack Spool</button>
       <button class="btn btn-zoom" onclick="zoomToFeature('reset')">⟲ Reset Zoom</button>
     </div>
 
     <div class="side-banner" id="view-banner">
-      <span>🛠️ VIEWING: UNDERSIDE ASSEMBLY (Pockets, Channels & Clips)</span>
+      <span>🛠️ VIEWING: UNDERSIDE ASSEMBLY</span>
     </div>
 
     <div id="three-canvas"></div>
 
     <div class="hud-overlay">
       <div class="hud-stat">
-        <span>BOUNDS</span>
-        <span class="hud-val">{WIDTH_MM:.1f} × {HEIGHT_MM:.1f} mm</span>
+        <span>SHELL VISIBILITY</span>
+        <span class="hud-val" id="hud-shell-state" style="color:#00e5ff;">Solid (95%)</span>
+      </div>
+      <div class="hud-stat">
+        <span>TOTAL ROUTE</span>
+        <span class="hud-val">{total_direct_wire_len:.1f} mm (99 Segs)</span>
       </div>
       <div class="hud-stat">
         <span>WIRE CLIPS</span>
         <span class="hud-val" style="color:var(--accent-cyan);">{len(wire_clips)} Snap Teeth</span>
       </div>
       <div class="hud-stat">
-        <span>LED SNAP COLLARS</span>
-        <span class="hud-val" style="color:var(--accent-orange);">100 Retaining Lips</span>
-      </div>
-      <div class="hud-stat">
         <span>SLACK SPOOLS</span>
         <span class="hud-val" style="color:var(--accent-purple);">{len(slack_wells)} Center Posts</span>
       </div>
-      <div class="hud-stat">
-        <span>TAGGING TABS</span>
-        <span class="hud-val">{len(all_fastener_tabs)} (10mm Barbs)</span>
-      </div>
+    </div>
+
+    <!-- Hover Info Tooltip -->
+    <div class="tooltip-card" id="tooltip-card">
+      <div id="tooltip-title" style="font-weight:700; color:#00e5ff;">LED #1</div>
+      <div id="tooltip-body" style="font-size:10px; color:#cbd5e1; margin-top:3px;">X: 18.7 mm | Y: 52.5 mm</div>
     </div>
   </div>
 
@@ -805,24 +841,41 @@ html_content = f"""<!DOCTYPE html>
       </button>
     </div>
 
+    <!-- Shell Opacity Slider Card -->
+    <div class="card">
+      <div class="section-title"><span>👁️</span> Shell Visibility & Transparency</div>
+      <div class="slider-row">
+        <span>TPU Shell Opacity:</span>
+        <input type="range" id="shell-slider" min="0" max="100" value="95" oninput="onSliderChange(this.value)">
+        <strong id="slider-num" style="color:#00e5ff; width:36px; text-align:right;">95%</strong>
+      </div>
+      <div style="font-size:10px; color:var(--text-dim); margin-top:6px;">
+        💡 Slide to 0% to remove the plate completely and inspect the pure floating wire harness!
+      </div>
+    </div>
+
     <!-- Layer Visibility Card -->
     <div class="card">
       <div class="section-title"><span>📐</span> Inspection Layers</div>
       <div class="layer-item">
-        <span class="layer-label"><span class="color-dot" style="background:#1e293b;"></span> TPU Base Shell (2.0mm Plate)</span>
+        <span class="layer-label"><span class="color-dot" style="background:#1e293b;"></span> TPU Base Shell</span>
         <input type="checkbox" id="layer-shell" checked onchange="updateLayers()">
       </div>
       <div class="layer-item">
-        <span class="layer-label"><span class="color-dot" style="background:#00e5ff;"></span> 🧲 Wire Snap-Retention Clips ({len(wire_clips)})</span>
+        <span class="layer-label"><span class="color-dot" style="background:#00e5ff;"></span> 🧲 Wire Snap Clips ({len(wire_clips)})</span>
         <input type="checkbox" id="layer-clips" checked onchange="updateLayers()">
       </div>
       <div class="layer-item">
-        <span class="layer-label"><span class="color-dot" style="background:#ff9100;"></span> 🔒 LED Snap-Fit Collars (100)</span>
+        <span class="layer-label"><span class="color-dot" style="background:#ff9100;"></span> 🔒 LED Snap Collars (100)</span>
         <input type="checkbox" id="layer-collars" checked onchange="updateLayers()">
       </div>
       <div class="layer-item">
-        <span class="layer-label"><span class="color-dot" style="background:#f59e0b;"></span> 🕳️ Recessed Wire Trenches (1.8×1.2mm)</span>
+        <span class="layer-label"><span class="color-dot" style="background:#f59e0b;"></span> 🕳️ Recessed Wire Trenches</span>
         <input type="checkbox" id="layer-channels" checked onchange="updateLayers()">
+      </div>
+      <div class="layer-item">
+        <span class="layer-label"><span class="color-dot" style="background:#ffffff; border:1px solid #00e5ff;"></span> ⚡ Glowing Route Guide Line</span>
+        <input type="checkbox" id="layer-guide" checked onchange="updateLayers()">
       </div>
       <div class="layer-item">
         <span class="layer-label"><span class="color-dot" style="background:#111111; border:1px solid #94a3b8;"></span> 🧵 3D Black Fairy Wire Strand</span>
@@ -831,6 +884,10 @@ html_content = f"""<!DOCTYPE html>
       <div class="layer-item">
         <span class="layer-label"><span class="color-dot" style="background:#00ff88;"></span> 💡 3D Resin LED Bulbs (100)</span>
         <input type="checkbox" id="layer-bulbs" checked onchange="updateLayers()">
+      </div>
+      <div class="layer-item">
+        <span class="layer-label"><span class="color-dot" style="background:#7c3aed;"></span> 🔢 LED Number Badges (1-100)</span>
+        <input type="checkbox" id="layer-numbers" onchange="updateLayers()">
       </div>
       <div class="layer-item">
         <span class="layer-label"><span class="color-dot" style="background:#c084fc;"></span> 🔄 Slack Wells with Spool Posts ({len(slack_wells)})</span>
@@ -842,26 +899,13 @@ html_content = f"""<!DOCTYPE html>
       </div>
     </div>
 
-    <!-- How Snap-Retention Works Card -->
+    <!-- Wire Harness Routing Guide -->
     <div class="card">
-      <div class="section-title"><span>🧲</span> How Retention Clips Work</div>
+      <div class="section-title"><span>🧵</span> Daisy-Chain Harness Flow</div>
       <div style="font-size: 11px; line-height: 1.5; color: var(--text-dim);">
-        <strong style="color:#00e5ff;">• Wire Snap Bridges:</strong> Flexible TPU bridges overhang each wire channel with a 1.1mm pinch slit. Pressing the 1.5mm wire in snaps past the flexible lips, locking it down permanently!<br><br>
-        <strong style="color:#ff9100;">• LED Snap Collar:</strong> An undercut retaining lip (Ø4.7mm entry expanding to Ø5.4mm) clicks over the shoulder of the 5.0mm resin teardrop bulb.<br><br>
-        <strong style="color:#c084fc;">• Center Spool Posts:</strong> Excess fairy wire wraps cleanly around the Ø2.6mm center post inside each slack well.
-      </div>
-    </div>
-
-    <!-- Snapmaker U1 Print Settings Guide -->
-    <div class="card">
-      <div class="section-title"><span>🖨️</span> Snapmaker U1 95A TPU Settings</div>
-      <div class="print-guide">
-        <strong>Print 100% Flat on Bed:</strong> Zero supports required! Bridges and overhangs are engineered strictly under 2.0mm for flawless TPU bridging.<br><br>
-        • <strong>Nozzle Temp:</strong> 225°C | <strong>Bed Temp:</strong> 50°C (PEI textured sheet)<br>
-        • <strong>Print Speed:</strong> 30 mm/s (First layer 15 mm/s)<br>
-        • <strong>Layer Height:</strong> 0.20 mm | <strong>Infill:</strong> 100% Solid<br>
-        • <strong>Retraction:</strong> 1.8 mm @ 20 mm/s (Direct Drive)<br>
-        • <strong>Est. Weight:</strong> ~52g | <strong>Print Time:</strong> ~1 hr 50 min
+        <strong style="color:#00ff88;">• Entry / Power In (LED #1):</strong> Bottom-left tail/foot (Coord: 18.7, 52.5 mm). Directly adjacent to battery entry connector.<br><br>
+        <strong style="color:#38bdf8;">• Main Body Route (LED #2 to #85):</strong> Snakes through lower belly, chest scales, back ridge, and wings with 92 snap-retention clips holding wires flush.<br><br>
+        <strong style="color:#f43f5e;">• Snout Termination (LED #100):</strong> Elliott's fiery breath snout (Coord: 49.1, 134.4 mm).
       </div>
     </div>
   </div>
@@ -872,9 +916,12 @@ const SPECS = {json.dumps(specs_data)};
 
 let scene, camera, renderer, controls;
 let panelMesh, channelsGroup, clipsGroup, collarsGroup, wiresGroup, bulbsGroup, slackGroup, tabsGroup, pulseGroup;
+let guideGroup, numbersGroup, startEndGroup;
 let isXray = false;
 let isPulsing = false;
 let pulseIdx = 0;
+let showNumbers = false;
+let raycaster, mouse;
 
 function initThree() {{
   const container = document.getElementById('three-canvas');
@@ -885,7 +932,6 @@ function initThree() {{
   scene.background = new THREE.Color(0x06090e);
 
   camera = new THREE.PerspectiveCamera(40, w / h, 0.1, 2000);
-  // Default to Underside / Back View so channels and clips are immediately visible!
   camera.position.set(0, 0, -340);
 
   renderer = new THREE.WebGLRenderer({{ antialias: true, alpha: true }});
@@ -898,15 +944,18 @@ function initThree() {{
   controls.enableDamping = true;
   controls.dampingFactor = 0.05;
 
-  // Rich lighting
-  const ambLight = new THREE.AmbientLight(0xffffff, 0.85);
+  raycaster = new THREE.Raycaster();
+  mouse = new THREE.Vector2();
+
+  // Lights
+  const ambLight = new THREE.AmbientLight(0xffffff, 0.9);
   scene.add(ambLight);
 
-  const keyLight = new THREE.DirectionalLight(0x00e5ff, 0.9);
+  const keyLight = new THREE.DirectionalLight(0x00e5ff, 0.95);
   keyLight.position.set(80, 150, -200);
   scene.add(keyLight);
 
-  const fillLight = new THREE.DirectionalLight(0xff9100, 0.7);
+  const fillLight = new THREE.DirectionalLight(0xff9100, 0.75);
   fillLight.position.set(-100, -100, -180);
   scene.add(fillLight);
 
@@ -916,6 +965,36 @@ function initThree() {{
 
   build3DModel();
   animate();
+
+  container.addEventListener('mousemove', onMouseMove);
+}}
+
+function createTextSprite(text, bgColor = 'rgba(15, 23, 42, 0.85)', textColor = '#00e5ff', borderColor = '#00e5ff') {{
+  const canvas = document.createElement('canvas');
+  canvas.width = 128;
+  canvas.height = 64;
+  const ctx = canvas.getContext('2d');
+  
+  ctx.fillStyle = bgColor;
+  ctx.strokeStyle = borderColor;
+  ctx.lineWidth = 3;
+  ctx.beginPath();
+  if (ctx.roundRect) ctx.roundRect(4, 4, 120, 56, 12);
+  else ctx.rect(4, 4, 120, 56);
+  ctx.fill();
+  ctx.stroke();
+
+  ctx.font = 'bold 26px -apple-system, sans-serif';
+  ctx.fillStyle = textColor;
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(text, 64, 34);
+
+  const texture = new THREE.CanvasTexture(canvas);
+  const spriteMat = new THREE.SpriteMaterial({{ map: texture, depthTest: false }});
+  const sprite = new THREE.Sprite(spriteMat);
+  sprite.scale.set(7, 3.5, 1);
+  return sprite;
 }}
 
 function build3DModel() {{
@@ -971,14 +1050,13 @@ function build3DModel() {{
   panelMesh = new THREE.Mesh(geom, mat);
   scene.add(panelMesh);
 
-  // 2. 3D Recessed Wire Channels (Real volumetric trenches!)
+  // 2. 3D Recessed Wire Channels
   channelsGroup = new THREE.Group();
   const trenchMat = new THREE.MeshStandardMaterial({{
     color: 0x0a1017,
     roughness: 0.7,
     metalness: 0.2
   }});
-  const trenchRimMat = new THREE.LineBasicMaterial({{ color: 0x0284c7 }});
 
   SPECS.wire_segments.forEach(seg => {{
     const p1 = seg[0];
@@ -990,23 +1068,31 @@ function build3DModel() {{
     const mx = (p1[0] + p2[0]) / 2.0 - cx;
     const my = (p1[1] + p2[1]) / 2.0 - cy;
 
-    // Trench box
     const trenchGeom = new THREE.BoxGeometry(len, SPECS.wire_channel_width_mm, SPECS.wire_channel_depth_mm);
-    const trenchMesh = new THREE.Mesh(trenchGeom, trenchMat);
+    const trenchMesh = new THREE.Mesh(trenchGeom, trenchMat.clone());
     trenchMesh.position.set(mx, my, -1.0 + SPECS.wire_channel_depth_mm / 2.0);
     trenchMesh.rotation.z = angle;
     channelsGroup.add(trenchMesh);
   }});
   scene.add(channelsGroup);
 
-  // 3. 3D Wire Snap-Retention Clips (High-visibility Cyan Bridges)
+  // 3. Glowing Route Guide Line (Connects LED 1 to 100 in bright gold/cyan!)
+  guideGroup = new THREE.Group();
+  const guidePoints = SPECS.ordered_leds.map(l => new THREE.Vector3(l.x - cx, l.y - cy, -1.4));
+  const guideGeom = new THREE.BufferGeometry().setFromPoints(guidePoints);
+  const guideMat = new THREE.LineBasicMaterial({{ color: 0x00f5ff, linewidth: 3 }});
+  const guideLine = new THREE.Line(guideGeom, guideMat);
+  guideGroup.add(guideLine);
+  scene.add(guideGroup);
+
+  // 4. 3D Wire Snap-Retention Clips
   clipsGroup = new THREE.Group();
   const clipMat = new THREE.MeshStandardMaterial({{
     color: 0x00e5ff,
     roughness: 0.3,
     metalness: 0.3,
     emissive: 0x005577,
-    emissiveIntensity: 0.2
+    emissiveIntensity: 0.25
   }});
 
   SPECS.wire_clips.forEach(c => {{
@@ -1014,7 +1100,6 @@ function build3DModel() {{
     const my = c.y - cy;
     const rad = (c.angle * Math.PI) / 180.0;
 
-    // Left snap finger
     const fGeom = new THREE.BoxGeometry(2.2, 0.7, 0.55);
     const fMeshL = new THREE.Mesh(fGeom, clipMat);
     fMeshL.position.set(mx, my, -1.25);
@@ -1022,7 +1107,6 @@ function build3DModel() {{
     fMeshL.translateY(-0.75);
     clipsGroup.add(fMeshL);
 
-    // Right snap finger
     const fMeshR = new THREE.Mesh(fGeom, clipMat);
     fMeshR.position.set(mx, my, -1.25);
     fMeshR.rotation.z = rad;
@@ -1031,7 +1115,7 @@ function build3DModel() {{
   }});
   scene.add(clipsGroup);
 
-  // 4. 3D LED Retaining Snap Collars (Vivid Amber Rings with Inward Lips)
+  // 5. 3D LED Retaining Snap Collars
   collarsGroup = new THREE.Group();
   const collarMat = new THREE.MeshStandardMaterial({{
     color: 0xff9100,
@@ -1049,7 +1133,7 @@ function build3DModel() {{
   }});
   scene.add(collarsGroup);
 
-  // 5. 3D Black Fairy Light Wire (Continuous 3D Cylindrical Cable!)
+  // 6. 3D Black Fairy Light Wire (Cylindrical Cable)
   wiresGroup = new THREE.Group();
   const wireMat = new THREE.MeshStandardMaterial({{
     color: 0x111111,
@@ -1075,7 +1159,7 @@ function build3DModel() {{
   }});
   scene.add(wiresGroup);
 
-  // 6. 3D Resin LED Teardrop Bulbs (Translucent Epoxy Nodes with Emitter Cores)
+  // 7. 3D Resin LED Bulbs (Teardrop epoxy nodes with glowing cores)
   bulbsGroup = new THREE.Group();
   const bulbResinMat = new THREE.MeshPhysicalMaterial({{
     color: 0xa7f3d0,
@@ -1087,13 +1171,13 @@ function build3DModel() {{
   }});
 
   const bulbGeom = new THREE.SphereGeometry(2.3, 16, 16);
-  SPECS.ordered_leds.forEach(l => {{
+  SPECS.ordered_leds.forEach((l, idx) => {{
     const c = l.color || {{r: 0, g: 255, b: 100}};
     const bulbMesh = new THREE.Mesh(bulbGeom, bulbResinMat);
     bulbMesh.scale.set(1.0, 1.0, 0.65);
     bulbMesh.position.set(l.x - cx, l.y - cy, -0.5);
+    bulbMesh.userData = {{ id: l.id, x: l.x, y: l.y, color: c }};
 
-    // Glowing core emitter chip inside
     const coreGeom = new THREE.BoxGeometry(0.8, 0.8, 0.4);
     const coreMat = new THREE.MeshBasicMaterial({{ color: new THREE.Color(`rgb(${{c.r}},${{c.g}},${{c.b}})`) }});
     const coreMesh = new THREE.Mesh(coreGeom, coreMat);
@@ -1104,7 +1188,33 @@ function build3DModel() {{
   }});
   scene.add(bulbsGroup);
 
-  // 7. Slack Wells with Center Spool Posts
+  // 8. Numbered Badges (1 to 100)
+  numbersGroup = new THREE.Group();
+  SPECS.ordered_leds.forEach(l => {{
+    const sprite = createTextSprite(`#${{l.id}}`, 'rgba(15, 23, 42, 0.9)', '#ffffff', '#7c3aed');
+    sprite.position.set(l.x - cx, l.y - cy, -2.8);
+    numbersGroup.add(sprite);
+  }});
+  numbersGroup.visible = false;
+  scene.add(numbersGroup);
+
+  // 9. Start & End Markers (#1 START and #100 END)
+  startEndGroup = new THREE.Group();
+  const lStart = SPECS.ordered_leds[0];
+  const lEnd = SPECS.ordered_leds[SPECS.ordered_leds.length - 1];
+
+  const startSprite = createTextSprite('🟢 #1 START (Power)', 'rgba(5, 150, 105, 0.95)', '#ffffff', '#10b981');
+  startSprite.scale.set(16, 4, 1);
+  startSprite.position.set(lStart.x - cx, lStart.y - cy - 8, -3.2);
+  startEndGroup.add(startSprite);
+
+  const endSprite = createTextSprite('🏁 #100 END (Snout)', 'rgba(225, 29, 72, 0.95)', '#ffffff', '#f43f5e');
+  endSprite.scale.set(16, 4, 1);
+  endSprite.position.set(lEnd.x - cx, lEnd.y - cy + 8, -3.2);
+  startEndGroup.add(endSprite);
+  scene.add(startEndGroup);
+
+  // 10. Slack Wells with Spool Posts
   slackGroup = new THREE.Group();
   const spoolMat = new THREE.MeshStandardMaterial({{
     color: 0xc084fc,
@@ -1115,20 +1225,18 @@ function build3DModel() {{
   const coilGeom = new THREE.TorusGeometry(2.4, 0.4, 8, 20);
 
   SPECS.slack_wells.forEach(w => {{
-    // Center post
     const postMesh = new THREE.Mesh(spoolGeom, spoolMat);
     postMesh.rotation.x = Math.PI / 2;
     postMesh.position.set(w.x - cx, w.y - cy, -0.65);
     slackGroup.add(postMesh);
 
-    // Wire loop around post
     const coilMesh = new THREE.Mesh(coilGeom, wireMat);
     coilMesh.position.set(w.x - cx, w.y - cy, -0.65);
     slackGroup.add(coilMesh);
   }});
   scene.add(slackGroup);
 
-  // 8. Fastener Tabs (Blue rings)
+  // 11. Fastener Tabs
   tabsGroup = new THREE.Group();
   const tabGeom = new THREE.RingGeometry(1.1, 2.4, 16);
   const tabMat = new THREE.MeshBasicMaterial({{ color: 0x0284c7, side: THREE.DoubleSide }});
@@ -1139,7 +1247,7 @@ function build3DModel() {{
   }});
   scene.add(tabsGroup);
 
-  // 9. Pulse Spark Packet
+  // 12. Pulse Spark
   pulseGroup = new THREE.Group();
   const pulseGeom = new THREE.SphereGeometry(3.2, 16, 16);
   const pulseMat = new THREE.MeshBasicMaterial({{ color: 0xffffff }});
@@ -1166,11 +1274,80 @@ function animate() {{
     if (spark) {{
       spark.position.x = (l1.x + (l2.x - l1.x) * t) - cx;
       spark.position.y = (l1.y + (l2.y - l1.y) * t) - cy;
-      spark.position.z = -1.6;
+      spark.position.z = -1.8;
     }}
   }}
 
   renderer.render(scene, camera);
+}}
+
+// Shell Opacity and Removal Engine
+function setShellOpacity(val) {{
+  const op = val / 100.0;
+  document.getElementById('shell-slider').value = val;
+  document.getElementById('slider-num').textContent = val + '%';
+
+  const hud = document.getElementById('hud-shell-state');
+  if (val <= 0) {{
+    hud.textContent = "Removed (0%)";
+    hud.style.color = "#f43f5e";
+  }} else if (val < 40) {{
+    hud.textContent = `Ghost (${{val}}%)`;
+    hud.style.color = "#a855f7";
+  }} else {{
+    hud.textContent = `Solid (${{val}}%)`;
+    hud.style.color = "#00e5ff";
+  }}
+
+  if (panelMesh) {{
+    if (val <= 0) {{
+      panelMesh.visible = false;
+      document.getElementById('layer-shell').checked = false;
+      if (channelsGroup) channelsGroup.visible = false;
+    }} else {{
+      panelMesh.visible = true;
+      document.getElementById('layer-shell').checked = true;
+      panelMesh.material.opacity = op;
+      panelMesh.material.transparent = true;
+      if (channelsGroup) {{
+        channelsGroup.visible = document.getElementById('layer-channels').checked;
+        channelsGroup.children.forEach(c => {{
+          c.material.opacity = Math.min(op * 0.75, 0.45);
+          c.material.transparent = true;
+        }});
+      }}
+    }}
+  }}
+}}
+
+function onSliderChange(val) {{
+  setShellOpacity(Number(val));
+  document.querySelectorAll('.mode-controls .btn-mode').forEach(b => b.classList.remove('active'));
+  if (val == 100 || val == 95) document.getElementById('btn-shell-solid').classList.add('active');
+  else if (val == 15) document.getElementById('btn-shell-ghost').classList.add('active');
+  else if (val == 0) document.getElementById('btn-shell-remove').classList.add('active');
+}}
+
+function setShellMode(mode) {{
+  document.querySelectorAll('.mode-controls .btn-mode').forEach(b => b.classList.remove('active'));
+
+  if (mode === 'solid') {{
+    document.getElementById('btn-shell-solid').classList.add('active');
+    setShellOpacity(95);
+  }} else if (mode === 'ghost') {{
+    document.getElementById('btn-shell-ghost').classList.add('active');
+    setShellOpacity(15);
+  }} else if (mode === 'remove') {{
+    document.getElementById('btn-shell-remove').classList.add('active');
+    setShellOpacity(0);
+  }}
+}}
+
+function toggleNumbers() {{
+  showNumbers = !showNumbers;
+  document.getElementById('btn-numbers').classList.toggle('active', showNumbers);
+  document.getElementById('layer-numbers').checked = showNumbers;
+  if (numbersGroup) numbersGroup.visible = showNumbers;
 }}
 
 function setView(view) {{
@@ -1181,14 +1358,14 @@ function setView(view) {{
     document.getElementById('btn-back').classList.add('active');
     camera.position.set(0, 0, -340);
     controls.target.set(0, 0, 0);
-    banner.innerHTML = "🛠️ VIEWING: UNDERSIDE ASSEMBLY (Pockets, Channels & Clips)";
+    banner.innerHTML = "🛠️ VIEWING: UNDERSIDE ASSEMBLY";
     banner.style.color = "#00e5ff";
     banner.style.borderColor = "#00e5ff";
   }} else if (view === 'front') {{
     document.getElementById('btn-front').classList.add('active');
     camera.position.set(0, 0, 340);
     controls.target.set(0, 0, 0);
-    banner.innerHTML = "👕 VIEWING: RACE-DAY EXTERIOR (Front Face Optical Windows)";
+    banner.innerHTML = "👕 VIEWING: RACE-DAY EXTERIOR (Front Face)";
     banner.style.color = "#00ff88";
     banner.style.borderColor = "#00ff88";
   }} else if (view === 'iso') {{
@@ -1202,27 +1379,30 @@ function zoomToFeature(feat) {{
   const cx = SPECS.panel_width_mm / 2.0;
   const cy = SPECS.panel_height_mm / 2.0;
 
-  if (feat === 'clip') {{
-    // Focus on first wire clip
+  if (feat === 'start') {{
+    const l = SPECS.ordered_leds[0];
+    const tx = l.x - cx;
+    const ty = l.y - cy;
+    controls.target.set(tx, ty, -1.0);
+    camera.position.set(tx, ty - 25, -60);
+  }} else if (feat === 'clip') {{
     const c = SPECS.wire_clips[0] || {{x: 40, y: 60}};
-    const targetX = c.x - cx;
-    const targetY = c.y - cy;
-    controls.target.set(targetX, targetY, -1.0);
-    camera.position.set(targetX, targetY - 20, -50);
+    const tx = c.x - cx;
+    const ty = c.y - cy;
+    controls.target.set(tx, ty, -1.0);
+    camera.position.set(tx, ty - 20, -50);
   }} else if (feat === 'pocket') {{
-    // Focus on first LED pocket
-    const l = SPECS.ordered_leds[0] || {{x: 20, y: 50}};
-    const targetX = l.x - cx;
-    const targetY = l.y - cy;
-    controls.target.set(targetX, targetY, -1.0);
-    camera.position.set(targetX, targetY - 15, -45);
+    const l = SPECS.ordered_leds[10];
+    const tx = l.x - cx;
+    const ty = l.y - cy;
+    controls.target.set(tx, ty, -1.0);
+    camera.position.set(tx, ty - 15, -45);
   }} else if (feat === 'slack') {{
-    // Focus on first slack spool
     const w = SPECS.slack_wells[0] || {{x: 30, y: 60}};
-    const targetX = w.x - cx;
-    const targetY = w.y - cy;
-    controls.target.set(targetX, targetY, -1.0);
-    camera.position.set(targetX, targetY - 25, -60);
+    const tx = w.x - cx;
+    const ty = w.y - cy;
+    controls.target.set(tx, ty, -1.0);
+    camera.position.set(tx, ty - 25, -60);
   }} else if (feat === 'reset') {{
     setView('back');
   }}
@@ -1233,7 +1413,6 @@ function toggleXray() {{
   document.getElementById('btn-xray').classList.toggle('active', isXray);
   if (panelMesh) {{
     panelMesh.material.wireframe = isXray;
-    panelMesh.material.opacity = isXray ? 0.25 : 0.95;
   }}
 }}
 
@@ -1244,14 +1423,41 @@ function togglePulse() {{
 }}
 
 function updateLayers() {{
-  panelMesh.visible = document.getElementById('layer-shell').checked;
+  const shellChecked = document.getElementById('layer-shell').checked;
+  if (!shellChecked) setShellOpacity(0);
+  else setShellOpacity(Number(document.getElementById('shell-slider').value) || 95);
+
   clipsGroup.visible = document.getElementById('layer-clips').checked;
   collarsGroup.visible = document.getElementById('layer-collars').checked;
   channelsGroup.visible = document.getElementById('layer-channels').checked;
+  guideGroup.visible = document.getElementById('layer-guide').checked;
   wiresGroup.visible = document.getElementById('layer-wires').checked;
   bulbsGroup.visible = document.getElementById('layer-bulbs').checked;
   slackGroup.visible = document.getElementById('layer-slack').checked;
   tabsGroup.visible = document.getElementById('layer-tabs').checked;
+  numbersGroup.visible = document.getElementById('layer-numbers').checked;
+}}
+
+function onMouseMove(event) {{
+  const container = document.getElementById('three-canvas');
+  const rect = container.getBoundingClientRect();
+  mouse.x = ((event.clientX - rect.left) / container.clientWidth) * 2 - 1;
+  mouse.y = -((event.clientY - rect.top) / container.clientHeight) * 2 + 1;
+
+  raycaster.setFromCamera(mouse, camera);
+  const intersects = raycaster.intersectObjects(bulbsGroup.children);
+  const card = document.getElementById('tooltip-card');
+
+  if (intersects.length > 0) {{
+    const obj = intersects[0].object;
+    if (obj.userData && obj.userData.id) {{
+      card.style.display = 'block';
+      document.getElementById('tooltip-title').textContent = `LED #${{obj.userData.id}}`;
+      document.getElementById('tooltip-body').textContent = `X: ${{obj.userData.x.toFixed(1)}} mm | Y: ${{obj.userData.y.toFixed(1)}} mm`;
+      return;
+    }}
+  }}
+  card.style.display = 'none';
 }}
 
 function downloadScad() {{

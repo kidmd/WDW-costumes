@@ -44,7 +44,6 @@ fastener_csk_dia      = 4.8;    // Front countersink diameter for 10mm plastic T
 fastener_csk_depth    = 0.6;    // Front countersink depth so T-bar sits flush (mm)
 
 /* [Curvature Preview] */
-// 0 = Flat (RECOMMENDED for 95A TPU: prints without supports & naturally wraps chest)
 bend_radius           = 0;
 
 // ----------------------------------------------------------------------------
@@ -407,7 +406,6 @@ slack_wells = [
     [53.73, 135.85]
 ];
 
-// Wire clips [x, y, angle_deg]
 wire_clips = [
     [21.69, 55.87, 48.13],
     [28.61, 55.00, -47.39],
@@ -565,25 +563,20 @@ module all_fastener_countersinks_2d() {
     }
 }
 
-// Additive retention features (Wire bridge clips & Spool posts)
 module additive_retention_features() {
-    // 1. Wire snap retention clips (Overhanging bridge clips)
     if (enable_wire_clips) {
         for (c = wire_clips) {
             translate([c[0], c[1], 0])
                 rotate([0, 0, c[2]])
                     difference() {
-                        // Bridge over channel
                         translate([-clip_bridge_width/2, -wire_channel_width*0.9, 0])
                             cube([clip_bridge_width, wire_channel_width*1.8, clip_bridge_thick]);
-                        // Center snap push-through pinch slit
                         translate([-clip_bridge_width/2 - 0.1, -clip_entry_slot/2, -0.1])
                             cube([clip_bridge_width + 0.2, clip_entry_slot, clip_bridge_thick + 0.2]);
                     }
         }
     }
 
-    // 2. Center spool posts in slack wells
     if (enable_spool_posts) {
         for (w = slack_wells) {
             translate([w[0], w[1], 0])
@@ -592,44 +585,31 @@ module additive_retention_features() {
     }
 }
 
-// ----------------------------------------------------------------------------
-// 3D MAIN PANEL ASSEMBLY
-// Z = 0 is the BACK FACE (shirt-facing side with pockets and wire channels)
-// Z = panel_thickness is the FRONT FACE (world-facing side with optical windows)
-// ----------------------------------------------------------------------------
-
 module tpu_chest_panel_flat() {
     union() {
         difference() {
-            // 1. Base Contoured Solid Plate
             linear_extrude(height = panel_thickness)
                 dragon_silhouette_2d();
 
-            // 2. Optical Through-Windows & Fastener Needle Holes
             translate([0, 0, -0.1])
                 linear_extrude(height = panel_thickness + 0.2)
                     all_through_holes_2d();
 
-            // 3. Rear Wire Channels & Slack Wells (Cut into back face: Z = 0 to wire_channel_depth)
             translate([0, 0, -0.1])
                 linear_extrude(height = wire_channel_depth + 0.1)
                     all_wire_channels_2d();
 
-            // 4. Rear LED Pockets (Cut into back face: Z = 0 to led_pocket_depth)
             translate([0, 0, -0.1])
                 linear_extrude(height = led_pocket_depth + 0.1)
                     all_led_pockets_2d();
 
-            // 5. Front Countersunk Recesses for 10mm Fastener T-Bars
             translate([0, 0, panel_thickness - fastener_csk_depth])
                 linear_extrude(height = fastener_csk_depth + 0.1)
                     all_fastener_countersinks_2d();
         }
 
-        // 6. Integrated Flexible Retention Clips & Spool Posts
         additive_retention_features();
     }
 }
 
-// Render the panel
 tpu_chest_panel_flat();
