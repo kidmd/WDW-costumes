@@ -1115,25 +1115,25 @@ scripts/generate_3d_panel.py
       └── 3d_panels/petes_dragon_specs.json       (Mechanical Coordinates & Sizing)
 ```
 
-### 🦺 Wearable Architecture & Specs (5.5mm High-Clearance Armor Plate):
-1. **Material & Geometry:**
+### 🦺 Wearable Architecture & Specs (Solid 5.5mm High-Clearance Armor Plate with Debossed Numbers):
+1. **Material & Structural Plate Integrity:**
    - **Filament:** 95A Flexible TPU (e.g., Polymaker PolyFlex, Overture TPU).
-   - **Thickness:** 5.5 mm wearable armor plate ($185.0 \text{ mm W} \times 222.1 \text{ mm H}$).
-   - **Waffle-Flex Dynamic:** Although 5.5mm thick, the extensive underside network of 4.4mm channels and 4.5mm deep expansion bays acts like a flexible waffle-sole shoe, allowing the armor to contour softly across a runner's chest while fully protecting internal wiring.
-   - **Lightweight:** Net volume is only $\sim 25.4\text{ cm}^3$, weighing just **$\approx 52\text{ grams}$ ($1.8\text{ oz}$)**—lighter than an energy gel!
-2. **Rear 10mm x 5mm Oval LED Pockets & Front Optical Apertures:**
-   - **Rear Oval Pockets:** $10.6\text{ mm long} \times 5.6\text{ mm wide} \times 3.0\text{ mm deep}$ recessed stadium wells with friction-retention bevel, sized for $10.0\text{ mm} \times 5.0\text{ mm}$ resin teardrop pixels.
-   - **Front Optical Windows:** $6.0\text{ mm} \times 3.5\text{ mm}$ oval through-holes centered over each emitter to maximize light transmission while keeping the bulb body recessed.
-3. **On-Edge Slack Expansion Wells (Physics of 3-Conductor Flat Ribbon):**
-   - **Natural Ribbon Bending:** Because 3-strand flat wire binds and twists when bent in-plane, each LED socket features a dedicated $\varnothing 9.0\text{ mm} \times 4.5\text{ mm deep}$ expansion chamber where the wire turns $90^\circ$ onto its $4.0\text{ mm}$ side.
-   - **Slack Absorption:** Seamlessly absorbs the remaining $\approx 35\text{ mm}$ of wire between consecutive LEDs without bunching, buckling, or pressing against the runner's shirt.
-4. **4.4mm Ribbon Tracks & Retention Snap Clips:**
-   - **Underside Channels:** $4.4\text{ mm wide} \times 1.4\text{ mm deep}$ continuous recessed trenches carved into the underside along the sequential wiring route.
-   - **Wire Retention Bridges (95 Clips):** Integrated $3.0\text{ mm}$ wide surface bridges across spans featuring an engineered $1.4\text{ mm}$ pinch slit for snap-in wire retention without tape or zip-ties.
+   - **Thickness:** 5.5 mm wearable armor plate ($177.2 \text{ mm W} \times 163.4 \text{ mm H}$).
+   - **Unified Continuous Armor:** Smooth, filleted organic chest plate enclosing all 100 LEDs with $\ge 8.5\text{ mm}$ solid perimeter borders. All internal crevices and bays are bridged with solid TPU webbing, eliminating floating fragments, fragile necks, and serrated edges.
+   - **Lightweight:** Net volume is $\approx 79.2\text{ cm}^3$, weighing just **$\approx 85\text{ grams}$ ($3.0\text{ oz}$)**, contours softly over athletic running shirts.
+2. **Rear 10.5mm x 5.5mm Oval LED Sockets & Front Optical Apertures:**
+   - **Rear Sockets:** $10.5\text{ mm long} \times 5.5\text{ mm wide} \times 3.0\text{ mm deep}$ recessed stadium wells sized for $10.0\text{ mm} \times 5.0\text{ mm}$ resin teardrop pixels with $0.3\text{ mm}$ friction retention.
+   - **Front Optical Windows:** $5.6\text{ mm} \times 3.2\text{ mm}$ oval through-holes centered over each emitter to maximize light projection while maintaining a solid $2.5\text{ mm}$ front retaining lip.
+3. **Imprinted Debossed LED Numbers (1 to 100):**
+   - **Assembly Identification:** Every single LED hole features its sequence number (`1` to `100`) permanently debossed $0.8\text{ mm}$ deep into the plate surface directly adjacent to the socket ($3.0\text{ mm}$ tall bold typography).
+   - **Foolproof Installation:** Eliminates guesswork during assembly—simply follow the string from Bulb #1 to Bulb #100.
+4. **On-Edge Slack Expansion Wells (Physics of 3-Conductor Flat Ribbon):**
+   - **Dedicated Slack Bays:** Each LED socket features an integrated $\varnothing 7.5\text{ mm} \times 4.5\text{ mm deep}$ cylindrical well oriented along the wire exit path.
+   - **Natural Ribbon Bending:** Allows the $4.0\text{ mm}$ wide flat ribbon to turn $90^\circ$ onto its flexible edge, safely looping the $\approx 35\text{ mm}$ of slack between consecutive LEDs below the rear surface ($0.5\text{ mm}$ clearance from the runner's shirt).
 5. **Garment Tagging Gun Attachment System:**
-   - **16 Perimeter Eyelets:** Arranged strictly along the outer border (zero internal punctures through artwork).
-   - **Fastener Holes:** $\varnothing 2.2\text{ mm}$ through-holes sized for standard $1.8\text{ mm}$ tagging gun needles.
-   - **Countersunk Recesses:** $\varnothing 4.8\text{ mm} \times 1.0\text{ mm}$ front face recesses allowing standard 10mm polypropylene garment fastener T-bars (Kimble tags) to seat flush against black running shirts.
+   - **16 Perimeter Eyelets:** Arranged evenly along the outer smooth border.
+   - **Fastener Holes:** $\varnothing 2.5\text{ mm}$ through-holes sized for standard $1.8\text{ mm}$ tagging gun needles and hand stitching.
+   - **Countersunk Recesses:** $\varnothing 5.0\text{ mm} \times 1.0\text{ mm}$ front face recesses allowing polypropylene garment fastener T-bars to seat flush against running shirts.
 
 ### 🖨️ Snapmaker U1 95A TPU Slicing Profile:
 - **Nozzle Temp:** 225°C – 235°C (0.4mm nozzle).
@@ -1142,8 +1142,8 @@ scripts/generate_3d_panel.py
 - **Layer Height:** 0.20 mm.
 - **Infill:** 100% Solid.
 - **Retraction:** 1.8 mm @ 20 mm/s (Direct Drive).
-- **Filament Weight:** ~52 grams of TPU.
-- **Print Duration:** ~2 hr 10 min.
+- **Filament Weight:** ~85 grams of TPU.
+- **Print Duration:** ~2 hr 45 min.
 
 ---
 

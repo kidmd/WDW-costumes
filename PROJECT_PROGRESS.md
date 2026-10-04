@@ -93,6 +93,24 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### Entry: Clean Solid TPU Chest Armor Plate with Debossed Numbers & Integrated Slack Bays
+* **Date:** 2026-10-04
+* **Milestone:** Milestone 5 - 3D-Printable Flexible Wearable TPU Panel Fabrication
+* **Status:** Complete & Verified (`3d_panels/petes_dragon_tpu_panel.stl`, `3d_panels/petes_dragon_tpu_panel.scad`, `3d_panels/tpu_panel_preview.html`, `3d_panels/petes_dragon_specs.json`).
+* **Notes:**
+  * **Root Cause of "Mess" & Solution:**
+    - The initial prototype boolean-cut 984 intersecting channel lines and overlapping expansion wells across a tight clipart contour, causing pocket walls to be severed (330 channel-to-pocket collisions) and creating floating clip fragments in mid-air.
+    - Engineered a unified, solid, continuous wearable plate ($177.2\text{ mm W} \times 163.4\text{ mm H} \times 5.5\text{ mm}$) with smooth filleted outer borders ($\ge 8.5\text{ mm}$ margin around all LEDs) and solid flexible TPU webbing bridging all body/wing/tail bays. Zero floating debris, zero thin sliver walls, zero jagged sawteeth.
+  * **Debossed LED Numbers (1 to 100):**
+    - Directly solved assembly identification by permanently debossing numbers `1` through `100` ($3.0\text{ mm}$ tall, $0.8\text{ mm}$ deep) into the plate surface directly adjacent to each LED socket.
+    - Handled hollow typographic glyph geometry (`0`, `4`, `6`, `8`, `9`) ensuring crisp, watertight 3D engraving that requires zero supports during 3D printing.
+  * **Clean Socket & Slack Bay Architecture:**
+    - **100 Oval Sockets:** $10.5\text{ mm} \times 5.5\text{ mm} \times 3.0\text{ mm}$ deep stadium wells for $10\text{ mm} \times 5\text{ mm}$ resin bulbs with solid $2.5\text{ mm}$ front retaining lips.
+    - **100 Optical Apertures:** $5.6\text{ mm} \times 3.2\text{ mm}$ oval through-windows for unobstructed light output.
+    - **100 Dedicated On-Edge Slack Wells:** $\varnothing 7.5\text{ mm} \times 4.5\text{ mm}$ deep expansion chambers positioned along the wire exit path to cleanly absorb $\approx 35\text{ mm}$ of 3-conductor ribbon wire on its edge.
+    - **16 Perimeter Eyelets:** $\varnothing 2.5\text{ mm}$ through-holes with $\varnothing 5.0\text{ mm} \times 1.0\text{ mm}$ front countersinks along the outer perimeter for garment tagging barbs.
+  * **Validation:** Verified 100% watertight manifold mesh ($2,606,184\text{ bytes}$, volume $79,221.0\text{ mm}^3$, zero non-manifold edges). Rendered orthographic verification views and updated local web preview inspector.
+
 ### Entry: 5.5mm High-Clearance Armor Plate with 10x5mm Oval LEDs & 4.5mm On-Edge Slack Wells
 * **Date:** 2026-10-04
 * **Milestone:** Milestone 5 - 3D-Printable Flexible Wearable TPU Panel Fabrication
