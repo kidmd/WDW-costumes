@@ -8,12 +8,13 @@
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
 <style>
   :root {
-    --bg: #0b0f14;
-    --card: #151c24;
-    --card-border: #233140;
+    --bg: #070a0f;
+    --card: #121820;
+    --card-border: #1e293b;
     --accent: #00ff88;
-    --accent-blue: #00b4d8;
-    --accent-orange: #ff9f1c;
+    --accent-cyan: #00e5ff;
+    --accent-orange: #ff9100;
+    --accent-purple: #c084fc;
     --text: #e2e8f0;
     --text-dim: #94a3b8;
   }
@@ -33,20 +34,21 @@
     padding-bottom: 12px;
     margin-bottom: 16px;
   }
-  .title-group { display: flex; align-items: center; gap: 12px; }
-  h1 { margin: 0; font-size: 22px; color: #fff; }
+  .title-group { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  h1 { margin: 0; font-size: 21px; color: #fff; }
   .badge {
-    background: #059669;
-    color: #fff;
     font-size: 11px;
     padding: 3px 8px;
     border-radius: 12px;
     font-weight: 600;
+    color: #fff;
   }
+  .badge-tpu { background: #059669; }
   .badge-snap { background: #2563eb; }
+  .badge-clip { background: #0891b2; }
   .grid {
     display: grid;
-    grid-template-columns: 1fr 380px;
+    grid-template-columns: 1fr 390px;
     gap: 16px;
   }
   .card {
@@ -57,13 +59,14 @@
   }
   .viewport-container {
     position: relative;
-    height: 700px;
-    background: #06090d;
+    height: 720px;
+    background: radial-gradient(circle at 50% 50%, #0d1520 0%, #05080c 100%);
     border-radius: 8px;
     overflow: hidden;
     border: 1px solid var(--card-border);
   }
   #three-canvas { width: 100%; height: 100%; display: block; }
+  
   .view-controls {
     position: absolute;
     top: 12px;
@@ -71,45 +74,80 @@
     display: flex;
     gap: 6px;
     z-index: 10;
+    flex-wrap: wrap;
   }
   .btn {
-    background: #1e293b;
+    background: rgba(30, 41, 59, 0.85);
+    backdrop-filter: blur(6px);
     color: var(--text);
     border: 1px solid var(--card-border);
     padding: 6px 12px;
     border-radius: 6px;
-    font-size: 12px;
+    font-size: 11px;
     cursor: pointer;
-    font-weight: 500;
+    font-weight: 600;
     transition: all 0.15s ease;
   }
-  .btn:hover { background: #334155; border-color: var(--accent); }
-  .btn.active { background: #059669; color: #fff; border-color: #10b981; }
+  .btn:hover { background: #334155; border-color: var(--accent-cyan); color: #fff; }
+  .btn.active { background: #0891b2; color: #fff; border-color: #00e5ff; }
+  
+  .zoom-controls {
+    position: absolute;
+    top: 52px;
+    left: 12px;
+    display: flex;
+    gap: 6px;
+    z-index: 10;
+  }
+  .btn-zoom {
+    background: rgba(15, 23, 42, 0.85);
+    border-color: #334155;
+    font-size: 11px;
+    color: #38bdf8;
+  }
+  .btn-zoom:hover { background: #0284c7; color: #fff; }
+  
+  .side-banner {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    background: rgba(15, 23, 42, 0.9);
+    border: 1px solid #00e5ff;
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 700;
+    color: #00e5ff;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
   .hud-overlay {
     position: absolute;
     bottom: 12px;
     left: 12px;
-    background: rgba(15, 23, 42, 0.85);
+    background: rgba(15, 23, 42, 0.9);
     backdrop-filter: blur(8px);
     border: 1px solid var(--card-border);
     border-radius: 6px;
     padding: 8px 14px;
-    font-size: 12px;
+    font-size: 11px;
     color: var(--text-dim);
     display: flex;
     gap: 16px;
   }
   .hud-stat { display: flex; flex-direction: column; }
-  .hud-val { color: var(--accent); font-weight: 700; font-size: 14px; }
+  .hud-val { color: var(--accent); font-weight: 700; font-size: 13px; }
   
-  .sidebar { display: flex; flex-direction: column; gap: 14px; }
+  .sidebar { display: flex; flex-direction: column; gap: 12px; max-height: 720px; overflow-y: auto; }
   .section-title {
-    font-size: 13px;
+    font-size: 12px;
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.5px;
-    color: var(--accent);
-    margin-bottom: 10px;
+    color: var(--accent-cyan);
+    margin-bottom: 8px;
     display: flex;
     align-items: center;
     gap: 6px;
@@ -120,7 +158,7 @@
     align-items: center;
     padding: 6px 0;
     border-bottom: 1px solid #1e293b;
-    font-size: 12px;
+    font-size: 11px;
   }
   .layer-label { display: flex; align-items: center; gap: 8px; }
   .color-dot { width: 10px; height: 10px; border-radius: 50%; }
@@ -128,21 +166,21 @@
   .spec-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 8px;
-    font-size: 12px;
+    gap: 6px;
+    font-size: 11px;
   }
   .spec-box {
-    background: #0f172a;
-    padding: 8px 10px;
+    background: #0b0f17;
+    padding: 8px;
     border-radius: 6px;
     border: 1px solid #1e293b;
   }
-  .spec-lbl { color: var(--text-dim); font-size: 11px; }
-  .spec-num { color: #fff; font-weight: 600; font-size: 13px; margin-top: 2px; }
+  .spec-lbl { color: var(--text-dim); font-size: 10px; }
+  .spec-num { color: #fff; font-weight: 600; font-size: 12px; margin-top: 2px; }
 
   .print-guide {
-    background: #0f172a;
-    border-left: 3px solid #2563eb;
+    background: #0b0f17;
+    border-left: 3px solid #00e5ff;
     padding: 10px;
     border-radius: 0 6px 6px 0;
     font-size: 11px;
@@ -158,28 +196,29 @@
     border: none;
     padding: 10px;
     border-radius: 6px;
-    font-weight: 600;
+    font-weight: 700;
     cursor: pointer;
-    font-size: 13px;
+    font-size: 12px;
     display: flex;
     justify-content: center;
     align-items: center;
     gap: 8px;
   }
-  .pulse-btn:hover { filter: brightness(1.1); }
+  .pulse-btn:hover { filter: brightness(1.15); }
 </style>
 </head>
 <body>
 
 <div class="header">
   <div class="title-group">
-    <h1>🐉 Pete's Dragon 3D TPU Chest Panel</h1>
-    <span class="badge">95A Flexible TPU</span>
-    <span class="badge badge-snap">Snapmaker U1 Ready</span>
-    <span class="badge" style="background:#7c3aed;">100 Fairy Lights</span>
+    <h1>🐉 Pete's Dragon 3D TPU Armor Panel</h1>
+    <span class="badge badge-tpu">95A Flexible TPU</span>
+    <span class="badge badge-clip">🧲 92 Wire Snap Clips</span>
+    <span class="badge badge-clip" style="background:#ea580c;">🔒 100 LED Snap Collars</span>
+    <span class="badge badge-snap">Snapmaker U1 Flat Print</span>
   </div>
   <div>
-    <button class="btn" onclick="downloadScad()">📥 Download OpenSCAD (.scad)</button>
+    <button class="btn" style="background:#059669; color:#fff;" onclick="downloadScad()">📥 Download OpenSCAD (.scad)</button>
   </div>
 </div>
 
@@ -187,10 +226,21 @@
   <!-- 3D Viewport -->
   <div class="card viewport-container">
     <div class="view-controls">
-      <button class="btn active" id="btn-front" onclick="setView('front')">Front Face (Optical Windows)</button>
-      <button class="btn" id="btn-back" onclick="setView('back')">Back Face (Wire Channels & Pockets)</button>
+      <button class="btn active" id="btn-back" onclick="setView('back')">🔄 Underside Assembly (Back Face)</button>
+      <button class="btn" id="btn-front" onclick="setView('front')">👕 Race-Day Exterior (Front Face)</button>
       <button class="btn" id="btn-iso" onclick="setView('iso')">Isometric 3D</button>
       <button class="btn" id="btn-xray" onclick="toggleXray()">Toggle X-Ray</button>
+    </div>
+
+    <div class="zoom-controls">
+      <button class="btn btn-zoom" onclick="zoomToFeature('clip')">🔍 Zoom to Wire Snap Clip</button>
+      <button class="btn btn-zoom" onclick="zoomToFeature('pocket')">🔍 Zoom to LED Pocket</button>
+      <button class="btn btn-zoom" onclick="zoomToFeature('slack')">🔍 Zoom to Slack Spool</button>
+      <button class="btn btn-zoom" onclick="zoomToFeature('reset')">⟲ Reset Zoom</button>
+    </div>
+
+    <div class="side-banner" id="view-banner">
+      <span>🛠️ VIEWING: UNDERSIDE ASSEMBLY (Pockets, Channels & Clips)</span>
     </div>
 
     <div id="three-canvas"></div>
@@ -201,20 +251,20 @@
         <span class="hud-val">185.0 × 222.1 mm</span>
       </div>
       <div class="hud-stat">
-        <span>PANEL THICKNESS</span>
-        <span class="hud-val">2.0 mm (Z)</span>
+        <span>WIRE CLIPS</span>
+        <span class="hud-val" style="color:var(--accent-cyan);">92 Snap Teeth</span>
       </div>
       <div class="hud-stat">
-        <span>LED POCKETS</span>
-        <span class="hud-val">100 × Ø5.4 mm</span>
+        <span>LED SNAP COLLARS</span>
+        <span class="hud-val" style="color:var(--accent-orange);">100 Retaining Lips</span>
+      </div>
+      <div class="hud-stat">
+        <span>SLACK SPOOLS</span>
+        <span class="hud-val" style="color:var(--accent-purple);">94 Center Posts</span>
       </div>
       <div class="hud-stat">
         <span>TAGGING TABS</span>
-        <span class="hud-val">18 Holes (10mm barbs)</span>
-      </div>
-      <div class="hud-stat">
-        <span>DIRECT WIRE</span>
-        <span class="hud-val">1140.0 mm</span>
+        <span class="hud-val">18 (10mm Barbs)</span>
       </div>
     </div>
   </div>
@@ -232,59 +282,46 @@
     <div class="card">
       <div class="section-title"><span>📐</span> Inspection Layers</div>
       <div class="layer-item">
-        <span class="layer-label"><span class="color-dot" style="background:#10b981;"></span> TPU Base Shell (Contour)</span>
+        <span class="layer-label"><span class="color-dot" style="background:#1e293b;"></span> TPU Base Shell (2.0mm Plate)</span>
         <input type="checkbox" id="layer-shell" checked onchange="updateLayers()">
       </div>
       <div class="layer-item">
-        <span class="layer-label"><span class="color-dot" style="background:#e11d48;"></span> Rear LED Pockets (Ø5.4mm)</span>
-        <input type="checkbox" id="layer-pockets" checked onchange="updateLayers()">
+        <span class="layer-label"><span class="color-dot" style="background:#00e5ff;"></span> 🧲 Wire Snap-Retention Clips (92)</span>
+        <input type="checkbox" id="layer-clips" checked onchange="updateLayers()">
       </div>
       <div class="layer-item">
-        <span class="layer-label"><span class="color-dot" style="background:#ffffff;"></span> Front Optical Windows (Ø3.2mm)</span>
-        <input type="checkbox" id="layer-windows" checked onchange="updateLayers()">
+        <span class="layer-label"><span class="color-dot" style="background:#ff9100;"></span> 🔒 LED Snap-Fit Collars (100)</span>
+        <input type="checkbox" id="layer-collars" checked onchange="updateLayers()">
       </div>
       <div class="layer-item">
-        <span class="layer-label"><span class="color-dot" style="background:#f59e0b;"></span> Wire Channels (1.8mm wide)</span>
+        <span class="layer-label"><span class="color-dot" style="background:#f59e0b;"></span> 🕳️ Recessed Wire Trenches (1.8×1.2mm)</span>
         <input type="checkbox" id="layer-channels" checked onchange="updateLayers()">
       </div>
       <div class="layer-item">
-        <span class="layer-label"><span class="color-dot" style="background:#a855f7;"></span> Slack Relief Wells (94)</span>
+        <span class="layer-label"><span class="color-dot" style="background:#111111; border:1px solid #94a3b8;"></span> 🧵 3D Black Fairy Wire Strand</span>
+        <input type="checkbox" id="layer-wires" checked onchange="updateLayers()">
+      </div>
+      <div class="layer-item">
+        <span class="layer-label"><span class="color-dot" style="background:#00ff88;"></span> 💡 3D Resin LED Bulbs (100)</span>
+        <input type="checkbox" id="layer-bulbs" checked onchange="updateLayers()">
+      </div>
+      <div class="layer-item">
+        <span class="layer-label"><span class="color-dot" style="background:#c084fc;"></span> 🔄 Slack Wells with Spool Posts (94)</span>
         <input type="checkbox" id="layer-slack" checked onchange="updateLayers()">
       </div>
       <div class="layer-item">
-        <span class="layer-label"><span class="color-dot" style="background:#0284c7;"></span> Tagging Gun Tabs (18)</span>
+        <span class="layer-label"><span class="color-dot" style="background:#0284c7;"></span> 📌 10mm Fastener Tagging Tabs (18)</span>
         <input type="checkbox" id="layer-tabs" checked onchange="updateLayers()">
       </div>
     </div>
 
-    <!-- Physical Hardware Specs -->
+    <!-- How Snap-Retention Works Card -->
     <div class="card">
-      <div class="section-title"><span>⚙️</span> Physical Hardware Specs</div>
-      <div class="spec-grid">
-        <div class="spec-box">
-          <div class="spec-lbl">TPU Material</div>
-          <div class="spec-num">95A Flexible</div>
-        </div>
-        <div class="spec-box">
-          <div class="spec-lbl">Build Area Fit</div>
-          <div class="spec-num">Snapmaker U1 (Flat)</div>
-        </div>
-        <div class="spec-box">
-          <div class="spec-lbl">LED Retention</div>
-          <div class="spec-num">Rear Press-Fit (1.4mm)</div>
-        </div>
-        <div class="spec-box">
-          <div class="spec-lbl">Optical Aperture</div>
-          <div class="spec-num">3.2mm Through-Hole</div>
-        </div>
-        <div class="spec-box">
-          <div class="spec-lbl">Wire Channel</div>
-          <div class="spec-num">1.8W × 1.2D mm</div>
-        </div>
-        <div class="spec-box">
-          <div class="spec-lbl">Tag Fasteners</div>
-          <div class="spec-num">10mm Plastic Barbs</div>
-        </div>
+      <div class="section-title"><span>🧲</span> How Retention Clips Work</div>
+      <div style="font-size: 11px; line-height: 1.5; color: var(--text-dim);">
+        <strong style="color:#00e5ff;">• Wire Snap Bridges:</strong> Flexible TPU bridges overhang each wire channel with a 1.1mm pinch slit. Pressing the 1.5mm wire in snaps past the flexible lips, locking it down permanently!<br><br>
+        <strong style="color:#ff9100;">• LED Snap Collar:</strong> An undercut retaining lip (Ø4.7mm entry expanding to Ø5.4mm) clicks over the shoulder of the 5.0mm resin teardrop bulb.<br><br>
+        <strong style="color:#c084fc;">• Center Spool Posts:</strong> Excess fairy wire wraps cleanly around the Ø2.6mm center post inside each slack well.
       </div>
     </div>
 
@@ -292,27 +329,25 @@
     <div class="card">
       <div class="section-title"><span>🖨️</span> Snapmaker U1 95A TPU Settings</div>
       <div class="print-guide">
-        <strong>Print Flat on Bed:</strong> Zero supports required! 95A TPU naturally wraps runner chest curves.<br><br>
-        • <strong>Nozzle Temp:</strong> 225°C | <strong>Bed Temp:</strong> 50°C (PEI sheet)<br>
+        <strong>Print 100% Flat on Bed:</strong> Zero supports required! Bridges and overhangs are engineered strictly under 2.0mm for flawless TPU bridging.<br><br>
+        • <strong>Nozzle Temp:</strong> 225°C | <strong>Bed Temp:</strong> 50°C (PEI textured sheet)<br>
         • <strong>Print Speed:</strong> 30 mm/s (First layer 15 mm/s)<br>
-        • <strong>Layer Height:</strong> 0.20 mm | <strong>Infill:</strong> 100% (Solid)<br>
+        • <strong>Layer Height:</strong> 0.20 mm | <strong>Infill:</strong> 100% Solid<br>
         • <strong>Retraction:</strong> 1.8 mm @ 20 mm/s (Direct Drive)<br>
-        • <strong>Est. Print Weight:</strong> ~48g | <strong>Print Time:</strong> ~1 hr 45 min
+        • <strong>Est. Weight:</strong> ~52g | <strong>Print Time:</strong> ~1 hr 50 min
       </div>
     </div>
   </div>
 </div>
 
 <script>
-// Data injected from Python pipeline
-const SPECS = {"character": "Pete's Dragon (Elliott)", "preset": "petes_dragon_chris.json", "led_count": 100, "panel_width_mm": 185.0, "panel_height_mm": 222.09, "panel_thickness_mm": 2.0, "total_direct_wire_mm": 1139.99, "wire_segments_count": 99, "slack_wells_count": 94, "fastener_tabs_count": 18, "contour_vertices": 51, "led_pocket_dia_mm": 5.4, "led_window_dia_mm": 3.2, "wire_channel_width_mm": 1.8, "fastener_hole_dia_mm": 2.2, "contour_pts": [[162.88, 175.89], [134.47, 179.8], [129.04, 175.03], [116.25, 174.16], [116.03, 164.62], [124.06, 158.76], [121.24, 150.3], [113.0, 145.96], [111.69, 139.67], [102.58, 147.26], [89.79, 146.4], [84.8, 131.0], [83.72, 116.03], [77.21, 137.72], [67.23, 150.52], [58.99, 154.64], [46.41, 152.69], [46.41, 143.58], [43.16, 137.29], [44.68, 121.24], [36.0, 118.2], [33.83, 114.73], [21.25, 122.97], [13.88, 122.97], [9.98, 117.99], [10.84, 103.45], [16.7, 101.5], [18.0, 95.0], [12.36, 78.73], [14.1, 48.58], [53.57, 43.16], [54.87, 39.47], [72.22, 35.79], [85.45, 36.0], [87.84, 41.21], [105.84, 43.38], [111.26, 40.12], [127.96, 40.56], [127.96, 55.09], [120.15, 60.08], [114.51, 68.32], [117.77, 78.08], [117.33, 93.48], [129.7, 118.64], [135.77, 110.83], [141.62, 108.66], [157.24, 108.66], [166.13, 114.3], [168.08, 119.5], [164.83, 153.34], [159.19, 156.59]], "ordered_leds": [{"id": 1, "orig_id": 0, "x": 18.66, "y": 52.49, "color": {"r": 11, "g": 254, "b": 0}}, {"id": 2, "orig_id": 40, "x": 24.71, "y": 59.24, "color": {"r": 0, "g": 254, "b": 1}}, {"id": 3, "orig_id": 2, "x": 32.51, "y": 50.76, "color": {"r": 255, "g": 250, "b": 242}}, {"id": 4, "orig_id": 80, "x": 50.97, "y": 49.61, "color": {"r": 243, "g": 217, "b": 0}}, {"id": 5, "orig_id": 38, "x": 60.2, "y": 50.76, "color": {"r": 0, "g": 254, "b": 1}}, {"id": 6, "orig_id": 85, "x": 56.97, "y": 63.45, "color": {"r": 0, "g": 254, "b": 1}}, {"id": 7, "orig_id": 83, "x": 46.35, "y": 57.11, "color": {"r": 0, "g": 254, "b": 1}}, {"id": 8, "orig_id": 69, "x": 41.74, "y": 64.61, "color": {"r": 5, "g": 254, "b": 0}}, {"id": 9, "orig_id": 46, "x": 37.72, "y": 71.88, "color": {"r": 255, "g": 250, "b": 242}}, {"id": 10, "orig_id": 25, "x": 32.51, "y": 68.07, "color": {"r": 0, "g": 254, "b": 1}}, {"id": 11, "orig_id": 75, "x": 23.09, "y": 72.22, "color": {"r": 255, "g": 250, "b": 242}}, {"id": 12, "orig_id": 73, "x": 21.39, "y": 80.88, "color": {"r": 0, "g": 254, "b": 2}}, {"id": 13, "orig_id": 29, "x": 21.43, "y": 83.93, "color": {"r": 0, "g": 255, "b": 0}}, {"id": 14, "orig_id": 44, "x": 31.86, "y": 79.61, "color": {"r": 0, "g": 254, "b": 1}}, {"id": 15, "orig_id": 62, "x": 30.66, "y": 92.3, "color": {"r": 0, "g": 254, "b": 0}}, {"id": 16, "orig_id": 37, "x": 21.43, "y": 103.26, "color": {"r": 254, "g": 237, "b": 0}}, {"id": 17, "orig_id": 84, "x": 15.43, "y": 114.22, "color": {"r": 254, "g": 0, "b": 254}}, {"id": 18, "orig_id": 79, "x": 26.05, "y": 110.76, "color": {"r": 0, "g": 254, "b": 0}}, {"id": 19, "orig_id": 58, "x": 32.51, "y": 103.26, "color": {"r": 5, "g": 254, "b": 0}}, {"id": 20, "orig_id": 42, "x": 41.14, "y": 87.11, "color": {"r": 10, "g": 253, "b": 0}}, {"id": 21, "orig_id": 89, "x": 49.26, "y": 86.99, "color": {"r": 255, "g": 250, "b": 242}}, {"id": 22, "orig_id": 12, "x": 53.74, "y": 96.91, "color": {"r": 0, "g": 254, "b": 1}}, {"id": 23, "orig_id": 71, "x": 59.5, "y": 90.34, "color": {"r": 255, "g": 250, "b": 242}}, {"id": 24, "orig_id": 14, "x": 64.81, "y": 87.68, "color": {"r": 0, "g": 254, "b": 1}}, {"id": 25, "orig_id": 3, "x": 72.47, "y": 93.22, "color": {"r": 0, "g": 254, "b": 1}}, {"id": 26, "orig_id": 16, "x": 63.43, "y": 101.53, "color": {"r": 0, "g": 254, "b": 10}}, {"id": 27, "orig_id": 1, "x": 53.74, "y": 107.87, "color": {"r": 0, "g": 254, "b": 5}}, {"id": 28, "orig_id": 60, "x": 43.12, "y": 106.14, "color": {"r": 255, "g": 250, "b": 242}}, {"id": 29, "orig_id": 27, "x": 47.74, "y": 117.1, "color": {"r": 0, "g": 246, "b": 0}}, {"id": 30, "orig_id": 39, "x": 64.81, "y": 112.49, "color": {"r": 0, "g": 254, "b": 1}}, {"id": 31, "orig_id": 18, "x": 74.96, "y": 103.37, "color": {"r": 0, "g": 254, "b": 1}}, {"id": 32, "orig_id": 74, "x": 83.27, "y": 97.26, "color": {"r": 255, "g": 250, "b": 242}}, {"id": 33, "orig_id": 24, "x": 91.12, "y": 100.37, "color": {"r": 0, "g": 254, "b": 0}}, {"id": 34, "orig_id": 49, "x": 92.5, "y": 87.68, "color": {"r": 0, "g": 254, "b": 1}}, {"id": 35, "orig_id": 20, "x": 101.73, "y": 84.8, "color": {"r": 254, "g": 254, "b": 0}}, {"id": 36, "orig_id": 26, "x": 100.35, "y": 73.84, "color": {"r": 254, "g": 254, "b": 0}}, {"id": 37, "orig_id": 76, "x": 87.89, "y": 78.45, "color": {"r": 0, "g": 254, "b": 1}}, {"id": 38, "orig_id": 78, "x": 79.44, "y": 82.2, "color": {"r": 255, "g": 250, "b": 242}}, {"id": 39, "orig_id": 91, "x": 56.46, "y": 77.99, "color": {"r": 255, "g": 250, "b": 242}}, {"id": 40, "orig_id": 87, "x": 63.43, "y": 75.57, "color": {"r": 0, "g": 254, "b": 1}}, {"id": 41, "orig_id": 36, "x": 74.04, "y": 70.95, "color": {"r": 0, "g": 254, "b": 1}}, {"id": 42, "orig_id": 30, "x": 86.5, "y": 68.07, "color": {"r": 252, "g": 255, "b": 2}}, {"id": 43, "orig_id": 28, "x": 80.04, "y": 59.99, "color": {"r": 254, "g": 254, "b": 0}}, {"id": 44, "orig_id": 6, "x": 70.81, "y": 59.99, "color": {"r": 0, "g": 251, "b": 8}}, {"id": 45, "orig_id": 59, "x": 72.66, "y": 50.76, "color": {"r": 0, "g": 254, "b": 1}}, {"id": 46, "orig_id": 63, "x": 70.81, "y": 41.53, "color": {"r": 255, "g": 250, "b": 242}}, {"id": 47, "orig_id": 43, "x": 81.89, "y": 41.53, "color": {"r": 255, "g": 250, "b": 242}}, {"id": 48, "orig_id": 61, "x": 83.27, "y": 50.76, "color": {"r": 254, "g": 254, "b": 0}}, {"id": 49, "orig_id": 17, "x": 98.5, "y": 46.15, "color": {"r": 253, "g": 255, "b": 0}}, {"id": 50, "orig_id": 70, "x": 110.96, "y": 49.61, "color": {"r": 0, "g": 254, "b": 1}}, {"id": 51, "orig_id": 86, "x": 123.42, "y": 44.99, "color": {"r": 255, "g": 250, "b": 242}}, {"id": 52, "orig_id": 81, "x": 120.19, "y": 54.22, "color": {"r": 0, "g": 254, "b": 0}}, {"id": 53, "orig_id": 68, "x": 110.96, "y": 63.45, "color": {"r": 0, "g": 254, "b": 0}}, {"id": 54, "orig_id": 41, "x": 97.11, "y": 59.99, "color": {"r": 254, "g": 254, "b": 0}}, {"id": 55, "orig_id": 47, "x": 110.96, "y": 73.84, "color": {"r": 0, "g": 255, "b": 5}}, {"id": 56, "orig_id": 98, "x": 112.34, "y": 84.8, "color": {"r": 0, "g": 254, "b": 1}}, {"id": 57, "orig_id": 64, "x": 103.11, "y": 96.91, "color": {"r": 253, "g": 242, "b": 0}}, {"id": 58, "orig_id": 94, "x": 115.57, "y": 103.26, "color": {"r": 245, "g": 253, "b": 0}}, {"id": 59, "orig_id": 35, "x": 120.19, "y": 114.22, "color": {"r": 255, "g": 254, "b": 0}}, {"id": 60, "orig_id": 31, "x": 120.19, "y": 123.45, "color": {"r": 254, "g": 254, "b": 0}}, {"id": 61, "orig_id": 77, "x": 125.22, "y": 129.27, "color": {"r": 254, "g": 254, "b": 0}}, {"id": 62, "orig_id": 4, "x": 124.02, "y": 136.48, "color": {"r": 0, "g": 254, "b": 0}}, {"id": 63, "orig_id": 48, "x": 145.11, "y": 130.95, "color": {"r": 0, "g": 254, "b": 1}}, {"id": 64, "orig_id": 67, "x": 140.49, "y": 123.45, "color": {"r": 0, "g": 254, "b": 1}}, {"id": 65, "orig_id": 33, "x": 141.88, "y": 114.22, "color": {"r": 0, "g": 253, "b": 0}}, {"id": 66, "orig_id": 50, "x": 151.11, "y": 120.56, "color": {"r": 0, "g": 254, "b": 1}}, {"id": 67, "orig_id": 52, "x": 161.72, "y": 118.83, "color": {"r": 0, "g": 254, "b": 18}}, {"id": 68, "orig_id": 54, "x": 157.11, "y": 129.79, "color": {"r": 0, "g": 254, "b": 1}}, {"id": 69, "orig_id": 99, "x": 151.34, "y": 137.52, "color": {"r": 0, "g": 254, "b": 1}}, {"id": 70, "orig_id": 97, "x": 160.34, "y": 140.18, "color": {"r": 0, "g": 254, "b": 7}}, {"id": 71, "orig_id": 10, "x": 160.34, "y": 149.41, "color": {"r": 0, "g": 254, "b": 11}}, {"id": 72, "orig_id": 95, "x": 152.35, "y": 152.64, "color": {"r": 0, "g": 254, "b": 1}}, {"id": 73, "orig_id": 56, "x": 145.34, "y": 159.73, "color": {"r": 0, "g": 254, "b": 1}}, {"id": 74, "orig_id": 32, "x": 157.11, "y": 172.48, "color": {"r": 0, "g": 254, "b": 0}}, {"id": 75, "orig_id": 34, "x": 146.49, "y": 171.33, "color": {"r": 254, "g": 0, "b": 248}}, {"id": 76, "orig_id": 51, "x": 135.88, "y": 174.21, "color": {"r": 250, "g": 0, "b": 254}}, {"id": 77, "orig_id": 53, "x": 121.57, "y": 169.6, "color": {"r": 0, "g": 254, "b": 0}}, {"id": 78, "orig_id": 93, "x": 131.26, "y": 164.98, "color": {"r": 0, "g": 247, "b": 0}}, {"id": 79, "orig_id": 23, "x": 129.42, "y": 155.75, "color": {"r": 0, "g": 254, "b": 4}}, {"id": 80, "orig_id": 8, "x": 135.23, "y": 153.79, "color": {"r": 0, "g": 254, "b": 1}}, {"id": 81, "orig_id": 65, "x": 144.14, "y": 149.81, "color": {"r": 0, "g": 254, "b": 1}}, {"id": 82, "orig_id": 21, "x": 140.49, "y": 139.02, "color": {"r": 0, "g": 254, "b": 1}}, {"id": 83, "orig_id": 19, "x": 132.65, "y": 143.64, "color": {"r": 0, "g": 254, "b": 1}}, {"id": 84, "orig_id": 15, "x": 118.8, "y": 139.02, "color": {"r": 234, "g": 0, "b": 251}}, {"id": 85, "orig_id": 13, "x": 114.19, "y": 130.95, "color": {"r": 0, "g": 252, "b": 0}}, {"id": 86, "orig_id": 11, "x": 103.11, "y": 140.18, "color": {"r": 239, "g": 0, "b": 248}}, {"id": 87, "orig_id": 9, "x": 93.88, "y": 137.29, "color": {"r": 250, "g": 0, "b": 254}}, {"id": 88, "orig_id": 88, "x": 106.34, "y": 125.18, "color": {"r": 254, "g": 0, "b": 254}}, {"id": 89, "orig_id": 7, "x": 110.96, "y": 114.22, "color": {"r": 250, "g": 246, "b": 0}}, {"id": 90, "orig_id": 57, "x": 100.35, "y": 110.76, "color": {"r": 247, "g": 0, "b": 254}}, {"id": 91, "orig_id": 96, "x": 92.5, "y": 126.33, "color": {"r": 254, "g": 0, "b": 253}}, {"id": 92, "orig_id": 55, "x": 91.12, "y": 115.95, "color": {"r": 254, "g": 0, "b": 254}}, {"id": 93, "orig_id": 82, "x": 83.27, "y": 109.6, "color": {"r": 234, "g": 49, "b": 66}}, {"id": 94, "orig_id": 22, "x": 75.43, "y": 115.95, "color": {"r": 248, "g": 0, "b": 244}}, {"id": 95, "orig_id": 66, "x": 74.04, "y": 126.33, "color": {"r": 248, "g": 0, "b": 244}}, {"id": 96, "orig_id": 5, "x": 60.2, "y": 125.18, "color": {"r": 248, "g": 0, "b": 245}}, {"id": 97, "orig_id": 92, "x": 68.04, "y": 140.18, "color": {"r": 223, "g": 0, "b": 248}}, {"id": 98, "orig_id": 90, "x": 56.97, "y": 149.41, "color": {"r": 249, "g": 0, "b": 234}}, {"id": 99, "orig_id": 45, "x": 58.35, "y": 137.29, "color": {"r": 236, "g": 0, "b": 249}}, {"id": 100, "orig_id": 72, "x": 49.12, "y": 134.41, "color": {"r": 252, "g": 0, "b": 238}}], "wire_segments": [[[18.66, 52.49], [24.71, 59.24], 9.06], [[24.71, 59.24], [32.51, 50.76], 11.52], [[32.51, 50.76], [50.97, 49.61], 18.5], [[50.97, 49.61], [60.2, 50.76], 9.3], [[60.2, 50.76], [56.97, 63.45], 13.09], [[56.97, 63.45], [46.35, 57.11], 12.37], [[46.35, 57.11], [41.74, 64.61], 8.8], [[41.74, 64.61], [37.72, 71.88], 8.31], [[37.72, 71.88], [32.51, 68.07], 6.45], [[32.51, 68.07], [23.09, 72.22], 10.29], [[23.09, 72.22], [21.39, 80.88], 8.83], [[21.39, 80.88], [21.43, 83.93], 3.05], [[21.43, 83.93], [31.86, 79.61], 11.29], [[31.86, 79.61], [30.66, 92.3], 12.75], [[30.66, 92.3], [21.43, 103.26], 14.33], [[21.43, 103.26], [15.43, 114.22], 12.49], [[15.43, 114.22], [26.05, 110.76], 11.17], [[26.05, 110.76], [32.51, 103.26], 9.9], [[32.51, 103.26], [41.14, 87.11], 18.31], [[41.14, 87.11], [49.26, 86.99], 8.12], [[49.26, 86.99], [53.74, 96.91], 10.88], [[53.74, 96.91], [59.5, 90.34], 8.74], [[59.5, 90.34], [64.81, 87.68], 5.94], [[64.81, 87.68], [72.47, 93.22], 9.45], [[72.47, 93.22], [63.43, 101.53], 12.28], [[63.43, 101.53], [53.74, 107.87], 11.58], [[53.74, 107.87], [43.12, 106.14], 10.76], [[43.12, 106.14], [47.74, 117.1], 11.89], [[47.74, 117.1], [64.81, 112.49], 17.68], [[64.81, 112.49], [74.96, 103.37], 13.65], [[74.96, 103.37], [83.27, 97.26], 10.31], [[83.27, 97.26], [91.12, 100.37], 8.44], [[91.12, 100.37], [92.5, 87.68], 12.76], [[92.5, 87.68], [101.73, 84.8], 9.67], [[101.73, 84.8], [100.35, 73.84], 11.05], [[100.35, 73.84], [87.89, 78.45], 13.29], [[87.89, 78.45], [79.44, 82.2], 9.24], [[79.44, 82.2], [56.46, 77.99], 23.36], [[56.46, 77.99], [63.43, 75.57], 7.38], [[63.43, 75.57], [74.04, 70.95], 11.57], [[74.04, 70.95], [86.5, 68.07], 12.79], [[86.5, 68.07], [80.04, 59.99], 10.34], [[80.04, 59.99], [70.81, 59.99], 9.23], [[70.81, 59.99], [72.66, 50.76], 9.41], [[72.66, 50.76], [70.81, 41.53], 9.41], [[70.81, 41.53], [81.89, 41.53], 11.08], [[81.89, 41.53], [83.27, 50.76], 9.33], [[83.27, 50.76], [98.5, 46.15], 15.91], [[98.5, 46.15], [110.96, 49.61], 12.93], [[110.96, 49.61], [123.42, 44.99], 13.29], [[123.42, 44.99], [120.19, 54.22], 9.78], [[120.19, 54.22], [110.96, 63.45], 13.05], [[110.96, 63.45], [97.11, 59.99], 14.28], [[97.11, 59.99], [110.96, 73.84], 19.59], [[110.96, 73.84], [112.34, 84.8], 11.05], [[112.34, 84.8], [103.11, 96.91], 15.23], [[103.11, 96.91], [115.57, 103.26], 13.98], [[115.57, 103.26], [120.19, 114.22], 11.89], [[120.19, 114.22], [120.19, 123.45], 9.23], [[120.19, 123.45], [125.22, 129.27], 7.69], [[125.22, 129.27], [124.02, 136.48], 7.31], [[124.02, 136.48], [145.11, 130.95], 21.8], [[145.11, 130.95], [140.49, 123.45], 8.81], [[140.49, 123.45], [141.88, 114.22], 9.33], [[141.88, 114.22], [151.11, 120.56], 11.2], [[151.11, 120.56], [161.72, 118.83], 10.75], [[161.72, 118.83], [157.11, 129.79], 11.89], [[157.11, 129.79], [151.34, 137.52], 9.65], [[151.34, 137.52], [160.34, 140.18], 9.38], [[160.34, 140.18], [160.34, 149.41], 9.23], [[160.34, 149.41], [152.35, 152.64], 8.62], [[152.35, 152.64], [145.34, 159.73], 9.97], [[145.34, 159.73], [157.11, 172.48], 17.35], [[157.11, 172.48], [146.49, 171.33], 10.68], [[146.49, 171.33], [135.88, 174.21], 10.99], [[135.88, 174.21], [121.57, 169.6], 15.03], [[121.57, 169.6], [131.26, 164.98], 10.74], [[131.26, 164.98], [129.42, 155.75], 9.41], [[129.42, 155.75], [135.23, 153.79], 6.13], [[135.23, 153.79], [144.14, 149.81], 9.76], [[144.14, 149.81], [140.49, 139.02], 11.39], [[140.49, 139.02], [132.65, 143.64], 9.1], [[132.65, 143.64], [118.8, 139.02], 14.6], [[118.8, 139.02], [114.19, 130.95], 9.29], [[114.19, 130.95], [103.11, 140.18], 14.42], [[103.11, 140.18], [93.88, 137.29], 9.67], [[93.88, 137.29], [106.34, 125.18], 17.38], [[106.34, 125.18], [110.96, 114.22], 11.89], [[110.96, 114.22], [100.35, 110.76], 11.16], [[100.35, 110.76], [92.5, 126.33], 17.44], [[92.5, 126.33], [91.12, 115.95], 10.47], [[91.12, 115.95], [83.27, 109.6], 10.1], [[83.27, 109.6], [75.43, 115.95], 10.09], [[75.43, 115.95], [74.04, 126.33], 10.47], [[74.04, 126.33], [60.2, 125.18], 13.89], [[60.2, 125.18], [68.04, 140.18], 16.93], [[68.04, 140.18], [56.97, 149.41], 14.41], [[56.97, 149.41], [58.35, 137.29], 12.2], [[58.35, 137.29], [49.12, 134.41], 9.67]], "slack_wells": [[21.69, 55.87, 9.06], [28.61, 55.0, 11.52], [55.59, 50.19, 9.3], [58.59, 57.11, 13.09], [51.66, 60.28, 12.37], [44.05, 60.86, 8.8], [39.73, 68.25, 8.31], [35.11, 69.97, 6.45], [27.8, 70.14, 10.29], [22.24, 76.55, 8.83], [21.41, 82.41, 3.05], [26.64, 81.77, 11.29], [31.26, 85.95, 12.75], [26.05, 97.78, 14.33], [18.43, 108.74, 12.49], [20.74, 112.49, 11.17], [29.28, 107.01, 9.9], [45.2, 87.05, 8.12], [51.5, 91.95, 10.88], [56.62, 93.62, 8.74], [62.16, 89.01, 5.94], [68.64, 90.45, 9.45], [67.95, 97.38, 12.28], [58.59, 104.7, 11.58], [48.43, 107.0, 10.76], [45.43, 111.62, 11.89], [56.28, 114.79, 17.68], [69.88, 107.93, 13.65], [79.11, 100.31, 10.31], [87.19, 98.81, 8.44], [91.81, 94.03, 12.76], [97.12, 86.24, 9.67], [101.04, 79.32, 11.05], [94.12, 76.15, 13.29], [83.66, 80.33, 9.24], [59.95, 76.78, 7.38], [68.73, 73.26, 11.57], [80.27, 69.51, 12.79], [83.27, 64.03, 10.34], [75.43, 59.99, 9.23], [71.73, 55.38, 9.41], [71.73, 46.14, 9.41], [76.35, 41.53, 11.08], [82.58, 46.14, 9.33], [90.88, 48.45, 15.91], [104.73, 47.88, 12.93], [117.19, 47.3, 13.29], [121.81, 49.61, 9.78], [115.57, 58.84, 13.05], [104.03, 61.72, 14.28], [111.65, 79.32, 11.05], [107.72, 90.85, 15.23], [109.34, 100.09, 13.98], [117.88, 108.74, 11.89], [120.19, 118.84, 9.23], [122.7, 126.36, 7.69], [124.62, 132.88, 7.31], [142.8, 127.2, 8.81], [141.19, 118.84, 9.33], [146.5, 117.39, 11.2], [156.42, 119.69, 10.75], [159.42, 124.31, 11.89], [154.23, 133.66, 9.65], [155.84, 138.85, 9.38], [160.34, 144.8, 9.23], [156.34, 151.02, 8.62], [148.84, 156.19, 9.97], [151.23, 166.1, 17.35], [151.8, 171.91, 10.68], [141.19, 172.77, 10.99], [128.72, 171.91, 15.03], [126.41, 167.29, 10.74], [130.34, 160.37, 9.41], [132.32, 154.77, 6.13], [139.69, 151.8, 9.76], [142.31, 144.42, 11.39], [136.57, 141.33, 9.1], [125.72, 141.33, 14.6], [116.5, 134.99, 9.29], [108.65, 135.56, 14.42], [98.5, 138.74, 9.67], [100.11, 131.24, 17.38], [108.65, 119.7, 11.89], [105.66, 112.49, 11.16], [96.42, 118.55, 17.44], [91.81, 121.14, 10.47], [87.19, 112.78, 10.1], [79.35, 112.78, 10.09], [74.74, 121.14, 10.47], [67.12, 125.75, 13.89], [64.12, 132.68, 16.93], [62.51, 144.8, 14.41], [57.66, 143.35, 12.2], [53.73, 135.85, 9.67]], "fastener_tabs": [[122.11, 164.52], [118.75, 145.03], [96.42, 143.34], [87.75, 123.26], [49.91, 148.13], [47.4, 129.59], [25.62, 115.92], [16.72, 63.86], [44.18, 47.98], [64.27, 41.05], [120.37, 107.6], [149.43, 112.16], [157.6, 166.9], [47.88, 72.39], [134.83, 132.24], [38.73, 97.33], [57.03, 117.28], [89.07, 57.42]], "flex_slits": []};
+const SPECS = {"character": "Pete's Dragon (Elliott)", "preset": "petes_dragon_chris.json", "led_count": 100, "panel_width_mm": 185.0, "panel_height_mm": 222.09, "panel_thickness_mm": 2.0, "total_direct_wire_mm": 1139.99, "wire_segments_count": 99, "wire_clips_count": 92, "slack_wells_count": 94, "fastener_tabs_count": 18, "contour_vertices": 51, "led_pocket_dia_mm": 5.4, "led_window_dia_mm": 3.2, "wire_channel_width_mm": 1.8, "wire_channel_depth_mm": 1.2, "fastener_hole_dia_mm": 2.2, "contour_pts": [[162.88, 175.89], [134.47, 179.8], [129.04, 175.03], [116.25, 174.16], [116.03, 164.62], [124.06, 158.76], [121.24, 150.3], [113.0, 145.96], [111.69, 139.67], [102.58, 147.26], [89.79, 146.4], [84.8, 131.0], [83.72, 116.03], [77.21, 137.72], [67.23, 150.52], [58.99, 154.64], [46.41, 152.69], [46.41, 143.58], [43.16, 137.29], [44.68, 121.24], [36.0, 118.2], [33.83, 114.73], [21.25, 122.97], [13.88, 122.97], [9.98, 117.99], [10.84, 103.45], [16.7, 101.5], [18.0, 95.0], [12.36, 78.73], [14.1, 48.58], [53.57, 43.16], [54.87, 39.47], [72.22, 35.79], [85.45, 36.0], [87.84, 41.21], [105.84, 43.38], [111.26, 40.12], [127.96, 40.56], [127.96, 55.09], [120.15, 60.08], [114.51, 68.32], [117.77, 78.08], [117.33, 93.48], [129.7, 118.64], [135.77, 110.83], [141.62, 108.66], [157.24, 108.66], [166.13, 114.3], [168.08, 119.5], [164.83, 153.34], [159.19, 156.59]], "ordered_leds": [{"id": 1, "orig_id": 0, "x": 18.66, "y": 52.49, "color": {"r": 11, "g": 254, "b": 0}}, {"id": 2, "orig_id": 40, "x": 24.71, "y": 59.24, "color": {"r": 0, "g": 254, "b": 1}}, {"id": 3, "orig_id": 2, "x": 32.51, "y": 50.76, "color": {"r": 255, "g": 250, "b": 242}}, {"id": 4, "orig_id": 80, "x": 50.97, "y": 49.61, "color": {"r": 243, "g": 217, "b": 0}}, {"id": 5, "orig_id": 38, "x": 60.2, "y": 50.76, "color": {"r": 0, "g": 254, "b": 1}}, {"id": 6, "orig_id": 85, "x": 56.97, "y": 63.45, "color": {"r": 0, "g": 254, "b": 1}}, {"id": 7, "orig_id": 83, "x": 46.35, "y": 57.11, "color": {"r": 0, "g": 254, "b": 1}}, {"id": 8, "orig_id": 69, "x": 41.74, "y": 64.61, "color": {"r": 5, "g": 254, "b": 0}}, {"id": 9, "orig_id": 46, "x": 37.72, "y": 71.88, "color": {"r": 255, "g": 250, "b": 242}}, {"id": 10, "orig_id": 25, "x": 32.51, "y": 68.07, "color": {"r": 0, "g": 254, "b": 1}}, {"id": 11, "orig_id": 75, "x": 23.09, "y": 72.22, "color": {"r": 255, "g": 250, "b": 242}}, {"id": 12, "orig_id": 73, "x": 21.39, "y": 80.88, "color": {"r": 0, "g": 254, "b": 2}}, {"id": 13, "orig_id": 29, "x": 21.43, "y": 83.93, "color": {"r": 0, "g": 255, "b": 0}}, {"id": 14, "orig_id": 44, "x": 31.86, "y": 79.61, "color": {"r": 0, "g": 254, "b": 1}}, {"id": 15, "orig_id": 62, "x": 30.66, "y": 92.3, "color": {"r": 0, "g": 254, "b": 0}}, {"id": 16, "orig_id": 37, "x": 21.43, "y": 103.26, "color": {"r": 254, "g": 237, "b": 0}}, {"id": 17, "orig_id": 84, "x": 15.43, "y": 114.22, "color": {"r": 254, "g": 0, "b": 254}}, {"id": 18, "orig_id": 79, "x": 26.05, "y": 110.76, "color": {"r": 0, "g": 254, "b": 0}}, {"id": 19, "orig_id": 58, "x": 32.51, "y": 103.26, "color": {"r": 5, "g": 254, "b": 0}}, {"id": 20, "orig_id": 42, "x": 41.14, "y": 87.11, "color": {"r": 10, "g": 253, "b": 0}}, {"id": 21, "orig_id": 89, "x": 49.26, "y": 86.99, "color": {"r": 255, "g": 250, "b": 242}}, {"id": 22, "orig_id": 12, "x": 53.74, "y": 96.91, "color": {"r": 0, "g": 254, "b": 1}}, {"id": 23, "orig_id": 71, "x": 59.5, "y": 90.34, "color": {"r": 255, "g": 250, "b": 242}}, {"id": 24, "orig_id": 14, "x": 64.81, "y": 87.68, "color": {"r": 0, "g": 254, "b": 1}}, {"id": 25, "orig_id": 3, "x": 72.47, "y": 93.22, "color": {"r": 0, "g": 254, "b": 1}}, {"id": 26, "orig_id": 16, "x": 63.43, "y": 101.53, "color": {"r": 0, "g": 254, "b": 10}}, {"id": 27, "orig_id": 1, "x": 53.74, "y": 107.87, "color": {"r": 0, "g": 254, "b": 5}}, {"id": 28, "orig_id": 60, "x": 43.12, "y": 106.14, "color": {"r": 255, "g": 250, "b": 242}}, {"id": 29, "orig_id": 27, "x": 47.74, "y": 117.1, "color": {"r": 0, "g": 246, "b": 0}}, {"id": 30, "orig_id": 39, "x": 64.81, "y": 112.49, "color": {"r": 0, "g": 254, "b": 1}}, {"id": 31, "orig_id": 18, "x": 74.96, "y": 103.37, "color": {"r": 0, "g": 254, "b": 1}}, {"id": 32, "orig_id": 74, "x": 83.27, "y": 97.26, "color": {"r": 255, "g": 250, "b": 242}}, {"id": 33, "orig_id": 24, "x": 91.12, "y": 100.37, "color": {"r": 0, "g": 254, "b": 0}}, {"id": 34, "orig_id": 49, "x": 92.5, "y": 87.68, "color": {"r": 0, "g": 254, "b": 1}}, {"id": 35, "orig_id": 20, "x": 101.73, "y": 84.8, "color": {"r": 254, "g": 254, "b": 0}}, {"id": 36, "orig_id": 26, "x": 100.35, "y": 73.84, "color": {"r": 254, "g": 254, "b": 0}}, {"id": 37, "orig_id": 76, "x": 87.89, "y": 78.45, "color": {"r": 0, "g": 254, "b": 1}}, {"id": 38, "orig_id": 78, "x": 79.44, "y": 82.2, "color": {"r": 255, "g": 250, "b": 242}}, {"id": 39, "orig_id": 91, "x": 56.46, "y": 77.99, "color": {"r": 255, "g": 250, "b": 242}}, {"id": 40, "orig_id": 87, "x": 63.43, "y": 75.57, "color": {"r": 0, "g": 254, "b": 1}}, {"id": 41, "orig_id": 36, "x": 74.04, "y": 70.95, "color": {"r": 0, "g": 254, "b": 1}}, {"id": 42, "orig_id": 30, "x": 86.5, "y": 68.07, "color": {"r": 252, "g": 255, "b": 2}}, {"id": 43, "orig_id": 28, "x": 80.04, "y": 59.99, "color": {"r": 254, "g": 254, "b": 0}}, {"id": 44, "orig_id": 6, "x": 70.81, "y": 59.99, "color": {"r": 0, "g": 251, "b": 8}}, {"id": 45, "orig_id": 59, "x": 72.66, "y": 50.76, "color": {"r": 0, "g": 254, "b": 1}}, {"id": 46, "orig_id": 63, "x": 70.81, "y": 41.53, "color": {"r": 255, "g": 250, "b": 242}}, {"id": 47, "orig_id": 43, "x": 81.89, "y": 41.53, "color": {"r": 255, "g": 250, "b": 242}}, {"id": 48, "orig_id": 61, "x": 83.27, "y": 50.76, "color": {"r": 254, "g": 254, "b": 0}}, {"id": 49, "orig_id": 17, "x": 98.5, "y": 46.15, "color": {"r": 253, "g": 255, "b": 0}}, {"id": 50, "orig_id": 70, "x": 110.96, "y": 49.61, "color": {"r": 0, "g": 254, "b": 1}}, {"id": 51, "orig_id": 86, "x": 123.42, "y": 44.99, "color": {"r": 255, "g": 250, "b": 242}}, {"id": 52, "orig_id": 81, "x": 120.19, "y": 54.22, "color": {"r": 0, "g": 254, "b": 0}}, {"id": 53, "orig_id": 68, "x": 110.96, "y": 63.45, "color": {"r": 0, "g": 254, "b": 0}}, {"id": 54, "orig_id": 41, "x": 97.11, "y": 59.99, "color": {"r": 254, "g": 254, "b": 0}}, {"id": 55, "orig_id": 47, "x": 110.96, "y": 73.84, "color": {"r": 0, "g": 255, "b": 5}}, {"id": 56, "orig_id": 98, "x": 112.34, "y": 84.8, "color": {"r": 0, "g": 254, "b": 1}}, {"id": 57, "orig_id": 64, "x": 103.11, "y": 96.91, "color": {"r": 253, "g": 242, "b": 0}}, {"id": 58, "orig_id": 94, "x": 115.57, "y": 103.26, "color": {"r": 245, "g": 253, "b": 0}}, {"id": 59, "orig_id": 35, "x": 120.19, "y": 114.22, "color": {"r": 255, "g": 254, "b": 0}}, {"id": 60, "orig_id": 31, "x": 120.19, "y": 123.45, "color": {"r": 254, "g": 254, "b": 0}}, {"id": 61, "orig_id": 77, "x": 125.22, "y": 129.27, "color": {"r": 254, "g": 254, "b": 0}}, {"id": 62, "orig_id": 4, "x": 124.02, "y": 136.48, "color": {"r": 0, "g": 254, "b": 0}}, {"id": 63, "orig_id": 48, "x": 145.11, "y": 130.95, "color": {"r": 0, "g": 254, "b": 1}}, {"id": 64, "orig_id": 67, "x": 140.49, "y": 123.45, "color": {"r": 0, "g": 254, "b": 1}}, {"id": 65, "orig_id": 33, "x": 141.88, "y": 114.22, "color": {"r": 0, "g": 253, "b": 0}}, {"id": 66, "orig_id": 50, "x": 151.11, "y": 120.56, "color": {"r": 0, "g": 254, "b": 1}}, {"id": 67, "orig_id": 52, "x": 161.72, "y": 118.83, "color": {"r": 0, "g": 254, "b": 18}}, {"id": 68, "orig_id": 54, "x": 157.11, "y": 129.79, "color": {"r": 0, "g": 254, "b": 1}}, {"id": 69, "orig_id": 99, "x": 151.34, "y": 137.52, "color": {"r": 0, "g": 254, "b": 1}}, {"id": 70, "orig_id": 97, "x": 160.34, "y": 140.18, "color": {"r": 0, "g": 254, "b": 7}}, {"id": 71, "orig_id": 10, "x": 160.34, "y": 149.41, "color": {"r": 0, "g": 254, "b": 11}}, {"id": 72, "orig_id": 95, "x": 152.35, "y": 152.64, "color": {"r": 0, "g": 254, "b": 1}}, {"id": 73, "orig_id": 56, "x": 145.34, "y": 159.73, "color": {"r": 0, "g": 254, "b": 1}}, {"id": 74, "orig_id": 32, "x": 157.11, "y": 172.48, "color": {"r": 0, "g": 254, "b": 0}}, {"id": 75, "orig_id": 34, "x": 146.49, "y": 171.33, "color": {"r": 254, "g": 0, "b": 248}}, {"id": 76, "orig_id": 51, "x": 135.88, "y": 174.21, "color": {"r": 250, "g": 0, "b": 254}}, {"id": 77, "orig_id": 53, "x": 121.57, "y": 169.6, "color": {"r": 0, "g": 254, "b": 0}}, {"id": 78, "orig_id": 93, "x": 131.26, "y": 164.98, "color": {"r": 0, "g": 247, "b": 0}}, {"id": 79, "orig_id": 23, "x": 129.42, "y": 155.75, "color": {"r": 0, "g": 254, "b": 4}}, {"id": 80, "orig_id": 8, "x": 135.23, "y": 153.79, "color": {"r": 0, "g": 254, "b": 1}}, {"id": 81, "orig_id": 65, "x": 144.14, "y": 149.81, "color": {"r": 0, "g": 254, "b": 1}}, {"id": 82, "orig_id": 21, "x": 140.49, "y": 139.02, "color": {"r": 0, "g": 254, "b": 1}}, {"id": 83, "orig_id": 19, "x": 132.65, "y": 143.64, "color": {"r": 0, "g": 254, "b": 1}}, {"id": 84, "orig_id": 15, "x": 118.8, "y": 139.02, "color": {"r": 234, "g": 0, "b": 251}}, {"id": 85, "orig_id": 13, "x": 114.19, "y": 130.95, "color": {"r": 0, "g": 252, "b": 0}}, {"id": 86, "orig_id": 11, "x": 103.11, "y": 140.18, "color": {"r": 239, "g": 0, "b": 248}}, {"id": 87, "orig_id": 9, "x": 93.88, "y": 137.29, "color": {"r": 250, "g": 0, "b": 254}}, {"id": 88, "orig_id": 88, "x": 106.34, "y": 125.18, "color": {"r": 254, "g": 0, "b": 254}}, {"id": 89, "orig_id": 7, "x": 110.96, "y": 114.22, "color": {"r": 250, "g": 246, "b": 0}}, {"id": 90, "orig_id": 57, "x": 100.35, "y": 110.76, "color": {"r": 247, "g": 0, "b": 254}}, {"id": 91, "orig_id": 96, "x": 92.5, "y": 126.33, "color": {"r": 254, "g": 0, "b": 253}}, {"id": 92, "orig_id": 55, "x": 91.12, "y": 115.95, "color": {"r": 254, "g": 0, "b": 254}}, {"id": 93, "orig_id": 82, "x": 83.27, "y": 109.6, "color": {"r": 234, "g": 49, "b": 66}}, {"id": 94, "orig_id": 22, "x": 75.43, "y": 115.95, "color": {"r": 248, "g": 0, "b": 244}}, {"id": 95, "orig_id": 66, "x": 74.04, "y": 126.33, "color": {"r": 248, "g": 0, "b": 244}}, {"id": 96, "orig_id": 5, "x": 60.2, "y": 125.18, "color": {"r": 248, "g": 0, "b": 245}}, {"id": 97, "orig_id": 92, "x": 68.04, "y": 140.18, "color": {"r": 223, "g": 0, "b": 248}}, {"id": 98, "orig_id": 90, "x": 56.97, "y": 149.41, "color": {"r": 249, "g": 0, "b": 234}}, {"id": 99, "orig_id": 45, "x": 58.35, "y": 137.29, "color": {"r": 236, "g": 0, "b": 249}}, {"id": 100, "orig_id": 72, "x": 49.12, "y": 134.41, "color": {"r": 252, "g": 0, "b": 238}}], "wire_segments": [[[18.66, 52.49], [24.71, 59.24], 9.06], [[24.71, 59.24], [32.51, 50.76], 11.52], [[32.51, 50.76], [50.97, 49.61], 18.5], [[50.97, 49.61], [60.2, 50.76], 9.3], [[60.2, 50.76], [56.97, 63.45], 13.09], [[56.97, 63.45], [46.35, 57.11], 12.37], [[46.35, 57.11], [41.74, 64.61], 8.8], [[41.74, 64.61], [37.72, 71.88], 8.31], [[37.72, 71.88], [32.51, 68.07], 6.45], [[32.51, 68.07], [23.09, 72.22], 10.29], [[23.09, 72.22], [21.39, 80.88], 8.83], [[21.39, 80.88], [21.43, 83.93], 3.05], [[21.43, 83.93], [31.86, 79.61], 11.29], [[31.86, 79.61], [30.66, 92.3], 12.75], [[30.66, 92.3], [21.43, 103.26], 14.33], [[21.43, 103.26], [15.43, 114.22], 12.49], [[15.43, 114.22], [26.05, 110.76], 11.17], [[26.05, 110.76], [32.51, 103.26], 9.9], [[32.51, 103.26], [41.14, 87.11], 18.31], [[41.14, 87.11], [49.26, 86.99], 8.12], [[49.26, 86.99], [53.74, 96.91], 10.88], [[53.74, 96.91], [59.5, 90.34], 8.74], [[59.5, 90.34], [64.81, 87.68], 5.94], [[64.81, 87.68], [72.47, 93.22], 9.45], [[72.47, 93.22], [63.43, 101.53], 12.28], [[63.43, 101.53], [53.74, 107.87], 11.58], [[53.74, 107.87], [43.12, 106.14], 10.76], [[43.12, 106.14], [47.74, 117.1], 11.89], [[47.74, 117.1], [64.81, 112.49], 17.68], [[64.81, 112.49], [74.96, 103.37], 13.65], [[74.96, 103.37], [83.27, 97.26], 10.31], [[83.27, 97.26], [91.12, 100.37], 8.44], [[91.12, 100.37], [92.5, 87.68], 12.76], [[92.5, 87.68], [101.73, 84.8], 9.67], [[101.73, 84.8], [100.35, 73.84], 11.05], [[100.35, 73.84], [87.89, 78.45], 13.29], [[87.89, 78.45], [79.44, 82.2], 9.24], [[79.44, 82.2], [56.46, 77.99], 23.36], [[56.46, 77.99], [63.43, 75.57], 7.38], [[63.43, 75.57], [74.04, 70.95], 11.57], [[74.04, 70.95], [86.5, 68.07], 12.79], [[86.5, 68.07], [80.04, 59.99], 10.34], [[80.04, 59.99], [70.81, 59.99], 9.23], [[70.81, 59.99], [72.66, 50.76], 9.41], [[72.66, 50.76], [70.81, 41.53], 9.41], [[70.81, 41.53], [81.89, 41.53], 11.08], [[81.89, 41.53], [83.27, 50.76], 9.33], [[83.27, 50.76], [98.5, 46.15], 15.91], [[98.5, 46.15], [110.96, 49.61], 12.93], [[110.96, 49.61], [123.42, 44.99], 13.29], [[123.42, 44.99], [120.19, 54.22], 9.78], [[120.19, 54.22], [110.96, 63.45], 13.05], [[110.96, 63.45], [97.11, 59.99], 14.28], [[97.11, 59.99], [110.96, 73.84], 19.59], [[110.96, 73.84], [112.34, 84.8], 11.05], [[112.34, 84.8], [103.11, 96.91], 15.23], [[103.11, 96.91], [115.57, 103.26], 13.98], [[115.57, 103.26], [120.19, 114.22], 11.89], [[120.19, 114.22], [120.19, 123.45], 9.23], [[120.19, 123.45], [125.22, 129.27], 7.69], [[125.22, 129.27], [124.02, 136.48], 7.31], [[124.02, 136.48], [145.11, 130.95], 21.8], [[145.11, 130.95], [140.49, 123.45], 8.81], [[140.49, 123.45], [141.88, 114.22], 9.33], [[141.88, 114.22], [151.11, 120.56], 11.2], [[151.11, 120.56], [161.72, 118.83], 10.75], [[161.72, 118.83], [157.11, 129.79], 11.89], [[157.11, 129.79], [151.34, 137.52], 9.65], [[151.34, 137.52], [160.34, 140.18], 9.38], [[160.34, 140.18], [160.34, 149.41], 9.23], [[160.34, 149.41], [152.35, 152.64], 8.62], [[152.35, 152.64], [145.34, 159.73], 9.97], [[145.34, 159.73], [157.11, 172.48], 17.35], [[157.11, 172.48], [146.49, 171.33], 10.68], [[146.49, 171.33], [135.88, 174.21], 10.99], [[135.88, 174.21], [121.57, 169.6], 15.03], [[121.57, 169.6], [131.26, 164.98], 10.74], [[131.26, 164.98], [129.42, 155.75], 9.41], [[129.42, 155.75], [135.23, 153.79], 6.13], [[135.23, 153.79], [144.14, 149.81], 9.76], [[144.14, 149.81], [140.49, 139.02], 11.39], [[140.49, 139.02], [132.65, 143.64], 9.1], [[132.65, 143.64], [118.8, 139.02], 14.6], [[118.8, 139.02], [114.19, 130.95], 9.29], [[114.19, 130.95], [103.11, 140.18], 14.42], [[103.11, 140.18], [93.88, 137.29], 9.67], [[93.88, 137.29], [106.34, 125.18], 17.38], [[106.34, 125.18], [110.96, 114.22], 11.89], [[110.96, 114.22], [100.35, 110.76], 11.16], [[100.35, 110.76], [92.5, 126.33], 17.44], [[92.5, 126.33], [91.12, 115.95], 10.47], [[91.12, 115.95], [83.27, 109.6], 10.1], [[83.27, 109.6], [75.43, 115.95], 10.09], [[75.43, 115.95], [74.04, 126.33], 10.47], [[74.04, 126.33], [60.2, 125.18], 13.89], [[60.2, 125.18], [68.04, 140.18], 16.93], [[68.04, 140.18], [56.97, 149.41], 14.41], [[56.97, 149.41], [58.35, 137.29], 12.2], [[58.35, 137.29], [49.12, 134.41], 9.67]], "wire_clips": [{"id": 1, "x": 21.69, "y": 55.87, "angle": 48.13, "seg_len": 9.06}, {"id": 2, "x": 28.61, "y": 55.0, "angle": -47.39, "seg_len": 11.52}, {"id": 3, "x": 41.74, "y": 50.19, "angle": -3.56, "seg_len": 18.5}, {"id": 4, "x": 55.59, "y": 50.19, "angle": 7.1, "seg_len": 9.3}, {"id": 5, "x": 58.59, "y": 57.11, "angle": 104.28, "seg_len": 13.09}, {"id": 6, "x": 51.66, "y": 60.28, "angle": -149.16, "seg_len": 12.37}, {"id": 7, "x": 44.05, "y": 60.86, "angle": 121.58, "seg_len": 8.8}, {"id": 8, "x": 39.73, "y": 68.25, "angle": 118.94, "seg_len": 8.31}, {"id": 10, "x": 27.8, "y": 70.14, "angle": 156.22, "seg_len": 10.29}, {"id": 11, "x": 22.24, "y": 76.55, "angle": 101.11, "seg_len": 8.83}, {"id": 13, "x": 26.64, "y": 81.77, "angle": -22.5, "seg_len": 11.29}, {"id": 14, "x": 31.26, "y": 85.95, "angle": 95.4, "seg_len": 12.75}, {"id": 15, "x": 26.05, "y": 97.78, "angle": 130.1, "seg_len": 14.33}, {"id": 16, "x": 18.43, "y": 108.74, "angle": 118.7, "seg_len": 12.49}, {"id": 17, "x": 20.74, "y": 112.49, "angle": -18.05, "seg_len": 11.17}, {"id": 18, "x": 29.28, "y": 107.01, "angle": -49.26, "seg_len": 9.9}, {"id": 19, "x": 36.83, "y": 95.19, "angle": -61.88, "seg_len": 18.31}, {"id": 20, "x": 45.2, "y": 87.05, "angle": -0.85, "seg_len": 8.12}, {"id": 21, "x": 51.5, "y": 91.95, "angle": 65.7, "seg_len": 10.88}, {"id": 22, "x": 56.62, "y": 93.62, "angle": -48.76, "seg_len": 8.74}, {"id": 24, "x": 68.64, "y": 90.45, "angle": 35.88, "seg_len": 9.45}, {"id": 25, "x": 67.95, "y": 97.38, "angle": 137.41, "seg_len": 12.28}, {"id": 26, "x": 58.59, "y": 104.7, "angle": 146.8, "seg_len": 11.58}, {"id": 27, "x": 48.43, "y": 107.0, "angle": -170.75, "seg_len": 10.76}, {"id": 28, "x": 45.43, "y": 111.62, "angle": 67.14, "seg_len": 11.89}, {"id": 29, "x": 56.28, "y": 114.79, "angle": -15.11, "seg_len": 17.68}, {"id": 30, "x": 69.88, "y": 107.93, "angle": -41.94, "seg_len": 13.65}, {"id": 31, "x": 79.11, "y": 100.31, "angle": -36.33, "seg_len": 10.31}, {"id": 32, "x": 87.19, "y": 98.81, "angle": 21.61, "seg_len": 8.44}, {"id": 33, "x": 91.81, "y": 94.03, "angle": -83.79, "seg_len": 12.76}, {"id": 34, "x": 97.12, "y": 86.24, "angle": -17.33, "seg_len": 9.67}, {"id": 35, "x": 101.04, "y": 79.32, "angle": -97.18, "seg_len": 11.05}, {"id": 36, "x": 94.12, "y": 76.15, "angle": 159.7, "seg_len": 13.29}, {"id": 37, "x": 83.66, "y": 80.33, "angle": 156.07, "seg_len": 9.24}, {"id": 38, "x": 67.95, "y": 80.09, "angle": -169.62, "seg_len": 23.36}, {"id": 40, "x": 68.73, "y": 73.26, "angle": -23.53, "seg_len": 11.57}, {"id": 41, "x": 80.27, "y": 69.51, "angle": -13.01, "seg_len": 12.79}, {"id": 42, "x": 83.27, "y": 64.03, "angle": -128.64, "seg_len": 10.34}, {"id": 43, "x": 75.43, "y": 59.99, "angle": 180.0, "seg_len": 9.23}, {"id": 44, "x": 71.73, "y": 55.38, "angle": -78.67, "seg_len": 9.41}, {"id": 45, "x": 71.73, "y": 46.14, "angle": -101.33, "seg_len": 9.41}, {"id": 46, "x": 76.35, "y": 41.53, "angle": 0.0, "seg_len": 11.08}, {"id": 47, "x": 82.58, "y": 46.14, "angle": 81.5, "seg_len": 9.33}, {"id": 48, "x": 90.88, "y": 48.45, "angle": -16.84, "seg_len": 15.91}, {"id": 49, "x": 104.73, "y": 47.88, "angle": 15.52, "seg_len": 12.93}, {"id": 50, "x": 117.19, "y": 47.3, "angle": -20.34, "seg_len": 13.29}, {"id": 51, "x": 121.81, "y": 49.61, "angle": 109.29, "seg_len": 9.78}, {"id": 52, "x": 115.57, "y": 58.84, "angle": 135.0, "seg_len": 13.05}, {"id": 53, "x": 104.03, "y": 61.72, "angle": -165.97, "seg_len": 14.28}, {"id": 54, "x": 104.03, "y": 66.92, "angle": 45.0, "seg_len": 19.59}, {"id": 55, "x": 111.65, "y": 79.32, "angle": 82.82, "seg_len": 11.05}, {"id": 56, "x": 107.72, "y": 90.85, "angle": 127.31, "seg_len": 15.23}, {"id": 57, "x": 109.34, "y": 100.09, "angle": 27.0, "seg_len": 13.98}, {"id": 58, "x": 117.88, "y": 108.74, "angle": 67.14, "seg_len": 11.89}, {"id": 59, "x": 120.19, "y": 118.84, "angle": 90.0, "seg_len": 9.23}, {"id": 62, "x": 134.56, "y": 133.71, "angle": -14.69, "seg_len": 21.8}, {"id": 63, "x": 142.8, "y": 127.2, "angle": -121.63, "seg_len": 8.81}, {"id": 64, "x": 141.19, "y": 118.84, "angle": -81.44, "seg_len": 9.33}, {"id": 65, "x": 146.5, "y": 117.39, "angle": 34.48, "seg_len": 11.2}, {"id": 66, "x": 156.42, "y": 119.69, "angle": -9.26, "seg_len": 10.75}, {"id": 67, "x": 159.42, "y": 124.31, "angle": 112.81, "seg_len": 11.89}, {"id": 68, "x": 154.23, "y": 133.66, "angle": 126.74, "seg_len": 9.65}, {"id": 69, "x": 155.84, "y": 138.85, "angle": 16.47, "seg_len": 9.38}, {"id": 70, "x": 160.34, "y": 144.8, "angle": 90.0, "seg_len": 9.23}, {"id": 71, "x": 156.34, "y": 151.02, "angle": 157.99, "seg_len": 8.62}, {"id": 72, "x": 148.84, "y": 156.19, "angle": 134.67, "seg_len": 9.97}, {"id": 73, "x": 151.23, "y": 166.1, "angle": 47.29, "seg_len": 17.35}, {"id": 74, "x": 151.8, "y": 171.91, "angle": -173.82, "seg_len": 10.68}, {"id": 75, "x": 141.19, "y": 172.77, "angle": 164.81, "seg_len": 10.99}, {"id": 76, "x": 128.72, "y": 171.91, "angle": -162.14, "seg_len": 15.03}, {"id": 77, "x": 126.41, "y": 167.29, "angle": -25.49, "seg_len": 10.74}, {"id": 78, "x": 130.34, "y": 160.37, "angle": -101.27, "seg_len": 9.41}, {"id": 80, "x": 139.69, "y": 151.8, "angle": -24.07, "seg_len": 9.76}, {"id": 81, "x": 142.31, "y": 144.42, "angle": -108.69, "seg_len": 11.39}, {"id": 82, "x": 136.57, "y": 141.33, "angle": 149.49, "seg_len": 9.1}, {"id": 83, "x": 125.72, "y": 141.33, "angle": -161.55, "seg_len": 14.6}, {"id": 84, "x": 116.5, "y": 134.99, "angle": -119.74, "seg_len": 9.29}, {"id": 85, "x": 108.65, "y": 135.56, "angle": 140.2, "seg_len": 14.42}, {"id": 86, "x": 98.5, "y": 138.74, "angle": -162.61, "seg_len": 9.67}, {"id": 87, "x": 100.11, "y": 131.24, "angle": -44.18, "seg_len": 17.38}, {"id": 88, "x": 108.65, "y": 119.7, "angle": -67.14, "seg_len": 11.89}, {"id": 89, "x": 105.66, "y": 112.49, "angle": -161.94, "seg_len": 11.16}, {"id": 90, "x": 96.42, "y": 118.55, "angle": 116.76, "seg_len": 17.44}, {"id": 91, "x": 91.81, "y": 121.14, "angle": -97.57, "seg_len": 10.47}, {"id": 92, "x": 87.19, "y": 112.78, "angle": -141.03, "seg_len": 10.1}, {"id": 93, "x": 79.35, "y": 112.78, "angle": 140.99, "seg_len": 10.09}, {"id": 94, "x": 74.74, "y": 121.14, "angle": 97.63, "seg_len": 10.47}, {"id": 95, "x": 67.12, "y": 125.75, "angle": -175.25, "seg_len": 13.89}, {"id": 96, "x": 64.12, "y": 132.68, "angle": 62.41, "seg_len": 16.93}, {"id": 97, "x": 62.51, "y": 144.8, "angle": 140.18, "seg_len": 14.41}, {"id": 98, "x": 57.66, "y": 143.35, "angle": -83.5, "seg_len": 12.2}, {"id": 99, "x": 53.73, "y": 135.85, "angle": -162.67, "seg_len": 9.67}], "slack_wells": [{"id": 1, "x": 21.69, "y": 55.87, "dia": 8.0, "post_dia": 2.6, "seg_len": 9.06}, {"id": 2, "x": 28.61, "y": 55.0, "dia": 8.0, "post_dia": 2.6, "seg_len": 11.52}, {"id": 4, "x": 55.59, "y": 50.19, "dia": 8.0, "post_dia": 2.6, "seg_len": 9.3}, {"id": 5, "x": 58.59, "y": 57.11, "dia": 8.0, "post_dia": 2.6, "seg_len": 13.09}, {"id": 6, "x": 51.66, "y": 60.28, "dia": 8.0, "post_dia": 2.6, "seg_len": 12.37}, {"id": 7, "x": 44.05, "y": 60.86, "dia": 8.0, "post_dia": 2.6, "seg_len": 8.8}, {"id": 8, "x": 39.73, "y": 68.25, "dia": 8.0, "post_dia": 2.6, "seg_len": 8.31}, {"id": 9, "x": 35.11, "y": 69.97, "dia": 8.0, "post_dia": 2.6, "seg_len": 6.45}, {"id": 10, "x": 27.8, "y": 70.14, "dia": 8.0, "post_dia": 2.6, "seg_len": 10.29}, {"id": 11, "x": 22.24, "y": 76.55, "dia": 8.0, "post_dia": 2.6, "seg_len": 8.83}, {"id": 12, "x": 21.41, "y": 82.41, "dia": 8.0, "post_dia": 2.6, "seg_len": 3.05}, {"id": 13, "x": 26.64, "y": 81.77, "dia": 8.0, "post_dia": 2.6, "seg_len": 11.29}, {"id": 14, "x": 31.26, "y": 85.95, "dia": 8.0, "post_dia": 2.6, "seg_len": 12.75}, {"id": 15, "x": 26.05, "y": 97.78, "dia": 8.0, "post_dia": 2.6, "seg_len": 14.33}, {"id": 16, "x": 18.43, "y": 108.74, "dia": 8.0, "post_dia": 2.6, "seg_len": 12.49}, {"id": 17, "x": 20.74, "y": 112.49, "dia": 8.0, "post_dia": 2.6, "seg_len": 11.17}, {"id": 18, "x": 29.28, "y": 107.01, "dia": 8.0, "post_dia": 2.6, "seg_len": 9.9}, {"id": 20, "x": 45.2, "y": 87.05, "dia": 8.0, "post_dia": 2.6, "seg_len": 8.12}, {"id": 21, "x": 51.5, "y": 91.95, "dia": 8.0, "post_dia": 2.6, "seg_len": 10.88}, {"id": 22, "x": 56.62, "y": 93.62, "dia": 8.0, "post_dia": 2.6, "seg_len": 8.74}, {"id": 23, "x": 62.16, "y": 89.01, "dia": 8.0, "post_dia": 2.6, "seg_len": 5.94}, {"id": 24, "x": 68.64, "y": 90.45, "dia": 8.0, "post_dia": 2.6, "seg_len": 9.45}, {"id": 25, "x": 67.95, "y": 97.38, "dia": 8.0, "post_dia": 2.6, "seg_len": 12.28}, {"id": 26, "x": 58.59, "y": 104.7, "dia": 8.0, "post_dia": 2.6, "seg_len": 11.58}, {"id": 27, "x": 48.43, "y": 107.0, "dia": 8.0, "post_dia": 2.6, "seg_len": 10.76}, {"id": 28, "x": 45.43, "y": 111.62, "dia": 8.0, "post_dia": 2.6, "seg_len": 11.89}, {"id": 29, "x": 56.28, "y": 114.79, "dia": 8.0, "post_dia": 2.6, "seg_len": 17.68}, {"id": 30, "x": 69.88, "y": 107.93, "dia": 8.0, "post_dia": 2.6, "seg_len": 13.65}, {"id": 31, "x": 79.11, "y": 100.31, "dia": 8.0, "post_dia": 2.6, "seg_len": 10.31}, {"id": 32, "x": 87.19, "y": 98.81, "dia": 8.0, "post_dia": 2.6, "seg_len": 8.44}, {"id": 33, "x": 91.81, "y": 94.03, "dia": 8.0, "post_dia": 2.6, "seg_len": 12.76}, {"id": 34, "x": 97.12, "y": 86.24, "dia": 8.0, "post_dia": 2.6, "seg_len": 9.67}, {"id": 35, "x": 101.04, "y": 79.32, "dia": 8.0, "post_dia": 2.6, "seg_len": 11.05}, {"id": 36, "x": 94.12, "y": 76.15, "dia": 8.0, "post_dia": 2.6, "seg_len": 13.29}, {"id": 37, "x": 83.66, "y": 80.33, "dia": 8.0, "post_dia": 2.6, "seg_len": 9.24}, {"id": 39, "x": 59.95, "y": 76.78, "dia": 8.0, "post_dia": 2.6, "seg_len": 7.38}, {"id": 40, "x": 68.73, "y": 73.26, "dia": 8.0, "post_dia": 2.6, "seg_len": 11.57}, {"id": 41, "x": 80.27, "y": 69.51, "dia": 8.0, "post_dia": 2.6, "seg_len": 12.79}, {"id": 42, "x": 83.27, "y": 64.03, "dia": 8.0, "post_dia": 2.6, "seg_len": 10.34}, {"id": 43, "x": 75.43, "y": 59.99, "dia": 8.0, "post_dia": 2.6, "seg_len": 9.23}, {"id": 44, "x": 71.73, "y": 55.38, "dia": 8.0, "post_dia": 2.6, "seg_len": 9.41}, {"id": 45, "x": 71.73, "y": 46.14, "dia": 8.0, "post_dia": 2.6, "seg_len": 9.41}, {"id": 46, "x": 76.35, "y": 41.53, "dia": 8.0, "post_dia": 2.6, "seg_len": 11.08}, {"id": 47, "x": 82.58, "y": 46.14, "dia": 8.0, "post_dia": 2.6, "seg_len": 9.33}, {"id": 48, "x": 90.88, "y": 48.45, "dia": 8.0, "post_dia": 2.6, "seg_len": 15.91}, {"id": 49, "x": 104.73, "y": 47.88, "dia": 8.0, "post_dia": 2.6, "seg_len": 12.93}, {"id": 50, "x": 117.19, "y": 47.3, "dia": 8.0, "post_dia": 2.6, "seg_len": 13.29}, {"id": 51, "x": 121.81, "y": 49.61, "dia": 8.0, "post_dia": 2.6, "seg_len": 9.78}, {"id": 52, "x": 115.57, "y": 58.84, "dia": 8.0, "post_dia": 2.6, "seg_len": 13.05}, {"id": 53, "x": 104.03, "y": 61.72, "dia": 8.0, "post_dia": 2.6, "seg_len": 14.28}, {"id": 55, "x": 111.65, "y": 79.32, "dia": 8.0, "post_dia": 2.6, "seg_len": 11.05}, {"id": 56, "x": 107.72, "y": 90.85, "dia": 8.0, "post_dia": 2.6, "seg_len": 15.23}, {"id": 57, "x": 109.34, "y": 100.09, "dia": 8.0, "post_dia": 2.6, "seg_len": 13.98}, {"id": 58, "x": 117.88, "y": 108.74, "dia": 8.0, "post_dia": 2.6, "seg_len": 11.89}, {"id": 59, "x": 120.19, "y": 118.84, "dia": 8.0, "post_dia": 2.6, "seg_len": 9.23}, {"id": 60, "x": 122.7, "y": 126.36, "dia": 8.0, "post_dia": 2.6, "seg_len": 7.69}, {"id": 61, "x": 124.62, "y": 132.88, "dia": 8.0, "post_dia": 2.6, "seg_len": 7.31}, {"id": 63, "x": 142.8, "y": 127.2, "dia": 8.0, "post_dia": 2.6, "seg_len": 8.81}, {"id": 64, "x": 141.19, "y": 118.84, "dia": 8.0, "post_dia": 2.6, "seg_len": 9.33}, {"id": 65, "x": 146.5, "y": 117.39, "dia": 8.0, "post_dia": 2.6, "seg_len": 11.2}, {"id": 66, "x": 156.42, "y": 119.69, "dia": 8.0, "post_dia": 2.6, "seg_len": 10.75}, {"id": 67, "x": 159.42, "y": 124.31, "dia": 8.0, "post_dia": 2.6, "seg_len": 11.89}, {"id": 68, "x": 154.23, "y": 133.66, "dia": 8.0, "post_dia": 2.6, "seg_len": 9.65}, {"id": 69, "x": 155.84, "y": 138.85, "dia": 8.0, "post_dia": 2.6, "seg_len": 9.38}, {"id": 70, "x": 160.34, "y": 144.8, "dia": 8.0, "post_dia": 2.6, "seg_len": 9.23}, {"id": 71, "x": 156.34, "y": 151.02, "dia": 8.0, "post_dia": 2.6, "seg_len": 8.62}, {"id": 72, "x": 148.84, "y": 156.19, "dia": 8.0, "post_dia": 2.6, "seg_len": 9.97}, {"id": 73, "x": 151.23, "y": 166.1, "dia": 8.0, "post_dia": 2.6, "seg_len": 17.35}, {"id": 74, "x": 151.8, "y": 171.91, "dia": 8.0, "post_dia": 2.6, "seg_len": 10.68}, {"id": 75, "x": 141.19, "y": 172.77, "dia": 8.0, "post_dia": 2.6, "seg_len": 10.99}, {"id": 76, "x": 128.72, "y": 171.91, "dia": 8.0, "post_dia": 2.6, "seg_len": 15.03}, {"id": 77, "x": 126.41, "y": 167.29, "dia": 8.0, "post_dia": 2.6, "seg_len": 10.74}, {"id": 78, "x": 130.34, "y": 160.37, "dia": 8.0, "post_dia": 2.6, "seg_len": 9.41}, {"id": 79, "x": 132.32, "y": 154.77, "dia": 8.0, "post_dia": 2.6, "seg_len": 6.13}, {"id": 80, "x": 139.69, "y": 151.8, "dia": 8.0, "post_dia": 2.6, "seg_len": 9.76}, {"id": 81, "x": 142.31, "y": 144.42, "dia": 8.0, "post_dia": 2.6, "seg_len": 11.39}, {"id": 82, "x": 136.57, "y": 141.33, "dia": 8.0, "post_dia": 2.6, "seg_len": 9.1}, {"id": 83, "x": 125.72, "y": 141.33, "dia": 8.0, "post_dia": 2.6, "seg_len": 14.6}, {"id": 84, "x": 116.5, "y": 134.99, "dia": 8.0, "post_dia": 2.6, "seg_len": 9.29}, {"id": 85, "x": 108.65, "y": 135.56, "dia": 8.0, "post_dia": 2.6, "seg_len": 14.42}, {"id": 86, "x": 98.5, "y": 138.74, "dia": 8.0, "post_dia": 2.6, "seg_len": 9.67}, {"id": 87, "x": 100.11, "y": 131.24, "dia": 8.0, "post_dia": 2.6, "seg_len": 17.38}, {"id": 88, "x": 108.65, "y": 119.7, "dia": 8.0, "post_dia": 2.6, "seg_len": 11.89}, {"id": 89, "x": 105.66, "y": 112.49, "dia": 8.0, "post_dia": 2.6, "seg_len": 11.16}, {"id": 90, "x": 96.42, "y": 118.55, "dia": 8.0, "post_dia": 2.6, "seg_len": 17.44}, {"id": 91, "x": 91.81, "y": 121.14, "dia": 8.0, "post_dia": 2.6, "seg_len": 10.47}, {"id": 92, "x": 87.19, "y": 112.78, "dia": 8.0, "post_dia": 2.6, "seg_len": 10.1}, {"id": 93, "x": 79.35, "y": 112.78, "dia": 8.0, "post_dia": 2.6, "seg_len": 10.09}, {"id": 94, "x": 74.74, "y": 121.14, "dia": 8.0, "post_dia": 2.6, "seg_len": 10.47}, {"id": 95, "x": 67.12, "y": 125.75, "dia": 8.0, "post_dia": 2.6, "seg_len": 13.89}, {"id": 96, "x": 64.12, "y": 132.68, "dia": 8.0, "post_dia": 2.6, "seg_len": 16.93}, {"id": 97, "x": 62.51, "y": 144.8, "dia": 8.0, "post_dia": 2.6, "seg_len": 14.41}, {"id": 98, "x": 57.66, "y": 143.35, "dia": 8.0, "post_dia": 2.6, "seg_len": 12.2}, {"id": 99, "x": 53.73, "y": 135.85, "dia": 8.0, "post_dia": 2.6, "seg_len": 9.67}], "fastener_tabs": [[122.11, 164.52], [118.75, 145.03], [96.42, 143.34], [87.75, 123.26], [49.91, 148.13], [47.4, 129.59], [25.62, 115.92], [16.72, 63.86], [44.18, 47.98], [64.27, 41.05], [120.37, 107.6], [149.43, 112.16], [157.6, 166.9], [47.88, 72.39], [134.83, 132.24], [38.73, 97.33], [57.03, 117.28], [89.07, 57.42]]};
 
 let scene, camera, renderer, controls;
-let panelMesh, pocketsGroup, windowsGroup, channelsGroup, slackGroup, tabsGroup, pulseGroup;
+let panelMesh, channelsGroup, clipsGroup, collarsGroup, wiresGroup, bulbsGroup, slackGroup, tabsGroup, pulseGroup;
 let isXray = false;
 let isPulsing = false;
 let pulseIdx = 0;
-let pulseAnimFrame = null;
 
 function initThree() {
   const container = document.getElementById('three-canvas');
@@ -320,10 +355,11 @@ function initThree() {
   const h = container.clientHeight;
 
   scene = new THREE.Scene();
-  scene.background = new THREE.Color(0x06090d);
+  scene.background = new THREE.Color(0x06090e);
 
   camera = new THREE.PerspectiveCamera(40, w / h, 0.1, 2000);
-  camera.position.set(0, 0, 360);
+  // Default to Underside / Back View so channels and clips are immediately visible!
+  camera.position.set(0, 0, -340);
 
   renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
   renderer.setSize(w, h);
@@ -335,28 +371,31 @@ function initThree() {
   controls.enableDamping = true;
   controls.dampingFactor = 0.05;
 
-  // Lighting
-  const ambLight = new THREE.AmbientLight(0xffffff, 0.7);
+  // Rich lighting
+  const ambLight = new THREE.AmbientLight(0xffffff, 0.85);
   scene.add(ambLight);
 
-  const dirLight1 = new THREE.DirectionalLight(0x00ff88, 0.8);
-  dirLight1.position.set(100, 200, 200);
-  scene.add(dirLight1);
+  const keyLight = new THREE.DirectionalLight(0x00e5ff, 0.9);
+  keyLight.position.set(80, 150, -200);
+  scene.add(keyLight);
 
-  const dirLight2 = new THREE.DirectionalLight(0x00b4d8, 0.6);
-  dirLight2.position.set(-100, -100, 150);
-  scene.add(dirLight2);
+  const fillLight = new THREE.DirectionalLight(0xff9100, 0.7);
+  fillLight.position.set(-100, -100, -180);
+  scene.add(fillLight);
+
+  const frontLight = new THREE.DirectionalLight(0xffffff, 0.6);
+  frontLight.position.set(0, 50, 200);
+  scene.add(frontLight);
 
   build3DModel();
   animate();
 }
 
 function build3DModel() {
-  // Center coordinates around (0, 0)
   const cx = SPECS.panel_width_mm / 2.0;
   const cy = SPECS.panel_height_mm / 2.0;
 
-  // 1. TPU Base Shell Extrusion
+  // 1. Base TPU Shell
   const shape = new THREE.Shape();
   SPECS.contour_pts.forEach((p, idx) => {
     const x = p[0] - cx;
@@ -366,21 +405,17 @@ function build3DModel() {
   });
   shape.closePath();
 
-  // Subtract optical windows from 2D shape so front face has real holes!
+  // Optical windows
   SPECS.ordered_leds.forEach(l => {
     const hole = new THREE.Path();
-    const hx = l.x - cx;
-    const hy = l.y - cy;
-    hole.absarc(hx, hy, SPECS.led_window_dia_mm / 2.0, 0, Math.PI * 2, true);
+    hole.absarc(l.x - cx, l.y - cy, SPECS.led_window_dia_mm / 2.0, 0, Math.PI * 2, true);
     shape.holes.push(hole);
   });
 
-  // Subtract fastener needle holes
+  // Fastener holes
   SPECS.fastener_tabs.forEach(f => {
     const hole = new THREE.Path();
-    const fx = f[0] - cx;
-    const fy = f[1] - cy;
-    hole.absarc(fx, fy, SPECS.fastener_hole_dia_mm / 2.0, 0, Math.PI * 2, true);
+    hole.absarc(f[0] - cx, f[1] - cy, SPECS.fastener_hole_dia_mm / 2.0, 0, Math.PI * 2, true);
     shape.holes.push(hole);
   });
 
@@ -389,93 +424,197 @@ function build3DModel() {
     bevelEnabled: true,
     bevelSegments: 2,
     steps: 1,
-    bevelSize: 0.3,
-    bevelThickness: 0.3
+    bevelSize: 0.25,
+    bevelThickness: 0.25
   };
 
   const geom = new THREE.ExtrudeGeometry(shape, extrudeSettings);
   geom.center();
 
   const mat = new THREE.MeshPhysicalMaterial({
-    color: 0x1e293b,
-    roughness: 0.45,
-    metalness: 0.1,
-    transmission: 0.15,
+    color: 0x18202c,
+    roughness: 0.4,
+    metalness: 0.15,
+    transmission: 0.1,
     opacity: 0.95,
     transparent: true,
-    reflectivity: 0.5,
     side: THREE.DoubleSide
   });
 
   panelMesh = new THREE.Mesh(geom, mat);
   scene.add(panelMesh);
 
-  // 2. Rear LED Pockets (Visualized at back face Z = -1.0)
-  pocketsGroup = new THREE.Group();
-  const pocketGeom = new THREE.CylinderGeometry(SPECS.led_pocket_dia_mm / 2, SPECS.led_pocket_dia_mm / 2, 0.4, 16);
-  const pocketMat = new THREE.MeshBasicMaterial({ color: 0xe11d48, opacity: 0.85, transparent: true });
-  
-  SPECS.ordered_leds.forEach(l => {
-    const mesh = new THREE.Mesh(pocketGeom, pocketMat);
-    mesh.rotation.x = Math.PI / 2;
-    mesh.position.set(l.x - cx, l.y - cy, -1.05);
-    pocketsGroup.add(mesh);
-  });
-  scene.add(pocketsGroup);
-
-  // 3. Front Optical Windows Emitters (Visualized at front face Z = +1.1)
-  windowsGroup = new THREE.Group();
-  const winGeom = new THREE.CircleGeometry(SPECS.led_window_dia_mm / 2, 16);
-  SPECS.ordered_leds.forEach(l => {
-    const c = l.color || {r:0, g:255, b:100};
-    const winMat = new THREE.MeshBasicMaterial({ color: new THREE.Color(`rgb(${c.r},${c.g},${c.b})`) });
-    const mesh = new THREE.Mesh(winGeom, winMat);
-    mesh.position.set(l.x - cx, l.y - cy, 1.15);
-    windowsGroup.add(mesh);
-  });
-  scene.add(windowsGroup);
-
-  // 4. Rear Wire Channels (Yellow routing tracks on back face)
+  // 2. 3D Recessed Wire Channels (Real volumetric trenches!)
   channelsGroup = new THREE.Group();
-  const chanMat = new THREE.LineBasicMaterial({ color: 0xf59e0b, linewidth: 2 });
+  const trenchMat = new THREE.MeshStandardMaterial({
+    color: 0x0a1017,
+    roughness: 0.7,
+    metalness: 0.2
+  });
+  const trenchRimMat = new THREE.LineBasicMaterial({ color: 0x0284c7 });
+
   SPECS.wire_segments.forEach(seg => {
     const p1 = seg[0];
     const p2 = seg[1];
-    const points = [
-      new THREE.Vector3(p1[0] - cx, p1[1] - cy, -1.1),
-      new THREE.Vector3(p2[0] - cx, p2[1] - cy, -1.1)
-    ];
-    const lineGeom = new THREE.BufferGeometry().setFromPoints(points);
-    const line = new THREE.Line(lineGeom, chanMat);
-    channelsGroup.add(line);
+    const dx = p2[0] - p1[0];
+    const dy = p2[1] - p1[1];
+    const len = Math.hypot(dx, dy);
+    const angle = Math.atan2(dy, dx);
+    const mx = (p1[0] + p2[0]) / 2.0 - cx;
+    const my = (p1[1] + p2[1]) / 2.0 - cy;
+
+    // Trench box
+    const trenchGeom = new THREE.BoxGeometry(len, SPECS.wire_channel_width_mm, SPECS.wire_channel_depth_mm);
+    const trenchMesh = new THREE.Mesh(trenchGeom, trenchMat);
+    trenchMesh.position.set(mx, my, -1.0 + SPECS.wire_channel_depth_mm / 2.0);
+    trenchMesh.rotation.z = angle;
+    channelsGroup.add(trenchMesh);
   });
   scene.add(channelsGroup);
 
-  // 5. Slack Coiling Wells (Purple circles)
+  // 3. 3D Wire Snap-Retention Clips (High-visibility Cyan Bridges)
+  clipsGroup = new THREE.Group();
+  const clipMat = new THREE.MeshStandardMaterial({
+    color: 0x00e5ff,
+    roughness: 0.3,
+    metalness: 0.3,
+    emissive: 0x005577,
+    emissiveIntensity: 0.2
+  });
+
+  SPECS.wire_clips.forEach(c => {
+    const mx = c.x - cx;
+    const my = c.y - cy;
+    const rad = (c.angle * Math.PI) / 180.0;
+
+    // Left snap finger
+    const fGeom = new THREE.BoxGeometry(2.2, 0.7, 0.55);
+    const fMeshL = new THREE.Mesh(fGeom, clipMat);
+    fMeshL.position.set(mx, my, -1.25);
+    fMeshL.rotation.z = rad;
+    fMeshL.translateY(-0.75);
+    clipsGroup.add(fMeshL);
+
+    // Right snap finger
+    const fMeshR = new THREE.Mesh(fGeom, clipMat);
+    fMeshR.position.set(mx, my, -1.25);
+    fMeshR.rotation.z = rad;
+    fMeshR.translateY(0.75);
+    clipsGroup.add(fMeshR);
+  });
+  scene.add(clipsGroup);
+
+  // 4. 3D LED Retaining Snap Collars (Vivid Amber Rings with Inward Lips)
+  collarsGroup = new THREE.Group();
+  const collarMat = new THREE.MeshStandardMaterial({
+    color: 0xff9100,
+    roughness: 0.3,
+    metalness: 0.2,
+    emissive: 0x663300,
+    emissiveIntensity: 0.3
+  });
+
+  const collarGeom = new THREE.RingGeometry(SPECS.led_pocket_dia_mm / 2 - 0.4, SPECS.led_pocket_dia_mm / 2 + 0.5, 20);
+  SPECS.ordered_leds.forEach(l => {
+    const mesh = new THREE.Mesh(collarGeom, collarMat);
+    mesh.position.set(l.x - cx, l.y - cy, -1.22);
+    collarsGroup.add(mesh);
+  });
+  scene.add(collarsGroup);
+
+  // 5. 3D Black Fairy Light Wire (Continuous 3D Cylindrical Cable!)
+  wiresGroup = new THREE.Group();
+  const wireMat = new THREE.MeshStandardMaterial({
+    color: 0x111111,
+    roughness: 0.5,
+    metalness: 0.4
+  });
+
+  SPECS.wire_segments.forEach(seg => {
+    const p1 = seg[0];
+    const p2 = seg[1];
+    const dx = p2[0] - p1[0];
+    const dy = p2[1] - p1[1];
+    const len = Math.hypot(dx, dy);
+    const angle = Math.atan2(dy, dx);
+    const mx = (p1[0] + p2[0]) / 2.0 - cx;
+    const my = (p1[1] + p2[1]) / 2.0 - cy;
+
+    const cylGeom = new THREE.CylinderGeometry(0.55, 0.55, len, 10);
+    const wireCyl = new THREE.Mesh(cylGeom, wireMat);
+    wireCyl.rotation.z = angle - Math.PI / 2;
+    wireCyl.position.set(mx, my, -0.65);
+    wiresGroup.add(wireCyl);
+  });
+  scene.add(wiresGroup);
+
+  // 6. 3D Resin LED Teardrop Bulbs (Translucent Epoxy Nodes with Emitter Cores)
+  bulbsGroup = new THREE.Group();
+  const bulbResinMat = new THREE.MeshPhysicalMaterial({
+    color: 0xa7f3d0,
+    roughness: 0.2,
+    metalness: 0.1,
+    transmission: 0.7,
+    opacity: 0.85,
+    transparent: true
+  });
+
+  const bulbGeom = new THREE.SphereGeometry(2.3, 16, 16);
+  SPECS.ordered_leds.forEach(l => {
+    const c = l.color || {r: 0, g: 255, b: 100};
+    const bulbMesh = new THREE.Mesh(bulbGeom, bulbResinMat);
+    bulbMesh.scale.set(1.0, 1.0, 0.65);
+    bulbMesh.position.set(l.x - cx, l.y - cy, -0.5);
+
+    // Glowing core emitter chip inside
+    const coreGeom = new THREE.BoxGeometry(0.8, 0.8, 0.4);
+    const coreMat = new THREE.MeshBasicMaterial({ color: new THREE.Color(`rgb(${c.r},${c.g},${c.b})`) });
+    const coreMesh = new THREE.Mesh(coreGeom, coreMat);
+    coreMesh.position.set(l.x - cx, l.y - cy, -0.5);
+
+    bulbsGroup.add(bulbMesh);
+    bulbsGroup.add(coreMesh);
+  });
+  scene.add(bulbsGroup);
+
+  // 7. Slack Wells with Center Spool Posts
   slackGroup = new THREE.Group();
-  const slackGeom = new THREE.RingGeometry(2.0, 4.0, 16);
-  const slackMat = new THREE.MeshBasicMaterial({ color: 0xa855f7, side: THREE.DoubleSide });
+  const spoolMat = new THREE.MeshStandardMaterial({
+    color: 0xc084fc,
+    roughness: 0.4,
+    metalness: 0.2
+  });
+  const spoolGeom = new THREE.CylinderGeometry(1.3, 1.3, 1.1, 16);
+  const coilGeom = new THREE.TorusGeometry(2.4, 0.4, 8, 20);
+
   SPECS.slack_wells.forEach(w => {
-    const ring = new THREE.Mesh(slackGeom, slackMat);
-    ring.position.set(w[0] - cx, w[1] - cy, -1.12);
-    slackGroup.add(ring);
+    // Center post
+    const postMesh = new THREE.Mesh(spoolGeom, spoolMat);
+    postMesh.rotation.x = Math.PI / 2;
+    postMesh.position.set(w.x - cx, w.y - cy, -0.65);
+    slackGroup.add(postMesh);
+
+    // Wire loop around post
+    const coilMesh = new THREE.Mesh(coilGeom, wireMat);
+    coilMesh.position.set(w.x - cx, w.y - cy, -0.65);
+    slackGroup.add(coilMesh);
   });
   scene.add(slackGroup);
 
-  // 6. Tagging Gun Fastener Eyelets (Blue rings)
+  // 8. Fastener Tabs (Blue rings)
   tabsGroup = new THREE.Group();
-  const tabGeom = new THREE.RingGeometry(1.1, 2.5, 16);
+  const tabGeom = new THREE.RingGeometry(1.1, 2.4, 16);
   const tabMat = new THREE.MeshBasicMaterial({ color: 0x0284c7, side: THREE.DoubleSide });
   SPECS.fastener_tabs.forEach(f => {
     const ring = new THREE.Mesh(tabGeom, tabMat);
-    ring.position.set(f[0] - cx, f[1] - cy, 1.16);
+    ring.position.set(f[0] - cx, f[1] - cy, 1.15);
     tabsGroup.add(ring);
   });
   scene.add(tabsGroup);
 
-  // 7. Pulse Spark Packet
+  // 9. Pulse Spark Packet
   pulseGroup = new THREE.Group();
-  const pulseGeom = new THREE.SphereGeometry(3.0, 16, 16);
+  const pulseGeom = new THREE.SphereGeometry(3.2, 16, 16);
   const pulseMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
   const pulseSphere = new THREE.Mesh(pulseGeom, pulseMat);
   pulseSphere.name = "spark";
@@ -489,7 +628,7 @@ function animate() {
   controls.update();
 
   if (isPulsing) {
-    pulseIdx = (pulseIdx + 0.4) % SPECS.ordered_leds.length;
+    pulseIdx = (pulseIdx + 0.35) % SPECS.ordered_leds.length;
     const l1 = SPECS.ordered_leds[Math.floor(pulseIdx)];
     const l2 = SPECS.ordered_leds[(Math.floor(pulseIdx) + 1) % SPECS.ordered_leds.length];
     const t = pulseIdx - Math.floor(pulseIdx);
@@ -500,7 +639,7 @@ function animate() {
     if (spark) {
       spark.position.x = (l1.x + (l2.x - l1.x) * t) - cx;
       spark.position.y = (l1.y + (l2.y - l1.y) * t) - cy;
-      spark.position.z = 2.0;
+      spark.position.z = -1.6;
     }
   }
 
@@ -509,19 +648,56 @@ function animate() {
 
 function setView(view) {
   document.querySelectorAll('.view-controls .btn').forEach(b => b.classList.remove('active'));
-  if (view === 'front') {
-    document.getElementById('btn-front').classList.add('active');
-    camera.position.set(0, 0, 360);
-    camera.rotation.set(0, 0, 0);
-    controls.target.set(0, 0, 0);
-  } else if (view === 'back') {
+  const banner = document.getElementById('view-banner');
+
+  if (view === 'back') {
     document.getElementById('btn-back').classList.add('active');
-    camera.position.set(0, 0, -360);
+    camera.position.set(0, 0, -340);
     controls.target.set(0, 0, 0);
+    banner.innerHTML = "🛠️ VIEWING: UNDERSIDE ASSEMBLY (Pockets, Channels & Clips)";
+    banner.style.color = "#00e5ff";
+    banner.style.borderColor = "#00e5ff";
+  } else if (view === 'front') {
+    document.getElementById('btn-front').classList.add('active');
+    camera.position.set(0, 0, 340);
+    controls.target.set(0, 0, 0);
+    banner.innerHTML = "👕 VIEWING: RACE-DAY EXTERIOR (Front Face Optical Windows)";
+    banner.style.color = "#00ff88";
+    banner.style.borderColor = "#00ff88";
   } else if (view === 'iso') {
     document.getElementById('btn-iso').classList.add('active');
-    camera.position.set(160, -180, 240);
+    camera.position.set(160, -170, -220);
     controls.target.set(0, 0, 0);
+  }
+}
+
+function zoomToFeature(feat) {
+  const cx = SPECS.panel_width_mm / 2.0;
+  const cy = SPECS.panel_height_mm / 2.0;
+
+  if (feat === 'clip') {
+    // Focus on first wire clip
+    const c = SPECS.wire_clips[0] || {x: 40, y: 60};
+    const targetX = c.x - cx;
+    const targetY = c.y - cy;
+    controls.target.set(targetX, targetY, -1.0);
+    camera.position.set(targetX, targetY - 20, -50);
+  } else if (feat === 'pocket') {
+    // Focus on first LED pocket
+    const l = SPECS.ordered_leds[0] || {x: 20, y: 50};
+    const targetX = l.x - cx;
+    const targetY = l.y - cy;
+    controls.target.set(targetX, targetY, -1.0);
+    camera.position.set(targetX, targetY - 15, -45);
+  } else if (feat === 'slack') {
+    // Focus on first slack spool
+    const w = SPECS.slack_wells[0] || {x: 30, y: 60};
+    const targetX = w.x - cx;
+    const targetY = w.y - cy;
+    controls.target.set(targetX, targetY, -1.0);
+    camera.position.set(targetX, targetY - 25, -60);
+  } else if (feat === 'reset') {
+    setView('back');
   }
 }
 
@@ -530,7 +706,7 @@ function toggleXray() {
   document.getElementById('btn-xray').classList.toggle('active', isXray);
   if (panelMesh) {
     panelMesh.material.wireframe = isXray;
-    panelMesh.material.opacity = isXray ? 0.35 : 0.95;
+    panelMesh.material.opacity = isXray ? 0.25 : 0.95;
   }
 }
 
@@ -542,9 +718,11 @@ function togglePulse() {
 
 function updateLayers() {
   panelMesh.visible = document.getElementById('layer-shell').checked;
-  pocketsGroup.visible = document.getElementById('layer-pockets').checked;
-  windowsGroup.visible = document.getElementById('layer-windows').checked;
+  clipsGroup.visible = document.getElementById('layer-clips').checked;
+  collarsGroup.visible = document.getElementById('layer-collars').checked;
   channelsGroup.visible = document.getElementById('layer-channels').checked;
+  wiresGroup.visible = document.getElementById('layer-wires').checked;
+  bulbsGroup.visible = document.getElementById('layer-bulbs').checked;
   slackGroup.visible = document.getElementById('layer-slack').checked;
   tabsGroup.visible = document.getElementById('layer-tabs').checked;
 }

@@ -104,15 +104,17 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
   - **Rear Pockets & Front Optical Windows:**
     - Rear press-fit pockets (Ø5.4mm × 1.4mm depth) firmly seat standard 5.0mm teardrop resin LEDs with a slight friction bevel.
     - Front optical apertures (Ø3.2mm through-holes) let raw LED emitters shine through forward with maximum optical punch and zero light attenuation.
-  - **Rear Daisy-Chain Wire Channels & Slack Wells:**
+  - **Rear Daisy-Chain Wire Channels, Snap Clips & Spool Wells:**
     - Recessed underside wire tracks (1.8mm wide × 1.2mm deep) guide the 3-strand enameled wire sequentially from LED 1 to 100.
-    - Added 94 expansion slack coiling wells (Ø8.0mm × 1.2mm depth) for LED pairs with spacing < 18mm, allowing runners to loop extra wire flat without pinching or bulging against the shirt.
+    - Added **92 physical wire snap-retention clips** (flexible TPU bridges with 1.1mm pinch slots) spanning across the channels to prevent springy fairy wires from popping out during assembly.
+    - Added **100 LED snap collars** (inward retaining lips narrowing pocket mouths to Ø4.7mm) that snap-lock the 5.0mm resin teardrop bulbs into place.
+    - Added **94 slack coiling wells with Ø2.6mm center spool posts** allowing excess wire loops to wrap cleanly without untangling.
   - **Integrated Tagging Gun Attachment System:**
     - Engineered 18 garment fastener tabs (13 perimeter + 5 interior voids) featuring 2.2mm needle pass-through holes and 4.8mm × 0.6mm front countersunk recesses.
     - Allows standard 10mm plastic tagging gun barbs (Kimble tags) to anchor the panel flush to black running shirts quickly, sweat-proof, and race-durable.
   - **Parametric OpenSCAD Model & Interactive 3D Web Inspector:**
-    - Emitted `3d_panels/petes_dragon_tpu_panel.scad` with parametric customizer variables (`panel_thickness`, `led_pocket_dia`, `wire_channel_width`, `slack_well_dia`, `fastener_hole_dia`).
-    - Built interactive WebGL/Three.js 3D viewer (`3d_panels/tpu_panel_preview.html`) with layer toggles, front/back camera views, X-ray wireframe, live DIN fairy light data streaming simulation, and complete Snapmaker U1 95A TPU slicing profile.
+    - Emitted `3d_panels/petes_dragon_tpu_panel.scad` with additive snap retention modules (`additive_retention_features()`).
+    - Built interactive WebGL/Three.js 3D viewer (`3d_panels/tpu_panel_preview.html`) with true 3D volumetric trenches, vivid cyan snap clips, amber LED retaining collars, 3D black fairy wire strands, 3D resin LED bulbs, zoom-to-feature camera presets, and live DIN simulation.
 
 ### Entry: Turnkey SMT Assembly Export (JLCPCB BOM & CPL Centroid Bundle)
 * **Date:** 2026-10-03
