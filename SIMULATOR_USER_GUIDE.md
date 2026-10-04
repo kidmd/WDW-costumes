@@ -1115,34 +1115,35 @@ scripts/generate_3d_panel.py
       └── 3d_panels/petes_dragon_specs.json       (Mechanical Coordinates & Sizing)
 ```
 
-### 🦺 Wearable Architecture & Specs:
+### 🦺 Wearable Architecture & Specs (5.5mm High-Clearance Armor Plate):
 1. **Material & Geometry:**
    - **Filament:** 95A Flexible TPU (e.g., Polymaker PolyFlex, Overture TPU).
-   - **Thickness:** 2.0 mm flat wearable plate ($185.0 \text{ mm W} \times 222.1 \text{ mm H}$).
-   - **Flat Bed Printing:** Prints completely flat on the Snapmaker U1 build plate with **ZERO supports** required. 95A TPU naturally wraps over the runner's chest contours and flexes smoothly during running strides.
-2. **Rear Press-Fit LED Pockets & Front Optical Windows:**
-   - **Rear Pockets:** $\varnothing 5.4\text{ mm} \times 1.4\text{ mm}$ depth recessed cylindrical wells with friction-retention bevel, perfectly sized for standard $5.0\text{ mm} \times 3.2\text{ mm}$ resin teardrop fairy light pixels.
-   - **Front Optical Windows:** $\varnothing 3.2\text{ mm}$ through-holes centered over each pocket so the raw LED emitter lens shines forward unobstructed with 100% optical punch and zero light attenuation.
-3. **Daisy-Chain Wire Tracks & Safe Snap Clips:**
-   - **Underside Wire Channels:** $1.8\text{ mm wide} \times 1.2\text{ mm deep}$ continuous recessed trenches carved into the underside of the plate, guiding the 3-strand black enameled wire sequentially from LED 1 (battery feed) to LED 100 (snout).
-   - **Wire Retention Bridges (13 Clips):** Integrated $2.2\text{ mm}$ wide surface bridges across long spans ($\ge 15\text{ mm}$ with $> 5.5\text{ mm}$ clearance from holes) featuring an engineered $1.1\text{ mm}$ pinch slit for snap-in wire retention without glue or tape.
-4. **Garment Tagging Gun Attachment System:**
-   - **16 Perimeter Eyelets:** Arranged strictly along the outer perimeter border at ~42 mm intervals (zero internal punctures through artwork).
+   - **Thickness:** 5.5 mm wearable armor plate ($185.0 \text{ mm W} \times 222.1 \text{ mm H}$).
+   - **Waffle-Flex Dynamic:** Although 5.5mm thick, the extensive underside network of 4.4mm channels and 4.5mm deep expansion bays acts like a flexible waffle-sole shoe, allowing the armor to contour softly across a runner's chest while fully protecting internal wiring.
+   - **Lightweight:** Net volume is only $\sim 25.4\text{ cm}^3$, weighing just **$\approx 52\text{ grams}$ ($1.8\text{ oz}$)**—lighter than an energy gel!
+2. **Rear 10mm x 5mm Oval LED Pockets & Front Optical Apertures:**
+   - **Rear Oval Pockets:** $10.6\text{ mm long} \times 5.6\text{ mm wide} \times 3.0\text{ mm deep}$ recessed stadium wells with friction-retention bevel, sized for $10.0\text{ mm} \times 5.0\text{ mm}$ resin teardrop pixels.
+   - **Front Optical Windows:** $6.0\text{ mm} \times 3.5\text{ mm}$ oval through-holes centered over each emitter to maximize light transmission while keeping the bulb body recessed.
+3. **On-Edge Slack Expansion Wells (Physics of 3-Conductor Flat Ribbon):**
+   - **Natural Ribbon Bending:** Because 3-strand flat wire binds and twists when bent in-plane, each LED socket features a dedicated $\varnothing 9.0\text{ mm} \times 4.5\text{ mm deep}$ expansion chamber where the wire turns $90^\circ$ onto its $4.0\text{ mm}$ side.
+   - **Slack Absorption:** Seamlessly absorbs the remaining $\approx 35\text{ mm}$ of wire between consecutive LEDs without bunching, buckling, or pressing against the runner's shirt.
+4. **4.4mm Ribbon Tracks & Retention Snap Clips:**
+   - **Underside Channels:** $4.4\text{ mm wide} \times 1.4\text{ mm deep}$ continuous recessed trenches carved into the underside along the sequential wiring route.
+   - **Wire Retention Bridges (95 Clips):** Integrated $3.0\text{ mm}$ wide surface bridges across spans featuring an engineered $1.4\text{ mm}$ pinch slit for snap-in wire retention without tape or zip-ties.
+5. **Garment Tagging Gun Attachment System:**
+   - **16 Perimeter Eyelets:** Arranged strictly along the outer border (zero internal punctures through artwork).
    - **Fastener Holes:** $\varnothing 2.2\text{ mm}$ through-holes sized for standard $1.8\text{ mm}$ tagging gun needles.
-   - **Countersunk Recesses:** $\varnothing 4.8\text{ mm} \times 0.6\text{ mm}$ front face recesses allowing standard 10mm polypropylene garment fastener T-bars (Kimble tags) to seat flush and sweat-proof against black running shirts.
-5. **Interactive 3D Preview & STL Export:**
-   - **Solid TPU Inspection:** The 3D inspector renders realistic solid 95A TPU (`#1e293b`), sunken 3D trench bed channels ($Z = -1.2\text{ mm}$), vertical sidewalls, and deep recessed cylindrical wells ($Z = -1.4\text{ mm}$).
-   - **Direct STL Export:** Click **"📦 Export & Download STL (.stl)"** on the preview header to generate a watertight binary STL mesh ready to slice in Snapmaker Luban, Bambu Studio, or view in any online 3D viewer.
+   - **Countersunk Recesses:** $\varnothing 4.8\text{ mm} \times 1.0\text{ mm}$ front face recesses allowing standard 10mm polypropylene garment fastener T-bars (Kimble tags) to seat flush against black running shirts.
 
 ### 🖨️ Snapmaker U1 95A TPU Slicing Profile:
-- **Nozzle Temp:** 220°C – 230°C (0.4mm nozzle).
+- **Nozzle Temp:** 225°C – 235°C (0.4mm nozzle).
 - **Bed Temp:** 50°C (PEI textured sheet).
 - **Print Speed:** 30 mm/s (First layer: 15 mm/s).
 - **Layer Height:** 0.20 mm.
 - **Infill:** 100% Solid.
 - **Retraction:** 1.8 mm @ 20 mm/s (Direct Drive).
-- **Filament Weight:** ~48 grams of TPU.
-- **Print Duration:** ~1 hr 45 min.
+- **Filament Weight:** ~52 grams of TPU.
+- **Print Duration:** ~2 hr 10 min.
 
 ---
 

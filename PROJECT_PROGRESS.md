@@ -93,6 +93,20 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### Entry: 5.5mm High-Clearance Armor Plate with 10x5mm Oval LEDs & 4.5mm On-Edge Slack Wells
+* **Date:** 2026-10-04
+* **Milestone:** Milestone 5 - 3D-Printable Flexible Wearable TPU Panel Fabrication
+* **Status:** Complete & Verified (`3d_panels/petes_dragon_tpu_panel.stl`, `3d_panels/petes_dragon_tpu_panel.scad`, `3d_panels/tpu_panel_preview.html`, `3d_panels/petes_dragon_specs.json`).
+* **Notes:**
+  * **Real Hardware Specifications Implemented:**
+    - **LED Bulb Pockets:** Scaled from round Ø5.4mm to $10.6\text{ mm} \times 5.6\text{ mm} \times 3.0\text{ mm}$ deep oval stadium pockets to house $10.0\text{ mm} \times 5.0\text{ mm}$ oval teardrop resin pixels.
+    - **Front Optical Windows:** $6.0\text{ mm} \times 3.5\text{ mm}$ oval apertures to let raw LED lenses shine forward.
+    - **Ribbon Wire Channels:** Widened to $4.4\text{ mm wide} \times 1.4\text{ mm deep}$ to seat 3-conductor flat ribbon wire.
+    - **On-Edge Slack Absorption Wells:** Added $\varnothing 9.0\text{ mm} \times 4.5\text{ mm deep}$ expansion chambers at each LED to solve flat ribbon in-plane bending physics (wire turns $90^\circ$ onto its $4.0\text{ mm}$ edge to loop effortlessly without buckling).
+    - **Panel Thickness:** Increased base plate to $5.5\text{ mm}$ to house the $4.5\text{ mm}$ deep wells while preserving a solid $1.0\text{ mm}$ front face skin.
+  * **Choreographed Spacing:** Utilized Chris's exact sequential preset order (averaging $65.0\text{ mm}$ spans), keeping slack to a manageable $\approx 35\text{ mm}$ per segment.
+  * **Mesh Validation & Export:** Compiled solid CSG boolean STL ($1,311,284\text{ bytes}$, volume $25,446.2\text{ mm}^3$, zero boundary edge errors). Available via direct download in `tpu_panel_preview.html` and OpenSCAD parametric source.
+
 ### Entry: Watertight Manifold Binary STL Generation (`petes_dragon_tpu_panel.stl`)
 * **Date:** 2026-10-04
 * **Milestone:** Milestone 5 - 3D-Printable Flexible Wearable TPU Panel Fabrication

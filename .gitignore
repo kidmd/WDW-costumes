@@ -33,3 +33,6 @@ __pycache__/
 # Local Wi-Fi Credentials & Secrets
 include/wifi_config.h
 presets/wifi_settings.json
+
+# Scratch scripts
+scratch/
