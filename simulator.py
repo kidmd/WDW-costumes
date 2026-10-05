@@ -1183,11 +1183,11 @@ const uint8_t PROGMEM SPATIAL_RADIUS_BYTE[FRONT_LEDS] = {{
                 img_w, img_h = a_img.size
                 aspect = img_w / float(img_h)
 
-            # 1. Front Plate (Chest above Bib #1952): Base width 185mm, clamped max 200mm
+            # 1. Front Plate (Chest above Bib #1952): Base width 185mm, clamped max 220mm (physical clearance strictly above Bib #1952)
             FRONT_WIDTH_MM = 185.0
             FRONT_HEIGHT_MM = round(FRONT_WIDTH_MM / aspect, 2)
-            if FRONT_HEIGHT_MM > 200.0:
-                FRONT_HEIGHT_MM = 200.0
+            if FRONT_HEIGHT_MM > 220.0:
+                FRONT_HEIGHT_MM = 220.0
                 FRONT_WIDTH_MM = round(FRONT_HEIGHT_MM * aspect, 2)
             elif FRONT_WIDTH_MM > 200.0:
                 FRONT_WIDTH_MM = 200.0

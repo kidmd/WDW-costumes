@@ -62,13 +62,44 @@ def compile_plate_variant(variant_name, width_mm, height_mm, raw_leds, artwork_p
     num_leds = len(raw_leds)
     leds = [dict(l) for l in raw_leds]
 
-    # 1. LED Collar Horizontal Orientation & PBD Collision Avoidance
+    # 1. Extract Active Silhouette Boundary & Safe Artwork Containment Zone
+    active_img = Image.open(artwork_path)
+    img_w, img_h = active_img.size
+    img_arr = np.array(active_img)
+
+    if img_arr.ndim == 3 and img_arr.shape[2] == 4:
+        alpha = img_arr[:, :, 3]
+        mask = (alpha > 40).astype(np.uint8)
+    else:
+        gray = cv2.cvtColor(img_arr, cv2.COLOR_RGB2GRAY) if img_arr.ndim == 3 else img_arr
+        _, mask = cv2.threshold(gray, 20, 255, cv2.THRESH_BINARY)
+
+    raw_contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    if raw_contours:
+        main_raw = max(raw_contours, key=cv2.contourArea)
+        epsilon_raw = 0.0022 * cv2.arcLength(main_raw, True)
+        approx_raw = cv2.approxPolyDP(main_raw, epsilon_raw, True)
+        raw_pts = []
+        for pt in approx_raw:
+            cx = round((pt[0][0] / img_w) * width_mm, 2)
+            cy = round((1.0 - pt[0][1] / img_h) * height_mm, 2)
+            raw_pts.append((cx, cy))
+        dragon_poly = sg.Polygon(raw_pts)
+        if not dragon_poly.is_valid:
+            dragon_poly = dragon_poly.buffer(0)
+        safe_art_boundary = dragon_poly.buffer(-2.0, resolution=16)
+        if safe_art_boundary.geom_type == 'MultiPolygon':
+            safe_art_boundary = max(safe_art_boundary.geoms, key=lambda g: g.area)
+    else:
+        safe_art_boundary = sg.box(5.0, 5.0, width_mm - 5.0, height_mm - 5.0)
+
+    # 2. LED Collar Horizontal Orientation & PBD Collision Avoidance with Artwork Boundary Clamping
     led_rotations_deg = [0.0] * num_leds
-    pts = np.array([[l['x'], l['y']] for l in leds])
+    pts = np.array([[l['x'], l['y']] for l in leds], dtype=np.float64)
     orig_pts = pts.copy()
     req_dist = 7.4 + 0.5 # 7.9 mm center distance
 
-    for iteration in range(250):
+    for iteration in range(60):
         for i in range(num_leds):
             for j in range(i + 1, num_leds):
                 dx = pts[j, 0] - pts[i, 0]
@@ -87,10 +118,17 @@ def compile_plate_variant(variant_name, width_mm, height_mm, raw_leds, artwork_p
                         nx = (seg_dx / center_dist) * (1.0 if dx >= 0 else -1.0)
                         ny = (seg_dy / center_dist) * (1.0 if dy >= 0 else -1.0)
                     
-                    push_x = nx * pen * 0.5
-                    push_y = ny * pen * 0.5
+                    push_x = nx * pen * 0.35
+                    push_y = ny * pen * 0.35
                     pts[i] -= [push_x, push_y]
                     pts[j] += [push_x, push_y]
+
+        # Clamp strictly within artwork boundary so LEDs never bleed out into empty space!
+        for i in range(num_leds):
+            pt = sg.Point(pts[i])
+            if not safe_art_boundary.contains(pt):
+                nearest = safe_art_boundary.exterior.interpolate(safe_art_boundary.exterior.project(pt))
+                pts[i] = [nearest.x, nearest.y]
 
     max_shift = np.max(np.hypot(pts[:, 0] - orig_pts[:, 0], pts[:, 1] - orig_pts[:, 1]))
     avg_shift = np.mean(np.hypot(pts[:, 0] - orig_pts[:, 0], pts[:, 1] - orig_pts[:, 1]))
@@ -99,18 +137,7 @@ def compile_plate_variant(variant_name, width_mm, height_mm, raw_leds, artwork_p
         leds[i]['x'] = round(float(pts[i, 0]), 2)
         leds[i]['y'] = round(float(pts[i, 1]), 2)
 
-    # 2. Extract Active Silhouette Boundary & Dilate Outer Rim
-    active_img = Image.open(artwork_path)
-    img_w, img_h = active_img.size
-    img_arr = np.array(active_img)
-
-    if img_arr.ndim == 3 and img_arr.shape[2] == 4:
-        alpha = img_arr[:, :, 3]
-        mask = (alpha > 40).astype(np.uint8)
-    else:
-        gray = cv2.cvtColor(img_arr, cv2.COLOR_RGB2GRAY) if img_arr.ndim == 3 else img_arr
-        _, mask = cv2.threshold(gray, 20, 255, cv2.THRESH_BINARY)
-
+    # 3. Dilate Outer Rim and Generate Armor Plate Polygon
     kernel_size = max(5, int(min(img_w, img_h) * 0.02))
     if kernel_size % 2 == 0: kernel_size += 1
     mask_dilated = cv2.dilate(mask, np.ones((kernel_size, kernel_size), np.uint8), iterations=2)

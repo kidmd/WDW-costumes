@@ -93,6 +93,17 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### Entry: Silhouette Containment Clamping in PBD Collision Solver & Front/Back LED Placement Fix
+* **Date:** 2026-10-05 (Night Imagineering Session)
+* **Milestone:** Milestone 5 - 3D-Printable Flexible Wearable TPU Panel Fabrication & Deploy Suite
+* **Status:** Complete & Verified (`simulator.py`, `scripts/compile_clean_tpu_panel.py`, `simulator/index.html`, `SIMULATOR_USER_GUIDE.md`).
+* **Implementation Details:**
+  - **Root Cause Analysis:** In the 3D TPU Preview, the Front plate displayed LEDs bleeding outside the dragon artwork into empty space while the Back plate looked correct. Investigation revealed that the PBD collision solver previously repelled colliding sockets with unconstrained repulsion. In the tighter Front plate footprint ($166.6 \times 200\text{ mm}$), the repulsive forces pushed 30 LEDs outside the dragon boundary into empty transparent air ($alpha = 0$). Conversely, on the $1.3\times$ larger Back plate ($240\text{ mm}$), sockets had enough room and remained inside the artwork.
+  - **Artwork Boundary Containment Clamping:** Updated `scripts/compile_clean_tpu_panel.py` to extract the un-dilated artwork silhouette polygon (`dragon_poly`) and construct a `safe_art_boundary = dragon_poly.buffer(-2.0)`. During each PBD iteration, any LED center driven outside the safe boundary is immediately projected back onto the nearest interior polygon contour.
+  - **Zero Artwork Spill Verification:** Automated testing verified that **100 / 100 LEDs** on the Front plate and **100 / 100 LEDs** on the Back plate now sit strictly inside the artwork silhouette ($alpha > 40$, 0 outside).
+  - **Front Height Clamping Adjustment:** In `simulator.py`, adjusted `FRONT_HEIGHT_MM` max clamping to $220.0\text{ mm}$ (the exact physical distance from neck collar $y = 0.168$ to race bib $y = 0.553$), allowing full $185.0\text{ mm}$ base width without premature aspect shrinkage. Actual 3D printed plate dimensions are $158.4 \times 143.1\text{ mm}$ (Front) and $184.5 \times 165.1\text{ mm}$ (Back), easily fitting within both Bambu Lab ($250 \times 250\text{ mm}$) and Snapmaker U1 ($270 \times 270\text{ mm}$) beds.
+  - **Cache Buster:** Bumped `app.js?v=74` in `simulator/index.html`.
+
 ### Entry: Dual Front (185mm) & Back (240mm) TPU Armor Panel Pipeline & Interactive 3D Suite
 * **Date:** 2026-10-05 (Night Imagineering Session)
 * **Milestone:** Milestone 5 - 3D-Printable Flexible Wearable TPU Panel Fabrication & Deploy Suite
