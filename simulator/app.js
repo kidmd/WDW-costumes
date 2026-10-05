@@ -17264,7 +17264,28 @@ window.openTpuPreviewModal = openTpuPreviewModal;
 window.closeTpuPreviewModal = closeTpuPreviewModal;
 window.handleRecompileTpuStl = handleRecompileTpuStl;
 
-async function handleRecompileTpuStl() {
+// Fingerprint of everything that shapes the STL (artwork silhouette, LED layout, chest bounds).
+// Stored in tpu_panel_specs.json so the Preview button can detect a stale STL compiled for another graphic.
+function computeTpuLayoutSignature() {
+    const activeImg = getActiveGraphicImg();
+    const src = (activeImg && activeImg.src) ? activeImg.src : 'none';
+    const gb = getGraphicChestBounds() || {};
+    let h = 5381;
+    const mix = (str) => {
+        const step = Math.max(1, Math.floor(str.length / 4096)); // sample long data URLs
+        for (let i = 0; i < str.length; i += step) h = ((h * 33) ^ str.charCodeAt(i)) >>> 0;
+        h = ((h * 33) ^ str.length) >>> 0;
+    };
+    mix(String(currentGraphicType));
+    mix(src);
+    mix([gb.normX, gb.normY, gb.normW, gb.normH].map(v => Number(v || 0).toFixed(4)).join(','));
+    mix((leds || []).map(l => `${Number(l.x).toFixed(4)},${Number(l.y).toFixed(4)}`).join(';'));
+    return `${currentGraphicType}-${h.toString(16)}`;
+}
+window.computeTpuLayoutSignature = computeTpuLayoutSignature;
+
+async function handleRecompileTpuStl(opts) {
+    const skipOpen = !!(opts && opts.skipOpen === true);
     const statusEl = document.getElementById('tpuCompileStatus');
     const compileBtn = document.getElementById('compileTpuStlBtn');
     if (statusEl) {
@@ -17301,7 +17322,8 @@ async function handleRecompileTpuStl() {
             floatName: floatName,
             graphicType: currentGraphicType,
             bounds: gb,
-            artworkDataUrl: artworkDataUrl
+            artworkDataUrl: artworkDataUrl,
+            layoutSignature: computeTpuLayoutSignature()
         };
 
         const resp = await fetch('/api/generate_tpu_stl', {
@@ -17317,7 +17339,8 @@ async function handleRecompileTpuStl() {
                 statusEl.textContent = `✅ Compiled ${data.float_name || floatName} STL (${(data.stl_size / 1024 / 1024).toFixed(2)} MB)!`;
             }
             showToast(`✨ ${data.float_name || floatName} 3D TPU Armor Plate STL compiled!`);
-            openTpuPreviewModal();
+            if (!skipOpen) openTpuPreviewModal();
+            return true;
         } else {
             throw new Error(data.error || 'Compilation failed');
         }
@@ -17327,12 +17350,15 @@ async function handleRecompileTpuStl() {
             statusEl.textContent = `❌ Compilation error: ${err.message}`;
         }
         showToast(`Compilation failed: ${err.message}`, 'error');
+        return false;
     } finally {
         if (compileBtn) compileBtn.disabled = false;
     }
 }
 
-function openTpuPreviewModal() {
+let tpuAutoCompileInFlight = false;
+
+async function openTpuPreviewModal() {
     console.log("[TPU Preview] Opening 3D Armor Panel modal...");
     const modal = document.getElementById('tpuPreviewModal');
     if (!modal) {
@@ -17351,7 +17377,35 @@ function openTpuPreviewModal() {
         onTpuWindowResize();
     }
     setTimeout(onTpuWindowResize, 60);
-    loadTpuModalData();
+
+    // Stale-STL guard: if the compiled panel was built for a different graphic or LED layout,
+    // recompile first so the plate silhouette matches the artwork shown on the canvas.
+    if (!tpuAutoCompileInFlight) {
+        let compiledSig = null;
+        try {
+            const r = await fetch('/3d_panels/tpu_panel_specs.json?t=' + Date.now());
+            if (r.ok) compiledSig = (await r.json()).layout_signature || null;
+        } catch (e) {}
+
+        if (compiledSig !== computeTpuLayoutSignature()) {
+            const loaderOverlay = document.getElementById('tpuModalLoading');
+            if (loaderOverlay) {
+                loaderOverlay.style.display = 'flex';
+                loaderOverlay.innerHTML = `
+                    <div class="spinner" style="width: 32px; height: 32px; border: 3px solid rgba(0, 255, 136, 0.2); border-top-color: #00ff88; border-radius: 50%; animation: spin 0.8s linear infinite;"></div>
+                    <span>Active graphic changed — compiling fresh Front &amp; Back STLs for this artwork...</span>
+                `;
+            }
+            tpuAutoCompileInFlight = true;
+            try {
+                await handleRecompileTpuStl({ skipOpen: true });
+            } finally {
+                tpuAutoCompileInFlight = false;
+            }
+        }
+    }
+
+    if (tpuIsOpen) loadTpuModalData();
 }
 
 function closeTpuPreviewModal() {

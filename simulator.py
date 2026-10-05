@@ -1244,6 +1244,8 @@ const uint8_t PROGMEM SPATIAL_RADIUS_BYTE[FRONT_LEDS] = {{
                 "float_index": float_index,
                 "aspect": aspect,
                 "artwork_file": "active_artwork.png",
+                "graphic_type": req_data.get("graphicType"),
+                "layout_signature": req_data.get("layoutSignature"),
                 "front": {
                     "variant": "front",
                     "name": "Front Plate (Chest)",

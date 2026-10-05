@@ -93,6 +93,16 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### Entry: Stale-STL Guard — TPU Preview Auto-Recompiles for the Active Graphic
+* **Date:** 2026-10-05 (Night Imagineering Session)
+* **Milestone:** Milestone 5 - 3D-Printable Flexible Wearable TPU Panel Fabrication & Deploy Suite
+* **Status:** Complete & Verified (`simulator/app.js`, `simulator.py`, `simulator/index.html` v75, `SIMULATOR_USER_GUIDE.md`).
+* **Implementation Details:**
+  - **Root Cause:** The Deploy tab's **Preview 3D TPU Armor Panel** button only opened the modal and loaded whatever STL was last compiled (Pete's Dragon), while the artwork overlay was drawn from the live canvas graphic (e.g., The Spinning Turtle). Result: turtle artwork floating on a dragon-shaped plate.
+  - **Layout Signature:** Added `computeTpuLayoutSignature()` in `app.js` — a fast hash of the active graphic type, artwork source, chest bounds, and all 100 LED coordinates. It is sent as `layoutSignature` with every `/api/generate_tpu_stl` request and persisted by `simulator.py` into `tpu_panel_specs.json` (`layout_signature`, `graphic_type`).
+  - **Auto-Recompile on Open:** `openTpuPreviewModal()` now compares the compiled signature with the live canvas. On mismatch it shows "Active graphic changed — compiling fresh Front & Back STLs…" and recompiles before loading the 3D scene, so the plate silhouette, LED pockets, and artwork overlay always match.
+  - **Verification:** End-to-end POST with `spinning_turtle.png` produced turtle-shaped Front ($157.1 \times 139.8 \times 6\text{ mm}$) and Back ($198.3 \times 176.1 \times 6\text{ mm}$) STLs; signature persisted correctly.
+
 ### Entry: Silhouette Containment Clamping in PBD Collision Solver & Front/Back LED Placement Fix
 * **Date:** 2026-10-05 (Night Imagineering Session)
 * **Milestone:** Milestone 5 - 3D-Printable Flexible Wearable TPU Panel Fabrication & Deploy Suite
