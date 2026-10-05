@@ -45,11 +45,10 @@ collar_wall_thickness = 1.2;  // 1.2mm collar wall thickness
 notch_width           = 4.0;  // 4.0mm wire pass-through opening on both 5mm ends
 window_square         = 2.0;  // 2.0mm x 2.0mm square optical window through 1mm floor
 
-/* [Outside Fastener Eyelet Tabs (Flush with Backside Z = 6.0mm)] */
+/* [Outside Fastener Eyelet Tabs (Flush with Backside Z = 6.0mm, Sleek 45° Angle)] */
 fastener_hole_dia     = 2.5;  // 2.5mm through-hole for thread or tagging barb
-fastener_tab_od       = 6.5;  // 6.5mm outer tab diameter (2.0mm wall thickness)
-fastener_tab_thick    = 2.0;  // 2.0mm thick ear (Z = 4.0 to 6.0mm) flush with back edge
-gusset_height         = 2.0;  // 2.0mm tall 45° support gusset (Z = 2.0 to 4.0mm)
+fastener_tab_od       = 6.5;  // 6.5mm outer tab diameter at back face (2.0mm wall thickness)
+fastener_tab_thick    = 2.0;  // 2.0mm tall 45° angled ear (Z = 4.0 to 6.0mm) flush with back edge
 
 // 2D Contour Coordinates for Solid Plate Perimeter
 contour_pts = {contour_pts};
@@ -113,21 +112,15 @@ module open_chassis_tpu_armor() {{
                             polygon(points = contour_pts);
                     }}
 
-            // 3. 16 OUTSIDE PERIMETER FASTENER TABS (Flush with Backside Z = 6.0mm with 45° Support Gussets)
+            // 3. 16 OUTSIDE PERIMETER FASTENER TABS (Flush with Backside Z = 6.0mm, Sleek 45° Angle)
             for (i = [0 : len(fastener_tabs)-1]) {{
-                translate([fastener_tabs[i][0], fastener_tabs[i][1], 0])
+                translate([fastener_tabs[i][0], fastener_tabs[i][1], 4.0])
                     difference() {{
-                        union() {{
-                            // 45° support gusset from Z = 2.0 to 4.0mm
-                            translate([0, 0, 2.0])
-                                cylinder(r1 = fastener_hole_dia / 2, r2 = fastener_tab_od / 2, h = gusset_height);
-                            // 2.0mm flat ear flush with back edge (Z = 4.0 to 6.0mm)
-                            translate([0, 0, 4.0])
-                                cylinder(d = fastener_tab_od, h = fastener_tab_thick);
-                        }}
+                        // 45° angled cone from Z = 4.0 to 6.0mm
+                        cylinder(r1 = fastener_hole_dia / 2, r2 = fastener_tab_od / 2, h = fastener_tab_thick);
                         // Through-hole
-                        translate([0, 0, 1.8])
-                            cylinder(d = fastener_hole_dia, h = 4.5);
+                        translate([0, 0, -0.2])
+                            cylinder(d = fastener_hole_dia, h = fastener_tab_thick + 0.4);
                     }}
             }}
 

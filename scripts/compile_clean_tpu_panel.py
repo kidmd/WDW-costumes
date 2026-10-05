@@ -140,22 +140,22 @@ rim_mesh.apply_translation([0, 0, FRONT_THICK_GENERAL]) # Z = 2.0 to 6.0mm
 print("Perimeter wall rim generated (4.0mm tall from Z=2.0 to 6.0mm).")
 
 # ---------------------------------------------------------------------------
-# 3. OUTSIDE PERIMETER FASTENER EYELETS (Flush with Backside Z = 6.0mm, 2.0mm Walls)
+# 3. OUTSIDE PERIMETER FASTENER EYELETS (Flush with Backside Z = 6.0mm, 45° Angled, Sleek)
 # ---------------------------------------------------------------------------
 # Eyelet dimensions: Through-hole dia = 2.5mm (radius 1.25mm), Wall thickness = 2.0mm
-# Outer radius = 1.25 + 2.0 = 3.25mm (Outer dia = 6.5mm)
+# Outer radius = 1.25 + 2.0 = 3.25mm (Outer dia = 6.5mm at Z = 6.0mm)
 # Flush with the back edge touching the runner's shirt (Z = 6.0mm)
-# 45° angled support gusset underneath from Z = 2.0 to 4.0mm (self-supporting when printed front-side down!)
+# 45° angled cone from Z = 4.0 to 6.0mm (NO extra 2mm straight section underneath!)
+# Seamlessly hulled into the rim wall to eliminate pointy triangular ledges
 boundary_line = smoothed_plate_2d.exterior
 total_len = boundary_line.length
 num_tabs = 16
 tab_meshes = []
 tab_coords = []
-TAB_INNER_R = 1.25  # 2.5mm hole diameter
-TAB_WALL_THICK = 2.0 # 2.0mm thick eyelet walls
+TAB_INNER_R = 1.25   # 2.5mm hole diameter
+TAB_WALL_THICK = 2.0 # 2.0mm thick eyelet walls at back face
 TAB_OUTER_R = TAB_INNER_R + TAB_WALL_THICK # 3.25mm outer radius
-TAB_THICK = 2.0     # 2.0mm thick ear at back (Z = 4.0 to 6.0mm)
-GUSSET_H = 2.0      # 2.0mm tall 45° support gusset (Z = 2.0 to 4.0mm)
+TAB_HEIGHT = 2.0     # 2.0mm tall 45° angled ear at back (Z = 4.0 to 6.0mm)
 
 for k in range(num_tabs):
     dist_along = (k / float(num_tabs)) * total_len
@@ -165,25 +165,26 @@ for k in range(num_tabs):
     tan_norm = tan / (np.linalg.norm(tan) + 1e-6)
     # Unit normal vector pointing OUTSIDE
     normal = np.array([-tan_norm[1], tan_norm[0]])
-    cand_center = np.array([pt.x, pt.y]) + normal * 2.0
+    cand_center = np.array([pt.x, pt.y]) + normal * 1.75
     if smoothed_plate_2d.contains(sg.Point(cand_center)):
         normal = -normal
-        cand_center = np.array([pt.x, pt.y]) + normal * 2.0
+        cand_center = np.array([pt.x, pt.y]) + normal * 1.75
         
+    anchor_center = np.array([pt.x, pt.y]) - normal * 0.75
     tab_coords.append([round(float(cand_center[0]), 2), round(float(cand_center[1]), 2)])
     
-    # Solid eyelet: 45° gusset (Z=1.95..4.0) + flat ear (Z=4.0..6.0) - hole (Z=1.7..6.3)
-    # 0.05mm overlap into base plate floor eliminates coincident planar seams
-    gusset = Manifold.cylinder(2.05, TAB_INNER_R, TAB_OUTER_R, 24).translate([0, 0, 1.95])
-    ear = Manifold.cylinder(TAB_THICK, TAB_OUTER_R, TAB_OUTER_R, 24).translate([0, 0, 4.0])
-    hole = Manifold.cylinder(4.6, TAB_INNER_R, TAB_INNER_R, 24).translate([0, 0, 1.7])
-    tab_m = (gusset + ear) - hole
+    # 45° angled eyelet: slopes from outer radius 3.25mm at Z=6.0 down to 1.25mm at Z=4.0
+    # Convex-hulled with an anchor cylinder inside the perimeter rim wall to seamlessly blend without pointy edges!
+    cone = Manifold.cylinder(TAB_HEIGHT, TAB_INNER_R, TAB_OUTER_R, 24).translate([cand_center[0], cand_center[1], 4.0])
+    anchor = Manifold.cylinder(TAB_HEIGHT, 1.0, 2.5, 24).translate([anchor_center[0], anchor_center[1], 4.0])
+    solid_tab = (cone + anchor).hull()
+    hole = Manifold.cylinder(TAB_HEIGHT + 0.4, TAB_INNER_R, TAB_INNER_R, 24).translate([cand_center[0], cand_center[1], 3.8])
+    tab_m = solid_tab - hole
     tab_mesh_data = tab_m.to_mesh()
     tab_solid = trimesh.Trimesh(vertices=tab_mesh_data.vert_properties[:, :3], faces=tab_mesh_data.tri_verts)
-    tab_solid.apply_translation([cand_center[0], cand_center[1], 0.0])
     tab_meshes.append(tab_solid)
 
-print(f"Generated {len(tab_meshes)} outside perimeter fastener eyelets flush with back edge (Z=4.0 to 6.0mm with 45° gussets).")
+print(f"Generated {len(tab_meshes)} sleek 45° outside perimeter fastener eyelets flush with back edge (Z=4.0 to 6.0mm).")
 
 # ---------------------------------------------------------------------------
 # 4. 100 ROTATED OVAL LED COLLARS & 1mm RECESSED CAVITIES

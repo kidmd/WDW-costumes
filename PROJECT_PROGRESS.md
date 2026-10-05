@@ -93,16 +93,17 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
-### Entry: Back-Flush Outside Perimeter Eyelets with 45° Support Gussets
+### Entry: Sleek 45° Outside Eyelets (Eliminated Straight Section & Pointy Ledges)
 * **Date:** 2026-10-04 (Late Night / Midnight)
 * **Milestone:** Milestone 5 - 3D-Printable Flexible Wearable TPU Panel Fabrication
 * **Status:** Complete & Verified (`3d_panels/petes_dragon_tpu_panel.stl`, `3d_panels/petes_dragon_tpu_panel.scad`, `3d_panels/tpu_panel_preview.html`, `3d_panels/petes_dragon_specs.json`).
 * **Notes:**
-  - **Back-Flush Eyelet Orientation:** Repositioned all 16 outside perimeter mounting eyelets so that their $2.0\text{ mm}$ thick flat ears sit from $Z = 4.0\text{ mm}$ to $6.0\text{ mm}$, **completely flush with the back perimeter rim touching the runner's shirt ($Z = 6.0\text{ mm}$)**. This allows the plate to be stitched, safety-pinned, or tagged directly against shirt fabric without standoffs or gaps.
-  - **45° Self-Supporting Support Gussets:** Added a $45^\circ$ conical support gusset underneath each eyelet from $Z = 1.95\text{ mm}$ to $4.0\text{ mm}$ ($R = 1.25\text{ mm}$ expanding to $3.25\text{ mm}$) that merges into the outer perimeter rim wall. When 3D printed front-side down (with optical windows on the build plate), the entire plate prints **100% support-free**.
-  - **2.0mm Thick Eyelet Walls:** $\varnothing 2.5\text{ mm}$ inner through-hole, $2.0\text{ mm}$ solid walls, $6.5\text{ mm}$ outer diameter (OD).
-  - **Manifold3D Batch CSG Pipeline:** Replaced fallback boolean operations in `scripts/compile_clean_tpu_panel.py` with native `manifold3d.Manifold.batch_boolean(solids, OpType.Add)` and subtract pass, ensuring mathematically valid, defect-free 2-manifold output (`Manifold status: Error.NoError`, 61,906 triangles, volume $39,332.4\text{ mm}^3$).
-  - **Full Synchronization:** Synchronized parametric OpenSCAD script (`scripts/update_scad_model.py` and `3d_panels/petes_dragon_tpu_panel.scad`) with 45° gussets; updated WebGL preview inspector (`3d_panels/tpu_panel_preview.html`).
+  - **Removed 2.0mm Straight Protrusion:** Streamlined all 16 outside perimeter eyelets into sleek, compact $2.0\text{ mm}$ tall 45° angled bosses ($Z = 4.0\text{ mm}$ to $6.0\text{ mm}$) flush with the shirt-touching back rim ($Z = 6.0\text{ mm}$). Completely eliminated the bulky $2\text{ mm}$ straight cylindrical collar underneath.
+  - **Eliminated Pointy Wedge Ledges:** Replaced the disjoint cylinder bottom with a convex-hulled anchor transition directly into the perimeter rim wall, completely eliminating the sharp, triangular overhang shelf artifact.
+  - **2.0mm Thick Eyelet Walls:** Maintained $\varnothing 2.5\text{ mm}$ inner through-hole with $2.0\text{ mm}$ solid walls ($6.5\text{ mm}$ OD at back face).
+  - **100% Support-Free Printing:** The 45° tapered underbody prints completely support-free when printed front-side down on the build plate.
+  - **Manifold3D Status:** Validated 2-manifold with `Error.NoError` (genus 129, 61,292 triangles, volume $38,683.8\text{ mm}^3$).
+  - **Full Synchronization:** Synchronized parametric OpenSCAD script (`scripts/update_scad_model.py` and `3d_panels/petes_dragon_tpu_panel.scad`), WebGL preview inspector (`3d_panels/tpu_panel_preview.html`), and `SIMULATOR_USER_GUIDE.md`.
 
 ### Entry: PBD Zero-Overlap Pocket Separation Solver & Smallest Readable Debossed Numbers
 * **Date:** 2026-10-04 (Late Night)

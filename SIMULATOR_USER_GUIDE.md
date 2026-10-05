@@ -1133,12 +1133,13 @@ scripts/generate_3d_panel.py
    - Centered through-windows through the $1.0\text{ mm}$ front face beneath each bulb, beaming the LED forward while the resin bulb body rests solidly against the interior shelf.
 4. **Smallest Readable Debossed LED Numbers (1 to 100):**
    - Numbers `1` through `100` are sized at the absolute minimum readable size for a $0.4\text{ mm}$ nozzle (**$1.8\text{ mm}$ cap height, $0.5\text{ mm}$ deboss depth** into the interior floor) with clean inter-character kerning.
-5. **Outside Perimeter Mounting Eyelets (Flush with Back Shirt-Touching Edge):**
-   - 16 reinforced mounting eyelets placed strictly on the **OUTSIDE** of the perimeter rim wall.
-   - **Back-Flush Orientation:** Flat $2.0\text{ mm}$ thick ear sits from $Z = 4.0$ to $6.0\text{ mm}$, **completely flush with the back perimeter rim touching the runner's shirt** ($Z = 6.0\text{ mm}$), enabling direct, seamless sewing, pinning, or tagging against the garment fabric.
-   - **45° Self-Supporting Support Gusset:** Features a $45^\circ$ angled conical support gusset underneath (sloping from $Z = 2.0\text{ mm}$ to $4.0\text{ mm}$) that merges cleanly into the outer rim wall, enabling **100% support-free 3D printing** when printed front-side down on the build plate.
-   - **Dimensions:** $\varnothing 2.5\text{ mm}$ inner through-hole, **$2.0\text{ mm}$ thick walls**, $6.5\text{ mm}$ outer diameter (OD).
-   - **Puncture-Free Front Face:** The main artwork front plate remains 100% smooth and continuous while external eyelets provide secure anchoring without encroaching on internal wire routing space.
+5. **Outside Perimeter Mounting Eyelets (Sleek 45° Angle, Flush with Back Shirt Edge):**
+   - 16 streamlined, unobtrusive mounting eyelets placed strictly on the **OUTSIDE** of the perimeter rim wall.
+   - **Sleek 45° Low-Profile Geometry:** The eyelet is constructed as a compact $2.0\text{ mm}$ tall 45° conical boss ($Z = 4.0$ to $6.0\text{ mm}$) that slopes smoothly from an outer diameter of $6.5\text{ mm}$ at the back shirt face down to the $\varnothing 2.5\text{ mm}$ through-hole at $Z = 4.0\text{ mm}$, seamlessly hulled into the vertical rim wall.
+   - **No Protruding Straight Sections or Pointy Ledges:** The straight $2\text{ mm}$ cylindrical section underneath has been eliminated, removing bulky protrusion. The convex-hulled transition to the perimeter wall eliminates any sharp triangular overhangs or ledges.
+   - **Back-Flush Orientation:** Top face sits at $Z = 6.0\text{ mm}$, **completely flush with the back perimeter rim touching the runner's shirt** ($Z = 6.0\text{ mm}$), enabling direct, flat sewing, safety pins, or tagging barbs.
+   - **Dimensions:** $\varnothing 2.5\text{ mm}$ through-hole, $2.0\text{ mm}$ solid walls at back face ($6.5\text{ mm}$ OD), overall tab height $2.0\text{ mm}$.
+   - **Puncture-Free Front Face:** The main artwork front plate remains 100% smooth and continuous.
 
 ### 🖨️ Snapmaker U1 95A TPU Slicing Profile:
 - **Nozzle Temp:** 225°C – 235°C (0.4mm nozzle).
