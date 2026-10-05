@@ -1133,6 +1133,7 @@ scripts/generate_3d_panel.py
    - Centered through-windows through the $1.0\text{ mm}$ front face beneath each bulb, beaming the LED forward while the resin bulb body rests solidly against the interior shelf.
 4. **Smallest Readable Debossed LED Numbers (1 to 100):**
    - Numbers `1` through `100` are sized at the absolute minimum readable size for a $0.4\text{ mm}$ nozzle (**$1.8\text{ mm}$ cap height, $0.5\text{ mm}$ deboss depth** into the interior floor) with clean inter-character kerning.
+   - **Correct Left-to-Right Underside Reading:** Number glyphs are debossed into the floor so that when the runner inspects the underside assembly from the back, every number (e.g. `1`, `42`, `100`) reads in natural left-to-right order without mirror reversal.
 5. **Outside Perimeter Mounting Eyelets (Pure Smooth Circular Ears, Zero Points):**
    - 16 streamlined, completely round mounting ears placed strictly on the **OUTSIDE** of the perimeter rim wall.
    - **Pure Smooth Circular Geometry (Zero Points):** Each eyelet is a pure concentric circular cylinder of outer diameter $6.5\text{ mm}$ (outer radius $3.25\text{ mm}$, wall thickness $2.0\text{ mm}$) and height $2.0\text{ mm}$ ($Z = 0.0$ to $2.0\text{ mm}$), completely eliminating any sharp corners, shield wedges, knife edges, or pointy ledges.

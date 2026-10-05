@@ -305,6 +305,12 @@ for i, l in enumerate(leds):
         # Concatenate ALL digits of this number string into a SINGLE combined mesh!
         # Do NOT center digits individually — that was what placed '1' and '0' on top of each other!
         num_combined = trimesh.util.concatenate(digit_meshes)
+        
+        # Mirror horizontally along X so the debossed glyphs read normally when viewed from the underside (-Z)
+        num_combined.apply_scale([-1.0, 1.0, 1.0])
+        num_combined.faces = num_combined.faces[:, ::-1]
+        num_combined.fix_normals()
+        
         tx_mid = (num_combined.bounds[0][:2] + num_combined.bounds[1][:2]) / 2.0
         num_combined.apply_translation([-tx_mid[0], -tx_mid[1], 1.5]) # Z from 1.5 to 2.1mm (0.5mm deboss)
         num_combined.apply_translation([best_cand[0], best_cand[1], 0.0])

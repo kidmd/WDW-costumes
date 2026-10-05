@@ -152,7 +152,8 @@ module open_chassis_tpu_armor() {{
         for (i = [0 : len(number_positions)-1]) {{
             translate([number_positions[i][0], number_positions[i][1], front_thickness - 0.6])
                 linear_extrude(height = 0.8)
-                    text(str(i + 1), size = 2.8, valign = "center", halign = "center", font = "Liberation Sans:style=Bold");
+                    mirror([1, 0, 0])
+                        text(str(i + 1), size = 2.8, valign = "center", halign = "center", font = "Liberation Sans:style=Bold");
         }}
     }}
 }}

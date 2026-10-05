@@ -93,6 +93,14 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### Entry: Debossed Number Underside Left-to-Right Orientation Fix
+* **Date:** 2026-10-04 (Late Night Imagineering Session)
+* **Milestone:** Milestone 5 - 3D-Printable Flexible Wearable TPU Panel Fabrication
+* **Status:** Complete & Verified (`3d_panels/petes_dragon_tpu_panel.stl`, `3d_panels/petes_dragon_tpu_panel.scad`, `scripts/compile_clean_tpu_panel.py`, `scripts/update_scad_model.py`).
+* **Implementation Details:**
+  - **Resolved Mirrored Debossed Digits:** Because the numbers are debossed into the interior floor of the tray to be read from the underside (looking along $+Z$ from behind), the glyph cutters are mirrored horizontally along the $X$-axis (`scale([-1.0, 1.0, 1.0])` with face winding reversal in Python Manifold3D, and `mirror([1, 0, 0])` in OpenSCAD).
+  - **Natural Left-to-Right Reading:** When viewing into the rear open wire basin and notched collars, every number (e.g. `1` through `100`) now reads in natural left-to-right order without mirror reversal.
+
 ### Entry: Corrected Front/Back Z-Orientation & Non-Mirrored STL Alignment
 * **Date:** 2026-10-04 (Late Night Imagineering Session)
 * **Milestone:** Milestone 5 - 3D-Printable Flexible Wearable TPU Panel Fabrication & WebGL Inspector
