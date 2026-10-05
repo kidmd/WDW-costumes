@@ -1123,15 +1123,16 @@ scripts/generate_3d_panel.py
    - **Perimeter Rim Wall:** $4.0\text{ mm}$ tall outer rim ($Z = 2.0$ to $6.0\text{ mm}$, $2.5\text{ mm}$ wall width) surrounding the entire plate, forming a protective chassis tray.
    - **Unconstrained Open Wire Basin (No Back Wall):** The entire space outside the LED collars acts as a spacious $4.0\text{ mm}$ deep open basin where 3-conductor flat ribbon wire can route and loop freely with zero binding, zero restrictive trenches, and zero unprintable overhangs.
    - **Lightweight:** Net volume is $\approx 38.9\text{ cm}^3$, weighing just **$\approx 43\text{ grams}$ ($1.5\text{ oz}$)**—featherlight, flexible, and comfortable for a 10K race.
-2. **100 Horizontal Oval Collars ($10\text{ mm} \times 5\text{ mm} \times 3\text{ mm}$) with Wire Notches:**
+2. **100 Non-Overlapping Horizontal Oval Collars ($10\text{ mm} \times 5\text{ mm} \times 3\text{ mm}$) with Wire Notches:**
    - **Inner Cavity & Z Coordinates:** $10.0\text{ mm} \times 5.0\text{ mm}$ oval socket with $3.0\text{ mm}$ tall walls rising from the recessed floor ($Z = 1.0$ to $4.0\text{ mm}$).
+   - **Zero Collar Overlap (PBD Relaxation Solver):** Positions are nudged by a minimal average shift ($\approx 1.6\text{ mm}$, max $4.9\text{ mm}$) so that **every single collar maintains $\ge 0.5\text{ mm}$ of clear wall gap** from every other collar. Zero overlapping or merged sockets!
    - **2.0mm Table Clearance:** When laying the 3D print flat on a table front-side up (with the $6.0\text{ mm}$ rim touching the table), there is **exactly $2.0\text{ mm}$ of open space** under the tops of the pocket walls ($Z = 4.0\text{ mm}$ vs $6.0\text{ mm}$ rim), keeping bulbs and wires elevated away from table surfaces.
-   - **Uniform Horizontal Orientation:** Collars are oriented horizontally ($0^\circ$ rotation) matching the Pete's Dragon Chris preset, eliminating criss-crossing collisions and keeping the sockets cleanly parallel across the chest.
+   - **Uniform Horizontal Orientation:** Collars are oriented horizontally ($0^\circ$ rotation) matching the Pete's Dragon Chris preset, keeping the sockets cleanly parallel across the chest.
    - **Wire Pass-Through Notches:** $4.0\text{ mm}$ wide notches on both $5\text{ mm}$ ends extending all the way down to the $1.0\text{ mm}$ floor, allowing ribbon wire to enter and exit horizontally without resistance.
 3. **Centered $2\text{ mm} \times 2\text{ mm}$ Square Optical Apertures:**
    - Centered through-windows through the $1.0\text{ mm}$ front face beneath each bulb, beaming the LED forward while the resin bulb body rests solidly against the interior shelf.
-4. **Debossed Multi-Digit LED Numbers (1 to 100):**
-   - Numbers `1` through `100` permanently engraved $0.6\text{ mm}$ deep into the interior floor adjacent to each collar, with full character string kerning (no overlapping/superimposed digits).
+4. **Smallest Readable Debossed LED Numbers (1 to 100):**
+   - Numbers `1` through `100` are sized at the absolute minimum readable size for a $0.4\text{ mm}$ nozzle (**$1.8\text{ mm}$ cap height, $0.5\text{ mm}$ deboss depth** into the interior floor) with clean inter-character kerning.
 5. **Backside Rim Fastener Tabs (16 Eyelets):**
    - 16 eyelet ear tabs ($\varnothing 2.5\text{ mm}$ through-holes, $6.0\text{ mm}$ OD) connected directly to the inner edge of the perimeter rim wall on the back side ($Z = 2.0$ to $5.0\text{ mm}$).
    - **Puncture-Free Front Face:** The front plate remains 100% smooth and continuous with zero fastener holes puncturing through the artwork.

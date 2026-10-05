@@ -43,12 +43,51 @@ print(f"Loaded {num_leds} LEDs from specs.")
 print(f"Cross-section: 1.0mm LED floor -> 3.0mm pocket walls (Z=1.0 to 4.0mm) -> 2.0mm space to 6.0mm rim.")
 
 # ---------------------------------------------------------------------------
-# 1. LED COLLAR ROTATION ORIENTATION
+# 1. LED COLLAR ROTATION ORIENTATION & PBD NON-OVERLAPPING RELAXATION
 # ---------------------------------------------------------------------------
 # In Pete's Dragon Chris preset, all LEDs have 0 deg rotation (horizontal 10x5mm ovals).
-# Orienting all collars horizontally (0 deg) prevents criss-crossing/squishing collisions!
 led_rotations_deg = [0.0] * num_leds
 print("Oriented all 100 LED collars horizontally (0 deg) matching Pete's Dragon Chris preset.")
+
+# PBD (Position-Based Dynamics) Stadium Separation:
+# A stadium of length L=12.4mm, width W=7.4mm has a horizontal central segment of length 12.4 - 7.4 = 5.0mm.
+# Two horizontal stadiums have ZERO overlap iff the distance between their central segments is >= 7.4mm.
+# We enforce req_dist = 7.4 + 0.5 = 7.9mm (0.5mm clear wall gap between any two collars!).
+pts = np.array([[l['x'], l['y']] for l in leds])
+orig_pts = pts.copy()
+req_dist = 7.4 + 0.5 # 7.9 mm
+
+for iteration in range(300):
+    for i in range(num_leds):
+        for j in range(i + 1, num_leds):
+            dx = pts[j, 0] - pts[i, 0]
+            dy = pts[j, 1] - pts[i, 1]
+            adx = abs(dx)
+            ady = abs(dy)
+            seg_dx = max(0.0, adx - 5.0)
+            seg_dy = ady
+            center_dist = np.hypot(seg_dx, seg_dy)
+            
+            if center_dist < req_dist:
+                pen = req_dist - center_dist
+                if center_dist < 1e-4:
+                    nx, ny = 0.0, 1.0
+                else:
+                    nx = (seg_dx / center_dist) * (1.0 if dx >= 0 else -1.0)
+                    ny = (seg_dy / center_dist) * (1.0 if dy >= 0 else -1.0)
+                
+                push_x = nx * pen * 0.5
+                push_y = ny * pen * 0.5
+                pts[i] -= [push_x, push_y]
+                pts[j] += [push_x, push_y]
+
+# Update LED positions with relaxed coordinates
+max_shift = np.max(np.hypot(pts[:, 0] - orig_pts[:, 0], pts[:, 1] - orig_pts[:, 1]))
+avg_shift = np.mean(np.hypot(pts[:, 0] - orig_pts[:, 0], pts[:, 1] - orig_pts[:, 1]))
+print(f"Non-overlapping collar solver: Max shift = {max_shift:.2f}mm, Avg shift = {avg_shift:.2f}mm.")
+for i in range(num_leds):
+    leds[i]['x'] = round(float(pts[i, 0]), 2)
+    leds[i]['y'] = round(float(pts[i, 1]), 2)
 
 # ---------------------------------------------------------------------------
 # 2. GENERATE CLEAN DRAGON SILHOUETTE BOUNDARY & PERIMETER WALL
@@ -222,8 +261,8 @@ for i, l in enumerate(leds):
             
     number_positions.append([round(best_cand[0], 2), round(best_cand[1], 2)])
     
-    # Multi-digit text path extraction
-    tp = TextPath((0, 0), num_str, size=2.8)
+    # Multi-digit text path extraction (smallest readable size: 1.8mm font, 0.5mm depth)
+    tp = TextPath((0, 0), num_str, size=1.8)
     polys = tp.to_polygons()
     
     sg_polys = [sg.Polygon(p_ring) for p_ring in polys if len(p_ring) >= 3]
@@ -245,7 +284,7 @@ for i, l in enumerate(leds):
         interior_holes = [h.exterior.coords for h in holes if shell.contains(h)]
         final_poly = sg.Polygon(shell.exterior.coords, holes=interior_holes)
         try:
-            m = trimesh.creation.extrude_polygon(final_poly, height=0.8)
+            m = trimesh.creation.extrude_polygon(final_poly, height=0.6)
             digit_meshes.append(m)
         except Exception as e:
             pass
@@ -255,7 +294,7 @@ for i, l in enumerate(leds):
         # Do NOT center digits individually — that was what placed '1' and '0' on top of each other!
         num_combined = trimesh.util.concatenate(digit_meshes)
         tx_mid = (num_combined.bounds[0][:2] + num_combined.bounds[1][:2]) / 2.0
-        num_combined.apply_translation([-tx_mid[0], -tx_mid[1], 1.4]) # Z from 1.4 to 2.2mm
+        num_combined.apply_translation([-tx_mid[0], -tx_mid[1], 1.5]) # Z from 1.5 to 2.1mm (0.5mm deboss)
         num_combined.apply_translation([best_cand[0], best_cand[1], 0.0])
         number_cutters.append(num_combined)
 

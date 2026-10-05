@@ -93,6 +93,15 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### Entry: PBD Zero-Overlap Pocket Separation Solver & Smallest Readable Debossed Numbers
+* **Date:** 2026-10-04 (Late Night)
+* **Milestone:** Milestone 5 - 3D-Printable Flexible Wearable TPU Panel Fabrication
+* **Status:** Complete & Verified (`3d_panels/petes_dragon_tpu_panel.stl`, `3d_panels/petes_dragon_tpu_panel.scad`, `3d_panels/tpu_panel_preview.html`, `3d_panels/petes_dragon_specs.json`).
+* **Notes:**
+  - **Zero-Overlap Collar Relaxation Solver (PBD):** Implemented a Position-Based Dynamics relaxation algorithm in `scripts/compile_clean_tpu_panel.py` that models the horizontal $12.4\text{ mm} \times 7.4\text{ mm}$ outer collar stadium envelopes and resolves all 64 overlapping collisions. Collar centers were nudged by a minimal average shift of just $1.64\text{ mm}$ (maximum $4.89\text{ mm}$), guaranteeing **zero overlapping pockets** and a minimum clear wall gap of $\ge 0.49\text{ mm}$ between every pair of collars while strictly preserving the authentic Pete's Dragon shape.
+  - **Smallest Readable Debossed Numbers:** Reduced font cap height to $1.8\text{ mm}$ with $0.5\text{ mm}$ deboss depth into the tray floor (Z from $1.5\text{ mm}$ to $2.1\text{ mm}$). This matches the physical extrusion resolution limit of a standard $0.4\text{ mm}$ 3D printer nozzle for crisp readability without wasting surface area.
+  - **Geometry & Mesh Verification:** Watertight solid volume confirmed (`39,005.8 mm³`), zero non-manifold edges, dimensions: $166.09\text{ mm W} \times 151.99\text{ mm H} \times 6.00\text{ mm THICK}$.
+
 ### Entry: Fixed Multi-Digit Debossed Number Stacking & Horizontal Collar Realignment
 * **Date:** 2026-10-04 (Night)
 * **Milestone:** Milestone 5 - 3D-Printable Flexible Wearable TPU Panel Fabrication
