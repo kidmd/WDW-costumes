@@ -17435,13 +17435,59 @@ function onTpuWindowResize() {
     tpuRenderer.setSize(w, h);
 }
 
+let tpuActiveVariant = 'front'; // 'front' or 'back'
+
+function switchTpuModalVariant(variant) {
+    if (variant !== 'front' && variant !== 'back') variant = 'front';
+    tpuActiveVariant = variant;
+
+    // Update button styling
+    const fBtn = document.getElementById('tpuModalSelectFrontBtn');
+    const bBtn = document.getElementById('tpuModalSelectBackBtn');
+    if (fBtn && bBtn) {
+        if (variant === 'front') {
+            fBtn.style.background = '#000';
+            fBtn.style.color = '#00ff88';
+            bBtn.style.background = 'transparent';
+            bBtn.style.color = 'rgba(0,0,0,0.7)';
+        } else {
+            bBtn.style.background = '#000';
+            bBtn.style.color = '#00ff88';
+            fBtn.style.background = 'transparent';
+            fBtn.style.color = 'rgba(0,0,0,0.7)';
+        }
+    }
+    loadTpuModalData();
+}
+window.switchTpuModalVariant = switchTpuModalVariant;
+
+function downloadBothTpuStls() {
+    const a1 = document.createElement('a');
+    a1.href = '/3d_panels/tpu_panel_front.stl';
+    a1.download = 'tpu_panel_front.stl';
+    document.body.appendChild(a1);
+    a1.click();
+    document.body.removeChild(a1);
+
+    setTimeout(() => {
+        const a2 = document.createElement('a');
+        a2.href = '/3d_panels/tpu_panel_back.stl';
+        a2.download = 'tpu_panel_back.stl';
+        document.body.appendChild(a2);
+        a2.click();
+        document.body.removeChild(a2);
+        showToast('📦 Downloading both Front & Back TPU STLs!');
+    }, 400);
+}
+window.downloadBothTpuStls = downloadBothTpuStls;
+
 async function loadTpuModalData() {
     const loaderOverlay = document.getElementById('tpuModalLoading');
     if (loaderOverlay) {
         loaderOverlay.style.display = 'flex';
         loaderOverlay.innerHTML = `
             <div class="spinner" style="width: 32px; height: 32px; border: 3px solid rgba(0, 255, 136, 0.2); border-top-color: #00ff88; border-radius: 50%; animation: spin 0.8s linear infinite;"></div>
-            <span>Loading Binary STL & Compiling Shaders...</span>
+            <span>Loading ${tpuActiveVariant === 'back' ? 'Back (240mm)' : 'Front (185mm)'} STL & Shaders...</span>
         `;
     }
 
@@ -17457,20 +17503,50 @@ async function loadTpuModalData() {
             specs = await fallbackResp.json();
         }
 
+        const variantData = (specs[tpuActiveVariant]) ? specs[tpuActiveVariant] : specs;
         const floatName = specs.float_name || "Pete's Dragon";
+        const variantTitle = (tpuActiveVariant === 'back') ? "Back Torso Plate" : "Front Chest Plate";
+
         const modalTitle = document.querySelector('#tpuPreviewModal h3');
         if (modalTitle) {
-            modalTitle.textContent = `${floatName} 3D Flexible TPU Armor Panel`;
+            modalTitle.textContent = `${floatName} 3D Flexible TPU Armor Panel • ${variantTitle}`;
+        }
+
+        // Update dimensions badge & bed clearance text
+        const dimText = document.getElementById('tpuModalDimText');
+        const weightText = document.getElementById('tpuModalWeightText');
+        const snapClearance = document.getElementById('tpuModalSnapmakerClearance');
+        const bambuClearance = document.getElementById('tpuModalBambuClearance');
+
+        if (variantData.stl_bounds) {
+            const b = variantData.stl_bounds;
+            if (dimText) dimText.textContent = `${b[0]} × ${b[1]} × ${b[2]} mm`;
+            const estWeight = Math.round((variantData.volume_mm3 || (b[0] * b[1] * 1.5)) * 0.00115);
+            if (weightText) weightText.textContent = `~${estWeight} g`;
+        } else if (dimText) {
+            dimText.textContent = (tpuActiveVariant === 'back') ? '198.1 × 176.1 × 6.0 mm' : '157.0 × 139.8 × 6.0 mm';
+        }
+
+        if (snapClearance && bambuClearance) {
+            if (tpuActiveVariant === 'back') {
+                snapClearance.textContent = 'Snapmaker U1 (270×270mm): ~15mm margin ✓';
+                bambuClearance.textContent = 'Bambu Lab (250×250mm safe): ~5mm margin ✓';
+            } else {
+                snapClearance.textContent = 'Snapmaker U1 (270×270mm): ~50mm margin ✓';
+                bambuClearance.textContent = 'Bambu Lab (250×250mm safe): ~42mm margin ✓';
+            }
         }
 
         let stlCenter = new THREE.Vector3(87.8, 108.5, 3.0);
 
         if (THREE.STLLoader) {
             const stlLoader = new THREE.STLLoader();
-            let stlUrl = '/3d_panels/tpu_panel.stl?t=' + Date.now();
+            const stlFile = (tpuActiveVariant === 'back') ? 'tpu_panel_back.stl' : 'tpu_panel_front.stl';
+            let stlUrl = `/3d_panels/${stlFile}?t=` + Date.now();
             const geom = await new Promise((resolve, reject) => {
                 stlLoader.load(stlUrl, resolve, undefined, () => {
-                    stlLoader.load('/3d_panels/petes_dragon_tpu_panel.stl?t=' + Date.now(), resolve, undefined, reject);
+                    // Fallback to legacy single-panel if needed
+                    stlLoader.load('/3d_panels/tpu_panel.stl?t=' + Date.now(), resolve, undefined, reject);
                 });
             });
             geom.computeVertexNormals();
@@ -17480,7 +17556,7 @@ async function loadTpuModalData() {
             if (tpuStlMesh) tpuScene.remove(tpuStlMesh);
 
             const stlMat = new THREE.MeshStandardMaterial({
-                color: 0x1a2230,
+                color: (tpuActiveVariant === 'back') ? 0x142033 : 0x1a2230,
                 roughness: 0.55,
                 metalness: 0.15,
                 side: THREE.DoubleSide,
@@ -17493,8 +17569,8 @@ async function loadTpuModalData() {
             tpuScene.add(tpuStlMesh);
         }
 
-        await createTpuGraphicCutoutMesh(specs, stlCenter);
-        createTpuLedPixels(specs, stlCenter);
+        await createTpuGraphicCutoutMesh(variantData, stlCenter);
+        createTpuLedPixels(variantData, stlCenter);
 
         if (loaderOverlay) loaderOverlay.style.display = 'none';
 

@@ -1149,14 +1149,16 @@ scripts/generate_3d_panel.py
    - **LED State Simulation:** Features an interactive LED simulation bar allowing runners to toggle between **LEDs Off**, **Static On** (authentic Pete's Dragon colors), and **Animated Parade** (60 FPS shimmer and wave chase).
    - **Minimal Floating HUD:** Replaced complex multi-layer sidebar menus with a clean floating control bar providing quick camera angles (Front, Underside/Pockets, 3D Angle) and opacity sliders for the graphic and armor plate.
 
-7. **Deploy Tab Integration (`tabHardware`) & Multi-Float Dynamic STL Compilation:**
-   - **Universal Multi-Float Support:** The TPU panel generator dynamically adapts to **any active float** (Float 1 Casey Jr., Float 2 Title Drum, Float 3 Turtle, Float 4 Snail, Float 5 Cinderella, Float 6 Pete's Dragon, Float 7 Flag & Eagle, or custom user graphics).
-   - **Silhouette Contour Extraction:** Rasterizes the active float's artwork with alpha transparency to an offscreen canvas and computes the outer boundary tray using OpenCV polygonal approximation (`findContours` + `approxPolyDP`) and Shapely polygon buffering (`buffer(4.0mm)`), generating a bespoke tailored armor tray for that exact float shape.
-   - **Automatic Print Bed Scaling:** Automatically computes the float's aspect ratio and dimensions, clamping maximum size to $230\text{ mm}$ to guarantee safe print bed clearance on both Snapmaker U1 ($270 \times 270\text{ mm}$) and Bambu Lab ($256 \times 256\text{ mm}$) printers.
-   - **Dedicated 3D Armor Panel Card:** Sits directly in the Deploy tab with clearance badges for both Snapmaker U1 and Bambu Lab build plates.
-   - **✨ Preview 3D TPU Panel Button:** Opens an embedded Three.js 3D modal dialog directly inside the simulator without leaving the app, automatically centering the tailored mesh and projecting the active float's artwork with 2×2mm square window cutouts.
-   - **⚙️ Recompile STL from Active Layout Button:** Sends active layout coordinates and rasterized artwork to backend endpoint `/api/generate_tpu_stl`, runs the Manifold3D compiler (`scripts/compile_clean_tpu_panel.py`), generates a fresh watertight binary STL (`3d_panels/tpu_panel.stl`), and refreshes the preview modal automatically.
-   - **Direct STL & SCAD Action Downloads:** Direct one-click download buttons for `tpu_panel.stl`, `petes_dragon_tpu_panel.stl`, and OpenSCAD models.
+7. **Deploy Tab Integration (`tabHardware`) & Dual Front & Back STL Compilation:**
+   - **Dual Armor Panel System (Front & Back):** In accordance with the 200-LED costume architecture (100 front chest pixels + 100 back pixels duplicated in real time), the compiler creates two tailored armor plates:
+     - **🎽 Front Chest Plate ($185\text{ mm}$ base width, $\sim 154\text{ mm}$ height):** Sized to fit comfortably on the chest above race bib #1952 with full collar and neck mobility.
+     - **🎒 Back Torso Plate ($240\text{ mm}$ max dimension, $\sim 200\text{ mm}$ height):** With no race bib constraint, the back panel scales up by $\approx 1.30\times$ to maximize the running shirt back. The 100 LED socket positions scale proportionally with the larger silhouette, maintaining the exact 1:1 firmware LED mapping while expanding wire spacing.
+   - **Print Bed Safety Clearances:**
+     - **Snapmaker U1 ($270 \times 270\text{ mm}$):** Leaves $\approx 50\text{ mm}$ ($2.0\text{ in}$) margin on the Front Plate and $\approx 15\text{ mm}$ ($0.6\text{ in}$) on the Back Plate.
+     - **Bambu Lab ($250 \times 250\text{ mm}$ safe printable area):** Leaves $\approx 42\text{ mm}$ margin on the Front Plate and $\approx 5\text{ mm}$ safe skirt margin on the Back Plate.
+   - **Interactive Front / Back 3D Preview Modal (`#tpuPreviewModal`):** Features a segmented pill in the header: `[🎽 Front (185mm)]` vs `[🎒 Back (240mm)]`. Switching immediately swaps the STL mesh, scales the graphic overlay, updates the dimensions and weight readout badge, and recalibrates the WebGL camera.
+   - **1-Click Dual Compilation:** Clicking **`⚙️ Recompile STLs (Both Front & Back)`** runs the Python Manifold3D compiler and generates both watertight binary STLs (`tpu_panel_front.stl` and `tpu_panel_back.stl`) in under 9 seconds total.
+   - **Complete Download Suite:** Direct download buttons for `⬇️ Front STL (185mm)`, `⬇️ Back STL (240mm)`, `📦 Download Both STLs`, and parametric OpenSCAD sources (`.scad`).
 
 8. **Layout Tab: 2×2mm Window Visualization & Pocket Overlap Avoidance:**
    - **🖨️ Show TPU 2×2mm Windows Toggle:** Renders subtle $10\text{ mm} \times 5\text{ mm}$ (outer $12.4 \times 7.4\text{ mm}$) pocket socket boundaries with wire pass-through notches and crisp $2\text{ mm} \times 2\text{ mm}$ square optical apertures with radiant light beaming through.

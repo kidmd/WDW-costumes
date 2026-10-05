@@ -93,6 +93,19 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### Entry: Dual Front (185mm) & Back (240mm) TPU Armor Panel Pipeline & Interactive 3D Suite
+* **Date:** 2026-10-05 (Night Imagineering Session)
+* **Milestone:** Milestone 5 - 3D-Printable Flexible Wearable TPU Panel Fabrication & Deploy Suite
+* **Status:** Complete & Verified (`simulator.py`, `scripts/compile_clean_tpu_panel.py`, `simulator/index.html`, `simulator/app.js`, `SIMULATOR_USER_GUIDE.md`).
+* **Implementation Details:**
+  - **Dual Panel Architecture:** Implemented a dual-panel generation pipeline aligning with the 200-LED costume architecture (100 front chest pixels + 100 back pixels duplicated in real time):
+    - **🎽 Front Chest Plate:** $185.0\text{ mm}$ base width ($\sim 154\text{ mm}$ height, clamped $\le 200\text{ mm}$), shaped to fit strictly above runDisney Bib #1952.
+    - **🎒 Back Torso Plate:** $240.0\text{ mm}$ maximum dimension ($\sim 200\text{ mm}$ height), maximizing the running shirt back with no bib constraint.
+  - **Proportional LED Spacing:** The 100 LED socket center positions scale up proportionally by $\approx 1.30\times$ on the back plate, maintaining exact 1:1 real-time firmware animation matching with wider wire spacing. Individual socket cavities stay standard $10\times5\text{ mm}$ with $2\times2\text{ mm}$ optical apertures.
+  - **Batch Python Compiler:** Updated `scripts/compile_clean_tpu_panel.py` to compile both `tpu_panel_front.stl` ($2.95\text{ MB}$) and `tpu_panel_back.stl` ($3.13\text{ MB}$) in under 9 seconds total via Manifold3D. Also exports parametric OpenSCAD sources for both plates.
+  - **Interactive 3D Modal Variant Switcher:** Embedded a segmented switcher pill `[🎽 Front (185mm)]` vs `[🎒 Back (240mm)]` in `#tpuPreviewModal`. Switching dynamically updates the Three.js mesh, scales the graphic cutout texture, recalibrates camera zoom, and updates the dimensions badge.
+  - **Deploy Tab Action Suite:** Added dimension chips ($185\text{ mm}$ vs $240\text{ mm}$), bed margins (Snapmaker U1 $15\text{ mm}$ to $50\text{ mm}$, Bambu Lab $5\text{ mm}$ to $42\text{ mm}$), direct download buttons for Front STL, Back STL, and a 1-click **"📦 Download Both STLs"** helper (`downloadBothTpuStls()`).
+
 ### Entry: Fix TPU Preview Button Trigger & DOM Modal Nesting Resolution
 * **Date:** 2026-10-05 (Night Imagineering Session)
 * **Milestone:** Milestone 5 - 3D-Printable Flexible Wearable TPU Panel Fabrication & Deploy Suite

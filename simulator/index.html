@@ -1578,32 +1578,49 @@
                         </button>
                     </div>
 
-                    <!-- 3D-Printable Wearable TPU Armor Panel (Snapmaker U1 / Bambu Lab) -->
+                    <!-- 3D-Printable Wearable TPU Armor Panels (Front & Back) -->
                     <div class="control-section" style="border: 1px solid #00ff88; background: rgba(0, 255, 136, 0.06); border-radius: 8px;">
                         <div class="section-title" style="color: #00ff88; display: flex; align-items: center; justify-content: space-between;">
-                            <span>🎽 3D-Printable TPU Armor Panel</span>
-                            <span style="font-size: 10px; background: rgba(0, 255, 136, 0.2); color: #00ff88; padding: 2px 6px; border-radius: 10px; font-weight: 600; border: 1px solid rgba(0, 255, 136, 0.4);">95A TPU • FLAT PRINT</span>
+                            <span>🎽 3D-Printable TPU Armor Panels</span>
+                            <span style="font-size: 10px; background: rgba(0, 255, 136, 0.2); color: #00ff88; padding: 2px 6px; border-radius: 10px; font-weight: 600; border: 1px solid rgba(0, 255, 136, 0.4);">95A TPU • DUAL PANELS</span>
                         </div>
                         <p style="font-size: 11px; color: var(--text-muted); line-height: 1.4; margin-top: 4px; margin-bottom: 8px;">
-                            Wearable 6.0mm flexible TPU tray with 2×2mm front optical windows, 10×5mm LED pockets, open rear wire routing basin, and 16 back-flush perimeter eyelets.
+                            Dual 6.0mm flexible TPU armor panels: a <strong>Front Chest Plate (~185mm)</strong> tailored for race bib clearance, and an expanded <strong>Back Torso Plate (~240mm)</strong> with proportionally scaled LED spacing maximizing the shirt back.
                         </p>
-                        <div style="display: flex; gap: 6px; margin-bottom: 8px; font-size: 10px;">
-                            <span style="background: #0d1117; border: 1px solid #30363d; padding: 3px 6px; border-radius: 4px; color: #58a6ff;">🖨️ Snapmaker U1 (270×270mm): ~50mm margin</span>
-                            <span style="background: #0d1117; border: 1px solid #30363d; padding: 3px 6px; border-radius: 4px; color: #3fb950;">🖨️ Bambu Lab (256×256mm): ~42mm margin</span>
+                        <div style="display: flex; flex-direction: column; gap: 4px; margin-bottom: 8px; font-size: 10px;">
+                            <div style="display: flex; gap: 6px;">
+                                <span style="background: #0d1117; border: 1px solid #30363d; padding: 3px 6px; border-radius: 4px; color: #58a6ff; flex: 1;">🎽 Front Chest Plate: 185mm W • ~154mm H</span>
+                                <span style="background: #0d1117; border: 1px solid #30363d; padding: 3px 6px; border-radius: 4px; color: #00ff88; flex: 1;">🎒 Back Torso Plate: 240mm W • ~200mm H</span>
+                            </div>
+                            <div style="display: flex; gap: 6px;">
+                                <span style="background: #0d1117; border: 1px solid #30363d; padding: 3px 6px; border-radius: 4px; color: #38bdf8; flex: 1;">🖨️ Snapmaker U1 (270×270mm): ~15mm to ~50mm margin</span>
+                                <span style="background: #0d1117; border: 1px solid #30363d; padding: 3px 6px; border-radius: 4px; color: #3fb950; flex: 1;">🖨️ Bambu Lab (250×250mm safe): ~5mm to ~42mm margin</span>
+                            </div>
                         </div>
                         <div style="display: flex; flex-direction: column; gap: 6px;">
                             <button type="button" id="openTpuPreviewModalBtn" onclick="openTpuPreviewModal()" class="action-btn primary" style="font-weight: 600; font-size: 12px; padding: 9px; background: linear-gradient(135deg, #097969, #00ff88); color: #000;">
-                                ✨ Preview 3D TPU Panel (STL & Artwork)
+                                ✨ Preview 3D TPU Panels (Front & Back)
+                            </button>
+                            <button type="button" id="compileTpuStlBtn" class="action-btn" style="font-size: 11px; padding: 7px; color: #00ff88; border-color: rgba(0, 255, 136, 0.5);">
+                                ⚙️ Recompile STLs (Both Front & Back)
                             </button>
                             <div style="display: flex; gap: 6px;">
-                                <button type="button" id="compileTpuStlBtn" class="action-btn" style="flex: 1; font-size: 11px; padding: 7px; color: #00ff88; border-color: rgba(0, 255, 136, 0.5);">
-                                    ⚙️ Recompile STL from Active Layout
-                                </button>
-                                <a href="/3d_panels/petes_dragon_tpu_panel.stl" download="petes_dragon_tpu_panel.stl" class="action-btn" style="flex: 0.8; text-decoration: none; font-size: 11px; padding: 7px; color: #58a6ff; border-color: #388bfd; display: flex; align-items: center; justify-content: center; gap: 4px;">
-                                    ⬇️ STL
+                                <a href="/3d_panels/tpu_panel_front.stl" download="tpu_panel_front.stl" class="action-btn" style="flex: 1; text-decoration: none; font-size: 10.5px; padding: 6px; color: #58a6ff; border-color: #388bfd; display: flex; align-items: center; justify-content: center; gap: 4px;">
+                                    ⬇️ Front (185mm)
                                 </a>
-                                <a href="/3d_panels/petes_dragon_tpu_panel.scad" download="petes_dragon_tpu_panel.scad" class="action-btn" style="flex: 0.8; text-decoration: none; font-size: 11px; padding: 7px; color: #e6edf3; border-color: #484f58; display: flex; align-items: center; justify-content: center; gap: 4px;">
-                                    📄 SCAD
+                                <a href="/3d_panels/tpu_panel_back.stl" download="tpu_panel_back.stl" class="action-btn" style="flex: 1; text-decoration: none; font-size: 10.5px; padding: 6px; color: #00ff88; border-color: #2ea043; display: flex; align-items: center; justify-content: center; gap: 4px;">
+                                    ⬇️ Back (240mm)
+                                </a>
+                                <button type="button" onclick="downloadBothTpuStls()" class="action-btn" style="flex: 1; font-size: 10.5px; padding: 6px; color: #ffb703; border-color: #d29922; display: flex; align-items: center; justify-content: center; gap: 4px;">
+                                    📦 Download Both
+                                </button>
+                            </div>
+                            <div style="display: flex; gap: 6px;">
+                                <a href="/3d_panels/tpu_panel_front.scad" download="tpu_panel_front.scad" class="action-btn" style="flex: 1; text-decoration: none; font-size: 10px; padding: 4px; color: #8b949e; border-color: #30363d; display: flex; align-items: center; justify-content: center; gap: 3px;">
+                                    📄 Front SCAD
+                                </a>
+                                <a href="/3d_panels/tpu_panel_back.scad" download="tpu_panel_back.scad" class="action-btn" style="flex: 1; text-decoration: none; font-size: 10px; padding: 4px; color: #8b949e; border-color: #30363d; display: flex; align-items: center; justify-content: center; gap: 3px;">
+                                    📄 Back SCAD
                                 </a>
                             </div>
                         </div>
@@ -2347,6 +2364,11 @@
                         <h3 style="font-size: 15px; font-weight: 700; color: #000; margin: 0;">Pete's Dragon 3D Flexible TPU Armor Panel</h3>
                         <p style="font-size: 11px; color: rgba(0, 0, 0, 0.8); margin: 0; font-weight: 500;">95A TPU Open-Chassis Tray • 2×2mm Square Windows • Zero Overlap Pockets</p>
                     </div>
+                    <!-- Front / Back Variant Switcher Pill -->
+                    <div style="display: flex; align-items: center; margin-left: 12px; background: rgba(0, 0, 0, 0.3); border-radius: 6px; padding: 2px; gap: 2px;">
+                        <button type="button" id="tpuModalSelectFrontBtn" onclick="switchTpuModalVariant('front')" style="border: none; border-radius: 4px; padding: 4px 10px; font-size: 11px; font-weight: 700; cursor: pointer; background: #000; color: #00ff88; transition: all 0.2s ease;">🎽 Front (185mm)</button>
+                        <button type="button" id="tpuModalSelectBackBtn" onclick="switchTpuModalVariant('back')" style="border: none; border-radius: 4px; padding: 4px 10px; font-size: 11px; font-weight: 700; cursor: pointer; background: transparent; color: rgba(0,0,0,0.7); transition: all 0.2s ease;">🎒 Back (240mm)</button>
+                    </div>
                 </div>
                 <div style="display: flex; align-items: center; gap: 10px;">
                     <a href="/3d_panels/tpu_panel_preview.html" target="_blank" style="background: rgba(0, 0, 0, 0.2); color: #000; text-decoration: none; padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; display: flex; align-items: center; gap: 4px;" title="Open standalone full-window viewer in new tab">
@@ -2399,9 +2421,9 @@
                 </div>
 
                 <!-- Floating Dimensions Badge (Bottom Left) -->
-                <div style="position: absolute; bottom: 12px; left: 12px; background: rgba(18, 24, 32, 0.85); backdrop-filter: blur(8px); border: 1px solid #1e293b; border-radius: 8px; padding: 6px 12px; font-size: 11px; display: flex; gap: 12px; z-index: 8; color: #94a3b8;">
-                    <span>📐 <strong style="color: #e2e8f0;">172.2 × 153.8 × 6.0 mm</strong></span>
-                    <span>⚖️ <strong style="color: #e2e8f0;">46.7 g</strong> (38.9 cm³)</span>
+                <div id="tpuModalDimensionsBadge" style="position: absolute; bottom: 12px; left: 12px; background: rgba(18, 24, 32, 0.85); backdrop-filter: blur(8px); border: 1px solid #1e293b; border-radius: 8px; padding: 6px 12px; font-size: 11px; display: flex; gap: 12px; z-index: 8; color: #94a3b8;">
+                    <span>📐 <strong id="tpuModalDimText" style="color: #e2e8f0;">157.0 × 139.8 × 6.0 mm</strong></span>
+                    <span>⚖️ <strong id="tpuModalWeightText" style="color: #e2e8f0;">~45 g</strong></span>
                     <span>🧵 <strong style="color: #00ff88;">16 Back-Flush Eyelets</strong></span>
                 </div>
             </div>
@@ -2410,22 +2432,25 @@
             <div style="padding: 10px 18px; background: #0d1117; border-top: 1px solid #30363d; display: flex; justify-content: space-between; align-items: center; z-index: 10;">
                 <div style="display: flex; align-items: center; gap: 8px; font-size: 11px; color: #8b949e;">
                     <span>Bed Clearance:</span>
-                    <span style="color: #58a6ff;">Snapmaker U1 (270×270mm) ✓</span>
-                    <span style="color: #3fb950;">Bambu Lab (256×256mm) ✓</span>
+                    <span id="tpuModalSnapmakerClearance" style="color: #58a6ff;">Snapmaker U1 (270×270mm) ✓</span>
+                    <span id="tpuModalBambuClearance" style="color: #3fb950;">Bambu Lab (250×250mm safe) ✓</span>
                 </div>
                 <div style="display: flex; align-items: center; gap: 8px;">
-                    <a href="/3d_panels/petes_dragon_tpu_panel.stl" download="petes_dragon_tpu_panel.stl" class="action-btn primary" style="padding: 6px 14px; font-size: 11.5px; background: linear-gradient(135deg, #1f6feb, #388bfd); font-weight: 600; text-decoration: none; display: inline-flex; align-items: center; gap: 4px;">
-                        ⬇️ Download STL (Mesh)
+                    <a id="tpuModalDownloadFrontBtn" href="/3d_panels/tpu_panel_front.stl" download="tpu_panel_front.stl" class="action-btn" style="padding: 6px 12px; font-size: 11px; color: #58a6ff; border-color: #388bfd; text-decoration: none; display: inline-flex; align-items: center; gap: 4px;">
+                        ⬇️ Front STL (185mm)
                     </a>
-                    <a href="/3d_panels/petes_dragon_tpu_panel.scad" download="petes_dragon_tpu_panel.scad" class="action-btn" style="padding: 6px 14px; font-size: 11.5px; text-decoration: none; display: inline-flex; align-items: center; gap: 4px;">
-                        📄 Download OpenSCAD
+                    <a id="tpuModalDownloadBackBtn" href="/3d_panels/tpu_panel_back.stl" download="tpu_panel_back.stl" class="action-btn" style="padding: 6px 12px; font-size: 11px; color: #00ff88; border-color: #2ea043; text-decoration: none; display: inline-flex; align-items: center; gap: 4px;">
+                        ⬇️ Back STL (240mm)
                     </a>
+                    <button type="button" onclick="downloadBothTpuStls()" class="action-btn primary" style="padding: 6px 14px; font-size: 11px; background: linear-gradient(135deg, #1f6feb, #388bfd); font-weight: 600; display: inline-flex; align-items: center; gap: 4px;">
+                        📦 Download Both STLs
+                    </button>
                     <button type="button" id="closeTpuPreviewModalBottomBtn" onclick="closeTpuPreviewModal()" class="action-btn" style="padding: 6px 14px; font-size: 11.5px;">Close</button>
                 </div>
             </div>
         </div>
     </div>
 
-    <script src="app.js?v=72"></script>
+    <script src="app.js?v=73"></script>
 </body>
 </html>

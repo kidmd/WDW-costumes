@@ -1183,14 +1183,24 @@ const uint8_t PROGMEM SPATIAL_RADIUS_BYTE[FRONT_LEDS] = {{
                 img_w, img_h = a_img.size
                 aspect = img_w / float(img_h)
 
-            WIDTH_MM = 185.0
-            HEIGHT_MM = round(WIDTH_MM / aspect, 2)
-            if HEIGHT_MM > 230.0:
-                HEIGHT_MM = 230.0
-                WIDTH_MM = round(HEIGHT_MM * aspect, 2)
-            elif WIDTH_MM > 230.0:
-                WIDTH_MM = 230.0
-                HEIGHT_MM = round(WIDTH_MM / aspect, 2)
+            # 1. Front Plate (Chest above Bib #1952): Base width 185mm, clamped max 200mm
+            FRONT_WIDTH_MM = 185.0
+            FRONT_HEIGHT_MM = round(FRONT_WIDTH_MM / aspect, 2)
+            if FRONT_HEIGHT_MM > 200.0:
+                FRONT_HEIGHT_MM = 200.0
+                FRONT_WIDTH_MM = round(FRONT_HEIGHT_MM * aspect, 2)
+            elif FRONT_WIDTH_MM > 200.0:
+                FRONT_WIDTH_MM = 200.0
+                FRONT_HEIGHT_MM = round(FRONT_WIDTH_MM / aspect, 2)
+
+            # 2. Back Plate (Torso with no bib): Max dimension 240mm
+            BACK_MAX_MM = 240.0
+            if aspect >= 1.0:
+                BACK_WIDTH_MM = BACK_MAX_MM
+                BACK_HEIGHT_MM = round(BACK_MAX_MM / aspect, 2)
+            else:
+                BACK_HEIGHT_MM = BACK_MAX_MM
+                BACK_WIDTH_MM = round(BACK_MAX_MM * aspect, 2)
 
             bounds = req_data.get("bounds", {})
             normX = bounds.get("normX", (1.0 - 0.40) / 2.0)
@@ -1198,13 +1208,29 @@ const uint8_t PROGMEM SPATIAL_RADIUS_BYTE[FRONT_LEDS] = {{
             normW = bounds.get("normW", 0.40)
             normH = bounds.get("normH", 0.385)
 
-            ordered_leds = []
+            # Front LEDs
+            front_leds = []
             for idx, l in enumerate(incoming_leds):
                 rx = (l.get("x", 0.5) - normX) / normW
                 ry = (l.get("y", 0.5) - normY) / normH
-                px = round(rx * WIDTH_MM, 2)
-                py = round((1.0 - ry) * HEIGHT_MM, 2)
-                ordered_leds.append({
+                px = round(rx * FRONT_WIDTH_MM, 2)
+                py = round((1.0 - ry) * FRONT_HEIGHT_MM, 2)
+                front_leds.append({
+                    "id": idx + 1,
+                    "orig_id": idx,
+                    "x": px,
+                    "y": py,
+                    "color": l.get("color", {"r": 0, "g": 255, "b": 0})
+                })
+
+            # Back LEDs (proportional 1.3x scale for back torso)
+            back_leds = []
+            for idx, l in enumerate(incoming_leds):
+                rx = (l.get("x", 0.5) - normX) / normW
+                ry = (l.get("y", 0.5) - normY) / normH
+                px = round(rx * BACK_WIDTH_MM, 2)
+                py = round((1.0 - ry) * BACK_HEIGHT_MM, 2)
+                back_leds.append({
                     "id": idx + 1,
                     "orig_id": idx,
                     "x": px,
@@ -1213,43 +1239,77 @@ const uint8_t PROGMEM SPATIAL_RADIUS_BYTE[FRONT_LEDS] = {{
                 })
 
             specs = {
-                "character": f"{float_name} 3D Wearable TPU Armor Panel",
+                "character": f"{float_name} 3D Wearable TPU Armor Panels",
                 "float_name": float_name,
                 "float_index": float_index,
-                "width_mm": WIDTH_MM,
-                "height_mm": HEIGHT_MM,
                 "aspect": aspect,
-                "ordered_leds": ordered_leds,
-                "led_count": len(ordered_leds),
-                "artwork_file": "active_artwork.png"
+                "artwork_file": "active_artwork.png",
+                "front": {
+                    "variant": "front",
+                    "name": "Front Plate (Chest)",
+                    "width_mm": FRONT_WIDTH_MM,
+                    "height_mm": FRONT_HEIGHT_MM,
+                    "ordered_leds": front_leds,
+                    "led_count": len(front_leds)
+                },
+                "back": {
+                    "variant": "back",
+                    "name": "Back Plate (Torso)",
+                    "width_mm": BACK_WIDTH_MM,
+                    "height_mm": BACK_HEIGHT_MM,
+                    "ordered_leds": back_leds,
+                    "led_count": len(back_leds)
+                },
+                # Root fallbacks for backward compatibility
+                "width_mm": FRONT_WIDTH_MM,
+                "height_mm": FRONT_HEIGHT_MM,
+                "ordered_leds": front_leds,
+                "led_count": len(front_leds)
             }
 
             specs_path = os.path.join(BASE_DIR, "3d_panels", "tpu_panel_specs.json")
             with open(specs_path, "w", encoding="utf-8") as f:
                 json.dump(specs, f, indent=2)
 
-            # Compile clean watertight TPU panel
+            # Compile clean watertight TPU panels (Front and Back)
             cmd = [sys.executable, os.path.join(BASE_DIR, "scripts", "compile_clean_tpu_panel.py")]
-            res = subprocess.run(cmd, cwd=BASE_DIR, capture_output=True, text=True, timeout=45)
+            res = subprocess.run(cmd, cwd=BASE_DIR, capture_output=True, text=True, timeout=90)
 
-            stl_path = os.path.join(BASE_DIR, "3d_panels", "tpu_panel.stl")
-            if not os.path.exists(stl_path):
-                stl_path = os.path.join(BASE_DIR, "3d_panels", "petes_dragon_tpu_panel.stl")
+            front_stl_path = os.path.join(BASE_DIR, "3d_panels", "tpu_panel_front.stl")
+            if not os.path.exists(front_stl_path):
+                front_stl_path = os.path.join(BASE_DIR, "3d_panels", "tpu_panel.stl")
+            back_stl_path = os.path.join(BASE_DIR, "3d_panels", "tpu_panel_back.stl")
 
-            if os.path.exists(stl_path):
-                stl_size = os.path.getsize(stl_path)
+            if os.path.exists(front_stl_path):
+                front_size = os.path.getsize(front_stl_path)
+                back_size = os.path.getsize(back_stl_path) if os.path.exists(back_stl_path) else front_size
                 self.send_response(200)
                 self.send_header("Content-Type", "application/json")
                 self.end_headers()
                 self.wfile.write(json.dumps({
                     "success": True,
-                    "message": f"{float_name} TPU Panel compiled successfully!",
+                    "message": f"{float_name} Front & Back TPU Panels compiled successfully!",
                     "float_name": float_name,
-                    "stl_url": "/3d_panels/tpu_panel.stl",
-                    "scad_url": "/3d_panels/petes_dragon_tpu_panel.scad",
+                    "front": {
+                        "stl_url": "/3d_panels/tpu_panel_front.stl",
+                        "scad_url": "/3d_panels/tpu_panel_front.scad",
+                        "stl_size": front_size,
+                        "width_mm": FRONT_WIDTH_MM,
+                        "height_mm": FRONT_HEIGHT_MM
+                    },
+                    "back": {
+                        "stl_url": "/3d_panels/tpu_panel_back.stl",
+                        "scad_url": "/3d_panels/tpu_panel_back.scad",
+                        "stl_size": back_size,
+                        "width_mm": BACK_WIDTH_MM,
+                        "height_mm": BACK_HEIGHT_MM
+                    },
+                    "stl_url": "/3d_panels/tpu_panel_front.stl",
+                    "stl_front_url": "/3d_panels/tpu_panel_front.stl",
+                    "stl_back_url": "/3d_panels/tpu_panel_back.stl",
                     "artwork_url": "/3d_panels/active_artwork.png",
-                    "stl_size": stl_size,
-                    "output": res.stdout[-300:] if res.stdout else ""
+                    "stl_size": front_size,
+                    "output": res.stdout[-400:] if res.stdout else ""
                 }).encode("utf-8"))
             else:
                 self.send_response(500)
