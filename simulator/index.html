@@ -322,6 +322,15 @@
                             </label>
                         </div>
 
+                        <!-- 2x2mm TPU Panel Optical Apertures -->
+                        <div class="toggle-row" style="margin-bottom: 4px;">
+                            <span id="tpuWindowsLabel" style="font-size: 11px; color: #00ff88; font-weight: 500;">🖨️ Show TPU 2×2mm Windows</span>
+                            <label class="switch">
+                                <input type="checkbox" id="showTpuWindowsToggle">
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+
                         <!-- Wire Tension & Physical Pitch Heatmap -->
                         <div class="toggle-row" style="margin-bottom: 4px;">
                             <span id="wireTensionLabel" style="font-size: 11px; color: #38bdf8; font-weight: 500;">🧵 Wire Tension Heatmap</span>
@@ -1569,6 +1578,40 @@
                         </button>
                     </div>
 
+                    <!-- 3D-Printable Wearable TPU Armor Panel (Snapmaker U1 / Bambu Lab) -->
+                    <div class="control-section" style="border: 1px solid #00ff88; background: rgba(0, 255, 136, 0.06); border-radius: 8px;">
+                        <div class="section-title" style="color: #00ff88; display: flex; align-items: center; justify-content: space-between;">
+                            <span>🎽 3D-Printable TPU Armor Panel</span>
+                            <span style="font-size: 10px; background: rgba(0, 255, 136, 0.2); color: #00ff88; padding: 2px 6px; border-radius: 10px; font-weight: 600; border: 1px solid rgba(0, 255, 136, 0.4);">95A TPU • FLAT PRINT</span>
+                        </div>
+                        <p style="font-size: 11px; color: var(--text-muted); line-height: 1.4; margin-top: 4px; margin-bottom: 8px;">
+                            Wearable 6.0mm flexible TPU tray with 2×2mm front optical windows, 10×5mm LED pockets, open rear wire routing basin, and 16 back-flush perimeter eyelets.
+                        </p>
+                        <div style="display: flex; gap: 6px; margin-bottom: 8px; font-size: 10px;">
+                            <span style="background: #0d1117; border: 1px solid #30363d; padding: 3px 6px; border-radius: 4px; color: #58a6ff;">🖨️ Snapmaker U1 (270×270mm): ~50mm margin</span>
+                            <span style="background: #0d1117; border: 1px solid #30363d; padding: 3px 6px; border-radius: 4px; color: #3fb950;">🖨️ Bambu Lab (256×256mm): ~42mm margin</span>
+                        </div>
+                        <div style="display: flex; flex-direction: column; gap: 6px;">
+                            <button type="button" id="openTpuPreviewModalBtn" class="action-btn primary" style="font-weight: 600; font-size: 12px; padding: 9px; background: linear-gradient(135deg, #097969, #00ff88); color: #000;">
+                                ✨ Preview 3D TPU Panel (STL & Artwork)
+                            </button>
+                            <div style="display: flex; gap: 6px;">
+                                <button type="button" id="compileTpuStlBtn" class="action-btn" style="flex: 1; font-size: 11px; padding: 7px; color: #00ff88; border-color: rgba(0, 255, 136, 0.5);">
+                                    ⚙️ Recompile STL from Active Layout
+                                </button>
+                                <a href="/3d_panels/petes_dragon_tpu_panel.stl" download="petes_dragon_tpu_panel.stl" class="action-btn" style="flex: 0.8; text-decoration: none; font-size: 11px; padding: 7px; color: #58a6ff; border-color: #388bfd; display: flex; align-items: center; justify-content: center; gap: 4px;">
+                                    ⬇️ STL
+                                </a>
+                                <a href="/3d_panels/petes_dragon_tpu_panel.scad" download="petes_dragon_tpu_panel.scad" class="action-btn" style="flex: 0.8; text-decoration: none; font-size: 11px; padding: 7px; color: #e6edf3; border-color: #484f58; display: flex; align-items: center; justify-content: center; gap: 4px;">
+                                    📄 SCAD
+                                </a>
+                            </div>
+                        </div>
+                        <div id="tpuCompileStatus" style="display: none; margin-top: 6px; font-size: 10.5px; color: #00ff88; padding: 4px 8px; background: rgba(0, 255, 136, 0.1); border-radius: 4px;">
+                            <!-- Live status text -->
+                        </div>
+                    </div>
+
                     <!-- Web Flasher Zero-Install Link & ROM Rebuilder -->
                     <div class="control-section">
                         <div class="section-title">
@@ -2280,8 +2323,98 @@
                 </div>
             </div>
 
-            <div style="padding: 12px 18px; background: #0d1117; border-top: 1px solid #30363d; display: flex; justify-content: flex-end; align-items: center;">
-                <button type="button" id="closeCricutExportModalBottomBtn" class="action-btn" style="padding: 6px 14px; font-size: 11.5px;">Close</button>
+    <!-- Three.js & STL Loader for Interactive 3D TPU Armor Panel Inspector -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/STLLoader.js"></script>
+
+    <!-- Modal for 3D TPU Armor Panel & STL Preview -->
+    <div id="tpuPreviewModal" style="display: none; position: fixed; inset: 0; background: rgba(0, 0, 0, 0.85); backdrop-filter: blur(5px); z-index: 9999; justify-content: center; align-items: center; padding: 16px;">
+        <div style="background: #0d1117; border: 1px solid #30363d; border-radius: 12px; width: 95vw; max-width: 950px; height: 90vh; max-height: 750px; box-shadow: 0 16px 48px rgba(0, 0, 0, 0.8); overflow: hidden; display: flex; flex-direction: column; position: relative;">
+            
+            <!-- Modal Header -->
+            <div style="padding: 12px 18px; background: linear-gradient(135deg, #097969, #00ff88); color: #000; display: flex; justify-content: space-between; align-items: center; z-index: 10;">
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <span style="font-size: 20px;">🐉</span>
+                    <div>
+                        <h3 style="font-size: 15px; font-weight: 700; color: #000; margin: 0;">Pete's Dragon 3D Flexible TPU Armor Panel</h3>
+                        <p style="font-size: 11px; color: rgba(0, 0, 0, 0.8); margin: 0; font-weight: 500;">95A TPU Open-Chassis Tray • 2×2mm Square Windows • Zero Overlap Pockets</p>
+                    </div>
+                </div>
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <a href="/3d_panels/tpu_panel_preview.html" target="_blank" style="background: rgba(0, 0, 0, 0.2); color: #000; text-decoration: none; padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; display: flex; align-items: center; gap: 4px;" title="Open standalone full-window viewer in new tab">
+                        ↗️ Full Tab
+                    </a>
+                    <button type="button" id="closeTpuPreviewModalBtn" style="background: transparent; border: none; color: #000; font-size: 22px; cursor: pointer; padding: 2px 6px; font-weight: 700;">✕</button>
+                </div>
+            </div>
+
+            <!-- 3D Canvas Area with Relative Positioning -->
+            <div style="position: relative; flex: 1; width: 100%; height: 100%; background: #070a0f; overflow: hidden;">
+                <div id="tpuModalCanvasContainer" style="width: 100%; height: 100%;"></div>
+
+                <!-- Loading Overlay -->
+                <div id="tpuModalLoading" style="position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; background: rgba(7, 10, 15, 0.85); color: #00ff88; font-size: 13px; gap: 10px; z-index: 5;">
+                    <div class="spinner" style="width: 32px; height: 32px; border: 3px solid rgba(0, 255, 136, 0.2); border-top-color: #00ff88; border-radius: 50%; animation: spin 0.8s linear infinite;"></div>
+                    <span>Loading Binary STL & Compiling Shaders...</span>
+                </div>
+
+                <!-- Floating Camera & View Controls Pill -->
+                <div style="position: absolute; top: 12px; left: 12px; display: flex; flex-direction: column; gap: 6px; z-index: 8;">
+                    <div style="display: flex; background: rgba(18, 24, 32, 0.85); backdrop-filter: blur(8px); border: 1px solid #1e293b; border-radius: 8px; padding: 4px; gap: 4px;">
+                        <button type="button" id="tpuModalViewFrontBtn" class="action-btn" style="padding: 4px 10px; font-size: 11px; font-weight: 600; border-color: #00ff88; color: #00ff88;">👕 Front Face</button>
+                        <button type="button" id="tpuModalViewBackBtn" class="action-btn" style="padding: 4px 10px; font-size: 11px; font-weight: 600;">🔄 Underside (Pockets)</button>
+                        <button type="button" id="tpuModalViewIsoBtn" class="action-btn" style="padding: 4px 10px; font-size: 11px; font-weight: 600;">📐 3D Angle</button>
+                    </div>
+
+                    <!-- LED Simulation Control Pill -->
+                    <div style="display: flex; background: rgba(18, 24, 32, 0.85); backdrop-filter: blur(8px); border: 1px solid #1e293b; border-radius: 8px; padding: 4px; gap: 4px; align-items: center;">
+                        <span style="font-size: 10px; color: #94a3b8; padding-left: 6px; font-weight: 600;">LEDs:</span>
+                        <button type="button" id="tpuModalLedOffBtn" class="action-btn" style="padding: 3px 8px; font-size: 10.5px;">Off</button>
+                        <button type="button" id="tpuModalLedStaticBtn" class="action-btn" style="padding: 3px 8px; font-size: 10.5px; border-color: #00ff88; color: #00ff88;">Static On</button>
+                        <button type="button" id="tpuModalLedAnimBtn" class="action-btn" style="padding: 3px 8px; font-size: 10.5px; border-color: #ffb703; color: #ffb703;">🎆 Animated (60 FPS)</button>
+                    </div>
+                </div>
+
+                <!-- Floating Opacity Controls Pill (Top Right) -->
+                <div style="position: absolute; top: 12px; right: 12px; background: rgba(18, 24, 32, 0.85); backdrop-filter: blur(8px); border: 1px solid #1e293b; border-radius: 8px; padding: 8px 12px; display: flex; flex-direction: column; gap: 6px; width: 175px; z-index: 8;">
+                    <div style="display: flex; justify-content: space-between; font-size: 10.5px; color: #94a3b8;">
+                        <span>Artwork:</span>
+                        <span id="tpuModalGraphicOpVal" style="color: #00e5ff; font-family: monospace;">100%</span>
+                    </div>
+                    <input type="range" id="tpuModalGraphicOpSlider" min="0" max="100" value="100" style="width: 100%;">
+                    
+                    <div style="display: flex; justify-content: space-between; font-size: 10.5px; color: #94a3b8; margin-top: 2px;">
+                        <span>TPU Plate:</span>
+                        <span id="tpuModalPlateOpVal" style="color: #00e5ff; font-family: monospace;">95%</span>
+                    </div>
+                    <input type="range" id="tpuModalPlateOpSlider" min="10" max="100" value="95" style="width: 100%;">
+                </div>
+
+                <!-- Floating Dimensions Badge (Bottom Left) -->
+                <div style="position: absolute; bottom: 12px; left: 12px; background: rgba(18, 24, 32, 0.85); backdrop-filter: blur(8px); border: 1px solid #1e293b; border-radius: 8px; padding: 6px 12px; font-size: 11px; display: flex; gap: 12px; z-index: 8; color: #94a3b8;">
+                    <span>📐 <strong style="color: #e2e8f0;">172.2 × 153.8 × 6.0 mm</strong></span>
+                    <span>⚖️ <strong style="color: #e2e8f0;">46.7 g</strong> (38.9 cm³)</span>
+                    <span>🧵 <strong style="color: #00ff88;">16 Back-Flush Eyelets</strong></span>
+                </div>
+            </div>
+
+            <!-- Modal Footer -->
+            <div style="padding: 10px 18px; background: #0d1117; border-top: 1px solid #30363d; display: flex; justify-content: space-between; align-items: center; z-index: 10;">
+                <div style="display: flex; align-items: center; gap: 8px; font-size: 11px; color: #8b949e;">
+                    <span>Bed Clearance:</span>
+                    <span style="color: #58a6ff;">Snapmaker U1 (270×270mm) ✓</span>
+                    <span style="color: #3fb950;">Bambu Lab (256×256mm) ✓</span>
+                </div>
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <a href="/3d_panels/petes_dragon_tpu_panel.stl" download="petes_dragon_tpu_panel.stl" class="action-btn primary" style="padding: 6px 14px; font-size: 11.5px; background: linear-gradient(135deg, #1f6feb, #388bfd); font-weight: 600; text-decoration: none; display: inline-flex; align-items: center; gap: 4px;">
+                        ⬇️ Download STL (Mesh)
+                    </a>
+                    <a href="/3d_panels/petes_dragon_tpu_panel.scad" download="petes_dragon_tpu_panel.scad" class="action-btn" style="padding: 6px 14px; font-size: 11.5px; text-decoration: none; display: inline-flex; align-items: center; gap: 4px;">
+                        📄 Download OpenSCAD
+                    </a>
+                    <button type="button" id="closeTpuPreviewModalBottomBtn" class="action-btn" style="padding: 6px 14px; font-size: 11.5px;">Close</button>
+                </div>
             </div>
         </div>
     </div>

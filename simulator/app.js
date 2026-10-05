@@ -61,6 +61,7 @@ let params = {
     showWiring: false,
     showWireTension: false,
     showPillSlots: false,
+    showTpuWindows: false,
     showSymmetryAxis: false,
     liveSymmetryDrag: false,
     showNumbers: false,
@@ -3225,7 +3226,93 @@ function renderBulb(cx, x, y, col, isHovered, isSelected, index) {
     const isLit = (col.alpha > 0.01) && (col.r > 2 || col.g > 2 || col.b > 2);
     const bulbAlpha = (col.alpha !== undefined) ? Math.max(0.35, Math.min(1.0, col.alpha)) : 1.0;
 
-    if (params.showPillSlots) {
+    if (params.showTpuWindows) {
+        // Physical scale: 18.0 inch wide garment (457.2 mm)
+        const s = getShirtBounds();
+        const ppm = s.width / 457.2;
+
+        const outerW = Math.max(14, 12.4 * ppm); // 12.4mm outer collar length
+        const outerH = Math.max(8, 7.4 * ppm);   // 7.4mm outer collar width
+        const innerW = Math.max(11, 10.0 * ppm); // 10.0mm inner pocket length
+        const innerH = Math.max(5.5, 5.0 * ppm); // 5.0mm inner pocket width
+        const winSq = Math.max(3.5, 2.0 * ppm);  // 2.0mm square optical aperture
+
+        cx.save();
+        cx.translate(x, y);
+
+        // 1. Subtle 12.4x7.4mm Outer Collar Outline (Zero-Overlap Footprint)
+        cx.beginPath();
+        if (typeof cx.roundRect === 'function') {
+            cx.roundRect(-outerW / 2, -outerH / 2, outerW, outerH, outerH / 2);
+        } else {
+            cx.rect(-outerW / 2, -outerH / 2, outerW, outerH);
+        }
+        cx.fillStyle = 'rgba(11, 15, 23, 0.45)';
+        cx.fill();
+        cx.strokeStyle = (isHovered || isSelected) ? 'rgba(0, 255, 136, 0.90)' : 'rgba(0, 255, 136, 0.28)';
+        cx.lineWidth = (isHovered || isSelected) ? 1.5 : 0.8;
+        cx.stroke();
+
+        // 2. 10x5mm Inner Pocket Socket Boundary
+        cx.beginPath();
+        if (typeof cx.roundRect === 'function') {
+            cx.roundRect(-innerW / 2, -innerH / 2, innerW, innerH, innerH / 2);
+        } else {
+            cx.rect(-innerW / 2, -innerH / 2, innerW, innerH);
+        }
+        cx.strokeStyle = 'rgba(255, 255, 255, 0.15)';
+        cx.lineWidth = 0.6;
+        cx.stroke();
+
+        // 3. 4mm Wire Pass-Through Notches on ends
+        cx.strokeStyle = 'rgba(56, 189, 248, 0.40)';
+        cx.lineWidth = 1.0;
+        cx.beginPath();
+        cx.moveTo(-outerW / 2, 0); cx.lineTo(-innerW / 2, 0);
+        cx.moveTo(innerW / 2, 0); cx.lineTo(outerW / 2, 0);
+        cx.stroke();
+
+        // 4. Glow Bloom through Aperture
+        if (isLit) {
+            const glowR = params.glowSize;
+            const grad = cx.createRadialGradient(0, 0, 1, 0, 0, glowR);
+            grad.addColorStop(0, `rgba(${col.r}, ${col.g}, ${col.b}, ${0.85 * bulbAlpha})`);
+            grad.addColorStop(0.35, `rgba(${col.r}, ${col.g}, ${col.b}, ${0.45 * bulbAlpha})`);
+            grad.addColorStop(0.75, `rgba(${col.r}, ${col.g}, ${col.b}, ${0.12 * bulbAlpha})`);
+            grad.addColorStop(1, 'rgba(0, 0, 0, 0)');
+
+            cx.fillStyle = grad;
+            cx.beginPath();
+            cx.arc(0, 0, glowR, 0, Math.PI * 2);
+            cx.fill();
+        }
+
+        // 5. Centered 2mm x 2mm Square Optical Window Aperture
+        cx.beginPath();
+        cx.rect(-winSq / 2, -winSq / 2, winSq, winSq);
+        if (isLit) {
+            cx.fillStyle = `rgba(${Math.min(255, col.r + 35)}, ${Math.min(255, col.g + 35)}, ${Math.min(255, col.b + 35)}, ${Math.max(0.85, bulbAlpha)})`;
+            cx.fill();
+            cx.strokeStyle = 'rgba(255, 255, 255, 0.85)';
+            cx.lineWidth = 0.8;
+            cx.stroke();
+
+            // Inner white bright emission core
+            cx.fillStyle = `rgba(255, 255, 255, ${0.95 * bulbAlpha})`;
+            cx.fillRect(-winSq * 0.25, -winSq * 0.25, winSq * 0.5, winSq * 0.5);
+        } else {
+            cx.fillStyle = '#080c14';
+            cx.fill();
+            cx.strokeStyle = 'rgba(75, 85, 100, 0.65)';
+            cx.lineWidth = 0.8;
+            cx.stroke();
+            // Tiny unlit resin core
+            cx.fillStyle = 'rgba(30, 36, 48, 0.9)';
+            cx.fillRect(-winSq * 0.25, -winSq * 0.25, winSq * 0.5, winSq * 0.5);
+        }
+
+        cx.restore();
+    } else if (params.showPillSlots) {
         // Physical scale: 18.0 inch wide garment (457.2 mm)
         const s = getShirtBounds();
         const ppm = s.width / 457.2;
@@ -10577,6 +10664,98 @@ canvas.addEventListener('mousedown', (e) => {
     }
 });
 
+// ---------------------------------------------------------------------------
+// ZERO-OVERLAP TPU COLLAR CLEARANCE & PBD RELAXATION
+// 10x5mm inner socket, 12.4x7.4mm outer collar stadium (5.0mm horizontal segment).
+// Required center distance >= 7.9mm (0.5mm clear wall gap between any two collars).
+// Physical garment scale: 18.0 inch garment = 457.2mm -> 1.0mm = 1.0 / 457.2 normalized units.
+// ---------------------------------------------------------------------------
+function clampLedNoCollarOverlap(targetX, targetY, movingIndex, ledsArray) {
+    const mmToNorm = 1.0 / 457.2;
+    const segLen = 5.0 * mmToNorm;
+    const reqDist = 7.9 * mmToNorm;
+    let x = targetX;
+    let y = targetY;
+
+    for (let iter = 0; iter < 4; iter++) {
+        for (let j = 0; j < ledsArray.length; j++) {
+            if (j === movingIndex) continue;
+            const ox = ledsArray[j].x;
+            const oy = ledsArray[j].y;
+            const dx = x - ox;
+            const dy = y - oy;
+            const adx = Math.abs(dx);
+            const ady = Math.abs(dy);
+            const segDx = Math.max(0, adx - segLen);
+            const segDy = ady;
+            const dist = Math.hypot(segDx, segDy);
+
+            if (dist < reqDist) {
+                const pen = reqDist - dist;
+                let nx, ny;
+                if (dist < 1e-5) {
+                    nx = 0.0;
+                    ny = 1.0;
+                } else {
+                    nx = (segDx / dist) * (dx >= 0 ? 1.0 : -1.0);
+                    ny = (segDy / dist) * (dy >= 0 ? 1.0 : -1.0);
+                }
+                x += nx * pen;
+                y += ny * pen;
+            }
+        }
+    }
+    return {
+        x: Math.max(0.05, Math.min(0.95, parseFloat(x.toFixed(4)))),
+        y: Math.max(0.05, Math.min(0.95, parseFloat(y.toFixed(4))))
+    };
+}
+
+function relaxLedCollarOverlaps(ledsList, iterations = 35) {
+    if (!ledsList || ledsList.length < 2) return;
+    const mmToNorm = 1.0 / 457.2;
+    const segLen = 5.0 * mmToNorm;
+    const reqDist = 7.9 * mmToNorm;
+    const n = ledsList.length;
+    const gb = typeof getGraphicChestBounds === 'function' ? getGraphicChestBounds() : { normX: 0.1, normY: 0.1, normW: 0.8, normH: 0.8 };
+
+    for (let iter = 0; iter < iterations; iter++) {
+        for (let i = 0; i < n; i++) {
+            for (let j = i + 1; j < n; j++) {
+                const dx = ledsList[j].x - ledsList[i].x;
+                const dy = ledsList[j].y - ledsList[i].y;
+                const adx = Math.abs(dx);
+                const ady = Math.abs(dy);
+                const segDx = Math.max(0, adx - segLen);
+                const segDy = ady;
+                const dist = Math.hypot(segDx, segDy);
+
+                if (dist < reqDist) {
+                    const pen = reqDist - dist;
+                    let nx, ny;
+                    if (dist < 1e-5) {
+                        nx = 0.0;
+                        ny = 1.0;
+                    } else {
+                        nx = (segDx / dist) * (dx >= 0 ? 1.0 : -1.0);
+                        ny = (segDy / dist) * (dy >= 0 ? 1.0 : -1.0);
+                    }
+                    const pushX = nx * pen * 0.5;
+                    const pushY = ny * pen * 0.5;
+                    ledsList[i].x -= pushX;
+                    ledsList[i].y -= pushY;
+                    ledsList[j].x += pushX;
+                    ledsList[j].y += pushY;
+                }
+            }
+        }
+        for (let i = 0; i < n; i++) {
+            ledsList[i].x = Math.max(gb.normX, Math.min(gb.normX + gb.normW, parseFloat(ledsList[i].x.toFixed(4))));
+            ledsList[i].y = Math.max(gb.normY, Math.min(gb.normY + gb.normH, parseFloat(ledsList[i].y.toFixed(4))));
+        }
+    }
+}
+
 canvas.addEventListener('mousemove', (e) => {
     if (currentView === 'fleet') {
         const rect = canvas.getBoundingClientRect();
@@ -10672,8 +10851,9 @@ canvas.addEventListener('mousemove', (e) => {
                 if (sel) sel.value = fwGroup.id;
             }
         } else {
-            leds[draggedLed].x = norm.x;
-            leds[draggedLed].y = norm.y;
+            const clamped = clampLedNoCollarOverlap(norm.x, norm.y, draggedLed, leds);
+            leds[draggedLed].x = clamped.x;
+            leds[draggedLed].y = clamped.y;
         }
 
         updateLedInspectorCoords();
@@ -11251,6 +11431,12 @@ document.getElementById('showWiringToggle').addEventListener('change', (e) => {
 document.getElementById('showPillSlotsToggle')?.addEventListener('change', (e) => {
     params.showPillSlots = e.target.checked;
     try { localStorage.setItem('msep_show_pill_slots', params.showPillSlots ? 'true' : 'false'); } catch (err) {}
+    markSingleShirtDirty();
+});
+
+document.getElementById('showTpuWindowsToggle')?.addEventListener('change', (e) => {
+    params.showTpuWindows = e.target.checked;
+    try { localStorage.setItem('msep_show_tpu_windows', params.showTpuWindows ? 'true' : 'false'); } catch (err) {}
     markSingleShirtDirty();
 });
 
@@ -12842,6 +13028,9 @@ function rearrangeRemainingLedsOnGraphic(showNotification = true) {
         });
     }
 
+    // 5b. Relax any pocket collisions to ensure zero collar overlap
+    relaxLedCollarOverlaps(newPoints, 35);
+
     // 6. Order the unassigned points along a continuous physical snake path
     const sortedPoints = optimizeLedWiringOrder(newPoints, 'bottom-left');
 
@@ -13028,6 +13217,9 @@ function scatterLedsOnGraphic(targetCount = 100, colorMatch = true, markDirty = 
             color: col
         });
     }
+
+    // Relax any pocket collisions to ensure zero collar overlap in 3D STL
+    relaxLedCollarOverlaps(newLeds, 40);
 
     // Sort & renumber LEDs into a continuous physical wiring path (starts near waist / bottom-left)
     leds = optimizeLedWiringOrder(newLeds, 'bottom-left');
@@ -16992,6 +17184,432 @@ function initBaroqueSynth() {
     }
 }
 
+// ===========================================================================
+// 3D TPU ARMOR PANEL VIEWER & STL COMPILATION CONTROLLER
+// ===========================================================================
+let tpuScene = null;
+let tpuCamera = null;
+let tpuRenderer = null;
+let tpuControls = null;
+let tpuStlMesh = null;
+let tpuGraphicMesh = null;
+let tpuLedsGroup = null;
+let tpuLedMaterials = [];
+let tpuBaseColors = [];
+let tpuLedMode = 'on'; // 'off', 'on', 'animate'
+let tpuAnimClock = 0;
+let tpuAnimFrameId = null;
+let tpuIsOpen = false;
+
+const TPU_IMG_WIDTH_MM = 185.0;
+const TPU_IMG_HEIGHT_MM = 222.09;
+const TPU_STL_CENTER_X = 87.846;
+const TPU_STL_CENTER_Y = 108.536;
+const TPU_STL_CENTER_Z = 3.0;
+
+function initTpuArmorPanel() {
+    const openBtn = document.getElementById('openTpuPreviewModalBtn');
+    const closeBtn = document.getElementById('closeTpuPreviewModalBtn');
+    const closeBottomBtn = document.getElementById('closeTpuPreviewModalBottomBtn');
+    const compileBtn = document.getElementById('compileTpuStlBtn');
+    const modal = document.getElementById('tpuPreviewModal');
+
+    if (openBtn) openBtn.addEventListener('click', openTpuPreviewModal);
+    if (closeBtn) closeBtn.addEventListener('click', closeTpuPreviewModal);
+    if (closeBottomBtn) closeBottomBtn.addEventListener('click', closeTpuPreviewModal);
+
+    // Modal background click to close
+    if (modal) {
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) closeTpuPreviewModal();
+        });
+    }
+
+    // Camera view buttons
+    document.getElementById('tpuModalViewFrontBtn')?.addEventListener('click', () => setTpuModalView('front'));
+    document.getElementById('tpuModalViewBackBtn')?.addEventListener('click', () => setTpuModalView('back'));
+    document.getElementById('tpuModalViewIsoBtn')?.addEventListener('click', () => setTpuModalView('iso'));
+
+    // LED simulation modes
+    document.getElementById('tpuModalLedOffBtn')?.addEventListener('click', () => setTpuModalLedMode('off'));
+    document.getElementById('tpuModalLedStaticBtn')?.addEventListener('click', () => setTpuModalLedMode('on'));
+    document.getElementById('tpuModalLedAnimBtn')?.addEventListener('click', () => setTpuModalLedMode('animate'));
+
+    // Opacity sliders
+    document.getElementById('tpuModalGraphicOpSlider')?.addEventListener('input', (e) => {
+        const val = parseInt(e.target.value, 10);
+        document.getElementById('tpuModalGraphicOpVal').textContent = `${val}%`;
+        if (tpuGraphicMesh && tpuGraphicMesh.material) {
+            tpuGraphicMesh.material.opacity = val / 100.0;
+            tpuGraphicMesh.visible = val > 0;
+        }
+    });
+
+    document.getElementById('tpuModalPlateOpSlider')?.addEventListener('input', (e) => {
+        const val = parseInt(e.target.value, 10);
+        document.getElementById('tpuModalPlateOpVal').textContent = `${val}%`;
+        if (tpuStlMesh && tpuStlMesh.material) {
+            tpuStlMesh.material.opacity = val / 100.0;
+            tpuStlMesh.material.transparent = val < 100;
+        }
+    });
+
+    // Recompile STL button
+    if (compileBtn) {
+        compileBtn.addEventListener('click', handleRecompileTpuStl);
+    }
+}
+
+async function handleRecompileTpuStl() {
+    const statusEl = document.getElementById('tpuCompileStatus');
+    const compileBtn = document.getElementById('compileTpuStlBtn');
+    if (statusEl) {
+        statusEl.style.display = 'block';
+        statusEl.style.color = '#58a6ff';
+        statusEl.textContent = '⚙️ Compiling watertight 95A TPU STL via Manifold3D...';
+    }
+    if (compileBtn) compileBtn.disabled = true;
+
+    try {
+        const payload = {
+            leds: leds || [],
+            floatIndex: (typeof activeFloatIndex !== 'undefined') ? activeFloatIndex : 5,
+            floatName: "Pete's Dragon"
+        };
+        const resp = await fetch('/api/generate_tpu_stl', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+        const data = await resp.json();
+
+        if (data.success) {
+            if (statusEl) {
+                statusEl.style.color = '#00ff88';
+                statusEl.textContent = `✅ Compiled Pete's Dragon STL (${(data.stl_size / 1024 / 1024).toFixed(2)} MB)!`;
+            }
+            showToast('🐉 3D TPU Armor Plate STL compiled successfully!');
+            openTpuPreviewModal();
+        } else {
+            throw new Error(data.error || 'Compilation failed');
+        }
+    } catch (err) {
+        if (statusEl) {
+            statusEl.style.color = '#ff4d6d';
+            statusEl.textContent = `❌ Compilation error: ${err.message}`;
+        }
+        showToast(`Compilation failed: ${err.message}`, 'error');
+    } finally {
+        if (compileBtn) compileBtn.disabled = false;
+    }
+}
+
+function openTpuPreviewModal() {
+    const modal = document.getElementById('tpuPreviewModal');
+    if (!modal) return;
+    modal.style.display = 'flex';
+    tpuIsOpen = true;
+
+    const container = document.getElementById('tpuModalCanvasContainer');
+    if (!container) return;
+
+    if (!tpuRenderer) {
+        setupTpuThreeScene(container);
+    } else {
+        onTpuWindowResize();
+    }
+    loadTpuModalData();
+}
+
+function closeTpuPreviewModal() {
+    const modal = document.getElementById('tpuPreviewModal');
+    if (modal) modal.style.display = 'none';
+    tpuIsOpen = false;
+    if (tpuAnimFrameId) {
+        cancelAnimationFrame(tpuAnimFrameId);
+        tpuAnimFrameId = null;
+    }
+}
+
+function setupTpuThreeScene(container) {
+    if (typeof THREE === 'undefined') {
+        console.error("Three.js not loaded");
+        return;
+    }
+
+    const w = container.clientWidth || 800;
+    const h = container.clientHeight || 550;
+
+    tpuScene = new THREE.Scene();
+    tpuScene.background = new THREE.Color(0x070a0f);
+
+    tpuCamera = new THREE.PerspectiveCamera(40, w / h, 0.1, 2000);
+    tpuCamera.position.set(0, 0, 320);
+
+    tpuRenderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+    tpuRenderer.setSize(w, h);
+    tpuRenderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    tpuRenderer.toneMapping = THREE.ACESFilmicToneMapping;
+    tpuRenderer.toneMappingExposure = 1.1;
+    container.innerHTML = '';
+    container.appendChild(tpuRenderer.domElement);
+
+    if (THREE.OrbitControls) {
+        tpuControls = new THREE.OrbitControls(tpuCamera, tpuRenderer.domElement);
+        tpuControls.enableDamping = true;
+        tpuControls.dampingFactor = 0.05;
+        tpuControls.maxDistance = 800;
+        tpuControls.minDistance = 60;
+    }
+
+    // Studio Lighting
+    const ambLight = new THREE.AmbientLight(0xffffff, 0.75);
+    tpuScene.add(ambLight);
+
+    const keyLight = new THREE.DirectionalLight(0xffffff, 0.85);
+    keyLight.position.set(80, 120, 200);
+    tpuScene.add(keyLight);
+
+    const backLight = new THREE.DirectionalLight(0x38bdf8, 0.7);
+    backLight.position.set(-100, -100, -200);
+    tpuScene.add(backLight);
+
+    const fillLight = new THREE.DirectionalLight(0xffffff, 0.4);
+    fillLight.position.set(0, -150, 100);
+    tpuScene.add(fillLight);
+
+    window.addEventListener('resize', onTpuWindowResize);
+}
+
+function onTpuWindowResize() {
+    const container = document.getElementById('tpuModalCanvasContainer');
+    if (!container || !tpuRenderer || !tpuCamera) return;
+    const w = container.clientWidth;
+    const h = container.clientHeight;
+    if (w <= 0 || h <= 0) return;
+    tpuCamera.aspect = w / h;
+    tpuCamera.updateProjectionMatrix();
+    tpuRenderer.setSize(w, h);
+}
+
+async function loadTpuModalData() {
+    const loaderOverlay = document.getElementById('tpuModalLoading');
+    if (loaderOverlay) {
+        loaderOverlay.style.display = 'flex';
+        loaderOverlay.innerHTML = `
+            <div class="spinner" style="width: 32px; height: 32px; border: 3px solid rgba(0, 255, 136, 0.2); border-top-color: #00ff88; border-radius: 50%; animation: spin 0.8s linear infinite;"></div>
+            <span>Loading Binary STL & Compiling Shaders...</span>
+        `;
+    }
+
+    try {
+        const specsResp = await fetch('/3d_panels/petes_dragon_specs.json?t=' + Date.now());
+        const specs = await specsResp.json();
+
+        if (THREE.STLLoader) {
+            const stlLoader = new THREE.STLLoader();
+            const geom = await new Promise((resolve, reject) => {
+                stlLoader.load('/3d_panels/petes_dragon_tpu_panel.stl?t=' + Date.now(), resolve, undefined, reject);
+            });
+            geom.computeVertexNormals();
+
+            if (tpuStlMesh) tpuScene.remove(tpuStlMesh);
+
+            const stlMat = new THREE.MeshStandardMaterial({
+                color: 0x1a2230,
+                roughness: 0.55,
+                metalness: 0.15,
+                side: THREE.DoubleSide,
+                transparent: true,
+                opacity: 0.95
+            });
+
+            tpuStlMesh = new THREE.Mesh(geom, stlMat);
+            tpuStlMesh.position.set(-TPU_STL_CENTER_X, -TPU_STL_CENTER_Y, -TPU_STL_CENTER_Z);
+            tpuScene.add(tpuStlMesh);
+        }
+
+        await createTpuGraphicCutoutMesh(specs);
+        createTpuLedPixels(specs);
+
+        if (loaderOverlay) loaderOverlay.style.display = 'none';
+
+        startTpuAnimateLoop();
+    } catch (err) {
+        console.error("TPU Modal loading error:", err);
+        if (loaderOverlay) {
+            loaderOverlay.innerHTML = `<div style="color:#ef4444; font-weight:700;">Error Loading 3D Preview: ${err.message}</div>`;
+        }
+    }
+}
+
+async function createTpuGraphicCutoutMesh(specs) {
+    if (tpuGraphicMesh) tpuScene.remove(tpuGraphicMesh);
+
+    const img = new Image();
+    img.crossOrigin = "anonymous";
+    img.src = '/assets/petes_dragon_transparent.png';
+    await new Promise((resolve, reject) => {
+        img.onload = resolve;
+        img.onerror = reject;
+    });
+
+    const imgW = img.width;
+    const imgH = img.height;
+
+    const canvas = document.createElement('canvas');
+    canvas.width = imgW;
+    canvas.height = imgH;
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(img, 0, 0);
+
+    ctx.globalCompositeOperation = 'destination-out';
+    const hwPx = (1.0 / TPU_IMG_WIDTH_MM) * imgW;
+    const hhPx = (1.0 / TPU_IMG_HEIGHT_MM) * imgH;
+
+    const ledsList = specs.ordered_leds || [];
+    ledsList.forEach(l => {
+        const px = (l.x / TPU_IMG_WIDTH_MM) * imgW;
+        const py = (1.0 - (l.y / TPU_IMG_HEIGHT_MM)) * imgH;
+        ctx.fillRect(px - hwPx, py - hhPx, hwPx * 2, hhPx * 2);
+    });
+
+    ctx.globalCompositeOperation = 'source-over';
+
+    const tex = new THREE.CanvasTexture(canvas);
+    tex.anisotropy = 4;
+
+    const artGeom = new THREE.PlaneGeometry(TPU_IMG_WIDTH_MM, TPU_IMG_HEIGHT_MM);
+    const artMat = new THREE.MeshBasicMaterial({
+        map: tex,
+        transparent: true,
+        opacity: 1.0,
+        side: THREE.DoubleSide,
+        depthWrite: false
+    });
+
+    tpuGraphicMesh = new THREE.Mesh(artGeom, artMat);
+    tpuGraphicMesh.position.set(
+        (TPU_IMG_WIDTH_MM / 2.0) - TPU_STL_CENTER_X,
+        (TPU_IMG_HEIGHT_MM / 2.0) - TPU_STL_CENTER_Y,
+        TPU_STL_CENTER_Z + 0.08
+    );
+    tpuScene.add(tpuGraphicMesh);
+}
+
+function createTpuLedPixels(specs) {
+    if (tpuLedsGroup) tpuScene.remove(tpuLedsGroup);
+    tpuLedsGroup = new THREE.Group();
+    tpuLedMaterials = [];
+    tpuBaseColors = [];
+
+    const ledsList = specs.ordered_leds || [];
+    const pixelGeom = new THREE.PlaneGeometry(1.8, 1.8);
+
+    ledsList.forEach((l, idx) => {
+        const c = l.color || { r: 0, g: 255, b: 100 };
+        const col = new THREE.Color(c.r / 255, c.g / 255, c.b / 255);
+        tpuBaseColors.push(col);
+
+        const mat = new THREE.MeshBasicMaterial({
+            color: col.clone(),
+            side: THREE.DoubleSide
+        });
+        tpuLedMaterials.push(mat);
+
+        const pixelMesh = new THREE.Mesh(pixelGeom, mat);
+        pixelMesh.position.set(
+            l.x - TPU_STL_CENTER_X,
+            l.y - TPU_STL_CENTER_Y,
+            TPU_STL_CENTER_Z + 0.02
+        );
+        tpuLedsGroup.add(pixelMesh);
+    });
+
+    tpuScene.add(tpuLedsGroup);
+}
+
+function startTpuAnimateLoop() {
+    if (tpuAnimFrameId) cancelAnimationFrame(tpuAnimFrameId);
+
+    function loop() {
+        if (!tpuIsOpen) return;
+        tpuAnimFrameId = requestAnimationFrame(loop);
+        if (tpuControls) tpuControls.update();
+
+        if (tpuLedMode === 'animate' && tpuLedsGroup) {
+            tpuAnimClock += 0.035;
+            const num = tpuLedMaterials.length;
+            for (let i = 0; i < num; i++) {
+                const wave = (Math.sin(tpuAnimClock * 4 - i * 0.15) + 1.0) / 2.0;
+                const sparkle = (Math.sin(tpuAnimClock * 9 + i * 3.7) > 0.85) ? 1.5 : 1.0;
+                const factor = (0.2 + 0.8 * wave) * sparkle;
+                const base = tpuBaseColors[i];
+                tpuLedMaterials[i].color.setRGB(
+                    Math.min(1.0, base.r * factor),
+                    Math.min(1.0, base.g * factor),
+                    Math.min(1.0, base.b * factor)
+                );
+            }
+        }
+
+        if (tpuRenderer && tpuScene && tpuCamera) {
+            tpuRenderer.render(tpuScene, tpuCamera);
+        }
+    }
+    loop();
+}
+
+function setTpuModalView(view) {
+    if (!tpuCamera || !tpuControls) return;
+    document.querySelectorAll('#tpuModalViewFrontBtn, #tpuModalViewBackBtn, #tpuModalViewIsoBtn').forEach(b => {
+        b.style.borderColor = 'var(--border-color)';
+        b.style.color = 'var(--text-main)';
+    });
+
+    if (view === 'front') {
+        const btn = document.getElementById('tpuModalViewFrontBtn');
+        if (btn) { btn.style.borderColor = '#00ff88'; btn.style.color = '#00ff88'; }
+        tpuCamera.position.set(0, 0, 320);
+        tpuControls.target.set(0, 0, 0);
+    } else if (view === 'back') {
+        const btn = document.getElementById('tpuModalViewBackBtn');
+        if (btn) { btn.style.borderColor = '#00ff88'; btn.style.color = '#00ff88'; }
+        tpuCamera.position.set(0, 0, -320);
+        tpuControls.target.set(0, 0, 0);
+    } else if (view === 'iso') {
+        const btn = document.getElementById('tpuModalViewIsoBtn');
+        if (btn) { btn.style.borderColor = '#00ff88'; btn.style.color = '#00ff88'; }
+        tpuCamera.position.set(160, -140, 220);
+        tpuControls.target.set(0, 0, 0);
+    }
+}
+
+function setTpuModalLedMode(mode) {
+    tpuLedMode = mode;
+    document.querySelectorAll('#tpuModalLedOffBtn, #tpuModalLedStaticBtn, #tpuModalLedAnimBtn').forEach(b => {
+        b.style.borderColor = 'var(--border-color)';
+        b.style.color = 'var(--text-main)';
+    });
+
+    if (mode === 'off') {
+        const b = document.getElementById('tpuModalLedOffBtn');
+        if (b) { b.style.borderColor = '#8b949e'; b.style.color = '#8b949e'; }
+        if (tpuLedsGroup) tpuLedsGroup.visible = false;
+    } else if (mode === 'on') {
+        const b = document.getElementById('tpuModalLedStaticBtn');
+        if (b) { b.style.borderColor = '#00ff88'; b.style.color = '#00ff88'; }
+        if (tpuLedsGroup) tpuLedsGroup.visible = true;
+        for (let i = 0; i < tpuLedMaterials.length; i++) {
+            tpuLedMaterials[i].color.copy(tpuBaseColors[i]);
+        }
+    } else if (mode === 'animate') {
+        const b = document.getElementById('tpuModalLedAnimBtn');
+        if (b) { b.style.borderColor = '#ffb703'; b.style.color = '#ffb703'; }
+        if (tpuLedsGroup) tpuLedsGroup.visible = true;
+    }
+}
+
 // Initialize on load
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', () => {
@@ -17004,6 +17622,7 @@ if (document.readyState === 'loading') {
         initFleetRadar();
         initMasterFleetBundleControls();
         initBaroqueSynth();
+        initTpuArmorPanel();
         updateUndoRedoUI();
     });
 } else {
@@ -17016,6 +17635,7 @@ if (document.readyState === 'loading') {
     initFleetRadar();
     initMasterFleetBundleControls();
     initBaroqueSynth();
+    initTpuArmorPanel();
     updateUndoRedoUI();
 }
 

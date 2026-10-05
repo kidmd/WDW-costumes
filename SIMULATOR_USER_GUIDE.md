@@ -25,7 +25,8 @@ This guide walks you through every feature of the simulator, from placing and wi
 13. [7-Shirt Fleet Show Creator, Preset Manager & Corral Radar](#13-7-shirt-fleet-show-creator--preset-manager)
 14. [Hardware Integration: Live Wi-Fi Streaming, Standalone USB Flashing & Battery Power Budget](#14-hardware-integration-live-wi-fi-streaming-standalone-usb-flashing--battery-power-budget)
 15. [ESP32 Firmware: Debounced Button Control, Fleet Routine Trigger & Early Stop](#15-esp32-firmware-debounced-button-control-fleet-routine-trigger--early-stop)
-16. [Keyboard Shortcuts & Quick Reference Cheat Sheet](#16-keyboard-shortcuts--quick-reference-cheat-sheet)
+16. [3D-Printable Flexible Wearable TPU Panels (Snapmaker U1 / Bambu Lab / 95A TPU)](#16-3d-printable-flexible-wearable-tpu-panels-snapmaker-u1--bambu-lab--95a-tpu)
+17. [Keyboard Shortcuts & Quick Reference Cheat Sheet](#17-keyboard-shortcuts--quick-reference-cheat-sheet)
 
 ---
 
@@ -1147,6 +1148,17 @@ scripts/generate_3d_panel.py
    - **Graphic with 2×2mm Window Cutouts:** Projects Pete's Dragon chest graphic directly over the front of the STL panel with real 2mm × 2mm transparent cutouts punched out where each LED window is located, keeping the apertures completely unobstructed.
    - **LED State Simulation:** Features an interactive LED simulation bar allowing runners to toggle between **LEDs Off**, **Static On** (authentic Pete's Dragon colors), and **Animated Parade** (60 FPS shimmer and wave chase).
    - **Minimal Floating HUD:** Replaced complex multi-layer sidebar menus with a clean floating control bar providing quick camera angles (Front, Underside/Pockets, 3D Angle) and opacity sliders for the graphic and armor plate.
+
+7. **Deploy Tab Integration (`tabHardware`) & Live STL Compilation:**
+   - **Dedicated 3D Armor Panel Card:** Sits directly in the Deploy tab with clearance badges for both Snapmaker U1 ($270 \times 270\text{ mm}$) and Bambu Lab ($256 \times 256\text{ mm}$).
+   - **✨ Preview 3D TPU Panel Button:** Opens an embedded Three.js 3D modal dialog right inside the simulator without needing to open external browser tabs.
+   - **⚙️ Recompile STL from Active Layout Button:** Sends active layout coordinates to backend endpoint `/api/generate_tpu_stl`, recalculates physical coordinates ($\text{mm}$), runs the Manifold3D compiler (`scripts/compile_clean_tpu_panel.py`), generates a fresh watertight binary STL (`petes_dragon_tpu_panel.stl`), and refreshes the preview modal automatically.
+   - **Direct STL & SCAD Action Downloads:** Direct one-click download buttons for `petes_dragon_tpu_panel.stl` (3.1 MB) and `petes_dragon_tpu_panel.scad`.
+
+8. **Layout Tab: 2×2mm Window Visualization & Pocket Overlap Avoidance:**
+   - **🖨️ Show TPU 2×2mm Windows Toggle:** Renders subtle $10\text{ mm} \times 5\text{ mm}$ (outer $12.4 \times 7.4\text{ mm}$) pocket socket boundaries with wire pass-through notches and crisp $2\text{ mm} \times 2\text{ mm}$ square optical apertures with radiant light beaming through.
+   - **Live Drag Repulsion:** When dragging any LED across the canvas, a collision solver ensures its $12.4 \times 7.4\text{ mm}$ collar stadium maintains $\ge 7.9\text{ mm}$ center-to-center distance from all other LEDs ($0.5\text{ mm}$ clear wall gap), preventing accidental collisions.
+   - **Auto-Relaxation on Scatter & Fill:** Position-Based Dynamics (PBD) stadium separation is built into **100 Scatter** and **Fill Graphic with Remaining LEDs**, automatically nudging apart any overlapping collars to guarantee 100% collision-free layouts before STL compilation.
 
 ### 🖨️ Snapmaker U1 95A TPU Slicing Profile:
 - **Nozzle Temp:** 225°C – 235°C (0.4mm nozzle).

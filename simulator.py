@@ -66,6 +66,8 @@ class SimulatorRequestHandler(http.server.SimpleHTTPRequestHandler):
             self.handle_get_fleet_radar()
         elif parsed.path == "/api/build_fleet_binaries":
             self.handle_build_fleet_binaries()
+        elif parsed.path == "/api/generate_tpu_stl":
+            self.handle_generate_tpu_stl()
         elif parsed.path.startswith("/api/fleet_show/"):
             filename = urllib.parse.unquote(parsed.path[len("/api/fleet_show/"):])
             self.handle_get_fleet_show(filename)
@@ -207,6 +209,8 @@ class SimulatorRequestHandler(http.server.SimpleHTTPRequestHandler):
             self.handle_fleet_radar_identify()
         elif parsed.path == "/api/fleet_radar/trigger_roll_call":
             self.handle_fleet_radar_trigger_roll_call()
+        elif parsed.path == "/api/generate_tpu_stl":
+            self.handle_generate_tpu_stl()
         else:
             self.send_error(404, "Endpoint not found")
 
@@ -1144,6 +1148,82 @@ const uint8_t PROGMEM SPATIAL_RADIUS_BYTE[FRONT_LEDS] = {{
                 "success": True,
                 "message": "Building all 7 float ROM binaries in background."
             }).encode("utf-8"))
+        except Exception as e:
+            self.send_response(500)
+            self.send_header("Content-Type", "application/json")
+            self.end_headers()
+            self.wfile.write(json.dumps({
+                "success": False,
+                "error": str(e)
+            }).encode("utf-8"))
+
+    def handle_generate_tpu_stl(self):
+        try:
+            content_length = int(self.headers.get("Content-Length", 0))
+            post_data = self.rfile.read(content_length) if content_length > 0 else b""
+            req_data = json.loads(post_data.decode("utf-8")) if post_data else {}
+
+            incoming_leds = req_data.get("leds", [])
+            specs_path = os.path.join(BASE_DIR, "3d_panels", "petes_dragon_specs.json")
+            if os.path.exists(specs_path) and incoming_leds:
+                with open(specs_path, "r", encoding="utf-8") as f:
+                    specs = json.load(f)
+
+                maxH = 0.385
+                topY = 0.168
+                normH = maxH
+                aspect = 1024.0 / 1229.0
+                normW = normH * 1.25 * aspect
+                normX = (1.0 - normW) / 2.0
+                normY = topY
+                WIDTH_MM = 185.0
+                HEIGHT_MM = round(WIDTH_MM / aspect, 2)
+
+                ordered_leds = []
+                for idx, l in enumerate(incoming_leds):
+                    rx = (l.get("x", 0.5) - normX) / normW
+                    ry = (l.get("y", 0.5) - normY) / normH
+                    px = round(rx * WIDTH_MM, 2)
+                    py = round((1.0 - ry) * HEIGHT_MM, 2)
+                    ordered_leds.append({
+                        "id": idx + 1,
+                        "orig_id": idx,
+                        "x": px,
+                        "y": py,
+                        "color": l.get("color", {"r": 0, "g": 255, "b": 0})
+                    })
+                specs["ordered_leds"] = ordered_leds
+                specs["led_count"] = len(ordered_leds)
+                with open(specs_path, "w", encoding="utf-8") as f:
+                    json.dump(specs, f, indent=2)
+
+            # Compile clean watertight TPU panel
+            cmd = [sys.executable, os.path.join(BASE_DIR, "scripts", "compile_clean_tpu_panel.py")]
+            res = subprocess.run(cmd, cwd=BASE_DIR, capture_output=True, text=True, timeout=45)
+
+            stl_path = os.path.join(BASE_DIR, "3d_panels", "petes_dragon_tpu_panel.stl")
+            if os.path.exists(stl_path):
+                stl_size = os.path.getsize(stl_path)
+                self.send_response(200)
+                self.send_header("Content-Type", "application/json")
+                self.end_headers()
+                self.wfile.write(json.dumps({
+                    "success": True,
+                    "message": "Pete's Dragon TPU Panel compiled successfully!",
+                    "stl_url": "/3d_panels/petes_dragon_tpu_panel.stl",
+                    "scad_url": "/3d_panels/petes_dragon_tpu_panel.scad",
+                    "stl_size": stl_size,
+                    "output": res.stdout[-300:] if res.stdout else ""
+                }).encode("utf-8"))
+            else:
+                self.send_response(500)
+                self.send_header("Content-Type", "application/json")
+                self.end_headers()
+                self.wfile.write(json.dumps({
+                    "success": False,
+                    "error": "STL file was not created",
+                    "stderr": res.stderr
+                }).encode("utf-8"))
         except Exception as e:
             self.send_response(500)
             self.send_header("Content-Type", "application/json")

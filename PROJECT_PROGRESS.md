@@ -93,6 +93,17 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### Entry: Deploy Tab 3D TPU Preview Modal, Live STL Compilation & Layout Pocket Overlap Avoidance
+* **Date:** 2026-10-05 (Midnight Imagineering Session)
+* **Milestone:** Milestone 5 - 3D-Printable Flexible Wearable TPU Panel Fabrication & Simulator Integration
+* **Status:** Complete & Verified (`simulator.py`, `simulator/index.html`, `simulator/app.js`, `SIMULATOR_USER_GUIDE.md`).
+* **Implementation Details:**
+  - **Deploy Tab 3D Panel Section (`tabHardware`):** Added a dedicated 3D-Printable TPU Armor Panel suite with build plate clearance chips for Snapmaker U1 ($270 \times 270\text{ mm}$) and Bambu Lab ($256 \times 256\text{ mm}$), live compile status, and direct download links for `.stl` and `.scad`.
+  - **Embedded Three.js 3D STL Preview Modal (`#tpuPreviewModal`):** Built a high-performance modal popup inside the simulator loading binary `petes_dragon_tpu_panel.stl`, with Pete's Dragon artwork overlay featuring clean $2\text{ mm} \times 2\text{ mm}$ square window cutouts via HTML5 canvas `destination-out` masking. Added quick camera angles (Front Face, Underside/Pockets, 3D Angle), LED simulation states (Off, Static On, Animated 60 FPS Parade), and artwork/plate opacity sliders.
+  - **Live Backend STL Compilation Endpoint (`/api/generate_tpu_stl`):** Accepts active simulator LED coordinates, recalculates physical millimeter positions, writes `petes_dragon_specs.json`, runs `scripts/compile_clean_tpu_panel.py` via Python subprocess, and compiles a fresh watertight STL via Manifold3D in under 3 seconds.
+  - **Layout Tab 2×2mm Window Visualization (`#showTpuWindowsToggle`):** Added dedicated toggle in `tabLayout` rendering subtle $10\text{ mm} \times 5\text{ mm}$ (outer $12.4 \times 7.4\text{ mm}$) pocket socket boundaries with wire pass-through notches and crisp $2\text{ mm} \times 2\text{ mm}$ square optical apertures with radiant light beaming through.
+  - **Zero Collar Overlap Collision Avoidance:** Integrated live collision clamping (`clampLedNoCollarOverlap`) during LED dragging to maintain $\ge 7.9\text{ mm}$ center distance ($0.5\text{ mm}$ wall clearance), and embedded PBD (Position-Based Dynamics) stadium separation (`relaxLedCollarOverlaps`) into **100 Scatter** and **Fill Graphic with Remaining LEDs** to guarantee zero overlapping pockets on auto-generated layouts.
+
 ### Entry: Snapmaker U1 270x270mm Build Volume Verification & Bed Clearance
 * **Date:** 2026-10-04 (Late Night Imagineering Session)
 * **Milestone:** Milestone 5 - 3D-Printable Flexible Wearable TPU Panel Fabrication
