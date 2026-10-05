@@ -1164,44 +1164,78 @@ const uint8_t PROGMEM SPATIAL_RADIUS_BYTE[FRONT_LEDS] = {{
             req_data = json.loads(post_data.decode("utf-8")) if post_data else {}
 
             incoming_leds = req_data.get("leds", [])
-            specs_path = os.path.join(BASE_DIR, "3d_panels", "petes_dragon_specs.json")
-            if os.path.exists(specs_path) and incoming_leds:
-                with open(specs_path, "r", encoding="utf-8") as f:
-                    specs = json.load(f)
+            float_name = req_data.get("floatName", "Pete's Dragon")
+            float_index = req_data.get("floatIndex", 5)
+            artwork_data_url = req_data.get("artworkDataUrl")
 
-                maxH = 0.385
-                topY = 0.168
-                normH = maxH
-                aspect = 1024.0 / 1229.0
-                normW = normH * 1.25 * aspect
-                normX = (1.0 - normW) / 2.0
-                normY = topY
-                WIDTH_MM = 185.0
+            artwork_png = os.path.join(BASE_DIR, "3d_panels", "active_artwork.png")
+            if artwork_data_url and "," in artwork_data_url:
+                import base64
+                b64_data = artwork_data_url.split(",", 1)[1]
+                with open(artwork_png, "wb") as f_art:
+                    f_art.write(base64.b64decode(b64_data))
+
+            if not os.path.exists(artwork_png):
+                artwork_png = os.path.join(BASE_DIR, "assets", "petes_dragon_transparent.png")
+
+            from PIL import Image
+            with Image.open(artwork_png) as a_img:
+                img_w, img_h = a_img.size
+                aspect = img_w / float(img_h)
+
+            WIDTH_MM = 185.0
+            HEIGHT_MM = round(WIDTH_MM / aspect, 2)
+            if HEIGHT_MM > 230.0:
+                HEIGHT_MM = 230.0
+                WIDTH_MM = round(HEIGHT_MM * aspect, 2)
+            elif WIDTH_MM > 230.0:
+                WIDTH_MM = 230.0
                 HEIGHT_MM = round(WIDTH_MM / aspect, 2)
 
-                ordered_leds = []
-                for idx, l in enumerate(incoming_leds):
-                    rx = (l.get("x", 0.5) - normX) / normW
-                    ry = (l.get("y", 0.5) - normY) / normH
-                    px = round(rx * WIDTH_MM, 2)
-                    py = round((1.0 - ry) * HEIGHT_MM, 2)
-                    ordered_leds.append({
-                        "id": idx + 1,
-                        "orig_id": idx,
-                        "x": px,
-                        "y": py,
-                        "color": l.get("color", {"r": 0, "g": 255, "b": 0})
-                    })
-                specs["ordered_leds"] = ordered_leds
-                specs["led_count"] = len(ordered_leds)
-                with open(specs_path, "w", encoding="utf-8") as f:
-                    json.dump(specs, f, indent=2)
+            bounds = req_data.get("bounds", {})
+            normX = bounds.get("normX", (1.0 - 0.40) / 2.0)
+            normY = bounds.get("normY", 0.168)
+            normW = bounds.get("normW", 0.40)
+            normH = bounds.get("normH", 0.385)
+
+            ordered_leds = []
+            for idx, l in enumerate(incoming_leds):
+                rx = (l.get("x", 0.5) - normX) / normW
+                ry = (l.get("y", 0.5) - normY) / normH
+                px = round(rx * WIDTH_MM, 2)
+                py = round((1.0 - ry) * HEIGHT_MM, 2)
+                ordered_leds.append({
+                    "id": idx + 1,
+                    "orig_id": idx,
+                    "x": px,
+                    "y": py,
+                    "color": l.get("color", {"r": 0, "g": 255, "b": 0})
+                })
+
+            specs = {
+                "character": f"{float_name} 3D Wearable TPU Armor Panel",
+                "float_name": float_name,
+                "float_index": float_index,
+                "width_mm": WIDTH_MM,
+                "height_mm": HEIGHT_MM,
+                "aspect": aspect,
+                "ordered_leds": ordered_leds,
+                "led_count": len(ordered_leds),
+                "artwork_file": "active_artwork.png"
+            }
+
+            specs_path = os.path.join(BASE_DIR, "3d_panels", "tpu_panel_specs.json")
+            with open(specs_path, "w", encoding="utf-8") as f:
+                json.dump(specs, f, indent=2)
 
             # Compile clean watertight TPU panel
             cmd = [sys.executable, os.path.join(BASE_DIR, "scripts", "compile_clean_tpu_panel.py")]
             res = subprocess.run(cmd, cwd=BASE_DIR, capture_output=True, text=True, timeout=45)
 
-            stl_path = os.path.join(BASE_DIR, "3d_panels", "petes_dragon_tpu_panel.stl")
+            stl_path = os.path.join(BASE_DIR, "3d_panels", "tpu_panel.stl")
+            if not os.path.exists(stl_path):
+                stl_path = os.path.join(BASE_DIR, "3d_panels", "petes_dragon_tpu_panel.stl")
+
             if os.path.exists(stl_path):
                 stl_size = os.path.getsize(stl_path)
                 self.send_response(200)
@@ -1209,9 +1243,11 @@ const uint8_t PROGMEM SPATIAL_RADIUS_BYTE[FRONT_LEDS] = {{
                 self.end_headers()
                 self.wfile.write(json.dumps({
                     "success": True,
-                    "message": "Pete's Dragon TPU Panel compiled successfully!",
-                    "stl_url": "/3d_panels/petes_dragon_tpu_panel.stl",
+                    "message": f"{float_name} TPU Panel compiled successfully!",
+                    "float_name": float_name,
+                    "stl_url": "/3d_panels/tpu_panel.stl",
                     "scad_url": "/3d_panels/petes_dragon_tpu_panel.scad",
+                    "artwork_url": "/3d_panels/active_artwork.png",
                     "stl_size": stl_size,
                     "output": res.stdout[-300:] if res.stdout else ""
                 }).encode("utf-8"))

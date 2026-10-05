@@ -11,7 +11,10 @@ print("ANTIGRAVITY IMAGINEERING - OPEN CHASSIS TPU CHEST ARMOR TRAY COMPILER v3"
 print("=" * 70)
 t0 = time.time()
 
-specs_path = '3d_panels/petes_dragon_specs.json'
+specs_path = '3d_panels/tpu_panel_specs.json'
+if not os.path.exists(specs_path):
+    specs_path = '3d_panels/petes_dragon_specs.json'
+
 with open(specs_path) as f:
     specs = json.load(f)
 
@@ -91,34 +94,61 @@ for i in range(num_leds):
     leds[i]['y'] = round(float(pts[i, 1]), 2)
 
 # ---------------------------------------------------------------------------
-# 2. GENERATE CLEAN DRAGON SILHOUETTE BOUNDARY & PERIMETER WALL
+# 2. GENERATE CLEAN ACTIVE FLOAT SILHOUETTE BOUNDARY & PERIMETER WALL
 # ---------------------------------------------------------------------------
 import cv2
 from PIL import Image
 
-dragon_img = Image.open('assets/petes_dragon_transparent.png')
-img_w, img_h = dragon_img.size
-WIDTH_MM = 185.0
+artwork_file = specs.get('artwork_file', 'active_artwork.png')
+artwork_path = os.path.join('3d_panels', artwork_file)
+if not os.path.exists(artwork_path):
+    artwork_path = 'assets/petes_dragon_transparent.png'
+
+print(f"Loading active float artwork from: {artwork_path}")
+active_img = Image.open(artwork_path)
+img_w, img_h = active_img.size
 aspect = img_w / img_h
-HEIGHT_MM = round(WIDTH_MM / aspect, 2)
+WIDTH_MM = specs.get('width_mm', 185.0)
+HEIGHT_MM = specs.get('height_mm', round(WIDTH_MM / aspect, 2))
 
-alpha = np.array(dragon_img)[:, :, 3]
-mask = (alpha > 50).astype(np.uint8)
-mask_dilated = cv2.dilate(mask, np.ones((17, 17), np.uint8), iterations=2)
+img_arr = np.array(active_img)
+if img_arr.ndim == 3 and img_arr.shape[2] == 4:
+    alpha = img_arr[:, :, 3]
+    mask = (alpha > 40).astype(np.uint8)
+else:
+    gray = cv2.cvtColor(img_arr, cv2.COLOR_RGB2GRAY) if img_arr.ndim == 3 else img_arr
+    _, mask = cv2.threshold(gray, 20, 255, cv2.THRESH_BINARY)
+
+# Adaptive dilation kernel proportional to pixel resolution
+kernel_size = max(5, int(min(img_w, img_h) * 0.02))
+if kernel_size % 2 == 0: kernel_size += 1
+mask_dilated = cv2.dilate(mask, np.ones((kernel_size, kernel_size), np.uint8), iterations=2)
 contours, _ = cv2.findContours(mask_dilated, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-main_contour = max(contours, key=cv2.contourArea)
-epsilon = 0.0022 * cv2.arcLength(main_contour, True)
-approx_contour = cv2.approxPolyDP(main_contour, epsilon, True)
 
-contour_pts = []
-for pt in approx_contour:
-    cx = round((pt[0][0] / img_w) * WIDTH_MM, 2)
-    cy = round((1.0 - pt[0][1] / img_h) * HEIGHT_MM, 2)
-    contour_pts.append((cx, cy))
+if not contours:
+    contour_pts = [
+        [4.0, 4.0], [WIDTH_MM - 4.0, 4.0],
+        [WIDTH_MM - 4.0, HEIGHT_MM - 4.0], [4.0, HEIGHT_MM - 4.0]
+    ]
+else:
+    main_contour = max(contours, key=cv2.contourArea)
+    epsilon = 0.0022 * cv2.arcLength(main_contour, True)
+    approx_contour = cv2.approxPolyDP(main_contour, epsilon, True)
+
+    contour_pts = []
+    for pt in approx_contour:
+        cx = round((pt[0][0] / img_w) * WIDTH_MM, 2)
+        cy = round((1.0 - pt[0][1] / img_h) * HEIGHT_MM, 2)
+        contour_pts.append((cx, cy))
 
 orig_poly = sg.Polygon(contour_pts)
+if not orig_poly.is_valid:
+    orig_poly = orig_poly.buffer(0)
+
 smoothed_plate_2d = orig_poly.buffer(4.0, resolution=16)
 smoothed_plate_2d = smoothed_plate_2d.simplify(0.3, preserve_topology=True)
+if smoothed_plate_2d.geom_type == 'MultiPolygon':
+    smoothed_plate_2d = max(smoothed_plate_2d.geoms, key=lambda g: g.area)
 
 contour_coords = [[round(p[0], 2), round(p[1], 2)] for p in smoothed_plate_2d.exterior.coords]
 bounds = smoothed_plate_2d.bounds
@@ -347,10 +377,12 @@ verts_flipped[:, 2] = TOTAL_THICK - verts_flipped[:, 2]
 faces_flipped = out_m.tri_verts[:, ::-1].copy()
 
 final_model = trimesh.Trimesh(vertices=verts_flipped, faces=faces_flipped, process=True)
-final_model.fix_normals()
-
-stl_path = '3d_panels/petes_dragon_tpu_panel.stl'
+stl_path = '3d_panels/tpu_panel.stl'
 final_model.export(stl_path)
+
+import shutil
+shutil.copyfile(stl_path, '3d_panels/petes_dragon_tpu_panel.stl')
+
 print("=" * 70)
 print(f"SUCCESS! Wrote open chassis STL in {time.time()-t0:.2f}s")
 print(f"File size: {os.path.getsize(stl_path)} bytes")
@@ -380,9 +412,15 @@ specs['number_positions'] = number_positions
 specs['contour_pts'] = contour_coords
 specs['panel_width_mm'] = panel_w
 specs['panel_height_mm'] = panel_h
-specs['total_image_width_mm'] = 185.0
-specs['total_image_height_mm'] = 222.09
+specs['total_image_width_mm'] = WIDTH_MM
+specs['total_image_height_mm'] = HEIGHT_MM
+specs['stl_bounds'] = [round(float(x), 2) for x in (final_model.bounds[1] - final_model.bounds[0])]
+specs['stl_center'] = [round(float(x), 2) for x in ((final_model.bounds[1] + final_model.bounds[0]) / 2.0)]
 
 with open(specs_path, 'w') as f:
     json.dump(specs, f, indent=2)
-print("Updated 3d_panels/petes_dragon_specs.json successfully!")
+
+if specs_path != '3d_panels/petes_dragon_specs.json':
+    shutil.copyfile(specs_path, '3d_panels/petes_dragon_specs.json')
+
+print(f"Updated {specs_path} successfully!")

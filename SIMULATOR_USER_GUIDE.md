@@ -1149,11 +1149,14 @@ scripts/generate_3d_panel.py
    - **LED State Simulation:** Features an interactive LED simulation bar allowing runners to toggle between **LEDs Off**, **Static On** (authentic Pete's Dragon colors), and **Animated Parade** (60 FPS shimmer and wave chase).
    - **Minimal Floating HUD:** Replaced complex multi-layer sidebar menus with a clean floating control bar providing quick camera angles (Front, Underside/Pockets, 3D Angle) and opacity sliders for the graphic and armor plate.
 
-7. **Deploy Tab Integration (`tabHardware`) & Live STL Compilation:**
-   - **Dedicated 3D Armor Panel Card:** Sits directly in the Deploy tab with clearance badges for both Snapmaker U1 ($270 \times 270\text{ mm}$) and Bambu Lab ($256 \times 256\text{ mm}$).
-   - **✨ Preview 3D TPU Panel Button:** Opens an embedded Three.js 3D modal dialog right inside the simulator without needing to open external browser tabs.
-   - **⚙️ Recompile STL from Active Layout Button:** Sends active layout coordinates to backend endpoint `/api/generate_tpu_stl`, recalculates physical coordinates ($\text{mm}$), runs the Manifold3D compiler (`scripts/compile_clean_tpu_panel.py`), generates a fresh watertight binary STL (`petes_dragon_tpu_panel.stl`), and refreshes the preview modal automatically.
-   - **Direct STL & SCAD Action Downloads:** Direct one-click download buttons for `petes_dragon_tpu_panel.stl` (3.1 MB) and `petes_dragon_tpu_panel.scad`.
+7. **Deploy Tab Integration (`tabHardware`) & Multi-Float Dynamic STL Compilation:**
+   - **Universal Multi-Float Support:** The TPU panel generator dynamically adapts to **any active float** (Float 1 Casey Jr., Float 2 Title Drum, Float 3 Turtle, Float 4 Snail, Float 5 Cinderella, Float 6 Pete's Dragon, Float 7 Flag & Eagle, or custom user graphics).
+   - **Silhouette Contour Extraction:** Rasterizes the active float's artwork with alpha transparency to an offscreen canvas and computes the outer boundary tray using OpenCV polygonal approximation (`findContours` + `approxPolyDP`) and Shapely polygon buffering (`buffer(4.0mm)`), generating a bespoke tailored armor tray for that exact float shape.
+   - **Automatic Print Bed Scaling:** Automatically computes the float's aspect ratio and dimensions, clamping maximum size to $230\text{ mm}$ to guarantee safe print bed clearance on both Snapmaker U1 ($270 \times 270\text{ mm}$) and Bambu Lab ($256 \times 256\text{ mm}$) printers.
+   - **Dedicated 3D Armor Panel Card:** Sits directly in the Deploy tab with clearance badges for both Snapmaker U1 and Bambu Lab build plates.
+   - **✨ Preview 3D TPU Panel Button:** Opens an embedded Three.js 3D modal dialog directly inside the simulator without leaving the app, automatically centering the tailored mesh and projecting the active float's artwork with 2×2mm square window cutouts.
+   - **⚙️ Recompile STL from Active Layout Button:** Sends active layout coordinates and rasterized artwork to backend endpoint `/api/generate_tpu_stl`, runs the Manifold3D compiler (`scripts/compile_clean_tpu_panel.py`), generates a fresh watertight binary STL (`3d_panels/tpu_panel.stl`), and refreshes the preview modal automatically.
+   - **Direct STL & SCAD Action Downloads:** Direct one-click download buttons for `tpu_panel.stl`, `petes_dragon_tpu_panel.stl`, and OpenSCAD models.
 
 8. **Layout Tab: 2×2mm Window Visualization & Pocket Overlap Avoidance:**
    - **🖨️ Show TPU 2×2mm Windows Toggle:** Renders subtle $10\text{ mm} \times 5\text{ mm}$ (outer $12.4 \times 7.4\text{ mm}$) pocket socket boundaries with wire pass-through notches and crisp $2\text{ mm} \times 2\text{ mm}$ square optical apertures with radiant light beaming through.

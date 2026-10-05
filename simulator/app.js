@@ -17266,16 +17266,40 @@ async function handleRecompileTpuStl() {
     if (statusEl) {
         statusEl.style.display = 'block';
         statusEl.style.color = '#58a6ff';
-        statusEl.textContent = '⚙️ Compiling watertight 95A TPU STL via Manifold3D...';
+        statusEl.textContent = '⚙️ Compiling watertight 95A TPU STL for active float...';
     }
     if (compileBtn) compileBtn.disabled = true;
 
     try {
+        const activeImg = getActiveGraphicImg();
+        const gb = getGraphicChestBounds();
+        let artworkDataUrl = null;
+
+        if (activeImg && activeImg.naturalWidth > 0 && activeImg.naturalHeight > 0) {
+            const off = document.createElement('canvas');
+            const targetW = 1024;
+            const targetH = Math.max(100, Math.round(targetW * (activeImg.naturalHeight / activeImg.naturalWidth)));
+            off.width = targetW;
+            off.height = targetH;
+            const octx = off.getContext('2d');
+            octx.drawImage(activeImg, 0, 0, targetW, targetH);
+            artworkDataUrl = off.toDataURL('image/png');
+        }
+
+        const slot = (typeof activeSingleShirtRunnerSlot !== 'undefined') ? activeSingleShirtRunnerSlot : 5;
+        const fleetList = (typeof fleetConfig !== 'undefined' && Array.isArray(fleetConfig)) ? fleetConfig : [];
+        const fInfo = fleetList[slot] || { name: (currentGraphicType === 'custom_image' ? "Custom Artwork" : "Pete's Dragon") };
+        const floatName = fInfo.name || "Parade Float";
+
         const payload = {
             leds: leds || [],
-            floatIndex: (typeof activeFloatIndex !== 'undefined') ? activeFloatIndex : 5,
-            floatName: "Pete's Dragon"
+            floatIndex: slot,
+            floatName: floatName,
+            graphicType: currentGraphicType,
+            bounds: gb,
+            artworkDataUrl: artworkDataUrl
         };
+
         const resp = await fetch('/api/generate_tpu_stl', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -17286,9 +17310,9 @@ async function handleRecompileTpuStl() {
         if (data.success) {
             if (statusEl) {
                 statusEl.style.color = '#00ff88';
-                statusEl.textContent = `✅ Compiled Pete's Dragon STL (${(data.stl_size / 1024 / 1024).toFixed(2)} MB)!`;
+                statusEl.textContent = `✅ Compiled ${data.float_name || floatName} STL (${(data.stl_size / 1024 / 1024).toFixed(2)} MB)!`;
             }
-            showToast('🐉 3D TPU Armor Plate STL compiled successfully!');
+            showToast(`✨ ${data.float_name || floatName} 3D TPU Armor Plate STL compiled!`);
             openTpuPreviewModal();
         } else {
             throw new Error(data.error || 'Compilation failed');
@@ -17403,15 +17427,36 @@ async function loadTpuModalData() {
     }
 
     try {
-        const specsResp = await fetch('/3d_panels/petes_dragon_specs.json?t=' + Date.now());
-        const specs = await specsResp.json();
+        let specs = null;
+        try {
+            const specsResp = await fetch('/3d_panels/tpu_panel_specs.json?t=' + Date.now());
+            if (specsResp.ok) specs = await specsResp.json();
+        } catch (e) {}
+
+        if (!specs) {
+            const fallbackResp = await fetch('/3d_panels/petes_dragon_specs.json?t=' + Date.now());
+            specs = await fallbackResp.json();
+        }
+
+        const floatName = specs.float_name || "Pete's Dragon";
+        const modalTitle = document.querySelector('#tpuPreviewModal h3');
+        if (modalTitle) {
+            modalTitle.textContent = `${floatName} 3D Flexible TPU Armor Panel`;
+        }
+
+        let stlCenter = new THREE.Vector3(87.8, 108.5, 3.0);
 
         if (THREE.STLLoader) {
             const stlLoader = new THREE.STLLoader();
+            let stlUrl = '/3d_panels/tpu_panel.stl?t=' + Date.now();
             const geom = await new Promise((resolve, reject) => {
-                stlLoader.load('/3d_panels/petes_dragon_tpu_panel.stl?t=' + Date.now(), resolve, undefined, reject);
+                stlLoader.load(stlUrl, resolve, undefined, () => {
+                    stlLoader.load('/3d_panels/petes_dragon_tpu_panel.stl?t=' + Date.now(), resolve, undefined, reject);
+                });
             });
             geom.computeVertexNormals();
+            geom.computeBoundingBox();
+            stlCenter = geom.boundingBox.getCenter(new THREE.Vector3());
 
             if (tpuStlMesh) tpuScene.remove(tpuStlMesh);
 
@@ -17425,12 +17470,12 @@ async function loadTpuModalData() {
             });
 
             tpuStlMesh = new THREE.Mesh(geom, stlMat);
-            tpuStlMesh.position.set(-TPU_STL_CENTER_X, -TPU_STL_CENTER_Y, -TPU_STL_CENTER_Z);
+            tpuStlMesh.position.set(-stlCenter.x, -stlCenter.y, -stlCenter.z);
             tpuScene.add(tpuStlMesh);
         }
 
-        await createTpuGraphicCutoutMesh(specs);
-        createTpuLedPixels(specs);
+        await createTpuGraphicCutoutMesh(specs, stlCenter);
+        createTpuLedPixels(specs, stlCenter);
 
         if (loaderOverlay) loaderOverlay.style.display = 'none';
 
@@ -17443,34 +17488,48 @@ async function loadTpuModalData() {
     }
 }
 
-async function createTpuGraphicCutoutMesh(specs) {
+async function createTpuGraphicCutoutMesh(specs, stlCenter) {
     if (tpuGraphicMesh) tpuScene.remove(tpuGraphicMesh);
 
-    const img = new Image();
+    const activeImg = getActiveGraphicImg();
+    let img = new Image();
     img.crossOrigin = "anonymous";
-    img.src = '/assets/petes_dragon_transparent.png';
-    await new Promise((resolve, reject) => {
+
+    if (activeImg && activeImg.src) {
+        img.src = activeImg.src;
+    } else {
+        img.src = '/3d_panels/active_artwork.png?t=' + Date.now();
+    }
+
+    await new Promise((resolve) => {
+        if (img.complete && img.naturalWidth > 0) return resolve();
         img.onload = resolve;
-        img.onerror = reject;
+        img.onerror = () => {
+            img.onload = resolve;
+            img.src = '/assets/petes_dragon_transparent.png';
+        };
     });
 
-    const imgW = img.width;
-    const imgH = img.height;
+    const imgW = img.naturalWidth || img.width || 1024;
+    const imgH = img.naturalHeight || img.height || 1024;
 
     const canvas = document.createElement('canvas');
     canvas.width = imgW;
     canvas.height = imgH;
     const ctx = canvas.getContext('2d');
-    ctx.drawImage(img, 0, 0);
+    ctx.drawImage(img, 0, 0, imgW, imgH);
 
     ctx.globalCompositeOperation = 'destination-out';
-    const hwPx = (1.0 / TPU_IMG_WIDTH_MM) * imgW;
-    const hhPx = (1.0 / TPU_IMG_HEIGHT_MM) * imgH;
+    const totalW_mm = specs.total_image_width_mm || specs.width_mm || 185.0;
+    const totalH_mm = specs.total_image_height_mm || specs.height_mm || (Math.round((totalW_mm / (imgW / imgH)) * 100) / 100);
+
+    const hwPx = (1.0 / totalW_mm) * imgW;
+    const hhPx = (1.0 / totalH_mm) * imgH;
 
     const ledsList = specs.ordered_leds || [];
     ledsList.forEach(l => {
-        const px = (l.x / TPU_IMG_WIDTH_MM) * imgW;
-        const py = (1.0 - (l.y / TPU_IMG_HEIGHT_MM)) * imgH;
+        const px = (l.x / totalW_mm) * imgW;
+        const py = (1.0 - (l.y / totalH_mm)) * imgH;
         ctx.fillRect(px - hwPx, py - hhPx, hwPx * 2, hhPx * 2);
     });
 
@@ -17479,7 +17538,7 @@ async function createTpuGraphicCutoutMesh(specs) {
     const tex = new THREE.CanvasTexture(canvas);
     tex.anisotropy = 4;
 
-    const artGeom = new THREE.PlaneGeometry(TPU_IMG_WIDTH_MM, TPU_IMG_HEIGHT_MM);
+    const artGeom = new THREE.PlaneGeometry(totalW_mm, totalH_mm);
     const artMat = new THREE.MeshBasicMaterial({
         map: tex,
         transparent: true,
@@ -17490,14 +17549,14 @@ async function createTpuGraphicCutoutMesh(specs) {
 
     tpuGraphicMesh = new THREE.Mesh(artGeom, artMat);
     tpuGraphicMesh.position.set(
-        (TPU_IMG_WIDTH_MM / 2.0) - TPU_STL_CENTER_X,
-        (TPU_IMG_HEIGHT_MM / 2.0) - TPU_STL_CENTER_Y,
-        TPU_STL_CENTER_Z + 0.08
+        (totalW_mm / 2.0) - stlCenter.x,
+        (totalH_mm / 2.0) - stlCenter.y,
+        stlCenter.z + 0.08
     );
     tpuScene.add(tpuGraphicMesh);
 }
 
-function createTpuLedPixels(specs) {
+function createTpuLedPixels(specs, stlCenter) {
     if (tpuLedsGroup) tpuScene.remove(tpuLedsGroup);
     tpuLedsGroup = new THREE.Group();
     tpuLedMaterials = [];
@@ -17519,9 +17578,9 @@ function createTpuLedPixels(specs) {
 
         const pixelMesh = new THREE.Mesh(pixelGeom, mat);
         pixelMesh.position.set(
-            l.x - TPU_STL_CENTER_X,
-            l.y - TPU_STL_CENTER_Y,
-            TPU_STL_CENTER_Z + 0.02
+            l.x - stlCenter.x,
+            l.y - stlCenter.y,
+            stlCenter.z + 0.02
         );
         tpuLedsGroup.add(pixelMesh);
     });

@@ -93,6 +93,17 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### Entry: Dynamic Multi-Float TPU Armor Panel Silhouette Generation & End-to-End Verification
+* **Date:** 2026-10-05 (Night Imagineering Session)
+* **Milestone:** Milestone 5 - 3D-Printable Flexible Wearable TPU Panel Fabrication & Deploy Suite
+* **Status:** Complete & Verified (`simulator.py`, `scripts/compile_clean_tpu_panel.py`, `simulator/app.js`, `SIMULATOR_USER_GUIDE.md`).
+* **Implementation Details:**
+  - **Dynamic Multi-Float Silhouette Tracing:** Upgraded the 3D TPU armor panel compilation pipeline to dynamically construct tailored perimeter trays for **any active float** (Float 1 Casey Jr., Float 2 Title Drum, Float 3 Turtle, Float 4 Snail, Float 5 Cinderella, Float 6 Pete's Dragon, Float 7 Flag & Eagle, or custom user graphics), removing Pete's Dragon hardcoding.
+  - **Offscreen Canvas Rasterization & Contour Extraction:** When clicking "⚙️ Recompile STL", `app.js` renders the active float artwork (SVG or PNG) to an offscreen 1024px canvas and sends base64 PNG data to `/api/generate_tpu_stl`. `compile_clean_tpu_panel.py` uses OpenCV `findContours` + `approxPolyDP` and Shapely `.buffer(4.0mm)` to generate a bespoke boundary tray and distributes 16 smooth perimeter mounting eyelets evenly along the active float's unique shape.
+  - **Print Bed Safety Clamping:** Computes float aspect ratio and automatically clamps the maximum dimension to $230\text{ mm}$ (e.g., Turtle at $185.0 \times 154.5\text{ mm}$), ensuring generous clearance on Snapmaker U1 ($270 \times 270\text{ mm}$) and Bambu Lab ($256 \times 256\text{ mm}$) build plates.
+  - **Interactive 3D Preview Auto-Centering:** Three.js modal dynamically centers the tailored float mesh via `geom.computeBoundingBox()` and projects the active float's artwork with 2×2mm square window cutouts.
+  - **Multi-Float Verification:** Successfully compiled and verified watertight Manifold3D binary STL generation for Float 3 Spinning Turtle ($2.54\text{ MB}$, 100 LED pockets, zero errors).
+
 ### Entry: Deploy Tab 3D TPU Preview Modal, Live STL Compilation & Layout Pocket Overlap Avoidance
 * **Date:** 2026-10-05 (Midnight Imagineering Session)
 * **Milestone:** Milestone 5 - 3D-Printable Flexible Wearable TPU Panel Fabrication & Simulator Integration
