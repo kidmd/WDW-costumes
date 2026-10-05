@@ -93,16 +93,15 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
-### Entry: Sleek 45° Outside Eyelets (Eliminated Straight Section & Pointy Ledges)
+### Entry: Pure Smooth Circular Outside Eyelets (Zero Points, Zero Corners)
 * **Date:** 2026-10-04 (Late Night / Midnight)
 * **Milestone:** Milestone 5 - 3D-Printable Flexible Wearable TPU Panel Fabrication
 * **Status:** Complete & Verified (`3d_panels/petes_dragon_tpu_panel.stl`, `3d_panels/petes_dragon_tpu_panel.scad`, `3d_panels/tpu_panel_preview.html`, `3d_panels/petes_dragon_specs.json`).
 * **Notes:**
-  - **Removed 2.0mm Straight Protrusion:** Streamlined all 16 outside perimeter eyelets into sleek, compact $2.0\text{ mm}$ tall 45° angled bosses ($Z = 4.0\text{ mm}$ to $6.0\text{ mm}$) flush with the shirt-touching back rim ($Z = 6.0\text{ mm}$). Completely eliminated the bulky $2\text{ mm}$ straight cylindrical collar underneath.
-  - **Eliminated Pointy Wedge Ledges:** Replaced the disjoint cylinder bottom with a convex-hulled anchor transition directly into the perimeter rim wall, completely eliminating the sharp, triangular overhang shelf artifact.
-  - **2.0mm Thick Eyelet Walls:** Maintained $\varnothing 2.5\text{ mm}$ inner through-hole with $2.0\text{ mm}$ solid walls ($6.5\text{ mm}$ OD at back face).
-  - **100% Support-Free Printing:** The 45° tapered underbody prints completely support-free when printed front-side down on the build plate.
-  - **Manifold3D Status:** Validated 2-manifold with `Error.NoError` (genus 129, 61,292 triangles, volume $38,683.8\text{ mm}^3$).
+  - **Pure Smooth Circular Geometry (Zero Points):** Resolved the angular "pointy bit" artifacts by reconstructing all 16 eyelets as pure concentric cylinders of outer diameter $6.5\text{ mm}$ (radius $3.25\text{ mm}$) and height $2.0\text{ mm}$ ($Z = 4.0\text{ mm}$ to $6.0\text{ mm}$). Replaced the dual-cylinder convex hull and conical taper with 100% rotational symmetry, ensuring every cross section is a smooth circular arc with zero sharp points, zero shield corners, and zero knife edges.
+  - **Back-Flush Orientation:** Sits flush with the shirt-touching back rim at $Z = 6.0\text{ mm}$, providing an unobstructed flat surface for stitching or tagging barbs directly against the fabric.
+  - **2.0mm Solid Wall Thickness:** Maintained $\varnothing 2.5\text{ mm}$ through-hole with $2.0\text{ mm}$ thick walls ($6.5\text{ mm}$ OD) and $1.75\text{ mm}$ deep solid overlap into the $2.5\text{ mm}$ thick perimeter rim wall.
+  - **Manifold3D Validation:** Validated 2-manifold with `Error.NoError` (genus 129, 61,332 triangles, net volume $38,936.7\text{ mm}^3$).
   - **Full Synchronization:** Synchronized parametric OpenSCAD script (`scripts/update_scad_model.py` and `3d_panels/petes_dragon_tpu_panel.scad`), WebGL preview inspector (`3d_panels/tpu_panel_preview.html`), and `SIMULATOR_USER_GUIDE.md`.
 
 ### Entry: PBD Zero-Overlap Pocket Separation Solver & Smallest Readable Debossed Numbers
