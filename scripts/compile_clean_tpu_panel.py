@@ -365,6 +365,8 @@ specs['number_positions'] = number_positions
 specs['contour_pts'] = contour_coords
 specs['panel_width_mm'] = panel_w
 specs['panel_height_mm'] = panel_h
+specs['total_image_width_mm'] = 185.0
+specs['total_image_height_mm'] = 222.09
 
 with open(specs_path, 'w') as f:
     json.dump(specs, f, indent=2)

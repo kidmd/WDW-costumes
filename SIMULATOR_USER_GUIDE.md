@@ -1141,6 +1141,11 @@ scripts/generate_3d_panel.py
    - **Dimensions:** $\varnothing 2.5\text{ mm}$ through-hole, $2.0\text{ mm}$ solid walls ($6.5\text{ mm}$ OD), overall tab height $2.0\text{ mm}$.
    - **Puncture-Free Front Face:** The main artwork front plate remains 100% smooth and continuous.
 
+6. **Interactive 3D WebGL Inspector with Graphic Artwork Overlay (`tpu_panel_preview.html`):**
+   - **Authentic Artwork Projection:** Displays the high-resolution Pete's Dragon chest graphic directly mapped onto the front face of the 3D model with 1:1 optical window concentricity.
+   - **Dedicated Artwork Opacity Slider:** Real-time 0%–100% opacity slider allowing runners to fade the artwork in and out to visually verify that every $2\text{ mm} \times 2\text{ mm}$ optical aperture aligns over the dragon's features.
+   - **Layer Toggles:** Independent inspection layers for the Authentic Pete Graphic, TPU Shell, 4.0mm Perimeter Wall Rim, 3.0mm Notched Oval Collars, Choreography Route Guide, 3D Flat Ribbon Cable, 3D Resin LED Bulbs, LED Number Badges (1–100), and Outside Perimeter Eyelets.
+
 ### 🖨️ Snapmaker U1 95A TPU Slicing Profile:
 - **Nozzle Temp:** 225°C – 235°C (0.4mm nozzle).
 - **Bed Temp:** 50°C (PEI textured sheet).

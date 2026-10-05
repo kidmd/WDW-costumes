@@ -3576,5 +3576,7 @@
   "front_skin_thickness_led_mm": 1.0,
   "collar_floor_z_mm": 1.0,
   "collar_top_z_mm": 4.0,
-  "table_clearance_space_mm": 2.0
+  "table_clearance_space_mm": 2.0,
+  "total_image_width_mm": 185.0,
+  "total_image_height_mm": 222.09
 }

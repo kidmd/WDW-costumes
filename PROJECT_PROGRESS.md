@@ -93,6 +93,16 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### Entry: 3D TPU Preview Page Repair & Authentic Pete's Dragon Graphic Overlay
+* **Date:** 2026-10-04 (Late Night Imagineering Session)
+* **Milestone:** Milestone 5 - 3D-Printable Flexible Wearable TPU Panel Fabrication & WebGL Inspector
+* **Status:** Complete & Verified (`3d_panels/tpu_panel_preview.html`, `3d_panels/petes_dragon_tpu_panel.stl`, `SIMULATOR_USER_GUIDE.md`).
+* **Implementation Details:**
+  - **Repaired Preview Page JS Syntax:** Resolved the `Identifier 'shape' has already been declared` syntax error in `3d_panels/tpu_panel_preview.html` by removing redundant un-extruded shape declarations.
+  - **Authentic Artwork Projection:** Projected `/assets/petes_dragon_transparent.png` onto the front shirt-facing surface of the 3D model with 1:1 concentric alignment to verify that every $2\text{ mm} \times 2\text{ mm}$ optical aperture aligns with the graphic features.
+  - **Real-Time Artwork Opacity Slider:** Added a dedicated 0%–100% opacity slider and layer toggle in the sidebar inspection deck, allowing runners to fade the graphic in and out over the 3D model.
+  - **Pure Round Eyelet Verification:** Verified that all 16 outer perimeter mounting eyelets are pure concentric cylinders with zero sharp points or knife edges, sitting flush with the back perimeter rim ($Z = 4.0$ to $6.0\text{ mm}$) with $2.0\text{ mm}$ solid walls.
+
 ### Entry: Pure Smooth Circular Outside Eyelets (Zero Points, Zero Corners)
 * **Date:** 2026-10-04 (Late Night / Midnight)
 * **Milestone:** Milestone 5 - 3D-Printable Flexible Wearable TPU Panel Fabrication
