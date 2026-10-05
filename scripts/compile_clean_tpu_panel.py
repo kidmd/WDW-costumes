@@ -4,6 +4,7 @@ import shapely.geometry as sg
 from shapely.ops import unary_union
 from matplotlib.textpath import TextPath
 import trimesh
+from manifold3d import Manifold, Mesh, OpType
 
 print("=" * 70)
 print("ANTIGRAVITY IMAGINEERING - OPEN CHASSIS TPU CHEST ARMOR TRAY COMPILER v3")
@@ -139,11 +140,12 @@ rim_mesh.apply_translation([0, 0, FRONT_THICK_GENERAL]) # Z = 2.0 to 6.0mm
 print("Perimeter wall rim generated (4.0mm tall from Z=2.0 to 6.0mm).")
 
 # ---------------------------------------------------------------------------
-# 3. OUTSIDE PERIMETER FASTENER EYELETS (2mm thick walls, Z = 0 to 4.0mm)
+# 3. OUTSIDE PERIMETER FASTENER EYELETS (Flush with Backside Z = 6.0mm, 2.0mm Walls)
 # ---------------------------------------------------------------------------
 # Eyelet dimensions: Through-hole dia = 2.5mm (radius 1.25mm), Wall thickness = 2.0mm
 # Outer radius = 1.25 + 2.0 = 3.25mm (Outer dia = 6.5mm)
-# Located strictly on the OUTSIDE of the perimeter wall, fused solidly to the chassis
+# Flush with the back edge touching the runner's shirt (Z = 6.0mm)
+# 45° angled support gusset underneath from Z = 2.0 to 4.0mm (self-supporting when printed front-side down!)
 boundary_line = smoothed_plate_2d.exterior
 total_len = boundary_line.length
 num_tabs = 16
@@ -152,7 +154,8 @@ tab_coords = []
 TAB_INNER_R = 1.25  # 2.5mm hole diameter
 TAB_WALL_THICK = 2.0 # 2.0mm thick eyelet walls
 TAB_OUTER_R = TAB_INNER_R + TAB_WALL_THICK # 3.25mm outer radius
-TAB_HEIGHT = 4.0     # 4.0mm tall solid eyelet collar (Z = 0.0 to 4.0mm)
+TAB_THICK = 2.0     # 2.0mm thick ear at back (Z = 4.0 to 6.0mm)
+GUSSET_H = 2.0      # 2.0mm tall 45° support gusset (Z = 2.0 to 4.0mm)
 
 for k in range(num_tabs):
     dist_along = (k / float(num_tabs)) * total_len
@@ -169,14 +172,18 @@ for k in range(num_tabs):
         
     tab_coords.append([round(float(cand_center[0]), 2), round(float(cand_center[1]), 2)])
     
-    # Solid eyelet cylinder with center through-hole
-    tab_cyl = trimesh.creation.cylinder(radius=TAB_OUTER_R, height=TAB_HEIGHT, sections=24)
-    tab_hole = trimesh.creation.cylinder(radius=TAB_INNER_R, height=TAB_HEIGHT + 0.4, sections=24)
-    tab_solid = tab_cyl.difference(tab_hole)
-    tab_solid.apply_translation([cand_center[0], cand_center[1], TAB_HEIGHT / 2.0]) # Z = 0.0 to 4.0mm
+    # Solid eyelet: 45° gusset (Z=1.95..4.0) + flat ear (Z=4.0..6.0) - hole (Z=1.7..6.3)
+    # 0.05mm overlap into base plate floor eliminates coincident planar seams
+    gusset = Manifold.cylinder(2.05, TAB_INNER_R, TAB_OUTER_R, 24).translate([0, 0, 1.95])
+    ear = Manifold.cylinder(TAB_THICK, TAB_OUTER_R, TAB_OUTER_R, 24).translate([0, 0, 4.0])
+    hole = Manifold.cylinder(4.6, TAB_INNER_R, TAB_INNER_R, 24).translate([0, 0, 1.7])
+    tab_m = (gusset + ear) - hole
+    tab_mesh_data = tab_m.to_mesh()
+    tab_solid = trimesh.Trimesh(vertices=tab_mesh_data.vert_properties[:, :3], faces=tab_mesh_data.tri_verts)
+    tab_solid.apply_translation([cand_center[0], cand_center[1], 0.0])
     tab_meshes.append(tab_solid)
 
-print(f"Generated {len(tab_meshes)} outside perimeter fastener eyelets (2.0mm wall thickness, OD 6.5mm).")
+print(f"Generated {len(tab_meshes)} outside perimeter fastener eyelets flush with back edge (Z=4.0 to 6.0mm with 45° gussets).")
 
 # ---------------------------------------------------------------------------
 # 4. 100 ROTATED OVAL LED COLLARS & 1mm RECESSED CAVITIES
@@ -312,27 +319,24 @@ print(f"Generated {len(number_cutters)} clean multi-digit number glyph cutters."
 # ---------------------------------------------------------------------------
 # 6. ASSEMBLE FULL CHASSIS AND PERFORM CSG BOOLEAN OPERATIONS
 # ---------------------------------------------------------------------------
-print("Assembling solid plate, rim, tabs, and collars...")
+def to_m(tm):
+    v = np.ascontiguousarray(tm.vertices, dtype=np.float32)
+    f = np.ascontiguousarray(tm.faces, dtype=np.uint32)
+    return Manifold(Mesh(vert_properties=v, tri_verts=f))
+
+print("Assembling solid plate, rim, tabs, and collars via Manifold3D...")
 all_solids = [base_front_mesh, rim_mesh] + tab_meshes + collar_meshes
-assembled_body = trimesh.boolean.union(all_solids)
+solids_m = [to_m(s) for s in all_solids]
+assembled_m = Manifold.batch_boolean(solids_m, OpType.Add)
 
 all_cutters = floor_recess_cutters + square_window_cutters + number_cutters
-print(f"Subtracting {len(all_cutters)} floor recesses, windows & number cutters...")
-cutter_union = trimesh.boolean.union(all_cutters)
+print(f"Subtracting {len(all_cutters)} floor recesses, windows & number cutters via Manifold3D...")
+cutters_m = [to_m(c) for c in all_cutters]
+cutters_union_m = Manifold.batch_boolean(cutters_m, OpType.Add)
 
-final_model = assembled_body.difference(cutter_union)
-
-# Manifold3D topology validation pass to ensure 100% watertight binary STL
-try:
-    from manifold3d import Manifold, Mesh
-    v_arr = np.ascontiguousarray(final_model.vertices, dtype=np.float32)
-    f_arr = np.ascontiguousarray(final_model.faces, dtype=np.uint32)
-    m = Manifold(Mesh(vert_properties=v_arr, tri_verts=f_arr))
-    out_m = m.to_mesh()
-    final_model = trimesh.Trimesh(vertices=out_m.vert_properties[:, :3], faces=out_m.tri_verts)
-    print("Manifold3D mesh cleanup pass applied successfully.")
-except Exception as e:
-    print(f"Manifold3D cleanup pass skipped: {e}")
+final_m = assembled_m - cutters_union_m
+out_m = final_m.to_mesh()
+final_model = trimesh.Trimesh(vertices=out_m.vert_properties[:, :3], faces=out_m.tri_verts, process=True)
 
 stl_path = '3d_panels/petes_dragon_tpu_panel.stl'
 final_model.export(stl_path)

@@ -676,7 +676,7 @@ function build3DModel() {
   guideGroup.add(guideLine);
   scene.add(guideGroup);
 
-  // 5. 16 Outside Perimeter Fastener Eyelets (2.0mm thick walls, OD 6.5mm, H 4.0mm)
+  // 5. 16 Outside Perimeter Fastener Eyelets (Flush with Backside Z = 4.0mm with 45° Gusset)
   tabsGroup = new THREE.Group();
   const tabShape = new THREE.Shape();
   tabShape.absarc(0, 0, 3.25, 0, Math.PI * 2, false);
@@ -684,14 +684,23 @@ function build3DModel() {
   tabHole.absarc(0, 0, 1.25, 0, Math.PI * 2, true);
   tabShape.holes.push(tabHole);
 
-  const tabGeom = new THREE.ExtrudeGeometry(tabShape, { depth: 4.0, bevelEnabled: false });
+  // 2.0mm flat ear flush with back edge (Z = 2.0 to 4.0mm)
+  const earGeom = new THREE.ExtrudeGeometry(tabShape, { depth: 2.0, bevelEnabled: false });
   const tabMat = new THREE.MeshStandardMaterial({ color: 0x059669, roughness: 0.5 });
+
+  // 45° support gusset underneath (Z = 0.0 to 2.0mm)
+  const gussetGeom = new THREE.CylinderGeometry(3.25, 1.25, 2.0, 24);
+  gussetGeom.rotateX(Math.PI / 2);
 
   if (SPECS.fastener_tabs) {
     SPECS.fastener_tabs.forEach(t => {
-      const tabMesh = new THREE.Mesh(tabGeom, tabMat);
-      tabMesh.position.set(t[0] - cx, t[1] - cy, -2.0);
-      tabsGroup.add(tabMesh);
+      const earMesh = new THREE.Mesh(earGeom, tabMat);
+      earMesh.position.set(t[0] - cx, t[1] - cy, 2.0); // Z = 2.0 to 4.0mm (flush with back edge)
+      tabsGroup.add(earMesh);
+
+      const gussetMesh = new THREE.Mesh(gussetGeom, tabMat);
+      gussetMesh.position.set(t[0] - cx, t[1] - cy, 1.0); // Z = 0.0 to 2.0mm
+      tabsGroup.add(gussetMesh);
     });
   }
   scene.add(tabsGroup);

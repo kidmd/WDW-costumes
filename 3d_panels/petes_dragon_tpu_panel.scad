@@ -34,10 +34,11 @@ collar_wall_thickness = 1.2;  // 1.2mm collar wall thickness
 notch_width           = 4.0;  // 4.0mm wire pass-through opening on both 5mm ends
 window_square         = 2.0;  // 2.0mm x 2.0mm square optical window through 1mm floor
 
-/* [Outside Fastener Eyelet Tabs] */
+/* [Outside Fastener Eyelet Tabs (Flush with Backside Z = 6.0mm)] */
 fastener_hole_dia     = 2.5;  // 2.5mm through-hole for thread or tagging barb
 fastener_tab_od       = 6.5;  // 6.5mm outer tab diameter (2.0mm wall thickness)
-fastener_tab_height   = 4.0;  // 4.0mm tall (Z = 0.0 to 4.0mm)
+fastener_tab_thick    = 2.0;  // 2.0mm thick ear (Z = 4.0 to 6.0mm) flush with back edge
+gusset_height         = 2.0;  // 2.0mm tall 45° support gusset (Z = 2.0 to 4.0mm)
 
 // 2D Contour Coordinates for Solid Plate Perimeter
 contour_pts = [[82.05, 135.5], [86.13, 148.0], [88.0, 149.98], [103.07, 151.23], [104.84, 150.56], [109.14, 147.0], [110.8, 149.3], [117.95, 153.09], [119.34, 157.25], [113.37, 161.63], [112.09, 163.94], [112.28, 174.65], [112.98, 176.47], [114.47, 177.74], [127.42, 178.93], [132.13, 183.04], [134.64, 183.8], [163.8, 179.78], [165.18, 179.16], [166.43, 177.73], [166.81, 175.14], [163.65, 158.63], [167.72, 156.1], [168.81, 153.72], [172.08, 119.52], [169.73, 112.56], [168.58, 111.13], [159.38, 105.28], [157.24, 104.66], [140.57, 104.8], [133.71, 107.4], [130.47, 111.13], [121.36, 92.6], [121.76, 77.84], [118.93, 68.94], [122.99, 63.01], [130.44, 58.23], [131.64, 56.65], [131.96, 40.56], [131.08, 38.06], [128.45, 36.59], [110.99, 36.13], [109.53, 36.51], [104.96, 39.24], [90.54, 37.51], [88.67, 33.63], [86.32, 32.1], [71.83, 31.81], [53.64, 35.66], [51.68, 37.06], [50.61, 39.53], [13.56, 44.62], [11.75, 45.34], [10.5, 46.84], [10.11, 48.35], [8.36, 78.89], [13.86, 95.28], [13.23, 98.44], [8.85, 99.98], [7.67, 101.02], [6.97, 102.43], [5.99, 117.75], [6.83, 120.46], [10.99, 125.74], [13.48, 126.95], [22.39, 126.8], [32.6, 120.31], [34.32, 121.83], [40.4, 123.98], [39.23, 138.05], [42.41, 144.55], [42.59, 153.89], [43.65, 155.59], [45.8, 156.64], [59.61, 158.59], [69.33, 153.92], [80.58, 139.88], [82.05, 135.5]];
@@ -101,13 +102,21 @@ module open_chassis_tpu_armor() {
                             polygon(points = contour_pts);
                     }
 
-            // 3. 16 OUTSIDE PERIMETER FASTENER TABS (Z = 0 to 4.0mm)
+            // 3. 16 OUTSIDE PERIMETER FASTENER TABS (Flush with Backside Z = 6.0mm with 45° Support Gussets)
             for (i = [0 : len(fastener_tabs)-1]) {
                 translate([fastener_tabs[i][0], fastener_tabs[i][1], 0])
                     difference() {
-                        cylinder(d = fastener_tab_od, h = fastener_tab_height);
-                        translate([0, 0, -0.1])
-                            cylinder(d = fastener_hole_dia, h = fastener_tab_height + 0.2);
+                        union() {
+                            // 45° support gusset from Z = 2.0 to 4.0mm
+                            translate([0, 0, 2.0])
+                                cylinder(r1 = fastener_hole_dia / 2, r2 = fastener_tab_od / 2, h = gusset_height);
+                            // 2.0mm flat ear flush with back edge (Z = 4.0 to 6.0mm)
+                            translate([0, 0, 4.0])
+                                cylinder(d = fastener_tab_od, h = fastener_tab_thick);
+                        }
+                        // Through-hole
+                        translate([0, 0, 1.8])
+                            cylinder(d = fastener_hole_dia, h = 4.5);
                     }
             }
 
