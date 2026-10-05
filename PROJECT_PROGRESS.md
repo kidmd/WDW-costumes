@@ -93,6 +93,16 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### Entry: Fixed Multi-Digit Debossed Number Stacking & Horizontal Collar Realignment
+* **Date:** 2026-10-04 (Night)
+* **Milestone:** Milestone 5 - 3D-Printable Flexible Wearable TPU Panel Fabrication
+* **Status:** Complete & Verified (`3d_panels/petes_dragon_tpu_panel.stl`, `3d_panels/petes_dragon_tpu_panel.scad`, `3d_panels/tpu_panel_preview.html`, `3d_panels/petes_dragon_specs.json`).
+* **Notes:**
+  - **Multi-Digit Number Kerning Fix:** Resolved a text path translation bug in `scripts/compile_clean_tpu_panel.py` where individual character polygons of multi-digit numbers (`10`, `25`, `100`) were separately centered to $(0, 0)$, causing digits to be engraved directly on top of each other. The updated generator now extrudes all glyphs of a number string and concatenates them into a unified block before translating, preserving clean kerning and spacing across all numbers `1` through `100`.
+  - **Collar Orientation & Squishing Fix:** Replaced wild sequential tangent rotations (which caused $10\text{ mm} \times 5\text{ mm}$ collars on dense neighboring LEDs to criss-cross and collide into squished 'X' shapes) with uniform horizontal ($0^\circ$) orientation matching the Pete's Dragon Chris preset. Collars now sit cleanly parallel across the chest tray.
+  - **Clean Dragon Artwork Silhouette Boundary:** Derived the outer chassis boundary directly from the authentic Pete's Dragon transparent artwork contour with a $+4.0\text{ mm}$ margin, producing a tailored $166.1\text{ mm W} \times 152.0\text{ mm H} \times 6.0\text{ mm THICK}$ tray that fits effortlessly on the Snapmaker U1 bed with zero excess dead weight ($\approx 43\text{ g}$ in 95A TPU).
+  - **Verified Geometry:** Binary STL validated with `manifold3d` as 100% watertight (`is_volume == True`), zero open boundary edges, and non-manifold free.
+
 ### Entry: 1.0mm LED Pocket Floor Recess, 3.0mm Collars & 2.0mm Table Clearance
 * **Date:** 2026-10-04 (Late Evening)
 * **Milestone:** Milestone 5 - 3D-Printable Flexible Wearable TPU Panel Fabrication

@@ -1118,20 +1118,20 @@ scripts/generate_3d_panel.py
 ### 🦺 Wearable Architecture & Specs (Open-Chassis 6.0mm Flexible TPU Armor Tray):
 1. **Open-Chassis Tray Structure:**
    - **Filament:** 95A Flexible TPU (e.g., Polymaker PolyFlex, Overture TPU).
-   - **Dimensions:** $213.1\text{ mm W} \times 199.0\text{ mm H} \times 6.0\text{ mm}$ overall height (sized cleanly within Snapmaker U1 $220 \times 220\text{ mm}$ print bed).
+   - **Dimensions:** $166.1\text{ mm W} \times 152.0\text{ mm H} \times 6.0\text{ mm}$ overall height (sized cleanly within Snapmaker U1 $220 \times 220\text{ mm}$ print bed, conforming tightly to the authentic dragon artwork silhouette).
    - **Base Plate & Floor Recesses:** Solid continuous $2.0\text{ mm}$ thick base plate facing the runner's shirt ($Z = 0$ to $2.0\text{ mm}$), with localized **$1.0\text{ mm}$ floor recesses** directly beneath each LED pocket cavity. The front shirt-facing surface remains 100% flat and flush while the floor inside each LED socket is thinned to $1.0\text{ mm}$.
    - **Perimeter Rim Wall:** $4.0\text{ mm}$ tall outer rim ($Z = 2.0$ to $6.0\text{ mm}$, $2.5\text{ mm}$ wall width) surrounding the entire plate, forming a protective chassis tray.
    - **Unconstrained Open Wire Basin (No Back Wall):** The entire space outside the LED collars acts as a spacious $4.0\text{ mm}$ deep open basin where 3-conductor flat ribbon wire can route and loop freely with zero binding, zero restrictive trenches, and zero unprintable overhangs.
-   - **Lightweight:** Net volume is $\approx 71.0\text{ cm}^3$, weighing just **$\approx 78\text{ grams}$ ($2.7\text{ oz}$)**—soft, flexible, and comfortable for a 10K race.
-2. **100 Rotated Oval Collars ($10\text{ mm} \times 5\text{ mm} \times 3\text{ mm}$) with Wire Notches:**
+   - **Lightweight:** Net volume is $\approx 38.9\text{ cm}^3$, weighing just **$\approx 43\text{ grams}$ ($1.5\text{ oz}$)**—featherlight, flexible, and comfortable for a 10K race.
+2. **100 Horizontal Oval Collars ($10\text{ mm} \times 5\text{ mm} \times 3\text{ mm}$) with Wire Notches:**
    - **Inner Cavity & Z Coordinates:** $10.0\text{ mm} \times 5.0\text{ mm}$ oval socket with $3.0\text{ mm}$ tall walls rising from the recessed floor ($Z = 1.0$ to $4.0\text{ mm}$).
    - **2.0mm Table Clearance:** When laying the 3D print flat on a table front-side up (with the $6.0\text{ mm}$ rim touching the table), there is **exactly $2.0\text{ mm}$ of open space** under the tops of the pocket walls ($Z = 4.0\text{ mm}$ vs $6.0\text{ mm}$ rim), keeping bulbs and wires elevated away from table surfaces.
-   - **Sequential Path Tangent Rotation:** Each collar is rotated along the sequence tangent vector pointing from LED $i$ toward LED $i+1$, providing natural alignment with the fairy light strand.
-   - **Wire Pass-Through Notches:** $4.0\text{ mm}$ wide notches on both $5\text{ mm}$ ends extending all the way down to the $1.0\text{ mm}$ floor, allowing ribbon wire to enter and exit without resistance.
+   - **Uniform Horizontal Orientation:** Collars are oriented horizontally ($0^\circ$ rotation) matching the Pete's Dragon Chris preset, eliminating criss-crossing collisions and keeping the sockets cleanly parallel across the chest.
+   - **Wire Pass-Through Notches:** $4.0\text{ mm}$ wide notches on both $5\text{ mm}$ ends extending all the way down to the $1.0\text{ mm}$ floor, allowing ribbon wire to enter and exit horizontally without resistance.
 3. **Centered $2\text{ mm} \times 2\text{ mm}$ Square Optical Apertures:**
    - Centered through-windows through the $1.0\text{ mm}$ front face beneath each bulb, beaming the LED forward while the resin bulb body rests solidly against the interior shelf.
-4. **Debossed LED Sequence Numbers (1 to 100):**
-   - Numbers `1` through `100` permanently engraved $0.6\text{ mm}$ deep into the interior floor adjacent to each collar, guaranteeing 100% foolproof manual assembly on race day.
+4. **Debossed Multi-Digit LED Numbers (1 to 100):**
+   - Numbers `1` through `100` permanently engraved $0.6\text{ mm}$ deep into the interior floor adjacent to each collar, with full character string kerning (no overlapping/superimposed digits).
 5. **Backside Rim Fastener Tabs (16 Eyelets):**
    - 16 eyelet ear tabs ($\varnothing 2.5\text{ mm}$ through-holes, $6.0\text{ mm}$ OD) connected directly to the inner edge of the perimeter rim wall on the back side ($Z = 2.0$ to $5.0\text{ mm}$).
    - **Puncture-Free Front Face:** The front plate remains 100% smooth and continuous with zero fastener holes puncturing through the artwork.

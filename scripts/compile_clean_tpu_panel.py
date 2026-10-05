@@ -43,38 +43,42 @@ print(f"Loaded {num_leds} LEDs from specs.")
 print(f"Cross-section: 1.0mm LED floor -> 3.0mm pocket walls (Z=1.0 to 4.0mm) -> 2.0mm space to 6.0mm rim.")
 
 # ---------------------------------------------------------------------------
-# 1. COMPUTE SEQUENTIAL PATH TANGENT ROTATION FOR EACH LED
+# 1. LED COLLAR ROTATION ORIENTATION
 # ---------------------------------------------------------------------------
-led_rotations_deg = []
-for i in range(num_leds):
-    p_curr = np.array([leds[i]['x'], leds[i]['y']])
-    if i < num_leds - 1:
-        p_next = np.array([leds[i+1]['x'], leds[i+1]['y']])
-        diff = p_next - p_curr
-    else:
-        p_prev = np.array([leds[i-1]['x'], leds[i-1]['y']])
-        diff = p_curr - p_prev
-    angle_rad = math.atan2(diff[1], diff[0])
-    led_rotations_deg.append(math.degrees(angle_rad))
-
-print("Computed tangent rotation angles for all 100 LEDs.")
+# In Pete's Dragon Chris preset, all LEDs have 0 deg rotation (horizontal 10x5mm ovals).
+# Orienting all collars horizontally (0 deg) prevents criss-crossing/squishing collisions!
+led_rotations_deg = [0.0] * num_leds
+print("Oriented all 100 LED collars horizontally (0 deg) matching Pete's Dragon Chris preset.")
 
 # ---------------------------------------------------------------------------
-# 2. GENERATE CONTINUOUS SMOOTH OUTER BOUNDARY & PERIMETER WALL
+# 2. GENERATE CLEAN DRAGON SILHOUETTE BOUNDARY & PERIMETER WALL
 # ---------------------------------------------------------------------------
-orig_contour = sg.Polygon(specs['contour_pts'])
-led_pts = [sg.Point(l['x'], l['y']) for l in leds]
-wire_lines = [sg.LineString([s[0], s[1]]) for s in specs['wire_segments']]
+import cv2
+from PIL import Image
 
-led_pads = [p.buffer(10.5, resolution=16) for p in led_pts]
-wire_pads = [w.buffer(7.0, resolution=16) for w in wire_lines]
+dragon_img = Image.open('assets/petes_dragon_transparent.png')
+img_w, img_h = dragon_img.size
+WIDTH_MM = 185.0
+aspect = img_w / img_h
+HEIGHT_MM = round(WIDTH_MM / aspect, 2)
 
-combined_area = unary_union([orig_contour.buffer(6.0, resolution=16)] + led_pads + wire_pads)
-solid_plate_2d = sg.Polygon(combined_area.exterior.coords)
+alpha = np.array(dragon_img)[:, :, 3]
+mask = (alpha > 50).astype(np.uint8)
+mask_dilated = cv2.dilate(mask, np.ones((17, 17), np.uint8), iterations=2)
+contours, _ = cv2.findContours(mask_dilated, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+main_contour = max(contours, key=cv2.contourArea)
+epsilon = 0.0022 * cv2.arcLength(main_contour, True)
+approx_contour = cv2.approxPolyDP(main_contour, epsilon, True)
 
-# Smooth with morphological dilation/erosion with high resolution
-smoothed_plate_2d = solid_plate_2d.buffer(3.5, resolution=16).buffer(-3.5, resolution=16)
-smoothed_plate_2d = smoothed_plate_2d.simplify(0.4, preserve_topology=True)
+contour_pts = []
+for pt in approx_contour:
+    cx = round((pt[0][0] / img_w) * WIDTH_MM, 2)
+    cy = round((1.0 - pt[0][1] / img_h) * HEIGHT_MM, 2)
+    contour_pts.append((cx, cy))
+
+orig_poly = sg.Polygon(contour_pts)
+smoothed_plate_2d = orig_poly.buffer(4.0, resolution=16)
+smoothed_plate_2d = smoothed_plate_2d.simplify(0.3, preserve_topology=True)
 
 contour_coords = [[round(p[0], 2), round(p[1], 2)] for p in smoothed_plate_2d.exterior.coords]
 bounds = smoothed_plate_2d.bounds
@@ -196,12 +200,21 @@ for i, l in enumerate(leds):
     num_str = str(i + 1)
     p = np.array([l['x'], l['y']])
     
+    # Collar is horizontal (12.4mm x 7.4mm outer envelope).
+    # Search around collar (+Y above, -Y below, +X right, -X left, diagonals) for best clearance:
     best_cand = None
     max_d = -1
-    angle_rad = math.radians(led_rotations_deg[i])
-    for perp_offset in [np.pi/2, -np.pi/2, np.pi/4, -np.pi/4, 3*np.pi/4, -3*np.pi/4]:
-        cand_angle = angle_rad + perp_offset
-        cand = p + np.array([np.cos(cand_angle), np.sin(cand_angle)]) * 6.5
+    candidates = [
+        p + np.array([0.0, 5.5]),   # Above
+        p + np.array([0.0, -5.5]),  # Below
+        p + np.array([8.0, 0.0]),   # Right
+        p + np.array([-8.0, 0.0]),  # Left
+        p + np.array([6.5, 4.5]),   # Top-right
+        p + np.array([-6.5, 4.5]),  # Top-left
+        p + np.array([6.5, -4.5]),  # Bottom-right
+        p + np.array([-6.5, -4.5]), # Bottom-left
+    ]
+    for cand in candidates:
         min_d = min(np.linalg.norm(cand - np.array([ol['x'], ol['y']])) for j, ol in enumerate(leds) if j != i)
         if min_d > max_d:
             max_d = min_d
@@ -209,6 +222,7 @@ for i, l in enumerate(leds):
             
     number_positions.append([round(best_cand[0], 2), round(best_cand[1], 2)])
     
+    # Multi-digit text path extraction
     tp = TextPath((0, 0), num_str, size=2.8)
     polys = tp.to_polygons()
     
@@ -226,19 +240,26 @@ for i, l in enumerate(leds):
         else:
             shells.append(sp)
             
+    digit_meshes = []
     for shell in shells:
         interior_holes = [h.exterior.coords for h in holes if shell.contains(h)]
         final_poly = sg.Polygon(shell.exterior.coords, holes=interior_holes)
         try:
             m = trimesh.creation.extrude_polygon(final_poly, height=0.8)
-            tx_mid = (m.bounds[0][:2] + m.bounds[1][:2]) / 2.0
-            m.apply_translation([-tx_mid[0], -tx_mid[1], 0])
-            m.apply_translation([best_cand[0], best_cand[1], 1.4]) # Z from 1.4 to 2.2mm
-            number_cutters.append(m)
+            digit_meshes.append(m)
         except Exception as e:
             pass
+            
+    if digit_meshes:
+        # Concatenate ALL digits of this number string into a SINGLE combined mesh!
+        # Do NOT center digits individually — that was what placed '1' and '0' on top of each other!
+        num_combined = trimesh.util.concatenate(digit_meshes)
+        tx_mid = (num_combined.bounds[0][:2] + num_combined.bounds[1][:2]) / 2.0
+        num_combined.apply_translation([-tx_mid[0], -tx_mid[1], 1.4]) # Z from 1.4 to 2.2mm
+        num_combined.apply_translation([best_cand[0], best_cand[1], 0.0])
+        number_cutters.append(num_combined)
 
-print(f"Generated {len(number_cutters)} number glyph cutters.")
+print(f"Generated {len(number_cutters)} clean multi-digit number glyph cutters.")
 
 # ---------------------------------------------------------------------------
 # 6. ASSEMBLE FULL CHASSIS AND PERFORM CSG BOOLEAN OPERATIONS
