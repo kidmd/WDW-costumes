@@ -1141,10 +1141,11 @@ scripts/generate_3d_panel.py
    - **Dimensions:** $\varnothing 2.5\text{ mm}$ through-hole, $2.0\text{ mm}$ solid walls ($6.5\text{ mm}$ OD), overall tab height $2.0\text{ mm}$.
    - **Puncture-Free Front Face:** The main artwork front plate remains 100% smooth and continuous.
 
-6. **Interactive 3D WebGL Inspector with Graphic Artwork Overlay (`tpu_panel_preview.html`):**
-   - **Authentic Artwork Projection:** Displays the high-resolution Pete's Dragon chest graphic directly mapped onto the front face of the 3D model with 1:1 optical window concentricity.
-   - **Dedicated Artwork Opacity Slider:** Real-time 0%–100% opacity slider allowing runners to fade the artwork in and out to visually verify that every $2\text{ mm} \times 2\text{ mm}$ optical aperture aligns over the dragon's features.
-   - **Layer Toggles:** Independent inspection layers for the Authentic Pete Graphic, TPU Shell, 4.0mm Perimeter Wall Rim, 3.0mm Notched Oval Collars, Choreography Route Guide, 3D Flat Ribbon Cable, 3D Resin LED Bulbs, LED Number Badges (1–100), and Outside Perimeter Eyelets.
+6. **Simplified 3D STL Model Viewer with Graphic Cutouts (`tpu_panel_preview.html`):**
+   - **Direct STL Mesh Loading:** Loads the exact binary `petes_dragon_tpu_panel.stl` mesh directly via Three.js `STLLoader`, ensuring 100% faithful representation of the actual 3D print.
+   - **Graphic with 2×2mm Window Cutouts:** Projects Pete's Dragon chest graphic directly over the front of the STL panel with real 2mm × 2mm transparent cutouts punched out where each LED window is located, keeping the apertures completely unobstructed.
+   - **LED State Simulation:** Features an interactive LED simulation bar allowing runners to toggle between **LEDs Off**, **Static On** (authentic Pete's Dragon colors), and **Animated Parade** (60 FPS shimmer and wave chase).
+   - **Minimal Floating HUD:** Replaced complex multi-layer sidebar menus with a clean floating control bar providing quick camera angles (Front, Underside/Pockets, 3D Angle) and opacity sliders for the graphic and armor plate.
 
 ### 🖨️ Snapmaker U1 95A TPU Slicing Profile:
 - **Nozzle Temp:** 225°C – 235°C (0.4mm nozzle).
