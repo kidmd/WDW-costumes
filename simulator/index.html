@@ -1592,7 +1592,7 @@
                             <span style="background: #0d1117; border: 1px solid #30363d; padding: 3px 6px; border-radius: 4px; color: #3fb950;">🖨️ Bambu Lab (256×256mm): ~42mm margin</span>
                         </div>
                         <div style="display: flex; flex-direction: column; gap: 6px;">
-                            <button type="button" id="openTpuPreviewModalBtn" class="action-btn primary" style="font-weight: 600; font-size: 12px; padding: 9px; background: linear-gradient(135deg, #097969, #00ff88); color: #000;">
+                            <button type="button" id="openTpuPreviewModalBtn" onclick="openTpuPreviewModal()" class="action-btn primary" style="font-weight: 600; font-size: 12px; padding: 9px; background: linear-gradient(135deg, #097969, #00ff88); color: #000;">
                                 ✨ Preview 3D TPU Panel (STL & Artwork)
                             </button>
                             <div style="display: flex; gap: 6px;">
@@ -2044,6 +2044,7 @@
 
         </div>
     </div>
+</div>
 
     <!-- Modal for Code Export -->
     <div id="codeModal" class="modal">
@@ -2322,6 +2323,12 @@
                     </div>
                 </div>
             </div>
+            <!-- Cricut Modal Footer -->
+            <div style="padding: 12px 18px; background: #0d1117; border-top: 1px solid #30363d; display: flex; justify-content: flex-end; align-items: center;">
+                <button type="button" id="closeCricutExportModalBottomBtn" class="action-btn" style="padding: 6px 14px; font-size: 11.5px;">Close</button>
+            </div>
+        </div>
+    </div>
 
     <!-- Three.js & STL Loader for Interactive 3D TPU Armor Panel Inspector -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
@@ -2345,7 +2352,7 @@
                     <a href="/3d_panels/tpu_panel_preview.html" target="_blank" style="background: rgba(0, 0, 0, 0.2); color: #000; text-decoration: none; padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; display: flex; align-items: center; gap: 4px;" title="Open standalone full-window viewer in new tab">
                         ↗️ Full Tab
                     </a>
-                    <button type="button" id="closeTpuPreviewModalBtn" style="background: transparent; border: none; color: #000; font-size: 22px; cursor: pointer; padding: 2px 6px; font-weight: 700;">✕</button>
+                    <button type="button" id="closeTpuPreviewModalBtn" onclick="closeTpuPreviewModal()" style="background: transparent; border: none; color: #000; font-size: 22px; cursor: pointer; padding: 2px 6px; font-weight: 700;">✕</button>
                 </div>
             </div>
 
@@ -2413,12 +2420,12 @@
                     <a href="/3d_panels/petes_dragon_tpu_panel.scad" download="petes_dragon_tpu_panel.scad" class="action-btn" style="padding: 6px 14px; font-size: 11.5px; text-decoration: none; display: inline-flex; align-items: center; gap: 4px;">
                         📄 Download OpenSCAD
                     </a>
-                    <button type="button" id="closeTpuPreviewModalBottomBtn" class="action-btn" style="padding: 6px 14px; font-size: 11.5px;">Close</button>
+                    <button type="button" id="closeTpuPreviewModalBottomBtn" onclick="closeTpuPreviewModal()" class="action-btn" style="padding: 6px 14px; font-size: 11.5px;">Close</button>
                 </div>
             </div>
         </div>
     </div>
 
-    <script src="app.js?v=69"></script>
+    <script src="app.js?v=72"></script>
 </body>
 </html>

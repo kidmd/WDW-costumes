@@ -17259,6 +17259,10 @@ function initTpuArmorPanel() {
         compileBtn.addEventListener('click', handleRecompileTpuStl);
     }
 }
+window.initTpuArmorPanel = initTpuArmorPanel;
+window.openTpuPreviewModal = openTpuPreviewModal;
+window.closeTpuPreviewModal = closeTpuPreviewModal;
+window.handleRecompileTpuStl = handleRecompileTpuStl;
 
 async function handleRecompileTpuStl() {
     const statusEl = document.getElementById('tpuCompileStatus');
@@ -17329,8 +17333,12 @@ async function handleRecompileTpuStl() {
 }
 
 function openTpuPreviewModal() {
+    console.log("[TPU Preview] Opening 3D Armor Panel modal...");
     const modal = document.getElementById('tpuPreviewModal');
-    if (!modal) return;
+    if (!modal) {
+        console.error("[TPU Preview] Element #tpuPreviewModal not found in DOM");
+        return;
+    }
     modal.style.display = 'flex';
     tpuIsOpen = true;
 
@@ -17342,6 +17350,7 @@ function openTpuPreviewModal() {
     } else {
         onTpuWindowResize();
     }
+    setTimeout(onTpuWindowResize, 60);
     loadTpuModalData();
 }
 
@@ -17357,7 +17366,17 @@ function closeTpuPreviewModal() {
 
 function setupTpuThreeScene(container) {
     if (typeof THREE === 'undefined') {
-        console.error("Three.js not loaded");
+        console.warn("[TPU Preview] Three.js not yet loaded from CDN");
+        const loaderOverlay = document.getElementById('tpuModalLoading');
+        if (loaderOverlay) {
+            loaderOverlay.innerHTML = `
+                <div style="color:#ffb703; text-align:center; padding:20px;">
+                    <p style="font-size:14px; font-weight:700;">WebGL 3D engine is initializing...</p>
+                    <p style="font-size:12px; color:#c9d1d9; margin-top:8px;">You can also view the full model in a dedicated tab:</p>
+                    <a href="/3d_panels/tpu_panel_preview.html" target="_blank" class="action-btn primary" style="display:inline-block; margin-top:10px; text-decoration:none; padding:8px 16px;">↗️ Open Standalone 3D Viewer</a>
+                </div>
+            `;
+        }
         return;
     }
 

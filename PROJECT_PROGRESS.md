@@ -93,6 +93,16 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### Entry: Fix TPU Preview Button Trigger & DOM Modal Nesting Resolution
+* **Date:** 2026-10-05 (Night Imagineering Session)
+* **Milestone:** Milestone 5 - 3D-Printable Flexible Wearable TPU Panel Fabrication & Deploy Suite
+* **Status:** Complete & Verified (`simulator/index.html`, `simulator/app.js`).
+* **Implementation Details:**
+  - **DOM Unclosed Tag Fix:** Discovered that preceding `#cricutExportModal` was missing its closing `</div>` tags. As a result, the browser parser placed `#tpuPreviewModal` inside `#cricutExportModal`. Because `#cricutExportModal` had `display: none;`, `#tpuPreviewModal` remained invisible despite setting `display: flex;`. Properly closed `#cricutExportModal` and `<div class="main-layout">`.
+  - **Explicit Inline Button Handler:** Added `onclick="openTpuPreviewModal()"` and `onclick="closeTpuPreviewModal()"` attributes to ensure buttons trigger directly regardless of event listener initialization timing.
+  - **Global Window Exposure & Reflow Resizing:** Exposed `openTpuPreviewModal`, `closeTpuPreviewModal`, and `handleRecompileTpuStl` on `window`. Added a 60ms layout reflow timer calling `onTpuWindowResize()` when opening the modal to ensure proper WebGL camera aspect ratio calculation.
+  - **Cache Buster Bump:** Bumped `app.js?v=72` to invalidate stale browser caches. Verified with `HTMLParser` that `#tpuPreviewModal` is now a direct child of `<body>`.
+
 ### Entry: Dynamic Multi-Float TPU Armor Panel Silhouette Generation & End-to-End Verification
 * **Date:** 2026-10-05 (Night Imagineering Session)
 * **Milestone:** Milestone 5 - 3D-Printable Flexible Wearable TPU Panel Fabrication & Deploy Suite
