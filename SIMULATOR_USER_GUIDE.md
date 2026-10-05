@@ -1115,25 +1115,25 @@ scripts/generate_3d_panel.py
       └── 3d_panels/petes_dragon_specs.json       (Mechanical Coordinates & Sizing)
 ```
 
-### 🦺 Wearable Architecture & Specs (Solid 5.5mm High-Clearance Armor Plate with Debossed Numbers):
-1. **Material & Structural Plate Integrity:**
+### 🦺 Wearable Architecture & Specs (Open-Chassis 6.0mm Flexible TPU Armor Tray):
+1. **Open-Chassis Tray Structure:**
    - **Filament:** 95A Flexible TPU (e.g., Polymaker PolyFlex, Overture TPU).
-   - **Thickness:** 5.5 mm wearable armor plate ($177.2 \text{ mm W} \times 163.4 \text{ mm H}$).
-   - **Unified Continuous Armor:** Smooth, filleted organic chest plate enclosing all 100 LEDs with $\ge 8.5\text{ mm}$ solid perimeter borders. All internal crevices and bays are bridged with solid TPU webbing, eliminating floating fragments, fragile necks, and serrated edges.
-   - **Lightweight:** Net volume is $\approx 79.2\text{ cm}^3$, weighing just **$\approx 85\text{ grams}$ ($3.0\text{ oz}$)**, contours softly over athletic running shirts.
-2. **Rear 10.5mm x 5.5mm Oval LED Sockets & Front Optical Apertures:**
-   - **Rear Sockets:** $10.5\text{ mm long} \times 5.5\text{ mm wide} \times 3.0\text{ mm deep}$ recessed stadium wells sized for $10.0\text{ mm} \times 5.0\text{ mm}$ resin teardrop pixels with $0.3\text{ mm}$ friction retention.
-   - **Front Optical Windows:** $5.6\text{ mm} \times 3.2\text{ mm}$ oval through-holes centered over each emitter to maximize light projection while maintaining a solid $2.5\text{ mm}$ front retaining lip.
-3. **Imprinted Debossed LED Numbers (1 to 100):**
-   - **Assembly Identification:** Every single LED hole features its sequence number (`1` to `100`) permanently debossed $0.8\text{ mm}$ deep into the plate surface directly adjacent to the socket ($3.0\text{ mm}$ tall bold typography).
-   - **Foolproof Installation:** Eliminates guesswork during assembly—simply follow the string from Bulb #1 to Bulb #100.
-4. **On-Edge Slack Expansion Wells (Physics of 3-Conductor Flat Ribbon):**
-   - **Dedicated Slack Bays:** Each LED socket features an integrated $\varnothing 7.5\text{ mm} \times 4.5\text{ mm deep}$ cylindrical well oriented along the wire exit path.
-   - **Natural Ribbon Bending:** Allows the $4.0\text{ mm}$ wide flat ribbon to turn $90^\circ$ onto its flexible edge, safely looping the $\approx 35\text{ mm}$ of slack between consecutive LEDs below the rear surface ($0.5\text{ mm}$ clearance from the runner's shirt).
-5. **Garment Tagging Gun Attachment System:**
-   - **16 Perimeter Eyelets:** Arranged evenly along the outer smooth border.
-   - **Fastener Holes:** $\varnothing 2.5\text{ mm}$ through-holes sized for standard $1.8\text{ mm}$ tagging gun needles and hand stitching.
-   - **Countersunk Recesses:** $\varnothing 5.0\text{ mm} \times 1.0\text{ mm}$ front face recesses allowing polypropylene garment fastener T-bars to seat flush against running shirts.
+   - **Dimensions:** $189.2\text{ mm W} \times 175.3\text{ mm H} \times 6.0\text{ mm}$ overall height.
+   - **Front Plate:** Solid continuous $2.0\text{ mm}$ thick flexible front plate facing the runner's shirt ($Z = 0$ to $2.0\text{ mm}$).
+   - **Perimeter Rim Wall:** $4.0\text{ mm}$ tall outer rim ($Z = 2.0$ to $6.0\text{ mm}$, $2.5\text{ mm}$ wall width) surrounding the entire plate, forming a protective chassis tray.
+   - **Unconstrained Open Wire Basin (No Back Wall):** The entire space outside the LED collars acts as a spacious $4.0\text{ mm}$ deep open basin where 3-conductor flat ribbon wire can route and loop freely with zero binding, zero restrictive trenches, and zero unprintable overhangs.
+   - **Lightweight:** Net volume is $\approx 60.7\text{ cm}^3$, weighing just **$\approx 66\text{ grams}$ ($2.3\text{ oz}$)**—soft, flexible, and comfortable for a 10K race.
+2. **100 Rotated Oval Collars ($10\text{ mm} \times 5\text{ mm} \times 3\text{ mm}$) with Wire Notches:**
+   - **Inner Cavity:** $10.0\text{ mm} \times 5.0\text{ mm}$ oval socket with $3.0\text{ mm}$ tall walls ($Z = 2.0$ to $5.0\text{ mm}$, sitting $1.0\text{ mm}$ below the outer rim).
+   - **Sequential Path Tangent Rotation:** Each collar is rotated along the sequence tangent vector pointing from LED $i$ toward LED $i+1$, providing natural alignment with the fairy light strand.
+   - **Wire Pass-Through Notches:** $4.0\text{ mm}$ wide notches on both $5\text{ mm}$ ends extending down to the floor ($Z = 2.0\text{ mm}$) allowing the ribbon wire to enter and exit without resistance.
+3. **Centered $2\text{ mm} \times 2\text{ mm}$ Square Optical Apertures:**
+   - Centered through-windows through the $2.0\text{ mm}$ front face beneath each bulb, beaming the LED forward while the resin bulb body rests solidly against the interior shelf.
+4. **Debossed LED Sequence Numbers (1 to 100):**
+   - Numbers `1` through `100` permanently engraved $0.6\text{ mm}$ deep into the interior floor adjacent to each collar, guaranteeing 100% foolproof manual assembly on race day.
+5. **Backside Rim Fastener Tabs (16 Eyelets):**
+   - 16 eyelet ear tabs ($\varnothing 2.5\text{ mm}$ through-holes, $6.0\text{ mm}$ OD) connected directly to the inner edge of the perimeter rim wall on the back side ($Z = 2.0$ to $5.0\text{ mm}$).
+   - **Puncture-Free Front Face:** The front plate remains 100% smooth and continuous with zero fastener holes puncturing through the artwork.
 
 ### 🖨️ Snapmaker U1 95A TPU Slicing Profile:
 - **Nozzle Temp:** 225°C – 235°C (0.4mm nozzle).
@@ -1142,8 +1142,8 @@ scripts/generate_3d_panel.py
 - **Layer Height:** 0.20 mm.
 - **Infill:** 100% Solid.
 - **Retraction:** 1.8 mm @ 20 mm/s (Direct Drive).
-- **Filament Weight:** ~85 grams of TPU.
-- **Print Duration:** ~2 hr 45 min.
+- **Filament Weight:** ~66 grams of TPU.
+- **Print Duration:** ~2 hr 15 min.
 
 ---
 

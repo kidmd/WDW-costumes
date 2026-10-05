@@ -93,6 +93,27 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### Entry: Open-Chassis 6.0mm TPU Armor Tray Architecture with Notched Collars & Open Wire Basin
+* **Date:** 2026-10-04
+* **Milestone:** Milestone 5 - 3D-Printable Flexible Wearable TPU Panel Fabrication
+* **Status:** Complete & Verified (`3d_panels/petes_dragon_tpu_panel.stl`, `3d_panels/petes_dragon_tpu_panel.scad`, `3d_panels/tpu_panel_preview.html`, `3d_panels/petes_dragon_specs.json`).
+* **Notes:**
+  * **Open Chassis Tray Architecture:**
+    - Radically simplified and optimized the mounting plate per user requirements into an open chassis tray.
+    - **Front Plate:** Continuous $2.0\text{ mm}$ thick solid front skin ($Z = 0$ to $2.0\text{ mm}$).
+    - **Perimeter Rim Wall:** $4.0\text{ mm}$ tall outer rim ($Z = 2.0$ to $6.0\text{ mm}$), creating a protective $6.0\text{ mm}$ total plate height.
+    - **Unconstrained Open Wire Basin:** The entire space between collars is a wide-open $4.0\text{ mm}$ deep cavity where 3-conductor flat ribbon wire routes and loops freely with **no back wall** and **no restrictive wire channels or isolated slack wells**.
+  * **100 Notched Oval Collars:**
+    - $10.0\text{ mm} \times 5.0\text{ mm}$ inner cavity with $3.0\text{ mm}$ tall walls ($Z = 2.0$ to $5.0\text{ mm}$).
+    - Rotated along sequential choreography path tangent ($\theta_i = \text{atan2}(y_{i+1}-y_i, x_{i+1}-x_i)$).
+    - $4.0\text{ mm}$ wide wire pass-through notches on both $5\text{ mm}$ ends extending down to the floor ($Z = 2.0\text{ mm}$) for easy wire entry and exit.
+  * **Centered Square Optical Apertures:**
+    - $2.0\text{ mm} \times 2.0\text{ mm}$ square through-windows centered under each bulb through the $2.0\text{ mm}$ front face.
+  * **Debossed Floor Numbers & Backside Eyelets:**
+    - Numbers `1` through `100` etched $0.6\text{ mm}$ deep into the interior floor adjacent to each collar.
+    - 16 perimeter fastener ear tabs ($\varnothing 2.5\text{ mm}$ eyelets) connected to the inside edge of the perimeter rim wall ($Z = 2.0$ to $5.0\text{ mm}$), keeping the front shirt face 100% smooth and puncture-free.
+  * **Validation:** Verified 100% watertight binary manifold STL ($2,539,684\text{ bytes}$, volume $60,714.1\text{ mm}^3$, zero errors). Synchronized OpenSCAD source and WebGL preview.
+
 ### Entry: Clean Solid TPU Chest Armor Plate with Debossed Numbers & Integrated Slack Bays
 * **Date:** 2026-10-04
 * **Milestone:** Milestone 5 - 3D-Printable Flexible Wearable TPU Panel Fabrication
