@@ -93,6 +93,16 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### Entry: Three.js Model Group Disposal & Monotonic Request ID Guard (Eliminating Ghost Mesh Overlays)
+* **Date:** 2026-10-05 (Morning Imagineering Session)
+* **Milestone:** Milestone 5 - 3D-Printable Flexible Wearable TPU Panel Fabrication & Deploy Suite
+* **Status:** Complete & Verified (`simulator/app.js`, `simulator/index.html` v76, `SIMULATOR_USER_GUIDE.md`).
+* **Implementation Details:**
+  - **Root Cause Analysis:** When switching between floats (e.g. Turtle → Snail) and opening the 3D TPU Preview, both graphics were visibly overlaid simultaneously. Investigation revealed that `loadTpuModalData` is asynchronous (`STLLoader.load`, `Image.onload`). Because previous Three.js meshes were not disposed/cleared from `tpuScene` upon loading new data, and out-of-order async promises could add multiple graphic planes, the previous float's texture mesh remained in the scene alongside the newly loaded graphic. Additionally, `handleRecompileTpuStl` used `fleetConfig` instead of `fleetRunners`, causing the modal title to fallback to "Pete's Dragon".
+  - **Scene Model Disposal (`clearTpuSceneModel`):** Created a recursive traversal cleanup routine in `app.js` that removes all mesh and group objects from `tpuScene`, explicitly disposing geometries, textures, and materials to avoid WebGL memory leaks and stranded ghost meshes.
+  - **Monotonic Request ID Guard:** Added `tpuLoadRequestId` in `loadTpuModalData`. Any async promise completion (`STLLoader.load`, `createTpuGraphicCutoutMesh`) checks `reqId === tpuLoadRequestId` and drops obsolete responses immediately.
+  - **Dynamic Float Title & Naming:** Added `getActiveFloatName()` helper to dynamically identify the active runner float name (e.g. "The Spinning Snail", "The Spinning Turtle") and reflect it across the 3D modal title, recompile status toasts, and `tpu_panel_specs.json`.
+
 ### Entry: Stale-STL Guard — TPU Preview Auto-Recompiles for the Active Graphic
 * **Date:** 2026-10-05 (Night Imagineering Session)
 * **Milestone:** Milestone 5 - 3D-Printable Flexible Wearable TPU Panel Fabrication & Deploy Suite

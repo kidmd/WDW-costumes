@@ -17264,6 +17264,27 @@ window.openTpuPreviewModal = openTpuPreviewModal;
 window.closeTpuPreviewModal = closeTpuPreviewModal;
 window.handleRecompileTpuStl = handleRecompileTpuStl;
 
+function getActiveFloatName() {
+    if (typeof activeSingleShirtRunnerSlot !== 'undefined' && activeSingleShirtRunnerSlot !== null && typeof fleetRunners !== 'undefined' && fleetRunners[activeSingleShirtRunnerSlot]) {
+        return fleetRunners[activeSingleShirtRunnerSlot].name || fleetRunners[activeSingleShirtRunnerSlot].fullName || "Parade Float";
+    }
+    const nameMap = {
+        'casey_jr_train': "Casey Jr. Circus Train",
+        'title_drum': "MSEP Title Drum",
+        'spinning_turtle': "The Spinning Turtle",
+        'spinning_snail': "The Spinning Snail",
+        'cinderellas_coach': "Cinderella's Coach",
+        'cinderella_coach': "Cinderella's Coach",
+        'carriage_nohorses': "Cinderella's Carriage",
+        'builtin_dragon': "Pete's Dragon",
+        'petes_dragon': "Pete's Dragon",
+        'honor_america_eagle': "Honor America Eagle",
+        'custom_image': "Custom Artwork"
+    };
+    return nameMap[currentGraphicType] || "Parade Float";
+}
+window.getActiveFloatName = getActiveFloatName;
+
 // Fingerprint of everything that shapes the STL (artwork silhouette, LED layout, chest bounds).
 // Stored in tpu_panel_specs.json so the Preview button can detect a stale STL compiled for another graphic.
 function computeTpuLayoutSignature() {
@@ -17311,10 +17332,8 @@ async function handleRecompileTpuStl(opts) {
             artworkDataUrl = off.toDataURL('image/png');
         }
 
-        const slot = (typeof activeSingleShirtRunnerSlot !== 'undefined') ? activeSingleShirtRunnerSlot : 5;
-        const fleetList = (typeof fleetConfig !== 'undefined' && Array.isArray(fleetConfig)) ? fleetConfig : [];
-        const fInfo = fleetList[slot] || { name: (currentGraphicType === 'custom_image' ? "Custom Artwork" : "Pete's Dragon") };
-        const floatName = fInfo.name || "Parade Float";
+        const slot = (typeof activeSingleShirtRunnerSlot !== 'undefined' && activeSingleShirtRunnerSlot !== null) ? activeSingleShirtRunnerSlot : 5;
+        const floatName = getActiveFloatName();
 
         const payload = {
             leds: leds || [],
@@ -17535,7 +17554,41 @@ function downloadBothTpuStls() {
 }
 window.downloadBothTpuStls = downloadBothTpuStls;
 
+let tpuLoadRequestId = 0;
+
+function clearTpuSceneModel() {
+    if (!tpuScene) return;
+    const toRemove = [];
+    tpuScene.traverse((child) => {
+        // Collect all meshes and non-scene groups (exclude lights)
+        if (child.isMesh || (child.isGroup && child !== tpuScene)) {
+            toRemove.push(child);
+        }
+    });
+    toRemove.forEach((obj) => {
+        if (obj.parent) obj.parent.remove(obj);
+        if (obj.geometry) obj.geometry.dispose();
+        if (obj.material) {
+            if (Array.isArray(obj.material)) {
+                obj.material.forEach((m) => {
+                    if (m.map) m.map.dispose();
+                    m.dispose();
+                });
+            } else {
+                if (obj.material.map) obj.material.map.dispose();
+                obj.material.dispose();
+            }
+        }
+    });
+    tpuStlMesh = null;
+    tpuGraphicMesh = null;
+    tpuLedsGroup = null;
+    tpuLedMaterials = [];
+    tpuBaseColors = [];
+}
+
 async function loadTpuModalData() {
+    const reqId = ++tpuLoadRequestId;
     const loaderOverlay = document.getElementById('tpuModalLoading');
     if (loaderOverlay) {
         loaderOverlay.style.display = 'flex';
@@ -17557,8 +17610,10 @@ async function loadTpuModalData() {
             specs = await fallbackResp.json();
         }
 
+        if (reqId !== tpuLoadRequestId) return; // Superceded by newer request
+
         const variantData = (specs[tpuActiveVariant]) ? specs[tpuActiveVariant] : specs;
-        const floatName = specs.float_name || "Pete's Dragon";
+        const floatName = specs.float_name || getActiveFloatName();
         const variantTitle = (tpuActiveVariant === 'back') ? "Back Torso Plate" : "Front Chest Plate";
 
         const modalTitle = document.querySelector('#tpuPreviewModal h3');
@@ -17593,6 +17648,9 @@ async function loadTpuModalData() {
 
         let stlCenter = new THREE.Vector3(87.8, 108.5, 3.0);
 
+        // Always clean up any existing meshes before instantiating new ones!
+        clearTpuSceneModel();
+
         if (THREE.STLLoader) {
             const stlLoader = new THREE.STLLoader();
             const stlFile = (tpuActiveVariant === 'back') ? 'tpu_panel_back.stl' : 'tpu_panel_front.stl';
@@ -17603,11 +17661,11 @@ async function loadTpuModalData() {
                     stlLoader.load('/3d_panels/tpu_panel.stl?t=' + Date.now(), resolve, undefined, reject);
                 });
             });
+            if (reqId !== tpuLoadRequestId) return; // Superceded by newer request
+
             geom.computeVertexNormals();
             geom.computeBoundingBox();
             stlCenter = geom.boundingBox.getCenter(new THREE.Vector3());
-
-            if (tpuStlMesh) tpuScene.remove(tpuStlMesh);
 
             const stlMat = new THREE.MeshStandardMaterial({
                 color: (tpuActiveVariant === 'back') ? 0x142033 : 0x1a2230,
@@ -17624,6 +17682,8 @@ async function loadTpuModalData() {
         }
 
         await createTpuGraphicCutoutMesh(variantData, stlCenter);
+        if (reqId !== tpuLoadRequestId) return; // Superceded by newer request
+
         createTpuLedPixels(variantData, stlCenter);
 
         if (loaderOverlay) loaderOverlay.style.display = 'none';
@@ -17638,7 +17698,15 @@ async function loadTpuModalData() {
 }
 
 async function createTpuGraphicCutoutMesh(specs, stlCenter) {
-    if (tpuGraphicMesh) tpuScene.remove(tpuGraphicMesh);
+    if (tpuGraphicMesh && tpuScene) {
+        tpuScene.remove(tpuGraphicMesh);
+        if (tpuGraphicMesh.geometry) tpuGraphicMesh.geometry.dispose();
+        if (tpuGraphicMesh.material) {
+            if (tpuGraphicMesh.material.map) tpuGraphicMesh.material.map.dispose();
+            tpuGraphicMesh.material.dispose();
+        }
+        tpuGraphicMesh = null;
+    }
 
     const activeImg = getActiveGraphicImg();
     let img = new Image();
