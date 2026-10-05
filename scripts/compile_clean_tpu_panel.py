@@ -332,7 +332,16 @@ cutters_union_m = Manifold.batch_boolean(cutters_m, OpType.Add)
 
 final_m = assembled_m - cutters_union_m
 out_m = final_m.to_mesh()
-final_model = trimesh.Trimesh(vertices=out_m.vert_properties[:, :3], faces=out_m.tri_verts, process=True)
+
+# Orient so FRONT face (2x2mm windows) faces +Z (toward viewer, away from shirt)
+# and UNDERSIDE (open pockets and rim) faces -Z (toward runner's shirt):
+# Inverting Z: z -> 6.0 - z, and inverting face winding to maintain outward normals.
+verts_flipped = out_m.vert_properties[:, :3].copy()
+verts_flipped[:, 2] = TOTAL_THICK - verts_flipped[:, 2]
+faces_flipped = out_m.tri_verts[:, ::-1].copy()
+
+final_model = trimesh.Trimesh(vertices=verts_flipped, faces=faces_flipped, process=True)
+final_model.fix_normals()
 
 stl_path = '3d_panels/petes_dragon_tpu_panel.stl'
 final_model.export(stl_path)

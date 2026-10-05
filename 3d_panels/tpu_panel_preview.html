@@ -435,12 +435,12 @@ async function createCutoutGraphicMesh() {
   });
 
   graphicMesh = new THREE.Mesh(artGeom, artMat);
-  // Position directly on the front face (Z = 0 in STL space, which is Z = -STL_CENTER_Z + 0.05 mm)
+  // Position directly on the front face (Z = 6.0 in STL space, which is Z = +STL_CENTER_Z + 0.08 mm)
   // Shifted so pixel (0, 0) matches CAD (0, 0)
   graphicMesh.position.set(
     (IMG_WIDTH_MM / 2.0) - STL_CENTER_X,
     (IMG_HEIGHT_MM / 2.0) - STL_CENTER_Y,
-    -STL_CENTER_Z + 0.08
+    STL_CENTER_Z + 0.08
   );
   scene.add(graphicMesh);
 }
@@ -449,7 +449,7 @@ function createLedPixels() {
   ledsGroup = new THREE.Group();
   const leds = specsData.ordered_leds || [];
 
-  // 1.8mm square emissive pixel sitting right in the 2x2mm window (Z = 0.5mm floor)
+  // 1.8mm square emissive pixel sitting right in the 2x2mm window (Z = 5.5mm floor)
   const pixelGeom = new THREE.PlaneGeometry(1.8, 1.8);
 
   leds.forEach((l, idx) => {
@@ -463,11 +463,11 @@ function createLedPixels() {
     ledMaterials.push(mat);
 
     const pixelMesh = new THREE.Mesh(pixelGeom, mat);
-    // Position at LED CAD coordinates, slightly recessed inside the 2x2mm aperture
+    // Position at LED CAD coordinates, sitting directly inside the 2x2mm window aperture
     pixelMesh.position.set(
       l.x - STL_CENTER_X,
       l.y - STL_CENTER_Y,
-      -STL_CENTER_Z + 0.02
+      STL_CENTER_Z + 0.02
     );
     ledsGroup.add(pixelMesh);
   });
@@ -506,15 +506,15 @@ function setView(view) {
 
   if (view === 'front') {
     document.getElementById('btn-front').classList.add('active');
-    camera.position.set(0, 0, 320);
+    camera.position.set(0, 0, 320); // Front face (Z = +3.0)
     controls.target.set(0, 0, 0);
   } else if (view === 'back') {
     document.getElementById('btn-back').classList.add('active');
-    camera.position.set(0, 0, -320);
+    camera.position.set(0, 0, -320); // Underside / pockets (Z = -3.0)
     controls.target.set(0, 0, 0);
   } else if (view === 'iso') {
     document.getElementById('btn-iso').classList.add('active');
-    camera.position.set(160, -140, 220);
+    camera.position.set(160, -140, 220); // Isometric perspective showing front and depth
     controls.target.set(0, 0, 0);
   }
 }

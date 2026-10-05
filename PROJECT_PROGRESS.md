@@ -93,6 +93,16 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### Entry: Corrected Front/Back Z-Orientation & Non-Mirrored STL Alignment
+* **Date:** 2026-10-04 (Late Night Imagineering Session)
+* **Milestone:** Milestone 5 - 3D-Printable Flexible Wearable TPU Panel Fabrication & WebGL Inspector
+* **Status:** Complete & Verified (`3d_panels/tpu_panel_preview.html`, `3d_panels/petes_dragon_tpu_panel.stl`, `scripts/compile_clean_tpu_panel.py`).
+* **Implementation Details:**
+  - **Resolved Mirror / Reversed Front & Back Bug:** Corrected the STL coordinate orientation so the solid front face ($2\text{ mm} \times 2\text{ mm}$ optical apertures) is located at $Z = 6.0\text{ mm}$ pointing forward (+Z toward the camera/viewer), while the open wire basin and notched collars face the runner's shirt at $Z = 0.0\text{ mm}$ (-Z).
+  - **Non-Mirrored Graphic Alignment:** Because the front face now points toward +Z, the dragon's head and snout face forward to the right identically in both ViewSTL and the WebGL inspector, perfectly matching [`assets/petes_dragon_transparent.png`](file:///c:/Users/Kiddi/Desktop/WDW%20costumes/assets/petes_dragon_transparent.png) without horizontal inversion.
+  - **Fixed Preview Camera Buttons:** Swapped camera positions so clicking **"👕 Front Face"** positions the camera at $(0, 0, +320)$ showing the exterior dragon graphic and apertures, while **"🔄 Underside (Pockets)"** positions the camera at $(0, 0, -320)$ looking into the rear wire basin and collars.
+  - **Maintained 2.0mm Collar Clearance & Back-Flush Eyelets:** Preserved $2.0\text{ mm}$ space between collar tops ($Z = 2.0\text{ mm}$) and perimeter rim base ($Z = 0.0\text{ mm}$), with all 16 pure circular mounting eyelets flush with the shirt rim at $Z = 0.0\text{ mm}$.
+
 ### Entry: Simplified 3D STL Previewer with Graphic Window Cutouts & LED Simulation
 * **Date:** 2026-10-04 (Late Night Imagineering Session)
 * **Milestone:** Milestone 5 - 3D-Printable Flexible Wearable TPU Panel Fabrication & WebGL Inspector

@@ -1135,14 +1135,14 @@ scripts/generate_3d_panel.py
    - Numbers `1` through `100` are sized at the absolute minimum readable size for a $0.4\text{ mm}$ nozzle (**$1.8\text{ mm}$ cap height, $0.5\text{ mm}$ deboss depth** into the interior floor) with clean inter-character kerning.
 5. **Outside Perimeter Mounting Eyelets (Pure Smooth Circular Ears, Zero Points):**
    - 16 streamlined, completely round mounting ears placed strictly on the **OUTSIDE** of the perimeter rim wall.
-   - **Pure Smooth Circular Geometry (Zero Points):** Each eyelet is a pure concentric circular cylinder of outer diameter $6.5\text{ mm}$ (outer radius $3.25\text{ mm}$, wall thickness $2.0\text{ mm}$) and height $2.0\text{ mm}$ ($Z = 4.0$ to $6.0\text{ mm}$), completely eliminating any sharp corners, shield wedges, knife edges, or pointy ledges.
-   - **Back-Flush Orientation:** Top face sits at $Z = 6.0\text{ mm}$, **completely flush with the back perimeter rim touching the runner's shirt** ($Z = 6.0\text{ mm}$), enabling direct, flat sewing, safety pins, or tagging barbs.
+   - **Pure Smooth Circular Geometry (Zero Points):** Each eyelet is a pure concentric circular cylinder of outer diameter $6.5\text{ mm}$ (outer radius $3.25\text{ mm}$, wall thickness $2.0\text{ mm}$) and height $2.0\text{ mm}$ ($Z = 0.0$ to $2.0\text{ mm}$), completely eliminating any sharp corners, shield wedges, knife edges, or pointy ledges.
+   - **Back-Flush Orientation:** Base sits at $Z = 0.0\text{ mm}$, **completely flush with the back perimeter rim touching the runner's shirt** ($Z = 0.0\text{ mm}$), enabling direct, flat sewing, safety pins, or tagging barbs.
    - **Solid Structural Overlap:** The $6.5\text{ mm}$ outer cylinder overlaps $1.75\text{ mm}$ deep into the solid $2.5\text{ mm}$ perimeter rim wall, fusing into an unbreakable structural joint while keeping the center $\varnothing 2.5\text{ mm}$ through-hole completely clear on the outside.
    - **Dimensions:** $\varnothing 2.5\text{ mm}$ through-hole, $2.0\text{ mm}$ solid walls ($6.5\text{ mm}$ OD), overall tab height $2.0\text{ mm}$.
-   - **Puncture-Free Front Face:** The main artwork front plate remains 100% smooth and continuous.
+   - **Puncture-Free Front Face:** The main artwork front plate remains 100% smooth and continuous at $Z = 6.0\text{ mm}$.
 
 6. **Simplified 3D STL Model Viewer with Graphic Cutouts (`tpu_panel_preview.html`):**
-   - **Direct STL Mesh Loading:** Loads the exact binary `petes_dragon_tpu_panel.stl` mesh directly via Three.js `STLLoader`, ensuring 100% faithful representation of the actual 3D print.
+   - **Direct STL Mesh Loading & Non-Mirrored Alignment:** Loads the exact binary `petes_dragon_tpu_panel.stl` mesh directly via Three.js `STLLoader`, oriented with the front face ($Z = 6.0\text{ mm}$) pointing toward the camera (+Z) and underside pockets ($Z = 0.0\text{ mm}$) facing the runner's shirt (-Z). This ensures the dragon head faces forward to the right identically in both ViewSTL and the WebGL inspector without any mirror reversal.
    - **Graphic with 2×2mm Window Cutouts:** Projects Pete's Dragon chest graphic directly over the front of the STL panel with real 2mm × 2mm transparent cutouts punched out where each LED window is located, keeping the apertures completely unobstructed.
    - **LED State Simulation:** Features an interactive LED simulation bar allowing runners to toggle between **LEDs Off**, **Static On** (authentic Pete's Dragon colors), and **Animated Parade** (60 FPS shimmer and wave chase).
    - **Minimal Floating HUD:** Replaced complex multi-layer sidebar menus with a clean floating control bar providing quick camera angles (Front, Underside/Pockets, 3D Angle) and opacity sliders for the graphic and armor plate.
