@@ -93,6 +93,14 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### Entry: Snapmaker U1 270x270mm Build Volume Verification & Bed Clearance
+* **Date:** 2026-10-04 (Late Night Imagineering Session)
+* **Milestone:** Milestone 5 - 3D-Printable Flexible Wearable TPU Panel Fabrication
+* **Status:** Complete & Verified (`SIMULATOR_USER_GUIDE.md`, `PROJECT_PROGRESS.md`).
+* **Implementation Details:**
+  - **Snapmaker U1 Print Bed Clarification:** Confirmed official Snapmaker U1 build envelope is $270 \times 270 \times 270\text{ mm}$ (rather than $220 \times 220\text{ mm}$).
+  - **Spacious Bed Margin:** With the Pete's Dragon chest plate envelope measuring $172.2\text{ mm W} \times 153.8\text{ mm H} \times 6.0\text{ mm THICK}$, the panel occupies only $\approx 64\%$ of bed width and $\approx 57\%$ of bed depth. This leaves an abundant $\approx 48.9\text{ mm}$ ($1.9\text{ in}$) margin along $X$ and $\approx 58.1\text{ mm}$ ($2.3\text{ in}$) margin along $Y$, providing effortless skirt/brim clearance and zero risk of edge clipping when printing flat in 95A TPU.
+
 ### Entry: Debossed Number Underside Left-to-Right Orientation Fix
 * **Date:** 2026-10-04 (Late Night Imagineering Session)
 * **Milestone:** Milestone 5 - 3D-Printable Flexible Wearable TPU Panel Fabrication

@@ -1118,7 +1118,7 @@ scripts/generate_3d_panel.py
 ### 🦺 Wearable Architecture & Specs (Open-Chassis 6.0mm Flexible TPU Armor Tray):
 1. **Open-Chassis Tray Structure:**
    - **Filament:** 95A Flexible TPU (e.g., Polymaker PolyFlex, Overture TPU).
-   - **Dimensions:** $173.2\text{ mm W} \times 154.7\text{ mm H} \times 6.0\text{ mm}$ overall envelope (chassis tray body $166.1 \times 152.0\text{ mm}$ with tabs extending outwardly; sized cleanly within Snapmaker U1 $220 \times 220\text{ mm}$ print bed, conforming tightly to the authentic dragon artwork silhouette).
+   - **Dimensions:** $172.2\text{ mm W} \times 153.8\text{ mm H} \times 6.0\text{ mm}$ overall envelope (chassis tray body $166.1 \times 152.0\text{ mm}$ with tabs extending outwardly; sized cleanly within Snapmaker U1 $270 \times 270\text{ mm}$ print bed, leaving nearly $50\text{ mm}$ / $2\text{ in}$ of perimeter margin on all sides).
    - **Base Plate & Floor Recesses:** Solid continuous $2.0\text{ mm}$ thick base plate facing the runner's shirt ($Z = 0$ to $2.0\text{ mm}$), with localized **$1.0\text{ mm}$ floor recesses** directly beneath each LED pocket cavity. The front shirt-facing surface remains 100% flat and flush while the floor inside each LED socket is thinned to $1.0\text{ mm}$.
    - **Perimeter Rim Wall:** $4.0\text{ mm}$ tall outer rim ($Z = 2.0$ to $6.0\text{ mm}$, $2.5\text{ mm}$ wall width) surrounding the entire plate, forming a protective chassis tray.
    - **Unconstrained Open Wire Basin (No Back Wall):** The entire space outside the LED collars acts as a spacious $4.0\text{ mm}$ deep open basin where 3-conductor flat ribbon wire can route and loop freely with zero binding, zero restrictive trenches, and zero unprintable overhangs.
