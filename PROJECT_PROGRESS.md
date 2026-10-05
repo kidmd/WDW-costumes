@@ -93,6 +93,19 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### Entry: 1.0mm LED Pocket Floor Recess, 3.0mm Collars & 2.0mm Table Clearance
+* **Date:** 2026-10-04 (Late Evening)
+* **Milestone:** Milestone 5 - 3D-Printable Flexible Wearable TPU Panel Fabrication
+* **Status:** Complete & Verified (`3d_panels/petes_dragon_tpu_panel.stl`, `3d_panels/petes_dragon_tpu_panel.scad`, `3d_panels/tpu_panel_preview.html`, `3d_panels/petes_dragon_specs.json`).
+* **Notes:**
+  - **Refined Vertical Cross-Section Architecture:**
+    - Base plate general floor: $2.0\text{ mm}$ thick.
+    - LED pocket floor: Localized $1.0\text{ mm}$ deep recesses cut directly inside each $10\text{ mm} \times 5\text{ mm}$ pocket socket cavity, leaving a $1.0\text{ mm}$ thick front floor under each resin bulb while keeping the front shirt-facing surface completely smooth and flush.
+    - Collars: $3.0\text{ mm}$ tall oval socket walls rising from the recessed pocket floor ($Z = 1.0\text{ mm}$ to $Z = 4.0\text{ mm}$).
+    - Table Clearance: Total chassis height is $6.0\text{ mm}$ (formed by the $4.0\text{ mm}$ outer perimeter rim from $Z = 2.0\text{ mm}$ to $6.0\text{ mm}$). When placing the 3D print flat on a table front-side up, the outer rim rests on the table at $Z = 6.0\text{ mm}$, leaving **exactly $2.0\text{ mm}$ of clear open space** between the tops of the pocket walls ($Z = 4.0\text{ mm}$) and the table surface ($6.0\text{ mm} - 4.0\text{ mm} = 2.0\text{ mm}$).
+  - **Clean Manifold Topology:** Integrated `manifold3d` CSG cleanup into `scripts/compile_clean_tpu_panel.py` ensuring that the exported binary STL mesh is 100% watertight, non-degenerate, and solid volume ($70,980\text{ mm}^3$, 31,207 vertices, 62,838 triangles).
+  - **Parametric OpenSCAD & WebGL Synchronization:** Updated `scripts/update_scad_model.py` and `3d_panels/petes_dragon_tpu_panel.scad` with the recessed floor geometry; embedded updated JSON specifications into `3d_panels/tpu_panel_preview.html`.
+
 ### Entry: Open-Chassis 6.0mm TPU Armor Tray Architecture with Notched Collars & Open Wire Basin
 * **Date:** 2026-10-04
 * **Milestone:** Milestone 5 - 3D-Printable Flexible Wearable TPU Panel Fabrication

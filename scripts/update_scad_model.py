@@ -14,6 +14,12 @@ scad_code = f'''// =============================================================
 // Character: Pete's Dragon (Elliott) - 100 Addressable Fairy Light Bulbs
 // Sized for Snapmaker U1 | Material: 95A TPU | Fasteners: Backside Rim Eyelets
 // Hardware Architecture: 6.0mm Open Chassis Tray (2mm Front Plate + 4mm Perimeter Rim)
+// Cross Section:
+//   - General Tray Floor: 2.0mm
+//   - LED Pocket Floor: 1.0mm (1.0mm interior pocket recess)
+//   - LED Socket Collars: 3.0mm tall (Z = 1.0 to 4.0mm)
+//   - Clearance when laying front-side up: 2.0mm space under collars to table (Z = 4.0 to 6.0mm)
+//   - Perimeter Rim: 4.0mm tall (Z = 2.0 to 6.0mm)
 // 10mm x 5mm Rotated Oval Collars (3mm Tall) with 4mm Wire Notches
 // 2mm x 2mm Square Optical Windows | Etched Numbers 1-100 on Inner Floor
 // Unconstrained Open Wire Basin (No Back Wall)
@@ -23,7 +29,8 @@ scad_code = f'''// =============================================================
 $fn = 24;
 
 /* [Panel Geometry] */
-front_thickness       = 2.0;  // 2.0mm solid front plate
+front_thickness       = 2.0;  // 2.0mm solid general front plate
+pocket_floor_z        = 1.0;  // 1.0mm plate thickness directly under LED pockets
 perimeter_rim_height  = 4.0;  // 4.0mm tall outer perimeter rim
 total_thickness       = 6.0;  // 6.0mm overall armor plate height (Z = 0 to 6.0mm)
 rim_wall_thickness    = 2.5;  // 2.5mm outer rim wall width
@@ -31,12 +38,12 @@ panel_width_mm        = {specs['panel_width_mm']};
 panel_height_mm       = {specs['panel_height_mm']};
 
 /* [LED Socket Collars (10mm x 5mm Resin Pixels)] */
-collar_height         = 3.0;  // 3.0mm tall socket walls (Z = 2.0 to 5.0mm)
+collar_height         = 3.0;  // 3.0mm tall socket walls (rising from Z = 1.0 to 4.0mm)
 collar_inner_length   = 10.0; // 10.0mm inner cavity length
 collar_inner_width    = 5.0;  // 5.0mm inner cavity width
 collar_wall_thickness = 1.2;  // 1.2mm collar wall thickness
 notch_width           = 4.0;  // 4.0mm wire pass-through opening on both 5mm ends
-window_square         = 2.0;  // 2.0mm x 2.0mm square optical window through front plate
+window_square         = 2.0;  // 2.0mm x 2.0mm square optical window through 1mm floor
 
 /* [Backside Rim Fastener Tabs] */
 fastener_hole_dia     = 2.5;  // 2.5mm through-hole for thread or tagging barb
@@ -68,7 +75,7 @@ module stadium_2d(length, width) {{
     }}
 }}
 
-// Module for single notched oval collar
+// Module for single notched oval collar (Z = 1.0 to 4.0mm)
 module single_collar() {{
     difference() {{
         // Outer oval collar wall
@@ -92,7 +99,7 @@ module single_collar() {{
 module open_chassis_tpu_armor() {{
     difference() {{
         union() {{
-            // 1. SOLID CONTINUOUS FRONT PLATE (Z = 0 to 2.0mm)
+            // 1. SOLID CONTINUOUS BASE PLATE (Z = 0 to 2.0mm)
             linear_extrude(height = front_thickness, convexity = 10)
                 polygon(points = contour_pts);
 
@@ -115,22 +122,31 @@ module open_chassis_tpu_armor() {{
                     }}
             }}
 
-            // 4. 100 NOTCHED OVAL COLLARS (Z = 2.0 to 5.0mm)
+            // 4. 100 NOTCHED OVAL COLLARS (Z = 1.0 to 4.0mm)
             for (i = [0 : len(ordered_leds)-1]) {{
-                translate([ordered_leds[i][0], ordered_leds[i][1], front_thickness])
+                translate([ordered_leds[i][0], ordered_leds[i][1], pocket_floor_z])
                     rotate([0, 0, led_rotations[i]])
                         single_collar();
             }}
         }}
 
-        // 5. 2x2mm SQUARE OPTICAL WINDOWS (Through front plate Z = -0.5 to 2.5mm)
+        // 5. 1.0mm RECESS CUTTERS IN FLOOR UNDER POCKETS (Z = 1.0 to 2.1mm)
         for (i = [0 : len(ordered_leds)-1]) {{
-            translate([ordered_leds[i][0], ordered_leds[i][1], front_thickness/2])
+            translate([ordered_leds[i][0], ordered_leds[i][1], pocket_floor_z])
                 rotate([0, 0, led_rotations[i]])
-                    cube([window_square, window_square, front_thickness + 1.0], center = true);
+                    linear_extrude(height = front_thickness - pocket_floor_z + 0.1)
+                        stadium_2d(collar_inner_length, collar_inner_width);
         }}
 
-        // 6. DEBOSSED LED NUMBERS 1-100 ON INNER FLOOR (Z = 1.4 to 2.1mm)
+        // 6. 2x2mm SQUARE OPTICAL WINDOWS (Through front plate Z = -0.5 to 1.5mm)
+        for (i = [0 : len(ordered_leds)-1]) {{
+            translate([ordered_leds[i][0], ordered_leds[i][1], -0.2])
+                rotate([0, 0, led_rotations[i]])
+                    linear_extrude(height = pocket_floor_z + 0.4)
+                        square([window_square, window_square], center = true);
+        }}
+
+        // 7. DEBOSSED LED NUMBERS 1-100 ON INNER FLOOR (Z = 1.4 to 2.1mm)
         for (i = [0 : len(number_positions)-1]) {{
             translate([number_positions[i][0], number_positions[i][1], front_thickness - 0.6])
                 linear_extrude(height = 0.8)
