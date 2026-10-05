@@ -17459,10 +17459,10 @@ function setupTpuThreeScene(container) {
     tpuScene = new THREE.Scene();
     tpuScene.background = new THREE.Color(0x070a0f);
 
-    tpuCamera = new THREE.PerspectiveCamera(40, w / h, 0.1, 2000);
+    tpuCamera = new THREE.PerspectiveCamera(40, w / h, 1.0, 3000);
     tpuCamera.position.set(0, 0, 320);
 
-    tpuRenderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+    tpuRenderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, logarithmicDepthBuffer: true });
     tpuRenderer.setSize(w, h);
     tpuRenderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     tpuRenderer.toneMapping = THREE.ACESFilmicToneMapping;
@@ -17673,10 +17673,15 @@ async function loadTpuModalData() {
                 metalness: 0.15,
                 side: THREE.DoubleSide,
                 transparent: true,
-                opacity: 0.95
+                opacity: 0.95,
+                depthWrite: true,
+                polygonOffset: true,
+                polygonOffsetFactor: 1.0,
+                polygonOffsetUnits: 1.0
             });
 
             tpuStlMesh = new THREE.Mesh(geom, stlMat);
+            tpuStlMesh.renderOrder = 0;
             tpuStlMesh.position.set(-stlCenter.x, -stlCenter.y, -stlCenter.z);
             tpuScene.add(tpuStlMesh);
         }
@@ -17761,14 +17766,19 @@ async function createTpuGraphicCutoutMesh(specs, stlCenter) {
         transparent: true,
         opacity: 1.0,
         side: THREE.DoubleSide,
-        depthWrite: false
+        depthWrite: false,
+        depthTest: true,
+        polygonOffset: true,
+        polygonOffsetFactor: -1.0,
+        polygonOffsetUnits: -2.0
     });
 
     tpuGraphicMesh = new THREE.Mesh(artGeom, artMat);
+    tpuGraphicMesh.renderOrder = 2; // Always render on top of STL plate
     tpuGraphicMesh.position.set(
         (totalW_mm / 2.0) - stlCenter.x,
         (totalH_mm / 2.0) - stlCenter.y,
-        stlCenter.z + 0.08
+        stlCenter.z + 0.35 // Clean 0.35mm physical lift above the TPU front skin
     );
     tpuScene.add(tpuGraphicMesh);
 }
@@ -17776,6 +17786,7 @@ async function createTpuGraphicCutoutMesh(specs, stlCenter) {
 function createTpuLedPixels(specs, stlCenter) {
     if (tpuLedsGroup) tpuScene.remove(tpuLedsGroup);
     tpuLedsGroup = new THREE.Group();
+    tpuLedsGroup.renderOrder = 3; // Render on top of aperture cutouts
     tpuLedMaterials = [];
     tpuBaseColors = [];
 
@@ -17789,15 +17800,21 @@ function createTpuLedPixels(specs, stlCenter) {
 
         const mat = new THREE.MeshBasicMaterial({
             color: col.clone(),
-            side: THREE.DoubleSide
+            side: THREE.DoubleSide,
+            depthWrite: false,
+            depthTest: true,
+            polygonOffset: true,
+            polygonOffsetFactor: -2.0,
+            polygonOffsetUnits: -4.0
         });
         tpuLedMaterials.push(mat);
 
         const pixelMesh = new THREE.Mesh(pixelGeom, mat);
+        pixelMesh.renderOrder = 3;
         pixelMesh.position.set(
             l.x - stlCenter.x,
             l.y - stlCenter.y,
-            stlCenter.z + 0.02
+            stlCenter.z + 0.20 // Positioned cleanly inside the 2x2mm optical window
         );
         tpuLedsGroup.add(pixelMesh);
     });

@@ -93,6 +93,22 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### Entry: Permanent Fix for 3D TPU Preview Graphic Rotation Flickering & Z-Fighting
+* **Date:** 2026-10-05 (Morning Imagineering Session - Follow-up)
+* **Milestone:** Milestone 5 - 3D-Printable Flexible Wearable TPU Panel Fabrication & Deploy Suite
+* **Status:** Complete & Verified (`simulator/app.js`, `simulator/index.html` v77, `SIMULATOR_USER_GUIDE.md`).
+* **Implementation Details:**
+  - **Root Cause Analysis:** When orbiting or rotating the 3D TPU Armor Plate in `#tpuPreviewModal`, the front graphic flickered or vanished depending on viewing angle. Three compounding factors were identified:
+    1. **Z-Fighting / Coplanar Precision:** The graphic mesh was positioned at `stlCenter.z + 0.08mm`. Under standard 24-bit depth buffers with an ultra-close `near = 0.1` clip plane spanning to `far = 2000`, depth precision at oblique angles fell below $0.08\text{ mm}$, causing the TPU plate's front surface to intermittently win depth testing and clip through the graphic.
+    2. **Missing Render Order & Transparent Depth Sorting:** Neither `tpuStlMesh` nor `tpuGraphicMesh` had explicit `renderOrder` defined. When Three.js sorted transparent objects from back to front, camera rotation altered object distance centroids, causing the render order between the plate and the graphic to swap mid-rotation.
+    3. **Missing Hardware Polygon Offset:** Neither material used OpenGL/WebGL polygon offset to bias depth rasterization.
+  - **Comprehensive Multi-Layer Solution:**
+    - **Logarithmic Depth Buffer:** Enabled `logarithmicDepthBuffer: true` on `THREE.WebGLRenderer` to provide uniform high-precision depth testing across all view distances.
+    - **Camera Near Clip Optimization:** Increased camera `near` from $0.1\text{ mm}$ to $1.0\text{ mm}$, vastly multiplying depth buffer precision.
+    - **Physical Elevation Offset:** Raised graphic mesh position to `stlCenter.z + 0.35mm` (well above the plate skin while remaining visually flush) and LEDs to `stlCenter.z + 0.20mm`.
+    - **Explicit Render Order & Depth Testing:** Enforced `tpuStlMesh.renderOrder = 0`, `tpuGraphicMesh.renderOrder = 2`, and `tpuLedsGroup.renderOrder = 3`. Enabled `depthTest: true` and `depthWrite: false` on the graphic so it never occludes itself or disappears.
+    - **GPU Polygon Offsets:** Applied `polygonOffset: true` with negative factors (`factor: -1.0, units: -2.0`) on the graphic and positive on the plate (`factor: 1.0, units: 1.0`), guaranteeing the GPU rasterizer always draws the graphic in front regardless of orbit angle.
+
 ### Entry: Three.js Model Group Disposal & Monotonic Request ID Guard (Eliminating Ghost Mesh Overlays)
 * **Date:** 2026-10-05 (Morning Imagineering Session)
 * **Milestone:** Milestone 5 - 3D-Printable Flexible Wearable TPU Panel Fabrication & Deploy Suite
