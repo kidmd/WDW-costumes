@@ -93,6 +93,16 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### Entry: Outside Perimeter Mounting Eyelets with 2.0mm Thick Walls
+* **Date:** 2026-10-04 (Midnight)
+* **Milestone:** Milestone 5 - 3D-Printable Flexible Wearable TPU Panel Fabrication
+* **Status:** Complete & Verified (`3d_panels/petes_dragon_tpu_panel.stl`, `3d_panels/petes_dragon_tpu_panel.scad`, `3d_panels/tpu_panel_preview.html`, `3d_panels/petes_dragon_specs.json`).
+* **Notes:**
+  - **Outside Perimeter Eyelet Placement:** Repositioned all 16 fastener eyelets strictly to the **OUTSIDE** of the perimeter rim wall, offsetting outward along normal vectors with a $1.25\text{ mm}$ structural fillet overlap into the rim. This keeps the interior wire basin completely unencumbered and leaves the front artwork face smooth and puncture-free.
+  - **2.0mm Thick Eyelet Walls:** Built with an inner through-hole of $\varnothing 2.5\text{ mm}$ (radius $1.25\text{ mm}$) and robust $2.0\text{ mm}$ thick walls, giving an outer diameter (OD) of $6.5\text{ mm}$ (radius $3.25\text{ mm}$). Height is $4.0\text{ mm}$ ($Z = 0.0\text{ mm}$ flush with the shirt-facing front face up to $Z = 4.0\text{ mm}$, level with the collar tops).
+  - **Overall Envelope & Print Bed Fit:** Overall bounding dimensions are $173.15\text{ mm W} \times 154.72\text{ mm H} \times 6.00\text{ mm THICK}$, well within the Snapmaker U1 $220 \times 220\text{ mm}$ print bed. Net volume is $39,647.8\text{ mm}^3$ ($\approx 44\text{ grams}$ in 95A TPU).
+  - **Watertight Mesh & Model Synchronization:** Confirmed 100% watertight binary STL via `manifold3d` (`is_volume == True`, 0 degenerate faces, 0 non-manifold edges). Synchronized `3d_panels/petes_dragon_tpu_panel.scad` (with `fastener_tab_od = 6.5; fastener_tab_height = 4.0;`) and updated `3d_panels/tpu_panel_preview.html` with real-time 3D extruded eyelets.
+
 ### Entry: PBD Zero-Overlap Pocket Separation Solver & Smallest Readable Debossed Numbers
 * **Date:** 2026-10-04 (Late Night)
 * **Milestone:** Milestone 5 - 3D-Printable Flexible Wearable TPU Panel Fabrication

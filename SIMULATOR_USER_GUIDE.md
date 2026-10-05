@@ -1118,11 +1118,11 @@ scripts/generate_3d_panel.py
 ### 🦺 Wearable Architecture & Specs (Open-Chassis 6.0mm Flexible TPU Armor Tray):
 1. **Open-Chassis Tray Structure:**
    - **Filament:** 95A Flexible TPU (e.g., Polymaker PolyFlex, Overture TPU).
-   - **Dimensions:** $166.1\text{ mm W} \times 152.0\text{ mm H} \times 6.0\text{ mm}$ overall height (sized cleanly within Snapmaker U1 $220 \times 220\text{ mm}$ print bed, conforming tightly to the authentic dragon artwork silhouette).
+   - **Dimensions:** $173.2\text{ mm W} \times 154.7\text{ mm H} \times 6.0\text{ mm}$ overall envelope (chassis tray body $166.1 \times 152.0\text{ mm}$ with tabs extending outwardly; sized cleanly within Snapmaker U1 $220 \times 220\text{ mm}$ print bed, conforming tightly to the authentic dragon artwork silhouette).
    - **Base Plate & Floor Recesses:** Solid continuous $2.0\text{ mm}$ thick base plate facing the runner's shirt ($Z = 0$ to $2.0\text{ mm}$), with localized **$1.0\text{ mm}$ floor recesses** directly beneath each LED pocket cavity. The front shirt-facing surface remains 100% flat and flush while the floor inside each LED socket is thinned to $1.0\text{ mm}$.
    - **Perimeter Rim Wall:** $4.0\text{ mm}$ tall outer rim ($Z = 2.0$ to $6.0\text{ mm}$, $2.5\text{ mm}$ wall width) surrounding the entire plate, forming a protective chassis tray.
    - **Unconstrained Open Wire Basin (No Back Wall):** The entire space outside the LED collars acts as a spacious $4.0\text{ mm}$ deep open basin where 3-conductor flat ribbon wire can route and loop freely with zero binding, zero restrictive trenches, and zero unprintable overhangs.
-   - **Lightweight:** Net volume is $\approx 38.9\text{ cm}^3$, weighing just **$\approx 43\text{ grams}$ ($1.5\text{ oz}$)**—featherlight, flexible, and comfortable for a 10K race.
+   - **Lightweight:** Net volume is $\approx 39.6\text{ cm}^3$, weighing just **$\approx 44\text{ grams}$ ($1.5\text{ oz}$)**—featherlight, flexible, and comfortable for a 10K race.
 2. **100 Non-Overlapping Horizontal Oval Collars ($10\text{ mm} \times 5\text{ mm} \times 3\text{ mm}$) with Wire Notches:**
    - **Inner Cavity & Z Coordinates:** $10.0\text{ mm} \times 5.0\text{ mm}$ oval socket with $3.0\text{ mm}$ tall walls rising from the recessed floor ($Z = 1.0$ to $4.0\text{ mm}$).
    - **Zero Collar Overlap (PBD Relaxation Solver):** Positions are nudged by a minimal average shift ($\approx 1.6\text{ mm}$, max $4.9\text{ mm}$) so that **every single collar maintains $\ge 0.5\text{ mm}$ of clear wall gap** from every other collar. Zero overlapping or merged sockets!
@@ -1133,9 +1133,10 @@ scripts/generate_3d_panel.py
    - Centered through-windows through the $1.0\text{ mm}$ front face beneath each bulb, beaming the LED forward while the resin bulb body rests solidly against the interior shelf.
 4. **Smallest Readable Debossed LED Numbers (1 to 100):**
    - Numbers `1` through `100` are sized at the absolute minimum readable size for a $0.4\text{ mm}$ nozzle (**$1.8\text{ mm}$ cap height, $0.5\text{ mm}$ deboss depth** into the interior floor) with clean inter-character kerning.
-5. **Backside Rim Fastener Tabs (16 Eyelets):**
-   - 16 eyelet ear tabs ($\varnothing 2.5\text{ mm}$ through-holes, $6.0\text{ mm}$ OD) connected directly to the inner edge of the perimeter rim wall on the back side ($Z = 2.0$ to $5.0\text{ mm}$).
-   - **Puncture-Free Front Face:** The front plate remains 100% smooth and continuous with zero fastener holes puncturing through the artwork.
+5. **Outside Perimeter Mounting Eyelets (16 Eyelets with 2.0mm Thick Walls):**
+   - 16 reinforced mounting eyelets placed strictly on the **OUTSIDE** of the perimeter rim wall.
+   - **Dimensions:** $\varnothing 2.5\text{ mm}$ inner through-hole, **$2.0\text{ mm}$ thick walls**, $6.5\text{ mm}$ outer diameter (OD), and $4.0\text{ mm}$ height ($Z = 0.0$ to $4.0\text{ mm}$, flush with the front face and solid fillet fusion to the outer chassis rim).
+   - **Puncture-Free Front Face:** The main artwork front plate remains 100% smooth and continuous while external eyelets allow straightforward thread, safety pin, or plastic tagging barb attachment to runner shirts without encroaching on internal wire routing space.
 
 ### 🖨️ Snapmaker U1 95A TPU Slicing Profile:
 - **Nozzle Temp:** 225°C – 235°C (0.4mm nozzle).

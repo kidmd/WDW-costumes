@@ -139,13 +139,20 @@ rim_mesh.apply_translation([0, 0, FRONT_THICK_GENERAL]) # Z = 2.0 to 6.0mm
 print("Perimeter wall rim generated (4.0mm tall from Z=2.0 to 6.0mm).")
 
 # ---------------------------------------------------------------------------
-# 3. BACKSIDE PERIMETER FASTENER TABS (Inside rim wall, Z = 2.0 to 5.0mm)
+# 3. OUTSIDE PERIMETER FASTENER EYELETS (2mm thick walls, Z = 0 to 4.0mm)
 # ---------------------------------------------------------------------------
+# Eyelet dimensions: Through-hole dia = 2.5mm (radius 1.25mm), Wall thickness = 2.0mm
+# Outer radius = 1.25 + 2.0 = 3.25mm (Outer dia = 6.5mm)
+# Located strictly on the OUTSIDE of the perimeter wall, fused solidly to the chassis
 boundary_line = smoothed_plate_2d.exterior
 total_len = boundary_line.length
 num_tabs = 16
 tab_meshes = []
 tab_coords = []
+TAB_INNER_R = 1.25  # 2.5mm hole diameter
+TAB_WALL_THICK = 2.0 # 2.0mm thick eyelet walls
+TAB_OUTER_R = TAB_INNER_R + TAB_WALL_THICK # 3.25mm outer radius
+TAB_HEIGHT = 4.0     # 4.0mm tall solid eyelet collar (Z = 0.0 to 4.0mm)
 
 for k in range(num_tabs):
     dist_along = (k / float(num_tabs)) * total_len
@@ -153,21 +160,23 @@ for k in range(num_tabs):
     pt_next = boundary_line.interpolate(min(total_len, dist_along + 1.0))
     tan = np.array([pt_next.x - pt.x, pt_next.y - pt.y])
     tan_norm = tan / (np.linalg.norm(tan) + 1e-6)
+    # Unit normal vector pointing OUTSIDE
     normal = np.array([-tan_norm[1], tan_norm[0]])
-    
-    tab_center = np.array([pt.x, pt.y]) + normal * 4.0
-    if not inner_plate_2d.contains(sg.Point(tab_center)):
-        tab_center = np.array([pt.x, pt.y]) - normal * 4.0
+    cand_center = np.array([pt.x, pt.y]) + normal * 2.0
+    if smoothed_plate_2d.contains(sg.Point(cand_center)):
+        normal = -normal
+        cand_center = np.array([pt.x, pt.y]) + normal * 2.0
         
-    tab_coords.append([round(tab_center[0], 2), round(tab_center[1], 2)])
+    tab_coords.append([round(float(cand_center[0]), 2), round(float(cand_center[1]), 2)])
     
-    tab_cyl = trimesh.creation.cylinder(radius=3.0, height=3.0, sections=16)
-    tab_hole = trimesh.creation.cylinder(radius=1.25, height=3.4, sections=16)
+    # Solid eyelet cylinder with center through-hole
+    tab_cyl = trimesh.creation.cylinder(radius=TAB_OUTER_R, height=TAB_HEIGHT, sections=24)
+    tab_hole = trimesh.creation.cylinder(radius=TAB_INNER_R, height=TAB_HEIGHT + 0.4, sections=24)
     tab_solid = tab_cyl.difference(tab_hole)
-    tab_solid.apply_translation([tab_center[0], tab_center[1], FRONT_THICK_GENERAL + 1.5])
+    tab_solid.apply_translation([cand_center[0], cand_center[1], TAB_HEIGHT / 2.0]) # Z = 0.0 to 4.0mm
     tab_meshes.append(tab_solid)
 
-print("Generated 16 backside rim fastener ear tabs.")
+print(f"Generated {len(tab_meshes)} outside perimeter fastener eyelets (2.0mm wall thickness, OD 6.5mm).")
 
 # ---------------------------------------------------------------------------
 # 4. 100 ROTATED OVAL LED COLLARS & 1mm RECESSED CAVITIES

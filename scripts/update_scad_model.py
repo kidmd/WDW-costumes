@@ -45,10 +45,10 @@ collar_wall_thickness = 1.2;  // 1.2mm collar wall thickness
 notch_width           = 4.0;  // 4.0mm wire pass-through opening on both 5mm ends
 window_square         = 2.0;  // 2.0mm x 2.0mm square optical window through 1mm floor
 
-/* [Backside Rim Fastener Tabs] */
+/* [Outside Fastener Eyelet Tabs] */
 fastener_hole_dia     = 2.5;  // 2.5mm through-hole for thread or tagging barb
-fastener_tab_od       = 6.0;  // 6.0mm outer tab diameter
-fastener_tab_height   = 3.0;  // 3.0mm tall (Z = 2.0 to 5.0mm)
+fastener_tab_od       = 6.5;  // 6.5mm outer tab diameter (2.0mm wall thickness)
+fastener_tab_height   = 4.0;  // 4.0mm tall (Z = 0.0 to 4.0mm)
 
 // 2D Contour Coordinates for Solid Plate Perimeter
 contour_pts = {contour_pts};
@@ -62,7 +62,7 @@ led_rotations = {led_rotations_deg};
 // 100 Debossed LED Number Positions
 number_positions = {number_positions};
 
-// 16 Backside Rim Fastener Tab Centers
+// 16 Outside Perimeter Fastener Tab Centers
 fastener_tabs = {fastener_tabs};
 
 // Module for 2D stadium/oval
@@ -112,9 +112,9 @@ module open_chassis_tpu_armor() {{
                             polygon(points = contour_pts);
                     }}
 
-            // 3. 16 BACKSIDE RIM FASTENER TABS (Z = 2.0 to 5.0mm)
+            // 3. 16 OUTSIDE PERIMETER FASTENER TABS (Z = 0 to 4.0mm)
             for (i = [0 : len(fastener_tabs)-1]) {{
-                translate([fastener_tabs[i][0], fastener_tabs[i][1], front_thickness])
+                translate([fastener_tabs[i][0], fastener_tabs[i][1], 0])
                     difference() {{
                         cylinder(d = fastener_tab_od, h = fastener_tab_height);
                         translate([0, 0, -0.1])
