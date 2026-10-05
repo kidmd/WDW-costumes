@@ -93,6 +93,15 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### Entry: High-Resolution Turtle_clean Transparent Artwork Integration
+* **Date:** 2026-10-05 (Midday Imagineering Session)
+* **Milestone:** Milestone 5 - 3D-Printable Flexible Wearable TPU Panel Fabrication & Deploy Suite
+* **Status:** Complete & Verified (`assets/Turtle_clean.png`, `assets/spinning_turtle.png`, `simulator/app.js`, `simulator/index.html` v78, `SIMULATOR_USER_GUIDE.md`).
+* **Implementation Details:**
+  - **Background Removal with Black Detail Preservation:** Processed `assets/Turtle_clean.jpg` (2262x1888) using external-border connected component extraction. The outer JPEG black background was cleanly converted to 100% alpha transparency, while fully preserving all interior dark line art, black spectacles outline, shell segment borders, and tie textures ($27,182+$ dark pixels). Edge antialiasing was applied using Gaussian alpha boundary smoothing.
+  - **Default Graphic Assignment:** Saved as `assets/Turtle_clean.png` and synchronized to `assets/spinning_turtle.png`. Updated `spinningTurtleImg.src` and `floatArtworkImgs['spinning_turtle'].src` in `simulator/app.js` to default to `Turtle_clean.png`.
+  - **STL & Physics Verification:** Tested end-to-end STL compilation against the new clean silhouette. Front plate ($156.92 \times 139.60 \times 6.0\text{ mm}$) and Back plate ($198.20 \times 175.89 \times 6.0\text{ mm}$) generated watertight meshes with **100 / 100 LEDs perfectly contained within the clean turtle silhouette**.
+
 ### Entry: Permanent Fix for 3D TPU Preview Graphic Rotation Flickering & Z-Fighting
 * **Date:** 2026-10-05 (Morning Imagineering Session - Follow-up)
 * **Milestone:** Milestone 5 - 3D-Printable Flexible Wearable TPU Panel Fabrication & Deploy Suite
