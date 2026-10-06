@@ -93,6 +93,15 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### Entry: Deploy Flasher Quick-Switch 7-Button Grid Rendering & Visibility Fix
+* **Date:** 2026-10-05 (Late Night Imagineering Session - Follow-up)
+* **Milestone:** Milestone 5 - Hardware Integration, Web Flasher Suite & Simulator Ergonomics
+* **Status:** Complete & Verified (`simulator/index.html`, `simulator/app.js`, `PROJECT_PROGRESS.md`).
+* **Implementation Details:**
+  - **Resolution of "undefined" Labels:** Discovered that `fleetRunners` populated from `localStorage` or `/api/fleet_config` did not include the `icon` field present on `DEFAULT_FLEET_ROSTER`. Updated `loadFleetLineupFromStorage()` to merge loaded objects against `DEFAULT_FLEET_ROSTER[idx]` so default properties (`icon`, `role`, `fullName`, `color`) are never lost. Added robust fallback in `renderDeployFloatSwitchGrid` (`DEFAULT_ICONS[i]` and default names).
+  - **Full 7-Button Horizontal Visibility:** Replaced fixed-column styling and generic `.action-btn` padding with `.float-num-btn` styling and `grid-template-columns: repeat(7, minmax(0, 1fr))` with `box-sizing: border-box`, eliminating text overflow and horizontal clipping. All 7 floats (🚂 1, 🥁 2, 🐢 3, 🐌 4, 🩵 5, 🐉 6, 🦅 7) are now completely visible side-by-side in the sidebar.
+  - **Verification:** Verified via `node --check simulator/app.js` and PlatformIO `pio run` (firmware builds in 5.09s).
+
 ### Entry: Unified Deploy Flashing Station & WYSIWYG Canvas ROM Synchronization
 * **Date:** 2026-10-05 (Late Night Imagineering Session)
 * **Milestone:** Milestone 5 - Hardware Integration, Web Flasher Suite & Simulator Ergonomics

@@ -5731,35 +5731,48 @@ function renderDeployFloatSwitchGrid(currentActiveSlot) {
     if (!grid) return;
     grid.innerHTML = '';
 
+    const DEFAULT_ICONS = ['🚂', '🥁', '🐢', '🐌', '🩵', '🐉', '🦅'];
+
     for (let i = 0; i < DEFAULT_FLEET_ROSTER.length; i++) {
         const item = (fleetRunners && fleetRunners[i]) ? fleetRunners[i] : DEFAULT_FLEET_ROSTER[i];
+        const defaultDef = DEFAULT_FLEET_ROSTER[i];
+        const icon = (item && item.icon) || DEFAULT_ICONS[i] || '👕';
+        const name = (item && item.name) || (defaultDef && defaultDef.name) || `Float ${i + 1}`;
+        const color = (item && item.color) || (defaultDef && defaultDef.color) || '#388bfd';
         const isSelected = (i === currentActiveSlot);
+
         const btn = document.createElement('button');
         btn.type = 'button';
-        btn.className = `action-btn ${isSelected ? 'primary' : ''}`;
-        btn.style.padding = '6px 2px';
-        btn.style.fontSize = '11px';
-        btn.style.display = 'flex';
-        btn.style.flexDirection = 'column';
-        btn.style.alignItems = 'center';
-        btn.style.justifyContent = 'center';
-        btn.style.gap = '2px';
-        btn.style.border = isSelected ? `1.5px solid ${item.color || '#388bfd'}` : '1px solid #30363d';
-        btn.style.background = isSelected ? `${item.color || '#388bfd'}33` : '#161b22';
-        btn.style.color = isSelected ? '#fff' : '#c9d1d9';
+        btn.className = `float-num-btn ${isSelected ? 'active' : ''}`;
+        btn.style.width = '100%';
+        btn.style.minWidth = '0';
+        btn.style.padding = '5px 2px';
+        btn.style.boxSizing = 'border-box';
         btn.style.cursor = 'pointer';
-        btn.style.borderRadius = '6px';
-        btn.title = `Switch canvas to Float ${i + 1}: ${item.name}`;
+        btn.title = `Switch canvas to Float ${i + 1}: ${name}`;
+
+        if (isSelected) {
+            btn.style.setProperty('--float-accent', color);
+            btn.style.setProperty('--float-accent-bg', `${color}33`);
+            btn.style.setProperty('--float-accent-glow', `${color}66`);
+            btn.style.borderColor = color;
+            btn.style.boxShadow = `0 0 8px ${color}55`;
+        } else {
+            btn.style.removeProperty('--float-accent');
+            btn.style.removeProperty('--float-accent-bg');
+            btn.style.removeProperty('--float-accent-glow');
+        }
 
         btn.innerHTML = `
-            <span style="font-size: 15px; line-height: 1;">${item.icon}</span>
-            <span style="font-size: 9.5px; font-weight: 700;">#${i + 1}</span>
+            <span style="font-size: 16px; line-height: 1.1; display: block;">${icon}</span>
+            <span style="font-size: 10px; font-weight: 800; line-height: 1; margin-top: 1px;">#${i + 1}</span>
+            <span class="float-dot" style="--float-dot-color: ${color}; width: 5px; height: 5px; margin-top: 1px;"></span>
         `;
 
         btn.addEventListener('click', async (e) => {
             e.preventDefault();
             if (i === activeSingleShirtRunnerSlot) {
-                showToast(`Already viewing Float #${i + 1}: ${item.name}`);
+                showToast(`Already viewing Float #${i + 1}: ${name}`);
                 return;
             }
             await editRunnerInSingleView(i);
@@ -6764,7 +6777,7 @@ async function loadFleetLineupFromStorage() {
         if (savedLineup) {
             const parsed = JSON.parse(savedLineup);
             if (Array.isArray(parsed) && parsed.length === 7) {
-                fleetRunners = parsed;
+                fleetRunners = parsed.map((item, idx) => ({ ...DEFAULT_FLEET_ROSTER[idx], ...item }));
             } else {
                 fleetRunners = JSON.parse(JSON.stringify(DEFAULT_FLEET_ROSTER));
             }
@@ -6774,7 +6787,7 @@ async function loadFleetLineupFromStorage() {
                 if (res.ok) {
                     const serverConfig = await res.json();
                     if (Array.isArray(serverConfig) && serverConfig.length === 7) {
-                        fleetRunners = serverConfig;
+                        fleetRunners = serverConfig.map((item, idx) => ({ ...DEFAULT_FLEET_ROSTER[idx], ...item }));
                     } else {
                         fleetRunners = JSON.parse(JSON.stringify(DEFAULT_FLEET_ROSTER));
                     }
@@ -6791,6 +6804,9 @@ async function loadFleetLineupFromStorage() {
 
     if (!Array.isArray(fleetRunners) || fleetRunners.length !== 7) {
         fleetRunners = JSON.parse(JSON.stringify(DEFAULT_FLEET_ROSTER));
+    } else {
+        // Ensure every slot has complete default properties (icon, name, role, color, etc.)
+        fleetRunners = fleetRunners.map((item, idx) => ({ ...DEFAULT_FLEET_ROSTER[idx], ...item }));
     }
 
     // Ensure slot 4 (Cinderella/Coach) always defaults to cinderellas_coach_both_wheel.json
