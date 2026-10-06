@@ -15785,12 +15785,7 @@ function initPowerBudgetCalculator() {
                 showToast(`👑 Button 1: Leader (Float ${activeFloatId}) started 30s fleet show routine!`);
             }
         } else {
-            if (isPhotoModeActive) {
-                setPhotoModeUIState(false);
-                showToast(`🔘 Button 1: Follower (Float ${activeFloatId}) exited Photo Mode back to parade.`);
-            } else {
-                showToast(`🔘 Button 1: Follower (Float ${activeFloatId}) tap recognized (fleet show reserved for Leader).`);
-            }
+            showToast(`🔘 Button 1: Follower (Float ${activeFloatId}) ignored while awake.`);
         }
     });
 

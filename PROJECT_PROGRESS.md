@@ -93,6 +93,15 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### Entry: Follower Button 1 Wake-Only Refinement & Streamlined Button Interface
+* **Date:** 2026-10-05 (Late Night Imagineering Session - Follow-up)
+* **Milestone:** Milestone 6 - Dual-Button Controller Hardware Architecture, Castle Photo Mode & Dual-Leader Fleet Synchronizer
+* **Status:** Complete & Verified (`src/main.cpp`, `arduino/MSEP_Costume/MSEP_Costume.ino`, `simulator/app.js`, `SIMULATOR_USER_GUIDE.md`, `README.md`, `PROJECT_PROGRESS.md`).
+* **Implementation Details:**
+  - **Follower Button 1 Single Tap While Awake Ignored:** Updated firmware in both `src/main.cpp` and `arduino/MSEP_Costume/MSEP_Costume.ino` (along with `simulator/app.js`) so that single-tapping Button 1 on a Follower node (Floats 2–6) while awake is completely ignored. This prevents non-technical runners from accidentally disrupting or changing their float's autonomous animation cues during the race. Follower Button 1 functions exclusively to wake up from Corral Standby (`0x50`) into Solo Show Mode, and when held for 5 seconds for Float ID configuration.
+  - **Button Action Surface Streamlining:** Filtered and eliminated non-functional / ignored button combinations from documentation and cheat sheets, producing a clean, actionable test guide for the family runners.
+  - **Verification:** Verified via `pio run` (firmware builds in 9.30s with 14.3% RAM and 60.2% Flash) and `node --check simulator/app.js`.
+
 ### Entry: Deploy Flasher Quick-Switch 7-Button Grid Rendering & Visibility Fix
 * **Date:** 2026-10-05 (Late Night Imagineering Session - Follow-up)
 * **Milestone:** Milestone 5 - Hardware Integration, Web Flasher Suite & Simulator Ergonomics

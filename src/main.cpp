@@ -1954,13 +1954,8 @@ void loop() {
                 Serial.printf("[LEADER] 30s Fleet Show started via Button 1! (Cycle #%u)\n", fleetRoutineCycle);
             }
         } else {
-            // Follower active toggle
-            if (currentStandaloneMode == SHOW_MODE_PHOTO_STATIC) {
-                currentStandaloneMode = previousStandaloneMode;
-                Serial.printf("[FOLLOWER] Float %d Button 1 tap -> Exited Photo Mode back to parade sequence.\n", myFloatNumber);
-            } else {
-                Serial.printf("[FOLLOWER] Float %d Button 1 tap while running (Fleet show broadcast reserved for Leader).\n", myFloatNumber);
-            }
+            // Follower active: Button 1 is ignored while awake (only wake-up from Standby and 5s Hold Config are processed)
+            Serial.printf("[FOLLOWER] Float %d Button 1 tap ignored while awake (wake-up only; fleet show reserved for Leader).\n", myFloatNumber);
         }
     }
 
