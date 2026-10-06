@@ -3235,7 +3235,7 @@ function renderBulb(cx, x, y, col, isHovered, isSelected, index) {
         const outerH = Math.max(8, 7.4 * ppm);   // 7.4mm outer collar width
         const innerW = Math.max(11, 10.0 * ppm); // 10.0mm inner pocket length
         const innerH = Math.max(5.5, 5.0 * ppm); // 5.0mm inner pocket width
-        const winSq = Math.max(3.5, 2.0 * ppm);  // 2.0mm square optical aperture
+        const winSq = Math.max(4.5, 3.0 * ppm);  // 3.0mm square optical aperture
 
         cx.save();
         cx.translate(x, y);
@@ -3287,7 +3287,7 @@ function renderBulb(cx, x, y, col, isHovered, isSelected, index) {
             cx.fill();
         }
 
-        // 5. Centered 2mm x 2mm Square Optical Window Aperture
+        // 5. Centered 3mm x 3mm Square Optical Window Aperture
         cx.beginPath();
         cx.rect(-winSq / 2, -winSq / 2, winSq, winSq);
         if (isLit) {
@@ -17745,8 +17745,8 @@ async function createTpuGraphicCutoutMesh(specs, stlCenter) {
     const totalW_mm = specs.total_image_width_mm || specs.width_mm || 185.0;
     const totalH_mm = specs.total_image_height_mm || specs.height_mm || (Math.round((totalW_mm / (imgW / imgH)) * 100) / 100);
 
-    const hwPx = (1.0 / totalW_mm) * imgW;
-    const hhPx = (1.0 / totalH_mm) * imgH;
+    const hwPx = (1.5 / totalW_mm) * imgW;
+    const hhPx = (1.5 / totalH_mm) * imgH;
 
     const ledsList = specs.ordered_leds || [];
     ledsList.forEach(l => {
@@ -17791,7 +17791,7 @@ function createTpuLedPixels(specs, stlCenter) {
     tpuBaseColors = [];
 
     const ledsList = specs.ordered_leds || [];
-    const pixelGeom = new THREE.PlaneGeometry(1.8, 1.8);
+    const pixelGeom = new THREE.PlaneGeometry(2.8, 2.8);
 
     ledsList.forEach((l, idx) => {
         const c = l.color || { r: 0, g: 255, b: 100 };
@@ -17814,7 +17814,7 @@ function createTpuLedPixels(specs, stlCenter) {
         pixelMesh.position.set(
             l.x - stlCenter.x,
             l.y - stlCenter.y,
-            stlCenter.z + 0.20 // Positioned cleanly inside the 2x2mm optical window
+            stlCenter.z + 0.20 // Positioned cleanly inside the 3x3mm optical window
         );
         tpuLedsGroup.add(pixelMesh);
     });

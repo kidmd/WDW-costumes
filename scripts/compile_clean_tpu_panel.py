@@ -39,7 +39,7 @@ COLLAR_OUTER_L = COLLAR_INNER_L + 2 * COLLAR_WALL_THICK # 12.4mm
 COLLAR_OUTER_W = COLLAR_INNER_W + 2 * COLLAR_WALL_THICK # 7.4mm
 
 NOTCH_WIDTH = 4.0           # mm (wire pass-through slot on both 5mm ends)
-WINDOW_SQ = 2.0             # mm (2x2mm square optical aperture through 1.0mm front skin)
+WINDOW_SQ = 3.0             # mm (3x3mm square optical aperture through 1.0mm front skin)
 
 def make_stadium_polygon(length, width, sections=16):
     r = width / 2.0
@@ -248,7 +248,7 @@ def compile_plate_variant(variant_name, width_mm, height_mm, raw_leds, artwork_p
         notched_collar.apply_translation([cx, cy, COLLAR_FLOOR_Z])
         collar_meshes.append(notched_collar)
 
-        # 2x2mm Square Optical Window
+        # 3x3mm Square Optical Window
         sq_win = trimesh.creation.box(extents=[WINDOW_SQ, WINDOW_SQ, FRONT_THICK_LED + 1.0])
         sq_win.apply_transform(rot)
         sq_win.apply_translation([cx, cy, FRONT_THICK_LED / 2.0])

@@ -1130,7 +1130,7 @@ scripts/generate_3d_panel.py
    - **2.0mm Table Clearance:** When laying the 3D print flat on a table front-side up (with the $6.0\text{ mm}$ rim touching the table), there is **exactly $2.0\text{ mm}$ of open space** under the tops of the pocket walls ($Z = 4.0\text{ mm}$ vs $6.0\text{ mm}$ rim), keeping bulbs and wires elevated away from table surfaces.
    - **Uniform Horizontal Orientation:** Collars are oriented horizontally ($0^\circ$ rotation) matching the Pete's Dragon Chris preset, keeping the sockets cleanly parallel across the chest.
    - **Wire Pass-Through Notches:** $4.0\text{ mm}$ wide notches on both $5\text{ mm}$ ends extending all the way down to the $1.0\text{ mm}$ floor, allowing ribbon wire to enter and exit horizontally without resistance.
-3. **Centered $2\text{ mm} \times 2\text{ mm}$ Square Optical Apertures:**
+3. **Centered $3\text{ mm} \times 3\text{ mm}$ Square Optical Apertures:**
    - Centered through-windows through the $1.0\text{ mm}$ front face beneath each bulb, beaming the LED forward while the resin bulb body rests solidly against the interior shelf.
 4. **Smallest Readable Debossed LED Numbers (1 to 100):**
    - Numbers `1` through `100` are sized at the absolute minimum readable size for a $0.4\text{ mm}$ nozzle (**$1.8\text{ mm}$ cap height, $0.5\text{ mm}$ deboss depth** into the interior floor) with clean inter-character kerning.
@@ -1145,7 +1145,7 @@ scripts/generate_3d_panel.py
 
 6. **Simplified 3D STL Model Viewer with Graphic Cutouts (`tpu_panel_preview.html`):**
    - **Direct STL Mesh Loading & Non-Mirrored Alignment:** Loads the exact binary `petes_dragon_tpu_panel.stl` mesh directly via Three.js `STLLoader`, oriented with the front face ($Z = 6.0\text{ mm}$) pointing toward the camera (+Z) and underside pockets ($Z = 0.0\text{ mm}$) facing the runner's shirt (-Z). This ensures the dragon head faces forward to the right identically in both ViewSTL and the WebGL inspector without any mirror reversal.
-   - **Graphic with 2×2mm Window Cutouts:** Projects Pete's Dragon chest graphic directly over the front of the STL panel with real 2mm × 2mm transparent cutouts punched out where each LED window is located, keeping the apertures completely unobstructed.
+   - **Graphic with 3×3mm Window Cutouts:** Projects Pete's Dragon chest graphic directly over the front of the STL panel with real 3mm × 3mm transparent cutouts punched out where each LED window is located, keeping the apertures completely unobstructed.
    - **LED State Simulation:** Features an interactive LED simulation bar allowing runners to toggle between **LEDs Off**, **Static On** (authentic Pete's Dragon colors), and **Animated Parade** (60 FPS shimmer and wave chase).
    - **Minimal Floating HUD:** Replaced complex multi-layer sidebar menus with a clean floating control bar providing quick camera angles (Front, Underside/Pockets, 3D Angle) and opacity sliders for the graphic and armor plate.
 

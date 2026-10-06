@@ -93,6 +93,16 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### Entry: 3×3mm Square LED Optical Aperture Windows in TPU STL Compiler & Simulator Preview
+* **Date:** 2026-10-05 (Evening Imagineering Session)
+* **Milestone:** Milestone 5 - 3D-Printable Flexible Wearable TPU Panel Fabrication & Deploy Suite
+* **Status:** Complete & Verified (`scripts/compile_clean_tpu_panel.py`, `simulator/app.js`, `simulator/index.html` v80, `3d_panels/tpu_panel_preview.html`, `SIMULATOR_USER_GUIDE.md`).
+* **Implementation Details:**
+  - **STL Compiler Parameter Update:** Updated `WINDOW_SQ = 3.0` in `scripts/compile_clean_tpu_panel.py`, expanding the square through-hole optical windows through the $1.0\text{ mm}$ front face skin from $2\times 2\text{ mm}$ to $3\times 3\text{ mm}$. Sits comfortably inside the $10.0\text{ mm} \times 5.0\text{ mm}$ inner pocket floor ($1.0\text{ mm}$ floor margin along width, $3.5\text{ mm}$ along length).
+  - **2D Canvas Preview Alignment:** Updated `winSq = Math.max(4.5, 3.0 * ppm)` in `simulator/app.js` so that when `🖨️ Show TPU 3×3mm Windows` is active, the 2D layout canvas accurately renders $3\times 3\text{ mm}$ square window apertures centered in each LED pocket socket.
+  - **3D Preview Modal & Standalone Viewer Alignment:** Adjusted optical cutout texture punches in `simulator/app.js` and `3d_panels/tpu_panel_preview.html` to $1.5\text{ mm}$ half-width (`hwPx = (1.5 / totalW_mm) * imgW`), and enlarged emissive LED pixel plane geometries from $1.8\times 1.8\text{ mm}$ to $2.8\times 2.8\text{ mm}$ to beam cleanly through the $3\times 3\text{ mm}$ apertures.
+  - **UI & Cache Buster:** Updated UI toggle labels to `🖨️ Show TPU 3×3mm Windows`, modal subtitle to `3×3mm Square Windows`, and bumped `app.js?v=80`.
+
 ### Entry: High-Resolution Turtle_clean Transparent Artwork Integration
 * **Date:** 2026-10-05 (Midday Imagineering Session)
 * **Milestone:** Milestone 5 - 3D-Printable Flexible Wearable TPU Panel Fabrication & Deploy Suite

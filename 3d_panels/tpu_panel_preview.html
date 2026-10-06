@@ -222,7 +222,7 @@
   <div class="title-box">
     <h1>🐉 Pete's Dragon TPU Armor Plate</h1>
     <span class="badge badge-stl">3.1 MB STL Mesh</span>
-    <span class="badge badge-led">100 Cutout Windows (2×2mm)</span>
+    <span class="badge badge-led">100 Cutout Windows (3×3mm)</span>
   </div>
 </div>
 
@@ -404,9 +404,9 @@ async function createCutoutGraphicMesh() {
   // Set composite mode to cut out clean transparent holes
   ctx.globalCompositeOperation = 'destination-out';
 
-  // 2.0mm x 2.0mm window aperture half-widths in pixels
-  const hwPx = (1.0 / IMG_WIDTH_MM) * imgW;
-  const hhPx = (1.0 / IMG_HEIGHT_MM) * imgH;
+  // 3.0mm x 3.0mm window aperture half-widths in pixels
+  const hwPx = (1.5 / IMG_WIDTH_MM) * imgW;
+  const hhPx = (1.5 / IMG_HEIGHT_MM) * imgH;
 
   const leds = specsData.ordered_leds || [];
   leds.forEach(l => {
@@ -414,7 +414,7 @@ async function createCutoutGraphicMesh() {
     const px = (l.x / IMG_WIDTH_MM) * imgW;
     const py = (1.0 - (l.y / IMG_HEIGHT_MM)) * imgH;
 
-    // Punch out the 2mm x 2mm square window
+    // Punch out the 3mm x 3mm square window
     ctx.fillRect(px - hwPx, py - hhPx, hwPx * 2, hhPx * 2);
   });
 
@@ -449,8 +449,8 @@ function createLedPixels() {
   ledsGroup = new THREE.Group();
   const leds = specsData.ordered_leds || [];
 
-  // 1.8mm square emissive pixel sitting right in the 2x2mm window (Z = 5.5mm floor)
-  const pixelGeom = new THREE.PlaneGeometry(1.8, 1.8);
+  // 2.8mm square emissive pixel sitting right in the 3x3mm window (Z = 5.5mm floor)
+  const pixelGeom = new THREE.PlaneGeometry(2.8, 2.8);
 
   leds.forEach((l, idx) => {
     const c = l.color || { r: 0, g: 255, b: 100 };
@@ -463,7 +463,7 @@ function createLedPixels() {
     ledMaterials.push(mat);
 
     const pixelMesh = new THREE.Mesh(pixelGeom, mat);
-    // Position at LED CAD coordinates, sitting directly inside the 2x2mm window aperture
+    // Position at LED CAD coordinates, sitting directly inside the 3x3mm window aperture
     pixelMesh.position.set(
       l.x - STL_CENTER_X,
       l.y - STL_CENTER_Y,
