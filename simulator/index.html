@@ -322,13 +322,21 @@
                             </label>
                         </div>
 
-                        <!-- 3x3mm TPU Panel Optical Apertures -->
+                        <!-- TPU Panel Optical Apertures -->
                         <div class="toggle-row" style="margin-bottom: 4px;">
-                            <span id="tpuWindowsLabel" style="font-size: 11px; color: #00ff88; font-weight: 500;">🖨️ Show TPU 3×3mm Windows</span>
+                            <span id="tpuWindowsLabel" style="font-size: 11px; color: #00ff88; font-weight: 500;">🖨️ Show TPU Windows</span>
                             <label class="switch">
                                 <input type="checkbox" id="showTpuWindowsToggle">
                                 <span class="slider"></span>
                             </label>
+                        </div>
+                        <!-- TPU Window Shape Selector -->
+                        <div id="tpuShapeSelectorRow" style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; padding: 2px 0 2px 2px;">
+                            <span style="font-size: 10px; color: #8b949e; font-weight: 500;">Hole Shape:</span>
+                            <div style="display: flex; gap: 2px; background: rgba(0,0,0,0.35); padding: 2px; border-radius: 5px; border: 1px solid #21262d;">
+                                <button type="button" id="tpuShapeSquareBtn" onclick="setTpuWindowShape('square')" class="action-btn" style="padding: 2px 8px; font-size: 10px; font-weight: 700; background: #00ff88; color: #000; border: none; border-radius: 3px; cursor: pointer;">🔲 3×3mm Square</button>
+                                <button type="button" id="tpuShapeRoundBtn" onclick="setTpuWindowShape('round')" class="action-btn" style="padding: 2px 8px; font-size: 10px; font-weight: 600; background: transparent; color: #8b949e; border: none; border-radius: 3px; cursor: pointer;">⚪ Ø 3mm Round</button>
+                            </div>
                         </div>
 
                         <!-- Wire Tension & Physical Pitch Heatmap -->
@@ -2362,12 +2370,17 @@
                     <span style="font-size: 20px;">🐉</span>
                     <div>
                         <h3 style="font-size: 15px; font-weight: 700; color: #000; margin: 0;">Pete's Dragon 3D Flexible TPU Armor Panel</h3>
-                        <p style="font-size: 11px; color: rgba(0, 0, 0, 0.8); margin: 0; font-weight: 500;">95A TPU Open-Chassis Tray • 3×3mm Square Windows • Zero Overlap Pockets</p>
+                        <p id="tpuModalSubtitle" style="font-size: 11px; color: rgba(0, 0, 0, 0.8); margin: 0; font-weight: 500;">95A TPU Open-Chassis Tray • 3×3mm Square Windows • Zero Overlap Pockets</p>
                     </div>
                     <!-- Front / Back Variant Switcher Pill -->
-                    <div style="display: flex; align-items: center; margin-left: 12px; background: rgba(0, 0, 0, 0.3); border-radius: 6px; padding: 2px; gap: 2px;">
+                    <div style="display: flex; align-items: center; margin-left: 10px; background: rgba(0, 0, 0, 0.3); border-radius: 6px; padding: 2px; gap: 2px;">
                         <button type="button" id="tpuModalSelectFrontBtn" onclick="switchTpuModalVariant('front')" style="border: none; border-radius: 4px; padding: 4px 10px; font-size: 11px; font-weight: 700; cursor: pointer; background: #000; color: #00ff88; transition: all 0.2s ease;">🎽 Front (185mm)</button>
                         <button type="button" id="tpuModalSelectBackBtn" onclick="switchTpuModalVariant('back')" style="border: none; border-radius: 4px; padding: 4px 10px; font-size: 11px; font-weight: 700; cursor: pointer; background: transparent; color: rgba(0,0,0,0.7); transition: all 0.2s ease;">🎒 Back (240mm)</button>
+                    </div>
+                    <!-- Window Shape Switcher Pill -->
+                    <div style="display: flex; align-items: center; margin-left: 6px; background: rgba(0, 0, 0, 0.3); border-radius: 6px; padding: 2px; gap: 2px;" title="Select hole geometry and auto-regenerate STL">
+                        <button type="button" id="tpuModalShapeSquareBtn" onclick="setTpuWindowShape('square')" style="border: none; border-radius: 4px; padding: 4px 8px; font-size: 11px; font-weight: 700; cursor: pointer; background: #000; color: #00ff88; transition: all 0.2s ease;">🔲 Square</button>
+                        <button type="button" id="tpuModalShapeRoundBtn" onclick="setTpuWindowShape('round')" style="border: none; border-radius: 4px; padding: 4px 8px; font-size: 11px; font-weight: 700; cursor: pointer; background: transparent; color: rgba(0,0,0,0.7); transition: all 0.2s ease;">⚪ Round</button>
                     </div>
                 </div>
                 <div style="display: flex; align-items: center; gap: 10px;">
@@ -2451,6 +2464,6 @@
         </div>
     </div>
 
-    <script src="app.js?v=80"></script>
+    <script src="app.js?v=81"></script>
 </body>
 </html>

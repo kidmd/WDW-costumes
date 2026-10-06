@@ -1238,6 +1238,10 @@ const uint8_t PROGMEM SPATIAL_RADIUS_BYTE[FRONT_LEDS] = {{
                     "color": l.get("color", {"r": 0, "g": 255, "b": 0})
                 })
 
+            window_shape = req_data.get("windowShape", "square")
+            if str(window_shape).lower() not in ["square", "round", "circle"]:
+                window_shape = "square"
+
             specs = {
                 "character": f"{float_name} 3D Wearable TPU Armor Panels",
                 "float_name": float_name,
@@ -1245,6 +1249,7 @@ const uint8_t PROGMEM SPATIAL_RADIUS_BYTE[FRONT_LEDS] = {{
                 "aspect": aspect,
                 "artwork_file": "active_artwork.png",
                 "graphic_type": req_data.get("graphicType"),
+                "window_shape": window_shape,
                 "layout_signature": req_data.get("layoutSignature"),
                 "front": {
                     "variant": "front",
@@ -1274,7 +1279,12 @@ const uint8_t PROGMEM SPATIAL_RADIUS_BYTE[FRONT_LEDS] = {{
                 json.dump(specs, f, indent=2)
 
             # Compile clean watertight TPU panels (Front and Back)
-            cmd = [sys.executable, os.path.join(BASE_DIR, "scripts", "compile_clean_tpu_panel.py")]
+            cmd = [
+                sys.executable,
+                os.path.join(BASE_DIR, "scripts", "compile_clean_tpu_panel.py"),
+                "--window-shape",
+                window_shape
+            ]
             res = subprocess.run(cmd, cwd=BASE_DIR, capture_output=True, text=True, timeout=90)
 
             front_stl_path = os.path.join(BASE_DIR, "3d_panels", "tpu_panel_front.stl")

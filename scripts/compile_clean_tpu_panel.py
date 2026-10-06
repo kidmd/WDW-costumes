@@ -1,4 +1,4 @@
-import json, math, time, os, shutil
+import json, math, time, os, shutil, sys
 import numpy as np
 import shapely.geometry as sg
 from shapely.ops import unary_union
@@ -56,8 +56,8 @@ def to_m(tm):
     f = np.ascontiguousarray(tm.faces, dtype=np.uint32)
     return Manifold(Mesh(vert_properties=v, tri_verts=f))
 
-def compile_plate_variant(variant_name, width_mm, height_mm, raw_leds, artwork_path):
-    print(f"\n>>> Compiling {variant_name.upper()} Plate ({width_mm}mm x {height_mm}mm)...")
+def compile_plate_variant(variant_name, width_mm, height_mm, raw_leds, artwork_path, window_shape='square'):
+    print(f"\n>>> Compiling {variant_name.upper()} Plate ({width_mm}mm x {height_mm}mm, Window Shape: {window_shape.upper()})...")
     v_t0 = time.time()
     num_leds = len(raw_leds)
     leds = [dict(l) for l in raw_leds]
@@ -248,9 +248,12 @@ def compile_plate_variant(variant_name, width_mm, height_mm, raw_leds, artwork_p
         notched_collar.apply_translation([cx, cy, COLLAR_FLOOR_Z])
         collar_meshes.append(notched_collar)
 
-        # 3x3mm Square Optical Window
-        sq_win = trimesh.creation.box(extents=[WINDOW_SQ, WINDOW_SQ, FRONT_THICK_LED + 1.0])
-        sq_win.apply_transform(rot)
+        # 3x3mm Square or Ø 3mm Round Optical Window
+        if str(window_shape).lower() in ['round', 'circle']:
+            sq_win = trimesh.creation.cylinder(radius=WINDOW_SQ / 2.0, height=FRONT_THICK_LED + 1.0, sections=24)
+        else:
+            sq_win = trimesh.creation.box(extents=[WINDOW_SQ, WINDOW_SQ, FRONT_THICK_LED + 1.0])
+            sq_win.apply_transform(rot)
         sq_win.apply_translation([cx, cy, FRONT_THICK_LED / 2.0])
         square_window_cutters.append(sq_win)
 
@@ -420,13 +423,23 @@ if not back_specs:
         'ordered_leds': b_leds
     }
 
+window_shape = specs.get('window_shape', 'square')
+if '--window-shape' in sys.argv:
+    try:
+        w_idx = sys.argv.index('--window-shape')
+        if w_idx + 1 < len(sys.argv):
+            window_shape = sys.argv[w_idx + 1]
+    except Exception:
+        pass
+
 # 1. Compile Front Plate
 front_result = compile_plate_variant(
     'front',
     front_specs['width_mm'],
     front_specs['height_mm'],
     front_specs['ordered_leds'],
-    artwork_path
+    artwork_path,
+    window_shape=window_shape
 )
 
 # 2. Compile Back Plate
@@ -435,10 +448,12 @@ back_result = compile_plate_variant(
     back_specs['width_mm'],
     back_specs['height_mm'],
     back_specs['ordered_leds'],
-    artwork_path
+    artwork_path,
+    window_shape=window_shape
 )
 
 # Update full JSON specifications
+specs['window_shape'] = window_shape
 specs['front'] = front_result
 specs['back'] = back_result
 

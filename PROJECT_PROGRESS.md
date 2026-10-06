@@ -93,6 +93,19 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### Entry: Selectable 3×3mm Square vs Ø 3mm Round Optical Aperture Windows in TPU Compiler & Simulator
+* **Date:** 2026-10-05 (Night Imagineering Session)
+* **Milestone:** Milestone 5 - 3D-Printable Flexible Wearable TPU Panel Fabrication & Deploy Suite
+* **Status:** Complete & Verified (`scripts/compile_clean_tpu_panel.py`, `simulator.py`, `simulator/app.js`, `simulator/index.html` v81, `SIMULATOR_USER_GUIDE.md`).
+* **Implementation Details:**
+  - **Parametric Window Geometry Engine (`scripts/compile_clean_tpu_panel.py`):** Added support for both `square` ($3.0\times 3.0\text{ mm}$ boxes) and `round` ($\varnothing 3.0\text{ mm}$, $r=1.5\text{ mm}$ 24-sided cylinders) through-skin optical window cutters in `compile_plate_variant()`. Enabled `--window-shape` CLI argument and `window_shape` JSON specs parameter.
+  - **API Backend Synchronization (`simulator.py`):** Updated `/api/generate_tpu_stl` to parse incoming `windowShape` parameter, record `"window_shape"` in `tpu_panel_specs.json`, and pass `--window-shape` to the Python compiler process.
+  - **Layout & Modal Shape Selectors:** Added interactive shape selection buttons (`🔲 3×3mm Square` | `⚪ Ø 3mm Round`) on the 2D Layout tab (Fabrication Overlays section) and in the 3D TPU Armor Panel Preview Modal header.
+  - **2D Canvas & 3D WebGL Rendering:**
+    - 2D Canvas draws square (`cx.rect`) or circular (`cx.arc`) windows in real time based on active selection.
+    - 3D Preview Modal dynamically punches square (`ctx.fillRect`) or circular (`ctx.arc`) mask apertures into the graphic overlay and instantiates square (`THREE.PlaneGeometry`) or circular (`THREE.CircleGeometry`) emissive LED pixels.
+  - **Fingerprint Signature & Auto-Recompile Guard:** Added `winShape` to `computeTpuLayoutSignature()`. Toggling the window shape marks previous STLs with differing shapes as stale and triggers a fast recompile when opening or regenerating from the 3D preview modal.
+
 ### Entry: 3×3mm Square LED Optical Aperture Windows in TPU STL Compiler & Simulator Preview
 * **Date:** 2026-10-05 (Evening Imagineering Session)
 * **Milestone:** Milestone 5 - 3D-Printable Flexible Wearable TPU Panel Fabrication & Deploy Suite

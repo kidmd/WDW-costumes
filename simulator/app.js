@@ -62,6 +62,7 @@ let params = {
     showWireTension: false,
     showPillSlots: false,
     showTpuWindows: false,
+    tpuWindowShape: 'square', // 'square' (3x3mm) or 'round' (Ø 3mm)
     showSymmetryAxis: false,
     liveSymmetryDrag: false,
     showNumbers: false,
@@ -70,6 +71,13 @@ let params = {
     bibYOffset: 0.57,
     bibScale: 1.0
 };
+
+try {
+    const savedShape = localStorage.getItem('msep_tpu_window_shape');
+    if (savedShape === 'round' || savedShape === 'square') {
+        params.tpuWindowShape = savedShape;
+    }
+} catch (e) {}
 
 // Default Pete's Dragon Artwork
 const defaultDragonImg = new Image();
@@ -3287,9 +3295,15 @@ function renderBulb(cx, x, y, col, isHovered, isSelected, index) {
             cx.fill();
         }
 
-        // 5. Centered 3mm x 3mm Square Optical Window Aperture
+        // 5. Centered 3mm Square or Ø 3mm Round Optical Window Aperture
+        const isRound = (params.tpuWindowShape === 'round' || params.tpuWindowShape === 'circle');
         cx.beginPath();
-        cx.rect(-winSq / 2, -winSq / 2, winSq, winSq);
+        if (isRound) {
+            cx.arc(0, 0, winSq / 2, 0, Math.PI * 2);
+        } else {
+            cx.rect(-winSq / 2, -winSq / 2, winSq, winSq);
+        }
+
         if (isLit) {
             cx.fillStyle = `rgba(${Math.min(255, col.r + 35)}, ${Math.min(255, col.g + 35)}, ${Math.min(255, col.b + 35)}, ${Math.max(0.85, bulbAlpha)})`;
             cx.fill();
@@ -3299,7 +3313,13 @@ function renderBulb(cx, x, y, col, isHovered, isSelected, index) {
 
             // Inner white bright emission core
             cx.fillStyle = `rgba(255, 255, 255, ${0.95 * bulbAlpha})`;
-            cx.fillRect(-winSq * 0.25, -winSq * 0.25, winSq * 0.5, winSq * 0.5);
+            if (isRound) {
+                cx.beginPath();
+                cx.arc(0, 0, winSq * 0.25, 0, Math.PI * 2);
+                cx.fill();
+            } else {
+                cx.fillRect(-winSq * 0.25, -winSq * 0.25, winSq * 0.5, winSq * 0.5);
+            }
         } else {
             cx.fillStyle = '#080c14';
             cx.fill();
@@ -3308,7 +3328,13 @@ function renderBulb(cx, x, y, col, isHovered, isSelected, index) {
             cx.stroke();
             // Tiny unlit resin core
             cx.fillStyle = 'rgba(30, 36, 48, 0.9)';
-            cx.fillRect(-winSq * 0.25, -winSq * 0.25, winSq * 0.5, winSq * 0.5);
+            if (isRound) {
+                cx.beginPath();
+                cx.arc(0, 0, winSq * 0.25, 0, Math.PI * 2);
+                cx.fill();
+            } else {
+                cx.fillRect(-winSq * 0.25, -winSq * 0.25, winSq * 0.5, winSq * 0.5);
+            }
         }
 
         cx.restore();
@@ -17258,6 +17284,9 @@ function initTpuArmorPanel() {
     if (compileBtn) {
         compileBtn.addEventListener('click', handleRecompileTpuStl);
     }
+
+    // Initialize hole shape button styling
+    setTpuWindowShape(params.tpuWindowShape || 'square');
 }
 window.initTpuArmorPanel = initTpuArmorPanel;
 window.openTpuPreviewModal = openTpuPreviewModal;
@@ -17285,12 +17314,13 @@ function getActiveFloatName() {
 }
 window.getActiveFloatName = getActiveFloatName;
 
-// Fingerprint of everything that shapes the STL (artwork silhouette, LED layout, chest bounds).
-// Stored in tpu_panel_specs.json so the Preview button can detect a stale STL compiled for another graphic.
+// Fingerprint of everything that shapes the STL (artwork silhouette, LED layout, chest bounds, window shape).
+// Stored in tpu_panel_specs.json so the Preview button can detect a stale STL compiled for another graphic or hole geometry.
 function computeTpuLayoutSignature() {
     const activeImg = getActiveGraphicImg();
     const src = (activeImg && activeImg.src) ? activeImg.src : 'none';
     const gb = getGraphicChestBounds() || {};
+    const winShape = params.tpuWindowShape || 'square';
     let h = 5381;
     const mix = (str) => {
         const step = Math.max(1, Math.floor(str.length / 4096)); // sample long data URLs
@@ -17299,11 +17329,74 @@ function computeTpuLayoutSignature() {
     };
     mix(String(currentGraphicType));
     mix(src);
+    mix(String(winShape));
     mix([gb.normX, gb.normY, gb.normW, gb.normH].map(v => Number(v || 0).toFixed(4)).join(','));
     mix((leds || []).map(l => `${Number(l.x).toFixed(4)},${Number(l.y).toFixed(4)}`).join(';'));
-    return `${currentGraphicType}-${h.toString(16)}`;
+    return `${currentGraphicType}-${winShape}-${h.toString(16)}`;
 }
 window.computeTpuLayoutSignature = computeTpuLayoutSignature;
+
+function setTpuWindowShape(shape) {
+    if (shape !== 'round' && shape !== 'square') shape = 'square';
+    params.tpuWindowShape = shape;
+    try { localStorage.setItem('msep_tpu_window_shape', shape); } catch (e) {}
+
+    // Update Layout tab buttons styling
+    const sqBtn = document.getElementById('tpuShapeSquareBtn');
+    const rdBtn = document.getElementById('tpuShapeRoundBtn');
+    if (sqBtn && rdBtn) {
+        if (shape === 'square') {
+            sqBtn.style.background = '#00ff88';
+            sqBtn.style.color = '#000';
+            sqBtn.style.fontWeight = '700';
+            rdBtn.style.background = 'transparent';
+            rdBtn.style.color = '#8b949e';
+            rdBtn.style.fontWeight = '600';
+        } else {
+            rdBtn.style.background = '#00ff88';
+            rdBtn.style.color = '#000';
+            rdBtn.style.fontWeight = '700';
+            sqBtn.style.background = 'transparent';
+            sqBtn.style.color = '#8b949e';
+            sqBtn.style.fontWeight = '600';
+        }
+    }
+
+    // Update 3D modal shape buttons styling
+    const modalSqBtn = document.getElementById('tpuModalShapeSquareBtn');
+    const modalRdBtn = document.getElementById('tpuModalShapeRoundBtn');
+    if (modalSqBtn && modalRdBtn) {
+        if (shape === 'square') {
+            modalSqBtn.style.background = '#00ff88';
+            modalSqBtn.style.color = '#000';
+            modalRdBtn.style.background = 'transparent';
+            modalRdBtn.style.color = 'rgba(0,0,0,0.7)';
+        } else {
+            modalRdBtn.style.background = '#00ff88';
+            modalRdBtn.style.color = '#000';
+            modalSqBtn.style.background = 'transparent';
+            modalSqBtn.style.color = 'rgba(0,0,0,0.7)';
+        }
+    }
+
+    // Update modal subtitle
+    const sub = document.getElementById('tpuModalSubtitle');
+    if (sub) {
+        const shapeText = (shape === 'round') ? 'Ø 3mm Round Windows' : '3×3mm Square Windows';
+        sub.textContent = `95A TPU Open-Chassis Tray • ${shapeText} • Zero Overlap Pockets`;
+    }
+
+    markSingleShirtDirty();
+
+    // Redraw 2D canvas preview
+    if (typeof draw === 'function') draw();
+
+    // If modal is open, trigger auto-recompile / reload to match chosen shape
+    if (tpuIsOpen) {
+        openTpuPreviewModal();
+    }
+}
+window.setTpuWindowShape = setTpuWindowShape;
 
 async function handleRecompileTpuStl(opts) {
     const skipOpen = !!(opts && opts.skipOpen === true);
@@ -17340,6 +17433,7 @@ async function handleRecompileTpuStl(opts) {
             floatIndex: slot,
             floatName: floatName,
             graphicType: currentGraphicType,
+            windowShape: params.tpuWindowShape || 'square',
             bounds: gb,
             artworkDataUrl: artworkDataUrl,
             layoutSignature: computeTpuLayoutSignature()
@@ -17621,6 +17715,31 @@ async function loadTpuModalData() {
             modalTitle.textContent = `${floatName} 3D Flexible TPU Armor Panel • ${variantTitle}`;
         }
 
+        const effectiveShape = specs.window_shape || params.tpuWindowShape || 'square';
+        const modalSub = document.getElementById('tpuModalSubtitle');
+        if (modalSub) {
+            const shapeText = (effectiveShape === 'round' || effectiveShape === 'circle') ? 'Ø 3mm Round Windows' : '3×3mm Square Windows';
+            modalSub.textContent = `95A TPU Open-Chassis Tray • ${shapeText} • Zero Overlap Pockets`;
+        }
+
+        // Sync modal shape buttons
+        const mSqBtn = document.getElementById('tpuModalShapeSquareBtn');
+        const mRdBtn = document.getElementById('tpuModalShapeRoundBtn');
+        if (mSqBtn && mRdBtn) {
+            const isRound = (effectiveShape === 'round' || effectiveShape === 'circle');
+            if (isRound) {
+                mRdBtn.style.background = '#00ff88';
+                mRdBtn.style.color = '#000';
+                mSqBtn.style.background = 'transparent';
+                mSqBtn.style.color = 'rgba(0,0,0,0.7)';
+            } else {
+                mSqBtn.style.background = '#00ff88';
+                mSqBtn.style.color = '#000';
+                mRdBtn.style.background = 'transparent';
+                mRdBtn.style.color = 'rgba(0,0,0,0.7)';
+            }
+        }
+
         // Update dimensions badge & bed clearance text
         const dimText = document.getElementById('tpuModalDimText');
         const weightText = document.getElementById('tpuModalWeightText');
@@ -17748,11 +17867,20 @@ async function createTpuGraphicCutoutMesh(specs, stlCenter) {
     const hwPx = (1.5 / totalW_mm) * imgW;
     const hhPx = (1.5 / totalH_mm) * imgH;
 
+    const winShape = specs.window_shape || params.tpuWindowShape || 'square';
+    const isRound = (winShape === 'round' || winShape === 'circle');
+
     const ledsList = specs.ordered_leds || [];
     ledsList.forEach(l => {
         const px = (l.x / totalW_mm) * imgW;
         const py = (1.0 - (l.y / totalH_mm)) * imgH;
-        ctx.fillRect(px - hwPx, py - hhPx, hwPx * 2, hhPx * 2);
+        if (isRound) {
+            ctx.beginPath();
+            ctx.arc(px, py, hwPx, 0, Math.PI * 2);
+            ctx.fill();
+        } else {
+            ctx.fillRect(px - hwPx, py - hhPx, hwPx * 2, hhPx * 2);
+        }
     });
 
     ctx.globalCompositeOperation = 'source-over';
@@ -17790,8 +17918,11 @@ function createTpuLedPixels(specs, stlCenter) {
     tpuLedMaterials = [];
     tpuBaseColors = [];
 
+    const winShape = specs.window_shape || params.tpuWindowShape || 'square';
+    const isRound = (winShape === 'round' || winShape === 'circle');
+
     const ledsList = specs.ordered_leds || [];
-    const pixelGeom = new THREE.PlaneGeometry(2.8, 2.8);
+    const pixelGeom = isRound ? new THREE.CircleGeometry(1.4, 24) : new THREE.PlaneGeometry(2.8, 2.8);
 
     ledsList.forEach((l, idx) => {
         const c = l.color || { r: 0, g: 255, b: 100 };
