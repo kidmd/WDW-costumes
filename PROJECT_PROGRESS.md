@@ -93,6 +93,22 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### Entry: Selectable LED Clip Grooves & Top Nubs, Wire Portal Option B, Debossed Numbers Fix & Rigid PLA Retention Guide
+* **Date:** 2026-10-06 (Imagineering Session - Rigid PLA Armor Optimization & Retention)
+* **Milestone:** Milestone 6 - Wearable 3D Armor Fabrication & Multi-Material 3D Printing
+* **Status:** Complete & Verified (`scripts/compile_clean_tpu_panel.py`, `simulator.py`, `simulator/index.html`, `simulator/app.js`, `SIMULATOR_USER_GUIDE.md`, `PROJECT_PROGRESS.md`).
+* **Implementation Details:**
+  - **Selectable LED Clip Grooves (Default: OFF):** Added `--clip-grooves on|off` to the Python compiler and interactive `[ 🗜️ Grooves | 🧱 Solid Walls ]` toggle pills in the 3D preview modal. For rigid PLA prints, default solid 1.2mm walls prevent layer delamination and snapping. When enabled, a 0.7mm deep × 0.6mm tall retention groove is debossed at the base of the LED collars for external snap clips.
+  - **Selectable Top Collar Nubs (Default: OFF):** Added `--top-nubs on|off` to the compiler and interactive `[ 🔘 Top Nubs | 🚫 No Nubs ]` toggle pills in the 3D preview modal. Top nubs add a 0.45mm horizontal protrusion (0.6mm tall at Z = 3.2–3.8mm) around the rim of each LED collar, serving as an external snap retention bead without thinning or notching the collar wall base.
+  - **Bottom-Center Wire Portal & Strain Relief (Option B):** Implemented a clean pass-through arch and zip-tie anchor at the bottom-center of the armor rim ($Y = \text{min}$):
+    - Cuts a 6.0mm wide × 3.5mm tall arch through the 4.0mm outer perimeter rim.
+    - Adds dual 1.4mm × 2.8mm slots spaced 3.0mm apart through the 1.6mm plate floor, designed for a standard 2.5mm miniature nylon zip-tie to anchor the wiring harness against runner tugs during the 10K.
+  - **LED Numbers Deboss Placement Fix:** Resolved issue where LED numbers appeared off or vanished in STL exports. Corrected number cutter Z-position in `scripts/compile_clean_tpu_panel.py` to `FRONT_THICK_GENERAL - 0.4` ($Z = 1.6\text{ mm}$), debossing 0.5mm cleanly into the floor inside each LED tray. Fixed frontend bug in `simulator/app.js` (`initTpuArmorPanel`) that previously forced `setTpuLedNumbers(false)` on page reload.
+  - **Rigid PLA Retention Options Reference Guide:** Documented retention methods evaluated for rigid PLA fairy pixel arrays:
+    1. *Option 1: Backplate Enclosure Sandwich with EVA Foam (Recommended):* Matching thin rigid backplate screwed or snapped onto the chassis rim with closed-cell EVA foam or silicone sheet pressing the pixel bulbs firmly into their optical windows from behind.
+    2. *Option 2: Top-Collar Nub Snap Clips:* Outer clips locking onto the external 0.45mm top collar nubs, eliminating root stress concentrations.
+    3. *Option 3: High-Elasticity Hot-Melt / Silicone Tack:* Reversible low-profile dots of silicone adhesive or neutral-cure electronics silicone across the back of each bulb.
+
 ### Entry: Dynamic Float-Specific Multi-Material Color Inlays & The Spinning Turtle Segmentation
 * **Date:** 2026-10-06 (Imagineering Session - Float 3 Armor Fabrication)
 * **Milestone:** Milestone 6 - Wearable 3D Armor Fabrication & Multi-Material 3D Printing

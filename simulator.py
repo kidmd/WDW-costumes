@@ -1291,6 +1291,8 @@ const uint8_t PROGMEM SPATIAL_RADIUS_BYTE[FRONT_LEDS] = {{
                 "graphic_type": req_data.get("graphicType"),
                 "window_shape": window_shape,
                 "include_led_numbers": bool(req_data.get("includeLedNumbers", False)),
+                "include_clip_grooves": bool(req_data.get("includeClipGrooves", False)),
+                "include_top_nubs": bool(req_data.get("includeTopNubs", False)),
                 "stl_colors": req_data.get("stlColors"),
                 "layout_signature": req_data.get("layoutSignature"),
                 "size_preset": req_data.get("sizePreset", "medium"),
@@ -1331,7 +1333,11 @@ const uint8_t PROGMEM SPATIAL_RADIUS_BYTE[FRONT_LEDS] = {{
                 "--width-mm",
                 str(FRONT_WIDTH_MM),
                 "--numbers",
-                "on" if req_data.get("includeLedNumbers", True) else "off"
+                "on" if req_data.get("includeLedNumbers", False) else "off",
+                "--clip-grooves",
+                "on" if req_data.get("includeClipGrooves", False) else "off",
+                "--top-nubs",
+                "on" if req_data.get("includeTopNubs", False) else "off"
             ]
             res = subprocess.run(cmd, cwd=BASE_DIR, capture_output=True, text=True, timeout=90)
 

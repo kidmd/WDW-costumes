@@ -101,8 +101,24 @@ if '--numbers' in sys.argv:
     if _ni + 1 < len(sys.argv):
         INCLUDE_LED_NUMBERS = sys.argv[_ni + 1].lower() in ('on', '1', 'true', 'yes')
 
-def compile_plate_variant(variant_name, width_mm, height_mm, raw_leds, artwork_path, window_shape='square'):
-    print(f"\n>>> Compiling {variant_name.upper()} Plate ({width_mm}mm x {height_mm}mm, {len(raw_leds)} LEDs, Window Shape: {window_shape.upper()})...")
+INCLUDE_CLIP_GROOVES = False
+if 'include_clip_grooves' in specs:
+    INCLUDE_CLIP_GROOVES = bool(specs['include_clip_grooves'])
+if '--clip-grooves' in sys.argv:
+    _cgi = sys.argv.index('--clip-grooves')
+    if _cgi + 1 < len(sys.argv):
+        INCLUDE_CLIP_GROOVES = sys.argv[_cgi + 1].lower() in ('on', '1', 'true', 'yes')
+
+INCLUDE_TOP_NUBS = False
+if 'include_top_nubs' in specs:
+    INCLUDE_TOP_NUBS = bool(specs['include_top_nubs'])
+if '--top-nubs' in sys.argv:
+    _tni = sys.argv.index('--top-nubs')
+    if _tni + 1 < len(sys.argv):
+        INCLUDE_TOP_NUBS = sys.argv[_tni + 1].lower() in ('on', '1', 'true', 'yes')
+
+def compile_plate_variant(variant_name, width_mm, height_mm, raw_leds, artwork_path, window_shape='square', clip_grooves=False, top_nubs=False):
+    print(f"\n>>> Compiling {variant_name.upper()} Plate ({width_mm}mm x {height_mm}mm, {len(raw_leds)} LEDs, Window Shape: {window_shape.upper()}, Clip Grooves: {'ON' if clip_grooves else 'OFF'}, Top Nubs: {'ON' if top_nubs else 'OFF'})...")
     v_t0 = time.time()
     num_leds = len(raw_leds)
     leds = [dict(l) for l in raw_leds]
@@ -266,6 +282,28 @@ def compile_plate_variant(variant_name, width_mm, height_mm, raw_leds, artwork_p
         tab_solid = trimesh.Trimesh(vertices=tab_mesh_data.vert_properties[:, :3], faces=tab_mesh_data.tri_verts)
         tab_meshes.append(tab_solid)
 
+    # 4b. Bottom-Center Wire Entry/Exit Portal & Zip-Tie Strain Relief Anchor (Option B)
+    cx_mid = (bounds[0] + bounds[2]) / 2.0
+    bottom_pts = [p for p in contour_coords if abs(p[0] - cx_mid) < 25.0]
+    if bottom_pts:
+        lowest_pt = min(bottom_pts, key=lambda p: p[1])
+        wire_portal_x = lowest_pt[0]
+        wire_portal_y = lowest_pt[1]
+    else:
+        wire_portal_x = cx_mid
+        wire_portal_y = bounds[1]
+
+    # Arch cutter through rim (6mm wide x 3.5mm tall, Z = 2.0 to 5.5mm)
+    wire_portal_cutter = trimesh.creation.box(extents=[6.0, RIM_WALL_THICK + 4.0, 3.5])
+    wire_portal_cutter.apply_translation([wire_portal_x, wire_portal_y, FRONT_THICK_GENERAL + 1.75])
+
+    # Zip-tie strain-relief slots: two 1.4mm x 2.8mm slots flanking portal ~6mm inward
+    ziptie_y = wire_portal_y + 6.0
+    slot_left = trimesh.creation.box(extents=[1.4, 2.8, FRONT_THICK_GENERAL + 1.0])
+    slot_left.apply_translation([wire_portal_x - 3.5, ziptie_y, FRONT_THICK_GENERAL / 2.0])
+    slot_right = trimesh.creation.box(extents=[1.4, 2.8, FRONT_THICK_GENERAL + 1.0])
+    slot_right.apply_translation([wire_portal_x + 3.5, ziptie_y, FRONT_THICK_GENERAL / 2.0])
+
     # 5. Collars, Recesses & Windows
     outer_collar_2d = make_stadium_polygon(COLLAR_OUTER_L, COLLAR_OUTER_W, sections=16)
     inner_collar_2d = make_stadium_polygon(COLLAR_INNER_L, COLLAR_INNER_W, sections=16)
@@ -277,6 +315,12 @@ def compile_plate_variant(variant_name, width_mm, height_mm, raw_leds, artwork_p
     groove_inner_2d = outer_collar_2d.buffer(-GROOVE_DEPTH, resolution=16)
     groove_outer_2d = outer_collar_2d.buffer(0.5, resolution=16)
     groove_ring_2d = groove_outer_2d.difference(groove_inner_2d)
+
+    # 0.45mm top collar nubs for rigid PLA snap clips
+    NUB_PROTRUSION = 0.45  # mm outward protrusion
+    NUB_HEIGHT = 0.6       # mm tall
+    nub_outer_2d = outer_collar_2d.buffer(NUB_PROTRUSION, resolution=16)
+    nub_ring_2d = nub_outer_2d.difference(outer_collar_2d)
 
     collar_meshes = []
     floor_recess_cutters = []
@@ -298,20 +342,31 @@ def compile_plate_variant(variant_name, width_mm, height_mm, raw_leds, artwork_p
         recess.apply_translation([cx, cy, FRONT_THICK_LED])
         floor_recess_cutters.append(recess)
 
-        # 3.0mm Collar with 4mm Wire Notches and 0.7mm x 0.6mm Base Retention Groove
+        # 3.0mm Collar with 4mm Wire Notches
         c_mesh = trimesh.creation.extrude_polygon(collar_ring_2d, height=COLLAR_HEIGHT)
         notch_r = trimesh.creation.box(extents=[3.5, NOTCH_WIDTH, COLLAR_HEIGHT + 0.2])
         notch_r.apply_translation([COLLAR_OUTER_L / 2.0 - 1.0, 0, COLLAR_HEIGHT / 2.0])
         notch_l = trimesh.creation.box(extents=[3.5, NOTCH_WIDTH, COLLAR_HEIGHT + 0.2])
         notch_l.apply_translation([-COLLAR_OUTER_L / 2.0 + 1.0, 0, COLLAR_HEIGHT / 2.0])
 
-        groove_cutter = trimesh.creation.extrude_polygon(groove_ring_2d, height=GROOVE_HEIGHT)
-        # Sits at the base where the outside wall meets general plate floor (local Z = 1.0 to 1.7)
-        groove_cutter.apply_translation([0, 0, FRONT_THICK_GENERAL - COLLAR_FLOOR_Z])
+        collar_cutters_list = [to_m(notch_r), to_m(notch_l)]
+
+        # Cut base retention groove ONLY if clip_grooves is True
+        if clip_grooves:
+            groove_cutter = trimesh.creation.extrude_polygon(groove_ring_2d, height=GROOVE_HEIGHT)
+            groove_cutter.apply_translation([0, 0, FRONT_THICK_GENERAL - COLLAR_FLOOR_Z])
+            collar_cutters_list.append(to_m(groove_cutter))
 
         c_m = to_m(c_mesh)
-        c_cutters_m = Manifold.batch_boolean([to_m(notch_r), to_m(notch_l), to_m(groove_cutter)], OpType.Add)
+        c_cutters_m = Manifold.batch_boolean(collar_cutters_list, OpType.Add)
         notched_collar_m = c_m - c_cutters_m
+
+        # Add top nubs for PLA snap clips if top_nubs is True (without weakening the wall!)
+        if top_nubs:
+            top_nub_ext = trimesh.creation.extrude_polygon(nub_ring_2d, height=NUB_HEIGHT)
+            top_nub_ext.apply_translation([0, 0, COLLAR_HEIGHT - NUB_HEIGHT - 0.2])
+            notched_collar_m = notched_collar_m + to_m(top_nub_ext)
+
         mesh_d = notched_collar_m.to_mesh()
         notched_collar = trimesh.Trimesh(vertices=mesh_d.vert_properties[:, :3], faces=mesh_d.tri_verts)
 
@@ -382,7 +437,8 @@ def compile_plate_variant(variant_name, width_mm, height_mm, raw_leds, artwork_p
             num_combined.faces = num_combined.faces[:, ::-1]
             num_combined.fix_normals()
             tx_mid = (num_combined.bounds[0][:2] + num_combined.bounds[1][:2]) / 2.0
-            num_combined.apply_translation([-tx_mid[0], -tx_mid[1], 1.5])
+            # Sits at general tray floor level Z = 1.6 to 2.2, cleanly debossing 0.5mm into the floor
+            num_combined.apply_translation([-tx_mid[0], -tx_mid[1], FRONT_THICK_GENERAL - 0.4])
             num_combined.apply_translation([best_cand[0], best_cand[1], 0.0])
             number_cutters.append(num_combined)
 
@@ -496,8 +552,8 @@ def compile_plate_variant(variant_name, width_mm, height_mm, raw_leds, artwork_p
     chassis_solids = [base_with_pockets_m, to_m(rim_mesh)] + [to_m(t) for t in tab_meshes] + [to_m(c) for c in collar_meshes]
     chassis_assembled_m = Manifold.batch_boolean(chassis_solids, OpType.Add)
 
-    # Cutters: floor recesses, square/round optical windows, and debossed numbers
-    all_cutters = floor_recess_cutters + square_window_cutters + number_cutters
+    # Cutters: floor recesses, square/round optical windows, debossed numbers, wire portal arch, and strain-relief slots
+    all_cutters = floor_recess_cutters + square_window_cutters + number_cutters + [wire_portal_cutter, slot_left, slot_right]
     cutters_m = [to_m(c) for c in all_cutters]
     cutters_union_m = Manifold.batch_boolean(cutters_m, OpType.Add)
 
@@ -778,7 +834,9 @@ front_result = compile_plate_variant(
     front_specs['height_mm'],
     front_specs['ordered_leds'],
     artwork_path,
-    window_shape=window_shape
+    window_shape=window_shape,
+    clip_grooves=INCLUDE_CLIP_GROOVES,
+    top_nubs=INCLUDE_TOP_NUBS
 )
 
 # 2. Compile Back Plate
@@ -788,12 +846,16 @@ back_result = compile_plate_variant(
     back_specs['height_mm'],
     back_specs['ordered_leds'],
     artwork_path,
-    window_shape=window_shape
+    window_shape=window_shape,
+    clip_grooves=INCLUDE_CLIP_GROOVES,
+    top_nubs=INCLUDE_TOP_NUBS
 )
 
 # Update full JSON specifications
 specs['window_shape'] = window_shape
 specs['include_led_numbers'] = INCLUDE_LED_NUMBERS
+specs['include_clip_grooves'] = INCLUDE_CLIP_GROOVES
+specs['include_top_nubs'] = INCLUDE_TOP_NUBS
 specs['front'] = front_result
 specs['back'] = back_result
 

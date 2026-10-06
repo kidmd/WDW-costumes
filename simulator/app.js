@@ -84,8 +84,12 @@ try {
 } catch (e) {}
 
 params.tpuIncludeLedNumbers = false;
+params.tpuIncludeClipGrooves = false;
+params.tpuIncludeTopNubs = false;
 try {
     if (localStorage.getItem('msep_tpu_led_numbers') === '1') params.tpuIncludeLedNumbers = true;
+    if (localStorage.getItem('msep_tpu_clip_grooves') === '1') params.tpuIncludeClipGrooves = true;
+    if (localStorage.getItem('msep_tpu_top_nubs') === '1') params.tpuIncludeTopNubs = true;
 } catch (e) {}
 
 // Default Pete's Dragon Artwork
@@ -17678,9 +17682,11 @@ function initTpuArmorPanel() {
         compileBtn.addEventListener('click', handleRecompileTpuStl);
     }
 
-    // Initialize hole shape and export mode
+    // Initialize hole shape, numbers, and retention features
     setTpuWindowShape(params.tpuWindowShape || 'square');
-    setTpuLedNumbers(params.tpuIncludeLedNumbers !== false);
+    setTpuLedNumbers(params.tpuIncludeLedNumbers === true);
+    setTpuClipGrooves(params.tpuIncludeClipGrooves === true);
+    setTpuTopNubs(params.tpuIncludeTopNubs === true);
     updateTpuDownloadButtons();
 }
 window.initTpuArmorPanel = initTpuArmorPanel;
@@ -17709,13 +17715,15 @@ function getActiveFloatName() {
 }
 window.getActiveFloatName = getActiveFloatName;
 
-// Fingerprint of everything that shapes the STL (artwork silhouette, LED layout, chest bounds, window shape, size, count, number toggle).
+// Fingerprint of everything that shapes the STL (artwork silhouette, LED layout, chest bounds, window shape, size, count, numbers, clip grooves, top nubs).
 function computeTpuLayoutSignature() {
     const activeImg = getActiveGraphicImg();
     const src = (activeImg && activeImg.src) ? activeImg.src : 'none';
     const gb = getGraphicChestBounds() || {};
     const winShape = params.tpuWindowShape || 'square';
     const numFlag = (params.tpuIncludeLedNumbers === true) ? 'num' : 'nonum';
+    const grvFlag = (params.tpuIncludeClipGrooves === true) ? 'grv' : 'nogrv';
+    const nubFlag = (params.tpuIncludeTopNubs === true) ? 'nub' : 'nonub';
     let h = 5381;
     const mix = (str) => {
         const step = Math.max(1, Math.floor(str.length / 4096)); // sample long data URLs
@@ -17726,14 +17734,16 @@ function computeTpuLayoutSignature() {
     mix(src);
     mix(String(winShape));
     mix(numFlag);
-    mix('groove-v1');
+    mix(grvFlag);
+    mix(nubFlag);
+    mix('wireportal-v1');
     mix('floatcolors-v1');
     mix(JSON.stringify(getActiveFloatStlColors()));
     mix(String(selectedPlateWidthMm));
     mix(String(selectedPlateSize));
     mix([gb.normX, gb.normY, gb.normW, gb.normH].map(v => Number(v || 0).toFixed(4)).join(','));
     mix((leds || []).map(l => `${Number(l.x).toFixed(4)},${Number(l.y).toFixed(4)}`).join(';'));
-    return `${currentGraphicType}-${winShape}-${numFlag}-${selectedPlateSize}-${(leds || []).length}-grv-${h.toString(16)}`;
+    return `${currentGraphicType}-${winShape}-${numFlag}-${grvFlag}-${nubFlag}-${selectedPlateSize}-${(leds || []).length}-v2-${h.toString(16)}`;
 }
 window.computeTpuLayoutSignature = computeTpuLayoutSignature;
 
@@ -17826,6 +17836,58 @@ function setTpuLedNumbers(on) {
 }
 window.setTpuLedNumbers = setTpuLedNumbers;
 
+function setTpuClipGrooves(on) {
+    params.tpuIncludeClipGrooves = !!on;
+    try { localStorage.setItem('msep_tpu_clip_grooves', on ? '1' : '0'); } catch (e) {}
+    const onBtn = document.getElementById('tpuModalGroovesOnBtn');
+    const offBtn = document.getElementById('tpuModalGroovesOffBtn');
+    if (onBtn && offBtn) {
+        const act = (b) => { b.style.background = '#00ff88'; b.style.color = '#000'; };
+        const idle = (b) => { b.style.background = 'transparent'; b.style.color = 'rgba(0,0,0,0.7)'; };
+        if (on) { act(onBtn); idle(offBtn); } else { act(offBtn); idle(onBtn); }
+    }
+    if (tpuIsOpen) {
+        const loaderOverlay = document.getElementById('tpuModalLoading');
+        if (loaderOverlay) {
+            loaderOverlay.style.display = 'flex';
+            loaderOverlay.innerHTML = `
+                <div class="spinner" style="width: 32px; height: 32px; border: 3px solid rgba(0, 255, 136, 0.2); border-top-color: #00ff88; border-radius: 50%; animation: spin 0.8s linear infinite;"></div>
+                <span>${on ? 'Cutting 0.7mm retention clip grooves...' : 'Generating solid, un-notched 1.2mm walls...'}</span>
+            `;
+        }
+        handleRecompileTpuStl({ skipOpen: true }).then(() => {
+            if (tpuIsOpen) loadTpuModalData();
+        });
+    }
+}
+window.setTpuClipGrooves = setTpuClipGrooves;
+
+function setTpuTopNubs(on) {
+    params.tpuIncludeTopNubs = !!on;
+    try { localStorage.setItem('msep_tpu_top_nubs', on ? '1' : '0'); } catch (e) {}
+    const onBtn = document.getElementById('tpuModalTopNubsOnBtn');
+    const offBtn = document.getElementById('tpuModalTopNubsOffBtn');
+    if (onBtn && offBtn) {
+        const act = (b) => { b.style.background = '#00ff88'; b.style.color = '#000'; };
+        const idle = (b) => { b.style.background = 'transparent'; b.style.color = 'rgba(0,0,0,0.7)'; };
+        if (on) { act(onBtn); idle(offBtn); } else { act(offBtn); idle(onBtn); }
+    }
+    if (tpuIsOpen) {
+        const loaderOverlay = document.getElementById('tpuModalLoading');
+        if (loaderOverlay) {
+            loaderOverlay.style.display = 'flex';
+            loaderOverlay.innerHTML = `
+                <div class="spinner" style="width: 32px; height: 32px; border: 3px solid rgba(0, 255, 136, 0.2); border-top-color: #00ff88; border-radius: 50%; animation: spin 0.8s linear infinite;"></div>
+                <span>${on ? 'Adding 0.45mm top collar nubs for snap clips...' : 'Generating flush collar rims without top nubs...'}</span>
+            `;
+        }
+        handleRecompileTpuStl({ skipOpen: true }).then(() => {
+            if (tpuIsOpen) loadTpuModalData();
+        });
+    }
+}
+window.setTpuTopNubs = setTpuTopNubs;
+
 async function handleRecompileTpuStl(opts) {
     const skipOpen = !!(opts && opts.skipOpen === true);
     const statusEl = document.getElementById('tpuCompileStatus');
@@ -17863,6 +17925,8 @@ async function handleRecompileTpuStl(opts) {
             graphicType: currentGraphicType,
             windowShape: params.tpuWindowShape || 'square',
             includeLedNumbers: params.tpuIncludeLedNumbers === true,
+            includeClipGrooves: params.tpuIncludeClipGrooves === true,
+            includeTopNubs: params.tpuIncludeTopNubs === true,
             widthMm: selectedPlateWidthMm,
             sizePreset: selectedPlateSize,
             ledCount: (leds || []).length,
@@ -18180,6 +18244,42 @@ async function loadTpuModalData() {
                 numOffBtn.style.color = '#000';
                 numOnBtn.style.background = 'transparent';
                 numOnBtn.style.color = 'rgba(0,0,0,0.7)';
+            }
+        }
+
+        // Sync modal Clip Grooves buttons
+        const grvOnBtn = document.getElementById('tpuModalGroovesOnBtn');
+        const grvOffBtn = document.getElementById('tpuModalGroovesOffBtn');
+        if (grvOnBtn && grvOffBtn) {
+            const groovesEnabled = (params.tpuIncludeClipGrooves === true);
+            if (groovesEnabled) {
+                grvOnBtn.style.background = '#00ff88';
+                grvOnBtn.style.color = '#000';
+                grvOffBtn.style.background = 'transparent';
+                grvOffBtn.style.color = 'rgba(0,0,0,0.7)';
+            } else {
+                grvOffBtn.style.background = '#00ff88';
+                grvOffBtn.style.color = '#000';
+                grvOnBtn.style.background = 'transparent';
+                grvOnBtn.style.color = 'rgba(0,0,0,0.7)';
+            }
+        }
+
+        // Sync modal Top Nubs buttons
+        const nubOnBtn = document.getElementById('tpuModalTopNubsOnBtn');
+        const nubOffBtn = document.getElementById('tpuModalTopNubsOffBtn');
+        if (nubOnBtn && nubOffBtn) {
+            const nubsEnabled = (params.tpuIncludeTopNubs === true);
+            if (nubsEnabled) {
+                nubOnBtn.style.background = '#00ff88';
+                nubOnBtn.style.color = '#000';
+                nubOffBtn.style.background = 'transparent';
+                nubOffBtn.style.color = 'rgba(0,0,0,0.7)';
+            } else {
+                nubOffBtn.style.background = '#00ff88';
+                nubOffBtn.style.color = '#000';
+                nubOnBtn.style.background = 'transparent';
+                nubOnBtn.style.color = 'rgba(0,0,0,0.7)';
             }
         }
 

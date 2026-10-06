@@ -5,7 +5,7 @@
   "aspect": 1.1976608187134503,
   "artwork_file": "active_artwork.png",
   "graphic_type": "spinning_turtle",
-  "layout_signature": "spinning_turtle-square-nonum-medium-100-grv-80b2a44e",
+  "layout_signature": "spinning_turtle-square-num-medium-100-grv-4be280a9",
   "front": {
     "variant": "front",
     "width_mm": 185.0,
@@ -294,7 +294,7 @@
         "id": 26,
         "orig_id": 25,
         "x": 91.66,
-        "y": 90.63,
+        "y": 90.62,
         "color": {
           "r": 0,
           "g": 252,
@@ -877,7 +877,7 @@
         "id": 79,
         "orig_id": 78,
         "x": 57.17,
-        "y": 88.57,
+        "y": 88.56,
         "color": {
           "r": 196,
           "g": 236,
@@ -887,7 +887,7 @@
       {
         "id": 80,
         "orig_id": 79,
-        "x": 26.44,
+        "x": 26.45,
         "y": 119.69,
         "color": {
           "r": 241,
@@ -1376,9 +1376,9 @@
       75.05,
       3.0
     ],
-    "stl_size": 2324584,
-    "chassis_size": 3419684,
-    "zip_size": 1812877,
+    "stl_size": 1806884,
+    "chassis_size": 2936384,
+    "zip_size": 1611958,
     "inlays": [
       {
         "key": "green",
@@ -1413,7 +1413,7 @@
     "chassis_stl_url": "/3d_panels/tpu_panel_front_chassis_black.stl",
     "multicolor_3mf_url": "/3d_panels/tpu_panel_front_multicolor.3mf",
     "multicolor_zip_url": "/3d_panels/tpu_panel_front_multicolor_bundle.zip",
-    "volume_mm3": 34946.6,
+    "volume_mm3": 35832.4,
     "is_watertight": false
   },
   "back": {
@@ -2786,9 +2786,9 @@
       97.36,
       3.0
     ],
-    "stl_size": 2279784,
-    "chassis_size": 3439284,
-    "zip_size": 1810021,
+    "stl_size": 1797484,
+    "chassis_size": 2956884,
+    "zip_size": 1607904,
     "inlays": [
       {
         "key": "green",
@@ -2823,7 +2823,7 @@
     "chassis_stl_url": "/3d_panels/tpu_panel_back_chassis_black.stl",
     "multicolor_3mf_url": "/3d_panels/tpu_panel_back_multicolor.3mf",
     "multicolor_zip_url": "/3d_panels/tpu_panel_back_multicolor_bundle.zip",
-    "volume_mm3": 55875.6,
+    "volume_mm3": 56743.6,
     "is_watertight": false
   },
   "width_mm": 185.0,
@@ -3108,7 +3108,7 @@
       "id": 26,
       "orig_id": 25,
       "x": 91.66,
-      "y": 90.63,
+      "y": 90.62,
       "color": {
         "r": 0,
         "g": 252,
@@ -3691,7 +3691,7 @@
       "id": 79,
       "orig_id": 78,
       "x": 57.17,
-      "y": 88.57,
+      "y": 88.56,
       "color": {
         "r": 196,
         "g": 236,
@@ -3701,7 +3701,7 @@
     {
       "id": 80,
       "orig_id": 79,
-      "x": 26.44,
+      "x": 26.45,
       "y": 119.69,
       "color": {
         "r": 241,
@@ -3931,6 +3931,62 @@
     }
   ],
   "led_count": 100,
+  "stl_colors": {
+    "black": {
+      "name": "Chassis Black",
+      "hex": "#11161d",
+      "targetRgb": [
+        34,
+        43,
+        51
+      ],
+      "role": "chassis"
+    },
+    "green": {
+      "name": "Shell Plates & Glasses",
+      "hex": "#00cc66",
+      "targetRgb": [
+        43,
+        109,
+        49
+      ],
+      "role": "inlay",
+      "filename": "color_green.stl"
+    },
+    "blue": {
+      "name": "Shell & Eyes",
+      "hex": "#2563eb",
+      "targetRgb": [
+        41,
+        63,
+        96
+      ],
+      "role": "inlay",
+      "filename": "color_blue.stl"
+    },
+    "yellow": {
+      "name": "Body & Head",
+      "hex": "#facc15",
+      "targetRgb": [
+        231,
+        199,
+        49
+      ],
+      "role": "inlay",
+      "filename": "color_yellow.stl"
+    },
+    "red": {
+      "name": "Tie & Lips",
+      "hex": "#ef4444",
+      "targetRgb": [
+        217,
+        29,
+        22
+      ],
+      "role": "inlay",
+      "filename": "color_red.stl"
+    }
+  },
   "window_shape": "square",
   "include_led_numbers": false,
   "variant": "front",
@@ -4197,75 +4253,9 @@
     75.05,
     3.0
   ],
-  "stl_size": 2324584,
-  "chassis_size": 3419684,
-  "zip_size": 1812877,
-  "stl_url": "/3d_panels/tpu_panel_front.stl",
-  "chassis_stl_url": "/3d_panels/tpu_panel_front_chassis_black.stl",
-  "color_green_stl_url": null,
-  "color_magenta_stl_url": "/3d_panels/tpu_panel_front_color_magenta.stl",
-  "color_yellow_stl_url": "/3d_panels/tpu_panel_front_color_yellow.stl",
-  "color_white_stl_url": null,
-  "multicolor_3mf_url": "/3d_panels/tpu_panel_front_multicolor.3mf",
-  "multicolor_zip_url": "/3d_panels/tpu_panel_front_multicolor_bundle.zip",
-  "volume_mm3": 34946.6,
-  "is_watertight": false,
-  "stl_colors": {
-    "black": {
-      "name": "Chassis Black",
-      "hex": "#11161d",
-      "targetRgb": [
-        34,
-        43,
-        51
-      ],
-      "role": "chassis"
-    },
-    "green": {
-      "name": "Shell Plates & Glasses",
-      "hex": "#00cc66",
-      "targetRgb": [
-        43,
-        109,
-        49
-      ],
-      "role": "inlay",
-      "filename": "color_green.stl"
-    },
-    "blue": {
-      "name": "Shell & Eyes",
-      "hex": "#2563eb",
-      "targetRgb": [
-        41,
-        63,
-        96
-      ],
-      "role": "inlay",
-      "filename": "color_blue.stl"
-    },
-    "yellow": {
-      "name": "Body & Head",
-      "hex": "#facc15",
-      "targetRgb": [
-        231,
-        199,
-        49
-      ],
-      "role": "inlay",
-      "filename": "color_yellow.stl"
-    },
-    "red": {
-      "name": "Tie & Lips",
-      "hex": "#ef4444",
-      "targetRgb": [
-        217,
-        29,
-        22
-      ],
-      "role": "inlay",
-      "filename": "color_red.stl"
-    }
-  },
+  "stl_size": 1806884,
+  "chassis_size": 2936384,
+  "zip_size": 1611958,
   "inlays": [
     {
       "key": "green",
@@ -4295,5 +4285,13 @@
       "hex": "#ef4444",
       "count": 928
     }
-  ]
+  ],
+  "stl_url": "/3d_panels/tpu_panel_front.stl",
+  "chassis_stl_url": "/3d_panels/tpu_panel_front_chassis_black.stl",
+  "multicolor_3mf_url": "/3d_panels/tpu_panel_front_multicolor.3mf",
+  "multicolor_zip_url": "/3d_panels/tpu_panel_front_multicolor_bundle.zip",
+  "volume_mm3": 35832.4,
+  "is_watertight": false,
+  "include_clip_grooves": false,
+  "include_top_nubs": false
 }

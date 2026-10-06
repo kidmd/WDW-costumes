@@ -2403,8 +2403,18 @@
                     </div>
                     <!-- LED Numbers (debossed on underside) Switcher -->
                     <div style="display: flex; align-items: center; margin-left: 4px; background: rgba(0, 0, 0, 0.3); border-radius: 6px; padding: 2px; gap: 2px;" title="Deboss LED numbers into the underside of the STL (regenerates STL)">
-                        <button type="button" id="tpuModalNumbersOnBtn" onclick="setTpuLedNumbers(true)" style="border: none; border-radius: 4px; padding: 4px 7px; font-size: 11px; font-weight: 700; cursor: pointer; background: #000; color: #00ff88; transition: all 0.2s ease;">🔢 Numbers On</button>
-                        <button type="button" id="tpuModalNumbersOffBtn" onclick="setTpuLedNumbers(false)" style="border: none; border-radius: 4px; padding: 4px 7px; font-size: 11px; font-weight: 700; cursor: pointer; background: transparent; color: rgba(0,0,0,0.7); transition: all 0.2s ease;">🚫 No Numbers</button>
+                        <button type="button" id="tpuModalNumbersOnBtn" onclick="setTpuLedNumbers(true)" style="border: none; border-radius: 4px; padding: 4px 7px; font-size: 11px; font-weight: 700; cursor: pointer; background: transparent; color: rgba(0,0,0,0.7); transition: all 0.2s ease;">🔢 Numbers</button>
+                        <button type="button" id="tpuModalNumbersOffBtn" onclick="setTpuLedNumbers(false)" style="border: none; border-radius: 4px; padding: 4px 7px; font-size: 11px; font-weight: 700; cursor: pointer; background: #000; color: #00ff88; transition: all 0.2s ease;">🚫 No Num</button>
+                    </div>
+                    <!-- LED Well Base Clip Groove Toggle -->
+                    <div style="display: flex; align-items: center; margin-left: 4px; background: rgba(0, 0, 0, 0.3); border-radius: 6px; padding: 2px; gap: 2px;" title="0.7mm undercut retention groove at collar base (Warning: weakens rigid PLA walls)">
+                        <button type="button" id="tpuModalGroovesOnBtn" onclick="setTpuClipGrooves(true)" style="border: none; border-radius: 4px; padding: 4px 7px; font-size: 11px; font-weight: 700; cursor: pointer; background: transparent; color: rgba(0,0,0,0.7); transition: all 0.2s ease;">🗜️ Grooves</button>
+                        <button type="button" id="tpuModalGroovesOffBtn" onclick="setTpuClipGrooves(false)" style="border: none; border-radius: 4px; padding: 4px 7px; font-size: 11px; font-weight: 700; cursor: pointer; background: #000; color: #00ff88; transition: all 0.2s ease;">🧱 Solid Walls</button>
+                    </div>
+                    <!-- Top-Nub Detents for PLA Snap Clips -->
+                    <div style="display: flex; align-items: center; margin-left: 4px; background: rgba(0, 0, 0, 0.3); border-radius: 6px; padding: 2px; gap: 2px;" title="0.45mm horizontal nubs on outside top of collar for rigid PLA snap clips">
+                        <button type="button" id="tpuModalTopNubsOnBtn" onclick="setTpuTopNubs(true)" style="border: none; border-radius: 4px; padding: 4px 7px; font-size: 11px; font-weight: 700; cursor: pointer; background: transparent; color: rgba(0,0,0,0.7); transition: all 0.2s ease;">🔘 Top Nubs</button>
+                        <button type="button" id="tpuModalTopNubsOffBtn" onclick="setTpuTopNubs(false)" style="border: none; border-radius: 4px; padding: 4px 7px; font-size: 11px; font-weight: 700; cursor: pointer; background: #000; color: #00ff88; transition: all 0.2s ease;">🚫 No Nubs</button>
                     </div>
                     <!-- Single vs 5-Color Multi-STL Switcher -->
                     <div style="display: flex; align-items: center; margin-left: 6px; background: rgba(0, 0, 0, 0.4); border-radius: 6px; padding: 2px; gap: 2px;" title="Select between Single Monolithic STL and 5-Color Split Multi-STL">
@@ -2500,6 +2510,6 @@
         </div>
     </div>
 
-    <script src="app.js?v=87"></script>
+    <script src="app.js?v=88"></script>
 </body>
 </html>
