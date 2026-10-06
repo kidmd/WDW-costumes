@@ -93,6 +93,19 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### Entry: 5-Color Multi-Material TPU Armor Plate Compiler, Custom Sizing & 75-LED Layout
+* **Date:** 2026-10-06
+* **Milestone:** Milestone 6 - Wearable 3D Armor Fabrication & Multi-Material 3D Printing
+* **Status:** Complete & Verified (`scripts/compile_clean_tpu_panel.py`, `simulator.py`, `simulator/index.html`, `simulator/app.js`, `3d_panels/tpu_panel_preview.html`, `SIMULATOR_USER_GUIDE.md`, `README.md`, `PROJECT_PROGRESS.md`).
+* **Implementation Details:**
+  - **5-Color Multi-Material TPU STL Architecture:** Upgraded `scripts/compile_clean_tpu_panel.py` to v5 with automatic color vector segmentation. The structural chassis (floor, 4mm perimeter rim, 16 round mounting tabs, LED collars, wire pass-through notches) is compiled as a single monolithic black STL (`tpu_panel_{front|back}_chassis_black.stl`). Color artwork inlays are generated as four separate STLs: Neon Green body (`_color_green.stl`), Magenta hair/spines (`_color_magenta.stl`), Sunny Yellow belly (`_color_yellow.stl`), and Bright White eyes/teeth (`_color_white.stl`).
+  - **Zero-Overlap Jigsaw Inlays & Optical Windows:** Color inlays are 0.6mm thick (3 layers @ 0.2mm) subtracted directly into the front surface of the black chassis with zero collision overlap. Centered $3\times 3\text{ mm}$ square (or $\varnothing 3\text{ mm}$ round) optical windows cut cleanly through both chassis and color inlays.
+  - **Bambu Lab AMS Bundle & 3MF Export:** Packaged all 5 STLs, native multi-body `.3mf` project (via `trimesh.Scene` and `lxml`), and a comprehensive `README_BAMBU_STUDIO.txt` guide into a 1-click ZIP archive (`tpu_panel_{front|back}_multicolor_bundle.zip`). In Bambu Studio, users simply drop all 5 STLs at once and click "Load as single object with multiple parts".
+  - **Selectable Plate Sizing on Layout Tab:** Added interactive size selector buttons: Small (~6.5" / 165.1mm), Medium (~8.0" / 203.2mm, default target), and Large (~10.0" / 254.0mm). Sizing sets the target width for both plates, maintaining proportional height, bib clearance, and print bed safety.
+  - **Selectable LED Counts (50 / 75 / 100 LEDs):** Added quick LED density buttons: 50, 75 (current target), or 100 LEDs. Selecting an option redistributes LEDs across the character graphic with color sampling and serpentine wire routing.
+  - **Export Modal & 3D Preview Inspector:** Added `[ 🎨 5-Color Split | ⚪ Single Black ]` toggle to `#tpuPreviewModal` and `3d_panels/tpu_panel_preview.html`. In multi-color mode, Three.js loads all 5 STL meshes concurrently with authentic PBR material colors and displays a floating AMS filament slot legend. Download buttons update dynamically for single STLs or 5-color ZIP/3MF bundles.
+  - **Verification:** Verified compilation of 75-LED Medium (203.2mm) Front and Back plates in ~5.67s. Watertight geometry confirmed, STL files generated in `3d_panels/`, and `node --check simulator/app.js` passed with zero errors.
+
 ### Entry: Dedicated ESP32 Hardware Wiring Plan, Race Day Button Guide & Rules Integration
 * **Date:** 2026-10-05 (Late Night Imagineering Session - Follow-up)
 * **Milestone:** Milestone 6 - Dual-Button Controller Hardware Architecture, Castle Photo Mode & Dual-Leader Fleet Synchronizer

@@ -123,6 +123,9 @@ The sidebar navigation is organized into a clean **2-row × 3-column grid** that
    - **Float / Character Artwork Picker:** Unified dropdown allowing quick selection between the 7 official parade floats or uploading custom graphics (PNG/SVG/JPG), with a one-click `🔄 Restore Preset Defaults` button when custom artwork is active.
    - **runDisney 10K Race Bib (#1952):** Toggle overlay, height, and scale sliders to verify physical clearance.
    - **💾 Save & Export Custom Profiles:** Dedicated section for naming and saving custom design tweaks to browser cache, exporting standalone JSON costume files, or importing existing configurations.
+   - **🎛️ LED Count & Sizing Selectors (50 / 75 / 100 LEDs & Small / Medium / Large):**
+     - **LED Count Selector (`50` / `75` / `100` LEDs):** Switch costume density with a single click. Selecting 50, 75 (target option), or 100 LEDs redistributes the chosen count across the active float graphic with color matching and optimal serpentine wiring.
+     - **Plate Sizing Selector (`Small ~6.5"` / `Medium ~8.0"` / `Large ~10.0"`):** Sizing directly sets the target width for the flexible TPU armor plate (Small = 165.1mm / 6.5", Medium = 203.2mm / 8.0", Large = 254.0mm / 10.0"). Both Front and Back plates dynamically scale to the selected width and recompile.
    - **🔌 LED Placement & Wiring Route:** Consolidated toolbar uniting all bulb generation and routing in one dedicated location:
      - `🌈 100 Scatter`: Evenly disperses 100 LEDs across the character with color matching.
      - `✨ 50 Auto-Outline`: Traces the outer silhouette contour with 50 LEDs.
@@ -1117,6 +1120,22 @@ scripts/generate_3d_panel.py
       ├── 3d_panels/tpu_panel_preview.html        (Interactive 3D WebGL Inspector)
       └── 3d_panels/petes_dragon_specs.json       (Mechanical Coordinates & Sizing)
 ```
+
+### 🎨 5-Color Multi-Material 3D Printing System (Bambu Lab AMS / Snapmaker Dual):
+Instead of attaching a Cricut cut vinyl graphic on top of the printed plate, the front surface of the TPU armor plate directly features the multi-color character artwork via 5-material FDM 3D printing:
+- **Zero-Overlap Jigsaw Inlay Architecture:** The structural black chassis features 0.6mm deep front pockets (3 layers @ 0.2mm layer height) precisely receiving the 4 accent color inlays.
+- **Bambu Lab AMS 5-Color Palette (Pete's Dragon Preset):**
+  1. **Slot 1 — Structural Chassis & Outline Walls:** Black (`#0d1908`) — 6.0mm perimeter rim, 2.0mm tray floor, LED retention collars, wiring basin, and mounting eyelets.
+  2. **Slot 2 — Dragon Body:** Neon Green (`#04fa06`) — 0.6mm front face inlays.
+  3. **Slot 3 — Hair Tuft, Spine Ridge & Wings:** Magenta (`#f606f5`) — 0.6mm front face inlays.
+  4. **Slot 4 — Belly & Facial Accents:** Sunny Yellow (`#f9f90c`) — 0.6mm front face inlays.
+  5. **Slot 5 — Eyes & Teeth:** Bright White (`#f7f8f7`) — 0.6mm front face inlays.
+- **Clean Optical Window Pass-Throughs:** Open $3\times 3\text{ mm}$ square or $\varnothing 3\text{ mm}$ round optical windows are cut completely through both the black chassis and color inlays, ensuring raw LED light beams directly forward without filament absorption.
+- **Export Formats & Bambu Studio Workflow:**
+  - **`tpu_panel_{front|back}_multicolor_bundle.zip`**: Contains all 5 discrete STL files sharing identical $(0,0,0)$ origin coordinates, native 3MF, and a step-by-step setup guide.
+  - **Bambu Studio Multi-Part Import:** Drag and drop all 5 STLs into Bambu Studio simultaneously and click **"Load as a single object with multiple parts"** (`Yes`). Assign filaments 1–5 to each part in the project tree.
+  - **Single Monolithic STL Option:** For single-color prints or Cricut vinyl overlays, the exporter allows switching to single monolithic STL export mode.
+- **Interactive 3D WebGL Multi-Material Preview:** The 3D Preview Modal (`#tpuPreviewModal`) includes a `[ 🎨 5-Color Split | ⚪ Single Black ]` toggle, a dynamic 5-color AMS legend badge with aperture counts, and direct download buttons for 5-Color ZIP and Bambu 3MF.
 
 ### 🦺 Wearable Architecture & Specs (Open-Chassis 6.0mm Flexible TPU Armor Tray):
 1. **Open-Chassis Tray Structure:**

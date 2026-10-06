@@ -1183,24 +1183,18 @@ const uint8_t PROGMEM SPATIAL_RADIUS_BYTE[FRONT_LEDS] = {{
                 img_w, img_h = a_img.size
                 aspect = img_w / float(img_h)
 
-            # 1. Front Plate (Chest above Bib #1952): Base width 185mm, clamped max 220mm (physical clearance strictly above Bib #1952)
-            FRONT_WIDTH_MM = 185.0
-            FRONT_HEIGHT_MM = round(FRONT_WIDTH_MM / aspect, 2)
-            if FRONT_HEIGHT_MM > 220.0:
-                FRONT_HEIGHT_MM = 220.0
-                FRONT_WIDTH_MM = round(FRONT_HEIGHT_MM * aspect, 2)
-            elif FRONT_WIDTH_MM > 200.0:
-                FRONT_WIDTH_MM = 200.0
+            # 1. Plate Dimensions (Small 6.5"/165.1mm, Medium 8.0"/203.2mm, Large 10.0"/254.0mm)
+            user_width_mm = req_data.get("widthMm")
+            if user_width_mm is not None:
+                FRONT_WIDTH_MM = float(user_width_mm)
                 FRONT_HEIGHT_MM = round(FRONT_WIDTH_MM / aspect, 2)
-
-            # 2. Back Plate (Torso with no bib): Max dimension 240mm
-            BACK_MAX_MM = 240.0
-            if aspect >= 1.0:
-                BACK_WIDTH_MM = BACK_MAX_MM
-                BACK_HEIGHT_MM = round(BACK_MAX_MM / aspect, 2)
+                BACK_WIDTH_MM = FRONT_WIDTH_MM
+                BACK_HEIGHT_MM = round(BACK_WIDTH_MM / aspect, 2)
             else:
-                BACK_HEIGHT_MM = BACK_MAX_MM
-                BACK_WIDTH_MM = round(BACK_MAX_MM * aspect, 2)
+                FRONT_WIDTH_MM = 203.2  # Default to Medium ~8.0 inches
+                FRONT_HEIGHT_MM = round(FRONT_WIDTH_MM / aspect, 2)
+                BACK_WIDTH_MM = 203.2
+                BACK_HEIGHT_MM = round(BACK_WIDTH_MM / aspect, 2)
 
             bounds = req_data.get("bounds", {})
             normX = bounds.get("normX", (1.0 - 0.40) / 2.0)
@@ -1223,7 +1217,7 @@ const uint8_t PROGMEM SPATIAL_RADIUS_BYTE[FRONT_LEDS] = {{
                     "color": l.get("color", {"r": 0, "g": 255, "b": 0})
                 })
 
-            # Back LEDs (proportional 1.3x scale for back torso)
+            # Back LEDs (proportional matching dimensions)
             back_leds = []
             for idx, l in enumerate(incoming_leds):
                 rx = (l.get("x", 0.5) - normX) / normW
@@ -1251,6 +1245,8 @@ const uint8_t PROGMEM SPATIAL_RADIUS_BYTE[FRONT_LEDS] = {{
                 "graphic_type": req_data.get("graphicType"),
                 "window_shape": window_shape,
                 "layout_signature": req_data.get("layoutSignature"),
+                "size_preset": req_data.get("sizePreset", "medium"),
+                "width_mm": FRONT_WIDTH_MM,
                 "front": {
                     "variant": "front",
                     "name": "Front Plate (Chest)",
@@ -1283,7 +1279,9 @@ const uint8_t PROGMEM SPATIAL_RADIUS_BYTE[FRONT_LEDS] = {{
                 sys.executable,
                 os.path.join(BASE_DIR, "scripts", "compile_clean_tpu_panel.py"),
                 "--window-shape",
-                window_shape
+                window_shape,
+                "--width-mm",
+                str(FRONT_WIDTH_MM)
             ]
             res = subprocess.run(cmd, cwd=BASE_DIR, capture_output=True, text=True, timeout=90)
 
@@ -1302,19 +1300,37 @@ const uint8_t PROGMEM SPATIAL_RADIUS_BYTE[FRONT_LEDS] = {{
                     "success": True,
                     "message": f"{float_name} Front & Back TPU Panels compiled successfully!",
                     "float_name": float_name,
+                    "size_preset": req_data.get("sizePreset", "medium"),
+                    "width_mm": FRONT_WIDTH_MM,
                     "front": {
                         "stl_url": "/3d_panels/tpu_panel_front.stl",
+                        "chassis_stl_url": "/3d_panels/tpu_panel_front_chassis_black.stl",
+                        "color_green_stl_url": "/3d_panels/tpu_panel_front_color_green.stl",
+                        "color_magenta_stl_url": "/3d_panels/tpu_panel_front_color_magenta.stl",
+                        "color_yellow_stl_url": "/3d_panels/tpu_panel_front_color_yellow.stl",
+                        "color_white_stl_url": "/3d_panels/tpu_panel_front_color_white.stl",
+                        "multicolor_3mf_url": "/3d_panels/tpu_panel_front_multicolor.3mf",
+                        "multicolor_zip_url": "/3d_panels/tpu_panel_front_multicolor_bundle.zip",
                         "scad_url": "/3d_panels/tpu_panel_front.scad",
                         "stl_size": front_size,
                         "width_mm": FRONT_WIDTH_MM,
-                        "height_mm": FRONT_HEIGHT_MM
+                        "height_mm": FRONT_HEIGHT_MM,
+                        "led_count": len(front_leds)
                     },
                     "back": {
                         "stl_url": "/3d_panels/tpu_panel_back.stl",
+                        "chassis_stl_url": "/3d_panels/tpu_panel_back_chassis_black.stl",
+                        "color_green_stl_url": "/3d_panels/tpu_panel_back_color_green.stl",
+                        "color_magenta_stl_url": "/3d_panels/tpu_panel_back_color_magenta.stl",
+                        "color_yellow_stl_url": "/3d_panels/tpu_panel_back_color_yellow.stl",
+                        "color_white_stl_url": "/3d_panels/tpu_panel_back_color_white.stl",
+                        "multicolor_3mf_url": "/3d_panels/tpu_panel_back_multicolor.3mf",
+                        "multicolor_zip_url": "/3d_panels/tpu_panel_back_multicolor_bundle.zip",
                         "scad_url": "/3d_panels/tpu_panel_back.scad",
                         "stl_size": back_size,
                         "width_mm": BACK_WIDTH_MM,
-                        "height_mm": BACK_HEIGHT_MM
+                        "height_mm": BACK_HEIGHT_MM,
+                        "led_count": len(back_leds)
                     },
                     "stl_url": "/3d_panels/tpu_panel_front.stl",
                     "stl_front_url": "/3d_panels/tpu_panel_front.stl",

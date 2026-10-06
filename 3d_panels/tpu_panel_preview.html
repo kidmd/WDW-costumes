@@ -221,14 +221,18 @@
 <div class="header-bar">
   <div class="title-box">
     <h1>🐉 Pete's Dragon TPU Armor Plate</h1>
-    <span class="badge badge-stl">3.1 MB STL Mesh</span>
-    <span class="badge badge-led">100 Cutout Windows (3×3mm)</span>
+    <div style="display:flex; gap:4px; background:#0b0f17; padding:3px; border-radius:8px; border:1px solid #1e293b;">
+      <button class="btn active-green" id="btn-mode-multi" onclick="setPreviewMode('multi')">🎨 5-Color Multi-STL</button>
+      <button class="btn" id="btn-mode-single" onclick="setPreviewMode('single')">⚪ Single Black</button>
+    </div>
+    <a href="/3d_panels/tpu_panel_front_multicolor_bundle.zip" download="tpu_panel_front_multicolor_bundle.zip" class="btn" style="background:#1f6feb; color:#fff; text-decoration:none; padding:5px 10px;">📦 Download 5-Color ZIP</a>
+    <a href="/3d_panels/tpu_panel_front_multicolor.3mf" download="tpu_panel_front_multicolor.3mf" class="btn" style="background:#059669; color:#fff; text-decoration:none; padding:5px 10px;">🖨️ Bambu .3MF</a>
   </div>
 </div>
 
 <div class="status-pill" id="status-pill">
   <div class="status-dot" id="status-dot"></div>
-  <span id="status-text">LEDs: Static Pete's Dragon Colors</span>
+  <span id="status-text">Bambu Lab AMS 5-Color Multi-Material Preview</span>
 </div>
 
 <div class="control-bar">
@@ -331,37 +335,87 @@ function init() {
   loadDataAndBuild();
 }
 
+let previewMode = 'multi';
+let multiMeshes = [];
+
+function setPreviewMode(mode) {
+  previewMode = mode;
+  const mBtn = document.getElementById('btn-mode-multi');
+  const sBtn = document.getElementById('btn-mode-single');
+  if (mBtn && sBtn) {
+    mBtn.className = (mode === 'multi') ? 'btn active-green' : 'btn';
+    sBtn.className = (mode === 'single') ? 'btn active-green' : 'btn';
+  }
+  const stText = document.getElementById('status-text');
+  if (stText) {
+    stText.textContent = (mode === 'multi') ? "Bambu Lab AMS 5-Color Multi-Material Preview" : "Monolithic Single Black STL Preview";
+  }
+  if (stlMesh) { scene.remove(stlMesh); stlMesh = null; }
+  multiMeshes.forEach(m => scene.remove(m));
+  multiMeshes = [];
+  if (graphicMesh) { scene.remove(graphicMesh); graphicMesh = null; }
+  if (ledsGroup) { scene.remove(ledsGroup); ledsGroup = null; }
+  loadDataAndBuild();
+}
+
 async function loadDataAndBuild() {
   try {
     // 1. Fetch Specs
-    const resp = await fetch('petes_dragon_specs.json');
+    const resp = await fetch('petes_dragon_specs.json?t=' + Date.now());
     specsData = await resp.json();
 
-    // 2. Load 3D Binary STL Model
     const stlLoader = new THREE.STLLoader();
-    const geom = await new Promise((resolve, reject) => {
-      stlLoader.load('petes_dragon_tpu_panel.stl', resolve, undefined, reject);
-    });
 
-    geom.computeVertexNormals();
+    if (previewMode === 'multi') {
+      // Load 5-color split parts
+      const parts = [
+        { file: 'tpu_panel_front_chassis_black.stl', color: 0x11161d, roughness: 0.65 },
+        { file: 'tpu_panel_front_color_green.stl', color: 0x00e676, roughness: 0.45 },
+        { file: 'tpu_panel_front_color_magenta.stl', color: 0xec4899, roughness: 0.45 },
+        { file: 'tpu_panel_front_color_yellow.stl', color: 0xfacc15, roughness: 0.45 },
+        { file: 'tpu_panel_front_color_white.stl', color: 0xffffff, roughness: 0.35 }
+      ];
 
-    // TPU Flexible Resin Material (Dark charcoal slate)
-    const stlMat = new THREE.MeshStandardMaterial({
-      color: 0x1a2230,
-      roughness: 0.55,
-      metalness: 0.15,
-      side: THREE.DoubleSide
-    });
+      for (const p of parts) {
+        try {
+          const geom = await new Promise((resolve, reject) => {
+            stlLoader.load(p.file, resolve, undefined, () => resolve(null));
+          });
+          if (geom) {
+            geom.computeVertexNormals();
+            const mat = new THREE.MeshStandardMaterial({
+              color: p.color,
+              roughness: p.roughness,
+              metalness: 0.05,
+              side: THREE.DoubleSide
+            });
+            const m = new THREE.Mesh(geom, mat);
+            m.position.set(-STL_CENTER_X, -STL_CENTER_Y, -STL_CENTER_Z);
+            scene.add(m);
+            multiMeshes.push(m);
+          }
+        } catch (e) {}
+      }
+    } else {
+      // Monolithic single STL
+      const geom = await new Promise((resolve, reject) => {
+        stlLoader.load('petes_dragon_tpu_panel.stl', resolve, undefined, reject);
+      });
+      geom.computeVertexNormals();
+      const stlMat = new THREE.MeshStandardMaterial({
+        color: 0x1a2230,
+        roughness: 0.55,
+        metalness: 0.15,
+        side: THREE.DoubleSide
+      });
+      stlMesh = new THREE.Mesh(geom, stlMat);
+      stlMesh.position.set(-STL_CENTER_X, -STL_CENTER_Y, -STL_CENTER_Z);
+      scene.add(stlMesh);
 
-    stlMesh = new THREE.Mesh(geom, stlMat);
-    // Center mesh at origin:
-    stlMesh.position.set(-STL_CENTER_X, -STL_CENTER_Y, -STL_CENTER_Z);
-    scene.add(stlMesh);
+      await createCutoutGraphicMesh();
+    }
 
-    // 3. Create Graphic Overlay with 2mm x 2mm Window Cutouts
-    await createCutoutGraphicMesh();
-
-    // 4. Create 100 LED Pixels behind the 2x2mm windows
+    // Create LED Pixels behind the open windows
     createLedPixels();
 
     // Hide loader

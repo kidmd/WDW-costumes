@@ -17408,11 +17408,154 @@ let tpuAnimClock = 0;
 let tpuAnimFrameId = null;
 let tpuIsOpen = false;
 
-const TPU_IMG_WIDTH_MM = 185.0;
-const TPU_IMG_HEIGHT_MM = 222.09;
+const TPU_IMG_WIDTH_MM = 203.2;
+const TPU_IMG_HEIGHT_MM = 169.1;
 const TPU_STL_CENTER_X = 87.846;
 const TPU_STL_CENTER_Y = 108.536;
 const TPU_STL_CENTER_Z = 3.0;
+
+let selectedPlateSize = 'medium';
+let selectedPlateWidthMm = 203.2;
+let selectedLedCount = 75;
+let tpuExportMode = 'multi'; // 'multi' (5-color split) or 'single' (monolithic black)
+let tpuMultiMeshes = [];
+
+function selectLedCountOption(count) {
+    if (count !== 50 && count !== 75 && count !== 100) count = 75;
+    selectedLedCount = count;
+    
+    const btn50 = document.getElementById('ledCount50Btn');
+    const btn75 = document.getElementById('ledCount75Btn');
+    const btn100 = document.getElementById('ledCount100Btn');
+    [btn50, btn75, btn100].forEach(b => {
+        if (b) {
+            b.classList.remove('primary');
+            b.style.background = 'transparent';
+            b.style.color = '#8b949e';
+            b.style.borderColor = '#30363d';
+        }
+    });
+    const activeBtn = (count === 50) ? btn50 : (count === 75 ? btn75 : btn100);
+    if (activeBtn) {
+        activeBtn.classList.add('primary');
+        activeBtn.style.background = '#00ff88';
+        activeBtn.style.color = '#000';
+        activeBtn.style.borderColor = '#00ff88';
+    }
+    const label = document.getElementById('activeLedCountLabel');
+    if (label) label.textContent = `${count} LEDs`;
+
+    scatterLedsOnGraphic(count, true);
+    if (leds && leds.length > 2) {
+        leds = optimizeLedWiringOrder(leds, 'bottom-left');
+    }
+    markSingleShirtDirty();
+    showToast(`✨ Re-scattered ${count} LEDs across graphic with optimal wiring route!`);
+}
+window.selectLedCountOption = selectLedCountOption;
+
+function selectPlateSizeOption(size) {
+    if (size !== 'small' && size !== 'medium' && size !== 'large') size = 'medium';
+    selectedPlateSize = size;
+    const sizeMap = {
+        'small': { mm: 165.1, inches: 6.5, label: 'Small (~6.5" / 165mm)' },
+        'medium': { mm: 203.2, inches: 8.0, label: 'Medium (~8.0" / 203mm)' },
+        'large': { mm: 254.0, inches: 10.0, label: 'Large (~10.0" / 254mm)' }
+    };
+    selectedPlateWidthMm = sizeMap[size].mm;
+
+    const btnS = document.getElementById('plateSizeSmallBtn');
+    const btnM = document.getElementById('plateSizeMediumBtn');
+    const btnL = document.getElementById('plateSizeLargeBtn');
+    [btnS, btnM, btnL].forEach(b => {
+        if (b) {
+            b.classList.remove('primary');
+            b.style.background = 'transparent';
+            b.style.color = '#8b949e';
+            b.style.borderColor = '#30363d';
+        }
+    });
+    const activeBtn = (size === 'small') ? btnS : (size === 'medium' ? btnM : btnL);
+    if (activeBtn) {
+        activeBtn.classList.add('primary');
+        activeBtn.style.background = '#38bdf8';
+        activeBtn.style.color = '#000';
+        activeBtn.style.borderColor = '#38bdf8';
+    }
+    const label = document.getElementById('activePlateSizeLabel');
+    if (label) label.textContent = sizeMap[size].label;
+
+    showToast(`📐 3D Armor Plate Size set to ${sizeMap[size].label}`);
+}
+window.selectPlateSizeOption = selectPlateSizeOption;
+
+function setTpuExportMode(mode) {
+    if (mode !== 'multi' && mode !== 'single') mode = 'multi';
+    tpuExportMode = mode;
+
+    const multiBtn = document.getElementById('tpuModalModeMultiBtn');
+    const monoBtn = document.getElementById('tpuModalModeMonoBtn');
+    const legend = document.getElementById('tpuModalColorLegend');
+
+    if (multiBtn && monoBtn) {
+        if (mode === 'multi') {
+            multiBtn.style.background = '#000';
+            multiBtn.style.color = '#00ff88';
+            monoBtn.style.background = 'transparent';
+            monoBtn.style.color = 'rgba(0,0,0,0.7)';
+        } else {
+            monoBtn.style.background = '#000';
+            monoBtn.style.color = '#00ff88';
+            multiBtn.style.background = 'transparent';
+            multiBtn.style.color = 'rgba(0,0,0,0.7)';
+        }
+    }
+
+    if (legend) {
+        legend.style.display = (mode === 'multi') ? 'flex' : 'none';
+    }
+
+    updateTpuDownloadButtons();
+    loadTpuModalData();
+}
+window.setTpuExportMode = setTpuExportMode;
+
+function updateTpuDownloadButtons() {
+    const container = document.getElementById('tpuModalDownloadButtonsContainer');
+    if (!container) return;
+
+    const v = tpuActiveVariant || 'front';
+    if (tpuExportMode === 'multi') {
+        container.innerHTML = `
+            <a href="/3d_panels/tpu_panel_${v}_multicolor_bundle.zip" download="tpu_panel_${v}_multicolor_bundle.zip" class="action-btn primary" style="padding: 6px 12px; font-size: 11px; background: linear-gradient(135deg, #1f6feb, #388bfd); color: #fff; font-weight: 600; text-decoration: none; display: inline-flex; align-items: center; gap: 4px;" title="Download all 5 STLs, 3MF project, and slicer instructions">
+                📦 Download 5-Color ZIP
+            </a>
+            <a href="/3d_panels/tpu_panel_${v}_multicolor.3mf" download="tpu_panel_${v}_multicolor.3mf" class="action-btn" style="padding: 6px 12px; font-size: 11px; color: #00ff88; border-color: #2ea043; text-decoration: none; display: inline-flex; align-items: center; gap: 4px;" title="Download pre-assembled Bambu Studio / OrcaSlicer project file">
+                🖨️ Download .3MF
+            </a>
+            <div style="position: relative; display: inline-block;">
+                <select onchange="if(this.value){ const a=document.createElement('a'); a.href=this.value; a.download=this.value.split('/').pop(); a.click(); this.value=''; }" style="background: #21262d; color: #58a6ff; border: 1px solid #388bfd; border-radius: 6px; padding: 5px 8px; font-size: 10.5px; font-weight: 600; cursor: pointer; outline: none;">
+                    <option value="">⬇️ Individual STLs...</option>
+                    <option value="/3d_panels/tpu_panel_${v}_chassis_black.stl">1. Black Chassis STL</option>
+                    <option value="/3d_panels/tpu_panel_${v}_color_green.stl">2. Green Body STL</option>
+                    <option value="/3d_panels/tpu_panel_${v}_color_magenta.stl">3. Magenta Wings STL</option>
+                    <option value="/3d_panels/tpu_panel_${v}_color_yellow.stl">4. Yellow Belly STL</option>
+                    <option value="/3d_panels/tpu_panel_${v}_color_white.stl">5. White Eyes STL</option>
+                </select>
+            </div>
+        `;
+    } else {
+        container.innerHTML = `
+            <a href="/3d_panels/tpu_panel_${v}.stl" download="tpu_panel_${v}.stl" class="action-btn primary" style="padding: 6px 14px; font-size: 11px; color: #58a6ff; border-color: #388bfd; text-decoration: none; display: inline-flex; align-items: center; gap: 4px;" title="Download monolithic single black STL">
+                ⬇️ Download ${v.toUpperCase()} STL
+            </a>
+            <button type="button" onclick="downloadBothTpuStls()" class="action-btn" style="padding: 6px 12px; font-size: 11px; color: #ffb703; border-color: #d29922; display: inline-flex; align-items: center; gap: 4px;">
+                📦 Download Both STLs
+            </button>
+        `;
+    }
+}
+window.updateTpuDownloadButtons = updateTpuDownloadButtons;
 
 function initTpuArmorPanel() {
     const openBtn = document.getElementById('openTpuPreviewModalBtn');
@@ -17459,6 +17602,12 @@ function initTpuArmorPanel() {
             tpuStlMesh.material.opacity = val / 100.0;
             tpuStlMesh.material.transparent = val < 100;
         }
+        tpuMultiMeshes.forEach(m => {
+            if (m.material) {
+                m.material.opacity = val / 100.0;
+                m.material.transparent = val < 100;
+            }
+        });
     });
 
     // Recompile STL button
@@ -17466,8 +17615,9 @@ function initTpuArmorPanel() {
         compileBtn.addEventListener('click', handleRecompileTpuStl);
     }
 
-    // Initialize hole shape button styling
+    // Initialize hole shape and export mode
     setTpuWindowShape(params.tpuWindowShape || 'square');
+    updateTpuDownloadButtons();
 }
 window.initTpuArmorPanel = initTpuArmorPanel;
 window.openTpuPreviewModal = openTpuPreviewModal;
@@ -17495,8 +17645,7 @@ function getActiveFloatName() {
 }
 window.getActiveFloatName = getActiveFloatName;
 
-// Fingerprint of everything that shapes the STL (artwork silhouette, LED layout, chest bounds, window shape).
-// Stored in tpu_panel_specs.json so the Preview button can detect a stale STL compiled for another graphic or hole geometry.
+// Fingerprint of everything that shapes the STL (artwork silhouette, LED layout, chest bounds, window shape, size, count).
 function computeTpuLayoutSignature() {
     const activeImg = getActiveGraphicImg();
     const src = (activeImg && activeImg.src) ? activeImg.src : 'none';
@@ -17511,9 +17660,11 @@ function computeTpuLayoutSignature() {
     mix(String(currentGraphicType));
     mix(src);
     mix(String(winShape));
+    mix(String(selectedPlateWidthMm));
+    mix(String(selectedPlateSize));
     mix([gb.normX, gb.normY, gb.normW, gb.normH].map(v => Number(v || 0).toFixed(4)).join(','));
     mix((leds || []).map(l => `${Number(l.x).toFixed(4)},${Number(l.y).toFixed(4)}`).join(';'));
-    return `${currentGraphicType}-${winShape}-${h.toString(16)}`;
+    return `${currentGraphicType}-${winShape}-${selectedPlateSize}-${(leds || []).length}-${h.toString(16)}`;
 }
 window.computeTpuLayoutSignature = computeTpuLayoutSignature;
 
@@ -17615,6 +17766,9 @@ async function handleRecompileTpuStl(opts) {
             floatName: floatName,
             graphicType: currentGraphicType,
             windowShape: params.tpuWindowShape || 'square',
+            widthMm: selectedPlateWidthMm,
+            sizePreset: selectedPlateSize,
+            ledCount: (leds || []).length,
             bounds: gb,
             artworkDataUrl: artworkDataUrl,
             layoutSignature: computeTpuLayoutSignature()
@@ -17843,19 +17997,9 @@ function clearTpuSceneModel() {
     toRemove.forEach((obj) => {
         if (obj.parent) obj.parent.remove(obj);
         if (obj.geometry) obj.geometry.dispose();
-        if (obj.material) {
-            if (Array.isArray(obj.material)) {
-                obj.material.forEach((m) => {
-                    if (m.map) m.map.dispose();
-                    m.dispose();
-                });
-            } else {
-                if (obj.material.map) obj.material.map.dispose();
-                obj.material.dispose();
-            }
-        }
     });
     tpuStlMesh = null;
+    tpuMultiMeshes = [];
     tpuGraphicMesh = null;
     tpuLedsGroup = null;
     tpuLedMaterials = [];
@@ -17869,7 +18013,7 @@ async function loadTpuModalData() {
         loaderOverlay.style.display = 'flex';
         loaderOverlay.innerHTML = `
             <div class="spinner" style="width: 32px; height: 32px; border: 3px solid rgba(0, 255, 136, 0.2); border-top-color: #00ff88; border-radius: 50%; animation: spin 0.8s linear infinite;"></div>
-            <span>Loading ${tpuActiveVariant === 'back' ? 'Back (240mm)' : 'Front (185mm)'} STL & Shaders...</span>
+            <span>Loading ${tpuActiveVariant === 'back' ? 'Back' : 'Front'} (${tpuExportMode === 'multi' ? '5-Color Split STLs' : 'Single Black STL'})...</span>
         `;
     }
 
@@ -17893,14 +18037,15 @@ async function loadTpuModalData() {
 
         const modalTitle = document.querySelector('#tpuPreviewModal h3');
         if (modalTitle) {
-            modalTitle.textContent = `${floatName} 3D Flexible TPU Armor Panel • ${variantTitle}`;
+            const modeLabel = (tpuExportMode === 'multi') ? "🎨 5-Color Multi-Material Print" : "⚪ Single-Color Black STL";
+            modalTitle.textContent = `${floatName} • ${variantTitle} (${modeLabel})`;
         }
 
         const effectiveShape = specs.window_shape || params.tpuWindowShape || 'square';
         const modalSub = document.getElementById('tpuModalSubtitle');
         if (modalSub) {
             const shapeText = (effectiveShape === 'round' || effectiveShape === 'circle') ? 'Ø 3mm Round Windows' : '3×3mm Square Windows';
-            modalSub.textContent = `95A TPU Open-Chassis Tray • ${shapeText} • Zero Overlap Pockets`;
+            modalSub.textContent = `95A TPU Open-Chassis Tray • ${shapeText} • Sized for Bambu Lab AMS (5 Slots)`;
         }
 
         // Sync modal shape buttons
@@ -17921,6 +18066,49 @@ async function loadTpuModalData() {
             }
         }
 
+        // Sync modal variant buttons
+        const vfBtn = document.getElementById('tpuModalSelectFrontBtn');
+        const vbBtn = document.getElementById('tpuModalSelectBackBtn');
+        if (vfBtn && vbBtn) {
+            if (tpuActiveVariant === 'front') {
+                vfBtn.style.background = '#000';
+                vfBtn.style.color = '#00ff88';
+                vbBtn.style.background = 'transparent';
+                vbBtn.style.color = 'rgba(0,0,0,0.7)';
+            } else {
+                vbBtn.style.background = '#000';
+                vbBtn.style.color = '#00ff88';
+                vfBtn.style.background = 'transparent';
+                vfBtn.style.color = 'rgba(0,0,0,0.7)';
+            }
+        }
+
+        // Sync multi-color vs single mode buttons
+        const multiBtn = document.getElementById('tpuModalModeMultiBtn');
+        const monoBtn = document.getElementById('tpuModalModeMonoBtn');
+        const legend = document.getElementById('tpuModalColorLegend');
+        if (multiBtn && monoBtn) {
+            if (tpuExportMode === 'multi') {
+                multiBtn.style.background = '#000';
+                multiBtn.style.color = '#00ff88';
+                monoBtn.style.background = 'transparent';
+                monoBtn.style.color = 'rgba(0,0,0,0.7)';
+            } else {
+                monoBtn.style.background = '#000';
+                monoBtn.style.color = '#00ff88';
+                multiBtn.style.background = 'transparent';
+                multiBtn.style.color = 'rgba(0,0,0,0.7)';
+            }
+        }
+        if (legend) {
+            legend.style.display = (tpuExportMode === 'multi') ? 'flex' : 'none';
+        }
+
+        // Update aperture badge in legend
+        const apBadge = document.getElementById('tpuLegendAperturesBadge');
+        const activeCount = (variantData.ordered_leds || leds || []).length;
+        if (apBadge) apBadge.textContent = `${activeCount} Open Windows`;
+
         // Update dimensions badge & bed clearance text
         const dimText = document.getElementById('tpuModalDimText');
         const weightText = document.getElementById('tpuModalWeightText');
@@ -17933,62 +18121,116 @@ async function loadTpuModalData() {
             const estWeight = Math.round((variantData.volume_mm3 || (b[0] * b[1] * 1.5)) * 0.00115);
             if (weightText) weightText.textContent = `~${estWeight} g`;
         } else if (dimText) {
-            dimText.textContent = (tpuActiveVariant === 'back') ? '198.1 × 176.1 × 6.0 mm' : '157.0 × 139.8 × 6.0 mm';
+            dimText.textContent = `${selectedPlateWidthMm} × ${round(selectedPlateWidthMm * 0.83, 1)} × 6.0 mm`;
         }
 
         if (snapClearance && bambuClearance) {
-            if (tpuActiveVariant === 'back') {
-                snapClearance.textContent = 'Snapmaker U1 (270×270mm): ~15mm margin ✓';
-                bambuClearance.textContent = 'Bambu Lab (250×250mm safe): ~5mm margin ✓';
-            } else {
-                snapClearance.textContent = 'Snapmaker U1 (270×270mm): ~50mm margin ✓';
-                bambuClearance.textContent = 'Bambu Lab (250×250mm safe): ~42mm margin ✓';
-            }
+            const curW = variantData.stl_bounds ? variantData.stl_bounds[0] : selectedPlateWidthMm;
+            snapClearance.textContent = `Snapmaker U1 (270mm): ~${Math.max(0, Math.round(270 - curW))}mm margin ✓`;
+            bambuClearance.textContent = `Bambu Lab (256mm): ~${Math.max(0, Math.round(250 - curW))}mm margin ✓`;
         }
+
+        // Update footer download buttons
+        updateTpuDownloadButtons();
 
         let stlCenter = new THREE.Vector3(87.8, 108.5, 3.0);
 
-        // Always clean up any existing meshes before instantiating new ones!
+        // Clean up previous 3D meshes
         clearTpuSceneModel();
 
         if (THREE.STLLoader) {
             const stlLoader = new THREE.STLLoader();
-            const stlFile = (tpuActiveVariant === 'back') ? 'tpu_panel_back.stl' : 'tpu_panel_front.stl';
-            let stlUrl = `/3d_panels/${stlFile}?t=` + Date.now();
-            const geom = await new Promise((resolve, reject) => {
-                stlLoader.load(stlUrl, resolve, undefined, () => {
-                    // Fallback to legacy single-panel if needed
-                    stlLoader.load('/3d_panels/tpu_panel.stl?t=' + Date.now(), resolve, undefined, reject);
+            const v = tpuActiveVariant;
+
+            if (tpuExportMode === 'multi') {
+                // 1. Load Black Chassis
+                const chassisUrl = `/3d_panels/tpu_panel_${v}_chassis_black.stl?t=` + Date.now();
+                const chassisGeom = await new Promise((resolve, reject) => {
+                    stlLoader.load(chassisUrl, resolve, undefined, () => {
+                        stlLoader.load(`/3d_panels/tpu_panel_${v}.stl?t=` + Date.now(), resolve, undefined, reject);
+                    });
                 });
-            });
-            if (reqId !== tpuLoadRequestId) return; // Superceded by newer request
+                if (reqId !== tpuLoadRequestId) return;
 
-            geom.computeVertexNormals();
-            geom.computeBoundingBox();
-            stlCenter = geom.boundingBox.getCenter(new THREE.Vector3());
+                chassisGeom.computeVertexNormals();
+                chassisGeom.computeBoundingBox();
+                stlCenter = chassisGeom.boundingBox.getCenter(new THREE.Vector3());
 
-            const stlMat = new THREE.MeshStandardMaterial({
-                color: (tpuActiveVariant === 'back') ? 0x142033 : 0x1a2230,
-                roughness: 0.55,
-                metalness: 0.15,
-                side: THREE.DoubleSide,
-                transparent: true,
-                opacity: 0.95,
-                depthWrite: true,
-                polygonOffset: true,
-                polygonOffsetFactor: 1.0,
-                polygonOffsetUnits: 1.0
-            });
+                const chassisMat = new THREE.MeshStandardMaterial({
+                    color: 0x11161d,
+                    roughness: 0.65,
+                    metalness: 0.1,
+                    side: THREE.DoubleSide
+                });
+                const chassisMesh = new THREE.Mesh(chassisGeom, chassisMat);
+                chassisMesh.position.set(-stlCenter.x, -stlCenter.y, -stlCenter.z);
+                tpuScene.add(chassisMesh);
+                tpuMultiMeshes.push(chassisMesh);
 
-            tpuStlMesh = new THREE.Mesh(geom, stlMat);
-            tpuStlMesh.renderOrder = 0;
-            tpuStlMesh.position.set(-stlCenter.x, -stlCenter.y, -stlCenter.z);
-            tpuScene.add(tpuStlMesh);
+                // 2. Load Color Inlays (Green, Magenta, Yellow, White)
+                const inlays = [
+                    { file: `tpu_panel_${v}_color_green.stl`, color: 0x00e676, roughness: 0.45 },
+                    { file: `tpu_panel_${v}_color_magenta.stl`, color: 0xec4899, roughness: 0.45 },
+                    { file: `tpu_panel_${v}_color_yellow.stl`, color: 0xfacc15, roughness: 0.45 },
+                    { file: `tpu_panel_${v}_color_white.stl`, color: 0xffffff, roughness: 0.35 }
+                ];
+
+                for (const item of inlays) {
+                    try {
+                        const iGeom = await new Promise((resolve, reject) => {
+                            stlLoader.load(`/3d_panels/${item.file}?t=` + Date.now(), resolve, undefined, () => resolve(null));
+                        });
+                        if (iGeom) {
+                            iGeom.computeVertexNormals();
+                            const iMat = new THREE.MeshStandardMaterial({
+                                color: item.color,
+                                roughness: item.roughness,
+                                metalness: 0.05,
+                                side: THREE.DoubleSide
+                            });
+                            const iMesh = new THREE.Mesh(iGeom, iMat);
+                            iMesh.position.set(-stlCenter.x, -stlCenter.y, -stlCenter.z);
+                            tpuScene.add(iMesh);
+                            tpuMultiMeshes.push(iMesh);
+                        }
+                    } catch (e) {
+                        console.warn("Could not load inlay:", item.file, e);
+                    }
+                }
+            } else {
+                // Monolithic Single STL
+                const stlFile = (v === 'back') ? 'tpu_panel_back.stl' : 'tpu_panel_front.stl';
+                const stlUrl = `/3d_panels/${stlFile}?t=` + Date.now();
+                const geom = await new Promise((resolve, reject) => {
+                    stlLoader.load(stlUrl, resolve, undefined, () => {
+                        stlLoader.load('/3d_panels/tpu_panel.stl?t=' + Date.now(), resolve, undefined, reject);
+                    });
+                });
+                if (reqId !== tpuLoadRequestId) return;
+
+                geom.computeVertexNormals();
+                geom.computeBoundingBox();
+                stlCenter = geom.boundingBox.getCenter(new THREE.Vector3());
+
+                const stlMat = new THREE.MeshStandardMaterial({
+                    color: (v === 'back') ? 0x142033 : 0x1a2230,
+                    roughness: 0.55,
+                    metalness: 0.15,
+                    side: THREE.DoubleSide,
+                    transparent: true,
+                    opacity: 0.95
+                });
+
+                tpuStlMesh = new THREE.Mesh(geom, stlMat);
+                tpuStlMesh.position.set(-stlCenter.x, -stlCenter.y, -stlCenter.z);
+                tpuScene.add(tpuStlMesh);
+
+                await createTpuGraphicCutoutMesh(variantData, stlCenter);
+                if (reqId !== tpuLoadRequestId) return;
+            }
         }
 
-        await createTpuGraphicCutoutMesh(variantData, stlCenter);
-        if (reqId !== tpuLoadRequestId) return; // Superceded by newer request
-
+        // Render simulated LED pixels projecting through apertures
         createTpuLedPixels(variantData, stlCenter);
 
         if (loaderOverlay) loaderOverlay.style.display = 'none';

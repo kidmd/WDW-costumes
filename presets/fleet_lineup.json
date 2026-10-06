@@ -74,7 +74,7 @@
     "color": "#00ff88",
     "accent": "Green",
     "role": "\ud83d\udce1 Follower Float",
-    "preset": "server:petes_dragon.json",
+    "preset": "server:petes_dragon_chris.json",
     "defaultGraphic": "builtin_dragon"
   },
   {

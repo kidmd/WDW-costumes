@@ -1,4 +1,4 @@
-import json, math, time, os, shutil, sys
+import json, math, time, os, shutil, sys, zipfile
 import numpy as np
 import shapely.geometry as sg
 from shapely.ops import unary_union
@@ -9,7 +9,7 @@ import cv2
 from PIL import Image
 
 print("=" * 70)
-print("ANTIGRAVITY IMAGINEERING - DUAL FRONT & BACK TPU ARMOR TRAY COMPILER v4")
+print("ANTIGRAVITY IMAGINEERING - 5-COLOR MULTI-MATERIAL TPU ARMOR TRAY COMPILER v5")
 print("=" * 70)
 t0 = time.time()
 
@@ -40,6 +40,7 @@ COLLAR_OUTER_W = COLLAR_INNER_W + 2 * COLLAR_WALL_THICK # 7.4mm
 
 NOTCH_WIDTH = 4.0           # mm (wire pass-through slot on both 5mm ends)
 WINDOW_SQ = 3.0             # mm (3x3mm square optical aperture through 1.0mm front skin)
+COLOR_INLAY_THICK = 0.6     # mm (3 layers @ 0.20mm layer height for crisp multi-color face)
 
 def make_stadium_polygon(length, width, sections=16):
     r = width / 2.0
@@ -52,27 +53,58 @@ def make_stadium_polygon(length, width, sections=16):
     return sg.Polygon(pts)
 
 def to_m(tm):
+    if tm is None:
+        return None
     v = np.ascontiguousarray(tm.vertices, dtype=np.float32)
     f = np.ascontiguousarray(tm.faces, dtype=np.uint32)
     return Manifold(Mesh(vert_properties=v, tri_verts=f))
 
+def extrude_shapely(shape, height):
+    if shape is None or shape.is_empty:
+        return None
+    geoms = shape.geoms if shape.geom_type in ['MultiPolygon', 'GeometryCollection'] else [shape]
+    meshes = []
+    for g in geoms:
+        if g.geom_type == 'Polygon' and g.area > 0.05:
+            try:
+                m = trimesh.creation.extrude_polygon(g, height=height)
+                if m and len(m.faces) > 0:
+                    meshes.append(m)
+            except Exception:
+                pass
+    if not meshes:
+        return None
+    if len(meshes) == 1:
+        return meshes[0]
+    return trimesh.util.concatenate(meshes)
+
+def flip_z_manifold(m):
+    mesh_data = m.to_mesh()
+    v = mesh_data.vert_properties[:, :3].copy()
+    v[:, 2] = TOTAL_THICK - v[:, 2]
+    f = mesh_data.tri_verts[:, ::-1].copy()
+    return trimesh.Trimesh(vertices=v, faces=f, process=True)
+
+def flip_z_trimesh(tm):
+    if tm is None or len(tm.faces) == 0:
+        return None
+    v = tm.vertices.copy()
+    v[:, 2] = TOTAL_THICK - v[:, 2]
+    f = tm.faces[:, ::-1].copy()
+    return trimesh.Trimesh(vertices=v, faces=f, process=True)
+
 def compile_plate_variant(variant_name, width_mm, height_mm, raw_leds, artwork_path, window_shape='square'):
-    print(f"\n>>> Compiling {variant_name.upper()} Plate ({width_mm}mm x {height_mm}mm, Window Shape: {window_shape.upper()})...")
+    print(f"\n>>> Compiling {variant_name.upper()} Plate ({width_mm}mm x {height_mm}mm, {len(raw_leds)} LEDs, Window Shape: {window_shape.upper()})...")
     v_t0 = time.time()
     num_leds = len(raw_leds)
     leds = [dict(l) for l in raw_leds]
 
     # 1. Extract Active Silhouette Boundary & Safe Artwork Containment Zone
-    active_img = Image.open(artwork_path)
+    active_img = Image.open(artwork_path).convert('RGBA')
     img_w, img_h = active_img.size
     img_arr = np.array(active_img)
-
-    if img_arr.ndim == 3 and img_arr.shape[2] == 4:
-        alpha = img_arr[:, :, 3]
-        mask = (alpha > 40).astype(np.uint8)
-    else:
-        gray = cv2.cvtColor(img_arr, cv2.COLOR_RGB2GRAY) if img_arr.ndim == 3 else img_arr
-        _, mask = cv2.threshold(gray, 20, 255, cv2.THRESH_BINARY)
+    alpha = img_arr[:, :, 3]
+    mask = (alpha > 40).astype(np.uint8)
 
     raw_contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
     if raw_contours:
@@ -93,7 +125,7 @@ def compile_plate_variant(variant_name, width_mm, height_mm, raw_leds, artwork_p
     else:
         safe_art_boundary = sg.box(5.0, 5.0, width_mm - 5.0, height_mm - 5.0)
 
-    # 2. LED Collar Horizontal Orientation & PBD Collision Avoidance with Artwork Boundary Clamping
+    # 2. LED Collar Orientation & Collision Avoidance
     led_rotations_deg = [0.0] * num_leds
     pts = np.array([[l['x'], l['y']] for l in leds], dtype=np.float64)
     orig_pts = pts.copy()
@@ -123,21 +155,20 @@ def compile_plate_variant(variant_name, width_mm, height_mm, raw_leds, artwork_p
                     pts[i] -= [push_x, push_y]
                     pts[j] += [push_x, push_y]
 
-        # Clamp strictly within artwork boundary so LEDs never bleed out into empty space!
         for i in range(num_leds):
             pt = sg.Point(pts[i])
             if not safe_art_boundary.contains(pt):
                 nearest = safe_art_boundary.exterior.interpolate(safe_art_boundary.exterior.project(pt))
                 pts[i] = [nearest.x, nearest.y]
 
-    max_shift = np.max(np.hypot(pts[:, 0] - orig_pts[:, 0], pts[:, 1] - orig_pts[:, 1]))
-    avg_shift = np.mean(np.hypot(pts[:, 0] - orig_pts[:, 0], pts[:, 1] - orig_pts[:, 1]))
-    print(f"[{variant_name}] PBD solver: Max shift = {max_shift:.2f}mm, Avg shift = {avg_shift:.2f}mm.")
+    max_shift = np.max(np.hypot(pts[:, 0] - orig_pts[:, 0], pts[:, 1] - orig_pts[:, 1])) if num_leds > 0 else 0.0
+    avg_shift = np.mean(np.hypot(pts[:, 0] - orig_pts[:, 0], pts[:, 1] - orig_pts[:, 1])) if num_leds > 0 else 0.0
+    print(f"[{variant_name}] PBD solver ({num_leds} LEDs): Max shift = {max_shift:.2f}mm, Avg shift = {avg_shift:.2f}mm.")
     for i in range(num_leds):
         leds[i]['x'] = round(float(pts[i, 0]), 2)
         leds[i]['y'] = round(float(pts[i, 1]), 2)
 
-    # 3. Dilate Outer Rim and Generate Armor Plate Polygon
+    # 3. Outer Rim and Armor Plate 2D Boundary
     kernel_size = max(5, int(min(img_w, img_h) * 0.02))
     if kernel_size % 2 == 0: kernel_size += 1
     mask_dilated = cv2.dilate(mask, np.ones((kernel_size, kernel_size), np.uint8), iterations=2)
@@ -184,7 +215,7 @@ def compile_plate_variant(variant_name, width_mm, height_mm, raw_leds, artwork_p
     rim_mesh = trimesh.creation.extrude_polygon(rim_polygon_2d, height=RIM_HEIGHT)
     rim_mesh.apply_translation([0, 0, FRONT_THICK_GENERAL]) # Z = 2.0 to 6.0mm
 
-    # 3. 16 Outside Perimeter Mounting Eyelets
+    # 4. 16 Outside Perimeter Mounting Eyelets
     boundary_line = smoothed_plate_2d.exterior
     total_len = boundary_line.length
     num_tabs = 16
@@ -215,7 +246,7 @@ def compile_plate_variant(variant_name, width_mm, height_mm, raw_leds, artwork_p
         tab_solid = trimesh.Trimesh(vertices=tab_mesh_data.vert_properties[:, :3], faces=tab_mesh_data.tri_verts)
         tab_meshes.append(tab_solid)
 
-    # 4. Collars, Recesses & Windows
+    # 5. Collars, Recesses & Windows
     outer_collar_2d = make_stadium_polygon(COLLAR_OUTER_L, COLLAR_OUTER_W, sections=16)
     inner_collar_2d = make_stadium_polygon(COLLAR_INNER_L, COLLAR_INNER_W, sections=16)
     collar_ring_2d = sg.Polygon(outer_collar_2d.exterior.coords, [inner_collar_2d.exterior.coords])
@@ -223,6 +254,9 @@ def compile_plate_variant(variant_name, width_mm, height_mm, raw_leds, artwork_p
     collar_meshes = []
     floor_recess_cutters = []
     square_window_cutters = []
+
+    # 2D window apertures for cutting into color inlays
+    led_windows_2d_list = []
 
     for i in range(num_leds):
         l = leds[i]
@@ -251,13 +285,19 @@ def compile_plate_variant(variant_name, width_mm, height_mm, raw_leds, artwork_p
         # 3x3mm Square or Ø 3mm Round Optical Window
         if str(window_shape).lower() in ['round', 'circle']:
             sq_win = trimesh.creation.cylinder(radius=WINDOW_SQ / 2.0, height=FRONT_THICK_LED + 1.0, sections=24)
+            win_2d = sg.Point(cx, cy).buffer(WINDOW_SQ / 2.0, resolution=16)
         else:
             sq_win = trimesh.creation.box(extents=[WINDOW_SQ, WINDOW_SQ, FRONT_THICK_LED + 1.0])
             sq_win.apply_transform(rot)
+            win_2d = sg.box(cx - WINDOW_SQ / 2.0, cy - WINDOW_SQ / 2.0, cx + WINDOW_SQ / 2.0, cy + WINDOW_SQ / 2.0)
+
         sq_win.apply_translation([cx, cy, FRONT_THICK_LED / 2.0])
         square_window_cutters.append(sq_win)
+        led_windows_2d_list.append(win_2d)
 
-    # 5. Debossed LED Numbers (1 to 100)
+    led_windows_union_2d = unary_union(led_windows_2d_list) if led_windows_2d_list else sg.Polygon()
+
+    # 6. Debossed LED Numbers (1 to N)
     number_positions = []
     number_cutters = []
 
@@ -273,7 +313,7 @@ def compile_plate_variant(variant_name, width_mm, height_mm, raw_leds, artwork_p
             p + np.array([6.5, -4.5]),  p + np.array([-6.5, -4.5]),
         ]
         for cand in candidates:
-            min_d = min(np.linalg.norm(cand - np.array([ol['x'], ol['y']])) for j, ol in enumerate(leds) if j != i)
+            min_d = min(np.linalg.norm(cand - np.array([ol['x'], ol['y']])) for j, ol in enumerate(leds) if j != i) if len(leds) > 1 else 10.0
             if min_d > max_d:
                 max_d = min_d
                 best_cand = cand
@@ -307,35 +347,208 @@ def compile_plate_variant(variant_name, width_mm, height_mm, raw_leds, artwork_p
             num_combined.apply_translation([best_cand[0], best_cand[1], 0.0])
             number_cutters.append(num_combined)
 
-    # 6. Manifold3D Assembly & Boolean Operations
-    all_solids = [base_front_mesh, rim_mesh] + tab_meshes + collar_meshes
-    solids_m = [to_m(s) for s in all_solids]
-    assembled_m = Manifold.batch_boolean(solids_m, OpType.Add)
+    # 7. 5-COLOR VECTOR SEGMENTATION (Green, Magenta, Yellow, White)
+    print(f"[{variant_name}] Segmenting 5-color artwork for multi-material inlays...")
+    rgb = img_arr[:, :, :3].astype(np.float32)
+    targets = {
+        'black': np.array([13.0, 25.0, 8.0]),
+        'green': np.array([4.0, 250.0, 6.0]),
+        'magenta': np.array([210.0, 10.0, 200.0]),
+        'yellow': np.array([249.0, 249.0, 12.0]),
+        'white': np.array([247.0, 248.0, 247.0])
+    }
+    color_names = list(targets.keys())
+    color_diffs = np.stack([np.sum((rgb - targets[k])**2, axis=2) for k in color_names], axis=2)
+    closest_color_idx = np.argmin(color_diffs, axis=2)
 
+    color_inlay_meshes = {}
+    color_inlay_manifolds = []
+
+    for c_i, c_name in enumerate(color_names):
+        if c_name == 'black':
+            continue
+        c_mask = ((closest_color_idx == c_i) & (alpha > 40)).astype(np.uint8) * 255
+        kernel = np.ones((3, 3), np.uint8)
+        c_mask = cv2.morphologyEx(c_mask, cv2.MORPH_OPEN, kernel)
+        c_mask = cv2.morphologyEx(c_mask, cv2.MORPH_CLOSE, kernel)
+        cnts, _ = cv2.findContours(c_mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+        
+        c_polys = []
+        for c in cnts:
+            if cv2.contourArea(c) < 25:
+                continue
+            eps = 0.003 * cv2.arcLength(c, True)
+            approx = cv2.approxPolyDP(c, eps, True)
+            if len(approx) < 3:
+                continue
+            pts = []
+            for pt in approx:
+                cx = round((pt[0][0] / img_w) * width_mm, 2)
+                cy = round((1.0 - pt[0][1] / img_h) * height_mm, 2)
+                pts.append((cx, cy))
+            poly = sg.Polygon(pts)
+            if poly.is_valid and poly.area > 0.1:
+                c_polys.append(poly)
+
+        if c_polys:
+            c_union = unary_union(c_polys)
+            # Subtract LED aperture windows so light projects clean through!
+            if not led_windows_union_2d.is_empty:
+                c_union = c_union.difference(led_windows_union_2d)
+            # Ensure valid polygon geometry
+            if not c_union.is_valid:
+                c_union = c_union.buffer(0)
+            
+            # Extrude 0.6mm thickness (from Z = 0.0 to 0.6mm)
+            inlay_mesh = extrude_shapely(c_union, COLOR_INLAY_THICK)
+            if inlay_mesh is not None:
+                color_inlay_meshes[c_name] = inlay_mesh
+                color_inlay_manifolds.append(to_m(inlay_mesh))
+                print(f"[{variant_name}] Created {c_name.upper()} Inlay ({len(inlay_mesh.vertices)} vertices, area {c_union.area:.1f} mm^2)")
+
+    # 8. Manifold3D Assembly & Boolean Operations
+    # Union all solids for the black chassis:
+    # Floor tray + 4mm Perimeter Rim + 16 Eyelet Tabs + Notched Collars
+    base_m = to_m(base_front_mesh)
+    
+    # Subtract color inlays from base plate so black chassis has precision jigsaw pockets:
+    if color_inlay_manifolds:
+        color_union_m = Manifold.batch_boolean(color_inlay_manifolds, OpType.Add)
+        base_with_pockets_m = base_m - color_union_m
+    else:
+        base_with_pockets_m = base_m
+
+    chassis_solids = [base_with_pockets_m, to_m(rim_mesh)] + [to_m(t) for t in tab_meshes] + [to_m(c) for c in collar_meshes]
+    chassis_assembled_m = Manifold.batch_boolean(chassis_solids, OpType.Add)
+
+    # Cutters: floor recesses, square/round optical windows, and debossed numbers
     all_cutters = floor_recess_cutters + square_window_cutters + number_cutters
     cutters_m = [to_m(c) for c in all_cutters]
     cutters_union_m = Manifold.batch_boolean(cutters_m, OpType.Add)
 
-    final_m = assembled_m - cutters_union_m
-    out_m = final_m.to_mesh()
+    final_chassis_m = chassis_assembled_m - cutters_union_m
+    final_chassis_tm = flip_z_manifold(final_chassis_m)
 
-    # Flip Z so FRONT face faces +Z and UNDERSIDE faces -Z
-    verts_flipped = out_m.vert_properties[:, :3].copy()
-    verts_flipped[:, 2] = TOTAL_THICK - verts_flipped[:, 2]
-    faces_flipped = out_m.tri_verts[:, ::-1].copy()
-    final_model = trimesh.Trimesh(vertices=verts_flipped, faces=faces_flipped, process=True)
+    # Monolithic single-color black STL (legacy compatible, without color pockets subtracted)
+    monolithic_solids = [base_m, to_m(rim_mesh)] + [to_m(t) for t in tab_meshes] + [to_m(c) for c in collar_meshes]
+    monolithic_m = Manifold.batch_boolean(monolithic_solids, OpType.Add) - cutters_union_m
+    final_monolithic_tm = flip_z_manifold(monolithic_m)
 
-    # Export STL
-    stl_filename = f"tpu_panel_{variant_name}.stl"
-    stl_path = os.path.join('3d_panels', stl_filename)
-    final_model.export(stl_path)
+    # Flipped color inlays:
+    flipped_colors = {}
+    for c_name, tm in color_inlay_meshes.items():
+        flipped_colors[c_name] = flip_z_trimesh(tm)
+
+    # 9. EXPORT STLs (Monolithic + 5 Split Parts)
+    out_dir = '3d_panels'
+    os.makedirs(out_dir, exist_ok=True)
+
+    # 1. Monolithic Single-Color STL (Legacy & single-print compatible)
+    mono_filename = f"tpu_panel_{variant_name}.stl"
+    mono_path = os.path.join(out_dir, mono_filename)
+    final_monolithic_tm.export(mono_path)
+
+    # 2. Black Chassis STL
+    chassis_filename = f"tpu_panel_{variant_name}_chassis_black.stl"
+    chassis_path = os.path.join(out_dir, chassis_filename)
+    final_chassis_tm.export(chassis_path)
+
+    # 3. Color Inlay STLs
+    color_stls = {}
+    for c_name in ['green', 'magenta', 'yellow', 'white']:
+        c_tm = flipped_colors.get(c_name)
+        if c_tm is not None:
+            c_filename = f"tpu_panel_{variant_name}_color_{c_name}.stl"
+            c_path = os.path.join(out_dir, c_filename)
+            c_tm.export(c_path)
+            color_stls[c_name] = c_path
+        else:
+            # Fallback tiny spacer if a color is empty
+            pass
 
     if variant_name == 'front':
-        # Maintain backward compatibility aliases
-        shutil.copyfile(stl_path, '3d_panels/tpu_panel.stl')
-        shutil.copyfile(stl_path, '3d_panels/petes_dragon_tpu_panel.stl')
+        shutil.copyfile(mono_path, os.path.join(out_dir, 'tpu_panel.stl'))
+        shutil.copyfile(mono_path, os.path.join(out_dir, 'petes_dragon_tpu_panel.stl'))
 
-    # Export OpenSCAD Parametric Model
+    # 10. EXPORT NATIVE MULTI-BODY .3MF PROJECT
+    mf3_filename = f"tpu_panel_{variant_name}_multicolor.3mf"
+    mf3_path = os.path.join(out_dir, mf3_filename)
+    scene_items = {'1_Chassis_Black': final_chassis_tm}
+    if 'green' in flipped_colors: scene_items['2_Body_Green'] = flipped_colors['green']
+    if 'magenta' in flipped_colors: scene_items['3_HairWings_Magenta'] = flipped_colors['magenta']
+    if 'yellow' in flipped_colors: scene_items['4_Belly_Yellow'] = flipped_colors['yellow']
+    if 'white' in flipped_colors: scene_items['5_EyesTeeth_White'] = flipped_colors['white']
+
+    try:
+        scene = trimesh.Scene(scene_items)
+        scene.export(mf3_path)
+        print(f"[{variant_name}] Exported native 3MF: {mf3_filename}")
+    except Exception as e:
+        print(f"[{variant_name}] 3MF export warning: {e}")
+
+    # 11. EXPORT READY-TO-PRINT ZIP BUNDLE
+    zip_filename = f"tpu_panel_{variant_name}_multicolor_bundle.zip"
+    zip_path = os.path.join(out_dir, zip_filename)
+    
+    readme_content = f"""🏰 MAIN STREET ELECTRICAL PARADE (WDW 10K) - 3D TPU ARMOR PLATE
+BAMBU LAB X1-CARBON / AMS MULTI-COLOR PRINTING GUIDE
+
+PLATE VARIANT: {variant_name.upper()}
+PHYSICAL SIZE: {panel_w} mm W x {panel_h} mm H (Target Width: {width_mm} mm / ~{round(width_mm/25.4, 1)} in)
+ACTIVE LEDS: {num_leds} LEDs with 3x3mm open optical apertures
+
+======================================================================
+HOW TO IMPORT INTO BAMBU STUDIO / ORCASLICER:
+======================================================================
+METHOD 1: NATIVE .3MF PROJECT (RECOMMENDED)
+1. Open Bambu Studio.
+2. Drag and drop '{mf3_filename}' onto the build plate.
+3. In the left panel (Process -> Objects), verify the 5 parts are listed.
+4. Assign your AMS filament slots (Slot 1 to 5) to the parts.
+
+METHOD 2: SPLIT STLs (MULTI-PART MERGE)
+1. In Bambu Studio, select your printer.
+2. Select all 5 STL files simultaneously:
+   - {chassis_filename}
+   - tpu_panel_{variant_name}_color_green.stl
+   - tpu_panel_{variant_name}_color_magenta.stl
+   - tpu_panel_{variant_name}_color_yellow.stl
+   - tpu_panel_{variant_name}_color_white.stl
+3. Drag all 5 files together onto the build plate.
+4. When prompted: "Load these files as a single object with multiple parts?"
+   -> Click YES.
+5. All 5 parts will lock together in exact (0, 0, 0) 3D alignment.
+
+======================================================================
+FILAMENT / AMS SLOT MAPPING:
+======================================================================
+Slot 1 (Black 95A TPU):   Chassis Tray, 4mm Perimeter Rim, 16 Tabs, {num_leds} Collars, Outlines
+Slot 2 (Neon Green TPU):  Pete's Dragon Body
+Slot 3 (Magenta/Pink TPU):Dragon Hair Tuft, Spine & Wings
+Slot 4 (Sunny Yellow TPU):Dragon Belly & Facial Accents
+Slot 5 (Bright White TPU):Dragon Eyes & Teeth
+
+======================================================================
+RECOMMENDED 95A TPU PRINT SETTINGS:
+======================================================================
+- Layer Height: 0.20mm Standard (0.16mm Optimal for fine face detail)
+- Wall Loops: 3
+- Infill: 100% Solid (flexible high-durability armor for race day)
+- Nozzle Temp: 225°C - 235°C
+- Bed Temp: 35°C (Textured PEI Plate - use glue stick if TPU sticks too firmly)
+- Print Speed: 30 - 45 mm/s (TPU requires steady, unhurried flow)
+- Wipe Tower: Enabled (Prime volume ~25-35 mm3)
+======================================================================
+"""
+    with zipfile.ZipFile(zip_path, 'w', zipfile.ZIP_DEFLATED) as zf:
+        zf.writestr('README_BAMBU_STUDIO.txt', readme_content)
+        zf.write(chassis_path, chassis_filename)
+        for c_n, c_p in color_stls.items():
+            zf.write(c_p, os.path.basename(c_p))
+        if os.path.exists(mf3_path):
+            zf.write(mf3_path, mf3_filename)
+
+    # 12. Parametric OpenSCAD Export
     scad_code = f'''// ============================================================================
 // 🏰 Main Street Electrical Parade (WDW 10K) - 3D TPU Armor Plate ({variant_name.upper()})
 // Dimensions: {panel_w}mm x {panel_h}mm x {TOTAL_THICK}mm
@@ -351,16 +564,19 @@ fastener_tabs = {tab_coords};
 linear_extrude(front_thickness) polygon(contour_pts);
 '''
     scad_filename = f"tpu_panel_{variant_name}.scad"
-    scad_path = os.path.join('3d_panels', scad_filename)
+    scad_path = os.path.join(out_dir, scad_filename)
     with open(scad_path, 'w', encoding='utf-8') as f_scad:
         f_scad.write(scad_code)
     if variant_name == 'front':
-        shutil.copyfile(scad_path, '3d_panels/petes_dragon_tpu_panel.scad')
+        shutil.copyfile(scad_path, os.path.join(out_dir, 'petes_dragon_tpu_panel.scad'))
 
-    stl_size = os.path.getsize(stl_path)
-    stl_bounds = [round(float(x), 2) for x in (final_model.bounds[1] - final_model.bounds[0])]
-    stl_center = [round(float(x), 2) for x in ((final_model.bounds[1] + final_model.bounds[0]) / 2.0)]
-    print(f"[{variant_name}] SUCCESS! Exported {stl_filename} ({stl_size/1024/1024:.2f} MB) in {time.time()-v_t0:.2f}s")
+    stl_size = os.path.getsize(mono_path)
+    chassis_size = os.path.getsize(chassis_path)
+    zip_size = os.path.getsize(zip_path)
+    stl_bounds = [round(float(x), 2) for x in (final_monolithic_tm.bounds[1] - final_monolithic_tm.bounds[0])]
+    stl_center = [round(float(x), 2) for x in ((final_monolithic_tm.bounds[1] + final_monolithic_tm.bounds[0]) / 2.0)]
+    
+    print(f"[{variant_name}] SUCCESS! Exported {mono_filename} ({stl_size/1024/1024:.2f} MB), Chassis ({chassis_size/1024/1024:.2f} MB), Bundle ZIP ({zip_size/1024/1024:.2f} MB) in {time.time()-v_t0:.2f}s")
     print(f"[{variant_name}] Dimensions: {stl_bounds} | Center: {stl_center}")
 
     return {
@@ -372,14 +588,25 @@ linear_extrude(front_thickness) polygon(contour_pts);
         "total_image_width_mm": width_mm,
         "total_image_height_mm": height_mm,
         "ordered_leds": leds,
+        "led_count": len(leds),
         "fastener_tabs": tab_coords,
         "number_positions": number_positions,
         "contour_pts": contour_coords,
         "stl_bounds": stl_bounds,
         "stl_center": stl_center,
         "stl_size": stl_size,
-        "volume_mm3": round(final_model.volume, 1),
-        "is_watertight": final_model.is_watertight
+        "chassis_size": chassis_size,
+        "zip_size": zip_size,
+        "stl_url": f"/3d_panels/{mono_filename}",
+        "chassis_stl_url": f"/3d_panels/{chassis_filename}",
+        "color_green_stl_url": f"/3d_panels/tpu_panel_{variant_name}_color_green.stl" if 'green' in color_stls else None,
+        "color_magenta_stl_url": f"/3d_panels/tpu_panel_{variant_name}_color_magenta.stl" if 'magenta' in color_stls else None,
+        "color_yellow_stl_url": f"/3d_panels/tpu_panel_{variant_name}_color_yellow.stl" if 'yellow' in color_stls else None,
+        "color_white_stl_url": f"/3d_panels/tpu_panel_{variant_name}_color_white.stl" if 'white' in color_stls else None,
+        "multicolor_3mf_url": f"/3d_panels/{mf3_filename}" if os.path.exists(mf3_path) else None,
+        "multicolor_zip_url": f"/3d_panels/{zip_filename}",
+        "volume_mm3": round(final_monolithic_tm.volume, 1),
+        "is_watertight": final_monolithic_tm.is_watertight
     }
 
 # ---------------------------------------------------------------------------
@@ -392,24 +619,36 @@ if not os.path.exists(artwork_path):
 
 print(f"Using artwork: {artwork_path}")
 
+# Check CLI overrides
+target_width_override = None
+if '--width-mm' in sys.argv:
+    try:
+        w_idx = sys.argv.index('--width-mm')
+        if w_idx + 1 < len(sys.argv):
+            target_width_override = float(sys.argv[w_idx + 1])
+    except Exception:
+        pass
+
 # Check if specs has structured front/back definitions
 front_specs = specs.get('front')
 back_specs = specs.get('back')
 
 if not front_specs:
     front_specs = {
-        'width_mm': specs.get('width_mm', 185.0),
-        'height_mm': specs.get('height_mm', 154.0),
+        'width_mm': specs.get('width_mm', 203.2),
+        'height_mm': specs.get('height_mm', 169.1),
         'ordered_leds': specs.get('ordered_leds', [])
     }
 
+if target_width_override is not None:
+    aspect = front_specs['width_mm'] / float(max(1.0, front_specs.get('height_mm', 169.1)))
+    front_specs['width_mm'] = target_width_override
+    front_specs['height_mm'] = round(target_width_override / aspect, 2)
+
 if not back_specs:
     aspect = front_specs['width_mm'] / float(max(1.0, front_specs['height_mm']))
-    back_max = 240.0
-    if aspect >= 1.0:
-        b_w, b_h = back_max, round(back_max / aspect, 2)
-    else:
-        b_h, b_w = back_max, round(back_max * aspect, 2)
+    b_w = target_width_override if target_width_override is not None else 203.2
+    b_h = round(b_w / aspect, 2)
     scale_factor = b_w / float(front_specs['width_mm'])
     b_leds = []
     for l in front_specs['ordered_leds']:
@@ -422,6 +661,10 @@ if not back_specs:
         'height_mm': b_h,
         'ordered_leds': b_leds
     }
+elif target_width_override is not None:
+    aspect = back_specs['width_mm'] / float(max(1.0, back_specs['height_mm']))
+    back_specs['width_mm'] = target_width_override
+    back_specs['height_mm'] = round(target_width_override / aspect, 2)
 
 window_shape = specs.get('window_shape', 'square')
 if '--window-shape' in sys.argv:
@@ -469,6 +712,6 @@ if specs_path != '3d_panels/petes_dragon_specs.json':
 
 print("\n" + "=" * 70)
 print(f"ALL PANELS COMPILED IN {time.time()-t0:.2f}s TOTAL!")
-print(f"Front: {front_result['stl_bounds']} ({front_result['stl_size']/1024/1024:.2f} MB)")
-print(f"Back:  {back_result['stl_bounds']} ({back_result['stl_size']/1024/1024:.2f} MB)")
+print(f"Front: {front_result['stl_bounds']} ({front_result['stl_size']/1024/1024:.2f} MB) | Bundle ZIP: {front_result['zip_size']/1024/1024:.2f} MB")
+print(f"Back:  {back_result['stl_bounds']} ({back_result['stl_size']/1024/1024:.2f} MB) | Bundle ZIP: {back_result['zip_size']/1024/1024:.2f} MB")
 print("=" * 70)

@@ -292,6 +292,32 @@
                             <span id="ledCountTitle">LED Layout & Wiring Route</span>
                         </div>
                         
+                        <!-- Target LED Count Selector (50, 75, 100) -->
+                        <div class="control-group" style="margin-bottom: 6px;">
+                            <label style="font-size: 11px; color: var(--text-muted); display: flex; justify-content: space-between; margin-bottom: 2px;">
+                                <span>Active LED Count:</span>
+                                <span id="activeLedCountLabel" style="font-size: 10px; color: #00ff88; font-weight: 700;">75 LEDs</span>
+                            </label>
+                            <div style="display: flex; gap: 4px; background: rgba(0,0,0,0.3); padding: 2px; border-radius: 6px; border: 1px solid #21262d;">
+                                <button type="button" id="ledCount50Btn" onclick="selectLedCountOption(50)" class="action-btn" style="flex: 1; padding: 4px; font-size: 10.5px; font-weight: 600;" title="Trace artwork contour with 50 LEDs">50 LEDs</button>
+                                <button type="button" id="ledCount75Btn" onclick="selectLedCountOption(75)" class="action-btn primary" style="flex: 1; padding: 4px; font-size: 10.5px; font-weight: 700; background: #00ff88; color: #000; border-color: #00ff88;" title="Evenly scatter 75 LEDs across graphic">75 LEDs</button>
+                                <button type="button" id="ledCount100Btn" onclick="selectLedCountOption(100)" class="action-btn" style="flex: 1; padding: 4px; font-size: 10.5px; font-weight: 600;" title="Full theatrical 100 LEDs placement">100 LEDs</button>
+                            </div>
+                        </div>
+
+                        <!-- 3D Armor Plate Size Selector (Small, Medium, Large) -->
+                        <div class="control-group" style="margin-bottom: 8px;">
+                            <label style="font-size: 11px; color: var(--text-muted); display: flex; justify-content: space-between; margin-bottom: 2px;">
+                                <span>3D Armor Plate Size:</span>
+                                <span id="activePlateSizeLabel" style="font-size: 10px; color: #38bdf8; font-weight: 700;">Medium (~8.0" / 203mm)</span>
+                            </label>
+                            <div style="display: flex; gap: 4px; background: rgba(0,0,0,0.3); padding: 2px; border-radius: 6px; border: 1px solid #21262d;">
+                                <button type="button" id="plateSizeSmallBtn" onclick="selectPlateSizeOption('small')" class="action-btn" style="flex: 1; padding: 4px; font-size: 10px; font-weight: 600;" title="Small width: ~6.5 inches / 165mm">👕 Small (6.5")</button>
+                                <button type="button" id="plateSizeMediumBtn" onclick="selectPlateSizeOption('medium')" class="action-btn primary" style="flex: 1; padding: 4px; font-size: 10px; font-weight: 700; background: #38bdf8; color: #000; border-color: #38bdf8;" title="Medium width: ~8.0 inches / 203mm">🎽 Medium (8")</button>
+                                <button type="button" id="plateSizeLargeBtn" onclick="selectPlateSizeOption('large')" class="action-btn" style="flex: 1; padding: 4px; font-size: 10px; font-weight: 600;" title="Large width: ~10.0 inches / 254mm">🥋 Large (10")</button>
+                            </div>
+                        </div>
+
                         <div class="control-group" style="display: flex; gap: 6px; margin-bottom: 6px;">
                             <button id="quick100Btn" class="action-btn accent" style="flex: 1; font-size: 11px; padding: 6px 4px; font-weight: 600;" title="Evenly scatter 100 LEDs across the character artwork with color sampling">🌈 100 Scatter</button>
                             <button id="quick50Btn" class="action-btn" style="flex: 1; font-size: 11px; padding: 6px 4px; font-weight: 600;" title="Automatically trace outer contour of artwork with 50 LEDs">✨ 50 Outline</button>
@@ -1656,22 +1682,25 @@
                                 ⚙️ Recompile STLs (Both Front & Back)
                             </button>
                             <div style="display: flex; gap: 6px;">
-                                <a href="/3d_panels/tpu_panel_front.stl" download="tpu_panel_front.stl" class="action-btn" style="flex: 1; text-decoration: none; font-size: 10.5px; padding: 6px; color: #58a6ff; border-color: #388bfd; display: flex; align-items: center; justify-content: center; gap: 4px;">
-                                    ⬇️ Front (185mm)
+                                <a href="/3d_panels/tpu_panel_front_multicolor_bundle.zip" download="tpu_panel_front_multicolor_bundle.zip" class="action-btn primary" style="flex: 1; text-decoration: none; font-size: 10.5px; padding: 6px; background: linear-gradient(135deg, #1f6feb, #388bfd); color: #fff; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 4px;" title="Download all 5 split STLs, 3MF project, and slicer guide">
+                                    📦 5-Color ZIP
                                 </a>
-                                <a href="/3d_panels/tpu_panel_back.stl" download="tpu_panel_back.stl" class="action-btn" style="flex: 1; text-decoration: none; font-size: 10.5px; padding: 6px; color: #00ff88; border-color: #2ea043; display: flex; align-items: center; justify-content: center; gap: 4px;">
-                                    ⬇️ Back (240mm)
+                                <a href="/3d_panels/tpu_panel_front_multicolor.3mf" download="tpu_panel_front_multicolor.3mf" class="action-btn" style="flex: 1; text-decoration: none; font-size: 10.5px; padding: 6px; color: #00ff88; border-color: #2ea043; display: flex; align-items: center; justify-content: center; gap: 4px;" title="Download native Bambu Studio / OrcaSlicer project">
+                                    🖨️ Bambu .3MF
                                 </a>
-                                <button type="button" onclick="downloadBothTpuStls()" class="action-btn" style="flex: 1; font-size: 10.5px; padding: 6px; color: #ffb703; border-color: #d29922; display: flex; align-items: center; justify-content: center; gap: 4px;">
-                                    📦 Download Both
+                                <button type="button" onclick="downloadBothTpuStls()" class="action-btn" style="flex: 1; font-size: 10.5px; padding: 6px; color: #ffb703; border-color: #d29922; display: flex; align-items: center; justify-content: center; gap: 4px;" title="Download single monolithic STLs">
+                                    ⬇️ Single STLs
                                 </button>
                             </div>
                             <div style="display: flex; gap: 6px;">
-                                <a href="/3d_panels/tpu_panel_front.scad" download="tpu_panel_front.scad" class="action-btn" style="flex: 1; text-decoration: none; font-size: 10px; padding: 4px; color: #8b949e; border-color: #30363d; display: flex; align-items: center; justify-content: center; gap: 3px;">
-                                    📄 Front SCAD
+                                <a href="/3d_panels/tpu_panel_front.stl" download="tpu_panel_front.stl" class="action-btn" style="flex: 1; text-decoration: none; font-size: 10px; padding: 4px; color: #58a6ff; border-color: #388bfd; display: flex; align-items: center; justify-content: center; gap: 3px;">
+                                    Front STL
                                 </a>
-                                <a href="/3d_panels/tpu_panel_back.scad" download="tpu_panel_back.scad" class="action-btn" style="flex: 1; text-decoration: none; font-size: 10px; padding: 4px; color: #8b949e; border-color: #30363d; display: flex; align-items: center; justify-content: center; gap: 3px;">
-                                    📄 Back SCAD
+                                <a href="/3d_panels/tpu_panel_back.stl" download="tpu_panel_back.stl" class="action-btn" style="flex: 1; text-decoration: none; font-size: 10px; padding: 4px; color: #00ff88; border-color: #2ea043; display: flex; align-items: center; justify-content: center; gap: 3px;">
+                                    Back STL
+                                </a>
+                                <a href="/3d_panels/tpu_panel_front.scad" download="tpu_panel_front.scad" class="action-btn" style="flex: 1; text-decoration: none; font-size: 10px; padding: 4px; color: #8b949e; border-color: #30363d; display: flex; align-items: center; justify-content: center; gap: 3px;">
+                                    OpenSCAD
                                 </a>
                             </div>
                         </div>
@@ -2363,14 +2392,19 @@
                         <p id="tpuModalSubtitle" style="font-size: 11px; color: rgba(0, 0, 0, 0.8); margin: 0; font-weight: 500;">95A TPU Open-Chassis Tray • 3×3mm Square Windows • Zero Overlap Pockets</p>
                     </div>
                     <!-- Front / Back Variant Switcher Pill -->
-                    <div style="display: flex; align-items: center; margin-left: 10px; background: rgba(0, 0, 0, 0.3); border-radius: 6px; padding: 2px; gap: 2px;">
-                        <button type="button" id="tpuModalSelectFrontBtn" onclick="switchTpuModalVariant('front')" style="border: none; border-radius: 4px; padding: 4px 10px; font-size: 11px; font-weight: 700; cursor: pointer; background: #000; color: #00ff88; transition: all 0.2s ease;">🎽 Front (185mm)</button>
-                        <button type="button" id="tpuModalSelectBackBtn" onclick="switchTpuModalVariant('back')" style="border: none; border-radius: 4px; padding: 4px 10px; font-size: 11px; font-weight: 700; cursor: pointer; background: transparent; color: rgba(0,0,0,0.7); transition: all 0.2s ease;">🎒 Back (240mm)</button>
+                    <div style="display: flex; align-items: center; margin-left: 8px; background: rgba(0, 0, 0, 0.3); border-radius: 6px; padding: 2px; gap: 2px;">
+                        <button type="button" id="tpuModalSelectFrontBtn" onclick="switchTpuModalVariant('front')" style="border: none; border-radius: 4px; padding: 4px 8px; font-size: 11px; font-weight: 700; cursor: pointer; background: #000; color: #00ff88; transition: all 0.2s ease;">🎽 Front</button>
+                        <button type="button" id="tpuModalSelectBackBtn" onclick="switchTpuModalVariant('back')" style="border: none; border-radius: 4px; padding: 4px 8px; font-size: 11px; font-weight: 700; cursor: pointer; background: transparent; color: rgba(0,0,0,0.7); transition: all 0.2s ease;">🎒 Back</button>
                     </div>
                     <!-- Window Shape Switcher Pill -->
-                    <div style="display: flex; align-items: center; margin-left: 6px; background: rgba(0, 0, 0, 0.3); border-radius: 6px; padding: 2px; gap: 2px;" title="Select hole geometry and auto-regenerate STL">
-                        <button type="button" id="tpuModalShapeSquareBtn" onclick="setTpuWindowShape('square')" style="border: none; border-radius: 4px; padding: 4px 8px; font-size: 11px; font-weight: 700; cursor: pointer; background: #000; color: #00ff88; transition: all 0.2s ease;">🔲 Square</button>
-                        <button type="button" id="tpuModalShapeRoundBtn" onclick="setTpuWindowShape('round')" style="border: none; border-radius: 4px; padding: 4px 8px; font-size: 11px; font-weight: 700; cursor: pointer; background: transparent; color: rgba(0,0,0,0.7); transition: all 0.2s ease;">⚪ Round</button>
+                    <div style="display: flex; align-items: center; margin-left: 4px; background: rgba(0, 0, 0, 0.3); border-radius: 6px; padding: 2px; gap: 2px;" title="Select hole geometry and auto-regenerate STL">
+                        <button type="button" id="tpuModalShapeSquareBtn" onclick="setTpuWindowShape('square')" style="border: none; border-radius: 4px; padding: 4px 7px; font-size: 11px; font-weight: 700; cursor: pointer; background: #000; color: #00ff88; transition: all 0.2s ease;">🔲 Square</button>
+                        <button type="button" id="tpuModalShapeRoundBtn" onclick="setTpuWindowShape('round')" style="border: none; border-radius: 4px; padding: 4px 7px; font-size: 11px; font-weight: 700; cursor: pointer; background: transparent; color: rgba(0,0,0,0.7); transition: all 0.2s ease;">⚪ Round</button>
+                    </div>
+                    <!-- Single vs 5-Color Multi-STL Switcher -->
+                    <div style="display: flex; align-items: center; margin-left: 6px; background: rgba(0, 0, 0, 0.4); border-radius: 6px; padding: 2px; gap: 2px;" title="Select between Single Monolithic STL and 5-Color Split Multi-STL">
+                        <button type="button" id="tpuModalModeMultiBtn" onclick="setTpuExportMode('multi')" style="border: none; border-radius: 4px; padding: 4px 8px; font-size: 11px; font-weight: 700; cursor: pointer; background: #000; color: #00ff88; transition: all 0.2s ease;">🎨 5-Color Split</button>
+                        <button type="button" id="tpuModalModeMonoBtn" onclick="setTpuExportMode('single')" style="border: none; border-radius: 4px; padding: 4px 8px; font-size: 11px; font-weight: 700; cursor: pointer; background: transparent; color: rgba(0,0,0,0.7); transition: all 0.2s ease;">⚪ Single Black</button>
                     </div>
                 </div>
                 <div style="display: flex; align-items: center; gap: 10px;">
@@ -2423,10 +2457,25 @@
                     <input type="range" id="tpuModalPlateOpSlider" min="10" max="100" value="95" style="width: 100%;">
                 </div>
 
+                <!-- Floating 5-Color Filament Legend (Bottom Left, above dimensions) -->
+                <div id="tpuModalColorLegend" style="position: absolute; bottom: 44px; left: 12px; background: rgba(18, 24, 32, 0.9); backdrop-filter: blur(8px); border: 1px solid #1e293b; border-radius: 8px; padding: 6px 10px; display: flex; flex-direction: column; gap: 4px; z-index: 8; font-size: 10.5px;">
+                    <div style="font-weight: 700; color: #00ff88; font-size: 10px; display: flex; justify-content: space-between; gap: 12px;">
+                        <span>BAMBU LAB AMS (5 SLOTS):</span>
+                        <span id="tpuLegendAperturesBadge" style="color: #38bdf8;">75 Open Windows</span>
+                    </div>
+                    <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                        <span style="display: inline-flex; align-items: center; gap: 4px;"><span style="width: 9px; height: 9px; border-radius: 2px; background: #11161d; border: 1px solid #475569;"></span> 1: Black Chassis</span>
+                        <span style="display: inline-flex; align-items: center; gap: 4px;"><span style="width: 9px; height: 9px; border-radius: 2px; background: #00e676;"></span> 2: Green Body</span>
+                        <span style="display: inline-flex; align-items: center; gap: 4px;"><span style="width: 9px; height: 9px; border-radius: 2px; background: #ec4899;"></span> 3: Magenta Wings</span>
+                        <span style="display: inline-flex; align-items: center; gap: 4px;"><span style="width: 9px; height: 9px; border-radius: 2px; background: #facc15;"></span> 4: Yellow Belly</span>
+                        <span style="display: inline-flex; align-items: center; gap: 4px;"><span style="width: 9px; height: 9px; border-radius: 2px; background: #ffffff;"></span> 5: White Eyes</span>
+                    </div>
+                </div>
+
                 <!-- Floating Dimensions Badge (Bottom Left) -->
                 <div id="tpuModalDimensionsBadge" style="position: absolute; bottom: 12px; left: 12px; background: rgba(18, 24, 32, 0.85); backdrop-filter: blur(8px); border: 1px solid #1e293b; border-radius: 8px; padding: 6px 12px; font-size: 11px; display: flex; gap: 12px; z-index: 8; color: #94a3b8;">
-                    <span>📐 <strong id="tpuModalDimText" style="color: #e2e8f0;">157.0 × 139.8 × 6.0 mm</strong></span>
-                    <span>⚖️ <strong id="tpuModalWeightText" style="color: #e2e8f0;">~45 g</strong></span>
+                    <span>📐 <strong id="tpuModalDimText" style="color: #e2e8f0;">203.2 × 169.1 × 6.0 mm</strong></span>
+                    <span>⚖️ <strong id="tpuModalWeightText" style="color: #e2e8f0;">~55 g</strong></span>
                     <span>🧵 <strong style="color: #00ff88;">16 Back-Flush Eyelets</strong></span>
                 </div>
             </div>
@@ -2438,22 +2487,14 @@
                     <span id="tpuModalSnapmakerClearance" style="color: #58a6ff;">Snapmaker U1 (270×270mm) ✓</span>
                     <span id="tpuModalBambuClearance" style="color: #3fb950;">Bambu Lab (250×250mm safe) ✓</span>
                 </div>
-                <div style="display: flex; align-items: center; gap: 8px;">
-                    <a id="tpuModalDownloadFrontBtn" href="/3d_panels/tpu_panel_front.stl" download="tpu_panel_front.stl" class="action-btn" style="padding: 6px 12px; font-size: 11px; color: #58a6ff; border-color: #388bfd; text-decoration: none; display: inline-flex; align-items: center; gap: 4px;">
-                        ⬇️ Front STL (185mm)
-                    </a>
-                    <a id="tpuModalDownloadBackBtn" href="/3d_panels/tpu_panel_back.stl" download="tpu_panel_back.stl" class="action-btn" style="padding: 6px 12px; font-size: 11px; color: #00ff88; border-color: #2ea043; text-decoration: none; display: inline-flex; align-items: center; gap: 4px;">
-                        ⬇️ Back STL (240mm)
-                    </a>
-                    <button type="button" onclick="downloadBothTpuStls()" class="action-btn primary" style="padding: 6px 14px; font-size: 11px; background: linear-gradient(135deg, #1f6feb, #388bfd); font-weight: 600; display: inline-flex; align-items: center; gap: 4px;">
-                        📦 Download Both STLs
-                    </button>
-                    <button type="button" id="closeTpuPreviewModalBottomBtn" onclick="closeTpuPreviewModal()" class="action-btn" style="padding: 6px 14px; font-size: 11.5px;">Close</button>
+                <div id="tpuModalDownloadButtonsContainer" style="display: flex; align-items: center; gap: 8px;">
+                    <!-- Injected dynamically by updateTpuDownloadButtons() in app.js -->
                 </div>
+                <button type="button" id="closeTpuPreviewModalBottomBtn" onclick="closeTpuPreviewModal()" class="action-btn" style="padding: 6px 14px; font-size: 11.5px;">Close</button>
             </div>
         </div>
     </div>
 
-    <script src="app.js?v=81"></script>
+    <script src="app.js?v=82"></script>
 </body>
 </html>
