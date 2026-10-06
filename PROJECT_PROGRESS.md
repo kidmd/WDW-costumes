@@ -93,6 +93,16 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### Entry: Dedicated ESP32 Hardware Wiring Plan, Race Day Button Guide & Rules Integration
+* **Date:** 2026-10-05 (Late Night Imagineering Session - Follow-up)
+* **Milestone:** Milestone 6 - Dual-Button Controller Hardware Architecture, Castle Photo Mode & Dual-Leader Fleet Synchronizer
+* **Status:** Complete & Verified (`ESP32_WIRING_PLAN.md`, `RACE_DAY_BUTTON_GUIDE.md`, `GEMINI.md`, `README.md`, `PROJECT_PROGRESS.md`).
+* **Implementation Details:**
+  - **Dedicated ESP32 Hardware Wiring Specification (`ESP32_WIRING_PLAN.md`):** Authored a comprehensive electrical wiring manual containing complete Bill of Materials (BOM), 30-pin and 38-pin ESP32 DevKit pinout mappings, inline 220–470 Ω resistor placement on GPIO 16, dual tactile switch hookups (GPIO 4 and GPIO 33 to GND with internal pullups), 4-pin momentary switch orientation and continuity test guide (preventing permanent boot shorts), 200-LED front/back power injection bus topology, and computer USB power isolation rules.
+  - **Race Day Button Field Guide (`RACE_DAY_BUTTON_GUIDE.md`):** Created a pocket-friendly runner field manual and printable controller cheat sheet detailing the dual-button gesture timings (<600ms tap, <400ms double tap, 3s sleep hold, 5s config hold), state-machine flow diagrams, full Leader vs Follower authority matrices, and a chronological race morning countdown playbook (3:30 AM bus departure $\rightarrow$ 4:15 AM corral roll call $\rightarrow$ 5:00 AM wave launch $\rightarrow$ photo stops $\rightarrow$ finish line).
+  - **Mandatory Assistant Rule Integration (`GEMINI.md`):** Updated project governance rules in `GEMINI.md` (Section 1: Continuous Documentation Synchronization) mandating that both `ESP32_WIRING_PLAN.md` and `RACE_DAY_BUTTON_GUIDE.md` be kept 100% synchronized alongside `SIMULATOR_USER_GUIDE.md`, `README.md`, `FLASHING_INSTRUCTIONS.md`, and `PROJECT_PROGRESS.md` on any future firmware, hardware, or button scheme modification. Updated Section 2 to include official pinout definitions for GPIO 4 (Button 1) and GPIO 33 (Button 2).
+  - **Repository & Cross-Linking:** Linked both new documentation guides directly in `README.md` for rapid family team reference.
+
 ### Entry: Multi-Color Graphic Artwork Castle Photo Mode & Standby Hold Release Latch
 * **Date:** 2026-10-05 (Late Night Imagineering Session - Follow-up)
 * **Milestone:** Milestone 6 - Dual-Button Controller Hardware Architecture, Castle Photo Mode & Dual-Leader Fleet Synchronizer

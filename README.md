@@ -73,6 +73,8 @@ You don't need Git, Google Antigravity, or any programming tools:
 
 ## Project Structure & Documentation
 
+* [`ESP32_WIRING_PLAN.md`](ESP32_WIRING_PLAN.md): **🔌 ESP32 Hardware Wiring Plan & Electrical Specification** — Complete schematics, pinout tables, tactile button wiring, 4-pin orientation guide, 220–470 Ω data resistor, power bus injection, and computer power isolation rules.
+* [`RACE_DAY_BUTTON_GUIDE.md`](RACE_DAY_BUTTON_GUIDE.md): **🏃🏰 Race Day Button Field Guide & Controller Cheat Sheet** — Pocket manual with gesture timings, Leader vs Follower matrices, chronological corral countdown playbook, and state flow diagrams.
 * [`RACE_DAY_PACKING_CHECKLIST.md`](RACE_DAY_PACKING_CHECKLIST.md): **🏰 Race Day Packing Checklist & Field Manual** — Pre-race hardware checklist, spare ESP32s, battery survival, repair toolkit, weather kit, and countdown timeline for the 7-runner family team.
 * [`CRICUT_MASTER_SVG_USER_GUIDE.md`](CRICUT_MASTER_SVG_USER_GUIDE.md): **✂️ Cricut Master SVG User Guide** — Step-by-step instructions for Cricut Design Space, multi-layer HTV cutting, and heat-press registration.
 * [`SIMULATOR_QUICKSTART.md`](SIMULATOR_QUICKSTART.md): **⚡ Simulator Quickstart Guide (TL;DR)** — 2-minute cheat sheet for launching the simulator, moving/trimming timeline clips, testing the fleet show, and streaming to LEDs.

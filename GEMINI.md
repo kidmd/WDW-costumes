@@ -22,7 +22,13 @@ Whenever any feature, UI control, slider, preset, firmware parameter, or hardwar
    - Ensure the Hardware Specifications (e.g., LED count, power limit, battery requirements), float roster, and simulator overview remain 100% accurate.
 
 4. **`FLASHING_INSTRUCTIONS.md`**:
-   - Keep pinouts (GPIO 16 Data, GPIO 0 BOOT button), LED strand configurations (200 LEDs: 100 Front + 100 Back), and flashing steps aligned across Windows, Mac, and browser Web Serial methods.
+   - Keep pinouts (GPIO 16 Data, GPIO 4 Button 1, GPIO 33 Button 2, GPIO 0 BOOT button), LED strand configurations (200 LEDs: 100 Front + 100 Back), and flashing steps aligned across Windows, Mac, and browser Web Serial methods.
+
+5. **`ESP32_WIRING_PLAN.md`**:
+   - Keep microcontroller GPIO assignments (GPIO 16 Data, GPIO 4 Button 1, GPIO 33 Button 2, GPIO 0 BOOT fallback), tactile switch wiring, resistor values (220–470 Ω), power isolation rules, and battery specs 100% synchronized with any hardware or firmware change.
+
+6. **`RACE_DAY_BUTTON_GUIDE.md`**:
+   - Keep race-day button actions, gesture timings (tap < 600ms, double tap < 400ms, hold 3s, hold 5s), role differences (Leader Floats 1 & 7 vs Follower Floats 2–6), state transitions (Corral Standby, Castle Photo Mode, Solo Show Mode, 30s Fleet Show, Roll Call, Config Mode), and quick troubleshooting steps 100% synchronized with firmware and simulator behavior.
 
 ---
 
@@ -35,13 +41,16 @@ Whenever any feature, UI control, slider, preset, firmware parameter, or hardwar
      ```
 2. **200-LED Configuration:**
    - All firmware compilation and export routines must control **200 LEDs** (100 front chest pixels + 100 back pixels duplicated in real time) to ensure 360° visibility on race day and accurate battery life testing.
-3. **Pinout Consistency:**
+3. **Pinout & Button Consistency:**
    - **LED Data Out:** GPIO 16 (with recommended 220 Ω to 470 Ω inline resistor).
-   - **Mode / Float Selector Button:** GPIO 0 (onboard BOOT button) with internal pull-up and debouncing.
+   - **Button 1 (Show Director & Wake):** GPIO 4 (momentary switch to GND with internal pull-up), with onboard BOOT button (GPIO 0) as parallel software fallback.
+   - **Button 2 (Castle Photo & Standby Sleep):** GPIO 33 (momentary switch to GND with internal pull-up).
 4. **Visual Mode Confirmations:**
    - Double tap (< 400ms): ⚡ **4-Second Rapid Attendance Roll Call** (sequential float wave order).
    - Single tap (< 600ms): 🎆 **30-Second Theatrical Fleet Routine** toggle / early cancel.
    - Long hold (>= 5s, with 1s–4s progressive white LED charging meter): ⚪ **3 White Flashes** (Float ID Config Mode), pixel counter, and 🟢 **4 Green Flashes** (Auto-Save to NVS flash). Aborting hold (< 5s) cleanly reverts to baseline without triggering show.
+   - Button 2 Single tap (< 600ms): 📸 **Castle Photo Mode** (100% steady full graphic artwork background colors, zero flicker).
+   - Button 2 Long hold (>= 3s, with 1s–2s blue meter): 🌙 **3 Soft Indigo Pulses** (Corral Standby Mode <120mA). Physical release-wait latch prevents false jumps into photo mode.
 
 ---
 
