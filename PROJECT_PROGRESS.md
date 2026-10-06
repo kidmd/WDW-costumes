@@ -93,6 +93,19 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### Entry: Unified Deploy Flashing Station & WYSIWYG Canvas ROM Synchronization
+* **Date:** 2026-10-05 (Late Night Imagineering Session)
+* **Milestone:** Milestone 5 - Hardware Integration, Web Flasher Suite & Simulator Ergonomics
+* **Status:** Complete & Verified (`simulator/index.html`, `simulator/app.js`, `SIMULATOR_USER_GUIDE.md`, `README.md`, `PROJECT_PROGRESS.md`).
+* **Implementation Details:**
+  - **Color / Float Flashing Mismatch Resolution:** Diagnosed and resolved the issue where flashing Float 1 (The Train) from the fleet modal resulted in Pete's Dragon colors being flashed because Pete's Dragon remained active on the canvas while the flasher payload sampled canvas `leds`.
+  - **Single Flashing Station Architecture:** Consolidated firmware flashing into one dedicated station located on the **Deploy Tab (`#tabHardware`)**. Removed the redundant `fleetFlashModal` popup from the Fleet Tab and replaced it with a direct navigation link (**"⚡ Go to Flasher ➔"**).
+  - **Strict WYSIWYG ("What You See Is What You Flash") Paradigm:** Firmware compilation and USB flashing now strictly flushes the active canvas float (`activeSingleShirtRunnerSlot + 1`). If the user wants to flash another float, they switch the canvas first—ensuring full visual and color verification before burning to ROM.
+  - **Quick-Switch Grid & Unsaved Edits Protection:** Added a 7-button quick switch grid `[1..7]` directly above the primary flash button in the Deploy tab. Selecting a float routes through `editRunnerInSingleView(slot)`, prompting the user if unsaved modifications exist, preventing accidental data loss.
+  - **Dynamic Flash Button & Active Float Banner:** Deploy flasher displays an active float banner (`#deployActiveBanner`) with character icon, role, and lineup tag, with the action button dynamically labeled `⚡ Flash Float X: [Name] to ESP32 (USB)`.
+  - **Startup State Persistence:** Replaced hardcoded Float 6 startup with `localStorage.getItem('msep_active_single_shirt_slot')`, cleanly defaulting to Float 1: The Train (Casey Jr.) on fresh starts while persisting the user's active float across sessions.
+  - **Verification:** Verified via `node --check simulator/app.js` and PlatformIO `pio run` (firmware builds in 5.17s with 14.3% RAM and 60.2% Flash).
+
 ### Entry: Two-Stage Button 1 Fleet Wake (Solo Mode First, Fleet Sync Second)
 * **Date:** 2026-10-05 (Late Night Imagineering Session)
 * **Milestone:** Milestone 6 - Dual-Button Controller Hardware Architecture, Castle Photo Mode & Dual-Leader Fleet Synchronizer

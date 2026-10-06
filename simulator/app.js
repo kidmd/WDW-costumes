@@ -6,7 +6,10 @@ const ctx = canvas.getContext('2d');
 
 // State
 let currentView = 'single'; // 'single' or 'fleet'
-let activeSingleShirtRunnerSlot = 5; // Default to Float 6 (Pete's Dragon) or active runner (0..6)
+const savedActiveSlot = localStorage.getItem('msep_active_single_shirt_slot');
+let activeSingleShirtRunnerSlot = (savedActiveSlot !== null && !isNaN(parseInt(savedActiveSlot, 10)) && parseInt(savedActiveSlot, 10) >= 0 && parseInt(savedActiveSlot, 10) <= 6)
+    ? parseInt(savedActiveSlot, 10)
+    : 0; // Default to Float 1: The Train (Casey Jr.)
 let isSingleShirtDirty = false; // True when unsaved modifications exist in single shirt editor
 let lastSingleShirtTab = 'tabLayout'; // Tracks active single-shirt tab prior to entering Fleet view
 let activePattern = 'steady_sparkle'; // 'steady_sparkle', 'color_match', 'dragon_sparkle', etc.
@@ -5671,6 +5674,100 @@ function updateActiveFloatUI(slot) {
         directorBadge.style.borderColor = `${color}88`;
         directorBadge.style.background = `${color}22`;
     }
+
+    // 8. Update Deploy Tab Flasher Hub (Single Unified Flashing Station)
+    updateDeployFlasherUI(slot);
+}
+
+// ============================================================================
+// DEPLOY TAB UNIFIED FLASHER STATION (WYSIWYG CANVAS TARGET)
+// ============================================================================
+function updateDeployFlasherUI(slot) {
+    if (slot === null || slot === undefined || isNaN(slot) || slot < 0 || slot >= DEFAULT_FLEET_ROSTER.length) {
+        slot = (activeSingleShirtRunnerSlot !== null && activeSingleShirtRunnerSlot >= 0 && activeSingleShirtRunnerSlot < DEFAULT_FLEET_ROSTER.length) ? activeSingleShirtRunnerSlot : 0;
+    }
+    const info = (fleetRunners && fleetRunners[slot]) ? fleetRunners[slot] : DEFAULT_FLEET_ROSTER[slot];
+    if (!info) return;
+
+    const icon = info.icon || (['🚂','🥁','🐢','🐌','🩵','🐉','🦅'][slot] || '👕');
+    const color = info.color || '#38bdf8';
+    const num = info.num || `0${slot + 1}`;
+    const isLeader = (slot === 0);
+
+    const activeIconEl = document.getElementById('deployActiveIcon');
+    const activeTitleEl = document.getElementById('deployActiveTitle');
+    const activeSubtitleEl = document.getElementById('deployActiveSubtitle');
+    const activeRolePillEl = document.getElementById('deployActiveRolePill');
+    const flashBtnTextEl = document.getElementById('flashEsp32BtnText');
+
+    if (activeIconEl) activeIconEl.textContent = icon;
+    if (activeTitleEl) activeTitleEl.textContent = `Float ${slot + 1}: ${info.name}`;
+    if (activeSubtitleEl) {
+        activeSubtitleEl.textContent = `${info.tag || 'FLOAT ' + num} · ${isLeader ? 'Pulls parade & broadcasts ESP-NOW master sync' : 'Follower Float (Synchronized)'}`;
+    }
+    if (activeRolePillEl) {
+        if (isLeader) {
+            activeRolePillEl.textContent = '👑 LEADER';
+            activeRolePillEl.style.background = 'rgba(248,81,73,0.2)';
+            activeRolePillEl.style.color = '#ff7b72';
+            activeRolePillEl.style.border = '1px solid rgba(248,81,73,0.4)';
+        } else {
+            activeRolePillEl.textContent = '📡 FOLLOWER';
+            activeRolePillEl.style.background = 'rgba(56,139,253,0.15)';
+            activeRolePillEl.style.color = '#58a6ff';
+            activeRolePillEl.style.border = '1px solid rgba(56,139,253,0.3)';
+        }
+    }
+
+    if (flashBtnTextEl) {
+        flashBtnTextEl.textContent = `⚡ Flash Float ${slot + 1}: ${info.name} to ESP32 (USB)`;
+    }
+
+    renderDeployFloatSwitchGrid(slot);
+}
+
+function renderDeployFloatSwitchGrid(currentActiveSlot) {
+    const grid = document.getElementById('deployFloatSwitchGrid');
+    if (!grid) return;
+    grid.innerHTML = '';
+
+    for (let i = 0; i < DEFAULT_FLEET_ROSTER.length; i++) {
+        const item = (fleetRunners && fleetRunners[i]) ? fleetRunners[i] : DEFAULT_FLEET_ROSTER[i];
+        const isSelected = (i === currentActiveSlot);
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = `action-btn ${isSelected ? 'primary' : ''}`;
+        btn.style.padding = '6px 2px';
+        btn.style.fontSize = '11px';
+        btn.style.display = 'flex';
+        btn.style.flexDirection = 'column';
+        btn.style.alignItems = 'center';
+        btn.style.justifyContent = 'center';
+        btn.style.gap = '2px';
+        btn.style.border = isSelected ? `1.5px solid ${item.color || '#388bfd'}` : '1px solid #30363d';
+        btn.style.background = isSelected ? `${item.color || '#388bfd'}33` : '#161b22';
+        btn.style.color = isSelected ? '#fff' : '#c9d1d9';
+        btn.style.cursor = 'pointer';
+        btn.style.borderRadius = '6px';
+        btn.title = `Switch canvas to Float ${i + 1}: ${item.name}`;
+
+        btn.innerHTML = `
+            <span style="font-size: 15px; line-height: 1;">${item.icon}</span>
+            <span style="font-size: 9.5px; font-weight: 700;">#${i + 1}</span>
+        `;
+
+        btn.addEventListener('click', async (e) => {
+            e.preventDefault();
+            if (i === activeSingleShirtRunnerSlot) {
+                showToast(`Already viewing Float #${i + 1}: ${item.name}`);
+                return;
+            }
+            await editRunnerInSingleView(i);
+            updateActiveFloatUI(activeSingleShirtRunnerSlot);
+        });
+
+        grid.appendChild(btn);
+    }
 }
 
 // Initialize Single Shirt 7-Button Float Switcher and Controls
@@ -5735,6 +5832,11 @@ async function editRunnerInSingleView(slot) {
 
         // Record new active single shirt slot and reset dirty state
         activeSingleShirtRunnerSlot = slot;
+        try {
+            localStorage.setItem('msep_active_single_shirt_slot', slot.toString());
+        } catch (e) {
+            console.warn("Could not save active slot to localStorage:", e);
+        }
         isSingleShirtDirty = false;
 
         // Switch view to Single Shirt FIRST before loading preset data
@@ -6754,11 +6856,12 @@ function initFleetManager() {
     const applyFirmwareBtn = document.getElementById('fleetApplyFirmwareBtn');
     if (applyFirmwareBtn) applyFirmwareBtn.addEventListener('click', applyFleetShowToFirmware);
 
-    const fleetFlashBtn = document.getElementById('fleetFlashBtn');
-    if (fleetFlashBtn) {
-        fleetFlashBtn.addEventListener('click', () => {
-            const preferred = (typeof activeRunnerIndex === 'number' && activeRunnerIndex >= 0) ? (activeRunnerIndex + 1) : 1;
-            openFleetFlashModal(preferred);
+    const goToFlasherBtn = document.getElementById('goToFlasherBtn');
+    if (goToFlasherBtn) {
+        goToFlasherBtn.addEventListener('click', () => {
+            switchSidebarTab('tabHardware');
+            document.getElementById('deployFlasherSection')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            showToast(`⚡ Switched to Deploy Flasher for Float #${activeSingleShirtRunnerSlot + 1}`);
         });
     }
 
@@ -11356,17 +11459,24 @@ async function loadProfile(sourceValue) {
     showToast(`📂 Loaded "${profileData.name || 'Profile'}"`);
 }
 
-// Initial Preset Load: Cleanly load Float 6 (Pete's Dragon) official preset without marking dirty
+// Initial Preset Load: Cleanly load active runner's official preset without marking dirty
 refreshPresetDropdown().then(() => {
-    loadProfile('server:petes_dragon.json').then(() => {
+    const startupRunner = (fleetRunners && fleetRunners[activeSingleShirtRunnerSlot])
+        ? fleetRunners[activeSingleShirtRunnerSlot]
+        : (DEFAULT_FLEET_ROSTER[activeSingleShirtRunnerSlot] || DEFAULT_FLEET_ROSTER[0]);
+    const targetPreset = startupRunner.preset || 'server:casey_jr_train.json';
+
+    loadProfile(targetPreset).then(() => {
         isSingleShirtDirty = false;
         const pSel = document.getElementById('presetSelect');
-        if (pSel) pSel.value = 'server:petes_dragon.json';
+        if (pSel) pSel.value = targetPreset;
+        updateActiveFloatUI(activeSingleShirtRunnerSlot);
     }).catch(() => {
         if (leds.length === 0) {
             initDefaultDragonLeds();
         }
         isSingleShirtDirty = false;
+        updateActiveFloatUI(activeSingleShirtRunnerSlot);
     });
 });
 rebuildLedGroupMap();
@@ -15156,95 +15266,6 @@ const FLEET_FLASHER_ROSTER = [
 
 let selectedFleetFlashFloatId = 1;
 
-function openFleetFlashModal(preferredFloatId = 1) {
-    const modal = document.getElementById('fleetFlashModal');
-    if (!modal) return;
-    selectedFleetFlashFloatId = (preferredFloatId >= 0 && preferredFloatId <= 7) ? preferredFloatId : 1;
-    renderFleetFlashModalGrid();
-    updateArmedFloatInfo();
-    modal.classList.add('open');
-}
-window.openFleetFlashModal = openFleetFlashModal;
-
-function closeFleetFlashModal() {
-    const modal = document.getElementById('fleetFlashModal');
-    if (modal) modal.classList.remove('open');
-}
-window.closeFleetFlashModal = closeFleetFlashModal;
-
-function renderFleetFlashModalGrid() {
-    const grid = document.getElementById('modalFloatCardGrid');
-    if (!grid) return;
-    grid.innerHTML = '';
-
-    FLEET_FLASHER_ROSTER.forEach(f => {
-        const isSelected = (f.id === selectedFleetFlashFloatId);
-        const card = document.createElement('div');
-        card.style.background = isSelected ? 'rgba(56, 139, 253, 0.15)' : '#0d1117';
-        card.style.border = `1.5px solid ${isSelected ? f.color : 'var(--border-color)'}`;
-        card.style.borderRadius = '8px';
-        card.style.padding = '8px 10px';
-        card.style.cursor = 'pointer';
-        card.style.display = 'flex';
-        card.style.alignItems = 'center';
-        card.style.gap = '8px';
-        card.style.transition = 'all 0.15s ease';
-
-        const isLeader = f.role === 'LEADER';
-        const roleBadge = isLeader ? '<span style="font-size: 8.5px; background: rgba(248,81,73,0.25); color: #ff7b72; padding: 1px 4px; border-radius: 3px; font-weight: 700;">LEADER</span>' : '';
-
-        card.innerHTML = `
-            <span style="font-size: 18px; line-height: 1;">${f.icon}</span>
-            <div style="flex: 1; overflow: hidden;">
-                <div style="font-size: 11px; font-weight: 700; color: #fff; white-space: nowrap; text-overflow: ellipsis; overflow: hidden;">
-                    ${f.id > 0 ? '#' + f.id + ' ' : ''}${f.name}
-                </div>
-                <div style="font-size: 9.5px; color: var(--text-muted); display: flex; align-items: center; gap: 4px;">
-                    ${f.tag} ${roleBadge}
-                </div>
-            </div>
-        `;
-
-        card.addEventListener('click', () => {
-            selectedFleetFlashFloatId = f.id;
-            renderFleetFlashModalGrid();
-            updateArmedFloatInfo();
-        });
-
-        grid.appendChild(card);
-    });
-}
-
-function updateArmedFloatInfo() {
-    const f = FLEET_FLASHER_ROSTER.find(item => item.id === selectedFleetFlashFloatId) || FLEET_FLASHER_ROSTER[0];
-    const icon = document.getElementById('modalArmedIcon');
-    const title = document.getElementById('modalArmedTitle');
-    const rolePill = document.getElementById('modalArmedRolePill');
-    const tag = document.getElementById('modalArmedTag');
-
-    if (icon) icon.textContent = f.icon;
-    if (title) title.textContent = f.id > 0 ? `Float ${f.id}: ${f.name}` : f.name;
-    if (tag) tag.textContent = `${f.tag} · ${f.desc}`;
-    if (rolePill) {
-        if (f.role === 'LEADER') {
-            rolePill.textContent = '👑 LEADER';
-            rolePill.style.background = 'rgba(248,81,73,0.2)';
-            rolePill.style.color = '#ff7b72';
-            rolePill.style.borderColor = 'rgba(248,81,73,0.4)';
-        } else if (f.role === 'GENERIC') {
-            rolePill.textContent = '🎲 AUTO';
-            rolePill.style.background = 'rgba(188,140,255,0.2)';
-            rolePill.style.color = '#bc8cff';
-            rolePill.style.borderColor = 'rgba(188,140,255,0.4)';
-        } else {
-            rolePill.textContent = '📡 FOLLOWER';
-            rolePill.style.background = 'rgba(56,139,253,0.15)';
-            rolePill.style.color = '#58a6ff';
-            rolePill.style.borderColor = 'rgba(56,139,253,0.3)';
-        }
-    }
-}
-
 // Unified USB Flasher supporting both standalone layout and dedicated float identities
 async function triggerUsbFirmwareFlash(floatId = 0) {
     if (isFlashingFirmware) return;
@@ -15276,9 +15297,6 @@ async function triggerUsbFirmwareFlash(floatId = 0) {
 
     const floatMeta = FLEET_FLASHER_ROSTER.find(f => f.id === effectiveFloatId) || FLEET_FLASHER_ROSTER[5];
     const floatLabel = `Float ${effectiveFloatId}: ${floatMeta.name}`;
-
-    // Close fleet flash modal if open
-    closeFleetFlashModal();
 
     // Open main flash progress modal
     flashModal.classList.add('open');
@@ -15389,16 +15407,11 @@ window.triggerUsbFirmwareFlash = triggerUsbFirmwareFlash;
 
 if (flashEsp32Btn) {
     flashEsp32Btn.addEventListener('click', () => {
-        const floatSelect = document.getElementById('flashFloatSelect');
-        const floatId = floatSelect ? parseInt(floatSelect.value, 10) : 0;
+        // WYSIWYG Flashing: Always flash whatever float is currently active on canvas!
+        const floatId = (activeSingleShirtRunnerSlot !== null && activeSingleShirtRunnerSlot !== undefined && activeSingleShirtRunnerSlot >= 0 && activeSingleShirtRunnerSlot <= 6)
+            ? (activeSingleShirtRunnerSlot + 1)
+            : 1;
         triggerUsbFirmwareFlash(floatId);
-    });
-}
-
-const executeFleetFlashUsbBtn = document.getElementById('executeFleetFlashUsbBtn');
-if (executeFleetFlashUsbBtn) {
-    executeFleetFlashUsbBtn.addEventListener('click', () => {
-        triggerUsbFirmwareFlash(selectedFleetFlashFloatId);
     });
 }
 
@@ -15429,16 +15442,6 @@ if (rebuildFleetBinariesBtn) {
             }, 3000);
         }
     });
-}
-
-const closeFleetFlashModalBtn = document.getElementById('closeFleetFlashModalBtn');
-if (closeFleetFlashModalBtn) {
-    closeFleetFlashModalBtn.addEventListener('click', closeFleetFlashModal);
-}
-
-const cancelFleetFlashModalBtn = document.getElementById('cancelFleetFlashModalBtn');
-if (cancelFleetFlashModalBtn) {
-    cancelFleetFlashModalBtn.addEventListener('click', closeFleetFlashModal);
 }
 
 if (closeFlashModalBtn) {

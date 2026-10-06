@@ -982,8 +982,10 @@ The project provides two complementary flashing methods to suit both developers 
 - **How It Works:** Uses the HTML5 **Web Serial API** built into Google Chrome and Microsoft Edge. Flashes pre-compiled `.bin` binaries directly into the ESP32 in ~15 seconds with **zero Python, zero compilers, zero drivers, and zero software installation**.
 - **Role Assignment:** Click any float card (1 through 7) to arm that runner's identity, plug in USB, and click **Install**.
 
-#### Method 2: In-Simulator Custom C++ Compiler (Deploy Tab — For Lead Developer)
-- **Location:** **Tab 6: Deploy & Hardware** ➔ **`⚡ Flash Standalone Firmware (USB)`**.
+#### Method 2: In-Simulator Custom C++ Compiler (Deploy Tab — Unified Flashing Station)
+- **Location:** **Tab 6: Deploy & Hardware** ➔ **`⚡ Flash Float X: [Active Float] to ESP32 (USB)`**.
+- **WYSIWYG Paradigm ("What You See Is What You Flash"):** The simulator compiles and flashes the exact costume design, custom artwork, color-matched palette, and timeline choreography **currently visible on your canvas**.
+- **Quick-Switch Grid:** Use the 7-button selector right above the flash button to switch any float onto your canvas for instant visual inspection before flashing.
 - **How It Works:** Compiles your active custom colors, sampled palette, and timeline cue triggers on the fly using **PlatformIO** installed on the development PC.
 - **Note:** `start_simulator.bat` launches Python for the browser visualizer. If PlatformIO is not installed on a secondary computer, use **Method 1 (Web Flasher)** instead.
 
@@ -993,12 +995,13 @@ The project provides two complementary flashing methods to suit both developers 
 When you are ready to prepare a shirt for autonomous use:
 1. Connect your ESP32 to your computer using a standard micro-USB or USB-C data cable.
 2. The top status indicator will detect your COM port and turn green: `● ESP32 on COMx (Ready)`.
-3. Click **"⚡ Flash to Connected ESP32"**.
-4. The simulator compiles and flashes standalone firmware configured for **200 LEDs**:
+3. Verify the float you want to flash is on your canvas. If not, click its button `[1..7]` on the **Switch Float on Canvas to Flash** grid or the top float selector.
+4. Click **"⚡ Flash Float X: [Float Name] to ESP32 (USB)"**.
+5. The simulator compiles and flashes standalone firmware configured for **200 LEDs**:
    - **Front 100 LEDs (0 – 99):** Your custom-placed, color-matched chest artwork lighting.
    - **Back 100 LEDs (100 – 199):** Real-time duplicate of the front animation for 360° visibility and battery life benchmarking.
    - **Power Management:** FastLED power limit configured up to **2000 mA (2.0A)** for safe operation from portable 5V USB power banks.
-5. The live terminal modal displays compilation output and upload progress.
+6. The live terminal modal displays compilation output and upload progress.
 ### Race-Day Battery Life & Power Budget Calculator (200 LEDs / 5V 2.0A Limit)
 
 To ensure that **no runner goes dark on course** during the runDisney 10K, the Deploy & Hardware tab features an interactive, real-time power budget simulator modeled on the electrical physics of the wearable 200-LED costume:
@@ -1096,8 +1099,8 @@ Soundtrack audio playback (e.g. Baroque Hoedown music synchronized via speakers)
 You can flash any runner's ESP32 directly from Google Chrome or Microsoft Edge with zero software installation:
 - **Dedicated Float Lineup Cards (1–7):** Select any character float (🚂 *Float 1: The Train*, 🥁 *Float 2: Title Drum*, 🩵 *Float 3: Cinderella*, 🏴‍☠️ *Float 4: Peter Pan*, 🐘 *Float 5: Dumbo*, 🐉 *Float 6: Pete's Dragon*, 🦅 *Float 7: To Honor America*, or *Generic Auto*).
 - **Automatic Role Baking:** Flashing a dedicated float ROM permanently bakes that float's ID and role (👑 Master Leader vs 📡 Fleet Follower) into the ESP32's NVS flash memory on first boot.
-- **Fleet Tab 1-Click Flashing:** Click **"⚡ Flash Float..."** directly from the Fleet Show Creator toolbar to open the in-simulator flasher modal, choose a float, and flash either over local USB (PlatformIO) or via Web Serial (`/web_flasher.html`).
-- **Deploy & Hardware Tab Role Selector:** When using standard USB flashing on the Deploy tab, select your desired Float Role from the dropdown before clicking **"⚡ Flash Standalone Firmware (USB)"**.
+- **Fleet Tab Flasher Link:** Click **"⚡ Go to Flasher ➔"** in the Fleet Show Creator toolbar to smoothly jump straight to the Deploy Tab's unified flashing station for the active float.
+- **Deploy & Hardware Tab Unified Flashing Station:** The Deploy tab flasher features an active float banner, 7 quick-switch buttons, and a dynamic action button (**"⚡ Flash Float X: [Float Name] to ESP32 (USB)"**) adhering strictly to the WYSIWYG ("What You See Is What You Flash") paradigm.
 
 ---
 

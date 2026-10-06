@@ -186,7 +186,7 @@
                                 <span style="font-size: 10px; color: #8b949e;">Click 1–7 to edit</span>
                             </label>
                             <div class="float-selector-grid" id="floatSelectorGrid">
-                                <button type="button" class="float-num-btn" data-slot="0" title="Float 1: The Train (Casey Jr.)">
+                                <button type="button" class="float-num-btn active" data-slot="0" title="Float 1: The Train (Casey Jr.)">
                                     <span>1</span><span class="float-dot" style="--float-dot-color: #e63946;"></span>
                                 </button>
                                 <button type="button" class="float-num-btn" data-slot="1" title="Float 2: Electrical Parade Drum">
@@ -201,7 +201,7 @@
                                 <button type="button" class="float-num-btn" data-slot="4" title="Float 5: Cinderella's Coach (Both Wheels)">
                                     <span>5</span><span class="float-dot" style="--float-dot-color: #48cae4;"></span>
                                 </button>
-                                <button type="button" class="float-num-btn active" data-slot="5" title="Float 6: Pete's Dragon (Elliott)">
+                                <button type="button" class="float-num-btn" data-slot="5" title="Float 6: Pete's Dragon (Elliott)">
                                     <span>6</span><span class="float-dot" style="--float-dot-color: #00ff88;"></span>
                                 </button>
                                 <button type="button" class="float-num-btn" data-slot="6" title="Float 7: To Honor America (Flag & Eagle)">
@@ -1327,8 +1327,8 @@
                             <button type="button" id="fleetApplyFirmwareBtn" class="action-btn" style="flex: 1.1; font-size: 10px; padding: 6px; background: #161b22; border-color: #1f6feb; color: #58a6ff; font-weight: 600;" title="Export this choreography directly into ESP32 firmware (src/main.cpp and Arduino sketch)">
                                 ⚡ Export C++
                             </button>
-                            <button type="button" id="fleetFlashBtn" class="action-btn primary" style="flex: 1.2; font-size: 10px; padding: 6px; background: linear-gradient(135deg, #238636, #2ea043); font-weight: 600;" title="Flash a specific runner float ESP32 via USB or Web Serial">
-                                ⚡ Flash Float...
+                            <button type="button" id="goToFlasherBtn" class="action-btn" style="flex: 1.2; font-size: 10px; padding: 6px; background: rgba(35, 134, 54, 0.2); border-color: #2ea043; color: #3fb950; font-weight: 600;" title="Switch to Deploy Tab to flash active canvas float to ESP32">
+                                ⚡ Go to Flasher ➔
                             </button>
                         </div>
 
@@ -1553,41 +1553,54 @@
                 <div id="tabHardware" class="tab-panel">
 
                     <!-- ESP32 Standalone Flashing (USB) -->
-                    <div class="control-section">
+                    <div class="control-section" id="deployFlasherSection">
                         <div class="section-title">
-                            <span>ESP32 Standalone Flashing (USB)</span>
+                            <span>⚡ ESP32 Firmware Flasher (USB)</span>
                         </div>
-                        <p style="font-size: 12px; color: var(--text-muted); line-height: 1.4;">
-                            Send your active LED layout, sampled colors, and sparkle mode directly to the ESP32 over USB in one click.
+                        <p style="font-size: 11.5px; color: var(--text-muted); line-height: 1.4; margin-bottom: 8px;">
+                            Bakes the float design <strong>currently active on your canvas</strong> directly into the connected ESP32 (GPIO 16 drives 200 LEDs).
                         </p>
 
-                        <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 6px; margin-bottom: 8px; padding: 6px 10px; background: #0d1117; border-radius: 6px; border: 1px solid var(--border-color);">
+                        <!-- USB Port Connection Status -->
+                        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; padding: 6px 10px; background: #0d1117; border-radius: 6px; border: 1px solid var(--border-color);">
                             <div style="display: flex; align-items: center; gap: 6px; font-size: 12px;">
                                 <span id="serialIndicatorDot" style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #8b949e;"></span>
                                 <span id="serialStatusText" style="color: var(--text-muted);">Checking USB connection...</span>
                             </div>
-                            <button id="refreshSerialBtn" style="background: transparent; border: none; color: var(--accent-cyan); font-size: 12px; cursor: pointer;" title="Refresh COM Port Status">🔄</button>
+                            <button id="refreshSerialBtn" type="button" style="background: transparent; border: none; color: var(--accent-cyan); font-size: 12px; cursor: pointer;" title="Refresh COM Port Status">🔄</button>
                         </div>
 
-                        <div style="margin-top: 8px; margin-bottom: 8px;">
-                            <label style="font-size: 11px; color: var(--text-muted); display: block; margin-bottom: 3px;">Assigned Float Role (Bakes into ESP32 NVS):</label>
-                            <select id="flashFloatSelect" style="width: 100%; font-size: 11px; padding: 6px 8px; background: #0d1117; color: var(--text-main); border: 1px solid var(--border-color); border-radius: 6px;">
-                                <option value="0">🎲 Generic / Auto (BOOT Button Selectable)</option>
-                                <option value="1">🚂 Float 1: The Train (👑 Master Leader)</option>
-                                <option value="2">🥁 Float 2: The Title Drum</option>
-                                <option value="3">🩵 Float 3: Cinderella's Coach</option>
-                                <option value="4">🏴‍☠️ Float 4: Peter Pan's Pirate Ship</option>
-                                <option value="5">🐘 Float 5: Dumbo the Flying Elephant</option>
-                                <option value="6" selected>🐉 Float 6: Pete's Dragon</option>
-                                <option value="7">🦅 Float 7: To Honor America (Rear Co-Leader)</option>
-                            </select>
+                        <!-- Active Canvas Float Banner (WYSIWYG Target) -->
+                        <div style="background: #0d1117; border: 1.5px solid var(--border-color); border-radius: 8px; padding: 10px 12px; margin-bottom: 10px;">
+                            <div style="font-size: 10px; color: var(--text-muted); text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px; margin-bottom: 4px;">
+                                Currently Active on Canvas:
+                            </div>
+                            <div style="display: flex; align-items: center; justify-content: space-between;">
+                                <div style="display: flex; align-items: center; gap: 8px;">
+                                    <span id="deployActiveIcon" style="font-size: 22px;">🚂</span>
+                                    <div>
+                                        <strong id="deployActiveTitle" style="font-size: 13px; color: #fff;">Float 1: The Train</strong>
+                                        <div id="deployActiveSubtitle" style="font-size: 10.5px; color: var(--text-muted);">Casey Jr. · Pulls parade & broadcasts sync clock</div>
+                                    </div>
+                                </div>
+                                <span id="deployActiveRolePill" style="font-size: 9px; padding: 2px 6px; border-radius: 4px; background: rgba(248,81,73,0.2); color: #ff7b72; border: 1px solid rgba(248,81,73,0.4); font-weight: 700;">👑 LEADER</span>
+                            </div>
                         </div>
 
+                        <!-- Switch Float to Flash Grid (1 to 7) -->
+                        <div style="margin-bottom: 12px;">
+                            <label style="font-size: 11px; font-weight: 600; color: #8b949e; display: block; margin-bottom: 6px;">Switch Float on Canvas to Flash:</label>
+                            <div id="deployFloatSwitchGrid" style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px;">
+                                <!-- Rendered dynamically by app.js -->
+                            </div>
+                        </div>
+
+                        <!-- Primary Flash Action Button -->
                         <div style="display: flex; flex-direction: column; gap: 8px;">
-                            <button id="flashEsp32Btn" class="action-btn primary" style="font-weight: 600; font-size: 13px; padding: 10px; background: linear-gradient(135deg, #238636, #2ea043);">
-                                ⚡ Flash Standalone Firmware (USB)
+                            <button id="flashEsp32Btn" type="button" class="action-btn primary" style="font-weight: 600; font-size: 13px; padding: 11px; background: linear-gradient(135deg, #238636, #2ea043); display: flex; align-items: center; justify-content: center; gap: 6px;">
+                                <span id="flashEsp32BtnText">⚡ Flash Float 1: The Train to ESP32 (USB)</span>
                             </button>
-                            <button id="exportCodeBtn" class="action-btn" style="font-size: 12px;">
+                            <button id="exportCodeBtn" type="button" class="action-btn" style="font-size: 12px;">
                                 📋 View / Copy C++ Code
                             </button>
                         </div>
@@ -2208,59 +2221,6 @@
             <div style="padding: 14px 20px; background: #161b22; border-top: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center;">
                 <button id="saveWifiBtn" class="action-btn" style="padding: 8px 16px;">💾 Save Wi-Fi</button>
                 <button id="flashReceiverBtn" class="action-btn primary" style="padding: 8px 18px; background: linear-gradient(135deg, #1f6feb, #388bfd);">⚡ Flash Wi-Fi Receiver (USB)</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Modal for Fleet Float Flashing -->
-    <div id="fleetFlashModal" class="modal">
-        <div class="modal-content" style="width: 580px; max-width: 95%;">
-            <div class="modal-header">
-                <div style="display: flex; align-items: center; gap: 8px;">
-                    <span style="font-size: 18px;">⚡</span>
-                    <h3 style="font-size: 15px; font-weight: 600;">Flash ESP32 with Float Role</h3>
-                </div>
-                <button id="closeFleetFlashModalBtn" type="button" class="close-btn">&times;</button>
-            </div>
-            <div style="padding: 18px 20px; background: #161b22; display: flex; flex-direction: column; gap: 14px;">
-                <p style="font-size: 12px; color: var(--text-muted); line-height: 1.5;">
-                    Select which float you want this connected ESP32 to represent in the 7-runner fleet lineup. Its assigned identity is permanently saved to flash memory!
-                </p>
-
-                <div>
-                    <label style="font-size: 12px; font-weight: 600; color: #c9d1d9; display: block; margin-bottom: 8px;">Select Float Role:</label>
-                    <div id="modalFloatCardGrid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 8px;">
-                        <!-- Injected or rendered dynamically by JS -->
-                    </div>
-                </div>
-
-                <div id="modalArmedFloatInfo" style="padding: 10px 14px; background: #0d1117; border-radius: 8px; border: 1px solid var(--border-color); display: flex; align-items: center; justify-content: space-between;">
-                    <div style="display: flex; align-items: center; gap: 10px;">
-                        <span id="modalArmedIcon" style="font-size: 24px;">🚂</span>
-                        <div>
-                            <div style="display: flex; align-items: center; gap: 6px;">
-                                <strong id="modalArmedTitle" style="font-size: 13px; color: #fff;">Float 1: The Train</strong>
-                                <span id="modalArmedRolePill" style="font-size: 9px; padding: 2px 5px; border-radius: 4px; background: rgba(248,81,73,0.2); color: #ff7b72; border: 1px solid rgba(248,81,73,0.4); font-weight: 700;">LEADER</span>
-                            </div>
-                            <span id="modalArmedTag" style="font-size: 11px; color: var(--text-muted);">Casey Jr. · Pulls parade & broadcasts sync clock</span>
-                        </div>
-                    </div>
-                </div>
-
-                <div style="padding: 10px 14px; background: #0d1117; border-radius: 8px; border: 1px solid var(--border-color); font-size: 11px; color: #8b949e; line-height: 1.5;">
-                    💡 <strong>Flashing Options:</strong>
-                    <div style="margin-top: 4px;">• <strong>USB (PlatformIO):</strong> Flashes the board directly plugged into this computer over USB serial.</div>
-                    <div>• <strong>Web Serial Flasher:</strong> Flash directly from Google Chrome or Microsoft Edge with zero software installation.</div>
-                </div>
-            </div>
-            <div style="padding: 14px 20px; background: #161b22; border-top: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; gap: 10px;">
-                <a href="/web_flasher.html" target="_blank" class="action-btn" style="text-decoration: none; padding: 8px 14px; font-size: 12px; color: #3fb950; border-color: #2ea043; font-weight: 600; display: inline-flex; align-items: center; gap: 6px;">
-                    🚀 Open Web Flasher
-                </a>
-                <div style="display: flex; gap: 8px;">
-                    <button type="button" id="cancelFleetFlashModalBtn" class="action-btn" style="padding: 8px 14px; font-size: 12px;">Cancel</button>
-                    <button type="button" id="executeFleetFlashUsbBtn" class="action-btn primary" style="padding: 8px 18px; font-size: 12px; background: linear-gradient(135deg, #238636, #2ea043); font-weight: 600;">⚡ Flash via USB</button>
-                </div>
             </div>
         </div>
     </div>
