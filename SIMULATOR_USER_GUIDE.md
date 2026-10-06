@@ -1158,10 +1158,29 @@ Instead of attaching a Cricut cut vinyl graphic on top of the printed plate, the
    - Runners can choose between **$3\times 3\text{ mm}$ Square** or **$\varnothing 3\text{ mm}$ Round** aperture through-holes directly on the 2D Layout tab or in the 3D Print Preview Modal.
    - Centered through-windows through the $1.0\text{ mm}$ front face beneath each bulb beam the LED forward while the resin bulb body rests solidly against the interior pocket shelf.
    - Changing the selection in the simulator immediately reflects on the 2D canvas and 3D preview, and automatically recompiles the binary STLs with the exact chosen aperture geometry!
-4. **Smallest Readable Debossed LED Numbers (1 to 100):**
-   - Numbers `1` through `100` are sized at the absolute minimum readable size for a $0.4\text{ mm}$ nozzle (**$1.8\text{ mm}$ cap height, $0.5\text{ mm}$ deboss depth** into the interior floor) with clean inter-character kerning.
-   - **Correct Left-to-Right Underside Reading:** Number glyphs are debossed into the floor so that when the runner inspects the underside assembly from the back, every number (e.g. `1`, `42`, `100`) reads in natural left-to-right order without mirror reversal.
-5. **Outside Perimeter Mounting Eyelets (Pure Smooth Circular Ears, Zero Points):**
+
+4. **Selectable Debossed LED Numbers (`[ 🔢 Numbers On | 🚫 No Numbers ]`):**
+   - **Numbers On:** Debosses `1` through `N` at the absolute minimum readable size for a $0.4\text{ mm}$ nozzle (**$1.8\text{ mm}$ cap height, $0.5\text{ mm}$ deboss depth** into the interior pocket floor) with natural left-to-right underside reading for effortless physical wiring.
+   - **No Numbers:** Omits all numerical deboss geometry for a completely smooth, clean internal floor cavity and faster slicing/compilation.
+   - **Instant Recompilation:** Toggling the button in the 3D Preview Modal updates the layout signature and immediately regenerates the STL meshes with real-time feedback.
+
+5. **5-Color Multi-Material Inlays & Bambu Lab / Multi-Extruder Export:**
+   - **5-Color Segmentation:** The compiler automatically analyzes the active artwork and segments it into 5 distinct color components:
+     - 🖤 **Black Base Chassis:** Main structural tray with pockets, wiring channels, eyelets, and window apertures.
+     - 🟢 **Green Inlay:** Body, neck, and main contours (with facial feature and left eye contour preservation).
+     - 🟣 **Magenta Inlay:** Wing accents and spine crests.
+     - 🟡 **Yellow Inlay:** Belly scales, horns, and highlights.
+     - ⚪ **White Inlay:** Teeth, eye sclera, and focal sparkle highlights.
+   - **Multi-Part STL & 3MF Bundles:** Direct export options for Bambu Studio (`.3mf`), split-color STL ZIP bundles (`.zip`), and unified single-color STL files.
+
+6. **Selectable Plate Sizes & LED Counts on Layout Tab:**
+   - **Plate Size Presets:**
+     - 📏 **Small:** $\approx 6.5\text{ inches}$ ($165\text{ mm}$) wide.
+     - 📏 **Medium:** $\approx 8.0\text{ inches}$ ($203.2\text{ mm}$) wide (default Pete's Dragon format).
+     - 📏 **Large:** $\approx 10.0\text{ inches}$ ($254\text{ mm}$) wide.
+   - **LED Count Presets:** Select between **50 LEDs**, **75 LEDs**, or **100 LEDs** distributed across the graphic with automatic PBD collision clearance and wire routing.
+
+7. **Outside Perimeter Mounting Eyelets (Pure Smooth Circular Ears, Zero Points):**
    - 16 streamlined, completely round mounting ears placed strictly on the **OUTSIDE** of the perimeter rim wall.
    - **Pure Smooth Circular Geometry (Zero Points):** Each eyelet is a pure concentric circular cylinder of outer diameter $6.5\text{ mm}$ (outer radius $3.25\text{ mm}$, wall thickness $2.0\text{ mm}$) and height $2.0\text{ mm}$ ($Z = 0.0$ to $2.0\text{ mm}$), completely eliminating any sharp corners, shield wedges, knife edges, or pointy ledges.
    - **Back-Flush Orientation:** Base sits at $Z = 0.0\text{ mm}$, **completely flush with the back perimeter rim touching the runner's shirt** ($Z = 0.0\text{ mm}$), enabling direct, flat sewing, safety pins, or tagging barbs.
@@ -1169,30 +1188,30 @@ Instead of attaching a Cricut cut vinyl graphic on top of the printed plate, the
    - **Dimensions:** $\varnothing 2.5\text{ mm}$ through-hole, $2.0\text{ mm}$ solid walls ($6.5\text{ mm}$ OD), overall tab height $2.0\text{ mm}$.
    - **Puncture-Free Front Face:** The main artwork front plate remains 100% smooth and continuous at $Z = 6.0\text{ mm}$.
 
-6. **Simplified 3D STL Model Viewer with Graphic Cutouts (`tpu_panel_preview.html`):**
+8. **Simplified 3D STL Model Viewer with Graphic Cutouts (`tpu_panel_preview.html`):**
    - **Direct STL Mesh Loading & Non-Mirrored Alignment:** Loads the exact binary `petes_dragon_tpu_panel.stl` mesh directly via Three.js `STLLoader`, oriented with the front face ($Z = 6.0\text{ mm}$) pointing toward the camera (+Z) and underside pockets ($Z = 0.0\text{ mm}$) facing the runner's shirt (-Z). This ensures the dragon head faces forward to the right identically in both ViewSTL and the WebGL inspector without any mirror reversal.
    - **Graphic with Square/Round Window Cutouts:** Projects the active float graphic directly over the front of the STL panel with real square ($3\times 3\text{ mm}$) or circular ($\varnothing 3\text{ mm}$) transparent cutouts punched out where each LED window is located, keeping the apertures completely unobstructed.
    - **LED State Simulation:** Features an interactive LED simulation bar allowing runners to toggle between **LEDs Off**, **Static On** (authentic float colors), and **Animated Parade** (60 FPS shimmer and wave chase).
    - **Minimal Floating HUD:** Replaced complex multi-layer sidebar menus with a clean floating control bar providing quick camera angles (Front, Underside/Pockets, 3D Angle) and opacity sliders for the graphic and armor plate.
 
-7. **Deploy Tab Integration (`tabHardware`) & Dual Front & Back STL Compilation:**
+9. **Deploy Tab Integration (`tabHardware`) & Dual Front & Back STL Compilation:**
    - **Dual Armor Panel System (Front & Back):** In accordance with the 200-LED costume architecture (100 front chest pixels + 100 back pixels duplicated in real time), the compiler creates two tailored armor plates:
      - **🎽 Front Chest Plate ($185\text{ mm}$ base width, $\sim 154\text{ mm}$ height):** Sized to fit comfortably on the chest above race bib #1952 with full collar and neck mobility.
-     - **🎒 Back Torso Plate ($240\text{ mm}$ max dimension, $\sim 200\text{ mm}$ height):** With no race bib constraint, the back panel scales up by $\approx 1.30\times$ to maximize the running shirt back. The 100 LED socket positions scale proportionally with the larger silhouette, maintaining the exact 1:1 firmware LED mapping while expanding wire spacing.
+     - **🎒 Back Torso Plate ($240\text{ mm}$ max dimension, $\sim 200\text{ mm}$ height):** With no race bib constraint, the back panel scales up by $\approx 1.30\times$ to maximize the running shirt back. The LED socket positions scale proportionally with the larger silhouette, maintaining the exact 1:1 firmware LED mapping while expanding wire spacing.
    - **Print Bed Safety Clearances:**
      - **Snapmaker U1 ($270 \times 270\text{ mm}$):** Leaves $\approx 50\text{ mm}$ ($2.0\text{ in}$) margin on the Front Plate and $\approx 15\text{ mm}$ ($0.6\text{ in}$) on the Back Plate.
      - **Bambu Lab ($250 \times 250\text{ mm}$ safe printable area):** Leaves $\approx 42\text{ mm}$ margin on the Front Plate and $\approx 5\text{ mm}$ safe skirt margin on the Back Plate.
-   - **Interactive Front / Back 3D Preview Modal (`#tpuPreviewModal`):** Features a segmented pill in the header: `[🎽 Front (185mm)]` vs `[🎒 Back (240mm)]`. Switching immediately swaps the STL mesh, scales the graphic overlay, updates the dimensions and weight readout badge, and repositions the 100 LED socket windows.
-   - **Artwork Boundary Containment Clamping:** The Position-Based Dynamics (PBD) solver features strict silhouette boundary containment (`safe_art_boundary = dragon_poly.buffer(-2.0)`). While resolving socket collision gaps ($\ge 7.9\text{ mm}$ pitch), it actively clamps all LED coordinates to remain strictly inside the artwork silhouette. This guarantees **100 / 100 LEDs sit inside the artwork graphic on both Front and Back panels**, completely preventing sockets from bleeding out into empty air.
-   - **1-Click Dual Compilation:** Clicking **`⚙️ Recompile STLs (Both Front & Back)`** runs the Python Manifold3D compiler and generates both watertight binary STLs (`tpu_panel_front.stl` and `tpu_panel_back.stl`) in under 9 seconds total.
-   - **Always Matches the Canvas (Stale-STL Guard):** Every compile stamps a *layout signature* (active graphic + artwork + chest bounds + all 100 LED positions) into `tpu_panel_specs.json`. When you click **Preview 3D TPU Armor Panel**, the simulator compares that stamp to the live canvas — if you've switched floats (e.g., Pete's Dragon → The Spinning Turtle), uploaded new artwork, or moved LEDs, it shows *"Active graphic changed — compiling fresh Front & Back STLs…"* and rebuilds both plates automatically before displaying them. No more turtle artwork riding on a dragon-shaped plate!
+   - **Interactive Front / Back 3D Preview Modal (`#tpuPreviewModal`):** Features a segmented pill in the header: `[🎽 Front]` vs `[🎒 Back]`. Switching immediately swaps the STL mesh, scales the graphic overlay, updates the dimensions and weight readout badge, and repositions the LED socket windows.
+   - **Artwork Boundary Containment Clamping:** The Position-Based Dynamics (PBD) solver features strict silhouette boundary containment (`safe_art_boundary = dragon_poly.buffer(-2.0)`). While resolving socket collision gaps ($\ge 7.9\text{ mm}$ pitch), it actively clamps all LED coordinates to remain strictly inside the artwork silhouette. This guarantees all LEDs sit inside the artwork graphic on both Front and Back panels, completely preventing sockets from bleeding out into empty air.
+   - **1-Click Dual Compilation:** Clicking **`⚙️ Recompile STLs (Both Front & Back)`** runs the Python Manifold3D compiler and generates both watertight binary STLs in under 9 seconds total.
+   - **Always Matches the Canvas (Stale-STL Guard):** Every compile stamps a *layout signature* (active graphic + artwork + chest bounds + window shape + LED number toggle + size + all LED positions) into `tpu_panel_specs.json`. When you click **Preview 3D TPU Armor Panel**, the simulator compares that stamp to the live canvas — if you've switched floats (e.g., Pete's Dragon → The Spinning Turtle), uploaded new artwork, or moved LEDs, it shows *"Active graphic changed — compiling fresh Front & Back STLs…"* and rebuilds both plates automatically before displaying them.
    - **Rock-Solid 3D Orbiting (Zero Z-Fighting):** The 3D WebGL renderer employs hardware `logarithmicDepthBuffer`, an optimized $1.0\text{ mm}$ near clip plane, explicit layer `renderOrder` (Plate: 0, Artwork: 2, LEDs: 3), GPU `polygonOffset` depth biasing, and a $0.35\text{ mm}$ physical surface elevation. Orbiting and tumbling the plate at any 3D angle maintains rock-solid, flicker-free graphics with zero clipping or disappearing textures.
-   - **Complete Download Suite:** Direct download buttons for `⬇️ Front STL (185mm)`, `⬇️ Back STL (240mm)`, `📦 Download Both STLs`, and parametric OpenSCAD sources (`.scad`).
+   - **Complete Download Suite:** Direct download buttons for `⬇️ Front STL`, `⬇️ Back STL`, `📦 Download Multicolor 3MF`, `📦 Download Split Parts ZIP`, and parametric OpenSCAD sources (`.scad`).
 
-8. **Layout Tab: 2×2mm Window Visualization & Pocket Overlap Avoidance:**
-   - **🖨️ Show TPU 2×2mm Windows Toggle:** Renders subtle $10\text{ mm} \times 5\text{ mm}$ (outer $12.4 \times 7.4\text{ mm}$) pocket socket boundaries with wire pass-through notches and crisp $2\text{ mm} \times 2\text{ mm}$ square optical apertures with radiant light beaming through.
+10. **Layout Tab: Optical Window Visualization & Pocket Overlap Avoidance:**
+   - **🖨️ Show TPU Windows Toggle:** Renders subtle $10\text{ mm} \times 5\text{ mm}$ (outer $12.4 \times 7.4\text{ mm}$) pocket socket boundaries with wire pass-through notches and crisp optical apertures with radiant light beaming through.
    - **Live Drag Repulsion:** When dragging any LED across the canvas, a collision solver ensures its $12.4 \times 7.4\text{ mm}$ collar stadium maintains $\ge 7.9\text{ mm}$ center-to-center distance from all other LEDs ($0.5\text{ mm}$ clear wall gap), preventing accidental collisions.
-   - **Auto-Relaxation on Scatter & Fill:** Position-Based Dynamics (PBD) stadium separation is built into **100 Scatter** and **Fill Graphic with Remaining LEDs**, automatically nudging apart any overlapping collars to guarantee 100% collision-free layouts before STL compilation.
+   - **Auto-Relaxation on Scatter & Fill:** Position-Based Dynamics (PBD) stadium separation is built into **Scatter** and **Fill Graphic with Remaining LEDs**, automatically nudging apart any overlapping collars to guarantee 100% collision-free layouts before STL compilation.
 
 ### 🖨️ Snapmaker U1 95A TPU Slicing Profile:
 - **Nozzle Temp:** 225°C – 235°C (0.4mm nozzle).

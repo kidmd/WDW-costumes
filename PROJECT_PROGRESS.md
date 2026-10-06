@@ -180,6 +180,17 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
   - **Startup State Persistence:** Replaced hardcoded Float 6 startup with `localStorage.getItem('msep_active_single_shirt_slot')`, cleanly defaulting to Float 1: The Train (Casey Jr.) on fresh starts while persisting the user's active float across sessions.
   - **Verification:** Verified via `node --check simulator/app.js` and PlatformIO `pio run` (firmware builds in 5.17s with 14.3% RAM and 60.2% Flash).
 
+### Entry: 5-Color Multi-Material TPU Armor Panel Inlays, Custom Sizing, LED Counts & Number Toggle
+* **Date:** 2026-10-06 (Morning Imagineering Session)
+* **Milestone:** Milestone 5 - 3D-Printable Flexible Wearable TPU Panel Fabrication & Deploy Suite
+* **Status:** Complete & Verified (`scripts/compile_clean_tpu_panel.py`, `simulator.py`, `simulator/app.js`, `simulator/index.html` v84, `SIMULATOR_USER_GUIDE.md`, `PROJECT_PROGRESS.md`).
+* **Implementation Details:**
+  - **5-Color Multi-Material Slicing Engine (`scripts/compile_clean_tpu_panel.py`):** Automated segmentation of active artwork into 5 precise color inlays (Green body/neck/tail, Magenta wings/spines, Yellow belly/horns, White teeth/eyes/sparkles, and structural Black base chassis). Generates multi-material 3MF files (`tpu_panel_front_multicolor.3mf`), split-part STL ZIP bundles (`tpu_panel_front_multicolor_bundle.zip`), and standalone chassis STLs.
+  - **Artwork Contour & Facial Line Preservation:** Restored high-fidelity body silhouette geometry and facial line work, preserving Pete's Dragon's left eye outline and full torso green coverage through connected component vectorization.
+  - **Selectable Sizes & LED Counts:** Added Layout tab controls for plate sizes (Small ~6.5", Medium ~8.0", Large ~10.0") and LED counts (50, 75, 100), passing parameters through `/api/generate_tpu_stl` to the compiler.
+  - **Debossed LED Numbers Toggle (`[ 🔢 Numbers On | 🚫 No Numbers ]`):** Added modal toggle allowing users to choose between debossed numbering guides (1 to N) or a clean, smooth internal floor.
+  - **Layout Signature & Immediate Recompile Cache Resolution:** Updated `computeTpuLayoutSignature()` in `simulator/app.js` to incorporate the `num` vs `nonum` flag in its return string. Ensured `setTpuLedNumbers()` triggers an immediate re-compilation with progress loader and direct 3D mesh reload when toggled inside the active preview modal. Standalone compilation verified via Trimesh (49,072 faces for clean plate vs 67,962 faces with debossed numbering).
+
 ### Entry: Two-Stage Button 1 Fleet Wake (Solo Mode First, Fleet Sync Second)
 * **Date:** 2026-10-05 (Late Night Imagineering Session)
 * **Milestone:** Milestone 6 - Dual-Button Controller Hardware Architecture, Castle Photo Mode & Dual-Leader Fleet Synchronizer

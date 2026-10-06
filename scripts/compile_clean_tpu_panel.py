@@ -731,6 +731,7 @@ back_result = compile_plate_variant(
 
 # Update full JSON specifications
 specs['window_shape'] = window_shape
+specs['include_led_numbers'] = INCLUDE_LED_NUMBERS
 specs['front'] = front_result
 specs['back'] = back_result
 

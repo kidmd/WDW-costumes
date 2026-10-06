@@ -17651,12 +17651,13 @@ function getActiveFloatName() {
 }
 window.getActiveFloatName = getActiveFloatName;
 
-// Fingerprint of everything that shapes the STL (artwork silhouette, LED layout, chest bounds, window shape, size, count).
+// Fingerprint of everything that shapes the STL (artwork silhouette, LED layout, chest bounds, window shape, size, count, number toggle).
 function computeTpuLayoutSignature() {
     const activeImg = getActiveGraphicImg();
     const src = (activeImg && activeImg.src) ? activeImg.src : 'none';
     const gb = getGraphicChestBounds() || {};
     const winShape = params.tpuWindowShape || 'square';
+    const numFlag = (params.tpuIncludeLedNumbers === false) ? 'nonum' : 'num';
     let h = 5381;
     const mix = (str) => {
         const step = Math.max(1, Math.floor(str.length / 4096)); // sample long data URLs
@@ -17666,13 +17667,13 @@ function computeTpuLayoutSignature() {
     mix(String(currentGraphicType));
     mix(src);
     mix(String(winShape));
-    mix(params.tpuIncludeLedNumbers === false ? 'nonum' : 'num');
+    mix(numFlag);
     mix('inlay-v6');
     mix(String(selectedPlateWidthMm));
     mix(String(selectedPlateSize));
     mix([gb.normX, gb.normY, gb.normW, gb.normH].map(v => Number(v || 0).toFixed(4)).join(','));
     mix((leds || []).map(l => `${Number(l.x).toFixed(4)},${Number(l.y).toFixed(4)}`).join(';'));
-    return `${currentGraphicType}-${winShape}-${selectedPlateSize}-${(leds || []).length}-${h.toString(16)}`;
+    return `${currentGraphicType}-${winShape}-${numFlag}-${selectedPlateSize}-${(leds || []).length}-${h.toString(16)}`;
 }
 window.computeTpuLayoutSignature = computeTpuLayoutSignature;
 
@@ -17748,8 +17749,20 @@ function setTpuLedNumbers(on) {
         const idle = (b) => { b.style.background = 'transparent'; b.style.color = 'rgba(0,0,0,0.7)'; };
         if (on) { act(onBtn); idle(offBtn); } else { act(offBtn); idle(onBtn); }
     }
-    // Recompile (signature changed) and reload if the modal is open
-    if (tpuIsOpen) openTpuPreviewModal();
+    // Recompile immediately and reload mesh views if the modal is open
+    if (tpuIsOpen) {
+        const loaderOverlay = document.getElementById('tpuModalLoading');
+        if (loaderOverlay) {
+            loaderOverlay.style.display = 'flex';
+            loaderOverlay.innerHTML = `
+                <div class="spinner" style="width: 32px; height: 32px; border: 3px solid rgba(0, 255, 136, 0.2); border-top-color: #00ff88; border-radius: 50%; animation: spin 0.8s linear infinite;"></div>
+                <span>${on ? 'Debossing numbered wiring guide...' : 'Generating clean plate without LED numbers...'}</span>
+            `;
+        }
+        handleRecompileTpuStl({ skipOpen: true }).then(() => {
+            if (tpuIsOpen) loadTpuModalData();
+        });
+    }
 }
 window.setTpuLedNumbers = setTpuLedNumbers;
 
@@ -18087,6 +18100,24 @@ async function loadTpuModalData() {
                 mSqBtn.style.color = '#000';
                 mRdBtn.style.background = 'transparent';
                 mRdBtn.style.color = 'rgba(0,0,0,0.7)';
+            }
+        }
+
+        // Sync modal LED numbers buttons
+        const numOnBtn = document.getElementById('tpuModalNumbersOnBtn');
+        const numOffBtn = document.getElementById('tpuModalNumbersOffBtn');
+        if (numOnBtn && numOffBtn) {
+            const numbersEnabled = (params.tpuIncludeLedNumbers !== false);
+            if (numbersEnabled) {
+                numOnBtn.style.background = '#00ff88';
+                numOnBtn.style.color = '#000';
+                numOffBtn.style.background = 'transparent';
+                numOffBtn.style.color = 'rgba(0,0,0,0.7)';
+            } else {
+                numOffBtn.style.background = '#00ff88';
+                numOffBtn.style.color = '#000';
+                numOnBtn.style.background = 'transparent';
+                numOnBtn.style.color = 'rgba(0,0,0,0.7)';
             }
         }
 
