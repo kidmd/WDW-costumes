@@ -344,12 +344,13 @@ void onDataReceive(const uint8_t *mac_addr, const uint8_t *incomingData, int len
                 currentStandaloneMode = SHOW_MODE_CORRAL_STANDBY;
                 Serial.printf("[ESP-NOW] 🌙 Switched to Corral Standby Mode by Float %d\n", packet.activeFloat);
             } else if (packet.mode == 0x51) {
-                // Wake from Corral Standby commanded by Leader/Peer
+                // Wake from Corral Standby commanded by Leader/Peer into Solo Show Mode
                 if (currentStandaloneMode == SHOW_MODE_CORRAL_STANDBY) {
-                    currentStandaloneMode = previousStandaloneMode;
+                    currentStandaloneMode = SHOW_MODE_AUTONOMOUS_SEQUENCE;
+                    previousStandaloneMode = SHOW_MODE_AUTONOMOUS_SEQUENCE;
                     autonomousShowStartTime = millis();
                 }
-                Serial.printf("[ESP-NOW] ☀️ Woke from Corral Standby Mode by Float %d\n", packet.activeFloat);
+                Serial.printf("[ESP-NOW] ☀️ Woke from Corral Standby into Solo Show Mode by Float %d\n", packet.activeFloat);
             } else {
                 currentPacket = packet;
                 packetReceived = true;
@@ -1825,8 +1826,8 @@ void loop() {
     }
 
     // --- BUTTON 1: PRIMARY SHOW DIRECTOR (GPIO 4 + BOOT GPIO 0) ---
-    // - Leader Single Tap: In sleep -> Wakes fleet & starts 30s routine; While running -> Toggle 30s show
-    // - Follower Single Tap: In sleep -> Wakes locally (no fleet show); While running -> Local sequence
+    // - Leader Single Tap: In sleep -> Wakes fleet into Solo Show Mode; While awake -> Toggle 30s fleet routine
+    // - Follower Single Tap: In sleep -> Wakes locally into Solo Show Mode; While awake -> Local sequence
     // - Leader Double Tap (< 400ms): 4-Second Rapid Attendance Roll Call (Mode 0x44)
     // - Long Hold (>= 5.0s): Float ID Configuration Mode (1s-4s white charging meter)
     static bool b1WasPressed = false;
@@ -1897,25 +1898,8 @@ void loop() {
 
         if (currentStandaloneMode == SHOW_MODE_CORRAL_STANDBY) {
             if (isLeader) {
-                // Leader: Wake ENTIRE FLEET & launch 30s fleet routine
-                previousStandaloneMode = SHOW_MODE_AUTONOMOUS_SEQUENCE;
-                currentStandaloneMode = SHOW_MODE_FLEET_30S_ROUTINE;
-                fleetRoutineStartTime = now;
-                fleetRoutineCycle++;
-
-                fill_solid(leds, NUM_LEDS, CRGB(0, 255, 80)); // Emerald Green flash
-                FastLED.show();
-                digitalWrite(STATUS_LED_PIN, HIGH);
-                delay(150);
-                fill_solid(leds, NUM_LEDS, CRGB::Black);
-                FastLED.show();
-                digitalWrite(STATUS_LED_PIN, LOW);
-
-                broadcastStandbyPacket(0x51); // Wake fleet
-                broadcastFleetRoutinePacket(0x30, 0); // Start 30s routine
-                Serial.printf("[LEADER] ☀️ Single Tap in Standby -> Woke ENTIRE FLEET and launched 30s Fleet Show! (Cycle #%u)\n", fleetRoutineCycle);
-            } else {
-                // Follower: Wake LOCALLY to baseline animation (do NOT start theatrical fleet routine)
+                // Leader: Wake ENTIRE FLEET into Solo Show Mode (parade baseline, does NOT start 30s fleet routine)
+                previousStandaloneMode = SHOW_MODE_CORRAL_STANDBY;
                 currentStandaloneMode = SHOW_MODE_AUTONOMOUS_SEQUENCE;
                 autonomousShowStartTime = now;
 
@@ -1927,7 +1911,22 @@ void loop() {
                 FastLED.show();
                 digitalWrite(STATUS_LED_PIN, LOW);
 
-                Serial.printf("[FOLLOWER] Float %d Single Tap -> Woke locally from Corral Standby (no fleet routine).\n", myFloatNumber);
+                broadcastStandbyPacket(0x51); // Wake entire fleet into solo show mode
+                Serial.println("[LEADER] ☀️ First Tap in Standby -> Woke ENTIRE FLEET into Solo Show Mode! (Tap again while awake to start 30s Fleet Show)");
+            } else {
+                // Follower: Wake LOCALLY to baseline solo show animation (do NOT start theatrical fleet routine)
+                currentStandaloneMode = SHOW_MODE_AUTONOMOUS_SEQUENCE;
+                autonomousShowStartTime = now;
+
+                fill_solid(leds, NUM_LEDS, CRGB(0, 255, 80)); // Emerald Green flash
+                FastLED.show();
+                digitalWrite(STATUS_LED_PIN, HIGH);
+                delay(150);
+                fill_solid(leds, NUM_LEDS, CRGB::Black);
+                FastLED.show();
+                digitalWrite(STATUS_LED_PIN, LOW);
+
+                Serial.printf("[FOLLOWER] Float %d Single Tap -> Woke locally from Corral Standby into Solo Show Mode.\n", myFloatNumber);
             }
         } else if (isLeader) {
             // Leader active toggle

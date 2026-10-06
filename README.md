@@ -45,8 +45,8 @@ An **ESP32** microcontroller on each runner coordinates lighting patterns wirele
 * **Dual Hardware Button Controls (Button 1: GPIO 4 / BOOT GPIO 0, Button 2: GPIO 33):**
   * **Power-Up (Plug USB):** Boots directly into **🌙 Corral Standby Mode** (12% dim midnight starlight twinkle, < 120mA), saving 80%+ battery during the 60–90 min starting wait.
   * **Button 1 — Single Tap (< 600ms):**
-    * 👑 *Leader (Float 1 & 7):* Wakes **ENTIRE FLEET** and launches the 30s Theatrical Fleet Routine (or toggles/cancels during active runs).
-    * 👥 *Follower (Floats 2–6):* Wakes **THAT RUNNER ONLY** locally to baseline parade (does not launch fleet routine).
+    * 👑 *Leader (Float 1 & 7):* When asleep, wakes **ENTIRE FLEET** into **Solo Show Mode** (individual float identities). When awake, launches the **30s Synchronized Fleet Routine** (or toggles/cancels during active routine).
+    * 👥 *Follower (Floats 2–6):* When asleep, wakes **THAT RUNNER ONLY** into Solo Show Mode (does not launch fleet routine). When awake, advances/toggles local sequence.
   * **Button 1 — Double Tap (< 400ms):**
     * 👑 *Leader:* Triggers **⚡ 4-Second Rapid Attendance Roll Call** wave across all 7 costumes.
     * 👥 *Follower:* Ignored (roll call reserved for Leader).

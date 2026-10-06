@@ -15753,12 +15753,9 @@ function initPowerBudgetCalculator() {
         if (isCorralStandbyActive) {
             setStandbyUIState(false);
             if (isLeader) {
-                showToast(`☀️ Button 1: Leader (Float ${activeFloatId}) woke fleet and launched 30s fleet routine!`);
-                if (!fleetShowActive) {
-                    startFleetShow();
-                }
+                showToast(`☀️ Button 1: Leader (Float ${activeFloatId}) woke fleet into Solo Show Mode (tap again for 30s fleet show)!`);
             } else {
-                showToast(`☀️ Button 1: Follower (Float ${activeFloatId}) woke locally to baseline parade (no fleet show)!`);
+                showToast(`☀️ Button 1: Follower (Float ${activeFloatId}) woke locally to Solo Show Mode (no fleet show)!`);
             }
         } else if (isLeader) {
             if (fleetShowActive) {

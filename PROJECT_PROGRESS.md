@@ -93,6 +93,17 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### Entry: Two-Stage Button 1 Fleet Wake (Solo Mode First, Fleet Sync Second)
+* **Date:** 2026-10-05 (Late Night Imagineering Session)
+* **Milestone:** Milestone 6 - Dual-Button Controller Hardware Architecture, Castle Photo Mode & Dual-Leader Fleet Synchronizer
+* **Status:** Complete & Verified (`src/main.cpp`, `arduino/MSEP_Costume/MSEP_Costume.ino`, `simulator/app.js`, `SIMULATOR_USER_GUIDE.md`, `README.md`, `FLASHING_INSTRUCTIONS.md`, `PROJECT_PROGRESS.md`).
+* **Implementation Details:**
+  - **Two-Stage Show Initiation Workflow:**
+    - **First Tap in Standby:** When Leader taps Button 1 while the fleet is resting in Corral Standby (`0x50`), the Leader wakes up and broadcasts `0x51` (wake) to all followers. All floats wake directly into **Solo Show Mode** (`SHOW_MODE_AUTONOMOUS_SEQUENCE`), displaying their unique individual float identities (train steam, turtle spirals, snail wheels, coach sparkles, dragon fire, patriotic starbursts) without launching the synchronized theatrical show. Follower tap wakes that costume locally into Solo Show Mode.
+    - **Second Tap while Awake:** When Leader taps Button 1 while running in Solo Show Mode, the Leader launches the **30-Second Theatrical Fleet Routine** (`0x30`) across all 7 floats simultaneously.
+    - **Third Tap while Routine Active:** Allows early stop/cancel back to Solo Show Mode (`0x00`).
+  - **Firmware & Simulator Synchronization:** Mirrored across `src/main.cpp`, `arduino/MSEP_Costume/MSEP_Costume.ino`, and `simulator/app.js`.
+
 ### Entry: Cold-Boot Button Arming Safety Guard & Real-Time Hardware Diagnostic Engine
 * **Date:** 2026-10-05 (Night Imagineering Session - Follow-up)
 * **Milestone:** Milestone 6 - Dual-Button Controller Hardware Architecture, Castle Photo Mode & Dual-Leader Fleet Synchronizer

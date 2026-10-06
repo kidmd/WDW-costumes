@@ -1052,7 +1052,7 @@ Upon plugging in USB power at 3:30 AM, all costumes boot directly into **Corral 
 
 | Button & Gesture | 🚂 Float 1 & Float 7 (Leader Role) | 🐌 Floats 2–6 (Follower Role) |
 | :--- | :--- | :--- |
-| **Button 1 — Single Tap** (< 600ms) | **If in Sleep:** Wakes ENTIRE FLEET & starts 30s Fleet Show.<br>**If Running:** Toggles 30s Fleet Routine Start / Early Cancel. | **If in Sleep:** Wakes LOCALLY to baseline animation (does NOT start show).<br>**If Running:** Toggles local sequence. |
+| **Button 1 — Single Tap** (< 600ms) | **If in Sleep:** Wakes ENTIRE FLEET into **Solo Show Mode** (baseline parade animations).<br>**If Awake:** Launches **30s Fleet Show Routine** (tap again during show for early stop). | **If in Sleep:** Wakes LOCALLY to **Solo Show Mode** (does NOT start fleet show).<br>**If Awake:** Toggles local sequence. |
 | **Button 1 — Double Tap** (< 400ms) | ⚡ Triggers **4-Second Rapid Attendance Roll Call Wave** across entire fleet. | 💡 Ignored (Roll call wave broadcast reserved for Leader). |
 | **Button 1 — Long Hold (5s)**<br>*(1s–4s white charging meter)* | ⚪ Enters **Float ID Configuration Mode** (⚪ 3 white flashes, tap to cycle Floats 1–7, 🟢 4 green auto-save flashes on 4s timeout). | ⚪ Enters **Float ID Configuration Mode** (⚪ 3 white flashes, tap to cycle Floats 1–7, 🟢 4 green auto-save flashes on 4s timeout). |
 | **Button 2 — Single Tap** (< 600ms) | 📸 Puts **ENTIRE FLEET** into **Castle Photo Mode** (solid, 100% steady, zero-flicker glow). Tap again to resume parade. | 📸 Puts **LOCAL COSTUME** into **Castle Photo Mode** (solid steady glow). Tap again to resume parade. |
