@@ -93,6 +93,15 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### Entry: Full Green Body, Black Linework Preserved & Selectable LED Numbers
+* **Date:** 2026-10-06
+* **Milestone:** Milestone 6 - Wearable 3D Armor Fabrication & Multi-Material 3D Printing
+* **Status:** Complete & Verified (`scripts/compile_clean_tpu_panel.py`, `simulator.py`, `simulator/app.js`, `simulator/index.html`, `SIMULATOR_USER_GUIDE.md`, `PROJECT_PROGRESS.md`).
+* **Implementation Details:**
+  - **Missing Green Body Fixed:** The large connected green region traced to a self-intersecting polygon that the old `is_valid` check silently discarded (only the head and tail survived: ~1225 mm^2). Invalid polygons are now repaired with `buffer(0)`; green inlay area is now ~7950 mm^2 covering the whole body.
+  - **Black Linework & Left-Eye Outline Restored:** Inlay contours now use `cv2.RETR_CCOMP` hierarchy so interior holes (black outlines, eye rings, spots) are subtracted from each color; the `MORPH_CLOSE` step that filled thin black lines was removed. Black chassis shows through as the outline.
+  - **Selectable LED Numbers:** New `--numbers on|off` compiler flag and `includeLedNumbers` API field; the 3D Preview modal has a `[ 🔢 Numbers On | 🚫 No Numbers ]` pill that regenerates the STL (preference saved in localStorage, included in the layout signature). Default: On. `app.js?v=83`.
+
 ### Entry: Organic Dragon Silhouette Contour & Calibrated 8.0" Chassis Width
 * **Date:** 2026-10-06 (Follow-up Imagineering Session)
 * **Milestone:** Milestone 6 - Wearable 3D Armor Fabrication & Multi-Material 3D Printing

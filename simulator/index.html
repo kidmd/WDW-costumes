@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -2401,6 +2401,11 @@
                         <button type="button" id="tpuModalShapeSquareBtn" onclick="setTpuWindowShape('square')" style="border: none; border-radius: 4px; padding: 4px 7px; font-size: 11px; font-weight: 700; cursor: pointer; background: #000; color: #00ff88; transition: all 0.2s ease;">🔲 Square</button>
                         <button type="button" id="tpuModalShapeRoundBtn" onclick="setTpuWindowShape('round')" style="border: none; border-radius: 4px; padding: 4px 7px; font-size: 11px; font-weight: 700; cursor: pointer; background: transparent; color: rgba(0,0,0,0.7); transition: all 0.2s ease;">⚪ Round</button>
                     </div>
+                    <!-- LED Numbers (debossed on underside) Switcher -->
+                    <div style="display: flex; align-items: center; margin-left: 4px; background: rgba(0, 0, 0, 0.3); border-radius: 6px; padding: 2px; gap: 2px;" title="Deboss LED numbers into the underside of the STL (regenerates STL)">
+                        <button type="button" id="tpuModalNumbersOnBtn" onclick="setTpuLedNumbers(true)" style="border: none; border-radius: 4px; padding: 4px 7px; font-size: 11px; font-weight: 700; cursor: pointer; background: #000; color: #00ff88; transition: all 0.2s ease;">🔢 Numbers On</button>
+                        <button type="button" id="tpuModalNumbersOffBtn" onclick="setTpuLedNumbers(false)" style="border: none; border-radius: 4px; padding: 4px 7px; font-size: 11px; font-weight: 700; cursor: pointer; background: transparent; color: rgba(0,0,0,0.7); transition: all 0.2s ease;">🚫 No Numbers</button>
+                    </div>
                     <!-- Single vs 5-Color Multi-STL Switcher -->
                     <div style="display: flex; align-items: center; margin-left: 6px; background: rgba(0, 0, 0, 0.4); border-radius: 6px; padding: 2px; gap: 2px;" title="Select between Single Monolithic STL and 5-Color Split Multi-STL">
                         <button type="button" id="tpuModalModeMultiBtn" onclick="setTpuExportMode('multi')" style="border: none; border-radius: 4px; padding: 4px 8px; font-size: 11px; font-weight: 700; cursor: pointer; background: #000; color: #00ff88; transition: all 0.2s ease;">🎨 5-Color Split</button>
@@ -2495,6 +2500,6 @@
         </div>
     </div>
 
-    <script src="app.js?v=82"></script>
+    <script src="app.js?v=83"></script>
 </body>
 </html>

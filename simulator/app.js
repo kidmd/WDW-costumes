@@ -83,6 +83,11 @@ try {
     }
 } catch (e) {}
 
+params.tpuIncludeLedNumbers = true;
+try {
+    if (localStorage.getItem('msep_tpu_led_numbers') === '0') params.tpuIncludeLedNumbers = false;
+} catch (e) {}
+
 // Default Pete's Dragon Artwork
 const defaultDragonImg = new Image();
 let defaultDragonLoaded = false;
@@ -17617,6 +17622,7 @@ function initTpuArmorPanel() {
 
     // Initialize hole shape and export mode
     setTpuWindowShape(params.tpuWindowShape || 'square');
+    setTpuLedNumbers(params.tpuIncludeLedNumbers !== false);
     updateTpuDownloadButtons();
 }
 window.initTpuArmorPanel = initTpuArmorPanel;
@@ -17660,6 +17666,8 @@ function computeTpuLayoutSignature() {
     mix(String(currentGraphicType));
     mix(src);
     mix(String(winShape));
+    mix(params.tpuIncludeLedNumbers === false ? 'nonum' : 'num');
+    mix('inlay-v6');
     mix(String(selectedPlateWidthMm));
     mix(String(selectedPlateSize));
     mix([gb.normX, gb.normY, gb.normW, gb.normH].map(v => Number(v || 0).toFixed(4)).join(','));
@@ -17730,6 +17738,21 @@ function setTpuWindowShape(shape) {
 }
 window.setTpuWindowShape = setTpuWindowShape;
 
+function setTpuLedNumbers(on) {
+    params.tpuIncludeLedNumbers = !!on;
+    try { localStorage.setItem('msep_tpu_led_numbers', on ? '1' : '0'); } catch (e) {}
+    const onBtn = document.getElementById('tpuModalNumbersOnBtn');
+    const offBtn = document.getElementById('tpuModalNumbersOffBtn');
+    if (onBtn && offBtn) {
+        const act = (b) => { b.style.background = '#00ff88'; b.style.color = '#000'; };
+        const idle = (b) => { b.style.background = 'transparent'; b.style.color = 'rgba(0,0,0,0.7)'; };
+        if (on) { act(onBtn); idle(offBtn); } else { act(offBtn); idle(onBtn); }
+    }
+    // Recompile (signature changed) and reload if the modal is open
+    if (tpuIsOpen) openTpuPreviewModal();
+}
+window.setTpuLedNumbers = setTpuLedNumbers;
+
 async function handleRecompileTpuStl(opts) {
     const skipOpen = !!(opts && opts.skipOpen === true);
     const statusEl = document.getElementById('tpuCompileStatus');
@@ -17766,6 +17789,7 @@ async function handleRecompileTpuStl(opts) {
             floatName: floatName,
             graphicType: currentGraphicType,
             windowShape: params.tpuWindowShape || 'square',
+            includeLedNumbers: params.tpuIncludeLedNumbers !== false,
             widthMm: selectedPlateWidthMm,
             sizePreset: selectedPlateSize,
             ledCount: (leds || []).length,

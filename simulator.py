@@ -1327,7 +1327,9 @@ const uint8_t PROGMEM SPATIAL_RADIUS_BYTE[FRONT_LEDS] = {{
                 "--window-shape",
                 window_shape,
                 "--width-mm",
-                str(FRONT_WIDTH_MM)
+                str(FRONT_WIDTH_MM),
+                "--numbers",
+                "on" if req_data.get("includeLedNumbers", True) else "off"
             ]
             res = subprocess.run(cmd, cwd=BASE_DIR, capture_output=True, text=True, timeout=90)
 

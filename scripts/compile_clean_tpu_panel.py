@@ -93,6 +93,12 @@ def flip_z_trimesh(tm):
     f = tm.faces[:, ::-1].copy()
     return trimesh.Trimesh(vertices=v, faces=f, process=True)
 
+INCLUDE_LED_NUMBERS = True
+if '--numbers' in sys.argv:
+    _ni = sys.argv.index('--numbers')
+    if _ni + 1 < len(sys.argv):
+        INCLUDE_LED_NUMBERS = sys.argv[_ni + 1].lower() not in ('off', '0', 'false', 'no')
+
 def compile_plate_variant(variant_name, width_mm, height_mm, raw_leds, artwork_path, window_shape='square'):
     print(f"\n>>> Compiling {variant_name.upper()} Plate ({width_mm}mm x {height_mm}mm, {len(raw_leds)} LEDs, Window Shape: {window_shape.upper()})...")
     v_t0 = time.time()
@@ -314,6 +320,8 @@ def compile_plate_variant(variant_name, width_mm, height_mm, raw_leds, artwork_p
     number_cutters = []
 
     for i, l in enumerate(leds):
+        if not INCLUDE_LED_NUMBERS:
+            break
         num_str = str(i + 1)
         p = np.array([l['x'], l['y']])
         best_cand = None
@@ -380,27 +388,41 @@ def compile_plate_variant(variant_name, width_mm, height_mm, raw_leds, artwork_p
         if c_name == 'black':
             continue
         c_mask = ((closest_color_idx == c_i) & (mask > 0)).astype(np.uint8) * 255
-        kernel = np.ones((3, 3), np.uint8)
-        c_mask = cv2.morphologyEx(c_mask, cv2.MORPH_OPEN, kernel)
-        c_mask = cv2.morphologyEx(c_mask, cv2.MORPH_CLOSE, kernel)
-        cnts, _ = cv2.findContours(c_mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-        
-        c_polys = []
-        for c in cnts:
-            if cv2.contourArea(c) < 25:
-                continue
-            eps = 0.003 * cv2.arcLength(c, True)
+        # Light despeckle only (no CLOSE: it would fill the thin black linework, e.g. eye outlines)
+        c_mask = cv2.morphologyEx(c_mask, cv2.MORPH_OPEN, np.ones((2, 2), np.uint8))
+        # RETR_CCOMP keeps interior holes so black linework / other colors stay black chassis
+        cnts, hier = cv2.findContours(c_mask, cv2.RETR_CCOMP, cv2.CHAIN_APPROX_SIMPLE)
+
+        def _cnt_to_poly(c):
+            if cv2.contourArea(c) < 4:
+                return None
+            eps = 0.0012 * cv2.arcLength(c, True)
             approx = cv2.approxPolyDP(c, eps, True)
             if len(approx) < 3:
-                continue
-            pts = []
-            for pt in approx:
-                cx = round((pt[0][0] / img_w) * width_mm, 2)
-                cy = round((1.0 - pt[0][1] / img_h) * height_mm, 2)
-                pts.append((cx, cy))
-            poly = sg.Polygon(pts)
-            if poly.is_valid and poly.area > 0.1:
-                c_polys.append(poly)
+                return None
+            pts = [(round((pt[0][0] / img_w) * width_mm, 3),
+                    round((1.0 - pt[0][1] / img_h) * height_mm, 3)) for pt in approx]
+            pg = sg.Polygon(pts)
+            if not pg.is_valid:
+                pg = pg.buffer(0)  # repair self-intersections instead of dropping the region
+            return pg
+
+        c_polys = []
+        if hier is not None:
+            for idx, c in enumerate(cnts):
+                if hier[0][idx][3] != -1:
+                    continue  # hole contour, handled with its parent
+                outer = _cnt_to_poly(c)
+                if outer is None or outer.is_empty:
+                    continue
+                child = hier[0][idx][2]
+                while child != -1:
+                    hp = _cnt_to_poly(cnts[child])
+                    if hp is not None and not hp.is_empty:
+                        outer = outer.difference(hp)
+                    child = hier[0][child][0]
+                if not outer.is_empty and outer.area > 0.1:
+                    c_polys.append(outer)
 
         if c_polys:
             c_union = unary_union(c_polys)
