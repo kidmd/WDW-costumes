@@ -3533,7 +3533,8 @@ function renderBulb(cx, x, y, col, isHovered, isSelected, index) {
         cx.stroke();
     }
 
-    if (params.showNumbers || isSelected) {
+    const shouldShowNumber = params.showNumbers || (isSelected && (typeof selectedLed === 'number' && selectedLed === index && (!selectedLeds || selectedLeds.size <= 1)));
+    if (shouldShowNumber) {
         const grpEntry = ledGroupMap[index];
         let fwTag = '';
         let isFw = false;

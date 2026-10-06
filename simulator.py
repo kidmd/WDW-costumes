@@ -1290,6 +1290,7 @@ const uint8_t PROGMEM SPATIAL_RADIUS_BYTE[FRONT_LEDS] = {{
                 "artwork_file": "active_artwork.png",
                 "graphic_type": req_data.get("graphicType"),
                 "window_shape": window_shape,
+                "include_led_numbers": bool(req_data.get("includeLedNumbers", True)),
                 "layout_signature": req_data.get("layoutSignature"),
                 "size_preset": req_data.get("sizePreset", "medium"),
                 "width_mm": FRONT_WIDTH_MM,

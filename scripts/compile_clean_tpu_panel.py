@@ -94,6 +94,8 @@ def flip_z_trimesh(tm):
     return trimesh.Trimesh(vertices=v, faces=f, process=True)
 
 INCLUDE_LED_NUMBERS = True
+if 'include_led_numbers' in specs:
+    INCLUDE_LED_NUMBERS = bool(specs['include_led_numbers'])
 if '--numbers' in sys.argv:
     _ni = sys.argv.index('--numbers')
     if _ni + 1 < len(sys.argv):
