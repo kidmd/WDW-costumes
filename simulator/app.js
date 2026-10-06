@@ -2549,13 +2549,6 @@ function evalGlobalPattern(pattern, bpm, index, totalLeds, timeMs, c, hasColor, 
 }
 
 function computeLedColor(index, totalLeds, timeMs) {
-    if (isPhotoModeActive) {
-        const floatIdx = (activeSingleShirtRunnerSlot !== undefined && activeSingleShirtRunnerSlot !== null) ? activeSingleShirtRunnerSlot : 5;
-        const floatObj = (DEFAULT_FLEET_RADAR && DEFAULT_FLEET_RADAR[floatIdx]) ? DEFAULT_FLEET_RADAR[floatIdx] : (DEFAULT_FLEET_RADAR ? DEFAULT_FLEET_RADAR[0] : null);
-        const heroColor = (floatObj && floatObj.color && typeof hexToRgb === 'function') ? (hexToRgb(floatObj.color) || { r: 56, g: 139, b: 253 }) : { r: 56, g: 139, b: 253 };
-        return { r: heroColor.r, g: heroColor.g, b: heroColor.b, alpha: 1.0 };
-    }
-
     if (isCorralStandbyActive) {
         const floatIdx = (activeSingleShirtRunnerSlot !== undefined && activeSingleShirtRunnerSlot !== null) ? activeSingleShirtRunnerSlot : 5;
         const floatObj = (DEFAULT_FLEET_RADAR && DEFAULT_FLEET_RADAR[floatIdx]) ? DEFAULT_FLEET_RADAR[floatIdx] : (DEFAULT_FLEET_RADAR ? DEFAULT_FLEET_RADAR[0] : null);
@@ -2583,6 +2576,21 @@ function computeLedColor(index, totalLeds, timeMs) {
         }
 
         return { r, g, b, alpha };
+    }
+
+    if (isPhotoModeActive) {
+        if (leds[index] && leds[index].color) {
+            return {
+                r: Math.round(leds[index].color.r),
+                g: Math.round(leds[index].color.g),
+                b: Math.round(leds[index].color.b),
+                alpha: 1.0
+            };
+        }
+        const floatIdx = (activeSingleShirtRunnerSlot !== undefined && activeSingleShirtRunnerSlot !== null) ? activeSingleShirtRunnerSlot : 5;
+        const floatObj = (DEFAULT_FLEET_RADAR && DEFAULT_FLEET_RADAR[floatIdx]) ? DEFAULT_FLEET_RADAR[floatIdx] : (DEFAULT_FLEET_RADAR ? DEFAULT_FLEET_RADAR[0] : null);
+        const heroColor = (floatObj && floatObj.color && typeof hexToRgb === 'function') ? (hexToRgb(floatObj.color) || { r: 56, g: 139, b: 253 }) : { r: 56, g: 139, b: 253 };
+        return { r: heroColor.r, g: heroColor.g, b: heroColor.b, alpha: 1.0 };
     }
 
     if (rapidRollCallActive) {
@@ -4528,14 +4536,7 @@ function computeRunnerLedColor(runnerIndex, runner, presetData, ledIndex, totalL
         }
     }
 
-    // 0C. Castle Photo Mode (Solid, 100% steady, zero-flicker illumination across all 200 LEDs)
-    if (isPhotoModeActive) {
-        const floatObj = (DEFAULT_FLEET_RADAR && DEFAULT_FLEET_RADAR[runnerIndex]) ? DEFAULT_FLEET_RADAR[runnerIndex] : (DEFAULT_FLEET_RADAR ? DEFAULT_FLEET_RADAR[0] : null);
-        const heroColor = (floatObj && floatObj.color && typeof hexToRgb === 'function') ? (hexToRgb(floatObj.color) || { r: 56, g: 139, b: 253 }) : { r: 56, g: 139, b: 253 };
-        return { r: heroColor.r, g: heroColor.g, b: heroColor.b, alpha: 1.0 };
-    }
-
-    // 0D. Corral Standby Mode (12% Dim Twinkle <120mA)
+    // 0C. Corral Standby Mode (12% Dim Twinkle <120mA)
     if (isCorralStandbyActive) {
         const floatObj = (DEFAULT_FLEET_RADAR && DEFAULT_FLEET_RADAR[runnerIndex]) ? DEFAULT_FLEET_RADAR[runnerIndex] : (DEFAULT_FLEET_RADAR ? DEFAULT_FLEET_RADAR[0] : null);
         const baseColor = (floatObj && floatObj.color && typeof hexToRgb === 'function') ? (hexToRgb(floatObj.color) || { r: 56, g: 139, b: 253 }) : { r: 56, g: 139, b: 253 };
@@ -4560,6 +4561,16 @@ function computeRunnerLedColor(runnerIndex, runner, presetData, ledIndex, totalL
         }
 
         return { r, g, b, alpha };
+    }
+
+    // 0D. Castle Photo Mode (Solid, 100% steady, zero-flicker full graphic background colors across all 200 LEDs)
+    if (isPhotoModeActive) {
+        if (hasColor && c) {
+            return { r: Math.round(c.r), g: Math.round(c.g), b: Math.round(c.b), alpha: 1.0 };
+        }
+        const floatObj = (DEFAULT_FLEET_RADAR && DEFAULT_FLEET_RADAR[runnerIndex]) ? DEFAULT_FLEET_RADAR[runnerIndex] : (DEFAULT_FLEET_RADAR ? DEFAULT_FLEET_RADAR[0] : null);
+        const heroColor = (floatObj && floatObj.color && typeof hexToRgb === 'function') ? (hexToRgb(floatObj.color) || { r: 56, g: 139, b: 253 }) : { r: 56, g: 139, b: 253 };
+        return { r: heroColor.r, g: heroColor.g, b: heroColor.b, alpha: 1.0 };
     }
 
     // 1. If 30-Second Fleet Show is Active: Evaluate Choreographed Block
@@ -15713,6 +15724,9 @@ function initPowerBudgetCalculator() {
 
     function setStandbyUIState(active) {
         isCorralStandbyActive = active;
+        if (active && isPhotoModeActive) {
+            setPhotoModeUIState(false);
+        }
         const pill = document.getElementById('standbyStatusPill');
         if (pill) {
             pill.textContent = active ? '🌙 STANDBY ACTIVE (<120mA)' : 'OFF (Full Parade)';
@@ -15760,6 +15774,9 @@ function initPowerBudgetCalculator() {
     window.setPhotoModeUIState = setPhotoModeUIState;
 
     photoModeToggleBtn?.addEventListener('click', () => {
+        if (isCorralStandbyActive) {
+            setStandbyUIState(false);
+        }
         setPhotoModeUIState(!isPhotoModeActive);
         showToast(isPhotoModeActive ? '📸 Castle Photo Mode ENGAGED (Solid Steady Glow)!' : '📸 Castle Photo Mode Disengaged.');
     });
@@ -15810,6 +15827,16 @@ function initPowerBudgetCalculator() {
     simButton2TapBtn?.addEventListener('click', () => {
         const activeFloatId = (activeSingleShirtRunnerSlot !== undefined && activeSingleShirtRunnerSlot !== null) ? (activeSingleShirtRunnerSlot + 1) : 6;
         const isLeader = (activeFloatId === 1 || activeFloatId === 7);
+        if (isCorralStandbyActive) {
+            setStandbyUIState(false);
+            setPhotoModeUIState(true);
+            if (isLeader) {
+                showToast(`📸 Button 2: Leader (Float ${activeFloatId}) woke fleet directly into Castle Photo Mode!`);
+            } else {
+                showToast(`📸 Button 2: Follower (Float ${activeFloatId}) woke locally into Castle Photo Mode!`);
+            }
+            return;
+        }
         setPhotoModeUIState(!isPhotoModeActive);
         if (isLeader) {
             showToast(isPhotoModeActive ? `📸 Button 2: Leader (Float ${activeFloatId}) engaged Castle Photo Mode across ENTIRE FLEET!` : `📸 Button 2: Leader (Float ${activeFloatId}) disengaged Castle Photo Mode for fleet.`);
@@ -15822,11 +15849,14 @@ function initPowerBudgetCalculator() {
     simButton2HoldBtn?.addEventListener('click', () => {
         const activeFloatId = (activeSingleShirtRunnerSlot !== undefined && activeSingleShirtRunnerSlot !== null) ? (activeSingleShirtRunnerSlot + 1) : 6;
         const isLeader = (activeFloatId === 1 || activeFloatId === 7);
+        if (isPhotoModeActive) {
+            setPhotoModeUIState(false);
+        }
         setStandbyUIState(true);
         if (isLeader) {
-            showToast(`🌙 Button 2: 3s Hold -> Leader (Float ${activeFloatId}) put ENTIRE FLEET into Corral Standby Mode!`);
+            showToast(`🌙 Button 2: 3s Hold -> Leader (Float ${activeFloatId}) put ENTIRE FLEET into Corral Standby Mode (stays in Standby)!`);
         } else {
-            showToast(`🌙 Button 2: 3s Hold -> Follower (Float ${activeFloatId}) entered Corral Standby Mode locally.`);
+            showToast(`🌙 Button 2: 3s Hold -> Follower (Float ${activeFloatId}) entered Corral Standby Mode locally (stays in Standby). Click Button 2 again to enter Photo Mode.`);
         }
     });
 

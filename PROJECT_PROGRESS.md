@@ -93,6 +93,16 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### Entry: Multi-Color Graphic Artwork Castle Photo Mode & Standby Hold Release Latch
+* **Date:** 2026-10-05 (Late Night Imagineering Session - Follow-up)
+* **Milestone:** Milestone 6 - Dual-Button Controller Hardware Architecture, Castle Photo Mode & Dual-Leader Fleet Synchronizer
+* **Status:** Complete & Verified (`src/main.cpp`, `arduino/MSEP_Costume/MSEP_Costume.ino`, `include/fleet_palettes.h`, `arduino/MSEP_Costume/fleet_palettes.h`, `simulator/app.js`, `SIMULATOR_USER_GUIDE.md`, `README.md`, `PROJECT_PROGRESS.md`).
+* **Implementation Details:**
+  - **Full Multi-Color Graphic Artwork Castle Photo Mode:** Replaced the previous monochromatic single hero color flood in `renderCastlePhotoMode()` across firmware and simulator with full, bright, 100% steady DC-like illumination displaying the authentic sampled background colors from each float's graphic (e.g. Pete's Dragon with emerald scales, magenta crest, and orange fire breath; Casey Jr. with red engine, yellow trim, cyan steam, and warm white headlight). Generated `include/fleet_palettes.h` and `arduino/MSEP_Costume/fleet_palettes.h` storing authentic 100-LED PROGMEM default palettes for all 7 floats, while preserving custom `costume_config.h` sampled palettes when present.
+  - **Standby Hold Release Latch (Accidental Photo Mode Guard):** Identified and resolved the root cause of why holding Button 2 for >3 seconds accidentally entered Castle Photo Mode upon release: `b2WasPressed` was previously reset to `false` immediately upon hitting 3 seconds while the button was still depressed, causing the subsequent frames to latch a new button press whose release was falsely detected as a single tap (< 600ms). Implemented an explicit release-wait loop (`while (isButton2Down()) delay(10);`), cleared hold tracking only upon physical pin release, and added a release handler guard (`b2HoldHandled`) ensuring extended holds stay locked firmly in Corral Standby Mode. Entering Castle Photo Mode now requires an explicit, separate single click.
+  - **Simulator State Precedence:** Synchronized `simulator/app.js` so that `computeLedColor` and `computeRunnerLedColor` prioritize Corral Standby over Photo Mode, `setStandbyUIState(true)` clears Photo Mode, and `simButton2HoldBtn` firmly latches Standby without accidental photo mode jumps.
+  - **Verification:** Verified via PlatformIO `pio run` (firmware builds in 32.52s with 14.3% RAM and 60.4% Flash) and `node --check simulator/app.js` (passes cleanly).
+
 ### Entry: Follower Button 1 Wake-Only Refinement & Streamlined Button Interface
 * **Date:** 2026-10-05 (Late Night Imagineering Session - Follow-up)
 * **Milestone:** Milestone 6 - Dual-Button Controller Hardware Architecture, Castle Photo Mode & Dual-Leader Fleet Synchronizer

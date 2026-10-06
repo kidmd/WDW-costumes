@@ -53,11 +53,11 @@ An **ESP32** microcontroller on each runner coordinates lighting patterns wirele
   * **Button 1 — Long Hold (5s):**
     * Enter **Float ID Configuration Mode** (1 to 7) with a 1s–4s progressive white LED charging meter and permanent NVS flash auto-save. Releasing before 5s cleanly aborts back to baseline without triggering show routines.
   * **Button 2 — Single Tap (< 600ms):**
-    * 👑 *Leader:* Toggles **📸 Castle Photo Mode** (solid, steady, non-flickering hero illumination) across the **ENTIRE FLEET**.
-    * 👥 *Follower:* Toggles **📸 Castle Photo Mode** **LOCALLY** for that runner.
+    * 👑 *Leader:* Toggles **📸 Castle Photo Mode** (solid, steady, non-flickering full graphic background colors) across the **ENTIRE FLEET**.
+    * 👥 *Follower:* Toggles **📸 Castle Photo Mode** **LOCALLY** (solid full graphic background colors) for that runner.
   * **Button 2 — Long Hold (3s):**
-    * 👑 *Leader:* Drops **ENTIRE FLEET into Corral Standby (Sleep) Mode**.
-    * 👥 *Follower:* Drops **THAT RUNNER ONLY into Corral Standby Mode**.
+    * 👑 *Leader:* Drops **ENTIRE FLEET into Corral Standby (Sleep) Mode**. Stays locked in Standby even if held >3s—requiring an explicit click to enter Photo Mode.
+    * 👥 *Follower:* Drops **THAT RUNNER ONLY into Corral Standby Mode**. Stays locked in Standby even if held >3s—waiting for physical release so it never accidentally pops into Photo Mode.
 
 ---
 

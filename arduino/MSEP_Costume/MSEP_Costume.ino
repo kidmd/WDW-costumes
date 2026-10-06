@@ -20,6 +20,10 @@
 #include "wifi_config.h"
 #endif
 
+#if __has_include("fleet_palettes.h")
+#include "fleet_palettes.h"
+#endif
+
 // ============================================================================
 // HARDWARE & PIN DEFINITIONS
 // ============================================================================
@@ -175,8 +179,34 @@ void broadcastPhotoModePacket(uint8_t mode) {
 
 void renderCastlePhotoMode() {
     uint8_t floatIdx = (myFloatNumber >= 1 && myFloatNumber <= 7) ? (myFloatNumber - 1) : 0;
+
+#if defined(HAS_CUSTOM_PALETTE) && HAS_CUSTOM_PALETTE
+    #if defined(COMPILED_FLOAT_ID)
+    if (myFloatNumber == COMPILED_FLOAT_ID) {
+        for (int i = 0; i < FRONT_LEDS && i < MAX_LEDS_CAPACITY; i++) {
+            leds[i] = ARTWORK_PALETTE[i];
+        }
+        duplicateFrontToBack();
+        return;
+    }
+    #else
+    for (int i = 0; i < FRONT_LEDS && i < MAX_LEDS_CAPACITY; i++) {
+        leds[i] = ARTWORK_PALETTE[i];
+    }
+    duplicateFrontToBack();
+    return;
+    #endif
+#endif
+
+#if defined(HAS_DEFAULT_FLOAT_PALETTES) && HAS_DEFAULT_FLOAT_PALETTES
+    for (int i = 0; i < FRONT_LEDS && i < MAX_LEDS_CAPACITY; i++) {
+        leds[i] = DEFAULT_FLOAT_PALETTES[floatIdx][i];
+    }
+#else
     CRGB heroColor = FLEET_ROSTER_INFO[floatIdx].color;
     fill_solid(leds, FRONT_LEDS, heroColor);
+#endif
+
     duplicateFrontToBack();
 }
 
@@ -2001,7 +2031,13 @@ void loop() {
                 } else {
                     Serial.printf("[FOLLOWER] Float %d Button 2 Held 3s -> Dropped locally into Corral Standby Mode.\n", myFloatNumber);
                 }
+                // Wait until Button 2 is physically released so extended holds (>3s) never latch a false tap into Photo Mode
+                while (isButton2Down()) {
+                    delay(10);
+                }
                 b2WasPressed = false;
+                b2HoldHandled = false;
+                Serial.println("[BUTTON 2] Physically released after 3s sleep hold -> staying firmly in Corral Standby Mode.");
                 return;
             } else if (holdElapsed >= 1000) {
                 // Soft indigo/blue progressive charging meter on first 3 pixels
@@ -2020,12 +2056,19 @@ void loop() {
         uint32_t pressDuration = now - b2DownTime;
         Serial.printf("[BUTTON 2] Released (duration: %u ms)\n", pressDuration);
 
-        if (pressDuration >= 1000 && !b2HoldHandled) {
+        if (b2HoldHandled) {
+            b2HoldHandled = false;
+            Serial.println("[BUTTON 2] Released after hold completed -> staying in current mode.");
+            return;
+        }
+
+        if (pressDuration >= 1000) {
             Serial.printf("[BUTTON 2] Sleep hold aborted after %u ms -> returning to baseline with zero changes.\n", pressDuration);
+            return;
         }
 
         // Tap handling: immediate trigger on release since multi-taps are disabled
-        if (!b2HoldHandled && pressDuration >= 50 && pressDuration < 600) {
+        if (pressDuration >= 50 && pressDuration < 600) {
             if (isLeader) {
                 // Leader: Toggle Castle Photo Mode across ENTIRE FLEET
                 if (currentStandaloneMode == SHOW_MODE_PHOTO_STATIC) {
