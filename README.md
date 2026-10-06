@@ -39,19 +39,25 @@ An **ESP32** microcontroller on each runner coordinates lighting patterns wirele
 
 * **Protocol:** ESP-NOW broadcast (Destination MAC `FF:FF:FF:FF:FF:FF`).
 * **Architecture:**
-  * **Unit 1 (Leader / Transmitter):** Broadcasts timing ticks, BPM tempo, master brightness, and pattern triggers.
-  * **Units 2–7 (Followers / Receivers):** Listen to broadcast packets, sync their internal animation clock, and calculate their position-based phase delay for traveling parade chases down the line of runners.
-* **On-the-Fly Button Controls & Leader Authority (BOOT Button on GPIO 0):**
-  * **Power-Up (Plug USB):** Boots directly into **🌙 Corral Standby Mode** (12% dim midnight starlight twinkle, < 120mA), saving 80%+ battery during the 60–90 min wait.
-  * **Single Tap (< 600ms):**
-    * 👑 *Leader (Float 1):* Wakes **ENTIRE FLEET** from standby (or toggles the 30s Theatrical Fleet Routine during active runs).
-    * 👥 *Follower (Floats 2–7):* Wakes **THAT RUNNER ONLY** locally (ignored during active runs so non-technical runners never disrupt the fleet!).
-  * **Double Tap (2 taps within 400ms):**
-    * 👑 *Leader:* Triggers **⚡ 4-Second Rapid Attendance Roll Call** wave (Floats 1..7 illuminate solo for 500ms in signature colors, followed by a 500ms unison double emerald green flash across all 7 costumes).
-  * **Triple Tap (3 taps within 600ms):**
-    * 👑 *Leader:* Drops **ENTIRE FLEET into Corral Standby Mode**.
+  * **Float 1 (Primary Master Leader):** Front locomotive broadcasting timing ticks, BPM tempo, master brightness, show triggers, and photo mode.
+  * **Float 7 (Co-Leader / Rear Marshal):** Rear anchor with full co-leader authority to command the rear pack independently if runners split.
+  * **Floats 2–6 (Followers):** Listen to broadcast packets, lock to master clock, and execute individual autonomous sequences or synchronized routines.
+* **Dual Hardware Button Controls (Button 1: GPIO 4 / BOOT GPIO 0, Button 2: GPIO 33):**
+  * **Power-Up (Plug USB):** Boots directly into **🌙 Corral Standby Mode** (12% dim midnight starlight twinkle, < 120mA), saving 80%+ battery during the 60–90 min starting wait.
+  * **Button 1 — Single Tap (< 600ms):**
+    * 👑 *Leader (Float 1 & 7):* Wakes **ENTIRE FLEET** and launches the 30s Theatrical Fleet Routine (or toggles/cancels during active runs).
+    * 👥 *Follower (Floats 2–6):* Wakes **THAT RUNNER ONLY** locally to baseline parade (does not launch fleet routine).
+  * **Button 1 — Double Tap (< 400ms):**
+    * 👑 *Leader:* Triggers **⚡ 4-Second Rapid Attendance Roll Call** wave across all 7 costumes.
+    * 👥 *Follower:* Ignored (roll call reserved for Leader).
+  * **Button 1 — Long Hold (5s):**
+    * Enter **Float ID Configuration Mode** (1 to 7) with a 1s–4s progressive white LED charging meter and permanent NVS flash auto-save. Releasing before 5s cleanly aborts back to baseline without triggering show routines.
+  * **Button 2 — Single Tap (< 600ms):**
+    * 👑 *Leader:* Toggles **📸 Castle Photo Mode** (solid, steady, non-flickering hero illumination) across the **ENTIRE FLEET**.
+    * 👥 *Follower:* Toggles **📸 Castle Photo Mode** **LOCALLY** for that runner.
+  * **Button 2 — Long Hold (3s):**
+    * 👑 *Leader:* Drops **ENTIRE FLEET into Corral Standby (Sleep) Mode**.
     * 👥 *Follower:* Drops **THAT RUNNER ONLY into Corral Standby Mode**.
-  * **Hold for 5 Seconds:** Enter **Float ID Configuration Mode** (1 to 7) with a 1s–4s progressive white LED charging meter and permanent NVS flash auto-save. Releasing before 5s cleanly aborts back to baseline without triggering show routines. No hardcoded MAC addresses required!
 
 ---
 

@@ -15,6 +15,7 @@ let activePattern = 'steady_sparkle'; // 'steady_sparkle', 'color_match', 'drago
 let rapidRollCallActive = false;
 let rapidRollCallStartTime = 0;
 let isCorralStandbyActive = false;
+let isPhotoModeActive = false;
 
 const DEFAULT_FLEET_RADAR = [
     { id: 1, name: "The Train", role: "LEADER", tag: "CASEY JR.", color: "#ff5e3a", icon: "🚂", status: "ONLINE", rssi: -44, voltage: 5.14, batteryPct: 99, lastSeenSec: 0.2 },
@@ -23,7 +24,7 @@ const DEFAULT_FLEET_RADAR = [
     { id: 4, name: "The Snail", role: "FOLLOWER", tag: "SNAIL", color: "#ff007f", icon: "🐌", status: "ONLINE", rssi: -61, voltage: 5.08, batteryPct: 95, lastSeenSec: 1.4 },
     { id: 5, name: "Cinderella", role: "FOLLOWER", tag: "COACH", color: "#05d9e8", icon: "🩵", status: "ONLINE", rssi: -63, voltage: 5.11, batteryPct: 96, lastSeenSec: 0.8 },
     { id: 6, name: "Pete's Dragon", role: "FOLLOWER", tag: "ELLIOTT", color: "#39ff14", icon: "🐉", status: "ONLINE", rssi: -55, voltage: 5.15, batteryPct: 99, lastSeenSec: 0.4 },
-    { id: 7, name: "Flag & Eagle", role: "FOLLOWER", tag: "PATRIOTIC", color: "#388bfd", icon: "🦅", status: "ONLINE", rssi: -69, voltage: 5.09, batteryPct: 94, lastSeenSec: 2.1 }
+    { id: 7, name: "Flag & Eagle", role: "CO-LEADER", tag: "PATRIOTIC", color: "#388bfd", icon: "🦅", status: "ONLINE", rssi: -69, voltage: 5.09, batteryPct: 94, lastSeenSec: 2.1 }
 ];
 
 // Dynamic live single shirt editor preset helper
@@ -2545,6 +2546,13 @@ function evalGlobalPattern(pattern, bpm, index, totalLeds, timeMs, c, hasColor, 
 }
 
 function computeLedColor(index, totalLeds, timeMs) {
+    if (isPhotoModeActive) {
+        const floatIdx = (activeSingleShirtRunnerSlot !== undefined && activeSingleShirtRunnerSlot !== null) ? activeSingleShirtRunnerSlot : 5;
+        const floatObj = (DEFAULT_FLEET_RADAR && DEFAULT_FLEET_RADAR[floatIdx]) ? DEFAULT_FLEET_RADAR[floatIdx] : (DEFAULT_FLEET_RADAR ? DEFAULT_FLEET_RADAR[0] : null);
+        const heroColor = (floatObj && floatObj.color && typeof hexToRgb === 'function') ? (hexToRgb(floatObj.color) || { r: 56, g: 139, b: 253 }) : { r: 56, g: 139, b: 253 };
+        return { r: heroColor.r, g: heroColor.g, b: heroColor.b, alpha: 1.0 };
+    }
+
     if (isCorralStandbyActive) {
         const floatIdx = (activeSingleShirtRunnerSlot !== undefined && activeSingleShirtRunnerSlot !== null) ? activeSingleShirtRunnerSlot : 5;
         const floatObj = (DEFAULT_FLEET_RADAR && DEFAULT_FLEET_RADAR[floatIdx]) ? DEFAULT_FLEET_RADAR[floatIdx] : (DEFAULT_FLEET_RADAR ? DEFAULT_FLEET_RADAR[0] : null);
@@ -4517,7 +4525,14 @@ function computeRunnerLedColor(runnerIndex, runner, presetData, ledIndex, totalL
         }
     }
 
-    // 0C. Corral Standby Mode (12% Dim Twinkle <120mA)
+    // 0C. Castle Photo Mode (Solid, 100% steady, zero-flicker illumination across all 200 LEDs)
+    if (isPhotoModeActive) {
+        const floatObj = (DEFAULT_FLEET_RADAR && DEFAULT_FLEET_RADAR[runnerIndex]) ? DEFAULT_FLEET_RADAR[runnerIndex] : (DEFAULT_FLEET_RADAR ? DEFAULT_FLEET_RADAR[0] : null);
+        const heroColor = (floatObj && floatObj.color && typeof hexToRgb === 'function') ? (hexToRgb(floatObj.color) || { r: 56, g: 139, b: 253 }) : { r: 56, g: 139, b: 253 };
+        return { r: heroColor.r, g: heroColor.g, b: heroColor.b, alpha: 1.0 };
+    }
+
+    // 0D. Corral Standby Mode (12% Dim Twinkle <120mA)
     if (isCorralStandbyActive) {
         const floatObj = (DEFAULT_FLEET_RADAR && DEFAULT_FLEET_RADAR[runnerIndex]) ? DEFAULT_FLEET_RADAR[runnerIndex] : (DEFAULT_FLEET_RADAR ? DEFAULT_FLEET_RADAR[0] : null);
         const baseColor = (floatObj && floatObj.color && typeof hexToRgb === 'function') ? (hexToRgb(floatObj.color) || { r: 56, g: 139, b: 253 }) : { r: 56, g: 139, b: 253 };
@@ -15701,6 +15716,107 @@ function initPowerBudgetCalculator() {
     wakeCorralStandbyBtn?.addEventListener('click', () => {
         setStandbyUIState(false);
         showToast('☀️ Leader Woke Entire Fleet to Active Parade Mode!');
+    });
+
+    // ========================================================================
+    // 📸 CASTLE PHOTO MODE & DUAL HARDWARE BUTTON SIMULATOR
+    // ========================================================================
+    const photoModeToggleBtn = document.getElementById('photoModeToggleBtn');
+    const simButton1TapBtn = document.getElementById('simButton1TapBtn');
+    const simButton1DoubleBtn = document.getElementById('simButton1DoubleBtn');
+    const simButton1HoldBtn = document.getElementById('simButton1HoldBtn');
+    const simButton2TapBtn = document.getElementById('simButton2TapBtn');
+    const simButton2HoldBtn = document.getElementById('simButton2HoldBtn');
+
+    function setPhotoModeUIState(active) {
+        isPhotoModeActive = active;
+        if (photoModeToggleBtn) {
+            photoModeToggleBtn.textContent = active ? '📸 Photo Mode: ON' : '📸 Photo Mode: OFF';
+            photoModeToggleBtn.style.background = active ? 'rgba(240, 136, 62, 0.25)' : 'transparent';
+        }
+        if (simButton2TapBtn) {
+            simButton2TapBtn.style.background = active ? 'rgba(240, 136, 62, 0.3)' : 'transparent';
+        }
+    }
+    window.setPhotoModeUIState = setPhotoModeUIState;
+
+    photoModeToggleBtn?.addEventListener('click', () => {
+        setPhotoModeUIState(!isPhotoModeActive);
+        showToast(isPhotoModeActive ? '📸 Castle Photo Mode ENGAGED (Solid Steady Glow)!' : '📸 Castle Photo Mode Disengaged.');
+    });
+
+    // Sim Button 1: Single Tap (Show / Wake)
+    simButton1TapBtn?.addEventListener('click', () => {
+        const activeFloatId = (activeSingleShirtRunnerSlot !== undefined && activeSingleShirtRunnerSlot !== null) ? (activeSingleShirtRunnerSlot + 1) : 6;
+        const isLeader = (activeFloatId === 1 || activeFloatId === 7);
+
+        if (isCorralStandbyActive) {
+            setStandbyUIState(false);
+            if (isLeader) {
+                showToast(`☀️ Button 1: Leader (Float ${activeFloatId}) woke fleet and launched 30s fleet routine!`);
+                if (!fleetShowActive) {
+                    startFleetShow();
+                }
+            } else {
+                showToast(`☀️ Button 1: Follower (Float ${activeFloatId}) woke locally to baseline parade (no fleet show)!`);
+            }
+        } else if (isLeader) {
+            if (fleetShowActive) {
+                stopFleetShow();
+                showToast(`⏹ Button 1: Leader (Float ${activeFloatId}) stopped fleet show early.`);
+            } else {
+                startFleetShow();
+                showToast(`👑 Button 1: Leader (Float ${activeFloatId}) started 30s fleet show routine!`);
+            }
+        } else {
+            if (isPhotoModeActive) {
+                setPhotoModeUIState(false);
+                showToast(`🔘 Button 1: Follower (Float ${activeFloatId}) exited Photo Mode back to parade.`);
+            } else {
+                showToast(`🔘 Button 1: Follower (Float ${activeFloatId}) tap recognized (fleet show reserved for Leader).`);
+            }
+        }
+    });
+
+    // Sim Button 1: Double Tap (Rapid Roll Call Wave)
+    simButton1DoubleBtn?.addEventListener('click', () => {
+        const activeFloatId = (activeSingleShirtRunnerSlot !== undefined && activeSingleShirtRunnerSlot !== null) ? (activeSingleShirtRunnerSlot + 1) : 6;
+        const isLeader = (activeFloatId === 1 || activeFloatId === 7);
+        if (isLeader) {
+            triggerRapidRollCall();
+            showToast(`⚡ Button 1 Double-Tap: Leader (Float ${activeFloatId}) launched 4s Rapid Attendance Wave!`);
+        } else {
+            showToast(`💡 Button 1 Double-Tap: Follower (Float ${activeFloatId}) ignored (Roll call wave reserved for Leader).`);
+        }
+    });
+
+    // Sim Button 1: 5s Hold (Float ID Configuration Mode)
+    simButton1HoldBtn?.addEventListener('click', () => {
+        showToast('⏳ Button 1: 5s Long Hold -> Entered Float ID Configuration Mode (1➔7)! Tap to cycle float role.');
+    });
+
+    // Sim Button 2: Single Tap (Castle Photo Mode)
+    simButton2TapBtn?.addEventListener('click', () => {
+        const activeFloatId = (activeSingleShirtRunnerSlot !== undefined && activeSingleShirtRunnerSlot !== null) ? (activeSingleShirtRunnerSlot + 1) : 6;
+        const isLeader = (activeFloatId === 1 || activeFloatId === 7);
+        setPhotoModeUIState(!isPhotoModeActive);
+        if (isLeader) {
+            showToast(isPhotoModeActive ? `📸 Button 2: Leader (Float ${activeFloatId}) engaged Castle Photo Mode across ENTIRE FLEET!` : `📸 Button 2: Leader (Float ${activeFloatId}) disengaged Castle Photo Mode for fleet.`);
+        } else {
+            showToast(isPhotoModeActive ? `📸 Button 2: Follower (Float ${activeFloatId}) engaged Castle Photo Mode (local only)!` : `📸 Button 2: Follower (Float ${activeFloatId}) disengaged Castle Photo Mode (local only).`);
+        }
+    });
+
+    // Sim Button 2: 3s Hold (Standby Sleep Mode)
+    simButton2HoldBtn?.addEventListener('click', () => {
+        const activeFloatId = (activeSingleShirtRunnerSlot !== undefined && activeSingleShirtRunnerSlot !== null) ? (activeSingleShirtRunnerSlot + 1) : 6;
+        const isLeader = (activeFloatId === 1 || activeFloatId === 7);
+        setStandbyUIState(true);
+        if (isLeader) {
+            showToast(`🌙 Button 2: 3s Hold -> Leader (Float ${activeFloatId}) put ENTIRE FLEET into Corral Standby Mode!`);
+        } else {
+            showToast(`🌙 Button 2: 3s Hold -> Follower (Float ${activeFloatId}) entered Corral Standby Mode locally.`);
+        }
     });
 
     if (breakdownToggle && breakdownContent && breakdownToggleIcon) {

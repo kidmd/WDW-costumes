@@ -93,6 +93,23 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### Entry: Dual-Button Hardware Controller, Castle Photo Mode & Dual-Leader Fleet Synchronizer
+* **Date:** 2026-10-05 (Night Imagineering Session)
+* **Milestone:** Milestone 6 - Dual-Button Controller Hardware Architecture, Castle Photo Mode & Dual-Leader Fleet Synchronizer
+* **Status:** Complete & Verified (`src/main.cpp`, `arduino/MSEP_Costume/MSEP_Costume.ino`, `simulator/index.html`, `simulator/app.js`, `simulator/web_flasher.html`, `FLASHING_INSTRUCTIONS.md`, `SIMULATOR_USER_GUIDE.md`, `README.md`).
+* **Implementation Details:**
+  - **Dual Dedicated GPIO Button Interface:** Upgraded from sole reliance on onboard BOOT button (GPIO 0) to a 2-button external tactile switch architecture using **GPIO 4** (Button 1: Show Director) and **GPIO 33** (Button 2: Media/Photo & Sleep) with internal pull-ups (`INPUT_PULLUP`), while retaining **GPIO 0** (BOOT) in software as an automatic parallel bench fallback.
+  - **Precise Multi-Gesture Action Engine:**
+    - **Button 1 Single Tap (< 600ms):** When in Corral Standby, Leader wakes entire fleet (`0x51`) and immediately starts 30s fleet routine (`0x30`); Follower wakes locally to baseline parade without triggering fleet routine. While running, Leader toggles/cancels 30s fleet routine; Follower toggles local sequence.
+    - **Button 1 Double Tap (< 400ms):** Leader launches 4-second Rapid Attendance Roll Call wave (`0x44`); Follower ignores. Triple-tap removed per runner requirements.
+    - **Button 1 Long Hold (5s):** Progressive 1s–4s white LED charging meter leading to Float ID Configuration Mode (⚪ 3 white entry flashes, tap to cycle Floats 1–7, 🟢 4 green auto-save flashes to NVS flash on 4s timeout). Releasing early cleanly aborts with zero changes.
+    - **Button 2 Single Tap (< 600ms):** Leader puts entire fleet into **Castle Photo Mode** (`0x46` ON, `0x47` OFF); Follower puts local costume into Castle Photo Mode. Zero multi-tap delay on Button 2 for instantaneous shutter response.
+    - **Button 2 Long Hold (3s):** Progressive 1s–2s soft blue charging meter; at 3s, 3 soft indigo confirmation pulses drop entire fleet (Leader, `0x50`) or local costume (Follower) into Corral Standby Mode (< 120mA).
+  - **📸 Castle Photo Mode Renderer:** Emits a solid, steady, non-flickering DC-like illumination across all 200 LEDs (100 front + 100 back duplicated) in the float's signature hero color palette, safe under the FastLED 2.0A power governor, eliminating rolling-shutter artifacts and dark banding in camera photos.
+  - **🦅 Dual-Leader (Float 1 & Float 7) Hierarchy:** Float 1 (Casey Jr.) acts as Primary Leader and Float 7 (To Honor America) acts as Co-Leader / Rear Marshal with full show and standby authority, allowing independent rear-pack command if runners split during the 10K.
+  - **Simulator Suite Integration:** Added top-bar **📸 Photo Mode** toggle button and interactive Section 3 **Dual Button Hardware Simulator** (GPIO 4 + GPIO 33) with real-time feedback and state synchronization.
+  - **Verification:** Verified compilation via PlatformIO (`pio run`) taking 19.92s with 14.3% RAM and 60.8% Flash; JavaScript syntax verified with `node --check simulator/app.js`.
+
 ### Entry: Selectable 3×3mm Square vs Ø 3mm Round Optical Aperture Windows in TPU Compiler & Simulator
 * **Date:** 2026-10-05 (Night Imagineering Session)
 * **Milestone:** Milestone 5 - 3D-Printable Flexible Wearable TPU Panel Fabrication & Deploy Suite

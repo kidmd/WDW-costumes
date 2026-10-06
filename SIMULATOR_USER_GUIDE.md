@@ -1040,51 +1040,50 @@ To ensure that **no runner goes dark on course** during the runDisney 10K, the D
 
 The unified firmware in [`src/main.cpp`](file:///c:/Users/Kiddi/Desktop/WDW%20costumes/src/main.cpp) and [`arduino/MSEP_Costume/MSEP_Costume.ino`](file:///c:/Users/Kiddi/Desktop/WDW%20costumes/arduino/MSEP_Costume/MSEP_Costume.ino) implements FastLED hardware power limiting (`FastLED.setMaxPowerInVoltsAndMilliamps(5, 2000)`), controls **200 LEDs** (100 front + 100 back duplicated), and enforces the **Leader-Centric Fleet Authority Model**:
 
-### 👑 Leader-Centric Authority Model
-- **Float 1 (Casey Jr. / Master Leader):** Pulls the parade and holds master command over the fleet. The leader can wake all 7 floats from standby, trigger 4-second attendance roll calls, launch the 30-second fleet show, and put the whole group into battery-saving standby.
-- **Floats 2 to 7 (Followers):** Followers only have local control over their own shirt (waking or entering standby locally). Single-taps during active runs and double-taps are ignored on follower boards to ensure non-technical family runners never accidentally disrupt or cancel the parade show.
+### 👑 Dual-Leader Authority Model
+- **Float 1 (Casey Jr. / Primary Leader):** Head locomotive pulling the parade with master command over the fleet. Float 1 can wake all 7 floats from standby, trigger 4-second attendance roll calls, launch the 30-second fleet show, command Castle Photo Mode, and put the whole group into battery-saving standby.
+- **Float 7 (Flag & Eagle / Co-Leader & Rear Marshal):** Rear anchor equipped with full co-leader authority. If the family splits into front and rear packs during the 10K, Float 7 can command the rear pack independently; when united, Float 1 naturally takes master precedence.
+- **Floats 2 to 6 (Followers):** Followers have local control over their own shirt (local wake, local Photo Mode, and local standby). Single-taps during active runs and double-taps are ignored on follower boards to ensure non-technical family runners never accidentally disrupt or cancel the parade show.
 
 ### 🌙 Power-On Corral Standby Mode
 Upon plugging in USB power at 3:30 AM, all costumes boot directly into **Corral Standby Mode** (12% dim midnight starlight twinkle drawing **< 120mA**). This saves 80%+ of power bank energy during the 60–90 minute starting corral wait and prevents blinding fellow runners in line.
 
-### Hardware BOOT Button (GPIO 0) Controls:
-- **Power-Up (Plug USB):** Boots directly into **🌙 Corral Standby Mode** (12% dim starlight twinkle, < 120mA).
-- **Single Tap (< 600ms):**
-  - **In Standby Mode:** 
-    - 👑 *Leader:* Wakes **ENTIRE FLEET** to active parade mode (1 emerald green flash, broadcasts packet `0x51`).
-    - 👥 *Follower:* Wakes **THAT RUNNER ONLY** locally (no broadcast).
-  - **During Active Run:**
-    - 👑 *Leader:* Starts/stops the **30-Second Theatrical Fleet Routine** across all 7 floats (broadcasts packet `0x30` / `0x00`).
-    - 👥 *Follower:* Ignored (zero fleet disruption).
-- **Double Tap (2 quick taps within 400ms):**
-  - 👑 *Leader:* Triggers **⚡ 4-Second Rapid Attendance Roll Call** wave (slots 1..7 solo highlight + unison finale, broadcasts packet `0x44`).
-  - 👥 *Follower:* Ignored (roll call reserved for Leader).
-- **Triple Tap (3 quick taps within 600ms):**
-  - 👑 *Leader:* Drops **ENTIRE FLEET into Corral Standby Mode** (3 soft indigo pulses, broadcasts packet `0x50`).
-  - 👥 *Follower:* Drops **THAT RUNNER ONLY into Corral Standby Mode** (3 soft indigo pulses, local only).
-- **Long Hold (>= 5.0s):**
-  - **Float ID Configuration Mode:** Progressive 1s–4s white LED charging meter followed by 3 white entry flashes, tap to cycle Float ID $1 \dots 7$, auto-saves to NVS flash after 4 seconds of inactivity with 4 green flashes. Releasing before 5s cleanly aborts back to baseline with zero changes.
+### 🎮 Dual Hardware Button Controls (Button 1: GPIO 4 / 0, Button 2: GPIO 33):
 
-### 🎛️ Interactive Float ID Selector (Hold for 5 Seconds with Progressive Charging Meter)
+| Button & Gesture | 🚂 Float 1 & Float 7 (Leader Role) | 🐌 Floats 2–6 (Follower Role) |
+| :--- | :--- | :--- |
+| **Button 1 — Single Tap** (< 600ms) | **If in Sleep:** Wakes ENTIRE FLEET & starts 30s Fleet Show.<br>**If Running:** Toggles 30s Fleet Routine Start / Early Cancel. | **If in Sleep:** Wakes LOCALLY to baseline animation (does NOT start show).<br>**If Running:** Toggles local sequence. |
+| **Button 1 — Double Tap** (< 400ms) | ⚡ Triggers **4-Second Rapid Attendance Roll Call Wave** across entire fleet. | 💡 Ignored (Roll call wave broadcast reserved for Leader). |
+| **Button 1 — Long Hold (5s)**<br>*(1s–4s white charging meter)* | ⚪ Enters **Float ID Configuration Mode** (⚪ 3 white flashes, tap to cycle Floats 1–7, 🟢 4 green auto-save flashes on 4s timeout). | ⚪ Enters **Float ID Configuration Mode** (⚪ 3 white flashes, tap to cycle Floats 1–7, 🟢 4 green auto-save flashes on 4s timeout). |
+| **Button 2 — Single Tap** (< 600ms) | 📸 Puts **ENTIRE FLEET** into **Castle Photo Mode** (solid, 100% steady, zero-flicker glow). Tap again to resume parade. | 📸 Puts **LOCAL COSTUME** into **Castle Photo Mode** (solid steady glow). Tap again to resume parade. |
+| **Button 2 — Double & Triple Tap** | ❌ **Disabled** (No action). | ❌ **Disabled** (No action). |
+| **Button 2 — Long Hold (3s)**<br>*(1s–2s soft blue meter)* | 🌙 Puts **ENTIRE FLEET** into **Corral Standby / Sleep Mode** (broadcasts `0x50` standby packet). | 🌙 Puts **LOCAL COSTUME** into **Corral Standby / Sleep Mode**. |
+
+> 💡 **BOOT Button Fallback:** The onboard **BOOT button (GPIO 0)** remains active in software in parallel with Button 1, allowing bare boards to be tested on the bench without external switches wired up!
+
+### 📸 Castle Photo Mode (High-Shutter Zero-Flicker Photography)
+High-speed camera sensors at night struggle with moving LED animation frames or high-frequency PWM dimming, often capturing dark bands or uneven brightness in race photos. **Castle Photo Mode** locks all 200 LEDs (100 front + 100 back duplicated) into a 100% solid, steady, DC-like glow in that float's signature hero color. When the family gathers in front of Cinderella Castle or Spaceship Earth, a single tap of Button 2 on Float 1 lights up the entire fleet in glorious, photogenic unison.
+
+### 🎛️ Interactive Float ID Selector (Hold Button 1 for 5 Seconds with Progressive Charging Meter)
 Any board can be reassigned to any of the 7 floats in the corral without touching code or opening a laptop:
-1. **Hold the BOOT button (GPIO 0):**
+1. **Hold Button 1 (GPIO 4 or BOOT GPIO 0):**
    - **0s – 1s:** Normal baseline operation.
    - **1s – 4s (Progressive Charging Meter):** Crisp white LEDs illuminate one-by-one at each second milestone (1s: 1 LED, 2s: 2 LEDs, 3s: 3 LEDs, 4s: 4 LEDs). If you let go at any point during this charging window, the hold is aborted and your shirt returns to normal baseline immediately without launching the show.
    - **5s (Threshold Reached):** The LEDs flash **white 3 times** to enter Float ID Config Mode.
 2. **Visual Feedback:** The first `N` LEDs on the strip light up in that float's signature color (1=Red, 2=Gold/Amber, 3=Teal, 4=Pink, 5=Cyan, 6=Green, 7=Patriotic Blue). The onboard blue LED blinks `N` times in sequence.
 3. **Tap to Cycle:** Each short tap cycles `1 ➔ 2 ➔ 3 ➔ 4 ➔ 5 ➔ 6 ➔ 7 ➔ 1`.
-4. **Auto-Save:** Leave untouched for 4 seconds. The LEDs flash **green 4 times** and the Float ID is permanently saved to ESP32 NVS flash (`Preferences.h`). Float 1 automatically acts as Leader; Floats 2–7 act as Followers.
+4. **Auto-Save:** Leave untouched for 4 seconds. The LEDs flash **green 4 times** and the Float ID is permanently saved to ESP32 NVS flash (`Preferences.h`). Floats 1 and 7 act as Leaders; Floats 2–6 act as Followers.
 
 #### The 7-Runner Fleet Lineup:
 | Float # | Float Name | Character Tag | Signature Color | Role |
 |:---:|---|---|---|:---:|
-| **01** | **The Train** | CASEY JR. | 🔴 Red | **👑 LEADER** (Pulls the Drum & Broadcasts timing clock) |
+| **01** | **The Train** | CASEY JR. | 🔴 Red | **👑 PRIMARY LEADER** (Pulls the Drum & Broadcasts timing clock) |
 | **02** | **The Title Drum** | THE DRUM | 🟡 Gold / Amber | Follower |
 | **03** | **The Turtle** | SPINNING TURTLE | 🟢 Teal / Green | Follower |
 | **04** | **The Snail** | SPINNING SNAIL | 🌸 Pink | Follower |
 | **05** | **Cinderella's Coach** | CINDERELLA | 🔵 Cyan | Follower |
 | **06** | **Pete's Dragon** | ELLIOTT | 🟢 Green | Follower |
-| **07** | **To Honor America** | FLAG & EAGLE | 🔴⚪🔵 Patriotic Blue | Follower |
+| **07** | **To Honor America** | FLAG & EAGLE | 🔴⚪🔵 Patriotic Blue | **🦅 CO-LEADER / REAR MARSHAL** (Full show & standby authority) |
 
 ### 🎵 Design Decision: Soundtrack & Audio Playback Omission
 Soundtrack audio playback (e.g. Baroque Hoedown music synchronized via speakers) was evaluated and intentionally omitted based on runDisney 10K race logistics:

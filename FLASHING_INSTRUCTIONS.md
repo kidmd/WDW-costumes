@@ -90,38 +90,57 @@ If you have VS Code with the PlatformIO extension:
 
 Once your board is flashed:
 
-### Pinout Connections:
-- **LED Data In (DIN):** Connects to **GPIO 16** (8th pin down on the right of most ESP32 DevKits).
+### Pinout Connections & Wiring:
+- **LED Data In (DIN):** Connects to **GPIO 16** (8th pin down on the right of standard ESP32 DevKits).
+  - *Data Resistor:* A 220 Ω to 470 Ω resistor inline between GPIO 16 and LED DIN is recommended.
+- **Button 1 (Primary Show Director):** Connect momentary tactile push button between **GPIO 4** and **GND** (internal `INPUT_PULLUP`, zero resistors needed).
+  - *Note:* The onboard **BOOT button (GPIO 0)** remains active in software in parallel with Button 1 for easy bench testing!
+- **Button 2 (Auxiliary / Photo & Sleep):** Connect momentary tactile push button between **GPIO 33** and **GND** (internal `INPUT_PULLUP`, zero resistors needed).
 - **LED String Configuration:** Pre-configured for **200 LEDs** (100 Front + 100 Back duplicated) for full 360° visibility and battery life testing.
-- **Power:** Connect a 5V USB battery bank (2.1A+ rated) to the ESP32's micro-USB / USB-C port or `5V` and `GND` pins (firmware is limited to 2000 mA for safety).
-- **Data Resistor:** A 220 Ω to 470 Ω resistor on the data wire between GPIO 16 and LED DIN is recommended.
+- **Power:** Connect a 5V USB battery bank (2.1A+ rated) to the ESP32's USB port or `5V` and `GND` pins (firmware is clamped to 2000 mA via FastLED power limiting for safety).
 
-### How to Use the Shirt:
-- **Autonomous Float Program (Baseline Default):** 
-  When you power on your ESP32 with your battery bank, the costume runs its complete independent float sequence (custom artwork colors, starlight sparkles, wheel spin chases, breathing glow, and electrical waves) across all 200 LEDs (100 front + 100 back).
-- **4-Second Rapid Attendance Roll Call (Double-Tap BOOT Button):**
-  - **Check Fleet Attendance in Corral:** Quickly double-tap the **BOOT button (GPIO 0)** on *any* runner's board (two taps within 400ms) to trigger the **4-Second Rapid Attendance Wave**.
-  - **Choreography:** Floats 1 through 7 light up one-by-one in their signature colors (500ms each) down the line while the other 6 stay dark, followed by all 7 costumes flashing bright emerald green together twice! At 4 seconds, every costume automatically returns to baseline. Requires zero phones or Wi-Fi!
-- **One-Shot 30-Second Fleet Routine (Single Tap BOOT Button):**
-  - **Start Fleet Show:** Tap the onboard **BOOT button (GPIO 0)** once (< 600ms) to trigger the **30-Second Synchronized Fleet Routine** once. The ESP32 broadcasts a wireless ESP-NOW trigger packet (`0x30`) so all runner costumes initiate the 30-second routine simultaneously. After 30.0 seconds, all shirts automatically return to their individual float programs.
-  - **Early Stop:** Tap the BOOT button while the 30-second routine is playing to stop it early. The ESP32 gives **2 Amber Flashes**, broadcasts a cancellation packet (`0x00`), and returns all costumes immediately to their baseline float programs.
-- **Float ID Selector (Long Hold BOOT Button for 5s):**
-  Hold the BOOT button for 5 seconds to enter Float ID configuration mode (Floats 1 through 7, see below). A 1s–4s progressive white LED charging meter gives visual feedback while holding, and releasing before 5s cleanly aborts without triggering the show!
+```
+                            ┌───────────────────────────┐
+                            │    ESP32 DEV CONTROLLER   │
+                            └─────────────┬─────────────┘
+                                          │
+             ┌────────────────────────────┴────────────────────────────┐
+             ▼                                                         ▼
+    ┌─────────────────────────────────┐                       ┌─────────────────────────────────┐
+    │      BUTTON 1 (PRIMARY)         │                       │      BUTTON 2 (AUXILIARY)       │
+    │     GPIO 4 (or BOOT GPIO 0)     │                       │            GPIO 33              │
+    │   "Parade Show Director"        │                       │     "Photo & Standby Switch"    │
+    ├─────────────────────────────────┤                       ├─────────────────────────────────┤
+    │ Pin: GPIO 4 ──[ Switch ]── GND  │                       │ Pin: GPIO 33 ──[ Switch ]── GND │
+    │ Mode: INPUT_PULLUP (No resistor)│                       │ Mode: INPUT_PULLUP (No resistor)│
+    └─────────────────────────────────┘                       └─────────────────────────────────┘
+```
+
+### Complete Button Gestures & Role Matrix:
+
+| Button & Gesture | 🚂 Float 1 & Float 7 (Leader Role) | 🐌 Floats 2–6 (Follower Role) |
+| :--- | :--- | :--- |
+| **Button 1 — Single Tap** (< 600ms) | **If in Sleep:** Wakes ENTIRE FLEET & starts 30s Fleet Show.<br>**If Running:** Toggles 30s Fleet Routine Start / Early Cancel. | **If in Sleep:** Wakes LOCALLY to baseline animation (does NOT start show).<br>**If Running:** Toggles local sequence. |
+| **Button 1 — Double Tap** (< 400ms) | ⚡ Triggers **4-Second Rapid Attendance Roll Call Wave** across entire fleet. | 💡 Ignored (Roll call wave broadcast reserved for Leader). |
+| **Button 1 — Long Hold (5s)**<br>*(1s–4s white charging meter)* | ⚪ Enters **Float ID Configuration Mode** (⚪ 3 white flashes, tap to cycle Floats 1–7, 🟢 4 green auto-save flashes on 4s timeout). | ⚪ Enters **Float ID Configuration Mode** (⚪ 3 white flashes, tap to cycle Floats 1–7, 🟢 4 green auto-save flashes on 4s timeout). |
+| **Button 2 — Single Tap** (< 600ms) | 📸 Puts **ENTIRE FLEET** into **Castle Photo Mode** (solid, 100% steady, zero-flicker glow). Tap again to resume parade. | 📸 Puts **LOCAL COSTUME** into **Castle Photo Mode** (solid steady glow). Tap again to resume parade. |
+| **Button 2 — Double & Triple Tap** | ❌ **Disabled** (No action). | ❌ **Disabled** (No action). |
+| **Button 2 — Long Hold (3s)**<br>*(1s–2s soft blue meter)* | 🌙 Puts **ENTIRE FLEET** into **Corral Standby / Sleep Mode** (broadcasts `0x50` standby packet). | 🌙 Puts **LOCAL COSTUME** into **Corral Standby / Sleep Mode**. |
 
 ---
 
 ## 🎛️ Setting Your Float Number (1 to 7) & Role (Leader / Follower)
 
-You do **not** need to change any code to configure which float you are! Any ESP32 can be set to any float in the parade lineup using the onboard **BOOT button (GPIO 0)**, and your board permanently remembers its number in flash memory even when powered off.
+You do **not** need to change any code to configure which float you are! Any ESP32 can be set to any float in the parade lineup using **Button 1 (GPIO 4 or BOOT GPIO 0)**, and your board permanently remembers its number in flash memory even when powered off.
 
 ### How to Configure:
-1. **Hold the BOOT button for 5 seconds:**
+1. **Hold Button 1 for 5 seconds:**
    - **Progressive Charging Meter (1s – 4s):** As you hold, crisp white LEDs light up one-by-one at each second mark (1s: 1 LED, 2s: 2 LEDs, 3s: 3 LEDs, 4s: 4 LEDs). If accidentally pressed, simply let go anytime before 5s to cancel cleanly back to normal baseline!
    - **Enter Config Mode (5s):** The LEDs will flash **white 3 times** to signal you have entered Configuration Mode.
 2. **Read the Current Float Number:**
    - Look at the start of your LED strip: the first **N pixels** will light up in that float's signature color!
    - (If you don't have the LED strip plugged in, the onboard Blue LED blinks N times repeatedly).
-3. **Tap the BOOT button to cycle:**
+3. **Tap Button 1 to cycle:**
    - Each short tap advances to the next float: `1 ➔ 2 ➔ 3 ➔ 4 ➔ 5 ➔ 6 ➔ 7 ➔ 1`.
 4. **Auto-Save & Exit:**
    - Once you reach your float, **leave the button alone for 4 seconds**.
@@ -131,15 +150,15 @@ You do **not** need to change any code to configure which float you are! Any ESP
 
 | Float # | Float Name | Character Tag | Signature Color | Role |
 |:---:|---|---|---|:---:|
-| **01** | **The Train** | CASEY JR. | 🔴 Red | **👑 LEADER** (Pulls the Drum & Broadcasts timing clock) |
+| **01** | **The Train** | CASEY JR. | 🔴 Red | **👑 PRIMARY LEADER** (Pulls the Drum & Broadcasts timing clock) |
 | **02** | **The Title Drum** | THE DRUM | 🟡 Gold / Amber | Follower |
 | **03** | **The Turtle** | SPINNING TURTLE | 🟢 Teal / Green | Follower |
 | **04** | **The Snail** | SPINNING SNAIL | 🌸 Pink | Follower |
 | **05** | **Cinderella's Coach** | CINDERELLA | 🔵 Cyan | Follower |
 | **06** | **Pete's Dragon** | ELLIOTT | 🟢 Green | Follower |
-| **07** | **To Honor America** | FLAG & EAGLE | 🔴⚪🔵 Patriotic Blue | Follower |
+| **07** | **To Honor America** | FLAG & EAGLE | 🔴⚪🔵 Patriotic Blue | **🦅 CO-LEADER / REAR MARSHAL** (Full show & standby authority) |
 
-> 💡 **Fleet Leader Note:** Float 01 is the **Master Leader** that broadcasts the wireless sync clock. If you are running together as a group, one runner sets their shirt to **Float 01**, and everyone else picks Floats **02 through 07**. The synchronized traveling wave will then roll down the line in order: `01 ➔ 02 ➔ 03 ➔ 04 ➔ 05 ➔ 06 ➔ 07`!
+> 💡 **Dual-Leader Architecture:** Float 01 is the **Primary Master Leader** (front of the pack) and Float 07 is the **Co-Leader / Rear Marshal** (rear of the pack). If the runners split on the course, Float 07 can command the rear pack independently; when running together, Float 01 takes master precedence!
 
 ## ❓ Troubleshooting
 

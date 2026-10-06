@@ -111,7 +111,10 @@ uint32_t lastLocalTick = 0;
 
 uint8_t broadcastMac[] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
 
-#define BUTTON_PIN          0       // BOOT button on standard ESP32 DevKit
+// HARDWARE BUTTON DEFINITIONS
+#define BUTTON_1_PIN        4       // Primary Show Director button (External tact switch to GND)
+#define BUTTON_2_PIN        33      // Auxiliary Photo / Sleep button (External tact switch to GND)
+#define BUTTON_BOOT_PIN     0       // BOOT button on standard ESP32 DevKit (Fallback in parallel with Button 1)
 #define SHOW_LOOP_MS        90000   // 90-second autonomous theatrical sequence
 #define FLEET_ROUTINE_TOTAL_MS 30000 // Auto-updated for 30s Grand Electrical Parade Show (30.0s)
 #define RAPID_ROLL_CALL_TOTAL_MS 4000 // 4.0-second Rapid Attendance Roll Call (500ms x 7 floats + 500ms unison finale)
@@ -121,8 +124,17 @@ enum StandaloneShowMode {
     SHOW_MODE_FLEET_SYNC          = 1,
     SHOW_MODE_FLEET_30S_ROUTINE   = 2,
     SHOW_MODE_RAPID_ROLL_CALL     = 3,
-    SHOW_MODE_CORRAL_STANDBY      = 4
+    SHOW_MODE_CORRAL_STANDBY      = 4,
+    SHOW_MODE_PHOTO_STATIC        = 5   // 📸 Castle Photo Mode: solid steady hero illumination
 };
+
+inline bool isButton1Down() {
+    return (digitalRead(BUTTON_1_PIN) == LOW) || (digitalRead(BUTTON_BOOT_PIN) == LOW);
+}
+
+inline bool isButton2Down() {
+    return (digitalRead(BUTTON_2_PIN) == LOW);
+}
 
 StandaloneShowMode currentStandaloneMode = SHOW_MODE_CORRAL_STANDBY;
 StandaloneShowMode previousStandaloneMode = SHOW_MODE_AUTONOMOUS_SEQUENCE;
@@ -149,6 +161,23 @@ void broadcastStandbyPacket(uint8_t mode) {
     packet.activeFloat = myFloatNumber;
     packet.waveHead = 0;
     esp_now_send(broadcastMac, (uint8_t*)&packet, sizeof(packet));
+}
+
+void broadcastPhotoModePacket(uint8_t mode) {
+    ParadeSyncPacket packet;
+    packet.magic = 0xEE;
+    packet.mode = mode; // 0x46 = Photo Mode ON, 0x47 = Photo Mode OFF
+    packet.masterMillis = millis();
+    packet.activeFloat = myFloatNumber;
+    packet.waveHead = 0;
+    esp_now_send(broadcastMac, (uint8_t*)&packet, sizeof(packet));
+}
+
+void renderCastlePhotoMode() {
+    uint8_t floatIdx = (myFloatNumber >= 1 && myFloatNumber <= 7) ? (myFloatNumber - 1) : 0;
+    CRGB heroColor = FLEET_ROSTER_INFO[floatIdx].color;
+    fill_solid(leds, FRONT_LEDS, heroColor);
+    duplicateFrontToBack();
 }
 
 void renderCorralStandby(uint32_t t) {
@@ -274,7 +303,9 @@ void onDataReceive(const uint8_t *mac_addr, const uint8_t *incomingData, int len
         if (packet.magic == 0xEE) {
             if (packet.mode == 0x30) {
                 // Synchronized Fleet 30s routine trigger
-                if (currentStandaloneMode != SHOW_MODE_FLEET_30S_ROUTINE) {
+                if (currentStandaloneMode == SHOW_MODE_CORRAL_STANDBY) {
+                    previousStandaloneMode = SHOW_MODE_AUTONOMOUS_SEQUENCE;
+                } else if (currentStandaloneMode != SHOW_MODE_FLEET_30S_ROUTINE) {
                     previousStandaloneMode = currentStandaloneMode;
                 }
                 currentStandaloneMode = SHOW_MODE_FLEET_30S_ROUTINE;
@@ -295,6 +326,19 @@ void onDataReceive(const uint8_t *mac_addr, const uint8_t *incomingData, int len
                 // 4-Second Rapid Attendance Roll Call commanded by peer
                 startRapidRollCall(millis() - packet.masterMillis);
                 Serial.printf("[ESP-NOW] ⚡ Rapid Attendance Roll Call triggered by Float %d\n", packet.activeFloat);
+            } else if (packet.mode == 0x46) {
+                // Castle Photo Mode ON commanded by Leader/Peer
+                if (currentStandaloneMode != SHOW_MODE_PHOTO_STATIC) {
+                    previousStandaloneMode = currentStandaloneMode;
+                }
+                currentStandaloneMode = SHOW_MODE_PHOTO_STATIC;
+                Serial.printf("[ESP-NOW] 📸 Castle Photo Mode engaged across fleet by Float %d\n", packet.activeFloat);
+            } else if (packet.mode == 0x47) {
+                // Castle Photo Mode OFF commanded by Leader/Peer
+                if (currentStandaloneMode == SHOW_MODE_PHOTO_STATIC) {
+                    currentStandaloneMode = previousStandaloneMode;
+                }
+                Serial.printf("[ESP-NOW] 📸 Castle Photo Mode disengaged by Float %d -> returned to parade mode\n", packet.activeFloat);
             } else if (packet.mode == 0x50) {
                 // Corral Standby Mode commanded by Leader/Peer
                 currentStandaloneMode = SHOW_MODE_CORRAL_STANDBY;
@@ -526,7 +570,7 @@ void runFleetSync(uint32_t now) {
 }
 
 void configureEspNowRole() {
-    isLeader = (myFloatNumber == 1);
+    isLeader = (myFloatNumber == 1 || myFloatNumber == 7);
     
     // Register broadcast peer so this node can transmit to all fleet costumes
     esp_now_peer_info_t peerInfo = {};
@@ -540,8 +584,10 @@ void configureEspNowRole() {
     // Register receive callback so this node can receive sync packets from any costume
     esp_now_register_recv_cb(onDataReceive);
 
-    if (isLeader) {
-        Serial.printf("[ROLE] *** LEADER (Float 1 - %s) *** (ESP-NOW Tx/Rx ready)\n", FLEET_ROSTER_INFO[0].name);
+    if (myFloatNumber == 1) {
+        Serial.printf("[ROLE] *** PRIMARY LEADER (Float 1 - %s) *** (ESP-NOW Tx/Rx ready)\n", FLEET_ROSTER_INFO[0].name);
+    } else if (myFloatNumber == 7) {
+        Serial.printf("[ROLE] *** CO-LEADER / REAR MARSHAL (Float 7 - %s) *** (ESP-NOW Tx/Rx ready)\n", FLEET_ROSTER_INFO[6].name);
     } else {
         Serial.printf("[ROLE] >>> FOLLOWER (Float %d - %s) <<< (ESP-NOW Tx/Rx ready)\n", 
                       myFloatNumber, FLEET_ROSTER_INFO[myFloatNumber - 1].name);
@@ -552,11 +598,11 @@ void configureEspNowRole() {
 // HARDWARE BUTTON & STANDALONE SHOW SEQUENCE (Autonomous Float Mode)
 // ============================================================================
 
-// Interactive Float ID Configuration via BOOT Button (Held for 3 seconds)
+// Interactive Float ID Configuration via Button 1 (Held for 5 seconds)
 void handleFloatConfigMode() {
     Serial.println("\n========================================================");
     Serial.println("  >>> ENTERED FLOAT ID CONFIGURATION MODE <<<");
-    Serial.println("  Tap BOOT button to cycle Float 1 -> 7");
+    Serial.println("  Tap Button 1 (or BOOT) to cycle Float 1 -> 7");
     Serial.println("  Leave untouched for 4 seconds to save & exit");
     Serial.println("========================================================");
 
@@ -572,8 +618,8 @@ void handleFloatConfigMode() {
         delay(100);
     }
 
-    // Wait until button is released
-    while (digitalRead(BUTTON_PIN) == LOW) {
+    // Wait until Button 1 is released
+    while (isButton1Down()) {
         delay(10);
     }
     delay(200);
@@ -604,8 +650,8 @@ void handleFloatConfigMode() {
             digitalWrite(STATUS_LED_PIN, LOW);
         }
 
-        // 3. Handle button tap to cycle float ID
-        bool isDown = (digitalRead(BUTTON_PIN) == LOW);
+        // 3. Handle button tap to cycle float ID (Button 1 or BOOT)
+        bool isDown = isButton1Down();
         if (isDown && !buttonPressed) {
             buttonPressed = true;
             btnPressTime = loopNow;
@@ -1629,7 +1675,9 @@ void setup() {
     WRITE_PERI_REG(RTC_CNTL_BROWN_OUT_REG, 0); // Disable transient brownout detector during startup
     Serial.begin(115200);
     pinMode(STATUS_LED_PIN, OUTPUT);
-    pinMode(BUTTON_PIN, INPUT_PULLUP);
+    pinMode(BUTTON_1_PIN, INPUT_PULLUP);
+    pinMode(BUTTON_2_PIN, INPUT_PULLUP);
+    pinMode(BUTTON_BOOT_PIN, INPUT_PULLUP);
     delay(300);
 
     Serial.println("\n========================================================");
@@ -1733,67 +1781,171 @@ void setup() {
 void loop() {
     uint32_t now = millis();
 
-    // 1. Hardware Button (BOOT button on GPIO 0)
-    // - Double Tap (two quick taps within 400ms): 4-Second Rapid Attendance Roll Call (Mode 0x44)
-    // - Single Tap (< 600ms, idle > 400ms): Toggle 30s Theatrical Fleet Routine (Mode 0x30 / 0x00)
-    // - Long Hold (>= 5.0 seconds): Enter Float ID Configuration Mode (1 to 7)
-    // - Hold Progress (1.0s to 4.9s): White charging indicator (1 to 4 LEDs); release early cleanly aborts with zero changes!
-    static bool buttonWasPressed = false;
-    static uint32_t buttonDownTime = 0;
-    static uint32_t lastButtonReleaseTime = 0;
-    static bool longHoldHandled = false;
-    static uint8_t pendingTapCount = 0;
-    static uint32_t firstTapReleaseTime = 0;
+    // ========================================================================
+    // 1. DUAL HARDWARE BUTTON CONTROLLER (Button 1: GPIO 4/0, Button 2: GPIO 33)
+    // ========================================================================
 
-    bool isButtonPressed = (digitalRead(BUTTON_PIN) == LOW);
+    // --- BUTTON 1: PRIMARY SHOW DIRECTOR (GPIO 4 + BOOT GPIO 0) ---
+    // - Leader Single Tap: In sleep -> Wakes fleet & starts 30s routine; While running -> Toggle 30s show
+    // - Follower Single Tap: In sleep -> Wakes locally (no fleet show); While running -> Local sequence
+    // - Leader Double Tap (< 400ms): 4-Second Rapid Attendance Roll Call (Mode 0x44)
+    // - Long Hold (>= 5.0s): Float ID Configuration Mode (1s-4s white charging meter)
+    static bool b1WasPressed = false;
+    static uint32_t b1DownTime = 0;
+    static bool b1LongHoldHandled = false;
+    static uint8_t b1PendingTaps = 0;
+    static uint32_t b1FirstTapReleaseTime = 0;
 
-    if (isButtonPressed && !buttonWasPressed) {
-        buttonWasPressed = true;
-        buttonDownTime = now;
-        longHoldHandled = false;
-    } else if (isButtonPressed && buttonWasPressed) {
-        uint32_t holdElapsed = now - buttonDownTime;
-        if (!longHoldHandled) {
+    bool b1Pressed = isButton1Down();
+
+    if (b1Pressed && !b1WasPressed) {
+        b1WasPressed = true;
+        b1DownTime = now;
+        b1LongHoldHandled = false;
+    } else if (b1Pressed && b1WasPressed) {
+        uint32_t holdElapsed = now - b1DownTime;
+        if (!b1LongHoldHandled) {
             if (holdElapsed >= 5000) {
-                longHoldHandled = true;
-                pendingTapCount = 0; // Cancel any pending taps
+                b1LongHoldHandled = true;
+                b1PendingTaps = 0;
                 handleFloatConfigMode();
-                buttonWasPressed = false;
+                b1WasPressed = false;
                 return;
             } else if (holdElapsed >= 1000) {
-                // Progressive charging indicator (1 to 4 LEDs lit in white)
-                uint8_t chargeCount = (holdElapsed / 1000); // 1, 2, 3, or 4
+                // Progressive charging indicator (1 to 4 LEDs lit in crisp white)
+                uint8_t chargeCount = (holdElapsed / 1000);
                 if (chargeCount > 4) chargeCount = 4;
 
-                // Show charging indicator on first 'chargeCount' LEDs, remaining LEDs black
                 for (int i = 0; i < FRONT_LEDS; i++) {
-                    if (i < chargeCount) {
-                        leds[i] = CRGB(255, 255, 255); // Crisp full-white charging indicator
-                    } else {
-                        leds[i] = CRGB::Black;
-                    }
+                    leds[i] = (i < chargeCount) ? CRGB(255, 255, 255) : CRGB::Black;
                 }
                 duplicateFrontToBack();
                 FastLED.show();
-                return; // Stop loop here so baseline show does not overwrite charging LEDs!
+                return;
             }
         }
-    } else if (!isButtonPressed && buttonWasPressed) {
-        buttonWasPressed = false;
-        uint32_t pressDuration = now - buttonDownTime;
+    } else if (!b1Pressed && b1WasPressed) {
+        b1WasPressed = false;
+        uint32_t pressDuration = now - b1DownTime;
 
-        if (pressDuration >= 1000 && !longHoldHandled) {
-            Serial.printf("[BUTTON] Hold aborted after %u ms -> returning to baseline with zero changes.\n", pressDuration);
+        if (pressDuration >= 1000 && !b1LongHoldHandled) {
+            Serial.printf("[BUTTON 1] Hold aborted after %u ms -> returning to baseline with zero changes.\n", pressDuration);
         }
 
-        // Tap handling: recognize intentional taps under 600ms (50ms hardware debounce)
-        if (!longHoldHandled && pressDuration >= 50 && pressDuration < 600) {
-            if (pendingTapCount == 2 && (now - firstTapReleaseTime <= 600)) {
-                // TRIPLE TAP DETECTED!
-                pendingTapCount = 0;
-                lastButtonReleaseTime = now;
+        if (!b1LongHoldHandled && pressDuration >= 50 && pressDuration < 600) {
+            if (b1PendingTaps == 1 && (now - b1FirstTapReleaseTime <= 400)) {
+                // DOUBLE TAP DETECTED
+                b1PendingTaps = 0;
+                if (isLeader) {
+                    startRapidRollCall(now);
+                    broadcastRapidRollCallPacket();
+                    Serial.println("[LEADER] ⚡ 4-Second Rapid Attendance Roll Call started via Button 1 double-tap!");
+                } else {
+                    Serial.printf("[FOLLOWER] Float %d Button 1 double tap ignored (Roll call wave reserved for Leader).\n", myFloatNumber);
+                }
+            } else {
+                b1PendingTaps = 1;
+                b1FirstTapReleaseTime = now;
+            }
+        }
+    }
 
-                currentStandaloneMode = SHOW_MODE_CORRAL_STANDBY;
+    // Evaluate Button 1 single tap once double-tap window expires (400ms)
+    if (b1PendingTaps > 0 && !b1Pressed && (now - b1FirstTapReleaseTime > 400)) {
+        b1PendingTaps = 0;
+
+        if (currentStandaloneMode == SHOW_MODE_CORRAL_STANDBY) {
+            if (isLeader) {
+                // Leader: Wake ENTIRE FLEET & launch 30s fleet routine
+                previousStandaloneMode = SHOW_MODE_AUTONOMOUS_SEQUENCE;
+                currentStandaloneMode = SHOW_MODE_FLEET_30S_ROUTINE;
+                fleetRoutineStartTime = now;
+                fleetRoutineCycle++;
+
+                fill_solid(leds, NUM_LEDS, CRGB(0, 255, 80)); // Emerald Green flash
+                FastLED.show();
+                digitalWrite(STATUS_LED_PIN, HIGH);
+                delay(150);
+                fill_solid(leds, NUM_LEDS, CRGB::Black);
+                FastLED.show();
+                digitalWrite(STATUS_LED_PIN, LOW);
+
+                broadcastStandbyPacket(0x51); // Wake fleet
+                broadcastFleetRoutinePacket(0x30, 0); // Start 30s routine
+                Serial.printf("[LEADER] ☀️ Single Tap in Standby -> Woke ENTIRE FLEET and launched 30s Fleet Show! (Cycle #%u)\n", fleetRoutineCycle);
+            } else {
+                // Follower: Wake LOCALLY to baseline animation (do NOT start theatrical fleet routine)
+                currentStandaloneMode = SHOW_MODE_AUTONOMOUS_SEQUENCE;
+                autonomousShowStartTime = now;
+
+                fill_solid(leds, NUM_LEDS, CRGB(0, 255, 80)); // Emerald Green flash
+                FastLED.show();
+                digitalWrite(STATUS_LED_PIN, HIGH);
+                delay(150);
+                fill_solid(leds, NUM_LEDS, CRGB::Black);
+                FastLED.show();
+                digitalWrite(STATUS_LED_PIN, LOW);
+
+                Serial.printf("[FOLLOWER] Float %d Single Tap -> Woke locally from Corral Standby (no fleet routine).\n", myFloatNumber);
+            }
+        } else if (isLeader) {
+            // Leader active toggle
+            if (currentStandaloneMode == SHOW_MODE_FLEET_30S_ROUTINE || currentStandaloneMode == SHOW_MODE_RAPID_ROLL_CALL) {
+                currentStandaloneMode = SHOW_MODE_AUTONOMOUS_SEQUENCE;
+                broadcastFleetRoutinePacket(0x00, 0);
+                Serial.println("[LEADER] Early stop triggered via Button 1 -> returning to baseline.");
+
+                for (int f = 0; f < 2; f++) {
+                    fill_solid(leds, NUM_LEDS, CRGB(255, 140, 0));
+                    FastLED.show();
+                    digitalWrite(STATUS_LED_PIN, HIGH);
+                    delay(120);
+                    fill_solid(leds, NUM_LEDS, CRGB::Black);
+                    FastLED.show();
+                    digitalWrite(STATUS_LED_PIN, LOW);
+                    delay(80);
+                }
+            } else {
+                fleetRoutineCycle++;
+                fleetRoutineStartTime = now;
+                previousStandaloneMode = currentStandaloneMode;
+                currentStandaloneMode = SHOW_MODE_FLEET_30S_ROUTINE;
+                broadcastFleetRoutinePacket(0x30, 0);
+                Serial.printf("[LEADER] 30s Fleet Show started via Button 1! (Cycle #%u)\n", fleetRoutineCycle);
+            }
+        } else {
+            // Follower active toggle
+            if (currentStandaloneMode == SHOW_MODE_PHOTO_STATIC) {
+                currentStandaloneMode = previousStandaloneMode;
+                Serial.printf("[FOLLOWER] Float %d Button 1 tap -> Exited Photo Mode back to parade sequence.\n", myFloatNumber);
+            } else {
+                Serial.printf("[FOLLOWER] Float %d Button 1 tap while running (Fleet show broadcast reserved for Leader).\n", myFloatNumber);
+            }
+        }
+    }
+
+    // --- BUTTON 2: AUXILIARY / PHOTO & STANDBY SWITCH (GPIO 33) ---
+    // - Leader Single Tap: Toggle Castle Photo Mode across ENTIRE FLEET
+    // - Follower Single Tap: Toggle Castle Photo Mode LOCALLY only
+    // - Double & Triple Taps: Disabled
+    // - Long Hold (>= 3.0s): Leader puts ENTIRE FLEET into Corral Standby; Follower puts local costume into Corral Standby
+    static bool b2WasPressed = false;
+    static uint32_t b2DownTime = 0;
+    static bool b2HoldHandled = false;
+
+    bool b2Pressed = isButton2Down();
+
+    if (b2Pressed && !b2WasPressed) {
+        b2WasPressed = true;
+        b2DownTime = now;
+        b2HoldHandled = false;
+    } else if (b2Pressed && b2WasPressed) {
+        uint32_t holdElapsed = now - b2DownTime;
+        if (!b2HoldHandled) {
+            if (holdElapsed >= 3000) {
+                // 3-SECOND LONG HOLD: ENTER CORRAL STANDBY / SLEEP
+                b2HoldHandled = true;
+
                 for (int f = 0; f < 3; f++) {
                     fill_solid(leds, NUM_LEDS, CRGB(30, 60, 255)); // 3 Soft Indigo pulses
                     FastLED.show();
@@ -1805,88 +1957,60 @@ void loop() {
                     delay(60);
                 }
 
+                currentStandaloneMode = SHOW_MODE_CORRAL_STANDBY;
+
                 if (isLeader) {
                     broadcastStandbyPacket(0x50);
-                    Serial.println("[LEADER] 🌙 Triple Tap -> Dropped ENTIRE FLEET into Corral Standby Mode!");
+                    Serial.println("[LEADER] 🌙 Button 2 Held 3s -> Dropped ENTIRE FLEET into Corral Standby Mode!");
                 } else {
-                    Serial.printf("[FOLLOWER] Float %d Triple Tap -> Dropped locally into Corral Standby Mode.\n", myFloatNumber);
+                    Serial.printf("[FOLLOWER] Float %d Button 2 Held 3s -> Dropped locally into Corral Standby Mode.\n", myFloatNumber);
                 }
-            } else if (pendingTapCount == 1 && (now - firstTapReleaseTime <= 400)) {
-                // SECOND TAP DETECTED -> DOUBLE TAP!
-                pendingTapCount = 2; // Arm for possible 3rd tap within 600ms total
-                lastButtonReleaseTime = now;
-            } else {
-                // FIRST TAP DETECTED -> wait for potential second/third tap
-                pendingTapCount = 1;
-                firstTapReleaseTime = now;
-                lastButtonReleaseTime = now;
+                b2WasPressed = false;
+                return;
+            } else if (holdElapsed >= 1000) {
+                // Soft indigo/blue progressive charging meter on first 3 pixels
+                uint8_t chargeCount = (holdElapsed / 1000);
+                if (chargeCount > 3) chargeCount = 3;
+                for (int i = 0; i < FRONT_LEDS; i++) {
+                    leds[i] = (i < chargeCount) ? CRGB(30, 60, 255) : CRGB::Black;
+                }
+                duplicateFrontToBack();
+                FastLED.show();
+                return;
             }
         }
-    }
+    } else if (!b2Pressed && b2WasPressed) {
+        b2WasPressed = false;
+        uint32_t pressDuration = now - b2DownTime;
 
-    // Evaluate pending multi-tap once window expires and button is not currently held
-    if (pendingTapCount > 0 && !isButtonPressed && (now - firstTapReleaseTime > 400)) {
-        uint8_t tapType = pendingTapCount;
-        pendingTapCount = 0;
+        if (pressDuration >= 1000 && !b2HoldHandled) {
+            Serial.printf("[BUTTON 2] Sleep hold aborted after %u ms -> returning to baseline with zero changes.\n", pressDuration);
+        }
 
-        if (tapType == 1) {
-            // SINGLE TAP EVALUATION
-            if (currentStandaloneMode == SHOW_MODE_CORRAL_STANDBY) {
-                // WAKE UP FROM CORRAL STANDBY
-                currentStandaloneMode = previousStandaloneMode;
-                autonomousShowStartTime = now;
-
-                // Visual confirmation: 1 Emerald Green flash
-                fill_solid(leds, NUM_LEDS, CRGB(0, 255, 80));
-                FastLED.show();
-                digitalWrite(STATUS_LED_PIN, HIGH);
-                delay(150);
-                fill_solid(leds, NUM_LEDS, CRGB::Black);
-                FastLED.show();
-                digitalWrite(STATUS_LED_PIN, LOW);
-
-                if (isLeader) {
-                    broadcastStandbyPacket(0x51); // Wake entire fleet!
-                    Serial.println("[LEADER] ☀️ Single Tap -> Woke ENTIRE FLEET from Corral Standby!");
-                } else {
-                    Serial.printf("[FOLLOWER] Float %d Single Tap -> Woke locally from Corral Standby.\n", myFloatNumber);
-                }
-            } else if (isLeader) {
-                // LEADER ACTIVE RUN TOGGLE: 30s Fleet Show Routine
-                if (currentStandaloneMode == SHOW_MODE_FLEET_30S_ROUTINE || currentStandaloneMode == SHOW_MODE_RAPID_ROLL_CALL) {
-                    currentStandaloneMode = previousStandaloneMode;
-                    broadcastFleetRoutinePacket(0x00, 0);
-                    Serial.println("[LEADER] Early stop triggered via BOOT button -> returning to baseline.");
-                    
-                    for (int f = 0; f < 2; f++) {
-                        fill_solid(leds, NUM_LEDS, CRGB(255, 140, 0));
-                        FastLED.show();
-                        digitalWrite(STATUS_LED_PIN, HIGH);
-                        delay(120);
-                        fill_solid(leds, NUM_LEDS, CRGB::Black);
-                        FastLED.show();
-                        digitalWrite(STATUS_LED_PIN, LOW);
-                        delay(80);
-                    }
-                } else {
-                    fleetRoutineCycle++;
-                    fleetRoutineStartTime = now;
-                    previousStandaloneMode = currentStandaloneMode;
-                    currentStandaloneMode = SHOW_MODE_FLEET_30S_ROUTINE;
-                    broadcastFleetRoutinePacket(0x30, 0);
-                    Serial.printf("[LEADER] 30s Fleet Show started via BOOT button! (Cycle #%u)\n", fleetRoutineCycle);
-                }
-            } else {
-                Serial.printf("[FOLLOWER] Float %d single tap ignored while running (Show trigger reserved for Leader).\n", myFloatNumber);
-            }
-        } else if (tapType == 2) {
-            // DOUBLE TAP EVALUATION (LEADER ONLY)
+        // Tap handling: immediate trigger on release since multi-taps are disabled
+        if (!b2HoldHandled && pressDuration >= 50 && pressDuration < 600) {
             if (isLeader) {
-                startRapidRollCall(now);
-                broadcastRapidRollCallPacket();
-                Serial.println("[LEADER] ⚡ 4-Second Rapid Attendance Roll Call started!");
+                // Leader: Toggle Castle Photo Mode across ENTIRE FLEET
+                if (currentStandaloneMode == SHOW_MODE_PHOTO_STATIC) {
+                    currentStandaloneMode = previousStandaloneMode;
+                    broadcastPhotoModePacket(0x47);
+                    Serial.println("[LEADER] 📸 Button 2 Tap -> Castle Photo Mode turned OFF for ENTIRE FLEET!");
+                } else {
+                    previousStandaloneMode = currentStandaloneMode;
+                    currentStandaloneMode = SHOW_MODE_PHOTO_STATIC;
+                    broadcastPhotoModePacket(0x46);
+                    Serial.println("[LEADER] 📸 Button 2 Tap -> Castle Photo Mode turned ON for ENTIRE FLEET!");
+                }
             } else {
-                Serial.printf("[FOLLOWER] Float %d double tap ignored (Roll call wave reserved for Leader).\n", myFloatNumber);
+                // Follower: Toggle Castle Photo Mode LOCALLY only
+                if (currentStandaloneMode == SHOW_MODE_PHOTO_STATIC) {
+                    currentStandaloneMode = previousStandaloneMode;
+                    Serial.printf("[FOLLOWER] Float %d Button 2 Tap -> Castle Photo Mode turned OFF (local only).\n", myFloatNumber);
+                } else {
+                    previousStandaloneMode = currentStandaloneMode;
+                    currentStandaloneMode = SHOW_MODE_PHOTO_STATIC;
+                    Serial.printf("[FOLLOWER] Float %d Button 2 Tap -> Castle Photo Mode turned ON (local only).\n", myFloatNumber);
+                }
             }
         }
     }
@@ -1964,7 +2088,12 @@ void loop() {
 
     // 4. If simulator is NOT streaming, run the selected standalone mode!
     if (!isLiveStreaming) {
-        if (currentStandaloneMode == SHOW_MODE_CORRAL_STANDBY) {
+        if (currentStandaloneMode == SHOW_MODE_PHOTO_STATIC) {
+            renderCastlePhotoMode();
+            FastLED.show();
+            digitalWrite(STATUS_LED_PIN, HIGH);
+            delay(20);
+        } else if (currentStandaloneMode == SHOW_MODE_CORRAL_STANDBY) {
             renderCorralStandby(now);
             duplicateFrontToBack();
             FastLED.show();

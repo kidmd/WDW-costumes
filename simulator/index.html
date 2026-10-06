@@ -18,6 +18,7 @@
         <div class="view-tabs">
             <button id="singleViewBtn" class="tab-btn active">Single Shirt (Pete's Dragon)</button>
             <button id="fleetViewBtn" class="tab-btn">7-Shirt Fleet Lineup</button>
+            <button id="photoModeToggleBtn" class="tab-btn" style="border-color: #f0883e; color: #f0883e; font-weight: 600; display: inline-flex; align-items: center; gap: 4px;" title="Toggle Castle Photo Mode (Solid, flicker-free hero illumination across all 200 LEDs)">📸 Photo Mode: OFF</button>
             <button id="audioToggleBtn" class="tab-btn" style="border-color: #bc8cff; color: #bc8cff; font-weight: 600; display: inline-flex; align-items: center; gap: 4px;" title="Toggle Baroque Hoedown parade synthesizer music">🎵 Music: OFF</button>
             <a href="/web_flasher.html" target="_blank" class="tab-btn" style="text-decoration: none; display: inline-flex; align-items: center; gap: 4px; border-color: #2ea043; color: #3fb950; font-weight: 600;" title="Open zero-install Web Serial ESP32 flasher in new tab">⚡ Web Flasher</a>
         </div>
@@ -1508,6 +1509,35 @@
                                 </div>
                             </div>
 
+                            <!-- Dual Hardware Button Simulator -->
+                            <div style="background: #0d1117; border: 1px solid #30363d; border-radius: 8px; padding: 10px; margin-bottom: 10px;">
+                                <div style="font-size: 11px; font-weight: 700; color: #58a6ff; margin-bottom: 6px; display: flex; justify-content: space-between; align-items: center;">
+                                    <span>🎮 Dual Button Hardware Simulator</span>
+                                    <span style="font-size: 9.5px; color: #8b949e; font-family: monospace;">GPIO 4 + GPIO 33</span>
+                                </div>
+                                <div style="display: flex; gap: 8px;">
+                                    <div style="flex: 1; display: flex; flex-direction: column; gap: 4px;">
+                                        <button type="button" id="simButton1TapBtn" class="action-btn" style="font-size: 10.5px; padding: 6px 4px; border-color: #2ea043; color: #3fb950; font-weight: 600;" title="Single tap Button 1 (GPIO 4 / BOOT): Wake+30s Routine for Leader, Local Wake for Followers">
+                                            🔘 Btn 1: Tap (Show/Wake)
+                                        </button>
+                                        <button type="button" id="simButton1DoubleBtn" class="action-btn" style="font-size: 10.5px; padding: 6px 4px; border-color: #388bfd; color: #58a6ff;" title="Double tap Button 1: 4s Rapid Attendance Roll Call">
+                                            ⚡ Btn 1: Double Tap
+                                        </button>
+                                        <button type="button" id="simButton1HoldBtn" class="action-btn" style="font-size: 10px; padding: 4px; color: #8b949e;" title="Hold 5s: Float ID Configuration">
+                                            ⏳ Btn 1: 5s Hold (Config)
+                                        </button>
+                                    </div>
+                                    <div style="flex: 1; display: flex; flex-direction: column; gap: 4px;">
+                                        <button type="button" id="simButton2TapBtn" class="action-btn" style="font-size: 10.5px; padding: 6px 4px; border-color: #f0883e; color: #f0883e; font-weight: 600;" title="Single tap Button 2 (GPIO 33): Toggle Castle Photo Mode">
+                                            📸 Btn 2: Tap (Photo Mode)
+                                        </button>
+                                        <button type="button" id="simButton2HoldBtn" class="action-btn" style="font-size: 10.5px; padding: 6px 4px; border-color: #a371f7; color: #bc8cff;" title="Hold 3s Button 2: Put into Corral Standby (Sleep)">
+                                            🌙 Btn 2: 3s Hold (Sleep)
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
                             <!-- 7 Float Radar Status Cards Grid -->
                             <div id="fleetRadarGrid" style="display: flex; flex-direction: column; gap: 6px;">
                                 <!-- Populated dynamically by app.js -->
@@ -1549,7 +1579,7 @@
                                 <option value="4">🏴‍☠️ Float 4: Peter Pan's Pirate Ship</option>
                                 <option value="5">🐘 Float 5: Dumbo the Flying Elephant</option>
                                 <option value="6" selected>🐉 Float 6: Pete's Dragon</option>
-                                <option value="7">🦅 Float 7: To Honor America</option>
+                                <option value="7">🦅 Float 7: To Honor America (Rear Co-Leader)</option>
                             </select>
                         </div>
 
