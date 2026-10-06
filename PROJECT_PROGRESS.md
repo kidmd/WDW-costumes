@@ -180,6 +180,16 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
   - **Startup State Persistence:** Replaced hardcoded Float 6 startup with `localStorage.getItem('msep_active_single_shirt_slot')`, cleanly defaulting to Float 1: The Train (Casey Jr.) on fresh starts while persisting the user's active float across sessions.
   - **Verification:** Verified via `node --check simulator/app.js` and PlatformIO `pio run` (firmware builds in 5.17s with 14.3% RAM and 60.2% Flash).
 
+### Entry: LED Well Wall Base Retention Clip Groove & Clean No-Numbers Synchronization
+* **Date:** 2026-10-06 (Mid-Morning Imagineering Session)
+* **Milestone:** Milestone 5 - 3D-Printable Flexible Wearable TPU Panel Fabrication & Deploy Suite
+* **Status:** Complete & Verified (`scripts/compile_clean_tpu_panel.py`, `simulator.py`, `simulator/app.js`, `simulator/index.html` v86, `SIMULATOR_USER_GUIDE.md`, `PROJECT_PROGRESS.md`).
+* **Implementation Details:**
+  - **Modular Retention Clip Groove ($0.7\text{ mm}$ Tall $\times 0.6\text{ mm}$ Deep):** Added an undercut retention groove around the outer perimeter of each LED well wall in `scripts/compile_clean_tpu_panel.py`. The groove is cut $0.6\text{ mm}$ deep into the $1.2\text{ mm}$ outer collar wall (leaving $0.6\text{ mm}$ inner wall thickness), stands $0.7\text{ mm}$ tall, and runs parallel to the front-facing plate right at the base where the outer well wall joins the general plate floor ($Z = 2.0\text{ mm}$ to $Z = 2.7\text{ mm}$). This provides a positive locking latch for custom snap-over clips designed to hold each LED firmly in place against 10K running vibration.
+  - **Definitive No-Numbers Default & Cache Guard:** Changed `INCLUDE_LED_NUMBERS` to default strictly to `False` across Python CLI compiler, server backend, and browser simulator (`params.tpuIncludeLedNumbers = false`), so that unless explicitly toggled on, zero debossed number geometry is ever produced.
+  - **Fingerprint Signature Invalidation:** Added `grv-` and `groove-v1` salt into `computeTpuLayoutSignature()` in `simulator/app.js`, ensuring all previous cached meshes without the groove are automatically recognized as stale and cleanly rebuilt.
+  - **Physical STL Verification:** Compiled clean Front and Back STLs with 0 numbers and 75 collar retention grooves. Verified mathematically via Manifold3D: `Manifold status: Error.NoError`, 55,798 faces (2.66 MB chassis STL), 100% watertight 2-manifold solid.
+
 ### Entry: 5-Color Multi-Material TPU Armor Panel Inlays, Custom Sizing, LED Counts & Number Toggle
 * **Date:** 2026-10-06 (Morning Imagineering Session)
 * **Milestone:** Milestone 5 - 3D-Printable Flexible Wearable TPU Panel Fabrication & Deploy Suite

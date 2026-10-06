@@ -1154,14 +1154,16 @@ Instead of attaching a Cricut cut vinyl graphic on top of the printed plate, the
    - **2.0mm Table Clearance:** When laying the 3D print flat on a table front-side up (with the $6.0\text{ mm}$ rim touching the table), there is **exactly $2.0\text{ mm}$ of open space** under the tops of the pocket walls ($Z = 4.0\text{ mm}$ vs $6.0\text{ mm}$ rim), keeping bulbs and wires elevated away from table surfaces.
    - **Uniform Horizontal Orientation:** Collars are oriented horizontally ($0^\circ$ rotation) matching the Pete's Dragon Chris preset, keeping the sockets cleanly parallel across the chest.
    - **Wire Pass-Through Notches:** $4.0\text{ mm}$ wide notches on both $5\text{ mm}$ ends extending all the way down to the $1.0\text{ mm}$ floor, allowing ribbon wire to enter and exit horizontally without resistance.
+   - **External Base Retention Groove ($0.7\text{ mm}$ Tall $\times 0.6\text{ mm}$ Deep):** Running parallel to the front-facing plate at the base where the outer collar wall meets the armor plate tray ($Z = 2.0\text{ mm}$ to $2.7\text{ mm}$), an undercut groove is cut around the entire outer perimeter of every LED well. This provides a positive locking latch for custom modular snap-over clips to securely retain the LED pebble bulbs against 10K running vibration.
+
 3. **Selectable $3\text{ mm} \times 3\text{ mm}$ Square or $\varnothing 3\text{ mm}$ Round Optical Apertures:**
    - Runners can choose between **$3\times 3\text{ mm}$ Square** or **$\varnothing 3\text{ mm}$ Round** aperture through-holes directly on the 2D Layout tab or in the 3D Print Preview Modal.
    - Centered through-windows through the $1.0\text{ mm}$ front face beneath each bulb beam the LED forward while the resin bulb body rests solidly against the interior pocket shelf.
    - Changing the selection in the simulator immediately reflects on the 2D canvas and 3D preview, and automatically recompiles the binary STLs with the exact chosen aperture geometry!
 
 4. **Selectable Debossed LED Numbers (`[ 🔢 Numbers On | 🚫 No Numbers ]`):**
-   - **Numbers On:** Debosses `1` through `N` at the absolute minimum readable size for a $0.4\text{ mm}$ nozzle (**$1.8\text{ mm}$ cap height, $0.5\text{ mm}$ deboss depth** into the interior pocket floor) with natural left-to-right underside reading for effortless physical wiring.
-   - **No Numbers:** Omits all numerical deboss geometry for a completely smooth, clean internal floor cavity and faster slicing/compilation.
+   - **No Numbers (Default):** Generates a completely smooth, clean internal floor cavity with zero debossed number geometry for faster slicing and pristine pocket surfaces.
+   - **Numbers On:** Debosses `1` through `N` at the absolute minimum readable size for a $0.4\text{ mm}$ nozzle (**$1.8\text{ mm}$ cap height, $0.5\text{ mm}$ deboss depth** into the interior pocket floor) with natural left-to-right underside reading for physical bench wiring.
    - **Instant Recompilation:** Toggling the button in the 3D Preview Modal updates the layout signature and immediately regenerates the STL meshes with real-time feedback.
 
 5. **5-Color Multi-Material Inlays & Bambu Lab / Multi-Extruder Export:**

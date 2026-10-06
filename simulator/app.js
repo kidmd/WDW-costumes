@@ -83,9 +83,9 @@ try {
     }
 } catch (e) {}
 
-params.tpuIncludeLedNumbers = true;
+params.tpuIncludeLedNumbers = false;
 try {
-    if (localStorage.getItem('msep_tpu_led_numbers') === '0') params.tpuIncludeLedNumbers = false;
+    if (localStorage.getItem('msep_tpu_led_numbers') === '1') params.tpuIncludeLedNumbers = true;
 } catch (e) {}
 
 // Default Pete's Dragon Artwork
@@ -17658,7 +17658,7 @@ function computeTpuLayoutSignature() {
     const src = (activeImg && activeImg.src) ? activeImg.src : 'none';
     const gb = getGraphicChestBounds() || {};
     const winShape = params.tpuWindowShape || 'square';
-    const numFlag = (params.tpuIncludeLedNumbers === false) ? 'nonum' : 'num';
+    const numFlag = (params.tpuIncludeLedNumbers === true) ? 'num' : 'nonum';
     let h = 5381;
     const mix = (str) => {
         const step = Math.max(1, Math.floor(str.length / 4096)); // sample long data URLs
@@ -17669,12 +17669,13 @@ function computeTpuLayoutSignature() {
     mix(src);
     mix(String(winShape));
     mix(numFlag);
+    mix('groove-v1');
     mix('inlay-v6');
     mix(String(selectedPlateWidthMm));
     mix(String(selectedPlateSize));
     mix([gb.normX, gb.normY, gb.normW, gb.normH].map(v => Number(v || 0).toFixed(4)).join(','));
     mix((leds || []).map(l => `${Number(l.x).toFixed(4)},${Number(l.y).toFixed(4)}`).join(';'));
-    return `${currentGraphicType}-${winShape}-${numFlag}-${selectedPlateSize}-${(leds || []).length}-${h.toString(16)}`;
+    return `${currentGraphicType}-${winShape}-${numFlag}-${selectedPlateSize}-${(leds || []).length}-grv-${h.toString(16)}`;
 }
 window.computeTpuLayoutSignature = computeTpuLayoutSignature;
 
@@ -17803,7 +17804,7 @@ async function handleRecompileTpuStl(opts) {
             floatName: floatName,
             graphicType: currentGraphicType,
             windowShape: params.tpuWindowShape || 'square',
-            includeLedNumbers: params.tpuIncludeLedNumbers !== false,
+            includeLedNumbers: params.tpuIncludeLedNumbers === true,
             widthMm: selectedPlateWidthMm,
             sizePreset: selectedPlateSize,
             ledCount: (leds || []).length,
@@ -18108,7 +18109,7 @@ async function loadTpuModalData() {
         const numOnBtn = document.getElementById('tpuModalNumbersOnBtn');
         const numOffBtn = document.getElementById('tpuModalNumbersOffBtn');
         if (numOnBtn && numOffBtn) {
-            const numbersEnabled = (params.tpuIncludeLedNumbers !== false);
+            const numbersEnabled = (params.tpuIncludeLedNumbers === true);
             if (numbersEnabled) {
                 numOnBtn.style.background = '#00ff88';
                 numOnBtn.style.color = '#000';

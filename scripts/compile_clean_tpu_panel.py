@@ -93,13 +93,13 @@ def flip_z_trimesh(tm):
     f = tm.faces[:, ::-1].copy()
     return trimesh.Trimesh(vertices=v, faces=f, process=True)
 
-INCLUDE_LED_NUMBERS = True
+INCLUDE_LED_NUMBERS = False
 if 'include_led_numbers' in specs:
     INCLUDE_LED_NUMBERS = bool(specs['include_led_numbers'])
 if '--numbers' in sys.argv:
     _ni = sys.argv.index('--numbers')
     if _ni + 1 < len(sys.argv):
-        INCLUDE_LED_NUMBERS = sys.argv[_ni + 1].lower() not in ('off', '0', 'false', 'no')
+        INCLUDE_LED_NUMBERS = sys.argv[_ni + 1].lower() in ('on', '1', 'true', 'yes')
 
 def compile_plate_variant(variant_name, width_mm, height_mm, raw_leds, artwork_path, window_shape='square'):
     print(f"\n>>> Compiling {variant_name.upper()} Plate ({width_mm}mm x {height_mm}mm, {len(raw_leds)} LEDs, Window Shape: {window_shape.upper()})...")
@@ -271,6 +271,13 @@ def compile_plate_variant(variant_name, width_mm, height_mm, raw_leds, artwork_p
     inner_collar_2d = make_stadium_polygon(COLLAR_INNER_L, COLLAR_INNER_W, sections=16)
     collar_ring_2d = sg.Polygon(outer_collar_2d.exterior.coords, [inner_collar_2d.exterior.coords])
 
+    # 0.6mm deep x 0.7mm tall external retention clip groove at wall base
+    GROOVE_DEPTH = 0.6    # mm (cuts 0.6mm into 1.2mm outer collar wall)
+    GROOVE_HEIGHT = 0.7   # mm (0.7mm tall parallel to front facing face)
+    groove_inner_2d = outer_collar_2d.buffer(-GROOVE_DEPTH, resolution=16)
+    groove_outer_2d = outer_collar_2d.buffer(0.5, resolution=16)
+    groove_ring_2d = groove_outer_2d.difference(groove_inner_2d)
+
     collar_meshes = []
     floor_recess_cutters = []
     square_window_cutters = []
@@ -291,13 +298,23 @@ def compile_plate_variant(variant_name, width_mm, height_mm, raw_leds, artwork_p
         recess.apply_translation([cx, cy, FRONT_THICK_LED])
         floor_recess_cutters.append(recess)
 
-        # 3.0mm Collar with 4mm Wire Notches
+        # 3.0mm Collar with 4mm Wire Notches and 0.7mm x 0.6mm Base Retention Groove
         c_mesh = trimesh.creation.extrude_polygon(collar_ring_2d, height=COLLAR_HEIGHT)
         notch_r = trimesh.creation.box(extents=[3.5, NOTCH_WIDTH, COLLAR_HEIGHT + 0.2])
         notch_r.apply_translation([COLLAR_OUTER_L / 2.0 - 1.0, 0, COLLAR_HEIGHT / 2.0])
         notch_l = trimesh.creation.box(extents=[3.5, NOTCH_WIDTH, COLLAR_HEIGHT + 0.2])
         notch_l.apply_translation([-COLLAR_OUTER_L / 2.0 + 1.0, 0, COLLAR_HEIGHT / 2.0])
-        notched_collar = c_mesh.difference(trimesh.boolean.union([notch_r, notch_l]))
+
+        groove_cutter = trimesh.creation.extrude_polygon(groove_ring_2d, height=GROOVE_HEIGHT)
+        # Sits at the base where the outside wall meets general plate floor (local Z = 1.0 to 1.7)
+        groove_cutter.apply_translation([0, 0, FRONT_THICK_GENERAL - COLLAR_FLOOR_Z])
+
+        c_m = to_m(c_mesh)
+        c_cutters_m = Manifold.batch_boolean([to_m(notch_r), to_m(notch_l), to_m(groove_cutter)], OpType.Add)
+        notched_collar_m = c_m - c_cutters_m
+        mesh_d = notched_collar_m.to_mesh()
+        notched_collar = trimesh.Trimesh(vertices=mesh_d.vert_properties[:, :3], faces=mesh_d.tri_verts)
+
         notched_collar.apply_transform(rot)
         notched_collar.apply_translation([cx, cy, COLLAR_FLOOR_Z])
         collar_meshes.append(notched_collar)
