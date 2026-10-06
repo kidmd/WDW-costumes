@@ -15823,25 +15823,48 @@ function initPowerBudgetCalculator() {
         showToast('⏳ Button 1: 5s Long Hold -> Entered Float ID Configuration Mode (1➔7)! Tap to cycle float role.');
     });
 
+    let previousWasStandby = false;
+
     // Sim Button 2: Single Tap (Castle Photo Mode)
     simButton2TapBtn?.addEventListener('click', () => {
         const activeFloatId = (activeSingleShirtRunnerSlot !== undefined && activeSingleShirtRunnerSlot !== null) ? (activeSingleShirtRunnerSlot + 1) : 6;
         const isLeader = (activeFloatId === 1 || activeFloatId === 7);
         if (isCorralStandbyActive) {
+            previousWasStandby = true;
             setStandbyUIState(false);
             setPhotoModeUIState(true);
             if (isLeader) {
-                showToast(`📸 Button 2: Leader (Float ${activeFloatId}) woke fleet directly into Castle Photo Mode!`);
+                showToast(`📸 Button 2: Leader (Float ${activeFloatId}) engaged Castle Photo Mode from Standby! Tap again to return to Standby.`);
             } else {
-                showToast(`📸 Button 2: Follower (Float ${activeFloatId}) woke locally into Castle Photo Mode!`);
+                showToast(`📸 Button 2: Follower (Float ${activeFloatId}) engaged Castle Photo Mode from Standby! Tap again to return to Standby.`);
             }
             return;
         }
-        setPhotoModeUIState(!isPhotoModeActive);
-        if (isLeader) {
-            showToast(isPhotoModeActive ? `📸 Button 2: Leader (Float ${activeFloatId}) engaged Castle Photo Mode across ENTIRE FLEET!` : `📸 Button 2: Leader (Float ${activeFloatId}) disengaged Castle Photo Mode for fleet.`);
+        if (isPhotoModeActive) {
+            setPhotoModeUIState(false);
+            if (previousWasStandby) {
+                previousWasStandby = false;
+                setStandbyUIState(true);
+                if (isLeader) {
+                    showToast(`🌙 Button 2: Leader (Float ${activeFloatId}) returned fleet to Corral Standby Mode.`);
+                } else {
+                    showToast(`🌙 Button 2: Follower (Float ${activeFloatId}) returned to Corral Standby Mode locally.`);
+                }
+                return;
+            }
+            if (isLeader) {
+                showToast(`📸 Button 2: Leader (Float ${activeFloatId}) disengaged Castle Photo Mode -> resumed parade.`);
+            } else {
+                showToast(`📸 Button 2: Follower (Float ${activeFloatId}) disengaged Castle Photo Mode -> resumed parade.`);
+            }
         } else {
-            showToast(isPhotoModeActive ? `📸 Button 2: Follower (Float ${activeFloatId}) engaged Castle Photo Mode (local only)!` : `📸 Button 2: Follower (Float ${activeFloatId}) disengaged Castle Photo Mode (local only).`);
+            previousWasStandby = false;
+            setPhotoModeUIState(true);
+            if (isLeader) {
+                showToast(`📸 Button 2: Leader (Float ${activeFloatId}) engaged Castle Photo Mode across ENTIRE FLEET!`);
+            } else {
+                showToast(`📸 Button 2: Follower (Float ${activeFloatId}) engaged Castle Photo Mode (local only)!`);
+            }
         }
     });
 
