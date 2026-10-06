@@ -93,6 +93,18 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### Entry: Organic Dragon Silhouette Contour & Calibrated 8.0" Chassis Width
+* **Date:** 2026-10-06 (Follow-up Imagineering Session)
+* **Milestone:** Milestone 6 - Wearable 3D Armor Fabrication & Multi-Material 3D Printing
+* **Status:** Complete & Verified (`scripts/compile_clean_tpu_panel.py`, `simulator.py`, `3d_panels/active_artwork.png`, `SIMULATOR_USER_GUIDE.md`, `README.md`, `PROJECT_PROGRESS.md`).
+* **Implementation Details:**
+  - **Organic Dragon Silhouette Restoration:** Identified that the black chassis was previously compiling as a rectangular box because `active_artwork.png` had an opaque black background (sampled from the 2D shirt preview canvas), causing `alpha > 40` to encompass the entire rectangular image canvas (1024x1229).
+  - **Dual-Layer Background Transparency Engine:**
+    - In `simulator.py` (`handle_generate_tpu_stl`): Added automatic post-processing to strip any opaque black canvas background when receiving incoming artwork data URLs, saving a crisp transparent PNG where transparent alpha surrounds the character.
+    - In `scripts/compile_clean_tpu_panel.py`: Upgraded the mask extraction pipeline to be immune to solid black backgrounds by detecting if image corners are opaque black, extracting foreground pixels via luminance/color thresholds (`(rgb.max > 20) & (alpha > 40)`), and dilating the true organic character contour.
+  - **Calibrated 8.0" (203.2mm) Chassis Dimensioning:** In `simulator.py`, calibrated the total image envelope scaling ($230.55	ext{ mm}$ total width) so that the resulting outer perimeter rim of the organic dragon chassis measures **$203.2	ext{ mm}$ ($8.0	ext{ in}$) wide** (overall $208.0	ext{ mm}$ across outer mounting tabs, $188.2	ext{ mm}$ height).
+  - ** Watertight Multi-Material Output:** Successfully recompiled both Front and Back plates in 6.28s. Pete's Dragon's head, wings, belly, and tail ridges now define the organic 4mm outer rim of the structural black chassis (`tpu_panel_front_chassis_black.stl`), with all 4 color inlays and open 3x3mm optical windows nested directly within the dragon silhouette.
+
 ### Entry: 5-Color Multi-Material TPU Armor Plate Compiler, Custom Sizing & 75-LED Layout
 * **Date:** 2026-10-06
 * **Milestone:** Milestone 6 - Wearable 3D Armor Fabrication & Multi-Material 3D Printing

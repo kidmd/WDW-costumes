@@ -104,7 +104,19 @@ def compile_plate_variant(variant_name, width_mm, height_mm, raw_leds, artwork_p
     img_w, img_h = active_img.size
     img_arr = np.array(active_img)
     alpha = img_arr[:, :, 3]
-    mask = (alpha > 40).astype(np.uint8)
+    rgb = img_arr[:, :, :3]
+
+    # Robust foreground extraction:
+    # If all four corners are opaque and near-black (e.g. drawn from shirt preview canvas),
+    # then foreground is defined by non-black pixels with visible color or luminance.
+    # Otherwise, foreground is defined by the transparent alpha channel (> 40).
+    corners_opaque = (alpha[0, 0] > 40 and alpha[0, -1] > 40 and alpha[-1, 0] > 40 and alpha[-1, -1] > 40)
+    corners_black = (rgb[0, 0].max() < 30 and rgb[0, -1].max() < 30 and rgb[-1, 0].max() < 30 and rgb[-1, -1].max() < 30)
+
+    if corners_opaque and corners_black:
+        mask = ((rgb.max(axis=2) > 20) & (alpha > 40)).astype(np.uint8)
+    else:
+        mask = (alpha > 40).astype(np.uint8)
 
     raw_contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
     if raw_contours:
@@ -367,7 +379,7 @@ def compile_plate_variant(variant_name, width_mm, height_mm, raw_leds, artwork_p
     for c_i, c_name in enumerate(color_names):
         if c_name == 'black':
             continue
-        c_mask = ((closest_color_idx == c_i) & (alpha > 40)).astype(np.uint8) * 255
+        c_mask = ((closest_color_idx == c_i) & (mask > 0)).astype(np.uint8) * 255
         kernel = np.ones((3, 3), np.uint8)
         c_mask = cv2.morphologyEx(c_mask, cv2.MORPH_OPEN, kernel)
         c_mask = cv2.morphologyEx(c_mask, cv2.MORPH_CLOSE, kernel)

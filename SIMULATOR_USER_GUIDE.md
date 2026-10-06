@@ -1123,6 +1123,7 @@ scripts/generate_3d_panel.py
 
 ### 🎨 5-Color Multi-Material 3D Printing System (Bambu Lab AMS / Snapmaker Dual):
 Instead of attaching a Cricut cut vinyl graphic on top of the printed plate, the front surface of the TPU armor plate directly features the multi-color character artwork via 5-material FDM 3D printing:
+- **Organic Silhouette Boundary Fitting:** The outer 4mm perimeter rim and 2mm tray floor of the black structural chassis trace the organic contour of the character artwork (e.g. Pete's Dragon silhouette with spinal crest, head, snout, wings, and tail), rather than a generic rectangular block. Sizing controls on the Layout tab (Medium = 8.0" / 203.2mm) calibrate the physical dragon chassis width to exactly 8 inches.
 - **Zero-Overlap Jigsaw Inlay Architecture:** The structural black chassis features 0.6mm deep front pockets (3 layers @ 0.2mm layer height) precisely receiving the 4 accent color inlays.
 - **Bambu Lab AMS 5-Color Palette (Pete's Dragon Preset):**
   1. **Slot 1 — Structural Chassis & Outline Walls:** Black (`#0d1908`) — 6.0mm perimeter rim, 2.0mm tray floor, LED retention collars, wiring basin, and mounting eyelets.

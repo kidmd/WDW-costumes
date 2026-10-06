@@ -1175,6 +1175,25 @@ const uint8_t PROGMEM SPATIAL_RADIUS_BYTE[FRONT_LEDS] = {{
                 with open(artwork_png, "wb") as f_art:
                     f_art.write(base64.b64decode(b64_data))
 
+                # Post-process: If image came with an opaque black background (e.g. drawn from shirt canvas),
+                # convert the black background to transparent alpha so the silhouette boundary traces the true character contour!
+                try:
+                    from PIL import Image
+                    import numpy as np
+                    with Image.open(artwork_png) as raw_art:
+                        art_arr = np.array(raw_art.convert('RGBA'))
+                    alpha_ch = art_arr[:, :, 3]
+                    rgb_ch = art_arr[:, :, :3]
+                    corners_opaque = (alpha_ch[0, 0] > 40 and alpha_ch[0, -1] > 40 and alpha_ch[-1, 0] > 40 and alpha_ch[-1, -1] > 40)
+                    corners_black = (rgb_ch[0, 0].max() < 30 and rgb_ch[0, -1].max() < 30 and rgb_ch[-1, 0].max() < 30 and rgb_ch[-1, -1].max() < 30)
+                    if corners_opaque and corners_black:
+                        fg_mask = (rgb_ch.max(axis=2) > 20) & (alpha_ch > 40)
+                        art_arr[~fg_mask, 3] = 0
+                        clean_art = Image.fromarray(art_arr)
+                        clean_art.save(artwork_png)
+                except Exception as clean_err:
+                    print(f"[WARN] Failed cleaning active_artwork background: {clean_err}")
+
             if not os.path.exists(artwork_png):
                 artwork_png = os.path.join(BASE_DIR, "assets", "petes_dragon_transparent.png")
 
@@ -1184,17 +1203,44 @@ const uint8_t PROGMEM SPATIAL_RADIUS_BYTE[FRONT_LEDS] = {{
                 aspect = img_w / float(img_h)
 
             # 1. Plate Dimensions (Small 6.5"/165.1mm, Medium 8.0"/203.2mm, Large 10.0"/254.0mm)
-            user_width_mm = req_data.get("widthMm")
-            if user_width_mm is not None:
-                FRONT_WIDTH_MM = float(user_width_mm)
-                FRONT_HEIGHT_MM = round(FRONT_WIDTH_MM / aspect, 2)
-                BACK_WIDTH_MM = FRONT_WIDTH_MM
-                BACK_HEIGHT_MM = round(BACK_WIDTH_MM / aspect, 2)
-            else:
-                FRONT_WIDTH_MM = 203.2  # Default to Medium ~8.0 inches
-                FRONT_HEIGHT_MM = round(FRONT_WIDTH_MM / aspect, 2)
-                BACK_WIDTH_MM = 203.2
-                BACK_HEIGHT_MM = round(BACK_WIDTH_MM / aspect, 2)
+            target_chassis_w = float(req_data.get("widthMm", 203.2))
+
+            # Calculate the relative bounding width of the character contour within the image
+            # so the printed chassis itself precisely matches the target width (e.g. 203.2mm / 8.0")
+            try:
+                import cv2
+                import numpy as np
+                import shapely.geometry as sg
+                with Image.open(artwork_png) as a_tmp:
+                    arr_tmp = np.array(a_tmp.convert('RGBA'))
+                alpha_t = arr_tmp[:, :, 3]
+                rgb_t = arr_tmp[:, :, :3]
+                c_op = (alpha_t[0, 0] > 40 and alpha_t[0, -1] > 40 and alpha_t[-1, 0] > 40 and alpha_t[-1, -1] > 40)
+                c_bl = (rgb_t[0, 0].max() < 30 and rgb_t[0, -1].max() < 30 and rgb_t[-1, 0].max() < 30 and rgb_t[-1, -1].max() < 30)
+                if c_op and c_bl:
+                    m_t = ((rgb_t.max(axis=2) > 20) & (alpha_t > 40)).astype(np.uint8)
+                else:
+                    m_t = (alpha_t > 40).astype(np.uint8)
+                k_sz = max(5, int(min(img_w, img_h) * 0.02))
+                if k_sz % 2 == 0: k_sz += 1
+                m_dil = cv2.dilate(m_t, np.ones((k_sz, k_sz), np.uint8), iterations=2)
+                cnts_t, _ = cv2.findContours(m_dil, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+                main_t = max(cnts_t, key=cv2.contourArea)
+                eps_t = 0.0022 * cv2.arcLength(main_t, True)
+                app_t = cv2.approxPolyDP(main_t, eps_t, True)
+                norm_pts = [[p[0][0] / img_w, 1.0 - p[0][1] / img_h] for p in app_t]
+                poly_n = sg.Polygon(norm_pts)
+                norm_w = poly_n.bounds[2] - poly_n.bounds[0]
+                if norm_w > 0.1:
+                    FRONT_WIDTH_MM = round((target_chassis_w - 8.0) / norm_w, 2)
+                else:
+                    FRONT_WIDTH_MM = target_chassis_w
+            except Exception as scale_err:
+                FRONT_WIDTH_MM = target_chassis_w
+
+            FRONT_HEIGHT_MM = round(FRONT_WIDTH_MM / aspect, 2)
+            BACK_WIDTH_MM = FRONT_WIDTH_MM
+            BACK_HEIGHT_MM = round(BACK_WIDTH_MM / aspect, 2)
 
             bounds = req_data.get("bounds", {})
             normX = bounds.get("normX", (1.0 - 0.40) / 2.0)
