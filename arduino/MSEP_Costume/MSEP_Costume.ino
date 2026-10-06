@@ -1926,10 +1926,10 @@ void loop() {
     if (b1PendingTaps > 0 && !b1Pressed && (now - b1FirstTapReleaseTime > 400)) {
         b1PendingTaps = 0;
 
-        if (currentStandaloneMode == SHOW_MODE_CORRAL_STANDBY) {
+        if (currentStandaloneMode == SHOW_MODE_CORRAL_STANDBY || currentStandaloneMode == SHOW_MODE_PHOTO_STATIC) {
             if (isLeader) {
                 // Leader: Wake ENTIRE FLEET into Solo Show Mode (parade baseline, does NOT start 30s fleet routine)
-                previousStandaloneMode = SHOW_MODE_CORRAL_STANDBY;
+                previousStandaloneMode = SHOW_MODE_AUTONOMOUS_SEQUENCE;
                 currentStandaloneMode = SHOW_MODE_AUTONOMOUS_SEQUENCE;
                 autonomousShowStartTime = now;
 
@@ -1941,10 +1941,12 @@ void loop() {
                 FastLED.show();
                 digitalWrite(STATUS_LED_PIN, LOW);
 
-                broadcastStandbyPacket(0x51); // Wake entire fleet into solo show mode
-                Serial.println("[LEADER] ☀️ First Tap in Standby -> Woke ENTIRE FLEET into Solo Show Mode! (Tap again while awake to start 30s Fleet Show)");
+                broadcastPhotoModePacket(0x47); // Disengage photo mode if active across fleet
+                broadcastStandbyPacket(0x51);   // Wake entire fleet into solo show mode
+                Serial.println("[LEADER] ☀️ Button 1 Tap -> Woke ENTIRE FLEET into Solo Show Mode! (Tap again while awake to start 30s Fleet Show)");
             } else {
                 // Follower: Wake LOCALLY to baseline solo show animation (do NOT start theatrical fleet routine)
+                previousStandaloneMode = SHOW_MODE_AUTONOMOUS_SEQUENCE;
                 currentStandaloneMode = SHOW_MODE_AUTONOMOUS_SEQUENCE;
                 autonomousShowStartTime = now;
 
@@ -1956,7 +1958,7 @@ void loop() {
                 FastLED.show();
                 digitalWrite(STATUS_LED_PIN, LOW);
 
-                Serial.printf("[FOLLOWER] Float %d Single Tap -> Woke locally from Corral Standby into Solo Show Mode.\n", myFloatNumber);
+                Serial.printf("[FOLLOWER] Float %d Single Tap -> Woke locally into Solo Show Mode.\n", myFloatNumber);
             }
         } else if (isLeader) {
             // Leader active toggle

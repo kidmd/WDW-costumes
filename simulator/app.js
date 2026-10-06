@@ -15786,12 +15786,13 @@ function initPowerBudgetCalculator() {
         const activeFloatId = (activeSingleShirtRunnerSlot !== undefined && activeSingleShirtRunnerSlot !== null) ? (activeSingleShirtRunnerSlot + 1) : 6;
         const isLeader = (activeFloatId === 1 || activeFloatId === 7);
 
-        if (isCorralStandbyActive) {
+        if (isCorralStandbyActive || isPhotoModeActive) {
             setStandbyUIState(false);
+            setPhotoModeUIState(false);
             if (isLeader) {
                 showToast(`☀️ Button 1: Leader (Float ${activeFloatId}) woke fleet into Solo Show Mode (tap again for 30s fleet show)!`);
             } else {
-                showToast(`☀️ Button 1: Follower (Float ${activeFloatId}) woke locally to Solo Show Mode (no fleet show)!`);
+                showToast(`☀️ Button 1: Follower (Float ${activeFloatId}) woke locally to Solo Show Mode!`);
             }
         } else if (isLeader) {
             if (fleetShowActive) {
