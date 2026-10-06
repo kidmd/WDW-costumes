@@ -93,6 +93,17 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### Entry: Cold-Boot Button Arming Safety Guard & Real-Time Hardware Diagnostic Engine
+* **Date:** 2026-10-05 (Night Imagineering Session - Follow-up)
+* **Milestone:** Milestone 6 - Dual-Button Controller Hardware Architecture, Castle Photo Mode & Dual-Leader Fleet Synchronizer
+* **Status:** Complete & Verified (`src/main.cpp`, `arduino/MSEP_Costume/MSEP_Costume.ino`, `PROJECT_PROGRESS.md`).
+* **Implementation Details:**
+  - **Root Cause Analysis (Stuck in Float ID Config Mode):** When a pushbutton is shorted to GND at power-on (such as a 4-pin breadboard tact switch installed in the wrong 90° orientation, bridged wires, or jumpering directly to GND), `isButton1Down()` reads `LOW` continuously from the moment the ESP32 boots up. Because the firmware previously lacked a cold-boot pin-release guard, the hold timer accumulated 5 seconds from power-on and automatically fired `handleFloatConfigMode()`, locking the controller into config mode and waiting for pin release.
+  - **Cold-Boot Arming Guard (`b1Armed` / `b2Armed`):** Added a non-blocking startup safety check. At boot, both Button 1 and Button 2 are in an un-armed state. The firmware requires pins to be read as `HIGH` (open / released) at least once before arming press and hold detection. If a pin is held `LOW` or shorted at power-on, the costume boots cleanly into Corral Standby without triggering the 5-second config mode or 3-second sleep hold, and logs a rate-limited diagnostic warning every 2.5 seconds.
+  - **Startup Hardware Diagnostic Banner:** Added a formatted 115200-baud serial banner in `setup()` printing the exact instantaneous electrical reading (`LOW [SHORTED TO GND ⚠️]` vs `HIGH [OPEN / NORMAL]`) for `GPIO 4` (Button 1), `GPIO 33` (Button 2), and `GPIO 0` (BOOT pin).
+  - **Real-Time Button Transition Logging:** Added live serial prints on every press and release event (`[BUTTON 1] Press detected (LOW)...`, `[BUTTON 1] Released (duration: ... ms)`), providing immediate feedback for bench debugging and race-day verification.
+  - **Firmware Synchronization & Compilation:** Mirrored across `src/main.cpp` and `arduino/MSEP_Costume/MSEP_Costume.ino`. Built cleanly via PlatformIO in 9.27s (RAM: 14.3%, Flash: 60.2%).
+
 ### Entry: Dual-Button Hardware Controller, Castle Photo Mode & Dual-Leader Fleet Synchronizer
 * **Date:** 2026-10-05 (Night Imagineering Session)
 * **Milestone:** Milestone 6 - Dual-Button Controller Hardware Architecture, Castle Photo Mode & Dual-Leader Fleet Synchronizer

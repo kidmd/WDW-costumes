@@ -1680,6 +1680,13 @@ void setup() {
     pinMode(BUTTON_BOOT_PIN, INPUT_PULLUP);
     delay(300);
 
+    Serial.println("\n--------------------------------------------------------");
+    Serial.println("  [HARDWARE DIAGNOSTIC] BUTTON PIN STARTUP READINGS:");
+    Serial.printf("  - BUTTON 1 (GPIO %d):  %s\n", BUTTON_1_PIN, (digitalRead(BUTTON_1_PIN) == LOW) ? "LOW [PRESSED / SHORTED TO GND] ⚠️" : "HIGH [OPEN / NORMAL]");
+    Serial.printf("  - BUTTON 2 (GPIO %d): %s\n", BUTTON_2_PIN, (digitalRead(BUTTON_2_PIN) == LOW) ? "LOW [PRESSED / SHORTED TO GND] ⚠️" : "HIGH [OPEN / NORMAL]");
+    Serial.printf("  - BOOT PIN (GPIO %d):  %s\n", BUTTON_BOOT_PIN, (digitalRead(BUTTON_BOOT_PIN) == LOW) ? "LOW [PRESSED / SHORTED TO GND] ⚠️" : "HIGH [OPEN / NORMAL]");
+    Serial.println("--------------------------------------------------------\n");
+
     Serial.println("\n========================================================");
     Serial.println("  MAIN STREET ELECTRICAL PARADE - UNIFIED FIRMWARE");
     Serial.println("  (Auto: ESP-NOW Fleet Sync + Real-Time Wi-Fi Streaming)");
@@ -1785,6 +1792,38 @@ void loop() {
     // 1. DUAL HARDWARE BUTTON CONTROLLER (Button 1: GPIO 4/0, Button 2: GPIO 33)
     // ========================================================================
 
+    // --- 0. STARTUP SAFETY GUARD & PIN ARMING ---
+    // Prevents entering Float ID Config or Standby if pins are grounded/shorted at power-on.
+    // Pins must be read as HIGH (released) at least once before arming press/hold detection.
+    static bool b1Armed = false;
+    static bool b2Armed = false;
+    static uint32_t lastStuckWarning = 0;
+
+    bool b1Raw = isButton1Down();
+    bool b2Raw = isButton2Down();
+
+    if (!b1Armed) {
+        if (!b1Raw) {
+            b1Armed = true;
+            Serial.println("[BUTTON] Button 1 armed (pin released HIGH).");
+        } else if (now - lastStuckWarning > 2500) {
+            lastStuckWarning = now;
+            Serial.printf("[HARDWARE WARNING] Button 1 is grounded LOW at boot (GPIO %d or BOOT GPIO %d)! Check wiring for short to GND.\n",
+                          BUTTON_1_PIN, BUTTON_BOOT_PIN);
+        }
+    }
+
+    if (!b2Armed) {
+        if (!b2Raw) {
+            b2Armed = true;
+            Serial.println("[BUTTON] Button 2 armed (pin released HIGH).");
+        } else if (now - lastStuckWarning > 2500) {
+            lastStuckWarning = now;
+            Serial.printf("[HARDWARE WARNING] Button 2 is grounded LOW at boot (GPIO %d)! Check wiring for short to GND.\n",
+                          BUTTON_2_PIN);
+        }
+    }
+
     // --- BUTTON 1: PRIMARY SHOW DIRECTOR (GPIO 4 + BOOT GPIO 0) ---
     // - Leader Single Tap: In sleep -> Wakes fleet & starts 30s routine; While running -> Toggle 30s show
     // - Follower Single Tap: In sleep -> Wakes locally (no fleet show); While running -> Local sequence
@@ -1796,12 +1835,13 @@ void loop() {
     static uint8_t b1PendingTaps = 0;
     static uint32_t b1FirstTapReleaseTime = 0;
 
-    bool b1Pressed = isButton1Down();
+    bool b1Pressed = b1Armed && b1Raw;
 
     if (b1Pressed && !b1WasPressed) {
         b1WasPressed = true;
         b1DownTime = now;
         b1LongHoldHandled = false;
+        Serial.println("[BUTTON 1] Press detected (LOW)...");
     } else if (b1Pressed && b1WasPressed) {
         uint32_t holdElapsed = now - b1DownTime;
         if (!b1LongHoldHandled) {
@@ -1827,6 +1867,7 @@ void loop() {
     } else if (!b1Pressed && b1WasPressed) {
         b1WasPressed = false;
         uint32_t pressDuration = now - b1DownTime;
+        Serial.printf("[BUTTON 1] Released (duration: %u ms)\n", pressDuration);
 
         if (pressDuration >= 1000 && !b1LongHoldHandled) {
             Serial.printf("[BUTTON 1] Hold aborted after %u ms -> returning to baseline with zero changes.\n", pressDuration);
@@ -1933,12 +1974,13 @@ void loop() {
     static uint32_t b2DownTime = 0;
     static bool b2HoldHandled = false;
 
-    bool b2Pressed = isButton2Down();
+    bool b2Pressed = b2Armed && b2Raw;
 
     if (b2Pressed && !b2WasPressed) {
         b2WasPressed = true;
         b2DownTime = now;
         b2HoldHandled = false;
+        Serial.println("[BUTTON 2] Press detected (LOW)...");
     } else if (b2Pressed && b2WasPressed) {
         uint32_t holdElapsed = now - b2DownTime;
         if (!b2HoldHandled) {
@@ -1982,6 +2024,7 @@ void loop() {
     } else if (!b2Pressed && b2WasPressed) {
         b2WasPressed = false;
         uint32_t pressDuration = now - b2DownTime;
+        Serial.printf("[BUTTON 2] Released (duration: %u ms)\n", pressDuration);
 
         if (pressDuration >= 1000 && !b2HoldHandled) {
             Serial.printf("[BUTTON 2] Sleep hold aborted after %u ms -> returning to baseline with zero changes.\n", pressDuration);
