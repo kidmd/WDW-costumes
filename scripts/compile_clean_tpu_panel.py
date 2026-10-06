@@ -386,16 +386,39 @@ def compile_plate_variant(variant_name, width_mm, height_mm, raw_leds, artwork_p
             num_combined.apply_translation([best_cand[0], best_cand[1], 0.0])
             number_cutters.append(num_combined)
 
-    # 7. 5-COLOR VECTOR SEGMENTATION (Green, Magenta, Yellow, White)
-    print(f"[{variant_name}] Segmenting 5-color artwork for multi-material inlays...")
+    # 7. MULTI-COLOR VECTOR SEGMENTATION (Dynamic float color inlays)
+    print(f"[{variant_name}] Segmenting artwork for multi-material inlays...")
     rgb = img_arr[:, :, :3].astype(np.float32)
-    targets = {
-        'black': np.array([13.0, 25.0, 8.0]),
-        'green': np.array([4.0, 250.0, 6.0]),
-        'magenta': np.array([210.0, 10.0, 200.0]),
-        'yellow': np.array([249.0, 249.0, 12.0]),
-        'white': np.array([247.0, 248.0, 247.0])
-    }
+
+    float_name = specs.get('float_name', '')
+    graphic_type = specs.get('graphic_type', '')
+    raw_stl_colors = specs.get('stl_colors')
+
+    is_turtle = ('turtle' in str(graphic_type).lower() or 'turtle' in str(float_name).lower() or 'turtle' in str(artwork_path).lower())
+
+    if raw_stl_colors and isinstance(raw_stl_colors, dict):
+        stl_colors = raw_stl_colors
+    elif is_turtle:
+        stl_colors = {
+            'black': { 'name': 'Chassis Black', 'hex': '#11161d', 'targetRgb': [34, 43, 51], 'role': 'chassis' },
+            'green': { 'name': 'Shell Plates & Glasses', 'hex': '#00cc66', 'targetRgb': [43, 109, 49], 'role': 'inlay', 'filename': 'color_green.stl' },
+            'blue': { 'name': 'Shell & Eyes', 'hex': '#2563eb', 'targetRgb': [41, 63, 96], 'role': 'inlay', 'filename': 'color_blue.stl' },
+            'yellow': { 'name': 'Body & Head', 'hex': '#facc15', 'targetRgb': [231, 199, 49], 'role': 'inlay', 'filename': 'color_yellow.stl' },
+            'red': { 'name': 'Tie & Lips', 'hex': '#ef4444', 'targetRgb': [217, 29, 22], 'role': 'inlay', 'filename': 'color_red.stl' }
+        }
+    else:
+        stl_colors = {
+            'black': { 'name': 'Chassis Black', 'hex': '#11161d', 'targetRgb': [13, 25, 8], 'role': 'chassis' },
+            'green': { 'name': 'Dragon Body', 'hex': '#00e676', 'targetRgb': [4, 250, 6], 'role': 'inlay', 'filename': 'color_green.stl' },
+            'magenta': { 'name': 'Wings & Crest', 'hex': '#ec4899', 'targetRgb': [210, 10, 200], 'role': 'inlay', 'filename': 'color_magenta.stl' },
+            'yellow': { 'name': 'Belly & Horns', 'hex': '#facc15', 'targetRgb': [249, 249, 12], 'role': 'inlay', 'filename': 'color_yellow.stl' },
+            'white': { 'name': 'Eyes & Teeth', 'hex': '#ffffff', 'targetRgb': [247, 248, 247], 'role': 'inlay', 'filename': 'color_white.stl' }
+        }
+
+    targets = {}
+    for c_k, c_v in stl_colors.items():
+        targets[c_k] = np.array(c_v.get('targetRgb', [128, 128, 128]), dtype=np.float32)
+
     color_names = list(targets.keys())
     color_diffs = np.stack([np.sum((rgb - targets[k])**2, axis=2) for k in color_names], axis=2)
     closest_color_idx = np.argmin(color_diffs, axis=2)
@@ -404,12 +427,12 @@ def compile_plate_variant(variant_name, width_mm, height_mm, raw_leds, artwork_p
     color_inlay_manifolds = []
 
     for c_i, c_name in enumerate(color_names):
-        if c_name == 'black':
+        c_info = stl_colors.get(c_name, {})
+        if c_name == 'black' or c_info.get('role') == 'chassis':
             continue
         c_mask = ((closest_color_idx == c_i) & (mask > 0)).astype(np.uint8) * 255
-        # Light despeckle only (no CLOSE: it would fill the thin black linework, e.g. eye outlines)
+        # Light despeckle only
         c_mask = cv2.morphologyEx(c_mask, cv2.MORPH_OPEN, np.ones((2, 2), np.uint8))
-        # RETR_CCOMP keeps interior holes so black linework / other colors stay black chassis
         cnts, hier = cv2.findContours(c_mask, cv2.RETR_CCOMP, cv2.CHAIN_APPROX_SIMPLE)
 
         def _cnt_to_poly(c):
@@ -423,7 +446,7 @@ def compile_plate_variant(variant_name, width_mm, height_mm, raw_leds, artwork_p
                     round((1.0 - pt[0][1] / img_h) * height_mm, 3)) for pt in approx]
             pg = sg.Polygon(pts)
             if not pg.is_valid:
-                pg = pg.buffer(0)  # repair self-intersections instead of dropping the region
+                pg = pg.buffer(0)
             return pg
 
         c_polys = []
@@ -448,7 +471,6 @@ def compile_plate_variant(variant_name, width_mm, height_mm, raw_leds, artwork_p
             # Subtract LED aperture windows so light projects clean through!
             if not led_windows_union_2d.is_empty:
                 c_union = c_union.difference(led_windows_union_2d)
-            # Ensure valid polygon geometry
             if not c_union.is_valid:
                 c_union = c_union.buffer(0)
             
@@ -457,7 +479,7 @@ def compile_plate_variant(variant_name, width_mm, height_mm, raw_leds, artwork_p
             if inlay_mesh is not None:
                 color_inlay_meshes[c_name] = inlay_mesh
                 color_inlay_manifolds.append(to_m(inlay_mesh))
-                print(f"[{variant_name}] Created {c_name.upper()} Inlay ({len(inlay_mesh.vertices)} vertices, area {c_union.area:.1f} mm^2)")
+                print(f"[{variant_name}] Created {c_info.get('name', c_name.upper())} Inlay ({len(inlay_mesh.vertices)} vertices, area {c_union.area:.1f} mm^2)")
 
     # 8. Manifold3D Assembly & Boolean Operations
     # Union all solids for the black chassis:
@@ -492,9 +514,17 @@ def compile_plate_variant(variant_name, width_mm, height_mm, raw_leds, artwork_p
     for c_name, tm in color_inlay_meshes.items():
         flipped_colors[c_name] = flip_z_trimesh(tm)
 
-    # 9. EXPORT STLs (Monolithic + 5 Split Parts)
+    # 9. EXPORT STLs (Monolithic + Dynamic Split Inlay Parts)
     out_dir = '3d_panels'
     os.makedirs(out_dir, exist_ok=True)
+
+    # Clean up stale color STL files from previous floats so they never contaminate the active float
+    import glob
+    for old_stl in glob.glob(os.path.join(out_dir, f"tpu_panel_{variant_name}_color_*.stl")):
+        try:
+            os.remove(old_stl)
+        except Exception:
+            pass
 
     # 1. Monolithic Single-Color STL (Legacy & single-print compatible)
     mono_filename = f"tpu_panel_{variant_name}.stl"
@@ -506,18 +536,37 @@ def compile_plate_variant(variant_name, width_mm, height_mm, raw_leds, artwork_p
     chassis_path = os.path.join(out_dir, chassis_filename)
     final_chassis_tm.export(chassis_path)
 
-    # 3. Color Inlay STLs
+    # 3. Dynamic Color Inlay STLs
     color_stls = {}
-    for c_name in ['green', 'magenta', 'yellow', 'white']:
+    exported_inlays = []
+    scene_items = {'1_Chassis_Black': final_chassis_tm}
+    slot_idx = 2
+
+    for c_name, c_info in stl_colors.items():
+        if c_name == 'black' or c_info.get('role') == 'chassis':
+            continue
         c_tm = flipped_colors.get(c_name)
-        if c_tm is not None:
+        if c_tm is not None and len(c_tm.faces) > 0:
             c_filename = f"tpu_panel_{variant_name}_color_{c_name}.stl"
             c_path = os.path.join(out_dir, c_filename)
             c_tm.export(c_path)
             color_stls[c_name] = c_path
-        else:
-            # Fallback tiny spacer if a color is empty
-            pass
+            
+            clean_name = c_info.get('name', c_name.capitalize()).replace(' ', '_').replace('&', 'and')
+            scene_items[f"{slot_idx}_{clean_name}"] = c_tm
+            slot_idx += 1
+            exported_inlays.append({
+                "key": c_name,
+                "name": c_info.get('name', c_name.capitalize()),
+                "filename": c_filename,
+                "hex": c_info.get('hex', '#00ff88'),
+                "count": len(c_tm.faces)
+            })
+
+    if variant_name not in specs or not isinstance(specs[variant_name], dict):
+        specs[variant_name] = {}
+    specs[variant_name]['inlays'] = exported_inlays
+    specs['stl_colors'] = stl_colors
 
     if variant_name == 'front':
         shutil.copyfile(mono_path, os.path.join(out_dir, 'tpu_panel.stl'))
@@ -526,27 +575,32 @@ def compile_plate_variant(variant_name, width_mm, height_mm, raw_leds, artwork_p
     # 10. EXPORT NATIVE MULTI-BODY .3MF PROJECT
     mf3_filename = f"tpu_panel_{variant_name}_multicolor.3mf"
     mf3_path = os.path.join(out_dir, mf3_filename)
-    scene_items = {'1_Chassis_Black': final_chassis_tm}
-    if 'green' in flipped_colors: scene_items['2_Body_Green'] = flipped_colors['green']
-    if 'magenta' in flipped_colors: scene_items['3_HairWings_Magenta'] = flipped_colors['magenta']
-    if 'yellow' in flipped_colors: scene_items['4_Belly_Yellow'] = flipped_colors['yellow']
-    if 'white' in flipped_colors: scene_items['5_EyesTeeth_White'] = flipped_colors['white']
 
     try:
         scene = trimesh.Scene(scene_items)
         scene.export(mf3_path)
-        print(f"[{variant_name}] Exported native 3MF: {mf3_filename}")
+        print(f"[{variant_name}] Exported native 3MF with {len(scene_items)} parts: {mf3_filename}")
     except Exception as e:
+        print(f"[{variant_name}] 3MF export warning: {e}")
         print(f"[{variant_name}] 3MF export warning: {e}")
 
     # 11. EXPORT READY-TO-PRINT ZIP BUNDLE
     zip_filename = f"tpu_panel_{variant_name}_multicolor_bundle.zip"
     zip_path = os.path.join(out_dir, zip_filename)
     
+    stl_list_lines = [f"   - {chassis_filename}"]
+    slot_mapping_lines = [f"Slot 1 (Black 95A TPU):   Chassis Tray, 4mm Perimeter Rim, 16 Tabs, {num_leds} Collars, Outlines"]
+    for s_idx, inl in enumerate(exported_inlays, 2):
+        stl_list_lines.append(f"   - {inl['filename']}")
+        slot_mapping_lines.append(f"Slot {s_idx} ({inl['name']}):  {inl['name']}")
+    stl_list_str = "\n".join(stl_list_lines)
+    slot_mapping_str = "\n".join(slot_mapping_lines)
+
     readme_content = f"""🏰 MAIN STREET ELECTRICAL PARADE (WDW 10K) - 3D TPU ARMOR PLATE
 BAMBU LAB X1-CARBON / AMS MULTI-COLOR PRINTING GUIDE
 
-PLATE VARIANT: {variant_name.upper()}
+PLATE VARIANT: {variant_name.upper()} ({specs.get('float_name', 'MSEP Float')})
+======================================================================
 PHYSICAL SIZE: {panel_w} mm W x {panel_h} mm H (Target Width: {width_mm} mm / ~{round(width_mm/25.4, 1)} in)
 ACTIVE LEDS: {num_leds} LEDs with 3x3mm open optical apertures
 
@@ -556,30 +610,22 @@ HOW TO IMPORT INTO BAMBU STUDIO / ORCASLICER:
 METHOD 1: NATIVE .3MF PROJECT (RECOMMENDED)
 1. Open Bambu Studio.
 2. Drag and drop '{mf3_filename}' onto the build plate.
-3. In the left panel (Process -> Objects), verify the 5 parts are listed.
-4. Assign your AMS filament slots (Slot 1 to 5) to the parts.
+3. In the left panel (Process -> Objects), verify the parts are listed.
+4. Assign your AMS filament slots (Slot 1 to {len(exported_inlays) + 1}) to the parts.
 
 METHOD 2: SPLIT STLs (MULTI-PART MERGE)
 1. In Bambu Studio, select your printer.
-2. Select all 5 STL files simultaneously:
-   - {chassis_filename}
-   - tpu_panel_{variant_name}_color_green.stl
-   - tpu_panel_{variant_name}_color_magenta.stl
-   - tpu_panel_{variant_name}_color_yellow.stl
-   - tpu_panel_{variant_name}_color_white.stl
-3. Drag all 5 files together onto the build plate.
+2. Select all STL files simultaneously:
+{stl_list_str}
+3. Drag all files together onto the build plate.
 4. When prompted: "Load these files as a single object with multiple parts?"
    -> Click YES.
-5. All 5 parts will lock together in exact (0, 0, 0) 3D alignment.
+5. All parts will lock together in exact (0, 0, 0) 3D alignment.
 
 ======================================================================
 FILAMENT / AMS SLOT MAPPING:
 ======================================================================
-Slot 1 (Black 95A TPU):   Chassis Tray, 4mm Perimeter Rim, 16 Tabs, {num_leds} Collars, Outlines
-Slot 2 (Neon Green TPU):  Pete's Dragon Body
-Slot 3 (Magenta/Pink TPU):Dragon Hair Tuft, Spine & Wings
-Slot 4 (Sunny Yellow TPU):Dragon Belly & Facial Accents
-Slot 5 (Bright White TPU):Dragon Eyes & Teeth
+{slot_mapping_str}
 
 ======================================================================
 RECOMMENDED 95A TPU PRINT SETTINGS:
@@ -650,12 +696,9 @@ linear_extrude(front_thickness) polygon(contour_pts);
         "stl_size": stl_size,
         "chassis_size": chassis_size,
         "zip_size": zip_size,
+        "inlays": exported_inlays,
         "stl_url": f"/3d_panels/{mono_filename}",
         "chassis_stl_url": f"/3d_panels/{chassis_filename}",
-        "color_green_stl_url": f"/3d_panels/tpu_panel_{variant_name}_color_green.stl" if 'green' in color_stls else None,
-        "color_magenta_stl_url": f"/3d_panels/tpu_panel_{variant_name}_color_magenta.stl" if 'magenta' in color_stls else None,
-        "color_yellow_stl_url": f"/3d_panels/tpu_panel_{variant_name}_color_yellow.stl" if 'yellow' in color_stls else None,
-        "color_white_stl_url": f"/3d_panels/tpu_panel_{variant_name}_color_white.stl" if 'white' in color_stls else None,
         "multicolor_3mf_url": f"/3d_panels/{mf3_filename}" if os.path.exists(mf3_path) else None,
         "multicolor_zip_url": f"/3d_panels/{zip_filename}",
         "volume_mm3": round(final_monolithic_tm.volume, 1),

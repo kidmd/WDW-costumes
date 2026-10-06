@@ -2897,6 +2897,41 @@ const CRICUT_FLOAT_CONFIG = {
     }
 };
 
+let currentLoadedStlColors = null;
+
+const FLOAT_STL_COLOR_CONFIG = {
+    'petes_dragon': {
+        'black': { name: "Chassis Black", hex: "#11161d", targetRgb: [13, 25, 8], role: "chassis" },
+        'green': { name: "Dragon Body", hex: "#00e676", targetRgb: [4, 250, 6], role: "inlay", filename: "color_green.stl" },
+        'magenta': { name: "Wings & Crest", hex: "#ec4899", targetRgb: [210, 10, 200], role: "inlay", filename: "color_magenta.stl" },
+        'yellow': { name: "Belly & Horns", hex: "#facc15", targetRgb: [249, 249, 12], role: "inlay", filename: "color_yellow.stl" },
+        'white': { name: "Eyes & Teeth", hex: "#ffffff", targetRgb: [247, 248, 247], role: "inlay", filename: "color_white.stl" }
+    },
+    'builtin_dragon': {
+        'black': { name: "Chassis Black", hex: "#11161d", targetRgb: [13, 25, 8], role: "chassis" },
+        'green': { name: "Dragon Body", hex: "#00e676", targetRgb: [4, 250, 6], role: "inlay", filename: "color_green.stl" },
+        'magenta': { name: "Wings & Crest", hex: "#ec4899", targetRgb: [210, 10, 200], role: "inlay", filename: "color_magenta.stl" },
+        'yellow': { name: "Belly & Horns", hex: "#facc15", targetRgb: [249, 249, 12], role: "inlay", filename: "color_yellow.stl" },
+        'white': { name: "Eyes & Teeth", hex: "#ffffff", targetRgb: [247, 248, 247], role: "inlay", filename: "color_white.stl" }
+    },
+    'spinning_turtle': {
+        'black': { name: "Chassis Black", hex: "#11161d", targetRgb: [34, 43, 51], role: "chassis" },
+        'green': { name: "Shell Plates & Glasses", hex: "#00cc66", targetRgb: [43, 109, 49], role: "inlay", filename: "color_green.stl" },
+        'blue': { name: "Shell & Eyes", hex: "#2563eb", targetRgb: [41, 63, 96], role: "inlay", filename: "color_blue.stl" },
+        'yellow': { name: "Body & Head", hex: "#facc15", targetRgb: [231, 199, 49], role: "inlay", filename: "color_yellow.stl" },
+        'red': { name: "Tie & Lips", hex: "#ef4444", targetRgb: [217, 29, 22], role: "inlay", filename: "color_red.stl" }
+    }
+};
+
+function getActiveFloatStlColors() {
+    if (currentLoadedStlColors && typeof currentLoadedStlColors === 'object') {
+        return currentLoadedStlColors;
+    }
+    const activeType = currentGraphicType || 'builtin_dragon';
+    return FLOAT_STL_COLOR_CONFIG[activeType] || FLOAT_STL_COLOR_CONFIG['petes_dragon'];
+}
+window.getActiveFloatStlColors = getActiveFloatStlColors;
+
 function getSvgViewBoxDimensions(rawSvgText) {
     if (!rawSvgText) return { width: 800, height: 600 };
     const match = rawSvgText.match(/viewBox=["']\s*0\s+0\s+(\d+(?:\.\d+)?)\s+(\d+(?:\.\d+)?)\s*["']/);
@@ -11294,6 +11329,7 @@ async function saveCurrentProfile(name) {
 // Apply Profile Data object to simulator
 function applyProfileData(profileData) {
     if (!profileData) return;
+    currentLoadedStlColors = profileData.stlColors || null;
 
     // 1. Restore LEDs
     if (Array.isArray(profileData.leds) && profileData.leds.length > 0) {
@@ -17526,27 +17562,48 @@ function setTpuExportMode(mode) {
 }
 window.setTpuExportMode = setTpuExportMode;
 
+let lastLoadedTpuSpecs = null;
+
 function updateTpuDownloadButtons() {
     const container = document.getElementById('tpuModalDownloadButtonsContainer');
     if (!container) return;
 
     const v = tpuActiveVariant || 'front';
     if (tpuExportMode === 'multi') {
+        let individualOptions = `<option value="">⬇️ Individual STLs...</option>`;
+        individualOptions += `<option value="/3d_panels/tpu_panel_${v}_chassis_black.stl">1. Black Chassis STL</option>`;
+
+        let activeInlays = [];
+        const variantData = (lastLoadedTpuSpecs && lastLoadedTpuSpecs[v]) ? lastLoadedTpuSpecs[v] : lastLoadedTpuSpecs;
+        if (variantData && Array.isArray(variantData.inlays) && variantData.inlays.length > 0) {
+            activeInlays = variantData.inlays;
+        } else {
+            const activeColors = (lastLoadedTpuSpecs && lastLoadedTpuSpecs.stl_colors) ? lastLoadedTpuSpecs.stl_colors : getActiveFloatStlColors();
+            for (const [k, info] of Object.entries(activeColors || {})) {
+                if (k === 'black' || info.role === 'chassis') continue;
+                activeInlays.push({
+                    key: k,
+                    name: info.name || (k.charAt(0).toUpperCase() + k.slice(1)),
+                    filename: info.filename || `tpu_panel_${v}_color_${k}.stl`
+                });
+            }
+        }
+
+        activeInlays.forEach((inl, idx) => {
+            const fName = inl.filename ? inl.filename.replace(/tpu_panel_(front|back)_/, `tpu_panel_${v}_`) : `tpu_panel_${v}_color_${inl.key}.stl`;
+            individualOptions += `<option value="/3d_panels/${fName}">${idx + 2}. ${inl.name} STL</option>`;
+        });
+
         container.innerHTML = `
-            <a href="/3d_panels/tpu_panel_${v}_multicolor_bundle.zip" download="tpu_panel_${v}_multicolor_bundle.zip" class="action-btn primary" style="padding: 6px 12px; font-size: 11px; background: linear-gradient(135deg, #1f6feb, #388bfd); color: #fff; font-weight: 600; text-decoration: none; display: inline-flex; align-items: center; gap: 4px;" title="Download all 5 STLs, 3MF project, and slicer instructions">
-                📦 Download 5-Color ZIP
+            <a href="/3d_panels/tpu_panel_${v}_multicolor_bundle.zip" download="tpu_panel_${v}_multicolor_bundle.zip" class="action-btn primary" style="padding: 6px 12px; font-size: 11px; background: linear-gradient(135deg, #1f6feb, #388bfd); color: #fff; font-weight: 600; text-decoration: none; display: inline-flex; align-items: center; gap: 4px;" title="Download all STLs, 3MF project, and slicer instructions">
+                📦 Download Multi-Color ZIP
             </a>
             <a href="/3d_panels/tpu_panel_${v}_multicolor.3mf" download="tpu_panel_${v}_multicolor.3mf" class="action-btn" style="padding: 6px 12px; font-size: 11px; color: #00ff88; border-color: #2ea043; text-decoration: none; display: inline-flex; align-items: center; gap: 4px;" title="Download pre-assembled Bambu Studio / OrcaSlicer project file">
                 🖨️ Download .3MF
             </a>
             <div style="position: relative; display: inline-block;">
                 <select onchange="if(this.value){ const a=document.createElement('a'); a.href=this.value; a.download=this.value.split('/').pop(); a.click(); this.value=''; }" style="background: #21262d; color: #58a6ff; border: 1px solid #388bfd; border-radius: 6px; padding: 5px 8px; font-size: 10.5px; font-weight: 600; cursor: pointer; outline: none;">
-                    <option value="">⬇️ Individual STLs...</option>
-                    <option value="/3d_panels/tpu_panel_${v}_chassis_black.stl">1. Black Chassis STL</option>
-                    <option value="/3d_panels/tpu_panel_${v}_color_green.stl">2. Green Body STL</option>
-                    <option value="/3d_panels/tpu_panel_${v}_color_magenta.stl">3. Magenta Wings STL</option>
-                    <option value="/3d_panels/tpu_panel_${v}_color_yellow.stl">4. Yellow Belly STL</option>
-                    <option value="/3d_panels/tpu_panel_${v}_color_white.stl">5. White Eyes STL</option>
+                    ${individualOptions}
                 </select>
             </div>
         `;
@@ -17670,7 +17727,8 @@ function computeTpuLayoutSignature() {
     mix(String(winShape));
     mix(numFlag);
     mix('groove-v1');
-    mix('inlay-v6');
+    mix('floatcolors-v1');
+    mix(JSON.stringify(getActiveFloatStlColors()));
     mix(String(selectedPlateWidthMm));
     mix(String(selectedPlateSize));
     mix([gb.normX, gb.normY, gb.normW, gb.normH].map(v => Number(v || 0).toFixed(4)).join(','));
@@ -17810,6 +17868,7 @@ async function handleRecompileTpuStl(opts) {
             ledCount: (leds || []).length,
             bounds: gb,
             artworkDataUrl: artworkDataUrl,
+            stlColors: getActiveFloatStlColors(),
             layoutSignature: computeTpuLayoutSignature()
         };
 
@@ -18069,6 +18128,7 @@ async function loadTpuModalData() {
         }
 
         if (reqId !== tpuLoadRequestId) return; // Superceded by newer request
+        lastLoadedTpuSpecs = specs;
 
         const variantData = (specs[tpuActiveVariant]) ? specs[tpuActiveVariant] : specs;
         const floatName = specs.float_name || getActiveFloatName();
@@ -18157,13 +18217,34 @@ async function loadTpuModalData() {
                 multiBtn.style.color = 'rgba(0,0,0,0.7)';
             }
         }
+
+        // Update aperture badge & floating AMS legend
+        const activeCount = (variantData.ordered_leds || leds || []).length;
         if (legend) {
             legend.style.display = (tpuExportMode === 'multi') ? 'flex' : 'none';
+            if (tpuExportMode === 'multi') {
+                const activeColors = specs.stl_colors || getActiveFloatStlColors() || {};
+                let slotsHtml = `
+                    <div style="font-weight: 700; color: #00ff88; font-size: 10px; display: flex; justify-content: space-between; gap: 12px;">
+                        <span>BAMBU LAB AMS (5 SLOTS):</span>
+                        <span id="tpuLegendAperturesBadge" style="color: #38bdf8;">${activeCount} Open Windows</span>
+                    </div>
+                    <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                `;
+                let slotNum = 1;
+                const blackInfo = activeColors['black'] || { name: 'Chassis Black', hex: '#11161d' };
+                slotsHtml += `<span style="display: inline-flex; align-items: center; gap: 4px;"><span style="width: 9px; height: 9px; border-radius: 2px; background: ${blackInfo.hex}; border: 1px solid #475569;"></span> 1: ${blackInfo.name}</span>`;
+
+                for (const [k, info] of Object.entries(activeColors)) {
+                    if (k === 'black' || info.role === 'chassis') continue;
+                    slotsHtml += `<span style="display: inline-flex; align-items: center; gap: 4px;"><span style="width: 9px; height: 9px; border-radius: 2px; background: ${info.hex};"></span> ${++slotNum}: ${info.name}</span>`;
+                }
+                slotsHtml += `</div>`;
+                legend.innerHTML = slotsHtml;
+            }
         }
 
-        // Update aperture badge in legend
         const apBadge = document.getElementById('tpuLegendAperturesBadge');
-        const activeCount = (variantData.ordered_leds || leds || []).length;
         if (apBadge) apBadge.textContent = `${activeCount} Open Windows`;
 
         // Update dimensions badge & bed clearance text
@@ -18224,17 +18305,36 @@ async function loadTpuModalData() {
                 tpuScene.add(chassisMesh);
                 tpuMultiMeshes.push(chassisMesh);
 
-                // 2. Load Color Inlays (Green, Magenta, Yellow, White)
-                const inlays = [
-                    { file: `tpu_panel_${v}_color_green.stl`, color: 0x00e676, roughness: 0.45 },
-                    { file: `tpu_panel_${v}_color_magenta.stl`, color: 0xec4899, roughness: 0.45 },
-                    { file: `tpu_panel_${v}_color_yellow.stl`, color: 0xfacc15, roughness: 0.45 },
-                    { file: `tpu_panel_${v}_color_white.stl`, color: 0xffffff, roughness: 0.35 }
-                ];
+                // 2. Load Color Inlays dynamically
+                let inlaysToLoad = [];
+                if (variantData.inlays && Array.isArray(variantData.inlays) && variantData.inlays.length > 0) {
+                    inlaysToLoad = variantData.inlays.map(inl => {
+                        let hexNum = 0x00e676;
+                        if (inl.hex) {
+                            try { hexNum = parseInt(inl.hex.replace('#', ''), 16); } catch (e) {}
+                        }
+                        const fName = inl.filename ? inl.filename.replace(/tpu_panel_(front|back)_/, `tpu_panel_${v}_`) : `tpu_panel_${v}_color_${inl.key}.stl`;
+                        return { file: fName, color: hexNum, roughness: 0.45 };
+                    });
+                } else {
+                    const activeColors = specs.stl_colors || getActiveFloatStlColors() || {};
+                    for (const [k, info] of Object.entries(activeColors)) {
+                        if (k === 'black' || info.role === 'chassis') continue;
+                        let hexNum = 0x00e676;
+                        if (info.hex) {
+                            try { hexNum = parseInt(info.hex.replace('#', ''), 16); } catch (e) {}
+                        }
+                        inlaysToLoad.push({
+                            file: `tpu_panel_${v}_color_${k}.stl`,
+                            color: hexNum,
+                            roughness: 0.45
+                        });
+                    }
+                }
 
-                for (const item of inlays) {
+                for (const item of inlaysToLoad) {
                     try {
-                        const iGeom = await new Promise((resolve, reject) => {
+                        const iGeom = await new Promise((resolve) => {
                             stlLoader.load(`/3d_panels/${item.file}?t=` + Date.now(), resolve, undefined, () => resolve(null));
                         });
                         if (iGeom) {
@@ -18318,6 +18418,8 @@ async function createTpuGraphicCutoutMesh(specs, stlCenter) {
 
     if (activeImg && activeImg.src) {
         img.src = activeImg.src;
+    } else if (specs && specs.artwork_file) {
+        img.src = '/3d_panels/' + specs.artwork_file + '?t=' + Date.now();
     } else {
         img.src = '/3d_panels/active_artwork.png?t=' + Date.now();
     }

@@ -1290,7 +1290,8 @@ const uint8_t PROGMEM SPATIAL_RADIUS_BYTE[FRONT_LEDS] = {{
                 "artwork_file": "active_artwork.png",
                 "graphic_type": req_data.get("graphicType"),
                 "window_shape": window_shape,
-                "include_led_numbers": bool(req_data.get("includeLedNumbers", True)),
+                "include_led_numbers": bool(req_data.get("includeLedNumbers", False)),
+                "stl_colors": req_data.get("stlColors"),
                 "layout_signature": req_data.get("layoutSignature"),
                 "size_preset": req_data.get("sizePreset", "medium"),
                 "width_mm": FRONT_WIDTH_MM,
@@ -1339,9 +1340,46 @@ const uint8_t PROGMEM SPATIAL_RADIUS_BYTE[FRONT_LEDS] = {{
                 front_stl_path = os.path.join(BASE_DIR, "3d_panels", "tpu_panel.stl")
             back_stl_path = os.path.join(BASE_DIR, "3d_panels", "tpu_panel_back.stl")
 
+            compiled_specs = {}
+            if os.path.exists(specs_path):
+                try:
+                    with open(specs_path, "r", encoding="utf-8") as f_sp:
+                        compiled_specs = json.load(f_sp)
+                except Exception:
+                    pass
+
+            front_res_data = {
+                "stl_url": "/3d_panels/tpu_panel_front.stl",
+                "chassis_stl_url": "/3d_panels/tpu_panel_front_chassis_black.stl",
+                "multicolor_3mf_url": "/3d_panels/tpu_panel_front_multicolor.3mf",
+                "multicolor_zip_url": "/3d_panels/tpu_panel_front_multicolor_bundle.zip",
+                "scad_url": "/3d_panels/tpu_panel_front.scad",
+                "stl_size": os.path.getsize(front_stl_path) if os.path.exists(front_stl_path) else 0,
+                "width_mm": FRONT_WIDTH_MM,
+                "height_mm": FRONT_HEIGHT_MM,
+                "led_count": len(front_leds),
+                "inlays": compiled_specs.get("front", {}).get("inlays", [])
+            }
+            if "front" in compiled_specs and isinstance(compiled_specs["front"], dict):
+                front_res_data.update(compiled_specs["front"])
+
+            back_res_data = {
+                "stl_url": "/3d_panels/tpu_panel_back.stl",
+                "chassis_stl_url": "/3d_panels/tpu_panel_back_chassis_black.stl",
+                "multicolor_3mf_url": "/3d_panels/tpu_panel_back_multicolor.3mf",
+                "multicolor_zip_url": "/3d_panels/tpu_panel_back_multicolor_bundle.zip",
+                "scad_url": "/3d_panels/tpu_panel_back.scad",
+                "stl_size": os.path.getsize(back_stl_path) if os.path.exists(back_stl_path) else 0,
+                "width_mm": BACK_WIDTH_MM,
+                "height_mm": BACK_HEIGHT_MM,
+                "led_count": len(back_leds),
+                "inlays": compiled_specs.get("back", {}).get("inlays", [])
+            }
+            if "back" in compiled_specs and isinstance(compiled_specs["back"], dict):
+                back_res_data.update(compiled_specs["back"])
+
             if os.path.exists(front_stl_path):
                 front_size = os.path.getsize(front_stl_path)
-                back_size = os.path.getsize(back_stl_path) if os.path.exists(back_stl_path) else front_size
                 self.send_response(200)
                 self.send_header("Content-Type", "application/json")
                 self.end_headers()
@@ -1351,36 +1389,10 @@ const uint8_t PROGMEM SPATIAL_RADIUS_BYTE[FRONT_LEDS] = {{
                     "float_name": float_name,
                     "size_preset": req_data.get("sizePreset", "medium"),
                     "width_mm": FRONT_WIDTH_MM,
-                    "front": {
-                        "stl_url": "/3d_panels/tpu_panel_front.stl",
-                        "chassis_stl_url": "/3d_panels/tpu_panel_front_chassis_black.stl",
-                        "color_green_stl_url": "/3d_panels/tpu_panel_front_color_green.stl",
-                        "color_magenta_stl_url": "/3d_panels/tpu_panel_front_color_magenta.stl",
-                        "color_yellow_stl_url": "/3d_panels/tpu_panel_front_color_yellow.stl",
-                        "color_white_stl_url": "/3d_panels/tpu_panel_front_color_white.stl",
-                        "multicolor_3mf_url": "/3d_panels/tpu_panel_front_multicolor.3mf",
-                        "multicolor_zip_url": "/3d_panels/tpu_panel_front_multicolor_bundle.zip",
-                        "scad_url": "/3d_panels/tpu_panel_front.scad",
-                        "stl_size": front_size,
-                        "width_mm": FRONT_WIDTH_MM,
-                        "height_mm": FRONT_HEIGHT_MM,
-                        "led_count": len(front_leds)
-                    },
-                    "back": {
-                        "stl_url": "/3d_panels/tpu_panel_back.stl",
-                        "chassis_stl_url": "/3d_panels/tpu_panel_back_chassis_black.stl",
-                        "color_green_stl_url": "/3d_panels/tpu_panel_back_color_green.stl",
-                        "color_magenta_stl_url": "/3d_panels/tpu_panel_back_color_magenta.stl",
-                        "color_yellow_stl_url": "/3d_panels/tpu_panel_back_color_yellow.stl",
-                        "color_white_stl_url": "/3d_panels/tpu_panel_back_color_white.stl",
-                        "multicolor_3mf_url": "/3d_panels/tpu_panel_back_multicolor.3mf",
-                        "multicolor_zip_url": "/3d_panels/tpu_panel_back_multicolor_bundle.zip",
-                        "scad_url": "/3d_panels/tpu_panel_back.scad",
-                        "stl_size": back_size,
-                        "width_mm": BACK_WIDTH_MM,
-                        "height_mm": BACK_HEIGHT_MM,
-                        "led_count": len(back_leds)
-                    },
+                    "inlays": front_res_data.get("inlays", []),
+                    "stl_colors": compiled_specs.get("stl_colors", req_data.get("stlColors")),
+                    "front": front_res_data,
+                    "back": back_res_data,
                     "stl_url": "/3d_panels/tpu_panel_front.stl",
                     "stl_front_url": "/3d_panels/tpu_panel_front.stl",
                     "stl_back_url": "/3d_panels/tpu_panel_back.stl",

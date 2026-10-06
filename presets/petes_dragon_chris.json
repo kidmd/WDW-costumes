@@ -1,6 +1,13 @@
 {
   "name": "Pete's Dragon Chris",
   "savedAt": "2026-10-06T15:18:21.853Z",
+  "stlColors": {
+    "black": { "name": "Chassis Black", "hex": "#11161d", "targetRgb": [13, 25, 8], "role": "chassis" },
+    "green": { "name": "Body Green", "hex": "#00e676", "targetRgb": [4, 250, 6], "role": "inlay", "filename": "color_green.stl" },
+    "magenta": { "name": "Wings Magenta", "hex": "#ec4899", "targetRgb": [210, 10, 200], "role": "inlay", "filename": "color_magenta.stl" },
+    "yellow": { "name": "Belly Yellow", "hex": "#facc15", "targetRgb": [249, 249, 12], "role": "inlay", "filename": "color_yellow.stl" },
+    "white": { "name": "Eyes/Teeth White", "hex": "#ffffff", "targetRgb": [247, 248, 247], "role": "inlay", "filename": "color_white.stl" }
+  },
   "ledCount": 75,
   "leds": [
     {

@@ -1,7 +1,14 @@
 {
   "name": "Spinning Turtle 100-LED Vibrant Preset",
   "floatName": "Float 3 - The Turtle",
-  "savedAt": "2026-09-25T22:00:00.000Z",
+  "savedAt": "2026-10-06T11:00:00.000Z",
+  "stlColors": {
+    "black": { "name": "Chassis Black", "hex": "#11161d", "targetRgb": [34, 43, 51], "role": "chassis" },
+    "green": { "name": "Shell Plates & Glasses", "hex": "#00cc66", "targetRgb": [43, 109, 49], "role": "inlay", "filename": "color_green.stl" },
+    "blue": { "name": "Shell & Eyes", "hex": "#2563eb", "targetRgb": [41, 63, 96], "role": "inlay", "filename": "color_blue.stl" },
+    "yellow": { "name": "Body & Head", "hex": "#facc15", "targetRgb": [231, 199, 49], "role": "inlay", "filename": "color_yellow.stl" },
+    "red": { "name": "Tie & Lips", "hex": "#ef4444", "targetRgb": [217, 29, 22], "role": "inlay", "filename": "color_red.stl" }
+  },
   "ledCount": 100,
   "leds": [
     {

@@ -1127,12 +1127,23 @@ Instead of attaching a Cricut cut vinyl graphic on top of the printed plate, the
 - **Black Linework Preserved:** Each color inlay keeps its interior holes, so the dragon's black outlines (eye rings, body contours, spots) are formed by the black chassis showing through.
 - **LED Numbers Option:** In the 3D Preview Modal, the `[ 🔢 Numbers On | 🚫 No Numbers ]` pill chooses whether LED numbers (1–N) are debossed into the underside; changing it regenerates the STL.
 - **Zero-Overlap Jigsaw Inlay Architecture:** The structural black chassis features 0.6mm deep front pockets (3 layers @ 0.2mm layer height) precisely receiving the 4 accent color inlays.
-- **Bambu Lab AMS 5-Color Palette (Pete's Dragon Preset):**
-  1. **Slot 1 — Structural Chassis & Outline Walls:** Black (`#0d1908`) — 6.0mm perimeter rim, 2.0mm tray floor, LED retention collars, wiring basin, and mounting eyelets.
-  2. **Slot 2 — Dragon Body:** Neon Green (`#04fa06`) — 0.6mm front face inlays.
-  3. **Slot 3 — Hair Tuft, Spine Ridge & Wings:** Magenta (`#f606f5`) — 0.6mm front face inlays.
-  4. **Slot 4 — Belly & Facial Accents:** Sunny Yellow (`#f9f90c`) — 0.6mm front face inlays.
-  5. **Slot 5 — Eyes & Teeth:** Bright White (`#f7f8f7`) — 0.6mm front face inlays.
+- **Dynamic Float-Specific Multi-Material Color Inlays (Bambu Lab AMS 5 Slots):**
+  Instead of hardcoding a single float's color palette, the multi-material compilation and 3D preview engine dynamically adapts to each float's character art, storing its color mapping directly in float JSON presets (`stlColors`):
+  - **Pete's Dragon Palette:**
+    1. **Slot 1 (Chassis Black `#11161d`):** 6.0mm perimeter rim, 2.0mm tray floor, LED retention collars, wiring basin, and mounting eyelets.
+    2. **Slot 2 (Neon Green `#00e676`):** Dragon body, neck, and scales.
+    3. **Slot 3 (Magenta `#ec4899`):** Wings and spinal crest.
+    4. **Slot 4 (Sunny Yellow `#facc15`):** Belly scales and facial accents.
+    5. **Slot 5 (Bright White `#ffffff`):** Eyes, teeth, and highlights.
+  - **The Spinning Turtle Palette:**
+    1. **Slot 1 (Chassis Black `#11161d`):** Chassis tray, 4mm perimeter rim, 16 mounting tabs, LED collars, and all black linework/outlines.
+    2. **Slot 2 (Shell Plates & Glasses `#00cc66`):** Turtle hexagonal shell plates and glasses frame.
+    3. **Slot 3 (Shell & Eyes `#2563eb`):** Rest of the outer shell and iris accents.
+    4. **Slot 4 (Body & Head `#facc15`):** Turtle skin, head, neck, and limbs.
+    5. **Slot 5 (Tie & Lips `#ef4444`):** Red bow tie and cheerful lips.
+- **Stale-STL Cache Protection & Dynamic Preview:**
+  - Before exporting fresh multi-material inlays, the compiler automatically purges any previous float's color STLs so that previous assets never contaminate another float's 3D preview or Bambu Studio project.
+  - The 3D Preview Modal (`#tpuPreviewModal`) dynamically queries the active float's inlays, rendering the correct multi-material STL meshes, floating AMS slot legend badges, and individual STL download dropdown options for that specific float.
 - **Clean Optical Window Pass-Throughs:** Open $3\times 3\text{ mm}$ square or $\varnothing 3\text{ mm}$ round optical windows are cut completely through both the black chassis and color inlays, ensuring raw LED light beams directly forward without filament absorption.
 - **Export Formats & Bambu Studio Workflow:**
   - **`tpu_panel_{front|back}_multicolor_bundle.zip`**: Contains all 5 discrete STL files sharing identical $(0,0,0)$ origin coordinates, native 3MF, and a step-by-step setup guide.
@@ -1166,13 +1177,8 @@ Instead of attaching a Cricut cut vinyl graphic on top of the printed plate, the
    - **Numbers On:** Debosses `1` through `N` at the absolute minimum readable size for a $0.4\text{ mm}$ nozzle (**$1.8\text{ mm}$ cap height, $0.5\text{ mm}$ deboss depth** into the interior pocket floor) with natural left-to-right underside reading for physical bench wiring.
    - **Instant Recompilation:** Toggling the button in the 3D Preview Modal updates the layout signature and immediately regenerates the STL meshes with real-time feedback.
 
-5. **5-Color Multi-Material Inlays & Bambu Lab / Multi-Extruder Export:**
-   - **5-Color Segmentation:** The compiler automatically analyzes the active artwork and segments it into 5 distinct color components:
-     - 🖤 **Black Base Chassis:** Main structural tray with pockets, wiring channels, eyelets, and window apertures.
-     - 🟢 **Green Inlay:** Body, neck, and main contours (with facial feature and left eye contour preservation).
-     - 🟣 **Magenta Inlay:** Wing accents and spine crests.
-     - 🟡 **Yellow Inlay:** Belly scales, horns, and highlights.
-     - ⚪ **White Inlay:** Teeth, eye sclera, and focal sparkle highlights.
+5. **Float-Agnostic 5-Color Multi-Material Inlays & Bambu Lab Export:**
+   - **Dynamic Color Segmentation:** The compiler automatically analyzes the active artwork and segments it into the float's specified color components (e.g. Pete's Dragon: Black, Green, Magenta, Yellow, White; The Spinning Turtle: Black, Green, Blue, Yellow, Red).
    - **Multi-Part STL & 3MF Bundles:** Direct export options for Bambu Studio (`.3mf`), split-color STL ZIP bundles (`.zip`), and unified single-color STL files.
 
 6. **Selectable Plate Sizes & LED Counts on Layout Tab:**

@@ -93,6 +93,21 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### Entry: Dynamic Float-Specific Multi-Material Color Inlays & The Spinning Turtle Segmentation
+* **Date:** 2026-10-06 (Imagineering Session - Float 3 Armor Fabrication)
+* **Milestone:** Milestone 6 - Wearable 3D Armor Fabrication & Multi-Material 3D Printing
+* **Status:** Complete & Verified (`presets/spinning_turtle.json`, `presets/petes_dragon.json`, `presets/petes_dragon_chris.json`, `scripts/compile_clean_tpu_panel.py`, `simulator.py`, `simulator/app.js`, `simulator/index.html`, `SIMULATOR_USER_GUIDE.md`, `PROJECT_PROGRESS.md`).
+* **Implementation Details:**
+  - **Dynamic Multi-Material Color Inlay Engine:** Transformed the 5-color TPU multi-material compiler from hardcoded Pete's Dragon colors to a float-agnostic architecture driven by JSON preset specifications (`stlColors`).
+  - **The Spinning Turtle 5-Color Segmentation:** Configured authentic MSEP color mapping for Float 3:
+    - **Slot 1 (Chassis Black `#11161d`):** Chassis tray, 4mm perimeter rim, 16 mounting tabs, LED collars, wire notches, and black linework.
+    - **Slot 2 (Shell Plates & Glasses `#00cc66`):** Turtle hexagonal shell plates and glasses frame.
+    - **Slot 3 (Shell & Eyes `#2563eb`):** Outer turtle shell body and eyes.
+    - **Slot 4 (Body & Head `#facc15`):** Turtle skin, head, neck, and limbs.
+    - **Slot 5 (Tie & Lips `#ef4444`):** Red bow tie and cheerful lips.
+  - **Cross-Contamination Purge & Stale-STL Guard:** Fixed 3D preview bug where switching floats displayed mixed character parts (dragon wings on turtle chassis). The compiler now purges stale `tpu_panel_*_color_*.stl` files before writing new ones, and `app.js` dynamically renders only the active float's inlays, Bambu AMS legend badges, and download options.
+  - **Watertight Multi-Body 3MF & STL Export:** Verified clean compilation of Front and Back plates in 6.45s, generating 5 discrete watertight parts, native multi-part `.3mf`, and full zip bundle for Bambu Studio / OrcaSlicer.
+
 ### Entry: Full Green Body, Black Linework Preserved & Selectable LED Numbers
 * **Date:** 2026-10-06
 * **Milestone:** Milestone 6 - Wearable 3D Armor Fabrication & Multi-Material 3D Printing
