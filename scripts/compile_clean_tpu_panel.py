@@ -322,6 +322,34 @@ def compile_plate_variant(variant_name, width_mm, height_mm, raw_leds, artwork_p
     nub_outer_2d = outer_collar_2d.buffer(NUB_PROTRUSION, resolution=16)
     nub_ring_2d = nub_outer_2d.difference(outer_collar_2d)
 
+    # 2.0mm Wire Retention Partial Roof with 45° chamfer support across wire notches
+    # Extends 2.0mm across the notch from Y = 2.0 down to Y = 0.0 (towards top of graphic)
+    # Underside features a 45° chamfer support from Z = 2.2 down to Z = 0.8 (perfect support-free PLA overhang)
+    # Leaving 2.2mm vertical wire opening from collar floor
+    roof_pts_yz = [
+        [2.0, COLLAR_HEIGHT],              # Top wall junction [2.0, 3.0]
+        [0.0, COLLAR_HEIGHT],              # Top roof tip [0.0, 3.0]
+        [0.0, COLLAR_HEIGHT - NUB_HEIGHT], # Free tip underside [0.0, 2.2]
+        [1.4, 0.8],                        # 45 deg chamfer (dx = 1.4, dz = 1.4)
+        [2.0, 0.8],                        # Junction with notch side wall
+    ]
+    roof_poly_yz = sg.Polygon(roof_pts_yz)
+
+    def _build_roof_tab(x_min, x_max):
+        tm = trimesh.creation.extrude_polygon(roof_poly_yz, height=x_max - x_min)
+        v = tm.vertices
+        v_new = np.zeros_like(v)
+        v_new[:, 0] = v[:, 2] + x_min # X
+        v_new[:, 1] = v[:, 0]         # Y
+        v_new[:, 2] = v[:, 1]         # Z
+        return trimesh.Trimesh(vertices=v_new, faces=tm.faces, process=True)
+
+    xr_min = COLLAR_INNER_L / 2.0 - 0.2
+    xr_max = COLLAR_OUTER_L / 2.0 + NUB_PROTRUSION + 0.2
+    roof_r_tm = _build_roof_tab(xr_min, xr_max)
+    roof_l_tm = _build_roof_tab(-xr_max, -xr_min)
+    roofs_solid_m = to_m(roof_r_tm) + to_m(roof_l_tm)
+
     collar_meshes = []
     floor_recess_cutters = []
     square_window_cutters = []
@@ -368,6 +396,10 @@ def compile_plate_variant(variant_name, width_mm, height_mm, raw_leds, artwork_p
 
         c_cutters_m = Manifold.batch_boolean(collar_cutters_list, OpType.Add)
         notched_collar_m = c_solid_m - c_cutters_m
+
+        # If top_nubs is True, add the 2mm wire retention roof overhang across both notches:
+        if top_nubs:
+            notched_collar_m = notched_collar_m + roofs_solid_m
 
         mesh_d = notched_collar_m.to_mesh()
         notched_collar = trimesh.Trimesh(vertices=mesh_d.vert_properties[:, :3], faces=mesh_d.tri_verts)

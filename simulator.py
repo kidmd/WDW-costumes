@@ -167,12 +167,21 @@ class SimulatorRequestHandler(http.server.SimpleHTTPRequestHandler):
                     self.send_header("Content-Type", "text/html; charset=utf-8")
                 elif panel_file.endswith(".json"):
                     self.send_header("Content-Type", "application/json; charset=utf-8")
-                elif panel_file.endswith(".scad") or panel_file.endswith(".stl"):
+                elif panel_file.endswith(".3mf"):
+                    self.send_header("Content-Type", "model/3mf")
+                elif panel_file.endswith(".zip"):
+                    self.send_header("Content-Type", "application/zip")
+                elif panel_file.endswith(".stl"):
+                    self.send_header("Content-Type", "model/stl")
+                elif panel_file.endswith(".scad"):
                     self.send_header("Content-Type", "application/octet-stream")
                 else:
-                    self.send_header("Content-Type", "text/plain; charset=utf-8")
+                    self.send_header("Content-Type", "application/octet-stream")
                 self.send_header("Content-Length", str(os.path.getsize(panel_file)))
                 self.send_header("Access-Control-Allow-Origin", "*")
+                self.send_header("Cache-Control", "no-cache, no-store, must-revalidate")
+                self.send_header("Pragma", "no-cache")
+                self.send_header("Expires", "0")
                 self.end_headers()
                 with open(panel_file, "rb") as f:
                     self.wfile.write(f.read())

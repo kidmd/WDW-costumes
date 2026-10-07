@@ -1233,9 +1233,9 @@
       107.46,
       3.0
     ],
-    "stl_size": 2713484,
-    "chassis_size": 3691784,
-    "zip_size": 1864056,
+    "stl_size": 2863184,
+    "chassis_size": 3841684,
+    "zip_size": 1931913,
     "inlays": [
       {
         "key": "green",
@@ -1270,7 +1270,7 @@
     "chassis_stl_url": "/3d_panels/tpu_panel_front_chassis_black.stl",
     "multicolor_3mf_url": "/3d_panels/tpu_panel_front_multicolor.3mf",
     "multicolor_zip_url": "/3d_panels/tpu_panel_front_multicolor_bundle.zip",
-    "volume_mm3": 39360.4,
+    "volume_mm3": 40464.4,
     "is_watertight": false
   },
   "back": {
@@ -2504,9 +2504,9 @@
       117.13,
       3.0
     ],
-    "stl_size": 2715484,
-    "chassis_size": 3699484,
-    "zip_size": 1863340,
+    "stl_size": 2867284,
+    "chassis_size": 3852984,
+    "zip_size": 1932672,
     "inlays": [
       {
         "key": "green",
@@ -2541,7 +2541,7 @@
     "chassis_stl_url": "/3d_panels/tpu_panel_back_chassis_black.stl",
     "multicolor_3mf_url": "/3d_panels/tpu_panel_back_multicolor.3mf",
     "multicolor_zip_url": "/3d_panels/tpu_panel_back_multicolor_bundle.zip",
-    "volume_mm3": 45492.6,
+    "volume_mm3": 46612.6,
     "is_watertight": false
   },
   "width_mm": 183.3,
@@ -3830,9 +3830,9 @@
     107.46,
     3.0
   ],
-  "stl_size": 2713484,
-  "chassis_size": 3691784,
-  "zip_size": 1864056,
+  "stl_size": 2863184,
+  "chassis_size": 3841684,
+  "zip_size": 1931913,
   "inlays": [
     {
       "key": "green",
@@ -3867,6 +3867,6 @@
   "chassis_stl_url": "/3d_panels/tpu_panel_front_chassis_black.stl",
   "multicolor_3mf_url": "/3d_panels/tpu_panel_front_multicolor.3mf",
   "multicolor_zip_url": "/3d_panels/tpu_panel_front_multicolor_bundle.zip",
-  "volume_mm3": 39360.4,
+  "volume_mm3": 40464.4,
   "is_watertight": false
 }

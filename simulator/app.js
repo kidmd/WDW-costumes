@@ -17598,22 +17598,24 @@ function updateTpuDownloadButtons() {
             individualOptions += `<option value="/3d_panels/${fName}">${idx + 2}. ${inl.name} STL</option>`;
         });
 
+        const ts = Date.now();
         container.innerHTML = `
-            <a href="/3d_panels/tpu_panel_${v}_multicolor_bundle.zip" download="tpu_panel_${v}_multicolor_bundle.zip" class="action-btn primary" style="padding: 6px 12px; font-size: 11px; background: linear-gradient(135deg, #1f6feb, #388bfd); color: #fff; font-weight: 600; text-decoration: none; display: inline-flex; align-items: center; gap: 4px;" title="Download all STLs, 3MF project, and slicer instructions">
+            <a href="/3d_panels/tpu_panel_${v}_multicolor_bundle.zip?t=${ts}" download="tpu_panel_${v}_multicolor_bundle.zip" class="action-btn primary" style="padding: 6px 12px; font-size: 11px; background: linear-gradient(135deg, #1f6feb, #388bfd); color: #fff; font-weight: 600; text-decoration: none; display: inline-flex; align-items: center; gap: 4px;" title="Download all STLs, 3MF project, and slicer instructions">
                 📦 Download Multi-Color ZIP
             </a>
-            <a href="/3d_panels/tpu_panel_${v}_multicolor.3mf" download="tpu_panel_${v}_multicolor.3mf" class="action-btn" style="padding: 6px 12px; font-size: 11px; color: #00ff88; border-color: #2ea043; text-decoration: none; display: inline-flex; align-items: center; gap: 4px;" title="Download pre-assembled Bambu Studio / OrcaSlicer project file">
+            <a href="/3d_panels/tpu_panel_${v}_multicolor.3mf?t=${ts}" download="tpu_panel_${v}_multicolor.3mf" class="action-btn" style="padding: 6px 12px; font-size: 11px; color: #00ff88; border-color: #2ea043; text-decoration: none; display: inline-flex; align-items: center; gap: 4px;" title="Download pre-assembled Bambu Studio / OrcaSlicer project file">
                 🖨️ Download .3MF
             </a>
             <div style="position: relative; display: inline-block;">
-                <select onchange="if(this.value){ const a=document.createElement('a'); a.href=this.value; a.download=this.value.split('/').pop(); a.click(); this.value=''; }" style="background: #21262d; color: #58a6ff; border: 1px solid #388bfd; border-radius: 6px; padding: 5px 8px; font-size: 10.5px; font-weight: 600; cursor: pointer; outline: none;">
+                <select onchange="if(this.value){ const a=document.createElement('a'); a.href=this.value + '?t=' + Date.now(); a.download=this.value.split('/').pop(); a.click(); this.value=''; }" style="background: #21262d; color: #58a6ff; border: 1px solid #388bfd; border-radius: 6px; padding: 5px 8px; font-size: 10.5px; font-weight: 600; cursor: pointer; outline: none;">
                     ${individualOptions}
                 </select>
             </div>
         `;
     } else {
+        const ts = Date.now();
         container.innerHTML = `
-            <a href="/3d_panels/tpu_panel_${v}.stl" download="tpu_panel_${v}.stl" class="action-btn primary" style="padding: 6px 14px; font-size: 11px; color: #58a6ff; border-color: #388bfd; text-decoration: none; display: inline-flex; align-items: center; gap: 4px;" title="Download monolithic single black STL">
+            <a href="/3d_panels/tpu_panel_${v}.stl?t=${ts}" download="tpu_panel_${v}.stl" class="action-btn primary" style="padding: 6px 14px; font-size: 11px; color: #58a6ff; border-color: #388bfd; text-decoration: none; display: inline-flex; align-items: center; gap: 4px;" title="Download monolithic single black STL">
                 ⬇️ Download ${v.toUpperCase()} STL
             </a>
             <button type="button" onclick="downloadBothTpuStls()" class="action-btn" style="padding: 6px 12px; font-size: 11px; color: #ffb703; border-color: #d29922; display: inline-flex; align-items: center; gap: 4px;">
@@ -17862,13 +17864,36 @@ function setTpuClipGrooves(on) {
 }
 window.setTpuClipGrooves = setTpuClipGrooves;
 
+let tpuRecompileInFlight = false;
+let tpuRecompilePending = null;
+
+function setTpuModalControlsDisabled(disabled) {
+    const ids = [
+        'tpuModalTopNubsOnBtn', 'tpuModalTopNubsOffBtn',
+        'tpuModalGroovesOnBtn', 'tpuModalGroovesOffBtn',
+        'tpuModalNumbersOnBtn', 'tpuModalNumbersOffBtn',
+        'tpuModalShapeSquareBtn', 'tpuModalShapeRoundBtn',
+        'tpuModalSelectFrontBtn', 'tpuModalSelectBackBtn',
+        'tpuModalModeMultiBtn', 'tpuModalModeMonoBtn',
+        'compileTpuStlBtn'
+    ];
+    ids.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) {
+            el.disabled = disabled;
+            el.style.opacity = disabled ? '0.5' : '1.0';
+            el.style.pointerEvents = disabled ? 'none' : 'auto';
+        }
+    });
+}
+
 function setTpuTopNubs(on) {
     params.tpuIncludeTopNubs = !!on;
     try { localStorage.setItem('msep_tpu_top_nubs', on ? '1' : '0'); } catch (e) {}
     const onBtn = document.getElementById('tpuModalTopNubsOnBtn');
     const offBtn = document.getElementById('tpuModalTopNubsOffBtn');
     if (onBtn && offBtn) {
-        const act = (b) => { b.style.background = '#00ff88'; b.style.color = '#000'; };
+        const act = (b) => { b.style.background = '#000'; b.style.color = '#00ff88'; };
         const idle = (b) => { b.style.background = 'transparent'; b.style.color = 'rgba(0,0,0,0.7)'; };
         if (on) { act(onBtn); idle(offBtn); } else { act(offBtn); idle(onBtn); }
     }
@@ -17878,7 +17903,7 @@ function setTpuTopNubs(on) {
             loaderOverlay.style.display = 'flex';
             loaderOverlay.innerHTML = `
                 <div class="spinner" style="width: 32px; height: 32px; border: 3px solid rgba(0, 255, 136, 0.2); border-top-color: #00ff88; border-radius: 50%; animation: spin 0.8s linear infinite;"></div>
-                <span>${on ? 'Adding 0.45mm top collar nubs for snap clips...' : 'Generating flush collar rims without top nubs...'}</span>
+                <span>${on ? 'Adding 0.70mm top nubs &amp; 2mm wire retention roof overhangs...' : 'Generating flush collar rims without top nubs or roofs...'}</span>
             `;
         }
         handleRecompileTpuStl({ skipOpen: true }).then(() => {
@@ -17889,6 +17914,13 @@ function setTpuTopNubs(on) {
 window.setTpuTopNubs = setTpuTopNubs;
 
 async function handleRecompileTpuStl(opts) {
+    if (tpuRecompileInFlight) {
+        tpuRecompilePending = opts || { skipOpen: true };
+        return false;
+    }
+    tpuRecompileInFlight = true;
+    setTpuModalControlsDisabled(true);
+
     const skipOpen = !!(opts && opts.skipOpen === true);
     const statusEl = document.getElementById('tpuCompileStatus');
     const compileBtn = document.getElementById('compileTpuStlBtn');
@@ -17962,7 +17994,18 @@ async function handleRecompileTpuStl(opts) {
         showToast(`Compilation failed: ${err.message}`, 'error');
         return false;
     } finally {
+        tpuRecompileInFlight = false;
+        setTpuModalControlsDisabled(false);
         if (compileBtn) compileBtn.disabled = false;
+        if (tpuRecompilePending) {
+            const nextOpts = tpuRecompilePending;
+            tpuRecompilePending = null;
+            setTimeout(() => {
+                handleRecompileTpuStl(nextOpts).then(() => {
+                    if (tpuIsOpen) loadTpuModalData();
+                });
+            }, 50);
+        }
     }
 }
 
@@ -18046,6 +18089,10 @@ function setupTpuThreeScene(container) {
 
     const w = container.clientWidth || 800;
     const h = container.clientHeight || 550;
+
+    if (THREE.Cache) {
+        THREE.Cache.enabled = false;
+    }
 
     tpuScene = new THREE.Scene();
     tpuScene.background = new THREE.Color(0x070a0f);
@@ -18240,13 +18287,13 @@ async function loadTpuModalData() {
         if (numOnBtn && numOffBtn) {
             const numbersEnabled = (params.tpuIncludeLedNumbers === true);
             if (numbersEnabled) {
-                numOnBtn.style.background = '#00ff88';
-                numOnBtn.style.color = '#000';
+                numOnBtn.style.background = '#000';
+                numOnBtn.style.color = '#00ff88';
                 numOffBtn.style.background = 'transparent';
                 numOffBtn.style.color = 'rgba(0,0,0,0.7)';
             } else {
-                numOffBtn.style.background = '#00ff88';
-                numOffBtn.style.color = '#000';
+                numOffBtn.style.background = '#000';
+                numOffBtn.style.color = '#00ff88';
                 numOnBtn.style.background = 'transparent';
                 numOnBtn.style.color = 'rgba(0,0,0,0.7)';
             }
@@ -18258,13 +18305,13 @@ async function loadTpuModalData() {
         if (grvOnBtn && grvOffBtn) {
             const groovesEnabled = (params.tpuIncludeClipGrooves === true);
             if (groovesEnabled) {
-                grvOnBtn.style.background = '#00ff88';
-                grvOnBtn.style.color = '#000';
+                grvOnBtn.style.background = '#000';
+                grvOnBtn.style.color = '#00ff88';
                 grvOffBtn.style.background = 'transparent';
                 grvOffBtn.style.color = 'rgba(0,0,0,0.7)';
             } else {
-                grvOffBtn.style.background = '#00ff88';
-                grvOffBtn.style.color = '#000';
+                grvOffBtn.style.background = '#000';
+                grvOffBtn.style.color = '#00ff88';
                 grvOnBtn.style.background = 'transparent';
                 grvOnBtn.style.color = 'rgba(0,0,0,0.7)';
             }
@@ -18276,13 +18323,13 @@ async function loadTpuModalData() {
         if (nubOnBtn && nubOffBtn) {
             const nubsEnabled = (params.tpuIncludeTopNubs === true);
             if (nubsEnabled) {
-                nubOnBtn.style.background = '#00ff88';
-                nubOnBtn.style.color = '#000';
+                nubOnBtn.style.background = '#000';
+                nubOnBtn.style.color = '#00ff88';
                 nubOffBtn.style.background = 'transparent';
                 nubOffBtn.style.color = 'rgba(0,0,0,0.7)';
             } else {
-                nubOffBtn.style.background = '#00ff88';
-                nubOffBtn.style.color = '#000';
+                nubOffBtn.style.background = '#000';
+                nubOffBtn.style.color = '#00ff88';
                 nubOnBtn.style.background = 'transparent';
                 nubOnBtn.style.color = 'rgba(0,0,0,0.7)';
             }

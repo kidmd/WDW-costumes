@@ -93,7 +93,22 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
-### Entry: Selectable LED Clip Grooves & Top Nubs, Wire Portal Option B, Debossed Numbers Fix & Rigid PLA Retention Guide
+### Entry: 2.0mm Wire Retention Roof Overhangs with 45° Chamfer, Modal Reselection Lifecycle Guard & Slicer Cache-Busting
+* **Date:** 2026-10-06 (Imagineering Session - Mechanical Overhang & Toggle Synchronization)
+* **Milestone:** Milestone 6 - Wearable 3D Armor Fabrication & Multi-Material 3D Printing
+* **Status:** Complete & Verified (`scripts/compile_clean_tpu_panel.py`, `simulator.py`, `simulator/index.html`, `simulator/app.js`, `SIMULATOR_USER_GUIDE.md`, `PROJECT_PROGRESS.md`).
+* **Implementation Details:**
+  - **Dual 2.0mm Wire Retention Roof Overhangs:**
+    - Extended the top collar wall 2.0mm across both wire pass-through notches (entry AND exit) from $Y = 2.0\text{ mm}$ down to $Y = 0.0\text{ mm}$ (on the $+Y$ side facing the top of the graphic).
+    - Engineered an exact **45° chamfer support** underneath the roof (sloping from $Z = 2.2\text{ mm}$ down to $Z = 0.8\text{ mm}$ at $Y = 1.4\text{ mm}$) to ensure rigid PLA prints cleanly in mid-air with zero drooping, zero bridging artifacts, and zero supports required when printed face-down on the build plate.
+    - Preserves a generous $2.0\text{ mm}$ wide insertion slot along the bottom half of each notch and $2.2\text{ mm}$ vertical clearance under the roof. Runners can drop the 3-strand copper ribbon wire straight into the slot and tuck it under the roof ceiling, trapping it against popping out vertically.
+    - Integrated with the **`[ 🔘 Top Nubs & Roofs | 🚫 No Nubs ]`** toggle: when Top Nubs are enabled, both the 0.70mm snap beads and the 2.0mm wire retention roofs are compiled into the monolithic and multi-material STLs/3MF.
+  - **Modal Reselection Lifecycle & Concurrency Guard:**
+    - Resolved the toggle deselection/reselection bug where re-enabling top nubs left them missing in WebGL and slicer exports.
+    - Added `tpuRecompileInFlight` locking and a `tpuRecompilePending` queue in `simulator/app.js` to serialize rapid toggle changes, preventing overlapping background processes from overwriting specifications or serving out-of-order STLs.
+    - Added UI controls disabling (`setTpuModalControlsDisabled(true)`) during compilation to provide visual feedback and prevent race conditions.
+    - Disabled Three.js internal cache (`THREE.Cache.enabled = false`) and added timestamp cache-busters (`?t=timestamp`) to all 3MF, ZIP, and STL download links.
+    - Configured strict HTTP caching headers (`Cache-Control: no-cache, no-store, must-revalidate`, `Pragma: no-cache`, `Expires: 0`) and proper MIME types (`model/3mf`, `application/zip`, `model/stl`) in `simulator.py` so external web 3MF viewers and Bambu Studio / OrcaSlicer downloads never reuse stale cached files.
 * **Date:** 2026-10-06 (Imagineering Session - Rigid PLA Armor Optimization & Retention)
 * **Milestone:** Milestone 6 - Wearable 3D Armor Fabrication & Multi-Material 3D Printing
 * **Status:** Complete & Verified (`scripts/compile_clean_tpu_panel.py`, `simulator.py`, `simulator/index.html`, `simulator/app.js`, `SIMULATOR_USER_GUIDE.md`, `PROJECT_PROGRESS.md`).
