@@ -488,6 +488,7 @@ def compile_plate_variant(variant_name, width_mm, height_mm, raw_leds, artwork_p
     raw_stl_colors = specs.get('stl_colors')
 
     is_turtle = ('turtle' in str(graphic_type).lower() or 'turtle' in str(float_name).lower() or 'turtle' in str(artwork_path).lower())
+    is_snail = ('snail' in str(graphic_type).lower() or 'snail' in str(float_name).lower() or 'snail' in str(artwork_path).lower())
 
     if raw_stl_colors and isinstance(raw_stl_colors, dict):
         stl_colors = raw_stl_colors
@@ -498,6 +499,14 @@ def compile_plate_variant(variant_name, width_mm, height_mm, raw_leds, artwork_p
             'blue': { 'name': 'Shell & Eyes', 'hex': '#2563eb', 'targetRgb': [41, 63, 96], 'role': 'inlay', 'filename': 'color_blue.stl' },
             'yellow': { 'name': 'Body & Head', 'hex': '#facc15', 'targetRgb': [231, 199, 49], 'role': 'inlay', 'filename': 'color_yellow.stl' },
             'red': { 'name': 'Tie & Lips', 'hex': '#ef4444', 'targetRgb': [217, 29, 22], 'role': 'inlay', 'filename': 'color_red.stl' }
+        }
+    elif is_snail:
+        stl_colors = {
+            'black': { 'name': 'Chassis Black & Neck Lines', 'hex': '#11161d', 'targetRgb': [17, 22, 29], 'role': 'chassis' },
+            'pink': { 'name': 'Body, Face & Lips', 'hex': '#ec4899', 'targetRgb': [236, 72, 153], 'role': 'inlay', 'filename': 'color_pink.stl' },
+            'green': { 'name': 'Shell Body', 'hex': '#10b981', 'targetRgb': [16, 185, 129], 'role': 'inlay', 'filename': 'color_green.stl' },
+            'blue': { 'name': 'Radial Lines', 'hex': '#2563eb', 'targetRgb': [37, 99, 235], 'role': 'inlay', 'filename': 'color_blue.stl' },
+            'gold': { 'name': 'Shell Edge & Spiral', 'hex': '#facc15', 'targetRgb': [250, 204, 21], 'role': 'inlay', 'filename': 'color_gold.stl' }
         }
     else:
         stl_colors = {

@@ -93,6 +93,31 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### Entry: Simplified 5-Color Snail (Float 04) Preset & Artwork for Bambu AMS Multi-Material 3D Printing
+* **Date:** 2026-10-06 (Imagineering Session - Float 04 Snail 3D Print Color Segmentation)
+* **Milestone:** Milestone 6 - Wearable 3D Armor Fabrication & Multi-Material 3D Printing
+* **Status:** Complete & Verified (`assets/spinning_snail_simplified.png`, `presets/spinning_snail.json`, `presets/spinning_snail_simplified.json`, `presets/spinning_snail_original.json`, `scripts/compile_clean_tpu_panel.py`, `simulator/app.js`, `simulator/index.html`, `PROJECT_PROGRESS.md`).
+* **Implementation Details:**
+  - **Preserved Original Snail Artwork & Configuration:**
+    - Archived exact original preset as `presets/spinning_snail_original.json`.
+    - Preserved original artwork `assets/spinning_snail.png` and created `spinning_snail_original` dropdown option in the simulator so runners can toggle back to the original graphic at any time.
+  - **Engineered Simplified 5-Color Snail Artwork (`assets/spinning_snail_simplified.png`):**
+    - High-contrast, clean 5-color segmentation matching user specifications for Bambu AMS multi-material printing:
+      1. **Body, Face, Lips, Antennae, and Foot:** Uniform vibrant pink (`#ec4899`, RGB `236, 72, 153`).
+      2. **Shell Body:** One uniform emerald green (`#10b981`, RGB `16, 185, 129`).
+      3. **Radial Shell Lines:** All radial spokes recolored to uniform electric blue (`#2563eb`, RGB `37, 99, 235`), replacing previous mixed green/blue/gold bulbs.
+      4. **Shell Edge & Central Spiral:** Uniform parade gold (`#facc15`, RGB `250, 204, 21`), forming a solid continuous ribbon.
+      5. **Neck Lines:** Chassis black linework (`#11161d`, RGB `17, 22, 29`) running along the neck contours for crisp mechanical definition.
+    - Upscaled to 732×732 with nearest-neighbor interpolation to ensure sub-millimeter edge precision and zero color-bleeding during slicer tessellation.
+  - **Configured Float 04 `stlColors` Metadata:**
+    - Updated `presets/spinning_snail.json` and created `presets/spinning_snail_simplified.json` with the 5 AMS color slots: `black` (chassis/neck lines), `pink` (body/face/lips), `green` (shell body), `blue` (radial lines), and `gold` (shell edge and spiral).
+    - Added fallback entries in `scripts/compile_clean_tpu_panel.py` and `simulator/app.js` (`FLOAT_STL_COLOR_CONFIG`).
+  - **Watertight 3D Compilation Verified:**
+    - Compiled `scripts/compile_clean_tpu_panel.py` on the simplified snail artwork:
+      - Front Plate: 219.71mm × 140.93mm × 9.0mm, with 4 separate watertight color inlays (`color_pink.stl`, `color_green.stl`, `color_blue.stl`, `color_gold.stl`), black chassis tray (`tpu_panel_front_chassis_black.stl`), and matching 2mm rear cover lid (`tpu_panel_front_lid.stl`).
+      - Back Plate: 204.96mm × 132.42mm × 9.0mm, with identical 5-color AMS part division and rear cover lid.
+      - Generated native multi-color 3MF packages (`tpu_panel_front_multicolor.3mf` and `tpu_panel_back_multicolor.3mf`) ready for Bambu Studio / OrcaSlicer.
+
 ### Entry: Pure Concentric Eyelets Geometry Bugfix (Eliminated Bounding Box Corner Artifacts) & Dual-Anchor Design Confirmation
 * **Date:** 2026-10-06 (Imagineering Session - Wearable Armor Eyelet Precision & Sandwiched Attachment)
 * **Milestone:** Milestone 6 - Wearable 3D Armor Fabrication & Multi-Material 3D Printing

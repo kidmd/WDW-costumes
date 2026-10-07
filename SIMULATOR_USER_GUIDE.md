@@ -1141,6 +1141,12 @@ Instead of attaching a Cricut cut vinyl graphic on top of the printed plate, the
     3. **Slot 3 (Shell & Eyes `#2563eb`):** Rest of the outer shell and iris accents.
     4. **Slot 4 (Body & Head `#facc15`):** Turtle skin, head, neck, and limbs.
     5. **Slot 5 (Tie & Lips `#ef4444`):** Red bow tie and cheerful lips.
+  - **The Spinning Snail Palette (Simplified 3D Print Edition):**
+    1. **Slot 1 (Chassis Black `#11161d`):** Chassis tray, 7.0mm perimeter rim (9.0mm total thickness), 16 mounting tabs, LED collars, and neck contour linework.
+    2. **Slot 2 (Body, Face & Lips `#ec4899`):** Uniform vibrant pink for the head, face, lips, antennae, and waving foot.
+    3. **Slot 3 (Shell Body `#10b981`):** Uniform emerald green for the large shell disc background.
+    4. **Slot 4 (Radial Lines `#2563eb`):** Uniform electric blue for all radial spokes radiating from the central whorl.
+    5. **Slot 5 (Shell Edge & Spiral `#facc15`):** Uniform parade gold for the continuous outer shell rim and central spiral core.
 - **Stale-STL Cache Protection & Dynamic Preview:**
   - Before exporting fresh multi-material inlays, the compiler automatically purges any previous float's color STLs so that previous assets never contaminate another float's 3D preview or Bambu Studio project.
   - The 3D Preview Modal (`#tpuPreviewModal`) dynamically queries the active float's inlays, rendering the correct multi-material STL meshes, floating AMS slot legend badges, and individual STL download dropdown options for that specific float.

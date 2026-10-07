@@ -1,15 +1,7 @@
 {
   "name": "Spinning Snail 100-LED Vibrant Preset",
   "floatName": "Float 4 - The Snail",
-  "savedAt": "2026-10-06T22:30:00.000Z",
-  "graphicType": "spinning_snail_simplified",
-  "stlColors": {
-    "black": { "name": "Chassis Black & Neck Lines", "hex": "#11161d", "targetRgb": [17, 22, 29], "role": "chassis" },
-    "pink": { "name": "Body, Face & Lips", "hex": "#ec4899", "targetRgb": [236, 72, 153], "role": "inlay", "filename": "color_pink.stl" },
-    "green": { "name": "Shell Body", "hex": "#10b981", "targetRgb": [16, 185, 129], "role": "inlay", "filename": "color_green.stl" },
-    "blue": { "name": "Radial Lines", "hex": "#2563eb", "targetRgb": [37, 99, 235], "role": "inlay", "filename": "color_blue.stl" },
-    "gold": { "name": "Shell Edge & Spiral", "hex": "#facc15", "targetRgb": [250, 204, 21], "role": "inlay", "filename": "color_gold.stl" }
-  },
+  "savedAt": "2026-09-25T22:00:00.000Z",
   "ledCount": 100,
   "leds": [
     {

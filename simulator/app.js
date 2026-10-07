@@ -130,7 +130,14 @@ let spinningSnailLoaded = false;
 spinningSnailImg.onload = () => {
     spinningSnailLoaded = true;
 };
-spinningSnailImg.src = 'assets/spinning_snail.png';
+spinningSnailImg.src = 'assets/spinning_snail_simplified.png';
+
+const spinningSnailOrigImg = new Image();
+let spinningSnailOrigLoaded = false;
+spinningSnailOrigImg.onload = () => {
+    spinningSnailOrigLoaded = true;
+};
+spinningSnailOrigImg.src = 'assets/spinning_snail.png';
 
 // Custom artwork image (if user uploads one or loads one from preset)
 let customArtworkImg = null;
@@ -143,6 +150,8 @@ const floatArtworkImgs = {
     'title_drum': new Image(),
     'spinning_turtle': spinningTurtleImg,
     'spinning_snail': spinningSnailImg,
+    'spinning_snail_simplified': spinningSnailImg,
+    'spinning_snail_original': spinningSnailOrigImg,
     'cinderella_coach': new Image(),
     'cinderellas_coach': new Image(),
     'petes_dragon': new Image(),
@@ -152,7 +161,9 @@ const floatArtworkImgs = {
 floatArtworkImgs['casey_jr_train'].src = 'assets/cricut_svg/casey_jr_train.svg';
 floatArtworkImgs['title_drum'].src = 'assets/cricut_svg/title_drum.svg';
 floatArtworkImgs['spinning_turtle'].src = 'assets/Turtle_clean.png';
-floatArtworkImgs['spinning_snail'].src = 'assets/spinning_snail.png';
+floatArtworkImgs['spinning_snail'].src = 'assets/spinning_snail_simplified.png';
+floatArtworkImgs['spinning_snail_simplified'].src = 'assets/spinning_snail_simplified.png';
+floatArtworkImgs['spinning_snail_original'].src = 'assets/spinning_snail.png';
 floatArtworkImgs['cinderella_coach'].src = 'assets/cricut_svg/cinderella_coach.svg';
 floatArtworkImgs['cinderellas_coach'].src = 'assets/cricut_svg/cinderella_coach.svg';
 floatArtworkImgs['petes_dragon'].src = 'assets/cricut_svg/petes_dragon.svg';
@@ -168,9 +179,13 @@ function getGraphicImgForType(gType) {
         if (spinningTurtleImg && spinningTurtleImg.naturalWidth > 0) return spinningTurtleImg;
         return floatArtworkImgs['spinning_turtle'];
     }
-    if (gType === 'spinning_snail') {
+    if (gType === 'spinning_snail' || gType === 'spinning_snail_simplified') {
         if (spinningSnailImg && spinningSnailImg.naturalWidth > 0) return spinningSnailImg;
         return floatArtworkImgs['spinning_snail'];
+    }
+    if (gType === 'spinning_snail_original') {
+        if (spinningSnailOrigImg && spinningSnailOrigImg.naturalWidth > 0) return spinningSnailOrigImg;
+        return floatArtworkImgs['spinning_snail_original'];
     }
     if (gType === 'cinderellas_coach' || gType === 'cinderella_coach') {
         if (cinderellasCoachImg && cinderellasCoachImg.naturalWidth > 0) return cinderellasCoachImg;
@@ -2924,6 +2939,20 @@ const FLOAT_STL_COLOR_CONFIG = {
         'blue': { name: "Shell & Eyes", hex: "#2563eb", targetRgb: [41, 63, 96], role: "inlay", filename: "color_blue.stl" },
         'yellow': { name: "Body & Head", hex: "#facc15", targetRgb: [231, 199, 49], role: "inlay", filename: "color_yellow.stl" },
         'red': { name: "Tie & Lips", hex: "#ef4444", targetRgb: [217, 29, 22], role: "inlay", filename: "color_red.stl" }
+    },
+    'spinning_snail': {
+        'black': { name: "Chassis Black & Neck Lines", hex: "#11161d", targetRgb: [17, 22, 29], role: "chassis" },
+        'pink': { name: "Body, Face & Lips", hex: "#ec4899", targetRgb: [236, 72, 153], role: "inlay", filename: "color_pink.stl" },
+        'green': { name: "Shell Body", hex: "#10b981", targetRgb: [16, 185, 129], role: "inlay", filename: "color_green.stl" },
+        'blue': { name: "Radial Lines", hex: "#2563eb", targetRgb: [37, 99, 235], role: "inlay", filename: "color_blue.stl" },
+        'gold': { name: "Shell Edge & Spiral", hex: "#facc15", targetRgb: [250, 204, 21], role: "inlay", filename: "color_gold.stl" }
+    },
+    'spinning_snail_simplified': {
+        'black': { name: "Chassis Black & Neck Lines", hex: "#11161d", targetRgb: [17, 22, 29], role: "chassis" },
+        'pink': { name: "Body, Face & Lips", hex: "#ec4899", targetRgb: [236, 72, 153], role: "inlay", filename: "color_pink.stl" },
+        'green': { name: "Shell Body", hex: "#10b981", targetRgb: [16, 185, 129], role: "inlay", filename: "color_green.stl" },
+        'blue': { name: "Radial Lines", hex: "#2563eb", targetRgb: [37, 99, 235], role: "inlay", filename: "color_blue.stl" },
+        'gold': { name: "Shell Edge & Spiral", hex: "#facc15", targetRgb: [250, 204, 21], role: "inlay", filename: "color_gold.stl" }
     }
 };
 
@@ -12717,7 +12746,7 @@ function boostCustomImageColor(r, g, b) {
 // Boost vibrancy and saturation of sampled colors so physical WS2812B LEDs shine with true character colors
 function boostLedVibrancy(r, g, b, relX, relY) {
     // If user uploaded a custom graphic, selected Cinderella's Coach, Carriage (No Horses), Spinning Turtle, or Spinning Snail, preserve and boost authentic colors!
-    if (currentGraphicType === 'custom_image' || currentGraphicType === 'cinderellas_coach' || currentGraphicType === 'carriage_nohorses' || currentGraphicType === 'spinning_turtle' || currentGraphicType === 'spinning_snail') {
+    if (currentGraphicType === 'custom_image' || currentGraphicType === 'cinderellas_coach' || currentGraphicType === 'carriage_nohorses' || currentGraphicType === 'spinning_turtle' || currentGraphicType.startsWith('spinning_snail')) {
         return boostCustomImageColor(r, g, b);
     }
 
@@ -13728,6 +13757,8 @@ if (graphicPresetSelect) {
             'title_drum': 1,
             'spinning_turtle': 2,
             'spinning_snail': 3,
+            'spinning_snail_simplified': 3,
+            'spinning_snail_original': 3,
             'cinderellas_coach': 4,
             'cinderella_coach': 4,
             'carriage_nohorses': 4,
@@ -17719,6 +17750,8 @@ function getActiveFloatName() {
         'title_drum': "MSEP Title Drum",
         'spinning_turtle': "The Spinning Turtle",
         'spinning_snail': "The Spinning Snail",
+        'spinning_snail_simplified': "The Spinning Snail",
+        'spinning_snail_original': "The Spinning Snail",
         'cinderellas_coach': "Cinderella's Coach",
         'cinderella_coach': "Cinderella's Coach",
         'carriage_nohorses': "Cinderella's Carriage",
