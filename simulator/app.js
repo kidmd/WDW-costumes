@@ -18069,19 +18069,24 @@ function setupTpuThreeScene(container) {
         tpuControls.minDistance = 60;
     }
 
-    // Studio Lighting
-    const ambLight = new THREE.AmbientLight(0xffffff, 0.75);
+    // Studio Lighting - optimized for both Front artwork face (+Z) and Underside mechanical pockets (-Z)
+    const ambLight = new THREE.AmbientLight(0xffffff, 0.85);
     tpuScene.add(ambLight);
 
-    const keyLight = new THREE.DirectionalLight(0xffffff, 0.85);
+    const keyLight = new THREE.DirectionalLight(0xffffff, 0.95);
     keyLight.position.set(80, 120, 200);
     tpuScene.add(keyLight);
 
-    const backLight = new THREE.DirectionalLight(0x38bdf8, 0.7);
-    backLight.position.set(-100, -100, -200);
+    // Direct Underside/Back Key Light to highlight mechanical collars, nubs, and numbers
+    const underKeyLight = new THREE.DirectionalLight(0xffffff, 0.90);
+    underKeyLight.position.set(-60, 100, -220);
+    tpuScene.add(underKeyLight);
+
+    const backLight = new THREE.DirectionalLight(0x38bdf8, 0.65);
+    backLight.position.set(100, -100, -200);
     tpuScene.add(backLight);
 
-    const fillLight = new THREE.DirectionalLight(0xffffff, 0.4);
+    const fillLight = new THREE.DirectionalLight(0xffffff, 0.5);
     fillLight.position.set(0, -150, 100);
     tpuScene.add(fillLight);
 
@@ -18395,9 +18400,9 @@ async function loadTpuModalData() {
                 stlCenter = chassisGeom.boundingBox.getCenter(new THREE.Vector3());
 
                 const chassisMat = new THREE.MeshStandardMaterial({
-                    color: 0x11161d,
-                    roughness: 0.65,
-                    metalness: 0.1,
+                    color: 0x181f28,
+                    roughness: 0.50,
+                    metalness: 0.20,
                     side: THREE.DoubleSide
                 });
                 const chassisMesh = new THREE.Mesh(chassisGeom, chassisMat);

@@ -316,9 +316,9 @@ def compile_plate_variant(variant_name, width_mm, height_mm, raw_leds, artwork_p
     groove_outer_2d = outer_collar_2d.buffer(0.5, resolution=16)
     groove_ring_2d = groove_outer_2d.difference(groove_inner_2d)
 
-    # 0.45mm top collar nubs for rigid PLA snap clips
-    NUB_PROTRUSION = 0.45  # mm outward protrusion
-    NUB_HEIGHT = 0.6       # mm tall
+    # 0.70mm distinct top collar nubs/lip for rigid PLA snap clips (without weakening wall base)
+    NUB_PROTRUSION = 0.70  # mm outward protrusion (creates a clear, tactile snap ridge)
+    NUB_HEIGHT = 0.80      # mm tall
     nub_outer_2d = outer_collar_2d.buffer(NUB_PROTRUSION, resolution=16)
     nub_ring_2d = nub_outer_2d.difference(outer_collar_2d)
 
@@ -342,12 +342,21 @@ def compile_plate_variant(variant_name, width_mm, height_mm, raw_leds, artwork_p
         recess.apply_translation([cx, cy, FRONT_THICK_LED])
         floor_recess_cutters.append(recess)
 
-        # 3.0mm Collar with 4mm Wire Notches
+        # 3.0mm Collar base solid
         c_mesh = trimesh.creation.extrude_polygon(collar_ring_2d, height=COLLAR_HEIGHT)
-        notch_r = trimesh.creation.box(extents=[3.5, NOTCH_WIDTH, COLLAR_HEIGHT + 0.2])
-        notch_r.apply_translation([COLLAR_OUTER_L / 2.0 - 1.0, 0, COLLAR_HEIGHT / 2.0])
-        notch_l = trimesh.creation.box(extents=[3.5, NOTCH_WIDTH, COLLAR_HEIGHT + 0.2])
-        notch_l.apply_translation([-COLLAR_OUTER_L / 2.0 + 1.0, 0, COLLAR_HEIGHT / 2.0])
+        c_solid_m = to_m(c_mesh)
+
+        # Add top collar nubs/lip for PLA snap clips flush at the top rim of the collar
+        if top_nubs:
+            top_nub_ext = trimesh.creation.extrude_polygon(nub_ring_2d, height=NUB_HEIGHT)
+            top_nub_ext.apply_translation([0, 0, COLLAR_HEIGHT - NUB_HEIGHT])
+            c_solid_m = c_solid_m + to_m(top_nub_ext)
+
+        # Wire notches cut cleanly through BOTH collar and nubs:
+        notch_r = trimesh.creation.box(extents=[COLLAR_OUTER_L + 4.0, NOTCH_WIDTH, COLLAR_HEIGHT + 0.4])
+        notch_r.apply_translation([COLLAR_OUTER_L / 2.0 + 1.0, 0, COLLAR_HEIGHT / 2.0])
+        notch_l = trimesh.creation.box(extents=[COLLAR_OUTER_L + 4.0, NOTCH_WIDTH, COLLAR_HEIGHT + 0.4])
+        notch_l.apply_translation([-COLLAR_OUTER_L / 2.0 - 1.0, 0, COLLAR_HEIGHT / 2.0])
 
         collar_cutters_list = [to_m(notch_r), to_m(notch_l)]
 
@@ -357,15 +366,8 @@ def compile_plate_variant(variant_name, width_mm, height_mm, raw_leds, artwork_p
             groove_cutter.apply_translation([0, 0, FRONT_THICK_GENERAL - COLLAR_FLOOR_Z])
             collar_cutters_list.append(to_m(groove_cutter))
 
-        c_m = to_m(c_mesh)
         c_cutters_m = Manifold.batch_boolean(collar_cutters_list, OpType.Add)
-        notched_collar_m = c_m - c_cutters_m
-
-        # Add top nubs for PLA snap clips if top_nubs is True (without weakening the wall!)
-        if top_nubs:
-            top_nub_ext = trimesh.creation.extrude_polygon(nub_ring_2d, height=NUB_HEIGHT)
-            top_nub_ext.apply_translation([0, 0, COLLAR_HEIGHT - NUB_HEIGHT - 0.2])
-            notched_collar_m = notched_collar_m + to_m(top_nub_ext)
+        notched_collar_m = c_solid_m - c_cutters_m
 
         mesh_d = notched_collar_m.to_mesh()
         notched_collar = trimesh.Trimesh(vertices=mesh_d.vert_properties[:, :3], faces=mesh_d.tri_verts)
