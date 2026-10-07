@@ -17573,6 +17573,7 @@ function updateTpuDownloadButtons() {
     if (!container) return;
 
     const v = tpuActiveVariant || 'front';
+    const ts = Date.now();
     if (tpuExportMode === 'multi') {
         let individualOptions = `<option value="">⬇️ Individual STLs...</option>`;
         individualOptions += `<option value="/3d_panels/tpu_panel_${v}_chassis_black.stl">1. Black Chassis STL</option>`;
@@ -17597,14 +17598,17 @@ function updateTpuDownloadButtons() {
             const fName = inl.filename ? inl.filename.replace(/tpu_panel_(front|back)_/, `tpu_panel_${v}_`) : `tpu_panel_${v}_color_${inl.key}.stl`;
             individualOptions += `<option value="/3d_panels/${fName}">${idx + 2}. ${inl.name} STL</option>`;
         });
+        individualOptions += `<option value="/3d_panels/tpu_panel_${v}_lid.stl">🛡️ Rear Cover Lid (2.0mm Plate)</option>`;
 
-        const ts = Date.now();
         container.innerHTML = `
-            <a href="/3d_panels/tpu_panel_${v}_multicolor_bundle.zip?t=${ts}" download="tpu_panel_${v}_multicolor_bundle.zip" class="action-btn primary" style="padding: 6px 12px; font-size: 11px; background: linear-gradient(135deg, #1f6feb, #388bfd); color: #fff; font-weight: 600; text-decoration: none; display: inline-flex; align-items: center; gap: 4px;" title="Download all STLs, 3MF project, and slicer instructions">
-                📦 Download Multi-Color ZIP
+            <a href="/3d_panels/tpu_panel_${v}_multicolor_bundle.zip?t=${ts}" download="tpu_panel_${v}_multicolor_bundle.zip" class="action-btn primary" style="padding: 6px 12px; font-size: 11px; background: linear-gradient(135deg, #1f6feb, #388bfd); color: #fff; font-weight: 600; text-decoration: none; display: inline-flex; align-items: center; gap: 4px;" title="Download all STLs (including 2mm Rear Lid), 3MF project, and slicer instructions">
+                📦 Multi-Color ZIP
             </a>
             <a href="/3d_panels/tpu_panel_${v}_multicolor.3mf?t=${ts}" download="tpu_panel_${v}_multicolor.3mf" class="action-btn" style="padding: 6px 12px; font-size: 11px; color: #00ff88; border-color: #2ea043; text-decoration: none; display: inline-flex; align-items: center; gap: 4px;" title="Download pre-assembled Bambu Studio / OrcaSlicer project file">
-                🖨️ Download .3MF
+                🖨️ .3MF
+            </a>
+            <a href="/3d_panels/tpu_panel_${v}_lid.stl?t=${ts}" download="tpu_panel_${v}_lid.stl" class="action-btn" style="padding: 6px 11px; font-size: 11px; color: #a371f7; border-color: #8957e5; text-decoration: none; display: inline-flex; align-items: center; gap: 4px;" title="Download 2.0mm rear cover lid with alignment ridge and M2 screw holes">
+                🛡️ Rear Lid STL
             </a>
             <div style="position: relative; display: inline-block;">
                 <select onchange="if(this.value){ const a=document.createElement('a'); a.href=this.value + '?t=' + Date.now(); a.download=this.value.split('/').pop(); a.click(); this.value=''; }" style="background: #21262d; color: #58a6ff; border: 1px solid #388bfd; border-radius: 6px; padding: 5px 8px; font-size: 10.5px; font-weight: 600; cursor: pointer; outline: none;">
@@ -17613,13 +17617,15 @@ function updateTpuDownloadButtons() {
             </div>
         `;
     } else {
-        const ts = Date.now();
         container.innerHTML = `
             <a href="/3d_panels/tpu_panel_${v}.stl?t=${ts}" download="tpu_panel_${v}.stl" class="action-btn primary" style="padding: 6px 14px; font-size: 11px; color: #58a6ff; border-color: #388bfd; text-decoration: none; display: inline-flex; align-items: center; gap: 4px;" title="Download monolithic single black STL">
                 ⬇️ Download ${v.toUpperCase()} STL
             </a>
+            <a href="/3d_panels/tpu_panel_${v}_lid.stl?t=${ts}" download="tpu_panel_${v}_lid.stl" class="action-btn" style="padding: 6px 11px; font-size: 11px; color: #a371f7; border-color: #8957e5; text-decoration: none; display: inline-flex; align-items: center; gap: 4px;" title="Download 2.0mm rear cover lid with alignment ridge and M2 screw holes">
+                🛡️ Rear Lid STL
+            </a>
             <button type="button" onclick="downloadBothTpuStls()" class="action-btn" style="padding: 6px 12px; font-size: 11px; color: #ffb703; border-color: #d29922; display: inline-flex; align-items: center; gap: 4px;">
-                📦 Download Both STLs
+                📦 Both STLs
             </button>
         `;
     }
@@ -17874,6 +17880,7 @@ function setTpuModalControlsDisabled(disabled) {
         'tpuModalNumbersOnBtn', 'tpuModalNumbersOffBtn',
         'tpuModalShapeSquareBtn', 'tpuModalShapeRoundBtn',
         'tpuModalSelectFrontBtn', 'tpuModalSelectBackBtn',
+        'tpuModalDisplayTrayBtn', 'tpuModalDisplayLidBtn',
         'tpuModalModeMultiBtn', 'tpuModalModeMonoBtn',
         'compileTpuStlBtn'
     ];
@@ -18170,6 +18177,7 @@ function onTpuWindowResize() {
 }
 
 let tpuActiveVariant = 'front'; // 'front' or 'back'
+let tpuDisplayMode = 'tray'; // 'tray' or 'lid'
 
 function switchTpuModalVariant(variant) {
     if (variant !== 'front' && variant !== 'back') variant = 'front';
@@ -18194,6 +18202,29 @@ function switchTpuModalVariant(variant) {
     loadTpuModalData();
 }
 window.switchTpuModalVariant = switchTpuModalVariant;
+
+function switchTpuDisplayMode(mode) {
+    if (mode !== 'tray' && mode !== 'lid') mode = 'tray';
+    tpuDisplayMode = mode;
+
+    const trayBtn = document.getElementById('tpuModalDisplayTrayBtn');
+    const lidBtn = document.getElementById('tpuModalDisplayLidBtn');
+    if (trayBtn && lidBtn) {
+        if (mode === 'lid') {
+            lidBtn.style.background = '#000';
+            lidBtn.style.color = '#00ff88';
+            trayBtn.style.background = 'transparent';
+            trayBtn.style.color = 'rgba(0,0,0,0.7)';
+        } else {
+            trayBtn.style.background = '#000';
+            trayBtn.style.color = '#00ff88';
+            lidBtn.style.background = 'transparent';
+            lidBtn.style.color = 'rgba(0,0,0,0.7)';
+        }
+    }
+    loadTpuModalData();
+}
+window.switchTpuDisplayMode = switchTpuDisplayMode;
 
 function downloadBothTpuStls() {
     const a1 = document.createElement('a');
@@ -18270,15 +18301,23 @@ async function loadTpuModalData() {
 
         const modalTitle = document.querySelector('#tpuPreviewModal h3');
         if (modalTitle) {
-            const modeLabel = (tpuExportMode === 'multi') ? "🎨 5-Color Multi-Material Print" : "⚪ Single-Color Black STL";
-            modalTitle.textContent = `${floatName} • ${variantTitle} (${modeLabel})`;
+            if (tpuDisplayMode === 'lid') {
+                modalTitle.textContent = `${floatName} • ${variantTitle} (🛡️ 2.0mm Rear Cover Lid Plate)`;
+            } else {
+                const modeLabel = (tpuExportMode === 'multi') ? "🎨 5-Color Multi-Material Print" : "⚪ Single-Color Black STL";
+                modalTitle.textContent = `${floatName} • ${variantTitle} (${modeLabel})`;
+            }
         }
 
         const effectiveShape = specs.window_shape || params.tpuWindowShape || 'square';
         const modalSub = document.getElementById('tpuModalSubtitle');
         if (modalSub) {
-            const shapeText = (effectiveShape === 'round' || effectiveShape === 'circle') ? 'Ø 3mm Round Windows' : '3×3mm Square Windows';
-            modalSub.textContent = `95A TPU Open-Chassis Tray • ${shapeText} • Sized for Bambu Lab AMS (5 Slots)`;
+            if (tpuDisplayMode === 'lid') {
+                modalSub.textContent = `2.0mm Solid Cover Plate • 1.2mm Alignment Ridge • 8 M2 Flush Screws • 16 Back Eyelets`;
+            } else {
+                const shapeText = (effectiveShape === 'round' || effectiveShape === 'circle') ? 'Ø 3mm Round Windows' : '3×3mm Square Windows';
+                modalSub.textContent = `95A TPU Open-Chassis Tray • ${shapeText} • Sized for Bambu Lab AMS (5 Slots)`;
+            }
         }
 
         // Sync modal shape buttons
@@ -18370,6 +18409,23 @@ async function loadTpuModalData() {
             }
         }
 
+        // Sync modal display mode buttons (Tray Basin vs Rear Lid)
+        const dTrayBtn = document.getElementById('tpuModalDisplayTrayBtn');
+        const dLidBtn = document.getElementById('tpuModalDisplayLidBtn');
+        if (dTrayBtn && dLidBtn) {
+            if (tpuDisplayMode === 'lid') {
+                dLidBtn.style.background = '#000';
+                dLidBtn.style.color = '#00ff88';
+                dTrayBtn.style.background = 'transparent';
+                dTrayBtn.style.color = 'rgba(0,0,0,0.7)';
+            } else {
+                dTrayBtn.style.background = '#000';
+                dTrayBtn.style.color = '#00ff88';
+                dLidBtn.style.background = 'transparent';
+                dLidBtn.style.color = 'rgba(0,0,0,0.7)';
+            }
+        }
+
         // Sync multi-color vs single mode buttons
         const multiBtn = document.getElementById('tpuModalModeMultiBtn');
         const monoBtn = document.getElementById('tpuModalModeMonoBtn');
@@ -18450,7 +18506,38 @@ async function loadTpuModalData() {
             const stlLoader = new THREE.STLLoader();
             const v = tpuActiveVariant;
 
-            if (tpuExportMode === 'multi') {
+            if (tpuDisplayMode === 'lid') {
+                // Load 2.0mm Rear Cover Lid Plate
+                const lidUrl = `/3d_panels/tpu_panel_${v}_lid.stl?t=` + Date.now();
+                const lidGeom = await new Promise((resolve, reject) => {
+                    stlLoader.load(lidUrl, resolve, undefined, () => {
+                        stlLoader.load(`/3d_panels/petes_dragon_tpu_panel_lid.stl?t=` + Date.now(), resolve, undefined, reject);
+                    });
+                });
+                if (reqId !== tpuLoadRequestId) return;
+
+                lidGeom.computeVertexNormals();
+                lidGeom.computeBoundingBox();
+                stlCenter = lidGeom.boundingBox.getCenter(new THREE.Vector3());
+
+                const lidMat = new THREE.MeshStandardMaterial({
+                    color: (v === 'back') ? 0x1f2937 : 0x242e3d,
+                    roughness: 0.50,
+                    metalness: 0.15,
+                    side: THREE.DoubleSide
+                });
+                const lidMesh = new THREE.Mesh(lidGeom, lidMat);
+                lidMesh.position.set(-stlCenter.x, -stlCenter.y, -stlCenter.z);
+                tpuScene.add(lidMesh);
+                tpuMultiMeshes.push(lidMesh);
+
+                const b = [(lidGeom.boundingBox.max.x - lidGeom.boundingBox.min.x).toFixed(1),
+                           (lidGeom.boundingBox.max.y - lidGeom.boundingBox.min.y).toFixed(1),
+                           (lidGeom.boundingBox.max.z - lidGeom.boundingBox.min.z).toFixed(1)];
+                if (dimText) dimText.textContent = `${b[0]} × ${b[1]} × ${b[2]} mm`;
+                if (weightText) weightText.textContent = `~38 g`;
+                if (legend) legend.style.display = 'none';
+            } else if (tpuExportMode === 'multi') {
                 // 1. Load Black Chassis
                 const chassisUrl = `/3d_panels/tpu_panel_${v}_chassis_black.stl?t=` + Date.now();
                 const chassisGeom = await new Promise((resolve, reject) => {
@@ -18557,8 +18644,10 @@ async function loadTpuModalData() {
             }
         }
 
-        // Render simulated LED pixels projecting through apertures
-        createTpuLedPixels(variantData, stlCenter);
+        // Render simulated LED pixels projecting through apertures (only for tray basin)
+        if (tpuDisplayMode !== 'lid') {
+            createTpuLedPixels(variantData, stlCenter);
+        }
 
         if (loaderOverlay) loaderOverlay.style.display = 'none';
 

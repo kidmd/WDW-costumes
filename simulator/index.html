@@ -2396,6 +2396,11 @@
                         <button type="button" id="tpuModalSelectFrontBtn" onclick="switchTpuModalVariant('front')" style="border: none; border-radius: 4px; padding: 4px 8px; font-size: 11px; font-weight: 700; cursor: pointer; background: #000; color: #00ff88; transition: all 0.2s ease;">🎽 Front</button>
                         <button type="button" id="tpuModalSelectBackBtn" onclick="switchTpuModalVariant('back')" style="border: none; border-radius: 4px; padding: 4px 8px; font-size: 11px; font-weight: 700; cursor: pointer; background: transparent; color: rgba(0,0,0,0.7); transition: all 0.2s ease;">🎒 Back</button>
                     </div>
+                    <!-- Tray Basin vs Rear Lid Switcher Pill -->
+                    <div style="display: flex; align-items: center; margin-left: 4px; background: rgba(0, 0, 0, 0.3); border-radius: 6px; padding: 2px; gap: 2px;" title="Switch between Main Armor Tray and 2.0mm Rear Cover Lid Plate">
+                        <button type="button" id="tpuModalDisplayTrayBtn" onclick="switchTpuDisplayMode('tray')" style="border: none; border-radius: 4px; padding: 4px 7px; font-size: 11px; font-weight: 700; cursor: pointer; background: #000; color: #00ff88; transition: all 0.2s ease;">📦 Tray Basin</button>
+                        <button type="button" id="tpuModalDisplayLidBtn" onclick="switchTpuDisplayMode('lid')" style="border: none; border-radius: 4px; padding: 4px 7px; font-size: 11px; font-weight: 700; cursor: pointer; background: transparent; color: rgba(0,0,0,0.7); transition: all 0.2s ease;">🛡️ Rear Lid (2mm)</button>
+                    </div>
                     <!-- Window Shape Switcher Pill -->
                     <div style="display: flex; align-items: center; margin-left: 4px; background: rgba(0, 0, 0, 0.3); border-radius: 6px; padding: 2px; gap: 2px;" title="Select hole geometry and auto-regenerate STL">
                         <button type="button" id="tpuModalShapeSquareBtn" onclick="setTpuWindowShape('square')" style="border: none; border-radius: 4px; padding: 4px 7px; font-size: 11px; font-weight: 700; cursor: pointer; background: #000; color: #00ff88; transition: all 0.2s ease;">🔲 Square</button>
@@ -2510,6 +2515,6 @@
         </div>
     </div>
 
-    <script src="app.js?v=92"></script>
+    <script src="app.js?v=93"></script>
 </body>
 </html>

@@ -93,6 +93,29 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### Entry: 2.0mm Rear Cover Lid Plate with Alignment Ridge, M2 Flush Screw Bosses & Multi-Material Bundle Integration
+* **Date:** 2026-10-06 (Imagineering Session - Wearable Armor Back Plate Enclosure)
+* **Milestone:** Milestone 6 - Wearable 3D Armor Fabrication & Multi-Material 3D Printing
+* **Status:** Complete & Verified (`scripts/compile_clean_tpu_panel.py`, `simulator/index.html`, `simulator/app.js`, `3d_panels/tpu_panel_specs.json`, `SIMULATOR_USER_GUIDE.md`, `README.md`, `PROJECT_PROGRESS.md`).
+* **Implementation Details:**
+  - **2.0mm Thick Rear Cover Plate (Lid):**
+    - Engineered matching protective rear lids for both Front (`tpu_panel_front_lid.stl`) and Back (`tpu_panel_back_lid.stl`) armor panels.
+    - Matches the exact outer organic silhouette of the main front tray plate, including all 16 outer circular mounting eyelets (outer diameter 6.5mm with 2.5mm holes) aligned identically at $Z = 0.0$ to $2.0\text{ mm}$.
+    - Base thickness is $2.0\text{ mm}$ solid plate, providing physical protection against sweat and friction between running shirts and wiring harnesses.
+  - **1.2mm Stepped Inner Alignment Ridge:**
+    - Features a continuous internal alignment lip stepping $1.5\text{ mm}$ inward along the perimeter wall, protruding $1.2\text{ mm}$ downwards ($Z = 2.0$ to $3.2\text{ mm}$) to nest snugly into the open $7.0\text{ mm}$ perimeter rim of the tray basin.
+    - Engineered with an exact $0.25\text{ mm}$ per-side clearance gap for easy friction-fit insertion without binding on FDM layer lines.
+    - Includes a matching $8.0\text{ mm} \times 2.0\text{ mm}$ arch relief cutout at the bottom wire portal ($Y = \text{min}$) so power supply leads pass through cleanly without pinch risk.
+  - **8-Point M2 Perimeter Screw Fastening System:**
+    - **Main Tray Basin Boss Pillars:** Added 8 solid cylindrical screw bosses ($\varnothing 5.0\text{ mm}$) rising from the floor ($Z = 2.0\text{ mm}$) to the top of the rim ($Z = 9.0\text{ mm}$), fused seamlessly into the interior $2.5\text{ mm}$ perimeter rim wall. Each boss features a pre-formed $1.6\text{ mm}$ diameter $\times 5.5\text{ mm}$ deep pilot hole for self-tapping M2 screws to thread securely without splitting PLA layers. Bosses are strategically positioned along the perimeter to avoid LED collars and wire paths.
+    - **Rear Lid Through-Holes & Reinforcement Pads:** Each screw location on the lid has a $\varnothing 5.0\text{ mm}$ reinforcement boss ($1.2\text{ mm}$ tall) on the inner side, a $\varnothing 2.0\text{ mm}$ clearance through-hole, and a $\varnothing 3.8\text{ mm} \times 0.8\text{ mm}$ deep flush counterbore on the outer (shirt-facing) surface so standard M2 screw heads sit completely below the surface, eliminating snagging against running shirts.
+  - **Bambu Studio AMS Multi-Material Bundle & Slicer Integration:**
+    - Both `tpu_panel_front_lid.stl` (363 KB) and `tpu_panel_back_lid.stl` (363 KB) are watertight (`is_watertight: True`) with exact matching dimensions ($208.97 \times 184.84 \times 3.2\text{ mm}$).
+    - Automatically bundled into `tpu_panel_{variant}_multicolor_bundle.zip` alongside the structural black chassis and accent color inlays.
+  - **Simulator 3D Preview Modal Integration (`#tpuPreviewModal`):**
+    - Added interactive `[ 📦 Tray Basin | 🛡️ Rear Lid (2mm) ]` segmented switcher pill in the modal header.
+    - In Lid mode, Three.js dynamically loads the lid STL with a technical slate material (`#242e3d`), displays matching dimensions ($209.0 \times 184.8 \times 3.2\text{ mm}$, ~44g), suppresses LED bulb rendering, and updates download buttons to include 1-click `🛡️ Rear Lid STL` download.
+
 ### Entry: Float #3 (The Turtle) 3D Panel Generation & Multi-Feature Stale-Guard Sync
 * **Date:** 2026-10-06 (Imagineering Session - Turtle 3D Panel Pipeline & Server Synchronization)
 * **Milestone:** Milestone 6 - Wearable 3D Armor Fabrication & Multi-Material 3D Printing

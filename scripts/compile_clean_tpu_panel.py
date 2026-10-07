@@ -583,21 +583,122 @@ def compile_plate_variant(variant_name, width_mm, height_mm, raw_leds, artwork_p
     else:
         base_with_pockets_m = base_m
 
-    chassis_solids = [base_with_pockets_m, to_m(rim_mesh)] + [to_m(t) for t in tab_meshes] + [to_m(c) for c in collar_meshes]
+    # 7b. Perimeter Screw Boss Locations (6 to 8 perimeter positions avoiding LEDs and wire portal)
+    NUM_SCREWS = 8
+    SCREW_BOSS_R = 2.5       # mm (5.0mm diameter pillar)
+    SCREW_HOLE_R = 1.0       # mm (2.0mm clearance hole for M2 screw body)
+    SCREW_CBORE_R = 1.9      # mm (3.8mm diameter counterbore)
+    SCREW_CBORE_DEPTH = 0.8  # mm (flush head seating depth on outer face)
+    PILOT_HOLE_R = 0.8       # mm (1.6mm pilot hole for M2 self-tapping screw)
+    PILOT_HOLE_DEPTH = 5.5   # mm (blind pilot hole in front tray boss)
+    LID_THICK = 2.0          # mm (solid lid plate thickness)
+    RIDGE_HEIGHT = 1.2       # mm (downward locator lip)
+    RIDGE_CLEARANCE = 0.25   # mm (sliding fit gap inside 2.5mm rim)
+    RIDGE_WALL = 1.2         # mm (width of alignment ridge)
+
+    inner_boundary = inner_plate_2d.exterior
+    total_inner_len = inner_boundary.length
+    screw_coords = []
+    
+    for i in range(NUM_SCREWS):
+        nominal_d = (i / float(NUM_SCREWS)) * total_inner_len
+        best_pt = None
+        best_clearance = -1
+        # Search along boundary arc +/- 12mm for maximum clearance from LEDs & wire portal
+        for delta in np.linspace(-12.0, 12.0, 17):
+            cur_d = (nominal_d + delta) % total_inner_len
+            cand_p = inner_boundary.interpolate(cur_d)
+            dist_portal = np.linalg.norm([cand_p.x - wire_portal_x, cand_p.y - wire_portal_y])
+            if dist_portal < 14.0:
+                continue
+            min_led = min(np.linalg.norm([cand_p.x - l['x'], cand_p.y - l['y']]) for l in leds) if leds else 20.0
+            if min_led > best_clearance:
+                best_clearance = min_led
+                best_pt = cand_p
+                
+        if best_pt is None:
+            best_pt = inner_boundary.interpolate(nominal_d)
+        screw_coords.append([round(float(best_pt.x), 2), round(float(best_pt.y), 2)])
+
+    tray_boss_solids = []
+    pilot_hole_cutters = []
+    for sp in screw_coords:
+        # 5.0mm diameter pillar rising from Z = 2.0 to 9.0mm fused to inner rim wall
+        boss_cyl = Manifold.cylinder(RIM_HEIGHT, SCREW_BOSS_R, SCREW_BOSS_R, 24).translate([sp[0], sp[1], FRONT_THICK_GENERAL])
+        tray_boss_solids.append(boss_cyl)
+        # 1.6mm diameter pilot hole from top of rim down 5.5mm (Z = 9.0 down to 3.5mm)
+        pilot_cyl = Manifold.cylinder(PILOT_HOLE_DEPTH + 0.2, PILOT_HOLE_R, PILOT_HOLE_R, 24).translate([sp[0], sp[1], TOTAL_THICK - PILOT_HOLE_DEPTH])
+        pilot_hole_cutters.append(pilot_cyl)
+
+    chassis_solids = [base_with_pockets_m, to_m(rim_mesh)] + [to_m(t) for t in tab_meshes] + [to_m(c) for c in collar_meshes] + tray_boss_solids
     chassis_assembled_m = Manifold.batch_boolean(chassis_solids, OpType.Add)
 
-    # Cutters: floor recesses, square/round optical windows, debossed numbers, wire portal arch, and strain-relief slots
+    # Cutters: floor recesses, square/round optical windows, debossed numbers, wire portal arch, strain-relief slots, and M2 pilot holes
     all_cutters = floor_recess_cutters + square_window_cutters + number_cutters + [wire_portal_cutter, slot_left, slot_right]
-    cutters_m = [to_m(c) for c in all_cutters]
+    cutters_m = [to_m(c) for c in all_cutters] + pilot_hole_cutters
     cutters_union_m = Manifold.batch_boolean(cutters_m, OpType.Add)
 
     final_chassis_m = chassis_assembled_m - cutters_union_m
     final_chassis_tm = flip_z_manifold(final_chassis_m)
 
     # Monolithic single-color black STL (legacy compatible, without color pockets subtracted)
-    monolithic_solids = [base_m, to_m(rim_mesh)] + [to_m(t) for t in tab_meshes] + [to_m(c) for c in collar_meshes]
+    monolithic_solids = [base_m, to_m(rim_mesh)] + [to_m(t) for t in tab_meshes] + [to_m(c) for c in collar_meshes] + tray_boss_solids
     monolithic_m = Manifold.batch_boolean(monolithic_solids, OpType.Add) - cutters_union_m
     final_monolithic_tm = flip_z_manifold(monolithic_m)
+
+    # -----------------------------------------------------------------------
+    # 8b. REAR COVER LID PLATE (2.0mm Base + 1.2mm Alignment Ridge + M2 Screws)
+    # -----------------------------------------------------------------------
+    lid_base_m = to_m(trimesh.creation.extrude_polygon(smoothed_plate_2d, height=LID_THICK))
+
+    # 16 Matching Outer Eyelet Tabs on Lid
+    lid_tabs_m = []
+    for tc in tab_coords:
+        tab_cyl = Manifold.cylinder(LID_THICK, TAB_OUTER_R, TAB_OUTER_R, 32).translate([tc[0], tc[1], 0.0])
+        tab_hole = Manifold.cylinder(LID_THICK + 0.4, TAB_INNER_R, TAB_INNER_R, 32).translate([tc[0], tc[1], -0.2])
+        lid_tabs_m.append(tab_cyl - tab_hole)
+
+    # 1.2mm Alignment Ridge on inner face (stepping 1.5mm inward with 0.25mm clearance)
+    ridge_outer_2d = smoothed_plate_2d.buffer(-(RIM_WALL_THICK + RIDGE_CLEARANCE), resolution=16)
+    if ridge_outer_2d.geom_type == 'MultiPolygon':
+        ridge_outer_2d = max(ridge_outer_2d.geoms, key=lambda g: g.area)
+    ridge_inner_2d = smoothed_plate_2d.buffer(-(RIM_WALL_THICK + RIDGE_CLEARANCE + RIDGE_WALL), resolution=16)
+    if ridge_inner_2d.geom_type == 'MultiPolygon':
+        ridge_inner_2d = max(ridge_inner_2d.geoms, key=lambda g: g.area)
+
+    ridge_ring_2d = sg.Polygon(ridge_outer_2d.exterior.coords, [ridge_inner_2d.exterior.coords])
+    ridge_mesh = trimesh.creation.extrude_polygon(ridge_ring_2d, height=RIDGE_HEIGHT)
+    ridge_mesh.apply_translation([0, 0, LID_THICK]) # Rises on inner face from Z = 2.0 to 3.2mm
+    ridge_m = to_m(ridge_mesh)
+
+    # Cutout over wire portal so outgoing wires are never pinched
+    portal_relief_m = Manifold.cube([14.0, RIM_WALL_THICK + 8.0, RIDGE_HEIGHT + 0.6], True).translate([wire_portal_x, wire_portal_y, LID_THICK + RIDGE_HEIGHT / 2.0])
+
+    # 5.0mm Inner Reinforcement Pads around screw holes
+    lid_pads_m = []
+    screw_holes_m = []
+    screw_cbore_m = []
+    for sp in screw_coords:
+        pad = Manifold.cylinder(RIDGE_HEIGHT, SCREW_BOSS_R, SCREW_BOSS_R, 24).translate([sp[0], sp[1], LID_THICK])
+        lid_pads_m.append(pad)
+        # 2.0mm through hole
+        shole = Manifold.cylinder(LID_THICK + RIDGE_HEIGHT + 1.0, SCREW_HOLE_R, SCREW_HOLE_R, 24).translate([sp[0], sp[1], -0.5])
+        screw_holes_m.append(shole)
+        # 3.8mm diameter x 0.8mm deep flush counterbore on outer/shirt face
+        scbore = Manifold.cylinder(SCREW_CBORE_DEPTH + 0.2, SCREW_CBORE_R, SCREW_CBORE_R, 24).translate([sp[0], sp[1], -0.1])
+        screw_cbore_m.append(scbore)
+
+    lid_solids = [lid_base_m, ridge_m] + lid_tabs_m + lid_pads_m
+    lid_assembled_m = Manifold.batch_boolean(lid_solids, OpType.Add)
+    lid_cutters_m = Manifold.batch_boolean([portal_relief_m] + screw_holes_m + screw_cbore_m, OpType.Add)
+    final_lid_m = lid_assembled_m - lid_cutters_m
+
+    lid_mesh_data = final_lid_m.to_mesh()
+    final_lid_tm = trimesh.Trimesh(
+        vertices=lid_mesh_data.vert_properties[:, :3],
+        faces=lid_mesh_data.tri_verts,
+        process=True
+    )
 
     # Flipped color inlays:
     flipped_colors = {}
@@ -625,6 +726,12 @@ def compile_plate_variant(variant_name, width_mm, height_mm, raw_leds, artwork_p
     chassis_filename = f"tpu_panel_{variant_name}_chassis_black.stl"
     chassis_path = os.path.join(out_dir, chassis_filename)
     final_chassis_tm.export(chassis_path)
+
+    # 2b. Rear Cover Lid Plate STL (2.0mm Plate + 1.2mm Alignment Ridge + M2 Screws)
+    lid_filename = f"tpu_panel_{variant_name}_lid.stl"
+    lid_path = os.path.join(out_dir, lid_filename)
+    final_lid_tm.export(lid_path)
+    lid_size = os.path.getsize(lid_path)
 
     # 3. Dynamic Color Inlay STLs
     color_stls = {}
@@ -661,6 +768,7 @@ def compile_plate_variant(variant_name, width_mm, height_mm, raw_leds, artwork_p
     if variant_name == 'front':
         shutil.copyfile(mono_path, os.path.join(out_dir, 'tpu_panel.stl'))
         shutil.copyfile(mono_path, os.path.join(out_dir, 'petes_dragon_tpu_panel.stl'))
+        shutil.copyfile(lid_path, os.path.join(out_dir, 'petes_dragon_tpu_panel_lid.stl'))
 
     # 10. EXPORT NATIVE MULTI-BODY .3MF PROJECT
     mf3_filename = f"tpu_panel_{variant_name}_multicolor.3mf"
@@ -678,8 +786,9 @@ def compile_plate_variant(variant_name, width_mm, height_mm, raw_leds, artwork_p
     zip_filename = f"tpu_panel_{variant_name}_multicolor_bundle.zip"
     zip_path = os.path.join(out_dir, zip_filename)
     
-    stl_list_lines = [f"   - {chassis_filename}"]
-    slot_mapping_lines = [f"Slot 1 (Black 95A TPU):   Chassis Tray, 4mm Perimeter Rim, 16 Tabs, {num_leds} Collars, Outlines"]
+    stl_list_lines = [f"   - {chassis_filename}", f"   - {lid_filename}"]
+    slot_mapping_lines = [f"Slot 1 (Black 95A TPU):   Chassis Tray, 7mm Perimeter Rim, 16 Tabs, {num_leds} Collars, Outlines",
+                          f"Rear Lid (TPU or PLA):    2.0mm Rear Cover Plate with Alignment Ridge & M2 Screw Holes"]
     for s_idx, inl in enumerate(exported_inlays, 2):
         stl_list_lines.append(f"   - {inl['filename']}")
         slot_mapping_lines.append(f"Slot {s_idx} ({inl['name']}):  {inl['name']}")
@@ -732,6 +841,7 @@ RECOMMENDED 95A TPU PRINT SETTINGS:
     with zipfile.ZipFile(zip_path, 'w', zipfile.ZIP_DEFLATED) as zf:
         zf.writestr('README_BAMBU_STUDIO.txt', readme_content)
         zf.write(chassis_path, chassis_filename)
+        zf.write(lid_path, lid_filename)
         for c_n, c_p in color_stls.items():
             zf.write(c_p, os.path.basename(c_p))
         if os.path.exists(mf3_path):
@@ -765,7 +875,7 @@ linear_extrude(front_thickness) polygon(contour_pts);
     stl_bounds = [round(float(x), 2) for x in (final_monolithic_tm.bounds[1] - final_monolithic_tm.bounds[0])]
     stl_center = [round(float(x), 2) for x in ((final_monolithic_tm.bounds[1] + final_monolithic_tm.bounds[0]) / 2.0)]
     
-    print(f"[{variant_name}] SUCCESS! Exported {mono_filename} ({stl_size/1024/1024:.2f} MB), Chassis ({chassis_size/1024/1024:.2f} MB), Bundle ZIP ({zip_size/1024/1024:.2f} MB) in {time.time()-v_t0:.2f}s")
+    print(f"[{variant_name}] SUCCESS! Exported {mono_filename} ({stl_size/1024/1024:.2f} MB), Chassis ({chassis_size/1024/1024:.2f} MB), Lid ({lid_size/1024/1024:.2f} MB), Bundle ZIP ({zip_size/1024/1024:.2f} MB) in {time.time()-v_t0:.2f}s")
     print(f"[{variant_name}] Dimensions: {stl_bounds} | Center: {stl_center}")
 
     return {
@@ -779,16 +889,19 @@ linear_extrude(front_thickness) polygon(contour_pts);
         "ordered_leds": leds,
         "led_count": len(leds),
         "fastener_tabs": tab_coords,
+        "screw_positions": screw_coords,
         "number_positions": number_positions,
         "contour_pts": contour_coords,
         "stl_bounds": stl_bounds,
         "stl_center": stl_center,
         "stl_size": stl_size,
         "chassis_size": chassis_size,
+        "lid_size": lid_size,
         "zip_size": zip_size,
         "inlays": exported_inlays,
         "stl_url": f"/3d_panels/{mono_filename}",
         "chassis_stl_url": f"/3d_panels/{chassis_filename}",
+        "lid_stl_url": f"/3d_panels/{lid_filename}",
         "multicolor_3mf_url": f"/3d_panels/{mf3_filename}" if os.path.exists(mf3_path) else None,
         "multicolor_zip_url": f"/3d_panels/{zip_filename}",
         "volume_mm3": round(final_monolithic_tm.volume, 1),
