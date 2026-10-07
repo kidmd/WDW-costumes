@@ -1873,10 +1873,10 @@
       103.02,
       4.5
     ],
-    "stl_size": 5127484,
-    "chassis_size": 6291384,
-    "lid_size": 363884,
-    "zip_size": 3078961,
+    "stl_size": 5142384,
+    "chassis_size": 6304484,
+    "lid_size": 395784,
+    "zip_size": 3091912,
     "inlays": [
       {
         "key": "green",
@@ -1912,7 +1912,7 @@
     "lid_stl_url": "/3d_panels/tpu_panel_front_lid.stl",
     "multicolor_3mf_url": "/3d_panels/tpu_panel_front_multicolor.3mf",
     "multicolor_zip_url": "/3d_panels/tpu_panel_front_multicolor_bundle.zip",
-    "volume_mm3": 71225.7,
+    "volume_mm3": 71227.6,
     "is_watertight": false
   },
   "back": {
@@ -3720,10 +3720,10 @@
       103.02,
       4.5
     ],
-    "stl_size": 5127484,
-    "chassis_size": 6291384,
-    "lid_size": 363884,
-    "zip_size": 3078995,
+    "stl_size": 5142384,
+    "chassis_size": 6304484,
+    "lid_size": 395784,
+    "zip_size": 3091973,
     "inlays": [
       {
         "key": "green",
@@ -3759,7 +3759,7 @@
     "lid_stl_url": "/3d_panels/tpu_panel_back_lid.stl",
     "multicolor_3mf_url": "/3d_panels/tpu_panel_back_multicolor.3mf",
     "multicolor_zip_url": "/3d_panels/tpu_panel_back_multicolor_bundle.zip",
-    "volume_mm3": 71225.7,
+    "volume_mm3": 71227.6,
     "is_watertight": false
   },
   "height_mm": 212.06,
@@ -5531,9 +5531,9 @@
     103.02,
     4.5
   ],
-  "stl_size": 5127484,
-  "chassis_size": 6291384,
-  "zip_size": 3078961,
+  "stl_size": 5142384,
+  "chassis_size": 6304484,
+  "zip_size": 3091912,
   "inlays": [
     {
       "key": "green",
@@ -5568,7 +5568,7 @@
   "chassis_stl_url": "/3d_panels/tpu_panel_front_chassis_black.stl",
   "multicolor_3mf_url": "/3d_panels/tpu_panel_front_multicolor.3mf",
   "multicolor_zip_url": "/3d_panels/tpu_panel_front_multicolor_bundle.zip",
-  "volume_mm3": 71225.7,
+  "volume_mm3": 71227.6,
   "is_watertight": false,
   "screw_positions": [
     [
@@ -5604,6 +5604,6 @@
       110.54
     ]
   ],
-  "lid_size": 363884,
+  "lid_size": 395784,
   "lid_stl_url": "/3d_panels/tpu_panel_front_lid.stl"
 }

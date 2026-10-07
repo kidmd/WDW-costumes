@@ -93,6 +93,19 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### Entry: Pure Concentric Eyelets Geometry Bugfix (Eliminated Bounding Box Corner Artifacts) & Dual-Anchor Design Confirmation
+* **Date:** 2026-10-06 (Imagineering Session - Wearable Armor Eyelet Precision & Sandwiched Attachment)
+* **Milestone:** Milestone 6 - Wearable 3D Armor Fabrication & Multi-Material 3D Printing
+* **Status:** Complete & Verified (`scripts/compile_clean_tpu_panel.py`, `3d_panels/`, `SIMULATOR_USER_GUIDE.md`, `PROJECT_PROGRESS.md`).
+* **Implementation Details:**
+  - **Identified & Eliminated Pointy Bits on Eyelets:**
+    - Root cause analysis: In `manifold3d`'s native nanobind implementation, `Manifold.cylinder()` contains an internal corner vertex artifact at $(R, R)$ in the first quadrant, extending vertices out to $\sqrt{2} \times R \approx 4.60\text{ mm}$ (beyond the target $3.25\text{ mm}$ outer radius) and resulting in a thin curved tangent "fin" or "horn" protruding from cylindrical tabs.
+    - Engineered `make_clean_cylinder()` via `CrossSection.circle(radius, segments).extrude(height)`, which generates mathematically pure $360^\circ$ concentric circles with exact $R = 3.25\text{ mm}$ outer radius, $R = 1.25\text{ mm}$ inner through-hole, and zero corner artifacts.
+    - Recompiled all Front and Back plates and verified: `Outward protruding vertices beyond r=3.25: 0`. All 16 eyelets on both trays and lids are now completely smooth and circular with zero pointy edges.
+  - **Eyelets on Both Tray and Lid (Design Rationale Confirmed):**
+    - Having 16 matching eyelets on BOTH the tray perimeter wall and the rear cover lid is intentional: when the lid is screwed down to the tray via the 8 M2 perimeter screws, the 16 lid eyelets align hole-for-hole with the tray eyelets to create a reinforced 4.0mm solid stack.
+    - Runners can pass heavy-duty safety pins, tagging barbs, or miniature zip-ties through both the tray and lid simultaneously, firmly anchoring the entire costume armor to the running shirt/mesh vest so the mechanical load is shared and cannot pull the lid away from the tray during the 10K race.
+
 ### Entry: Compact 2-Row 3D Preview Modal Header & Dark-Themed Toolbar UI Refactor
 * **Date:** 2026-10-06 (Imagineering Session - 3D Modal Workspace Optimization)
 * **Milestone:** Milestone 6 - Wearable 3D Armor Fabrication & Multi-Material 3D Printing

@@ -4,7 +4,7 @@ import shapely.geometry as sg
 from shapely.ops import unary_union
 from matplotlib.textpath import TextPath
 import trimesh
-from manifold3d import Manifold, Mesh, OpType
+from manifold3d import Manifold, Mesh, OpType, CrossSection
 import cv2
 from PIL import Image
 
@@ -58,6 +58,9 @@ def to_m(tm):
     v = np.ascontiguousarray(tm.vertices, dtype=np.float32)
     f = np.ascontiguousarray(tm.faces, dtype=np.uint32)
     return Manifold(Mesh(vert_properties=v, tri_verts=f))
+
+def make_clean_cylinder(height, radius, segments=32):
+    return CrossSection.circle(radius, segments).extrude(height)
 
 def extrude_shapely(shape, height):
     if shape is None or shape.is_empty:
@@ -275,8 +278,8 @@ def compile_plate_variant(variant_name, width_mm, height_mm, raw_leds, artwork_p
             cand_center = np.array([pt.x, pt.y]) + normal * 1.5
             
         tab_coords.append([round(float(cand_center[0]), 2), round(float(cand_center[1]), 2)])
-        cyl = Manifold.cylinder(TAB_HEIGHT, TAB_OUTER_R, TAB_OUTER_R, 32).translate([cand_center[0], cand_center[1], TOTAL_THICK - TAB_HEIGHT])
-        hole = Manifold.cylinder(TAB_HEIGHT + 0.4, TAB_INNER_R, TAB_INNER_R, 32).translate([cand_center[0], cand_center[1], TOTAL_THICK - TAB_HEIGHT - 0.2])
+        cyl = make_clean_cylinder(TAB_HEIGHT, TAB_OUTER_R, 32).translate([cand_center[0], cand_center[1], TOTAL_THICK - TAB_HEIGHT])
+        hole = make_clean_cylinder(TAB_HEIGHT + 0.4, TAB_INNER_R, 32).translate([cand_center[0], cand_center[1], TOTAL_THICK - TAB_HEIGHT - 0.2])
         tab_m = cyl - hole
         tab_mesh_data = tab_m.to_mesh()
         tab_solid = trimesh.Trimesh(vertices=tab_mesh_data.vert_properties[:, :3], faces=tab_mesh_data.tri_verts)
@@ -624,10 +627,10 @@ def compile_plate_variant(variant_name, width_mm, height_mm, raw_leds, artwork_p
     pilot_hole_cutters = []
     for sp in screw_coords:
         # 5.0mm diameter pillar rising from Z = 2.0 to 9.0mm fused to inner rim wall
-        boss_cyl = Manifold.cylinder(RIM_HEIGHT, SCREW_BOSS_R, SCREW_BOSS_R, 24).translate([sp[0], sp[1], FRONT_THICK_GENERAL])
+        boss_cyl = make_clean_cylinder(RIM_HEIGHT, SCREW_BOSS_R, 32).translate([sp[0], sp[1], FRONT_THICK_GENERAL])
         tray_boss_solids.append(boss_cyl)
         # 1.6mm diameter pilot hole from top of rim down 5.5mm (Z = 9.0 down to 3.5mm)
-        pilot_cyl = Manifold.cylinder(PILOT_HOLE_DEPTH + 0.2, PILOT_HOLE_R, PILOT_HOLE_R, 24).translate([sp[0], sp[1], TOTAL_THICK - PILOT_HOLE_DEPTH])
+        pilot_cyl = make_clean_cylinder(PILOT_HOLE_DEPTH + 0.2, PILOT_HOLE_R, 32).translate([sp[0], sp[1], TOTAL_THICK - PILOT_HOLE_DEPTH])
         pilot_hole_cutters.append(pilot_cyl)
 
     chassis_solids = [base_with_pockets_m, to_m(rim_mesh)] + [to_m(t) for t in tab_meshes] + [to_m(c) for c in collar_meshes] + tray_boss_solids
@@ -654,8 +657,8 @@ def compile_plate_variant(variant_name, width_mm, height_mm, raw_leds, artwork_p
     # 16 Matching Outer Eyelet Tabs on Lid
     lid_tabs_m = []
     for tc in tab_coords:
-        tab_cyl = Manifold.cylinder(LID_THICK, TAB_OUTER_R, TAB_OUTER_R, 32).translate([tc[0], tc[1], 0.0])
-        tab_hole = Manifold.cylinder(LID_THICK + 0.4, TAB_INNER_R, TAB_INNER_R, 32).translate([tc[0], tc[1], -0.2])
+        tab_cyl = make_clean_cylinder(LID_THICK, TAB_OUTER_R, 32).translate([tc[0], tc[1], 0.0])
+        tab_hole = make_clean_cylinder(LID_THICK + 0.4, TAB_INNER_R, 32).translate([tc[0], tc[1], -0.2])
         lid_tabs_m.append(tab_cyl - tab_hole)
 
     # 1.2mm Alignment Ridge on inner face (stepping 1.5mm inward with 0.25mm clearance)
@@ -679,13 +682,13 @@ def compile_plate_variant(variant_name, width_mm, height_mm, raw_leds, artwork_p
     screw_holes_m = []
     screw_cbore_m = []
     for sp in screw_coords:
-        pad = Manifold.cylinder(RIDGE_HEIGHT, SCREW_BOSS_R, SCREW_BOSS_R, 24).translate([sp[0], sp[1], LID_THICK])
+        pad = make_clean_cylinder(RIDGE_HEIGHT, SCREW_BOSS_R, 32).translate([sp[0], sp[1], LID_THICK])
         lid_pads_m.append(pad)
         # 2.0mm through hole
-        shole = Manifold.cylinder(LID_THICK + RIDGE_HEIGHT + 1.0, SCREW_HOLE_R, SCREW_HOLE_R, 24).translate([sp[0], sp[1], -0.5])
+        shole = make_clean_cylinder(LID_THICK + RIDGE_HEIGHT + 1.0, SCREW_HOLE_R, 32).translate([sp[0], sp[1], -0.5])
         screw_holes_m.append(shole)
         # 3.8mm diameter x 0.8mm deep flush counterbore on outer/shirt face
-        scbore = Manifold.cylinder(SCREW_CBORE_DEPTH + 0.2, SCREW_CBORE_R, SCREW_CBORE_R, 24).translate([sp[0], sp[1], -0.1])
+        scbore = make_clean_cylinder(SCREW_CBORE_DEPTH + 0.2, SCREW_CBORE_R, 32).translate([sp[0], sp[1], -0.1])
         screw_cbore_m.append(scbore)
 
     lid_solids = [lid_base_m, ridge_m] + lid_tabs_m + lid_pads_m
