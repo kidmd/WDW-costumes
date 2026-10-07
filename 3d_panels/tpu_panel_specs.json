@@ -300,8 +300,8 @@
       {
         "id": 21,
         "orig_id": 20,
-        "x": 39.86,
-        "y": 157.5,
+        "x": 39.85,
+        "y": 157.48,
         "color": {
           "r": 242,
           "g": 224,
@@ -960,8 +960,8 @@
       {
         "id": 81,
         "orig_id": 80,
-        "x": 29.08,
-        "y": 165.05,
+        "x": 29.02,
+        "y": 164.93,
         "color": {
           "r": 255,
           "g": 250,
@@ -1147,8 +1147,8 @@
       {
         "id": 98,
         "orig_id": 97,
-        "x": 41.95,
-        "y": 165.39,
+        "x": 41.91,
+        "y": 165.38,
         "color": {
           "r": 255,
           "g": 250,
@@ -1247,7 +1247,7 @@
     ],
     "screw_positions": [
       [
-        35.88,
+        34.38,
         177.32
       ],
       [
@@ -1508,10 +1508,10 @@
       105.46,
       4.5
     ],
-    "stl_size": 3782884,
-    "chassis_size": 4585184,
+    "stl_size": 3777784,
+    "chassis_size": 4581684,
     "lid_size": 411684,
-    "zip_size": 2209293,
+    "zip_size": 2204243,
     "inlays": [
       {
         "key": "red",
@@ -1547,7 +1547,7 @@
     "lid_stl_url": "/3d_panels/tpu_panel_front_lid.stl",
     "multicolor_3mf_url": "/3d_panels/tpu_panel_front_multicolor.3mf",
     "multicolor_zip_url": "/3d_panels/tpu_panel_front_multicolor_bundle.zip",
-    "volume_mm3": 69319.4,
+    "volume_mm3": 68150.9,
     "is_watertight": false
   },
   "back": {
@@ -1782,8 +1782,8 @@
       {
         "id": 21,
         "orig_id": 20,
-        "x": 39.86,
-        "y": 157.5,
+        "x": 39.85,
+        "y": 157.48,
         "color": {
           "r": 242,
           "g": 224,
@@ -2442,8 +2442,8 @@
       {
         "id": 81,
         "orig_id": 80,
-        "x": 29.08,
-        "y": 165.05,
+        "x": 29.02,
+        "y": 164.93,
         "color": {
           "r": 255,
           "g": 250,
@@ -2629,8 +2629,8 @@
       {
         "id": 98,
         "orig_id": 97,
-        "x": 41.95,
-        "y": 165.39,
+        "x": 41.91,
+        "y": 165.38,
         "color": {
           "r": 255,
           "g": 250,
@@ -2729,7 +2729,7 @@
     ],
     "screw_positions": [
       [
-        35.88,
+        34.38,
         177.32
       ],
       [
@@ -2990,10 +2990,10 @@
       105.46,
       4.5
     ],
-    "stl_size": 3782884,
-    "chassis_size": 4585184,
+    "stl_size": 3777784,
+    "chassis_size": 4581684,
     "lid_size": 411684,
-    "zip_size": 2209332,
+    "zip_size": 2204266,
     "inlays": [
       {
         "key": "red",
@@ -3029,7 +3029,7 @@
     "lid_stl_url": "/3d_panels/tpu_panel_back_lid.stl",
     "multicolor_3mf_url": "/3d_panels/tpu_panel_back_multicolor.3mf",
     "multicolor_zip_url": "/3d_panels/tpu_panel_back_multicolor_bundle.zip",
-    "volume_mm3": 69319.4,
+    "volume_mm3": 68150.9,
     "is_watertight": false
   },
   "height_mm": 206.92,
@@ -3257,8 +3257,8 @@
     {
       "id": 21,
       "orig_id": 20,
-      "x": 39.86,
-      "y": 157.5,
+      "x": 39.85,
+      "y": 157.48,
       "color": {
         "r": 242,
         "g": 224,
@@ -3917,8 +3917,8 @@
     {
       "id": 81,
       "orig_id": 80,
-      "x": 29.08,
-      "y": 165.05,
+      "x": 29.02,
+      "y": 164.93,
       "color": {
         "r": 255,
         "g": 250,
@@ -4104,8 +4104,8 @@
     {
       "id": 98,
       "orig_id": 97,
-      "x": 41.95,
-      "y": 165.39,
+      "x": 41.91,
+      "y": 165.38,
       "color": {
         "r": 255,
         "g": 250,
@@ -4209,7 +4209,7 @@
   ],
   "screw_positions": [
     [
-      35.88,
+      34.38,
       177.32
     ],
     [
@@ -4470,10 +4470,10 @@
     105.46,
     4.5
   ],
-  "stl_size": 3782884,
-  "chassis_size": 4585184,
+  "stl_size": 3777784,
+  "chassis_size": 4581684,
   "lid_size": 411684,
-  "zip_size": 2209293,
+  "zip_size": 2204243,
   "inlays": [
     {
       "key": "red",
@@ -4509,6 +4509,6 @@
   "lid_stl_url": "/3d_panels/tpu_panel_front_lid.stl",
   "multicolor_3mf_url": "/3d_panels/tpu_panel_front_multicolor.3mf",
   "multicolor_zip_url": "/3d_panels/tpu_panel_front_multicolor_bundle.zip",
-  "volume_mm3": 69319.4,
+  "volume_mm3": 68150.9,
   "is_watertight": false
 }

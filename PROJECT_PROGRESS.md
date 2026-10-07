@@ -93,6 +93,32 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### Entry: 3D Armor Physical Fit Refinements: Parting-Line Wire Slot, Internal Floor Zip-Tie Bridge, 0.5mm Collar Lip, and Eyelet Tab Braces
+* **Date:** 2026-10-07 (Imagineering Session - 3D Armor Mechanical Refinements from Physical Test Prints)
+* **Milestone:** Milestone 6 - Wearable 3D Armor Fabrication & Mechanical Refinements
+* **Status:** Complete & Verified (`scripts/compile_clean_tpu_panel.py`, `3d_panels/`, `SIMULATOR_USER_GUIDE.md`, `PROJECT_PROGRESS.md`).
+* **Implementation Details:**
+  - **Parting-Line Wire Exit Drop-In Slot (Image 1 Inspection):**
+    - Moved the wire exit notch directly to the top edge where the outer rim wall meets the rear cover lid ($Z = 0.0$ to $3.0\text{ mm}$ in exported underside space).
+    - Reduced Z height from 9.0mm to a clean 3.0mm drop-in U-slot ($5.5\text{ mm}$ wide $\times 3.0\text{ mm}$ tall in Z) matching the LED cable trunk thickness.
+    - Wire harness lays directly into the slot without having to be threaded through an enclosed tunnel.
+    - Lower 4.0mm of the rim wall ($Z = 3.0$ to $7.0\text{ mm}$) remains 100% solid, providing mechanical rigidity and moisture protection.
+  - **Internal Strain Relief Bridge (Image 1 Inspection):**
+    - Eliminated the two through-holes from the front plate floor, leaving the front shirt-facing graphic surface pristine, continuous, and puncture-free.
+    - Added an internal arch bridge ($6.0\text{ mm}$ wide $\times 4.0\text{ mm}$ long $\times 2.5\text{ mm}$ tall with a $3.2 \times 1.4\text{ mm}$ tunnel) placed $5.0\text{ mm}$ inward on the inside cavity floor.
+    - Standard $2.5\text{ mm}$ nylon micro zip-tie loops through this internal bridge to anchor the wire harness firmly against race-day strides.
+  - **0.5mm Collar Wire Notch Lip (Image 2 Inspection):**
+    - Reduced the LED collar wire notch overhang from 2.0mm down to a sleek 0.5mm cantilever lip ($Y = 2.0$ down to $1.5\text{ mm}$) with a 45° chamfer support.
+    - Opened up a generous $3.5\text{ mm}$ clear drop-in gap across the 4.0mm wire notch, allowing 3-conductor ribbon wire to seat effortlessly while the 0.5mm catch lip prevents vertical pop-out.
+    - Retained the $0.70\text{ mm}$ collar perimeter retention beads for rigid snap caps.
+  - **Dual 45° Triangular Eyelet Braces (Image 3 Inspection):**
+    - Added dual 45° triangular gussets ($1.2\text{ mm}$ wide, rising $3.0\text{ mm}$ up the vertical outer rim wall from $Z = 2.0$ to $5.0\text{ mm}$) flanking both shoulders of all 16 outer tabs.
+    - Fuses each tab directly into the outer chassis wall, preventing peel and tear-out when under tension or safety-pinned during the 10K.
+    - Preserved full unobstructed clearance for the $\varnothing 2.7\text{ mm}$ center through-hole.
+  - **Watertight Manifold3D Recompilation:**
+    - Recompiled Front Plate ($205.85\text{ mm} \times 169.40\text{ mm} \times 9.0\text{ mm}$) and Back Plate in 8.34 seconds.
+    - Generated pristine STLs (`tpu_panel_front_chassis_black.stl`, `tpu_panel_front_lid.stl`, color inlays, 3MF multi-material project, and ZIP bundle).
+
 ### Entry: High-Detail 1:1 Original Snail Artwork Recolored to 5-Color Multi-Material 3D Armor
 * **Date:** 2026-10-06 (Imagineering Session - Float 04 Original Snail 1:1 Recoloring for 3D Printing)
 * **Milestone:** Milestone 6 - Wearable 3D Armor Fabrication & Multi-Material 3D Printing

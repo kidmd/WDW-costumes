@@ -281,11 +281,46 @@ def compile_plate_variant(variant_name, width_mm, height_mm, raw_leds, artwork_p
         cyl = make_clean_cylinder(TAB_HEIGHT, TAB_OUTER_R, 32).translate([cand_center[0], cand_center[1], TOTAL_THICK - TAB_HEIGHT])
         hole = make_clean_cylinder(TAB_HEIGHT + 0.4, TAB_INNER_R, 32).translate([cand_center[0], cand_center[1], TOTAL_THICK - TAB_HEIGHT - 0.2])
         tab_m = cyl - hole
-        tab_mesh_data = tab_m.to_mesh()
+
+        # Dual 45° triangular gusset braces flanking tab shoulders (Image 3)
+        # Rises 3.0mm up the vertical rim wall from the tab surface (Z = 7.0 to 4.0 in pre-flip space)
+        # and extends 2.0mm outward along the tab top
+        GUSSET_RISE = 3.0
+        GUSSET_EXTENT = 2.0
+        GUSSET_THICK = 1.2
+        tri_pts = [[0.0, TOTAL_THICK - TAB_HEIGHT - GUSSET_RISE],
+                   [0.0, TOTAL_THICK - TAB_HEIGHT],
+                   [GUSSET_EXTENT, TOTAL_THICK - TAB_HEIGHT]]
+        tri_ext = trimesh.creation.extrude_polygon(sg.Polygon(tri_pts), height=GUSSET_THICK)
+        v_tri = tri_ext.vertices
+        v_tri_new = np.zeros_like(v_tri)
+        v_tri_new[:, 0] = v_tri[:, 0]                      # outward normal
+        v_tri_new[:, 1] = v_tri[:, 2] - GUSSET_THICK / 2.0 # tangent centered
+        v_tri_new[:, 2] = v_tri[:, 1]                      # Z
+        tri_base_tm = trimesh.Trimesh(vertices=v_tri_new, faces=tri_ext.faces[:, ::-1], process=True)
+
+        rot_mat = np.eye(4)
+        rot_mat[0, 0] = normal[0]
+        rot_mat[1, 0] = normal[1]
+        rot_mat[0, 1] = tan_norm[0]
+        rot_mat[1, 1] = tan_norm[1]
+
+        gussets_m = []
+        for s_sign in [-1, 1]:
+            g_tm = tri_base_tm.copy()
+            g_tm.apply_transform(rot_mat)
+            g_pos = cand_center - normal * 1.5 + tan_norm * (s_sign * 2.2)
+            g_tm.apply_translation([g_pos[0], g_pos[1], 0.0])
+            vg = np.ascontiguousarray(g_tm.vertices, dtype=np.float32)
+            fg = np.ascontiguousarray(g_tm.faces, dtype=np.uint32)
+            gussets_m.append(Manifold(Mesh(vert_properties=vg, tri_verts=fg)))
+
+        full_tab_m = tab_m + Manifold.batch_boolean(gussets_m, OpType.Add)
+        tab_mesh_data = full_tab_m.to_mesh()
         tab_solid = trimesh.Trimesh(vertices=tab_mesh_data.vert_properties[:, :3], faces=tab_mesh_data.tri_verts)
         tab_meshes.append(tab_solid)
 
-    # 4b. Bottom-Center Wire Entry/Exit Portal & Zip-Tie Strain Relief Anchor (Option B)
+    # 4b. Bottom-Center Wire Entry/Exit Notch & Internal Strain Relief Anchor (Option B)
     cx_mid = (bounds[0] + bounds[2]) / 2.0
     bottom_pts = [p for p in contour_coords if abs(p[0] - cx_mid) < 25.0]
     if bottom_pts:
@@ -296,16 +331,22 @@ def compile_plate_variant(variant_name, width_mm, height_mm, raw_leds, artwork_p
         wire_portal_x = cx_mid
         wire_portal_y = bounds[1]
 
-    # Arch cutter through rim (6mm wide x 3.5mm tall, Z = 2.0 to 5.5mm)
-    wire_portal_cutter = trimesh.creation.box(extents=[6.0, RIM_WALL_THICK + 4.0, 3.5])
-    wire_portal_cutter.apply_translation([wire_portal_x, wire_portal_y, FRONT_THICK_GENERAL + 1.75])
+    # Parting-line wire exit notch at top of outer rim wall (Z = 6.0 to 9.2mm in pre-flip space)
+    # Flips to Z = 0.0 to 3.0mm in exported STL (right at the parting line where outer wall meets lid!)
+    PORTAL_NOTCH_W = 5.5   # mm wide
+    PORTAL_NOTCH_H = 3.0   # mm tall
+    wire_portal_cutter = trimesh.creation.box(extents=[PORTAL_NOTCH_W, RIM_WALL_THICK + 4.0, PORTAL_NOTCH_H + 0.4])
+    wire_portal_cutter.apply_translation([wire_portal_x, wire_portal_y, TOTAL_THICK - PORTAL_NOTCH_H / 2.0 + 0.2])
 
-    # Zip-tie strain-relief slots: two 1.4mm x 2.8mm slots flanking portal ~6mm inward
-    ziptie_y = wire_portal_y + 6.0
-    slot_left = trimesh.creation.box(extents=[1.4, 2.8, FRONT_THICK_GENERAL + 1.0])
-    slot_left.apply_translation([wire_portal_x - 3.5, ziptie_y, FRONT_THICK_GENERAL / 2.0])
-    slot_right = trimesh.creation.box(extents=[1.4, 2.8, FRONT_THICK_GENERAL + 1.0])
-    slot_right.apply_translation([wire_portal_x + 3.5, ziptie_y, FRONT_THICK_GENERAL / 2.0])
+    # Internal floor zip-tie strain relief bridge (no holes piercing front artwork face!)
+    # Bridge: 6.0mm wide (X) x 4.0mm long (Y) x 2.5mm tall (Z = 2.0 to 4.5mm)
+    # Tunnel: 3.2mm wide (X) x 6.0mm long (Y) x 1.4mm tall (Z = 2.0 to 3.4mm)
+    bridge_y = wire_portal_y + RIM_WALL_THICK + 5.0
+    bridge_solid_tm = trimesh.creation.box(extents=[6.0, 4.0, 2.5])
+    bridge_solid_tm.apply_translation([wire_portal_x, bridge_y, FRONT_THICK_GENERAL + 1.25])
+    tunnel_cutter_tm = trimesh.creation.box(extents=[3.2, 6.0, 1.4])
+    tunnel_cutter_tm.apply_translation([wire_portal_x, bridge_y, FRONT_THICK_GENERAL + 0.70])
+    internal_bridge_m = to_m(bridge_solid_tm) - to_m(tunnel_cutter_tm)
 
     # 5. Collars, Recesses & Windows
     outer_collar_2d = make_stadium_polygon(COLLAR_OUTER_L, COLLAR_OUTER_W, sections=16)
@@ -325,16 +366,15 @@ def compile_plate_variant(variant_name, width_mm, height_mm, raw_leds, artwork_p
     nub_outer_2d = outer_collar_2d.buffer(NUB_PROTRUSION, resolution=16)
     nub_ring_2d = nub_outer_2d.difference(outer_collar_2d)
 
-    # 2.0mm Wire Retention Partial Roof with 45° chamfer support across wire notches
-    # Extends 2.0mm across the notch from Y = 2.0 down to Y = 0.0 (towards top of graphic)
-    # Underside features a 45° chamfer support from Z = 2.2 down to Z = 0.8 (perfect support-free PLA overhang)
-    # Leaving 2.2mm vertical wire opening from collar floor
+    # 0.50mm Single-Sided Wire Retention Catch Lip with 45° chamfer support across wire notches
+    # Leaves an expansive 3.5mm drop-in channel across the 4.0mm notch (from Y = 1.5 to Y = -2.0)
+    LIP_EXTENT = 0.50  # mm
+    LIP_THICK = 0.50   # mm
     roof_pts_yz = [
-        [2.0, COLLAR_HEIGHT],              # Top wall junction [2.0, 3.0]
-        [0.0, COLLAR_HEIGHT],              # Top roof tip [0.0, 3.0]
-        [0.0, COLLAR_HEIGHT - NUB_HEIGHT], # Free tip underside [0.0, 2.2]
-        [1.4, 0.8],                        # 45 deg chamfer (dx = 1.4, dz = 1.4)
-        [2.0, 0.8],                        # Junction with notch side wall
+        [2.0, COLLAR_HEIGHT],                          # Top wall junction [2.0, 3.0]
+        [2.0 - LIP_EXTENT, COLLAR_HEIGHT],             # Roof tip [1.5, 3.0]
+        [2.0 - LIP_EXTENT, COLLAR_HEIGHT - LIP_THICK], # Tip underside [1.5, 2.5]
+        [2.0, COLLAR_HEIGHT - LIP_THICK - LIP_EXTENT], # 45 deg chamfer to wall [2.0, 2.0]
     ]
     roof_poly_yz = sg.Polygon(roof_pts_yz)
 
@@ -642,11 +682,11 @@ def compile_plate_variant(variant_name, width_mm, height_mm, raw_leds, artwork_p
         pilot_cyl = make_clean_cylinder(PILOT_HOLE_DEPTH + 0.2, PILOT_HOLE_R, 32).translate([sp[0], sp[1], TOTAL_THICK - PILOT_HOLE_DEPTH])
         pilot_hole_cutters.append(pilot_cyl)
 
-    chassis_solids = [base_with_pockets_m, to_m(rim_mesh)] + [to_m(t) for t in tab_meshes] + [to_m(c) for c in collar_meshes] + tray_boss_solids
+    chassis_solids = [base_with_pockets_m, to_m(rim_mesh), internal_bridge_m] + [to_m(t) for t in tab_meshes] + [to_m(c) for c in collar_meshes] + tray_boss_solids
     chassis_assembled_m = Manifold.batch_boolean(chassis_solids, OpType.Add)
 
-    # Cutters: floor recesses, square/round optical windows, debossed numbers, wire portal arch, strain-relief slots, and M2 pilot holes
-    all_cutters = floor_recess_cutters + square_window_cutters + number_cutters + [wire_portal_cutter, slot_left, slot_right]
+    # Cutters: floor recesses, square/round optical windows, debossed numbers, wire portal notch, and M2 pilot holes (no front face holes!)
+    all_cutters = floor_recess_cutters + square_window_cutters + number_cutters + [wire_portal_cutter]
     cutters_m = [to_m(c) for c in all_cutters] + pilot_hole_cutters
     cutters_union_m = Manifold.batch_boolean(cutters_m, OpType.Add)
 
@@ -654,7 +694,7 @@ def compile_plate_variant(variant_name, width_mm, height_mm, raw_leds, artwork_p
     final_chassis_tm = flip_z_manifold(final_chassis_m)
 
     # Monolithic single-color black STL (legacy compatible, without color pockets subtracted)
-    monolithic_solids = [base_m, to_m(rim_mesh)] + [to_m(t) for t in tab_meshes] + [to_m(c) for c in collar_meshes] + tray_boss_solids
+    monolithic_solids = [base_m, to_m(rim_mesh), internal_bridge_m] + [to_m(t) for t in tab_meshes] + [to_m(c) for c in collar_meshes] + tray_boss_solids
     monolithic_m = Manifold.batch_boolean(monolithic_solids, OpType.Add) - cutters_union_m
     final_monolithic_tm = flip_z_manifold(monolithic_m)
 
