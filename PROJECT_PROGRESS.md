@@ -93,6 +93,18 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### Entry: Compact 2-Row 3D Preview Modal Header & Dark-Themed Toolbar UI Refactor
+* **Date:** 2026-10-06 (Imagineering Session - 3D Modal Workspace Optimization)
+* **Milestone:** Milestone 6 - Wearable 3D Armor Fabrication & Multi-Material 3D Printing
+* **Status:** Complete & Verified (`simulator/index.html`, `simulator/app.js`, `SIMULATOR_USER_GUIDE.md`, `PROJECT_PROGRESS.md`).
+* **Implementation Details:**
+  - **Eliminated Giant Bright Green Banner:** Replaced the legacy bright green gradient (`linear-gradient(135deg, #097969, #00ff88)`) with a sleek dark slate theme (`#161b22` header, `#0d1117` toolbar, with `#30363d` dividing borders) matching the rest of the application and eliminating glare.
+  - **Compact 2-Row Spatial Hierarchy:**
+    - **Row 1 (Header Bar, ~38px):** Dedicated to identity and window actions. Displays the dynamic float mascot icon (e.g. 🐢 for Turtle, 🐉 for Dragon), concise plate title (`The Turtle • Front Chest Plate`), compact subtitle (`95A TPU Tray • 3×3mm Windows • 5-Color AMS Split`), standalone `↗️ Full Tab` viewer link, and high-contrast `✕` close button.
+    - **Row 2 (Controls Toolbar, ~34px):** Dedicated to hardware toggles and print options. Spans the full modal width with clean dividers and high-contrast pill toggles: `[ 🎽 Front | 🎒 Back ]`, `[ 📦 Tray Basin | 🛡️ Rear Lid (2mm) ]`, `[ 🔲 Square | ⚪ Round ]`, `[ 🔢 # | 🚫 No # ]`, `[ 🔘 Nubs & Roofs | 🚫 No Nubs ]`, `[ 🗜️ Grooves | 🧱 Solid Walls ]`, and `[ 🎨 5-Color Split | ⚪ Single Black ]`.
+  - **Unified Pill State Manager (`setTpuModalPillState`):** Replaced divergent inline styling logic in `simulator/app.js` with a unified helper ensuring active buttons always show crisp electric green (`#00ff88` on `#000` text, bold) and idle buttons show legible dark-theme text (`#8b949e` on transparent).
+  - **Reclaimed Viewport Screen Real Estate:** Reduced top bar footprint from over 300px (which took ~60% of the modal height due to title text wrapping 15+ times into a squeezed column) down to ~72px total height. Reclaimed over 225px of vertical screen real estate, expanding the 3D WebGL model viewer from ~35% to ~85% of the viewport.
+
 ### Entry: 2.0mm Rear Cover Lid Plate with Alignment Ridge, M2 Flush Screw Bosses & Multi-Material Bundle Integration
 * **Date:** 2026-10-06 (Imagineering Session - Wearable Armor Back Plate Enclosure)
 * **Milestone:** Milestone 6 - Wearable 3D Armor Fabrication & Multi-Material 3D Printing

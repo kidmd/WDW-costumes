@@ -17535,6 +17535,20 @@ function selectPlateSizeOption(size) {
 }
 window.selectPlateSizeOption = selectPlateSizeOption;
 
+function setTpuModalPillState(activeBtn, idleBtn) {
+    if (activeBtn) {
+        activeBtn.style.background = '#00ff88';
+        activeBtn.style.color = '#000000';
+        activeBtn.style.fontWeight = '700';
+    }
+    if (idleBtn) {
+        idleBtn.style.background = 'transparent';
+        idleBtn.style.color = '#8b949e';
+        idleBtn.style.fontWeight = '500';
+    }
+}
+window.setTpuModalPillState = setTpuModalPillState;
+
 function setTpuExportMode(mode) {
     if (mode !== 'multi' && mode !== 'single') mode = 'multi';
     tpuExportMode = mode;
@@ -17545,15 +17559,9 @@ function setTpuExportMode(mode) {
 
     if (multiBtn && monoBtn) {
         if (mode === 'multi') {
-            multiBtn.style.background = '#000';
-            multiBtn.style.color = '#00ff88';
-            monoBtn.style.background = 'transparent';
-            monoBtn.style.color = 'rgba(0,0,0,0.7)';
+            setTpuModalPillState(multiBtn, monoBtn);
         } else {
-            monoBtn.style.background = '#000';
-            monoBtn.style.color = '#00ff88';
-            multiBtn.style.background = 'transparent';
-            multiBtn.style.color = 'rgba(0,0,0,0.7)';
+            setTpuModalPillState(monoBtn, multiBtn);
         }
     }
 
@@ -17786,15 +17794,9 @@ function setTpuWindowShape(shape) {
     const modalRdBtn = document.getElementById('tpuModalShapeRoundBtn');
     if (modalSqBtn && modalRdBtn) {
         if (shape === 'square') {
-            modalSqBtn.style.background = '#00ff88';
-            modalSqBtn.style.color = '#000';
-            modalRdBtn.style.background = 'transparent';
-            modalRdBtn.style.color = 'rgba(0,0,0,0.7)';
+            setTpuModalPillState(modalSqBtn, modalRdBtn);
         } else {
-            modalRdBtn.style.background = '#00ff88';
-            modalRdBtn.style.color = '#000';
-            modalSqBtn.style.background = 'transparent';
-            modalSqBtn.style.color = 'rgba(0,0,0,0.7)';
+            setTpuModalPillState(modalRdBtn, modalSqBtn);
         }
     }
 
@@ -17823,9 +17825,7 @@ function setTpuLedNumbers(on) {
     const onBtn = document.getElementById('tpuModalNumbersOnBtn');
     const offBtn = document.getElementById('tpuModalNumbersOffBtn');
     if (onBtn && offBtn) {
-        const act = (b) => { b.style.background = '#00ff88'; b.style.color = '#000'; };
-        const idle = (b) => { b.style.background = 'transparent'; b.style.color = 'rgba(0,0,0,0.7)'; };
-        if (on) { act(onBtn); idle(offBtn); } else { act(offBtn); idle(onBtn); }
+        if (on) { setTpuModalPillState(onBtn, offBtn); } else { setTpuModalPillState(offBtn, onBtn); }
     }
     // Recompile immediately and reload mesh views if the modal is open
     if (tpuIsOpen) {
@@ -17850,9 +17850,7 @@ function setTpuClipGrooves(on) {
     const onBtn = document.getElementById('tpuModalGroovesOnBtn');
     const offBtn = document.getElementById('tpuModalGroovesOffBtn');
     if (onBtn && offBtn) {
-        const act = (b) => { b.style.background = '#00ff88'; b.style.color = '#000'; };
-        const idle = (b) => { b.style.background = 'transparent'; b.style.color = 'rgba(0,0,0,0.7)'; };
-        if (on) { act(onBtn); idle(offBtn); } else { act(offBtn); idle(onBtn); }
+        if (on) { setTpuModalPillState(onBtn, offBtn); } else { setTpuModalPillState(offBtn, onBtn); }
     }
     if (tpuIsOpen) {
         const loaderOverlay = document.getElementById('tpuModalLoading');
@@ -17900,9 +17898,7 @@ function setTpuTopNubs(on) {
     const onBtn = document.getElementById('tpuModalTopNubsOnBtn');
     const offBtn = document.getElementById('tpuModalTopNubsOffBtn');
     if (onBtn && offBtn) {
-        const act = (b) => { b.style.background = '#000'; b.style.color = '#00ff88'; };
-        const idle = (b) => { b.style.background = 'transparent'; b.style.color = 'rgba(0,0,0,0.7)'; };
-        if (on) { act(onBtn); idle(offBtn); } else { act(offBtn); idle(onBtn); }
+        if (on) { setTpuModalPillState(onBtn, offBtn); } else { setTpuModalPillState(offBtn, onBtn); }
     }
     if (tpuIsOpen) {
         const loaderOverlay = document.getElementById('tpuModalLoading');
@@ -18188,15 +18184,9 @@ function switchTpuModalVariant(variant) {
     const bBtn = document.getElementById('tpuModalSelectBackBtn');
     if (fBtn && bBtn) {
         if (variant === 'front') {
-            fBtn.style.background = '#000';
-            fBtn.style.color = '#00ff88';
-            bBtn.style.background = 'transparent';
-            bBtn.style.color = 'rgba(0,0,0,0.7)';
+            setTpuModalPillState(fBtn, bBtn);
         } else {
-            bBtn.style.background = '#000';
-            bBtn.style.color = '#00ff88';
-            fBtn.style.background = 'transparent';
-            fBtn.style.color = 'rgba(0,0,0,0.7)';
+            setTpuModalPillState(bBtn, fBtn);
         }
     }
     loadTpuModalData();
@@ -18211,15 +18201,9 @@ function switchTpuDisplayMode(mode) {
     const lidBtn = document.getElementById('tpuModalDisplayLidBtn');
     if (trayBtn && lidBtn) {
         if (mode === 'lid') {
-            lidBtn.style.background = '#000';
-            lidBtn.style.color = '#00ff88';
-            trayBtn.style.background = 'transparent';
-            trayBtn.style.color = 'rgba(0,0,0,0.7)';
+            setTpuModalPillState(lidBtn, trayBtn);
         } else {
-            trayBtn.style.background = '#000';
-            trayBtn.style.color = '#00ff88';
-            lidBtn.style.background = 'transparent';
-            lidBtn.style.color = 'rgba(0,0,0,0.7)';
+            setTpuModalPillState(trayBtn, lidBtn);
         }
     }
     loadTpuModalData();
@@ -18299,24 +18283,29 @@ async function loadTpuModalData() {
         const floatName = specs.float_name || getActiveFloatName();
         const variantTitle = (tpuActiveVariant === 'back') ? "Back Torso Plate" : "Front Chest Plate";
 
-        const modalTitle = document.querySelector('#tpuPreviewModal h3');
+        const modalTitle = document.getElementById('tpuModalMainTitle') || document.querySelector('#tpuPreviewModal h3');
         if (modalTitle) {
-            if (tpuDisplayMode === 'lid') {
-                modalTitle.textContent = `${floatName} • ${variantTitle} (🛡️ 2.0mm Rear Cover Lid Plate)`;
-            } else {
-                const modeLabel = (tpuExportMode === 'multi') ? "🎨 5-Color Multi-Material Print" : "⚪ Single-Color Black STL";
-                modalTitle.textContent = `${floatName} • ${variantTitle} (${modeLabel})`;
-            }
+            modalTitle.textContent = `${floatName} • ${variantTitle}`;
         }
 
         const effectiveShape = specs.window_shape || params.tpuWindowShape || 'square';
         const modalSub = document.getElementById('tpuModalSubtitle');
         if (modalSub) {
             if (tpuDisplayMode === 'lid') {
-                modalSub.textContent = `2.0mm Solid Cover Plate • 1.2mm Alignment Ridge • 8 M2 Flush Screws • 16 Back Eyelets`;
+                modalSub.textContent = `2.0mm Solid Lid • 1.2mm Alignment Ridge • 8 M2 Screws • 16 Eyelets`;
             } else {
                 const shapeText = (effectiveShape === 'round' || effectiveShape === 'circle') ? 'Ø 3mm Round Windows' : '3×3mm Square Windows';
-                modalSub.textContent = `95A TPU Open-Chassis Tray • ${shapeText} • Sized for Bambu Lab AMS (5 Slots)`;
+                const modeText = (tpuExportMode === 'multi') ? '5-Color AMS Split' : 'Single Solid STL';
+                modalSub.textContent = `95A TPU Tray • ${shapeText} • ${modeText}`;
+            }
+        }
+
+        const iconSpan = document.getElementById('tpuModalFloatIcon');
+        if (iconSpan) {
+            const activeSlot = (typeof activeFloatSlot !== 'undefined') ? activeFloatSlot : 5;
+            const floatInfo = (typeof DEFAULT_FLEET_ROSTER !== 'undefined' && DEFAULT_FLEET_ROSTER[activeSlot]) ? DEFAULT_FLEET_ROSTER[activeSlot] : null;
+            if (floatInfo && floatInfo.icon) {
+                iconSpan.textContent = floatInfo.icon;
             }
         }
 
@@ -18325,17 +18314,8 @@ async function loadTpuModalData() {
         const mRdBtn = document.getElementById('tpuModalShapeRoundBtn');
         if (mSqBtn && mRdBtn) {
             const isRound = (effectiveShape === 'round' || effectiveShape === 'circle');
-            if (isRound) {
-                mRdBtn.style.background = '#00ff88';
-                mRdBtn.style.color = '#000';
-                mSqBtn.style.background = 'transparent';
-                mSqBtn.style.color = 'rgba(0,0,0,0.7)';
-            } else {
-                mSqBtn.style.background = '#00ff88';
-                mSqBtn.style.color = '#000';
-                mRdBtn.style.background = 'transparent';
-                mRdBtn.style.color = 'rgba(0,0,0,0.7)';
-            }
+            if (isRound) setTpuModalPillState(mRdBtn, mSqBtn);
+            else setTpuModalPillState(mSqBtn, mRdBtn);
         }
 
         // Sync modal LED numbers buttons
@@ -18343,17 +18323,8 @@ async function loadTpuModalData() {
         const numOffBtn = document.getElementById('tpuModalNumbersOffBtn');
         if (numOnBtn && numOffBtn) {
             const numbersEnabled = (params.tpuIncludeLedNumbers === true);
-            if (numbersEnabled) {
-                numOnBtn.style.background = '#000';
-                numOnBtn.style.color = '#00ff88';
-                numOffBtn.style.background = 'transparent';
-                numOffBtn.style.color = 'rgba(0,0,0,0.7)';
-            } else {
-                numOffBtn.style.background = '#000';
-                numOffBtn.style.color = '#00ff88';
-                numOnBtn.style.background = 'transparent';
-                numOnBtn.style.color = 'rgba(0,0,0,0.7)';
-            }
+            if (numbersEnabled) setTpuModalPillState(numOnBtn, numOffBtn);
+            else setTpuModalPillState(numOffBtn, numOnBtn);
         }
 
         // Sync modal Clip Grooves buttons
@@ -18361,17 +18332,8 @@ async function loadTpuModalData() {
         const grvOffBtn = document.getElementById('tpuModalGroovesOffBtn');
         if (grvOnBtn && grvOffBtn) {
             const groovesEnabled = (params.tpuIncludeClipGrooves === true);
-            if (groovesEnabled) {
-                grvOnBtn.style.background = '#000';
-                grvOnBtn.style.color = '#00ff88';
-                grvOffBtn.style.background = 'transparent';
-                grvOffBtn.style.color = 'rgba(0,0,0,0.7)';
-            } else {
-                grvOffBtn.style.background = '#000';
-                grvOffBtn.style.color = '#00ff88';
-                grvOnBtn.style.background = 'transparent';
-                grvOnBtn.style.color = 'rgba(0,0,0,0.7)';
-            }
+            if (groovesEnabled) setTpuModalPillState(grvOnBtn, grvOffBtn);
+            else setTpuModalPillState(grvOffBtn, grvOnBtn);
         }
 
         // Sync modal Top Nubs buttons
@@ -18379,69 +18341,32 @@ async function loadTpuModalData() {
         const nubOffBtn = document.getElementById('tpuModalTopNubsOffBtn');
         if (nubOnBtn && nubOffBtn) {
             const nubsEnabled = (params.tpuIncludeTopNubs === true);
-            if (nubsEnabled) {
-                nubOnBtn.style.background = '#000';
-                nubOnBtn.style.color = '#00ff88';
-                nubOffBtn.style.background = 'transparent';
-                nubOffBtn.style.color = 'rgba(0,0,0,0.7)';
-            } else {
-                nubOffBtn.style.background = '#000';
-                nubOffBtn.style.color = '#00ff88';
-                nubOnBtn.style.background = 'transparent';
-                nubOnBtn.style.color = 'rgba(0,0,0,0.7)';
-            }
+            if (nubsEnabled) setTpuModalPillState(nubOnBtn, nubOffBtn);
+            else setTpuModalPillState(nubOffBtn, nubOnBtn);
         }
 
         // Sync modal variant buttons
         const vfBtn = document.getElementById('tpuModalSelectFrontBtn');
         const vbBtn = document.getElementById('tpuModalSelectBackBtn');
         if (vfBtn && vbBtn) {
-            if (tpuActiveVariant === 'front') {
-                vfBtn.style.background = '#000';
-                vfBtn.style.color = '#00ff88';
-                vbBtn.style.background = 'transparent';
-                vbBtn.style.color = 'rgba(0,0,0,0.7)';
-            } else {
-                vbBtn.style.background = '#000';
-                vbBtn.style.color = '#00ff88';
-                vfBtn.style.background = 'transparent';
-                vfBtn.style.color = 'rgba(0,0,0,0.7)';
-            }
+            if (tpuActiveVariant === 'front') setTpuModalPillState(vfBtn, vbBtn);
+            else setTpuModalPillState(vbBtn, vfBtn);
         }
 
         // Sync modal display mode buttons (Tray Basin vs Rear Lid)
         const dTrayBtn = document.getElementById('tpuModalDisplayTrayBtn');
         const dLidBtn = document.getElementById('tpuModalDisplayLidBtn');
         if (dTrayBtn && dLidBtn) {
-            if (tpuDisplayMode === 'lid') {
-                dLidBtn.style.background = '#000';
-                dLidBtn.style.color = '#00ff88';
-                dTrayBtn.style.background = 'transparent';
-                dTrayBtn.style.color = 'rgba(0,0,0,0.7)';
-            } else {
-                dTrayBtn.style.background = '#000';
-                dTrayBtn.style.color = '#00ff88';
-                dLidBtn.style.background = 'transparent';
-                dLidBtn.style.color = 'rgba(0,0,0,0.7)';
-            }
+            if (tpuDisplayMode === 'lid') setTpuModalPillState(dLidBtn, dTrayBtn);
+            else setTpuModalPillState(dTrayBtn, dLidBtn);
         }
 
         // Sync multi-color vs single mode buttons
         const multiBtn = document.getElementById('tpuModalModeMultiBtn');
         const monoBtn = document.getElementById('tpuModalModeMonoBtn');
-        const legend = document.getElementById('tpuModalColorLegend');
         if (multiBtn && monoBtn) {
-            if (tpuExportMode === 'multi') {
-                multiBtn.style.background = '#000';
-                multiBtn.style.color = '#00ff88';
-                monoBtn.style.background = 'transparent';
-                monoBtn.style.color = 'rgba(0,0,0,0.7)';
-            } else {
-                monoBtn.style.background = '#000';
-                monoBtn.style.color = '#00ff88';
-                multiBtn.style.background = 'transparent';
-                multiBtn.style.color = 'rgba(0,0,0,0.7)';
-            }
+            if (tpuExportMode === 'multi') setTpuModalPillState(multiBtn, monoBtn);
+            else setTpuModalPillState(monoBtn, multiBtn);
         }
 
         // Update aperture badge & floating AMS legend

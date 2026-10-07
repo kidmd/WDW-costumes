@@ -2383,55 +2383,71 @@
     <div id="tpuPreviewModal" style="display: none; position: fixed; inset: 0; background: rgba(0, 0, 0, 0.85); backdrop-filter: blur(5px); z-index: 9999; justify-content: center; align-items: center; padding: 16px;">
         <div style="background: #0d1117; border: 1px solid #30363d; border-radius: 12px; width: 95vw; max-width: 950px; height: 90vh; max-height: 750px; box-shadow: 0 16px 48px rgba(0, 0, 0, 0.8); overflow: hidden; display: flex; flex-direction: column; position: relative;">
             
-            <!-- Modal Header -->
-            <div style="padding: 12px 18px; background: linear-gradient(135deg, #097969, #00ff88); color: #000; display: flex; justify-content: space-between; align-items: center; z-index: 10;">
-                <div style="display: flex; align-items: center; gap: 8px;">
-                    <span style="font-size: 20px;">🐉</span>
-                    <div>
-                        <h3 style="font-size: 15px; font-weight: 700; color: #000; margin: 0;">Pete's Dragon 3D Flexible TPU Armor Panel</h3>
-                        <p id="tpuModalSubtitle" style="font-size: 11px; color: rgba(0, 0, 0, 0.8); margin: 0; font-weight: 500;">95A TPU Open-Chassis Tray • 3×3mm Square Windows • Zero Overlap Pockets</p>
-                    </div>
-                    <!-- Front / Back Variant Switcher Pill -->
-                    <div style="display: flex; align-items: center; margin-left: 8px; background: rgba(0, 0, 0, 0.3); border-radius: 6px; padding: 2px; gap: 2px;">
-                        <button type="button" id="tpuModalSelectFrontBtn" onclick="switchTpuModalVariant('front')" style="border: none; border-radius: 4px; padding: 4px 8px; font-size: 11px; font-weight: 700; cursor: pointer; background: #000; color: #00ff88; transition: all 0.2s ease;">🎽 Front</button>
-                        <button type="button" id="tpuModalSelectBackBtn" onclick="switchTpuModalVariant('back')" style="border: none; border-radius: 4px; padding: 4px 8px; font-size: 11px; font-weight: 700; cursor: pointer; background: transparent; color: rgba(0,0,0,0.7); transition: all 0.2s ease;">🎒 Back</button>
-                    </div>
-                    <!-- Tray Basin vs Rear Lid Switcher Pill -->
-                    <div style="display: flex; align-items: center; margin-left: 4px; background: rgba(0, 0, 0, 0.3); border-radius: 6px; padding: 2px; gap: 2px;" title="Switch between Main Armor Tray and 2.0mm Rear Cover Lid Plate">
-                        <button type="button" id="tpuModalDisplayTrayBtn" onclick="switchTpuDisplayMode('tray')" style="border: none; border-radius: 4px; padding: 4px 7px; font-size: 11px; font-weight: 700; cursor: pointer; background: #000; color: #00ff88; transition: all 0.2s ease;">📦 Tray Basin</button>
-                        <button type="button" id="tpuModalDisplayLidBtn" onclick="switchTpuDisplayMode('lid')" style="border: none; border-radius: 4px; padding: 4px 7px; font-size: 11px; font-weight: 700; cursor: pointer; background: transparent; color: rgba(0,0,0,0.7); transition: all 0.2s ease;">🛡️ Rear Lid (2mm)</button>
-                    </div>
-                    <!-- Window Shape Switcher Pill -->
-                    <div style="display: flex; align-items: center; margin-left: 4px; background: rgba(0, 0, 0, 0.3); border-radius: 6px; padding: 2px; gap: 2px;" title="Select hole geometry and auto-regenerate STL">
-                        <button type="button" id="tpuModalShapeSquareBtn" onclick="setTpuWindowShape('square')" style="border: none; border-radius: 4px; padding: 4px 7px; font-size: 11px; font-weight: 700; cursor: pointer; background: #000; color: #00ff88; transition: all 0.2s ease;">🔲 Square</button>
-                        <button type="button" id="tpuModalShapeRoundBtn" onclick="setTpuWindowShape('round')" style="border: none; border-radius: 4px; padding: 4px 7px; font-size: 11px; font-weight: 700; cursor: pointer; background: transparent; color: rgba(0,0,0,0.7); transition: all 0.2s ease;">⚪ Round</button>
-                    </div>
-                    <!-- LED Numbers (debossed on underside) Switcher -->
-                    <div style="display: flex; align-items: center; margin-left: 4px; background: rgba(0, 0, 0, 0.3); border-radius: 6px; padding: 2px; gap: 2px;" title="Deboss LED numbers into the underside of the STL (regenerates STL)">
-                        <button type="button" id="tpuModalNumbersOnBtn" onclick="setTpuLedNumbers(true)" style="border: none; border-radius: 4px; padding: 4px 7px; font-size: 11px; font-weight: 700; cursor: pointer; background: transparent; color: rgba(0,0,0,0.7); transition: all 0.2s ease;">🔢 Numbers</button>
-                        <button type="button" id="tpuModalNumbersOffBtn" onclick="setTpuLedNumbers(false)" style="border: none; border-radius: 4px; padding: 4px 7px; font-size: 11px; font-weight: 700; cursor: pointer; background: #000; color: #00ff88; transition: all 0.2s ease;">🚫 No Num</button>
-                    </div>
-                    <!-- LED Well Base Clip Groove Toggle -->
-                    <div style="display: flex; align-items: center; margin-left: 4px; background: rgba(0, 0, 0, 0.3); border-radius: 6px; padding: 2px; gap: 2px;" title="0.7mm undercut retention groove at collar base (Warning: weakens rigid PLA walls)">
-                        <button type="button" id="tpuModalGroovesOnBtn" onclick="setTpuClipGrooves(true)" style="border: none; border-radius: 4px; padding: 4px 7px; font-size: 11px; font-weight: 700; cursor: pointer; background: transparent; color: rgba(0,0,0,0.7); transition: all 0.2s ease;">🗜️ Grooves</button>
-                        <button type="button" id="tpuModalGroovesOffBtn" onclick="setTpuClipGrooves(false)" style="border: none; border-radius: 4px; padding: 4px 7px; font-size: 11px; font-weight: 700; cursor: pointer; background: #000; color: #00ff88; transition: all 0.2s ease;">🧱 Solid Walls</button>
-                    </div>
-                    <!-- Top-Nub Detents & Wire Retention Roofs for PLA Snap Clips -->
-                    <div style="display: flex; align-items: center; margin-left: 4px; background: rgba(0, 0, 0, 0.3); border-radius: 6px; padding: 2px; gap: 2px;" title="0.70mm horizontal nubs on outside top of collar + 2mm wire retention roof overhangs with 45° chamfer support">
-                        <button type="button" id="tpuModalTopNubsOnBtn" onclick="setTpuTopNubs(true)" style="border: none; border-radius: 4px; padding: 4px 7px; font-size: 11px; font-weight: 700; cursor: pointer; background: transparent; color: rgba(0,0,0,0.7); transition: all 0.2s ease;">🔘 Top Nubs &amp; Roofs</button>
-                        <button type="button" id="tpuModalTopNubsOffBtn" onclick="setTpuTopNubs(false)" style="border: none; border-radius: 4px; padding: 4px 7px; font-size: 11px; font-weight: 700; cursor: pointer; background: #000; color: #00ff88; transition: all 0.2s ease;">🚫 No Nubs</button>
-                    </div>
-                    <!-- Single vs 5-Color Multi-STL Switcher -->
-                    <div style="display: flex; align-items: center; margin-left: 6px; background: rgba(0, 0, 0, 0.4); border-radius: 6px; padding: 2px; gap: 2px;" title="Select between Single Monolithic STL and 5-Color Split Multi-STL">
-                        <button type="button" id="tpuModalModeMultiBtn" onclick="setTpuExportMode('multi')" style="border: none; border-radius: 4px; padding: 4px 8px; font-size: 11px; font-weight: 700; cursor: pointer; background: #000; color: #00ff88; transition: all 0.2s ease;">🎨 5-Color Split</button>
-                        <button type="button" id="tpuModalModeMonoBtn" onclick="setTpuExportMode('single')" style="border: none; border-radius: 4px; padding: 4px 8px; font-size: 11px; font-weight: 700; cursor: pointer; background: transparent; color: rgba(0,0,0,0.7); transition: all 0.2s ease;">⚪ Single Black</button>
+            <!-- Modal Header (Compact Title Bar) -->
+            <div style="padding: 8px 16px; background: #161b22; border-bottom: 1px solid #30363d; color: #f0f6fc; display: flex; justify-content: space-between; align-items: center; z-index: 10; flex-shrink: 0;">
+                <div style="display: flex; align-items: center; gap: 10px; min-width: 0;">
+                    <span id="tpuModalFloatIcon" style="font-size: 20px; line-height: 1;">🐉</span>
+                    <div style="display: flex; align-items: baseline; gap: 10px; min-width: 0;">
+                        <h3 id="tpuModalMainTitle" style="font-size: 13.5px; font-weight: 700; color: #f0f6fc; margin: 0; white-space: nowrap;">Pete's Dragon 3D Armor Panel</h3>
+                        <span id="tpuModalSubtitle" style="font-size: 11px; color: #8b949e; margin: 0; font-weight: 400; white-space: nowrap;">95A TPU Tray • 3×3mm Windows</span>
                     </div>
                 </div>
-                <div style="display: flex; align-items: center; gap: 10px;">
-                    <a href="/3d_panels/tpu_panel_preview.html" target="_blank" style="background: rgba(0, 0, 0, 0.2); color: #000; text-decoration: none; padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; display: flex; align-items: center; gap: 4px;" title="Open standalone full-window viewer in new tab">
+                <div style="display: flex; align-items: center; gap: 8px; flex-shrink: 0;">
+                    <a href="/3d_panels/tpu_panel_preview.html" target="_blank" class="action-btn" style="background: #21262d; border: 1px solid #30363d; color: #c9d1d9; text-decoration: none; padding: 4px 9px; border-radius: 5px; font-size: 11px; font-weight: 600; display: flex; align-items: center; gap: 4px;" title="Open standalone full-window viewer in new tab">
                         ↗️ Full Tab
                     </a>
-                    <button type="button" id="closeTpuPreviewModalBtn" onclick="closeTpuPreviewModal()" style="background: transparent; border: none; color: #000; font-size: 22px; cursor: pointer; padding: 2px 6px; font-weight: 700;">✕</button>
+                    <button type="button" id="closeTpuPreviewModalBtn" onclick="closeTpuPreviewModal()" style="background: transparent; border: none; color: #8b949e; font-size: 20px; cursor: pointer; padding: 2px 6px; font-weight: 700; line-height: 1; border-radius: 4px; transition: color 0.15s ease;" onmouseover="this.style.color='#f0f6fc'" onmouseout="this.style.color='#8b949e'">✕</button>
+                </div>
+            </div>
+
+            <!-- Modal Sub-Toolbar (Compact Hardware & Print Option Pills) -->
+            <div style="padding: 5px 14px; background: #0d1117; border-bottom: 1px solid #21262d; display: flex; align-items: center; justify-content: space-between; gap: 6px; flex-wrap: nowrap; overflow-x: auto; z-index: 9; flex-shrink: 0;">
+                <div style="display: flex; align-items: center; gap: 6px; flex-wrap: nowrap;">
+                    <!-- Front / Back Variant Switcher Pill -->
+                    <div style="display: inline-flex; align-items: center; background: #161b22; border: 1px solid #30363d; border-radius: 6px; padding: 2px; gap: 2px;" title="Switch between Front Chest and Back Torso Plate">
+                        <button type="button" id="tpuModalSelectFrontBtn" onclick="switchTpuModalVariant('front')" style="border: none; border-radius: 4px; padding: 3px 8px; font-size: 11px; font-weight: 700; cursor: pointer; background: #00ff88; color: #000; transition: all 0.15s ease;">🎽 Front</button>
+                        <button type="button" id="tpuModalSelectBackBtn" onclick="switchTpuModalVariant('back')" style="border: none; border-radius: 4px; padding: 3px 8px; font-size: 11px; font-weight: 500; cursor: pointer; background: transparent; color: #8b949e; transition: all 0.15s ease;">🎒 Back</button>
+                    </div>
+
+                    <!-- Tray Basin vs Rear Lid Switcher Pill -->
+                    <div style="display: inline-flex; align-items: center; background: #161b22; border: 1px solid #30363d; border-radius: 6px; padding: 2px; gap: 2px;" title="Switch between Main Armor Tray and 2.0mm Rear Cover Lid Plate">
+                        <button type="button" id="tpuModalDisplayTrayBtn" onclick="switchTpuDisplayMode('tray')" style="border: none; border-radius: 4px; padding: 3px 8px; font-size: 11px; font-weight: 700; cursor: pointer; background: #00ff88; color: #000; transition: all 0.15s ease;">📦 Tray Basin</button>
+                        <button type="button" id="tpuModalDisplayLidBtn" onclick="switchTpuDisplayMode('lid')" style="border: none; border-radius: 4px; padding: 3px 8px; font-size: 11px; font-weight: 500; cursor: pointer; background: transparent; color: #8b949e; transition: all 0.15s ease;">🛡️ Rear Lid (2mm)</button>
+                    </div>
+
+                    <div style="width: 1px; height: 16px; background: #30363d; margin: 0 1px;"></div>
+
+                    <!-- Window Shape Switcher Pill -->
+                    <div style="display: inline-flex; align-items: center; background: #161b22; border: 1px solid #30363d; border-radius: 6px; padding: 2px; gap: 2px;" title="Select hole geometry and auto-regenerate STL">
+                        <button type="button" id="tpuModalShapeSquareBtn" onclick="setTpuWindowShape('square')" style="border: none; border-radius: 4px; padding: 3px 7px; font-size: 11px; font-weight: 700; cursor: pointer; background: #00ff88; color: #000; transition: all 0.15s ease;">🔲 Square</button>
+                        <button type="button" id="tpuModalShapeRoundBtn" onclick="setTpuWindowShape('round')" style="border: none; border-radius: 4px; padding: 3px 7px; font-size: 11px; font-weight: 500; cursor: pointer; background: transparent; color: #8b949e; transition: all 0.15s ease;">⚪ Round</button>
+                    </div>
+
+                    <!-- LED Numbers Switcher -->
+                    <div style="display: inline-flex; align-items: center; background: #161b22; border: 1px solid #30363d; border-radius: 6px; padding: 2px; gap: 2px;" title="Deboss LED numbers into the underside of the STL (regenerates STL)">
+                        <button type="button" id="tpuModalNumbersOnBtn" onclick="setTpuLedNumbers(true)" style="border: none; border-radius: 4px; padding: 3px 7px; font-size: 11px; font-weight: 500; cursor: pointer; background: transparent; color: #8b949e; transition: all 0.15s ease;">🔢 #</button>
+                        <button type="button" id="tpuModalNumbersOffBtn" onclick="setTpuLedNumbers(false)" style="border: none; border-radius: 4px; padding: 3px 7px; font-size: 11px; font-weight: 700; cursor: pointer; background: #00ff88; color: #000; transition: all 0.15s ease;">🚫 No #</button>
+                    </div>
+
+                    <!-- Top-Nub Detents & Wire Retention Roofs for PLA Snap Clips -->
+                    <div style="display: inline-flex; align-items: center; background: #161b22; border: 1px solid #30363d; border-radius: 6px; padding: 2px; gap: 2px;" title="0.70mm nubs on collar + 2mm wire retention roof overhangs">
+                        <button type="button" id="tpuModalTopNubsOnBtn" onclick="setTpuTopNubs(true)" style="border: none; border-radius: 4px; padding: 3px 7px; font-size: 11px; font-weight: 500; cursor: pointer; background: transparent; color: #8b949e; transition: all 0.15s ease;">🔘 Nubs &amp; Roofs</button>
+                        <button type="button" id="tpuModalTopNubsOffBtn" onclick="setTpuTopNubs(false)" style="border: none; border-radius: 4px; padding: 3px 7px; font-size: 11px; font-weight: 700; cursor: pointer; background: #00ff88; color: #000; transition: all 0.15s ease;">🚫 No Nubs</button>
+                    </div>
+
+                    <!-- LED Well Base Clip Groove Toggle -->
+                    <div style="display: inline-flex; align-items: center; background: #161b22; border: 1px solid #30363d; border-radius: 6px; padding: 2px; gap: 2px;" title="0.7mm undercut retention groove at collar base (Warning: weakens rigid PLA walls)">
+                        <button type="button" id="tpuModalGroovesOnBtn" onclick="setTpuClipGrooves(true)" style="border: none; border-radius: 4px; padding: 3px 7px; font-size: 11px; font-weight: 500; cursor: pointer; background: transparent; color: #8b949e; transition: all 0.15s ease;">🗜️ Grooves</button>
+                        <button type="button" id="tpuModalGroovesOffBtn" onclick="setTpuClipGrooves(false)" style="border: none; border-radius: 4px; padding: 3px 7px; font-size: 11px; font-weight: 700; cursor: pointer; background: #00ff88; color: #000; transition: all 0.15s ease;">🧱 Solid Walls</button>
+                    </div>
+
+                    <div style="width: 1px; height: 16px; background: #30363d; margin: 0 1px;"></div>
+
+                    <!-- Single vs 5-Color Multi-STL Switcher -->
+                    <div style="display: inline-flex; align-items: center; background: #161b22; border: 1px solid #30363d; border-radius: 6px; padding: 2px; gap: 2px;" title="Select between Single Monolithic STL and 5-Color Split Multi-STL">
+                        <button type="button" id="tpuModalModeMultiBtn" onclick="setTpuExportMode('multi')" style="border: none; border-radius: 4px; padding: 3px 8px; font-size: 11px; font-weight: 700; cursor: pointer; background: #00ff88; color: #000; transition: all 0.15s ease;">🎨 5-Color Split</button>
+                        <button type="button" id="tpuModalModeMonoBtn" onclick="setTpuExportMode('single')" style="border: none; border-radius: 4px; padding: 3px 8px; font-size: 11px; font-weight: 500; cursor: pointer; background: transparent; color: #8b949e; transition: all 0.15s ease;">⚪ Single Black</button>
+                    </div>
                 </div>
             </div>
 
@@ -2515,6 +2531,6 @@
         </div>
     </div>
 
-    <script src="app.js?v=93"></script>
+    <script src="app.js?v=94"></script>
 </body>
 </html>
