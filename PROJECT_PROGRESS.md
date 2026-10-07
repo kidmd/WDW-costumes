@@ -93,6 +93,22 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### Entry: Float #3 (The Turtle) 3D Panel Generation & Multi-Feature Stale-Guard Sync
+* **Date:** 2026-10-06 (Imagineering Session - Turtle 3D Panel Pipeline & Server Synchronization)
+* **Milestone:** Milestone 6 - Wearable 3D Armor Fabrication & Multi-Material 3D Printing
+* **Status:** Complete & Verified (`simulator.py`, `simulator/app.js`, `scripts/compile_clean_tpu_panel.py`, `3d_panels/tpu_panel_specs.json`, `PROJECT_PROGRESS.md`).
+* **Implementation Details:**
+  - **Server Process & Argument Forwarding Synchronization:**
+    - Diagnosed root cause for top nubs missing on The Turtle (Float #3): a background `python simulator.py` server process initiated on 10/5 was still running in memory, prior to adding `--top-nubs` CLI forwarding and payload parsing in `simulator.py`. As a result, requests to `/api/generate_tpu_stl` were executed by the legacy handler that omitted `--top-nubs`, defaulting `compile_clean_tpu_panel.py` to `INCLUDE_TOP_NUBS = False` and writing `include_top_nubs: false` back to `tpu_panel_specs.json`.
+    - Terminated stale process and started fresh daemon process with full `--top-nubs on|off`, `--clip-grooves on|off`, and `--numbers on|off` CLI passing.
+    - Added stdout/stderr diagnostic logging to `simulator.py` for `compile_clean_tpu_panel.py` executions.
+  - **Enhanced Multi-Feature Stale-STL Guard in Preview Modal (`simulator/app.js`):**
+    - Enhanced `openTpuPreviewModal()`'s guard to evaluate feature flag mismatches directly: `compiledNubs !== params.tpuIncludeTopNubs`, `compiledGrooves !== params.tpuIncludeClipGrooves`, `compiledNumbers !== params.tpuIncludeLedNumbers`, and `compiledShape !== params.tpuWindowShape`.
+    - If any toggle state diverges from what is currently compiled in `3d_panels/tpu_panel_specs.json`, the modal automatically initiates a recompile, eliminating stale geometry displays upon float switching or F5 page reloads.
+  - **Live Verification of The Turtle (100 LEDs, 5-Color Multi-Material):**
+    - Tested live HTTP generation of The Turtle with Top Nubs ON: successfully produced 5.03 MB Front STL, 6.17 MB Black Chassis STL, and 5-color split inlays (Shell Plates & Glasses, Shell & Eyes, Body & Head, Tie & Lips) with all 100 collar top nubs and 2mm chamfered wire retention roofs intact.
+    - Verified toggle OFF drops Front STL size to 3.18 MB with flush collars, and toggling back ON cleanly restores the 5.03 MB model with `include_top_nubs: true`.
+
 ### Entry: 7.0mm Perimeter Wall & 9.0mm Total Plate Thickness Architecture
 * **Date:** 2026-10-06 (Imagineering Session - 9.0mm Deep-Chassis Wearable Armor)
 * **Milestone:** Milestone 6 - Wearable 3D Armor Fabrication & Multi-Material 3D Printing

@@ -18031,22 +18031,40 @@ async function openTpuPreviewModal() {
     }
     setTimeout(onTpuWindowResize, 60);
 
-    // Stale-STL guard: if the compiled panel was built for a different graphic or LED layout,
-    // recompile first so the plate silhouette matches the artwork shown on the canvas.
+    // Stale-STL guard: if the compiled panel was built for a different graphic, LED layout,
+    // or feature toggle (top nubs, grooves, numbers, window shape), recompile first so the 3D model
+    // 100% matches what the user selected.
     if (!tpuAutoCompileInFlight) {
         let compiledSig = null;
+        let compiledNubs = undefined;
+        let compiledGrooves = undefined;
+        let compiledNumbers = undefined;
+        let compiledShape = undefined;
         try {
             const r = await fetch('/3d_panels/tpu_panel_specs.json?t=' + Date.now());
-            if (r.ok) compiledSig = (await r.json()).layout_signature || null;
+            if (r.ok) {
+                const sp = await r.json();
+                compiledSig = sp.layout_signature || null;
+                compiledNubs = sp.include_top_nubs;
+                compiledGrooves = sp.include_clip_grooves;
+                compiledNumbers = sp.include_led_numbers;
+                compiledShape = sp.window_shape;
+            }
         } catch (e) {}
 
-        if (compiledSig !== computeTpuLayoutSignature()) {
+        const currentSig = computeTpuLayoutSignature();
+        const nubsMismatch = (compiledNubs !== undefined && compiledNubs !== (params.tpuIncludeTopNubs === true));
+        const groovesMismatch = (compiledGrooves !== undefined && compiledGrooves !== (params.tpuIncludeClipGrooves === true));
+        const numbersMismatch = (compiledNumbers !== undefined && compiledNumbers !== (params.tpuIncludeLedNumbers === true));
+        const shapeMismatch = (compiledShape !== undefined && compiledShape !== (params.tpuWindowShape || 'square'));
+
+        if (compiledSig !== currentSig || nubsMismatch || groovesMismatch || numbersMismatch || shapeMismatch) {
             const loaderOverlay = document.getElementById('tpuModalLoading');
             if (loaderOverlay) {
                 loaderOverlay.style.display = 'flex';
                 loaderOverlay.innerHTML = `
                     <div class="spinner" style="width: 32px; height: 32px; border: 3px solid rgba(0, 255, 136, 0.2); border-top-color: #00ff88; border-radius: 50%; animation: spin 0.8s linear infinite;"></div>
-                    <span>Active graphic changed — compiling fresh Front &amp; Back STLs for this artwork...</span>
+                    <span>Configuration changed — compiling fresh Front &amp; Back STLs with updated features...</span>
                 `;
             }
             tpuAutoCompileInFlight = true;

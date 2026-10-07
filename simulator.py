@@ -1349,6 +1349,10 @@ const uint8_t PROGMEM SPATIAL_RADIUS_BYTE[FRONT_LEDS] = {{
                 "on" if req_data.get("includeTopNubs", False) else "off"
             ]
             res = subprocess.run(cmd, cwd=BASE_DIR, capture_output=True, text=True, timeout=90)
+            if res.returncode != 0:
+                print(f"[ERROR] compile_clean_tpu_panel.py returned {res.returncode}:\n{res.stderr}\n{res.stdout}")
+            else:
+                print(f"[SUCCESS] compile_clean_tpu_panel.py completed successfully:\n{res.stdout.splitlines()[-4:]}")
 
             front_stl_path = os.path.join(BASE_DIR, "3d_panels", "tpu_panel_front.stl")
             if not os.path.exists(front_stl_path):
