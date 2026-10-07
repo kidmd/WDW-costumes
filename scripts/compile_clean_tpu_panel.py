@@ -25,13 +25,13 @@ with open(specs_path) as f:
 # ---------------------------------------------------------------------------
 FRONT_THICK_GENERAL = 2.0   # mm (general tray floor from Z = 0 to 2.0)
 FRONT_THICK_LED = 1.0       # mm (recessed inside cavity floor from Z = 0 to 1.0)
-TOTAL_THICK = 6.0           # mm (overall height to top of perimeter rim)
-RIM_HEIGHT = 4.0            # mm (outer wall from Z = 2.0 to 6.0)
+TOTAL_THICK = 9.0           # mm (overall height to top of perimeter rim)
+RIM_HEIGHT = 7.0            # mm (outer wall from Z = 2.0 to 9.0)
 RIM_WALL_THICK = 2.5        # mm (width of outer perimeter wall)
 
 COLLAR_FLOOR_Z = 1.0        # mm (pocket floor starts at Z = 1.0)
 COLLAR_HEIGHT = 3.0         # mm (pocket walls rise 3.0mm, from Z = 1.0 to 4.0)
-COLLAR_TOP_Z = 4.0          # mm (leaving exactly 2.0mm space below 6.0mm rim!)
+COLLAR_TOP_Z = 4.0          # mm (leaving exactly 5.0mm space below 9.0mm rim!)
 COLLAR_INNER_L = 10.0       # mm (10mm inner length)
 COLLAR_INNER_W = 5.0        # mm (5mm inner width)
 COLLAR_WALL_THICK = 1.2     # mm (collar wall thickness)
@@ -249,7 +249,7 @@ def compile_plate_variant(variant_name, width_mm, height_mm, raw_leds, artwork_p
 
     rim_polygon_2d = sg.Polygon(smoothed_plate_2d.exterior.coords, [inner_plate_2d.exterior.coords])
     rim_mesh = trimesh.creation.extrude_polygon(rim_polygon_2d, height=RIM_HEIGHT)
-    rim_mesh.apply_translation([0, 0, FRONT_THICK_GENERAL]) # Z = 2.0 to 6.0mm
+    rim_mesh.apply_translation([0, 0, FRONT_THICK_GENERAL]) # Z = 2.0 to 9.0mm (7.0mm tall rim)
 
     # 4. 16 Outside Perimeter Mounting Eyelets
     boundary_line = smoothed_plate_2d.exterior
@@ -275,8 +275,8 @@ def compile_plate_variant(variant_name, width_mm, height_mm, raw_leds, artwork_p
             cand_center = np.array([pt.x, pt.y]) + normal * 1.5
             
         tab_coords.append([round(float(cand_center[0]), 2), round(float(cand_center[1]), 2)])
-        cyl = Manifold.cylinder(TAB_HEIGHT, TAB_OUTER_R, TAB_OUTER_R, 32).translate([cand_center[0], cand_center[1], 4.0])
-        hole = Manifold.cylinder(TAB_HEIGHT + 0.4, TAB_INNER_R, TAB_INNER_R, 32).translate([cand_center[0], cand_center[1], 3.8])
+        cyl = Manifold.cylinder(TAB_HEIGHT, TAB_OUTER_R, TAB_OUTER_R, 32).translate([cand_center[0], cand_center[1], TOTAL_THICK - TAB_HEIGHT])
+        hole = Manifold.cylinder(TAB_HEIGHT + 0.4, TAB_INNER_R, TAB_INNER_R, 32).translate([cand_center[0], cand_center[1], TOTAL_THICK - TAB_HEIGHT - 0.2])
         tab_m = cyl - hole
         tab_mesh_data = tab_m.to_mesh()
         tab_solid = trimesh.Trimesh(vertices=tab_mesh_data.vert_properties[:, :3], faces=tab_mesh_data.tri_verts)

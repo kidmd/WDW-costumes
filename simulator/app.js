@@ -18411,7 +18411,7 @@ async function loadTpuModalData() {
             const estWeight = Math.round((variantData.volume_mm3 || (b[0] * b[1] * 1.5)) * 0.00115);
             if (weightText) weightText.textContent = `~${estWeight} g`;
         } else if (dimText) {
-            dimText.textContent = `${selectedPlateWidthMm} × ${round(selectedPlateWidthMm * 0.83, 1)} × 6.0 mm`;
+            dimText.textContent = `${selectedPlateWidthMm} × ${round(selectedPlateWidthMm * 0.83, 1)} × 9.0 mm`;
         }
 
         if (snapClearance && bambuClearance) {

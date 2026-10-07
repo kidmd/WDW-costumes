@@ -93,7 +93,21 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
-### Entry: 2.0mm Wire Retention Roof Overhangs with 45° Chamfer, Modal Reselection Lifecycle Guard & Slicer Cache-Busting
+### Entry: 7.0mm Perimeter Wall & 9.0mm Total Plate Thickness Architecture
+* **Date:** 2026-10-06 (Imagineering Session - 9.0mm Deep-Chassis Wearable Armor)
+* **Milestone:** Milestone 6 - Wearable 3D Armor Fabrication & Multi-Material 3D Printing
+* **Status:** Complete & Verified (`scripts/compile_clean_tpu_panel.py`, `simulator/app.js`, `simulator/index.html`, `SIMULATOR_USER_GUIDE.md`, `PROJECT_PROGRESS.md`).
+* **Implementation Details:**
+  - **7.0mm Perimeter Rim Wall & 9.0mm Total Thickness:**
+    - Increased `RIM_HEIGHT` from $4.0\text{ mm}$ to $7.0\text{ mm}$ in `scripts/compile_clean_tpu_panel.py`.
+    - Raised `TOTAL_THICK` from $6.0\text{ mm}$ to $9.0\text{ mm}$ ($2.0\text{ mm}$ front tray floor + $7.0\text{ mm}$ perimeter rim).
+    - Rim wall now extends from $Z = 2.0\text{ mm}$ to $Z = 9.0\text{ mm}$, creating a deep, protective $7.0\text{ mm}$ internal wiring basin.
+    - Updated mounting eyelet cylinders parametrically to `TOTAL_THICK - TAB_HEIGHT` ($Z = 7.0$ to $9.0\text{ mm}$), ensuring the 16 perimeter fastener tabs remain flush with the back rim of the armor plate.
+    - Leaves $5.0\text{ mm}$ of clear pocket headroom above the LED collars ($Z = 4.0\text{ mm}$ vs $9.0\text{ mm}$ rim), sheltering all pixel bulbs, wire runs, and providing ample depth for future backing plates or foam seals.
+  - **Compiler & Frontend Synchronization:**
+    - Verified compilation for both Front and Back panels: Front `[172.3, 152.54, 9.0] mm` (Center $Z = 4.5\text{ mm}$), Back `[186.28, 165.29, 9.0] mm` (Center $Z = 4.5\text{ mm}$).
+    - Updated dimensions readout badges and descriptions in `simulator/index.html` and `simulator/app.js` to reflect 9.0mm thickness (~68g).
+    - Bumped script version to `app.js?v=91`.
 * **Date:** 2026-10-06 (Imagineering Session - Mechanical Overhang & Toggle Synchronization)
 * **Milestone:** Milestone 6 - Wearable 3D Armor Fabrication & Multi-Material 3D Printing
 * **Status:** Complete & Verified (`scripts/compile_clean_tpu_panel.py`, `simulator.py`, `simulator/index.html`, `simulator/app.js`, `SIMULATOR_USER_GUIDE.md`, `PROJECT_PROGRESS.md`).

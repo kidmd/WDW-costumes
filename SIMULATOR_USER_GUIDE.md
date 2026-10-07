@@ -1130,13 +1130,13 @@ Instead of attaching a Cricut cut vinyl graphic on top of the printed plate, the
 - **Dynamic Float-Specific Multi-Material Color Inlays (Bambu Lab AMS 5 Slots):**
   Instead of hardcoding a single float's color palette, the multi-material compilation and 3D preview engine dynamically adapts to each float's character art, storing its color mapping directly in float JSON presets (`stlColors`):
   - **Pete's Dragon Palette:**
-    1. **Slot 1 (Chassis Black `#11161d`):** 6.0mm perimeter rim, 2.0mm tray floor, LED retention collars, wiring basin, and mounting eyelets.
+    1. **Slot 1 (Chassis Black `#11161d`):** 9.0mm overall plate with 7.0mm perimeter rim, 2.0mm tray floor, LED retention collars, wiring basin, and mounting eyelets.
     2. **Slot 2 (Neon Green `#00e676`):** Dragon body, neck, and scales.
     3. **Slot 3 (Magenta `#ec4899`):** Wings and spinal crest.
     4. **Slot 4 (Sunny Yellow `#facc15`):** Belly scales and facial accents.
     5. **Slot 5 (Bright White `#ffffff`):** Eyes, teeth, and highlights.
   - **The Spinning Turtle Palette:**
-    1. **Slot 1 (Chassis Black `#11161d`):** Chassis tray, 4mm perimeter rim, 16 mounting tabs, LED collars, and all black linework/outlines.
+    1. **Slot 1 (Chassis Black `#11161d`):** Chassis tray, 7.0mm perimeter rim (9.0mm total thickness), 16 mounting tabs, LED collars, and all black linework/outlines.
     2. **Slot 2 (Shell Plates & Glasses `#00cc66`):** Turtle hexagonal shell plates and glasses frame.
     3. **Slot 3 (Shell & Eyes `#2563eb`):** Rest of the outer shell and iris accents.
     4. **Slot 4 (Body & Head `#facc15`):** Turtle skin, head, neck, and limbs.
@@ -1151,18 +1151,18 @@ Instead of attaching a Cricut cut vinyl graphic on top of the printed plate, the
   - **Single Monolithic STL Option:** For single-color prints or Cricut vinyl overlays, the exporter allows switching to single monolithic STL export mode.
 - **Interactive 3D WebGL Multi-Material Preview:** The 3D Preview Modal (`#tpuPreviewModal`) includes a `[ 🎨 5-Color Split | ⚪ Single Black ]` toggle, a dynamic 5-color AMS legend badge with aperture counts, and direct download buttons for 5-Color ZIP and Bambu 3MF.
 
-### 🦺 Wearable Architecture & Specs (Open-Chassis 6.0mm Flexible TPU Armor Tray):
+### 🦺 Wearable Architecture & Specs (Open-Chassis 9.0mm Armor Tray with 7.0mm Perimeter Wall):
 1. **Open-Chassis Tray Structure:**
-   - **Filament:** 95A Flexible TPU (e.g., Polymaker PolyFlex, Overture TPU).
-   - **Dimensions:** $172.2\text{ mm W} \times 153.8\text{ mm H} \times 6.0\text{ mm}$ overall envelope (chassis tray body $166.1 \times 152.0\text{ mm}$ with tabs extending outwardly; sized cleanly within Snapmaker U1 $270 \times 270\text{ mm}$ print bed, leaving nearly $50\text{ mm}$ / $2\text{ in}$ of perimeter margin on all sides).
+   - **Filament:** 95A Flexible TPU or Rigid PLA (e.g., Polymaker PolyFlex, Bambu PLA Basic).
+   - **Dimensions:** $172.3\text{ mm W} \times 152.5\text{ mm H} \times 9.0\text{ mm}$ overall envelope (chassis tray body with perimeter tabs extending outwardly; sized cleanly within Snapmaker U1 $270 \times 270\text{ mm}$ and Bambu Lab $256 \times 256\text{ mm}$ print beds).
    - **Base Plate & Floor Recesses:** Solid continuous $2.0\text{ mm}$ thick base plate facing the runner's shirt ($Z = 0$ to $2.0\text{ mm}$), with localized **$1.0\text{ mm}$ floor recesses** directly beneath each LED pocket cavity. The front shirt-facing surface remains 100% flat and flush while the floor inside each LED socket is thinned to $1.0\text{ mm}$.
-   - **Perimeter Rim Wall:** $4.0\text{ mm}$ tall outer rim ($Z = 2.0$ to $6.0\text{ mm}$, $2.5\text{ mm}$ wall width) surrounding the entire plate, forming a protective chassis tray.
-   - **Unconstrained Open Wire Basin (No Back Wall):** The entire space outside the LED collars acts as a spacious $4.0\text{ mm}$ deep open basin where 3-conductor flat ribbon wire can route and loop freely with zero binding, zero restrictive trenches, and zero unprintable overhangs.
-   - **Lightweight:** Net volume is $\approx 39.6\text{ cm}^3$, weighing just **$\approx 44\text{ grams}$ ($1.5\text{ oz}$)**—featherlight, flexible, and comfortable for a 10K race.
+   - **Perimeter Rim Wall:** **$7.0\text{ mm}$ tall outer rim** ($Z = 2.0$ to $9.0\text{ mm}$, $2.5\text{ mm}$ wall width) surrounding the entire plate, providing an overall plate thickness of **$9.0\text{ mm}$**.
+   - **Spacious 7.0mm Open Wire Basin:** The entire space outside the LED collars acts as a spacious $7.0\text{ mm}$ deep open basin where 3-conductor flat ribbon wire can route and loop freely with zero binding, zero restrictive trenches, and ample volume for future backing plates or foam dampeners.
+   - **Weight:** Net volume is $\approx 55\text{ cm}^3$, weighing approximately **$\approx 60–68\text{ grams}$** depending on filament type.
 2. **100 Non-Overlapping Horizontal Oval Collars ($10\text{ mm} \times 5\text{ mm} \times 3\text{ mm}$) with Wire Notches:**
    - **Inner Cavity & Z Coordinates:** $10.0\text{ mm} \times 5.0\text{ mm}$ oval socket with $3.0\text{ mm}$ tall walls rising from the recessed floor ($Z = 1.0$ to $4.0\text{ mm}$).
    - **Zero Collar Overlap (PBD Relaxation Solver):** Positions are nudged by a minimal average shift ($\approx 1.6\text{ mm}$, max $4.9\text{ mm}$) so that **every single collar maintains $\ge 0.5\text{ mm}$ of clear wall gap** from every other collar. Zero overlapping or merged sockets!
-   - **2.0mm Table Clearance:** When laying the 3D print flat on a table front-side up (with the $6.0\text{ mm}$ rim touching the table), there is **exactly $2.0\text{ mm}$ of open space** under the tops of the pocket walls ($Z = 4.0\text{ mm}$ vs $6.0\text{ mm}$ rim), keeping bulbs and wires elevated away from table surfaces.
+   - **5.0mm Pocket Headroom:** With the rim wall rising to $9.0\text{ mm}$, there is **exactly $5.0\text{ mm}$ of recessed space** above the tops of the pocket walls ($Z = 4.0\text{ mm}$ vs $9.0\text{ mm}$ rim), keeping bulbs and wires deeply sheltered inside the perimeter chassis.
    - **Uniform Horizontal Orientation:** Collars are oriented horizontally ($0^\circ$ rotation) matching the Pete's Dragon Chris preset, keeping the sockets cleanly parallel across the chest.
     - **Wire Pass-Through Notches:** $4.0\text{ mm}$ wide notches on both $5\text{ mm}$ ends extending all the way down to the $1.0\text{ mm}$ floor, allowing ribbon wire to enter and exit horizontally without resistance.
     - **Solid 1.2mm Rigid Collar Walls (Default for PLA):** Sockets feature full $1.2\text{ mm}$ thick un-notched walls for optimal structural rigidity and layer-adhesion strength when 3D printing in rigid PLA.
