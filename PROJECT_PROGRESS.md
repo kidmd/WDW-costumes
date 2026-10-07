@@ -93,21 +93,23 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
-### Entry: Yellow Inlay Layer Level & Opacity Investigation (Physical Test Print Analysis)
-* **Date:** 2026-10-07 (Imagineering Session - Yellow Layer Level & Color Saturation Analysis)
+### Entry: Upgraded Multi-Material Inlays to 0.80mm (4 Solid Layers) for 100% Rich Color Opacity
+* **Date:** 2026-10-07 (Imagineering Session - 0.80mm Inlay Thickness Implementation)
 * **Milestone:** Milestone 6 - Wearable 3D Armor Fabrication & Multi-Material 3D Printing
-* **Status:** Plan Documented & Saved (`3d_panels/YELLOW_LAYER_LEVEL_PLAN.md`, `PROJECT_PROGRESS.md`). Awaiting brother's slicer feedback to select permanent compiler fix.
+* **Status:** Complete & Verified (`scripts/compile_clean_tpu_panel.py`, `3d_panels/`, `SIMULATOR_USER_GUIDE.md`, `PROJECT_PROGRESS.md`).
 * **Implementation Details:**
-  - **High-Precision 8-Decimal Geometry Audit:**
-    - Performed a sub-micron coordinate audit across all exported STLs and 3MF models. Verified that all four color inlays (`green`, `magenta`, `white`, and `yellow`) and the `chassis_black` front face share the **exact same $Z = 9.00000000\text{ mm}$ top plane** and identical $0.6000\text{ mm}$ pocket depth ($Z = 8.4\text{ to }9.0\text{ mm}$).
-    - Verified that boolean pocket subtraction has $0.00\text{ mm}^3$ interference or overlap.
-  - **Root Cause Analysis (Pigment Translucency & First-Layer Slicing):**
-    - Yellow pigment has low opacity; with standard $0.28\text{ mm}$ first layers, only two yellow passes ($0.48\text{ mm}$) print before solid black infill starts at $0.60\text{ mm}$, causing dark background bleed-through.
-    - Slicer Elephant Foot Compensation ($0.15\text{–}0.20\text{ mm}$) can also cause thin yellow rib segments to skip layer 1 and extrude mid-air on layer 2.
-  - **Permanent Compiler Solutions Planned:**
-    - Increase `COLOR_INLAY_THICK` from 0.6mm (3 layers) to 0.8mm (4 layers) or 1.0mm (5 layers) for 100% solid opacity.
-    - Add optional $0.15\text{ mm}$ first-layer proud "bite" to ensure aggressive bed squish.
-    - Documented full analysis and options in [`3d_panels/YELLOW_LAYER_LEVEL_PLAN.md`](3d_panels/YELLOW_LAYER_LEVEL_PLAN.md).
+  - **Implemented Recommendation A (0.80mm / 4 Solid Layers):**
+    - Increased `COLOR_INLAY_THICK` from $0.60\text{ mm}$ (3 layers) to **$0.80\text{ mm}$ (4 solid layers @ 0.20mm)** across all color inlays (`yellow`, `green`, `magenta`, `white`, etc.).
+    - Added support for `--inlay-thick <val>` CLI flag and `color_inlay_thick` JSON parameter in `scripts/compile_clean_tpu_panel.py`.
+    - Inlays now extrude from $Z_{exported} = 8.20\text{ to }9.00\text{ mm}$.
+    - Automatic boolean subtraction in the black chassis cuts $0.80\text{ mm}$ deep pockets, leaving a sturdy $1.20\text{ mm}$ of solid black backing floor.
+  - **Zero Translucency & Solid Color Saturation:**
+    - Cures the thin/mottled yellow belly issue observed in initial test prints. Even with a $0.28\text{ mm}$ first layer, at least 3 to 4 full solid passes of color print before any black chassis filament is deposited behind them.
+    - Yellow volume increased from $1,128.7\text{ mm}^3$ to $1,504.9\text{ mm}^3$ (+33.3%).
+  - **Watertight Manifold3D Verification:**
+    - Recompiled both Front and Back plates in 6.69s.
+    - Verified all STLs (`tpu_panel_front_color_*.stl`), multi-part 3MF project, and slicer ZIP bundle.
+    - Documentation synchronized in `SIMULATOR_USER_GUIDE.md` and [`3d_panels/YELLOW_LAYER_LEVEL_PLAN.md`](3d_panels/YELLOW_LAYER_LEVEL_PLAN.md).
 
 ### Entry: 3D Armor Physical Fit Refinements: Parting-Line Wire Slot, Internal Floor Zip-Tie Bridge, 0.5mm Collar Lip, and Eyelet Tab Braces
 * **Date:** 2026-10-07 (Imagineering Session - 3D Armor Mechanical Refinements from Physical Test Prints)

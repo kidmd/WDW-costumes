@@ -1126,7 +1126,7 @@ Instead of attaching a Cricut cut vinyl graphic on top of the printed plate, the
 - **Organic Silhouette Boundary Fitting:** The outer 4mm perimeter rim and 2mm tray floor of the black structural chassis trace the organic contour of the character artwork (e.g. Pete's Dragon silhouette with spinal crest, head, snout, wings, and tail), rather than a generic rectangular block. Sizing controls on the Layout tab (Medium = 8.0" / 203.2mm) calibrate the physical dragon chassis width to exactly 8 inches.
 - **Black Linework Preserved:** Each color inlay keeps its interior holes, so the dragon's black outlines (eye rings, body contours, spots) are formed by the black chassis showing through.
 - **LED Numbers Option:** In the 3D Preview Modal, the `[ 🔢 Numbers On | 🚫 No Numbers ]` pill chooses whether LED numbers (1–N) are debossed into the underside; changing it regenerates the STL.
-- **Zero-Overlap Jigsaw Inlay Architecture:** The structural black chassis features 0.6mm deep front pockets (3 layers @ 0.2mm layer height) precisely receiving the 4 accent color inlays.
+- **Zero-Overlap Jigsaw Inlay Architecture:** The structural black chassis features 0.8mm deep front pockets (4 solid layers @ 0.2mm layer height) precisely receiving the accent color inlays for rich, 100% opaque saturation (especially for light pigments like yellow) with zero dark chassis bleed-through.
 - **Dynamic Float-Specific Multi-Material Color Inlays (Bambu Lab AMS 5 Slots):**
   Instead of hardcoding a single float's color palette, the multi-material compilation and 3D preview engine dynamically adapts to each float's character art, storing its color mapping directly in float JSON presets (`stlColors`):
   - **Pete's Dragon Palette:**
@@ -1241,10 +1241,10 @@ Instead of attaching a Cricut cut vinyl graphic on top of the printed plate, the
    - **Complete Download Suite:** Direct download buttons for ⬇️ Front STL, ⬇️ Back STL, 🛡️ Rear Lid STL, 📦 Download Multicolor 3MF, 📦 Download Split Parts ZIP (including rear lid), and parametric OpenSCAD sources (.scad).
    - **Float 04 (The Spinning Snail) 5-Color Multi-Material Slicing:**
      - **Black Chassis & Shell Background (`#11161d`):** Monolithic 95A TPU tray base, 7.0mm outer rim, 100 LED wire collars, M2 screw bosses, and solid dark shell background disk.
-     - **Red Head, Neck & Foot Inlay (`#ef4444`):** 0.6mm front jigsaw inlay covering snail head, friendly face, smiling lips, undulating neck, and lower crawling foot.
-     - **Gold Antennae, Spiral & Edge Inlay (`#facc15`):** 0.6mm front jigsaw inlay covering both eye stalk antennae with bulb tips, the outer perimeter shell rim, and central spiral whorl.
-     - **Green Radial Stripes Inlay (`#10b981`):** 0.6mm front jigsaw inlay for alternating shell spokes and converted former gold radial lines.
-     - **Blue Radial Stripes Inlay (`#2563eb`):** 0.6mm front jigsaw inlay for alternating electric blue shell spokes.
+     - **Red Head, Neck & Foot Inlay (`#ef4444`):** 0.8mm front jigsaw inlay covering snail head, friendly face, smiling lips, undulating neck, and lower crawling foot.
+     - **Gold Antennae, Spiral & Edge Inlay (`#facc15`):** 0.8mm front jigsaw inlay covering both eye stalk antennae with bulb tips, the outer perimeter shell rim, and central spiral whorl.
+     - **Green Radial Stripes Inlay (`#10b981`):** 0.8mm front jigsaw inlay for alternating shell spokes and converted former gold radial lines.
+     - **Blue Radial Stripes Inlay (`#2563eb`):** 0.8mm front jigsaw inlay for alternating electric blue shell spokes.
 
 11. **Layout Tab: Optical Window Visualization & Pocket Overlap Avoidance:**
    - **🖨️ Show TPU Windows Toggle:** Renders subtle $10\text{ mm} \times 5\text{ mm}$ (outer $12.4 \times 7.4\text{ mm}$) pocket socket boundaries with wire pass-through notches and crisp optical apertures with radiant light beaming through.

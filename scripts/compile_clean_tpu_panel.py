@@ -40,7 +40,19 @@ COLLAR_OUTER_W = COLLAR_INNER_W + 2 * COLLAR_WALL_THICK # 7.4mm
 
 NOTCH_WIDTH = 4.0           # mm (wire pass-through slot on both 5mm ends)
 WINDOW_SQ = 3.0             # mm (3x3mm square optical aperture through 1.0mm front skin)
-COLOR_INLAY_THICK = 0.6     # mm (3 layers @ 0.20mm layer height for crisp multi-color face)
+COLOR_INLAY_THICK = 0.8     # mm (4 solid layers @ 0.20mm layer height for rich, 100% opaque saturation)
+if 'color_inlay_thick' in specs:
+    try:
+        COLOR_INLAY_THICK = float(specs['color_inlay_thick'])
+    except Exception:
+        pass
+if '--inlay-thick' in sys.argv:
+    _iti = sys.argv.index('--inlay-thick')
+    if _iti + 1 < len(sys.argv):
+        try:
+            COLOR_INLAY_THICK = float(sys.argv[_iti + 1])
+        except Exception:
+            pass
 
 def make_stadium_polygon(length, width, sections=16):
     r = width / 2.0
@@ -627,7 +639,7 @@ def compile_plate_variant(variant_name, width_mm, height_mm, raw_leds, artwork_p
             if not c_union.is_valid:
                 c_union = c_union.buffer(0)
             
-            # Extrude 0.6mm thickness (from Z = 0.0 to 0.6mm)
+            # Extrude COLOR_INLAY_THICK thickness (from Z = 0.0 to COLOR_INLAY_THICK)
             inlay_mesh = extrude_shapely(c_union, COLOR_INLAY_THICK)
             if inlay_mesh is not None:
                 color_inlay_meshes[c_name] = inlay_mesh
