@@ -339,14 +339,25 @@ def compile_plate_variant(variant_name, width_mm, height_mm, raw_leds, artwork_p
     wire_portal_cutter.apply_translation([wire_portal_x, wire_portal_y, TOTAL_THICK - PORTAL_NOTCH_H / 2.0 + 0.2])
 
     # Internal floor zip-tie strain relief bridge (no holes piercing front artwork face!)
-    # Bridge: 6.0mm wide (X) x 4.0mm long (Y) x 2.5mm tall (Z = 2.0 to 4.5mm)
-    # Tunnel: 3.2mm wide (X) x 6.0mm long (Y) x 1.4mm tall (Z = 2.0 to 3.4mm)
+    # Bridge: 7.0mm wide (X, across wire) x 5.0mm long (Y, along wire) x 2.8mm tall (Z = 2.0 to 4.8mm)
+    # Under-Tunnel (Perpendicular to wire): cuts left-to-right (along X) under bridge:
+    #   10.0mm long in X (clears both sides) x 3.0mm wide in Y (for 2.5mm zip-tie) x 1.4mm tall in Z (Z = 2.0 to 3.4mm)
+    # Wire Saddle: shallow 0.6mm concave cradle on top of bridge along Y (aligned with wire path from U-notch):
+    #   4.5mm wide in X x 7.0mm long in Y x 0.8mm tall in Z (recessing 0.6mm into top, Z = 4.2 to 4.9mm)
     bridge_y = wire_portal_y + RIM_WALL_THICK + 5.0
-    bridge_solid_tm = trimesh.creation.box(extents=[6.0, 4.0, 2.5])
-    bridge_solid_tm.apply_translation([wire_portal_x, bridge_y, FRONT_THICK_GENERAL + 1.25])
-    tunnel_cutter_tm = trimesh.creation.box(extents=[3.2, 6.0, 1.4])
-    tunnel_cutter_tm.apply_translation([wire_portal_x, bridge_y, FRONT_THICK_GENERAL + 0.70])
-    internal_bridge_m = to_m(bridge_solid_tm) - to_m(tunnel_cutter_tm)
+    BRIDGE_X_W = 7.0
+    BRIDGE_Y_L = 5.0
+    BRIDGE_Z_H = 2.8
+    bridge_solid_tm = trimesh.creation.box(extents=[BRIDGE_X_W, BRIDGE_Y_L, BRIDGE_Z_H])
+    bridge_solid_tm.apply_translation([wire_portal_x, bridge_y, FRONT_THICK_GENERAL + BRIDGE_Z_H / 2.0])
+
+    tunnel_cutter_tm = trimesh.creation.box(extents=[BRIDGE_X_W + 4.0, 3.0, 1.4 + 0.4])
+    tunnel_cutter_tm.apply_translation([wire_portal_x, bridge_y, FRONT_THICK_GENERAL + 0.70 - 0.2])
+
+    saddle_cutter_tm = trimesh.creation.box(extents=[4.5, BRIDGE_Y_L + 2.0, 0.8])
+    saddle_cutter_tm.apply_translation([wire_portal_x, bridge_y, FRONT_THICK_GENERAL + BRIDGE_Z_H - 0.3])
+
+    internal_bridge_m = to_m(bridge_solid_tm) - to_m(tunnel_cutter_tm) - to_m(saddle_cutter_tm)
 
     # 5. Collars, Recesses & Windows
     outer_collar_2d = make_stadium_polygon(COLLAR_OUTER_L, COLLAR_OUTER_W, sections=16)

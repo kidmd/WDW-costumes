@@ -103,10 +103,11 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
     - Reduced Z height from 9.0mm to a clean 3.0mm drop-in U-slot ($5.5\text{ mm}$ wide $\times 3.0\text{ mm}$ tall in Z) matching the LED cable trunk thickness.
     - Wire harness lays directly into the slot without having to be threaded through an enclosed tunnel.
     - Lower 4.0mm of the rim wall ($Z = 3.0$ to $7.0\text{ mm}$) remains 100% solid, providing mechanical rigidity and moisture protection.
-  - **Internal Strain Relief Bridge (Image 1 Inspection):**
+  - **Internal Strain Relief Bridge (90° Perpendicular Cross-Tunnel with Wire Saddle):**
     - Eliminated the two through-holes from the front plate floor, leaving the front shirt-facing graphic surface pristine, continuous, and puncture-free.
-    - Added an internal arch bridge ($6.0\text{ mm}$ wide $\times 4.0\text{ mm}$ long $\times 2.5\text{ mm}$ tall with a $3.2 \times 1.4\text{ mm}$ tunnel) placed $5.0\text{ mm}$ inward on the inside cavity floor.
-    - Standard $2.5\text{ mm}$ nylon micro zip-tie loops through this internal bridge to anchor the wire harness firmly against race-day strides.
+    - Reoriented the internal bridge 90° so its open under-tunnel passes along the $X$ axis ($10.0\text{ mm}$ long in X $\times 3.0\text{ mm}$ wide in Y $\times 1.4\text{ mm}$ tall in Z), completely perpendicular to the incoming $Y$-axis wire path.
+    - Added a shallow $0.6\text{ mm}$ concave wire saddle on top of the bridge ($4.5\text{ mm}$ wide in X $\times 7.0\text{ mm}$ long in Y), centered in line with the outer wire notch.
+    - Standard $2.5\text{ mm}$ micro nylon zip-tie slides easily under the bridge from left to right, loops up over the wire nestled in the top saddle, and cinches firmly down to anchor the cable trunk against race-day strides.
   - **0.5mm Collar Wire Notch Lip (Image 2 Inspection):**
     - Reduced the LED collar wire notch overhang from 2.0mm down to a sleek 0.5mm cantilever lip ($Y = 2.0$ down to $1.5\text{ mm}$) with a 45° chamfer support.
     - Opened up a generous $3.5\text{ mm}$ clear drop-in gap across the 4.0mm wire notch, allowing 3-conductor ribbon wire to seat effortlessly while the 0.5mm catch lip prevents vertical pop-out.
