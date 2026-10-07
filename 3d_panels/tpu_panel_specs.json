@@ -65,7 +65,7 @@
       "filename": "color_white.stl"
     }
   },
-  "layout_signature": "custom_image-square-nonum-nogrv-nub-medium-75-v2-16df699a",
+  "layout_signature": "custom_image-square-nonum-nogrv-nub-medium-75-v2-1ac2673e",
   "size_preset": "medium",
   "width_mm": 227.66,
   "front": {
@@ -333,8 +333,8 @@
       {
         "id": 24,
         "orig_id": 23,
-        "x": 86.91,
-        "y": 67.0,
+        "x": 86.94,
+        "y": 67.05,
         "color": {
           "r": 0,
           "g": 254,
@@ -421,8 +421,8 @@
       {
         "id": 32,
         "orig_id": 31,
-        "x": 67.99,
-        "y": 64.28,
+        "x": 67.73,
+        "y": 64.42,
         "color": {
           "r": 250,
           "g": 254,
@@ -795,7 +795,7 @@
       {
         "id": 66,
         "orig_id": 65,
-        "x": 128.19,
+        "x": 128.2,
         "y": 170.51,
         "color": {
           "r": 143,
@@ -872,8 +872,8 @@
       {
         "id": 73,
         "orig_id": 72,
-        "x": 78.74,
-        "y": 58.86,
+        "x": 78.98,
+        "y": 59.59,
         "color": {
           "r": 0,
           "g": 254,
@@ -992,8 +992,8 @@
         65.56
       ],
       [
-        66.1,
-        47.53
+        67.36,
+        46.78
       ],
       [
         13.64,
@@ -1337,10 +1337,10 @@
       133.15,
       4.5
     ],
-    "stl_size": 2938884,
-    "chassis_size": 3935284,
-    "lid_size": 450684,
-    "zip_size": 2023062,
+    "stl_size": 2937784,
+    "chassis_size": 3933184,
+    "lid_size": 450584,
+    "zip_size": 2022341,
     "inlays": [
       {
         "key": "green",
@@ -1376,7 +1376,7 @@
     "lid_stl_url": "/3d_panels/tpu_panel_front_lid.stl",
     "multicolor_3mf_url": "/3d_panels/tpu_panel_front_multicolor.3mf",
     "multicolor_zip_url": "/3d_panels/tpu_panel_front_multicolor_bundle.zip",
-    "volume_mm3": 63329.6,
+    "volume_mm3": 63332.5,
     "is_watertight": false
   },
   "back": {
@@ -1644,8 +1644,8 @@
       {
         "id": 24,
         "orig_id": 23,
-        "x": 86.91,
-        "y": 67.0,
+        "x": 86.94,
+        "y": 67.05,
         "color": {
           "r": 0,
           "g": 254,
@@ -1732,8 +1732,8 @@
       {
         "id": 32,
         "orig_id": 31,
-        "x": 67.99,
-        "y": 64.28,
+        "x": 67.73,
+        "y": 64.42,
         "color": {
           "r": 250,
           "g": 254,
@@ -2106,7 +2106,7 @@
       {
         "id": 66,
         "orig_id": 65,
-        "x": 128.19,
+        "x": 128.2,
         "y": 170.51,
         "color": {
           "r": 143,
@@ -2183,8 +2183,8 @@
       {
         "id": 73,
         "orig_id": 72,
-        "x": 78.74,
-        "y": 58.86,
+        "x": 78.98,
+        "y": 59.59,
         "color": {
           "r": 0,
           "g": 254,
@@ -2303,8 +2303,8 @@
         65.56
       ],
       [
-        66.1,
-        47.53
+        67.36,
+        46.78
       ],
       [
         13.64,
@@ -2648,10 +2648,10 @@
       133.15,
       4.5
     ],
-    "stl_size": 2938884,
-    "chassis_size": 3935284,
-    "lid_size": 450684,
-    "zip_size": 2023065,
+    "stl_size": 2937784,
+    "chassis_size": 3933184,
+    "lid_size": 450584,
+    "zip_size": 2022356,
     "inlays": [
       {
         "key": "green",
@@ -2687,7 +2687,7 @@
     "lid_stl_url": "/3d_panels/tpu_panel_back_lid.stl",
     "multicolor_3mf_url": "/3d_panels/tpu_panel_back_multicolor.3mf",
     "multicolor_zip_url": "/3d_panels/tpu_panel_back_multicolor_bundle.zip",
-    "volume_mm3": 63329.6,
+    "volume_mm3": 63332.5,
     "is_watertight": false
   },
   "height_mm": 273.24,
@@ -2948,8 +2948,8 @@
     {
       "id": 24,
       "orig_id": 23,
-      "x": 86.91,
-      "y": 67.0,
+      "x": 86.94,
+      "y": 67.05,
       "color": {
         "r": 0,
         "g": 254,
@@ -3036,8 +3036,8 @@
     {
       "id": 32,
       "orig_id": 31,
-      "x": 67.99,
-      "y": 64.28,
+      "x": 67.73,
+      "y": 64.42,
       "color": {
         "r": 250,
         "g": 254,
@@ -3410,7 +3410,7 @@
     {
       "id": 66,
       "orig_id": 65,
-      "x": 128.19,
+      "x": 128.2,
       "y": 170.51,
       "color": {
         "r": 143,
@@ -3487,8 +3487,8 @@
     {
       "id": 73,
       "orig_id": 72,
-      "x": 78.74,
-      "y": 58.86,
+      "x": 78.98,
+      "y": 59.59,
       "color": {
         "r": 0,
         "g": 254,
@@ -3612,8 +3612,8 @@
       65.56
     ],
     [
-      66.1,
-      47.53
+      67.36,
+      46.78
     ],
     [
       13.64,
@@ -3957,10 +3957,10 @@
     133.15,
     4.5
   ],
-  "stl_size": 2938884,
-  "chassis_size": 3935284,
-  "lid_size": 450684,
-  "zip_size": 2023062,
+  "stl_size": 2937784,
+  "chassis_size": 3933184,
+  "lid_size": 450584,
+  "zip_size": 2022341,
   "inlays": [
     {
       "key": "green",
@@ -3996,6 +3996,6 @@
   "lid_stl_url": "/3d_panels/tpu_panel_front_lid.stl",
   "multicolor_3mf_url": "/3d_panels/tpu_panel_front_multicolor.3mf",
   "multicolor_zip_url": "/3d_panels/tpu_panel_front_multicolor_bundle.zip",
-  "volume_mm3": 63329.6,
+  "volume_mm3": 63332.5,
   "is_watertight": false
 }

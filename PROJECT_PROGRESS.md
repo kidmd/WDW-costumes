@@ -93,6 +93,22 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### Entry: Yellow Inlay Layer Level & Opacity Investigation (Physical Test Print Analysis)
+* **Date:** 2026-10-07 (Imagineering Session - Yellow Layer Level & Color Saturation Analysis)
+* **Milestone:** Milestone 6 - Wearable 3D Armor Fabrication & Multi-Material 3D Printing
+* **Status:** Plan Documented & Saved (`3d_panels/YELLOW_LAYER_LEVEL_PLAN.md`, `PROJECT_PROGRESS.md`). Awaiting brother's slicer feedback to select permanent compiler fix.
+* **Implementation Details:**
+  - **High-Precision 8-Decimal Geometry Audit:**
+    - Performed a sub-micron coordinate audit across all exported STLs and 3MF models. Verified that all four color inlays (`green`, `magenta`, `white`, and `yellow`) and the `chassis_black` front face share the **exact same $Z = 9.00000000\text{ mm}$ top plane** and identical $0.6000\text{ mm}$ pocket depth ($Z = 8.4\text{ to }9.0\text{ mm}$).
+    - Verified that boolean pocket subtraction has $0.00\text{ mm}^3$ interference or overlap.
+  - **Root Cause Analysis (Pigment Translucency & First-Layer Slicing):**
+    - Yellow pigment has low opacity; with standard $0.28\text{ mm}$ first layers, only two yellow passes ($0.48\text{ mm}$) print before solid black infill starts at $0.60\text{ mm}$, causing dark background bleed-through.
+    - Slicer Elephant Foot Compensation ($0.15\text{–}0.20\text{ mm}$) can also cause thin yellow rib segments to skip layer 1 and extrude mid-air on layer 2.
+  - **Permanent Compiler Solutions Planned:**
+    - Increase `COLOR_INLAY_THICK` from 0.6mm (3 layers) to 0.8mm (4 layers) or 1.0mm (5 layers) for 100% solid opacity.
+    - Add optional $0.15\text{ mm}$ first-layer proud "bite" to ensure aggressive bed squish.
+    - Documented full analysis and options in [`3d_panels/YELLOW_LAYER_LEVEL_PLAN.md`](3d_panels/YELLOW_LAYER_LEVEL_PLAN.md).
+
 ### Entry: 3D Armor Physical Fit Refinements: Parting-Line Wire Slot, Internal Floor Zip-Tie Bridge, 0.5mm Collar Lip, and Eyelet Tab Braces
 * **Date:** 2026-10-07 (Imagineering Session - 3D Armor Mechanical Refinements from Physical Test Prints)
 * **Milestone:** Milestone 6 - Wearable 3D Armor Fabrication & Mechanical Refinements
