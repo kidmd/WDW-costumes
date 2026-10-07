@@ -124,20 +124,20 @@ spinningTurtleImg.onload = () => {
 };
 spinningTurtleImg.src = 'assets/Turtle_clean.png';
 
-// Spinning Snail Artwork (High-res transparent PNG)
+// Spinning Snail Artwork (Original High-res transparent PNG)
 const spinningSnailImg = new Image();
 let spinningSnailLoaded = false;
 spinningSnailImg.onload = () => {
     spinningSnailLoaded = true;
 };
-spinningSnailImg.src = 'assets/spinning_snail_simplified.png';
+spinningSnailImg.src = 'assets/spinning_snail.png';
 
-const spinningSnailOrigImg = new Image();
-let spinningSnailOrigLoaded = false;
-spinningSnailOrigImg.onload = () => {
-    spinningSnailOrigLoaded = true;
+const spinningSnailSimplifiedImg = new Image();
+let spinningSnailSimplifiedLoaded = false;
+spinningSnailSimplifiedImg.onload = () => {
+    spinningSnailSimplifiedLoaded = true;
 };
-spinningSnailOrigImg.src = 'assets/spinning_snail.png';
+spinningSnailSimplifiedImg.src = 'assets/spinning_snail_simplified.png';
 
 // Custom artwork image (if user uploads one or loads one from preset)
 let customArtworkImg = null;
@@ -150,8 +150,8 @@ const floatArtworkImgs = {
     'title_drum': new Image(),
     'spinning_turtle': spinningTurtleImg,
     'spinning_snail': spinningSnailImg,
-    'spinning_snail_simplified': spinningSnailImg,
-    'spinning_snail_original': spinningSnailOrigImg,
+    'spinning_snail_original': spinningSnailImg,
+    'spinning_snail_simplified': spinningSnailSimplifiedImg,
     'cinderella_coach': new Image(),
     'cinderellas_coach': new Image(),
     'petes_dragon': new Image(),
@@ -161,9 +161,9 @@ const floatArtworkImgs = {
 floatArtworkImgs['casey_jr_train'].src = 'assets/cricut_svg/casey_jr_train.svg';
 floatArtworkImgs['title_drum'].src = 'assets/cricut_svg/title_drum.svg';
 floatArtworkImgs['spinning_turtle'].src = 'assets/Turtle_clean.png';
-floatArtworkImgs['spinning_snail'].src = 'assets/spinning_snail_simplified.png';
-floatArtworkImgs['spinning_snail_simplified'].src = 'assets/spinning_snail_simplified.png';
+floatArtworkImgs['spinning_snail'].src = 'assets/spinning_snail.png';
 floatArtworkImgs['spinning_snail_original'].src = 'assets/spinning_snail.png';
+floatArtworkImgs['spinning_snail_simplified'].src = 'assets/spinning_snail_simplified.png';
 floatArtworkImgs['cinderella_coach'].src = 'assets/cricut_svg/cinderella_coach.svg';
 floatArtworkImgs['cinderellas_coach'].src = 'assets/cricut_svg/cinderella_coach.svg';
 floatArtworkImgs['petes_dragon'].src = 'assets/cricut_svg/petes_dragon.svg';
@@ -179,13 +179,13 @@ function getGraphicImgForType(gType) {
         if (spinningTurtleImg && spinningTurtleImg.naturalWidth > 0) return spinningTurtleImg;
         return floatArtworkImgs['spinning_turtle'];
     }
-    if (gType === 'spinning_snail' || gType === 'spinning_snail_simplified') {
+    if (gType === 'spinning_snail' || gType === 'spinning_snail_original') {
         if (spinningSnailImg && spinningSnailImg.naturalWidth > 0) return spinningSnailImg;
         return floatArtworkImgs['spinning_snail'];
     }
-    if (gType === 'spinning_snail_original') {
-        if (spinningSnailOrigImg && spinningSnailOrigImg.naturalWidth > 0) return spinningSnailOrigImg;
-        return floatArtworkImgs['spinning_snail_original'];
+    if (gType === 'spinning_snail_simplified') {
+        if (spinningSnailSimplifiedImg && spinningSnailSimplifiedImg.naturalWidth > 0) return spinningSnailSimplifiedImg;
+        return floatArtworkImgs['spinning_snail_simplified'];
     }
     if (gType === 'cinderellas_coach' || gType === 'cinderella_coach') {
         if (cinderellasCoachImg && cinderellasCoachImg.naturalWidth > 0) return cinderellasCoachImg;
@@ -13704,6 +13704,8 @@ async function loadGraphicPreset(type) {
         'title_drum': 'title_drum.json',
         'spinning_turtle': 'spinning_turtle.json',
         'spinning_snail': 'spinning_snail.json',
+        'spinning_snail_original': 'spinning_snail.json',
+        'spinning_snail_simplified': 'spinning_snail_simplified.json',
         'cinderellas_coach': 'cinderellas_coach_both_wheel.json',
         'cinderella_coach': 'cinderellas_coach_both_wheel.json',
         'carriage_nohorses': 'cinderellas_coach_both_wheel.json',

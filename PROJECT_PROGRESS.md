@@ -93,6 +93,20 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### Entry: Restored Original Snail Artwork as Default & Fixed Layout Dropdown Switching
+* **Date:** 2026-10-06 (Imagineering Session - Float 04 Snail Original Artwork Restoration)
+* **Milestone:** Milestone 6 - Wearable 3D Armor Fabrication & Multi-Material 3D Printing
+* **Status:** Complete & Verified (`presets/spinning_snail.json`, `assets/spinning_snail.png`, `3d_panels/active_artwork.png`, `simulator/app.js`, `simulator/index.html`, `PROJECT_PROGRESS.md`).
+* **Implementation Details:**
+  - **Reverted Default Snail Artwork to Original:**
+    - Fully restored `presets/spinning_snail.json` to the original vibrant version with `graphicType: "spinning_snail"`.
+    - Set `spinningSnailImg` and `floatArtworkImgs['spinning_snail']` back to `assets/spinning_snail.png`.
+    - Restored `3d_panels/active_artwork.png` to `assets/spinning_snail.png`.
+  - **Fixed Layout Dropdown Switching:**
+    - Resolved the dropdown selection mismatch where choosing the original snail failed to trigger properly.
+    - Updated `presetFileMap` and `getGraphicImgForType` so selecting `spinning_snail` cleanly loads `spinning_snail.json` and renders `assets/spinning_snail.png` on the canvas.
+    - Maintained the simplified experiment as an optional choice (`spinning_snail_simplified`) under `Float 04: The Spinning Snail (Simplified 3D Print Test)`.
+
 ### Entry: Simplified 5-Color Snail (Float 04) Preset & Artwork for Bambu AMS Multi-Material 3D Printing
 * **Date:** 2026-10-06 (Imagineering Session - Float 04 Snail 3D Print Color Segmentation)
 * **Milestone:** Milestone 6 - Wearable 3D Armor Fabrication & Multi-Material 3D Printing
