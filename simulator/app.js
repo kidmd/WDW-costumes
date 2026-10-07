@@ -18364,6 +18364,7 @@ async function loadTpuModalData() {
         // Sync multi-color vs single mode buttons
         const multiBtn = document.getElementById('tpuModalModeMultiBtn');
         const monoBtn = document.getElementById('tpuModalModeMonoBtn');
+        const legend = document.getElementById('tpuModalColorLegend');
         if (multiBtn && monoBtn) {
             if (tpuExportMode === 'multi') setTpuModalPillState(multiBtn, monoBtn);
             else setTpuModalPillState(monoBtn, multiBtn);
