@@ -502,11 +502,11 @@ def compile_plate_variant(variant_name, width_mm, height_mm, raw_leds, artwork_p
         }
     elif is_snail:
         stl_colors = {
-            'black': { 'name': 'Chassis Black & Neck Lines', 'hex': '#11161d', 'targetRgb': [17, 22, 29], 'role': 'chassis' },
-            'pink': { 'name': 'Body, Face & Lips', 'hex': '#ec4899', 'targetRgb': [236, 72, 153], 'role': 'inlay', 'filename': 'color_pink.stl' },
-            'green': { 'name': 'Shell Body', 'hex': '#10b981', 'targetRgb': [16, 185, 129], 'role': 'inlay', 'filename': 'color_green.stl' },
-            'blue': { 'name': 'Radial Lines', 'hex': '#2563eb', 'targetRgb': [37, 99, 235], 'role': 'inlay', 'filename': 'color_blue.stl' },
-            'gold': { 'name': 'Shell Edge & Spiral', 'hex': '#facc15', 'targetRgb': [250, 204, 21], 'role': 'inlay', 'filename': 'color_gold.stl' }
+            'black': { 'name': 'Chassis & Shell Background', 'hex': '#11161d', 'targetRgb': [17, 22, 29], 'role': 'chassis' },
+            'red': { 'name': 'Head, Neck & Foot', 'hex': '#ef4444', 'targetRgb': [239, 68, 68], 'role': 'inlay', 'filename': 'color_red.stl' },
+            'gold': { 'name': 'Antennae, Spiral & Edge', 'hex': '#facc15', 'targetRgb': [250, 204, 21], 'role': 'inlay', 'filename': 'color_gold.stl' },
+            'green': { 'name': 'Green Radial Stripes', 'hex': '#10b981', 'targetRgb': [16, 185, 129], 'role': 'inlay', 'filename': 'color_green.stl' },
+            'blue': { 'name': 'Blue Radial Stripes', 'hex': '#2563eb', 'targetRgb': [37, 99, 235], 'role': 'inlay', 'filename': 'color_blue.stl' }
         }
     else:
         stl_colors = {

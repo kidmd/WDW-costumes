@@ -1238,6 +1238,12 @@ Instead of attaching a Cricut cut vinyl graphic on top of the printed plate, the
    - **Always Matches the Canvas (Stale-STL Guard):** Every compile stamps a *layout signature* (active graphic + artwork + chest bounds + window shape + LED number toggle + size + all LED positions) into `tpu_panel_specs.json`. When you click **Preview 3D TPU Armor Panel**, the simulator compares that stamp to the live canvas — if you've switched floats (e.g., Pete's Dragon → The Spinning Turtle), uploaded new artwork, or moved LEDs, it shows *"Active graphic changed — compiling fresh Front & Back STLs…"* and rebuilds both plates automatically before displaying them.
    - **Rock-Solid 3D Orbiting (Zero Z-Fighting):** The 3D WebGL renderer employs hardware `logarithmicDepthBuffer`, an optimized $1.0\text{ mm}$ near clip plane, explicit layer `renderOrder` (Plate: 0, Artwork: 2, LEDs: 3), GPU `polygonOffset` depth biasing, and a $0.35\text{ mm}$ physical surface elevation. Orbiting and tumbling the plate at any 3D angle maintains rock-solid, flicker-free graphics with zero clipping or disappearing textures.
    - **Complete Download Suite:** Direct download buttons for ⬇️ Front STL, ⬇️ Back STL, 🛡️ Rear Lid STL, 📦 Download Multicolor 3MF, 📦 Download Split Parts ZIP (including rear lid), and parametric OpenSCAD sources (.scad).
+   - **Float 04 (The Spinning Snail) 5-Color Multi-Material Slicing:**
+     - **Black Chassis & Shell Background (`#11161d`):** Monolithic 95A TPU tray base, 7.0mm outer rim, 100 LED wire collars, M2 screw bosses, and solid dark shell background disk.
+     - **Red Head, Neck & Foot Inlay (`#ef4444`):** 0.6mm front jigsaw inlay covering snail head, friendly face, smiling lips, undulating neck, and lower crawling foot.
+     - **Gold Antennae, Spiral & Edge Inlay (`#facc15`):** 0.6mm front jigsaw inlay covering both eye stalk antennae with bulb tips, the outer perimeter shell rim, and central spiral whorl.
+     - **Green Radial Stripes Inlay (`#10b981`):** 0.6mm front jigsaw inlay for alternating shell spokes and converted former gold radial lines.
+     - **Blue Radial Stripes Inlay (`#2563eb`):** 0.6mm front jigsaw inlay for alternating electric blue shell spokes.
 
 11. **Layout Tab: Optical Window Visualization & Pocket Overlap Avoidance:**
    - **🖨️ Show TPU Windows Toggle:** Renders subtle $10\text{ mm} \times 5\text{ mm}$ (outer $12.4 \times 7.4\text{ mm}$) pocket socket boundaries with wire pass-through notches and crisp optical apertures with radiant light beaming through.
