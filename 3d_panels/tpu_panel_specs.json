@@ -1328,19 +1328,19 @@
       ]
     ],
     "stl_bounds": [
-      209.33,
+      209.38,
       186.66,
       9.0
     ],
     "stl_center": [
-      108.85,
+      108.83,
       133.15,
       4.5
     ],
-    "stl_size": 2937784,
-    "chassis_size": 3933184,
+    "stl_size": 2836584,
+    "chassis_size": 3825484,
     "lid_size": 431284,
-    "zip_size": 2018596,
+    "zip_size": 1985710,
     "inlays": [
       {
         "key": "green",
@@ -1376,7 +1376,7 @@
     "lid_stl_url": "/3d_panels/tpu_panel_front_lid.stl",
     "multicolor_3mf_url": "/3d_panels/tpu_panel_front_multicolor.3mf",
     "multicolor_zip_url": "/3d_panels/tpu_panel_front_multicolor_bundle.zip",
-    "volume_mm3": 63332.5,
+    "volume_mm3": 63310.5,
     "is_watertight": false
   },
   "back": {
@@ -2639,19 +2639,19 @@
       ]
     ],
     "stl_bounds": [
-      209.33,
+      209.38,
       186.66,
       9.0
     ],
     "stl_center": [
-      108.85,
+      108.83,
       133.15,
       4.5
     ],
-    "stl_size": 2937784,
-    "chassis_size": 3933184,
+    "stl_size": 2836584,
+    "chassis_size": 3825484,
     "lid_size": 431284,
-    "zip_size": 2018602,
+    "zip_size": 1985665,
     "inlays": [
       {
         "key": "green",
@@ -2687,7 +2687,7 @@
     "lid_stl_url": "/3d_panels/tpu_panel_back_lid.stl",
     "multicolor_3mf_url": "/3d_panels/tpu_panel_back_multicolor.3mf",
     "multicolor_zip_url": "/3d_panels/tpu_panel_back_multicolor_bundle.zip",
-    "volume_mm3": 63332.5,
+    "volume_mm3": 63310.5,
     "is_watertight": false
   },
   "height_mm": 273.24,
@@ -3948,19 +3948,19 @@
     ]
   ],
   "stl_bounds": [
-    209.33,
+    209.38,
     186.66,
     9.0
   ],
   "stl_center": [
-    108.85,
+    108.83,
     133.15,
     4.5
   ],
-  "stl_size": 2937784,
-  "chassis_size": 3933184,
+  "stl_size": 2836584,
+  "chassis_size": 3825484,
   "lid_size": 431284,
-  "zip_size": 2018596,
+  "zip_size": 1985710,
   "inlays": [
     {
       "key": "green",
@@ -3996,6 +3996,6 @@
   "lid_stl_url": "/3d_panels/tpu_panel_front_lid.stl",
   "multicolor_3mf_url": "/3d_panels/tpu_panel_front_multicolor.3mf",
   "multicolor_zip_url": "/3d_panels/tpu_panel_front_multicolor_bundle.zip",
-  "volume_mm3": 63332.5,
+  "volume_mm3": 63310.5,
   "is_watertight": false
 }

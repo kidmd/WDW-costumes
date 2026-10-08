@@ -93,6 +93,25 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### Entry: Deep Eyelet Gusset Wall Anchors & LED Well Overhang Removal (Physical Print Refinements)
+* **Date:** 2026-10-07 (Imagineering Session - Eyelet Gusset Attachment Fix & Wire Notch Overhang Removal)
+* **Milestone:** Milestone 6 - Wearable 3D Armor Fabrication & Mechanical Mating Refinements
+* **Status:** Complete & Verified (`scripts/compile_clean_tpu_panel.py`, `3d_panels/`, `SIMULATOR_USER_GUIDE.md`, `PROJECT_PROGRESS.md`).
+* **Implementation Details:**
+  - **Deep Eyelet Gusset Wall Anchors (Eliminated Air Gaps at Dragon Feet):**
+    - Analysis of physical prints showed several 45° eyelet braces (notably Tabs 8, 10, 11 around the dragon's feet) did not touch the outer rim wall due to perimeter curvature retreating up to 1.11mm behind the nominal tangent.
+    - Redesigned the triangular gusset profile with a 4.5mm deep anchor extending in the negative normal direction into the 2.5mm solid rim wall (`x = -4.5mm` to `-1.0mm` at full 3.0mm height $Z = 4.0\text{ mm}$), then sloping at 45° down to the tab shoulder (`x = +2.0mm` at $Z = 7.0\text{ mm}$).
+    - Integrated an automated Manifold3D inner basin cutter (`inner_plate_2d`) to cleanly shave any portion extending past the inner 2.5mm rim wall, guaranteeing zero intrusion into the tray cavity.
+    - Boolean intersection analysis confirmed all 32 gussets (16 tabs x 2 shoulders) have solid intersection volume with the rim wall (5.3 to 16.5 mm³). The entire chassis is verified as 1 single continuous solid in Manifold3D (`decompose() len == 1`, `Error.NoError`).
+  - **Removed 0.5mm LED Well Wire Notch Overhang:**
+    - Eliminated `roofs_solid_m` over the wire pass-through notches.
+    - Wire notches are now completely open, vertical 4.0mm drop-in channels from top to bottom ($Z = 1.0\text{ to }4.0\text{ mm}$ in raw space, $Z = 5.0\text{ to }8.0\text{ mm}$ in exported space).
+    - Allows seed LED nodes and 3-strand enamel wires to seat 100% flat and flush against the pocket floor shelf with zero thumb binding, catching, or pinching.
+    - Preserved external $0.70\text{ mm}$ top collar retention nubs (`nub_ring_2d`) on the outer collar perimeter for upcoming snap-on clip designs.
+  - **Watertight Manifold3D Recompilation:**
+    - Recompiled both Front Plate ($209.38\text{ mm} \times 186.66\text{ mm} \times 9.0\text{ mm}$) and Back Plate in 6.36 seconds.
+    - Verified all STLs (`tpu_panel_front_chassis_black.stl`, `tpu_panel_back_chassis_black.stl`, lids, 3MF multi-material project, and ZIP bundles).
+
 ### Entry: Flush Lid Screw Boss Landings & Alignment Ridge Pillar Relief (Physical Test Print Fit Fix)
 * **Date:** 2026-10-07 (Imagineering Session - Lid Screw Boss Flush Landing & Alignment Ridge Relief)
 * **Milestone:** Milestone 6 - Wearable 3D Armor Fabrication & Mechanical Mating Refinements

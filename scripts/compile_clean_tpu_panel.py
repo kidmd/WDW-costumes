@@ -266,6 +266,11 @@ def compile_plate_variant(variant_name, width_mm, height_mm, raw_leds, artwork_p
     rim_mesh = trimesh.creation.extrude_polygon(rim_polygon_2d, height=RIM_HEIGHT)
     rim_mesh.apply_translation([0, 0, FRONT_THICK_GENERAL]) # Z = 2.0 to 9.0mm (7.0mm tall rim)
 
+    # Manifold cutter for inner tray basin to guarantee gussets never intrude past the 2.5mm rim wall:
+    inner_basin_cutter_mesh = trimesh.creation.extrude_polygon(inner_plate_2d, height=TOTAL_THICK + 2.0)
+    inner_basin_cutter_mesh.apply_translation([0, 0, -1.0])
+    inner_basin_cutter_m = to_m(inner_basin_cutter_mesh)
+
     # 4. 16 Outside Perimeter Mounting Eyelets
     boundary_line = smoothed_plate_2d.exterior
     total_len = boundary_line.length
@@ -296,19 +301,27 @@ def compile_plate_variant(variant_name, width_mm, height_mm, raw_leds, artwork_p
 
         # Dual 45° triangular gusset braces flanking tab shoulders (Image 3)
         # Rises 3.0mm up the vertical rim wall from the tab surface (Z = 7.0 to 4.0 in pre-flip space)
-        # and extends 2.0mm outward along the tab top
+        # and extends outward along the tab top.
+        # Deep wall anchor: extends from x = -4.5mm (deep inside the 2.5mm rim wall) to x = -1.0mm at full height Z_TOP (4.0mm),
+        # then slopes at 45° down to x = +2.0mm at Z_BASE (7.0mm) onto the tab shoulder.
+        # This completely cures mid-air gaps on curved or concave perimeter regions (e.g. dragon feet).
         GUSSET_RISE = 3.0
-        GUSSET_EXTENT = 2.0
         GUSSET_THICK = 1.2
-        tri_pts = [[0.0, TOTAL_THICK - TAB_HEIGHT - GUSSET_RISE],
-                   [0.0, TOTAL_THICK - TAB_HEIGHT],
-                   [GUSSET_EXTENT, TOTAL_THICK - TAB_HEIGHT]]
+        Z_BASE = TOTAL_THICK - TAB_HEIGHT
+        Z_TOP = Z_BASE - GUSSET_RISE
+
+        tri_pts = [
+            [-4.5, Z_TOP],
+            [-1.0, Z_TOP],
+            [2.0, Z_BASE],
+            [-4.5, Z_BASE]
+        ]
         tri_ext = trimesh.creation.extrude_polygon(sg.Polygon(tri_pts), height=GUSSET_THICK)
         v_tri = tri_ext.vertices
         v_tri_new = np.zeros_like(v_tri)
-        v_tri_new[:, 0] = v_tri[:, 0]                      # outward normal
+        v_tri_new[:, 0] = v_tri[:, 0]                      # outward normal from cand_center
         v_tri_new[:, 1] = v_tri[:, 2] - GUSSET_THICK / 2.0 # tangent centered
-        v_tri_new[:, 2] = v_tri[:, 1]                      # Z
+        v_tri_new[:, 2] = v_tri[:, 1]                      # Z height
         tri_base_tm = trimesh.Trimesh(vertices=v_tri_new, faces=tri_ext.faces[:, ::-1], process=True)
 
         rot_mat = np.eye(4)
@@ -321,13 +334,13 @@ def compile_plate_variant(variant_name, width_mm, height_mm, raw_leds, artwork_p
         for s_sign in [-1, 1]:
             g_tm = tri_base_tm.copy()
             g_tm.apply_transform(rot_mat)
-            g_pos = cand_center - normal * 1.5 + tan_norm * (s_sign * 2.2)
+            g_pos = cand_center + tan_norm * (s_sign * 2.2)
             g_tm.apply_translation([g_pos[0], g_pos[1], 0.0])
             vg = np.ascontiguousarray(g_tm.vertices, dtype=np.float32)
             fg = np.ascontiguousarray(g_tm.faces, dtype=np.uint32)
             gussets_m.append(Manifold(Mesh(vert_properties=vg, tri_verts=fg)))
 
-        full_tab_m = tab_m + Manifold.batch_boolean(gussets_m, OpType.Add)
+        full_tab_m = (tab_m + Manifold.batch_boolean(gussets_m, OpType.Add)) - inner_basin_cutter_m
         tab_mesh_data = full_tab_m.to_mesh()
         tab_solid = trimesh.Trimesh(vertices=tab_mesh_data.vert_properties[:, :3], faces=tab_mesh_data.tri_verts)
         tab_meshes.append(tab_solid)
@@ -389,33 +402,6 @@ def compile_plate_variant(variant_name, width_mm, height_mm, raw_leds, artwork_p
     nub_outer_2d = outer_collar_2d.buffer(NUB_PROTRUSION, resolution=16)
     nub_ring_2d = nub_outer_2d.difference(outer_collar_2d)
 
-    # 0.50mm Single-Sided Wire Retention Catch Lip with 45° chamfer support across wire notches
-    # Leaves an expansive 3.5mm drop-in channel across the 4.0mm notch (from Y = 1.5 to Y = -2.0)
-    LIP_EXTENT = 0.50  # mm
-    LIP_THICK = 0.50   # mm
-    roof_pts_yz = [
-        [2.0, COLLAR_HEIGHT],                          # Top wall junction [2.0, 3.0]
-        [2.0 - LIP_EXTENT, COLLAR_HEIGHT],             # Roof tip [1.5, 3.0]
-        [2.0 - LIP_EXTENT, COLLAR_HEIGHT - LIP_THICK], # Tip underside [1.5, 2.5]
-        [2.0, COLLAR_HEIGHT - LIP_THICK - LIP_EXTENT], # 45 deg chamfer to wall [2.0, 2.0]
-    ]
-    roof_poly_yz = sg.Polygon(roof_pts_yz)
-
-    def _build_roof_tab(x_min, x_max):
-        tm = trimesh.creation.extrude_polygon(roof_poly_yz, height=x_max - x_min)
-        v = tm.vertices
-        v_new = np.zeros_like(v)
-        v_new[:, 0] = v[:, 2] + x_min # X
-        v_new[:, 1] = v[:, 0]         # Y
-        v_new[:, 2] = v[:, 1]         # Z
-        return trimesh.Trimesh(vertices=v_new, faces=tm.faces, process=True)
-
-    xr_min = COLLAR_INNER_L / 2.0 - 0.2
-    xr_max = COLLAR_OUTER_L / 2.0 + NUB_PROTRUSION + 0.2
-    roof_r_tm = _build_roof_tab(xr_min, xr_max)
-    roof_l_tm = _build_roof_tab(-xr_max, -xr_min)
-    roofs_solid_m = to_m(roof_r_tm) + to_m(roof_l_tm)
-
     collar_meshes = []
     floor_recess_cutters = []
     square_window_cutters = []
@@ -462,10 +448,6 @@ def compile_plate_variant(variant_name, width_mm, height_mm, raw_leds, artwork_p
 
         c_cutters_m = Manifold.batch_boolean(collar_cutters_list, OpType.Add)
         notched_collar_m = c_solid_m - c_cutters_m
-
-        # If top_nubs is True, add the 2mm wire retention roof overhang across both notches:
-        if top_nubs:
-            notched_collar_m = notched_collar_m + roofs_solid_m
 
         mesh_d = notched_collar_m.to_mesh()
         notched_collar = trimesh.Trimesh(vertices=mesh_d.vert_properties[:, :3], faces=mesh_d.tri_verts)
