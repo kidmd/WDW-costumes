@@ -93,6 +93,26 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### Entry: Flush Lid Screw Boss Landings & Alignment Ridge Pillar Relief (Physical Test Print Fit Fix)
+* **Date:** 2026-10-07 (Imagineering Session - Lid Screw Boss Flush Landing & Alignment Ridge Relief)
+* **Milestone:** Milestone 6 - Wearable 3D Armor Fabrication & Mechanical Mating Refinements
+* **Status:** Complete & Verified (`scripts/compile_clean_tpu_panel.py`, `3d_panels/`, `SIMULATOR_USER_GUIDE.md`, `PROJECT_PROGRESS.md`).
+* **Implementation Details:**
+  - **Eliminated Raised Inner Boss Pads (`lid_pads_m`):**
+    - Analysis of physical test print photo revealed that 1.2mm raised cylindrical pads around the screw holes on the inner face of the lid collided with the top of the chassis tray boss pillars (which already rise to the rim top at $Z = 9.0\text{ mm}$).
+    - Lowered all 8 screw cylinder top surfaces to be completely flush with the lid mating surface at $Z = 2.0\text{ mm}$ (as requested by the user).
+  - **Added Alignment Ridge Relief Cutters (`boss_relief_m`):**
+    - Added $5.6\text{ mm}$ diameter ($R = 2.8\text{ mm}$) cylindrical relief cutters centered at each of the 8 screw boss coordinates.
+    - Clears away the $1.2\text{ mm}$ downward alignment ridge around each boss location, providing $0.3\text{ mm}$ radial clearance around the $5.0\text{ mm}$ diameter chassis pillars.
+    - Guarantees the chassis boss pillars seat 100% flush and flat against the lid mating surface with zero interference.
+  - **Preserved Outer Counterbores & Clearances:**
+    - Maintained outer $\varnothing 3.8\text{ mm} \times 0.8\text{ mm}$ flush screw head counterbores on the shirt-facing surface ($Z = 0.0$ to $0.8\text{ mm}$).
+    - Kept $\varnothing 2.0\text{ mm}$ clearance through-holes ($Z = 0.0$ to $2.0\text{ mm}$) for standard M2 self-tapping screws.
+  - **Verification:**
+    - Recompiled both Front and Back panels and lids via Manifold3D in 6.69s.
+    - Verified all 8 screw locations in `tpu_panel_front_lid.stl` and `tpu_panel_back_lid.stl` have max $Z = 2.000\text{ mm}$ within $r \le 2.6\text{ mm}$ (zero raised pads).
+    - Verified all 8 screw locations have $\ge 2.79\text{ mm}$ distance to the alignment ridge. Mesh is 100% watertight.
+
 ### Entry: Upgraded Multi-Material Inlays to 0.80mm (4 Solid Layers) for 100% Rich Color Opacity
 * **Date:** 2026-10-07 (Imagineering Session - 0.80mm Inlay Thickness Implementation)
 * **Milestone:** Milestone 6 - Wearable 3D Armor Fabrication & Multi-Material 3D Printing

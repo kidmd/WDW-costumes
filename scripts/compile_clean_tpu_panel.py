@@ -749,23 +749,27 @@ def compile_plate_variant(variant_name, width_mm, height_mm, raw_leds, artwork_p
     # Cutout over wire portal so outgoing wires are never pinched
     portal_relief_m = Manifold.cube([14.0, RIM_WALL_THICK + 8.0, RIDGE_HEIGHT + 0.6], True).translate([wire_portal_x, wire_portal_y, LID_THICK + RIDGE_HEIGHT / 2.0])
 
-    # 5.0mm Inner Reinforcement Pads around screw holes
-    lid_pads_m = []
+    # Flush Screw Landings on Inner Face (Z = LID_THICK = 2.0mm):
+    # Chassis tray boss pillars already rise flush with the rim top (Z = 9.0mm in tray).
+    # Remove any raised pads, and relieve alignment ridge around each chassis screw boss (SCREW_BOSS_R + 0.3mm = 2.8mm)
+    # so the chassis boss seats 100% flush against the inner lid surface without interference.
+    boss_relief_m = []
     screw_holes_m = []
     screw_cbore_m = []
     for sp in screw_coords:
-        pad = make_clean_cylinder(RIDGE_HEIGHT, SCREW_BOSS_R, 32).translate([sp[0], sp[1], LID_THICK])
-        lid_pads_m.append(pad)
-        # 2.0mm through hole
-        shole = make_clean_cylinder(LID_THICK + RIDGE_HEIGHT + 1.0, SCREW_HOLE_R, 32).translate([sp[0], sp[1], -0.5])
+        # 5.6mm diameter relief cutter clearing alignment ridge down to inner face (Z = LID_THICK)
+        boss_relief = make_clean_cylinder(RIDGE_HEIGHT + 0.5, SCREW_BOSS_R + 0.3, 32).translate([sp[0], sp[1], LID_THICK])
+        boss_relief_m.append(boss_relief)
+        # 2.0mm clearance through hole
+        shole = make_clean_cylinder(LID_THICK + 1.0, SCREW_HOLE_R, 32).translate([sp[0], sp[1], -0.5])
         screw_holes_m.append(shole)
         # 3.8mm diameter x 0.8mm deep flush counterbore on outer/shirt face
         scbore = make_clean_cylinder(SCREW_CBORE_DEPTH + 0.2, SCREW_CBORE_R, 32).translate([sp[0], sp[1], -0.1])
         screw_cbore_m.append(scbore)
 
-    lid_solids = [lid_base_m, ridge_m] + lid_tabs_m + lid_pads_m
+    lid_solids = [lid_base_m, ridge_m] + lid_tabs_m
     lid_assembled_m = Manifold.batch_boolean(lid_solids, OpType.Add)
-    lid_cutters_m = Manifold.batch_boolean([portal_relief_m] + screw_holes_m + screw_cbore_m, OpType.Add)
+    lid_cutters_m = Manifold.batch_boolean([portal_relief_m] + boss_relief_m + screw_holes_m + screw_cbore_m, OpType.Add)
     final_lid_m = lid_assembled_m - lid_cutters_m
 
     lid_mesh_data = final_lid_m.to_mesh()
