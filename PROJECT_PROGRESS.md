@@ -93,6 +93,29 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### Entry: Float 4 Spinning Snail Asset Processing (Transparent Background & 5-Color 3D Printable Alternating Stripes)
+* **Date:** 2026-10-08 (Imagineering Session - Float 4 Snail Asset Processing)
+* **Milestone:** Milestone 5 - 3D Printed Armor & Cricut Vinyl Production Pipeline
+* **Status:** Complete & Verified (`assets/snail2.png`, `scripts/process_snail2.py`, `PROJECT_PROGRESS.md`, `SIMULATOR_USER_GUIDE.md`).
+* **Implementation Details:**
+  1. **Background Removal & Alpha Transparency:**
+     - Fully isolated the low-poly 3D spinning snail float from `assets/snail2.png`.
+     - Completely eliminated all background elements (dark night sky, spectator crowd silhouettes, road/curb ground, and streetlamp fixtures at top-right).
+     - Produced a pristine transparent PNG with 79.3% alpha-transparent pixels (`RGBA [0, 0, 0, 0]`) and crisp edges.
+  2. **Harmonized 5-Color Multi-Material Filament Palette:**
+     - Strictly restricted every foreground pixel (15,314 px) to the 5 official multi-material 3D printing filaments defined in `FLOAT_STL_COLOR_CONFIG['spinning_snail']`:
+       - **Black:** `#11161d` (RGB `[17, 22, 29]`) — Divider stripes & separator bands (4,451 px / 29.1%)
+       - **Red:** `#ef4444` (RGB `[239, 68, 68]`) — Snail head, neck, underbelly, and foot (3,302 px / 21.6%)
+       - **Gold:** `#facc15` (RGB `[250, 204, 21]`) — Antennae stalks, eye diamond, shell outer rim, and spiral divider track with center curl (3,125 px / 20.4%)
+       - **Green:** `#10b981` (RGB `[16, 185, 129]`) — Alternating green radial stripes (2,239 px / 14.6%)
+       - **Blue:** `#2563eb` (RGB `[37, 99, 235]`) — Alternating blue radial stripes (2,197 px / 14.3%)
+  3. **Alternating Radial Stripe Sequence:**
+     - Divided the shell disc and outer hood into 32 angular sectors ($11.25^\circ$ each, phase-aligned at $\theta_0 = 5.0^\circ$ around center `(153.5, 156.5)`), perfectly matching the underlying low-poly 3D mesh facets.
+     - Implemented the repeating 4-phase sequence: `Green -> Black -> Blue -> Black -> Green -> Black -> Blue -> Black...` (8 complete cycles).
+     - Ensured continuous radial spoke alignment between the outer hood tier and inner wheel.
+  4. **Reproducible Pipeline (`scripts/process_snail2.py`):**
+     - Authored a fully deterministic, self-contained Python script to reconstruct or regenerate the 5-color asset directly from raw uploads.
+
 ### Entry: 30s Fleet Show Timestamped Naming, Interactive Save Modal & Conflict Detection
 * **Date:** 2026-10-08 (Imagineering Session - 30s Fleet Show Save Harmonization)
 * **Milestone:** Milestone 3 & 4 - Simulator UX Architecture & Choreography Studio
