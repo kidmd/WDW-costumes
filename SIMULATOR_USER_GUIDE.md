@@ -452,42 +452,47 @@ Creating radial fireworks bursts requires clean geometry, flexible placement, an
 
 ---
 
-### BTF-LIGHTING WS2812B (60 LED/m) Strip Preview & Staggered Matrix Engine
+### BTF-LIGHTING WS2812B Strip Preview & Staggered Matrix Engine (60 / 100 / 144 LEDs per 3.2ft)
 
 To explore alternatives to discrete individual pebble/seed pixels, the Layout tab features a dedicated **BTF-LIGHTING WS2812B IP67 LED Strip Preview Panel** (Section 3c: `#btfStripPreviewToggle`).
 
-This feature models the exact optical geometry, silicone sheathing, solder cut intervals, and electrical current draw of **BTF-LIGHTING WS2812B IC RGB LED Strip, UL Listed, DC 5V 16.4FT 300LED IP67 (60 LEDs/meter)** arranged across the runner's chest in staggered rows or columns.
+This feature models the exact optical geometry, silicone sheathing, solder cut intervals, and electrical current draw of **BTF-LIGHTING WS2812B IC RGB LED Strips (UL Listed, DC 5V IP67)** with selectable densities of **60, 100, or 144 LEDs per 3.2ft (1 meter)** arranged across the runner's chest in staggered rows or columns.
 
 #### 1. Non-Destructive Canvas Overlay
 - **Zero Impact on Baseline Design:** Toggling the strip preview **ON** (`#btfStripPreviewToggle`) temporarily replaces the canvas pebble rendering with a high-fidelity strip visualizer without modifying or deleting your placed LEDs, animation groups, wiring paths, or 3D TPU panel definitions.
 - **Instant Toggling:** Switching the preview toggle **OFF** immediately restores your exact pebble LED layout and wiring tour.
 - **Suppressed Background Wires:** When strip preview is active, discrete pebble wiring lines and slack tension arcs are automatically hidden to maintain visual clarity.
 
-#### 2. Physical Strip Geometry & 50% Brick Stagger
-- **Fixed Linear Pitch (60 LEDs/m):** With 60 LEDs per meter, the distance between adjacent SMD 5050 LEDs along a physical strip is fixed at:
-  $$P_{\text{linear}} = \frac{1000\text{ mm}}{60} \approx 16.6667\text{ mm}\quad(\sim 0.656\text{ inches})$$
-  In normalized shirt garment space ($457.2\text{ mm} \times 609.6\text{ mm}$), this corresponds to $P_x \approx 0.03645$ and $P_y \approx 0.02734$.
+#### 2. Selectable Strip Densities (60, 100, 144 LEDs per 3.2ft / 1m)
+Three quick-toggle density options are available (`#btfDensity60Btn`, `#btfDensity100Btn`, `#btfDensity144Btn`):
+- **60 LEDs / 3.2ft (16.7mm pitch):** Standard density, linear pitch $P = \frac{1000\text{ mm}}{60} \approx 16.6667\text{ mm}$ (~0.656"). Lower overall LED count, low power draw.
+- **100 LEDs / 3.2ft (10.0mm pitch):** Medium density, linear pitch $P = \frac{1000\text{ mm}}{100} = 10.0000\text{ mm}$ (~0.394"). Perfectly matches the 10mm width of the silicone ribbon sheath.
+- **144 LEDs / 3.2ft (6.9mm pitch):** High density, linear pitch $P = \frac{1000\text{ mm}}{144} \approx 6.9444\text{ mm}$ (~0.273"). Ultra-high resolution matrix for crisp character silhouettes.
+
+#### 3. Orientation, Staggering & Boundary Masking
 - **Orientation Modes:**
   - **`↔️ Rows`:** Horizontal strip ribbons spanning across the chest.
   - **`↕️ Columns`:** Vertical strip ribbons running down the torso.
 - **Stagger Alignments:**
-  - **`🧱 50% Brick Stagger` (Recommended):** Shifts alternating rows/columns by half a pixel pitch ($\Delta = P_{\text{linear}} / 2 \approx 8.33\text{ mm}$), creating an organic hexagonal/honeycomb LED packing density that eliminates rigid grid artifacts.
-  - **`📐 Aligned (0%)`:** Standard orthogonal Cartesian matrix grid.
+  - **`🧱 50% Brick Stagger` (Recommended):** Shifts alternating rows/columns by half a pixel pitch ($\Delta = P_{\text{linear}} / 2$), creating an organic hexagonal/honeycomb LED packing density that eliminates rigid grid artifacts.
+  - **`▦ Aligned`:** Standard orthogonal Cartesian matrix grid.
 - **Boundary Masking Modes:**
-  - **`✂️ Clip to Float Art`:** Only illuminates strip LEDs whose centers fall within the opaque silhouette of the active float artwork (alpha $> 35$), sampling vibrant character colors directly from the graphic.
-  - **`🔲 Chest Panel Grid`:** Fills the entire upper chest panel trapezoid above the race bib ($y = 0.17$ to $0.555$).
+  - **`✂️ Float Artwork`:** Only illuminates strip LEDs whose centers fall within the opaque silhouette of the active float artwork (alpha $> 35$), sampling vibrant character colors directly from the graphic.
+  - **`🔲 Chest Panel`:** Fills the upper chest panel armor trapezoid above the race bib ($y = 0.17$ to $0.555$).
 
-#### 3. Pitch Spacing, Plate Size Scaling & Quick Presets
+#### 4. Pitch Spacing, Flush Placement & Quick Presets
 - **Proportional Plate Size Scaling (Small, Medium, Large):**
-  - **📐 Small (~6.5" / 165mm):** Scales the float artwork silhouette down ($0.8125\times$), yielding fewer LEDs (e.g. ~21–26 LEDs on Pete's Dragon).
-  - **📐 Medium (~8.0" / 203mm):** Standard reference chest scale ($1.000\times$, e.g. ~28–41 LEDs on Pete's Dragon).
-  - **📐 Large (~10.0" / 254mm):** Expands the artwork silhouette ($1.250\times$) across the upper chest, generating significantly more LEDs (e.g. ~50–68 LEDs on Pete's Dragon) while strictly preserving clearance above the race bib ($y \le 0.555$).
-- **Row/Column Spacing Slider (`#btfSpacingSlider`):** Dynamically adjusts the pitch between adjacent strip ribbons from **16.7 mm to 36.0 mm** (with 0.1 mm precision).
-- **`🎯 Auto-Fit ~100 LEDs` Preset:** An iterative numerical solver automatically calculates the exact ribbon pitch spacing (e.g. $\sim 22.0\text{ mm}$) to land on **~95–105 LEDs**, perfectly satisfying the 2.0A portable battery bank power envelope.
-- **`⚡ Dense (20mm)` Preset:** Sets tight 20.0 mm ribbon spacing for maximum illumination density.
-- **`🍃 Sparse (28mm)` Preset:** Sets wide 28.0 mm ribbon spacing for ultralight, low-current configurations.
+  - **📐 Small (~6.5" / 165mm):** Scales the float artwork silhouette down ($0.8125\times$), yielding fewer LEDs (e.g. ~21–26 LEDs on Pete's Dragon at 60/m).
+  - **📐 Medium (~8.0" / 203mm):** Standard reference chest scale ($1.000\times$, e.g. ~28–41 LEDs on Pete's Dragon at 60/m).
+  - **📐 Large (~10.0" / 254mm):** Expands the artwork silhouette ($1.250\times$) across the upper chest, generating significantly more LEDs (e.g. ~50–68 LEDs on Pete's Dragon at 60/m) while strictly preserving clearance above the race bib ($y \le 0.555$).
+- **Strip-to-Strip Pitch Slider (`#btfSpacingSlider`):** Dynamically adjusts center-to-center pitch between adjacent ribbons from **6.9 mm to 40.0 mm** (with 0.1 mm precision). The live readout displays both pitch and physical gap between the 10mm silicone sheaths: e.g. `10.0 mm (0.0mm Gap - Flush)` or `16.7 mm (Gap: 6.7mm)`.
+- **Quick Presets:**
+  - **`📐 Match LED Pitch` (`#btfMatchPitchBtn`):** Sets the strip-to-strip pitch to exactly match the active linear LED pitch ($16.7\text{ mm}$ for 60/m, $10.0\text{ mm}$ for 100/m, $6.9\text{ mm}$ for 144/m). This forms an isotropic square or hexagonal staggered matrix.
+  - **`⚡ Flush (10mm)` (`#btfFlushBtn`):** Places strips immediately side-by-side with zero gap ($10.0\text{ mm}$ center-to-center pitch), modeling solid ribbon panels.
+  - **`🎯 Auto-Fit ~100` (`#btfAutoFit100Btn`):** An iterative numerical solver automatically calculates the strip spacing to land on **~95–105 LEDs**, perfectly satisfying the 2.0A portable power bank current envelope.
+  - **`🌿 Relaxed (25mm)` (`#btfSparsePresetBtn`):** Sets relaxed 25.0 mm ribbon spacing for ultralight, low-current layouts.
 
-#### 4. Real-Time Telemetry & Hardware Safety Budget
+#### 5. Real-Time Telemetry & Hardware Safety Budget
 The telemetry card continuously updates as sliders, presets, or plate sizes change:
 - **Total LEDs (`#btfTotalLedsVal`):** Current active SMD 5050 LED count across all strip runs.
 - **Solder Cut Segments (`#btfTotalCutsVal`):** Number of discrete strip segments requiring cut/solder jumper wires (labeled `S1`, `S2`, `S3`... on canvas).
@@ -499,7 +504,7 @@ The telemetry card continuously updates as sliders, presets, or plate sizes chan
   - 🟢 **`100-LED Safe (~2.0A Bank)`:** Highlighted in emerald green when $N_{\text{LED}} \le 105$.
   - ⚠️ **`Exceeds 100-LED Budget`:** Highlighted in crimson warning when power draw would overload a 2.0A portable power bank without aggressive FastLED software capping.
 
-#### 5. Photorealistic IP67 Canvas Visualization (10mm Strips / 5mm LEDs)
+#### 6. Photorealistic IP67 Canvas Visualization (10mm Strips / 5mm LEDs)
 - **10.0mm Translucent Silicone Tube Ribbons:** Renders strictly calibrated **10.0 mm wide** IP67 translucent white silicone sheathing ribbons with rounded caps, sealed perimeter borders, and copper solder cut tick marks between pixel packages.
 - **Proportional 5.0mm SMD 5050 Packages & Radiant Phosphor Glow:** Draws square black SMD 5050 bodies (`#0d1117`) scaled to **strictly 5.0 mm wide** (occupying exactly 50% of the 10.0mm strip width with 2.5mm silicone margins on each side). Features circular phosphor emitter lenses ($3.2\text{ mm}$ die diameter), specular lens highlights, and breathing radial bloom glow.
 - **Segment Callout Badges:** At higher zoom levels, each segment displays a high-contrast identifier (`S1`, `S2`...) indicating where physical cuts and 3-pin solder jumpers (5V, Data, GND) will be required.

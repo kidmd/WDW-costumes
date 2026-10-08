@@ -93,6 +93,26 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### Entry: Multi-Density (60, 100, 144 LEDs/3.2ft) Strip Modes, Flush Placement & Pitch Matching Presets
+* **Date:** 2026-10-08 (Imagineering Session - LED Strip Density & Grid Pitch Matching)
+* **Milestone:** Milestone 3 & 4 - Simulator UX Architecture & Physical Lighting Modeling
+* **Status:** Complete & Verified (`simulator/index.html`, `simulator/app.js`, `SIMULATOR_USER_GUIDE.md`, `PROJECT_PROGRESS.md`).
+* **Implementation Details:**
+  1. **Selectable Strip Densities (60, 100, 144 LEDs per 3.2ft / 1m):**
+     - Integrated 3-button density selector (`#btfDensity60Btn`, `#btfDensity100Btn`, `#btfDensity144Btn`) with dynamic badges (`#btfLinearPitchBadge`, `#btfStripDensityBadge`).
+     - **60 LEDs/3.2ft:** Linear LED pitch $P = 1000 / 60 \approx 16.6667\text{ mm}$ (~0.656").
+     - **100 LEDs/3.2ft:** Linear LED pitch $P = 1000 / 100 = 10.0000\text{ mm}$ (~0.394"), identically matching the 10mm silicone strip width.
+     - **144 LEDs/3.2ft:** Linear LED pitch $P = 1000 / 144 \approx 6.9444\text{ mm}$ (~0.273"), high-definition silhouette rendering.
+     - Strip matrix generator dynamically calculates solder cut marks, total strip length ($L = N_{\text{LED}} \times P$), and 5V current draw using the active density.
+  2. **Continuous Spacing Slider with Live Gap Telemetry (`#btfSpacingSlider`):**
+     - Expanded slider range from **6.9mm to 40.0mm** (0.1mm precision).
+     - Live readout displays center-to-center pitch along with physical clearance between adjacent 10mm silicone sheaths: e.g. `10.0 mm (0.0mm Gap - Flush)` or `16.7 mm (Gap: 6.7mm)`.
+  3. **Pitch Matching & Flush Alignment Presets:**
+     - **`📐 Match LED Pitch` (`#btfMatchPitchBtn`):** Instantly sets strip-to-strip pitch to match the active linear LED pitch ($16.7\text{mm}$, $10.0\text{mm}$, or $6.9\text{mm}$), producing an isotropic square or hexagonal staggered matrix.
+     - **`⚡ Flush (10mm)` (`#btfFlushBtn`):** Places strips directly side-by-side with 0.0mm gap ($10.0\text{mm}$ center-to-center pitch, matching the 10mm silicone sheathing width).
+     - **`🎯 Auto-Fit ~100` (`#btfAutoFit100Btn`):** Numerical search algorithm calculates the optimal pitch to fit ~95–105 LEDs for the 2.0A battery envelope across any chosen density or plate size.
+     - **`🌿 Relaxed (25mm)` (`#btfSparsePresetBtn`):** Quick-sets 25.0mm ribbon spacing for ultralight, low-current layouts.
+
 ### Entry: Proportional Plate Sizing (Small/Medium/Large) & 10mm/5mm Strip LED Calibration
 * **Date:** 2026-10-08 (Imagineering Session - Proportional Plate & Strip Calibration)
 * **Milestone:** Milestone 3 & 4 - Simulator UX Architecture & Physical Lighting Modeling

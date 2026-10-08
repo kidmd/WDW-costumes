@@ -12861,13 +12861,20 @@ document.getElementById('fleetViewBtn').addEventListener('click', () => {
 // ============================================================================
 let btfStripPreviewActive = false;
 let btfStripConfig = {
+    density: 60,            // 60 | 100 | 144 LEDs per 3.2ft (1 meter)
     orientation: 'rows',    // 'rows' | 'cols'
     stagger: 'brick',        // 'brick' (50% stagger) | 'aligned' (0% stagger)
     boundary: 'art',         // 'art' | 'chest'
-    spacingMm: 22.0          // Pitch between rows/cols in mm
+    spacingMm: 16.7          // Center-to-center pitch between strips in mm (10mm = flush edge-to-edge)
 };
 let btfGeneratedLeds = [];
 let btfStripSegments = [];
+
+function getBtfLedPitchMm(density) {
+    if (density === 144) return 1000.0 / 144.0; // ~6.9444 mm (0.273")
+    if (density === 100) return 10.0;           // 10.0000 mm (0.394")
+    return 1000.0 / 60.0;                       // ~16.6667 mm (0.656", default 60/m)
+}
 
 function computeBtfStripMatrix() {
     btfGeneratedLeds = [];
@@ -12875,10 +12882,10 @@ function computeBtfStripMatrix() {
 
     const W_MM = 457.2; // 18.0 inches shirt physical width
     const H_MM = 609.6; // 24.0 inches shirt physical height
-    const LED_PITCH_MM = 16.6667; // 60 LEDs / meter = 16.67mm pitch
+    const LED_PITCH_MM = getBtfLedPitchMm(btfStripConfig.density || 60);
 
-    const pitchNormX = LED_PITCH_MM / W_MM; // ~0.03645
-    const pitchNormY = LED_PITCH_MM / H_MM; // ~0.02734
+    const pitchNormX = LED_PITCH_MM / W_MM;
+    const pitchNormY = LED_PITCH_MM / H_MM;
     const spacingNormX = btfStripConfig.spacingMm / W_MM;
     const spacingNormY = btfStripConfig.spacingMm / H_MM;
 
@@ -13062,7 +13069,8 @@ function computeBtfStripMatrix() {
 function updateBtfStripTelemetryUI() {
     const totalLeds = btfGeneratedLeds.length;
     const totalCuts = btfStripSegments.length;
-    const totalLengthM = (totalLeds * 16.6667) / 1000.0;
+    const ledPitch = getBtfLedPitchMm(btfStripConfig.density || 60);
+    const totalLengthM = (totalLeds * ledPitch) / 1000.0;
     const totalLengthFt = totalLengthM * 3.28084;
     const currentMaxA = totalLeds * 0.05; // 50mA per 5050 RGB at max white
     const currentAvgA = totalLeds * 0.02; // 20mA typical animated color mix
@@ -13072,11 +13080,21 @@ function updateBtfStripTelemetryUI() {
     const totalLengthEl = document.getElementById('btfTotalLengthVal');
     const estCurrentEl = document.getElementById('btfEstCurrentVal');
     const statusBadgeEl = document.getElementById('btfStatusBadge');
+    const valLabel = document.getElementById('btfSpacingVal');
 
     if (totalLedsEl) totalLedsEl.textContent = `${totalLeds} LEDs`;
     if (totalCutsEl) totalCutsEl.textContent = `${totalCuts} Segments`;
     if (totalLengthEl) totalLengthEl.textContent = `${totalLengthM.toFixed(2)} m (${totalLengthFt.toFixed(1)} ft)`;
     if (estCurrentEl) estCurrentEl.textContent = `~${currentMaxA.toFixed(2)} A max / ~${currentAvgA.toFixed(2)} A avg`;
+
+    if (valLabel) {
+        const gapMm = Math.max(0, btfStripConfig.spacingMm - 10.0);
+        if (btfStripConfig.spacingMm <= 10.0) {
+            valLabel.textContent = `${btfStripConfig.spacingMm.toFixed(1)} mm (0.0mm Gap - Flush)`;
+        } else {
+            valLabel.textContent = `${btfStripConfig.spacingMm.toFixed(1)} mm (Gap: ${gapMm.toFixed(1)}mm)`;
+        }
+    }
 
     if (statusBadgeEl) {
         if (totalLeds <= 105) {
@@ -13102,7 +13120,7 @@ function drawBtfStripOverlay(ctx, timeMs) {
     const STRIP_TUBE_WIDTH_MM = 10.0; // Strictly 10.0mm physical width
     const W_MM = 457.2;
     const H_MM = 609.6;
-    const LED_PITCH_MM = 16.6667;
+    const LED_PITCH_MM = getBtfLedPitchMm(btfStripConfig.density || 60);
 
     const tubeWidthNormX = (STRIP_TUBE_WIDTH_MM / W_MM);
     const tubeWidthNormY = (STRIP_TUBE_WIDTH_MM / H_MM);
@@ -13270,7 +13288,7 @@ function autoFitBtfStripTo100Leds() {
     let closestDiff = 999;
     const targetLeds = 100;
 
-    for (let testSpacing = 16.7; testSpacing <= 36.0; testSpacing += 0.2) {
+    for (let testSpacing = 10.0; testSpacing <= 40.0; testSpacing += 0.2) {
         btfStripConfig.spacingMm = testSpacing;
         computeBtfStripMatrix();
         const diff = Math.abs(btfGeneratedLeds.length - targetLeds);
@@ -13283,9 +13301,7 @@ function autoFitBtfStripTo100Leds() {
 
     btfStripConfig.spacingMm = parseFloat(bestSpacing.toFixed(1));
     const slider = document.getElementById('btfSpacingSlider');
-    const valLabel = document.getElementById('btfSpacingVal');
     if (slider) slider.value = btfStripConfig.spacingMm;
-    if (valLabel) valLabel.textContent = `${btfStripConfig.spacingMm.toFixed(1)} mm`;
 
     computeBtfStripMatrix();
     markSingleShirtDirty();
@@ -13326,6 +13342,11 @@ function applyBtfStripLayoutToCostume() {
 function initBtfStripPreview() {
     const toggle = document.getElementById('btfStripPreviewToggle');
     const card = document.getElementById('btfStripOptionsCard');
+    const dens60Btn = document.getElementById('btfDensity60Btn');
+    const dens100Btn = document.getElementById('btfDensity100Btn');
+    const dens144Btn = document.getElementById('btfDensity144Btn');
+    const linearPitchBadge = document.getElementById('btfLinearPitchBadge');
+    const stripDensityBadge = document.getElementById('btfStripDensityBadge');
     const rowsBtn = document.getElementById('btfOrientationRowsBtn');
     const colsBtn = document.getElementById('btfOrientationColsBtn');
     const brickBtn = document.getElementById('btfStaggerBrickBtn');
@@ -13334,8 +13355,9 @@ function initBtfStripPreview() {
     const chestBtn = document.getElementById('btfBoundaryChestBtn');
     const slider = document.getElementById('btfSpacingSlider');
     const valLabel = document.getElementById('btfSpacingVal');
+    const matchPitchBtn = document.getElementById('btfMatchPitchBtn');
+    const flushBtn = document.getElementById('btfFlushBtn');
     const autoFitBtn = document.getElementById('btfAutoFit100Btn');
-    const denseBtn = document.getElementById('btfDensePresetBtn');
     const sparseBtn = document.getElementById('btfSparsePresetBtn');
     const applyBtn = document.getElementById('btfApplyLayoutBtn');
 
@@ -13346,6 +13368,59 @@ function initBtfStripPreview() {
             if (btfStripPreviewActive) {
                 computeBtfStripMatrix();
             }
+            markSingleShirtDirty();
+        });
+    }
+
+    function updateDensityUI() {
+        const d = btfStripConfig.density || 60;
+        const densList = [
+            { el: dens60Btn, val: 60, pitch: '16.7mm pitch', badge: '60 / 3.2ft (16.7mm)' },
+            { el: dens100Btn, val: 100, pitch: '10.0mm pitch', badge: '100 / 3.2ft (10.0mm)' },
+            { el: dens144Btn, val: 144, pitch: '6.9mm pitch', badge: '144 / 3.2ft (6.9mm)' }
+        ];
+
+        densList.forEach((item) => {
+            if (!item.el) return;
+            if (item.val === d) {
+                item.el.classList.add('primary');
+                item.el.style.background = '#38bdf8';
+                item.el.style.color = '#000';
+                item.el.style.borderColor = '#38bdf8';
+                if (linearPitchBadge) linearPitchBadge.textContent = item.pitch;
+                if (stripDensityBadge) stripDensityBadge.textContent = item.badge;
+            } else {
+                item.el.classList.remove('primary');
+                item.el.style.background = 'transparent';
+                item.el.style.color = 'var(--text-muted)';
+                item.el.style.borderColor = 'transparent';
+            }
+        });
+    }
+
+    if (dens60Btn) {
+        dens60Btn.addEventListener('click', () => {
+            btfStripConfig.density = 60;
+            updateDensityUI();
+            computeBtfStripMatrix();
+            markSingleShirtDirty();
+        });
+    }
+
+    if (dens100Btn) {
+        dens100Btn.addEventListener('click', () => {
+            btfStripConfig.density = 100;
+            updateDensityUI();
+            computeBtfStripMatrix();
+            markSingleShirtDirty();
+        });
+    }
+
+    if (dens144Btn) {
+        dens144Btn.addEventListener('click', () => {
+            btfStripConfig.density = 144;
+            updateDensityUI();
+            computeBtfStripMatrix();
             markSingleShirtDirty();
         });
     }
@@ -13476,9 +13551,29 @@ function initBtfStripPreview() {
     if (slider) {
         slider.addEventListener('input', (e) => {
             btfStripConfig.spacingMm = parseFloat(e.target.value);
-            if (valLabel) valLabel.textContent = `${btfStripConfig.spacingMm.toFixed(1)} mm`;
             computeBtfStripMatrix();
             markSingleShirtDirty();
+        });
+    }
+
+    if (matchPitchBtn) {
+        matchPitchBtn.addEventListener('click', () => {
+            const pitch = getBtfLedPitchMm(btfStripConfig.density || 60);
+            btfStripConfig.spacingMm = parseFloat(pitch.toFixed(1));
+            if (slider) slider.value = btfStripConfig.spacingMm;
+            computeBtfStripMatrix();
+            markSingleShirtDirty();
+            showToast(`📐 Matched strip pitch to LED linear pitch (${btfStripConfig.spacingMm.toFixed(1)}mm)`);
+        });
+    }
+
+    if (flushBtn) {
+        flushBtn.addEventListener('click', () => {
+            btfStripConfig.spacingMm = 10.0;
+            if (slider) slider.value = 10.0;
+            computeBtfStripMatrix();
+            markSingleShirtDirty();
+            showToast('⚡ Strips placed flush side-by-side (10.0mm pitch, 0mm gap)');
         });
     }
 
@@ -13488,23 +13583,13 @@ function initBtfStripPreview() {
         });
     }
 
-    if (denseBtn) {
-        denseBtn.addEventListener('click', () => {
-            btfStripConfig.spacingMm = 18.0;
-            if (slider) slider.value = 18.0;
-            if (valLabel) valLabel.textContent = `18.0 mm`;
-            computeBtfStripMatrix();
-            markSingleShirtDirty();
-        });
-    }
-
     if (sparseBtn) {
         sparseBtn.addEventListener('click', () => {
-            btfStripConfig.spacingMm = 30.0;
-            if (slider) slider.value = 30.0;
-            if (valLabel) valLabel.textContent = `30.0 mm`;
+            btfStripConfig.spacingMm = 25.0;
+            if (slider) slider.value = 25.0;
             computeBtfStripMatrix();
             markSingleShirtDirty();
+            showToast('🌿 Relaxed spacing set to 25.0mm');
         });
     }
 
@@ -13513,6 +13598,12 @@ function initBtfStripPreview() {
             applyBtfStripLayoutToCostume();
         });
     }
+
+    // Initialize UI states
+    updateDensityUI();
+    updateOrientationUI();
+    updateStaggerUI();
+    updateBoundaryUI();
 }
 window.initBtfStripPreview = initBtfStripPreview;
 window.computeBtfStripMatrix = computeBtfStripMatrix;

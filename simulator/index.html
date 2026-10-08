@@ -453,11 +453,11 @@
                         </div>
                     </div>
 
-                    <!-- 3c. BTF-LIGHTING WS2812B Strip (60 LED/m) Preview Panel -->
+                    <!-- 3c. BTF-LIGHTING WS2812B Strip (60 / 100 / 144 /m) Preview Panel -->
                     <div class="control-section" style="background: rgba(56, 189, 248, 0.08); border: 1px solid rgba(56, 189, 248, 0.35); border-radius: 8px; padding: 10px; margin-top: 10px;">
                         <div class="section-title" style="margin-bottom: 6px; color: #38bdf8; display: flex; align-items: center; justify-content: space-between;">
-                            <span>⚡ BTF 60 LED/m Strip Preview</span>
-                            <span style="font-size: 9.5px; color: #a5f3fc; background: rgba(56, 189, 248, 0.2); padding: 1px 6px; border-radius: 4px; font-weight: 600;">IP67 5V 16.4ft</span>
+                            <span>⚡ BTF LED Strip Preview</span>
+                            <span id="btfStripDensityBadge" style="font-size: 9.5px; color: #a5f3fc; background: rgba(56, 189, 248, 0.2); padding: 1px 6px; border-radius: 4px; font-weight: 600;">60 / 3.2ft (16.7mm)</span>
                         </div>
                         
                         <div class="toggle-row" style="margin-bottom: 6px;">
@@ -471,6 +471,19 @@
                         <!-- Strip Options Card (visible when preview is toggled ON) -->
                         <div id="btfStripOptionsCard" style="display: none; margin-top: 8px; border-top: 1px solid rgba(56, 189, 248, 0.25); padding-top: 8px;">
                             
+                            <!-- Density Selector (60, 100, 144 LEDs per 3.2ft / 1m) -->
+                            <div class="control-group" style="margin-bottom: 6px;">
+                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2px;">
+                                    <label style="font-size: 10.5px; color: var(--text-muted);">LED Density (per 3.2ft / 1m):</label>
+                                    <span id="btfLinearPitchBadge" style="font-size: 9.5px; color: #38bdf8; font-weight: 700; font-family: monospace;">16.7mm pitch</span>
+                                </div>
+                                <div style="display: flex; gap: 4px; background: rgba(0,0,0,0.3); padding: 2px; border-radius: 6px; border: 1px solid #21262d;">
+                                    <button type="button" id="btfDensity60Btn" class="action-btn primary" style="flex: 1; padding: 4px; font-size: 10px; font-weight: 700; background: #38bdf8; color: #000; border-color: #38bdf8;" title="60 LEDs per 3.2ft (16.7mm linear LED pitch)">60 / 3.2ft</button>
+                                    <button type="button" id="btfDensity100Btn" class="action-btn" style="flex: 1; padding: 4px; font-size: 10px; font-weight: 600;" title="100 LEDs per 3.2ft (10.0mm linear LED pitch)">100 / 3.2ft</button>
+                                    <button type="button" id="btfDensity144Btn" class="action-btn" style="flex: 1; padding: 4px; font-size: 10px; font-weight: 600;" title="144 LEDs per 3.2ft (6.9mm linear LED pitch)">144 / 3.2ft</button>
+                                </div>
+                            </div>
+
                             <!-- Orientation Selector -->
                             <div class="control-group" style="margin-bottom: 6px;">
                                 <label style="font-size: 10.5px; color: var(--text-muted); display: block; margin-bottom: 2px;">Orientation:</label>
@@ -484,7 +497,7 @@
                             <div class="control-group" style="margin-bottom: 6px;">
                                 <label style="font-size: 10.5px; color: var(--text-muted); display: block; margin-bottom: 2px;">Staggering:</label>
                                 <div style="display: flex; gap: 4px; background: rgba(0,0,0,0.3); padding: 2px; border-radius: 6px; border: 1px solid #21262d;">
-                                    <button type="button" id="btfStaggerBrickBtn" class="action-btn primary" style="flex: 1; padding: 4px; font-size: 10px; font-weight: 700; background: #38bdf8; color: #000; border-color: #38bdf8;" title="50% offset on alternating strips (8.33mm brick pattern)">🧱 50% Brick</button>
+                                    <button type="button" id="btfStaggerBrickBtn" class="action-btn primary" style="flex: 1; padding: 4px; font-size: 10px; font-weight: 700; background: #38bdf8; color: #000; border-color: #38bdf8;" title="50% offset on alternating strips (brick pattern)">🧱 50% Brick</button>
                                     <button type="button" id="btfStaggerAlignedBtn" class="action-btn" style="flex: 1; padding: 4px; font-size: 10px; font-weight: 600;" title="Uniform aligned grid with no offset">▦ Aligned</button>
                                 </div>
                             </div>
@@ -502,21 +515,22 @@
                             <div class="control-group" style="margin-bottom: 8px;">
                                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2px;">
                                     <span style="font-size: 10.5px; color: var(--text-muted);" id="btfSpacingLabel">Strip-to-Strip Pitch:</span>
-                                    <span id="btfSpacingVal" style="font-size: 10px; color: #38bdf8; font-weight: 700; font-family: monospace;">22.0 mm</span>
+                                    <span id="btfSpacingVal" style="font-size: 10px; color: #38bdf8; font-weight: 700; font-family: monospace;">16.7 mm (Gap: 6.7mm)</span>
                                 </div>
-                                <input type="range" id="btfSpacingSlider" min="16.7" max="38.0" step="0.5" value="22.0" style="width: 100%;">
+                                <input type="range" id="btfSpacingSlider" min="6.9" max="40.0" step="0.1" value="16.7" style="width: 100%;">
                                 <div style="display: flex; justify-content: space-between; font-size: 9px; color: #8b949e; margin-top: 2px;">
-                                    <span>16.7mm (Tight)</span>
-                                    <span>22.0mm (Std)</span>
-                                    <span>38.0mm (Wide)</span>
+                                    <span id="btfSpacingMinLegend">10.0mm (Flush)</span>
+                                    <span>20.0mm</span>
+                                    <span>40.0mm (Wide)</span>
                                 </div>
                             </div>
 
                             <!-- Quick Presets -->
-                            <div style="display: flex; gap: 4px; margin-bottom: 8px;">
-                                <button type="button" id="btfAutoFit100Btn" class="action-btn accent" style="flex: 1.2; font-size: 10px; padding: 5px 3px; font-weight: 700;" title="Automatically adjust spacing to yield ~95-102 LEDs for the 2.0A battery limit">🎯 Auto-Fit ~100 LEDs</button>
-                                <button type="button" id="btfDensePresetBtn" class="action-btn" style="flex: 1; font-size: 10px; padding: 5px 3px;" title="Set tight 18mm spacing">✨ Dense</button>
-                                <button type="button" id="btfSparsePresetBtn" class="action-btn" style="flex: 1; font-size: 10px; padding: 5px 3px;" title="Set wide 30mm spacing">🌿 Relaxed</button>
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 4px; margin-bottom: 8px;">
+                                <button type="button" id="btfMatchPitchBtn" class="action-btn" style="font-size: 10px; padding: 5px 3px; font-weight: 700; color: #38bdf8; border-color: rgba(56, 189, 248, 0.4);" title="Set strip-to-strip pitch to exactly match the active linear LED pitch (isotropic square/staggered grid)">📐 Match LED Pitch</button>
+                                <button type="button" id="btfFlushBtn" class="action-btn" style="font-size: 10px; padding: 5px 3px; font-weight: 700; color: #facc15; border-color: rgba(250, 204, 21, 0.4);" title="Place strips right next to each other (10mm pitch, 0mm gap between ribbons)">⚡ Flush (10mm)</button>
+                                <button type="button" id="btfAutoFit100Btn" class="action-btn accent" style="font-size: 10px; padding: 5px 3px; font-weight: 700;" title="Automatically adjust spacing to yield ~95-102 LEDs for the 2.0A battery limit">🎯 Auto-Fit ~100</button>
+                                <button type="button" id="btfSparsePresetBtn" class="action-btn" style="font-size: 10px; padding: 5px 3px;" title="Set relaxed 25mm spacing">🌿 Relaxed (25mm)</button>
                             </div>
 
                             <!-- Live Telemetry Card -->
