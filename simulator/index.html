@@ -47,6 +47,8 @@
                 <span style="display: inline-block; width: 1px; height: 16px; background: var(--border-color); margin: 0 2px;"></span>
                 <button id="undoBtn" class="zoom-btn" title="Undo (Ctrl+Z / Cmd+Z)" disabled style="font-size: 11px;">↩️ Undo</button>
                 <button id="redoBtn" class="zoom-btn" title="Redo (Ctrl+Y / Cmd+Shift+Z)" disabled style="font-size: 11px;">↪️ Redo</button>
+                <span style="display: inline-block; width: 1px; height: 16px; background: var(--border-color); margin: 0 2px;"></span>
+                <button id="toolbarAssemblyGuideBtn" class="zoom-btn" onclick="toggleGraphicDisplayVersion()" title="Toggle Assembly & Print Guide (Faint Graphic + 3×3mm Windows + LED Numbers)" style="font-size: 11px;">🖨️ Placement Guide</button>
             </div>
 
             <!-- Floating Drawing Helper Banner (Visible during Draw Mode) -->
@@ -235,6 +237,41 @@
                             <button id="resetArtworkBtn" class="action-btn" style="font-size: 11px; margin-top: 6px; display: none; width: 100%;" title="Restore default artwork">
                                 🔄 Restore Preset Defaults
                             </button>
+                        </div>
+
+                        <!-- Graphic Display Version (Normal vs Assembly / Placement Guide) -->
+                        <div class="control-group" style="margin-top: 8px;">
+                            <label style="font-size: 11px; color: var(--text-muted); display: flex; justify-content: space-between; align-items: center; margin-bottom: 3px;">
+                                <span>Graphic View Mode:</span>
+                                <span id="graphicVersionBadge" class="val-badge" style="font-size: 9px; background: #238636; color: #fff;">Full Color</span>
+                            </label>
+                            <div style="display: flex; gap: 4px; background: rgba(0,0,0,0.3); padding: 2px; border-radius: 6px; border: 1px solid #21262d;">
+                                <button type="button" id="graphicVersionStandardBtn" onclick="setGraphicDisplayVersion('standard')" class="action-btn primary" style="flex: 1; padding: 4px; font-size: 10.5px; font-weight: 600;" title="Standard full-color performance graphic with live lighting animation">🎨 Full Color</button>
+                                <button type="button" id="graphicVersionAssemblyBtn" onclick="setGraphicDisplayVersion('assembly_guide')" class="action-btn" style="flex: 1.3; padding: 4px; font-size: 10.5px; font-weight: 600;" title="Faint graphic with 3×3mm square windows and clear LED numbers for physical placement and printing">🖨️ Placement Guide</button>
+                            </div>
+                        </div>
+
+                        <!-- Assembly / Print Guide Options Panel (Visible when Assembly Guide is active) -->
+                        <div id="assemblyGuideOptionsCard" style="display: none; margin-top: 6px; padding: 8px 10px; background: rgba(56, 189, 248, 0.08); border: 1px solid rgba(56, 189, 248, 0.35); border-radius: 8px;">
+                            <div style="font-size: 11px; font-weight: 700; color: #38bdf8; margin-bottom: 6px; display: flex; align-items: center; justify-content: space-between;">
+                                <span>🖨️ LED Placement & Print Guide</span>
+                                <span style="font-size: 9.5px; color: #a5f3fc; background: rgba(56, 189, 248, 0.2); padding: 1px 6px; border-radius: 4px; font-weight: 600;">3×3mm Windows</span>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 6px;">
+                                <span style="font-size: 10.5px; color: var(--text-muted); flex: 1;">Faint Graphic:</span>
+                                <input type="range" id="faintGraphicOpacitySlider" min="10" max="60" value="22" style="flex: 2;">
+                                <span id="faintGraphicOpacityVal" style="font-size: 10.5px; color: var(--accent-cyan); font-family: monospace; width: 32px; text-align: right;">22%</span>
+                            </div>
+                            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px;">
+                                <span style="font-size: 10.5px; color: var(--text-muted);">Sheet Theme:</span>
+                                <div style="display: flex; gap: 3px;">
+                                    <button type="button" id="assemblyBgDarkBtn" onclick="setAssemblyPaperMode(false)" class="action-btn primary" style="padding: 2px 7px; font-size: 10px; font-weight: 600;">👕 Dark Garment</button>
+                                    <button type="button" id="assemblyBgLightBtn" onclick="setAssemblyPaperMode(true)" class="action-btn" style="padding: 2px 7px; font-size: 10px; font-weight: 600;">📄 Light Paper</button>
+                                </div>
+                            </div>
+                            <div style="display: flex; gap: 6px; margin-top: 4px;">
+                                <button type="button" id="printAssemblyGuideBtn" onclick="printAssemblyGuide()" class="action-btn primary" style="width: 100%; padding: 5px 8px; font-size: 11px; font-weight: 600; background: linear-gradient(135deg, #1f6feb, #238636); border-color: #388bfd; display: flex; align-items: center; justify-content: center; gap: 6px;" title="Print or save placement guide sheet for workbench assembly">🖨️ Print / Save Placement Sheet</button>
+                            </div>
                         </div>
 
                         <!-- runDisney 10K Race Bib Indicator -->

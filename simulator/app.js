@@ -70,6 +70,9 @@ let params = {
     showSymmetryAxis: false,
     liveSymmetryDrag: false,
     showNumbers: false,
+    graphicVersion: 'standard', // 'standard' or 'assembly_guide' (faint graphic + 3x3mm windows + clear numbers)
+    faintGraphicOpacity: 0.22,  // 0.10 to 0.60
+    assemblyPaperMode: false,   // false = Dark Garment Fabric, true = Light Print Paper
     reflectiveShine: true,
     showBib: true,
     bibYOffset: 0.57,
@@ -719,41 +722,72 @@ function drawRunningShirt(cx, x, y, width, height, label = "PETE'S DRAGON") {
     cx.lineTo(x + width * 0.18, y + height * 0.14);
     cx.closePath();
 
-    // Matte Black Tech Fabric Gradient
-    const fabricGrad = cx.createLinearGradient(x, y, x + width, y + height);
-    fabricGrad.addColorStop(0, '#1c1f24');
-    fabricGrad.addColorStop(0.5, '#121418');
-    fabricGrad.addColorStop(1, '#0b0d10');
-    cx.fillStyle = fabricGrad;
-    cx.fill();
+    if (params.graphicVersion === 'assembly_guide' && params.assemblyPaperMode) {
+        // Light Paper Print Sheet Mode (Clean Blueprint for Home Printing / Ink Saving)
+        cx.fillStyle = '#f8fafc';
+        cx.fill();
+        cx.lineWidth = 1.6;
+        cx.strokeStyle = '#94a3b8';
+        cx.stroke();
 
-    // Fabric subtle rim highlight
-    cx.lineWidth = 2;
-    cx.strokeStyle = '#2d333b';
-    cx.stroke();
+        // Athletic Seams & Collar Trim in subtle blueprint grey
+        cx.beginPath();
+        cx.strokeStyle = '#cbd5e1';
+        cx.lineWidth = 1.2;
+        cx.arc(x + width * 0.5, y + height * 0.08, width * 0.12, 0.2 * Math.PI, 0.8 * Math.PI);
+        cx.stroke();
 
-    // Athletic Seams & Collar Trim
-    cx.beginPath();
-    cx.strokeStyle = '#38404a';
-    cx.lineWidth = 1.5;
-    cx.arc(x + width * 0.5, y + height * 0.08, width * 0.12, 0.2 * Math.PI, 0.8 * Math.PI);
-    cx.stroke();
+        cx.beginPath();
+        cx.moveTo(collarLeftX, collarY);
+        cx.quadraticCurveTo(x + width * 0.30, y + height * 0.24, x + width * 0.24, y + height * 0.37);
+        cx.moveTo(collarRightX, collarY);
+        cx.quadraticCurveTo(x + width * 0.70, y + height * 0.24, x + width * 0.76, y + height * 0.37);
+        cx.strokeStyle = '#cbd5e1';
+        cx.stroke();
 
-    // Raglan shoulder lines
-    cx.beginPath();
-    cx.moveTo(collarLeftX, collarY);
-    cx.quadraticCurveTo(x + width * 0.30, y + height * 0.24, x + width * 0.24, y + height * 0.37);
-    cx.moveTo(collarRightX, collarY);
-    cx.quadraticCurveTo(x + width * 0.70, y + height * 0.24, x + width * 0.76, y + height * 0.37);
-    cx.strokeStyle = '#282e37';
-    cx.stroke();
+        if (label) {
+            cx.fillStyle = '#64748b';
+            cx.font = `${Math.max(9, Math.floor(width * 0.08))}px sans-serif`;
+            cx.textAlign = 'center';
+            cx.fillText(label, x + width * 0.5, y + height * 0.91);
+        }
+    } else {
+        // Matte Black Tech Fabric Gradient
+        const fabricGrad = cx.createLinearGradient(x, y, x + width, y + height);
+        fabricGrad.addColorStop(0, '#1c1f24');
+        fabricGrad.addColorStop(0.5, '#121418');
+        fabricGrad.addColorStop(1, '#0b0d10');
+        cx.fillStyle = fabricGrad;
+        cx.fill();
 
-    // Hem label badge
-    if (label) {
-        cx.fillStyle = '#6e7681';
-        cx.font = `${Math.max(9, Math.floor(width * 0.08))}px sans-serif`;
-        cx.textAlign = 'center';
-        cx.fillText(label, x + width * 0.5, y + height * 0.91);
+        // Fabric subtle rim highlight
+        cx.lineWidth = 2;
+        cx.strokeStyle = '#2d333b';
+        cx.stroke();
+
+        // Athletic Seams & Collar Trim
+        cx.beginPath();
+        cx.strokeStyle = '#38404a';
+        cx.lineWidth = 1.5;
+        cx.arc(x + width * 0.5, y + height * 0.08, width * 0.12, 0.2 * Math.PI, 0.8 * Math.PI);
+        cx.stroke();
+
+        // Raglan shoulder lines
+        cx.beginPath();
+        cx.moveTo(collarLeftX, collarY);
+        cx.quadraticCurveTo(x + width * 0.30, y + height * 0.24, x + width * 0.24, y + height * 0.37);
+        cx.moveTo(collarRightX, collarY);
+        cx.quadraticCurveTo(x + width * 0.70, y + height * 0.24, x + width * 0.76, y + height * 0.37);
+        cx.strokeStyle = '#282e37';
+        cx.stroke();
+
+        // Hem label badge
+        if (label) {
+            cx.fillStyle = '#6e7681';
+            cx.font = `${Math.max(9, Math.floor(width * 0.08))}px sans-serif`;
+            cx.textAlign = 'center';
+            cx.fillText(label, x + width * 0.5, y + height * 0.91);
+        }
     }
 
     cx.restore();
@@ -1006,6 +1040,9 @@ function drawRaceBib(cx, s) {
     if (!params.showBib) return;
 
     cx.save();
+    if (params.graphicVersion === 'assembly_guide') {
+        cx.globalAlpha = 0.20;
+    }
 
     // Authentic runDisney bib dimensions: 8.0" wide by 7.0" high (relative to 18" x 24" shirt model)
     // Scaled realistically onto athletic running shirt with user scale multiplier
@@ -1286,6 +1323,9 @@ function drawRaceBib(cx, s) {
 // ============================================================================
 function drawPetesDragon(cx, s) {
     const activeImg = getActiveGraphicImg();
+    const isFaint = (params.graphicVersion === 'assembly_guide');
+    const faintAlpha = (params.faintGraphicOpacity !== undefined ? params.faintGraphicOpacity : 0.22);
+
     if (activeImg && (activeImg.complete || activeImg.naturalWidth > 0)) {
         const gb = getGraphicChestBounds();
         const gx = s.x + gb.normX * s.width;
@@ -1293,7 +1333,12 @@ function drawPetesDragon(cx, s) {
         const gw = gb.normW * s.width;
         const gh = gb.normH * s.height;
         try {
+            cx.save();
+            if (isFaint) {
+                cx.globalAlpha = faintAlpha;
+            }
             cx.drawImage(activeImg, gx, gy, gw, gh);
+            cx.restore();
             return;
         } catch (e) {}
     }
@@ -1304,6 +1349,9 @@ function drawPetesDragon(cx, s) {
     }
 
     cx.save();
+    if (isFaint) {
+        cx.globalAlpha = faintAlpha;
+    }
 
     // Metallic Green Reflective Material Gradient
     const dragonGrad = cx.createLinearGradient(s.x, s.y, s.x + s.width, s.y + s.height);
@@ -3338,6 +3386,95 @@ function renderBulb(cx, x, y, col, isHovered, isSelected, index) {
     const isLit = (col.alpha > 0.01) && (col.r > 2 || col.g > 2 || col.b > 2);
     const bulbAlpha = (col.alpha !== undefined) ? Math.max(0.35, Math.min(1.0, col.alpha)) : 1.0;
 
+    if (params.graphicVersion === 'assembly_guide') {
+        // Exact 3x3mm Square Window for Physical Light Placement & Workshop Printing
+        const s = getShirtBounds();
+        const ppm = s.width / 457.2; // Pixels per mm (18.0" / 457.2mm shirt model)
+        const winSq = Math.max(5.0, 3.0 * ppm); // Exact physical 3.0mm square aperture
+        const isPaper = params.assemblyPaperMode;
+
+        cx.save();
+        cx.translate(x, y);
+
+        // 1. Crisp 3x3mm Square Window Box
+        cx.beginPath();
+        cx.rect(-winSq / 2, -winSq / 2, winSq, winSq);
+
+        if (isLit) {
+            cx.fillStyle = `rgba(${col.r}, ${col.g}, ${col.b}, 0.85)`;
+        } else {
+            cx.fillStyle = isPaper ? '#f1f5f9' : '#0a0e17';
+        }
+        cx.fill();
+
+        // 2. High-contrast square perimeter border
+        cx.strokeStyle = isSelected 
+            ? '#00ffff' 
+            : (isHovered 
+                ? '#00ff88' 
+                : (isPaper ? '#0f172a' : 'rgba(255, 255, 255, 0.90)'));
+        cx.lineWidth = isSelected ? 2.0 : 1.0;
+        cx.stroke();
+
+        // 3. Precision Alignment Registration Dot at center
+        cx.fillStyle = isPaper 
+            ? (isLit ? 'rgba(0,0,0,0.6)' : '#64748b') 
+            : (isSelected ? '#00ffff' : 'rgba(255, 255, 255, 0.85)');
+        cx.fillRect(-0.75, -0.75, 1.5, 1.5);
+
+        cx.restore();
+
+        // Selection / Hover rings
+        if (isSelected) {
+            cx.save();
+            cx.beginPath();
+            cx.arc(x, y, winSq + 4, 0, Math.PI * 2);
+            cx.strokeStyle = '#00ffff';
+            cx.lineWidth = 1.8;
+            cx.setLineDash([3, 2]);
+            cx.stroke();
+            cx.restore();
+        } else if (isHovered) {
+            cx.save();
+            cx.beginPath();
+            cx.arc(x, y, winSq + 3, 0, Math.PI * 2);
+            cx.strokeStyle = '#00e5ff';
+            cx.lineWidth = 1.4;
+            cx.stroke();
+            cx.restore();
+        }
+
+        // Numbers: clearly right above the 3x3mm square window, compact and legible
+        const numY = y - winSq / 2 - 2;
+        const labelText = String(index);
+
+        cx.save();
+        cx.font = 'bold 8px system-ui, -apple-system, BlinkMacSystemFont, monospace';
+        cx.textAlign = 'center';
+        cx.textBaseline = 'bottom';
+
+        // High-contrast outline halo
+        cx.strokeStyle = isPaper ? 'rgba(255, 255, 255, 0.95)' : 'rgba(5, 8, 14, 0.95)';
+        cx.lineWidth = 2.4;
+        cx.lineJoin = 'round';
+        cx.strokeText(labelText, x, numY);
+
+        // High-contrast fill
+        if (index === 0) {
+            cx.fillStyle = isPaper ? '#16a34a' : '#00ff88'; // Start LED Green
+        } else if (index === leds.length - 1) {
+            cx.fillStyle = isPaper ? '#dc2626' : '#ff4d6d'; // End LED Red
+        } else if (isSelected) {
+            cx.fillStyle = '#00ffff'; // Selected Cyan
+        } else {
+            cx.fillStyle = isPaper ? '#0f172a' : '#ffffff'; // White on dark, dark on paper
+        }
+        cx.fillText(labelText, x, numY);
+        cx.restore();
+
+        return; // Complete rendering for assembly_guide mode
+    }
+
     if (params.showTpuWindows) {
         // Physical scale: 18.0 inch wide garment (457.2 mm)
         const s = getShirtBounds();
@@ -3632,19 +3769,24 @@ function renderBulb(cx, x, y, col, isHovered, isSelected, index) {
         const baseLabel = isSelected ? `#${index}` : index;
         const displayLabel = fwTag ? (isSelected ? `#${index} [${fwTag}]` : `${index} [${fwTag}]`) : baseLabel;
 
+        cx.save();
+        cx.textAlign = 'center';
+        cx.textBaseline = 'bottom';
+        cx.font = isSelected ? 'bold 9.5px system-ui, -apple-system, monospace' : 'bold 8px system-ui, -apple-system, monospace';
+        cx.strokeStyle = 'rgba(5, 8, 14, 0.92)';
+        cx.lineWidth = 2.2;
+        cx.lineJoin = 'round';
+        cx.strokeText(displayLabel, x, y - 6);
+
         if (index === 0) {
             cx.fillStyle = '#00ff88';
-            cx.font = 'bold 10px monospace';
-            cx.fillText(`0 (START)${fwTag ? ' ' + fwTag : ''}`, x + 6, y - 6);
         } else if (index === leds.length - 1) {
             cx.fillStyle = '#ff4d6d';
-            cx.font = 'bold 10px monospace';
-            cx.fillText(`${index} (END)${fwTag ? ' ' + fwTag : ''}`, x + 6, y - 6);
         } else {
             cx.fillStyle = isSelected ? '#00ffff' : (isFw ? '#ffa657' : '#ffffff');
-            cx.font = isSelected ? 'bold 11px monospace' : '9px monospace';
-            cx.fillText(displayLabel, x + 6, y - 6);
         }
+        cx.fillText(displayLabel, x, y - 6);
+        cx.restore();
     }
 }
 
@@ -3656,7 +3798,12 @@ function renderSingleShirtView(timeMs) {
     const h = canvas.height;
     const s = getShirtBounds();
 
-    ctx.clearRect(0, 0, w, h);
+    if (params.graphicVersion === 'assembly_guide' && params.assemblyPaperMode) {
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(0, 0, w, h);
+    } else {
+        ctx.clearRect(0, 0, w, h);
+    }
 
     // Apply interactive Zoom & Pan transform
     ctx.save();
@@ -11701,9 +11848,246 @@ document.getElementById('showPillSlotsToggle')?.addEventListener('change', (e) =
 
 document.getElementById('showTpuWindowsToggle')?.addEventListener('change', (e) => {
     params.showTpuWindows = e.target.checked;
-    try { localStorage.setItem('msep_show_tpu_windows', params.showTpuWindows ? 'true' : 'false'); } catch (err) {}
+    try { localStorage.getItem('msep_show_tpu_windows', params.showTpuWindows ? 'true' : 'false'); } catch (err) {}
     markSingleShirtDirty();
 });
+
+// ============================================================================
+// GRAPHIC DISPLAY VERSION: Assembly & Print Placement Guide
+// ============================================================================
+function setGraphicDisplayVersion(version) {
+    params.graphicVersion = version;
+    const isGuide = (version === 'assembly_guide');
+
+    const btnStd = document.getElementById('graphicVersionStandardBtn');
+    const btnAsm = document.getElementById('graphicVersionAssemblyBtn');
+    const badge = document.getElementById('graphicVersionBadge');
+    const card = document.getElementById('assemblyGuideOptionsCard');
+    const tbBtn = document.getElementById('toolbarAssemblyGuideBtn');
+
+    if (btnStd) {
+        if (isGuide) {
+            btnStd.classList.remove('primary');
+            btnStd.style.background = 'transparent';
+            btnStd.style.color = '#8b949e';
+            btnStd.style.borderColor = '#30363d';
+        } else {
+            btnStd.classList.add('primary');
+            btnStd.style.background = '#238636';
+            btnStd.style.color = '#fff';
+            btnStd.style.borderColor = '#238636';
+        }
+    }
+
+    if (btnAsm) {
+        if (isGuide) {
+            btnAsm.classList.add('primary');
+            btnAsm.style.background = '#1f6feb';
+            btnAsm.style.color = '#fff';
+            btnAsm.style.borderColor = '#388bfd';
+        } else {
+            btnAsm.classList.remove('primary');
+            btnAsm.style.background = 'transparent';
+            btnAsm.style.color = '#8b949e';
+            btnAsm.style.borderColor = '#30363d';
+        }
+    }
+
+    if (badge) {
+        if (isGuide) {
+            badge.textContent = 'Placement Guide';
+            badge.style.background = '#1f6feb';
+        } else {
+            badge.textContent = 'Full Color';
+            badge.style.background = '#238636';
+        }
+    }
+
+    if (card) {
+        card.style.display = isGuide ? 'block' : 'none';
+    }
+
+    if (tbBtn) {
+        if (isGuide) {
+            tbBtn.classList.add('active');
+        } else {
+            tbBtn.classList.remove('active');
+        }
+    }
+
+    // Auto-enable numbers and wiring trace for assembly guide mode
+    if (isGuide) {
+        params.showNumbers = true;
+        const numToggle = document.getElementById('showNumbersToggle');
+        if (numToggle) numToggle.checked = true;
+
+        if (!params.showWiring) {
+            params.showWiring = true;
+            const wiringToggle = document.getElementById('showWiringToggle');
+            if (wiringToggle) wiringToggle.checked = true;
+        }
+        showToast('🖨️ Assembly & Print Guide: Faint graphic, 3×3mm windows, and LED numbers active');
+    } else {
+        showToast('🎨 Reverted to standard full-color performance graphic');
+    }
+
+    markSingleShirtDirty();
+}
+window.setGraphicDisplayVersion = setGraphicDisplayVersion;
+
+function toggleGraphicDisplayVersion() {
+    if (params.graphicVersion === 'assembly_guide') {
+        setGraphicDisplayVersion('standard');
+    } else {
+        setGraphicDisplayVersion('assembly_guide');
+    }
+}
+window.toggleGraphicDisplayVersion = toggleGraphicDisplayVersion;
+
+function setAssemblyPaperMode(isPaper) {
+    params.assemblyPaperMode = isPaper;
+    const btnDark = document.getElementById('assemblyBgDarkBtn');
+    const btnLight = document.getElementById('assemblyBgLightBtn');
+    if (btnDark && btnLight) {
+        if (isPaper) {
+            btnLight.classList.add('primary');
+            btnLight.style.background = '#38bdf8';
+            btnLight.style.color = '#000';
+            btnLight.style.borderColor = '#38bdf8';
+            btnDark.classList.remove('primary');
+            btnDark.style.background = 'transparent';
+            btnDark.style.color = '#8b949e';
+            btnDark.style.borderColor = '#30363d';
+        } else {
+            btnDark.classList.add('primary');
+            btnDark.style.background = '#38bdf8';
+            btnDark.style.color = '#000';
+            btnDark.style.borderColor = '#38bdf8';
+            btnLight.classList.remove('primary');
+            btnLight.style.background = 'transparent';
+            btnLight.style.color = '#8b949e';
+            btnLight.style.borderColor = '#30363d';
+        }
+    }
+    markSingleShirtDirty();
+}
+window.setAssemblyPaperMode = setAssemblyPaperMode;
+
+const faintSlider = document.getElementById('faintGraphicOpacitySlider');
+if (faintSlider) {
+    faintSlider.addEventListener('input', (e) => {
+        const val = parseInt(e.target.value);
+        params.faintGraphicOpacity = val / 100.0;
+        const valBadge = document.getElementById('faintGraphicOpacityVal');
+        if (valBadge) valBadge.textContent = `${val}%`;
+        markSingleShirtDirty();
+    });
+}
+
+function printAssemblyGuide() {
+    if (params.graphicVersion !== 'assembly_guide') {
+        setGraphicDisplayVersion('assembly_guide');
+    }
+
+    // Save and normalize zoom / pan for clean print snapshot
+    const prevZoom = zoomScale;
+    const prevPanX = panX;
+    const prevPanY = panY;
+    zoomScale = 1.0;
+    panX = 0;
+    panY = 0;
+
+    renderSingleShirtView(performance.now());
+    const dataUrl = canvas.toDataURL('image/png');
+
+    // Restore user viewport
+    zoomScale = prevZoom;
+    panX = prevPanX;
+    panY = prevPanY;
+    renderSingleShirtView(performance.now());
+
+    const floatTitles = {
+        'casey_jr_train': "Float #1: Casey Jr. Locomotive",
+        'title_drum': "Float #2: Electrical Parade Drum",
+        'spinning_turtle': "Float #3: The Spinning Turtle",
+        'spinning_snail': "Float #4: The Spinning Snail",
+        'spinning_snail_simplified': "Float #4: The Spinning Snail (Simplified)",
+        'cinderellas_coach': "Float #5: Cinderella's Coach",
+        'cinderella_coach': "Float #5: Cinderella's Coach",
+        'carriage_nohorses': "Float #5: Carriage (No Horses)",
+        'builtin_dragon': "Float #6: Pete's Dragon (Elliott)",
+        'petes_dragon': "Float #6: Pete's Dragon (Elliott)",
+        'honor_america_eagle': "Float #7: To Honor America (Eagle)",
+        'custom_image': "Custom Runner Float Design"
+    };
+    const floatTitle = floatTitles[currentGraphicType] || "Main Street Electrical Parade";
+
+    const printWin = window.open('', '_blank', 'width=920,height=980');
+    if (!printWin) {
+        const a = document.createElement('a');
+        a.href = dataUrl;
+        a.download = `MSEP_LED_Placement_Guide_${currentGraphicType || 'Float'}.png`;
+        a.click();
+        showToast('📥 Downloaded LED placement sheet PNG!');
+        return;
+    }
+
+    printWin.document.write(`<!DOCTYPE html>
+<html>
+<head>
+    <title>LED Placement Guide - ${floatTitle}</title>
+    <style>
+        @page { size: portrait; margin: 10mm; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif; margin: 0; padding: 12px; color: #111; background: #fff; text-align: center; }
+        .header { margin-bottom: 8px; border-bottom: 2px solid #2563eb; padding-bottom: 6px; }
+        h1 { margin: 0 0 4px 0; font-size: 19px; color: #0f172a; }
+        .meta { margin: 0; font-size: 11.5px; color: #475569; display: flex; justify-content: center; gap: 16px; flex-wrap: wrap; }
+        .meta strong { color: #0f172a; }
+        .sheet-container { display: flex; justify-content: center; margin: 10px 0; }
+        .sheet-img { max-width: 100%; max-height: 82vh; border: 1px solid #cbd5e1; border-radius: 6px; }
+        .legend { font-size: 10.5px; color: #334155; margin-top: 8px; display: flex; justify-content: center; gap: 20px; border-top: 1px dashed #cbd5e1; padding-top: 6px; }
+        .legend-item { display: inline-flex; align-items: center; gap: 5px; }
+        .color-box { width: 10px; height: 10px; display: inline-block; border-radius: 2px; border: 1px solid #000; }
+        .no-print { margin-bottom: 12px; display: flex; justify-content: center; gap: 8px; }
+        .btn { padding: 6px 14px; font-size: 12px; font-weight: 600; border-radius: 5px; border: none; cursor: pointer; text-decoration: none; }
+        .btn-primary { background: #2563eb; color: #fff; }
+        .btn-secondary { background: #f1f5f9; color: #1e293b; border: 1px solid #cbd5e1; }
+        @media print {
+            .no-print { display: none !important; }
+            body { padding: 0; }
+            .sheet-img { max-height: 88vh; }
+        }
+    </style>
+</head>
+<body>
+    <div class="no-print">
+        <button class="btn btn-primary" onclick="window.print()">🖨️ Print to Paper / PDF</button>
+        <a class="btn btn-secondary" href="${dataUrl}" download="MSEP_LED_Placement_Guide_${currentGraphicType || 'Float'}.png">⬇️ Download PNG Image</a>
+    </div>
+    <div class="header">
+        <h1>${floatTitle} — LED Placement Guide</h1>
+        <p class="meta">
+            <span>Float Assignment: <strong>${floatTitle}</strong></span>
+            <span>Total LEDs: <strong>${leds.length} Pixels (WS2812B 5V)</strong></span>
+            <span>Apertures: <strong>3×3 mm Square Windows</strong></span>
+            <span>Strand: <strong>#0 (Start) &rarr; #${leds.length - 1} (End)</strong></span>
+        </p>
+    </div>
+    <div class="sheet-container">
+        <img class="sheet-img" src="${dataUrl}" alt="LED Placement Sheet">
+    </div>
+    <div class="legend">
+        <span class="legend-item"><span class="color-box" style="background: #22c55e;"></span> <strong>LED #0 (Strand Start / 5V + DIN)</strong></span>
+        <span class="legend-item"><span class="color-box" style="background: #ef4444;"></span> <strong>LED #${leds.length - 1} (Strand End / DOUT)</strong></span>
+        <span class="legend-item"><span class="color-box" style="background: #38bdf8;"></span> <strong>3×3 mm Optical Window & Number Above</strong></span>
+        <span class="legend-item"><span class="color-box" style="background: #eab308;"></span> <strong>Continuous Wire Routing Trace</strong></span>
+    </div>
+</body>
+</html>`);
+    printWin.document.close();
+    printWin.focus();
+}
+window.printAssemblyGuide = printAssemblyGuide;
 
 document.getElementById('exportCricutSvgBtn')?.addEventListener('click', () => {
     exportCricutSvgWithPillSlots();

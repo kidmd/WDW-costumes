@@ -467,10 +467,15 @@ Use the **Costume Graphic** dropdown in the Layout tab (Section 1) to instantly 
 - **🐉 Float 06: Pete's Dragon (Elliott) (`builtin_dragon`):** Default 100-LED layout with emerald body scales, magenta hair crest, and incandescent starlight sparkles.
 - **🦅 Float 07: To Honor America (`honor_america_eagle`):** Grand patriotic eagle finale with sweeping red, white, and blue wing chases.
 
-### Proportional Chest Graphic Scaling
-All artwork graphics are automatically scaled to sit comfortably in the chest area above the race bib (`y = 0.168` to `0.553`):
-- **Exact Aspect Ratio:** Strictly preserves each graphic's original $x / y$ pixel ratio without stretching, squishing, or distortion.
-- **Automatic Clearance:** Leaves a clean fabric margin between the bottom-most LEDs and the top of the race bib, ensuring no LEDs or wiring sit directly under bib clamp points.
+### 🖨️ Assembly & Print Placement Guide Mode (`🖨️ Placement Guide`)
+For physical assembly and workshop workbench printing, the Layout tab features a dedicated **Graphic View Mode** toggle (`[🎨 Full Color]` / `[🖨️ Placement Guide]`), also accessible via the canvas zoom toolbar:
+- **Faint Character Artwork Watermark:** Subdues the float artwork to a faint background opacity (default **22%**, customizable from 10% to 60%) so you can clearly see the float's physical boundaries and features without clashing with the LED indicators.
+- **Exact 3×3 mm Square Windows:** Replaces live lighting glow blooms with crisp, physical **3.0 mm × 3.0 mm square apertures** with high-contrast borders and precision center registration marks matching physical 3D TPU armor panel optical pockets.
+- **Crisp LED Numbers Right Above Windows:** Automatically renders each LED's strand index ($0 \to N$) directly above its corresponding 3×3 mm square window. Sized compactly at **bold 8px** with a dark contrast halo outline for maximum legibility without cluttering adjacent pixels.
+  - **LED #0:** Highlighted in green (`#00ff88` / `#16a34a`) for 5V + DIN strand start.
+  - **Last LED (#74 / #99):** Highlighted in red (`#ff4d6d` / `#dc2626`) for strand termination.
+- **Sheet Styles (Dark Garment vs. Light Print Paper):** Toggle between **👕 Dark Garment** (black tech shirt backing) and **📄 Light Paper** (crisp blueprint style that saves black printer toner).
+- **🖨️ Print / Save Placement Sheet:** One-click button that generates a high-resolution, print-ready document or PNG download featuring float title, pixel counts, aperture dimensions, wiring route trace, and a color-coded strand legend.
 
 ### 🏷️ runDisney 10K Race Bib (#1952) with Chip & Dale
 Section 4 features an authentic runDisney race bib overlay (default **8.0" wide by 7.0" high**, matching physical runDisney bib specs on an 18" x 24" running shirt) on the lower torso to verify physical clearance with your running gear:

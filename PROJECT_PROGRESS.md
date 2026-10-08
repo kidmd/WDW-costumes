@@ -93,6 +93,28 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### Entry: Layout Mode Assembly & Print Placement Guide (Faint Graphic, 3×3mm Square Windows & Compact Numbers Above)
+* **Date:** 2026-10-08 (Imagineering Session - LED Placement & Print Reference Mode)
+* **Milestone:** Milestone 6 - Wearable 3D Armor Fabrication, Physical Assembly Reference & Workshop Tooling
+* **Status:** Complete & Verified (`simulator/index.html`, `simulator/app.js`, `SIMULATOR_USER_GUIDE.md`, `PROJECT_PROGRESS.md`).
+* **Implementation Details:**
+  - **Graphic View Mode Chooser in Layout Tab & Zoom Toolbar:**
+    - Added dedicated Graphic View Mode toggle buttons in Layout Section 1 (`[🎨 Full Color]` vs. `[🖨️ Placement Guide]`) and quick toggle button in the Canvas Zoom Toolbar (`🖨️ Placement Guide`).
+    - Works with all 7 float graphics (Casey Jr, Title Drum, Turtle, Snail, Coach, Dragon, Eagle) and custom uploads.
+  - **Faint Graphic Watermark Rendering:**
+    - Subdues active character artwork to a faint background opacity (default **22%**, customizable 10%–60% via live slider).
+    - Ensures high visual contrast so float boundary context is visible while numbers and apertures remain crystal clear.
+    - Also softens race bib to 20% opacity so lower chest LEDs and wiring traces are unobstructed.
+  - **Physical 3×3 mm Square Windows:**
+    - In Placement Guide mode, every LED is rendered as a clean, physical **3.0 mm × 3.0 mm square aperture** ($winSq = \max(5.0, 3.0 \times \text{ppm})$) with high-contrast perimeter borders and a 1px center registration dot, eliminating blinding light flares and bloom.
+  - **Compact, Highly Legible Numbers Centered Right Above Windows:**
+    - Positioned strand numbers ($0 \to N$) directly above each 3×3 mm square window ($y - winSq/2 - 2$) with `textAlign = 'center'` and `textBaseline = 'bottom'`.
+    - Sized compactly at **bold 8px** with a 2.4px dark halo outline (`strokeText`), making numbers easy to read without colliding with adjacent LEDs or obscuring wire traces.
+    - Highlighted LED #0 in green (`#00ff88` / `#16a34a`) for strand start and final LED in red (`#ff4d6d` / `#dc2626`) for strand termination.
+  - **Theme Styles & 1-Click Print / PNG Export:**
+    - Supported **👕 Dark Garment** and **📄 Light Paper** (ink-saving blueprint) modes.
+    - Added a **`🖨️ Print / Save Placement Sheet`** button creating a print-ready document with float metadata, strand order, 3×3 mm aperture spec, and continuous wire trace legend.
+
 ### Entry: Title Drum Graphic Refinements: Accurate Wheel Centers, Cab Window Cutout, Streamer Flagpole & Gold Detailing
 * **Date:** 2026-10-08 (Imagineering Session - Title Drum Artwork Calibration & Markup Implementation)
 * **Milestone:** Milestone 6 - Wearable 3D Armor Multi-Material Artwork Assets & Float Lineup Presets
