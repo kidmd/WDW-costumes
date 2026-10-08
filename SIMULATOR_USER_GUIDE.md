@@ -532,6 +532,15 @@ In both the pixel sampling engine (`boostLedVibrancy`) and the Cricut cut export
 - **Authentic Dragon Pink Features:** The **Wild Jagged Hair Crest** on the head, the **Dragon Wings**, and the **Dorsal Spine Plates & Tail Spines** are uniformly classified as signature **Disney Dragon Pink** (`CRGB(255, 25, 230)` / `#ff19e6` / `#ff007f`).
 - Pixels sampled across these genuine pink zones are protected against dark line art or green shadow misclassification and automatically route to **Mat 2: Pink HTV Vinyl**.
 
+#### 🥁 Float #2: The Title Drum 5-Color Authentic Sampling Rule
+When Float #2 (The Title Drum) is selected, `boostLedVibrancy` activates an authentic 5-color mapping engine matching the 3D-printable and vinyl artwork palette:
+- **Marquee Gold (`#facc15` / `[250, 204, 21]`):** High-vibrancy parade golden amber (`{ r: 255, g: 204, b: 21 }`).
+- **Body & Streamers Red (`#ef4444` / `[239, 68, 68]`):** Radiant crimson red (`{ r: 239, g: 68, b: 68 }`).
+- **Lead Pennant Green (`#10b981` / `[16, 185, 129]`):** Electric flag green (`{ r: 16, g: 200, b: 129 }`).
+- **Flags & Pennants Blue (`#2563eb` / `[37, 99, 235]`):** Electric royal blue (`{ r: 37, g: 99, b: 255 }`).
+- **Drum Face & Chassis Black (`#11161d` / `[17, 22, 29]`):** Warm incandescent starlight white (`{ r: 255, g: 245, b: 220 }`), representing the illuminated vintage interior starlight bulbs of the Electrical Parade drum face rather than remaining unlit or falling back to Pete's Dragon pink/green.
+- **Robust Image Guarding:** All sampling routines (`sampleColorAtNorm`, `resampleAllLedColors`, `rearrangeRemainingLedsOnGraphic`, `scatterLedsOnGraphic`) verify that the float artwork image is fully decoded (`naturalWidth > 0`), ensuring crisp instant resampling upon float switching, scattering, or group rearrangement.
+
 ---
 
 ## 8. Master Timeline Scrubber & Multi-Layer Tracks

@@ -8310,7 +8310,7 @@ function sampleColorAtNormCoord(normX, normY) {
     const offCanvas = document.createElement('canvas');
     const offCtx = offCanvas.getContext('2d');
 
-    if (activeImg) {
+    if (activeImg && activeImg.naturalWidth > 0) {
         targetH = Math.max(120, Math.round(targetW * (activeImg.naturalHeight / activeImg.naturalWidth)));
         offCanvas.width = targetW;
         offCanvas.height = targetH;
@@ -13141,11 +13141,42 @@ function boostCustomImageColor(r, g, b) {
 
 // Boost vibrancy and saturation of sampled colors so physical WS2812B LEDs shine with true character colors
 function boostLedVibrancy(r, g, b, relX, relY) {
-    // If user uploaded a custom graphic, selected Cinderella's Coach, Carriage (No Horses), Spinning Turtle, or Spinning Snail, preserve and boost authentic colors!
-    if (currentGraphicType === 'custom_image' || currentGraphicType === 'cinderellas_coach' || currentGraphicType === 'carriage_nohorses' || currentGraphicType === 'spinning_turtle' || currentGraphicType.startsWith('spinning_snail')) {
+    const isPeteDragon = (currentGraphicType === 'builtin_dragon' || currentGraphicType === 'petes_dragon');
+
+    // --- NON-DRAGON FLOATS & CUSTOM ARTWORK ---
+    if (!isPeteDragon) {
+        // Special 5-Color Electric Palette for Float #2: The Title Drum
+        if (currentGraphicType === 'title_drum') {
+            // 1. Drum Marquee Gold: [250, 204, 21] / #facc15
+            if (r > 200 && g > 150 && b < 80) {
+                return { r: 255, g: 204, b: 21 }; // Vibrant Marquee Gold
+            }
+            // 2. Body Panels & Streamer Red: [239, 68, 68] / #ef4444
+            if (r > 180 && g < 110 && b < 110) {
+                return { r: 239, g: 68, b: 68 }; // Radiant Crimson Red
+            }
+            // 3. Lead Pennant Green: [16, 185, 129] / #10b981
+            if (g > 140 && g > r * 1.3 && g > b) {
+                return { r: 16, g: 200, b: 129 }; // Electric Flag Green
+            }
+            // 4. Flags & Pennants Royal Blue: [37, 99, 235] / #2563eb
+            if (b > 160 && b > r * 1.5 && b > g) {
+                return { r: 37, g: 99, b: 255 }; // Electric Royal Blue
+            }
+            // 5. Drum Face & Chassis: [17, 22, 29] / #11161d
+            // The black drum face represents illuminated incandescent starlight bulbs inside the drum
+            const maxV = Math.max(r, g, b);
+            if (maxV < 60) {
+                return { r: 255, g: 245, b: 220 }; // Warm Incandescent Starlight White
+            }
+            return boostCustomImageColor(r, g, b);
+        }
+
+        // For all other floats (Casey Jr., Turtle, Snail, Coach, Eagle, Custom Upload)
         return boostCustomImageColor(r, g, b);
     }
 
+    // --- PETE'S DRAGON RULES ---
     // Convert to HSV to evaluate dominant hue and saturation
     const rNorm = r / 255.0;
     const gNorm = g / 255.0;
@@ -13168,7 +13199,6 @@ function boostLedVibrancy(r, g, b, relX, relY) {
     }
 
     const maxVal = Math.max(r, g, b);
-    const isPeteDragon = (currentGraphicType === 'builtin_dragon' || currentGraphicType === 'petes_dragon');
     const DISNEY_DRAGON_PINK = { r: 255, g: 25, b: 230 }; // #ff19e6 / FastLED CRGB(255, 25, 230)
 
     // --- RULE 1: Any Green Pixel (Light, Medium, or Dark) MUST ALWAYS Resolve to Vibrant Dragon Green ---
@@ -13194,30 +13224,27 @@ function boostLedVibrancy(r, g, b, relX, relY) {
 
     // --- RULE 2: Pete's Dragon Authentic Disney Pink Features (Hair Crest, Wings, Dorsal Plates & Tail Spines) ---
     // Only non-green pixels reach this section!
-    if (isPeteDragon) {
-        // Genuinely pink/magenta hue (hue in 255°-360° or 0°-45°) with dominant red or blue over green
-        const isPinkHue = (hue >= 255 || hue <= 45) && (r > g || b > g || delta > 0.08);
+    const isPinkHue = (hue >= 255 || hue <= 45) && (r > g || b > g || delta > 0.08);
 
-        // 1. Wild jagged hair crest on head (top)
-        if (relY !== undefined && relY < 0.16 && relX > 0.25 && relX < 0.75 && (r > g || b > g || isPinkHue)) {
-            return DISNEY_DRAGON_PINK;
-        }
+    // 1. Wild jagged hair crest on head (top)
+    if (relY !== undefined && relY < 0.16 && relX > 0.25 && relX < 0.75 && (r > g || b > g || isPinkHue)) {
+        return DISNEY_DRAGON_PINK;
+    }
 
-        // 2. Cute little dragon wings (upper chest/back left & right flanks)
-        if (relY !== undefined && relY >= 0.20 && relY <= 0.58 &&
-            ((relX >= 0.20 && relX <= 0.45) || (relX >= 0.58 && relX <= 0.94)) && isPinkHue) {
-            return DISNEY_DRAGON_PINK;
-        }
+    // 2. Cute little dragon wings (upper chest/back left & right flanks)
+    if (relY !== undefined && relY >= 0.20 && relY <= 0.58 &&
+        ((relX >= 0.20 && relX <= 0.45) || (relX >= 0.58 && relX <= 0.94)) && isPinkHue) {
+        return DISNEY_DRAGON_PINK;
+    }
 
-        // 3. Spines on the tail (running down back into sweeping tail)
-        if (relY !== undefined && relY >= 0.58 && relX >= 0.65 && isPinkHue) {
-            return DISNEY_DRAGON_PINK;
-        }
+    // 3. Spines on the tail (running down back into sweeping tail)
+    if (relY !== undefined && relY >= 0.58 && relX >= 0.65 && isPinkHue) {
+        return DISNEY_DRAGON_PINK;
+    }
 
-        // 4. Dorsal spine spikes along upper back curve
-        if (relY !== undefined && relY >= 0.18 && relY <= 0.65 && relX >= 0.55 && relX <= 0.88 && isPinkHue) {
-            return DISNEY_DRAGON_PINK;
-        }
+    // 4. Dorsal spine spikes along upper back curve
+    if (relY !== undefined && relY >= 0.18 && relY <= 0.65 && relX >= 0.55 && relX <= 0.88 && isPinkHue) {
+        return DISNEY_DRAGON_PINK;
     }
 
     // 5. General Wings / Pink / Magenta / Violet Hue:
@@ -13276,7 +13303,7 @@ function sampleColorAtNorm(normX, normY) {
     const offCanvas = document.createElement('canvas');
     const offCtx = offCanvas.getContext('2d');
 
-    if (activeImg) {
+    if (activeImg && activeImg.naturalWidth > 0) {
         targetH = Math.max(120, Math.round(targetW * (activeImg.naturalHeight / activeImg.naturalWidth)));
         offCanvas.width = targetW;
         offCanvas.height = targetH;
@@ -13309,7 +13336,7 @@ function resampleAllLedColors() {
     const offCanvas = document.createElement('canvas');
     const offCtx = offCanvas.getContext('2d');
 
-    if (activeImg) {
+    if (activeImg && activeImg.naturalWidth > 0) {
         targetH = Math.max(120, Math.round(targetW * (activeImg.naturalHeight / activeImg.naturalWidth)));
         offCanvas.width = targetW;
         offCanvas.height = targetH;
@@ -13506,7 +13533,7 @@ function rearrangeRemainingLedsOnGraphic(showNotification = true) {
     const offCtx = offCanvas.getContext('2d');
     const activeImg = getActiveGraphicImg();
 
-    if (activeImg) {
+    if (activeImg && activeImg.naturalWidth > 0) {
         targetH = Math.max(120, Math.round(targetW * (activeImg.naturalHeight / activeImg.naturalWidth)));
         offCanvas.width = targetW;
         offCanvas.height = targetH;
@@ -13717,7 +13744,7 @@ function scatterLedsOnGraphic(targetCount = 100, colorMatch = true, markDirty = 
     const offCtx = offCanvas.getContext('2d');
     const activeImg = getActiveGraphicImg();
 
-    if (activeImg) {
+    if (activeImg && activeImg.naturalWidth > 0) {
         targetH = Math.max(120, Math.round(targetW * (activeImg.naturalHeight / activeImg.naturalWidth)));
         offCanvas.width = targetW;
         offCanvas.height = targetH;
@@ -13894,7 +13921,7 @@ function autoOutlineCurrentGraphic(targetCount = 50, markDirty = true) {
     const offCtx = offCanvas.getContext('2d');
     const activeImg = getActiveGraphicImg();
 
-    if (activeImg) {
+    if (activeImg && activeImg.naturalWidth > 0) {
         targetH = Math.max(100, Math.round(targetW * (activeImg.naturalHeight / activeImg.naturalWidth)));
         offCanvas.width = targetW;
         offCanvas.height = targetH;
@@ -14278,7 +14305,7 @@ function sampleRemainingGraphicLeds(targetCount, excludeX = 0, excludeY = 0, exc
     const offCtx = offCanvas.getContext('2d');
     const activeImg = getActiveGraphicImg();
 
-    if (activeImg) {
+    if (activeImg && activeImg.naturalWidth > 0) {
         targetH = Math.max(120, Math.round(targetW * (activeImg.naturalHeight / activeImg.naturalWidth)));
         offCanvas.width = targetW;
         offCanvas.height = targetH;

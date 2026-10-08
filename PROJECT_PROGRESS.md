@@ -93,6 +93,26 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### Entry: Authentic Title Drum 5-Color Sampling & Resampling Fix for All Non-Dragon Floats
+* **Date:** 2026-10-08 (Imagineering Session - Color Sampling Engine Correction)
+* **Milestone:** Milestone 3 & 6 - Float Suite Integration & Color Fidelity Engine
+* **Status:** Complete & Verified (`simulator/app.js`, `SIMULATOR_USER_GUIDE.md`, `PROJECT_PROGRESS.md`).
+* **Implementation Details:**
+  - **Identified Root Cause of Resampling Failure:**
+    - `boostLedVibrancy()` previously used an explicit whitelist that included only `'custom_image'`, `'cinderellas_coach'`, `'carriage_nohorses'`, `'spinning_turtle'`, and `'spinning_snail'`, omitting `'title_drum'`.
+    - When switching to the Title Drum and spreading or resampling LEDs, the function fell through into Pete's Dragon color mapping rules, forcing drum face black pixels (`#11161d`) and crimson red pixels (`#ef4444`) to map to Pete's Dragon Pink (`#ff19e6`), and gold pixels (`#facc15`) to orange (`#ff7800`).
+  - **Generalization of `boostLedVibrancy()`:**
+    - Restricted Pete's Dragon pink crest/spines and dragon green rules exclusively to `currentGraphicType === 'builtin_dragon' || currentGraphicType === 'petes_dragon'`.
+    - All non-dragon floats now use authentic graphic color sampling.
+  - **Authentic 5-Color Title Drum Palette Engine:**
+    - **Marquee Gold (`#facc15` / `[250, 204, 21]`):** High-vibrancy parade golden amber (`{ r: 255, g: 204, b: 21 }`).
+    - **Body & Streamers Red (`#ef4444` / `[239, 68, 68]`):** Radiant crimson red (`{ r: 239, g: 68, b: 68 }`).
+    - **Lead Pennant Green (`#10b981` / `[16, 185, 129]`):** Electric flag green (`{ r: 16, g: 200, b: 129 }`).
+    - **Flags & Pennants Blue (`#2563eb` / `[37, 99, 235]`):** Electric royal blue (`{ r: 37, g: 99, b: 255 }`).
+    - **Drum Face & Chassis Black (`#11161d` / `[17, 22, 29]`):** Warm incandescent starlight white (`{ r: 255, g: 245, b: 220 }`), representing the illuminated vintage interior starlight bulbs of the Electrical Parade drum face rather than remaining unlit or falling back to Pete's Dragon pink/green.
+  - **Harden Asynchronous Image Decode Checks:**
+    - Added `activeImg && activeImg.naturalWidth > 0` validation guards across all sampling routines (`sampleColorAtNormCoord`, `sampleColorAtNorm`, `resampleAllLedColors`, `rearrangeRemainingLedsOnGraphic`, `scatterLedsOnGraphic`, `autoOutlineCurrentGraphic`, `sampleRemainingGraphicLeds`), preventing `NaN` dimensions during rapid float switching or canvas re-rendering.
+
 ### Entry: Layout Mode Assembly & Print Placement Guide (Faint Graphic, 3×3mm Square Windows & Compact Numbers Above)
 * **Date:** 2026-10-08 (Imagineering Session - LED Placement & Print Reference Mode)
 * **Milestone:** Milestone 6 - Wearable 3D Armor Fabrication, Physical Assembly Reference & Workshop Tooling
