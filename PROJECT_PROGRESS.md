@@ -93,6 +93,27 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### Entry: Comprehensive Preset Saving (Canvas Coordinates, Count, Groups, Shows & Duplicate File Protection)
+* **Date:** 2026-10-08 (Imagineering Session - Complete Preset State & Duplicate Protection)
+* **Milestone:** Milestone 3 & 4 - Float Suite Management & Theatrical Show Sequencing
+* **Status:** Complete & Verified (`simulator.py`, `simulator/index.html`, `simulator/app.js`, `SIMULATOR_USER_GUIDE.md`, `PROJECT_PROGRESS.md`).
+* **Implementation Details:**
+  - **Comprehensive Float State Serialization (`buildCompletePresetData`):**
+    - Presets now save the exact normalized $(x, y)$ coordinates and physical count of all LEDs on the canvas (50, 75, 100, or custom).
+    - Preserves all float-specific animation groups (wheel rotations, rim chases, fireworks starbursts, dragon crest pulses).
+    - Preserves all theatrical show sequence cues (Parade Cue Director 90s loop duration and cues).
+    - Preserves float identity (float ID 1–7, name, role, tag, race bib number, accent color).
+    - Preserves 3D armor plate parameters (selected plate size, width in mm, and AMS filament color mappings).
+  - **Interactive Save Costume Preset Modal (`#savePresetModal`):**
+    - Both **`💾 Save`** (Section 2 - Sidebar) and **`💾 Save Preset`** (Section 3 - LED Layout & Wiring Route) launch a streamlined modal with real-time badges (Active Float, Canvas LED Count, Animation Group Count, Theatrical Cue Count).
+    - Live filename preview (`Will save as: presets/<clean_name>.json`) updates dynamically as the user types.
+  - **Duplicate File Checking & Rename Capability:**
+    - Python backend (`/api/save_preset` in `simulator.py`) checks for filename collisions in `presets/` and returns HTTP 409 Conflict if a file already exists without `overwrite: true`.
+    - Modal displays an alert banner (`⚠️ File Already Exists`) allowing the user to either edit/rename the preset or click `⚠️ Overwrite Existing` to replace the existing file on disk.
+  - **Export JSON & Fleet Sync:**
+    - Wired `exportLayoutJsonBtn` alongside `saveLayoutBtn` in Section 3 so users can directly download the complete float JSON bundle.
+    - Synchronizes saved presets with the active runner card slot in the 7-Shirt Fleet Lineup and updates all dropdown selectors.
+
 ### Entry: Authentic Title Drum 5-Color Sampling & Resampling Fix for All Non-Dragon Floats
 * **Date:** 2026-10-08 (Imagineering Session - Color Sampling Engine Correction)
 * **Milestone:** Milestone 3 & 6 - Float Suite Integration & Color Fidelity Engine

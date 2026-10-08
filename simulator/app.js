@@ -11436,22 +11436,30 @@ async function refreshPresetDropdown() {
     });
 }
 
-// Save Current Profile (LEDs + Graphic + Settings + Animation Groups)
-async function saveCurrentProfile(name) {
-    if (!name || name.trim() === '') {
-        showToast("⚠️ Please enter a name for this costume profile!");
-        return;
-    }
-    const cleanName = name.trim();
+// Build complete preset data object containing all LEDs, coordinates, count, colors, groups, shows, and float metadata
+function buildCompletePresetData(name) {
+    const cleanName = (name || '').trim();
+    const runner = (activeSingleShirtRunnerSlot !== null && activeSingleShirtRunnerSlot >= 0 && fleetRunners[activeSingleShirtRunnerSlot])
+        ? fleetRunners[activeSingleShirtRunnerSlot]
+        : (DEFAULT_FLEET_ROSTER[activeSingleShirtRunnerSlot] || DEFAULT_FLEET_ROSTER[5]);
 
-    const profileData = {
-        name: cleanName,
+    return {
+        name: cleanName || (runner ? `${runner.name} Custom` : "Custom Float Preset"),
+        floatId: runner ? (runner.slot + 1) : 6,
+        floatName: runner ? `Float ${runner.slot + 1} - ${runner.name}` : "Custom Float",
+        bib: runner ? runner.num : "06",
+        role: runner ? runner.role : "FOLLOWER",
+        tag: runner ? runner.tag : "FLOAT",
+        accentColor: runner ? runner.color : "#00ff88",
         savedAt: new Date().toISOString(),
         ledCount: leds.length,
-        leds: leds,
+        leds: JSON.parse(JSON.stringify(leds)),
         graphicType: currentGraphicType,
         customArtworkDataUrl: customArtworkDataUrl,
-        animationGroups: animationGroups,
+        animationGroups: JSON.parse(JSON.stringify(animationGroups)),
+        stlColors: (typeof getActiveFloatStlColors === 'function') ? getActiveFloatStlColors() : currentLoadedStlColors,
+        plateSize: selectedPlateSize || 'medium',
+        plateWidthMm: selectedPlateWidthMm || 203.2,
         settings: {
             pattern: activePattern,
             direction: params.direction || 1,
@@ -11466,9 +11474,163 @@ async function saveCurrentProfile(name) {
         },
         sequence: {
             loopDuration: sequenceLoopDuration,
-            cues: sequenceCues
+            cues: JSON.parse(JSON.stringify(sequenceCues))
         }
     };
+}
+window.buildCompletePresetData = buildCompletePresetData;
+
+// Open interactive Save Preset Modal with Duplicate File Checking and Rename Support
+function openSavePresetModal(suggestedName = null) {
+    return new Promise((resolve) => {
+        const modal = document.getElementById('savePresetModal');
+        const runner = (activeSingleShirtRunnerSlot !== null && activeSingleShirtRunnerSlot >= 0 && fleetRunners[activeSingleShirtRunnerSlot])
+            ? fleetRunners[activeSingleShirtRunnerSlot]
+            : (DEFAULT_FLEET_ROSTER[activeSingleShirtRunnerSlot] || DEFAULT_FLEET_ROSTER[5]);
+
+        let defaultName = suggestedName || (document.getElementById('profileNameInput')?.value || '').trim();
+        if (!defaultName) {
+            if (runner) {
+                defaultName = `${runner.name} ${leds.length} Preset`;
+            } else if (currentGraphicType === 'title_drum') {
+                defaultName = `Title Drum ${leds.length} Preset`;
+            } else if (currentGraphicType === 'cinderellas_coach') {
+                defaultName = `Cinderella's Coach ${leds.length} Preset`;
+            } else {
+                defaultName = `Pete's Dragon ${leds.length} Preset`;
+            }
+        }
+
+        const nameInput = document.getElementById('savePresetModalNameInput');
+        const filenamePreview = document.getElementById('savePresetModalFilenamePreview');
+        const duplicateWarning = document.getElementById('savePresetModalDuplicateWarning');
+        const duplicateMsg = document.getElementById('savePresetModalDuplicateMsg');
+        const overwriteBtn = document.getElementById('savePresetModalOverwriteBtn');
+        const confirmBtn = document.getElementById('savePresetModalConfirmBtn');
+        const cancelBtn = document.getElementById('savePresetModalCancelBtn');
+        const closeBtn = document.getElementById('closeSavePresetModalBtn');
+
+        // Populate badges
+        const floatBadge = document.getElementById('savePresetModalFloatBadge');
+        if (floatBadge) floatBadge.textContent = runner ? `${runner.icon || '✨'} Float ${runner.slot + 1}: ${runner.name}` : (currentGraphicType || 'Custom');
+        const ledBadge = document.getElementById('savePresetModalLedBadge');
+        if (ledBadge) ledBadge.textContent = `${leds.length} Physical Canvas LEDs`;
+        const groupBadge = document.getElementById('savePresetModalGroupBadge');
+        if (groupBadge) groupBadge.textContent = `${animationGroups.length} Animation Groups`;
+        const cueBadge = document.getElementById('savePresetModalCueBadge');
+        if (cueBadge) cueBadge.textContent = `${sequenceCues.length} Theatrical Cues (${sequenceLoopDuration}s loop)`;
+
+        const sanitizeFilename = (val) => {
+            const safe = (val || 'untitled').replace(/[^a-zA-Z0-9 _-]/g, '').trim().replace(/\s+/g, '_').toLowerCase();
+            return safe.endsWith('.json') ? safe : `${safe}.json`;
+        };
+
+        const updateFilenamePreview = () => {
+            const val = (nameInput?.value || '').trim();
+            const fn = sanitizeFilename(val);
+            if (filenamePreview) filenamePreview.textContent = `Will save as: presets/${fn}`;
+            if (duplicateWarning) duplicateWarning.style.display = 'none';
+            if (overwriteBtn) overwriteBtn.style.display = 'none';
+            if (confirmBtn) confirmBtn.textContent = '💾 Save Preset';
+            if (nameInput) nameInput.style.borderColor = '#388bfd';
+        };
+
+        if (nameInput) {
+            nameInput.value = defaultName;
+            updateFilenamePreview();
+        }
+
+        modal.classList.add('open');
+        if (nameInput) {
+            nameInput.focus();
+            nameInput.select();
+        }
+
+        const cleanup = () => {
+            modal.classList.remove('open');
+            nameInput?.removeEventListener('input', updateFilenamePreview);
+            confirmBtn?.removeEventListener('click', onConfirm);
+            overwriteBtn?.removeEventListener('click', onOverwrite);
+            cancelBtn?.removeEventListener('click', onCancel);
+            closeBtn?.removeEventListener('click', onCancel);
+            modal.removeEventListener('click', onBackdrop);
+            document.removeEventListener('keydown', onKeyDown);
+        };
+
+        const executeSave = async (enteredName, allowOverwrite) => {
+            const res = await saveCurrentProfile(enteredName, allowOverwrite);
+            if (res && res.conflict) {
+                // Duplicate detected!
+                if (duplicateWarning) {
+                    duplicateWarning.style.display = 'block';
+                    if (duplicateMsg) duplicateMsg.textContent = `A preset named "${res.filename}" already exists on disk. You can rename it above or click "Overwrite Existing" to replace it.`;
+                }
+                if (overwriteBtn) overwriteBtn.style.display = 'inline-block';
+                if (nameInput) nameInput.style.borderColor = '#f85149';
+                return false;
+            } else if (res && res.success) {
+                cleanup();
+                resolve({ success: true, name: enteredName, filename: res.filename });
+                return true;
+            }
+            cleanup();
+            resolve({ success: false });
+            return false;
+        };
+
+        const onConfirm = async () => {
+            const entered = (nameInput?.value || '').trim();
+            if (!entered) {
+                if (nameInput) {
+                    nameInput.focus();
+                    nameInput.style.borderColor = '#f85149';
+                }
+                showToast("⚠️ Please enter a preset name.");
+                return;
+            }
+            await executeSave(entered, false);
+        };
+
+        const onOverwrite = async () => {
+            const entered = (nameInput?.value || '').trim();
+            if (!entered) return;
+            await executeSave(entered, true);
+        };
+
+        const onCancel = () => {
+            cleanup();
+            resolve({ success: false, cancelled: true });
+        };
+
+        const onBackdrop = (e) => {
+            if (e.target === modal) onCancel();
+        };
+
+        const onKeyDown = (e) => {
+            if (e.key === 'Escape') onCancel();
+            if (e.key === 'Enter' && e.target === nameInput) onConfirm();
+        };
+
+        nameInput?.addEventListener('input', updateFilenamePreview);
+        confirmBtn?.addEventListener('click', onConfirm);
+        overwriteBtn?.addEventListener('click', onOverwrite);
+        cancelBtn?.addEventListener('click', onCancel);
+        closeBtn?.addEventListener('click', onCancel);
+        modal.addEventListener('click', onBackdrop);
+        document.addEventListener('keydown', onKeyDown);
+    });
+}
+window.openSavePresetModal = openSavePresetModal;
+
+// Save Current Profile (All LEDs, Coordinates, Count, Colors, Groups, Cues & Settings)
+async function saveCurrentProfile(name, overwrite = false) {
+    if (!name || name.trim() === '') {
+        showToast("⚠️ Please enter a name for this costume profile!");
+        return { success: false, error: 'Empty name' };
+    }
+    const cleanName = name.trim();
+    const profileData = buildCompletePresetData(cleanName);
+    profileData.overwrite = (overwrite === true);
 
     // 1. Save to LocalStorage
     const localProfiles = JSON.parse(localStorage.getItem('msep_custom_presets') || '{}');
@@ -11483,13 +11645,19 @@ async function saveCurrentProfile(name) {
     }
     isSingleShirtDirty = false;
 
-    // 2. Save to Python backend
+    // 2. Save to Python backend (with duplicate conflict detection)
     try {
         const res = await fetch('/api/save_preset', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(profileData)
         });
+
+        if (res.status === 409) {
+            const conflictData = await res.json();
+            return { conflict: true, filename: conflictData.filename || `${cleanName}.json` };
+        }
+
         if (res.ok) {
             const result = await res.json();
             if (result && result.filename) {
@@ -11499,23 +11667,31 @@ async function saveCurrentProfile(name) {
                     saveFleetLineupToStorage();
                 }
             }
-            showToast(`💾 Profile "${cleanName}" saved successfully to disk and browser!`);
+            showToast(`💾 Preset "${cleanName}" (${leds.length} LEDs, ${animationGroups.length} groups) saved to disk!`);
+            await refreshPresetDropdown();
+            renderFleetCards();
+
+            const select = document.getElementById('presetSelect');
+            if (select) {
+                for (let i = 0; i < select.options.length; i++) {
+                    if (select.options[i].text.includes(cleanName)) {
+                        select.selectedIndex = i;
+                        break;
+                    }
+                }
+            }
+            const nameInput = document.getElementById('profileNameInput');
+            if (nameInput) nameInput.value = cleanName;
+
+            return { success: true, filename: result?.filename || `${cleanName}.json` };
         }
     } catch (e) {
-        showToast(`💾 Profile "${cleanName}" saved to browser cache.`);
+        showToast(`💾 Preset "${cleanName}" saved to browser cache.`);
     }
 
     await refreshPresetDropdown();
     renderFleetCards();
-    const select = document.getElementById('presetSelect');
-    if (select) {
-        for (let i = 0; i < select.options.length; i++) {
-            if (select.options[i].text.includes(cleanName)) {
-                select.selectedIndex = i;
-                break;
-            }
-        }
-    }
+    return { success: true };
 }
 
 // Apply Profile Data object to simulator
@@ -15474,49 +15650,27 @@ document.getElementById('presetSelect').addEventListener('change', async (e) => 
 // Export complete profile configuration JSON
 function exportCurrentProfileJson() {
     const nameInput = document.getElementById('profileNameInput');
-    const name = (nameInput?.value || '').trim() || (currentGraphicType === 'cinderellas_coach' ? "Cinderella_Coach" : (currentGraphicType === 'carriage_nohorses' ? "Carriage_nohorses" : "Petes_Dragon"));
-    const profileData = {
-        name: name,
-        savedAt: new Date().toISOString(),
-        ledCount: leds.length,
-        leds: leds,
-        graphicType: currentGraphicType,
-        customArtworkDataUrl: customArtworkDataUrl,
-        animationGroups: animationGroups,
-        settings: {
-            pattern: activePattern,
-            direction: params.direction || 1,
-            speedBpm: params.speedBpm,
-            sparkleRate: params.sparkleRate,
-            sparkleStyle: params.sparkleStyle || 'incandescent',
-            ambientColorMode: params.ambientColorMode || 'artwork',
-            ambientCustomColor: params.ambientCustomColor || '#ffb703',
-            greenHue: params.greenHue,
-            brightness: params.brightness,
-            glowSize: params.glowSize
-        },
-        sequence: {
-            loopDuration: sequenceLoopDuration,
-            cues: sequenceCues
-        }
-    };
+    const runner = (activeSingleShirtRunnerSlot !== null && activeSingleShirtRunnerSlot >= 0 && fleetRunners[activeSingleShirtRunnerSlot])
+        ? fleetRunners[activeSingleShirtRunnerSlot]
+        : (DEFAULT_FLEET_ROSTER[activeSingleShirtRunnerSlot] || DEFAULT_FLEET_ROSTER[5]);
+    const defaultName = runner ? `${runner.name} ${leds.length} Preset` : (currentGraphicType === 'title_drum' ? "Title_Drum" : (currentGraphicType === 'cinderellas_coach' ? "Cinderella_Coach" : "Petes_Dragon"));
+    const name = (nameInput?.value || '').trim() || defaultName;
+    const profileData = buildCompletePresetData(name);
+
     const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(profileData, null, 2));
     const dlAnchor = document.createElement('a');
     dlAnchor.setAttribute("href", dataStr);
-    const safeFilename = `${name.toLowerCase().replace(/[^a-z0-9_-]/g, '_')}_profile.json`;
+    const safeFilename = `${name.toLowerCase().replace(/[^a-z0-9_-]/g, '_')}.json`;
     dlAnchor.setAttribute("download", safeFilename);
     dlAnchor.click();
-    showToast(`⬇ Exported ${safeFilename}`);
+    showToast(`⬇ Exported ${safeFilename} (${leds.length} LEDs, ${animationGroups.length} groups)`);
 }
 
-document.getElementById('saveProfileBtn').addEventListener('click', () => {
+// Save Profile button (Section 2 - Sidebar) opens interactive modal with duplicate checking & rename capability
+document.getElementById('saveProfileBtn')?.addEventListener('click', async () => {
     const nameInput = document.getElementById('profileNameInput');
-    const defaultName = currentGraphicType === 'cinderellas_coach' ? "Cinderella's Coach" : (currentGraphicType === 'carriage_nohorses' ? "Carriage (No Horses)" : "Pete's Dragon");
-    const name = (nameInput?.value || '').trim() || prompt("Enter a name for this profile:", defaultName);
-    if (name) {
-        if (nameInput) nameInput.value = name;
-        saveCurrentProfile(name);
-    }
+    const currentName = (nameInput?.value || '').trim();
+    await openSavePresetModal(currentName || null);
 });
 
 // Download & Import Profile Buttons
@@ -15549,8 +15703,13 @@ if (importProfileBtn && importProfileFileInput) {
     });
 }
 
-// Export JSON file (Section 5)
-document.getElementById('saveLayoutBtn').addEventListener('click', () => {
+// Section 3: Layout Preset Save button opens interactive modal with duplicate checking & rename capability
+document.getElementById('saveLayoutBtn')?.addEventListener('click', async () => {
+    await openSavePresetModal();
+});
+
+// Section 3: Export Layout JSON button
+document.getElementById('exportLayoutJsonBtn')?.addEventListener('click', () => {
     exportCurrentProfileJson();
 });
 

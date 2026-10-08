@@ -751,25 +751,37 @@ Beyond saving single costume profiles, the simulator lets you export and import 
   - Toggle whether to import the master 30s fleet choreography blocks.
   - Integrated with the **Universal Undo / Redo Engine (`Ctrl+Z`)** so you can safely preview or revert applied bundles with one keystroke.
 
-### Saving Profiles
-1. Enter a name in the **Profile Name** input (e.g., `Cinderella_Final_Costume`).
-2. Click **💾 Save Profile**.
-3. Profiles are saved both to the Python backend server (`presets/` directory) and cached in your browser's `localStorage`.
-4. Saved profiles appear in the **Quick-Load Profile** dropdown in Section 1.
+### Saving Profiles & Layout Presets (With Duplicate File Protection & Rename)
+1. **Interactive Save Preset Modal:**
+   - Clicking **`💾 Save`** (Section 2 - Sidebar) or **`💾 Save Preset`** (Section 3 - LED Layout & Wiring Route) launches the dedicated **Save Costume Preset Modal**.
+   - Displays real-time overview metrics: active float identity, physical canvas LED count (e.g. 50, 75, or 100), active animation group count, and sequenced theatrical cues.
+   - Shows live filename preview as you type (`Will save as: presets/<clean_name>.json`).
+2. **Comprehensive Float State Capture:**
+   - Every saved preset captures:
+     - Exact normalized $(x, y)$ coordinates and count of all LEDs on the canvas.
+     - Sampled RGB colors, brightness, and ambient lighting parameters.
+     - All float-specific animation groups (wheel rotations, rim chases, fireworks, dragon crest pulses).
+     - Full theatrical show sequence cues (Parade Cue Director 90-second timeline).
+     - Float metadata (float ID 1–7, name, role, tag, race bib number, accent color).
+     - 3D armor plate parameters (selected plate size, width in mm, AMS filament color mappings).
+3. **Duplicate File Checking & Rename Capability:**
+   - The backend checks whether a preset with the target sanitized filename already exists in `presets/`.
+   - If a duplicate is detected, the modal displays a red **⚠️ File Already Exists** banner with two options:
+     - **Change Name:** Simply edit the preset name in the input box; the filename preview updates live.
+     - **⚠️ Overwrite Existing:** Click the red overwrite button to deliberately replace the file on disk.
+4. **Dual Storage & Fleet Lineup Sync:**
+   - Presets are saved to the server's `presets/` directory and backed up to browser `localStorage`.
+   - Automatically links the saved preset to the active runner card slot in the 7-Shirt Fleet Lineup and refreshes the preset selector dropdowns across the simulator.
 
 ### Exporting & Importing Configuration JSON
 - **⬇ Download / Export Configuration JSON:**
-  Click **"Download Configuration JSON"** (Section 1 or 5) to save a complete `.json` file containing:
-  - Exact normalized X/Y coordinates for all 100 LEDs
-  - Sampled RGB colors and brightness settings
-  - Animation group definitions (member indices and directions)
-  - The complete 90-second Cue Director sequence with all timeline cues
+  Click **"Export JSON"** (Section 2) or **"⬇ Export JSON"** (Section 3) to download a `.json` file containing the complete float configuration.
 - **📂 Import Configuration JSON:**
-  Click **"Import Configuration JSON"** and choose any previously saved `.json` file. The simulator instantly restores your LEDs, groups, and cues.
+  Click **"Import JSON"** and choose any previously saved `.json` file. The simulator instantly restores your LEDs, coordinates, groups, settings, and cues.
 
 ### Generating FastLED C++ Code
 Click **"💻 Export FastLED C++ Code"** (Section 5) to open the code modal:
-- Generates a complete C++ PROGMEM flash array storing the sampled color palette for all 100 LEDs (`CRGB ARTWORK_PALETTE[NUM_LEDS]`).
+- Generates a complete C++ PROGMEM flash array storing the sampled color palette for all physical LEDs (`CRGB ARTWORK_PALETTE[NUM_LEDS]`).
 - Auto-generates the `runAutonomousShowSequence` routine matching your active timeline cues.
 - Click **"📋 Copy to Clipboard"** to paste directly into your Arduino or PlatformIO sketch!
 

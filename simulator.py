@@ -272,11 +272,25 @@ class SimulatorRequestHandler(http.server.SimpleHTTPRequestHandler):
             preset_data = json.loads(post_data.decode("utf-8"))
             
             raw_name = preset_data.get("name", "untitled_preset")
+            allow_overwrite = preset_data.get("overwrite", False)
+
             # Sanitize filename
             safe_name = "".join(c for c in raw_name if c.isalnum() or c in (' ', '_', '-')).rstrip()
             safe_name = safe_name.replace(" ", "_").lower() + ".json"
             
             filepath = os.path.join(PRESETS_DIR, safe_name)
+            if os.path.exists(filepath) and not allow_overwrite:
+                # Return conflict 409 with duplicate info
+                self.send_response(409)
+                self.send_header("Content-Type", "application/json")
+                self.end_headers()
+                self.wfile.write(json.dumps({
+                    "conflict": True,
+                    "filename": safe_name,
+                    "message": f"A preset file named '{safe_name}' already exists."
+                }).encode("utf-8"))
+                return
+
             with open(filepath, "w", encoding="utf-8") as f:
                 json.dump(preset_data, f, indent=2)
 
