@@ -1,7 +1,6 @@
 import cv2
 import numpy as np
 from PIL import Image
-import shutil
 import os
 
 def process_drum():
@@ -15,10 +14,10 @@ def process_drum():
     yy, xx = np.mgrid[:h, :w]
 
     # --- Target 5-Color Palette (Flat, Unshaded for Multi-Material 3D Printing) ---
-    # 1. Black:  #11161d -> RGB [17, 22, 29]   (Chassis, Drum Face, Wheels, Shadow Details)
-    # 2. Gold:   #facc15 -> RGB [250, 204, 21]  (Drum Ring, Curled Text, Canopy, Filigree, Poles)
-    # 3. Red:    #ef4444 -> RGB [239, 68, 68]   (Body Panels, Arches, Streamer Ribbon)
-    # 4. Blue:   #2563eb -> RGB [37, 99, 235]   (Streamer Pennant Tip, Rear Banner)
+    # 1. Black:  #11161d -> RGB [17, 22, 29]   (Chassis, Drum Face, Wheels Tire Body)
+    # 2. Gold:   #facc15 -> RGB [250, 204, 21]  (Drum Ring, Text, Wheel Rims/Hubs, Flagpoles, Square Flag, Canopy Dome)
+    # 3. Red:    #ef4444 -> RGB [239, 68, 68]   (Cab Body Panels, Arches, Streamer Ribbon)
+    # 4. Blue:   #2563eb -> RGB [37, 99, 235]   (Streamer Pennant Tip)
     # 5. Green:  #10b981 -> RGB [16, 185, 129]  (Lead Flag)
     C_TRANSPARENT = (0, 0, 0, 0)
     C_BLACK       = (17, 22, 29, 255)
@@ -34,7 +33,7 @@ def process_drum():
     drum_ring = (dist_out <= 1.0) & (dist_in > 1.0)
     drum_face = (dist_in <= 1.0)
 
-    # Extract text on drum face with inner letter counters (holes in P, A, R, D)
+    # Extract text on drum face with inner letter counters (holes in P, A, R, D intact)
     raw_text = drum_face & ((gray > 48) | ((hsv[:, :, 1] > 25) & (hsv[:, :, 2] > 45)))
     clean_text = cv2.morphologyEx(raw_text.astype(np.uint8)*255, cv2.MORPH_OPEN, np.ones((2,2), np.uint8))
     clean_text = cv2.morphologyEx(clean_text, cv2.MORPH_CLOSE, np.ones((2,2), np.uint8))
@@ -43,17 +42,28 @@ def process_drum():
     for c in ext_cnts:
         x_c, y_c, w_c, h_c = cv2.boundingRect(c)
         area = cv2.contourArea(c)
-        # Filters out large pinstripe arc (h > 150) and noise specks (area < 100), keeping all letters intact
         if h_c < 150 and area > 100:
             cv2.drawContours(letter_roi, [c], -1, 255, -1)
-
     drum_letters = (clean_text > 0) & (letter_roi > 0)
 
-    # --- 2. Wheels ---
-    w1 = (np.hypot(xx - 180, yy - 780) <= 73) & (yy >= 700)
-    w2 = (np.hypot(xx - 964, yy - 765) <= 66) & (yy >= 700)
-    w3 = (np.hypot(xx - 838, yy - 770) <= 46) & (yy >= 700)
-    wheels = w1 | w2 | w3
+    # --- 2. EXACTLY 2 WHEELS (Outlined in Gold with Gold Hubs) ---
+    # Front Wheel: center (180, 780), R=73
+    dist_w1 = np.hypot(xx - 180, yy - 780)
+    w1_full = (dist_w1 <= 73) & (yy >= 700)
+    w1_rim  = (dist_w1 <= 73) & (dist_w1 >= 64) & (yy >= 700)
+    w1_hub  = (dist_w1 <= 16) & (yy >= 700)
+    w1_tire = w1_full & (~w1_rim) & (~w1_hub)
+
+    # Rear Wheel: center (964, 765), R=66 (Middle wheel at x=838 is removed)
+    dist_w2 = np.hypot(xx - 964, yy - 765)
+    w2_full = (dist_w2 <= 66) & (yy >= 700)
+    w2_rim  = (dist_w2 <= 66) & (dist_w2 >= 58) & (yy >= 700)
+    w2_hub  = (dist_w2 <= 14) & (yy >= 700)
+    w2_tire = w2_full & (~w2_rim) & (~w2_hub)
+
+    wheels_all   = w1_full | w2_full
+    wheels_gold  = w1_rim | w1_hub | w2_rim | w2_hub
+    wheels_black = w1_tire | w2_tire
 
     # --- 3. Background & Foreground Ground Removal ---
     dark_pixels = (gray < 28) & (~drum_face)
@@ -70,6 +80,18 @@ def process_drum():
     sky_mask[:650, 1060:] = True
     sky_mask[:250, :110] = True
 
+    # Remove extra hanging red strip next to the square gold flag:
+    extra_red_strip = (xx >= 800) & (xx <= 860) & (yy >= 200) & (yy <= 450) & (dist_out > 1.0)
+    sky_mask[extra_red_strip] = True
+
+    # Clear air buffer to the right of front flagpole (removes floating black specks):
+    pole1_air = (xx >= 349) & (xx <= 390) & (yy >= 40) & (yy <= 200)
+    sky_mask[pole1_air] = True
+
+    # Clear air buffer around rear flagpole below square flag:
+    pole2_air = (xx >= 1010) & (xx <= 1040) & (yy >= 365) & (yy <= 550)
+    sky_mask[pole2_air] = True
+
     # Ground plane removal:
     ground_mask = np.zeros((h, w), bool)
     ground_cand = np.zeros((h, w), dtype=np.uint8)
@@ -81,54 +103,82 @@ def process_drum():
 
     # Floor / shadow cutoffs below and between wheels:
     ground_mask[yy > 855] = True
-    ground_mask[(xx >= 255) & (xx <= 785) & (yy > 735)] = True
+    ground_mask[(xx >= 255) & (xx <= 895) & (yy > 735)] = True
     ground_mask[(xx < 110) & (yy > 710)] = True
     ground_mask[(xx > 1035) & (yy > 730)] = True
 
-    # Complete float silhouette:
+    # Float silhouette:
     float_mask = (~sky_mask) & (~ground_mask)
-    float_mask[wheels | drum_ring | drum_face] = True
+    float_mask[wheels_all | drum_ring | drum_face] = True
 
-    # Filter out any tiny disconnected float specks:
+    # Filter out tiny disconnected float specks:
     num_f, labels_f, stats_f, _ = cv2.connectedComponentsWithStats(float_mask.astype(np.uint8))
     clean_float = np.zeros((h, w), bool)
     for i in range(1, num_f):
         if stats_f[i, cv2.CC_STAT_AREA] > 80:
             clean_float[labels_f == i] = True
-    clean_float[wheels | drum_ring | drum_face] = True
+    clean_float[wheels_all | drum_ring | drum_face] = True
 
-    # --- 4. Color Assignment & Segment Mapping ---
-    # Flagpoles:
-    pole1 = (np.abs(xx - 344) <= 3) & (yy >= 69) & (yy <= 245)
-    pole2 = (np.abs(xx - 835) <= 3) & (yy >= 135) & (yy <= 300)
-    pole3 = (np.abs(xx - 1018) <= 3) & (yy >= 278) & (yy <= 600)
-    flagpoles = pole1 | pole2 | pole3
+    # --- 4. Flagpoles (Clean & 100% Solid Gold) ---
+    pole1 = (np.abs(xx - 344) <= 4) & (yy >= 40) & (yy <= 245)
+    finial1 = (np.hypot(xx - 344, yy - 42) <= 6)
+    pole2 = (np.abs(xx - 1018) <= 4) & (yy >= 265) & (yy <= 550)
+    finial2 = (np.hypot(xx - 1018, yy - 268) <= 6)
+    clean_flagpoles = pole1 | finial1 | pole2 | finial2
 
-    # Green Lead Flag:
-    is_green_raw = (hsv[:, :, 0] >= 35) & (hsv[:, :, 0] <= 85) & (hsv[:, :, 1] > 25) & (hsv[:, :, 2] > 30) & (xx < 360) & (yy < 220)
+    # --- 5. Flags ---
+    # Green Lead Flag (swallowtail pennant at front cab):
+    is_green_raw = (hsv[:, :, 0] >= 35) & (hsv[:, :, 0] <= 85) & (hsv[:, :, 1] > 25) & (hsv[:, :, 2] > 30) & (xx < 344) & (yy < 220)
     green_flag = cv2.morphologyEx(is_green_raw.astype(np.uint8)*255, cv2.MORPH_CLOSE, np.ones((5, 5), np.uint8)) > 0
 
-    # Blue Flags (Streamer tip + rear flag):
-    is_blue_raw = (hsv[:, :, 0] >= 90) & (hsv[:, :, 0] <= 135) & (hsv[:, :, 1] > 30) & (hsv[:, :, 2] > 40)
-    blue_flags = cv2.morphologyEx(is_blue_raw.astype(np.uint8)*255, cv2.MORPH_CLOSE, np.ones((5, 5), np.uint8)) > 0
+    # Blue Flag: ONLY the pennant tip at top arch!
+    is_blue_raw = (hsv[:, :, 0] >= 90) & (hsv[:, :, 0] <= 135) & (hsv[:, :, 1] > 30) & (hsv[:, :, 2] > 40) & (yy < 200) & (xx > 600) & (xx < 800)
+    blue_pennant = cv2.morphologyEx(is_blue_raw.astype(np.uint8)*255, cv2.MORPH_CLOSE, np.ones((5, 5), np.uint8)) > 0
 
-    # Red Body & Streamer Ribbon:
-    is_pennant_red = ((hsv[:, :, 0] < 15) | (hsv[:, :, 0] > 165)) & (hsv[:, :, 1] > 30) & (hsv[:, :, 2] > 30) & (yy < 280) & (xx > 500) & (xx < 850)
-    is_body_red = ((hsv[:, :, 0] < 15) | (hsv[:, :, 0] > 165)) & (hsv[:, :, 1] > 25) & (hsv[:, :, 2] > 25) & (~drum_face) & (~wheels) & (yy >= 250) & (yy < 800)
-    body_red = cv2.morphologyEx((is_pennant_red | is_body_red).astype(np.uint8)*255, cv2.MORPH_CLOSE, np.ones((5, 5), np.uint8)) > 0
+    # Square Gold Flag (at the rear, x in [860, 1016], y in [270, 360]):
+    square_gold_flag = (xx >= 860) & (xx <= 1016) & (yy >= 270) & (yy <= 360) & clean_float & (dist_out > 1.0)
 
-    # Gold Trim, Sign & Filigree:
-    is_gold_raw = (hsv[:, :, 0] >= 15) & (hsv[:, :, 0] <= 35) & (hsv[:, :, 1] > 20) & (hsv[:, :, 2] > 40) & (~drum_face) & (~wheels) & (~green_flag) & (~blue_flags) & (~body_red) & (yy < 800)
-    gold_body = cv2.morphologyEx(is_gold_raw.astype(np.uint8)*255, cv2.MORPH_CLOSE, np.ones((5, 5), np.uint8)) > 0
+    # Red Body Panels & Streamer Ribbon:
+    is_pennant_red = ((hsv[:, :, 0] < 15) | (hsv[:, :, 0] > 165)) & (hsv[:, :, 1] > 30) & (hsv[:, :, 2] > 30) & (yy < 280) & (xx > 500) & (xx < 800)
+    is_body_red = ((hsv[:, :, 0] < 15) | (hsv[:, :, 0] > 165)) & (hsv[:, :, 1] > 25) & (hsv[:, :, 2] > 25) & (~drum_face) & (~wheels_all) & (yy >= 250) & (yy < 800)
+    body_red_raw = (is_pennant_red | is_body_red) & (~extra_red_strip) & (~square_gold_flag)
+    body_red = cv2.morphologyEx(body_red_raw.astype(np.uint8)*255, cv2.MORPH_CLOSE, np.ones((5, 5), np.uint8)) > 0
+    body_red &= (~extra_red_strip)
+    body_red &= (~square_gold_flag)
 
-    # --- 5. Assemble Production 5-Color RGBA Array ---
+    # --- 6. Black bit on top of cab canopy (near green flag) -> MAKE GOLD ---
+    roof_dome = (xx >= 330) & (xx <= 425) & (yy >= 150) & (yy <= 220) & clean_float
+
+    # Gold Body / Trim / Filigree:
+    is_gold_raw = (hsv[:, :, 0] >= 15) & (hsv[:, :, 0] <= 35) & (hsv[:, :, 1] > 20) & (hsv[:, :, 2] > 40) & (~drum_face) & (~wheels_all) & (~green_flag) & (~blue_pennant) & (~body_red) & (yy < 800)
+    gold_body = cv2.morphologyEx(is_gold_raw.astype(np.uint8)*255, cv2.MORPH_CLOSE, np.ones((7, 7), np.uint8)) > 0
+    gold_body |= roof_dome
+    gold_body |= square_gold_flag
+    gold_body |= clean_flagpoles
+    gold_body |= wheels_gold
+
+    # --- 7. Assemble Production 5-Color RGBA Array ---
     out = np.zeros((h, w, 4), dtype=np.uint8)
     out[clean_float] = C_BLACK
     out[clean_float & body_red] = C_RED
-    out[clean_float & (gold_body | flagpoles)] = C_GOLD
-    out[clean_float & blue_flags] = C_BLUE
+    out[clean_float & gold_body] = C_GOLD
+    out[clean_float & blue_pennant] = C_BLUE
     out[clean_float & green_flag] = C_GREEN
-    out[wheels] = C_BLACK
+
+    # Ensure Wheels:
+    out[wheels_black] = C_BLACK
+    out[wheels_gold] = C_GOLD
+
+    # Ensure Flagpoles are 100% Solid Gold:
+    out[clean_flagpoles] = C_GOLD
+
+    # Ensure Roof Dome is 100% Solid Gold:
+    out[roof_dome & clean_float] = C_GOLD
+
+    # Ensure Square Flag is 100% Solid Gold:
+    out[square_gold_flag & clean_float] = C_GOLD
+
+    # Drum face and ring:
     out[drum_ring] = C_GOLD
     out[drum_face] = C_BLACK
     out[drum_letters] = C_GOLD
@@ -154,10 +204,10 @@ def process_drum():
     print("\nVerified Color Palette:")
     color_names = {
         C_TRANSPARENT: "Transparent Background",
-        C_BLACK: "Black (Chassis / Drum Face / Wheels)",
-        C_GOLD: "Gold (Drum Ring / Text / Scrollwork)",
+        C_BLACK: "Black (Chassis / Drum Face / Wheel Tires)",
+        C_GOLD: "Gold (Drum Ring / Text / Wheels Gold Rim & Hub / Flagpoles / Square Flag / Canopy Dome)",
         C_RED: "Red (Body Panels / Streamer)",
-        C_BLUE: "Blue (Pennant / Flags)",
+        C_BLUE: "Blue (Streamer Pennant Tip)",
         C_GREEN: "Green (Lead Flag)"
     }
     for col, cnt in zip(colors, counts):

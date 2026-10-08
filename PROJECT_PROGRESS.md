@@ -105,12 +105,17 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
       - Flooded grey ground plane ($y \ge 650, 55 < gray < 120, S < 35$) and shaved bottom floor shadow between wheels ($y > 735$), preserving the full circular disks of all three wheels down to $y = 853$ (Front $R = 73$), $y = 831$ (Rear $R = 66$), and $y = 816$ (Mid $R = 46$).
   - **Flat 5-Color Unshaded Simplification (Bambu AMS 3D Multi-Material):**
     - Simplified all shading, specular highlights, and gradients into strictly 5 flat, unshaded colors:
-      - **Black (`#11161d` / RGB `[17, 22, 29]`):** Chassis undercarriage, drum face backdrop, solid round wheels, cab interior frame.
-      - **Gold (`#facc15` / RGB `[250, 204, 21]`):** Outer drum ring ($R_{out}=259.5, 248.0; R_{in}=232.5, 222.0$), curved typography "MAIN STREET ELECTRICAL PARADE" (with letter counters in P, A, R, D intact), canopy scrollwork, front crest signboard, brass flagpoles.
-      - **Red (`#ef4444` / RGB `[239, 68, 68]`):** Sculptural body panels, drum cradle arches, upper streamer ribbon.
-      - **Blue (`#2563eb` / RGB `[37, 99, 235]`):** Streamer pennant tip, rear flag/banner.
+      - **Black (`#11161d` / RGB `[17, 22, 29]`):** Chassis undercarriage, drum face backdrop, wheel tire bodies, cab interior frame.
+      - **Gold (`#facc15` / RGB `[250, 204, 21]`):** Outer drum marquee ring, curved typography "MAIN STREET ELECTRICAL PARADE" (with letter counters intact), two wheel rims & center hubs, flagpoles & finials, square rear flag, cab canopy dome & scrollwork, front crest signboard.
+      - **Red (`#ef4444` / RGB `[239, 68, 68]`):** Sculptural cab body panels, drum cradle arches, upper streamer ribbon.
+      - **Blue (`#2563eb` / RGB `[37, 99, 235]`):** Streamer pennant tip (top arch).
       - **Green (`#10b981` / RGB `[16, 185, 129]`):** Lead forward flag on flagpole 1 ($x \approx 344$).
     - Zero intermediate antialiasing or gradient pixels—100% of non-transparent pixels belong strictly to one of the 5 colors.
+  - **Wheel & Detailing Refinements (Visual Contrast & Feature Polish):**
+    - **Reduced to Exactly 2 Wheels with Gold Outlines:** Eliminated the extra middle wheel ($x \approx 838$) to match the authentic 2-axle wagon profile with clear floor clearance between wheels. Outlined both the Front Wheel ($R = 73$) and Rear Wheel ($R = 66$) with crisp 8px gold rims and solid gold center hubcaps, establishing high-contrast visual pop against the black chassis floor.
+    - **Cleaned Flagpoles (100% Solid Gold):** Cleared floating black noise specks to the right of the front pole ($x \approx 344$) and red border slivers along the rear pole ($x \approx 1018$). Flagpoles now stand as continuous, solid gold columns topped with gold spherical finials.
+    - **Removed Extra Red Strip next to Square Gold Flag:** Eradicated the hanging ribbon tail/vertical red artifact ($x \in [800, 860], y \in [200, 450]$) between the drum ring and the square flag, opening up clean negative space. Set the square flag to 100% solid gold.
+    - **Made Cab Canopy Roof Dome Gold:** Converted the black section on top of the main gold canopy near the green flag ($x \in [330, 425], y \in [150, 220]$) to solid gold, harmonizing the entire ornate cab roof structure.
   - **Repository & Tooling Synchronization:**
     - Saved transparent production asset to `assets/title_drum.png` (1020x827) and mirrored to `simulator/assets/title_drum.png`.
     - Created deterministic conversion pipeline in `scripts/process_title_drum.py`.
