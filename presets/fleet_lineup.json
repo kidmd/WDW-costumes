@@ -22,7 +22,7 @@
     "color": "#ffb703",
     "accent": "Gold",
     "role": "\ud83d\udce1 Follower Float",
-    "preset": "server:title_drum.json",
+    "preset": "server:main_street_title_drum_100-led_vibrant_preset.json",
     "defaultGraphic": "title_drum"
   },
   {

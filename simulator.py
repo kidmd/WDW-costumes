@@ -333,13 +333,51 @@ class SimulatorRequestHandler(http.server.SimpleHTTPRequestHandler):
         try:
             content_length = int(self.headers.get("Content-Length", 0))
             post_data = self.rfile.read(content_length)
-            fleet_data = json.loads(post_data.decode("utf-8"))
-            filepath = os.path.join(PRESETS_DIR, "fleet_lineup.json")
-            with open(filepath, "w", encoding="utf-8") as f:
-                json.dump(fleet_data, f, indent=2)
+            payload = json.loads(post_data.decode("utf-8"))
+
+            fleet_lineup = payload.get("lineup", payload) if isinstance(payload, dict) else payload
+            allow_overwrite = payload.get("overwrite", False) if isinstance(payload, dict) else False
+            fleet_name = payload.get("name", None) if isinstance(payload, dict) else None
+
+            # 1. If a named fleet save was requested, check duplicate conflict & save to presets/
+            saved_named_filename = None
+            if fleet_name:
+                raw_name = fleet_name.strip()
+                safe_name = "".join(c for c in raw_name if c.isalnum() or c in (' ', '_', '-')).rstrip()
+                safe_name = safe_name.replace(" ", "_").lower()
+                if not safe_name.startswith("parade_fleet") and "fleet" not in safe_name:
+                    safe_name = f"parade_fleet_{safe_name}"
+                if not safe_name.endswith(".json"):
+                    safe_name += ".json"
+
+                named_filepath = os.path.join(PRESETS_DIR, safe_name)
+                if os.path.exists(named_filepath) and not allow_overwrite:
+                    self.send_response(409)
+                    self.send_header("Content-Type", "application/json")
+                    self.end_headers()
+                    self.wfile.write(json.dumps({
+                        "conflict": True,
+                        "filename": safe_name,
+                        "message": f"A parade fleet file named '{safe_name}' already exists."
+                    }).encode("utf-8"))
+                    return
+
+                with open(named_filepath, "w", encoding="utf-8") as nf:
+                    json.dump(payload if isinstance(payload, dict) else {"name": fleet_name, "lineup": fleet_lineup}, nf, indent=2)
+                saved_named_filename = safe_name
+
+            # 2. Always persist current lineup to presets/fleet_lineup.json for active simulator startup
+            active_filepath = os.path.join(PRESETS_DIR, "fleet_lineup.json")
+            with open(active_filepath, "w", encoding="utf-8") as f:
+                json.dump(fleet_lineup, f, indent=2)
+
             self.send_response(200)
             self.send_header("Content-Type", "application/json")
             self.end_headers()
+            self.wfile.write(json.dumps({
+                "success": True,
+                "filename": saved_named_filename or "fleet_lineup.json"
+            }).encode("utf-8"))
         except Exception as e:
             self.send_error(500, str(e))
 

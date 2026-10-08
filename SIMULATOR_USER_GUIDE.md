@@ -733,12 +733,12 @@ The **Sparkle Frequency Slider** in Section 3 supports fine decimal percentages 
 
 ---
 
-## 12. Profile Management, Saving & JSON Import/Export
+## 12. Float Management, Saving & JSON Import/Export
 
-You can save and export complete costume profiles so you never lose your LED arrangements, group definitions, or cue timelines.
+You can save and export complete float configurations so you never lose your LED arrangements, group definitions, or cue timelines.
 
 ### 📦 Master Fleet Parade Bundle (Export & Import All 7 Floats)
-Beyond saving single costume profiles, the simulator lets you export and import the **complete 7-float parade configuration** (all 7 costume float designs, LED coordinate placements, zone animation groups, standalone timeline cues, baseline ambient dynamics, and 30s fleet choreography blocks) in a single unified JSON file (`msep_fleet_parade_master.json`).
+Beyond saving single float configurations, the simulator lets you export and import the **complete 7-float parade configuration** (all 7 costume float designs, LED coordinate placements, zone animation groups, standalone timeline cues, baseline ambient dynamics, and 30s fleet choreography blocks) in a single unified JSON file (`msep_fleet_parade_master.json`).
 
 - **📥 Export Master Fleet Bundle:**
   - Available on the `🏃 Tab 5: Fleet` tab (under 7-Runner Lineup) and on `🎨 Tab 1: Layout` (`📦 Export All 7 Floats`).
@@ -751,13 +751,14 @@ Beyond saving single costume profiles, the simulator lets you export and import 
   - Toggle whether to import the master 30s fleet choreography blocks.
   - Integrated with the **Universal Undo / Redo Engine (`Ctrl+Z`)** so you can safely preview or revert applied bundles with one keystroke.
 
-### Saving Profiles & Layout Presets (With Duplicate File Protection & Rename)
-1. **Interactive Save Preset Modal:**
-   - Clicking **`💾 Save`** (Section 2 - Sidebar) or **`💾 Save Preset`** (Section 3 - LED Layout & Wiring Route) launches the dedicated **Save Costume Preset Modal**.
+### Saving Floats & Layout Presets (With Timestamped Defaults & Duplicate Protection)
+1. **Interactive Save Float Modal:**
+   - Clicking **`💾 Save Float`** (Section 2 - Sidebar) or **`💾 Save Float`** (Section 3 - LED Layout & Wiring Route) launches the dedicated **Save Float Configuration Modal**.
    - Displays real-time overview metrics: active float identity, physical canvas LED count (e.g. 50, 75, or 100), active animation group count, and sequenced theatrical cues.
+   - **Timestamped Default Name:** The input box automatically populates with `<FloatName> <YYYY-MM-DD HH-mm>` (e.g., `Title Drum 2026-10-08 13-45`).
    - Shows live filename preview as you type (`Will save as: presets/<clean_name>.json`).
 2. **Comprehensive Float State Capture:**
-   - Every saved preset captures:
+   - Every saved float captures:
      - Exact normalized $(x, y)$ coordinates and count of all LEDs on the canvas.
      - Sampled RGB colors, brightness, and ambient lighting parameters.
      - All float-specific animation groups (wheel rotations, rim chases, fireworks, dragon crest pulses).
@@ -767,11 +768,11 @@ Beyond saving single costume profiles, the simulator lets you export and import 
 3. **Duplicate File Checking & Rename Capability:**
    - The backend checks whether a preset with the target sanitized filename already exists in `presets/`.
    - If a duplicate is detected, the modal displays a red **⚠️ File Already Exists** banner with two options:
-     - **Change Name:** Simply edit the preset name in the input box; the filename preview updates live.
+     - **Change Name:** Simply edit the float name in the input box; the filename preview updates live.
      - **⚠️ Overwrite Existing:** Click the red overwrite button to deliberately replace the file on disk.
 4. **Dual Storage & Fleet Lineup Sync:**
-   - Presets are saved to the server's `presets/` directory and backed up to browser `localStorage`.
-   - Automatically links the saved preset to the active runner card slot in the 7-Shirt Fleet Lineup and refreshes the preset selector dropdowns across the simulator.
+   - Floats are saved to the server's `presets/` directory and backed up to browser `localStorage`.
+   - Automatically links the saved float file to the active runner card slot in the 7-Shirt Fleet Lineup and refreshes the float selector dropdowns across the simulator.
 
 ### Exporting & Importing Configuration JSON
 - **⬇ Download / Export Configuration JSON:**
@@ -900,11 +901,22 @@ Each of the 7 runners is represented by a dedicated preset card and canvas athle
     - **`✏️ UNSAVED LIVE PREVIEW`** (orange) when previewing unsaved live editor changes.
     - **`✨ LIVE PREVIEW`** (cyan) when previewing the active live editor session.
     - **Header Subtitle:** Explicit header subtitle note indicating which float is being previewed and its unsaved status.
-- **Saving Profiles to Fleet Lineup:**
-  - When a single-shirt design is saved as a new profile (via **"💾 Save Profile"**), Fleet View automatically recognizes the save:
-    - Updates the active runner's assigned preset (`fleetRunners[slot].preset = 'local:' + name`).
+- **Saving Floats to Fleet Lineup:**
+  - When a single-shirt design is saved as a new float (via **"💾 Save Float"**), Fleet View automatically recognizes the save:
+    - Updates the active runner's assigned preset (`fleetRunners[slot].preset = 'server:' + filename`).
     - Clears the unsaved dirty state (`isSingleShirtDirty = false`).
     - Immediately refreshes the runner card dropdowns and badges to display the new saved preset name.
+- **Saving Parade Fleet (`💾 Save Parade Fleet`):**
+  - Clicking **"💾 Save Parade Fleet"** (`#fleetSaveConfigBtn`) executes a safety pre-check:
+    1. **Unsaved Float Verification:** Verifies if any float currently active in the Single Shirt Editor has unsaved changes (`isSingleShirtDirty === true`). If unsaved changes are detected, a confirmation prompt notifies you:
+       > *"⚠️ Unsaved Float Changes Detected! Float X ([Name]) currently has unsaved layout or animation changes on the canvas. Floats must be saved before saving the Parade Fleet suite so the fleet links to the updated design."*
+       - Clicking **OK** opens the **Save Float Modal** to save that float first, then immediately proceeds to the fleet save.
+       - Clicking **Cancel** cleanly aborts saving the fleet so no work is lost.
+    2. **Save Parade Fleet Modal:**
+       - Opens with a default timestamped title: `Parade Fleet <YYYY-MM-DD HH-mm>` (e.g., `Parade Fleet 2026-10-08 13-45`).
+       - Shows live file preview: `presets/parade_fleet_YYYY-MM-DD_HH-mm.json`.
+       - Captures all 7 runner slots linking to their saved float files, plus the 30-second fleet choreography show blocks, sync architecture, and wave cycle settings.
+       - Enforces duplicate file collision checking with instant rename and overwrite options.
 - **Smart Navigation & Unsaved Edits Safety:**
   - **Returning to Active Runner:** Clicking **"Single View"** or clicking **"✏️ Edit in Single View"** on the float currently loaded in memory returns immediately to your active workspace without reloading from disk or overwriting unsaved live changes.
   - **Tab Memory:** Navigating back from Fleet View automatically restores the exact single-shirt tab (`Layout`, `Groups`, `Director`, `Flashing`, etc.) that was open prior to entering Fleet View (`lastSingleShirtTab`).
@@ -1178,8 +1190,13 @@ Instead of attaching a Cricut cut vinyl graphic on top of the printed plate, the
   - The 3D Preview Modal (`#tpuPreviewModal`) dynamically queries the active float's inlays, rendering the correct multi-material STL meshes, floating AMS slot legend badges, and individual STL download dropdown options for that specific float.
 - **Clean Optical Window Pass-Throughs:** Open $3\times 3\text{ mm}$ square or $\varnothing 3\text{ mm}$ round optical windows are cut completely through both the black chassis and color inlays, ensuring raw LED light beams directly forward without filament absorption.
 - **Export Formats & Bambu Studio Workflow:**
-  - **`tpu_panel_{front|back}_multicolor_bundle.zip`**: Contains all 5 discrete STL files sharing identical $(0,0,0)$ origin coordinates, native 3MF, and a step-by-step setup guide.
-  - **Bambu Studio Multi-Part Import:** Drag and drop all 5 STLs into Bambu Studio simultaneously and click **"Load as a single object with multiple parts"** (`Yes`). Assign filaments 1–5 to each part in the project tree.
+  - **Dynamic Timestamped & Float-Named Downloads:** All 3D panel exports automatically include the float name, variant (`front` or `back`), and timestamp in the filename (`<floatname>_<variant>_<YYYY-MM-DD_HH-mm>_<type>.<ext>`):
+    - Multi-Color Bundle ZIP: `title_drum_front_2026-10-08_13-45_multicolor_bundle.zip`
+    - Bambu Studio Project (.3MF): `title_drum_front_2026-10-08_13-45_multicolor.3mf`
+    - Rear Lid STL: `title_drum_front_2026-10-08_13-45_lid.stl`
+    - Individual Inlay STLs: `title_drum_front_2026-10-08_13-45_gold.stl`
+    - Monolithic Black STL: `title_drum_front_2026-10-08_13-45_monolithic.stl`
+  - **Bambu Studio Multi-Part Import:** Drag and drop all STLs from the bundle or open the pre-assembled `.3mf` directly. Assign filaments 1–5 to each part in the project tree.
   - **Single Monolithic STL Option:** For single-color prints or Cricut vinyl overlays, the exporter allows switching to single monolithic STL export mode.
 - **Interactive 3D WebGL Multi-Material Preview:** The 3D Preview Modal (`#tpuPreviewModal`) includes a `[ 🎨 5-Color Split | ⚪ Single Black ]` toggle, a dynamic 5-color AMS legend badge with aperture counts, and direct download buttons for 5-Color ZIP and Bambu 3MF.
 

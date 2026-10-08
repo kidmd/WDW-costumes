@@ -93,6 +93,32 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### Entry: Nomenclature Refactoring, Timestamped Saving (Floats & Fleet), Unsaved Float Pre-Check & 3D Export Filenames
+* **Date:** 2026-10-08 (Imagineering Session - Nomenclature Clarity & Timestamped Workflows)
+* **Milestone:** Milestone 3 & 4 - Simulator UX Architecture, Preset Pipeline & 3D Manufacturing Export
+* **Status:** Complete & Verified (`simulator/index.html`, `simulator/app.js`, `simulator.py`, `SIMULATOR_USER_GUIDE.md`, `PROJECT_PROGRESS.md`).
+* **Implementation Details:**
+  1. **Nomenclature Clarification:**
+     - Layout tab updated from "Profiles / Presets" to **"Floats"** (`💾 Save Float`, Section 2 "Save & Export Floats", dropdown "Load Saved Float File").
+     - Fleet tab updated from "Save Fleet Lineup" to **"💾 Save Parade Fleet"**.
+  2. **Timestamped Default Naming:**
+     - Float saving defaults dynamically to `<FloatName> <YYYY-MM-DD HH-mm>` (e.g., `Title Drum 2026-10-08 13-45`).
+     - Parade Fleet saving defaults dynamically to `Parade Fleet <YYYY-MM-DD HH-mm>` (e.g., `Parade Fleet 2026-10-08 13-45`).
+     - Standardized `getFormattedTimestamp(forFilename = false)` helper ensuring consistent format across titles and filenames.
+  3. **Unsaved Float Pre-Check Before Fleet Save:**
+     - Clicking `💾 Save Parade Fleet` actively verifies whether any float in the lineup has unsaved canvas edits (`isSingleShirtDirty === true`).
+     - Prompts user to save that float first, cleanly continuing to the fleet save modal upon float save completion or aborting cleanly on cancel.
+  4. **Parade Fleet Suite Saving & Backend Persistence:**
+     - Interactive `#saveFleetModal` captures 7-runner lineup linking to saved float files, 30-second fleet choreography show blocks, and ESP-NOW sync parameters.
+     - Backend `/api/save_fleet_config` persists to both `fleet_lineup.json` (active startup) and timestamped `presets/parade_fleet_*.json` with HTTP 409 duplicate file conflict protection.
+  5. **Timestamped & Float-Named 3D File Exports:**
+     - All 3D panel download buttons (`updateTpuDownloadButtons()`) dynamically incorporate the float name, variant, and timestamp into filenames:
+       - Multi-Color Bundle ZIP: `<float>_<variant>_<timestamp>_multicolor_bundle.zip`
+       - Bambu Studio Project (.3MF): `<float>_<variant>_<timestamp>_multicolor.3mf`
+       - Rear Lid STL: `<float>_<variant>_<timestamp>_lid.stl`
+       - Individual Inlays: `<float>_<variant>_<timestamp>_<color>.stl`
+       - Monolithic STL: `<float>_<variant>_<timestamp>_monolithic.stl`
+
 ### Entry: Comprehensive Preset Saving (Canvas Coordinates, Count, Groups, Shows & Duplicate File Protection)
 * **Date:** 2026-10-08 (Imagineering Session - Complete Preset State & Duplicate Protection)
 * **Milestone:** Milestone 3 & 4 - Float Suite Management & Theatrical Show Sequencing

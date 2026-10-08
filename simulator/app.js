@@ -7009,6 +7009,235 @@ function saveFleetLineupToStorage() {
     } catch (e) {}
 }
 
+// Interactive Save Parade Fleet Flow with Unsaved Float Verification
+async function handleSaveParadeFleetFlow() {
+    // 1. Verify if the active single shirt canvas float has unsaved changes
+    if (isSingleShirtDirty && activeSingleShirtRunnerSlot !== null && activeSingleShirtRunnerSlot >= 0 && fleetRunners[activeSingleShirtRunnerSlot]) {
+        const dirtyRunner = fleetRunners[activeSingleShirtRunnerSlot];
+        const dirtyName = `Float ${dirtyRunner.slot + 1} (${dirtyRunner.name})`;
+        
+        // Notify user that the current float has unsaved canvas edits that should be saved first
+        const promptSaveFloat = confirm(
+            `⚠️ Unsaved Float Changes Detected!\n\n${dirtyName} currently has unsaved layout or animation changes on the canvas.\n\nFloats must be saved before saving the Parade Fleet suite so the fleet links to the updated design.\n\nClick OK to save "${dirtyRunner.name}" now, or Cancel to abort saving the fleet.`
+        );
+
+        if (promptSaveFloat) {
+            const floatSaveResult = await openSavePresetModal();
+            if (!floatSaveResult || !floatSaveResult.success) {
+                showToast("⚠️ Float save cancelled. Parade Fleet was not saved.");
+                return;
+            }
+            // Float successfully saved! Continue to fleet save
+        } else {
+            showToast("⚠️ Parade Fleet save cancelled. Please save float edits first.");
+            return;
+        }
+    }
+
+    // 2. Open Save Parade Fleet Modal
+    await openSaveFleetModal();
+}
+window.handleSaveParadeFleetFlow = handleSaveParadeFleetFlow;
+
+// Open interactive Save Parade Fleet Modal with duplicate file checking
+function openSaveFleetModal() {
+    return new Promise((resolve) => {
+        const modal = document.getElementById('saveFleetModal');
+        if (!modal) {
+            saveFleetLineupToStorage();
+            showToast("💾 Saved Parade Fleet Lineup!");
+            resolve({ success: true });
+            return;
+        }
+
+        const nameInput = document.getElementById('saveFleetModalNameInput');
+        const filenamePreview = document.getElementById('saveFleetModalFilenamePreview');
+        const duplicateWarning = document.getElementById('saveFleetModalDuplicateWarning');
+        const duplicateMsg = document.getElementById('saveFleetModalDuplicateMsg');
+        const overwriteBtn = document.getElementById('saveFleetModalOverwriteBtn');
+        const confirmBtn = document.getElementById('saveFleetModalConfirmBtn');
+        const cancelBtn = document.getElementById('saveFleetModalCancelBtn');
+        const closeBtn = document.getElementById('closeSaveFleetModalBtn');
+
+        // Badges
+        const floatsBadge = document.getElementById('saveFleetModalFloatsBadge');
+        if (floatsBadge) floatsBadge.textContent = `${fleetRunners.length} Runners Linked`;
+        const choreoBadge = document.getElementById('saveFleetModalChoreoBadge');
+        if (choreoBadge) {
+            const numBlocks = (activeFleetShow && activeFleetShow.blocks) ? activeFleetShow.blocks.length : 0;
+            const dur = (activeFleetShow && activeFleetShow.loopDuration) ? activeFleetShow.loopDuration : 30.0;
+            choreoBadge.textContent = `${numBlocks} Blocks (${dur.toFixed(1)}s loop)`;
+        }
+        const syncBadge = document.getElementById('saveFleetModalSyncBadge');
+        if (syncBadge) {
+            const leaderName = (fleetRunners[0] && fleetRunners[0].name) ? fleetRunners[0].name : "The Train";
+            syncBadge.textContent = `ESP-NOW · Leader: ${leaderName}`;
+        }
+
+        // Default Name: "Parade Fleet <YYYY-MM-DD HH-mm>"
+        const timeTag = (typeof getFormattedTimestamp === 'function') ? getFormattedTimestamp(false) : new Date().toISOString().slice(0, 16);
+        const defaultFleetName = `Parade Fleet ${timeTag}`;
+
+        const sanitizeFilename = (val) => {
+            let safe = (val || 'parade_fleet').replace(/[^a-zA-Z0-9 _-]/g, '').trim().replace(/\s+/g, '_').toLowerCase();
+            if (!safe.startsWith('parade_fleet') && !safe.includes('fleet')) safe = `parade_fleet_${safe}`;
+            return safe.endsWith('.json') ? safe : `${safe}.json`;
+        };
+
+        const updateFilenamePreview = () => {
+            const val = (nameInput?.value || '').trim();
+            const fn = sanitizeFilename(val);
+            if (filenamePreview) filenamePreview.textContent = `Will save as: presets/${fn}`;
+            if (duplicateWarning) duplicateWarning.style.display = 'none';
+            if (overwriteBtn) overwriteBtn.style.display = 'none';
+            if (confirmBtn) confirmBtn.textContent = '💾 Save Parade Fleet';
+            if (nameInput) nameInput.style.borderColor = '#388bfd';
+        };
+
+        if (nameInput) {
+            nameInput.value = defaultFleetName;
+            updateFilenamePreview();
+        }
+
+        modal.classList.add('open');
+        if (nameInput) {
+            nameInput.focus();
+            nameInput.select();
+        }
+
+        const cleanup = () => {
+            modal.classList.remove('open');
+            nameInput?.removeEventListener('input', updateFilenamePreview);
+            confirmBtn?.removeEventListener('click', onConfirm);
+            overwriteBtn?.removeEventListener('click', onOverwrite);
+            cancelBtn?.removeEventListener('click', onCancel);
+            closeBtn?.removeEventListener('click', onCancel);
+            modal.removeEventListener('click', onBackdrop);
+            document.removeEventListener('keydown', onKeyDown);
+        };
+
+        const executeSave = async (enteredName, allowOverwrite) => {
+            const res = await saveParadeFleetSuite(enteredName, allowOverwrite);
+            if (res && res.conflict) {
+                if (duplicateWarning) {
+                    duplicateWarning.style.display = 'block';
+                    if (duplicateMsg) duplicateMsg.textContent = `A parade fleet file named "${res.filename}" already exists on disk. You can rename it above or click "Overwrite Existing" to replace it.`;
+                }
+                if (overwriteBtn) overwriteBtn.style.display = 'inline-block';
+                if (nameInput) nameInput.style.borderColor = '#f85149';
+                return false;
+            } else if (res && res.success) {
+                cleanup();
+                resolve({ success: true, name: enteredName, filename: res.filename });
+                return true;
+            }
+            cleanup();
+            resolve({ success: false });
+            return false;
+        };
+
+        const onConfirm = async () => {
+            const entered = (nameInput?.value || '').trim();
+            if (!entered) {
+                if (nameInput) {
+                    nameInput.focus();
+                    nameInput.style.borderColor = '#f85149';
+                }
+                showToast("⚠️ Please enter a parade fleet name.");
+                return;
+            }
+            await executeSave(entered, false);
+        };
+
+        const onOverwrite = async () => {
+            const entered = (nameInput?.value || '').trim();
+            if (!entered) return;
+            await executeSave(entered, true);
+        };
+
+        const onCancel = () => {
+            cleanup();
+            resolve({ success: false, cancelled: true });
+        };
+
+        const onBackdrop = (e) => {
+            if (e.target === modal) onCancel();
+        };
+
+        const onKeyDown = (e) => {
+            if (e.key === 'Escape') onCancel();
+            if (e.key === 'Enter' && e.target === nameInput) onConfirm();
+        };
+
+        nameInput?.addEventListener('input', updateFilenamePreview);
+        confirmBtn?.addEventListener('click', onConfirm);
+        overwriteBtn?.addEventListener('click', onOverwrite);
+        cancelBtn?.addEventListener('click', onCancel);
+        closeBtn?.addEventListener('click', onCancel);
+        modal.addEventListener('click', onBackdrop);
+        document.addEventListener('keydown', onKeyDown);
+    });
+}
+window.openSaveFleetModal = openSaveFleetModal;
+
+// Save Parade Fleet Suite (Persists lineup linking to saved floats + 30s fleet choreography)
+async function saveParadeFleetSuite(fleetName, overwrite = false) {
+    const cleanName = (fleetName || "Parade Fleet").trim();
+    
+    // Build fleet configuration payload
+    const fleetPayload = {
+        name: cleanName,
+        savedAt: new Date().toISOString(),
+        version: "2.0",
+        overwrite: (overwrite === true),
+        syncMode: fleetSyncMode,
+        waveCycleDurationMs: fleetWaveCycleDurationMs,
+        lineup: JSON.parse(JSON.stringify(fleetRunners)),
+        fleetChoreography: {
+            name: (activeFleetShow && activeFleetShow.name) || "30s Grand Electrical Parade Show",
+            loopDuration: (activeFleetShow && activeFleetShow.loopDuration) || 30.0,
+            blocks: (activeFleetShow && activeFleetShow.blocks) ? JSON.parse(JSON.stringify(activeFleetShow.blocks)) : []
+        }
+    };
+
+    // 1. Save to LocalStorage
+    try {
+        localStorage.setItem('msep_fleet_lineup', JSON.stringify(fleetRunners));
+        localStorage.setItem('msep_fleet_sync_mode', fleetSyncMode);
+        localStorage.setItem('msep_fleet_wave_duration', String(fleetWaveCycleDurationMs));
+        const savedFleets = JSON.parse(localStorage.getItem('msep_saved_fleets') || '{}');
+        savedFleets[cleanName] = fleetPayload;
+        localStorage.setItem('msep_saved_fleets', JSON.stringify(savedFleets));
+    } catch (e) {}
+
+    // 2. Post to backend
+    try {
+        const res = await fetch('/api/save_fleet_config', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(fleetPayload)
+        });
+
+        if (res.status === 409) {
+            const conflictData = await res.json();
+            return { conflict: true, filename: conflictData.filename || `${cleanName}.json` };
+        }
+
+        if (res.ok) {
+            const result = await res.json();
+            showToast(`🎆 Parade Fleet "${cleanName}" saved successfully!`);
+            renderFleetCards();
+            return { success: true, filename: result?.filename || "fleet_lineup.json" };
+        }
+    } catch (err) {
+        console.error("Error saving parade fleet:", err);
+    }
+
+    showToast(`💾 Saved Parade Fleet "${cleanName}"!`);
+    return { success: true };
+}
+window.saveParadeFleetSuite = saveParadeFleetSuite;
+
 // Load Lineup Configuration from Storage on Startup
 async function loadFleetLineupFromStorage() {
     try {
@@ -7192,9 +7421,8 @@ function initFleetManager() {
     if (assignAllBtn) assignAllBtn.addEventListener('click', assignCurrentEditorToAllRunners);
     if (resetBtn) resetBtn.addEventListener('click', resetFleetLineupDefaults);
     if (saveBtn) {
-        saveBtn.addEventListener('click', () => {
-            saveFleetLineupToStorage();
-            showToast("💾 Saved 7-Runner Fleet Lineup configuration!");
+        saveBtn.addEventListener('click', async () => {
+            await handleSaveParadeFleetFlow();
         });
     }
 
@@ -11478,9 +11706,22 @@ function buildCompletePresetData(name) {
         }
     };
 }
-window.buildCompletePresetData = buildCompletePresetData;
+// Helper to produce standard formatted date & time strings
+// forFilename=false: "2026-10-08 13-45"
+// forFilename=true:  "2026-10-08_13-45"
+function getFormattedTimestamp(forFilename = false) {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const day = String(now.getDate()).padStart(2, '0');
+    const hours = String(now.getHours()).padStart(2, '0');
+    const minutes = String(now.getMinutes()).padStart(2, '0');
+    const sep = forFilename ? '_' : ' ';
+    return `${year}-${month}-${day}${sep}${hours}-${minutes}`;
+}
+window.getFormattedTimestamp = getFormattedTimestamp;
 
-// Open interactive Save Preset Modal with Duplicate File Checking and Rename Support
+// Open interactive Save Float Modal with Duplicate File Checking and Rename Support
 function openSavePresetModal(suggestedName = null) {
     return new Promise((resolve) => {
         const modal = document.getElementById('savePresetModal');
@@ -11490,14 +11731,23 @@ function openSavePresetModal(suggestedName = null) {
 
         let defaultName = suggestedName || (document.getElementById('profileNameInput')?.value || '').trim();
         if (!defaultName) {
-            if (runner) {
-                defaultName = `${runner.name} ${leds.length} Preset`;
+            const timeTag = getFormattedTimestamp(false);
+            if (runner && runner.name) {
+                defaultName = `${runner.name} ${timeTag}`;
             } else if (currentGraphicType === 'title_drum') {
-                defaultName = `Title Drum ${leds.length} Preset`;
+                defaultName = `Title Drum ${timeTag}`;
             } else if (currentGraphicType === 'cinderellas_coach') {
-                defaultName = `Cinderella's Coach ${leds.length} Preset`;
+                defaultName = `Cinderella's Coach ${timeTag}`;
+            } else if (currentGraphicType === 'spinning_turtle') {
+                defaultName = `The Turtle ${timeTag}`;
+            } else if (currentGraphicType === 'spinning_snail') {
+                defaultName = `The Snail ${timeTag}`;
+            } else if (currentGraphicType === 'honor_america_eagle') {
+                defaultName = `Flag & Eagle ${timeTag}`;
+            } else if (currentGraphicType === 'casey_jr_train') {
+                defaultName = `The Train ${timeTag}`;
             } else {
-                defaultName = `Pete's Dragon ${leds.length} Preset`;
+                defaultName = `Pete's Dragon ${timeTag}`;
             }
         }
 
@@ -11531,7 +11781,7 @@ function openSavePresetModal(suggestedName = null) {
             if (filenamePreview) filenamePreview.textContent = `Will save as: presets/${fn}`;
             if (duplicateWarning) duplicateWarning.style.display = 'none';
             if (overwriteBtn) overwriteBtn.style.display = 'none';
-            if (confirmBtn) confirmBtn.textContent = '💾 Save Preset';
+            if (confirmBtn) confirmBtn.textContent = '💾 Save Float';
             if (nameInput) nameInput.style.borderColor = '#388bfd';
         };
 
@@ -11667,7 +11917,7 @@ async function saveCurrentProfile(name, overwrite = false) {
                     saveFleetLineupToStorage();
                 }
             }
-            showToast(`💾 Preset "${cleanName}" (${leds.length} LEDs, ${animationGroups.length} groups) saved to disk!`);
+            showToast(`💾 Float "${cleanName}" (${leds.length} LEDs, ${animationGroups.length} groups) saved to disk!`);
             await refreshPresetDropdown();
             renderFleetCards();
 
@@ -18197,9 +18447,26 @@ function updateTpuDownloadButtons() {
 
     const v = tpuActiveVariant || 'front';
     const ts = Date.now();
+    const timeTag = (typeof getFormattedTimestamp === 'function') ? getFormattedTimestamp(true) : new Date().toISOString().slice(0, 16).replace(/[:T]/g, '_');
+    
+    // Determine float slug from active runner or graphic type
+    let floatSlug = 'costume';
+    if (activeSingleShirtRunnerSlot !== null && activeSingleShirtRunnerSlot >= 0 && fleetRunners[activeSingleShirtRunnerSlot]) {
+        const rName = fleetRunners[activeSingleShirtRunnerSlot].name || '';
+        floatSlug = rName.toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '');
+    } else if (currentGraphicType) {
+        floatSlug = currentGraphicType.toLowerCase().replace(/[^a-z0-9]+/g, '_');
+    }
+    if (!floatSlug) floatSlug = 'float';
+
     if (tpuExportMode === 'multi') {
+        const bundleFilename = `${floatSlug}_${v}_${timeTag}_multicolor_bundle.zip`;
+        const projectFilename = `${floatSlug}_${v}_${timeTag}_multicolor.3mf`;
+        const lidFilename = `${floatSlug}_${v}_${timeTag}_lid.stl`;
+
         let individualOptions = `<option value="">⬇️ Individual STLs...</option>`;
-        individualOptions += `<option value="/3d_panels/tpu_panel_${v}_chassis_black.stl">1. Black Chassis STL</option>`;
+        const blackChassisFilename = `${floatSlug}_${v}_${timeTag}_chassis_black.stl`;
+        individualOptions += `<option value="/3d_panels/tpu_panel_${v}_chassis_black.stl" data-download="${blackChassisFilename}">1. Black Chassis STL</option>`;
 
         let activeInlays = [];
         const variantData = (lastLoadedTpuSpecs && lastLoadedTpuSpecs[v]) ? lastLoadedTpuSpecs[v] : lastLoadedTpuSpecs;
@@ -18218,33 +18485,36 @@ function updateTpuDownloadButtons() {
         }
 
         activeInlays.forEach((inl, idx) => {
-            const fName = inl.filename ? inl.filename.replace(/tpu_panel_(front|back)_/, `tpu_panel_${v}_`) : `tpu_panel_${v}_color_${inl.key}.stl`;
-            individualOptions += `<option value="/3d_panels/${fName}">${idx + 2}. ${inl.name} STL</option>`;
+            const serverPath = inl.filename ? inl.filename.replace(/tpu_panel_(front|back)_/, `tpu_panel_${v}_`) : `tpu_panel_${v}_color_${inl.key}.stl`;
+            const customDlName = `${floatSlug}_${v}_${timeTag}_${inl.key}.stl`;
+            individualOptions += `<option value="/3d_panels/${serverPath}" data-download="${customDlName}">${idx + 2}. ${inl.name} STL</option>`;
         });
-        individualOptions += `<option value="/3d_panels/tpu_panel_${v}_lid.stl">🛡️ Rear Cover Lid (2.0mm Plate)</option>`;
+        individualOptions += `<option value="/3d_panels/tpu_panel_${v}_lid.stl" data-download="${lidFilename}">🛡️ Rear Cover Lid (2.0mm Plate)</option>`;
 
         container.innerHTML = `
-            <a href="/3d_panels/tpu_panel_${v}_multicolor_bundle.zip?t=${ts}" download="tpu_panel_${v}_multicolor_bundle.zip" class="action-btn primary" style="padding: 6px 12px; font-size: 11px; background: linear-gradient(135deg, #1f6feb, #388bfd); color: #fff; font-weight: 600; text-decoration: none; display: inline-flex; align-items: center; gap: 4px;" title="Download all STLs (including 2mm Rear Lid), 3MF project, and slicer instructions">
+            <a href="/3d_panels/tpu_panel_${v}_multicolor_bundle.zip?t=${ts}" download="${bundleFilename}" class="action-btn primary" style="padding: 6px 12px; font-size: 11px; background: linear-gradient(135deg, #1f6feb, #388bfd); color: #fff; font-weight: 600; text-decoration: none; display: inline-flex; align-items: center; gap: 4px;" title="Download all STLs (including 2mm Rear Lid), 3MF project, and slicer instructions">
                 📦 Multi-Color ZIP
             </a>
-            <a href="/3d_panels/tpu_panel_${v}_multicolor.3mf?t=${ts}" download="tpu_panel_${v}_multicolor.3mf" class="action-btn" style="padding: 6px 12px; font-size: 11px; color: #00ff88; border-color: #2ea043; text-decoration: none; display: inline-flex; align-items: center; gap: 4px;" title="Download pre-assembled Bambu Studio / OrcaSlicer project file">
+            <a href="/3d_panels/tpu_panel_${v}_multicolor.3mf?t=${ts}" download="${projectFilename}" class="action-btn" style="padding: 6px 12px; font-size: 11px; color: #00ff88; border-color: #2ea043; text-decoration: none; display: inline-flex; align-items: center; gap: 4px;" title="Download pre-assembled Bambu Studio / OrcaSlicer project file">
                 🖨️ .3MF
             </a>
-            <a href="/3d_panels/tpu_panel_${v}_lid.stl?t=${ts}" download="tpu_panel_${v}_lid.stl" class="action-btn" style="padding: 6px 11px; font-size: 11px; color: #a371f7; border-color: #8957e5; text-decoration: none; display: inline-flex; align-items: center; gap: 4px;" title="Download 2.0mm rear cover lid with alignment ridge and M2 screw holes">
+            <a href="/3d_panels/tpu_panel_${v}_lid.stl?t=${ts}" download="${lidFilename}" class="action-btn" style="padding: 6px 11px; font-size: 11px; color: #a371f7; border-color: #8957e5; text-decoration: none; display: inline-flex; align-items: center; gap: 4px;" title="Download 2.0mm rear cover lid with alignment ridge and M2 screw holes">
                 🛡️ Rear Lid STL
             </a>
             <div style="position: relative; display: inline-block;">
-                <select onchange="if(this.value){ const a=document.createElement('a'); a.href=this.value + '?t=' + Date.now(); a.download=this.value.split('/').pop(); a.click(); this.value=''; }" style="background: #21262d; color: #58a6ff; border: 1px solid #388bfd; border-radius: 6px; padding: 5px 8px; font-size: 10.5px; font-weight: 600; cursor: pointer; outline: none;">
+                <select onchange="if(this.value){ const selOpt=this.options[this.selectedIndex]; const a=document.createElement('a'); a.href=this.value + '?t=' + Date.now(); a.download=selOpt.getAttribute('data-download') || this.value.split('/').pop(); a.click(); this.value=''; }" style="background: #21262d; color: #58a6ff; border: 1px solid #388bfd; border-radius: 6px; padding: 5px 8px; font-size: 10.5px; font-weight: 600; cursor: pointer; outline: none;">
                     ${individualOptions}
                 </select>
             </div>
         `;
     } else {
+        const monoFilename = `${floatSlug}_${v}_${timeTag}_monolithic.stl`;
+        const lidFilename = `${floatSlug}_${v}_${timeTag}_lid.stl`;
         container.innerHTML = `
-            <a href="/3d_panels/tpu_panel_${v}.stl?t=${ts}" download="tpu_panel_${v}.stl" class="action-btn primary" style="padding: 6px 14px; font-size: 11px; color: #58a6ff; border-color: #388bfd; text-decoration: none; display: inline-flex; align-items: center; gap: 4px;" title="Download monolithic single black STL">
+            <a href="/3d_panels/tpu_panel_${v}.stl?t=${ts}" download="${monoFilename}" class="action-btn primary" style="padding: 6px 14px; font-size: 11px; color: #58a6ff; border-color: #388bfd; text-decoration: none; display: inline-flex; align-items: center; gap: 4px;" title="Download monolithic single black STL">
                 ⬇️ Download ${v.toUpperCase()} STL
             </a>
-            <a href="/3d_panels/tpu_panel_${v}_lid.stl?t=${ts}" download="tpu_panel_${v}_lid.stl" class="action-btn" style="padding: 6px 11px; font-size: 11px; color: #a371f7; border-color: #8957e5; text-decoration: none; display: inline-flex; align-items: center; gap: 4px;" title="Download 2.0mm rear cover lid with alignment ridge and M2 screw holes">
+            <a href="/3d_panels/tpu_panel_${v}_lid.stl?t=${ts}" download="${lidFilename}" class="action-btn" style="padding: 6px 11px; font-size: 11px; color: #a371f7; border-color: #8957e5; text-decoration: none; display: inline-flex; align-items: center; gap: 4px;" title="Download 2.0mm rear cover lid with alignment ridge and M2 screw holes">
                 🛡️ Rear Lid STL
             </a>
             <button type="button" onclick="downloadBothTpuStls()" class="action-btn" style="padding: 6px 12px; font-size: 11px; color: #ffb703; border-color: #d29922; display: inline-flex; align-items: center; gap: 4px;">
