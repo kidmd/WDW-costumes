@@ -848,8 +848,13 @@ The fleet choreography engine features 19 specialized multi-float lighting block
   - Delete blocks with **✕ Delete**.
   - During playback, the currently active block is highlighted with an emerald border and glowing indicator.
 - **⏱️ Snap to 30.0s (`#fleetSnap30Btn`):** Proportionately scales all block durations in the stack so the total sequence runtime equals exactly 30.0 seconds.
-- **💾 Save Show (`#fleetSaveShowBtn`):** Persists the show profile to the Python backend server (`presets/fleet_shows/<id>.json`) and browser storage.
-- **✨ New Show (`#fleetNewShowBtn`):** Initializes a fresh blank timeline for custom choreography.
+- **💾 Save Show (`#fleetSaveShowBtn`):** Opens the interactive **Save 30s Fleet Show Modal** (`#saveFleetShowModal`):
+  - **Timestamped Default Name:** Automatically populates with `<ShowName> <YYYY-MM-DD HH-mm>` (e.g. `Grand Parade 2026-10-08 14-20` or `Fleet Show 2026-10-08 14-20`).
+  - **Live Filename Preview:** `presets/fleet_shows/<clean_slug>.json`.
+  - **Overview Metrics:** Displays total loop duration (e.g. `30.0s Loop`) and active choreography block count.
+  - **Duplicate File Protection:** Verifies disk status via backend REST API; offers rename input or `⚠️ Overwrite Existing` button upon collision.
+  - Clears `isFleetShowDirty` and immediately refreshes the show selection dropdown.
+- **✨ New Show (`#fleetNewShowBtn`):** Initializes a fresh blank timeline for custom choreography with default name `Fleet Show <YYYY-MM-DD HH-mm>`.
 - **📋 View C++ Code (`#fleetViewCppBtn`):** Generates and displays the clean FastLED C++ `render30sFleetRoutine(uint32_t elapsedMs)` code for your custom fleet choreography in an in-browser modal with a 1-click "Copy to Clipboard" button.
 - **⚡ Apply to Firmware (`#fleetApplyFirmwareBtn`):**
   - Exports the custom choreography routine directly into the ESP32 firmware source files (`src/main.cpp` and `arduino/MSEP_Costume/MSEP_Costume.ino`) between dedicated sentinels.

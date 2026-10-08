@@ -93,6 +93,24 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### Entry: 30s Fleet Show Timestamped Naming, Interactive Save Modal & Conflict Detection
+* **Date:** 2026-10-08 (Imagineering Session - 30s Fleet Show Save Harmonization)
+* **Milestone:** Milestone 3 & 4 - Simulator UX Architecture & Choreography Studio
+* **Status:** Complete & Verified (`simulator/index.html`, `simulator/app.js`, `simulator.py`, `SIMULATOR_USER_GUIDE.md`, `PROJECT_PROGRESS.md`).
+* **Implementation Details:**
+  1. **Harmonized Fleet Show Nomenclature:**
+     - The 30s Fleet Show Creator now follows the exact same timestamped convention as Floats and Parade Fleets: `<ShowName> <YYYY-MM-DD HH-mm>` (e.g., `Grand Parade 2026-10-08 14-20`, `Fleet Show 2026-10-08 14-20`).
+     - `createNewFleetShow()` initializes fresh custom routines with default name `Fleet Show <YYYY-MM-DD HH-mm>` and timestamped ID.
+  2. **Interactive Save Fleet Show Modal (`#saveFleetShowModal`):**
+     - Clicking **`💾 Save Show`** (`#fleetSaveShowBtn`) launches a dedicated modal with:
+       - Real-time overview metrics: total loop duration (e.g. `30.0s Loop`), configured choreography blocks, and ESP-NOW target broadcast indicator.
+       - Live filename preview: `presets/fleet_shows/<clean_slug>.json`.
+       - Duplicate file collision detection: checks server files via `/api/save_fleet_show`, reveals duplicate warning banner, red border styling, and an `⚠️ Overwrite Existing` button.
+  3. **Backend Conflict Protection (`simulator.py`):**
+     - `/api/save_fleet_show` now checks for existing files in `presets/fleet_shows/` and returns HTTP 409 Conflict when `overwrite: false`, safely preventing accidental file overwrites.
+  4. **Seamless Integration with Parade Fleet Prerequisite Check:**
+     - When saving the master parade fleet (`💾 Save Parade Fleet`), if the active show has unsaved edits (`isFleetShowDirty === true`), confirming the prompt cleanly opens `openSaveFleetShowModal()` with the timestamped naming and conflict safeguards before finalizing the master fleet save.
+
 ### Entry: Consolidated Single Save Locations, Strict Hierarchy & Two-Step Fleet Prerequisite Check
 * **Date:** 2026-10-08 (Imagineering Session - Single Save Location & Fleet Hierarchy Consolidation)
 * **Milestone:** Milestone 3 & 4 - Simulator UX Architecture, Preset Pipeline & Fleet Choreography Safety

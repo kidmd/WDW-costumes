@@ -6397,39 +6397,187 @@ function duplicateFleetBlock(index) {
 }
 
 // Save active fleet show to server and browser storage
-async function saveActiveFleetShow() {
+async function saveActiveFleetShow(newName = null, allowOverwrite = false) {
     if (!activeFleetShow) return { success: false };
     recalculateFleetBlockStartTimes();
+    if (newName && newName.trim()) {
+        activeFleetShow.name = newName.trim();
+        const safeSlug = newName.trim().replace(/[^a-zA-Z0-9 _-]/g, '').trim().replace(/\s+/g, '_').toLowerCase();
+        activeFleetShow.id = safeSlug;
+    }
     activeFleetShow.updatedAt = new Date().toISOString();
 
     const filename = activeFleetShow.id.endsWith('.json') ? activeFleetShow.id : `${activeFleetShow.id}.json`;
 
-    // Save to localStorage
+    // Save to server first so conflict can be reported
     try {
-        localStorage.setItem(`msep_fleet_show_${activeFleetShow.id}`, JSON.stringify(activeFleetShow));
-        localStorage.setItem('msep_active_fleet_show_id', filename);
-    } catch (e) {}
-
-    // Save to server
-    try {
+        const payload = Object.assign({}, activeFleetShow, { overwrite: allowOverwrite });
         const res = await fetch('/api/save_fleet_show', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(activeFleetShow)
+            body: JSON.stringify(payload)
         });
+        if (res.status === 409) {
+            const conflictData = await res.json();
+            return { conflict: true, filename: conflictData.filename || filename };
+        }
         if (res.ok) {
+            const result = await res.json();
+            const savedFilename = result.filename || filename;
+            activeFleetShow.id = savedFilename.replace('.json', '');
+            try {
+                localStorage.setItem(`msep_fleet_show_${activeFleetShow.id}`, JSON.stringify(activeFleetShow));
+                localStorage.setItem('msep_active_fleet_show_id', savedFilename);
+            } catch (e) {}
             isFleetShowDirty = false;
             showToast(`💾 Saved Fleet Show "${activeFleetShow.name}" to server!`);
             await refreshFleetShowsDropdown();
-            return { success: true };
+            return { success: true, filename: savedFilename };
         }
     } catch (e) {
         console.warn("Could not save fleet show to server:", e);
     }
+
+    // Fallback save to localStorage
+    try {
+        localStorage.setItem(`msep_fleet_show_${activeFleetShow.id}`, JSON.stringify(activeFleetShow));
+        localStorage.setItem('msep_active_fleet_show_id', filename);
+    } catch (e) {}
     isFleetShowDirty = false;
     showToast(`💾 Saved Fleet Show "${activeFleetShow.name}" to browser storage!`);
-    return { success: true };
+    return { success: true, filename: filename };
 }
+
+// Open interactive Save 30s Fleet Show Modal with Duplicate File Checking and Rename Support
+function openSaveFleetShowModal(suggestedName = null) {
+    return new Promise((resolve) => {
+        const modal = document.getElementById('saveFleetShowModal');
+        if (!modal) {
+            saveActiveFleetShow().then(r => resolve(r));
+            return;
+        }
+
+        const timeTag = (typeof getFormattedTimestamp === 'function') ? getFormattedTimestamp(false) : new Date().toISOString().slice(0, 16);
+        let baseShowName = '';
+        if (suggestedName && suggestedName.trim()) {
+            baseShowName = suggestedName.trim().replace(/\s+\d{4}-\d{2}-\d{2}[_ ]\d{2}-\d{2}.*$/, '').trim();
+        } else if (activeFleetShow && activeFleetShow.name) {
+            baseShowName = activeFleetShow.name.replace(/\s+\d{4}-\d{2}-\d{2}[_ ]\d{2}-\d{2}.*$/, '').trim();
+        } else {
+            baseShowName = "Grand Parade";
+        }
+        if (!baseShowName) baseShowName = "Fleet Show";
+
+        const defaultName = `${baseShowName} ${timeTag}`;
+
+        const nameInput = document.getElementById('saveFleetShowModalNameInput');
+        const filenamePreview = document.getElementById('saveFleetShowModalFilenamePreview');
+        const duplicateWarning = document.getElementById('saveFleetShowModalDuplicateWarning');
+        const duplicateMsg = document.getElementById('saveFleetShowModalDuplicateMsg');
+        const overwriteBtn = document.getElementById('saveFleetShowModalOverwriteBtn');
+        const confirmBtn = document.getElementById('saveFleetShowModalConfirmBtn');
+        const cancelBtn = document.getElementById('saveFleetShowModalCancelBtn');
+        const closeBtn = document.getElementById('closeSaveFleetShowModalBtn');
+
+        // Overview Badges
+        const durationBadge = document.getElementById('saveFleetShowModalDurationBadge');
+        if (durationBadge) durationBadge.textContent = `${(activeFleetShow?.loopDuration || 30.0).toFixed(1)}s Loop`;
+        const blocksBadge = document.getElementById('saveFleetShowModalBlocksBadge');
+        if (blocksBadge) blocksBadge.textContent = `${activeFleetShow?.blocks?.length || 0} Blocks Configured`;
+
+        const sanitizeFilename = (val) => {
+            const safe = (val || 'untitled').replace(/[^a-zA-Z0-9 _-]/g, '').trim().replace(/\s+/g, '_').toLowerCase();
+            return safe.endsWith('.json') ? safe : `${safe}.json`;
+        };
+
+        const updateFilenamePreview = () => {
+            const val = (nameInput?.value || '').trim();
+            const fn = sanitizeFilename(val);
+            if (filenamePreview) filenamePreview.textContent = `Will save as: presets/fleet_shows/${fn}`;
+            if (duplicateWarning) duplicateWarning.style.display = 'none';
+            if (overwriteBtn) overwriteBtn.style.display = 'none';
+            if (confirmBtn) confirmBtn.textContent = '💾 Save Fleet Show';
+            if (nameInput) nameInput.style.borderColor = '#388bfd';
+        };
+
+        if (nameInput) {
+            nameInput.value = defaultName;
+            updateFilenamePreview();
+        }
+
+        modal.classList.add('open');
+        if (nameInput) {
+            nameInput.focus();
+            nameInput.select();
+        }
+
+        const cleanup = () => {
+            modal.classList.remove('open');
+            nameInput?.removeEventListener('input', updateFilenamePreview);
+            confirmBtn?.removeEventListener('click', onConfirm);
+            overwriteBtn?.removeEventListener('click', onOverwrite);
+            cancelBtn?.removeEventListener('click', onCancel);
+            closeBtn?.removeEventListener('click', onCancel);
+            modal.removeEventListener('click', onBackdrop);
+            document.removeEventListener('keydown', onKeyDown);
+        };
+
+        const executeSave = async (enteredName, allowOverwrite) => {
+            const res = await saveActiveFleetShow(enteredName, allowOverwrite);
+            if (res && res.conflict) {
+                // Duplicate detected!
+                if (duplicateWarning) {
+                    duplicateWarning.style.display = 'block';
+                    if (duplicateMsg) duplicateMsg.textContent = `A fleet show file named "${res.filename}" already exists on disk. You can rename it above or click "Overwrite Existing" to replace it.`;
+                }
+                if (overwriteBtn) overwriteBtn.style.display = 'inline-block';
+                if (nameInput) nameInput.style.borderColor = '#f85149';
+                return false;
+            }
+            cleanup();
+            resolve({ success: true, name: enteredName });
+            return true;
+        };
+
+        const onConfirm = async () => {
+            const entered = (nameInput?.value || '').trim() || defaultName;
+            await executeSave(entered, false);
+        };
+
+        const onOverwrite = async () => {
+            const entered = (nameInput?.value || '').trim() || defaultName;
+            await executeSave(entered, true);
+        };
+
+        const onCancel = () => {
+            cleanup();
+            resolve({ success: false, cancelled: true });
+        };
+
+        const onBackdrop = (e) => {
+            if (e.target === modal) onCancel();
+        };
+
+        const onKeyDown = (e) => {
+            if (e.key === 'Escape') {
+                e.preventDefault();
+                onCancel();
+            } else if (e.key === 'Enter' && e.target === nameInput) {
+                e.preventDefault();
+                onConfirm();
+            }
+        };
+
+        nameInput?.addEventListener('input', updateFilenamePreview);
+        confirmBtn?.addEventListener('click', onConfirm);
+        overwriteBtn?.addEventListener('click', onOverwrite);
+        cancelBtn?.addEventListener('click', onCancel);
+        closeBtn?.addEventListener('click', onCancel);
+        modal.addEventListener('click', onBackdrop);
+        document.addEventListener('keydown', onKeyDown);
+    });
+}
+window.openSaveFleetShowModal = openSaveFleetShowModal;
 
 // Load a fleet show from server or browser storage
 async function loadFleetShow(filename) {
@@ -6513,10 +6661,11 @@ async function refreshFleetShowsDropdown() {
 
 // Create a new blank fleet show routine
 function createNewFleetShow() {
-    const showId = `fleet_show_${Date.now()}`;
+    const timeTag = (typeof getFormattedTimestamp === 'function') ? getFormattedTimestamp(false) : new Date().toISOString().slice(0, 16);
+    const showId = `fleet_show_${(typeof getFormattedTimestamp === 'function') ? getFormattedTimestamp(true) : Date.now()}`;
     activeFleetShow = {
         id: showId,
-        name: "Custom 30s Fleet Routine",
+        name: `Fleet Show ${timeTag}`,
         description: "Custom user-designed synchronized 7-shirt fleet sequence",
         version: "1.0",
         loopDuration: 30.0,
@@ -6533,10 +6682,11 @@ function createNewFleetShow() {
     };
     recalculateFleetBlockStartTimes();
     snapFleetShowTo30s();
+    isFleetShowDirty = true;
     renderFleetBlocksEditor();
     updateFleetShowUI();
     if (currentView === 'fleet') renderTimelineLayers();
-    showToast(`✨ Created new Fleet Show! Customize blocks or Snap to 30s.`);
+    showToast(`✨ Created "${activeFleetShow.name}"! Customize blocks or Snap to 30s.`);
 }
 
 // Generate C++ FastLED code for the active Fleet Choreography Show
@@ -7053,7 +7203,7 @@ async function handleSaveParadeFleetFlow() {
         );
 
         if (promptSaveShow) {
-            const showSaveResult = await saveActiveFleetShow();
+            const showSaveResult = await openSaveFleetShowModal();
             if (!showSaveResult || !showSaveResult.success) {
                 showToast("⚠️ Fleet show save cancelled. Parade Fleet was not saved.");
                 return;
@@ -7366,7 +7516,9 @@ function initFleetManager() {
             loadFleetShow(e.target.value);
         });
     }
-    if (saveShowBtn) saveShowBtn.addEventListener('click', saveActiveFleetShow);
+    if (saveShowBtn) saveShowBtn.addEventListener('click', async () => {
+        await openSaveFleetShowModal();
+    });
     if (newShowBtn) newShowBtn.addEventListener('click', createNewFleetShow);
     if (snap30Btn) snap30Btn.addEventListener('click', snapFleetShowTo30s);
 

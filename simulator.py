@@ -431,10 +431,22 @@ class SimulatorRequestHandler(http.server.SimpleHTTPRequestHandler):
             show_data = json.loads(post_data.decode("utf-8"))
 
             raw_name = show_data.get("name", show_data.get("id", "untitled_fleet_show"))
+            allow_overwrite = show_data.get("overwrite", False)
             safe_name = "".join(c for c in raw_name if c.isalnum() or c in (' ', '_', '-')).rstrip()
             safe_name = safe_name.replace(" ", "_").lower() + ".json"
 
             filepath = os.path.join(FLEET_SHOWS_DIR, safe_name)
+            if os.path.exists(filepath) and not allow_overwrite:
+                self.send_response(409)
+                self.send_header("Content-Type", "application/json")
+                self.end_headers()
+                self.wfile.write(json.dumps({
+                    "conflict": True,
+                    "filename": safe_name,
+                    "message": f"A fleet show routine file named '{safe_name}' already exists."
+                }).encode("utf-8"))
+                return
+
             with open(filepath, "w", encoding="utf-8") as f:
                 json.dump(show_data, f, indent=2)
 
