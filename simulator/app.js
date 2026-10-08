@@ -3868,7 +3868,7 @@ function renderSingleShirtView(timeMs) {
     }
 
     // Wire Tension Heatmap or Standard Wiring Trace
-    if ((params.showWireTension || params.showWiring) && leds.length > 1) {
+    if ((params.showWireTension || params.showWiring) && leds.length > 1 && !btfStripPreviewActive) {
         ctx.save();
         const SHIRT_PHYSICAL_WIDTH_CM = 18.0 * 2.54;
         const SHIRT_PHYSICAL_HEIGHT_CM = 24.0 * 2.54;
@@ -4005,12 +4005,16 @@ function renderSingleShirtView(timeMs) {
         ctx.restore();
     }
 
-    for (let i = 0; i < leds.length; i++) {
-        const pt = normToCanvas(leds[i]);
-        const col = computeLedColor(i, leds.length, timeMs);
-        const isHover = (hoveredLed === i);
-        const isSel = (selectedLed === i || draggedLed === i || selectedLeds.has(i));
-        renderBulb(ctx, pt.x, pt.y, col, isHover, isSel, i);
+    if (btfStripPreviewActive) {
+        drawBtfStripOverlay(ctx, timeMs);
+    } else {
+        for (let i = 0; i < leds.length; i++) {
+            const pt = normToCanvas(leds[i]);
+            const col = computeLedColor(i, leds.length, timeMs);
+            const isHover = (hoveredLed === i);
+            const isSel = (selectedLed === i || draggedLed === i || selectedLeds.has(i));
+            renderBulb(ctx, pt.x, pt.y, col, isHover, isSel, i);
+        }
     }
 
     // Render Click-to-Draw Guide Lines & Step Indicators on Canvas
@@ -12168,6 +12172,9 @@ function applyProfileData(profileData) {
             const img = new Image();
             img.onload = () => {
                 customArtworkImg = img;
+                if (btfStripPreviewActive) {
+                    computeBtfStripMatrix();
+                }
             };
             img.src = customArtworkDataUrl;
         }
@@ -12308,6 +12315,11 @@ function applyProfileData(profileData) {
     const nameInput = document.getElementById('profileNameInput');
     if (nameInput && profileData.name) {
         nameInput.value = profileData.name;
+    }
+
+    // 7. Recompute BTF Strip Preview if active
+    if (btfStripPreviewActive) {
+        computeBtfStripMatrix();
     }
 }
 
@@ -12826,6 +12838,661 @@ document.getElementById('fleetViewBtn').addEventListener('click', () => {
     updateActiveFloatUI(activeSingleShirtRunnerSlot);
     switchSidebarTab('tabFleet');
 });
+
+// ============================================================================
+// BTF-LIGHTING WS2812B LED STRIP (60 LED/m) STAGGERED MATRIX PREVIEW ENGINE
+// DC5V IP67 16.4ft 300-LED strip simulation with silicone sheathing & 5050 SMDs
+// ============================================================================
+let btfStripPreviewActive = false;
+let btfStripConfig = {
+    orientation: 'rows',    // 'rows' | 'cols'
+    stagger: 'brick',        // 'brick' (50% stagger) | 'aligned' (0% stagger)
+    boundary: 'art',         // 'art' | 'chest'
+    spacingMm: 22.0          // Pitch between rows/cols in mm
+};
+let btfGeneratedLeds = [];
+let btfStripSegments = [];
+
+function computeBtfStripMatrix() {
+    btfGeneratedLeds = [];
+    btfStripSegments = [];
+
+    const W_MM = 457.2; // 18.0 inches shirt physical width
+    const H_MM = 609.6; // 24.0 inches shirt physical height
+    const LED_PITCH_MM = 16.6667; // 60 LEDs / meter = 16.67mm pitch
+
+    const pitchNormX = LED_PITCH_MM / W_MM; // ~0.03645
+    const pitchNormY = LED_PITCH_MM / H_MM; // ~0.02734
+    const spacingNormX = btfStripConfig.spacingMm / W_MM;
+    const spacingNormY = btfStripConfig.spacingMm / H_MM;
+
+    const gb = getGraphicChestBounds();
+    const activeImg = getActiveGraphicImg();
+
+    // Prepare offscreen canvas for alpha testing and color sampling
+    const targetW = 360;
+    const targetH = (activeImg && activeImg.naturalWidth > 0)
+        ? Math.max(120, Math.round(targetW * (activeImg.naturalHeight / activeImg.naturalWidth)))
+        : 360;
+    const offCanvas = document.createElement('canvas');
+    offCanvas.width = targetW;
+    offCanvas.height = targetH;
+    const offCtx = offCanvas.getContext('2d');
+    if (activeImg && activeImg.naturalWidth > 0) {
+        offCtx.drawImage(activeImg, 0, 0, targetW, targetH);
+    } else {
+        drawPetesDragon(offCtx, { x: 0, y: 0, width: targetW, height: targetH });
+    }
+    const imgData = offCtx.getImageData(0, 0, targetW, targetH).data;
+
+    function isPointInBounds(nx, ny) {
+        // Never overlap race bib!
+        if (ny >= 0.565) return false;
+
+        if (btfStripConfig.boundary === 'art') {
+            const relX = (nx - gb.normX) / gb.normW;
+            const relY = (ny - gb.normY) / gb.normH;
+            if (relX < 0 || relX > 1 || relY < 0 || relY > 1) return false;
+            const px = Math.floor(relX * targetW);
+            const py = Math.floor(relY * targetH);
+            if (px < 0 || px >= targetW || py < 0 || py >= targetH) return false;
+            const pIdx = (py * targetW + px) * 4;
+            return imgData[pIdx + 3] > 35; // Alpha threshold
+        } else {
+            // Upper chest panel trapezoid
+            if (ny < 0.17 || ny > 0.555) return false;
+            const t = (ny - 0.17) / (0.555 - 0.17);
+            const halfW = (0.46 + t * 0.12) / 2.0;
+            return Math.abs(nx - 0.5) <= halfW;
+        }
+    }
+
+    function sampleColorAt(nx, ny) {
+        const relX = (nx - gb.normX) / gb.normW;
+        const relY = (ny - gb.normY) / gb.normH;
+        if (relX >= 0 && relX <= 1 && relY >= 0 && relY <= 1) {
+            const px = Math.floor(relX * targetW);
+            const py = Math.floor(relY * targetH);
+            if (px >= 0 && px < targetW && py >= 0 && py < targetH) {
+                const pIdx = (py * targetW + px) * 4;
+                if (imgData[pIdx + 3] > 30) {
+                    return boostLedVibrancy(imgData[pIdx], imgData[pIdx + 1], imgData[pIdx + 2], relX, relY);
+                }
+            }
+        }
+        // Fallback signature color for float
+        const fallbackColors = {
+            'casey_jr_train': { r: 230, g: 57, b: 70 },
+            'title_drum': { r: 255, g: 193, b: 7 },
+            'spinning_turtle': { r: 46, g: 196, b: 182 },
+            'spinning_snail': { r: 16, g: 185, b: 129 },
+            'cinderellas_coach': { r: 0, g: 229, b: 255 },
+            'builtin_dragon': { r: 0, g: 255, b: 136 },
+            'honor_america_eagle': { r: 58, g: 134, b: 255 }
+        };
+        return fallbackColors[currentGraphicType] || { r: 255, g: 193, b: 7 };
+    }
+
+    let segmentCounter = 0;
+
+    if (btfStripConfig.orientation === 'rows') {
+        // Horizontal rows running across chest
+        const centerY = (gb.normY + gb.normH / 2.0) || 0.36;
+        const numRowsHalf = Math.ceil(0.22 / spacingNormY);
+        const yStart = centerY - numRowsHalf * spacingNormY;
+
+        for (let rowIdx = 0; rowIdx <= numRowsHalf * 2; rowIdx++) {
+            const curY = yStart + rowIdx * spacingNormY;
+            if (curY < 0.16 || curY > 0.555) continue;
+
+            // Stagger: odd rows shifted by half pitch (8.33mm)
+            const isOdd = (Math.abs(rowIdx) % 2 === 1);
+            const xOffset = (btfStripConfig.stagger === 'brick' && isOdd) ? (pitchNormX * 0.5) : 0;
+
+            const numLedsHalf = Math.ceil(0.35 / pitchNormX);
+            let activeSegment = null;
+
+            for (let i = -numLedsHalf; i <= numLedsHalf; i++) {
+                const curX = 0.5 + xOffset + i * pitchNormX;
+                if (curX < 0.12 || curX > 0.88) continue;
+
+                if (isPointInBounds(curX, curY)) {
+                    const col = sampleColorAt(curX, curY);
+                    const ledObj = {
+                        x: curX,
+                        y: curY,
+                        color: col,
+                        segmentId: segmentCounter,
+                        rowIdx: rowIdx
+                    };
+
+                    if (!activeSegment) {
+                        segmentCounter++;
+                        ledObj.segmentId = segmentCounter;
+                        activeSegment = {
+                            id: segmentCounter,
+                            orientation: 'row',
+                            y: curY,
+                            leds: [ledObj]
+                        };
+                        btfStripSegments.push(activeSegment);
+                    } else {
+                        ledObj.segmentId = activeSegment.id;
+                        activeSegment.leds.push(ledObj);
+                    }
+                    btfGeneratedLeds.push(ledObj);
+                } else {
+                    activeSegment = null; // Gap encountered
+                }
+            }
+        }
+    } else {
+        // Vertical columns running down chest
+        const centerX = 0.5;
+        const numColsHalf = Math.ceil(0.30 / spacingNormX);
+        const xStart = centerX - numColsHalf * spacingNormX;
+
+        for (let colIdx = 0; colIdx <= numColsHalf * 2; colIdx++) {
+            const curX = xStart + colIdx * spacingNormX;
+            if (curX < 0.15 || curX > 0.85) continue;
+
+            const isOdd = (Math.abs(colIdx) % 2 === 1);
+            const yOffset = (btfStripConfig.stagger === 'brick' && isOdd) ? (pitchNormY * 0.5) : 0;
+
+            const numLedsHalf = Math.ceil(0.25 / pitchNormY);
+            let activeSegment = null;
+
+            for (let i = -numLedsHalf; i <= numLedsHalf; i++) {
+                const curY = 0.36 + yOffset + i * pitchNormY;
+                if (curY < 0.16 || curY > 0.555) continue;
+
+                if (isPointInBounds(curX, curY)) {
+                    const col = sampleColorAt(curX, curY);
+                    const ledObj = {
+                        x: curX,
+                        y: curY,
+                        color: col,
+                        segmentId: segmentCounter,
+                        colIdx: colIdx
+                    };
+
+                    if (!activeSegment) {
+                        segmentCounter++;
+                        ledObj.segmentId = segmentCounter;
+                        activeSegment = {
+                            id: segmentCounter,
+                            orientation: 'col',
+                            x: curX,
+                            leds: [ledObj]
+                        };
+                        btfStripSegments.push(activeSegment);
+                    } else {
+                        ledObj.segmentId = activeSegment.id;
+                        activeSegment.leds.push(ledObj);
+                    }
+                    btfGeneratedLeds.push(ledObj);
+                } else {
+                    activeSegment = null;
+                }
+            }
+        }
+    }
+
+    updateBtfStripTelemetryUI();
+}
+
+function updateBtfStripTelemetryUI() {
+    const totalLeds = btfGeneratedLeds.length;
+    const totalCuts = btfStripSegments.length;
+    const totalLengthM = (totalLeds * 16.6667) / 1000.0;
+    const totalLengthFt = totalLengthM * 3.28084;
+    const currentMaxA = totalLeds * 0.05; // 50mA per 5050 RGB at max white
+    const currentAvgA = totalLeds * 0.02; // 20mA typical animated color mix
+
+    const totalLedsEl = document.getElementById('btfTotalLedsVal');
+    const totalCutsEl = document.getElementById('btfTotalCutsVal');
+    const totalLengthEl = document.getElementById('btfTotalLengthVal');
+    const estCurrentEl = document.getElementById('btfEstCurrentVal');
+    const statusBadgeEl = document.getElementById('btfStatusBadge');
+
+    if (totalLedsEl) totalLedsEl.textContent = `${totalLeds} LEDs`;
+    if (totalCutsEl) totalCutsEl.textContent = `${totalCuts} Segments`;
+    if (totalLengthEl) totalLengthEl.textContent = `${totalLengthM.toFixed(2)} m (${totalLengthFt.toFixed(1)} ft)`;
+    if (estCurrentEl) estCurrentEl.textContent = `~${currentMaxA.toFixed(2)} A max / ~${currentAvgA.toFixed(2)} A avg`;
+
+    if (statusBadgeEl) {
+        if (totalLeds <= 105) {
+            statusBadgeEl.style.background = 'rgba(0, 255, 136, 0.15)';
+            statusBadgeEl.style.color = '#00ff88';
+            statusBadgeEl.style.borderColor = 'rgba(0, 255, 136, 0.4)';
+            statusBadgeEl.textContent = `🟢 100-LED Safe (~2.0A Bank)`;
+        } else {
+            statusBadgeEl.style.background = 'rgba(255, 77, 109, 0.15)';
+            statusBadgeEl.style.color = '#ff4d6d';
+            statusBadgeEl.style.borderColor = 'rgba(255, 77, 109, 0.4)';
+            statusBadgeEl.textContent = `⚠️ Exceeds 100-LED Budget (${totalLeds} LEDs)`;
+        }
+    }
+}
+
+function drawBtfStripOverlay(ctx, timeMs) {
+    if (!btfStripSegments || btfStripSegments.length === 0) return;
+
+    ctx.save();
+
+    // 1. Draw Translucent Silicone Sheathing Ribbons (IP67 ~12mm width)
+    const STRIP_TUBE_WIDTH_MM = 12.0;
+    const W_MM = 457.2;
+    const H_MM = 609.6;
+    const LED_PITCH_MM = 16.6667;
+
+    const tubeWidthNormX = (STRIP_TUBE_WIDTH_MM / W_MM);
+    const tubeWidthNormY = (STRIP_TUBE_WIDTH_MM / H_MM);
+    const halfPitchNormX = (LED_PITCH_MM / W_MM) * 0.5;
+    const halfPitchNormY = (LED_PITCH_MM / H_MM) * 0.5;
+
+    for (let sIdx = 0; sIdx < btfStripSegments.length; sIdx++) {
+        const seg = btfStripSegments[sIdx];
+        if (!seg.leds || seg.leds.length === 0) continue;
+
+        const first = seg.leds[0];
+        const last = seg.leds[seg.leds.length - 1];
+
+        if (seg.orientation === 'row') {
+            const pStart = normToCanvas({ x: first.x - halfPitchNormX, y: first.y - tubeWidthNormY * 0.5 });
+            const pEnd = normToCanvas({ x: last.x + halfPitchNormX, y: last.y + tubeWidthNormY * 0.5 });
+            const stripW = pEnd.x - pStart.x;
+            const stripH = pEnd.y - pStart.y;
+            const radius = Math.min(4, stripH * 0.35);
+
+            // Silicone sheath body
+            ctx.fillStyle = 'rgba(235, 245, 255, 0.22)';
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.45)';
+            ctx.lineWidth = 1.2;
+
+            ctx.beginPath();
+            if (typeof ctx.roundRect === 'function') {
+                ctx.roundRect(pStart.x, pStart.y, stripW, stripH, radius);
+            } else {
+                ctx.rect(pStart.x, pStart.y, stripW, stripH);
+            }
+            ctx.fill();
+            ctx.stroke();
+
+            // Solder cut tick marks between LEDs
+            ctx.strokeStyle = 'rgba(255, 193, 7, 0.55)';
+            ctx.lineWidth = 1.0;
+            for (let i = 0; i < seg.leds.length - 1; i++) {
+                const midNormX = (seg.leds[i].x + seg.leds[i + 1].x) * 0.5;
+                const midP = normToCanvas({ x: midNormX, y: first.y });
+                ctx.beginPath();
+                ctx.moveTo(midP.x, pStart.y + 1);
+                ctx.lineTo(midP.x, pEnd.y - 1);
+                ctx.stroke();
+            }
+
+            // Segment Label at start
+            if (zoomScale > 1.2 || btfStripSegments.length <= 15) {
+                ctx.fillStyle = 'rgba(56, 189, 248, 0.9)';
+                ctx.font = 'bold 8px monospace';
+                ctx.textAlign = 'right';
+                ctx.textBaseline = 'middle';
+                const labelPt = normToCanvas({ x: first.x - halfPitchNormX, y: first.y });
+                ctx.fillText(`S${sIdx + 1}`, labelPt.x - 3, labelPt.y);
+            }
+        } else {
+            // Column segment
+            const pStart = normToCanvas({ x: first.x - tubeWidthNormX * 0.5, y: first.y - halfPitchNormY });
+            const pEnd = normToCanvas({ x: last.x + tubeWidthNormX * 0.5, y: last.y + halfPitchNormY });
+            const stripW = pEnd.x - pStart.x;
+            const stripH = pEnd.y - pStart.y;
+            const radius = Math.min(4, stripW * 0.35);
+
+            ctx.fillStyle = 'rgba(235, 245, 255, 0.22)';
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.45)';
+            ctx.lineWidth = 1.2;
+
+            ctx.beginPath();
+            if (typeof ctx.roundRect === 'function') {
+                ctx.roundRect(pStart.x, pStart.y, stripW, stripH, radius);
+            } else {
+                ctx.rect(pStart.x, pStart.y, stripW, stripH);
+            }
+            ctx.fill();
+            ctx.stroke();
+
+            // Solder cut marks
+            ctx.strokeStyle = 'rgba(255, 193, 7, 0.55)';
+            ctx.lineWidth = 1.0;
+            for (let i = 0; i < seg.leds.length - 1; i++) {
+                const midNormY = (seg.leds[i].y + seg.leds[i + 1].y) * 0.5;
+                const midP = normToCanvas({ x: first.x, y: midNormY });
+                ctx.beginPath();
+                ctx.moveTo(pStart.x + 1, midP.y);
+                ctx.lineTo(pEnd.x - 1, midP.y);
+                ctx.stroke();
+            }
+
+            if (zoomScale > 1.2 || btfStripSegments.length <= 15) {
+                ctx.fillStyle = 'rgba(56, 189, 248, 0.9)';
+                ctx.font = 'bold 8px monospace';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'bottom';
+                const labelPt = normToCanvas({ x: first.x, y: first.y - halfPitchNormY });
+                ctx.fillText(`S${sIdx + 1}`, labelPt.x, labelPt.y - 2);
+            }
+        }
+    }
+
+    // 2. Draw 5050 SMD Packages and Radiant Glowing Emitters
+    const sBounds = getShirtBounds();
+    const pkgSizePx = Math.max(5.5, (5.0 / W_MM) * (sBounds ? sBounds.width : 340) * zoomScale);
+    const halfPkg = pkgSizePx * 0.5;
+    const dieRadius = pkgSizePx * 0.35;
+
+    // Organic breathing wave
+    const tempoBpm = params.speedBpm || 48;
+    const breath = (Math.sin((timeMs * 0.003 * (tempoBpm / 48))) + 1) * 0.5;
+    const breathScale = 0.75 + 0.25 * breath;
+
+    for (let i = 0; i < btfGeneratedLeds.length; i++) {
+        const l = btfGeneratedLeds[i];
+        const pt = normToCanvas(l);
+        const baseCol = l.color || { r: 255, g: 193, b: 7 };
+
+        const r = Math.min(255, Math.round(baseCol.r * breathScale));
+        const g = Math.min(255, Math.round(baseCol.g * breathScale));
+        const b = Math.min(255, Math.round(baseCol.b * breathScale));
+
+        // 5050 SMD square package body
+        ctx.fillStyle = '#0d1117';
+        ctx.strokeStyle = '#484f58';
+        ctx.lineWidth = 0.8;
+        ctx.fillRect(pt.x - halfPkg, pt.y - halfPkg, pkgSizePx, pkgSizePx);
+        ctx.strokeRect(pt.x - halfPkg, pt.y - halfPkg, pkgSizePx, pkgSizePx);
+
+        // Radiant Bloom Glow
+        const bloomR = Math.max(6.0, dieRadius * 2.6);
+        const grad = ctx.createRadialGradient(pt.x, pt.y, dieRadius * 0.5, pt.x, pt.y, bloomR);
+        grad.addColorStop(0, `rgba(${r}, ${g}, ${b}, 0.85)`);
+        grad.addColorStop(0.5, `rgba(${r}, ${g}, ${b}, 0.35)`);
+        grad.addColorStop(1, `rgba(${r}, ${g}, ${b}, 0.0)`);
+
+        ctx.fillStyle = grad;
+        ctx.beginPath();
+        ctx.arc(pt.x, pt.y, bloomR, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Center circular phosphor emitter die
+        ctx.fillStyle = `rgb(${r}, ${g}, ${b})`;
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 0.7;
+        ctx.beginPath();
+        ctx.arc(pt.x, pt.y, dieRadius, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+
+        // Subtle specular highlight on phosphor lens
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
+        ctx.beginPath();
+        ctx.arc(pt.x - dieRadius * 0.3, pt.y - dieRadius * 0.3, dieRadius * 0.3, 0, Math.PI * 2);
+        ctx.fill();
+    }
+
+    ctx.restore();
+}
+
+function autoFitBtfStripTo100Leds() {
+    let bestSpacing = btfStripConfig.spacingMm;
+    let closestDiff = 999;
+    const targetLeds = 100;
+
+    for (let testSpacing = 16.7; testSpacing <= 36.0; testSpacing += 0.2) {
+        btfStripConfig.spacingMm = testSpacing;
+        computeBtfStripMatrix();
+        const diff = Math.abs(btfGeneratedLeds.length - targetLeds);
+        if (diff < closestDiff) {
+            closestDiff = diff;
+            bestSpacing = testSpacing;
+            if (diff === 0) break;
+        }
+    }
+
+    btfStripConfig.spacingMm = parseFloat(bestSpacing.toFixed(1));
+    const slider = document.getElementById('btfSpacingSlider');
+    const valLabel = document.getElementById('btfSpacingVal');
+    if (slider) slider.value = btfStripConfig.spacingMm;
+    if (valLabel) valLabel.textContent = `${btfStripConfig.spacingMm.toFixed(1)} mm`;
+
+    computeBtfStripMatrix();
+    markSingleShirtDirty();
+    showToast(`🎯 Auto-fitted strip spacing to ${btfStripConfig.spacingMm.toFixed(1)}mm (${btfGeneratedLeds.length} LEDs)`);
+}
+
+function applyBtfStripLayoutToCostume() {
+    if (!btfGeneratedLeds || btfGeneratedLeds.length === 0) {
+        showToast('⚠️ No strip LEDs generated to apply!');
+        return;
+    }
+    const count = btfGeneratedLeds.length;
+    const confirmed = confirm(
+        `Apply BTF Strip layout of ${count} LEDs to active costume?\n\n` +
+        `This will replace the current pebble LEDs with this staggered strip layout so you can test animations, export wiring guides, and compile 3D armor panels.`
+    );
+    if (!confirmed) return;
+
+    recordHistory('Apply BTF Strip Layout');
+    leds = btfGeneratedLeds.map((l) => ({
+        x: l.x,
+        y: l.y,
+        color: l.color ? { ...l.color } : { r: 255, g: 193, b: 7 },
+        group: null
+    }));
+
+    btfStripPreviewActive = false;
+    const toggle = document.getElementById('btfStripPreviewToggle');
+    const card = document.getElementById('btfStripOptionsCard');
+    if (toggle) toggle.checked = false;
+    if (card) card.style.display = 'none';
+
+    selectLedCountOption(leds.length);
+    markSingleShirtDirty();
+    showToast(`✅ Successfully applied ${count}-LED strip layout to costume!`);
+}
+
+function initBtfStripPreview() {
+    const toggle = document.getElementById('btfStripPreviewToggle');
+    const card = document.getElementById('btfStripOptionsCard');
+    const rowsBtn = document.getElementById('btfOrientationRowsBtn');
+    const colsBtn = document.getElementById('btfOrientationColsBtn');
+    const brickBtn = document.getElementById('btfStaggerBrickBtn');
+    const alignedBtn = document.getElementById('btfStaggerAlignedBtn');
+    const artBtn = document.getElementById('btfBoundaryArtBtn');
+    const chestBtn = document.getElementById('btfBoundaryChestBtn');
+    const slider = document.getElementById('btfSpacingSlider');
+    const valLabel = document.getElementById('btfSpacingVal');
+    const autoFitBtn = document.getElementById('btfAutoFit100Btn');
+    const denseBtn = document.getElementById('btfDensePresetBtn');
+    const sparseBtn = document.getElementById('btfSparsePresetBtn');
+    const applyBtn = document.getElementById('btfApplyLayoutBtn');
+
+    if (toggle) {
+        toggle.addEventListener('change', (e) => {
+            btfStripPreviewActive = e.target.checked;
+            if (card) card.style.display = btfStripPreviewActive ? 'block' : 'none';
+            if (btfStripPreviewActive) {
+                computeBtfStripMatrix();
+            }
+            markSingleShirtDirty();
+        });
+    }
+
+    function updateOrientationUI() {
+        if (!rowsBtn || !colsBtn) return;
+        if (btfStripConfig.orientation === 'rows') {
+            rowsBtn.classList.add('primary');
+            rowsBtn.style.background = '#38bdf8';
+            rowsBtn.style.color = '#000';
+            rowsBtn.style.borderColor = '#38bdf8';
+            colsBtn.classList.remove('primary');
+            colsBtn.style.background = 'transparent';
+            colsBtn.style.color = 'var(--text-muted)';
+            colsBtn.style.borderColor = 'transparent';
+        } else {
+            colsBtn.classList.add('primary');
+            colsBtn.style.background = '#38bdf8';
+            colsBtn.style.color = '#000';
+            colsBtn.style.borderColor = '#38bdf8';
+            rowsBtn.classList.remove('primary');
+            rowsBtn.style.background = 'transparent';
+            rowsBtn.style.color = 'var(--text-muted)';
+            rowsBtn.style.borderColor = 'transparent';
+        }
+    }
+
+    if (rowsBtn) {
+        rowsBtn.addEventListener('click', () => {
+            btfStripConfig.orientation = 'rows';
+            updateOrientationUI();
+            computeBtfStripMatrix();
+            markSingleShirtDirty();
+        });
+    }
+
+    if (colsBtn) {
+        colsBtn.addEventListener('click', () => {
+            btfStripConfig.orientation = 'cols';
+            updateOrientationUI();
+            computeBtfStripMatrix();
+            markSingleShirtDirty();
+        });
+    }
+
+    function updateStaggerUI() {
+        if (!brickBtn || !alignedBtn) return;
+        if (btfStripConfig.stagger === 'brick') {
+            brickBtn.classList.add('primary');
+            brickBtn.style.background = '#38bdf8';
+            brickBtn.style.color = '#000';
+            brickBtn.style.borderColor = '#38bdf8';
+            alignedBtn.classList.remove('primary');
+            alignedBtn.style.background = 'transparent';
+            alignedBtn.style.color = 'var(--text-muted)';
+            alignedBtn.style.borderColor = 'transparent';
+        } else {
+            alignedBtn.classList.add('primary');
+            alignedBtn.style.background = '#38bdf8';
+            alignedBtn.style.color = '#000';
+            alignedBtn.style.borderColor = '#38bdf8';
+            brickBtn.classList.remove('primary');
+            brickBtn.style.background = 'transparent';
+            brickBtn.style.color = 'var(--text-muted)';
+            brickBtn.style.borderColor = 'transparent';
+        }
+    }
+
+    if (brickBtn) {
+        brickBtn.addEventListener('click', () => {
+            btfStripConfig.stagger = 'brick';
+            updateStaggerUI();
+            computeBtfStripMatrix();
+            markSingleShirtDirty();
+        });
+    }
+
+    if (alignedBtn) {
+        alignedBtn.addEventListener('click', () => {
+            btfStripConfig.stagger = 'aligned';
+            updateStaggerUI();
+            computeBtfStripMatrix();
+            markSingleShirtDirty();
+        });
+    }
+
+    function updateBoundaryUI() {
+        if (!artBtn || !chestBtn) return;
+        if (btfStripConfig.boundary === 'art') {
+            artBtn.classList.add('primary');
+            artBtn.style.background = '#38bdf8';
+            artBtn.style.color = '#000';
+            artBtn.style.borderColor = '#38bdf8';
+            chestBtn.classList.remove('primary');
+            chestBtn.style.background = 'transparent';
+            chestBtn.style.color = 'var(--text-muted)';
+            chestBtn.style.borderColor = 'transparent';
+        } else {
+            chestBtn.classList.add('primary');
+            chestBtn.style.background = '#38bdf8';
+            chestBtn.style.color = '#000';
+            chestBtn.style.borderColor = '#38bdf8';
+            artBtn.classList.remove('primary');
+            artBtn.style.background = 'transparent';
+            artBtn.style.color = 'var(--text-muted)';
+            artBtn.style.borderColor = 'transparent';
+        }
+    }
+
+    if (artBtn) {
+        artBtn.addEventListener('click', () => {
+            btfStripConfig.boundary = 'art';
+            updateBoundaryUI();
+            computeBtfStripMatrix();
+            markSingleShirtDirty();
+        });
+    }
+
+    if (chestBtn) {
+        chestBtn.addEventListener('click', () => {
+            btfStripConfig.boundary = 'chest';
+            updateBoundaryUI();
+            computeBtfStripMatrix();
+            markSingleShirtDirty();
+        });
+    }
+
+    if (slider) {
+        slider.addEventListener('input', (e) => {
+            btfStripConfig.spacingMm = parseFloat(e.target.value);
+            if (valLabel) valLabel.textContent = `${btfStripConfig.spacingMm.toFixed(1)} mm`;
+            computeBtfStripMatrix();
+            markSingleShirtDirty();
+        });
+    }
+
+    if (autoFitBtn) {
+        autoFitBtn.addEventListener('click', () => {
+            autoFitBtfStripTo100Leds();
+        });
+    }
+
+    if (denseBtn) {
+        denseBtn.addEventListener('click', () => {
+            btfStripConfig.spacingMm = 18.0;
+            if (slider) slider.value = 18.0;
+            if (valLabel) valLabel.textContent = `18.0 mm`;
+            computeBtfStripMatrix();
+            markSingleShirtDirty();
+        });
+    }
+
+    if (sparseBtn) {
+        sparseBtn.addEventListener('click', () => {
+            btfStripConfig.spacingMm = 30.0;
+            if (slider) slider.value = 30.0;
+            if (valLabel) valLabel.textContent = `30.0 mm`;
+            computeBtfStripMatrix();
+            markSingleShirtDirty();
+        });
+    }
+
+    if (applyBtn) {
+        applyBtn.addEventListener('click', () => {
+            applyBtfStripLayoutToCostume();
+        });
+    }
+}
+window.initBtfStripPreview = initBtfStripPreview;
+window.computeBtfStripMatrix = computeBtfStripMatrix;
 
 // ============================================================================
 // COMPUTER VISION & COLOR-MATCHED SAMPLING
@@ -14790,6 +15457,9 @@ async function loadGraphicPreset(type) {
     rebuildLedGroupMap();
     renderActiveGroupsList();
     scatterLedsOnGraphic(100, true);
+    if (btfStripPreviewActive) {
+        computeBtfStripMatrix();
+    }
     showToast(`🎨 Switched graphic to ${type.replace(/_/g, ' ')}!`);
 }
 
@@ -14848,6 +15518,9 @@ if (artworkUploadInput) {
                     if (uploadContainer) uploadContainer.style.display = 'block';
                     // Automatically scatter 100 color-matched LEDs across new artwork!
                     scatterLedsOnGraphic(100, true);
+                    if (btfStripPreviewActive) {
+                        computeBtfStripMatrix();
+                    }
                 };
                 img.src = customArtworkDataUrl;
             };
@@ -19892,6 +20565,7 @@ if (document.readyState === 'loading') {
         initMasterFleetBundleControls();
         initBaroqueSynth();
         initTpuArmorPanel();
+        initBtfStripPreview();
         updateUndoRedoUI();
     });
 } else {
@@ -19905,6 +20579,7 @@ if (document.readyState === 'loading') {
     initMasterFleetBundleControls();
     initBaroqueSynth();
     initTpuArmorPanel();
+    initBtfStripPreview();
     updateUndoRedoUI();
 }
 

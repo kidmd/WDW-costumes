@@ -16,7 +16,7 @@ This guide walks you through every feature of the simulator, from placing and wi
 4. [Thoroughbred Workspace: 6 Task Tabs & Contextual Inspector Dock](#4-thoroughbred-workspace-6-task-tabs--contextual-inspector-dock)
 5. [LED Placement, Inspection & Color Tuning](#5-led-placement-inspection--color-tuning)
 6. [Multi-LED Selection & Animation Groups](#6-multi-led-selection--animation-groups)
-7. [Physical Wiring Route Optimization](#7-physical-wiring-route-optimization)
+7. [Physical Wiring Route Optimization & BTF-LIGHTING Strip Preview](#btf-lighting-ws2812b-60-ledm-strip-preview--staggered-matrix-engine)
 8. [Artwork & Graphic Management](#8-artwork--graphic-management)
 9. [Master Timeline Scrubber & Multi-Layer Tracks](#9-master-timeline-scrubber--multi-layer-tracks)
 10. [Parade Cue Director (90-Second Theatrical Sequences)](#10-parade-cue-director-90-second-theatrical-sequences)
@@ -449,6 +449,63 @@ Creating radial fireworks bursts requires clean geometry, flexible placement, an
 9. **Canvas Numbering & Identification:**
    - With **Show Numbers** active or when inspecting bulbs, each firework LED displays its exact ray and step badge: e.g. `R1:1 (CTR)`, `R1:4 (TIP)`, `R2:1 (CTR)`, `R2:4 (TIP)`.
    - The LED Inspector displays the full role breakdown: e.g. `Ray 2 of 5 • Trail Step 3 (Mid-Trail)`.
+
+---
+
+### BTF-LIGHTING WS2812B (60 LED/m) Strip Preview & Staggered Matrix Engine
+
+To explore alternatives to discrete individual pebble/seed pixels, the Layout tab features a dedicated **BTF-LIGHTING WS2812B IP67 LED Strip Preview Panel** (Section 3c: `#btfStripPreviewToggle`).
+
+This feature models the exact optical geometry, silicone sheathing, solder cut intervals, and electrical current draw of **BTF-LIGHTING WS2812B IC RGB LED Strip, UL Listed, DC 5V 16.4FT 300LED IP67 (60 LEDs/meter)** arranged across the runner's chest in staggered rows or columns.
+
+#### 1. Non-Destructive Canvas Overlay
+- **Zero Impact on Baseline Design:** Toggling the strip preview **ON** (`#btfStripPreviewToggle`) temporarily replaces the canvas pebble rendering with a high-fidelity strip visualizer without modifying or deleting your placed LEDs, animation groups, wiring paths, or 3D TPU panel definitions.
+- **Instant Toggling:** Switching the preview toggle **OFF** immediately restores your exact pebble LED layout and wiring tour.
+- **Suppressed Background Wires:** When strip preview is active, discrete pebble wiring lines and slack tension arcs are automatically hidden to maintain visual clarity.
+
+#### 2. Physical Strip Geometry & 50% Brick Stagger
+- **Fixed Linear Pitch (60 LEDs/m):** With 60 LEDs per meter, the distance between adjacent SMD 5050 LEDs along a physical strip is fixed at:
+  $$P_{\text{linear}} = \frac{1000\text{ mm}}{60} \approx 16.6667\text{ mm}\quad(\sim 0.656\text{ inches})$$
+  In normalized shirt garment space ($457.2\text{ mm} \times 609.6\text{ mm}$), this corresponds to $P_x \approx 0.03645$ and $P_y \approx 0.02734$.
+- **Orientation Modes:**
+  - **`↔️ Rows`:** Horizontal strip ribbons spanning across the chest.
+  - **`↕️ Columns`:** Vertical strip ribbons running down the torso.
+- **Stagger Alignments:**
+  - **`🧱 50% Brick Stagger` (Recommended):** Shifts alternating rows/columns by half a pixel pitch ($\Delta = P_{\text{linear}} / 2 \approx 8.33\text{ mm}$), creating an organic hexagonal/honeycomb LED packing density that eliminates rigid grid artifacts.
+  - **`📐 Aligned (0%)`:** Standard orthogonal Cartesian matrix grid.
+- **Boundary Masking Modes:**
+  - **`✂️ Clip to Float Art`:** Only illuminates strip LEDs whose centers fall within the opaque silhouette of the active float artwork (alpha $> 35$), sampling vibrant character colors directly from the graphic.
+  - **`🔲 Chest Panel Grid`:** Fills the entire upper chest panel trapezoid above the race bib ($y = 0.17$ to $0.555$).
+
+#### 3. Pitch Spacing & Quick Presets
+- **Row/Column Spacing Slider (`#btfSpacingSlider`):** Dynamically adjusts the pitch between adjacent strip ribbons from **16.7 mm to 36.0 mm** (with 0.1 mm precision).
+- **`🎯 Auto-Fit ~100 LEDs` Preset:** An iterative numerical solver automatically calculates the exact ribbon pitch spacing (e.g. $\sim 22.0\text{ mm}$) to land on **~95–105 LEDs**, perfectly satisfying the 2.0A portable battery bank power envelope.
+- **`⚡ Dense (20mm)` Preset:** Sets tight 20.0 mm ribbon spacing for maximum illumination density.
+- **`🍃 Sparse (28mm)` Preset:** Sets wide 28.0 mm ribbon spacing for ultralight, low-current configurations.
+
+#### 4. Real-Time Telemetry & Hardware Safety Budget
+The telemetry card continuously updates as sliders or presets change:
+- **Total LEDs (`#btfTotalLedsVal`):** Current active SMD 5050 LED count across all strip runs.
+- **Solder Cut Segments (`#btfTotalCutsVal`):** Number of discrete strip segments requiring cut/solder jumper wires (labeled `S1`, `S2`, `S3`... on canvas).
+- **Total Strip Length (`#btfTotalLengthVal`):** Combined linear length in meters and feet (e.g. `1.63 m (5.4 ft)`).
+- **5V Current Draw (`#btfEstCurrentVal`):**
+  - **Max Current (Full White @ 50mA):** $I_{\max} = N_{\text{LED}} \times 0.050\text{ A}$
+  - **Typical Animated Average (@ 20mA):** $I_{\text{avg}} = N_{\text{LED}} \times 0.020\text{ A}$
+- **Hardware Safety Badge (`#btfStatusBadge`):**
+  - 🟢 **`100-LED Safe (~2.0A Bank)`:** Highlighted in emerald green when $N_{\text{LED}} \le 105$.
+  - ⚠️ **`Exceeds 100-LED Budget`:** Highlighted in crimson warning when power draw would overload a 2.0A portable power bank without aggressive FastLED software capping.
+
+#### 5. Photorealistic IP67 Canvas Visualization
+- **Translucent Silicone Tube Ribbons:** Renders realistic 12.0 mm wide IP67 translucent white silicone sheathing ribbons with rounded caps, sealed perimeter borders, and copper solder cut tick marks between pixel packages.
+- **SMD 5050 Packages & Radiant Phosphor Glow:** Draws square black SMD 5050 bodies (`#0d1117`) with border frames, circular color-matched phosphor emitter dies, specular lens highlights, and breathing radial bloom glow.
+- **Segment Callout Badges:** At higher zoom levels, each segment displays a high-contrast identifier (`S1`, `S2`...) indicating where physical cuts and 3-pin solder jumpers (5V, Data, GND) will be required.
+
+#### 6. "Apply Strip Layout as Active LEDs"
+If you decide to proceed with physical LED strips instead of pebble lights:
+- Click **`✅ Apply Strip Layout as Active LEDs`** (`#btfApplyLayoutBtn`).
+- The simulator replaces the active costume's pebble LEDs with the exact $(x, y)$ coordinates and sampled colors of the generated strip matrix.
+- Recorded into the **Universal Undo History (`Ctrl+Z`)**, enabling instant reversal if needed.
+- Once applied, the layout can be utilized immediately across the Wiring Optimizer, Cricut Cut Exporter, 3D TPU Armor Panel Compiler, and ESP32 Firmware Exporters.
 
 ---
 

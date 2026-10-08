@@ -93,6 +93,31 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### Entry: BTF-LIGHTING WS2812B (60 LED/m) IP67 Strip Preview with Staggered Rows & Columns
+* **Date:** 2026-10-08 (Imagineering Session - LED Strip Alternative Architecture)
+* **Milestone:** Milestone 3 & 4 - Simulator UX Architecture & Physical Lighting Modeling
+* **Status:** Complete & Verified (`simulator/index.html`, `simulator/app.js`, `SIMULATOR_USER_GUIDE.md`, `PROJECT_PROGRESS.md`).
+* **Implementation Details:**
+  1. **Non-Destructive Interactive Preview Overlay:**
+     - Added `#btfStripPreviewToggle` in Section 3c of the Layout tab. Toggling the preview renders realistic silicone strip ribbons and SMD 5050 packages without modifying the costume's placed pebble LEDs, wiring tour, 3D armor panels, or sequence cues.
+     - Pebble wiring lines and slack tension arcs are cleanly suppressed during strip preview.
+     - Switching back OFF immediately restores the exact baseline pebble layout.
+  2. **Physical Strip Geometry & 50% Brick Stagger Engine:**
+     - Calibrated for **BTF-LIGHTING WS2812B IP67 DC5V 60 LEDs/m** (fixed $16.6667\text{ mm}$ linear LED pitch along strips).
+     - **Orientation:** Configurable between `↔️ Horizontal Rows` and `↕️ Vertical Columns`.
+     - **50% Brick Stagger:** Shifts alternating rows or columns by half a pitch ($8.33\text{ mm}$), yielding an organic hexagonal/honeycomb LED distribution across the costume that eliminates Cartesian grid banding.
+     - **Boundary Masking:** Supports dual modes: `✂️ Clip to Float Art` (masks to opaque artwork silhouette alpha $> 35$, color-sampling directly from character pixels) and `🔲 Chest Panel Grid` (fills upper chest trapezoid above race bib).
+  3. **Live Hardware Telemetry & Safety Budget:**
+     - Computes active LED count, contiguous strip cut count (individual segments $S_1, S_2\dots$ requiring solder jumpers), total linear strip length in meters and feet, and estimated 5V current draw (max full white at $50\text{ mA}$ vs. animated average at $20\text{ mA}$).
+     - Features `🟢 100-LED Safe (~2.0A Bank)` vs `⚠️ Over Budget` status badge.
+     - **Numerical Auto-Fit Preset (`🎯 Auto-Fit ~100 LEDs`):** Iteratively solves ribbon spacing in mm to target $\sim 95\text{--}105$ LEDs matching the portable power bank safety budget.
+  4. **Photorealistic Canvas Visualization:**
+     - Renders $12\text{ mm}$ wide IP67 translucent white silicone sheathing ribbons with sealed perimeter borders, copper solder cut tick marks, segment badges (`S1`, `S2`...), square SMD 5050 bodies, circular phosphor emitter lenses with specular highlights, and breathing radial bloom glow.
+  5. **Seamless Preset & Artwork Integration:**
+     - Hooked into `applyProfileData`, `loadGraphicPreset`, and `artworkUploadInput` so switching floats or uploading custom art automatically re-samples the strip matrix when preview is active.
+  6. **Layout Promotion ("Apply Strip Layout"):**
+     - Clicking `✅ Apply Strip Layout as Active LEDs` promotes the generated matrix to active costume LEDs upon confirmation, registered in `Ctrl+Z` undo history.
+
 ### Entry: Float 4 Spinning Snail Asset Processing (Transparent Background & 5-Color 3D Printable Alternating Stripes)
 * **Date:** 2026-10-08 (Imagineering Session - Float 4 Snail Asset Processing)
 * **Milestone:** Milestone 5 - 3D Printed Armor & Cricut Vinyl Production Pipeline
