@@ -313,9 +313,6 @@
                             <button id="importProfileBtn" class="action-btn" style="flex: 1; font-size: 11px; padding: 5px 8px;" title="Import a previously saved float configuration JSON file">📂 Import JSON</button>
                             <input type="file" id="importProfileFileInput" accept=".json,application/json" style="display: none;">
                         </div>
-                        <div style="margin-top: 4px;">
-                            <button type="button" id="layoutExportAllFleetBtn" class="action-btn" style="width: 100%; font-size: 10.5px; padding: 5px 8px; background: rgba(56, 189, 248, 0.08); border-color: rgba(56, 189, 248, 0.3); color: #38bdf8; display: flex; align-items: center; justify-content: center; gap: 5px;" title="Export the complete 7-float parade configuration suite as a master JSON bundle">📦 Export All 7 Floats (Master Fleet JSON)</button>
-                        </div>
                         <div class="control-group" style="margin-top: 6px;">
                             <label style="font-size: 11px; color: var(--text-muted);">Load Saved Float File:</label>
                             <select id="presetSelect" style="background: #21262d; color: #fff; border: 1px solid #30363d; padding: 6px 10px; border-radius: 6px; outline: none; font-size: 11px; width: 100%;">
@@ -451,10 +448,8 @@
                             </label>
                         </div>
 
-                        <div class="btn-row" style="margin-top: 6px; display: flex; gap: 6px;">
-                            <button id="resetLedsBtn" class="action-btn" style="flex: 1; font-size: 11px; padding: 5px 6px;">Reset Layout</button>
-                            <button id="saveLayoutBtn" class="action-btn primary" style="flex: 1.2; font-size: 11px; padding: 5px 6px; background: linear-gradient(135deg, #238636, #2ea043); border-color: #2ea043; font-weight: 600;" title="Save current LED layout, groups, shows, and float configuration with duplicate file checking">💾 Save Float</button>
-                            <button id="exportLayoutJsonBtn" class="action-btn" style="flex: 1; font-size: 11px; padding: 5px 6px;" title="Export and download JSON file">⬇ Export JSON</button>
+                        <div class="btn-row" style="margin-top: 6px;">
+                            <button id="resetLedsBtn" class="action-btn" style="width: 100%; font-size: 11px; padding: 6px 8px;" title="Reset all LED positions to default configuration">🔄 Reset Layout to Default</button>
                         </div>
                     </div>
 
@@ -2229,22 +2224,22 @@
             <div class="modal-header">
                 <div style="display: flex; align-items: center; gap: 8px;">
                     <span style="font-size: 20px;">⚠️</span>
-                    <h3 style="font-size: 15px; font-weight: 600;" id="unsavedModalTitle">Unsaved Costume Changes</h3>
+                    <h3 style="font-size: 15px; font-weight: 600;" id="unsavedModalTitle">Unsaved Float Changes</h3>
                 </div>
                 <button id="closeUnsavedModalBtn" type="button" class="close-btn">&times;</button>
             </div>
             <div style="padding: 18px 20px; background: #161b22; display: flex; flex-direction: column; gap: 14px;">
                 <p id="unsavedModalDesc" style="font-size: 13px; line-height: 1.5; color: var(--text-main); margin: 0;">
-                    You have unsaved edits on your current single shirt design. Would you like to save these edits as a costume profile before switching?
+                    You have unsaved edits on your current single shirt design. Would you like to save these edits as a float before switching?
                 </p>
                 <div style="background: #0d1117; border: 1px solid #30363d; border-radius: 8px; padding: 12px 14px; display: flex; flex-direction: column; gap: 8px;">
                     <label for="unsavedModalProfileNameInput" style="font-size: 12px; font-weight: 600; color: #58a6ff; display: flex; justify-content: space-between; align-items: center;">
-                        <span>Save Profile Name:</span>
+                        <span>Save Float Name:</span>
                         <span id="unsavedModalGraphicHint" style="font-size: 11px; color: var(--text-muted); font-weight: normal;"></span>
                     </label>
-                    <input type="text" id="unsavedModalProfileNameInput" placeholder="Enter profile name (e.g. Pete's Dragon 50 Outline)" style="width: 100%; background: #161b22; color: #fff; border: 1px solid #388bfd; padding: 8px 12px; border-radius: 6px; font-size: 13px; outline: none; box-sizing: border-box;">
+                    <input type="text" id="unsavedModalProfileNameInput" placeholder="Enter float name (e.g. Pete's Dragon 50 Outline)" style="width: 100%; background: #161b22; color: #fff; border: 1px solid #388bfd; padding: 8px 12px; border-radius: 6px; font-size: 13px; outline: none; box-sizing: border-box;">
                     <span style="font-size: 11px; color: var(--text-muted); line-height: 1.4;">
-                        💾 Saving creates a costume preset, links it to this runner's lineup slot, and makes it available across the simulator.
+                        💾 Saving creates a float file, links it to this runner's lineup slot, and makes it available across the simulator.
                     </span>
                 </div>
             </div>
@@ -2252,7 +2247,7 @@
                 <button id="unsavedModalDiscardBtn" class="action-btn" style="padding: 8px 14px; font-size: 12px; background: rgba(248, 81, 73, 0.15); color: #f85149; border: 1px solid rgba(248, 81, 73, 0.4);" title="Discard edits and proceed with switch">🗑️ Discard & Switch</button>
                 <div style="display: flex; gap: 8px;">
                     <button id="unsavedModalCancelBtn" class="action-btn" style="padding: 8px 14px; font-size: 12px;">Cancel</button>
-                    <button id="unsavedModalSaveBtn" class="action-btn primary" style="padding: 8px 16px; font-size: 12px; background: linear-gradient(135deg, #238636, #2ea043); border-color: #2ea043; font-weight: 600;" title="Save profile with entered name and switch">💾 Save Profile & Switch</button>
+                    <button id="unsavedModalSaveBtn" class="action-btn primary" style="padding: 8px 16px; font-size: 12px; background: linear-gradient(135deg, #238636, #2ea043); border-color: #2ea043; font-weight: 600;" title="Save float with entered name and switch">💾 Save Float & Switch</button>
                 </div>
             </div>
         </div>

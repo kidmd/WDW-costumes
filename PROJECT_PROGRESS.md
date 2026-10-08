@@ -93,6 +93,27 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### Entry: Consolidated Single Save Locations, Strict Hierarchy & Two-Step Fleet Prerequisite Check
+* **Date:** 2026-10-08 (Imagineering Session - Single Save Location & Fleet Hierarchy Consolidation)
+* **Milestone:** Milestone 3 & 4 - Simulator UX Architecture, Preset Pipeline & Fleet Choreography Safety
+* **Status:** Complete & Verified (`simulator/index.html`, `simulator/app.js`, `SIMULATOR_USER_GUIDE.md`, `PROJECT_PROGRESS.md`).
+* **Implementation Details:**
+  1. **Consolidated Single Save Locations (Zero Redundancy):**
+     - **Floats (Layout Tab - Section 2):** Authoritative single place to save and export floats is Section 2 (`💾 Save & Export Floats`) via `#saveProfileBtn` (`💾 Save Float`), `#downloadProfileBtn` (`⬇ Export JSON`), `#exportCricutSvgBtn`, and `#importProfileBtn`.
+     - **Clean Layout Section 3:** Removed duplicate `#saveLayoutBtn` ("Save Float") and `#exportLayoutJsonBtn` ("Export JSON") from Section 3 (`LED Layout & Wiring Route`); replaced with a clean, full-width `🔄 Reset Layout to Default` button.
+     - **Parade Fleet (Fleet Tab - Section 2):** Authoritative single place to save and export the parade fleet is Section 2 (`7-Runner Baseline Presets & Master Fleet Suite`) via `#fleetSaveConfigBtn` (`💾 Save Parade Fleet`) and `#fleetExportBundleBtn` (`📦 Export Fleet Bundle`). Removed duplicate `#layoutExportAllFleetBtn` from Layout tab.
+     - **30s Choreography Show (Fleet Tab - Section 1):** Dedicated `#fleetSaveShowBtn` (`💾 Save Show`) in Section 1 for authoring 30-second routines.
+  2. **Two-Step Safety Prerequisite Check on `💾 Save Parade Fleet`:**
+     - **Step 1 (Unsaved Canvas Float):** Checks `isSingleShirtDirty`. If true, prompts: *"Float X ([Name]) currently has unsaved layout or animation changes on the canvas. Floats must be saved before saving the Parade Fleet suite..."* -> triggers `openSavePresetModal()`.
+     - **Step 2 (Unsaved Fleet Show):** Checks `isFleetShowDirty`. If true, prompts: *"Unsaved Fleet Show Detected! '[Show Name]' currently has unsaved choreography changes. The 30s Fleet Show must be saved before saving the Parade Fleet suite..."* -> triggers `saveActiveFleetShow()`.
+     - Once both prerequisites pass, proceeds to `#saveFleetModal` with default title `Parade Fleet <YYYY-MM-DD HH-mm>`.
+  3. **Fleet Show Dirty State Tracking (`isFleetShowDirty`):**
+     - Automatically marked dirty on block duration adjustments (inputs), color dynamic changes (selects), block additions (`addFleetBlock`), reordering (`moveFleetBlock`), duplications (`duplicateFleetBlock`), deletions (`removeFleetBlock`), timeline dragging/resizing, and 30.0s time snaps (`snapFleetShowTo30s`).
+     - Reset cleanly to `false` when `saveActiveFleetShow()` completes or a show is loaded via `loadFleetShow()`.
+  4. **Nomenclature & Default Naming Harmonization:**
+     - Float saving modal `#savePresetModal` dynamically formats base float name with current timestamp `<FloatName> <YYYY-MM-DD HH-mm>` (e.g. `The Drum 2026-10-08 14-10`), updating `profileNameInput`.
+     - `#unsavedChangesModal` updated to Float nomenclature (`Unsaved Float Changes`, `Save Float Name:`, `💾 Save Float & Switch`).
+
 ### Entry: Nomenclature Refactoring, Timestamped Saving (Floats & Fleet), Unsaved Float Pre-Check & 3D Export Filenames
 * **Date:** 2026-10-08 (Imagineering Session - Nomenclature Clarity & Timestamped Workflows)
 * **Milestone:** Milestone 3 & 4 - Simulator UX Architecture, Preset Pipeline & 3D Manufacturing Export

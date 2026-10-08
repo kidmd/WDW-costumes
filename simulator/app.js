@@ -11,6 +11,7 @@ let activeSingleShirtRunnerSlot = (savedActiveSlot !== null && !isNaN(parseInt(s
     ? parseInt(savedActiveSlot, 10)
     : 0; // Default to Float 1: The Train (Casey Jr.)
 let isSingleShirtDirty = false; // True when unsaved modifications exist in single shirt editor
+let isFleetShowDirty = false; // True when unsaved modifications exist in 30s fleet choreography editor
 let lastSingleShirtTab = 'tabLayout'; // Tracks active single-shirt tab prior to entering Fleet view
 let activePattern = 'steady_sparkle'; // 'steady_sparkle', 'color_match', 'dragon_sparkle', etc.
 
@@ -6324,6 +6325,7 @@ function snapFleetShowTo30s() {
         b.duration = Math.max(0.1, Math.round(b.duration * scale * 10) / 10);
     });
     recalculateFleetBlockStartTimes();
+    isFleetShowDirty = true;
     renderFleetBlocksEditor();
     updateFleetShowUI();
     if (currentView === 'fleet') renderTimelineLayers();
@@ -6344,6 +6346,7 @@ function addFleetBlock(type) {
     };
     activeFleetShow.blocks.push(newBlock);
     recalculateFleetBlockStartTimes();
+    isFleetShowDirty = true;
     renderFleetBlocksEditor();
     updateFleetShowUI();
     if (currentView === 'fleet') renderTimelineLayers();
@@ -6356,6 +6359,7 @@ function removeFleetBlock(index) {
     const name = activeFleetShow.blocks[index].name;
     activeFleetShow.blocks.splice(index, 1);
     recalculateFleetBlockStartTimes();
+    isFleetShowDirty = true;
     renderFleetBlocksEditor();
     updateFleetShowUI();
     if (currentView === 'fleet') renderTimelineLayers();
@@ -6370,6 +6374,7 @@ function moveFleetBlock(index, delta) {
     const item = activeFleetShow.blocks.splice(index, 1)[0];
     activeFleetShow.blocks.splice(targetIdx, 0, item);
     recalculateFleetBlockStartTimes();
+    isFleetShowDirty = true;
     renderFleetBlocksEditor();
     updateFleetShowUI();
     if (currentView === 'fleet') renderTimelineLayers();
@@ -6384,6 +6389,7 @@ function duplicateFleetBlock(index) {
     clone.name = `${orig.name} (Copy)`;
     activeFleetShow.blocks.splice(index + 1, 0, clone);
     recalculateFleetBlockStartTimes();
+    isFleetShowDirty = true;
     renderFleetBlocksEditor();
     updateFleetShowUI();
     if (currentView === 'fleet') renderTimelineLayers();
@@ -6392,7 +6398,7 @@ function duplicateFleetBlock(index) {
 
 // Save active fleet show to server and browser storage
 async function saveActiveFleetShow() {
-    if (!activeFleetShow) return;
+    if (!activeFleetShow) return { success: false };
     recalculateFleetBlockStartTimes();
     activeFleetShow.updatedAt = new Date().toISOString();
 
@@ -6412,14 +6418,17 @@ async function saveActiveFleetShow() {
             body: JSON.stringify(activeFleetShow)
         });
         if (res.ok) {
+            isFleetShowDirty = false;
             showToast(`💾 Saved Fleet Show "${activeFleetShow.name}" to server!`);
             await refreshFleetShowsDropdown();
-            return;
+            return { success: true };
         }
     } catch (e) {
         console.warn("Could not save fleet show to server:", e);
     }
+    isFleetShowDirty = false;
     showToast(`💾 Saved Fleet Show "${activeFleetShow.name}" to browser storage!`);
+    return { success: true };
 }
 
 // Load a fleet show from server or browser storage
@@ -6431,6 +6440,7 @@ async function loadFleetShow(filename) {
             const data = await res.json();
             activeFleetShow = data;
             recalculateFleetBlockStartTimes();
+            isFleetShowDirty = false;
             renderFleetBlocksEditor();
             updateFleetShowUI();
             if (currentView === 'fleet') renderTimelineLayers();
@@ -6445,6 +6455,7 @@ async function loadFleetShow(filename) {
         if (raw) {
             activeFleetShow = JSON.parse(raw);
             recalculateFleetBlockStartTimes();
+            isFleetShowDirty = false;
             renderFleetBlocksEditor();
             updateFleetShowUI();
             if (currentView === 'fleet') renderTimelineLayers();
@@ -7027,14 +7038,34 @@ async function handleSaveParadeFleetFlow() {
                 showToast("⚠️ Float save cancelled. Parade Fleet was not saved.");
                 return;
             }
-            // Float successfully saved! Continue to fleet save
+            // Float successfully saved! Continue to fleet show check
         } else {
             showToast("⚠️ Parade Fleet save cancelled. Please save float edits first.");
             return;
         }
     }
 
-    // 2. Open Save Parade Fleet Modal
+    // 2. Verify if the active 30s Fleet Show routine has unsaved changes
+    if (isFleetShowDirty && activeFleetShow) {
+        const showName = activeFleetShow.name || "Active 30s Fleet Show";
+        const promptSaveShow = confirm(
+            `⚠️ Unsaved Fleet Show Detected!\n\n"${showName}" currently has unsaved choreography changes.\n\nThe 30s Fleet Show must be saved before saving the Parade Fleet suite so the fleet links to the updated choreography.\n\nClick OK to save "${showName}" now, or Cancel to abort saving the fleet.`
+        );
+
+        if (promptSaveShow) {
+            const showSaveResult = await saveActiveFleetShow();
+            if (!showSaveResult || !showSaveResult.success) {
+                showToast("⚠️ Fleet show save cancelled. Parade Fleet was not saved.");
+                return;
+            }
+            // Fleet show successfully saved! Continue to fleet save
+        } else {
+            showToast("⚠️ Parade Fleet save cancelled. Please save fleet show edits first.");
+            return;
+        }
+    }
+
+    // 3. Open Save Parade Fleet Modal
     await openSaveFleetModal();
 }
 window.handleSaveParadeFleetFlow = handleSaveParadeFleetFlow;
@@ -7370,6 +7401,7 @@ function initFleetManager() {
                 if (!isNaN(val) && val > 0 && activeFleetShow.blocks[idx]) {
                     activeFleetShow.blocks[idx].duration = val;
                     recalculateFleetBlockStartTimes();
+                    isFleetShowDirty = true;
                     renderFleetBlocksEditor();
                     updateFleetShowUI();
                     if (currentView === 'fleet') renderTimelineLayers();
@@ -7384,6 +7416,7 @@ function initFleetManager() {
                 if (activeFleetShow.blocks[idx]) {
                     if (!activeFleetShow.blocks[idx].params) activeFleetShow.blocks[idx].params = {};
                     activeFleetShow.blocks[idx].params.colorMode = colSelect.value;
+                    isFleetShowDirty = true;
                     updateFleetShowUI();
                 }
             }
@@ -9431,8 +9464,10 @@ window.addEventListener('mouseup', () => {
         activeFleetShow.blocks.splice(targetIdx, 0, moved);
         recalculateFleetBlockStartTimes();
         selectedFleetBlockIdx = targetIdx;
+        isFleetShowDirty = true;
         showToast(`🔀 Reordered "${moved.name}" to position #${targetIdx + 1}`);
     } else if (type === 'resize-right' || type === 'resize-left') {
+        isFleetShowDirty = true;
         if (blk) showToast(`⏱️ Updated "${blk.name}" duration to ${blk.duration.toFixed(1)}s`);
     } else if (type === 'move' && !hasMoved && blk) {
         selectedFleetBlockIdx = blockIdx;
@@ -11729,26 +11764,38 @@ function openSavePresetModal(suggestedName = null) {
             ? fleetRunners[activeSingleShirtRunnerSlot]
             : (DEFAULT_FLEET_ROSTER[activeSingleShirtRunnerSlot] || DEFAULT_FLEET_ROSTER[5]);
 
-        let defaultName = suggestedName || (document.getElementById('profileNameInput')?.value || '').trim();
-        if (!defaultName) {
-            const timeTag = getFormattedTimestamp(false);
-            if (runner && runner.name) {
-                defaultName = `${runner.name} ${timeTag}`;
+        const timeTag = getFormattedTimestamp(false);
+        let baseFloatName = '';
+        if (suggestedName && suggestedName.trim()) {
+            baseFloatName = suggestedName.trim().replace(/\s+\d{4}-\d{2}-\d{2}[_ ]\d{2}-\d{2}.*$/, '').trim();
+        } else {
+            const inputVal = (document.getElementById('profileNameInput')?.value || '').trim();
+            if (inputVal) {
+                baseFloatName = inputVal.replace(/\s+\d{4}-\d{2}-\d{2}[_ ]\d{2}-\d{2}.*$/, '').trim();
+            } else if (runner && runner.name) {
+                baseFloatName = runner.name;
             } else if (currentGraphicType === 'title_drum') {
-                defaultName = `Title Drum ${timeTag}`;
+                baseFloatName = 'The Drum';
             } else if (currentGraphicType === 'cinderellas_coach') {
-                defaultName = `Cinderella's Coach ${timeTag}`;
+                baseFloatName = "Cinderella's Coach";
             } else if (currentGraphicType === 'spinning_turtle') {
-                defaultName = `The Turtle ${timeTag}`;
+                baseFloatName = 'The Turtle';
             } else if (currentGraphicType === 'spinning_snail') {
-                defaultName = `The Snail ${timeTag}`;
+                baseFloatName = 'The Snail';
             } else if (currentGraphicType === 'honor_america_eagle') {
-                defaultName = `Flag & Eagle ${timeTag}`;
+                baseFloatName = 'Flag & Eagle';
             } else if (currentGraphicType === 'casey_jr_train') {
-                defaultName = `The Train ${timeTag}`;
+                baseFloatName = 'The Train';
             } else {
-                defaultName = `Pete's Dragon ${timeTag}`;
+                baseFloatName = "Pete's Dragon";
             }
+        }
+        if (!baseFloatName) {
+            baseFloatName = (runner && runner.name) ? runner.name : "Float";
+        }
+        const defaultName = `${baseFloatName} ${timeTag}`;
+        if (document.getElementById('profileNameInput')) {
+            document.getElementById('profileNameInput').value = defaultName;
         }
 
         const nameInput = document.getElementById('savePresetModalNameInput');
@@ -15903,27 +15950,31 @@ function exportCurrentProfileJson() {
     const runner = (activeSingleShirtRunnerSlot !== null && activeSingleShirtRunnerSlot >= 0 && fleetRunners[activeSingleShirtRunnerSlot])
         ? fleetRunners[activeSingleShirtRunnerSlot]
         : (DEFAULT_FLEET_ROSTER[activeSingleShirtRunnerSlot] || DEFAULT_FLEET_ROSTER[5]);
-    const defaultName = runner ? `${runner.name} ${leds.length} Preset` : (currentGraphicType === 'title_drum' ? "Title_Drum" : (currentGraphicType === 'cinderellas_coach' ? "Cinderella_Coach" : "Petes_Dragon"));
-    const name = (nameInput?.value || '').trim() || defaultName;
-    const profileData = buildCompletePresetData(name);
+    const floatBaseName = (runner && runner.name) || (currentGraphicType === 'title_drum' ? "Title Drum" : (currentGraphicType === 'cinderellas_coach' ? "Cinderella's Coach" : "Pete's Dragon"));
+    const timeTag = getFormattedTimestamp(false);
+    let enteredName = (nameInput?.value || '').trim();
+    if (!enteredName || enteredName === "Pete's Dragon 50 Outline") {
+        enteredName = `${floatBaseName} ${timeTag}`;
+    } else if (!enteredName.match(/\d{4}-\d{2}-\d{2}/)) {
+        enteredName = `${enteredName} ${timeTag}`;
+    }
+    const profileData = buildCompletePresetData(enteredName);
 
     const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(profileData, null, 2));
     const dlAnchor = document.createElement('a');
     dlAnchor.setAttribute("href", dataStr);
-    const safeFilename = `${name.toLowerCase().replace(/[^a-z0-9_-]/g, '_')}.json`;
+    const safeFilename = `${enteredName.toLowerCase().replace(/[^a-z0-9_-]/g, '_')}.json`;
     dlAnchor.setAttribute("download", safeFilename);
     dlAnchor.click();
     showToast(`⬇ Exported ${safeFilename} (${leds.length} LEDs, ${animationGroups.length} groups)`);
 }
 
-// Save Profile button (Section 2 - Sidebar) opens interactive modal with duplicate checking & rename capability
+// Save Float button (Section 2 - Sidebar) opens interactive modal with duplicate checking & rename capability
 document.getElementById('saveProfileBtn')?.addEventListener('click', async () => {
-    const nameInput = document.getElementById('profileNameInput');
-    const currentName = (nameInput?.value || '').trim();
-    await openSavePresetModal(currentName || null);
+    await openSavePresetModal();
 });
 
-// Download & Import Profile Buttons
+// Download & Import Float Buttons
 const downloadProfileBtn = document.getElementById('downloadProfileBtn');
 if (downloadProfileBtn) {
     downloadProfileBtn.addEventListener('click', exportCurrentProfileJson);
@@ -15952,16 +16003,6 @@ if (importProfileBtn && importProfileFileInput) {
         e.target.value = '';
     });
 }
-
-// Section 3: Layout Preset Save button opens interactive modal with duplicate checking & rename capability
-document.getElementById('saveLayoutBtn')?.addEventListener('click', async () => {
-    await openSavePresetModal();
-});
-
-// Section 3: Export Layout JSON button
-document.getElementById('exportLayoutJsonBtn')?.addEventListener('click', () => {
-    exportCurrentProfileJson();
-});
 
 // Generate FastLED C++ Code
 document.getElementById('exportCodeBtn').addEventListener('click', () => {
@@ -18007,7 +18048,6 @@ async function applyMasterFleetBundle(bundleData) {
 // Bind Master Fleet Parade Bundle event listeners
 function initMasterFleetBundleControls() {
     const fleetExportBtn = document.getElementById('fleetExportBundleBtn');
-    const layoutExportAllBtn = document.getElementById('layoutExportAllFleetBtn');
     const fleetImportBtn = document.getElementById('fleetImportBundleBtn');
     const fleetImportFileInput = document.getElementById('fleetImportBundleFileInput');
     const modal = document.getElementById('fleetBundleImportModal');
@@ -18018,7 +18058,6 @@ function initMasterFleetBundleControls() {
     const deselectAllBtn = document.getElementById('importBundleDeselectAllBtn');
 
     if (fleetExportBtn) fleetExportBtn.addEventListener('click', exportMasterFleetBundleJson);
-    if (layoutExportAllBtn) layoutExportAllBtn.addEventListener('click', exportMasterFleetBundleJson);
 
     if (fleetImportBtn && fleetImportFileInput) {
         fleetImportBtn.addEventListener('click', () => fleetImportFileInput.click());

@@ -741,7 +741,7 @@ You can save and export complete float configurations so you never lose your LED
 Beyond saving single float configurations, the simulator lets you export and import the **complete 7-float parade configuration** (all 7 costume float designs, LED coordinate placements, zone animation groups, standalone timeline cues, baseline ambient dynamics, and 30s fleet choreography blocks) in a single unified JSON file (`msep_fleet_parade_master.json`).
 
 - **📥 Export Master Fleet Bundle:**
-  - Available on the `🏃 Tab 5: Fleet` tab (under 7-Runner Lineup) and on `🎨 Tab 1: Layout` (`📦 Export All 7 Floats`).
+  - Authoritative location on the `🏃 Tab 5: Fleet` tab (Section 2: 7-Runner Baseline Presets & Master Fleet Suite via `📦 Export Fleet Bundle`).
   - Captures in-memory modifications from all 7 runner slots and current single-shirt editor states.
   - Generates a timestamped JSON bundle file (`msep_fleet_parade_master_YYYY-MM-DD.json`).
 - **📂 Import Master Fleet Bundle with Selective-Float Modal:**
@@ -751,9 +751,10 @@ Beyond saving single float configurations, the simulator lets you export and imp
   - Toggle whether to import the master 30s fleet choreography blocks.
   - Integrated with the **Universal Undo / Redo Engine (`Ctrl+Z`)** so you can safely preview or revert applied bundles with one keystroke.
 
-### Saving Floats & Layout Presets (With Timestamped Defaults & Duplicate Protection)
-1. **Interactive Save Float Modal:**
-   - Clicking **`💾 Save Float`** (Section 2 - Sidebar) or **`💾 Save Float`** (Section 3 - LED Layout & Wiring Route) launches the dedicated **Save Float Configuration Modal**.
+### Saving Floats (Layout Tab - Section 2) & Duplicate Protection
+1. **Single Authoritative Location for Saving Floats:**
+   - Float saving is consolidated strictly into **Section 2 (`💾 Save & Export Floats`)** on the Layout tab via **`💾 Save Float`** (`#saveProfileBtn`). Section 3 (`LED Layout & Wiring Route`) is kept clean for geometry and routing tools with a single `🔄 Reset Layout to Default` button.
+   - Launches the dedicated **Save Float Configuration Modal** (`#savePresetModal`).
    - Displays real-time overview metrics: active float identity, physical canvas LED count (e.g. 50, 75, or 100), active animation group count, and sequenced theatrical cues.
    - **Timestamped Default Name:** The input box automatically populates with `<FloatName> <YYYY-MM-DD HH-mm>` (e.g., `Title Drum 2026-10-08 13-45`).
    - Shows live filename preview as you type (`Will save as: presets/<clean_name>.json`).
@@ -907,12 +908,17 @@ Each of the 7 runners is represented by a dedicated preset card and canvas athle
     - Clears the unsaved dirty state (`isSingleShirtDirty = false`).
     - Immediately refreshes the runner card dropdowns and badges to display the new saved preset name.
 - **Saving Parade Fleet (`💾 Save Parade Fleet`):**
-  - Clicking **"💾 Save Parade Fleet"** (`#fleetSaveConfigBtn`) executes a safety pre-check:
+  - Consolidated into the single authoritative button on the Fleet page (Section 2: 7-Runner Baseline Presets via **`💾 Save Parade Fleet`** `#fleetSaveConfigBtn`).
+  - Executes a strict **Two-Step Safety Prerequisite Check**:
     1. **Unsaved Float Verification:** Verifies if any float currently active in the Single Shirt Editor has unsaved changes (`isSingleShirtDirty === true`). If unsaved changes are detected, a confirmation prompt notifies you:
        > *"⚠️ Unsaved Float Changes Detected! Float X ([Name]) currently has unsaved layout or animation changes on the canvas. Floats must be saved before saving the Parade Fleet suite so the fleet links to the updated design."*
-       - Clicking **OK** opens the **Save Float Modal** to save that float first, then immediately proceeds to the fleet save.
+       - Clicking **OK** opens the **Save Float Modal** to save that float first, then immediately proceeds.
        - Clicking **Cancel** cleanly aborts saving the fleet so no work is lost.
-    2. **Save Parade Fleet Modal:**
+    2. **Unsaved Fleet Show Verification:** Verifies if the active 30s Fleet Show routine has unsaved choreography modifications (`isFleetShowDirty === true`). If detected, a confirmation prompt notifies you:
+       > *"⚠️ Unsaved Fleet Show Detected! '[Show Name]' currently has unsaved choreography changes. The 30s Fleet Show must be saved before saving the Parade Fleet suite so the fleet links to the updated choreography."*
+       - Clicking **OK** saves the active fleet show (`saveActiveFleetShow()`), clears `isFleetShowDirty`, and immediately proceeds to the fleet save.
+       - Clicking **Cancel** cleanly aborts saving the fleet.
+    3. **Save Parade Fleet Modal:**
        - Opens with a default timestamped title: `Parade Fleet <YYYY-MM-DD HH-mm>` (e.g., `Parade Fleet 2026-10-08 13-45`).
        - Shows live file preview: `presets/parade_fleet_YYYY-MM-DD_HH-mm.json`.
        - Captures all 7 runner slots linking to their saved float files, plus the 30-second fleet choreography show blocks, sync architecture, and wave cycle settings.
@@ -922,7 +928,7 @@ Each of the 7 runners is represented by a dedicated preset card and canvas athle
   - **Tab Memory:** Navigating back from Fleet View automatically restores the exact single-shirt tab (`Layout`, `Groups`, `Director`, `Flashing`, etc.) that was open prior to entering Fleet View (`lastSingleShirtTab`).
   - **Interactive Unsaved Changes Modal (`#unsavedChangesModal`):**
     When switching from a float with unsaved edits to edit another float (or selecting a different preset in the Layout dropdown), an interactive dialog appears offering three clear choices:
-    1. **💾 Save Profile & Switch:** Prompts for a profile name (pre-populated with a recommended title like `Pete's Dragon Custom` or whatever was typed into the profile name field). Clicking save stores the costume preset in local storage and backend server, links it to that runner's fleet slot, clears the dirty state, and cleanly switches to the new runner.
+    1. **💾 Save Float & Switch:** Prompts for a float name (pre-populated with `<FloatName> <YYYY-MM-DD HH-mm>`). Clicking save stores the float preset in local storage and backend server, links it to that runner's fleet slot, clears the dirty state, and cleanly switches to the new runner.
     2. **🗑️ Discard & Switch:** Discards live unsaved modifications and immediately loads the target runner.
     3. **Cancel:** Dismisses the dialog and remains on the current view without losing any work.
   - **✏️ Edit in Single View (1-Click or Double-Click):**
@@ -930,7 +936,6 @@ Each of the 7 runners is represented by a dedicated preset card and canvas athle
 - **📥 Assign Editor:** Copies your active single-shirt editor design into that runner slot.
 - **📋 Assign Editor to All:** Duplicates your current single-shirt design across all 7 runners with one click.
 - **🔁 Parade Defaults:** Instantly resets all 7 runners to the official Electrical Parade float presets.
-- **💾 Save Fleet Lineup:** Saves the complete 7-runner fleet configuration to `presets/fleet_lineup.json`.
 
 ---
 
