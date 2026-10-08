@@ -224,48 +224,64 @@ function getActiveGraphicImg() {
     return getGraphicImgForType(currentGraphicType);
 }
 
+let selectedPlateSize = 'medium';
+let selectedPlateWidthMm = 203.2;
+
 // Compute normalized bounds of the graphic on the athletic shirt
 function getGraphicChestBounds() {
     const activeImg = getActiveGraphicImg();
     const maxH = 0.385; // Available vertical height strictly above bib (0.168 to 0.553)
     const maxW = 0.70;  // Maximum chest width between raglan seams
     const topY = 0.168; // Just below crew neck collar dip (0.14)
+    const Y_center = 0.3615; // Vertical center between collar (0.168) and bib (0.555)
 
-    let normH = maxH;
-    let normW = 0.54;
-    let normY = topY;
+    const plateScaleMap = {
+        'small': 0.8125,   // 6.5" / 8.0" (165.1mm)
+        'medium': 1.0000,  // 8.0" / 8.0" (203.2mm)
+        'large': 1.2500    // 10.0" / 8.0" (254.0mm)
+    };
+    const plateScale = (typeof selectedPlateSize !== 'undefined' && plateScaleMap[selectedPlateSize])
+        ? plateScaleMap[selectedPlateSize]
+        : 1.0;
+
+    let normH, normW, normY;
 
     if (activeImg && activeImg.naturalWidth > 0 && activeImg.naturalHeight > 0) {
         const aspect = activeImg.naturalWidth / activeImg.naturalHeight;
         if (aspect > 1.3) {
             // Wide landscape graphic (like Cinderella's Coach: aspect ~ 1.789, Carriage ~ 1.835)
-            normW = maxW;
+            const baseW = 0.56;
+            normW = baseW * plateScale;
+            if (normW > maxW) normW = maxW;
             normH = normW / (1.25 * aspect);
             if (normH > maxH) {
                 normH = maxH;
                 normW = normH * 1.25 * aspect;
             }
-            normY = 0.22 + (0.40 - normH) * 0.4;
-            if (normY + normH > 0.565) {
-                normY = 0.565 - normH;
-            }
         } else {
             // Portrait or square graphic (like Pete's Dragon: aspect ~ 0.706)
             // Scale so full height fits strictly in area above bib, keeping exact x/y ratio
-            normH = maxH;
+            const baseH = 0.310;
+            normH = baseH * plateScale;
+            if (normH > maxH) normH = maxH;
             normW = normH * 1.25 * aspect;
             if (normW > maxW) {
                 normW = maxW;
                 normH = normW / (1.25 * aspect);
             }
-            normY = topY;
         }
     } else {
         // Fallback vector Pete's Dragon
-        normH = maxH;
+        const baseH = 0.310;
+        normH = baseH * plateScale;
+        if (normH > maxH) normH = maxH;
         normW = normH * 1.25 * 0.706;
-        normY = topY;
     }
+
+    normY = Y_center - normH / 2.0;
+    if (normY < topY) normY = topY;
+    if (normY + normH > 0.555) normY = 0.555 - normH;
+
     const normX = (1.0 - normW) / 2;
     return { normX, normY, normW, normH };
 }
@@ -12902,7 +12918,9 @@ function computeBtfStripMatrix() {
             // Upper chest panel trapezoid
             if (ny < 0.17 || ny > 0.555) return false;
             const t = (ny - 0.17) / (0.555 - 0.17);
-            const halfW = (0.46 + t * 0.12) / 2.0;
+            const plateScaleMap = { 'small': 0.8125, 'medium': 1.0, 'large': 1.25 };
+            const pScale = (typeof selectedPlateSize !== 'undefined' && plateScaleMap[selectedPlateSize]) ? plateScaleMap[selectedPlateSize] : 1.0;
+            const halfW = ((0.46 + t * 0.12) * pScale) / 2.0;
             return Math.abs(nx - 0.5) <= halfW;
         }
     }
@@ -13080,8 +13098,8 @@ function drawBtfStripOverlay(ctx, timeMs) {
 
     ctx.save();
 
-    // 1. Draw Translucent Silicone Sheathing Ribbons (IP67 ~12mm width)
-    const STRIP_TUBE_WIDTH_MM = 12.0;
+    // 1. Draw Translucent Silicone Sheathing Ribbons (IP67 10mm width)
+    const STRIP_TUBE_WIDTH_MM = 10.0; // Strictly 10.0mm physical width
     const W_MM = 457.2;
     const H_MM = 609.6;
     const LED_PITCH_MM = 16.6667;
@@ -13184,11 +13202,15 @@ function drawBtfStripOverlay(ctx, timeMs) {
         }
     }
 
-    // 2. Draw 5050 SMD Packages and Radiant Glowing Emitters
+    // 2. Draw 5050 SMD Packages (strictly 5.0mm wide) and Radiant Glowing Emitters
     const sBounds = getShirtBounds();
-    const pkgSizePx = Math.max(5.5, (5.0 / W_MM) * (sBounds ? sBounds.width : 340) * zoomScale);
+    const mmToPxX = (sBounds ? sBounds.width : 360) / W_MM;
+    const mmToPxY = (sBounds ? sBounds.height : 480) / H_MM;
+    const mmToPx = (mmToPxX + mmToPxY) * 0.5;
+    // Exactly 5.0mm wide SMD package (half the 10.0mm strip width)
+    const pkgSizePx = Math.max(4.0, 5.0 * mmToPx * zoomScale);
     const halfPkg = pkgSizePx * 0.5;
-    const dieRadius = pkgSizePx * 0.35;
+    const dieRadius = pkgSizePx * 0.32;
 
     // Organic breathing wave
     const tempoBpm = params.speedBpm || 48;
@@ -19189,8 +19211,8 @@ const TPU_STL_CENTER_X = 87.846;
 const TPU_STL_CENTER_Y = 108.536;
 const TPU_STL_CENTER_Z = 3.0;
 
-let selectedPlateSize = 'medium';
-let selectedPlateWidthMm = 203.2;
+selectedPlateSize = 'medium';
+selectedPlateWidthMm = 203.2;
 let selectedLedCount = 75;
 let tpuExportMode = 'multi'; // 'multi' (5-color split) or 'single' (monolithic black)
 let tpuMultiMeshes = [];
@@ -19231,6 +19253,10 @@ window.selectLedCountOption = selectLedCountOption;
 
 function selectPlateSizeOption(size) {
     if (size !== 'small' && size !== 'medium' && size !== 'large') size = 'medium';
+    
+    // Capture old bounds to scale existing pebble LEDs proportionally
+    const oldGb = (typeof getGraphicChestBounds === 'function') ? getGraphicChestBounds() : null;
+
     selectedPlateSize = size;
     const sizeMap = {
         'small': { mm: 165.1, inches: 6.5, label: 'Small (~6.5" / 165mm)' },
@@ -19260,6 +19286,23 @@ function selectPlateSizeOption(size) {
     const label = document.getElementById('activePlateSizeLabel');
     if (label) label.textContent = sizeMap[size].label;
 
+    // Scale existing pebble LEDs so they stay locked to graphic features
+    const newGb = getGraphicChestBounds();
+    if (oldGb && oldGb.normW > 0 && oldGb.normH > 0 && newGb && newGb.normW > 0 && newGb.normH > 0 && Array.isArray(leds) && leds.length > 0) {
+        leds.forEach(l => {
+            const relX = (l.x - oldGb.normX) / oldGb.normW;
+            const relY = (l.y - oldGb.normY) / oldGb.normH;
+            l.x = newGb.normX + relX * newGb.normW;
+            l.y = newGb.normY + relY * newGb.normH;
+        });
+    }
+
+    // Recompute strip matrix when preview is active
+    if (btfStripPreviewActive) {
+        computeBtfStripMatrix();
+    }
+
+    markSingleShirtDirty();
     showToast(`📐 3D Armor Plate Size set to ${sizeMap[size].label}`);
 }
 window.selectPlateSizeOption = selectPlateSizeOption;

@@ -477,14 +477,18 @@ This feature models the exact optical geometry, silicone sheathing, solder cut i
   - **`✂️ Clip to Float Art`:** Only illuminates strip LEDs whose centers fall within the opaque silhouette of the active float artwork (alpha $> 35$), sampling vibrant character colors directly from the graphic.
   - **`🔲 Chest Panel Grid`:** Fills the entire upper chest panel trapezoid above the race bib ($y = 0.17$ to $0.555$).
 
-#### 3. Pitch Spacing & Quick Presets
+#### 3. Pitch Spacing, Plate Size Scaling & Quick Presets
+- **Proportional Plate Size Scaling (Small, Medium, Large):**
+  - **📐 Small (~6.5" / 165mm):** Scales the float artwork silhouette down ($0.8125\times$), yielding fewer LEDs (e.g. ~21–26 LEDs on Pete's Dragon).
+  - **📐 Medium (~8.0" / 203mm):** Standard reference chest scale ($1.000\times$, e.g. ~28–41 LEDs on Pete's Dragon).
+  - **📐 Large (~10.0" / 254mm):** Expands the artwork silhouette ($1.250\times$) across the upper chest, generating significantly more LEDs (e.g. ~50–68 LEDs on Pete's Dragon) while strictly preserving clearance above the race bib ($y \le 0.555$).
 - **Row/Column Spacing Slider (`#btfSpacingSlider`):** Dynamically adjusts the pitch between adjacent strip ribbons from **16.7 mm to 36.0 mm** (with 0.1 mm precision).
 - **`🎯 Auto-Fit ~100 LEDs` Preset:** An iterative numerical solver automatically calculates the exact ribbon pitch spacing (e.g. $\sim 22.0\text{ mm}$) to land on **~95–105 LEDs**, perfectly satisfying the 2.0A portable battery bank power envelope.
 - **`⚡ Dense (20mm)` Preset:** Sets tight 20.0 mm ribbon spacing for maximum illumination density.
 - **`🍃 Sparse (28mm)` Preset:** Sets wide 28.0 mm ribbon spacing for ultralight, low-current configurations.
 
 #### 4. Real-Time Telemetry & Hardware Safety Budget
-The telemetry card continuously updates as sliders or presets change:
+The telemetry card continuously updates as sliders, presets, or plate sizes change:
 - **Total LEDs (`#btfTotalLedsVal`):** Current active SMD 5050 LED count across all strip runs.
 - **Solder Cut Segments (`#btfTotalCutsVal`):** Number of discrete strip segments requiring cut/solder jumper wires (labeled `S1`, `S2`, `S3`... on canvas).
 - **Total Strip Length (`#btfTotalLengthVal`):** Combined linear length in meters and feet (e.g. `1.63 m (5.4 ft)`).
@@ -495,9 +499,9 @@ The telemetry card continuously updates as sliders or presets change:
   - 🟢 **`100-LED Safe (~2.0A Bank)`:** Highlighted in emerald green when $N_{\text{LED}} \le 105$.
   - ⚠️ **`Exceeds 100-LED Budget`:** Highlighted in crimson warning when power draw would overload a 2.0A portable power bank without aggressive FastLED software capping.
 
-#### 5. Photorealistic IP67 Canvas Visualization
-- **Translucent Silicone Tube Ribbons:** Renders realistic 12.0 mm wide IP67 translucent white silicone sheathing ribbons with rounded caps, sealed perimeter borders, and copper solder cut tick marks between pixel packages.
-- **SMD 5050 Packages & Radiant Phosphor Glow:** Draws square black SMD 5050 bodies (`#0d1117`) with border frames, circular color-matched phosphor emitter dies, specular lens highlights, and breathing radial bloom glow.
+#### 5. Photorealistic IP67 Canvas Visualization (10mm Strips / 5mm LEDs)
+- **10.0mm Translucent Silicone Tube Ribbons:** Renders strictly calibrated **10.0 mm wide** IP67 translucent white silicone sheathing ribbons with rounded caps, sealed perimeter borders, and copper solder cut tick marks between pixel packages.
+- **Proportional 5.0mm SMD 5050 Packages & Radiant Phosphor Glow:** Draws square black SMD 5050 bodies (`#0d1117`) scaled to **strictly 5.0 mm wide** (occupying exactly 50% of the 10.0mm strip width with 2.5mm silicone margins on each side). Features circular phosphor emitter lenses ($3.2\text{ mm}$ die diameter), specular lens highlights, and breathing radial bloom glow.
 - **Segment Callout Badges:** At higher zoom levels, each segment displays a high-contrast identifier (`S1`, `S2`...) indicating where physical cuts and 3-pin solder jumpers (5V, Data, GND) will be required.
 
 #### 6. "Apply Strip Layout as Active LEDs"

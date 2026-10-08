@@ -93,6 +93,25 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### Entry: Proportional Plate Sizing (Small/Medium/Large) & 10mm/5mm Strip LED Calibration
+* **Date:** 2026-10-08 (Imagineering Session - Proportional Plate & Strip Calibration)
+* **Milestone:** Milestone 3 & 4 - Simulator UX Architecture & Physical Lighting Modeling
+* **Status:** Complete & Verified (`simulator/app.js`, `SIMULATOR_USER_GUIDE.md`, `PROJECT_PROGRESS.md`).
+* **Implementation Details:**
+  1. **Dynamic Plate Sizing & Bounds Scaling (`getGraphicChestBounds`):**
+     - Coupled `selectedPlateSize` (`small`, `medium`, `large`) directly into the normalized graphic bounding box engine (`getGraphicChestBounds`).
+     - **Small (~6.5" / 165mm):** Scales graphic by $0.8125\times$, generating fewer LEDs in BTF strip mode (~21–26 LEDs on Pete's Dragon).
+     - **Medium (~8.0" / 203mm):** Standard reference chest scale ($1.000\times$, ~28–41 LEDs on Pete's Dragon).
+     - **Large (~10.0" / 254mm):** Expands graphic across the upper chest ($1.250\times$), generating significantly more LEDs (~50–68 LEDs on Pete's Dragon) while strictly preserving clearance above the race bib ($y \le 0.555$).
+     - Preserves exact aspect ratio: $\text{normW} = \text{normH} \times 1.25 \times \text{aspect}$.
+  2. **Interactive Plate Size Selection Hook (`selectPlateSizeOption`):**
+     - Clicking Small, Medium, or Large now instantly recomputes `computeBtfStripMatrix()` when strip preview is active, updating live telemetry and canvas overlay in real time.
+     - Automatically re-scales any existing placed pebble LEDs to keep them anchored to their respective artwork facial and body features.
+  3. **Strict 10mm Strip & 5mm LED Proportional Canvas Rendering (`drawBtfStripOverlay`):**
+     - Calibrated silicone strip sheathing ribbon width to **strictly 10.0mm physical width** (`STRIP_TUBE_WIDTH_MM = 10.0`).
+     - Scaled SMD 5050 packages to **strictly 5.0mm physical width** (`pkgSizePx = 5.0 * mmToPx * zoomScale`), taking up exactly 50% of the 10.0mm strip width with clean 2.5mm silicone margins on each side.
+     - Centered circular phosphor emitter lens ($3.2\text{ mm}$ die diameter) with specular highlights.
+
 ### Entry: BTF-LIGHTING WS2812B (60 LED/m) IP67 Strip Preview with Staggered Rows & Columns
 * **Date:** 2026-10-08 (Imagineering Session - LED Strip Alternative Architecture)
 * **Milestone:** Milestone 3 & 4 - Simulator UX Architecture & Physical Lighting Modeling
