@@ -534,6 +534,7 @@ def compile_plate_variant(variant_name, width_mm, height_mm, raw_leds, artwork_p
 
     is_turtle = ('turtle' in str(graphic_type).lower() or 'turtle' in str(float_name).lower() or 'turtle' in str(artwork_path).lower())
     is_snail = ('snail' in str(graphic_type).lower() or 'snail' in str(float_name).lower() or 'snail' in str(artwork_path).lower())
+    is_drum = ('drum' in str(graphic_type).lower() or 'drum' in str(float_name).lower() or 'drum' in str(artwork_path).lower())
 
     if raw_stl_colors and isinstance(raw_stl_colors, dict):
         stl_colors = raw_stl_colors
@@ -552,6 +553,14 @@ def compile_plate_variant(variant_name, width_mm, height_mm, raw_leds, artwork_p
             'gold': { 'name': 'Antennae, Spiral & Edge', 'hex': '#facc15', 'targetRgb': [250, 204, 21], 'role': 'inlay', 'filename': 'color_gold.stl' },
             'green': { 'name': 'Green Radial Stripes', 'hex': '#10b981', 'targetRgb': [16, 185, 129], 'role': 'inlay', 'filename': 'color_green.stl' },
             'blue': { 'name': 'Blue Radial Stripes', 'hex': '#2563eb', 'targetRgb': [37, 99, 235], 'role': 'inlay', 'filename': 'color_blue.stl' }
+        }
+    elif is_drum:
+        stl_colors = {
+            'black': { 'name': 'Chassis, Drum Face & Wheels', 'hex': '#11161d', 'targetRgb': [17, 22, 29], 'role': 'chassis' },
+            'gold': { 'name': 'Drum Ring, Text & Scrollwork', 'hex': '#facc15', 'targetRgb': [250, 204, 21], 'role': 'inlay', 'filename': 'color_gold.stl' },
+            'red': { 'name': 'Body Panels & Streamer', 'hex': '#ef4444', 'targetRgb': [239, 68, 68], 'role': 'inlay', 'filename': 'color_red.stl' },
+            'blue': { 'name': 'Flags & Pennants', 'hex': '#2563eb', 'targetRgb': [37, 99, 235], 'role': 'inlay', 'filename': 'color_blue.stl' },
+            'green': { 'name': 'Lead Flag', 'hex': '#10b981', 'targetRgb': [16, 185, 129], 'role': 'inlay', 'filename': 'color_green.stl' }
         }
     else:
         stl_colors = {

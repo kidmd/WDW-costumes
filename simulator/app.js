@@ -139,15 +139,23 @@ spinningSnailSimplifiedImg.onload = () => {
 };
 spinningSnailSimplifiedImg.src = 'assets/spinning_snail_simplified.png';
 
+// Title Drum Artwork (5-color transparent PNG)
+const titleDrumImg = new Image();
+let titleDrumLoaded = false;
+titleDrumImg.onload = () => {
+    titleDrumLoaded = true;
+};
+titleDrumImg.src = 'assets/title_drum.png';
+
 // Custom artwork image (if user uploads one or loads one from preset)
 let customArtworkImg = null;
 let currentGraphicType = 'builtin_dragon'; // 'builtin_dragon', 'cinderellas_coach', 'carriage_nohorses', 'casey_jr_train', 'title_drum', 'spinning_turtle', 'spinning_snail', 'honor_america_eagle', or 'custom_image'
 let customArtworkDataUrl = null;
 
-// Cricut SVG Float Artwork Suite for 7-Runner Lineup
+// Cricut SVG / Custom PNG Float Artwork Suite for 7-Runner Lineup
 const floatArtworkImgs = {
     'casey_jr_train': new Image(),
-    'title_drum': new Image(),
+    'title_drum': titleDrumImg,
     'spinning_turtle': spinningTurtleImg,
     'spinning_snail': spinningSnailImg,
     'spinning_snail_original': spinningSnailImg,
@@ -159,7 +167,7 @@ const floatArtworkImgs = {
     'honor_america_eagle': new Image()
 };
 floatArtworkImgs['casey_jr_train'].src = 'assets/cricut_svg/casey_jr_train.svg';
-floatArtworkImgs['title_drum'].src = 'assets/cricut_svg/title_drum.svg';
+floatArtworkImgs['title_drum'].src = 'assets/title_drum.png';
 floatArtworkImgs['spinning_turtle'].src = 'assets/Turtle_clean.png';
 floatArtworkImgs['spinning_snail'].src = 'assets/spinning_snail.png';
 floatArtworkImgs['spinning_snail_original'].src = 'assets/spinning_snail.png';
@@ -174,6 +182,10 @@ function getGraphicImgForType(gType) {
     if (!gType) return defaultDragonImg;
     if (gType === 'custom_image' && customArtworkImg && customArtworkImg.complete && customArtworkImg.naturalWidth > 0) {
         return customArtworkImg;
+    }
+    if (gType === 'title_drum') {
+        if (titleDrumImg && titleDrumImg.naturalWidth > 0) return titleDrumImg;
+        return floatArtworkImgs['title_drum'];
     }
     if (gType === 'spinning_turtle') {
         if (spinningTurtleImg && spinningTurtleImg.naturalWidth > 0) return spinningTurtleImg;

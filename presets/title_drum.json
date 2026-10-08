@@ -2,6 +2,15 @@
   "name": "Main Street Title Drum 100-LED Vibrant Preset",
   "floatName": "Float 2 - Title Drum",
   "savedAt": "2026-09-25T22:00:00.000Z",
+  "graphicType": "title_drum",
+  "artwork_file": "assets/title_drum.png",
+  "stlColors": {
+    "black": { "name": "Chassis, Drum Face & Wheels", "hex": "#11161d", "targetRgb": [17, 22, 29], "role": "chassis" },
+    "gold": { "name": "Drum Ring, Text & Scrollwork", "hex": "#facc15", "targetRgb": [250, 204, 21], "role": "inlay", "filename": "color_gold.stl" },
+    "red": { "name": "Body Panels & Streamer", "hex": "#ef4444", "targetRgb": [239, 68, 68], "role": "inlay", "filename": "color_red.stl" },
+    "blue": { "name": "Flags & Pennants", "hex": "#2563eb", "targetRgb": [37, 99, 235], "role": "inlay", "filename": "color_blue.stl" },
+    "green": { "name": "Lead Flag", "hex": "#10b981", "targetRgb": [16, 185, 129], "role": "inlay", "filename": "color_green.stl" }
+  },
   "ledCount": 100,
   "leds": [
     {

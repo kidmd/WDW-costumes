@@ -459,7 +459,7 @@ You can choose from pre-loaded Disney parade artwork or upload your own high-res
 ### Built-in Graphic Presets
 Use the **Costume Graphic** dropdown in the Layout tab (Section 1) to instantly switch between all official parade units with automatic preset loading:
 - **🚂 Float 01: Casey Jr. Locomotive (`casey_jr_train`):** Iconic circus engine with spinning drive wheels, illuminated cab, and flashing strobe headlight.
-- **🥁 Float 02: The Title Drum (`title_drum`):** Massive illuminated bass drum with amber chase rim and classic marquee lighting.
+- **🥁 Float 02: The Title Drum (`title_drum`):** Massive illuminated bass drum with amber chase rim and classic marquee lighting. Powered by a high-resolution transparent 5-color multi-material graphic asset (`assets/title_drum.png`) optimized for Bambu AMS 3D printing (Black chassis/drum face, Gold rim & text, Red body panels, Blue flags, and Green lead flag).
 - **🐢 Float 03: The Spinning Turtle (`spinning_turtle`):** Whimsical sea turtle with concentric spinning shell spiral and glowing fins.
 - **🐌 Float 04: The Spinning Snail (`spinning_snail`):** Colorful garden snail with multi-tier shell whorls and neon antenna bulbs.
 - **🎃 Float 05: Cinderella's Coach (`cinderellas_coach`):** Golden carriage outline with dual spinning wheels, pumpkin body, and royal lanterns.

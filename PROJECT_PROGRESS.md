@@ -93,6 +93,33 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### Entry: Float 2 (The Title Drum) 5-Color Multi-Material Graphic Isolation & Default Float Integration
+* **Date:** 2026-10-08 (Imagineering Session - Title Drum 5-Color Transparent Graphic Asset & Float Preset Integration)
+* **Milestone:** Milestone 6 - Wearable 3D Armor Multi-Material Artwork Assets & Float Lineup Presets
+* **Status:** Complete & Verified (`assets/title_drum.png`, `simulator/assets/title_drum.png`, `presets/title_drum.json`, `simulator/app.js`, `scripts/compile_clean_tpu_panel.py`).
+* **Implementation Details:**
+  - **Foreground & Background Isolation from `assets/Drum.png`:**
+    - Performed high-precision background extraction on the 1200x900 3D render:
+      - Flooded dark sky background (`gray < 28`, $S < 35$) from outer corners, ensuring drum face interior is 100% shielded.
+      - Removed open air pocket between upper streamer ribbon arch and drum top (Component 2: 12,159 px), ribbon sliver (370 px), and driver's cab open window (Component 24: 1,440 px) as 100% transparent negative space ($A = 0$).
+      - Flooded grey ground plane ($y \ge 650, 55 < gray < 120, S < 35$) and shaved bottom floor shadow between wheels ($y > 735$), preserving the full circular disks of all three wheels down to $y = 853$ (Front $R = 73$), $y = 831$ (Rear $R = 66$), and $y = 816$ (Mid $R = 46$).
+  - **Flat 5-Color Unshaded Simplification (Bambu AMS 3D Multi-Material):**
+    - Simplified all shading, specular highlights, and gradients into strictly 5 flat, unshaded colors:
+      - **Black (`#11161d` / RGB `[17, 22, 29]`):** Chassis undercarriage, drum face backdrop, solid round wheels, cab interior frame.
+      - **Gold (`#facc15` / RGB `[250, 204, 21]`):** Outer drum ring ($R_{out}=259.5, 248.0; R_{in}=232.5, 222.0$), curved typography "MAIN STREET ELECTRICAL PARADE" (with letter counters in P, A, R, D intact), canopy scrollwork, front crest signboard, brass flagpoles.
+      - **Red (`#ef4444` / RGB `[239, 68, 68]`):** Sculptural body panels, drum cradle arches, upper streamer ribbon.
+      - **Blue (`#2563eb` / RGB `[37, 99, 235]`):** Streamer pennant tip, rear flag/banner.
+      - **Green (`#10b981` / RGB `[16, 185, 129]`):** Lead forward flag on flagpole 1 ($x \approx 344$).
+    - Zero intermediate antialiasing or gradient pixels—100% of non-transparent pixels belong strictly to one of the 5 colors.
+  - **Repository & Tooling Synchronization:**
+    - Saved transparent production asset to `assets/title_drum.png` (1020x827) and mirrored to `simulator/assets/title_drum.png`.
+    - Created deterministic conversion pipeline in `scripts/process_title_drum.py`.
+    - Updated `presets/title_drum.json` with `"graphicType": "title_drum"`, `"artwork_file": "assets/title_drum.png"`, and `stlColors` 5-color dictionary.
+    - Updated `simulator/app.js` with `titleDrumImg` loading `assets/title_drum.png` as the default graphic for Float 2 (Title Drum).
+    - Updated `scripts/compile_clean_tpu_panel.py` with `is_drum` check to default to the 5-color Title Drum AMS palette.
+  - **Verification:**
+    - Pixel palette analysis confirmed exactly 6 unique RGBA tuples: Transparent ($45.85\%$), Black ($22.68\%$), Gold ($17.59\%$), Red ($10.52\%$), Blue ($1.72\%$), Green ($1.65\%$).
+
 ### Entry: Deep Eyelet Gusset Wall Anchors & LED Well Overhang Removal (Physical Print Refinements)
 * **Date:** 2026-10-07 (Imagineering Session - Eyelet Gusset Attachment Fix & Wire Notch Overhang Removal)
 * **Milestone:** Milestone 6 - Wearable 3D Armor Fabrication & Mechanical Mating Refinements
