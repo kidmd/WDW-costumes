@@ -13207,8 +13207,9 @@ function drawBtfStripOverlay(ctx, timeMs) {
     const mmToPxX = (sBounds ? sBounds.width : 360) / W_MM;
     const mmToPxY = (sBounds ? sBounds.height : 480) / H_MM;
     const mmToPx = (mmToPxX + mmToPxY) * 0.5;
-    // Exactly 5.0mm wide SMD package (half the 10.0mm strip width)
-    const pkgSizePx = Math.max(4.0, 5.0 * mmToPx * zoomScale);
+    // Exactly 5.0mm wide SMD package (half the 10.0mm strip width) in unscaled canvas units
+    // (ctx.scale(zoomScale, zoomScale) already applies the zoom transform to the entire canvas)
+    const pkgSizePx = Math.max(3.5, 5.0 * mmToPx);
     const halfPkg = pkgSizePx * 0.5;
     const dieRadius = pkgSizePx * 0.32;
 

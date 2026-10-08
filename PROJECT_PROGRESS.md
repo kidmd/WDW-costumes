@@ -109,8 +109,9 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
      - Automatically re-scales any existing placed pebble LEDs to keep them anchored to their respective artwork facial and body features.
   3. **Strict 10mm Strip & 5mm LED Proportional Canvas Rendering (`drawBtfStripOverlay`):**
      - Calibrated silicone strip sheathing ribbon width to **strictly 10.0mm physical width** (`STRIP_TUBE_WIDTH_MM = 10.0`).
-     - Scaled SMD 5050 packages to **strictly 5.0mm physical width** (`pkgSizePx = 5.0 * mmToPx * zoomScale`), taking up exactly 50% of the 10.0mm strip width with clean 2.5mm silicone margins on each side.
+     - Scaled SMD 5050 packages to **strictly 5.0mm physical width** (`pkgSizePx = 5.0 * mmToPx`), taking up exactly 50% of the 10.0mm strip width with clean 2.5mm silicone margins on each side.
      - Centered circular phosphor emitter lens ($3.2\text{ mm}$ die diameter) with specular highlights.
+     - **Canvas Zoom Lock (Eliminated Double Scaling):** Removed extraneous `* zoomScale` from `pkgSizePx` and glow radii. Since `ctx.scale(zoomScale, zoomScale)` already wraps the entire canvas render loop, eliminating the internal zoom multiplier guarantees that LED strips and chest artwork zoom in 100% 1:1 unison without any visual drift or ballooning.
 
 ### Entry: BTF-LIGHTING WS2812B (60 LED/m) IP67 Strip Preview with Staggered Rows & Columns
 * **Date:** 2026-10-08 (Imagineering Session - LED Strip Alternative Architecture)
