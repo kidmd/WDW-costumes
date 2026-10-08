@@ -46,33 +46,33 @@ def process_drum():
             cv2.drawContours(letter_roi, [c], -1, 255, -1)
     drum_letters = (clean_text > 0) & (letter_roi > 0)
 
-    # --- 2. EXACTLY 2 WHEELS (Outlined in Gold with Gold Hubs) ---
-    # Front Wheel: center (180, 780), R=73
-    dist_w1 = np.hypot(xx - 180, yy - 780)
-    w1_full = (dist_w1 <= 73) & (yy >= 700)
-    w1_rim  = (dist_w1 <= 73) & (dist_w1 >= 64) & (yy >= 700)
-    w1_hub  = (dist_w1 <= 16) & (yy >= 700)
+    # --- 2. EXACTLY 2 WHEELS (In true locations of original float wheels) ---
+    # Front Wheel: center (188, 715), R=70 with gold rim (61-70) and gold hub (<=16)
+    dist_w1 = np.hypot(xx - 188, yy - 715)
+    w1_full = (dist_w1 <= 70)
+    w1_rim  = (dist_w1 <= 70) & (dist_w1 >= 61)
+    w1_hub  = (dist_w1 <= 16)
     w1_tire = w1_full & (~w1_rim) & (~w1_hub)
 
-    # Rear Wheel: center (964, 765), R=66 (Middle wheel at x=838 is removed)
-    dist_w2 = np.hypot(xx - 964, yy - 765)
-    w2_full = (dist_w2 <= 66) & (yy >= 700)
-    w2_rim  = (dist_w2 <= 66) & (dist_w2 >= 58) & (yy >= 700)
-    w2_hub  = (dist_w2 <= 14) & (yy >= 700)
+    # Rear Wheel: center (968, 706), R=64 with gold rim (55-64) and gold hub (<=14)
+    dist_w2 = np.hypot(xx - 968, yy - 706)
+    w2_full = (dist_w2 <= 64)
+    w2_rim  = (dist_w2 <= 64) & (dist_w2 >= 55)
+    w2_hub  = (dist_w2 <= 14)
     w2_tire = w2_full & (~w2_rim) & (~w2_hub)
 
     wheels_all   = w1_full | w2_full
     wheels_gold  = w1_rim | w1_hub | w2_rim | w2_hub
     wheels_black = w1_tire | w2_tire
 
-    # --- 3. Background & Foreground Ground Removal ---
+    # --- 3. Background & Negative Space Removal ---
     dark_pixels = (gray < 28) & (~drum_face)
     num, labels, stats, _ = cv2.connectedComponentsWithStats(dark_pixels.astype(np.uint8))
     sky_mask = np.zeros((h, w), bool)
     for i in range(1, num):
         area = stats[i, cv2.CC_STAT_AREA]
         top = stats[i, cv2.CC_STAT_TOP]
-        # Exterior sky (area > 400k), streamer-drum pocket (area ~12k), ribbon gap (~370), cab window (~1.4k)
+        # Exterior sky (area > 400k), streamer-drum pocket (area ~12k), ribbon gap (~370)
         if area > 300 and top < 450:
             sky_mask[labels == i] = True
 
@@ -80,17 +80,23 @@ def process_drum():
     sky_mask[:650, 1060:] = True
     sky_mask[:250, :110] = True
 
-    # Remove extra hanging red strip next to the square gold flag:
-    extra_red_strip = (xx >= 800) & (xx <= 860) & (yy >= 200) & (yy <= 450) & (dist_out > 1.0)
-    sky_mask[extra_red_strip] = True
-
-    # Clear air buffer to the right of front flagpole (removes floating black specks):
+    # Clear air buffer to right of front flagpole:
     pole1_air = (xx >= 349) & (xx <= 390) & (yy >= 40) & (yy <= 200)
     sky_mask[pole1_air] = True
 
     # Clear air buffer around rear flagpole below square flag:
     pole2_air = (xx >= 1010) & (xx <= 1040) & (yy >= 365) & (yy <= 550)
     sky_mask[pole2_air] = True
+
+    # Remove extra hanging red strip next to the square gold flag:
+    extra_red_strip = (xx >= 800) & (xx <= 860) & (yy >= 200) & (yy <= 450) & (dist_out > 1.0)
+    sky_mask[extra_red_strip] = True
+
+    # Remove red parts in red square (Driver's cab window opening):
+    # Window opening in Drum.png: x in [195, 290], y in [260, 410], preserving gold structural pillars
+    is_gold_pillar = (hsv[:, :, 0] >= 15) & (hsv[:, :, 0] <= 35) & (hsv[:, :, 1] > 35) & (hsv[:, :, 2] > 55)
+    cab_window_clear = (xx >= 195) & (xx <= 290) & (yy >= 260) & (yy <= 410) & (~is_gold_pillar)
+    sky_mask[cab_window_clear] = True
 
     # Ground plane removal:
     ground_mask = np.zeros((h, w), bool)
@@ -101,11 +107,14 @@ def process_drum():
     cv2.floodFill(ground_cand, g_fill, (w-1, h-1), 255)
     ground_mask |= (g_fill[1:-1, 1:-1] > 0)
 
-    # Floor / shadow cutoffs below and between wheels:
-    ground_mask[yy > 855] = True
-    ground_mask[(xx >= 255) & (xx <= 895) & (yy > 735)] = True
-    ground_mask[(xx < 110) & (yy > 710)] = True
-    ground_mask[(xx > 1035) & (yy > 730)] = True
+    # Cut ground plane directly beneath wheels and chassis (no ghost wheels):
+    ground_mask[yy > 785] = True
+    ground_mask[(xx >= 258) & (xx <= 904) & (yy > 715)] = True
+    ground_mask[(xx < 118) & (yy > 710)] = True
+    ground_mask[(xx > 1032) & (yy > 706)] = True
+
+    # Protect true wheels:
+    ground_mask[wheels_all] = False
 
     # Float silhouette:
     float_mask = (~sky_mask) & (~ground_mask)
@@ -120,23 +129,40 @@ def process_drum():
     clean_float[wheels_all | drum_ring | drum_face] = True
 
     # --- 4. Flagpoles (Clean & 100% Solid Gold) ---
+    # Front pole (x=344)
     pole1 = (np.abs(xx - 344) <= 4) & (yy >= 40) & (yy <= 245)
     finial1 = (np.hypot(xx - 344, yy - 42) <= 6)
-    pole2 = (np.abs(xx - 1018) <= 4) & (yy >= 265) & (yy <= 550)
+
+    # Middle streamer flagpole (red arrow markup): connects tip of blue pennant to drum ring
+    pole_streamer = (np.abs(xx - 833) <= 3) & (yy >= 125) & (yy <= 265)
+    finial_streamer = (np.hypot(xx - 833, yy - 125) <= 5)
+
+    # Rear pole (x=1018)
+    pole2 = (np.abs(xx - 1018) <= 4) & (yy >= 265) & (yy <= 600)
     finial2 = (np.hypot(xx - 1018, yy - 268) <= 6)
-    clean_flagpoles = pole1 | finial1 | pole2 | finial2
+
+    clean_flagpoles = pole1 | finial1 | pole_streamer | finial_streamer | pole2 | finial2
 
     # --- 5. Flags ---
     # Green Lead Flag (swallowtail pennant at front cab):
     is_green_raw = (hsv[:, :, 0] >= 35) & (hsv[:, :, 0] <= 85) & (hsv[:, :, 1] > 25) & (hsv[:, :, 2] > 30) & (xx < 344) & (yy < 220)
     green_flag = cv2.morphologyEx(is_green_raw.astype(np.uint8)*255, cv2.MORPH_CLOSE, np.ones((5, 5), np.uint8)) > 0
 
-    # Blue Flag: ONLY the pennant tip at top arch!
-    is_blue_raw = (hsv[:, :, 0] >= 90) & (hsv[:, :, 0] <= 135) & (hsv[:, :, 1] > 30) & (hsv[:, :, 2] > 40) & (yy < 200) & (xx > 600) & (xx < 800)
+    # Blue Flag: ONLY the pennant tip at top arch
+    is_blue_raw = (hsv[:, :, 0] >= 90) & (hsv[:, :, 0] <= 135) & (hsv[:, :, 1] > 30) & (hsv[:, :, 2] > 40) & (yy < 200) & (xx > 600) & (xx < 835)
     blue_pennant = cv2.morphologyEx(is_blue_raw.astype(np.uint8)*255, cv2.MORPH_CLOSE, np.ones((5, 5), np.uint8)) > 0
 
     # Square Gold Flag (at the rear, x in [860, 1016], y in [270, 360]):
     square_gold_flag = (xx >= 860) & (xx <= 1016) & (yy >= 270) & (yy <= 360) & clean_float & (dist_out > 1.0)
+
+    # --- 6. Detailing & Gold Bits (Yellow Arrows, Canopy Dome) ---
+    # Yellow Arrow 1: Notch on rear fender arch
+    fender_peak_gold = (xx >= 925) & (xx <= 965) & (yy >= 470) & (yy <= 520) & clean_float
+    # Yellow Arrow 2: Base / foot of rear flagpole
+    pole_base_gold = (xx >= 1005) & (xx <= 1030) & (yy >= 540) & (yy <= 600) & clean_float
+
+    # Black bit on top of cab canopy (near green flag) -> Make Gold:
+    roof_dome = (xx >= 330) & (xx <= 425) & (yy >= 150) & (yy <= 220) & clean_float
 
     # Red Body Panels & Streamer Ribbon:
     is_pennant_red = ((hsv[:, :, 0] < 15) | (hsv[:, :, 0] > 165)) & (hsv[:, :, 1] > 30) & (hsv[:, :, 2] > 30) & (yy < 280) & (xx > 500) & (xx < 800)
@@ -145,9 +171,10 @@ def process_drum():
     body_red = cv2.morphologyEx(body_red_raw.astype(np.uint8)*255, cv2.MORPH_CLOSE, np.ones((5, 5), np.uint8)) > 0
     body_red &= (~extra_red_strip)
     body_red &= (~square_gold_flag)
-
-    # --- 6. Black bit on top of cab canopy (near green flag) -> MAKE GOLD ---
-    roof_dome = (xx >= 330) & (xx <= 425) & (yy >= 150) & (yy <= 220) & clean_float
+    body_red &= (~fender_peak_gold)
+    body_red &= (~pole_base_gold)
+    body_red &= (~roof_dome)
+    body_red &= (~cab_window_clear)
 
     # Gold Body / Trim / Filigree:
     is_gold_raw = (hsv[:, :, 0] >= 15) & (hsv[:, :, 0] <= 35) & (hsv[:, :, 1] > 20) & (hsv[:, :, 2] > 40) & (~drum_face) & (~wheels_all) & (~green_flag) & (~blue_pennant) & (~body_red) & (yy < 800)
@@ -155,6 +182,8 @@ def process_drum():
     gold_body |= roof_dome
     gold_body |= square_gold_flag
     gold_body |= clean_flagpoles
+    gold_body |= fender_peak_gold
+    gold_body |= pole_base_gold
     gold_body |= wheels_gold
 
     # --- 7. Assemble Production 5-Color RGBA Array ---
@@ -165,18 +194,25 @@ def process_drum():
     out[clean_float & blue_pennant] = C_BLUE
     out[clean_float & green_flag] = C_GREEN
 
-    # Ensure Wheels:
-    out[wheels_black] = C_BLACK
-    out[wheels_gold] = C_GOLD
+    # Clear cab window opening:
+    out[cab_window_clear] = C_TRANSPARENT
 
-    # Ensure Flagpoles are 100% Solid Gold:
+    # Ensure Flagpoles are 100% Solid Gold (including middle streamer pole):
     out[clean_flagpoles] = C_GOLD
+
+    # Ensure Yellow Arrow Areas are 100% Gold:
+    out[fender_peak_gold] = C_GOLD
+    out[pole_base_gold] = C_GOLD
 
     # Ensure Roof Dome is 100% Solid Gold:
     out[roof_dome & clean_float] = C_GOLD
 
     # Ensure Square Flag is 100% Solid Gold:
     out[square_gold_flag & clean_float] = C_GOLD
+
+    # Ensure Wheels:
+    out[wheels_black] = C_BLACK
+    out[wheels_gold] = C_GOLD
 
     # Drum face and ring:
     out[drum_ring] = C_GOLD
@@ -205,7 +241,7 @@ def process_drum():
     color_names = {
         C_TRANSPARENT: "Transparent Background",
         C_BLACK: "Black (Chassis / Drum Face / Wheel Tires)",
-        C_GOLD: "Gold (Drum Ring / Text / Wheels Gold Rim & Hub / Flagpoles / Square Flag / Canopy Dome)",
+        C_GOLD: "Gold (Drum Ring / Text / Wheels Gold Rim & Hub / Flagpoles / Square Flag / Canopy Dome / Details)",
         C_RED: "Red (Body Panels / Streamer)",
         C_BLUE: "Blue (Streamer Pennant Tip)",
         C_GREEN: "Green (Lead Flag)"

@@ -93,6 +93,34 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### Entry: Title Drum Graphic Refinements: Accurate Wheel Centers, Cab Window Cutout, Streamer Flagpole & Gold Detailing
+* **Date:** 2026-10-08 (Imagineering Session - Title Drum Artwork Calibration & Markup Implementation)
+* **Milestone:** Milestone 6 - Wearable 3D Armor Multi-Material Artwork Assets & Float Lineup Presets
+* **Status:** Complete & Verified (`assets/title_drum.png`, `simulator/assets/title_drum.png`, `scripts/process_title_drum.py`).
+* **Implementation Details:**
+  - **Accurate Wheel Placement & Ghost Wheel Removal:**
+    - Re-anchored the two gold-outlined wheels to the exact physical wheel centers of the 3D model render:
+      - Front Wheel: Center at $(x = 188, y = 715)$, $R = 70$, with gold outer rim ($R \in [61, 70]$) and gold hubcap ($R \le 16$).
+      - Rear Wheel: Center at $(x = 968, y = 706)$, $R = 64$, with gold outer rim ($R \in [55, 64]$) and gold hubcap ($R \le 14$).
+    - Re-calibrated ground plane and undercarriage cutoffs ($y > 785$ overall, $y > 715$ between axles), fully eliminating the black ghost circles that previously sat above the synthetic wheel placements.
+  - **Cab Window Cutout (Red Square Markup):**
+    - Removed interior red horizontal bar and vertical wall artifacts in the driver's cab window opening ($x \in [195, 290], y \in [260, 410]$), converting it into clean transparent negative space ($A = 0$) while preserving the surrounding structural gold pillars.
+  - **Middle Streamer Brass Flagpole (Red Arrow Markup):**
+    - Added a vertical gold flagpole column at $x = 833$ spanning from the blue pennant streamer tip ($y = 125$) down to the top of the drum marquee ring ($y = 265$), topped with a spherical gold finial ($r = 5$).
+  - **Rear Detailing Gold Accents (Yellow Arrow Markups):**
+    - Converted the red peak/notch on the rear fender arch shoulder ($x \in [925, 965], y \in [470, 520]$) into solid gold.
+    - Converted the red base block at the bottom foot of the rear flagpole ($x \in [1005, 1030], y \in [540, 600]$) into solid gold.
+  - **Verification:**
+    - Crop dimensions: $1020 \times 789$ px.
+    - Palette verification confirmed strictly 5 flat, unshaded colors + transparent background:
+      - Transparent: 378,191 px (46.99%)
+      - Gold: 166,218 px (20.65%)
+      - Black: 162,131 px (20.15%)
+      - Red: 79,727 px (9.91%)
+      - Green: 13,516 px (1.68%)
+      - Blue: 4,997 px (0.62%)
+      - Zero unquantized colors or artifacts.
+
 ### Entry: Float 2 (The Title Drum) 5-Color Multi-Material Graphic Isolation & Default Float Integration
 * **Date:** 2026-10-08 (Imagineering Session - Title Drum 5-Color Transparent Graphic Asset & Float Preset Integration)
 * **Milestone:** Milestone 6 - Wearable 3D Armor Multi-Material Artwork Assets & Float Lineup Presets
