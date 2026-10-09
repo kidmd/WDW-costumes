@@ -93,6 +93,19 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### 2026-10-08 21:05 - Proportional LED Pill Shadows & TPU Collar Scaling for Medium/Small Sizes
+- **Proportional Physical Scale Factor (`ppm`):**
+  - Updated `renderBulb` in `simulator/app.js` to compute the pixels-per-millimeter scale factor against the active plate dimension (`selectedPlateWidthMm`: 165.1mm Small, 203.2mm Medium, 254.0mm Large) and chest graphic bounds (`gb.normW * s.width`), rather than assuming a rigid garment width.
+- **Lowered Rigid Floor Minimums:**
+  - TPU Outer Collar clamp lowered from $15 \times 9\text{px}$ to $6.0 \times 4.0\text{px}$.
+  - TPU Inner Pocket clamp lowered from $11 \times 5.5\text{px}$ to $4.5 \times 2.5\text{px}$.
+  - TPU Snap Lip clamp lowered from $16 \times 10\text{px}$ to $7.0 \times 4.8\text{px}$.
+  - Optical Window clamp lowered from $4.5\text{px}$ to $2.5\text{px}$.
+  - HTV Vinyl Pill cutout clamp lowered from $12 \times 6\text{px}$ to $4.5 \times 2.4\text{px}$.
+  - Resin Pebble LED clamp lowered from $8 \times 5.5\text{px}$ to $3.2 \times 2.4\text{px}$.
+- **Subtle Visual Styling:**
+  - Softened TPU collar drop-shadow opacity from `0.50` to `0.32` and dashed lip guide line from `0.18` to `0.12` alpha, rendering an elegant 3D chassis bevel that preserves full artwork visibility on Small and Medium size plates.
+
 ### 2026-10-08 20:58 - Fix LED Distribution on Character Artwork (Re-distribute & Presets)
 - **Eliminated Double-Transform & Off-Graphic Displacement:**
   - Fixed offscreen canvas rasterization in `scatterLedsOnGraphic`, `sampleColorAtNorm`, `sampleColorAtNormCoord`, and `resampleAllLedColors`: replaced nested `drawPetesDragon` calls that were double-applying chest bounding box offsets (`gb.normX`, `gb.normY`) with direct 1:1 image rasterization.

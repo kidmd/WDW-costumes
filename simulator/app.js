@@ -3524,16 +3524,18 @@ function renderBulb(cx, x, y, col, isHovered, isSelected, index) {
     }
 
     if (params.showTpuWindows) {
-        // Physical scale: 18.0 inch wide garment (457.2 mm)
+        // Physical scale: accurately proportional to the active plate size and chest graphic bounds
         const s = getShirtBounds();
-        const ppm = s.width / 457.2;
+        const gb = (typeof getGraphicChestBounds === 'function') ? getGraphicChestBounds() : null;
+        const plateW = (typeof selectedPlateWidthMm !== 'undefined' && selectedPlateWidthMm > 0) ? selectedPlateWidthMm : 203.2;
+        const ppm = (gb && gb.normW > 0) ? ((gb.normW * s.width) / plateW) : (s.width / 457.2);
 
-        const outerW = Math.max(15, 13.6 * ppm); // 13.6mm outer collar length (+50% walls: 1.8mm walls)
-        const outerH = Math.max(9, 8.6 * ppm);   // 8.6mm outer collar width
-        const innerW = Math.max(11, 10.0 * ppm); // 10.0mm inner pocket length
-        const innerH = Math.max(5.5, 5.0 * ppm); // 5.0mm inner pocket width
-        const lipW = Math.max(16, 15.0 * ppm);   // 15.0mm outer snap lip length (0.70mm lip extension)
-        const lipH = Math.max(10, 10.0 * ppm);   // 10.0mm outer snap lip width
+        const outerW = Math.max(6.0, 13.6 * ppm); // 13.6mm outer collar length (+50% walls: 1.8mm walls)
+        const outerH = Math.max(4.0, 8.6 * ppm);  // 8.6mm outer collar width
+        const innerW = Math.max(4.5, 10.0 * ppm); // 10.0mm inner pocket length
+        const innerH = Math.max(2.5, 5.0 * ppm);  // 5.0mm inner pocket width
+        const lipW = Math.max(7.0, 15.0 * ppm);   // 15.0mm outer snap lip length (0.70mm lip extension)
+        const lipH = Math.max(4.8, 10.0 * ppm);   // 10.0mm outer snap lip width
 
         // Optical Window Aperture:
         // Default: Ø 3.4mm Round
@@ -3542,7 +3544,7 @@ function renderBulb(cx, x, y, col, isHovered, isSelected, index) {
         const isRound30 = (winShape === 'round_30');
         const isSquare = (winShape === 'square');
         const winRadiusMm = isRound30 ? 1.5 : (isSquare ? 1.5 : 1.7);
-        const winSizePx = Math.max(4.5, winRadiusMm * 2.0 * ppm);
+        const winSizePx = Math.max(2.5, winRadiusMm * 2.0 * ppm);
 
         // Rotation (Horizontal vs Tangent to wire):
         const rotRad = (typeof getTpuWellRotationAngle === 'function') 
@@ -3562,23 +3564,23 @@ function renderBulb(cx, x, y, col, isHovered, isSelected, index) {
         } else {
             cx.rect(-lipW / 2, -lipH / 2, lipW, lipH);
         }
-        cx.strokeStyle = 'rgba(0, 255, 136, 0.18)';
-        cx.lineWidth = 0.6;
+        cx.strokeStyle = 'rgba(0, 255, 136, 0.12)';
+        cx.lineWidth = 0.5;
         cx.setLineDash([2, 2]);
         cx.stroke();
         cx.setLineDash([]);
 
-        // 1. Reinforced 13.6x8.6mm Outer Collar Outline (1.8mm walls)
+        // 1. Reinforced 13.6x8.6mm Outer Collar Outline (1.8mm walls) - Soft, elegant shadow
         cx.beginPath();
         if (typeof cx.roundRect === 'function') {
             cx.roundRect(-outerW / 2, -outerH / 2, outerW, outerH, outerH / 2);
         } else {
             cx.rect(-outerW / 2, -outerH / 2, outerW, outerH);
         }
-        cx.fillStyle = 'rgba(11, 15, 23, 0.50)';
+        cx.fillStyle = 'rgba(11, 15, 23, 0.32)';
         cx.fill();
-        cx.strokeStyle = (isHovered || isSelected) ? 'rgba(0, 255, 136, 0.90)' : 'rgba(0, 255, 136, 0.35)';
-        cx.lineWidth = (isHovered || isSelected) ? 1.5 : 0.8;
+        cx.strokeStyle = (isHovered || isSelected) ? 'rgba(0, 255, 136, 0.90)' : 'rgba(0, 255, 136, 0.28)';
+        cx.lineWidth = (isHovered || isSelected) ? 1.4 : 0.7;
         cx.stroke();
 
         // 2. 10x5mm Inner Pocket Socket Boundary
@@ -3588,13 +3590,13 @@ function renderBulb(cx, x, y, col, isHovered, isSelected, index) {
         } else {
             cx.rect(-innerW / 2, -innerH / 2, innerW, innerH);
         }
-        cx.strokeStyle = 'rgba(255, 255, 255, 0.20)';
-        cx.lineWidth = 0.6;
+        cx.strokeStyle = 'rgba(255, 255, 255, 0.16)';
+        cx.lineWidth = 0.5;
         cx.stroke();
 
         // 3. 4mm Wire Pass-Through Notches on ends
-        cx.strokeStyle = 'rgba(56, 189, 248, 0.45)';
-        cx.lineWidth = 1.0;
+        cx.strokeStyle = 'rgba(56, 189, 248, 0.40)';
+        cx.lineWidth = 0.8;
         cx.beginPath();
         cx.moveTo(-outerW / 2, 0); cx.lineTo(-innerW / 2, 0);
         cx.moveTo(innerW / 2, 0); cx.lineTo(outerW / 2, 0);
@@ -3659,13 +3661,16 @@ function renderBulb(cx, x, y, col, isHovered, isSelected, index) {
 
         cx.restore();
     } else if (params.showPillSlots) {
-        // Physical scale: 18.0 inch wide garment (457.2 mm)
+        // Physical scale: accurately proportional to active plate size
         const s = getShirtBounds();
-        const ppm = s.width / 457.2;
-        const slotW = Math.max(12, 6.0 * ppm); // 6mm slot width
-        const slotH = Math.max(6, 3.0 * ppm);  // 3mm slot height
-        const ledW = Math.max(8, 4.0 * ppm);   // 4mm pebble LED width
-        const ledH = Math.max(5.5, 3.0 * ppm); // 3mm pebble LED height
+        const gb = (typeof getGraphicChestBounds === 'function') ? getGraphicChestBounds() : null;
+        const plateW = (typeof selectedPlateWidthMm !== 'undefined' && selectedPlateWidthMm > 0) ? selectedPlateWidthMm : 203.2;
+        const ppm = (gb && gb.normW > 0) ? ((gb.normW * s.width) / plateW) : (s.width / 457.2);
+
+        const slotW = Math.max(4.5, 6.0 * ppm); // 6mm slot width
+        const slotH = Math.max(2.4, 3.0 * ppm); // 3mm slot height
+        const ledW = Math.max(3.2, 4.0 * ppm);  // 4mm pebble LED width
+        const ledH = Math.max(2.4, 3.0 * ppm);  // 3mm pebble LED height
         const angle = getLedTangentAngle(index, leds);
 
         cx.save();
