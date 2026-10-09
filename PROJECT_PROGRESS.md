@@ -93,18 +93,17 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
-### 2026-10-08 23:05 - Strain Relief Bridges & 10mm Keep-Out Visualizer on Layout Tab
-- **Interactive 2D Layout Strain Relief & Keep-Out Visualization:**
-  - Added a dedicated toggle switch `#showStrainReliefsToggle` on the Layout tab: `⚓ Show Strain Relief Bridges (10mm Keep-Out)`.
-  - Implemented `drawStrainReliefBridgesOverlay(ctx)` in `simulator/app.js` rendering:
-    1. **Physical 3D Bridge Footprints:** Scale-calibrated bridge footprints on the 2D canvas matching physical 3D chassis coordinates for both the **Bottom IN** entrance portal ($8.0\text{ mm W} \times 7.2\text{ mm H}$) and **Lateral Right OUT** exit portal ($7.2\text{ mm W} \times 8.0\text{ mm H}$).
-    2. **10.0mm Safety Clearance Keep-Out Halo:** Dashed perimeter boundary ($R = 10.0\text{ mm}$) with soft translucent fill around both bridges, providing visual guidance during LED dragging to avoid bridge encroachment.
-    3. **Through-Tunnel Zip-Tie Channels & Rim U-Notches:** Rendered the internal under-tunnel opening ($3.2\text{ mm} \times 2.8\text{ mm}$) and perimeter drop-in U-notches with conduit connection lines.
-    4. **Color-Coded Status Badges:** Accent Emerald (`#00ff88`) for the IN portal and Accent Coral (`#ff4d6d`) for the OUT portal with high-contrast text badges (`⚓ IN STRAIN RELIEF`, `⚓ OUT STRAIN RELIEF`, `10mm KEEP-OUT`).
-  - Persisted user toggle state in `localStorage` (`msep_show_strain_reliefs`).
-  - Bumped script cache buster in `simulator/index.html` to `app.js?v=99`.
+### 2026-10-08 23:08 - Strain Relief Bridges & 10mm Keep-Out Rendering Visibility Fix
+- **Independent Canvas Overlay Rendering:**
+  - Resolved issue where strain relief bridges were hidden when `showWireTension` or `showWiring` were unselected by moving `drawStrainReliefBridgesOverlay(ctx)` completely outside the conditional wiring block in `renderSingleShirtView()`.
+  - Defaulted `params.showStrainReliefs` to `true` and updated `#showStrainReliefsToggle` with `checked` attribute so strain relief bridge locations and 10mm keep-out circles are immediately visible on initial load.
+  - Enhanced overlay visuals with:
+    1. Dotted leader lines connecting from the IN bridge tunnel directly to LED 0 and from the last LED to the OUT bridge tunnel.
+    2. Perimeter rim U-notch marker dots and solid through-conduit paths.
+    3. Glowing high-contrast badges for `⚓ IN STRAIN RELIEF` and `⚓ OUT STRAIN RELIEF` with `10mm KEEP-OUT` tags.
+  - Bumped script cache buster in `simulator/index.html` to `app.js?v=100`.
 - **Verification:**
-  - `node --check simulator/app.js` passed with zero syntax errors.
+  - `node --check simulator/app.js` passed with zero errors.
 - **Window Shape Parameter Precedence & Specs Cache Override:**
   - Diagnosed root cause why 3D preview kept reverting to square apertures when round windows were selected:
     1. In `simulator/app.js` (`loadTpuModalData`, `createTpuGraphicCutoutMesh`, and `createTpuLedPixels`), the code evaluated `specs.window_shape || params.tpuWindowShape || 'round_34'`. If an older `tpu_panel_specs.json` on disk contained `"window_shape": "square"`, it took precedence over the active UI selection `params.tpuWindowShape`.
