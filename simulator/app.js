@@ -12707,7 +12707,8 @@ function openSavePresetModal(suggestedName = null) {
                 showToast("⚠️ Please enter a preset name.");
                 return;
             }
-            await executeSave(entered, false);
+            const isWarningVisible = (duplicateWarning && duplicateWarning.style.display !== 'none');
+            await executeSave(entered, isWarningVisible);
         };
 
         const onOverwrite = async () => {
@@ -17976,9 +17977,48 @@ function exportCurrentProfileJson() {
     showToast(`⬇ Exported ${safeFilename} (${leds.length} LEDs, ${animationGroups.length} groups)`);
 }
 
-// Save Float button (Section 2 - Sidebar) opens interactive modal with duplicate checking & rename capability
+// Save Float button (Section 2 - Sidebar) saves directly to disk with instant feedback
 document.getElementById('saveProfileBtn')?.addEventListener('click', async () => {
-    await openSavePresetModal();
+    let name = (document.getElementById('profileNameInput')?.value || '').trim();
+    if (!name) {
+        const runner = (activeSingleShirtRunnerSlot !== null && activeSingleShirtRunnerSlot >= 0 && fleetRunners[activeSingleShirtRunnerSlot])
+            ? fleetRunners[activeSingleShirtRunnerSlot]
+            : (DEFAULT_FLEET_ROSTER[activeSingleShirtRunnerSlot] || DEFAULT_FLEET_ROSTER[5]);
+        name = runner ? runner.name : "Pete's Dragon";
+    }
+    
+    // Auto-append timestamp if name does not already contain a date tag
+    const timeTag = getFormattedTimestamp(false);
+    let saveName = name;
+    if (!saveName.match(/\d{4}-\d{2}-\d{2}/)) {
+        saveName = `${saveName} ${timeTag}`;
+    }
+    
+    const saveBtn = document.getElementById('saveProfileBtn');
+    if (saveBtn) {
+        saveBtn.disabled = true;
+        saveBtn.textContent = '💾 Saving...';
+    }
+    
+    try {
+        const res = await saveCurrentProfile(saveName, true);
+        if (res && res.success) {
+            if (document.getElementById('profileNameInput')) {
+                document.getElementById('profileNameInput').value = saveName;
+            }
+            showToast(`💾 Float "${saveName}" saved to disk!`);
+        } else {
+            await openSavePresetModal(name);
+        }
+    } catch (err) {
+        console.error("Save float error:", err);
+        showToast(`Save error: ${err.message}`, "error");
+    } finally {
+        if (saveBtn) {
+            saveBtn.disabled = false;
+            saveBtn.textContent = '💾 Save Float';
+        }
+    }
 });
 
 // Download & Import Float Buttons
