@@ -1315,13 +1315,14 @@ Instead of attaching a Cricut cut vinyl graphic on top of the printed plate, the
    - **🔲 3×3mm Square:** Classic square aperture matching traditional LED chip dies.
    - **Real-Time 3D Modal Carry-Over:** Selecting any aperture window shape in either the Layout Tab or within the 3D Preview Modal immediately updates the 2D canvas, shows the compilation loading spinner, and automatically re-compiles both Front and Back STLs so the 3D WebGL preview and downloaded files 100% match the chosen aperture geometry.
 
-4. **5.0mm Wire Channel Opening Clearance & Live Red Dragging Feedback:**
+4. **3.0mm Side & 5.0mm Wire Channel Opening Clearances with Live Red Feedback:**
+   - **3.0mm Lateral / Side Clearance:** Enforces a dedicated $3.0\text{ mm}$ side clearance buffer between adjacent collar side walls (lateral center-to-center distance $\ge 11.6\text{ mm}$), ensuring snap clips slide on smoothly without colliding with neighboring LED sockets.
    - **5.0mm Linear Channel Corridors:** Enforces a dedicated $5.0\text{ mm}$ clear corridor in front of each wire notch opening along the collar's longitudinal axis ($\pm \vec{u}_i$), preventing wire binding or sharp $90^\circ$ kinks upon exit.
    - **Live Red Visual Warning & Highlighting:**
-     - Whenever an LED is moved or placed such that an adjacent collar or obstacle encroaches within $5.0\text{ mm}$ of its wire channel opening, the collar outline instantly turns **Vibrant Red (`#ff3366`)** with a thicker 2.2px border.
-     - The blocked channel entrance displays a red shaded rectangular corridor indicator (`rgba(255, 51, 102, 0.40)`).
-     - The selection halo and crosshairs switch to red, and a floating **`⚠️ 5mm Clearance`** warning badge is displayed directly above the dragged LED.
-   - **PBD Relaxation Solver & Dynamic Clamping:** Both the manual dragging engine (`clampLedNoCollarOverlap`) and the automated PBD relaxation solver (`relaxLedCollarOverlaps`) actively enforce the $18.6\text{ mm}$ center-to-center longitudinal clearance ($6.8\text{ mm} + 6.8\text{ mm} + 5.0\text{ mm}$ buffer) and $8.6\text{ mm}$ lateral width.
+     - Whenever an LED is moved or placed such that an adjacent collar encroaches within $3.0\text{ mm}$ on the sides or $5.0\text{ mm}$ in front of the channel opening, the collar outline instantly turns **Vibrant Red (`#ff3366`)** with a thicker 2.2px border.
+     - Blocked channel openings display red shaded rectangular corridor indicators (`rgba(255, 51, 102, 0.40)`), and blocked side flanks display red lateral buffer indicators (`rgba(255, 51, 102, 0.25)`).
+     - The selection halo and crosshairs switch to red, and a floating **`⚠️ 5mm Clearance`** (or `⚠️ Side Clearance < 3mm`) warning badge is displayed directly above the dragged LED.
+   - **PBD Relaxation Solver & Dynamic Clamping:** Both the manual dragging engine (`clampLedNoCollarOverlap`) and the automated PBD relaxation solver (`relaxLedCollarOverlaps`) actively enforce the $18.6\text{ mm}$ center-to-center longitudinal clearance ($6.8\text{ mm} + 6.8\text{ mm} + 5.0\text{ mm}$ buffer) and $11.6\text{ mm}$ lateral width ($4.3\text{ mm} + 4.3\text{ mm} + 3.0\text{ mm}$ side clearance).
 
 5. **Heavy-Duty Monolithic Strain Relief Bridges (Entrance & Lateral Exit Clearances):**
    - **10.0mm Bridge Repulsion Buffer:** The first, last, and intermediate LEDs are strictly maintained at $\ge 10.0\text{ mm}$ clearance distance from both the bottom entrance and lateral exit strain relief bridge structures.

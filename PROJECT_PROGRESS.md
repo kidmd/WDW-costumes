@@ -111,6 +111,14 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
   - Updated `showPillSlots` and `showTpuWindows` in `renderBulb` to use `getTpuWellRotationAngle(index, leds)`.
   - Updated `computeTpuLayoutSignature()` to hash per-LED rotation angles, ensuring rotating an LED automatically invalidates stale STLs and triggers re-compilation.
 
+### 2026-10-08 21:50 - 3mm Side Clearance Refinement & Visual Buffer Indicators
+- **3.0mm Side / Lateral Clearance Enforcement:**
+  - Updated `checkLedClearanceStatus` in `simulator/app.js` and PBD relaxation solver in `scripts/compile_clean_tpu_panel.py` to enforce a $3.0\text{mm}$ side clearance buffer between adjacent collar side walls (lateral center-to-center distance $\ge 11.6\text{mm}$, calculated as $4.3\text{mm} + 4.3\text{mm} + 3.0\text{mm}$).
+  - Updated `clampLedNoCollarOverlap` and `relaxLedCollarOverlaps` to maintain both the $18.6\text{mm}$ channel opening corridor ($5.0\text{mm}$ in front of wire openings) and $11.6\text{mm}$ lateral collar spacing ($3.0\text{mm}$ side clearance).
+  - Added dual $3.0\text{mm}$ red lateral buffer indicators in `renderBulb` whenever side clearance is violated.
+- **Python Compiler & 3D Export Verification:**
+  - Recompiled front and back plates in 8.50s; verified PBD solver convergence with max shift $\le 0.01\text{mm}$.
+
 ### 2026-10-08 21:40 - Optical Aperture Carryover, 5mm Channel Clearance & Live Red Drag Feedback, Strain Relief Clearances & Clean Monolithic Bridges
 - **Circular & Square Optical Aperture Carry-Over to 3D Preview:**
   - Updated `setTpuWindowShape` and `setTpuWellOrientation` in `simulator/app.js` to automatically display the compilation loading overlay and re-compile/reload the 3D viewer when toggling window shape (`Ø 3.4mm Round`, `Ø 3.0mm Round`, `3x3mm Square`) or well orientation while the 3D Armor Panel modal is open.

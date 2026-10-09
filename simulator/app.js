@@ -3647,6 +3647,18 @@ function renderBulb(cx, x, y, col, isHovered, isSelected, index) {
             cx.setLineDash([]);
         }
 
+        // 3b. 3.0mm Side / Lateral Clearance Indicators
+        const sideClearancePx = 3.0 * ppm;
+        if (clrStatus.sideBlocked) {
+            cx.fillStyle = 'rgba(255, 51, 102, 0.25)';
+            cx.fillRect(-outerW / 2, -outerH / 2 - sideClearancePx, outerW, sideClearancePx);
+            cx.fillRect(-outerW / 2, outerH / 2, outerW, sideClearancePx);
+            cx.strokeStyle = '#ff3366';
+            cx.lineWidth = 1.0;
+            cx.strokeRect(-outerW / 2, -outerH / 2 - sideClearancePx, outerW, sideClearancePx);
+            cx.strokeRect(-outerW / 2, outerH / 2, outerW, sideClearancePx);
+        }
+
         cx.strokeStyle = (!clrStatus.isClear) ? 'rgba(255, 51, 102, 0.90)' : 'rgba(56, 189, 248, 0.40)';
         cx.lineWidth = 0.8;
         cx.beginPath();
@@ -11847,7 +11859,7 @@ window.getTpuBridgeLocationsNorm = getTpuBridgeLocationsNorm;
 
 function checkLedClearanceStatus(index, ledsList) {
     if (!ledsList || index < 0 || index >= ledsList.length) {
-        return { isClear: true, opening1Blocked: false, opening2Blocked: false, bridgeBlocked: false, overlapBlocked: false, reason: '' };
+        return { isClear: true, sideBlocked: false, opening1Blocked: false, opening2Blocked: false, bridgeBlocked: false, overlapBlocked: false, reason: '' };
     }
     const gb = (typeof getGraphicChestBounds === 'function') ? getGraphicChestBounds() : null;
     const plateW = (typeof selectedPlateWidthMm !== 'undefined' && selectedPlateWidthMm > 0) ? selectedPlateWidthMm : 203.2;
@@ -11865,6 +11877,7 @@ function checkLedClearanceStatus(index, ledsList) {
     const ux = Math.cos(rotRad);
     const uy = Math.sin(rotRad);
 
+    let sideBlocked = false;
     let opening1Blocked = false;
     let opening2Blocked = false;
     let overlapBlocked = false;
@@ -11882,17 +11895,21 @@ function checkLedClearanceStatus(index, ledsList) {
         const projL = dxMm * ux + dyMm * uy;
         const projW = Math.abs(-dxMm * uy + dyMm * ux);
 
-        // Collar body overlap check (13.6mm L x 8.6mm W outer dimensions)
+        // A. Collar body collision check (13.6mm L x 8.6mm W outer dimensions)
         if (Math.abs(projL) < 13.6 && projW < 8.6) {
             overlapBlocked = true;
             reason = `Collar collision with LED #${j + 1}`;
             break;
         }
 
-        // 5.0mm channel opening corridor clearance
-        // Corridor extends 5.0mm beyond collar ends (from 6.8mm to 11.8mm).
-        // Since neighboring collar extends 6.8mm, center-to-center distance along axis is < 18.6mm.
-        if (projW < 8.0) {
+        // B. 3.0mm Side / Lateral Clearance (11.6mm center-to-center minimum lateral distance)
+        if (Math.abs(projL) < 13.6 && projW < 11.6) {
+            sideBlocked = true;
+            if (!reason) reason = `Side clearance < 3mm from LED #${j + 1} (${Math.max(0, projW - 8.6).toFixed(1)}mm)`;
+        }
+
+        // C. 5.0mm Channel Opening Clearance Corridor (extends 5mm forward in front of openings)
+        if (projW < 8.6) {
             if (projL > 4.5 && projL < 18.6) {
                 opening1Blocked = true;
                 if (!reason) reason = `Opening 1 blocked by LED #${j + 1} (<5mm channel clearance)`;
@@ -11916,9 +11933,10 @@ function checkLedClearanceStatus(index, ledsList) {
         reason = `Exit Strain Relief clearance < 10mm (${dExitMm.toFixed(1)}mm)`;
     }
 
-    const isClear = !overlapBlocked && !opening1Blocked && !opening2Blocked && !bridgeBlocked;
+    const isClear = !overlapBlocked && !sideBlocked && !opening1Blocked && !opening2Blocked && !bridgeBlocked;
     return {
         isClear,
+        sideBlocked,
         opening1Blocked,
         opening2Blocked,
         bridgeBlocked,
@@ -11957,7 +11975,7 @@ function clampLedNoCollarOverlap(targetX, targetY, movingIndex, ledsArray) {
             const projW = Math.abs(-dxMm * uy + dyMm * ux);
 
             const reqL = 18.6; // 6.8 + 6.8 + 5.0mm channel opening corridor
-            const reqW = 8.6;
+            const reqW = 11.6; // 4.3 + 4.3 + 3.0mm side clearance
 
             if (Math.abs(projL) < reqL && projW < reqW) {
                 const penL = reqL - Math.abs(projL);
@@ -12024,8 +12042,8 @@ function relaxLedCollarOverlaps(ledsList, iterations = 35) {
                 const projL = dxMm * ux_i + dyMm * uy_i;
                 const projW = Math.abs(-dxMm * uy_i + dyMm * ux_i);
 
-                const reqL = 18.6;
-                const reqW = 8.6;
+                const reqL = 18.6; // 5mm channel opening corridor
+                const reqW = 11.6; // 3mm side clearance
 
                 if (Math.abs(projL) < reqL && projW < reqW) {
                     const penL = reqL - Math.abs(projL);
