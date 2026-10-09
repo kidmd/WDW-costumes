@@ -93,18 +93,15 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
-### 2026-10-08 22:05 - Exact 2.5mm Stadium Capsule Clearance Engine & False-Positive Fix
-- **True Stadium Capsule Segment-to-Segment Euclidean Distance:**
-  - Diagnosed root cause of all LEDs falsely turning red: the previous projection box check (`Math.abs(projL) < 13.6 && projW < 11.6`) falsely treated adjacent in-line bulbs along curved character contours as side collisions because their lateral offset was small ($< 11.6\text{mm}$) and longitudinal distance was $< 13.6\text{mm}$.
-  - Replaced projection box checking with exact 2D segment-to-segment Euclidean distance between stadium capsule spines:
-    - Central spine length for $13.6\text{mm} \times 8.6\text{mm}$ collar is $5.0\text{mm}$ (from $\vec{c}_i - 2.5\vec{u}_i$ to $\vec{c}_i + 2.5\vec{u}_i$, radius $R = 4.3\text{mm}$).
-    - Physical collar clearance $= d_{\text{seg}}(\text{spine}_i, \text{spine}_j) - 8.6\text{mm}$.
-    - Required spine distance for $\ge 2.5\text{mm}$ clearance: $8.6\text{mm} + 2.5\text{mm} = 11.1\text{mm}$.
-  - Completely eliminated false-positive red warnings on normally spaced LEDs; only collars that genuinely violate the $2.5\text{mm}$ clearance threshold (or $< 10\text{mm}$ from strain relief bridges) now render in red.
-- **Unified 2.5mm Clearance Rule Across Simulator & STL Compilers:**
-  - Updated `checkLedClearanceStatus`, `clampLedNoCollarOverlap`, and `relaxLedCollarOverlaps` in `simulator/app.js` to enforce the $2.5\text{mm}$ clearance standard.
-  - Updated warning badges in `renderBulb` to display `⚠️ <2.5mm Clearance`.
-  - Updated `scripts/compile_clean_tpu_panel.py` PBD relaxation solver to enforce `SIDE_CLEARANCE_MM = 2.5` and `OPENING_CLEARANCE_MM = 2.5` (`req_dist = 11.1mm`).
+### 2026-10-08 22:10 - Wire Entrance Corridor Clearance Standard & Side Wall Tab Cleanup
+- **Wire Entrance / Exit Corridor Focus:**
+  - Clarified clearance standard per user requirements: checking is strictly focused on the wire entrance and exit notches at both ends of each LED collar ($\pm \vec{u}_i$), enforcing a $2.5\text{ mm}$ clear corridor in front of each wire notch so wires enter/exit cleanly without kinks or pinching.
+  - Side walls of adjacent collars are allowed to sit close to each other without triggering false red warnings, provided they do not physically collide ($d_{\text{physical}} \ge 0.0\text{ mm}$, spine distance $\ge 8.6\text{ mm}$).
+- **Removal of Red Side Wall Tabs:**
+  - Removed lateral side-wall buffer indicator rectangles that previously rendered red boxes on the long side walls of collars.
+  - Retained wire entrance/exit notch indicators at $+X$ and $-X$ collar ends, which outline in red only when an adjacent collar obstructs that specific wire entrance.
+- **Dynamic Clamping & Relaxation Synchronization:**
+  - Updated `checkLedClearanceStatus`, `clampLedNoCollarOverlap`, and `relaxLedCollarOverlaps` in `simulator/app.js` and `scripts/compile_clean_tpu_panel.py` to enforce zero collar collision (`req_dist = 8.6mm`), $2.5\text{ mm}$ wire entrance clearance, and $10.0\text{ mm}$ bridge clearance.
 
 ### 2026-10-08 21:26 - 3D File LED Well Orientation Synchronization & Individual LED Rotation Engine
 - **3D File & Slicer Orientation Alignment:**

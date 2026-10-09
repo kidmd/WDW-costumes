@@ -219,12 +219,11 @@ def compile_plate_variant(variant_name, width_mm, height_mm, raw_leds, artwork_p
     pts = np.array([[l['x'], l['y']] for l in leds], dtype=np.float64)
     orig_pts = pts.copy()
     # 13.6mm outer length (5.0mm straight segment) x 8.6mm outer width (4.3mm radius)
-    # 2.5mm clearance allowance: center distance >= 8.6mm + 2.5mm = 11.1mm
-    SIDE_CLEARANCE_MM = 2.5                      # 2.5 mm lateral side clearance
-    req_dist = COLLAR_OUTER_W + SIDE_CLEARANCE_MM # 11.1 mm center-to-center minimum lateral clearance
+    # req_dist = 8.6mm ensures zero physical collar overlap
+    req_dist = COLLAR_OUTER_W                    # 8.6 mm zero-overlap physical boundary
     COLLAR_HALF_L = COLLAR_OUTER_L / 2.0         # 6.8 mm
     COLLAR_HALF_W = COLLAR_OUTER_W / 2.0         # 4.3 mm
-    OPENING_CLEARANCE_MM = 2.5                   # 2.5 mm clearance in front of each channel opening
+    OPENING_CLEARANCE_MM = 2.5                   # 2.5 mm clearance in front of each wire channel opening
 
     bounds = safe_art_boundary.bounds if safe_art_boundary is not None else (0.0, 0.0, width_mm, height_mm)
     cx_mid = (bounds[0] + bounds[2]) / 2.0
@@ -251,7 +250,7 @@ def compile_plate_variant(variant_name, width_mm, height_mm, raw_leds, artwork_p
                 dy = pts[j, 1] - pts[i, 1]
                 center_dist = np.hypot(dx, dy)
                 
-                # Check center clearance (11.6mm for 3mm side clearance)
+                # Check physical collar overlap (8.6mm zero-overlap boundary)
                 if center_dist < req_dist:
                     pen = req_dist - center_dist
                     if center_dist < 1e-4:
@@ -265,10 +264,10 @@ def compile_plate_variant(variant_name, width_mm, height_mm, raw_leds, artwork_p
                     pts[i] -= [push_x, push_y]
                     pts[j] += [push_x, push_y]
 
-                # Check 5mm clearance in front of LED i's openings along dir_i
-                proj_i = dx * dir_i[0] + dy * dir_i[1]
+                # Check 2.5mm clearance in front of LED i's wire openings along dir_i
+                proj_i = dx * dir_i[0] + dir_i[1] * dy
                 perp_i = abs(-dx * dir_i[1] + dy * dir_i[0])
-                if abs(proj_i) < (COLLAR_HALF_L + OPENING_CLEARANCE_MM) and perp_i < (COLLAR_HALF_W + SIDE_CLEARANCE_MM):
+                if abs(proj_i) < (COLLAR_HALF_L + OPENING_CLEARANCE_MM) and perp_i < COLLAR_HALF_W:
                     pen_op = (COLLAR_HALF_L + OPENING_CLEARANCE_MM) - abs(proj_i)
                     sgn = 1.0 if proj_i >= 0 else -1.0
                     push_vec = dir_i * (sgn * pen_op * 0.30)

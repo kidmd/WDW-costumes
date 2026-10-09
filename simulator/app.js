@@ -3609,11 +3609,11 @@ function renderBulb(cx, x, y, col, isHovered, isSelected, index) {
         cx.lineWidth = 0.5;
         cx.stroke();
 
-        // 3. 4mm Wire Pass-Through Notches & 3.0mm Channel Clearance Indicators
-        const channelCorridorL = 3.0 * ppm;
+        // 3. 4mm Wire Pass-Through Notches & 2.5mm Channel Clearance Indicators
+        const channelCorridorL = 2.5 * ppm;
         const channelCorridorH = Math.max(3.5, 4.0 * ppm);
 
-        // Opening 1 (+X direction)
+        // Opening 1 (+X direction - Wire Entrance/Exit)
         if (clrStatus.opening1Blocked) {
             cx.fillStyle = 'rgba(255, 51, 102, 0.35)';
             cx.fillRect(outerW / 2, -channelCorridorH / 2, channelCorridorL, channelCorridorH);
@@ -3630,7 +3630,7 @@ function renderBulb(cx, x, y, col, isHovered, isSelected, index) {
             cx.setLineDash([]);
         }
 
-        // Opening 2 (-X direction)
+        // Opening 2 (-X direction - Wire Entrance/Exit)
         if (clrStatus.opening2Blocked) {
             cx.fillStyle = 'rgba(255, 51, 102, 0.35)';
             cx.fillRect(-outerW / 2 - channelCorridorL, -channelCorridorH / 2, channelCorridorL, channelCorridorH);
@@ -3645,18 +3645,6 @@ function renderBulb(cx, x, y, col, isHovered, isSelected, index) {
             cx.setLineDash([2, 2]);
             cx.strokeRect(-outerW / 2 - channelCorridorL, -channelCorridorH / 2, channelCorridorL, channelCorridorH);
             cx.setLineDash([]);
-        }
-
-        // 3b. 3.0mm Side / Lateral Clearance Indicators
-        const sideClearancePx = 3.0 * ppm;
-        if (clrStatus.sideBlocked) {
-            cx.fillStyle = 'rgba(255, 51, 102, 0.25)';
-            cx.fillRect(-outerW / 2, -outerH / 2 - sideClearancePx, outerW, sideClearancePx);
-            cx.fillRect(-outerW / 2, outerH / 2, outerW, sideClearancePx);
-            cx.strokeStyle = '#ff3366';
-            cx.lineWidth = 1.0;
-            cx.strokeRect(-outerW / 2, -outerH / 2 - sideClearancePx, outerW, sideClearancePx);
-            cx.strokeRect(-outerW / 2, outerH / 2, outerW, sideClearancePx);
         }
 
         cx.strokeStyle = (!clrStatus.isClear) ? 'rgba(255, 51, 102, 0.90)' : 'rgba(56, 189, 248, 0.40)';
@@ -11918,20 +11906,19 @@ function checkLedClearanceStatus(index, ledsList) {
     const a2x = curXmm + spineHalf * ux;
     const a2y = curYmm + spineHalf * uy;
 
-    // 2.5mm channel exit corridors
+    // 2.5mm wire entrance/exit clearance corridors at both ends of the collar
     const op1_start_x = curXmm + 6.8 * ux, op1_start_y = curYmm + 6.8 * uy;
     const op1_end_x = curXmm + 9.3 * ux, op1_end_y = curYmm + 9.3 * uy;
     const op2_start_x = curXmm - 6.8 * ux, op2_start_y = curYmm - 6.8 * uy;
     const op2_end_x = curXmm - 9.3 * ux, op2_end_y = curYmm - 9.3 * uy;
 
-    let sideBlocked = false;
     let opening1Blocked = false;
     let opening2Blocked = false;
     let overlapBlocked = false;
     let bridgeBlocked = false;
     let reason = '';
 
-    // 1. Check against other LEDs using stadium capsule Euclidean distance
+    // 1. Check against other LEDs
     for (let j = 0; j < ledsList.length; j++) {
         if (j === index) continue;
         const other = ledsList[j];
@@ -11952,29 +11939,23 @@ function checkLedClearanceStatus(index, ledsList) {
         const spineDist = distSegmentToSegment(a1x, a1y, a2x, a2y, b1x, b1y, b2x, b2y);
         const physicalClearanceMm = spineDist - 8.6; // 8.6mm is 2 * 4.3mm outer collar radius
 
-        // A. Collar overlap / collision (< 0mm clearance)
+        // A. Physical Collar Overlap / Collision (< 0mm clearance)
         if (physicalClearanceMm < 0.05) {
             overlapBlocked = true;
             reason = `Collar collision with LED #${j + 1}`;
             break;
         }
 
-        // B. 2.5mm Physical Clearance Violation (< 2.5mm clearance)
-        if (physicalClearanceMm < 2.5) {
-            sideBlocked = true;
-            if (!reason) reason = `Clearance < 2.5mm from LED #${j + 1} (${Math.max(0, physicalClearanceMm).toFixed(1)}mm)`;
-        }
-
-        // C. 2.5mm Channel Opening Clearance Corridor checks
-        const distToOp1 = Math.sqrt(distPointToSegmentSq(op1_end_x, op1_end_y, b1x, b1y, b2x, b2y));
+        // B. Wire Entrance / Exit Clearance Corridor Checks (2.5mm clear space in front of wire openings)
+        const distToOp1 = distSegmentToSegment(op1_start_x, op1_start_y, op1_end_x, op1_end_y, b1x, b1y, b2x, b2y);
         if (distToOp1 < 4.3) {
             opening1Blocked = true;
-            if (!reason) reason = `Opening 1 blocked by LED #${j + 1} (<2.5mm channel clearance)`;
+            if (!reason) reason = `Wire entrance 1 blocked by LED #${j + 1} (<2.5mm clearance)`;
         }
-        const distToOp2 = Math.sqrt(distPointToSegmentSq(op2_end_x, op2_end_y, b1x, b1y, b2x, b2y));
+        const distToOp2 = distSegmentToSegment(op2_start_x, op2_start_y, op2_end_x, op2_end_y, b1x, b1y, b2x, b2y);
         if (distToOp2 < 4.3) {
             opening2Blocked = true;
-            if (!reason) reason = `Opening 2 blocked by LED #${j + 1} (<2.5mm channel clearance)`;
+            if (!reason) reason = `Wire entrance 2 blocked by LED #${j + 1} (<2.5mm clearance)`;
         }
     }
 
@@ -11991,10 +11972,10 @@ function checkLedClearanceStatus(index, ledsList) {
         reason = `Exit Strain Relief clearance < 10mm (${dExitMm.toFixed(1)}mm)`;
     }
 
-    const isClear = !overlapBlocked && !sideBlocked && !opening1Blocked && !opening2Blocked && !bridgeBlocked;
+    const isClear = !overlapBlocked && !opening1Blocked && !opening2Blocked && !bridgeBlocked;
     return {
         isClear,
-        sideBlocked,
+        sideBlocked: false,
         opening1Blocked,
         opening2Blocked,
         bridgeBlocked,
@@ -12022,7 +12003,7 @@ function clampLedNoCollarOverlap(targetX, targetY, movingIndex, ledsArray) {
     const ux = Math.cos(curRot);
     const uy = Math.sin(curRot);
     const spineHalf = 2.5;
-    const reqDist = 8.6 + 2.5; // 11.1mm spine-to-spine for 2.5mm physical clearance
+    const reqDist = 8.6; // 8.6mm spine-to-spine for zero physical collar overlap
 
     for (let iter = 0; iter < 6; iter++) {
         const curXmm = x / mmToNormX;
@@ -12031,6 +12012,11 @@ function clampLedNoCollarOverlap(targetX, targetY, movingIndex, ledsArray) {
         const a1y = curYmm - spineHalf * uy;
         const a2x = curXmm + spineHalf * ux;
         const a2y = curYmm + spineHalf * uy;
+
+        const op1_start_x = curXmm + 6.8 * ux, op1_start_y = curYmm + 6.8 * uy;
+        const op1_end_x = curXmm + 9.3 * ux, op1_end_y = curYmm + 9.3 * uy;
+        const op2_start_x = curXmm - 6.8 * ux, op2_start_y = curYmm - 6.8 * uy;
+        const op2_end_x = curXmm - 9.3 * ux, op2_end_y = curYmm - 9.3 * uy;
 
         for (let j = 0; j < ledsArray.length; j++) {
             if (j === movingIndex) continue;
@@ -12049,6 +12035,7 @@ function clampLedNoCollarOverlap(targetX, targetY, movingIndex, ledsArray) {
             const b2x = othXmm + spineHalf * othUx;
             const b2y = othYmm + spineHalf * othUy;
 
+            // 1. Prevent physical collar collision
             const spineDist = distSegmentToSegment(a1x, a1y, a2x, a2y, b1x, b1y, b2x, b2y);
             if (spineDist < reqDist) {
                 const pen = reqDist - spineDist;
@@ -12059,6 +12046,20 @@ function clampLedNoCollarOverlap(targetX, targetY, movingIndex, ledsArray) {
                 const ny = (distMm > 1e-4) ? (dyMm / distMm) : 1.0;
                 x += nx * pen * mmToNormX * 0.55;
                 y += ny * pen * mmToNormY * 0.55;
+            }
+
+            // 2. Wire entrance corridor repulsion (2.5mm corridor)
+            const distToOp1 = distSegmentToSegment(op1_start_x, op1_start_y, op1_end_x, op1_end_y, b1x, b1y, b2x, b2y);
+            if (distToOp1 < 4.3) {
+                const penOp1 = 4.3 - distToOp1;
+                x += ux * penOp1 * mmToNormX * 0.40;
+                y += uy * penOp1 * mmToNormY * 0.40;
+            }
+            const distToOp2 = distSegmentToSegment(op2_start_x, op2_start_y, op2_end_x, op2_end_y, b1x, b1y, b2x, b2y);
+            if (distToOp2 < 4.3) {
+                const penOp2 = 4.3 - distToOp2;
+                x -= ux * penOp2 * mmToNormX * 0.40;
+                y -= uy * penOp2 * mmToNormY * 0.40;
             }
         }
 
@@ -12100,7 +12101,7 @@ function relaxLedCollarOverlaps(ledsList, iterations = 35) {
     const n = ledsList.length;
     const bridges = getTpuBridgeLocationsNorm();
     const spineHalf = 2.5;
-    const reqDist = 8.6 + 2.5; // 11.1mm spine-to-spine distance for 2.5mm clearance
+    const reqDist = 8.6; // 8.6mm spine-to-spine distance for zero physical overlap
 
     for (let iter = 0; iter < iterations; iter++) {
         for (let i = 0; i < n; i++) {
@@ -12114,6 +12115,11 @@ function relaxLedCollarOverlaps(ledsList, iterations = 35) {
             const a2x = curXmm + spineHalf * ux_i;
             const a2y = curYmm + spineHalf * uy_i;
 
+            const op1_start_x = curXmm + 6.8 * ux_i, op1_start_y = curYmm + 6.8 * uy_i;
+            const op1_end_x = curXmm + 9.3 * ux_i, op1_end_y = curYmm + 9.3 * uy_i;
+            const op2_start_x = curXmm - 6.8 * ux_i, op2_start_y = curYmm - 6.8 * uy_i;
+            const op2_end_x = curXmm - 9.3 * ux_i, op2_end_y = curYmm - 9.3 * uy_i;
+
             for (let j = i + 1; j < n; j++) {
                 const othXmm = ledsList[j].x / mmToNormX;
                 const othYmm = ledsList[j].y / mmToNormY;
@@ -12125,6 +12131,7 @@ function relaxLedCollarOverlaps(ledsList, iterations = 35) {
                 const b2x = othXmm + spineHalf * ux_j;
                 const b2y = othYmm + spineHalf * uy_j;
 
+                // 1. Physical collision repulsion
                 const spineDist = distSegmentToSegment(a1x, a1y, a2x, a2y, b1x, b1y, b2x, b2y);
                 if (spineDist < reqDist) {
                     const pen = reqDist - spineDist;
@@ -12140,6 +12147,24 @@ function relaxLedCollarOverlaps(ledsList, iterations = 35) {
                     ledsList[i].y -= pushY;
                     ledsList[j].x += pushX;
                     ledsList[j].y += pushY;
+                }
+
+                // 2. Wire entrance corridor clearance
+                const distToOp1 = distSegmentToSegment(op1_start_x, op1_start_y, op1_end_x, op1_end_y, b1x, b1y, b2x, b2y);
+                if (distToOp1 < 4.3) {
+                    const penOp1 = 4.3 - distToOp1;
+                    ledsList[i].x -= ux_i * penOp1 * mmToNormX * 0.25;
+                    ledsList[i].y -= uy_i * penOp1 * mmToNormY * 0.25;
+                    ledsList[j].x += ux_i * penOp1 * mmToNormX * 0.25;
+                    ledsList[j].y += uy_i * penOp1 * mmToNormY * 0.25;
+                }
+                const distToOp2 = distSegmentToSegment(op2_start_x, op2_start_y, op2_end_x, op2_end_y, b1x, b1y, b2x, b2y);
+                if (distToOp2 < 4.3) {
+                    const penOp2 = 4.3 - distToOp2;
+                    ledsList[i].x += ux_i * penOp2 * mmToNormX * 0.25;
+                    ledsList[i].y += uy_i * penOp2 * mmToNormY * 0.25;
+                    ledsList[j].x -= ux_i * penOp2 * mmToNormX * 0.25;
+                    ledsList[j].y -= uy_i * penOp2 * mmToNormY * 0.25;
                 }
             }
 

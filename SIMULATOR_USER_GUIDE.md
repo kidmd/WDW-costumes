@@ -1315,14 +1315,14 @@ Instead of attaching a Cricut cut vinyl graphic on top of the printed plate, the
    - **🔲 3×3mm Square:** Classic square aperture matching traditional LED chip dies.
    - **Real-Time 3D Modal Carry-Over:** Selecting any aperture window shape in either the Layout Tab or within the 3D Preview Modal immediately updates the 2D canvas, shows the compilation loading spinner, and automatically re-compiles both Front and Back STLs so the 3D WebGL preview and downloaded files 100% match the chosen aperture geometry.
 
-4. **2.5mm Physical Collar & Channel Clearance with Exact Capsule Euclidean Geometry:**
-   - **2.5mm Minimum Physical Clearance:** Enforces a true $2.5\text{ mm}$ physical clearance buffer between adjacent stadium collar boundaries using exact segment-to-segment Euclidean distance between capsule spines (spine-to-spine distance $\ge 8.6\text{ mm} + 2.5\text{ mm} = 11.1\text{ mm}$), completely eliminating false-positive red warnings along natural curves.
-   - **2.5mm Linear Channel Corridors:** Enforces a dedicated $2.5\text{ mm}$ clear corridor in front of each wire notch opening along the collar's longitudinal axis ($\pm \vec{u}_i$), preventing wire binding or sharp kinks upon exit.
+4. **2.5mm Wire Entrance/Exit Clearance & Zero Collar Overlap Enforcement:**
+   - **Wire Notch Clearance Focus:** Checking is focused strictly on the wire entrance and exit notches at both ends of each LED collar ($\pm \vec{u}_i$). A dedicated $2.5\text{ mm}$ clear corridor in front of each wire notch opening is enforced so wires enter and exit cleanly without binding or pinching.
+   - **Zero Physical Collision Rule:** Collars can sit closely side-by-side along their lateral walls without triggering false red warnings, provided they do not physically intersect/collide ($d_{\text{physical}} \ge 0.0\text{ mm}$, spine distance $\ge 8.6\text{ mm}$).
    - **Live Red Visual Warning & Highlighting:**
-     - Whenever an LED is moved or placed such that an adjacent collar encroaches within $2.5\text{ mm}$ of its wire channel opening or side wall, the collar outline instantly turns **Vibrant Red (`#ff3366`)** with a thicker 2.2px border.
-     - Blocked channel openings display red shaded rectangular corridor indicators (`rgba(255, 51, 102, 0.40)`), and blocked side flanks display red lateral buffer indicators (`rgba(255, 51, 102, 0.25)`).
-     - The selection halo and crosshairs switch to red, and a floating **`⚠️ <2.5mm Clearance`** warning badge is displayed directly above the dragged LED.
-   - **PBD Relaxation Solver & Dynamic Clamping:** Both the manual dragging engine (`clampLedNoCollarOverlap`) and the automated PBD relaxation solver (`relaxLedCollarOverlaps`) actively enforce the $11.1\text{ mm}$ spine-to-spine Euclidean clearance rule ($8.6\text{ mm} + 2.5\text{ mm}$ physical clearance buffer) and $10.0\text{ mm}$ strain relief bridge repulsion buffer.
+     - When an adjacent collar encroaches into another collar's $2.5\text{ mm}$ wire entrance corridor or physically collides with its body, the collar outline turns **Vibrant Red (`#ff3366`)** with a thicker 2.2px border.
+     - Blocked wire openings display red shaded rectangular corridor indicators (`rgba(255, 51, 102, 0.35)`).
+     - Dragged LEDs display a floating warning badge indicating the specific issue (`⚠️ Wire Entrance Blocked` or `⚠️ Collision`).
+   - **PBD Relaxation Solver & Dynamic Clamping:** Both the manual dragging engine (`clampLedNoCollarOverlap`) and the automated PBD relaxation solver (`relaxLedCollarOverlaps`) actively prevent physical collar overlap (spine distance $\ge 8.6\text{ mm}$), enforce $2.5\text{ mm}$ wire entrance corridors, and maintain $10.0\text{ mm}$ bridge clearance.
 
 5. **Heavy-Duty Monolithic Strain Relief Bridges (Entrance & Lateral Exit Clearances):**
    - **10.0mm Bridge Repulsion Buffer:** The first, last, and intermediate LEDs are strictly maintained at $\ge 10.0\text{ mm}$ clearance distance from both the bottom entrance and lateral exit strain relief bridge structures.
