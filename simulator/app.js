@@ -68,7 +68,7 @@ let params = {
     showPillSlots: false,
     showTpuWindows: false,
     tpuWindowShape: 'round_34', // 'round_34' (Ø 3.4mm, default), 'round_30' (Ø 3.0mm), or 'square' (3x3mm)
-    tpuWellOrientation: 'horizontal', // 'horizontal' (0° baseline) or 'tangent' (tangent to wiring tour)
+    tpuWellOrientation: 'tangent', // 'tangent' (tangent to wiring tour, default) or 'horizontal' (0° baseline)
     ledOrderingMode: 'nearby', // 'nearby' (Nearby Neighbor entrance->exit, default) or 'wide' (Wide Spacing)
     showSymmetryAxis: false,
     liveSymmetryDrag: false,
@@ -2874,12 +2874,24 @@ function getLedTangentAngle(index, ledsList) {
     return Math.atan2(next.y - prev.y, next.x - prev.x);
 }
 
-// Calculate TPU well rotation angle in radians (or degrees for export)
+// Calculate TPU well / pill slot rotation angle in radians (or degrees for export)
 function getTpuWellRotationAngle(index, ledsList) {
-    if (params.tpuWellOrientation !== 'tangent') {
-        return 0;
+    const list = ledsList || leds;
+    if (!list || !list[index]) return 0;
+    const l = list[index];
+    if (typeof l.rotation_deg === 'number' && !isNaN(l.rotation_deg)) {
+        return (l.rotation_deg * Math.PI) / 180;
     }
-    return getLedTangentAngle(index, ledsList);
+    if (typeof l.rot === 'number' && !isNaN(l.rot)) {
+        return (l.rot * Math.PI) / 180;
+    }
+    if (typeof l.rotation === 'number' && !isNaN(l.rotation)) {
+        return (l.rotation * Math.PI) / 180;
+    }
+    if (params.tpuWellOrientation === 'tangent' || !params.tpuWellOrientation) {
+        return getLedTangentAngle(index, list);
+    }
+    return 0; // horizontal baseline
 }
 
 function computeLedWellRotations(ledsList) {
@@ -3671,7 +3683,7 @@ function renderBulb(cx, x, y, col, isHovered, isSelected, index) {
         const slotH = Math.max(2.4, 3.0 * ppm); // 3mm slot height
         const ledW = Math.max(3.2, 4.0 * ppm);  // 4mm pebble LED width
         const ledH = Math.max(2.4, 3.0 * ppm);  // 3mm pebble LED height
-        const angle = getLedTangentAngle(index, leds);
+        const angle = (typeof getTpuWellRotationAngle === 'function') ? getTpuWellRotationAngle(index, leds) : getLedTangentAngle(index, leds);
 
         cx.save();
         cx.translate(x, y);
@@ -3799,6 +3811,25 @@ function renderBulb(cx, x, y, col, isHovered, isSelected, index) {
 
     if (isSelected) {
         cx.save();
+
+        // If not in TPU or Pill mode, draw an orientation axis indicator for the selected LED
+        if (!params.showTpuWindows && !params.showPillSlots) {
+            const rotRad = (typeof getTpuWellRotationAngle === 'function') ? getTpuWellRotationAngle(index, leds) : 0;
+            cx.save();
+            cx.translate(x, y);
+            cx.rotate(rotRad);
+            cx.strokeStyle = 'rgba(0, 255, 136, 0.90)';
+            cx.lineWidth = 1.6;
+            cx.beginPath();
+            cx.moveTo(-11, 0);
+            cx.lineTo(11, 0);
+            cx.moveTo(7, -3.5);
+            cx.lineTo(11, 0);
+            cx.lineTo(7, 3.5);
+            cx.stroke();
+            cx.restore();
+        }
+
         // High-visibility cyan outer dashed ring
         cx.beginPath();
         cx.arc(x, y, 11, 0, Math.PI * 2);
@@ -7925,6 +7956,96 @@ function updateLedInspectorCoords() {
     }
 }
 
+function updateLedInspectorRotationUI() {
+    const target = (selectedLed !== null && leds[selectedLed]) ? selectedLed : (selectedLeds.size > 0 ? Array.from(selectedLeds)[0] : null);
+    if (target === null || !leds[target]) return;
+
+    const l = leds[target];
+    const isCustom = (typeof l.rotation_deg === 'number' && !isNaN(l.rotation_deg));
+    const rad = (typeof getTpuWellRotationAngle === 'function') ? getTpuWellRotationAngle(target, leds) : 0;
+    const curDeg = ((rad * 180 / Math.PI) % 360 + 360) % 360;
+
+    const slider = document.getElementById('inspectorLedAngleSlider');
+    const numInput = document.getElementById('inspectorLedAngleNum');
+    const badge = document.getElementById('inspectorLedAngleModeBadge');
+
+    if (slider) slider.value = Math.round(curDeg);
+    if (numInput) numInput.value = parseFloat(curDeg.toFixed(1));
+
+    if (badge) {
+        if (isCustom) {
+            badge.textContent = `Custom (${Math.round(curDeg)}°)`;
+            badge.style.background = '#1f6feb';
+            badge.style.color = '#fff';
+        } else {
+            const mode = (params.tpuWellOrientation === 'horizontal') ? 'Horiz (0°)' : 'Tangent';
+            badge.textContent = mode;
+            badge.style.background = '#21262d';
+            badge.style.color = '#8b949e';
+        }
+    }
+
+    // Highlight matching preset button
+    document.querySelectorAll('.angle-preset-btn').forEach(btn => {
+        const btnAng = parseFloat(btn.dataset.angle);
+        if (Math.abs(curDeg - btnAng) < 1.0) {
+            btn.style.background = '#00ff88';
+            btn.style.color = '#000';
+            btn.style.fontWeight = '700';
+        } else {
+            btn.style.background = 'transparent';
+            btn.style.color = 'var(--text-muted)';
+            btn.style.fontWeight = '500';
+        }
+    });
+}
+
+function setSelectedLedRotation(angleDeg, isCustom = true) {
+    if (selectedLeds.size === 0 && (selectedLed === null || !leds[selectedLed])) return;
+    const normDeg = parseFloat((((angleDeg % 360) + 360) % 360).toFixed(1));
+
+    if (selectedLeds.size > 0) {
+        for (const idx of selectedLeds) {
+            if (leds[idx]) {
+                if (isCustom) leds[idx].rotation_deg = normDeg;
+                else delete leds[idx].rotation_deg;
+            }
+        }
+    } else if (selectedLed !== null && leds[selectedLed]) {
+        if (isCustom) leds[selectedLed].rotation_deg = normDeg;
+        else delete leds[selectedLed].rotation_deg;
+    }
+
+    updateLedInspectorRotationUI();
+    markSingleShirtDirty();
+    renderCanvas();
+}
+
+function resetSelectedLedRotationToTangent() {
+    if (selectedLeds.size === 0 && (selectedLed === null || !leds[selectedLed])) return;
+    if (selectedLeds.size > 0) {
+        for (const idx of selectedLeds) {
+            if (leds[idx]) delete leds[idx].rotation_deg;
+        }
+    } else if (selectedLed !== null && leds[selectedLed]) {
+        delete leds[selectedLed].rotation_deg;
+    }
+    updateLedInspectorRotationUI();
+    markSingleShirtDirty();
+    renderCanvas();
+    showToast('〰️ Reset LED rotation to auto wire tangent!');
+}
+
+function nudgeSelectedLedRotation(deltaDeg) {
+    const target = (selectedLed !== null && leds[selectedLed]) ? selectedLed : (selectedLeds.size > 0 ? Array.from(selectedLeds)[0] : null);
+    if (target === null || !leds[target]) return;
+    const rad = (typeof getTpuWellRotationAngle === 'function') ? getTpuWellRotationAngle(target, leds) : 0;
+    const curDeg = rad * 180 / Math.PI;
+    const newDeg = curDeg + deltaDeg;
+    setSelectedLedRotation(newDeg, true);
+    showToast(`🔄 Rotated LED to ${Math.round(((newDeg % 360) + 360) % 360)}°`);
+}
+
 function setSelectedLedColor(r, g, b) {
     if (selectedLeds.size === 0 && (selectedLed === null || !leds[selectedLed])) return;
     const clampedR = Math.max(0, Math.min(255, Math.round(r)));
@@ -8315,6 +8436,7 @@ function updateLedInspectorUI() {
     }
 
     updateLedInspectorCoords();
+    updateLedInspectorRotationUI();
 
     // Show or hide Fireworks Burst Radius slider in Group Inspector
     const groupFwRow = document.getElementById('groupFwRadiusRow');
@@ -11415,6 +11537,11 @@ window.addEventListener('keydown', (e) => {
     } else if ((e.key === 'r' || e.key === 'R') && (e.ctrlKey || e.metaKey)) {
         e.preventDefault();
         rotateGroup(null, 90);
+    } else if ((e.key === 'r' || e.key === 'R') && !e.ctrlKey && !e.metaKey) {
+        if (selectedLed !== null || selectedLeds.size > 0) {
+            e.preventDefault();
+            nudgeSelectedLedRotation(e.shiftKey ? -15 : +15);
+        }
     } else if ((e.key === 'a' || e.key === 'A') && (e.ctrlKey || e.metaKey)) {
         e.preventDefault();
         selectAllLeds();
@@ -14113,6 +14240,45 @@ const bindRgbControl = (sliderId, numId, channel) => {
 bindRgbControl('ledRSlider', 'ledRNum', 'r');
 bindRgbControl('ledGSlider', 'ledGNum', 'g');
 bindRgbControl('ledBSlider', 'ledBNum', 'b');
+
+// Bind LED Well Angle & Rotation Controls in Inspector
+const angleSlider = document.getElementById('inspectorLedAngleSlider');
+const angleNum = document.getElementById('inspectorLedAngleNum');
+if (angleSlider && angleNum) {
+    angleSlider.addEventListener('input', (e) => {
+        const val = parseFloat(e.target.value);
+        angleNum.value = val.toFixed(1);
+        setSelectedLedRotation(val, true);
+    });
+    angleNum.addEventListener('input', (e) => {
+        let val = parseFloat(e.target.value);
+        if (isNaN(val)) val = 0;
+        angleSlider.value = Math.round(val);
+        setSelectedLedRotation(val, true);
+    });
+}
+
+document.getElementById('inspectorLedAngleResetTangentBtn')?.addEventListener('click', () => {
+    resetSelectedLedRotationToTangent();
+});
+
+document.querySelectorAll('.angle-preset-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+        const ang = parseFloat(btn.dataset.angle);
+        if (!isNaN(ang)) {
+            setSelectedLedRotation(ang, true);
+            showToast(`🔄 Set LED angle to ${ang}°`);
+        }
+    });
+});
+
+document.getElementById('inspectorRotateNudgeNegBtn')?.addEventListener('click', () => {
+    nudgeSelectedLedRotation(-15);
+});
+
+document.getElementById('inspectorRotateNudgePosBtn')?.addEventListener('click', () => {
+    nudgeSelectedLedRotation(+15);
+});
 
 document.querySelectorAll('.palette-swatch-btn').forEach(btn => {
     btn.addEventListener('click', () => {
@@ -19955,8 +20121,8 @@ function computeTpuLayoutSignature() {
     mix(String(selectedPlateWidthMm));
     mix(String(selectedPlateSize));
     mix([gb.normX, gb.normY, gb.normW, gb.normH].map(v => Number(v || 0).toFixed(4)).join(','));
-    mix((leds || []).map(l => `${Number(l.x).toFixed(4)},${Number(l.y).toFixed(4)}`).join(';'));
-    return `${currentGraphicType}-${winShape}-${wellOrient}-${numFlag}-${grvFlag}-${nubFlag}-${selectedPlateSize}-${(leds || []).length}-v3-${h.toString(16)}`;
+    mix((leds || []).map((l, i) => `${Number(l.x).toFixed(4)},${Number(l.y).toFixed(4)},${Number(getTpuWellRotationAngle(i, leds)).toFixed(2)}`).join(';'));
+    return `${currentGraphicType}-${winShape}-${wellOrient}-${numFlag}-${grvFlag}-${nubFlag}-${selectedPlateSize}-${(leds || []).length}-v4-${h.toString(16)}`;
 }
 window.computeTpuLayoutSignature = computeTpuLayoutSignature;
 
@@ -20019,7 +20185,7 @@ function setTpuWindowShape(shape) {
 window.setTpuWindowShape = setTpuWindowShape;
 
 function setTpuWellOrientation(orient) {
-    if (orient !== 'tangent' && orient !== 'horizontal') orient = 'horizontal';
+    if (orient !== 'tangent' && orient !== 'horizontal') orient = 'tangent';
     params.tpuWellOrientation = orient;
     try { localStorage.setItem('msep_tpu_well_orientation', orient); } catch (e) {}
 
@@ -20066,6 +20232,7 @@ function setTpuWellOrientation(orient) {
     }
 
     markSingleShirtDirty();
+    if (typeof updateLedInspectorRotationUI === 'function') updateLedInspectorRotationUI();
 
     // Redraw 2D canvas preview
     if (typeof draw === 'function') draw();
@@ -20226,7 +20393,7 @@ async function handleRecompileTpuStl(opts) {
             floatName: floatName,
             graphicType: currentGraphicType,
             windowShape: params.tpuWindowShape || 'round_34',
-            wellOrientation: params.tpuWellOrientation || 'horizontal',
+            wellOrientation: params.tpuWellOrientation || 'tangent',
             includeLedNumbers: params.tpuIncludeLedNumbers === true,
             includeClipGrooves: params.tpuIncludeClipGrooves === true,
             includeTopNubs: params.tpuIncludeTopNubs === true,

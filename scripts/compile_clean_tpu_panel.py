@@ -177,7 +177,7 @@ def compile_plate_variant(variant_name, width_mm, height_mm, raw_leds, artwork_p
         safe_art_boundary = sg.box(5.0, 5.0, width_mm - 5.0, height_mm - 5.0)
 
     # 2. LED Collar Orientation & Collision Avoidance
-    well_orientation = specs.get('well_orientation', 'horizontal')
+    well_orientation = specs.get('well_orientation', 'tangent')
     if '--orientation' in sys.argv:
         _oi = sys.argv.index('--orientation')
         if _oi + 1 < len(sys.argv):
@@ -186,9 +186,15 @@ def compile_plate_variant(variant_name, width_mm, height_mm, raw_leds, artwork_p
     led_rotations_deg = []
     for i in range(num_leds):
         if 'rotation_deg' in leds[i]:
-            led_rotations_deg.append(float(leds[i]['rotation_deg']))
+            # rotation_deg passed from simulator canvas (where Y increases downwards).
+            # In 3D (where Y increases upwards), the rotation angle around +Z is negated:
+            canvas_deg = float(leds[i]['rotation_deg'])
+            rot_3d = (-canvas_deg) % 360.0
+            led_rotations_deg.append(rot_3d)
         elif 'angle_deg' in leds[i]:
-            led_rotations_deg.append(float(leds[i]['angle_deg']))
+            canvas_deg = float(leds[i]['angle_deg'])
+            rot_3d = (-canvas_deg) % 360.0
+            led_rotations_deg.append(rot_3d)
         elif well_orientation == 'tangent' and num_leds > 1:
             if i == 0:
                 dx = leds[1]['x'] - leds[0]['x']

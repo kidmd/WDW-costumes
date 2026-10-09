@@ -207,6 +207,12 @@ Instead of taking up vertical space in the middle of your workflow:
 - **Active State (Selected LED or Group):** When 1 or more LEDs are selected (or when editing a saved group), the Inspector automatically expands with an illuminated gold accent border:
   - LED number stepper (`◀ Prev`, `Next ▶`, `⌖ Focus`).
   - Color preview swatch, Hex & RGB badges, and RGB sliders.
+  - **🔄 LED Well & Channel Rotation Card:**
+    - **Live Angle & Mode Badge:** Displays exact rotation in degrees (e.g. `45.0°`) and badge status (`[ 〰️ Tangent ]` or `[ 🔒 Custom XX° ]`).
+    - **Continuous Rotation Slider ($0^\circ$ to $360^\circ$):** Smoothly scrub to rotate the selected LED(s) in real time on the canvas.
+    - **`[ 〰️ Auto ]` Reset Button:** Clears manual angle override and restores the natural wire path tangent.
+    - **Quick Angle Presets & Nudges:** Instant angle buttons (`0° Horiz`, `45°`, `90° Vert`, `135°`) plus `⟲ -15°` (`Shift+R`) and `⟳ +15°` (`R`) precision nudges.
+    - **Visual Orientation Axis:** Selected LEDs display a directional green axis arrow showing the socket orientation in real time.
   - Quick Disney Palette Swatches (12 signature theme park colors).
   - Group Animation Effect creator (Zone Name, Effect Pattern, Speed BPM, Direction, Resting Baseline, and Firework Burst Radius slider).
   - One-click deselect button (`✖`).
@@ -1405,6 +1411,8 @@ Instead of attaching a Cricut cut vinyl graphic on top of the printed plate, the
 | `Ctrl + C` / `Cmd + C` | Single Shirt View | **Copy Selected Group** to global clipboard |
 | `Ctrl + V` / `Cmd + V` | Single Shirt View | **Paste Copied Group** from unused LED pool onto current shirt |
 | `Ctrl + R` / `Cmd + R` | Single Shirt View | **Rotate Selected Group 90°** Clockwise around centroid |
+| `R` | Single Shirt View | **Rotate Selected LED +15°** Clockwise (step nudge) |
+| `Shift + R` | Single Shirt View | **Rotate Selected LED -15°** Counter-Clockwise (step nudge) |
 | `Enter` | Draw Mode | **Finish & Save** drawn path animation group (when $\ge 2$ LEDs placed) |
 | `Escape` | Draw Mode | **Cancel** drawing mode and revert uncommitted points |
 | `Escape` | Normal Mode | **Deselect All** LEDs |

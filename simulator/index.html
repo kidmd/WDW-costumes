@@ -2066,6 +2066,36 @@
                         </div>
                     </div>
 
+                    <!-- LED Well / Channel Orientation & Rotation Card -->
+                    <div id="inspectorRotationCard" style="background: #0d1117; border-radius: 8px; border: 1px solid #30363d; padding: 8px 10px; display: flex; flex-direction: column; gap: 6px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <span style="font-size: 11px; font-weight: 600; color: #00ff88; display: flex; align-items: center; gap: 4px;">
+                                🔄 LED Well Angle
+                            </span>
+                            <div style="display: flex; align-items: center; gap: 4px;">
+                                <input type="number" id="inspectorLedAngleNum" min="0" max="360" step="1" value="0" style="width: 48px; background: #161b22; color: #00ff88; border: 1px solid #30363d; border-radius: 4px; padding: 2px 4px; text-align: center; font-size: 11px; font-weight: bold; font-family: monospace;">
+                                <span style="font-size: 10px; color: var(--text-muted);">deg</span>
+                                <span id="inspectorLedAngleModeBadge" style="font-size: 9px; padding: 1px 5px; border-radius: 4px; background: #21262d; color: #8b949e; font-weight: 600;">Tangent</span>
+                            </div>
+                        </div>
+                        
+                        <!-- Rotation Range Slider -->
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <input type="range" id="inspectorLedAngleSlider" min="0" max="360" step="1" value="0" style="flex: 1; accent-color: #00ff88; cursor: pointer;" title="Scrub to rotate selected LED(s) in real time">
+                            <button type="button" id="inspectorLedAngleResetTangentBtn" class="action-btn" style="padding: 2px 6px; font-size: 10px; font-weight: 600; background: #21262d; color: #38bdf8; border: 1px solid #30363d; border-radius: 4px;" title="Reset to auto-calculated tangent angle along wire">〰️ Auto</button>
+                        </div>
+
+                        <!-- Quick Preset Buttons & Steppers -->
+                        <div style="display: flex; gap: 3px; justify-content: space-between;">
+                            <button type="button" class="action-btn angle-preset-btn" data-angle="0" style="flex: 1; padding: 2px 2px; font-size: 9.5px;" title="0° Horizontal (↔️)">0°</button>
+                            <button type="button" class="action-btn angle-preset-btn" data-angle="45" style="flex: 1; padding: 2px 2px; font-size: 9.5px;" title="45° Diagonal (↗️)">45°</button>
+                            <button type="button" class="action-btn angle-preset-btn" data-angle="90" style="flex: 1; padding: 2px 2px; font-size: 9.5px;" title="90° Vertical (↕️)">90°</button>
+                            <button type="button" class="action-btn angle-preset-btn" data-angle="135" style="flex: 1; padding: 2px 2px; font-size: 9.5px;" title="135° Diagonal (↘️)">135°</button>
+                            <button type="button" id="inspectorRotateNudgeNegBtn" class="action-btn" style="padding: 2px 5px; font-size: 9.5px;" title="Rotate Counter-Clockwise -15° (Shift+R)">⟲ -15°</button>
+                            <button type="button" id="inspectorRotateNudgePosBtn" class="action-btn" style="padding: 2px 5px; font-size: 9.5px;" title="Rotate Clockwise +15° (R)">⟳ +15°</button>
+                        </div>
+                    </div>
+
                     <!-- RGB Sliders & Number Inputs -->
                     <div style="display: flex; flex-direction: column; gap: 6px;">
                         <!-- Red -->

@@ -93,6 +93,24 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### 2026-10-08 21:26 - 3D File LED Well Orientation Synchronization & Individual LED Rotation Engine
+- **3D File & Slicer Orientation Alignment:**
+  - Diagnosed root cause for 3D files exporting horizontal wells: `params.tpuWellOrientation` defaulted to `'horizontal'`, sending `0.0°` rotations to the compiler despite tangent angles appearing on 2D canvas pills.
+  - Set default `params.tpuWellOrientation = 'tangent'` across simulator, API endpoint, and compiler scripts.
+  - Implemented 2D-to-3D coordinate angle transformation in `scripts/compile_clean_tpu_panel.py`: compensated for inverted-Y coordinate space ($\theta_{\text{3D}} = -\theta_{\text{canvas}} \pmod{360}$), ensuring that in slicers (Bambu Studio, PrusaSlicer, Orca) and 3D preview, every single collar is oriented at the exact angle displayed on the Layout canvas.
+- **Individual LED Rotation Controls & Inspector Dock Card:**
+  - Added dedicated **🔄 LED Well Angle Card** to `#ledInspectorSection` in `simulator/index.html` and `simulator/app.js`:
+    - **Continuous Slider ($0^\circ$ to $360^\circ$):** Live scrubbing updates the rotation of the selected LED(s) in real time on the canvas.
+    - **Numeric Degree Input:** Direct degree entry ($0.0^\circ$ to $360.0^\circ$) with live validation.
+    - **Mode Badge:** Live indicator showing `[ 〰️ Tangent ]` or `[ 🔒 Custom XX° ]`.
+    - **`[ 〰️ Auto ]` Reset Button:** Restores automatic wire-tangent orientation and clears manual lock.
+    - **Quick Angle Presets & Nudges:** 1-click angle buttons (`0° Horiz`, `45°`, `90° Vert`, `135°`) plus `⟲ -15°` and `⟳ +15°` step buttons.
+    - **Keyboard Shortcuts:** `R` nudges rotation $+15^\circ$ clockwise; `Shift + R` nudges $-15^\circ$ counter-clockwise when LED(s) are selected.
+    - **Visual Orientation Axis:** Selected LEDs render a directional green axis arrow showing the orientation angle directly on the garment canvas.
+- **Unified Rendering & Cache Invalidation:**
+  - Updated `showPillSlots` and `showTpuWindows` in `renderBulb` to use `getTpuWellRotationAngle(index, leds)`.
+  - Updated `computeTpuLayoutSignature()` to hash per-LED rotation angles, ensuring rotating an LED automatically invalidates stale STLs and triggers re-compilation.
+
 ### 2026-10-08 21:05 - Proportional LED Pill Shadows & TPU Collar Scaling for Medium/Small Sizes
 - **Proportional Physical Scale Factor (`ppm`):**
   - Updated `renderBulb` in `simulator/app.js` to compute the pixels-per-millimeter scale factor against the active plate dimension (`selectedPlateWidthMm`: 165.1mm Small, 203.2mm Medium, 254.0mm Large) and chest graphic bounds (`gb.normW * s.width`), rather than assuming a rigid garment width.

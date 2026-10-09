@@ -1361,9 +1361,9 @@ const uint8_t PROGMEM SPATIAL_RADIUS_BYTE[FRONT_LEDS] = {{
             elif str(window_shape).lower() not in ["round_34", "round_30", "square"]:
                 window_shape = "round_34"
 
-            well_orientation = req_data.get("wellOrientation", "horizontal")
+            well_orientation = req_data.get("wellOrientation", "tangent")
             if str(well_orientation).lower() not in ["horizontal", "tangent"]:
-                well_orientation = "horizontal"
+                well_orientation = "tangent"
 
             specs = {
                 "character": f"{float_name} 3D Wearable TPU Armor Panels",
