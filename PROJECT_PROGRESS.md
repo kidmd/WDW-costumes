@@ -93,6 +93,13 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### 2026-10-08 22:28 - Horizontal Channel Orientation & 3D STL Synchronization Fix
+- **Global Horizontal Channel Alignment Enforcement:**
+  - Diagnosed root cause why horizontal alignment on the Layout tab produced tangent collars in 3D preview: `getTpuWellRotationAngle` in `simulator/app.js` and `compile_clean_tpu_panel.py` were checking `if ('rotation_deg' in leds[i])` before checking the global `well_orientation == 'horizontal'` mode. If an LED had an old tangent angle cached, it overrode the horizontal mode.
+  - Added explicit `is_custom_rotation` flag: only LEDs that have been explicitly rotated individually via the Inspector Angle controls retain their custom angle.
+  - When Channel Alignment is set to **`[ ↔️ Horizontal ]`**, all un-customized LEDs strictly evaluate to $0.0^\circ$ baseline across the 2D layout canvas, layout signature hash, API payload, and 3D STL compilation engine (`compile_clean_tpu_panel.py`).
+  - Verified compilation: running `python scripts/compile_clean_tpu_panel.py --orientation horizontal` produces 100% horizontal ($0.0^\circ$) collar pockets in the 3D meshes and `tpu_panel_specs.json`.
+
 ### 2026-10-08 22:10 - Wire Entrance Corridor Clearance Standard & Side Wall Tab Cleanup
 - **Wire Entrance / Exit Corridor Focus:**
   - Clarified clearance standard per user requirements: checking is strictly focused on the wire entrance and exit notches at both ends of each LED collar ($\pm \vec{u}_i$), enforcing a $2.5\text{ mm}$ clear corridor in front of each wire notch so wires enter/exit cleanly without kinks or pinching.

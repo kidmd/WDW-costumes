@@ -1334,6 +1334,7 @@ const uint8_t PROGMEM SPATIAL_RADIUS_BYTE[FRONT_LEDS] = {{
                     "orig_id": idx,
                     "x": px,
                     "y": py,
+                    "is_custom_rotation": bool(l.get("is_custom_rotation", False)),
                     "rotation_deg": rot_deg,
                     "color": l.get("color", {"r": 0, "g": 255, "b": 0})
                 })
@@ -1351,6 +1352,7 @@ const uint8_t PROGMEM SPATIAL_RADIUS_BYTE[FRONT_LEDS] = {{
                     "orig_id": idx,
                     "x": px,
                     "y": py,
+                    "is_custom_rotation": bool(l.get("is_custom_rotation", False)),
                     "rotation_deg": rot_deg,
                     "color": l.get("color", {"r": 0, "g": 255, "b": 0})
                 })

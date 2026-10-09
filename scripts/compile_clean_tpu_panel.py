@@ -185,7 +185,14 @@ def compile_plate_variant(variant_name, width_mm, height_mm, raw_leds, artwork_p
 
     led_rotations_deg = []
     for i in range(num_leds):
-        if 'rotation_deg' in leds[i]:
+        if leds[i].get('is_custom_rotation', False) and 'rotation_deg' in leds[i]:
+            canvas_deg = float(leds[i]['rotation_deg'])
+            rot_3d = (-canvas_deg) % 360.0
+            led_rotations_deg.append(rot_3d)
+        elif well_orientation == 'horizontal':
+            # Global Horizontal Alignment: all standard LEDs are strictly 0.0 degrees
+            led_rotations_deg.append(0.0)
+        elif 'rotation_deg' in leds[i]:
             # rotation_deg passed from simulator canvas (where Y increases downwards).
             # In 3D (where Y increases upwards), the rotation angle around +Z is negated:
             canvas_deg = float(leds[i]['rotation_deg'])
