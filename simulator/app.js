@@ -12589,11 +12589,11 @@ function openSavePresetModal(suggestedName = null) {
         const timeTag = getFormattedTimestamp(false);
         let baseFloatName = '';
         if (suggestedName && suggestedName.trim()) {
-            baseFloatName = suggestedName.trim().replace(/\s+\d{4}-\d{2}-\d{2}[_ ]\d{2}-\d{2}.*$/, '').trim();
+            baseFloatName = suggestedName.trim().replace(/\s+\d{4}-\d{2}-\d{2}(?:[ _-]\d{2}[-:]\d{2}(?:[-:]\d{2})?)?.*$/i, '').trim();
         } else {
             const inputVal = (document.getElementById('profileNameInput')?.value || '').trim();
             if (inputVal) {
-                baseFloatName = inputVal.replace(/\s+\d{4}-\d{2}-\d{2}[_ ]\d{2}-\d{2}.*$/, '').trim();
+                baseFloatName = inputVal.replace(/\s+\d{4}-\d{2}-\d{2}(?:[ _-]\d{2}[-:]\d{2}(?:[-:]\d{2})?)?.*$/i, '').trim();
             } else if (runner && runner.name) {
                 baseFloatName = runner.name;
             } else if (currentGraphicType === 'title_drum') {
@@ -17960,11 +17960,14 @@ function exportCurrentProfileJson() {
         : (DEFAULT_FLEET_ROSTER[activeSingleShirtRunnerSlot] || DEFAULT_FLEET_ROSTER[5]);
     const floatBaseName = (runner && runner.name) || (currentGraphicType === 'title_drum' ? "Title Drum" : (currentGraphicType === 'cinderellas_coach' ? "Cinderella's Coach" : "Pete's Dragon"));
     const timeTag = getFormattedTimestamp(false);
-    let enteredName = (nameInput?.value || '').trim();
-    if (!enteredName || enteredName === "Pete's Dragon 50 Outline") {
-        enteredName = `${floatBaseName} ${timeTag}`;
-    } else if (!enteredName.match(/\d{4}-\d{2}-\d{2}/)) {
-        enteredName = `${enteredName} ${timeTag}`;
+    let rawName = (nameInput?.value || '').trim();
+    let cleanBaseName = rawName.replace(/\s+\d{4}-\d{2}-\d{2}(?:[ _-]\d{2}[-:]\d{2}(?:[-:]\d{2})?)?.*$/i, '').trim();
+    if (!cleanBaseName || cleanBaseName === "Pete's Dragon 50 Outline") {
+        cleanBaseName = floatBaseName;
+    }
+    const enteredName = `${cleanBaseName} ${timeTag}`;
+    if (nameInput) {
+        nameInput.value = enteredName;
     }
     const profileData = buildCompletePresetData(enteredName);
 
@@ -17977,22 +17980,20 @@ function exportCurrentProfileJson() {
     showToast(`⬇ Exported ${safeFilename} (${leds.length} LEDs, ${animationGroups.length} groups)`);
 }
 
-// Save Float button (Section 2 - Sidebar) saves directly to disk with instant feedback
+// Save Float button (Section 2 - Sidebar) saves directly to disk with instant feedback and fresh timestamp
 document.getElementById('saveProfileBtn')?.addEventListener('click', async () => {
-    let name = (document.getElementById('profileNameInput')?.value || '').trim();
-    if (!name) {
+    let rawName = (document.getElementById('profileNameInput')?.value || '').trim();
+    let baseName = rawName.replace(/\s+\d{4}-\d{2}-\d{2}(?:[ _-]\d{2}[-:]\d{2}(?:[-:]\d{2})?)?.*$/i, '').trim();
+    if (!baseName) {
         const runner = (activeSingleShirtRunnerSlot !== null && activeSingleShirtRunnerSlot >= 0 && fleetRunners[activeSingleShirtRunnerSlot])
             ? fleetRunners[activeSingleShirtRunnerSlot]
             : (DEFAULT_FLEET_ROSTER[activeSingleShirtRunnerSlot] || DEFAULT_FLEET_ROSTER[5]);
-        name = runner ? runner.name : "Pete's Dragon";
+        baseName = runner ? runner.name : "Pete's Dragon";
     }
     
-    // Auto-append timestamp if name does not already contain a date tag
+    // Always generate fresh date & time tag for every save
     const timeTag = getFormattedTimestamp(false);
-    let saveName = name;
-    if (!saveName.match(/\d{4}-\d{2}-\d{2}/)) {
-        saveName = `${saveName} ${timeTag}`;
-    }
+    const saveName = `${baseName} ${timeTag}`;
     
     const saveBtn = document.getElementById('saveProfileBtn');
     if (saveBtn) {
@@ -18008,7 +18009,7 @@ document.getElementById('saveProfileBtn')?.addEventListener('click', async () =>
             }
             showToast(`💾 Float "${saveName}" saved to disk!`);
         } else {
-            await openSavePresetModal(name);
+            await openSavePresetModal(baseName);
         }
     } catch (err) {
         console.error("Save float error:", err);

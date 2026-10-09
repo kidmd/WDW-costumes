@@ -6,7 +6,7 @@
   "role": "\ud83d\udce1 Follower Float",
   "tag": "ELLIOTT",
   "accentColor": "#00ff88",
-  "savedAt": "2026-10-09T05:56:00.036Z",
+  "savedAt": "2026-10-09T06:18:49.690Z",
   "ledCount": 65,
   "leds": [
     {
@@ -908,5 +908,5 @@
       }
     ]
   },
-  "overwrite": false
+  "overwrite": true
 }

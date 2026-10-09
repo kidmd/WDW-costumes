@@ -66,7 +66,7 @@
       "filename": "color_white.stl"
     }
   },
-  "layout_signature": "custom_image-round_34-horizontal-num-nogrv-nub-medium-65-v6-5dd25cb1",
+  "layout_signature": "custom_image-round_34-horizontal-num-nogrv-nub-medium-65-v6-450bf3db",
   "size_preset": "medium",
   "width_mm": 227.66,
   "front": {
@@ -889,8 +889,8 @@
       {
         "id": 63,
         "orig_id": 62,
-        "x": 136.05,
-        "y": 62.4,
+        "x": 137.88,
+        "y": 54.91,
         "is_custom_rotation": false,
         "rotation_deg": 0.0,
         "color": {
@@ -902,8 +902,8 @@
       {
         "id": 64,
         "orig_id": 63,
-        "x": 151.7,
-        "y": 57.2,
+        "x": 156.71,
+        "y": 55.0,
         "is_custom_rotation": false,
         "rotation_deg": 0.0,
         "color": {
@@ -915,8 +915,8 @@
       {
         "id": 65,
         "orig_id": 64,
-        "x": 123.63,
-        "y": 72.98,
+        "x": 132.66,
+        "y": 70.16,
         "is_custom_rotation": false,
         "rotation_deg": 0.0,
         "color": {
@@ -1277,32 +1277,32 @@
         94.13
       ],
       [
-        112.27,
-        92.55
+        118.77,
+        82.55
       ],
       [
         101.38,
         86.73
       ],
       [
-        108.97,
-        69.54
+        110.47,
+        74.04
       ],
       [
         119.26,
         51.7
       ],
       [
-        136.05,
-        56.9
+        137.88,
+        49.41
       ],
       [
-        159.7,
-        57.2
+        164.71,
+        55.0
       ],
       [
-        130.13,
-        77.48
+        139.16,
+        74.66
       ]
     ],
     "contour_pts": [
@@ -1637,10 +1637,10 @@
       133.15,
       5.0
     ],
-    "stl_size": 3727784,
-    "chassis_size": 5606684,
+    "stl_size": 3710984,
+    "chassis_size": 5547084,
     "lid_size": 428084,
-    "zip_size": 2999745,
+    "zip_size": 2962246,
     "inlays": [
       {
         "key": "green",
@@ -1661,14 +1661,14 @@
         "name": "Belly & Horns",
         "filename": "tpu_panel_front_color_yellow.stl",
         "hex": "#facc15",
-        "count": 7488
+        "count": 7228
       },
       {
         "key": "white",
         "name": "Eyes & Teeth",
         "filename": "tpu_panel_front_color_white.stl",
         "hex": "#ffffff",
-        "count": 5288
+        "count": 5052
       }
     ],
     "stl_url": "/3d_panels/tpu_panel_front.stl",
@@ -1676,7 +1676,7 @@
     "lid_stl_url": "/3d_panels/tpu_panel_front_lid.stl",
     "multicolor_3mf_url": "/3d_panels/tpu_panel_front_multicolor.3mf",
     "multicolor_zip_url": "/3d_panels/tpu_panel_front_multicolor_bundle.zip",
-    "volume_mm3": 67657.3,
+    "volume_mm3": 67637.6,
     "is_watertight": false
   },
   "back": {
@@ -2499,8 +2499,8 @@
       {
         "id": 63,
         "orig_id": 62,
-        "x": 136.05,
-        "y": 62.4,
+        "x": 137.88,
+        "y": 54.91,
         "is_custom_rotation": false,
         "rotation_deg": 0.0,
         "color": {
@@ -2512,8 +2512,8 @@
       {
         "id": 64,
         "orig_id": 63,
-        "x": 151.7,
-        "y": 57.2,
+        "x": 156.71,
+        "y": 55.0,
         "is_custom_rotation": false,
         "rotation_deg": 0.0,
         "color": {
@@ -2525,8 +2525,8 @@
       {
         "id": 65,
         "orig_id": 64,
-        "x": 123.63,
-        "y": 72.98,
+        "x": 132.66,
+        "y": 70.16,
         "is_custom_rotation": false,
         "rotation_deg": 0.0,
         "color": {
@@ -2887,32 +2887,32 @@
         94.13
       ],
       [
-        112.27,
-        92.55
+        118.77,
+        82.55
       ],
       [
         101.38,
         86.73
       ],
       [
-        108.97,
-        69.54
+        110.47,
+        74.04
       ],
       [
         119.26,
         51.7
       ],
       [
-        136.05,
-        56.9
+        137.88,
+        49.41
       ],
       [
-        159.7,
-        57.2
+        164.71,
+        55.0
       ],
       [
-        130.13,
-        77.48
+        139.16,
+        74.66
       ]
     ],
     "contour_pts": [
@@ -3247,10 +3247,10 @@
       133.15,
       5.0
     ],
-    "stl_size": 3727784,
-    "chassis_size": 5606684,
+    "stl_size": 3710984,
+    "chassis_size": 5547084,
     "lid_size": 428084,
-    "zip_size": 2999719,
+    "zip_size": 2962295,
     "inlays": [
       {
         "key": "green",
@@ -3271,14 +3271,14 @@
         "name": "Belly & Horns",
         "filename": "tpu_panel_back_color_yellow.stl",
         "hex": "#facc15",
-        "count": 7488
+        "count": 7228
       },
       {
         "key": "white",
         "name": "Eyes & Teeth",
         "filename": "tpu_panel_back_color_white.stl",
         "hex": "#ffffff",
-        "count": 5288
+        "count": 5052
       }
     ],
     "stl_url": "/3d_panels/tpu_panel_back.stl",
@@ -3286,7 +3286,7 @@
     "lid_stl_url": "/3d_panels/tpu_panel_back_lid.stl",
     "multicolor_3mf_url": "/3d_panels/tpu_panel_back_multicolor.3mf",
     "multicolor_zip_url": "/3d_panels/tpu_panel_back_multicolor_bundle.zip",
-    "volume_mm3": 67657.3,
+    "volume_mm3": 67637.6,
     "is_watertight": false
   },
   "height_mm": 273.24,
@@ -4100,8 +4100,8 @@
     {
       "id": 63,
       "orig_id": 62,
-      "x": 136.05,
-      "y": 62.4,
+      "x": 137.88,
+      "y": 54.91,
       "is_custom_rotation": false,
       "rotation_deg": 0.0,
       "color": {
@@ -4113,8 +4113,8 @@
     {
       "id": 64,
       "orig_id": 63,
-      "x": 151.7,
-      "y": 57.2,
+      "x": 156.71,
+      "y": 55.0,
       "is_custom_rotation": false,
       "rotation_deg": 0.0,
       "color": {
@@ -4126,8 +4126,8 @@
     {
       "id": 65,
       "orig_id": 64,
-      "x": 123.63,
-      "y": 72.98,
+      "x": 132.66,
+      "y": 70.16,
       "is_custom_rotation": false,
       "rotation_deg": 0.0,
       "color": {
@@ -4493,32 +4493,32 @@
       94.13
     ],
     [
-      112.27,
-      92.55
+      118.77,
+      82.55
     ],
     [
       101.38,
       86.73
     ],
     [
-      108.97,
-      69.54
+      110.47,
+      74.04
     ],
     [
       119.26,
       51.7
     ],
     [
-      136.05,
-      56.9
+      137.88,
+      49.41
     ],
     [
-      159.7,
-      57.2
+      164.71,
+      55.0
     ],
     [
-      130.13,
-      77.48
+      139.16,
+      74.66
     ]
   ],
   "contour_pts": [
@@ -4853,10 +4853,10 @@
     133.15,
     5.0
   ],
-  "stl_size": 3727784,
-  "chassis_size": 5606684,
+  "stl_size": 3710984,
+  "chassis_size": 5547084,
   "lid_size": 428084,
-  "zip_size": 2999745,
+  "zip_size": 2962246,
   "inlays": [
     {
       "key": "green",
@@ -4877,14 +4877,14 @@
       "name": "Belly & Horns",
       "filename": "tpu_panel_front_color_yellow.stl",
       "hex": "#facc15",
-      "count": 7488
+      "count": 7228
     },
     {
       "key": "white",
       "name": "Eyes & Teeth",
       "filename": "tpu_panel_front_color_white.stl",
       "hex": "#ffffff",
-      "count": 5288
+      "count": 5052
     }
   ],
   "stl_url": "/3d_panels/tpu_panel_front.stl",
@@ -4892,6 +4892,6 @@
   "lid_stl_url": "/3d_panels/tpu_panel_front_lid.stl",
   "multicolor_3mf_url": "/3d_panels/tpu_panel_front_multicolor.3mf",
   "multicolor_zip_url": "/3d_panels/tpu_panel_front_multicolor_bundle.zip",
-  "volume_mm3": 67657.3,
+  "volume_mm3": 67637.6,
   "is_watertight": false
 }

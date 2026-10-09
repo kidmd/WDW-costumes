@@ -93,6 +93,14 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### 2026-10-09 01:25 - Dynamic Timestamped Float Revision Saves & Filename Updates
+- **Automatic Fresh Timestamp Generation on Save Float (`simulator/app.js`):**
+  - Resolved issue where saving a float whose name already contained an older date/time string would not update the timestamp or name in the UI.
+  - Implemented regex stripping (`/\s+\d{4}-\d{2}-\d{2}(?:[ _-]\d{2}[-:]\d{2}(?:[-:]\d{2})?)?.*$/i`) across `#saveProfileBtn`, `exportCurrentProfileJson()`, and `openSavePresetModal()`.
+  - Every click of **💾 Save Float** now strips previous timestamp artifacts, dynamically creates a new date/time tag (e.g. `Pete's Dragon 2026-10-09 01-25`), immediately updates the `#profileNameInput` text field, saves the new `.json` preset to `presets/` on disk, and synchronizes the preset dropdown.
+- **Verification:**
+  - Syntax validated clean with `node --check simulator/app.js`.
+
 ### 2026-10-09 00:28 - 3D Modal Live Layout Canvas Synchronization & Instant Recompile Button
 - **Resolved Live Canvas vs. Cached 3D STL Discrepancy:**
   - Diagnosed screenshot evidence where LED #37 on the 2D layout canvas had #52 adjacent to it with clearance, while the 3D preview showed an older compiled STL where #38 was adjacent and touching #37.
