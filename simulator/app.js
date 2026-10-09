@@ -3609,8 +3609,8 @@ function renderBulb(cx, x, y, col, isHovered, isSelected, index) {
         cx.lineWidth = 0.5;
         cx.stroke();
 
-        // 3. 4mm Wire Pass-Through Notches & 5.0mm Channel Clearance Indicators
-        const channelCorridorL = 5.0 * ppm;
+        // 3. 4mm Wire Pass-Through Notches & 3.0mm Channel Clearance Indicators
+        const channelCorridorL = 3.0 * ppm;
         const channelCorridorH = Math.max(3.5, 4.0 * ppm);
 
         // Opening 1 (+X direction)
@@ -3916,7 +3916,7 @@ function renderBulb(cx, x, y, col, isHovered, isSelected, index) {
             cx.fillStyle = 'rgba(255, 51, 102, 0.95)';
             cx.font = 'bold 9px system-ui, sans-serif';
             cx.textAlign = 'center';
-            cx.fillText(`⚠️ 5mm Clearance`, x, y - 18);
+            cx.fillText(`⚠️ 3mm Clearance`, x, y - 18);
         }
 
         cx.restore();
@@ -11832,7 +11832,8 @@ canvas.addEventListener('mousedown', (e) => {
 // ---------------------------------------------------------------------------
 // ZERO-OVERLAP TPU COLLAR CLEARANCE & PBD RELAXATION
 // 10x5mm inner socket, 13.6x8.6mm outer collar (1.8mm walls, 5.0mm straight segment).
-// Required center distance >= 18.6mm along wire channel (5.0mm clearance corridor in front of each channel opening).
+// Required center distance >= 16.6mm along wire channel (3.0mm clearance corridor in front of each channel opening).
+// Required lateral center distance >= 11.6mm (3.0mm side clearance).
 // Required strain relief bridge clearance >= 10.0mm buffer for entrance and exit portals.
 // ---------------------------------------------------------------------------
 function getTpuBridgeLocationsNorm() {
@@ -11908,14 +11909,14 @@ function checkLedClearanceStatus(index, ledsList) {
             if (!reason) reason = `Side clearance < 3mm from LED #${j + 1} (${Math.max(0, projW - 8.6).toFixed(1)}mm)`;
         }
 
-        // C. 5.0mm Channel Opening Clearance Corridor (extends 5mm forward in front of openings)
+        // C. 3.0mm Channel Opening Clearance Corridor (extends 3mm forward in front of openings)
         if (projW < 8.6) {
-            if (projL > 4.5 && projL < 18.6) {
+            if (projL > 4.5 && projL < 16.6) {
                 opening1Blocked = true;
-                if (!reason) reason = `Opening 1 blocked by LED #${j + 1} (<5mm channel clearance)`;
-            } else if (projL < -4.5 && projL > -18.6) {
+                if (!reason) reason = `Opening 1 blocked by LED #${j + 1} (<3mm channel clearance)`;
+            } else if (projL < -4.5 && projL > -16.6) {
                 opening2Blocked = true;
-                if (!reason) reason = `Opening 2 blocked by LED #${j + 1} (<5mm channel clearance)`;
+                if (!reason) reason = `Opening 2 blocked by LED #${j + 1} (<3mm channel clearance)`;
             }
         }
     }
@@ -11974,7 +11975,7 @@ function clampLedNoCollarOverlap(targetX, targetY, movingIndex, ledsArray) {
             const projL = dxMm * ux + dyMm * uy;
             const projW = Math.abs(-dxMm * uy + dyMm * ux);
 
-            const reqL = 18.6; // 6.8 + 6.8 + 5.0mm channel opening corridor
+            const reqL = 16.6; // 6.8 + 6.8 + 3.0mm channel opening corridor
             const reqW = 11.6; // 4.3 + 4.3 + 3.0mm side clearance
 
             if (Math.abs(projL) < reqL && projW < reqW) {
@@ -12042,7 +12043,7 @@ function relaxLedCollarOverlaps(ledsList, iterations = 35) {
                 const projL = dxMm * ux_i + dyMm * uy_i;
                 const projW = Math.abs(-dxMm * uy_i + dyMm * ux_i);
 
-                const reqL = 18.6; // 5mm channel opening corridor
+                const reqL = 16.6; // 3mm channel opening corridor
                 const reqW = 11.6; // 3mm side clearance
 
                 if (Math.abs(projL) < reqL && projW < reqW) {

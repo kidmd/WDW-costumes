@@ -111,6 +111,14 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
   - Updated `showPillSlots` and `showTpuWindows` in `renderBulb` to use `getTpuWellRotationAngle(index, leds)`.
   - Updated `computeTpuLayoutSignature()` to hash per-LED rotation angles, ensuring rotating an LED automatically invalidates stale STLs and triggers re-compilation.
 
+### 2026-10-08 21:55 - Unified 3.0mm Clearance Standard Across Wire Channels & Collar Flanks
+- **Unified 3.0mm Clearance Enforcement & Real-Time Canvas Warnings:**
+  - Standardized both the longitudinal wire channel opening corridors and the lateral collar side buffers to **$3.0\text{mm}$** ($16.6\text{mm}$ center-to-center along channel, $11.6\text{mm}$ center-to-center laterally).
+  - Updated all canvas drag warnings, blocked corridor overlays, and tooltip badges in `simulator/app.js` (`renderBulb`, `checkLedClearanceStatus`) to explicitly reflect **`⚠️ 3mm Clearance`** and `(<3mm channel clearance)`.
+  - Updated `clampLedNoCollarOverlap`, `relaxLedCollarOverlaps`, and `scripts/compile_clean_tpu_panel.py` to enforce the $16.6\text{mm} \times 11.6\text{mm}$ footprint ($3.0\text{mm}$ all-around collar clearance).
+- **Python Compiler & 3D Export Verification:**
+  - Recompiled front and back plates in 8.40s; verified zero manifold errors.
+
 ### 2026-10-08 21:50 - 3mm Side Clearance Refinement & Visual Buffer Indicators
 - **3.0mm Side / Lateral Clearance Enforcement:**
   - Updated `checkLedClearanceStatus` in `simulator/app.js` and PBD relaxation solver in `scripts/compile_clean_tpu_panel.py` to enforce a $3.0\text{mm}$ side clearance buffer between adjacent collar side walls (lateral center-to-center distance $\ge 11.6\text{mm}$, calculated as $4.3\text{mm} + 4.3\text{mm} + 3.0\text{mm}$).
