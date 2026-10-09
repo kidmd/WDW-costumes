@@ -111,6 +111,25 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
   - Updated `showPillSlots` and `showTpuWindows` in `renderBulb` to use `getTpuWellRotationAngle(index, leds)`.
   - Updated `computeTpuLayoutSignature()` to hash per-LED rotation angles, ensuring rotating an LED automatically invalidates stale STLs and triggers re-compilation.
 
+### 2026-10-08 21:40 - Optical Aperture Carryover, 5mm Channel Clearance & Live Red Drag Feedback, Strain Relief Clearances & Clean Monolithic Bridges
+- **Circular & Square Optical Aperture Carry-Over to 3D Preview:**
+  - Updated `setTpuWindowShape` and `setTpuWellOrientation` in `simulator/app.js` to automatically display the compilation loading overlay and re-compile/reload the 3D viewer when toggling window shape (`Ø 3.4mm Round`, `Ø 3.0mm Round`, `3x3mm Square`) or well orientation while the 3D Armor Panel modal is open.
+  - Aligned default fallback orientation in `openTpuPreviewModal` to `tangent` (`params.tpuWellOrientation || 'tangent'`) to prevent unnecessary recompilation triggers on modal launch.
+- **Strain Relief Bridge Clean Monolithic Arch (Misplaced Gusset Removal):**
+  - Removed misplaced internal triangular gussets from both entrance and lateral exit zip-tie strain relief bridges in `scripts/compile_clean_tpu_panel.py` (`internal_bridge_m` and `internal_bridge_exit_m`).
+  - Both bridges are now clean, robust monolithic arch boxes with unobstructed $3.2\text{mm} \times 2.8\text{mm}$ through-tunnels for zip-tie heads and $4.5\text{mm}$ wire saddle cradles.
+- **5mm Channel Opening Clearance Enforcement & Live Red Visual Feedback:**
+  - Implemented `checkLedClearanceStatus(index, ledsList)` in `simulator/app.js`: calculates longitudinal unit vector $\vec{u}_i = (\cos\theta_i, \sin\theta_i)$ and perpendicular vector $\vec{v}_i = (-\sin\theta_i, \cos\theta_i)$ for each LED collar in plate millimeter space.
+  - Enforced a $5.0\text{mm}$ clearance corridor in front of each channel opening ($p \in [4.5\text{mm}, 18.6\text{mm}]$ with lateral corridor width $8.0\text{mm}$).
+  - Enforced a $10.0\text{mm}$ buffer from both entrance and lateral exit strain relief bridges.
+  - Updated `renderBulb` in `simulator/app.js`:
+    - When clearance is violated, renders the outer TPU collar outline in vibrant red (`#ff3366`, `lineWidth = 2.2`), tints the collar cavity red, highlights the blocked opening corridor in red (`rgba(255, 51, 102, 0.40)` with `#ff3366` border), and turns the selection/hover halo red.
+    - When dragging an LED with $<5\text{mm}$ channel clearance, displays a real-time `⚠️ 5mm Clearance` warning badge directly above the LED.
+  - Updated `clampLedNoCollarOverlap` and `relaxLedCollarOverlaps` to maintain both the $18.6\text{mm}$ channel opening corridor and $10.0\text{mm}$ bridge buffers.
+- **Python Compiler & Multi-Material 3D Verification:**
+  - Updated `scripts/compile_clean_tpu_panel.py` PBD relaxation solver with $5.0\text{mm}$ opening corridor and $10.0\text{mm}$ bridge buffers.
+  - Verified compilation of 75-LED front and back panels with 5-part multi-material inlays in 8.68s.
+
 ### 2026-10-08 21:05 - Proportional LED Pill Shadows & TPU Collar Scaling for Medium/Small Sizes
 - **Proportional Physical Scale Factor (`ppm`):**
   - Updated `renderBulb` in `simulator/app.js` to compute the pixels-per-millimeter scale factor against the active plate dimension (`selectedPlateWidthMm`: 165.1mm Small, 203.2mm Medium, 254.0mm Large) and chest graphic bounds (`gb.normW * s.width`), rather than assuming a rigid garment width.

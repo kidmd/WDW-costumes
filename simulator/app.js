@@ -3582,17 +3582,20 @@ function renderBulb(cx, x, y, col, isHovered, isSelected, index) {
         cx.stroke();
         cx.setLineDash([]);
 
-        // 1. Reinforced 13.6x8.6mm Outer Collar Outline (1.8mm walls) - Soft, elegant shadow
+        // Clearance check for 5mm channel corridor & 10mm bridge buffer
+        const clrStatus = (typeof checkLedClearanceStatus === 'function') ? checkLedClearanceStatus(index, leds) : { isClear: true };
+
+        // 1. Reinforced 13.6x8.6mm Outer Collar Outline (1.8mm walls) - Red if clearance violated
         cx.beginPath();
         if (typeof cx.roundRect === 'function') {
             cx.roundRect(-outerW / 2, -outerH / 2, outerW, outerH, outerH / 2);
         } else {
             cx.rect(-outerW / 2, -outerH / 2, outerW, outerH);
         }
-        cx.fillStyle = 'rgba(11, 15, 23, 0.32)';
+        cx.fillStyle = (!clrStatus.isClear) ? 'rgba(255, 51, 102, 0.22)' : 'rgba(11, 15, 23, 0.32)';
         cx.fill();
-        cx.strokeStyle = (isHovered || isSelected) ? 'rgba(0, 255, 136, 0.90)' : 'rgba(0, 255, 136, 0.28)';
-        cx.lineWidth = (isHovered || isSelected) ? 1.4 : 0.7;
+        cx.strokeStyle = (!clrStatus.isClear) ? 'rgba(255, 51, 102, 0.95)' : ((isHovered || isSelected) ? 'rgba(0, 255, 136, 0.90)' : 'rgba(0, 255, 136, 0.28)');
+        cx.lineWidth = (!clrStatus.isClear) ? 2.2 : ((isHovered || isSelected) ? 1.4 : 0.7);
         cx.stroke();
 
         // 2. 10x5mm Inner Pocket Socket Boundary
@@ -3602,12 +3605,49 @@ function renderBulb(cx, x, y, col, isHovered, isSelected, index) {
         } else {
             cx.rect(-innerW / 2, -innerH / 2, innerW, innerH);
         }
-        cx.strokeStyle = 'rgba(255, 255, 255, 0.16)';
+        cx.strokeStyle = (!clrStatus.isClear) ? 'rgba(255, 51, 102, 0.50)' : 'rgba(255, 255, 255, 0.16)';
         cx.lineWidth = 0.5;
         cx.stroke();
 
-        // 3. 4mm Wire Pass-Through Notches on ends
-        cx.strokeStyle = 'rgba(56, 189, 248, 0.40)';
+        // 3. 4mm Wire Pass-Through Notches & 5.0mm Channel Clearance Indicators
+        const channelCorridorL = 5.0 * ppm;
+        const channelCorridorH = Math.max(3.5, 4.0 * ppm);
+
+        // Opening 1 (+X direction)
+        if (clrStatus.opening1Blocked) {
+            cx.fillStyle = 'rgba(255, 51, 102, 0.35)';
+            cx.fillRect(outerW / 2, -channelCorridorH / 2, channelCorridorL, channelCorridorH);
+            cx.strokeStyle = '#ff3366';
+            cx.lineWidth = 1.2;
+            cx.strokeRect(outerW / 2, -channelCorridorH / 2, channelCorridorL, channelCorridorH);
+        } else if (isHovered || isSelected || (typeof draggedLed !== 'undefined' && draggedLed === index)) {
+            cx.fillStyle = 'rgba(0, 255, 136, 0.10)';
+            cx.fillRect(outerW / 2, -channelCorridorH / 2, channelCorridorL, channelCorridorH);
+            cx.strokeStyle = 'rgba(0, 255, 136, 0.40)';
+            cx.lineWidth = 0.6;
+            cx.setLineDash([2, 2]);
+            cx.strokeRect(outerW / 2, -channelCorridorH / 2, channelCorridorL, channelCorridorH);
+            cx.setLineDash([]);
+        }
+
+        // Opening 2 (-X direction)
+        if (clrStatus.opening2Blocked) {
+            cx.fillStyle = 'rgba(255, 51, 102, 0.35)';
+            cx.fillRect(-outerW / 2 - channelCorridorL, -channelCorridorH / 2, channelCorridorL, channelCorridorH);
+            cx.strokeStyle = '#ff3366';
+            cx.lineWidth = 1.2;
+            cx.strokeRect(-outerW / 2 - channelCorridorL, -channelCorridorH / 2, channelCorridorL, channelCorridorH);
+        } else if (isHovered || isSelected || (typeof draggedLed !== 'undefined' && draggedLed === index)) {
+            cx.fillStyle = 'rgba(0, 255, 136, 0.10)';
+            cx.fillRect(-outerW / 2 - channelCorridorL, -channelCorridorH / 2, channelCorridorL, channelCorridorH);
+            cx.strokeStyle = 'rgba(0, 255, 136, 0.40)';
+            cx.lineWidth = 0.6;
+            cx.setLineDash([2, 2]);
+            cx.strokeRect(-outerW / 2 - channelCorridorL, -channelCorridorH / 2, channelCorridorL, channelCorridorH);
+            cx.setLineDash([]);
+        }
+
+        cx.strokeStyle = (!clrStatus.isClear) ? 'rgba(255, 51, 102, 0.90)' : 'rgba(56, 189, 248, 0.40)';
         cx.lineWidth = 0.8;
         cx.beginPath();
         cx.moveTo(-outerW / 2, 0); cx.lineTo(-innerW / 2, 0);
@@ -3812,13 +3852,15 @@ function renderBulb(cx, x, y, col, isHovered, isSelected, index) {
     if (isSelected) {
         cx.save();
 
+        const clrStatus = (typeof checkLedClearanceStatus === 'function') ? checkLedClearanceStatus(index, leds) : { isClear: true };
+
         // If not in TPU or Pill mode, draw an orientation axis indicator for the selected LED
         if (!params.showTpuWindows && !params.showPillSlots) {
             const rotRad = (typeof getTpuWellRotationAngle === 'function') ? getTpuWellRotationAngle(index, leds) : 0;
             cx.save();
             cx.translate(x, y);
             cx.rotate(rotRad);
-            cx.strokeStyle = 'rgba(0, 255, 136, 0.90)';
+            cx.strokeStyle = (!clrStatus.isClear) ? '#ff3366' : 'rgba(0, 255, 136, 0.90)';
             cx.lineWidth = 1.6;
             cx.beginPath();
             cx.moveTo(-11, 0);
@@ -3830,18 +3872,18 @@ function renderBulb(cx, x, y, col, isHovered, isSelected, index) {
             cx.restore();
         }
 
-        // High-visibility cyan outer dashed ring
+        // High-visibility outer dashed ring (Red if blocked, Cyan if clear)
         cx.beginPath();
         cx.arc(x, y, 11, 0, Math.PI * 2);
-        cx.strokeStyle = '#00ffff';
+        cx.strokeStyle = (!clrStatus.isClear) ? '#ff3366' : '#00ffff';
         cx.lineWidth = 2.5;
         cx.setLineDash([4, 3]);
         cx.stroke();
 
-        // Inner solid gold ring
+        // Inner solid ring (Orange-red if blocked, Gold if clear)
         cx.beginPath();
         cx.arc(x, y, 7.5, 0, Math.PI * 2);
-        cx.strokeStyle = '#ffc107';
+        cx.strokeStyle = (!clrStatus.isClear) ? '#ff0055' : '#ffc107';
         cx.lineWidth = 2;
         cx.setLineDash([]);
         cx.stroke();
@@ -3853,14 +3895,24 @@ function renderBulb(cx, x, y, col, isHovered, isSelected, index) {
         cx.moveTo(x + 15 - crossLen, y); cx.lineTo(x + 15, y);
         cx.moveTo(x, y - 15); cx.lineTo(x, y - 15 + crossLen);
         cx.moveTo(x, y + 15 - crossLen); cx.lineTo(x, y + 15);
-        cx.strokeStyle = '#00ffff';
+        cx.strokeStyle = (!clrStatus.isClear) ? '#ff3366' : '#00ffff';
         cx.lineWidth = 2;
         cx.stroke();
+
+        // Warning badge for blocked LED when dragged or selected
+        if (!clrStatus.isClear && (typeof draggedLed !== 'undefined' && draggedLed === index)) {
+            cx.fillStyle = 'rgba(255, 51, 102, 0.95)';
+            cx.font = 'bold 9px system-ui, sans-serif';
+            cx.textAlign = 'center';
+            cx.fillText(`⚠️ 5mm Clearance`, x, y - 18);
+        }
+
         cx.restore();
     } else if (isHovered) {
+        const clrStatus = (typeof checkLedClearanceStatus === 'function') ? checkLedClearanceStatus(index, leds) : { isClear: true };
         cx.beginPath();
         cx.arc(x, y, 8.5, 0, Math.PI * 2);
-        cx.strokeStyle = '#00e5ff';
+        cx.strokeStyle = (!clrStatus.isClear) ? '#ff3366' : '#00e5ff';
         cx.lineWidth = 2;
         cx.stroke();
     }
@@ -11768,88 +11820,246 @@ canvas.addEventListener('mousedown', (e) => {
 // ---------------------------------------------------------------------------
 // ZERO-OVERLAP TPU COLLAR CLEARANCE & PBD RELAXATION
 // 10x5mm inner socket, 13.6x8.6mm outer collar (1.8mm walls, 5.0mm straight segment).
-// Required center distance >= 14.6mm (3.0mm lateral clearance allowance for clips sliding over).
-// Physical garment scale: 18.0 inch garment = 457.2mm -> 1.0mm = 1.0 / 457.2 normalized units.
+// Required center distance >= 18.6mm along wire channel (5.0mm clearance corridor in front of each channel opening).
+// Required strain relief bridge clearance >= 10.0mm buffer for entrance and exit portals.
 // ---------------------------------------------------------------------------
+function getTpuBridgeLocationsNorm() {
+    const gb = (typeof getGraphicChestBounds === 'function') ? getGraphicChestBounds() : { normX: 0.1, normY: 0.168, normW: 0.8, normH: 0.385 };
+    const plateW = (typeof selectedPlateWidthMm !== 'undefined' && selectedPlateWidthMm > 0) ? selectedPlateWidthMm : 203.2;
+    const normW = (gb && gb.normW > 0) ? gb.normW : 0.8;
+    const normH = (gb && gb.normH > 0) ? gb.normH : 0.385;
+    const plateH = plateW * (normH / normW);
+    const mmToNormX = normW / plateW;
+    const mmToNormY = normH / plateH;
+
+    return {
+        entrance: {
+            x: gb.normX + gb.normW * 0.5,
+            y: gb.normY + gb.normH - (10.0 * mmToNormY)
+        },
+        exit: {
+            x: gb.normX + gb.normW - (10.0 * mmToNormX),
+            y: gb.normY + gb.normH * 0.70
+        }
+    };
+}
+window.getTpuBridgeLocationsNorm = getTpuBridgeLocationsNorm;
+
+function checkLedClearanceStatus(index, ledsList) {
+    if (!ledsList || index < 0 || index >= ledsList.length) {
+        return { isClear: true, opening1Blocked: false, opening2Blocked: false, bridgeBlocked: false, overlapBlocked: false, reason: '' };
+    }
+    const gb = (typeof getGraphicChestBounds === 'function') ? getGraphicChestBounds() : null;
+    const plateW = (typeof selectedPlateWidthMm !== 'undefined' && selectedPlateWidthMm > 0) ? selectedPlateWidthMm : 203.2;
+    const normW = (gb && gb.normW > 0) ? gb.normW : 0.8;
+    const normH = (gb && gb.normH > 0) ? gb.normH : 0.385;
+    const plateH = plateW * (normH / normW);
+    const mmToNormX = normW / plateW;
+    const mmToNormY = normH / plateH;
+
+    const cur = ledsList[index];
+    const rotRad = (typeof getTpuWellRotationAngle === 'function')
+        ? getTpuWellRotationAngle(index, ledsList)
+        : ((params.tpuWellOrientation === 'tangent' && typeof getLedTangentAngle === 'function') ? getLedTangentAngle(index, ledsList) : 0);
+
+    const ux = Math.cos(rotRad);
+    const uy = Math.sin(rotRad);
+
+    let opening1Blocked = false;
+    let opening2Blocked = false;
+    let overlapBlocked = false;
+    let bridgeBlocked = false;
+    let reason = '';
+
+    // 1. Check against other LEDs
+    for (let j = 0; j < ledsList.length; j++) {
+        if (j === index) continue;
+        const other = ledsList[j];
+        const dxMm = (other.x - cur.x) / mmToNormX;
+        const dyMm = (other.y - cur.y) / mmToNormY;
+
+        // Project onto current LED's longitudinal and lateral axes
+        const projL = dxMm * ux + dyMm * uy;
+        const projW = Math.abs(-dxMm * uy + dyMm * ux);
+
+        // Collar body overlap check (13.6mm L x 8.6mm W outer dimensions)
+        if (Math.abs(projL) < 13.6 && projW < 8.6) {
+            overlapBlocked = true;
+            reason = `Collar collision with LED #${j + 1}`;
+            break;
+        }
+
+        // 5.0mm channel opening corridor clearance
+        // Corridor extends 5.0mm beyond collar ends (from 6.8mm to 11.8mm).
+        // Since neighboring collar extends 6.8mm, center-to-center distance along axis is < 18.6mm.
+        if (projW < 8.0) {
+            if (projL > 4.5 && projL < 18.6) {
+                opening1Blocked = true;
+                if (!reason) reason = `Opening 1 blocked by LED #${j + 1} (<5mm channel clearance)`;
+            } else if (projL < -4.5 && projL > -18.6) {
+                opening2Blocked = true;
+                if (!reason) reason = `Opening 2 blocked by LED #${j + 1} (<5mm channel clearance)`;
+            }
+        }
+    }
+
+    // 2. Check bridge clearance (10.0mm buffer from entrance and lateral exit strain relief bridges)
+    const bridges = getTpuBridgeLocationsNorm();
+    const dEntMm = Math.hypot((cur.x - bridges.entrance.x) / mmToNormX, (cur.y - bridges.entrance.y) / mmToNormY);
+    const dExitMm = Math.hypot((cur.x - bridges.exit.x) / mmToNormX, (cur.y - bridges.exit.y) / mmToNormY);
+
+    if (dEntMm < 10.0) {
+        bridgeBlocked = true;
+        reason = `Entrance Strain Relief clearance < 10mm (${dEntMm.toFixed(1)}mm)`;
+    } else if (dExitMm < 10.0) {
+        bridgeBlocked = true;
+        reason = `Exit Strain Relief clearance < 10mm (${dExitMm.toFixed(1)}mm)`;
+    }
+
+    const isClear = !overlapBlocked && !opening1Blocked && !opening2Blocked && !bridgeBlocked;
+    return {
+        isClear,
+        opening1Blocked,
+        opening2Blocked,
+        bridgeBlocked,
+        overlapBlocked,
+        reason
+    };
+}
+window.checkLedClearanceStatus = checkLedClearanceStatus;
+
 function clampLedNoCollarOverlap(targetX, targetY, movingIndex, ledsArray) {
-    const mmToNorm = 1.0 / 457.2;
-    const segLen = 5.0 * mmToNorm;
-    const reqDist = 14.6 * mmToNorm;
+    const gb = (typeof getGraphicChestBounds === 'function') ? getGraphicChestBounds() : null;
+    const plateW = (typeof selectedPlateWidthMm !== 'undefined' && selectedPlateWidthMm > 0) ? selectedPlateWidthMm : 203.2;
+    const normW = (gb && gb.normW > 0) ? gb.normW : 0.8;
+    const normH = (gb && gb.normH > 0) ? gb.normH : 0.385;
+    const plateH = plateW * (normH / normW);
+    const mmToNormX = normW / plateW;
+    const mmToNormY = normH / plateH;
+
     let x = targetX;
     let y = targetY;
 
-    for (let iter = 0; iter < 4; iter++) {
+    const curRot = (typeof getTpuWellRotationAngle === 'function')
+        ? getTpuWellRotationAngle(movingIndex, ledsArray)
+        : 0;
+    const ux = Math.cos(curRot);
+    const uy = Math.sin(curRot);
+
+    for (let iter = 0; iter < 5; iter++) {
         for (let j = 0; j < ledsArray.length; j++) {
             if (j === movingIndex) continue;
             const ox = ledsArray[j].x;
             const oy = ledsArray[j].y;
-            const dx = x - ox;
-            const dy = y - oy;
-            const adx = Math.abs(dx);
-            const ady = Math.abs(dy);
-            const segDx = Math.max(0, adx - segLen);
-            const segDy = ady;
-            const dist = Math.hypot(segDx, segDy);
+            const dxMm = (x - ox) / mmToNormX;
+            const dyMm = (y - oy) / mmToNormY;
+            const projL = dxMm * ux + dyMm * uy;
+            const projW = Math.abs(-dxMm * uy + dyMm * ux);
 
-            if (dist < reqDist) {
-                const pen = reqDist - dist;
-                let nx, ny;
-                if (dist < 1e-5) {
-                    nx = 0.0;
-                    ny = 1.0;
+            const reqL = 18.6; // 6.8 + 6.8 + 5.0mm channel opening corridor
+            const reqW = 8.6;
+
+            if (Math.abs(projL) < reqL && projW < reqW) {
+                const penL = reqL - Math.abs(projL);
+                const penW = reqW - projW;
+                if (penL < penW * 1.5) {
+                    const signL = (projL >= 0) ? 1.0 : -1.0;
+                    x += signL * penL * ux * mmToNormX * 0.6;
+                    y += signL * penL * uy * mmToNormY * 0.6;
                 } else {
-                    nx = (segDx / dist) * (dx >= 0 ? 1.0 : -1.0);
-                    ny = (segDy / dist) * (dy >= 0 ? 1.0 : -1.0);
+                    const signW = ((-dxMm * uy + dyMm * ux) >= 0) ? 1.0 : -1.0;
+                    x += -signW * penW * uy * mmToNormX * 0.6;
+                    y += signW * penW * ux * mmToNormY * 0.6;
                 }
-                x += nx * pen;
-                y += ny * pen;
             }
         }
+
+        // Bridge repulsion (10mm buffer)
+        const bridges = getTpuBridgeLocationsNorm();
+        [bridges.entrance, bridges.exit].forEach(bp => {
+            const bxMm = (x - bp.x) / mmToNormX;
+            const byMm = (y - bp.y) / mmToNormY;
+            const dist = Math.hypot(bxMm, byMm);
+            if (dist < 10.0 && dist > 1e-4) {
+                const pen = (10.0 - dist);
+                x += (bxMm / dist) * pen * mmToNormX;
+                y += (byMm / dist) * pen * mmToNormY;
+            }
+        });
     }
+
+    const minX = gb ? gb.normX : 0.05;
+    const maxX = gb ? (gb.normX + gb.normW) : 0.95;
+    const minY = gb ? gb.normY : 0.05;
+    const maxY = gb ? (gb.normY + gb.normH) : 0.95;
+
     return {
-        x: Math.max(0.05, Math.min(0.95, parseFloat(x.toFixed(4)))),
-        y: Math.max(0.05, Math.min(0.95, parseFloat(y.toFixed(4))))
+        x: Math.max(minX, Math.min(maxX, parseFloat(x.toFixed(4)))),
+        y: Math.max(minY, Math.min(maxY, parseFloat(y.toFixed(4))))
     };
 }
 
 function relaxLedCollarOverlaps(ledsList, iterations = 35) {
     if (!ledsList || ledsList.length < 2) return;
-    const mmToNorm = 1.0 / 457.2;
-    const segLen = 5.0 * mmToNorm;
-    const reqDist = 14.6 * mmToNorm;
+    const gb = (typeof getGraphicChestBounds === 'function') ? getGraphicChestBounds() : { normX: 0.1, normY: 0.168, normW: 0.8, normH: 0.385 };
+    const plateW = (typeof selectedPlateWidthMm !== 'undefined' && selectedPlateWidthMm > 0) ? selectedPlateWidthMm : 203.2;
+    const normW = (gb && gb.normW > 0) ? gb.normW : 0.8;
+    const normH = (gb && gb.normH > 0) ? gb.normH : 0.385;
+    const plateH = plateW * (normH / normW);
+    const mmToNormX = normW / plateW;
+    const mmToNormY = normH / plateH;
+
     const n = ledsList.length;
-    const gb = typeof getGraphicChestBounds === 'function' ? getGraphicChestBounds() : { normX: 0.1, normY: 0.1, normW: 0.8, normH: 0.8 };
+    const bridges = getTpuBridgeLocationsNorm();
 
     for (let iter = 0; iter < iterations; iter++) {
         for (let i = 0; i < n; i++) {
-            for (let j = i + 1; j < n; j++) {
-                const dx = ledsList[j].x - ledsList[i].x;
-                const dy = ledsList[j].y - ledsList[i].y;
-                const adx = Math.abs(dx);
-                const ady = Math.abs(dy);
-                const segDx = Math.max(0, adx - segLen);
-                const segDy = ady;
-                const dist = Math.hypot(segDx, segDy);
+            const rot_i = (typeof getTpuWellRotationAngle === 'function') ? getTpuWellRotationAngle(i, ledsList) : 0;
+            const ux_i = Math.cos(rot_i);
+            const uy_i = Math.sin(rot_i);
 
-                if (dist < reqDist) {
-                    const pen = reqDist - dist;
-                    let nx, ny;
-                    if (dist < 1e-5) {
-                        nx = 0.0;
-                        ny = 1.0;
+            for (let j = i + 1; j < n; j++) {
+                const dxMm = (ledsList[j].x - ledsList[i].x) / mmToNormX;
+                const dyMm = (ledsList[j].y - ledsList[i].y) / mmToNormY;
+                const projL = dxMm * ux_i + dyMm * uy_i;
+                const projW = Math.abs(-dxMm * uy_i + dyMm * ux_i);
+
+                const reqL = 18.6;
+                const reqW = 8.6;
+
+                if (Math.abs(projL) < reqL && projW < reqW) {
+                    const penL = reqL - Math.abs(projL);
+                    const penW = reqW - projW;
+                    let pushX = 0, pushY = 0;
+                    if (penL < penW * 1.5) {
+                        const signL = (projL >= 0) ? 1.0 : -1.0;
+                        pushX = signL * penL * ux_i * mmToNormX * 0.35;
+                        pushY = signL * penL * uy_i * mmToNormY * 0.35;
                     } else {
-                        nx = (segDx / dist) * (dx >= 0 ? 1.0 : -1.0);
-                        ny = (segDy / dist) * (dy >= 0 ? 1.0 : -1.0);
+                        const signW = ((-dxMm * uy_i + dyMm * ux_i) >= 0) ? 1.0 : -1.0;
+                        pushX = -signW * penW * uy_i * mmToNormX * 0.35;
+                        pushY = signW * penW * ux_i * mmToNormY * 0.35;
                     }
-                    const pushX = nx * pen * 0.5;
-                    const pushY = ny * pen * 0.5;
                     ledsList[i].x -= pushX;
                     ledsList[i].y -= pushY;
                     ledsList[j].x += pushX;
                     ledsList[j].y += pushY;
                 }
             }
+
+            // Bridge repulsion (10mm buffer)
+            [bridges.entrance, bridges.exit].forEach(bp => {
+                const bxMm = (ledsList[i].x - bp.x) / mmToNormX;
+                const byMm = (ledsList[i].y - bp.y) / mmToNormY;
+                const dist = Math.hypot(bxMm, byMm);
+                if (dist < 10.0 && dist > 1e-4) {
+                    const pen = (10.0 - dist);
+                    ledsList[i].x += (bxMm / dist) * pen * mmToNormX * 0.5;
+                    ledsList[i].y += (byMm / dist) * pen * mmToNormY * 0.5;
+                }
+            });
         }
+
         for (let i = 0; i < n; i++) {
             ledsList[i].x = Math.max(gb.normX, Math.min(gb.normX + gb.normW, parseFloat(ledsList[i].x.toFixed(4))));
             ledsList[i].y = Math.max(gb.normY, Math.min(gb.normY + gb.normH, parseFloat(ledsList[i].y.toFixed(4))));
@@ -20179,7 +20389,17 @@ function setTpuWindowShape(shape) {
 
     // If modal is open, trigger auto-recompile / reload to match chosen shape
     if (tpuIsOpen) {
-        openTpuPreviewModal();
+        const loaderOverlay = document.getElementById('tpuModalLoading');
+        if (loaderOverlay) {
+            loaderOverlay.style.display = 'flex';
+            loaderOverlay.innerHTML = `
+                <div class="spinner" style="width: 32px; height: 32px; border: 3px solid rgba(0, 255, 136, 0.2); border-top-color: #00ff88; border-radius: 50%; animation: spin 0.8s linear infinite;"></div>
+                <span>${(shape === 'round_34' || shape === 'round_30') ? 'Recompiling with circular optical apertures...' : 'Recompiling with square apertures...'}</span>
+            `;
+        }
+        handleRecompileTpuStl({ skipOpen: true }).then(() => {
+            if (tpuIsOpen) loadTpuModalData();
+        });
     }
 }
 window.setTpuWindowShape = setTpuWindowShape;
@@ -20239,7 +20459,17 @@ function setTpuWellOrientation(orient) {
 
     // If modal is open, trigger auto-recompile / reload to match chosen orientation
     if (tpuIsOpen) {
-        openTpuPreviewModal();
+        const loaderOverlay = document.getElementById('tpuModalLoading');
+        if (loaderOverlay) {
+            loaderOverlay.style.display = 'flex';
+            loaderOverlay.innerHTML = `
+                <div class="spinner" style="width: 32px; height: 32px; border: 3px solid rgba(0, 255, 136, 0.2); border-top-color: #00ff88; border-radius: 50%; animation: spin 0.8s linear infinite;"></div>
+                <span>${orient === 'tangent' ? 'Reorienting collars tangent to wiring path...' : 'Reorienting collars to horizontal grid...'}</span>
+            `;
+        }
+        handleRecompileTpuStl({ skipOpen: true }).then(() => {
+            if (tpuIsOpen) loadTpuModalData();
+        });
     }
 }
 window.setTpuWellOrientation = setTpuWellOrientation;
@@ -20470,7 +20700,7 @@ async function openTpuPreviewModal() {
     setTimeout(onTpuWindowResize, 60);
 
     // Stale-STL guard: if the compiled panel was built for a different graphic, LED layout,
-    // or feature toggle (top nubs, grooves, numbers, window shape), recompile first so the 3D model
+    // or feature toggle (top nubs, grooves, numbers, window shape, orientation), recompile first so the 3D model
     // 100% matches what the user selected.
     if (!tpuAutoCompileInFlight) {
         let compiledSig = null;
@@ -20497,7 +20727,7 @@ async function openTpuPreviewModal() {
         const groovesMismatch = (compiledGrooves !== undefined && compiledGrooves !== (params.tpuIncludeClipGrooves === true));
         const numbersMismatch = (compiledNumbers !== undefined && compiledNumbers !== (params.tpuIncludeLedNumbers === true));
         const shapeMismatch = (compiledShape !== undefined && compiledShape !== (params.tpuWindowShape || 'round_34'));
-        const orientMismatch = (compiledOrient !== undefined && compiledOrient !== (params.tpuWellOrientation || 'horizontal'));
+        const orientMismatch = (compiledOrient !== undefined && compiledOrient !== (params.tpuWellOrientation || 'tangent'));
 
         if (compiledSig !== currentSig || nubsMismatch || groovesMismatch || numbersMismatch || shapeMismatch || orientMismatch) {
             const loaderOverlay = document.getElementById('tpuModalLoading');

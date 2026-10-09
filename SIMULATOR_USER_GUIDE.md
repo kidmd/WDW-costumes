@@ -1309,13 +1309,25 @@ Instead of attaching a Cricut cut vinyl graphic on top of the printed plate, the
       - **Reinforced Zip-Tie Strain Relief Bridges:** Completely eliminates holes piercing the front shirt-facing graphic floor. Both entrance and lateral exit portals feature dedicated internal zip-tie bridges with **2x thicker walls ($2.0\text{ mm}$)**, a bridge height of **$4.5\text{ mm}$**, and an under-tunnel **2x higher ($2.8\text{ mm}$ tall $\times 3.2\text{ mm}$ wide)** so miniature zip-tie heads pass through effortlessly. Reinforced with **triangular side gusset buttresses** sloping into the floor beneath the wire paths for maximum mechanical pull-out strength.
       - **Matching Symmetrical Rear Lid Cutouts:** The 2.0mm rear protective lid features matching arch cutouts at both entrance and lateral exit positions so neither wire bundle is pinched upon closure.
 
-3. **Selectable Optical Apertures (Default: Ø 3.4mm Round):**
+3. **Selectable Optical Apertures (Default: Ø 3.4mm Round) & Real-Time 3D Carry-Over:**
    - **🔘 Ø 3.4mm Round (Default):** Recommended default aperture for maximum light transmission and wide-angle visibility through the front shirt graphic.
    - **⚪ Ø 3.0mm Round:** Standard circular optical aperture for pinpoint theatrical starlight.
    - **🔲 3×3mm Square:** Classic square aperture matching traditional LED chip dies.
-   - Centered through-windows through the $1.0\text{ mm}$ front face beneath each bulb beam the LED forward while the resin bulb body rests solidly against the interior pocket shelf. Changing the selection in the simulator immediately reflects on the 2D canvas, 3D WebGL preview, and automatically recompiles binary STLs.
+   - **Real-Time 3D Modal Carry-Over:** Selecting any aperture window shape in either the Layout Tab or within the 3D Preview Modal immediately updates the 2D canvas, shows the compilation loading spinner, and automatically re-compiles both Front and Back STLs so the 3D WebGL preview and downloaded files 100% match the chosen aperture geometry.
 
-4. **Selectable Debossed LED Numbers (`[ 🔢 Numbers | 🚫 No Num ]`):**
+4. **5.0mm Wire Channel Opening Clearance & Live Red Dragging Feedback:**
+   - **5.0mm Linear Channel Corridors:** Enforces a dedicated $5.0\text{ mm}$ clear corridor in front of each wire notch opening along the collar's longitudinal axis ($\pm \vec{u}_i$), preventing wire binding or sharp $90^\circ$ kinks upon exit.
+   - **Live Red Visual Warning & Highlighting:**
+     - Whenever an LED is moved or placed such that an adjacent collar or obstacle encroaches within $5.0\text{ mm}$ of its wire channel opening, the collar outline instantly turns **Vibrant Red (`#ff3366`)** with a thicker 2.2px border.
+     - The blocked channel entrance displays a red shaded rectangular corridor indicator (`rgba(255, 51, 102, 0.40)`).
+     - The selection halo and crosshairs switch to red, and a floating **`⚠️ 5mm Clearance`** warning badge is displayed directly above the dragged LED.
+   - **PBD Relaxation Solver & Dynamic Clamping:** Both the manual dragging engine (`clampLedNoCollarOverlap`) and the automated PBD relaxation solver (`relaxLedCollarOverlaps`) actively enforce the $18.6\text{ mm}$ center-to-center longitudinal clearance ($6.8\text{ mm} + 6.8\text{ mm} + 5.0\text{ mm}$ buffer) and $8.6\text{ mm}$ lateral width.
+
+5. **Heavy-Duty Monolithic Strain Relief Bridges (Entrance & Lateral Exit Clearances):**
+   - **10.0mm Bridge Repulsion Buffer:** The first, last, and intermediate LEDs are strictly maintained at $\ge 10.0\text{ mm}$ clearance distance from both the bottom entrance and lateral exit strain relief bridge structures.
+   - **Clean Monolithic Arch Construction:** Both entrance and lateral exit bridges are engineered as clean monolithic arch boxes ($8.0\text{ mm} \times 7.2\text{ mm} \times 4.5\text{ mm}$) featuring an unobstructed $3.2\text{ mm} \times 2.8\text{ mm}$ under-tunnel for miniature zip-tie heads, a contoured $4.5\text{ mm}$ top saddle cradle, and zero misplaced interior gusset geometry under the bridge.
+
+6. **Selectable Debossed LED Numbers (`[ 🔢 Numbers | 🚫 No Num ]`):**
    - **No Numbers (Default):** Generates a completely smooth, clean internal floor cavity with zero debossed number geometry for faster slicing and pristine pocket surfaces.
    - **Numbers On:** Debosses `1` through `N` at the absolute minimum readable size for a $0.4\text{ mm}$ nozzle (**$1.8\text{ mm}$ cap height, $0.5\text{ mm}$ deboss depth** cleanly into the interior tray floor at $Z = 1.6\text{ mm}$ to $2.2\text{ mm}$) with natural left-to-right underside reading for physical bench wiring.
    - **Instant Recompilation & State Persistence:** Toggling the button in the 3D Preview Modal updates the layout signature, preserves the choice in `localStorage`, and immediately regenerates the STL meshes with real-time feedback.

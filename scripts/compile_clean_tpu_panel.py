@@ -222,18 +222,35 @@ def compile_plate_variant(variant_name, width_mm, height_mm, raw_leds, artwork_p
     # Plus 3.0mm lateral clearance allowance for clips sliding over the well walls:
     # Effective clearance radius r_eff = 4.3mm + 3.0mm = 7.3mm -> center distance >= 14.6mm
     req_dist = (COLLAR_OUTER_W / 2.0 + 3.0) * 2.0 # 14.6 mm center-to-center minimum clearance
+    COLLAR_HALF_L = COLLAR_OUTER_L / 2.0         # 6.8 mm
+    OPENING_CLEARANCE_MM = 5.0                   # 5.0 mm clearance in front of each opening
+
+    bounds = safe_art_boundary.bounds if safe_art_boundary is not None else (0.0, 0.0, width_mm, height_mm)
+    cx_mid = (bounds[0] + bounds[2]) / 2.0
+
+    # Approximate portal bridge locations in 3D plate space
+    bridge_ent_approx = np.array([cx_mid, bounds[1] + RIM_WALL_THICK + 5.5])
+    bridge_exit_approx = np.array([bounds[2] - RIM_WALL_THICK - 5.5, bounds[1] + 0.30 * (bounds[3] - bounds[1])])
 
     for iteration in range(60):
         for i in range(num_leds):
             ang_i = math.radians(led_rotations_deg[i])
             dir_i = np.array([math.cos(ang_i), math.sin(ang_i)])
             
+            # Strain relief bridge repulsion (minimum 10mm clearance for first/last/any LEDs)
+            for b_pt in [bridge_ent_approx, bridge_exit_approx]:
+                d_br = np.hypot(pts[i, 0] - b_pt[0], pts[i, 1] - b_pt[1])
+                if d_br < 10.0:
+                    pen_b = 10.0 - d_br
+                    n_b = (pts[i] - b_pt) / (d_br + 1e-6)
+                    pts[i] += n_b * pen_b * 0.4
+
             for j in range(i + 1, num_leds):
                 dx = pts[j, 0] - pts[i, 0]
                 dy = pts[j, 1] - pts[i, 1]
                 center_dist = np.hypot(dx, dy)
                 
-                # Check clearance taking into account well rotation and 3.0mm lateral clip buffer
+                # Check center clearance (14.6mm)
                 if center_dist < req_dist:
                     pen = req_dist - center_dist
                     if center_dist < 1e-4:
@@ -246,6 +263,16 @@ def compile_plate_variant(variant_name, width_mm, height_mm, raw_leds, artwork_p
                     push_y = ny * pen * 0.35
                     pts[i] -= [push_x, push_y]
                     pts[j] += [push_x, push_y]
+
+                # Check 5mm clearance in front of LED i's openings along dir_i
+                proj_i = dx * dir_i[0] + dy * dir_i[1]
+                perp_i = abs(-dx * dir_i[1] + dy * dir_i[0])
+                if abs(proj_i) < (COLLAR_HALF_L + OPENING_CLEARANCE_MM) and perp_i < 4.3:
+                    pen_op = (COLLAR_HALF_L + OPENING_CLEARANCE_MM) - abs(proj_i)
+                    sgn = 1.0 if proj_i >= 0 else -1.0
+                    push_vec = dir_i * (sgn * pen_op * 0.30)
+                    pts[j] += push_vec
+                    pts[i] -= push_vec
 
         for i in range(num_leds):
             pt = sg.Point(pts[i])
@@ -418,31 +445,8 @@ def compile_plate_variant(variant_name, width_mm, height_mm, raw_leds, artwork_p
     saddle_cutter_tm = trimesh.creation.box(extents=[4.5, BRIDGE_Y_L + 4.0, 0.8])
     saddle_cutter_tm.apply_translation([wire_portal_x, bridge_y, FRONT_THICK_GENERAL + BRIDGE_Z_H - 0.3])
 
-    GUSS_SLOPE_W = 3.5
-    GUSS_THICK_Y = 2.5
-    guss_l_pts = [
-        [-BRIDGE_X_W / 2.0, FRONT_THICK_GENERAL],
-        [-(BRIDGE_X_W / 2.0 + GUSS_SLOPE_W), FRONT_THICK_GENERAL],
-        [-BRIDGE_X_W / 2.0, FRONT_THICK_GENERAL + BRIDGE_Z_H - 0.5]
-    ]
-    guss_l_tm = trimesh.creation.extrude_polygon(sg.Polygon(guss_l_pts), height=GUSS_THICK_Y)
-    v_l = guss_l_tm.vertices
-    guss_l_tm.vertices = np.column_stack([v_l[:, 0], v_l[:, 2] - GUSS_THICK_Y / 2.0, v_l[:, 1]])
-    guss_l_tm.apply_translation([wire_portal_x, bridge_y, 0.0])
-
-    guss_r_pts = [
-        [BRIDGE_X_W / 2.0, FRONT_THICK_GENERAL],
-        [(BRIDGE_X_W / 2.0 + GUSS_SLOPE_W), FRONT_THICK_GENERAL],
-        [BRIDGE_X_W / 2.0, FRONT_THICK_GENERAL + BRIDGE_Z_H - 0.5]
-    ]
-    guss_r_tm = trimesh.creation.extrude_polygon(sg.Polygon(guss_r_pts), height=GUSS_THICK_Y)
-    v_r = guss_r_tm.vertices
-    guss_r_tm.vertices = np.column_stack([v_r[:, 0], v_r[:, 2] - GUSS_THICK_Y / 2.0, v_r[:, 1]])
-    guss_r_tm.apply_translation([wire_portal_x, bridge_y, 0.0])
-
-    bridge_solids_m = [to_m(bridge_solid_tm), to_m(guss_l_tm), to_m(guss_r_tm)]
-    bridge_combined_m = Manifold.batch_boolean(bridge_solids_m, OpType.Add)
-    internal_bridge_m = bridge_combined_m - to_m(tunnel_cutter_tm) - to_m(saddle_cutter_tm)
+    # Clean monolithic bridge arch with unobstructed through-tunnel
+    internal_bridge_m = to_m(bridge_solid_tm) - to_m(tunnel_cutter_tm) - to_m(saddle_cutter_tm)
 
     # 4c. Lower-Right Lateral Wire Exit Notch & Internal Strain Relief Anchor
     y_min_flank = bounds[1] + 0.18 * (bounds[3] - bounds[1])
@@ -474,29 +478,8 @@ def compile_plate_variant(variant_name, width_mm, height_mm, raw_leds, artwork_p
     saddle_exit_cutter_tm = trimesh.creation.box(extents=[BRIDGE_EXIT_X_L + 4.0, 4.5, 0.8])
     saddle_exit_cutter_tm.apply_translation([bridge_exit_x, bridge_exit_y, FRONT_THICK_GENERAL + BRIDGE_Z_H - 0.3])
 
-    guss_exit_1_pts = [
-        [-BRIDGE_EXIT_Y_W / 2.0, FRONT_THICK_GENERAL],
-        [-(BRIDGE_EXIT_Y_W / 2.0 + GUSS_SLOPE_W), FRONT_THICK_GENERAL],
-        [-BRIDGE_EXIT_Y_W / 2.0, FRONT_THICK_GENERAL + BRIDGE_Z_H - 0.5]
-    ]
-    guss_exit_1_tm = trimesh.creation.extrude_polygon(sg.Polygon(guss_exit_1_pts), height=GUSS_THICK_Y)
-    v_e1 = guss_exit_1_tm.vertices
-    guss_exit_1_tm.vertices = np.column_stack([v_e1[:, 2] - GUSS_THICK_Y / 2.0, v_e1[:, 0], v_e1[:, 1]])
-    guss_exit_1_tm.apply_translation([bridge_exit_x, bridge_exit_y, 0.0])
-
-    guss_exit_2_pts = [
-        [BRIDGE_EXIT_Y_W / 2.0, FRONT_THICK_GENERAL],
-        [(BRIDGE_EXIT_Y_W / 2.0 + GUSS_SLOPE_W), FRONT_THICK_GENERAL],
-        [BRIDGE_EXIT_Y_W / 2.0, FRONT_THICK_GENERAL + BRIDGE_Z_H - 0.5]
-    ]
-    guss_exit_2_tm = trimesh.creation.extrude_polygon(sg.Polygon(guss_exit_2_pts), height=GUSS_THICK_Y)
-    v_e2 = guss_exit_2_tm.vertices
-    guss_exit_2_tm.vertices = np.column_stack([v_e2[:, 2] - GUSS_THICK_Y / 2.0, v_e2[:, 0], v_e2[:, 1]])
-    guss_exit_2_tm.apply_translation([bridge_exit_x, bridge_exit_y, 0.0])
-
-    bridge_exit_solids_m = [to_m(bridge_exit_solid_tm), to_m(guss_exit_1_tm), to_m(guss_exit_2_tm)]
-    bridge_exit_combined_m = Manifold.batch_boolean(bridge_exit_solids_m, OpType.Add)
-    internal_bridge_exit_m = bridge_exit_combined_m - to_m(tunnel_exit_cutter_tm) - to_m(saddle_exit_cutter_tm)
+    # Clean monolithic exit bridge arch with unobstructed through-tunnel
+    internal_bridge_exit_m = to_m(bridge_exit_solid_tm) - to_m(tunnel_exit_cutter_tm) - to_m(saddle_exit_cutter_tm)
 
     # 5. Collars, Recesses & Windows
     outer_collar_2d = make_stadium_polygon(COLLAR_OUTER_L, COLLAR_OUTER_W, sections=16)
