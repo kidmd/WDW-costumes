@@ -3916,7 +3916,7 @@ function renderBulb(cx, x, y, col, isHovered, isSelected, index) {
             cx.fillStyle = 'rgba(255, 51, 102, 0.95)';
             cx.font = 'bold 9px system-ui, sans-serif';
             cx.textAlign = 'center';
-            cx.fillText(`⚠️ 3mm Clearance`, x, y - 18);
+            cx.fillText(`⚠️ <2.5mm Clearance`, x, y - 18);
         }
 
         cx.restore();
@@ -11858,6 +11858,37 @@ function getTpuBridgeLocationsNorm() {
 }
 window.getTpuBridgeLocationsNorm = getTpuBridgeLocationsNorm;
 
+function distPointToSegmentSq(px, py, ax, ay, bx, by) {
+    const abx = bx - ax;
+    const aby = by - ay;
+    const apx = px - ax;
+    const apy = py - ay;
+    const l2 = abx * abx + aby * aby;
+    if (l2 === 0) return apx * apx + apy * apy;
+    let t = (apx * abx + apy * aby) / l2;
+    t = Math.max(0, Math.min(1, t));
+    const nx = ax + t * abx;
+    const ny = ay + t * aby;
+    const dx = px - nx;
+    const dy = py - ny;
+    return dx * dx + dy * dy;
+}
+
+function distSegmentToSegment(a1x, a1y, a2x, a2y, b1x, b1y, b2x, b2y) {
+    function ccw(p1x, p1y, p2x, p2y, p3x, p3y) {
+        return (p3y - p1y) * (p2x - p1x) > (p2y - p1y) * (p3x - p1x);
+    }
+    const intersects = (ccw(a1x, a1y, b1x, b1y, b2x, b2y) !== ccw(a2x, a2y, b1x, b1y, b2x, b2y)) &&
+                       (ccw(a1x, a1y, a2x, a2y, b1x, b1y) !== ccw(a1x, a1y, a2x, a2y, b2x, b2y));
+    if (intersects) return 0;
+
+    const d1 = distPointToSegmentSq(a1x, a1y, b1x, b1y, b2x, b2y);
+    const d2 = distPointToSegmentSq(a2x, a2y, b1x, b1y, b2x, b2y);
+    const d3 = distPointToSegmentSq(b1x, b1y, a1x, a1y, a2x, a2y);
+    const d4 = distPointToSegmentSq(b2x, b2y, a1x, a1y, a2x, a2y);
+    return Math.sqrt(Math.min(d1, d2, d3, d4));
+}
+
 function checkLedClearanceStatus(index, ledsList) {
     if (!ledsList || index < 0 || index >= ledsList.length) {
         return { isClear: true, sideBlocked: false, opening1Blocked: false, opening2Blocked: false, bridgeBlocked: false, overlapBlocked: false, reason: '' };
@@ -11871,12 +11902,27 @@ function checkLedClearanceStatus(index, ledsList) {
     const mmToNormY = normH / plateH;
 
     const cur = ledsList[index];
+    const curXmm = cur.x / mmToNormX;
+    const curYmm = cur.y / mmToNormY;
     const rotRad = (typeof getTpuWellRotationAngle === 'function')
         ? getTpuWellRotationAngle(index, ledsList)
         : ((params.tpuWellOrientation === 'tangent' && typeof getLedTangentAngle === 'function') ? getLedTangentAngle(index, ledsList) : 0);
 
     const ux = Math.cos(rotRad);
     const uy = Math.sin(rotRad);
+
+    // Spine segment for 13.6mm x 8.6mm stadium collar (half-spine = 2.5mm, radius = 4.3mm)
+    const spineHalf = 2.5;
+    const a1x = curXmm - spineHalf * ux;
+    const a1y = curYmm - spineHalf * uy;
+    const a2x = curXmm + spineHalf * ux;
+    const a2y = curYmm + spineHalf * uy;
+
+    // 2.5mm channel exit corridors
+    const op1_start_x = curXmm + 6.8 * ux, op1_start_y = curYmm + 6.8 * uy;
+    const op1_end_x = curXmm + 9.3 * ux, op1_end_y = curYmm + 9.3 * uy;
+    const op2_start_x = curXmm - 6.8 * ux, op2_start_y = curYmm - 6.8 * uy;
+    const op2_end_x = curXmm - 9.3 * ux, op2_end_y = curYmm - 9.3 * uy;
 
     let sideBlocked = false;
     let opening1Blocked = false;
@@ -11885,39 +11931,50 @@ function checkLedClearanceStatus(index, ledsList) {
     let bridgeBlocked = false;
     let reason = '';
 
-    // 1. Check against other LEDs
+    // 1. Check against other LEDs using stadium capsule Euclidean distance
     for (let j = 0; j < ledsList.length; j++) {
         if (j === index) continue;
         const other = ledsList[j];
-        const dxMm = (other.x - cur.x) / mmToNormX;
-        const dyMm = (other.y - cur.y) / mmToNormY;
+        const othXmm = other.x / mmToNormX;
+        const othYmm = other.y / mmToNormY;
+        const othRot = (typeof getTpuWellRotationAngle === 'function')
+            ? getTpuWellRotationAngle(j, ledsList)
+            : ((params.tpuWellOrientation === 'tangent' && typeof getLedTangentAngle === 'function') ? getLedTangentAngle(j, ledsList) : 0);
 
-        // Project onto current LED's longitudinal and lateral axes
-        const projL = dxMm * ux + dyMm * uy;
-        const projW = Math.abs(-dxMm * uy + dyMm * ux);
+        const othUx = Math.cos(othRot);
+        const othUy = Math.sin(othRot);
 
-        // A. Collar body collision check (13.6mm L x 8.6mm W outer dimensions)
-        if (Math.abs(projL) < 13.6 && projW < 8.6) {
+        const b1x = othXmm - spineHalf * othUx;
+        const b1y = othYmm - spineHalf * othUy;
+        const b2x = othXmm + spineHalf * othUx;
+        const b2y = othYmm + spineHalf * othUy;
+
+        const spineDist = distSegmentToSegment(a1x, a1y, a2x, a2y, b1x, b1y, b2x, b2y);
+        const physicalClearanceMm = spineDist - 8.6; // 8.6mm is 2 * 4.3mm outer collar radius
+
+        // A. Collar overlap / collision (< 0mm clearance)
+        if (physicalClearanceMm < 0.05) {
             overlapBlocked = true;
             reason = `Collar collision with LED #${j + 1}`;
             break;
         }
 
-        // B. 3.0mm Side / Lateral Clearance (11.6mm center-to-center minimum lateral distance)
-        if (Math.abs(projL) < 13.6 && projW < 11.6) {
+        // B. 2.5mm Physical Clearance Violation (< 2.5mm clearance)
+        if (physicalClearanceMm < 2.5) {
             sideBlocked = true;
-            if (!reason) reason = `Side clearance < 3mm from LED #${j + 1} (${Math.max(0, projW - 8.6).toFixed(1)}mm)`;
+            if (!reason) reason = `Clearance < 2.5mm from LED #${j + 1} (${Math.max(0, physicalClearanceMm).toFixed(1)}mm)`;
         }
 
-        // C. 3.0mm Channel Opening Clearance Corridor (extends 3mm forward in front of openings)
-        if (projW < 8.6) {
-            if (projL > 4.5 && projL < 16.6) {
-                opening1Blocked = true;
-                if (!reason) reason = `Opening 1 blocked by LED #${j + 1} (<3mm channel clearance)`;
-            } else if (projL < -4.5 && projL > -16.6) {
-                opening2Blocked = true;
-                if (!reason) reason = `Opening 2 blocked by LED #${j + 1} (<3mm channel clearance)`;
-            }
+        // C. 2.5mm Channel Opening Clearance Corridor checks
+        const distToOp1 = Math.sqrt(distPointToSegmentSq(op1_end_x, op1_end_y, b1x, b1y, b2x, b2y));
+        if (distToOp1 < 4.3) {
+            opening1Blocked = true;
+            if (!reason) reason = `Opening 1 blocked by LED #${j + 1} (<2.5mm channel clearance)`;
+        }
+        const distToOp2 = Math.sqrt(distPointToSegmentSq(op2_end_x, op2_end_y, b1x, b1y, b2x, b2y));
+        if (distToOp2 < 4.3) {
+            opening2Blocked = true;
+            if (!reason) reason = `Opening 2 blocked by LED #${j + 1} (<2.5mm channel clearance)`;
         }
     }
 
@@ -11964,32 +12021,44 @@ function clampLedNoCollarOverlap(targetX, targetY, movingIndex, ledsArray) {
         : 0;
     const ux = Math.cos(curRot);
     const uy = Math.sin(curRot);
+    const spineHalf = 2.5;
+    const reqDist = 8.6 + 2.5; // 11.1mm spine-to-spine for 2.5mm physical clearance
 
-    for (let iter = 0; iter < 5; iter++) {
+    for (let iter = 0; iter < 6; iter++) {
+        const curXmm = x / mmToNormX;
+        const curYmm = y / mmToNormY;
+        const a1x = curXmm - spineHalf * ux;
+        const a1y = curYmm - spineHalf * uy;
+        const a2x = curXmm + spineHalf * ux;
+        const a2y = curYmm + spineHalf * uy;
+
         for (let j = 0; j < ledsArray.length; j++) {
             if (j === movingIndex) continue;
             const ox = ledsArray[j].x;
             const oy = ledsArray[j].y;
-            const dxMm = (x - ox) / mmToNormX;
-            const dyMm = (y - oy) / mmToNormY;
-            const projL = dxMm * ux + dyMm * uy;
-            const projW = Math.abs(-dxMm * uy + dyMm * ux);
+            const othXmm = ox / mmToNormX;
+            const othYmm = oy / mmToNormY;
+            const othRot = (typeof getTpuWellRotationAngle === 'function')
+                ? getTpuWellRotationAngle(j, ledsArray)
+                : 0;
+            const othUx = Math.cos(othRot);
+            const othUy = Math.sin(othRot);
 
-            const reqL = 16.6; // 6.8 + 6.8 + 3.0mm channel opening corridor
-            const reqW = 11.6; // 4.3 + 4.3 + 3.0mm side clearance
+            const b1x = othXmm - spineHalf * othUx;
+            const b1y = othYmm - spineHalf * othUy;
+            const b2x = othXmm + spineHalf * othUx;
+            const b2y = othYmm + spineHalf * othUy;
 
-            if (Math.abs(projL) < reqL && projW < reqW) {
-                const penL = reqL - Math.abs(projL);
-                const penW = reqW - projW;
-                if (penL < penW * 1.5) {
-                    const signL = (projL >= 0) ? 1.0 : -1.0;
-                    x += signL * penL * ux * mmToNormX * 0.6;
-                    y += signL * penL * uy * mmToNormY * 0.6;
-                } else {
-                    const signW = ((-dxMm * uy + dyMm * ux) >= 0) ? 1.0 : -1.0;
-                    x += -signW * penW * uy * mmToNormX * 0.6;
-                    y += signW * penW * ux * mmToNormY * 0.6;
-                }
+            const spineDist = distSegmentToSegment(a1x, a1y, a2x, a2y, b1x, b1y, b2x, b2y);
+            if (spineDist < reqDist) {
+                const pen = reqDist - spineDist;
+                const dxMm = curXmm - othXmm;
+                const dyMm = curYmm - othYmm;
+                const distMm = Math.hypot(dxMm, dyMm);
+                const nx = (distMm > 1e-4) ? (dxMm / distMm) : 0.0;
+                const ny = (distMm > 1e-4) ? (dyMm / distMm) : 1.0;
+                x += nx * pen * mmToNormX * 0.55;
+                y += ny * pen * mmToNormY * 0.55;
             }
         }
 
@@ -12030,35 +12099,43 @@ function relaxLedCollarOverlaps(ledsList, iterations = 35) {
 
     const n = ledsList.length;
     const bridges = getTpuBridgeLocationsNorm();
+    const spineHalf = 2.5;
+    const reqDist = 8.6 + 2.5; // 11.1mm spine-to-spine distance for 2.5mm clearance
 
     for (let iter = 0; iter < iterations; iter++) {
         for (let i = 0; i < n; i++) {
+            const curXmm = ledsList[i].x / mmToNormX;
+            const curYmm = ledsList[i].y / mmToNormY;
             const rot_i = (typeof getTpuWellRotationAngle === 'function') ? getTpuWellRotationAngle(i, ledsList) : 0;
             const ux_i = Math.cos(rot_i);
             const uy_i = Math.sin(rot_i);
+            const a1x = curXmm - spineHalf * ux_i;
+            const a1y = curYmm - spineHalf * uy_i;
+            const a2x = curXmm + spineHalf * ux_i;
+            const a2y = curYmm + spineHalf * uy_i;
 
             for (let j = i + 1; j < n; j++) {
-                const dxMm = (ledsList[j].x - ledsList[i].x) / mmToNormX;
-                const dyMm = (ledsList[j].y - ledsList[i].y) / mmToNormY;
-                const projL = dxMm * ux_i + dyMm * uy_i;
-                const projW = Math.abs(-dxMm * uy_i + dyMm * ux_i);
+                const othXmm = ledsList[j].x / mmToNormX;
+                const othYmm = ledsList[j].y / mmToNormY;
+                const rot_j = (typeof getTpuWellRotationAngle === 'function') ? getTpuWellRotationAngle(j, ledsList) : 0;
+                const ux_j = Math.cos(rot_j);
+                const uy_j = Math.sin(rot_j);
+                const b1x = othXmm - spineHalf * ux_j;
+                const b1y = othYmm - spineHalf * uy_j;
+                const b2x = othXmm + spineHalf * ux_j;
+                const b2y = othYmm + spineHalf * uy_j;
 
-                const reqL = 16.6; // 3mm channel opening corridor
-                const reqW = 11.6; // 3mm side clearance
+                const spineDist = distSegmentToSegment(a1x, a1y, a2x, a2y, b1x, b1y, b2x, b2y);
+                if (spineDist < reqDist) {
+                    const pen = reqDist - spineDist;
+                    const dxMm = othXmm - curXmm;
+                    const dyMm = othYmm - curYmm;
+                    const distMm = Math.hypot(dxMm, dyMm);
+                    const nx = (distMm > 1e-4) ? (dxMm / distMm) : 0.0;
+                    const ny = (distMm > 1e-4) ? (dyMm / distMm) : 1.0;
 
-                if (Math.abs(projL) < reqL && projW < reqW) {
-                    const penL = reqL - Math.abs(projL);
-                    const penW = reqW - projW;
-                    let pushX = 0, pushY = 0;
-                    if (penL < penW * 1.5) {
-                        const signL = (projL >= 0) ? 1.0 : -1.0;
-                        pushX = signL * penL * ux_i * mmToNormX * 0.35;
-                        pushY = signL * penL * uy_i * mmToNormY * 0.35;
-                    } else {
-                        const signW = ((-dxMm * uy_i + dyMm * ux_i) >= 0) ? 1.0 : -1.0;
-                        pushX = -signW * penW * uy_i * mmToNormX * 0.35;
-                        pushY = signW * penW * ux_i * mmToNormY * 0.35;
-                    }
+                    const pushX = nx * pen * mmToNormX * 0.35;
+                    const pushY = ny * pen * mmToNormY * 0.35;
                     ledsList[i].x -= pushX;
                     ledsList[i].y -= pushY;
                     ledsList[j].x += pushX;
@@ -12078,7 +12155,6 @@ function relaxLedCollarOverlaps(ledsList, iterations = 35) {
                 }
             });
         }
-
         for (let i = 0; i < n; i++) {
             ledsList[i].x = Math.max(gb.normX, Math.min(gb.normX + gb.normW, parseFloat(ledsList[i].x.toFixed(4))));
             ledsList[i].y = Math.max(gb.normY, Math.min(gb.normY + gb.normH, parseFloat(ledsList[i].y.toFixed(4))));

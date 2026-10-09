@@ -93,6 +93,19 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### 2026-10-08 22:05 - Exact 2.5mm Stadium Capsule Clearance Engine & False-Positive Fix
+- **True Stadium Capsule Segment-to-Segment Euclidean Distance:**
+  - Diagnosed root cause of all LEDs falsely turning red: the previous projection box check (`Math.abs(projL) < 13.6 && projW < 11.6`) falsely treated adjacent in-line bulbs along curved character contours as side collisions because their lateral offset was small ($< 11.6\text{mm}$) and longitudinal distance was $< 13.6\text{mm}$.
+  - Replaced projection box checking with exact 2D segment-to-segment Euclidean distance between stadium capsule spines:
+    - Central spine length for $13.6\text{mm} \times 8.6\text{mm}$ collar is $5.0\text{mm}$ (from $\vec{c}_i - 2.5\vec{u}_i$ to $\vec{c}_i + 2.5\vec{u}_i$, radius $R = 4.3\text{mm}$).
+    - Physical collar clearance $= d_{\text{seg}}(\text{spine}_i, \text{spine}_j) - 8.6\text{mm}$.
+    - Required spine distance for $\ge 2.5\text{mm}$ clearance: $8.6\text{mm} + 2.5\text{mm} = 11.1\text{mm}$.
+  - Completely eliminated false-positive red warnings on normally spaced LEDs; only collars that genuinely violate the $2.5\text{mm}$ clearance threshold (or $< 10\text{mm}$ from strain relief bridges) now render in red.
+- **Unified 2.5mm Clearance Rule Across Simulator & STL Compilers:**
+  - Updated `checkLedClearanceStatus`, `clampLedNoCollarOverlap`, and `relaxLedCollarOverlaps` in `simulator/app.js` to enforce the $2.5\text{mm}$ clearance standard.
+  - Updated warning badges in `renderBulb` to display `⚠️ <2.5mm Clearance`.
+  - Updated `scripts/compile_clean_tpu_panel.py` PBD relaxation solver to enforce `SIDE_CLEARANCE_MM = 2.5` and `OPENING_CLEARANCE_MM = 2.5` (`req_dist = 11.1mm`).
+
 ### 2026-10-08 21:26 - 3D File LED Well Orientation Synchronization & Individual LED Rotation Engine
 - **3D File & Slicer Orientation Alignment:**
   - Diagnosed root cause for 3D files exporting horizontal wells: `params.tpuWellOrientation` defaulted to `'horizontal'`, sending `0.0°` rotations to the compiler despite tangent angles appearing on 2D canvas pills.

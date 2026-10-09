@@ -219,12 +219,12 @@ def compile_plate_variant(variant_name, width_mm, height_mm, raw_leds, artwork_p
     pts = np.array([[l['x'], l['y']] for l in leds], dtype=np.float64)
     orig_pts = pts.copy()
     # 13.6mm outer length (5.0mm straight segment) x 8.6mm outer width (4.3mm radius)
-    # 3.0mm side clearance allowance: center distance >= 8.6mm + 3.0mm = 11.6mm
-    SIDE_CLEARANCE_MM = 3.0                      # 3.0 mm lateral side clearance
-    req_dist = COLLAR_OUTER_W + SIDE_CLEARANCE_MM # 11.6 mm center-to-center minimum lateral clearance
+    # 2.5mm clearance allowance: center distance >= 8.6mm + 2.5mm = 11.1mm
+    SIDE_CLEARANCE_MM = 2.5                      # 2.5 mm lateral side clearance
+    req_dist = COLLAR_OUTER_W + SIDE_CLEARANCE_MM # 11.1 mm center-to-center minimum lateral clearance
     COLLAR_HALF_L = COLLAR_OUTER_L / 2.0         # 6.8 mm
     COLLAR_HALF_W = COLLAR_OUTER_W / 2.0         # 4.3 mm
-    OPENING_CLEARANCE_MM = 5.0                   # 5.0 mm clearance in front of each channel opening
+    OPENING_CLEARANCE_MM = 2.5                   # 2.5 mm clearance in front of each channel opening
 
     bounds = safe_art_boundary.bounds if safe_art_boundary is not None else (0.0, 0.0, width_mm, height_mm)
     cx_mid = (bounds[0] + bounds[2]) / 2.0
