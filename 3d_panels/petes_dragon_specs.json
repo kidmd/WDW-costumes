@@ -66,7 +66,7 @@
       "filename": "color_white.stl"
     }
   },
-  "layout_signature": "custom_image-round_34-horizontal-num-nogrv-nub-medium-65-v6-22196c14",
+  "layout_signature": "custom_image-round_34-horizontal-num-nogrv-nub-medium-65-v6-4ac574be",
   "size_preset": "medium",
   "width_mm": 227.66,
   "front": {
@@ -122,8 +122,8 @@
       {
         "id": 4,
         "orig_id": 3,
-        "x": 55.01,
-        "y": 62.32,
+        "x": 54.3,
+        "y": 61.32,
         "is_custom_rotation": false,
         "rotation_deg": 0.0,
         "color": {
@@ -551,8 +551,8 @@
       {
         "id": 37,
         "orig_id": 36,
-        "x": 116.24,
-        "y": 171.71,
+        "x": 116.01,
+        "y": 173.57,
         "is_custom_rotation": false,
         "rotation_deg": 0.0,
         "color": {
@@ -564,8 +564,8 @@
       {
         "id": 38,
         "orig_id": 37,
-        "x": 144.82,
-        "y": 169.81,
+        "x": 128.35,
+        "y": 170.1,
         "is_custom_rotation": false,
         "rotation_deg": 0.0,
         "color": {
@@ -577,8 +577,8 @@
       {
         "id": 39,
         "orig_id": 38,
-        "x": 156.57,
-        "y": 183.25,
+        "x": 152.84,
+        "y": 178.2,
         "is_custom_rotation": false,
         "rotation_deg": 0.0,
         "color": {
@@ -746,8 +746,8 @@
       {
         "id": 52,
         "orig_id": 51,
-        "x": 157.63,
-        "y": 160.51,
+        "x": 155.58,
+        "y": 161.3,
         "is_custom_rotation": false,
         "rotation_deg": 0.0,
         "color": {
@@ -759,8 +759,8 @@
       {
         "id": 53,
         "orig_id": 52,
-        "x": 133.93,
-        "y": 155.22,
+        "x": 137.62,
+        "y": 158.21,
         "is_custom_rotation": false,
         "rotation_deg": 0.0,
         "color": {
@@ -1057,12 +1057,12 @@
         50.44
       ],
       [
-        55.01,
-        56.82
+        54.3,
+        55.82
       ],
       [
         40.2,
-        63.07
+        74.07
       ],
       [
         39.25,
@@ -1186,23 +1186,23 @@
       ],
       [
         105.43,
-        154.86
+        163.86
       ],
       [
-        122.74,
-        176.21
+        109.51,
+        178.07
       ],
       [
-        138.32,
-        174.31
+        134.85,
+        174.6
       ],
       [
-        156.57,
-        177.75
+        146.34,
+        182.7
       ],
       [
-        151.78,
-        195.29
+        166.28,
+        190.79
       ],
       [
         145.05,
@@ -1245,16 +1245,16 @@
         135.32
       ],
       [
-        160.76,
-        144.29
+        167.26,
+        154.29
       ],
       [
-        164.13,
-        165.01
+        162.08,
+        165.8
       ],
       [
-        127.43,
-        159.72
+        131.12,
+        153.71
       ],
       [
         154.11,
@@ -1262,7 +1262,7 @@
       ],
       [
         130.9,
-        133.06
+        144.06
       ],
       [
         148.91,
@@ -1638,30 +1638,30 @@
       5.0
     ],
     "stl_size": 3729984,
-    "chassis_size": 5840984,
+    "chassis_size": 5824884,
     "lid_size": 432084,
-    "zip_size": 3160803,
+    "zip_size": 3150498,
     "inlays": [
       {
         "key": "green",
         "name": "Dragon Body",
         "filename": "tpu_panel_front_color_green.stl",
         "hex": "#00e676",
-        "count": 12256
+        "count": 12312
       },
       {
         "key": "magenta",
         "name": "Wings & Crest",
         "filename": "tpu_panel_front_color_magenta.stl",
         "hex": "#ec4899",
-        "count": 7472
+        "count": 7284
       },
       {
         "key": "yellow",
         "name": "Belly & Horns",
         "filename": "tpu_panel_front_color_yellow.stl",
         "hex": "#facc15",
-        "count": 7392
+        "count": 7312
       },
       {
         "key": "white",
@@ -1732,8 +1732,8 @@
       {
         "id": 4,
         "orig_id": 3,
-        "x": 55.01,
-        "y": 62.32,
+        "x": 54.3,
+        "y": 61.32,
         "is_custom_rotation": false,
         "rotation_deg": 0.0,
         "color": {
@@ -2161,8 +2161,8 @@
       {
         "id": 37,
         "orig_id": 36,
-        "x": 116.24,
-        "y": 171.71,
+        "x": 116.01,
+        "y": 173.57,
         "is_custom_rotation": false,
         "rotation_deg": 0.0,
         "color": {
@@ -2174,8 +2174,8 @@
       {
         "id": 38,
         "orig_id": 37,
-        "x": 144.82,
-        "y": 169.81,
+        "x": 128.35,
+        "y": 170.1,
         "is_custom_rotation": false,
         "rotation_deg": 0.0,
         "color": {
@@ -2187,8 +2187,8 @@
       {
         "id": 39,
         "orig_id": 38,
-        "x": 156.57,
-        "y": 183.25,
+        "x": 152.84,
+        "y": 178.2,
         "is_custom_rotation": false,
         "rotation_deg": 0.0,
         "color": {
@@ -2356,8 +2356,8 @@
       {
         "id": 52,
         "orig_id": 51,
-        "x": 157.63,
-        "y": 160.51,
+        "x": 155.58,
+        "y": 161.3,
         "is_custom_rotation": false,
         "rotation_deg": 0.0,
         "color": {
@@ -2369,8 +2369,8 @@
       {
         "id": 53,
         "orig_id": 52,
-        "x": 133.93,
-        "y": 155.22,
+        "x": 137.62,
+        "y": 158.21,
         "is_custom_rotation": false,
         "rotation_deg": 0.0,
         "color": {
@@ -2667,12 +2667,12 @@
         50.44
       ],
       [
-        55.01,
-        56.82
+        54.3,
+        55.82
       ],
       [
         40.2,
-        63.07
+        74.07
       ],
       [
         39.25,
@@ -2796,23 +2796,23 @@
       ],
       [
         105.43,
-        154.86
+        163.86
       ],
       [
-        122.74,
-        176.21
+        109.51,
+        178.07
       ],
       [
-        138.32,
-        174.31
+        134.85,
+        174.6
       ],
       [
-        156.57,
-        177.75
+        146.34,
+        182.7
       ],
       [
-        151.78,
-        195.29
+        166.28,
+        190.79
       ],
       [
         145.05,
@@ -2855,16 +2855,16 @@
         135.32
       ],
       [
-        160.76,
-        144.29
+        167.26,
+        154.29
       ],
       [
-        164.13,
-        165.01
+        162.08,
+        165.8
       ],
       [
-        127.43,
-        159.72
+        131.12,
+        153.71
       ],
       [
         154.11,
@@ -2872,7 +2872,7 @@
       ],
       [
         130.9,
-        133.06
+        144.06
       ],
       [
         148.91,
@@ -3248,30 +3248,30 @@
       5.0
     ],
     "stl_size": 3729984,
-    "chassis_size": 5840984,
+    "chassis_size": 5824884,
     "lid_size": 432084,
-    "zip_size": 3160802,
+    "zip_size": 3150366,
     "inlays": [
       {
         "key": "green",
         "name": "Dragon Body",
         "filename": "tpu_panel_back_color_green.stl",
         "hex": "#00e676",
-        "count": 12256
+        "count": 12312
       },
       {
         "key": "magenta",
         "name": "Wings & Crest",
         "filename": "tpu_panel_back_color_magenta.stl",
         "hex": "#ec4899",
-        "count": 7472
+        "count": 7284
       },
       {
         "key": "yellow",
         "name": "Belly & Horns",
         "filename": "tpu_panel_back_color_yellow.stl",
         "hex": "#facc15",
-        "count": 7392
+        "count": 7312
       },
       {
         "key": "white",
@@ -3333,8 +3333,8 @@
     {
       "id": 4,
       "orig_id": 3,
-      "x": 55.01,
-      "y": 62.32,
+      "x": 54.3,
+      "y": 61.32,
       "is_custom_rotation": false,
       "rotation_deg": 0.0,
       "color": {
@@ -3762,8 +3762,8 @@
     {
       "id": 37,
       "orig_id": 36,
-      "x": 116.24,
-      "y": 171.71,
+      "x": 116.01,
+      "y": 173.57,
       "is_custom_rotation": false,
       "rotation_deg": 0.0,
       "color": {
@@ -3775,8 +3775,8 @@
     {
       "id": 38,
       "orig_id": 37,
-      "x": 144.82,
-      "y": 169.81,
+      "x": 128.35,
+      "y": 170.1,
       "is_custom_rotation": false,
       "rotation_deg": 0.0,
       "color": {
@@ -3788,8 +3788,8 @@
     {
       "id": 39,
       "orig_id": 38,
-      "x": 156.57,
-      "y": 183.25,
+      "x": 152.84,
+      "y": 178.2,
       "is_custom_rotation": false,
       "rotation_deg": 0.0,
       "color": {
@@ -3957,8 +3957,8 @@
     {
       "id": 52,
       "orig_id": 51,
-      "x": 157.63,
-      "y": 160.51,
+      "x": 155.58,
+      "y": 161.3,
       "is_custom_rotation": false,
       "rotation_deg": 0.0,
       "color": {
@@ -3970,8 +3970,8 @@
     {
       "id": 53,
       "orig_id": 52,
-      "x": 133.93,
-      "y": 155.22,
+      "x": 137.62,
+      "y": 158.21,
       "is_custom_rotation": false,
       "rotation_deg": 0.0,
       "color": {
@@ -4273,12 +4273,12 @@
       50.44
     ],
     [
-      55.01,
-      56.82
+      54.3,
+      55.82
     ],
     [
       40.2,
-      63.07
+      74.07
     ],
     [
       39.25,
@@ -4402,23 +4402,23 @@
     ],
     [
       105.43,
-      154.86
+      163.86
     ],
     [
-      122.74,
-      176.21
+      109.51,
+      178.07
     ],
     [
-      138.32,
-      174.31
+      134.85,
+      174.6
     ],
     [
-      156.57,
-      177.75
+      146.34,
+      182.7
     ],
     [
-      151.78,
-      195.29
+      166.28,
+      190.79
     ],
     [
       145.05,
@@ -4461,16 +4461,16 @@
       135.32
     ],
     [
-      160.76,
-      144.29
+      167.26,
+      154.29
     ],
     [
-      164.13,
-      165.01
+      162.08,
+      165.8
     ],
     [
-      127.43,
-      159.72
+      131.12,
+      153.71
     ],
     [
       154.11,
@@ -4478,7 +4478,7 @@
     ],
     [
       130.9,
-      133.06
+      144.06
     ],
     [
       148.91,
@@ -4854,30 +4854,30 @@
     5.0
   ],
   "stl_size": 3729984,
-  "chassis_size": 5840984,
+  "chassis_size": 5824884,
   "lid_size": 432084,
-  "zip_size": 3160803,
+  "zip_size": 3150498,
   "inlays": [
     {
       "key": "green",
       "name": "Dragon Body",
       "filename": "tpu_panel_front_color_green.stl",
       "hex": "#00e676",
-      "count": 12256
+      "count": 12312
     },
     {
       "key": "magenta",
       "name": "Wings & Crest",
       "filename": "tpu_panel_front_color_magenta.stl",
       "hex": "#ec4899",
-      "count": 7472
+      "count": 7284
     },
     {
       "key": "yellow",
       "name": "Belly & Horns",
       "filename": "tpu_panel_front_color_yellow.stl",
       "hex": "#facc15",
-      "count": 7392
+      "count": 7312
     },
     {
       "key": "white",
