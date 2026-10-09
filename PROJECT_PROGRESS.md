@@ -93,6 +93,15 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### 2026-10-08 22:40 - TPU Layout Signature ReferenceError & Cache Busting Fix
+- **`computeTpuLayoutSignature` Fatal ReferenceError Resolution:**
+  - Diagnosed exact runtime crash causing modal loading freeze: `computeTpuLayoutSignature()` referenced undefined variables `src` and `gb`, triggering an uncaught `ReferenceError: src is not defined` immediately upon calling `openTpuPreviewModal()`.
+  - Added safe fallbacks for `src`, `gb`, `getActiveGraphicImg()`, `getActiveFloatStlColors()`, and wrapped the entire layout signature generator in a `try ... catch` with fallback timestamp.
+  - Wrapped `openTpuPreviewModal()` initialization and auto-recompile sequence in robust `try ... catch` blocks to guarantee control always proceeds to `loadTpuModalData()`.
+  - Bumped script cache query in `simulator/index.html` to `app.js?v=96`.
+- **Node Syntax Verification:**
+  - Ran `node --check simulator/app.js` with zero errors.
+
 ### 2026-10-08 22:36 - 3D Preview Modal Loading Hang & Event De-duplication Fix
 - **Modal Event Listener & Double-Invocation Resolution:**
   - Diagnosed root cause of the modal getting stuck on `"Loading Binary STL & Compiling Shaders..."`: `#openTpuPreviewModalBtn`, `#closeTpuPreviewModalBtn`, and `#closeTpuPreviewModalBottomBtn` had both inline HTML `onclick` attributes in `simulator/index.html` and JavaScript `addEventListener('click', ...)` bindings in `simulator/app.js`.

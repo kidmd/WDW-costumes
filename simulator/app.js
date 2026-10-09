@@ -20436,33 +20436,42 @@ window.getActiveFloatName = getActiveFloatName;
 
 // Fingerprint of everything that shapes the STL (artwork silhouette, LED layout, chest bounds, window shape, well orientation, size, count, numbers, clip grooves, top nubs).
 function computeTpuLayoutSignature() {
-    const activeImg = getActiveGraphicImg();
-    const winShape = params.tpuWindowShape || 'round_34';
-    const wellOrient = params.tpuWellOrientation || 'tangent';
-    const numFlag = (params.tpuIncludeLedNumbers === true) ? 'num' : 'nonum';
-    const grvFlag = (params.tpuIncludeClipGrooves === true) ? 'grv' : 'nogrv';
-    const nubFlag = (params.tpuIncludeTopNubs === true) ? 'nub' : 'nonub';
-    let h = 5381;
-    const mix = (str) => {
-        const step = Math.max(1, Math.floor(str.length / 4096)); // sample long data URLs
-        for (let i = 0; i < str.length; i += step) h = ((h * 33) ^ str.charCodeAt(i)) >>> 0;
-        h = ((h * 33) ^ str.length) >>> 0;
-    };
-    mix(String(currentGraphicType));
-    mix(src);
-    mix(String(winShape));
-    mix(String(wellOrient));
-    mix(numFlag);
-    mix(grvFlag);
-    mix(nubFlag);
-    mix('wireportal-v2');
-    mix('floatcolors-v1');
-    mix(JSON.stringify(getActiveFloatStlColors()));
-    mix(String(selectedPlateWidthMm));
-    mix(String(selectedPlateSize));
-    mix([gb.normX, gb.normY, gb.normW, gb.normH].map(v => Number(v || 0).toFixed(4)).join(','));
-    mix((leds || []).map((l, i) => `${Number(l.x).toFixed(4)},${Number(l.y).toFixed(4)},${Number(getTpuWellRotationAngle(i, leds)).toFixed(2)},${l.is_custom_rotation ? '1' : '0'}`).join(';'));
-    return `${currentGraphicType}-${winShape}-${wellOrient}-${numFlag}-${grvFlag}-${nubFlag}-${selectedPlateSize}-${(leds || []).length}-v6-${h.toString(16)}`;
+    try {
+        const activeImg = (typeof getActiveGraphicImg === 'function') ? getActiveGraphicImg() : null;
+        const src = (activeImg && activeImg.src) ? String(activeImg.src) : '';
+        const gb = (typeof getGraphicChestBounds === 'function') ? getGraphicChestBounds() : { normX: 0, normY: 0, normW: 0, normH: 0 };
+        const winShape = params.tpuWindowShape || 'round_34';
+        const wellOrient = params.tpuWellOrientation || 'horizontal';
+        const numFlag = (params.tpuIncludeLedNumbers === true) ? 'num' : 'nonum';
+        const grvFlag = (params.tpuIncludeClipGrooves === true) ? 'grv' : 'nogrv';
+        const nubFlag = (params.tpuIncludeTopNubs === true) ? 'nub' : 'nonub';
+        let h = 5381;
+        const mix = (str) => {
+            if (!str) return;
+            const s = String(str);
+            const step = Math.max(1, Math.floor(s.length / 4096)); // sample long data URLs
+            for (let i = 0; i < s.length; i += step) h = ((h * 33) ^ s.charCodeAt(i)) >>> 0;
+            h = ((h * 33) ^ s.length) >>> 0;
+        };
+        mix(String(currentGraphicType || 'unknown'));
+        mix(src);
+        mix(String(winShape));
+        mix(String(wellOrient));
+        mix(numFlag);
+        mix(grvFlag);
+        mix(nubFlag);
+        mix('wireportal-v2');
+        mix('floatcolors-v1');
+        mix(JSON.stringify((typeof getActiveFloatStlColors === 'function') ? getActiveFloatStlColors() : {}));
+        mix(String(selectedPlateWidthMm || 203.2));
+        mix(String(selectedPlateSize || 'medium'));
+        mix([gb.normX, gb.normY, gb.normW, gb.normH].map(v => Number(v || 0).toFixed(4)).join(','));
+        mix((leds || []).map((l, i) => `${Number(l.x).toFixed(4)},${Number(l.y).toFixed(4)},${(typeof getTpuWellRotationAngle === 'function') ? Number(getTpuWellRotationAngle(i, leds)).toFixed(2) : 0},${l.is_custom_rotation ? '1' : '0'}`).join(';'));
+        return `${currentGraphicType || 'custom'}-${winShape}-${wellOrient}-${numFlag}-${grvFlag}-${nubFlag}-${selectedPlateSize || 'med'}-${(leds || []).length}-v6-${h.toString(16)}`;
+    } catch (e) {
+        console.warn("[TPU Preview] Layout signature error, using fallback:", e);
+        return `fallback-${Date.now()}`;
+    }
 }
 window.computeTpuLayoutSignature = computeTpuLayoutSignature;
 
@@ -20830,59 +20839,65 @@ async function openTpuPreviewModal() {
     const container = document.getElementById('tpuModalCanvasContainer');
     if (!container) return;
 
-    if (!tpuRenderer) {
-        setupTpuThreeScene(container);
-    } else {
-        onTpuWindowResize();
-    }
-    setTimeout(onTpuWindowResize, 60);
+    try {
+        if (!tpuRenderer) {
+            setupTpuThreeScene(container);
+        } else {
+            onTpuWindowResize();
+        }
+        setTimeout(onTpuWindowResize, 60);
 
-    // Stale-STL guard: if the compiled panel was built for a different graphic, LED layout,
-    // or feature toggle (top nubs, grooves, numbers, window shape, orientation), recompile first so the 3D model
-    // 100% matches what the user selected.
-    if (!tpuAutoCompileInFlight) {
-        let compiledSig = null;
-        let compiledNubs = undefined;
-        let compiledGrooves = undefined;
-        let compiledNumbers = undefined;
-        let compiledShape = undefined;
-        let compiledOrient = undefined;
-        try {
-            const r = await fetch('/3d_panels/tpu_panel_specs.json?t=' + Date.now());
-            if (r.ok) {
-                const sp = await r.json();
-                compiledSig = sp.layout_signature || null;
-                compiledNubs = sp.include_top_nubs;
-                compiledGrooves = sp.include_clip_grooves;
-                compiledNumbers = sp.include_led_numbers;
-                compiledShape = sp.window_shape;
-                compiledOrient = sp.well_orientation;
-            }
-        } catch (e) {}
-
-        const currentSig = computeTpuLayoutSignature();
-        const nubsMismatch = (compiledNubs !== undefined && compiledNubs !== (params.tpuIncludeTopNubs === true));
-        const groovesMismatch = (compiledGrooves !== undefined && compiledGrooves !== (params.tpuIncludeClipGrooves === true));
-        const numbersMismatch = (compiledNumbers !== undefined && compiledNumbers !== (params.tpuIncludeLedNumbers === true));
-        const shapeMismatch = (compiledShape !== undefined && compiledShape !== (params.tpuWindowShape || 'round_34'));
-        const orientMismatch = (compiledOrient !== undefined && compiledOrient !== (params.tpuWellOrientation || 'tangent'));
-
-        if (compiledSig !== currentSig || nubsMismatch || groovesMismatch || numbersMismatch || shapeMismatch || orientMismatch) {
-            const loaderOverlay = document.getElementById('tpuModalLoading');
-            if (loaderOverlay) {
-                loaderOverlay.style.display = 'flex';
-                loaderOverlay.innerHTML = `
-                    <div class="spinner" style="width: 32px; height: 32px; border: 3px solid rgba(0, 255, 136, 0.2); border-top-color: #00ff88; border-radius: 50%; animation: spin 0.8s linear infinite;"></div>
-                    <span>Configuration changed — compiling fresh Front &amp; Back STLs with updated features...</span>
-                `;
-            }
-            tpuAutoCompileInFlight = true;
+        // Stale-STL guard: if the compiled panel was built for a different graphic, LED layout,
+        // or feature toggle (top nubs, grooves, numbers, window shape, orientation), recompile first so the 3D model
+        // 100% matches what the user selected.
+        if (!tpuAutoCompileInFlight) {
+            let compiledSig = null;
+            let compiledNubs = undefined;
+            let compiledGrooves = undefined;
+            let compiledNumbers = undefined;
+            let compiledShape = undefined;
+            let compiledOrient = undefined;
             try {
-                await handleRecompileTpuStl({ skipOpen: true });
-            } finally {
-                tpuAutoCompileInFlight = false;
+                const r = await fetch('/3d_panels/tpu_panel_specs.json?t=' + Date.now());
+                if (r.ok) {
+                    const sp = await r.json();
+                    compiledSig = sp.layout_signature || null;
+                    compiledNubs = sp.include_top_nubs;
+                    compiledGrooves = sp.include_clip_grooves;
+                    compiledNumbers = sp.include_led_numbers;
+                    compiledShape = sp.window_shape;
+                    compiledOrient = sp.well_orientation;
+                }
+            } catch (e) {}
+
+            const currentSig = computeTpuLayoutSignature();
+            const nubsMismatch = (compiledNubs !== undefined && compiledNubs !== (params.tpuIncludeTopNubs === true));
+            const groovesMismatch = (compiledGrooves !== undefined && compiledGrooves !== (params.tpuIncludeClipGrooves === true));
+            const numbersMismatch = (compiledNumbers !== undefined && compiledNumbers !== (params.tpuIncludeLedNumbers === true));
+            const shapeMismatch = (compiledShape !== undefined && compiledShape !== (params.tpuWindowShape || 'round_34'));
+            const orientMismatch = (compiledOrient !== undefined && compiledOrient !== (params.tpuWellOrientation || 'horizontal'));
+
+            if (compiledSig !== currentSig || nubsMismatch || groovesMismatch || numbersMismatch || shapeMismatch || orientMismatch) {
+                const loaderOverlay = document.getElementById('tpuModalLoading');
+                if (loaderOverlay) {
+                    loaderOverlay.style.display = 'flex';
+                    loaderOverlay.innerHTML = `
+                        <div class="spinner" style="width: 32px; height: 32px; border: 3px solid rgba(0, 255, 136, 0.2); border-top-color: #00ff88; border-radius: 50%; animation: spin 0.8s linear infinite;"></div>
+                        <span>Configuration changed — compiling fresh Front &amp; Back STLs with updated features...</span>
+                    `;
+                }
+                tpuAutoCompileInFlight = true;
+                try {
+                    await handleRecompileTpuStl({ skipOpen: true });
+                } catch (recErr) {
+                    console.warn("[TPU Preview] Auto-recompile failed, falling back to cached STLs:", recErr);
+                } finally {
+                    tpuAutoCompileInFlight = false;
+                }
             }
         }
+    } catch (err) {
+        console.error("[TPU Preview] Error in openTpuPreviewModal:", err);
     }
 
     if (tpuIsOpen) loadTpuModalData();
