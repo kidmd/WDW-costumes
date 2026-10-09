@@ -573,11 +573,13 @@ def compile_plate_variant(variant_name, width_mm, height_mm, raw_leds, artwork_p
             win_radius = 1.7  # Ø 3.4mm round (default: round_34, round, circle)
             is_circle_win = True
 
+        # Use generous cutter height (4.0mm) to guarantee clean punch-through across full tray skin
+        cutter_h = FRONT_THICK_GENERAL + 2.0
         if is_circle_win:
-            sq_win = trimesh.creation.cylinder(radius=win_radius, height=FRONT_THICK_LED + 1.0, sections=28)
+            sq_win = trimesh.creation.cylinder(radius=win_radius, height=cutter_h, sections=28)
             win_2d = sg.Point(cx, cy).buffer(win_radius, resolution=16)
         else:
-            sq_win = trimesh.creation.box(extents=[WINDOW_SQ, WINDOW_SQ, FRONT_THICK_LED + 1.0])
+            sq_win = trimesh.creation.box(extents=[WINDOW_SQ, WINDOW_SQ, cutter_h])
             sq_win.apply_transform(rot)
             win_2d = sg.box(cx - WINDOW_SQ / 2.0, cy - WINDOW_SQ / 2.0, cx + WINDOW_SQ / 2.0, cy + WINDOW_SQ / 2.0)
 
@@ -987,13 +989,21 @@ def compile_plate_variant(variant_name, width_mm, height_mm, raw_leds, artwork_p
     stl_list_str = "\n".join(stl_list_lines)
     slot_mapping_str = "\n".join(slot_mapping_lines)
 
+    w_shape_str = str(window_shape).lower()
+    if '30' in w_shape_str or '3.0' in w_shape_str:
+        aperture_desc = "Ø 3.0mm round optical apertures"
+    elif 'square' in w_shape_str:
+        aperture_desc = "3x3mm square optical apertures"
+    else:
+        aperture_desc = "Ø 3.4mm round optical apertures (Default)"
+
     readme_content = f"""🏰 MAIN STREET ELECTRICAL PARADE (WDW 10K) - 3D TPU ARMOR PLATE
 BAMBU LAB X1-CARBON / AMS MULTI-COLOR PRINTING GUIDE
 
 PLATE VARIANT: {variant_name.upper()} ({specs.get('float_name', 'MSEP Float')})
 ======================================================================
 PHYSICAL SIZE: {panel_w} mm W x {panel_h} mm H (Target Width: {width_mm} mm / ~{round(width_mm/25.4, 1)} in)
-ACTIVE LEDS: {num_leds} LEDs with 3x3mm open optical apertures
+ACTIVE LEDS: {num_leds} LEDs with {aperture_desc}
 
 ======================================================================
 HOW TO IMPORT INTO BAMBU STUDIO / ORCASLICER:
@@ -1044,6 +1054,7 @@ RECOMMENDED 95A TPU PRINT SETTINGS:
 // 🏰 Main Street Electrical Parade (WDW 10K) - 3D TPU Armor Plate ({variant_name.upper()})
 // Dimensions: {panel_w}mm x {panel_h}mm x {TOTAL_THICK}mm
 // Sized for Snapmaker U1 & Bambu Lab | Material: 95A TPU
+// Aperture: {aperture_desc} | Orientation: {well_orientation}
 // ============================================================================
 $fn = 24;
 front_thickness = {FRONT_THICK_GENERAL};
@@ -1078,6 +1089,8 @@ linear_extrude(front_thickness) polygon(contour_pts);
         "panel_height_mm": panel_h,
         "total_image_width_mm": width_mm,
         "total_image_height_mm": height_mm,
+        "window_shape": window_shape,
+        "well_orientation": well_orientation,
         "ordered_leds": leds,
         "led_count": len(leds),
         "fastener_tabs": tab_coords,

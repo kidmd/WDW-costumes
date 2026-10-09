@@ -12538,6 +12538,11 @@ function buildCompletePresetData(name) {
         stlColors: (typeof getActiveFloatStlColors === 'function') ? getActiveFloatStlColors() : currentLoadedStlColors,
         plateSize: selectedPlateSize || 'medium',
         plateWidthMm: selectedPlateWidthMm || 203.2,
+        tpuWindowShape: params.tpuWindowShape || 'round_34',
+        tpuWellOrientation: params.tpuWellOrientation || 'horizontal',
+        tpuIncludeLedNumbers: params.tpuIncludeLedNumbers === true,
+        tpuIncludeClipGrooves: params.tpuIncludeClipGrooves === true,
+        tpuIncludeTopNubs: params.tpuIncludeTopNubs === true,
         settings: {
             pattern: activePattern,
             direction: params.direction || 1,
@@ -12979,6 +12984,28 @@ function applyProfileData(profileData) {
     // 7. Recompute BTF Strip Preview if active
     if (btfStripPreviewActive) {
         computeBtfStripMatrix();
+    }
+
+    // 8. Restore TPU Armor Panel Features (Aperture Shape, Orientation, Numbers, Grooves, Nubs)
+    const targetShape = profileData.tpuWindowShape || profileData.windowShape || profileData.window_shape || null;
+    if (targetShape && typeof setTpuWindowShape === 'function') {
+        setTpuWindowShape(targetShape);
+    }
+    const targetOrient = profileData.tpuWellOrientation || profileData.wellOrientation || profileData.well_orientation || null;
+    if (targetOrient && typeof setTpuWellOrientation === 'function') {
+        setTpuWellOrientation(targetOrient);
+    }
+    if (profileData.tpuIncludeLedNumbers !== undefined || profileData.includeLedNumbers !== undefined) {
+        const numVal = (profileData.tpuIncludeLedNumbers !== undefined) ? profileData.tpuIncludeLedNumbers : profileData.includeLedNumbers;
+        if (typeof setTpuLedNumbers === 'function') setTpuLedNumbers(!!numVal);
+    }
+    if (profileData.tpuIncludeClipGrooves !== undefined || profileData.includeClipGrooves !== undefined) {
+        const grvVal = (profileData.tpuIncludeClipGrooves !== undefined) ? profileData.tpuIncludeClipGrooves : profileData.includeClipGrooves;
+        if (typeof setTpuClipGrooves === 'function') setTpuClipGrooves(!!grvVal);
+    }
+    if (profileData.tpuIncludeTopNubs !== undefined || profileData.includeTopNubs !== undefined) {
+        const nubVal = (profileData.tpuIncludeTopNubs !== undefined) ? profileData.tpuIncludeTopNubs : profileData.includeTopNubs;
+        if (typeof setTpuTopNubs === 'function') setTpuTopNubs(!!nubVal);
     }
 }
 
@@ -20692,6 +20719,12 @@ function setTpuWindowShape(shape) {
     params.tpuWindowShape = shape;
     try { localStorage.setItem('msep_tpu_window_shape', shape); } catch (e) {}
 
+    // Auto-enable TPU Windows display so the aperture change is immediately visible on the layout canvas
+    params.showTpuWindows = true;
+    const tpuTog = document.getElementById('showTpuWindowsToggle');
+    if (tpuTog) tpuTog.checked = true;
+    try { localStorage.setItem('msep_show_tpu_windows', 'true'); } catch (e) {}
+
     // Update Layout tab buttons styling
     const btn34 = document.getElementById('tpuShapeRound34Btn');
     const btn30 = document.getElementById('tpuShapeRound30Btn');
@@ -21078,16 +21111,21 @@ async function openTpuPreviewModal() {
                     compiledNubs = sp.include_top_nubs;
                     compiledGrooves = sp.include_clip_grooves;
                     compiledNumbers = sp.include_led_numbers;
-                    compiledShape = sp.window_shape;
-                    compiledOrient = sp.well_orientation;
+                    compiledShape = sp.window_shape || (sp.front && sp.front.window_shape);
+                    compiledOrient = sp.well_orientation || (sp.front && sp.front.well_orientation);
                 }
             } catch (e) {}
+
+            let normCompiledShape = String(compiledShape || '').toLowerCase();
+            if (normCompiledShape === 'round' || normCompiledShape === 'circle') normCompiledShape = 'round_34';
+            let normCurrentShape = String(params.tpuWindowShape || 'round_34').toLowerCase();
+            if (normCurrentShape === 'round' || normCurrentShape === 'circle') normCurrentShape = 'round_34';
 
             const currentSig = computeTpuLayoutSignature();
             const nubsMismatch = (compiledNubs !== undefined && compiledNubs !== (params.tpuIncludeTopNubs === true));
             const groovesMismatch = (compiledGrooves !== undefined && compiledGrooves !== (params.tpuIncludeClipGrooves === true));
             const numbersMismatch = (compiledNumbers !== undefined && compiledNumbers !== (params.tpuIncludeLedNumbers === true));
-            const shapeMismatch = (compiledShape !== undefined && compiledShape !== (params.tpuWindowShape || 'round_34'));
+            const shapeMismatch = (compiledShape !== undefined && normCompiledShape !== normCurrentShape);
             const orientMismatch = (compiledOrient !== undefined && compiledOrient !== (params.tpuWellOrientation || 'horizontal'));
 
             if (compiledSig !== currentSig || nubsMismatch || groovesMismatch || numbersMismatch || shapeMismatch || orientMismatch) {
@@ -21245,8 +21283,9 @@ function switchTpuDisplayMode(mode) {
 window.switchTpuDisplayMode = switchTpuDisplayMode;
 
 function downloadBothTpuStls() {
+    const ts = Date.now();
     const a1 = document.createElement('a');
-    a1.href = '/3d_panels/tpu_panel_front.stl';
+    a1.href = `/3d_panels/tpu_panel_front.stl?t=${ts}`;
     a1.download = 'tpu_panel_front.stl';
     document.body.appendChild(a1);
     a1.click();
@@ -21254,7 +21293,7 @@ function downloadBothTpuStls() {
 
     setTimeout(() => {
         const a2 = document.createElement('a');
-        a2.href = '/3d_panels/tpu_panel_back.stl';
+        a2.href = `/3d_panels/tpu_panel_back.stl?t=${ts}`;
         a2.download = 'tpu_panel_back.stl';
         document.body.appendChild(a2);
         a2.click();

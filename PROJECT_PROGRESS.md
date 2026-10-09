@@ -93,6 +93,30 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### 2026-10-08 23:55 - Circle Aperture Selection Carry-Over Fix for 3D Preview & 3D STL/3MF Exports
+- **Seamless Aperture Shape Carry-Over from Layout Page to 3D Previews & Files:**
+  - Diagnosed and resolved the root causes preventing aperture shape selections (🔘 **Ø 3.4mm Round**, ⚪ **Ø 3.0mm Round**, 🔲 **3x3mm Square**) from carrying over from the Layout page to the 3D preview and 3D files:
+    1. **Layout Page Aperture Reactivity (`simulator/app.js`):**
+       - Updated `setTpuWindowShape()` to automatically enable `params.showTpuWindows = true` (and synchronize `#showTpuWindowsToggle`), making the chosen circular aperture instantly visible on the 2D canvas upon clicking.
+       - Synchronized both Layout toolbar buttons (`#tpuShapeRound34Btn`, `#tpuShapeRound30Btn`, `#tpuShapeSquareBtn`) and 3D Modal buttons (`#tpuModalShapeRound34Btn`, etc.) seamlessly.
+    2. **Stale Check & Normalized Shape Detection (`simulator/app.js`):**
+       - Normalized shape comparison in `openTpuPreviewModal()` (`normCompiledShape !== normCurrentShape`) to robustly compare legacy/alias shape strings (`round` / `circle` $\to$ `round_34`) and check variant-level specs (`sp.window_shape` / `sp.front.window_shape`).
+       - If a shape mismatch is detected, `openTpuPreviewModal()` automatically initiates a clean re-compilation with the exact chosen aperture before rendering.
+    3. **Preset Persistence & Float Switch Restoration (`simulator/app.js`):**
+       - Added `tpuWindowShape`, `tpuWellOrientation`, `tpuIncludeLedNumbers`, `tpuIncludeClipGrooves`, and `tpuIncludeTopNubs` to `buildCompletePresetData()`.
+       - Added full restoration of all TPU features in `applyProfileData()`, guaranteeing that switching float presets or importing files preserves the runner's circular aperture selection.
+    4. **Clean STL Cutter Geometry (`scripts/compile_clean_tpu_panel.py`):**
+       - Upgraded aperture boolean cylinder and box cutters with generous height (`FRONT_THICK_GENERAL + 2.0 = 4.0mm`), guaranteeing clean, watertight circular punch-through without coplanar boundary artifacts.
+       - Added explicit `window_shape` and `well_orientation` metadata into `specs['front']` and `specs['back']` dictionaries.
+       - Updated `README_BAMBU_STUDIO.txt` inside generated ZIP bundles to dynamically describe the active aperture geometry (e.g. `Ø 3.4mm round optical apertures (Default)`).
+    5. **Standalone 3D Model Viewer Support (`3d_panels/tpu_panel_preview.html`):**
+       - Updated the standalone WebGL viewer (`createGraphicCutoutMesh` and `createLedPixels`) to dynamically read `specsData.window_shape`, punching circular apertures via `ctx.arc()` and rendering circular pixel geometries (`THREE.CircleGeometry`) when round apertures are chosen.
+    6. **Cache-Busted Direct Downloads (`simulator/app.js`):**
+       - Added timestamped query strings (`?t=${Date.now()}`) to `downloadBothTpuStls()` preventing browser caching of stale STL files.
+- **Verification:**
+  - Tested compilation across `--window-shape round_34` (Ø 3.4mm), `--window-shape round_30` (Ø 3.0mm), and `--window-shape square` (3x3mm); verified 28-vertex circular boundary on front face ($Z=10.0$) in `tpu_panel_front.stl` and `tpu_panel_front_chassis_black.stl`.
+  - Verified JavaScript syntax with `node --check simulator/app.js`.
+
 ### 2026-10-08 23:40 - Guaranteed Exit-Adjacent Terminal LED Placement & Pinned Wiring Route
 - **Exit-Adjacent Terminal LED Seeding & Routing Assurance:**
   - Guaranteed that upon LED distribution (`scatterLedsOnGraphic`, `rearrangeRemainingLedsOnGraphic`, `sampleRemainingGraphicLeds`), the final LED (#100 or #N) is strictly placed directly adjacent to the **Lateral Exit Strain Relief Bridge** on the right flank:
