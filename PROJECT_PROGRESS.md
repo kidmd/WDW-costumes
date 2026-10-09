@@ -93,6 +93,22 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### 2026-10-08 20:34 - Nearby Neighbor LED Ordering, Lateral Exit Portal, and 50–100 LED Slider
+- **Nearby Neighbor LED Progression (Default):**
+  - Implemented consecutive neighbor-to-neighbor traversal starting at the bottom entrance portal and terminating at the lower-right lateral exit portal.
+  - Added a 2-opt uncrossing pass (`doLineSegmentsIntersect`) to eliminate criss-crossing wire segments while preserving designated entrance and exit nodes.
+  - Added a selectable toggle in the Layout tab between `[ 🔗 Nearby (Default) ]` and `[ 🔀 Wide Spacing ]` (~6.8 cm jump routing).
+- **Lateral Wire Exit Portal & Strain Relief:**
+  - Added lower-right lateral wire exit portal ($5.5\text{mm} \times 3.5\text{mm}$ parting line U-notch) matching the bottom entrance portal.
+  - Integrated matching internal floor zip-tie strain relief bridge ($2.0\text{mm}$ walls, $2.8\text{mm}$ high tunnel, $4.5\text{mm}$ bridge height, wire saddle cradle, and triangular side gussets).
+  - Added matching wire portal clearance on the 2.0mm rear protective lid assembly.
+  - Rendered green `⚡ IN (P1)` and red `OUT ➔` visual badges with dotted leader wires to the first and last LEDs on the 2D simulator canvas.
+- **50 to 100 LED Count Slider & Manual Re-distribute Button:**
+  - Added fine-grained `#ledCountSlider` (50–100, step 1) with real-time target count display.
+  - Strictly decoupled slider movement from redistribution so moving the slider updates the target readout without moving placed LEDs.
+  - Added adjacent `[ 🔄 Re-distribute ]` button (`#redistributeLedsBtn`) to manually scatter the chosen LED count across the active graphic and re-route with the active sequence mode.
+- **Dual-Plate 3D Compilation:** Compiled front and back plates in 8.98s; verified watertight geometry and updated `3d_panels/tpu_panel_specs.json`.
+
 ### Entry: Multi-Density (60, 100, 144 LEDs/3.2ft) Strip Modes, Flush Placement & Pitch Matching Presets
 * **Date:** 2026-10-08 (Imagineering Session - LED Strip Density & Grid Pitch Matching)
 * **Milestone:** Milestone 3 & 4 - Simulator UX Architecture & Physical Lighting Modeling

@@ -327,16 +327,24 @@
                             <span id="ledCountTitle">LED Layout & Wiring Route</span>
                         </div>
                         
-                        <!-- Target LED Count Selector (50, 75, 100) -->
-                        <div class="control-group" style="margin-bottom: 6px;">
-                            <label style="font-size: 11px; color: var(--text-muted); display: flex; justify-content: space-between; margin-bottom: 2px;">
-                                <span>Active LED Count:</span>
-                                <span id="activeLedCountLabel" style="font-size: 10px; color: #00ff88; font-weight: 700;">75 LEDs</span>
+                        <!-- Target LED Count Slider (50 to 100) with Adjacent Re-distribute Button -->
+                        <div class="control-group" style="margin-bottom: 8px;">
+                            <label style="font-size: 11px; color: var(--text-muted); display: flex; justify-content: space-between; margin-bottom: 4px;">
+                                <span>Target LED Count (50–100):</span>
+                                <span id="activeLedCountLabel" style="font-size: 11px; color: #00ff88; font-weight: 700;">75 LEDs</span>
                             </label>
-                            <div style="display: flex; gap: 4px; background: rgba(0,0,0,0.3); padding: 2px; border-radius: 6px; border: 1px solid #21262d;">
-                                <button type="button" id="ledCount50Btn" onclick="selectLedCountOption(50)" class="action-btn" style="flex: 1; padding: 4px; font-size: 10.5px; font-weight: 600;" title="Trace artwork contour with 50 LEDs">50 LEDs</button>
-                                <button type="button" id="ledCount75Btn" onclick="selectLedCountOption(75)" class="action-btn primary" style="flex: 1; padding: 4px; font-size: 10.5px; font-weight: 700; background: #00ff88; color: #000; border-color: #00ff88;" title="Evenly scatter 75 LEDs across graphic">75 LEDs</button>
-                                <button type="button" id="ledCount100Btn" onclick="selectLedCountOption(100)" class="action-btn" style="flex: 1; padding: 4px; font-size: 10.5px; font-weight: 600;" title="Full theatrical 100 LEDs placement">100 LEDs</button>
+                            <div style="display: flex; gap: 8px; align-items: center;">
+                                <input type="range" id="ledCountSlider" min="50" max="100" step="1" value="75" style="flex: 1; accent-color: #00ff88; cursor: pointer;" title="Slide to select target LED count (50 to 100)">
+                                <button type="button" id="redistributeLedsBtn" class="action-btn primary" style="font-size: 11px; padding: 4px 10px; font-weight: 700; white-space: nowrap; background: #00ff88; color: #000; border: none; border-radius: 4px; cursor: pointer;" title="Re-distribute LEDs across graphic with the chosen target count">🔄 Re-distribute</button>
+                            </div>
+                        </div>
+
+                        <!-- LED Wiring Sequence / Progression Mode Selector -->
+                        <div id="ledOrderingSelectorRow" style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; padding: 2px 0 2px 2px;">
+                            <span style="font-size: 10px; color: #8b949e; font-weight: 500;">Wiring Sequence:</span>
+                            <div style="display: flex; gap: 2px; background: rgba(0,0,0,0.35); padding: 2px; border-radius: 5px; border: 1px solid #21262d;">
+                                <button type="button" id="orderingNearbyBtn" onclick="setLedOrderingMode('nearby')" class="action-btn" style="padding: 2px 7px; font-size: 10px; font-weight: 700; background: #00ff88; color: #000; border: none; border-radius: 3px; cursor: pointer;" title="Default: Starts at bottom entrance, visits near neighbors sequentially without skipping, uncrossed with 2-opt, and finishes at lower-right lateral exit">🔗 Nearby (Default)</button>
+                                <button type="button" id="orderingWideBtn" onclick="setLedOrderingMode('wide')" class="action-btn" style="padding: 2px 7px; font-size: 10px; font-weight: 600; background: transparent; color: #8b949e; border: none; border-radius: 3px; cursor: pointer;" title="Wide Spacing: Dispersed ~6.8cm jump routing">🔀 Wide Spacing</button>
                             </div>
                         </div>
 

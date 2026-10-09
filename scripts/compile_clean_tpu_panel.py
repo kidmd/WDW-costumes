@@ -381,7 +381,7 @@ def compile_plate_variant(variant_name, width_mm, height_mm, raw_leds, artwork_p
         tab_solid = trimesh.Trimesh(vertices=tab_mesh_data.vert_properties[:, :3], faces=tab_mesh_data.tri_verts)
         tab_meshes.append(tab_solid)
 
-    # 4b. Bottom-Center Wire Entry/Exit Notch & Internal Strain Relief Anchor (Option B)
+    # 4b. Bottom-Center Wire Entry Notch & Internal Strain Relief Anchor
     cx_mid = (bounds[0] + bounds[2]) / 2.0
     bottom_pts = [p for p in contour_coords if abs(p[0] - cx_mid) < 25.0]
     if bottom_pts:
@@ -392,20 +392,13 @@ def compile_plate_variant(variant_name, width_mm, height_mm, raw_leds, artwork_p
         wire_portal_x = cx_mid
         wire_portal_y = bounds[1]
 
-    # Parting-line wire exit notch at top of outer rim wall (Z = 6.5 to 10.2mm in pre-flip space)
-    # Flips to Z = 0.0 to 3.5mm in exported STL (right at the parting line where outer wall meets lid!)
+    # Parting-line wire entrance notch at top of outer rim wall (Z = 6.5 to 10.2mm in pre-flip space)
     PORTAL_NOTCH_W = 5.5   # mm wide
     PORTAL_NOTCH_H = 3.5   # mm tall
     wire_portal_cutter = trimesh.creation.box(extents=[PORTAL_NOTCH_W, RIM_WALL_THICK + 4.0, PORTAL_NOTCH_H + 0.4])
     wire_portal_cutter.apply_translation([wire_portal_x, wire_portal_y, TOTAL_THICK - PORTAL_NOTCH_H / 2.0 + 0.2])
 
-    # Internal floor zip-tie strain relief bridge (no holes piercing front artwork face!)
-    # Bridge: 8.0mm wide (X, across wire) x 7.2mm long (Y, along wire) x 4.5mm tall (Z = 2.0 to 6.5mm)
-    # Under-Tunnel (Perpendicular to wire): cuts left-to-right (along X) under bridge:
-    #   16.0mm long in X (clears both sides) x 3.2mm wide in Y (for miniature zip-tie) x 2.8mm tall in Z (Z = 2.0 to 4.8mm)
-    # Walls flanking tunnel in Y: (7.2 - 3.2) / 2 = 2.0mm thick (2x thicker!)
-    # Wire Saddle: shallow 0.7mm concave cradle on top of bridge along Y (aligned with wire path from U-notch):
-    #   4.5mm wide in X x 9.0mm long in Y x 0.8mm tall in Z (recessing 0.7mm into top, Z = 5.8 to 6.6mm)
+    # Internal floor zip-tie strain relief bridge for entrance wire:
     bridge_y = wire_portal_y + RIM_WALL_THICK + 5.5
     BRIDGE_X_W = 8.0
     BRIDGE_Y_L = 7.2
@@ -419,8 +412,6 @@ def compile_plate_variant(variant_name, width_mm, height_mm, raw_leds, artwork_p
     saddle_cutter_tm = trimesh.creation.box(extents=[4.5, BRIDGE_Y_L + 4.0, 0.8])
     saddle_cutter_tm.apply_translation([wire_portal_x, bridge_y, FRONT_THICK_GENERAL + BRIDGE_Z_H - 0.3])
 
-    # Lateral triangular reinforcement gusset buttresses flanking left (-X) and right (+X) of bridge:
-    # Sloping from Z = 6.0mm down to floor Z = 2.0mm, 2.5mm thick in Y, firmly anchored into floor under wire path
     GUSS_SLOPE_W = 3.5
     GUSS_THICK_Y = 2.5
     guss_l_pts = [
@@ -446,6 +437,60 @@ def compile_plate_variant(variant_name, width_mm, height_mm, raw_leds, artwork_p
     bridge_solids_m = [to_m(bridge_solid_tm), to_m(guss_l_tm), to_m(guss_r_tm)]
     bridge_combined_m = Manifold.batch_boolean(bridge_solids_m, OpType.Add)
     internal_bridge_m = bridge_combined_m - to_m(tunnel_cutter_tm) - to_m(saddle_cutter_tm)
+
+    # 4c. Lower-Right Lateral Wire Exit Notch & Internal Strain Relief Anchor
+    y_min_flank = bounds[1] + 0.18 * (bounds[3] - bounds[1])
+    y_max_flank = bounds[1] + 0.45 * (bounds[3] - bounds[1])
+    right_flank_pts = [p for p in contour_coords if p[0] > cx_mid and y_min_flank <= p[1] <= y_max_flank]
+    if right_flank_pts:
+        rightmost_pt = max(right_flank_pts, key=lambda p: p[0])
+        exit_portal_x = rightmost_pt[0]
+        exit_portal_y = rightmost_pt[1]
+    else:
+        exit_portal_x = bounds[2]
+        exit_portal_y = bounds[1] + 0.30 * (bounds[3] - bounds[1])
+
+    # Exit U-Notch Cutter through right rim wall (5.5mm wide in Y, clears wall in X)
+    exit_portal_cutter = trimesh.creation.box(extents=[RIM_WALL_THICK + 4.0, PORTAL_NOTCH_W, PORTAL_NOTCH_H + 0.4])
+    exit_portal_cutter.apply_translation([exit_portal_x, exit_portal_y, TOTAL_THICK - PORTAL_NOTCH_H / 2.0 + 0.2])
+
+    # Exit Strain Relief Bridge (aligned horizontally along X towards exit):
+    bridge_exit_x = exit_portal_x - RIM_WALL_THICK - 5.5
+    bridge_exit_y = exit_portal_y
+    BRIDGE_EXIT_X_L = 7.2  # length along wire in X
+    BRIDGE_EXIT_Y_W = 8.0  # width across wire in Y
+    bridge_exit_solid_tm = trimesh.creation.box(extents=[BRIDGE_EXIT_X_L, BRIDGE_EXIT_Y_W, BRIDGE_Z_H])
+    bridge_exit_solid_tm.apply_translation([bridge_exit_x, bridge_exit_y, FRONT_THICK_GENERAL + BRIDGE_Z_H / 2.0])
+
+    tunnel_exit_cutter_tm = trimesh.creation.box(extents=[3.2, BRIDGE_EXIT_Y_W + 8.0, 2.8 + 0.2])
+    tunnel_exit_cutter_tm.apply_translation([bridge_exit_x, bridge_exit_y, FRONT_THICK_GENERAL + 2.8 / 2.0])
+
+    saddle_exit_cutter_tm = trimesh.creation.box(extents=[BRIDGE_EXIT_X_L + 4.0, 4.5, 0.8])
+    saddle_exit_cutter_tm.apply_translation([bridge_exit_x, bridge_exit_y, FRONT_THICK_GENERAL + BRIDGE_Z_H - 0.3])
+
+    guss_exit_1_pts = [
+        [-BRIDGE_EXIT_Y_W / 2.0, FRONT_THICK_GENERAL],
+        [-(BRIDGE_EXIT_Y_W / 2.0 + GUSS_SLOPE_W), FRONT_THICK_GENERAL],
+        [-BRIDGE_EXIT_Y_W / 2.0, FRONT_THICK_GENERAL + BRIDGE_Z_H - 0.5]
+    ]
+    guss_exit_1_tm = trimesh.creation.extrude_polygon(sg.Polygon(guss_exit_1_pts), height=GUSS_THICK_Y)
+    v_e1 = guss_exit_1_tm.vertices
+    guss_exit_1_tm.vertices = np.column_stack([v_e1[:, 2] - GUSS_THICK_Y / 2.0, v_e1[:, 0], v_e1[:, 1]])
+    guss_exit_1_tm.apply_translation([bridge_exit_x, bridge_exit_y, 0.0])
+
+    guss_exit_2_pts = [
+        [BRIDGE_EXIT_Y_W / 2.0, FRONT_THICK_GENERAL],
+        [(BRIDGE_EXIT_Y_W / 2.0 + GUSS_SLOPE_W), FRONT_THICK_GENERAL],
+        [BRIDGE_EXIT_Y_W / 2.0, FRONT_THICK_GENERAL + BRIDGE_Z_H - 0.5]
+    ]
+    guss_exit_2_tm = trimesh.creation.extrude_polygon(sg.Polygon(guss_exit_2_pts), height=GUSS_THICK_Y)
+    v_e2 = guss_exit_2_tm.vertices
+    guss_exit_2_tm.vertices = np.column_stack([v_e2[:, 2] - GUSS_THICK_Y / 2.0, v_e2[:, 0], v_e2[:, 1]])
+    guss_exit_2_tm.apply_translation([bridge_exit_x, bridge_exit_y, 0.0])
+
+    bridge_exit_solids_m = [to_m(bridge_exit_solid_tm), to_m(guss_exit_1_tm), to_m(guss_exit_2_tm)]
+    bridge_exit_combined_m = Manifold.batch_boolean(bridge_exit_solids_m, OpType.Add)
+    internal_bridge_exit_m = bridge_exit_combined_m - to_m(tunnel_exit_cutter_tm) - to_m(saddle_exit_cutter_tm)
 
     # 5. Collars, Recesses & Windows
     outer_collar_2d = make_stadium_polygon(COLLAR_OUTER_L, COLLAR_OUTER_W, sections=16)
@@ -751,7 +796,8 @@ def compile_plate_variant(variant_name, width_mm, height_mm, raw_leds, artwork_p
             cur_d = (nominal_d + delta) % total_inner_len
             cand_p = inner_boundary.interpolate(cur_d)
             dist_portal = np.linalg.norm([cand_p.x - wire_portal_x, cand_p.y - wire_portal_y])
-            if dist_portal < 14.0:
+            dist_exit = np.linalg.norm([cand_p.x - exit_portal_x, cand_p.y - exit_portal_y])
+            if dist_portal < 14.0 or dist_exit < 14.0:
                 continue
             min_led = min(np.linalg.norm([cand_p.x - l['x'], cand_p.y - l['y']]) for l in leds) if leds else 20.0
             if min_led > best_clearance:
@@ -765,18 +811,18 @@ def compile_plate_variant(variant_name, width_mm, height_mm, raw_leds, artwork_p
     tray_boss_solids = []
     pilot_hole_cutters = []
     for sp in screw_coords:
-        # 5.0mm diameter pillar rising from Z = 2.0 to 9.0mm fused to inner rim wall
+        # 5.0mm diameter pillar rising from Z = 2.0 to 10.0mm fused to inner rim wall
         boss_cyl = make_clean_cylinder(RIM_HEIGHT, SCREW_BOSS_R, 32).translate([sp[0], sp[1], FRONT_THICK_GENERAL])
         tray_boss_solids.append(boss_cyl)
-        # 1.6mm diameter pilot hole from top of rim down 5.5mm (Z = 9.0 down to 3.5mm)
+        # 1.6mm diameter pilot hole from top of rim down 5.5mm (Z = 10.0 down to 4.5mm)
         pilot_cyl = make_clean_cylinder(PILOT_HOLE_DEPTH + 0.2, PILOT_HOLE_R, 32).translate([sp[0], sp[1], TOTAL_THICK - PILOT_HOLE_DEPTH])
         pilot_hole_cutters.append(pilot_cyl)
 
-    chassis_solids = [base_with_pockets_m, to_m(rim_mesh), internal_bridge_m] + [to_m(t) for t in tab_meshes] + [to_m(c) for c in collar_meshes] + tray_boss_solids
+    chassis_solids = [base_with_pockets_m, to_m(rim_mesh), internal_bridge_m, internal_bridge_exit_m] + [to_m(t) for t in tab_meshes] + [to_m(c) for c in collar_meshes] + tray_boss_solids
     chassis_assembled_m = Manifold.batch_boolean(chassis_solids, OpType.Add)
 
-    # Cutters: floor recesses, square/round optical windows, debossed numbers, wire portal notch, and M2 pilot holes (no front face holes!)
-    all_cutters = floor_recess_cutters + square_window_cutters + number_cutters + [wire_portal_cutter]
+    # Cutters: floor recesses, square/round optical windows, debossed numbers, wire entrance/exit portal notches, and M2 pilot holes
+    all_cutters = floor_recess_cutters + square_window_cutters + number_cutters + [wire_portal_cutter, exit_portal_cutter]
     cutters_m = [to_m(c) for c in all_cutters] + pilot_hole_cutters
     cutters_union_m = Manifold.batch_boolean(cutters_m, OpType.Add)
 
@@ -784,7 +830,7 @@ def compile_plate_variant(variant_name, width_mm, height_mm, raw_leds, artwork_p
     final_chassis_tm = flip_z_manifold(final_chassis_m)
 
     # Monolithic single-color black STL (legacy compatible, without color pockets subtracted)
-    monolithic_solids = [base_m, to_m(rim_mesh), internal_bridge_m] + [to_m(t) for t in tab_meshes] + [to_m(c) for c in collar_meshes] + tray_boss_solids
+    monolithic_solids = [base_m, to_m(rim_mesh), internal_bridge_m, internal_bridge_exit_m] + [to_m(t) for t in tab_meshes] + [to_m(c) for c in collar_meshes] + tray_boss_solids
     monolithic_m = Manifold.batch_boolean(monolithic_solids, OpType.Add) - cutters_union_m
     final_monolithic_tm = flip_z_manifold(monolithic_m)
 
@@ -813,8 +859,9 @@ def compile_plate_variant(variant_name, width_mm, height_mm, raw_leds, artwork_p
     ridge_mesh.apply_translation([0, 0, LID_THICK]) # Rises on inner face from Z = 2.0 to 3.2mm
     ridge_m = to_m(ridge_mesh)
 
-    # Cutout over wire portal so outgoing wires are never pinched
+    # Cutout over entrance & exit wire portals so wires are never pinched
     portal_relief_m = Manifold.cube([14.0, RIM_WALL_THICK + 8.0, RIDGE_HEIGHT + 0.6], True).translate([wire_portal_x, wire_portal_y, LID_THICK + RIDGE_HEIGHT / 2.0])
+    exit_portal_relief_m = Manifold.cube([RIM_WALL_THICK + 8.0, 14.0, RIDGE_HEIGHT + 0.6], True).translate([exit_portal_x, exit_portal_y, LID_THICK + RIDGE_HEIGHT / 2.0])
 
     # Flush Screw Landings on Inner Face (Z = LID_THICK = 2.0mm):
     # Chassis tray boss pillars already rise flush with the rim top (Z = 9.0mm in tray).
@@ -836,7 +883,7 @@ def compile_plate_variant(variant_name, width_mm, height_mm, raw_leds, artwork_p
 
     lid_solids = [lid_base_m, ridge_m] + lid_tabs_m
     lid_assembled_m = Manifold.batch_boolean(lid_solids, OpType.Add)
-    lid_cutters_m = Manifold.batch_boolean([portal_relief_m] + boss_relief_m + screw_holes_m + screw_cbore_m, OpType.Add)
+    lid_cutters_m = Manifold.batch_boolean([portal_relief_m, exit_portal_relief_m] + boss_relief_m + screw_holes_m + screw_cbore_m, OpType.Add)
     final_lid_m = lid_assembled_m - lid_cutters_m
 
     lid_mesh_data = final_lid_m.to_mesh()
@@ -909,6 +956,8 @@ def compile_plate_variant(variant_name, width_mm, height_mm, raw_leds, artwork_p
     if variant_name not in specs or not isinstance(specs[variant_name], dict):
         specs[variant_name] = {}
     specs[variant_name]['inlays'] = exported_inlays
+    specs[variant_name]['entrance_portal'] = [round(float(wire_portal_x), 2), round(float(wire_portal_y), 2)]
+    specs[variant_name]['exit_portal'] = [round(float(exit_portal_x), 2), round(float(exit_portal_y), 2)]
     specs['stl_colors'] = stl_colors
 
     if variant_name == 'front':
@@ -1035,6 +1084,8 @@ linear_extrude(front_thickness) polygon(contour_pts);
         "ordered_leds": leds,
         "led_count": len(leds),
         "fastener_tabs": tab_coords,
+        "entrance_portal": [round(float(wire_portal_x), 2), round(float(wire_portal_y), 2)],
+        "exit_portal": [round(float(exit_portal_x), 2), round(float(exit_portal_y), 2)],
         "screw_positions": screw_coords,
         "number_positions": number_positions,
         "contour_pts": contour_coords,

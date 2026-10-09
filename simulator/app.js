@@ -69,6 +69,7 @@ let params = {
     showTpuWindows: false,
     tpuWindowShape: 'round_34', // 'round_34' (Ø 3.4mm, default), 'round_30' (Ø 3.0mm), or 'square' (3x3mm)
     tpuWellOrientation: 'horizontal', // 'horizontal' (0° baseline) or 'tangent' (tangent to wiring tour)
+    ledOrderingMode: 'nearby', // 'nearby' (Nearby Neighbor entrance->exit, default) or 'wide' (Wide Spacing)
     showSymmetryAxis: false,
     liveSymmetryDrag: false,
     showNumbers: false,
@@ -91,6 +92,10 @@ try {
     const savedOrient = localStorage.getItem('msep_tpu_well_orientation');
     if (savedOrient === 'horizontal' || savedOrient === 'tangent') {
         params.tpuWellOrientation = savedOrient;
+    }
+    const savedOrdering = localStorage.getItem('msep_led_ordering_mode');
+    if (savedOrdering === 'nearby' || savedOrdering === 'wide') {
+        params.ledOrderingMode = savedOrdering;
     }
 } catch (e) {}
 
@@ -4074,6 +4079,67 @@ function renderSingleShirtView(timeMs) {
             ctx.strokeStyle = '#ff4d6d';
             ctx.lineWidth = 2.5;
             ctx.stroke();
+        }
+
+        // Render Entrance (Bottom IN) and Exit (Lateral Right OUT) Badges & Leader Wires
+        const gb = (typeof getGraphicChestBounds === 'function') ? getGraphicChestBounds() : null;
+        if (gb && leds.length > 0) {
+            const entNorm = { x: gb.normX + gb.normW * 0.5, y: gb.normY + gb.normH };
+            const exitNorm = { x: gb.normX + gb.normW, y: gb.normY + gb.normH * 0.65 };
+            const pEnt = normToCanvas(entNorm);
+            const pExit = normToCanvas(exitNorm);
+            const p0 = normToCanvas(leds[0]);
+            const pEnd = normToCanvas(leds[leds.length - 1]);
+
+            ctx.save();
+            // Dotted leader from Entrance portal to LED 0
+            ctx.beginPath();
+            ctx.moveTo(pEnt.x, pEnt.y + 12);
+            ctx.lineTo(p0.x, p0.y);
+            ctx.strokeStyle = 'rgba(0, 255, 136, 0.7)';
+            ctx.lineWidth = 1.8;
+            ctx.setLineDash([3, 3]);
+            ctx.stroke();
+
+            // Dotted leader from Last LED to Exit portal
+            ctx.beginPath();
+            ctx.moveTo(pEnd.x, pEnd.y);
+            ctx.lineTo(pExit.x + 10, pExit.y);
+            ctx.strokeStyle = 'rgba(255, 77, 109, 0.7)';
+            ctx.lineWidth = 1.8;
+            ctx.setLineDash([3, 3]);
+            ctx.stroke();
+            ctx.setLineDash([]);
+
+            // Entrance & Exit Badges
+            ctx.font = 'bold 9px sans-serif';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            
+            // IN badge (bottom center)
+            ctx.fillStyle = '#00ff88';
+            if (ctx.roundRect) {
+                ctx.beginPath();
+                ctx.roundRect(pEnt.x - 24, pEnt.y + 12, 48, 15, 3);
+                ctx.fill();
+            } else {
+                ctx.fillRect(pEnt.x - 24, pEnt.y + 12, 48, 15);
+            }
+            ctx.fillStyle = '#000';
+            ctx.fillText('⚡ IN (P1)', pEnt.x, pEnt.y + 19.5);
+
+            // OUT badge (lower right flank)
+            ctx.fillStyle = '#ff4d6d';
+            if (ctx.roundRect) {
+                ctx.beginPath();
+                ctx.roundRect(pExit.x + 12, pExit.y - 7.5, 46, 15, 3);
+                ctx.fill();
+            } else {
+                ctx.fillRect(pExit.x + 12, pExit.y - 7.5, 46, 15);
+            }
+            ctx.fillStyle = '#fff';
+            ctx.fillText('OUT ➔', pExit.x + 35, pExit.y);
+            ctx.restore();
         }
         ctx.restore();
     }
@@ -14834,67 +14900,165 @@ function resampleAllLedColors() {
 }
 
 // ============================================================================
-// CONTINUOUS PHYSICAL WIRING ROUTING (Slack-Targeted for 10cm Physical Wire Pitch)
-// Sorts and renumbers LEDs so consecutive hops (LED[i] -> LED[i+1]) maintain the ideal
-// ~6.0cm to 8.0cm span on the garment, leaving gentle ~2-4cm natural slack (ZERO folding)!
+// CONTINUOUS PHYSICAL WIRING ROUTING (Nearby Neighbor vs Wide Spacing)
+// Default 'nearby': Starts at bottom entrance, visits near neighbors consecutively
+// without skipping any, uncrossed with 2-opt, and finishes at lower-right exit.
+// Alternate 'wide': Dispersed ~6.8cm jump routing with slack.
 // ============================================================================
-function optimizeLedWiringOrder(points, startCorner = 'bottom-left') {
+
+// Check if two line segments (p1, p2) and (p3, p4) intersect in 2D plane
+function doLineSegmentsIntersect(p1, p2, p3, p4) {
+    function ccw(a, b, c) {
+        return (c.y - a.y) * (b.x - a.x) > (b.y - a.y) * (c.x - a.x);
+    }
+    return (ccw(p1, p3, p4) !== ccw(p2, p3, p4)) && (ccw(p1, p2, p3) !== ccw(p1, p2, p4));
+}
+
+function optimizeLedWiringOrder(points, mode = null) {
     if (!points || points.length <= 2) return points;
 
     const n = points.length;
+    const activeMode = mode || params.ledOrderingMode || 'nearby';
 
     // Physical garment scale (18.0" wide x 24.0" high converted to cm)
     const W_CM = 18.0 * 2.54; // 45.72 cm
     const H_CM = 24.0 * 2.54; // 60.96 cm
-    const TARGET_CM = 6.8;    // Ideal 10cm wire span on shirt (~3.2cm gentle slack)
-    const MAX_CM = 9.2;       // Maximum reach limit for 10cm physical wire
-    const MIN_CM = 4.5;       // Folding penalty threshold (<4.5cm requires >5.5cm fold)
-
-    // Distance helper in physical centimeters
     const distCm = (pA, pB) => {
         const dx = (pA.x - pB.x) * W_CM;
         const dy = (pA.y - pB.y) * H_CM;
         return Math.hypot(dx, dy);
     };
 
-    // Cost function for a wire segment:
-    // Heavily penalizes unreachable segments (>9.2cm) and excessive wire folding (<4.5cm).
-    // Rewards sweet spot spans (4.5cm - 8.5cm, ~1.8" - 3.3") where wire hangs naturally with zero folds.
-    const edgeCost = (d) => {
-        if (d > MAX_CM) {
-            return 1000.0 + (d - MAX_CM) * 50.0;
-        } else if (d < MIN_CM) {
-            return (MIN_CM - d) * (MIN_CM - d) * 4.0 + Math.abs(d - TARGET_CM);
-        } else if (d > 8.5) {
-            return (d - 8.5) * 3.0 + Math.abs(d - TARGET_CM);
-        } else {
-            return Math.abs(d - TARGET_CM);
+    if (activeMode === 'nearby') {
+        // --------------------------------------------------------------------
+        // NEARBY NEIGHBOR ROUTING (ENTRANCE -> NEAR NEIGHBORS -> LATERAL EXIT)
+        // --------------------------------------------------------------------
+        const gb = (typeof getGraphicChestBounds === 'function') ? getGraphicChestBounds() : { normX: 0.2, normY: 0.168, normW: 0.6, normH: 0.385 };
+        // Entrance: bottom center (where wire enters the chassis tray from power bank)
+        const entrancePos = {
+            x: gb.normX + gb.normW * 0.50,
+            y: gb.normY + gb.normH
+        };
+        // Exit: lower-to-mid right lateral flank (where wire exits to route to back panel)
+        const exitPos = {
+            x: gb.normX + gb.normW,
+            y: gb.normY + gb.normH * 0.65
+        };
+
+        // 1. Pick startIdx closest to Entrance
+        let startIdx = 0;
+        let bestDistIn = Infinity;
+        for (let i = 0; i < n; i++) {
+            const d = distCm(points[i], entrancePos);
+            if (d < bestDistIn) {
+                bestDistIn = d;
+                startIdx = i;
+            }
         }
+
+        // 2. Pick endIdx closest to Exit (distinct from startIdx if n > 1)
+        let endIdx = -1;
+        let bestDistOut = Infinity;
+        for (let i = 0; i < n; i++) {
+            if (i === startIdx && n > 1) continue;
+            const d = distCm(points[i], exitPos);
+            if (d < bestDistOut) {
+                bestDistOut = d;
+                endIdx = i;
+            }
+        }
+        if (endIdx === -1) endIdx = (startIdx + 1) % n;
+
+        // 3. Greedy Nearest Neighbor Traversal (visiting all near neighbors without skipping)
+        const unvisited = new Set();
+        for (let i = 0; i < n; i++) {
+            if (i !== startIdx && i !== endIdx) unvisited.add(i);
+        }
+
+        const path = [startIdx];
+        while (unvisited.size > 0) {
+            const curr = path[path.length - 1];
+            let bestCand = -1;
+            let bestD = Infinity;
+
+            for (const idx of unvisited) {
+                const d = distCm(points[curr], points[idx]);
+                if (d < bestD) {
+                    bestD = d;
+                    bestCand = idx;
+                }
+            }
+
+            path.push(bestCand);
+            unvisited.delete(bestCand);
+        }
+        // Append the designated exit node
+        if (endIdx !== startIdx) {
+            path.push(endIdx);
+        }
+
+        // 4. 2-Opt Uncrossing Pass (eliminates criss-crossing wires while keeping entrance and exit pinned)
+        let improved = true;
+        let iter = 0;
+        while (improved && iter < 100) {
+            improved = false;
+            iter++;
+            for (let i = 0; i < n - 2; i++) {
+                for (let j = i + 2; j < n; j++) {
+                    const pA = points[path[i]];
+                    const pB = points[path[i + 1]];
+                    const pC = points[path[j]];
+                    const pD = (j < n - 1) ? points[path[j + 1]] : null;
+
+                    const curDist = distCm(pA, pB) + (pD ? distCm(pC, pD) : 0);
+                    const newDist = distCm(pA, pC) + (pD ? distCm(pB, pD) : 0);
+                    const intersects = pD ? doLineSegmentsIntersect(pA, pB, pC, pD) : false;
+
+                    if (intersects || (newDist < curDist - 1e-4)) {
+                        let left = i + 1, right = j;
+                        while (left < right) {
+                            const tmp = path[left];
+                            path[left] = path[right];
+                            path[right] = tmp;
+                            left++;
+                            right--;
+                        }
+                        improved = true;
+                    }
+                }
+            }
+        }
+
+        return path.map((idx, newId) => ({
+            ...points[idx],
+            id: newId
+        }));
+    }
+
+    // --------------------------------------------------------------------
+    // WIDE SPACING ROUTING (~6.8cm Target Spacing with Slack)
+    // --------------------------------------------------------------------
+    const TARGET_CM = 6.8;
+    const MAX_CM = 9.2;
+    const MIN_CM = 4.5;
+    const edgeCost = (d) => {
+        if (d > MAX_CM) return 1000.0 + (d - MAX_CM) * 50.0;
+        else if (d < MIN_CM) return (MIN_CM - d) * (MIN_CM - d) * 4.0 + Math.abs(d - TARGET_CM);
+        else if (d > 8.5) return (d - 8.5) * 3.0 + Math.abs(d - TARGET_CM);
+        else return Math.abs(d - TARGET_CM);
     };
 
-    // 1. Pick starting LED (e.g. bottom-left near the waist / battery pack)
     let startIdx = 0;
     let bestScore = -Infinity;
-
     for (let i = 0; i < n; i++) {
-        let score;
         const p = points[i];
-        if (startCorner === 'bottom-left') {
-            score = p.y * 1.5 - p.x;
-        } else if (startCorner === 'bottom-center') {
-            score = p.y * 1.5 - Math.abs(p.x - 0.5);
-        } else if (startCorner === 'bottom-right') {
-            score = p.y * 1.5 - (1.0 - p.x);
-        } else { // top-left
-            score = -p.y * 1.5 - p.x;
-        }
+        const score = p.y * 1.5 - p.x;
         if (score > bestScore) {
             bestScore = score;
             startIdx = i;
         }
     }
 
-    // 2. Slack-Targeted Tour Construction
     const unvisited = new Set();
     for (let i = 0; i < n; i++) {
         if (i !== startIdx) unvisited.add(i);
@@ -14905,7 +15069,6 @@ function optimizeLedWiringOrder(points, startCorner = 'bottom-left') {
         const curr = path[path.length - 1];
         let bestCand = -1;
         let bestC = Infinity;
-
         for (const idx of unvisited) {
             const d = distCm(points[curr], points[idx]);
             const c = edgeCost(d);
@@ -14914,12 +15077,10 @@ function optimizeLedWiringOrder(points, startCorner = 'bottom-left') {
                 bestCand = idx;
             }
         }
-
         path.push(bestCand);
         unvisited.delete(bestCand);
     }
 
-    // 3. Slack-Targeted 2-Opt Optimization Pass (eliminates folds & overstretched segments)
     let improved = true;
     let iterations = 0;
     while (improved && iterations < 50) {
@@ -14931,10 +15092,8 @@ function optimizeLedWiringOrder(points, startCorner = 'bottom-left') {
                 const pI1 = points[path[i + 1]];
                 const pJ = points[path[j]];
                 const pJ1 = (j < n - 1) ? points[path[j + 1]] : null;
-
                 const cCur = edgeCost(distCm(pI, pI1)) + (pJ1 ? edgeCost(distCm(pJ, pJ1)) : 0);
                 const cNew = edgeCost(distCm(pI, pJ)) + (pJ1 ? edgeCost(distCm(pI1, pJ1)) : 0);
-
                 if (cNew < cCur - 1e-4) {
                     let left = i + 1, right = j;
                     while (left < right) {
@@ -14950,8 +15109,46 @@ function optimizeLedWiringOrder(points, startCorner = 'bottom-left') {
         }
     }
 
-    return path.map(idx => points[idx]);
+    return path.map((idx, newId) => ({
+        ...points[idx],
+        id: newId
+    }));
 }
+
+function setLedOrderingMode(mode) {
+    if (mode !== 'nearby' && mode !== 'wide') mode = 'nearby';
+    params.ledOrderingMode = mode;
+    try { localStorage.setItem('msep_led_ordering_mode', mode); } catch (e) {}
+
+    const nearBtn = document.getElementById('orderingNearbyBtn');
+    const wideBtn = document.getElementById('orderingWideBtn');
+    if (nearBtn && wideBtn) {
+        if (mode === 'nearby') {
+            nearBtn.style.background = '#00ff88';
+            nearBtn.style.color = '#000';
+            nearBtn.style.fontWeight = '700';
+            wideBtn.style.background = 'transparent';
+            wideBtn.style.color = '#8b949e';
+            wideBtn.style.fontWeight = '600';
+        } else {
+            wideBtn.style.background = '#00ff88';
+            wideBtn.style.color = '#000';
+            wideBtn.style.fontWeight = '700';
+            nearBtn.style.background = 'transparent';
+            nearBtn.style.color = '#8b949e';
+            nearBtn.style.fontWeight = '600';
+        }
+    }
+
+    if (leds && leds.length > 2) {
+        recordHistory('Change Wiring Ordering Mode');
+        leds = optimizeLedWiringOrder(leds, mode);
+        markSingleShirtDirty();
+        if (typeof draw === 'function') draw();
+        showToast(mode === 'nearby' ? '🔗 Reordered LEDs: Nearby neighbor progression (Entrance ➔ Exit)' : '🔀 Reordered LEDs: Wide Spacing mode');
+    }
+}
+window.setLedOrderingMode = setLedOrderingMode;
 
 // ============================================================================
 // REARRANGE REMAINING (NON-GROUPED) LEDs TO FILL GRAPHIC SPACE
@@ -15705,9 +15902,40 @@ const optWiringBtn = document.getElementById('optimizeWiringBtn');
 if (optWiringBtn) {
     optWiringBtn.addEventListener('click', () => {
         if (!leds || leds.length <= 2) return;
-        leds = optimizeLedWiringOrder(leds, 'bottom-left');
+        const mode = params.ledOrderingMode || 'nearby';
+        leds = optimizeLedWiringOrder(leds, mode);
         markSingleShirtDirty();
-        showToast(`🔌 Renumbered ${leds.length} LEDs along continuous physical wiring route!`);
+        if (typeof draw === 'function') draw();
+        showToast(`🔌 Renumbered ${leds.length} LEDs along continuous physical wiring route (${mode === 'nearby' ? 'Nearby neighbor entrance ➔ exit' : 'Wide Spacing'})!`);
+    });
+}
+
+// Target LED Count Slider & Manual Re-distribute Button
+const ledCountSlider = document.getElementById('ledCountSlider');
+if (ledCountSlider) {
+    ledCountSlider.addEventListener('input', (e) => {
+        const val = parseInt(e.target.value, 10);
+        selectedLedCount = val;
+        const lbl = document.getElementById('activeLedCountLabel');
+        if (lbl) lbl.textContent = `${val} LEDs`;
+        // Strictly DO NOT re-distribute automatically on slider movement
+    });
+}
+
+const redistributeLedsBtn = document.getElementById('redistributeLedsBtn');
+if (redistributeLedsBtn) {
+    redistributeLedsBtn.addEventListener('click', () => {
+        const slider = document.getElementById('ledCountSlider');
+        const count = slider ? parseInt(slider.value, 10) : (selectedLedCount || 75);
+        selectedLedCount = count;
+        recordHistory('Re-distribute LEDs');
+        scatterLedsOnGraphic(count, true);
+        if (leds && leds.length > 2) {
+            leds = optimizeLedWiringOrder(leds, params.ledOrderingMode || 'nearby');
+        }
+        markSingleShirtDirty();
+        if (typeof draw === 'function') draw();
+        showToast(`🔄 Re-distributed ${count} LEDs across graphic with ${params.ledOrderingMode || 'nearby'} wiring route!`);
     });
 }
 
@@ -19366,37 +19594,24 @@ let selectedLedCount = 75;
 let tpuExportMode = 'multi'; // 'multi' (5-color split) or 'single' (monolithic black)
 let tpuMultiMeshes = [];
 
-function selectLedCountOption(count) {
-    if (count !== 50 && count !== 75 && count !== 100) count = 75;
-    selectedLedCount = count;
+function selectLedCountOption(count, shouldRedistribute = false) {
+    const val = Math.max(50, Math.min(100, parseInt(count, 10) || 75));
+    selectedLedCount = val;
     
-    const btn50 = document.getElementById('ledCount50Btn');
-    const btn75 = document.getElementById('ledCount75Btn');
-    const btn100 = document.getElementById('ledCount100Btn');
-    [btn50, btn75, btn100].forEach(b => {
-        if (b) {
-            b.classList.remove('primary');
-            b.style.background = 'transparent';
-            b.style.color = '#8b949e';
-            b.style.borderColor = '#30363d';
-        }
-    });
-    const activeBtn = (count === 50) ? btn50 : (count === 75 ? btn75 : btn100);
-    if (activeBtn) {
-        activeBtn.classList.add('primary');
-        activeBtn.style.background = '#00ff88';
-        activeBtn.style.color = '#000';
-        activeBtn.style.borderColor = '#00ff88';
-    }
+    const slider = document.getElementById('ledCountSlider');
+    if (slider) slider.value = val;
     const label = document.getElementById('activeLedCountLabel');
-    if (label) label.textContent = `${count} LEDs`;
+    if (label) label.textContent = `${val} LEDs`;
 
-    scatterLedsOnGraphic(count, true);
-    if (leds && leds.length > 2) {
-        leds = optimizeLedWiringOrder(leds, 'bottom-left');
+    if (shouldRedistribute) {
+        scatterLedsOnGraphic(val, true);
+        if (leds && leds.length > 2) {
+            leds = optimizeLedWiringOrder(leds, params.ledOrderingMode || 'nearby');
+        }
+        markSingleShirtDirty();
+        if (typeof draw === 'function') draw();
+        showToast(`✨ Re-scattered ${val} LEDs across graphic with optimal wiring route!`);
     }
-    markSingleShirtDirty();
-    showToast(`✨ Re-scattered ${count} LEDs across graphic with optimal wiring route!`);
 }
 window.selectLedCountOption = selectLedCountOption;
 
