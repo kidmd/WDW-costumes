@@ -238,61 +238,13 @@ def compile_plate_variant(variant_name, width_mm, height_mm, raw_leds, artwork_p
     bridge_ent_approx = np.array([cx_mid, bounds[1] + RIM_WALL_THICK + 5.5])
     bridge_exit_approx = np.array([bounds[2] - RIM_WALL_THICK - 5.5, bounds[1] + 0.30 * (bounds[3] - bounds[1])])
 
-    for iteration in range(60):
-        for i in range(num_leds):
-            ang_i = math.radians(led_rotations_deg[i])
-            dir_i = np.array([math.cos(ang_i), math.sin(ang_i)])
-            
-            # Strain relief bridge repulsion (minimum 10mm clearance for first/last/any LEDs)
-            for b_pt in [bridge_ent_approx, bridge_exit_approx]:
-                d_br = np.hypot(pts[i, 0] - b_pt[0], pts[i, 1] - b_pt[1])
-                if d_br < 10.0:
-                    pen_b = 10.0 - d_br
-                    n_b = (pts[i] - b_pt) / (d_br + 1e-6)
-                    pts[i] += n_b * pen_b * 0.4
-
-            for j in range(i + 1, num_leds):
-                dx = pts[j, 0] - pts[i, 0]
-                dy = pts[j, 1] - pts[i, 1]
-                center_dist = np.hypot(dx, dy)
-                
-                # Check physical collar overlap (8.6mm zero-overlap boundary)
-                if center_dist < req_dist:
-                    pen = req_dist - center_dist
-                    if center_dist < 1e-4:
-                        nx, ny = 0.0, 1.0
-                    else:
-                        nx = dx / center_dist
-                        ny = dy / center_dist
-                    
-                    push_x = nx * pen * 0.35
-                    push_y = ny * pen * 0.35
-                    pts[i] -= [push_x, push_y]
-                    pts[j] += [push_x, push_y]
-
-                # Check 2.5mm clearance in front of LED i's wire openings along dir_i
-                proj_i = dx * dir_i[0] + dir_i[1] * dy
-                perp_i = abs(-dx * dir_i[1] + dy * dir_i[0])
-                if abs(proj_i) < (COLLAR_HALF_L + OPENING_CLEARANCE_MM) and perp_i < COLLAR_HALF_W:
-                    pen_op = (COLLAR_HALF_L + OPENING_CLEARANCE_MM) - abs(proj_i)
-                    sgn = 1.0 if proj_i >= 0 else -1.0
-                    push_vec = dir_i * (sgn * pen_op * 0.30)
-                    pts[j] += push_vec
-                    pts[i] -= push_vec
-
-        for i in range(num_leds):
-            pt = sg.Point(pts[i])
-            if not safe_art_boundary.contains(pt):
-                nearest = safe_art_boundary.exterior.interpolate(safe_art_boundary.exterior.project(pt))
-                pts[i] = [nearest.x, nearest.y]
-
-    max_shift = np.max(np.hypot(pts[:, 0] - orig_pts[:, 0], pts[:, 1] - orig_pts[:, 1])) if num_leds > 0 else 0.0
-    avg_shift = np.mean(np.hypot(pts[:, 0] - orig_pts[:, 0], pts[:, 1] - orig_pts[:, 1])) if num_leds > 0 else 0.0
-    print(f"[{variant_name}] PBD solver ({num_leds} LEDs, orientation: {well_orientation}): Max shift = {max_shift:.2f}mm, Avg shift = {avg_shift:.2f}mm.")
+    # Exact Designer Coordinates (1:1 spatial fidelity with 2D Layout Canvas)
     for i in range(num_leds):
-        leds[i]['x'] = round(float(pts[i, 0]), 2)
-        leds[i]['y'] = round(float(pts[i, 1]), 2)
+        leds[i]['x'] = round(float(orig_pts[i, 0]), 2)
+        leds[i]['y'] = round(float(orig_pts[i, 1]), 2)
         leds[i]['rotation_deg'] = round(float(led_rotations_deg[i]), 1)
+
+    print(f"[{variant_name}] 1:1 Precise Layout ({num_leds} LEDs, orientation: {well_orientation}): zero coordinate drift.")
 
     # 3. Outer Rim and Armor Plate 2D Boundary
     kernel_size = max(5, int(min(img_w, img_h) * 0.02))
