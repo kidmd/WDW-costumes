@@ -3520,9 +3520,9 @@ function renderBulb(cx, x, y, col, isHovered, isSelected, index) {
             cx.restore();
         }
 
-        // Numbers: clearly right above the 3x3mm square window, compact and legible
+        // Numbers: clearly right above the 3x3mm square window, compact and legible (1-indexed matching 3D plate)
         const numY = y - winSq / 2 - 2;
-        const labelText = String(index);
+        const labelText = String(index + 1);
 
         cx.save();
         cx.font = 'bold 8px system-ui, -apple-system, BlinkMacSystemFont, monospace';
@@ -3949,8 +3949,9 @@ function renderBulb(cx, x, y, col, isHovered, isSelected, index) {
             fwTag = `R${ray}:${step + 1}${role === 'CTR' ? '•C' : (role === 'TIP' ? '•T' : '')}`;
         }
 
-        const baseLabel = isSelected ? `#${index}` : index;
-        const displayLabel = fwTag ? (isSelected ? `#${index} [${fwTag}]` : `${index} [${fwTag}]`) : baseLabel;
+        const displayIndex = index + 1;
+        const baseLabel = isSelected ? `#${displayIndex}` : displayIndex;
+        const displayLabel = fwTag ? (isSelected ? `#${displayIndex} [${fwTag}]` : `${displayIndex} [${fwTag}]`) : baseLabel;
 
         cx.save();
         cx.textAlign = 'center';
@@ -8462,19 +8463,20 @@ function updateLedInspectorUI() {
                 const isSerp = grpEntry.group.wiringMode !== 'spoke';
                 const step = (isSerp && ((ray - 1) % 2 === 1)) ? (ledsPerRay - 1 - pos) : pos;
                 const role = (step === 0) ? 'Center Hub' : (step === ledsPerRay - 1 ? 'Outer Tip' : `Trail Step ${step + 1}`);
-                badge.textContent = `LED #${selectedLed} (Ray ${ray}/${rays} • ${role})`;
+                badge.textContent = `LED #${selectedLed + 1} (Ray ${ray}/${rays} • ${role})`;
                 badge.style.background = '#ff7b72';
                 badge.style.color = '#000';
             } else {
-                badge.textContent = `LED #${selectedLed}`;
+                badge.textContent = `LED #${selectedLed + 1}`;
                 badge.style.background = '#ffc107';
                 badge.style.color = '#000';
             }
         }
         if (groupBadge) groupBadge.textContent = '1 LED Selected';
         if (numInput) {
-            numInput.value = selectedLed;
-            numInput.max = Math.max(0, leds.length - 1);
+            numInput.value = selectedLed + 1;
+            numInput.min = 1;
+            numInput.max = Math.max(1, leds.length);
         }
 
         // If this LED belongs to a group, populate group inputs if not already editing this group
@@ -14771,11 +14773,12 @@ function updateLedCountUI() {
     }
     const wiringLabel = document.getElementById('wiringLabel');
     if (wiringLabel) {
-        wiringLabel.textContent = `Show Wiring Trace (0 → ${Math.max(0, leds.length - 1)})`;
+        wiringLabel.textContent = `Show Wiring Trace (1 → ${Math.max(1, leds.length)})`;
     }
     const inspectorNumInput = document.getElementById('inspectorLedNumInput');
     if (inspectorNumInput) {
-        inspectorNumInput.max = Math.max(0, leds.length - 1);
+        inspectorNumInput.min = 1;
+        inspectorNumInput.max = Math.max(1, leds.length);
     }
     if (selectedLed !== null && selectedLed >= leds.length) {
         selectedLed = leds.length > 0 ? leds.length - 1 : null;
@@ -14802,8 +14805,8 @@ const inspectorLedNumInput = document.getElementById('inspectorLedNumInput');
 if (inspectorLedNumInput) {
     inspectorLedNumInput.addEventListener('change', (e) => {
         const val = parseInt(e.target.value, 10);
-        if (!isNaN(val) && val >= 0 && val < leds.length) {
-            selectLed(val);
+        if (!isNaN(val) && val >= 1 && val <= leds.length) {
+            selectLed(val - 1);
         }
     });
 }
@@ -14903,7 +14906,7 @@ document.querySelectorAll('.palette-swatch-btn').forEach(btn => {
             const label = activeGrp ? `group "${activeGrp.name}"` : `${selectedLeds.size} LEDs`;
             showToast(`🎨 Set ${selectedLeds.size} LEDs in ${label} to ${btn.title}!`);
         } else {
-            showToast(`🎨 Set LED #${selectedLed} to ${btn.title}!`);
+            showToast(`🎨 Set LED #${selectedLed + 1} to ${btn.title}!`);
         }
     });
 });
@@ -15037,9 +15040,9 @@ document.getElementById('inspectorSampleBtn')?.addEventListener('click', () => {
     const col = sampleColorAtNorm(leds[selectedLed].x, leds[selectedLed].y);
     if (col) {
         setSelectedLedColor(col.r, col.g, col.b);
-        showToast(`🎨 Sampled artwork color for LED #${selectedLed}!`);
+        showToast(`🎨 Sampled artwork color for LED #${selectedLed + 1}!`);
     } else {
-        showToast(`⚠️ No graphic pixel found directly under LED #${selectedLed}`);
+        showToast(`⚠️ No graphic pixel found directly under LED #${selectedLed + 1}`);
     }
 });
 
