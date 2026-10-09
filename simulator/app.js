@@ -8866,15 +8866,22 @@ function sampleColorAtNormCoord(normX, normY) {
     const offCanvas = document.createElement('canvas');
     const offCtx = offCanvas.getContext('2d');
 
-    if (activeImg && activeImg.naturalWidth > 0) {
-        targetH = Math.max(120, Math.round(targetW * (activeImg.naturalHeight / activeImg.naturalWidth)));
+    if (activeImg && (activeImg.naturalWidth > 0 || activeImg.width > 0)) {
+        const iw = activeImg.naturalWidth || activeImg.width || 360;
+        const ih = activeImg.naturalHeight || activeImg.height || 360;
+        targetH = Math.max(120, Math.round(targetW * (ih / iw)));
         offCanvas.width = targetW;
         offCanvas.height = targetH;
         offCtx.drawImage(activeImg, 0, 0, targetW, targetH);
-    } else {
+    } else if (defaultDragonImg && (defaultDragonImg.naturalWidth > 0 || defaultDragonImg.width > 0)) {
+        const iw = defaultDragonImg.naturalWidth || defaultDragonImg.width || 300;
+        const ih = defaultDragonImg.naturalHeight || defaultDragonImg.height || 425;
+        targetH = Math.max(120, Math.round(targetW * (ih / iw)));
         offCanvas.width = targetW;
         offCanvas.height = targetH;
-        drawPetesDragon(offCtx, { x: 0, y: 0, width: targetW, height: targetH });
+        offCtx.drawImage(defaultDragonImg, 0, 0, targetW, targetH);
+    } else {
+        return { r: 0, g: 255, b: 136 };
     }
 
     const relX = Math.max(0, Math.min(1, (normX - gb.normX) / gb.normW));
@@ -14832,15 +14839,22 @@ function sampleColorAtNorm(normX, normY) {
     const offCanvas = document.createElement('canvas');
     const offCtx = offCanvas.getContext('2d');
 
-    if (activeImg && activeImg.naturalWidth > 0) {
-        targetH = Math.max(120, Math.round(targetW * (activeImg.naturalHeight / activeImg.naturalWidth)));
+    if (activeImg && (activeImg.naturalWidth > 0 || activeImg.width > 0)) {
+        const iw = activeImg.naturalWidth || activeImg.width || 360;
+        const ih = activeImg.naturalHeight || activeImg.height || 360;
+        targetH = Math.max(120, Math.round(targetW * (ih / iw)));
         offCanvas.width = targetW;
         offCanvas.height = targetH;
         offCtx.drawImage(activeImg, 0, 0, targetW, targetH);
-    } else {
+    } else if (defaultDragonImg && (defaultDragonImg.naturalWidth > 0 || defaultDragonImg.width > 0)) {
+        const iw = defaultDragonImg.naturalWidth || defaultDragonImg.width || 300;
+        const ih = defaultDragonImg.naturalHeight || defaultDragonImg.height || 425;
+        targetH = Math.max(120, Math.round(targetW * (ih / iw)));
         offCanvas.width = targetW;
         offCanvas.height = targetH;
-        drawPetesDragon(offCtx, { x: 0, y: 0, width: targetW, height: targetH });
+        offCtx.drawImage(defaultDragonImg, 0, 0, targetW, targetH);
+    } else {
+        return null;
     }
 
     const px = Math.floor(relX * targetW);
@@ -14865,15 +14879,22 @@ function resampleAllLedColors() {
     const offCanvas = document.createElement('canvas');
     const offCtx = offCanvas.getContext('2d');
 
-    if (activeImg && activeImg.naturalWidth > 0) {
-        targetH = Math.max(120, Math.round(targetW * (activeImg.naturalHeight / activeImg.naturalWidth)));
+    if (activeImg && (activeImg.naturalWidth > 0 || activeImg.width > 0)) {
+        const iw = activeImg.naturalWidth || activeImg.width || 360;
+        const ih = activeImg.naturalHeight || activeImg.height || 360;
+        targetH = Math.max(120, Math.round(targetW * (ih / iw)));
         offCanvas.width = targetW;
         offCanvas.height = targetH;
         offCtx.drawImage(activeImg, 0, 0, targetW, targetH);
-    } else {
+    } else if (defaultDragonImg && (defaultDragonImg.naturalWidth > 0 || defaultDragonImg.width > 0)) {
+        const iw = defaultDragonImg.naturalWidth || defaultDragonImg.width || 300;
+        const ih = defaultDragonImg.naturalHeight || defaultDragonImg.height || 425;
+        targetH = Math.max(120, Math.round(targetW * (ih / iw)));
         offCanvas.width = targetW;
         offCanvas.height = targetH;
-        drawPetesDragon(offCtx, { x: 0, y: 0, width: targetW, height: targetH });
+        offCtx.drawImage(defaultDragonImg, 0, 0, targetW, targetH);
+    } else {
+        return;
     }
 
     const imgData = offCtx.getImageData(0, 0, targetW, targetH).data;
@@ -15404,15 +15425,27 @@ function scatterLedsOnGraphic(targetCount = 100, colorMatch = true, markDirty = 
     const offCtx = offCanvas.getContext('2d');
     const activeImg = getActiveGraphicImg();
 
-    if (activeImg && activeImg.naturalWidth > 0) {
-        targetH = Math.max(120, Math.round(targetW * (activeImg.naturalHeight / activeImg.naturalWidth)));
+    if (activeImg && (activeImg.naturalWidth > 0 || activeImg.width > 0)) {
+        const iw = activeImg.naturalWidth || activeImg.width || 360;
+        const ih = activeImg.naturalHeight || activeImg.height || 360;
+        targetH = Math.max(120, Math.round(targetW * (ih / iw)));
         offCanvas.width = targetW;
         offCanvas.height = targetH;
         offCtx.drawImage(activeImg, 0, 0, targetW, targetH);
+    } else if (defaultDragonImg && (defaultDragonImg.naturalWidth > 0 || defaultDragonImg.width > 0)) {
+        const iw = defaultDragonImg.naturalWidth || defaultDragonImg.width || 300;
+        const ih = defaultDragonImg.naturalHeight || defaultDragonImg.height || 425;
+        targetH = Math.max(120, Math.round(targetW * (ih / iw)));
+        offCanvas.width = targetW;
+        offCanvas.height = targetH;
+        offCtx.drawImage(defaultDragonImg, 0, 0, targetW, targetH);
     } else {
         offCanvas.width = targetW;
         offCanvas.height = targetH;
-        drawPetesDragon(offCtx, { x: 0, y: 0, width: targetW, height: targetH });
+        offCtx.fillStyle = '#00ff88';
+        offCtx.beginPath();
+        offCtx.arc(targetW * 0.5, targetH * 0.5, targetW * 0.35, 0, Math.PI * 2);
+        offCtx.fill();
     }
 
     const imgData = offCtx.getImageData(0, 0, targetW, targetH);
@@ -15463,7 +15496,7 @@ function scatterLedsOnGraphic(targetCount = 100, colorMatch = true, markDirty = 
             let isFg = false;
             if (hasTransparency) {
                 // For Pete's dragon built-in, avoid contour ink lines (< 60)
-                if (currentGraphicType === 'builtin_dragon') {
+                if (currentGraphicType === 'builtin_dragon' || currentGraphicType === 'petes_dragon') {
                     isFg = (a > 80 && Math.max(r, g, b) >= 60);
                 } else {
                     isFg = (a > 60);
@@ -15554,11 +15587,8 @@ function scatterLedsOnGraphic(targetCount = 100, colorMatch = true, markDirty = 
         });
     }
 
-    // Relax any pocket collisions to ensure zero collar overlap in 3D STL
-    relaxLedCollarOverlaps(newLeds, 40);
-
-    // Sort & renumber LEDs into a continuous physical wiring path (starts near waist / bottom-left)
-    leds = optimizeLedWiringOrder(newLeds, 'bottom-left');
+    // Sort & renumber LEDs into a continuous physical wiring path using active mode (Nearby by default)
+    leds = optimizeLedWiringOrder(newLeds, params.ledOrderingMode || 'nearby');
     while (sparkles.length < leds.length) sparkles.push(0);
 
     activePattern = 'steady_sparkle';
@@ -15568,8 +15598,9 @@ function scatterLedsOnGraphic(targetCount = 100, colorMatch = true, markDirty = 
     updateLedCountUI();
     if (markDirty) {
         markSingleShirtDirty();
-        showToast(`🌈 ${targetCount} LEDs scattered & ordered along continuous wiring route!`);
+        if (typeof draw === 'function') draw();
     }
+    showToast(`🌈 ${targetCount} LEDs scattered & ordered along continuous wiring route!`);
 }
 
 // OUTLINE 50 LEDs (Moore-Neighbor Clockwise Boundary Tracing)

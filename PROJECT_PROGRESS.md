@@ -93,6 +93,17 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### 2026-10-08 20:58 - Fix LED Distribution on Character Artwork (Re-distribute & Presets)
+- **Eliminated Double-Transform & Off-Graphic Displacement:**
+  - Fixed offscreen canvas rasterization in `scatterLedsOnGraphic`, `sampleColorAtNorm`, `sampleColorAtNormCoord`, and `resampleAllLedColors`: replaced nested `drawPetesDragon` calls that were double-applying chest bounding box offsets (`gb.normX`, `gb.normY`) with direct 1:1 image rasterization.
+  - Removed unconstrained `relaxLedCollarOverlaps(newLeds, 40)` from `scatterLedsOnGraphic`: Farthest Point Sampling (FPS) already guarantees maximal inter-bulb Euclidean spacing while strictly confining 100% of selected LEDs to valid foreground graphic pixels.
+- **Explicit SVG Natural Dimensions:**
+  - Added explicit pixel `width` and `height` attributes (`800x600` and `600x850`) to all vector files in `assets/cricut_svg/`, preventing `naturalWidth = 0` fallback issues in browser `Image` objects.
+- **Regenerated 7-Float Preset Files:**
+  - Cleaned and updated all official float presets in `presets/` (`casey_jr_train.json`, `title_drum.json`, `spinning_turtle.json`, `spinning_snail.json`, `cinderellas_coach.json`, `petes_dragon.json`, `petes_dragon_chris.json`):
+  - Fixed the 18 stray LEDs in Casey Jr. (previously down at `y = 0.88` under bib) by redistributing all 100 LEDs cleanly across the locomotive body (`y <= 0.55`).
+  - Cleared stray margin LEDs across all other float presets, ensuring both initial load and manual re-distribution keep all LEDs 100% on the graphic.
+
 ### 2026-10-08 20:34 - Nearby Neighbor LED Ordering, Lateral Exit Portal, and 50–100 LED Slider
 - **Nearby Neighbor LED Progression (Default):**
   - Implemented consecutive neighbor-to-neighbor traversal starting at the bottom entrance portal and terminating at the lower-right lateral exit portal.
