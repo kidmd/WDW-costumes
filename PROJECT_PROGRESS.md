@@ -113,6 +113,33 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
      - **`🎯 Auto-Fit ~100` (`#btfAutoFit100Btn`):** Numerical search algorithm calculates the optimal pitch to fit ~95–105 LEDs for the 2.0A battery envelope across any chosen density or plate size.
      - **`🌿 Relaxed (25mm)` (`#btfSparsePresetBtn`):** Quick-sets 25.0mm ribbon spacing for ultralight, low-current layouts.
 
+### Entry: TPU Chassis 10.0mm (+1mm Wire Room), 1.8mm Sockets (50% Thicker), 3mm Clip Clearance, Tangent Alignment & Ø 3.4mm Default Windows
+* **Date:** 2026-10-09 (Imagineering Session - Heavy-Duty TPU Mechanical Reinforcement & Optical Overhaul)
+* **Milestone:** Milestone 5 - 3D Printed Armor & Multi-Material Hardware Engineering
+* **Status:** Complete & Verified (`scripts/compile_clean_tpu_panel.py`, `simulator/index.html`, `simulator/app.js`, `simulator.py`, `3d_panels/tpu_panel_specs.json`, `SIMULATOR_USER_GUIDE.md`, `PROJECT_PROGRESS.md`).
+* **Implementation Details:**
+  1. **Chassis Perimeter Rim & Wire Clearance (+1.0mm Vertical Room):**
+     - Perimeter rim height increased from $7.0\text{ mm}$ to **$8.0\text{ mm}$** ($Z = 2.0$ to $10.0\text{ mm}$, $2.5\text{ mm}$ wall width), raising overall plate thickness to **$10.0\text{ mm}$**.
+     - Provides an extra $+1.0\text{ mm}$ of vertical wire room cavity under the 2.0mm rear lid (8.0mm open wire basin), allowing multi-conductor ribbon wire slack and folds to sit comfortably without binding.
+     - Tray screw boss pillars automatically rise to $Z = 10.0\text{ mm}$ ($8.0\text{ mm}$ height) with pre-formed $1.6\text{ mm} \times 5.5\text{ mm}$ M2 pilot holes, meeting the 2.0mm rear lid perfectly flush.
+     - Parting-line wire portal U-notch deepened to $3.5\text{ mm}$ tall $\times 5.5\text{ mm}$ wide.
+  2. **LED Well Walls Thickened by 50% (1.8mm Walls) & 3.0mm Lateral Clip Clearance:**
+     - Collar walls expanded from $1.2\text{ mm}$ to **$1.8\text{ mm}$** ($13.6\text{ mm} \times 8.6\text{ mm}$ outer well footprint; inner socket preserved at $10.0\text{ mm} \times 5.0\text{ mm}$), permanently eliminating thin wall fractures during running vibration.
+     - Top retention lip extends $0.70\text{ mm}$ past the new wall face ($15.0\text{ mm} \times 10.0\text{ mm}$ outer lip footprint).
+     - Enforced **$3.0\text{ mm}$ lateral clear buffer** on each side of every collar ($14.6\text{ mm}$ minimum center-to-center clearance) in both the Python compiler PBD solver and the browser collision relaxation engine. Ensures 3D-printed retention clips slide over from collar flanks with zero interference.
+  3. **Selectable Channel Alignment (Horizontal vs Tangent to Wire):**
+     - Added `#tpuOrientationSelectorRow` and 3D preview controls: `[ ↔️ Horizontal (Default) | 〰️ Tangent to Wire ]`.
+     - In **Tangent to Wire** mode, each socket dynamically aligns with the chord tangent vector of the incoming and outgoing wire segments, minimizing sharp ribbon wire twists along organic character contours.
+     - Propagated across 2D canvas preview, 3D WebGL inspector, and exported 3D STL/3MF models.
+  4. **Heavy-Duty Strain Relief Bridge with Side Gussets & 2x Higher Tunnel:**
+     - Bridge walls doubled in thickness from $1.0\text{ mm}$ to **$2.0\text{ mm}$**; bridge overall height raised to **$4.5\text{ mm}$**.
+     - Under-tunnel height doubled from $1.4\text{ mm}$ to **$2.8\text{ mm}$** ($3.2\text{ mm}$ wide), allowing standard miniature zip-tie heads to pass through effortlessly.
+     - Reinforced with solid **triangular side gusset buttresses** anchored into the floor beneath the wire path for maximum mechanical pull-out strength.
+  5. **Selectable Optical Apertures (Ø 3.4mm Round Default):**
+     - Added 3-way aperture switcher in toolbar and 3D modal: `[ 🔘 Ø 3.4mm Round (Default) | ⚪ Ø 3.0mm Round | 🔲 3×3mm Sq ]`.
+     - Set **Ø 3.4mm Round** as the new factory default for maximum light transmission and wide-angle visibility through runner shirts.
+     - Fully reflected in 2D canvas bloom, Three.js 3D texture projection, and watertight CSG cylinder cutter subtraction in Python Manifold3D compiler.
+
 ### Entry: Proportional Plate Sizing (Small/Medium/Large) & 10mm/5mm Strip LED Calibration
 * **Date:** 2026-10-08 (Imagineering Session - Proportional Plate & Strip Calibration)
 * **Milestone:** Milestone 3 & 4 - Simulator UX Architecture & Physical Lighting Modeling

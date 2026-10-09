@@ -25,18 +25,18 @@ with open(specs_path) as f:
 # ---------------------------------------------------------------------------
 FRONT_THICK_GENERAL = 2.0   # mm (general tray floor from Z = 0 to 2.0)
 FRONT_THICK_LED = 1.0       # mm (recessed inside cavity floor from Z = 0 to 1.0)
-TOTAL_THICK = 9.0           # mm (overall height to top of perimeter rim)
-RIM_HEIGHT = 7.0            # mm (outer wall from Z = 2.0 to 9.0)
+TOTAL_THICK = 10.0          # mm (overall height to top of perimeter rim, +1.0mm for extra wire room)
+RIM_HEIGHT = 8.0            # mm (outer wall from Z = 2.0 to 10.0, +1.0mm taller perimeter wall)
 RIM_WALL_THICK = 2.5        # mm (width of outer perimeter wall)
 
 COLLAR_FLOOR_Z = 1.0        # mm (pocket floor starts at Z = 1.0)
 COLLAR_HEIGHT = 3.0         # mm (pocket walls rise 3.0mm, from Z = 1.0 to 4.0)
-COLLAR_TOP_Z = 4.0          # mm (leaving exactly 5.0mm space below 9.0mm rim!)
-COLLAR_INNER_L = 10.0       # mm (10mm inner length)
-COLLAR_INNER_W = 5.0        # mm (5mm inner width)
-COLLAR_WALL_THICK = 1.2     # mm (collar wall thickness)
-COLLAR_OUTER_L = COLLAR_INNER_L + 2 * COLLAR_WALL_THICK # 12.4mm
-COLLAR_OUTER_W = COLLAR_INNER_W + 2 * COLLAR_WALL_THICK # 7.4mm
+COLLAR_TOP_Z = 4.0          # mm (leaving generous 6.0mm space below 10.0mm rim!)
+COLLAR_INNER_L = 10.0       # mm (10mm inner length for WS2812B seed pixel)
+COLLAR_INNER_W = 5.0        # mm (5mm inner width for WS2812B seed pixel)
+COLLAR_WALL_THICK = 1.8     # mm (collar wall thickness +50% thicker: 1.2mm -> 1.8mm to prevent breakage)
+COLLAR_OUTER_L = COLLAR_INNER_L + 2 * COLLAR_WALL_THICK # 13.6mm
+COLLAR_OUTER_W = COLLAR_INNER_W + 2 * COLLAR_WALL_THICK # 8.6mm
 
 NOTCH_WIDTH = 4.0           # mm (wire pass-through slot on both 5mm ends)
 WINDOW_SQ = 3.0             # mm (3x3mm square optical aperture through 1.0mm front skin)
@@ -132,7 +132,7 @@ if '--top-nubs' in sys.argv:
     if _tni + 1 < len(sys.argv):
         INCLUDE_TOP_NUBS = sys.argv[_tni + 1].lower() in ('on', '1', 'true', 'yes')
 
-def compile_plate_variant(variant_name, width_mm, height_mm, raw_leds, artwork_path, window_shape='square', clip_grooves=False, top_nubs=False):
+def compile_plate_variant(variant_name, width_mm, height_mm, raw_leds, artwork_path, window_shape='round_34', clip_grooves=False, top_nubs=False):
     print(f"\n>>> Compiling {variant_name.upper()} Plate ({width_mm}mm x {height_mm}mm, {len(raw_leds)} LEDs, Window Shape: {window_shape.upper()}, Clip Grooves: {'ON' if clip_grooves else 'OFF'}, Top Nubs: {'ON' if top_nubs else 'OFF'})...")
     v_t0 = time.time()
     num_leds = len(raw_leds)
@@ -177,29 +177,64 @@ def compile_plate_variant(variant_name, width_mm, height_mm, raw_leds, artwork_p
         safe_art_boundary = sg.box(5.0, 5.0, width_mm - 5.0, height_mm - 5.0)
 
     # 2. LED Collar Orientation & Collision Avoidance
-    led_rotations_deg = [0.0] * num_leds
+    well_orientation = specs.get('well_orientation', 'horizontal')
+    if '--orientation' in sys.argv:
+        _oi = sys.argv.index('--orientation')
+        if _oi + 1 < len(sys.argv):
+            well_orientation = sys.argv[_oi + 1].lower()
+
+    led_rotations_deg = []
+    for i in range(num_leds):
+        if 'rotation_deg' in leds[i]:
+            led_rotations_deg.append(float(leds[i]['rotation_deg']))
+        elif 'angle_deg' in leds[i]:
+            led_rotations_deg.append(float(leds[i]['angle_deg']))
+        elif well_orientation == 'tangent' and num_leds > 1:
+            if i == 0:
+                dx = leds[1]['x'] - leds[0]['x']
+                dy = leds[1]['y'] - leds[0]['y']
+            elif i == num_leds - 1:
+                dx = leds[i]['x'] - leds[i - 1]['x']
+                dy = leds[i]['y'] - leds[i - 1]['y']
+            else:
+                d1x = leds[i]['x'] - leds[i - 1]['x']
+                d1y = leds[i]['y'] - leds[i - 1]['y']
+                len1 = math.hypot(d1x, d1y) + 1e-6
+                d2x = leds[i + 1]['x'] - leds[i]['x']
+                d2y = leds[i + 1]['y'] - leds[i]['y']
+                len2 = math.hypot(d2x, d2y) + 1e-6
+                dx = (d1x / len1) + (d2x / len2)
+                dy = (d1y / len1) + (d2y / len2)
+            deg = math.degrees(math.atan2(dy, dx))
+            led_rotations_deg.append(deg)
+        else:
+            led_rotations_deg.append(0.0)
+
     pts = np.array([[l['x'], l['y']] for l in leds], dtype=np.float64)
     orig_pts = pts.copy()
-    req_dist = 7.4 + 0.5 # 7.9 mm center distance
+    # 13.6mm outer length (5.0mm straight segment) x 8.6mm outer width (4.3mm radius)
+    # Plus 3.0mm lateral clearance allowance for clips sliding over the well walls:
+    # Effective clearance radius r_eff = 4.3mm + 3.0mm = 7.3mm -> center distance >= 14.6mm
+    req_dist = (COLLAR_OUTER_W / 2.0 + 3.0) * 2.0 # 14.6 mm center-to-center minimum clearance
 
     for iteration in range(60):
         for i in range(num_leds):
+            ang_i = math.radians(led_rotations_deg[i])
+            dir_i = np.array([math.cos(ang_i), math.sin(ang_i)])
+            
             for j in range(i + 1, num_leds):
                 dx = pts[j, 0] - pts[i, 0]
                 dy = pts[j, 1] - pts[i, 1]
-                adx = abs(dx)
-                ady = abs(dy)
-                seg_dx = max(0.0, adx - 5.0)
-                seg_dy = ady
-                center_dist = np.hypot(seg_dx, seg_dy)
+                center_dist = np.hypot(dx, dy)
                 
+                # Check clearance taking into account well rotation and 3.0mm lateral clip buffer
                 if center_dist < req_dist:
                     pen = req_dist - center_dist
                     if center_dist < 1e-4:
                         nx, ny = 0.0, 1.0
                     else:
-                        nx = (seg_dx / center_dist) * (1.0 if dx >= 0 else -1.0)
-                        ny = (seg_dy / center_dist) * (1.0 if dy >= 0 else -1.0)
+                        nx = dx / center_dist
+                        ny = dy / center_dist
                     
                     push_x = nx * pen * 0.35
                     push_y = ny * pen * 0.35
@@ -214,10 +249,11 @@ def compile_plate_variant(variant_name, width_mm, height_mm, raw_leds, artwork_p
 
     max_shift = np.max(np.hypot(pts[:, 0] - orig_pts[:, 0], pts[:, 1] - orig_pts[:, 1])) if num_leds > 0 else 0.0
     avg_shift = np.mean(np.hypot(pts[:, 0] - orig_pts[:, 0], pts[:, 1] - orig_pts[:, 1])) if num_leds > 0 else 0.0
-    print(f"[{variant_name}] PBD solver ({num_leds} LEDs): Max shift = {max_shift:.2f}mm, Avg shift = {avg_shift:.2f}mm.")
+    print(f"[{variant_name}] PBD solver ({num_leds} LEDs, orientation: {well_orientation}): Max shift = {max_shift:.2f}mm, Avg shift = {avg_shift:.2f}mm.")
     for i in range(num_leds):
         leds[i]['x'] = round(float(pts[i, 0]), 2)
         leds[i]['y'] = round(float(pts[i, 1]), 2)
+        leds[i]['rotation_deg'] = round(float(led_rotations_deg[i]), 1)
 
     # 3. Outer Rim and Armor Plate 2D Boundary
     kernel_size = max(5, int(min(img_w, img_h) * 0.02))
@@ -356,33 +392,60 @@ def compile_plate_variant(variant_name, width_mm, height_mm, raw_leds, artwork_p
         wire_portal_x = cx_mid
         wire_portal_y = bounds[1]
 
-    # Parting-line wire exit notch at top of outer rim wall (Z = 6.0 to 9.2mm in pre-flip space)
-    # Flips to Z = 0.0 to 3.0mm in exported STL (right at the parting line where outer wall meets lid!)
+    # Parting-line wire exit notch at top of outer rim wall (Z = 6.5 to 10.2mm in pre-flip space)
+    # Flips to Z = 0.0 to 3.5mm in exported STL (right at the parting line where outer wall meets lid!)
     PORTAL_NOTCH_W = 5.5   # mm wide
-    PORTAL_NOTCH_H = 3.0   # mm tall
+    PORTAL_NOTCH_H = 3.5   # mm tall
     wire_portal_cutter = trimesh.creation.box(extents=[PORTAL_NOTCH_W, RIM_WALL_THICK + 4.0, PORTAL_NOTCH_H + 0.4])
     wire_portal_cutter.apply_translation([wire_portal_x, wire_portal_y, TOTAL_THICK - PORTAL_NOTCH_H / 2.0 + 0.2])
 
     # Internal floor zip-tie strain relief bridge (no holes piercing front artwork face!)
-    # Bridge: 7.0mm wide (X, across wire) x 5.0mm long (Y, along wire) x 2.8mm tall (Z = 2.0 to 4.8mm)
+    # Bridge: 8.0mm wide (X, across wire) x 7.2mm long (Y, along wire) x 4.5mm tall (Z = 2.0 to 6.5mm)
     # Under-Tunnel (Perpendicular to wire): cuts left-to-right (along X) under bridge:
-    #   10.0mm long in X (clears both sides) x 3.0mm wide in Y (for 2.5mm zip-tie) x 1.4mm tall in Z (Z = 2.0 to 3.4mm)
-    # Wire Saddle: shallow 0.6mm concave cradle on top of bridge along Y (aligned with wire path from U-notch):
-    #   4.5mm wide in X x 7.0mm long in Y x 0.8mm tall in Z (recessing 0.6mm into top, Z = 4.2 to 4.9mm)
-    bridge_y = wire_portal_y + RIM_WALL_THICK + 5.0
-    BRIDGE_X_W = 7.0
-    BRIDGE_Y_L = 5.0
-    BRIDGE_Z_H = 2.8
+    #   16.0mm long in X (clears both sides) x 3.2mm wide in Y (for miniature zip-tie) x 2.8mm tall in Z (Z = 2.0 to 4.8mm)
+    # Walls flanking tunnel in Y: (7.2 - 3.2) / 2 = 2.0mm thick (2x thicker!)
+    # Wire Saddle: shallow 0.7mm concave cradle on top of bridge along Y (aligned with wire path from U-notch):
+    #   4.5mm wide in X x 9.0mm long in Y x 0.8mm tall in Z (recessing 0.7mm into top, Z = 5.8 to 6.6mm)
+    bridge_y = wire_portal_y + RIM_WALL_THICK + 5.5
+    BRIDGE_X_W = 8.0
+    BRIDGE_Y_L = 7.2
+    BRIDGE_Z_H = 4.5
     bridge_solid_tm = trimesh.creation.box(extents=[BRIDGE_X_W, BRIDGE_Y_L, BRIDGE_Z_H])
     bridge_solid_tm.apply_translation([wire_portal_x, bridge_y, FRONT_THICK_GENERAL + BRIDGE_Z_H / 2.0])
 
-    tunnel_cutter_tm = trimesh.creation.box(extents=[BRIDGE_X_W + 4.0, 3.0, 1.4 + 0.4])
-    tunnel_cutter_tm.apply_translation([wire_portal_x, bridge_y, FRONT_THICK_GENERAL + 0.70 - 0.2])
+    tunnel_cutter_tm = trimesh.creation.box(extents=[BRIDGE_X_W + 8.0, 3.2, 2.8 + 0.2])
+    tunnel_cutter_tm.apply_translation([wire_portal_x, bridge_y, FRONT_THICK_GENERAL + 2.8 / 2.0])
 
-    saddle_cutter_tm = trimesh.creation.box(extents=[4.5, BRIDGE_Y_L + 2.0, 0.8])
+    saddle_cutter_tm = trimesh.creation.box(extents=[4.5, BRIDGE_Y_L + 4.0, 0.8])
     saddle_cutter_tm.apply_translation([wire_portal_x, bridge_y, FRONT_THICK_GENERAL + BRIDGE_Z_H - 0.3])
 
-    internal_bridge_m = to_m(bridge_solid_tm) - to_m(tunnel_cutter_tm) - to_m(saddle_cutter_tm)
+    # Lateral triangular reinforcement gusset buttresses flanking left (-X) and right (+X) of bridge:
+    # Sloping from Z = 6.0mm down to floor Z = 2.0mm, 2.5mm thick in Y, firmly anchored into floor under wire path
+    GUSS_SLOPE_W = 3.5
+    GUSS_THICK_Y = 2.5
+    guss_l_pts = [
+        [-BRIDGE_X_W / 2.0, FRONT_THICK_GENERAL],
+        [-(BRIDGE_X_W / 2.0 + GUSS_SLOPE_W), FRONT_THICK_GENERAL],
+        [-BRIDGE_X_W / 2.0, FRONT_THICK_GENERAL + BRIDGE_Z_H - 0.5]
+    ]
+    guss_l_tm = trimesh.creation.extrude_polygon(sg.Polygon(guss_l_pts), height=GUSS_THICK_Y)
+    v_l = guss_l_tm.vertices
+    guss_l_tm.vertices = np.column_stack([v_l[:, 0], v_l[:, 2] - GUSS_THICK_Y / 2.0, v_l[:, 1]])
+    guss_l_tm.apply_translation([wire_portal_x, bridge_y, 0.0])
+
+    guss_r_pts = [
+        [BRIDGE_X_W / 2.0, FRONT_THICK_GENERAL],
+        [(BRIDGE_X_W / 2.0 + GUSS_SLOPE_W), FRONT_THICK_GENERAL],
+        [BRIDGE_X_W / 2.0, FRONT_THICK_GENERAL + BRIDGE_Z_H - 0.5]
+    ]
+    guss_r_tm = trimesh.creation.extrude_polygon(sg.Polygon(guss_r_pts), height=GUSS_THICK_Y)
+    v_r = guss_r_tm.vertices
+    guss_r_tm.vertices = np.column_stack([v_r[:, 0], v_r[:, 2] - GUSS_THICK_Y / 2.0, v_r[:, 1]])
+    guss_r_tm.apply_translation([wire_portal_x, bridge_y, 0.0])
+
+    bridge_solids_m = [to_m(bridge_solid_tm), to_m(guss_l_tm), to_m(guss_r_tm)]
+    bridge_combined_m = Manifold.batch_boolean(bridge_solids_m, OpType.Add)
+    internal_bridge_m = bridge_combined_m - to_m(tunnel_cutter_tm) - to_m(saddle_cutter_tm)
 
     # 5. Collars, Recesses & Windows
     outer_collar_2d = make_stadium_polygon(COLLAR_OUTER_L, COLLAR_OUTER_W, sections=16)
@@ -456,10 +519,23 @@ def compile_plate_variant(variant_name, width_mm, height_mm, raw_leds, artwork_p
         notched_collar.apply_translation([cx, cy, COLLAR_FLOOR_Z])
         collar_meshes.append(notched_collar)
 
-        # 3x3mm Square or Ø 3mm Round Optical Window
-        if str(window_shape).lower() in ['round', 'circle']:
-            sq_win = trimesh.creation.cylinder(radius=WINDOW_SQ / 2.0, height=FRONT_THICK_LED + 1.0, sections=24)
-            win_2d = sg.Point(cx, cy).buffer(WINDOW_SQ / 2.0, resolution=16)
+        # Optical Window Aperture:
+        # Default: Ø 3.4mm Round (win_radius = 1.7mm)
+        # Selectable: round_34 (Ø 3.4mm), round_30 (Ø 3.0mm), square (3x3mm)
+        w_shape_str = str(window_shape).lower()
+        if '30' in w_shape_str or '3.0' in w_shape_str:
+            win_radius = 1.5  # Ø 3.0mm round
+            is_circle_win = True
+        elif 'square' in w_shape_str:
+            win_radius = 1.5  # 3.0mm square half-width
+            is_circle_win = False
+        else:
+            win_radius = 1.7  # Ø 3.4mm round (default: round_34, round, circle)
+            is_circle_win = True
+
+        if is_circle_win:
+            sq_win = trimesh.creation.cylinder(radius=win_radius, height=FRONT_THICK_LED + 1.0, sections=28)
+            win_2d = sg.Point(cx, cy).buffer(win_radius, resolution=16)
         else:
             sq_win = trimesh.creation.box(extents=[WINDOW_SQ, WINDOW_SQ, FRONT_THICK_LED + 1.0])
             sq_win.apply_transform(rot)
@@ -1035,12 +1111,23 @@ elif target_width_override is not None:
     back_specs['width_mm'] = target_width_override
     back_specs['height_mm'] = round(target_width_override / aspect, 2)
 
-window_shape = specs.get('window_shape', 'square')
+window_shape = specs.get('window_shape', 'round_34')
+if window_shape in ['round', 'circle']:
+    window_shape = 'round_34'
 if '--window-shape' in sys.argv:
     try:
         w_idx = sys.argv.index('--window-shape')
         if w_idx + 1 < len(sys.argv):
             window_shape = sys.argv[w_idx + 1]
+    except Exception:
+        pass
+
+well_orientation = specs.get('well_orientation', 'horizontal')
+if '--orientation' in sys.argv:
+    try:
+        o_idx = sys.argv.index('--orientation')
+        if o_idx + 1 < len(sys.argv):
+            well_orientation = sys.argv[o_idx + 1].lower()
     except Exception:
         pass
 
@@ -1070,6 +1157,7 @@ back_result = compile_plate_variant(
 
 # Update full JSON specifications
 specs['window_shape'] = window_shape
+specs['well_orientation'] = well_orientation
 specs['include_led_numbers'] = INCLUDE_LED_NUMBERS
 specs['include_clip_grooves'] = INCLUDE_CLIP_GROOVES
 specs['include_top_nubs'] = INCLUDE_TOP_NUBS

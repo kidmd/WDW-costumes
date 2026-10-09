@@ -1328,11 +1328,13 @@ const uint8_t PROGMEM SPATIAL_RADIUS_BYTE[FRONT_LEDS] = {{
                 ry = (l.get("y", 0.5) - normY) / normH
                 px = round(rx * FRONT_WIDTH_MM, 2)
                 py = round((1.0 - ry) * FRONT_HEIGHT_MM, 2)
+                rot_deg = float(l.get("rotation_deg", 0.0))
                 front_leds.append({
                     "id": idx + 1,
                     "orig_id": idx,
                     "x": px,
                     "y": py,
+                    "rotation_deg": rot_deg,
                     "color": l.get("color", {"r": 0, "g": 255, "b": 0})
                 })
 
@@ -1343,17 +1345,25 @@ const uint8_t PROGMEM SPATIAL_RADIUS_BYTE[FRONT_LEDS] = {{
                 ry = (l.get("y", 0.5) - normY) / normH
                 px = round(rx * BACK_WIDTH_MM, 2)
                 py = round((1.0 - ry) * BACK_HEIGHT_MM, 2)
+                rot_deg = float(l.get("rotation_deg", 0.0))
                 back_leds.append({
                     "id": idx + 1,
                     "orig_id": idx,
                     "x": px,
                     "y": py,
+                    "rotation_deg": rot_deg,
                     "color": l.get("color", {"r": 0, "g": 255, "b": 0})
                 })
 
-            window_shape = req_data.get("windowShape", "square")
-            if str(window_shape).lower() not in ["square", "round", "circle"]:
-                window_shape = "square"
+            window_shape = req_data.get("windowShape", "round_34")
+            if str(window_shape).lower() in ["round", "circle"]:
+                window_shape = "round_34"
+            elif str(window_shape).lower() not in ["round_34", "round_30", "square"]:
+                window_shape = "round_34"
+
+            well_orientation = req_data.get("wellOrientation", "horizontal")
+            if str(well_orientation).lower() not in ["horizontal", "tangent"]:
+                well_orientation = "horizontal"
 
             specs = {
                 "character": f"{float_name} 3D Wearable TPU Armor Panels",
@@ -1363,6 +1373,7 @@ const uint8_t PROGMEM SPATIAL_RADIUS_BYTE[FRONT_LEDS] = {{
                 "artwork_file": "active_artwork.png",
                 "graphic_type": req_data.get("graphicType"),
                 "window_shape": window_shape,
+                "well_orientation": well_orientation,
                 "include_led_numbers": bool(req_data.get("includeLedNumbers", False)),
                 "include_clip_grooves": bool(req_data.get("includeClipGrooves", False)),
                 "include_top_nubs": bool(req_data.get("includeTopNubs", False)),
@@ -1403,6 +1414,8 @@ const uint8_t PROGMEM SPATIAL_RADIUS_BYTE[FRONT_LEDS] = {{
                 os.path.join(BASE_DIR, "scripts", "compile_clean_tpu_panel.py"),
                 "--window-shape",
                 window_shape,
+                "--orientation",
+                well_orientation,
                 "--width-mm",
                 str(FRONT_WIDTH_MM),
                 "--numbers",

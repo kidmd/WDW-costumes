@@ -67,11 +67,12 @@ let params = {
     showWireTension: false,
     showPillSlots: false,
     showTpuWindows: false,
-    tpuWindowShape: 'square', // 'square' (3x3mm) or 'round' (Ø 3mm)
+    tpuWindowShape: 'round_34', // 'round_34' (Ø 3.4mm, default), 'round_30' (Ø 3.0mm), or 'square' (3x3mm)
+    tpuWellOrientation: 'horizontal', // 'horizontal' (0° baseline) or 'tangent' (tangent to wiring tour)
     showSymmetryAxis: false,
     liveSymmetryDrag: false,
     showNumbers: false,
-    graphicVersion: 'standard', // 'standard' or 'assembly_guide' (faint graphic + 3x3mm windows + clear numbers)
+    graphicVersion: 'standard', // 'standard' or 'assembly_guide' (faint graphic + optical windows + clear numbers)
     faintGraphicOpacity: 0.22,  // 0.10 to 0.60
     assemblyPaperMode: false,   // false = Dark Garment Fabric, true = Light Print Paper
     reflectiveShine: true,
@@ -82,8 +83,14 @@ let params = {
 
 try {
     const savedShape = localStorage.getItem('msep_tpu_window_shape');
-    if (savedShape === 'round' || savedShape === 'square') {
+    if (savedShape === 'round_34' || savedShape === 'round_30' || savedShape === 'square') {
         params.tpuWindowShape = savedShape;
+    } else if (savedShape === 'round') {
+        params.tpuWindowShape = 'round_34';
+    }
+    const savedOrient = localStorage.getItem('msep_tpu_well_orientation');
+    if (savedOrient === 'horizontal' || savedOrient === 'tangent') {
+        params.tpuWellOrientation = savedOrient;
     }
 } catch (e) {}
 
@@ -2862,6 +2869,25 @@ function getLedTangentAngle(index, ledsList) {
     return Math.atan2(next.y - prev.y, next.x - prev.x);
 }
 
+// Calculate TPU well rotation angle in radians (or degrees for export)
+function getTpuWellRotationAngle(index, ledsList) {
+    if (params.tpuWellOrientation !== 'tangent') {
+        return 0;
+    }
+    return getLedTangentAngle(index, ledsList);
+}
+
+function computeLedWellRotations(ledsList) {
+    const list = ledsList || leds;
+    if (!list) return [];
+    return list.map((_, i) => {
+        const rad = getTpuWellRotationAngle(i, list);
+        let deg = (rad * 180 / Math.PI) % 360;
+        if (deg < 0) deg += 360;
+        return parseFloat(deg.toFixed(2));
+    });
+}
+
 
 // ============================================================================
 // 🎨 CRICUT HTV MULTI-LAYER SVG EXPORT SUITE WITH 6×3mm PILL SLOTS
@@ -3497,25 +3523,56 @@ function renderBulb(cx, x, y, col, isHovered, isSelected, index) {
         const s = getShirtBounds();
         const ppm = s.width / 457.2;
 
-        const outerW = Math.max(14, 12.4 * ppm); // 12.4mm outer collar length
-        const outerH = Math.max(8, 7.4 * ppm);   // 7.4mm outer collar width
+        const outerW = Math.max(15, 13.6 * ppm); // 13.6mm outer collar length (+50% walls: 1.8mm walls)
+        const outerH = Math.max(9, 8.6 * ppm);   // 8.6mm outer collar width
         const innerW = Math.max(11, 10.0 * ppm); // 10.0mm inner pocket length
         const innerH = Math.max(5.5, 5.0 * ppm); // 5.0mm inner pocket width
-        const winSq = Math.max(4.5, 3.0 * ppm);  // 3.0mm square optical aperture
+        const lipW = Math.max(16, 15.0 * ppm);   // 15.0mm outer snap lip length (0.70mm lip extension)
+        const lipH = Math.max(10, 10.0 * ppm);   // 10.0mm outer snap lip width
+
+        // Optical Window Aperture:
+        // Default: Ø 3.4mm Round
+        // Options: round_34 (Ø 3.4mm), round_30 (Ø 3.0mm), square (3x3mm)
+        const winShape = params.tpuWindowShape || 'round_34';
+        const isRound30 = (winShape === 'round_30');
+        const isSquare = (winShape === 'square');
+        const winRadiusMm = isRound30 ? 1.5 : (isSquare ? 1.5 : 1.7);
+        const winSizePx = Math.max(4.5, winRadiusMm * 2.0 * ppm);
+
+        // Rotation (Horizontal vs Tangent to wire):
+        const rotRad = (typeof getTpuWellRotationAngle === 'function') 
+            ? getTpuWellRotationAngle(index, leds)
+            : ((params.tpuWellOrientation === 'tangent' && typeof getLedTangentAngle === 'function') ? getLedTangentAngle(index, leds) : 0);
 
         cx.save();
         cx.translate(x, y);
+        if (rotRad !== 0) {
+            cx.rotate(rotRad);
+        }
 
-        // 1. Subtle 12.4x7.4mm Outer Collar Outline (Zero-Overlap Footprint)
+        // 0. Top Snap Lip Outer Footprint (15.0x10.0mm subtle dashed guide)
+        cx.beginPath();
+        if (typeof cx.roundRect === 'function') {
+            cx.roundRect(-lipW / 2, -lipH / 2, lipW, lipH, lipH / 2);
+        } else {
+            cx.rect(-lipW / 2, -lipH / 2, lipW, lipH);
+        }
+        cx.strokeStyle = 'rgba(0, 255, 136, 0.18)';
+        cx.lineWidth = 0.6;
+        cx.setLineDash([2, 2]);
+        cx.stroke();
+        cx.setLineDash([]);
+
+        // 1. Reinforced 13.6x8.6mm Outer Collar Outline (1.8mm walls)
         cx.beginPath();
         if (typeof cx.roundRect === 'function') {
             cx.roundRect(-outerW / 2, -outerH / 2, outerW, outerH, outerH / 2);
         } else {
             cx.rect(-outerW / 2, -outerH / 2, outerW, outerH);
         }
-        cx.fillStyle = 'rgba(11, 15, 23, 0.45)';
+        cx.fillStyle = 'rgba(11, 15, 23, 0.50)';
         cx.fill();
-        cx.strokeStyle = (isHovered || isSelected) ? 'rgba(0, 255, 136, 0.90)' : 'rgba(0, 255, 136, 0.28)';
+        cx.strokeStyle = (isHovered || isSelected) ? 'rgba(0, 255, 136, 0.90)' : 'rgba(0, 255, 136, 0.35)';
         cx.lineWidth = (isHovered || isSelected) ? 1.5 : 0.8;
         cx.stroke();
 
@@ -3526,12 +3583,12 @@ function renderBulb(cx, x, y, col, isHovered, isSelected, index) {
         } else {
             cx.rect(-innerW / 2, -innerH / 2, innerW, innerH);
         }
-        cx.strokeStyle = 'rgba(255, 255, 255, 0.15)';
+        cx.strokeStyle = 'rgba(255, 255, 255, 0.20)';
         cx.lineWidth = 0.6;
         cx.stroke();
 
         // 3. 4mm Wire Pass-Through Notches on ends
-        cx.strokeStyle = 'rgba(56, 189, 248, 0.40)';
+        cx.strokeStyle = 'rgba(56, 189, 248, 0.45)';
         cx.lineWidth = 1.0;
         cx.beginPath();
         cx.moveTo(-outerW / 2, 0); cx.lineTo(-innerW / 2, 0);
@@ -3553,13 +3610,12 @@ function renderBulb(cx, x, y, col, isHovered, isSelected, index) {
             cx.fill();
         }
 
-        // 5. Centered 3mm Square or Ø 3mm Round Optical Window Aperture
-        const isRound = (params.tpuWindowShape === 'round' || params.tpuWindowShape === 'circle');
+        // 5. Optical Window Aperture (Ø 3.4mm Round Default, Ø 3.0mm, or 3x3mm Square)
         cx.beginPath();
-        if (isRound) {
-            cx.arc(0, 0, winSq / 2, 0, Math.PI * 2);
+        if (!isSquare) {
+            cx.arc(0, 0, winSizePx / 2, 0, Math.PI * 2);
         } else {
-            cx.rect(-winSq / 2, -winSq / 2, winSq, winSq);
+            cx.rect(-winSizePx / 2, -winSizePx / 2, winSizePx, winSizePx);
         }
 
         if (isLit) {
@@ -3569,14 +3625,14 @@ function renderBulb(cx, x, y, col, isHovered, isSelected, index) {
             cx.lineWidth = 0.8;
             cx.stroke();
 
-            // Inner white bright emission core
+            // Inner bright emission core
             cx.fillStyle = `rgba(255, 255, 255, ${0.95 * bulbAlpha})`;
-            if (isRound) {
+            if (!isSquare) {
                 cx.beginPath();
-                cx.arc(0, 0, winSq * 0.25, 0, Math.PI * 2);
+                cx.arc(0, 0, winSizePx * 0.25, 0, Math.PI * 2);
                 cx.fill();
             } else {
-                cx.fillRect(-winSq * 0.25, -winSq * 0.25, winSq * 0.5, winSq * 0.5);
+                cx.fillRect(-winSizePx * 0.25, -winSizePx * 0.25, winSizePx * 0.5, winSizePx * 0.5);
             }
         } else {
             cx.fillStyle = '#080c14';
@@ -3586,13 +3642,14 @@ function renderBulb(cx, x, y, col, isHovered, isSelected, index) {
             cx.stroke();
             // Tiny unlit resin core
             cx.fillStyle = 'rgba(30, 36, 48, 0.9)';
-            if (isRound) {
+            if (!isSquare) {
                 cx.beginPath();
-                cx.arc(0, 0, winSq * 0.25, 0, Math.PI * 2);
+                cx.arc(0, 0, winSizePx * 0.25, 0, Math.PI * 2);
                 cx.fill();
             } else {
-                cx.fillRect(-winSq * 0.25, -winSq * 0.25, winSq * 0.5, winSq * 0.5);
+                cx.fillRect(-winSizePx * 0.25, -winSizePx * 0.25, winSizePx * 0.5, winSizePx * 0.5);
             }
+            cx.fill();
         }
 
         cx.restore();
@@ -11505,14 +11562,14 @@ canvas.addEventListener('mousedown', (e) => {
 
 // ---------------------------------------------------------------------------
 // ZERO-OVERLAP TPU COLLAR CLEARANCE & PBD RELAXATION
-// 10x5mm inner socket, 12.4x7.4mm outer collar stadium (5.0mm horizontal segment).
-// Required center distance >= 7.9mm (0.5mm clear wall gap between any two collars).
+// 10x5mm inner socket, 13.6x8.6mm outer collar (1.8mm walls, 5.0mm straight segment).
+// Required center distance >= 14.6mm (3.0mm lateral clearance allowance for clips sliding over).
 // Physical garment scale: 18.0 inch garment = 457.2mm -> 1.0mm = 1.0 / 457.2 normalized units.
 // ---------------------------------------------------------------------------
 function clampLedNoCollarOverlap(targetX, targetY, movingIndex, ledsArray) {
     const mmToNorm = 1.0 / 457.2;
     const segLen = 5.0 * mmToNorm;
-    const reqDist = 7.9 * mmToNorm;
+    const reqDist = 14.6 * mmToNorm;
     let x = targetX;
     let y = targetY;
 
@@ -11554,7 +11611,7 @@ function relaxLedCollarOverlaps(ledsList, iterations = 35) {
     if (!ledsList || ledsList.length < 2) return;
     const mmToNorm = 1.0 / 457.2;
     const segLen = 5.0 * mmToNorm;
-    const reqDist = 7.9 * mmToNorm;
+    const reqDist = 14.6 * mmToNorm;
     const n = ledsList.length;
     const gb = typeof getGraphicChestBounds === 'function' ? getGraphicChestBounds() : { normX: 0.1, normY: 0.1, normW: 0.8, normH: 0.8 };
 
@@ -19582,8 +19639,9 @@ function initTpuArmorPanel() {
         compileBtn.addEventListener('click', handleRecompileTpuStl);
     }
 
-    // Initialize hole shape, numbers, and retention features
-    setTpuWindowShape(params.tpuWindowShape || 'square');
+    // Initialize hole shape, orientation, numbers, and retention features
+    setTpuWindowShape(params.tpuWindowShape || 'round_34');
+    setTpuWellOrientation(params.tpuWellOrientation || 'horizontal');
     setTpuLedNumbers(params.tpuIncludeLedNumbers === true);
     setTpuClipGrooves(params.tpuIncludeClipGrooves === true);
     setTpuTopNubs(params.tpuIncludeTopNubs === true);
@@ -19617,12 +19675,13 @@ function getActiveFloatName() {
 }
 window.getActiveFloatName = getActiveFloatName;
 
-// Fingerprint of everything that shapes the STL (artwork silhouette, LED layout, chest bounds, window shape, size, count, numbers, clip grooves, top nubs).
+// Fingerprint of everything that shapes the STL (artwork silhouette, LED layout, chest bounds, window shape, well orientation, size, count, numbers, clip grooves, top nubs).
 function computeTpuLayoutSignature() {
     const activeImg = getActiveGraphicImg();
     const src = (activeImg && activeImg.src) ? activeImg.src : 'none';
     const gb = getGraphicChestBounds() || {};
-    const winShape = params.tpuWindowShape || 'square';
+    const winShape = params.tpuWindowShape || 'round_34';
+    const wellOrient = params.tpuWellOrientation || 'horizontal';
     const numFlag = (params.tpuIncludeLedNumbers === true) ? 'num' : 'nonum';
     const grvFlag = (params.tpuIncludeClipGrooves === true) ? 'grv' : 'nogrv';
     const nubFlag = (params.tpuIncludeTopNubs === true) ? 'nub' : 'nonub';
@@ -19635,62 +19694,65 @@ function computeTpuLayoutSignature() {
     mix(String(currentGraphicType));
     mix(src);
     mix(String(winShape));
+    mix(String(wellOrient));
     mix(numFlag);
     mix(grvFlag);
     mix(nubFlag);
-    mix('wireportal-v1');
+    mix('wireportal-v2');
     mix('floatcolors-v1');
     mix(JSON.stringify(getActiveFloatStlColors()));
     mix(String(selectedPlateWidthMm));
     mix(String(selectedPlateSize));
     mix([gb.normX, gb.normY, gb.normW, gb.normH].map(v => Number(v || 0).toFixed(4)).join(','));
     mix((leds || []).map(l => `${Number(l.x).toFixed(4)},${Number(l.y).toFixed(4)}`).join(';'));
-    return `${currentGraphicType}-${winShape}-${numFlag}-${grvFlag}-${nubFlag}-${selectedPlateSize}-${(leds || []).length}-v2-${h.toString(16)}`;
+    return `${currentGraphicType}-${winShape}-${wellOrient}-${numFlag}-${grvFlag}-${nubFlag}-${selectedPlateSize}-${(leds || []).length}-v3-${h.toString(16)}`;
 }
 window.computeTpuLayoutSignature = computeTpuLayoutSignature;
 
 function setTpuWindowShape(shape) {
-    if (shape !== 'round' && shape !== 'square') shape = 'square';
+    if (shape !== 'round_34' && shape !== 'round_30' && shape !== 'square') shape = 'round_34';
     params.tpuWindowShape = shape;
     try { localStorage.setItem('msep_tpu_window_shape', shape); } catch (e) {}
 
     // Update Layout tab buttons styling
-    const sqBtn = document.getElementById('tpuShapeSquareBtn');
-    const rdBtn = document.getElementById('tpuShapeRoundBtn');
-    if (sqBtn && rdBtn) {
-        if (shape === 'square') {
-            sqBtn.style.background = '#00ff88';
-            sqBtn.style.color = '#000';
-            sqBtn.style.fontWeight = '700';
-            rdBtn.style.background = 'transparent';
-            rdBtn.style.color = '#8b949e';
-            rdBtn.style.fontWeight = '600';
-        } else {
-            rdBtn.style.background = '#00ff88';
-            rdBtn.style.color = '#000';
-            rdBtn.style.fontWeight = '700';
-            sqBtn.style.background = 'transparent';
-            sqBtn.style.color = '#8b949e';
-            sqBtn.style.fontWeight = '600';
-        }
+    const btn34 = document.getElementById('tpuShapeRound34Btn');
+    const btn30 = document.getElementById('tpuShapeRound30Btn');
+    const btnSq = document.getElementById('tpuShapeSquareBtn');
+    [btn34, btn30, btnSq].forEach(b => {
+        if (!b) return;
+        b.style.background = 'transparent';
+        b.style.color = '#8b949e';
+        b.style.fontWeight = '600';
+    });
+    const activeBtn = (shape === 'round_34') ? btn34 : (shape === 'round_30' ? btn30 : btnSq);
+    if (activeBtn) {
+        activeBtn.style.background = '#00ff88';
+        activeBtn.style.color = '#000';
+        activeBtn.style.fontWeight = '700';
     }
 
     // Update 3D modal shape buttons styling
-    const modalSqBtn = document.getElementById('tpuModalShapeSquareBtn');
-    const modalRdBtn = document.getElementById('tpuModalShapeRoundBtn');
-    if (modalSqBtn && modalRdBtn) {
-        if (shape === 'square') {
-            setTpuModalPillState(modalSqBtn, modalRdBtn);
-        } else {
-            setTpuModalPillState(modalRdBtn, modalSqBtn);
-        }
+    const modal34 = document.getElementById('tpuModalShapeRound34Btn');
+    const modal30 = document.getElementById('tpuModalShapeRound30Btn');
+    const modalSq = document.getElementById('tpuModalShapeSquareBtn');
+    [modal34, modal30, modalSq].forEach(b => {
+        if (!b) return;
+        b.style.background = 'transparent';
+        b.style.color = '#8b949e';
+        b.style.fontWeight = '500';
+    });
+    const activeModalBtn = (shape === 'round_34') ? modal34 : (shape === 'round_30' ? modal30 : modalSq);
+    if (activeModalBtn) {
+        activeModalBtn.style.background = '#00ff88';
+        activeModalBtn.style.color = '#000';
+        activeModalBtn.style.fontWeight = '700';
     }
 
     // Update modal subtitle
     const sub = document.getElementById('tpuModalSubtitle');
     if (sub) {
-        const shapeText = (shape === 'round') ? 'Ø 3mm Round Windows' : '3×3mm Square Windows';
-        sub.textContent = `95A TPU Open-Chassis Tray • ${shapeText} • Zero Overlap Pockets`;
+        const shapeText = (shape === 'round_34') ? 'Ø 3.4mm Round Apertures (Default)' : (shape === 'round_30' ? 'Ø 3.0mm Round Apertures' : '3×3mm Square Apertures');
+        sub.textContent = `95A TPU 10mm Chassis Tray • ${shapeText} • Zero Overlap Pockets`;
     }
 
     markSingleShirtDirty();
@@ -19704,6 +19766,65 @@ function setTpuWindowShape(shape) {
     }
 }
 window.setTpuWindowShape = setTpuWindowShape;
+
+function setTpuWellOrientation(orient) {
+    if (orient !== 'tangent' && orient !== 'horizontal') orient = 'horizontal';
+    params.tpuWellOrientation = orient;
+    try { localStorage.setItem('msep_tpu_well_orientation', orient); } catch (e) {}
+
+    // Update Layout tab buttons styling
+    const horizBtn = document.getElementById('tpuOrientHorizBtn');
+    const tangBtn = document.getElementById('tpuOrientTangentBtn');
+    if (horizBtn && tangBtn) {
+        if (orient === 'horizontal') {
+            horizBtn.style.background = '#00ff88';
+            horizBtn.style.color = '#000';
+            horizBtn.style.fontWeight = '700';
+            tangBtn.style.background = 'transparent';
+            tangBtn.style.color = '#8b949e';
+            tangBtn.style.fontWeight = '600';
+        } else {
+            tangBtn.style.background = '#00ff88';
+            tangBtn.style.color = '#000';
+            tangBtn.style.fontWeight = '700';
+            horizBtn.style.background = 'transparent';
+            horizBtn.style.color = '#8b949e';
+            horizBtn.style.fontWeight = '600';
+        }
+    }
+
+    // Update 3D modal buttons styling
+    const modalHorizBtn = document.getElementById('tpuModalOrientHorizBtn');
+    const modalTangBtn = document.getElementById('tpuModalOrientTangentBtn');
+    if (modalHorizBtn && modalTangBtn) {
+        if (orient === 'horizontal') {
+            modalHorizBtn.style.background = '#00ff88';
+            modalHorizBtn.style.color = '#000';
+            modalHorizBtn.style.fontWeight = '700';
+            modalTangBtn.style.background = 'transparent';
+            modalTangBtn.style.color = '#8b949e';
+            modalTangBtn.style.fontWeight = '500';
+        } else {
+            modalTangBtn.style.background = '#00ff88';
+            modalTangBtn.style.color = '#000';
+            modalTangBtn.style.fontWeight = '700';
+            modalHorizBtn.style.background = 'transparent';
+            modalHorizBtn.style.color = '#8b949e';
+            modalHorizBtn.style.fontWeight = '500';
+        }
+    }
+
+    markSingleShirtDirty();
+
+    // Redraw 2D canvas preview
+    if (typeof draw === 'function') draw();
+
+    // If modal is open, trigger auto-recompile / reload to match chosen orientation
+    if (tpuIsOpen) {
+        openTpuPreviewModal();
+    }
+}
+window.setTpuWellOrientation = setTpuWellOrientation;
 
 function setTpuLedNumbers(on) {
     params.tpuIncludeLedNumbers = !!on;
@@ -19762,7 +19883,8 @@ function setTpuModalControlsDisabled(disabled) {
         'tpuModalTopNubsOnBtn', 'tpuModalTopNubsOffBtn',
         'tpuModalGroovesOnBtn', 'tpuModalGroovesOffBtn',
         'tpuModalNumbersOnBtn', 'tpuModalNumbersOffBtn',
-        'tpuModalShapeSquareBtn', 'tpuModalShapeRoundBtn',
+        'tpuModalShapeRound34Btn', 'tpuModalShapeRound30Btn', 'tpuModalShapeSquareBtn',
+        'tpuModalOrientHorizBtn', 'tpuModalOrientTangentBtn',
         'tpuModalSelectFrontBtn', 'tpuModalSelectBackBtn',
         'tpuModalDisplayTrayBtn', 'tpuModalDisplayLidBtn',
         'tpuModalModeMultiBtn', 'tpuModalModeMonoBtn',
@@ -19839,12 +19961,21 @@ async function handleRecompileTpuStl(opts) {
         const slot = (typeof activeSingleShirtRunnerSlot !== 'undefined' && activeSingleShirtRunnerSlot !== null) ? activeSingleShirtRunnerSlot : 5;
         const floatName = getActiveFloatName();
 
+        const ledsWithRotations = (leds || []).map((l, idx) => ({
+            x: l.x,
+            y: l.y,
+            rotation_deg: (typeof getTpuWellRotationAngle === 'function')
+                ? parseFloat((getTpuWellRotationAngle(idx, leds) * 180 / Math.PI).toFixed(2))
+                : 0.0
+        }));
+
         const payload = {
-            leds: leds || [],
+            leds: ledsWithRotations,
             floatIndex: slot,
             floatName: floatName,
             graphicType: currentGraphicType,
-            windowShape: params.tpuWindowShape || 'square',
+            windowShape: params.tpuWindowShape || 'round_34',
+            wellOrientation: params.tpuWellOrientation || 'horizontal',
             includeLedNumbers: params.tpuIncludeLedNumbers === true,
             includeClipGrooves: params.tpuIncludeClipGrooves === true,
             includeTopNubs: params.tpuIncludeTopNubs === true,
@@ -19929,6 +20060,7 @@ async function openTpuPreviewModal() {
         let compiledGrooves = undefined;
         let compiledNumbers = undefined;
         let compiledShape = undefined;
+        let compiledOrient = undefined;
         try {
             const r = await fetch('/3d_panels/tpu_panel_specs.json?t=' + Date.now());
             if (r.ok) {
@@ -19938,6 +20070,7 @@ async function openTpuPreviewModal() {
                 compiledGrooves = sp.include_clip_grooves;
                 compiledNumbers = sp.include_led_numbers;
                 compiledShape = sp.window_shape;
+                compiledOrient = sp.well_orientation;
             }
         } catch (e) {}
 
@@ -19945,9 +20078,10 @@ async function openTpuPreviewModal() {
         const nubsMismatch = (compiledNubs !== undefined && compiledNubs !== (params.tpuIncludeTopNubs === true));
         const groovesMismatch = (compiledGrooves !== undefined && compiledGrooves !== (params.tpuIncludeClipGrooves === true));
         const numbersMismatch = (compiledNumbers !== undefined && compiledNumbers !== (params.tpuIncludeLedNumbers === true));
-        const shapeMismatch = (compiledShape !== undefined && compiledShape !== (params.tpuWindowShape || 'square'));
+        const shapeMismatch = (compiledShape !== undefined && compiledShape !== (params.tpuWindowShape || 'round_34'));
+        const orientMismatch = (compiledOrient !== undefined && compiledOrient !== (params.tpuWellOrientation || 'horizontal'));
 
-        if (compiledSig !== currentSig || nubsMismatch || groovesMismatch || numbersMismatch || shapeMismatch) {
+        if (compiledSig !== currentSig || nubsMismatch || groovesMismatch || numbersMismatch || shapeMismatch || orientMismatch) {
             const loaderOverlay = document.getElementById('tpuModalLoading');
             if (loaderOverlay) {
                 loaderOverlay.style.display = 'flex';
@@ -20174,15 +20308,17 @@ async function loadTpuModalData() {
             modalTitle.textContent = `${floatName} • ${variantTitle}`;
         }
 
-        const effectiveShape = specs.window_shape || params.tpuWindowShape || 'square';
+        const effectiveShape = specs.window_shape || params.tpuWindowShape || 'round_34';
+        const effectiveOrient = specs.well_orientation || params.tpuWellOrientation || 'horizontal';
         const modalSub = document.getElementById('tpuModalSubtitle');
         if (modalSub) {
             if (tpuDisplayMode === 'lid') {
                 modalSub.textContent = `2.0mm Solid Lid • 1.2mm Alignment Ridge • 8 M2 Screws • 16 Eyelets`;
             } else {
-                const shapeText = (effectiveShape === 'round' || effectiveShape === 'circle') ? 'Ø 3mm Round Windows' : '3×3mm Square Windows';
+                const shapeText = (effectiveShape === 'round_34') ? 'Ø 3.4mm Round Apertures (Default)' : ((effectiveShape === 'round_30' || effectiveShape === 'round' || effectiveShape === 'circle') ? 'Ø 3.0mm Round Apertures' : '3×3mm Square Apertures');
+                const orientText = (effectiveOrient === 'tangent') ? 'Tangent to Wire' : 'Horizontal Alignment';
                 const modeText = (tpuExportMode === 'multi') ? '5-Color AMS Split' : 'Single Solid STL';
-                modalSub.textContent = `95A TPU Tray • ${shapeText} • ${modeText}`;
+                modalSub.textContent = `95A TPU 10mm Chassis • ${shapeText} • ${orientText} • ${modeText}`;
             }
         }
 
@@ -20195,13 +20331,29 @@ async function loadTpuModalData() {
             }
         }
 
-        // Sync modal shape buttons
+        // Sync modal shape buttons (3 options)
+        const m34Btn = document.getElementById('tpuModalShapeRound34Btn');
+        const m30Btn = document.getElementById('tpuModalShapeRound30Btn');
         const mSqBtn = document.getElementById('tpuModalShapeSquareBtn');
-        const mRdBtn = document.getElementById('tpuModalShapeRoundBtn');
-        if (mSqBtn && mRdBtn) {
-            const isRound = (effectiveShape === 'round' || effectiveShape === 'circle');
-            if (isRound) setTpuModalPillState(mRdBtn, mSqBtn);
-            else setTpuModalPillState(mSqBtn, mRdBtn);
+        [m34Btn, m30Btn, mSqBtn].forEach(b => {
+            if (!b) return;
+            b.style.background = 'transparent';
+            b.style.color = '#8b949e';
+            b.style.fontWeight = '500';
+        });
+        const activeMBtn = (effectiveShape === 'round_34') ? m34Btn : (effectiveShape === 'round_30' ? m30Btn : mSqBtn);
+        if (activeMBtn) {
+            activeMBtn.style.background = '#00ff88';
+            activeMBtn.style.color = '#000';
+            activeMBtn.style.fontWeight = '700';
+        }
+
+        // Sync modal orientation buttons
+        const mHorizBtn = document.getElementById('tpuModalOrientHorizBtn');
+        const mTangBtn = document.getElementById('tpuModalOrientTangentBtn');
+        if (mHorizBtn && mTangBtn) {
+            if (effectiveOrient === 'horizontal') setTpuModalPillState(mHorizBtn, mTangBtn);
+            else setTpuModalPillState(mTangBtn, mHorizBtn);
         }
 
         // Sync modal LED numbers buttons
@@ -20517,22 +20669,32 @@ async function createTpuGraphicCutoutMesh(specs, stlCenter) {
     const totalW_mm = specs.total_image_width_mm || specs.width_mm || 185.0;
     const totalH_mm = specs.total_image_height_mm || specs.height_mm || (Math.round((totalW_mm / (imgW / imgH)) * 100) / 100);
 
-    const hwPx = (1.5 / totalW_mm) * imgW;
-    const hhPx = (1.5 / totalH_mm) * imgH;
+    const winShape = specs.window_shape || params.tpuWindowShape || 'round_34';
+    const isRound34 = (winShape === 'round_34');
+    const isRound30 = (winShape === 'round_30' || winShape === 'round' || winShape === 'circle');
+    const isRound = isRound34 || isRound30;
+    const apertureRadiusMm = isRound34 ? 1.7 : 1.5;
 
-    const winShape = specs.window_shape || params.tpuWindowShape || 'square';
-    const isRound = (winShape === 'round' || winShape === 'circle');
+    const hwPx = (apertureRadiusMm / totalW_mm) * imgW;
+    const hhPx = (apertureRadiusMm / totalH_mm) * imgH;
 
     const ledsList = specs.ordered_leds || [];
     ledsList.forEach(l => {
         const px = (l.x / totalW_mm) * imgW;
         const py = (1.0 - (l.y / totalH_mm)) * imgH;
+        const rotDeg = l.rotation_deg !== undefined ? l.rotation_deg : (l.angle_deg !== undefined ? l.angle_deg : 0);
+        const rotRad = (rotDeg * Math.PI) / 180;
+
         if (isRound) {
             ctx.beginPath();
             ctx.arc(px, py, hwPx, 0, Math.PI * 2);
             ctx.fill();
         } else {
-            ctx.fillRect(px - hwPx, py - hhPx, hwPx * 2, hhPx * 2);
+            ctx.save();
+            ctx.translate(px, py);
+            if (rotRad !== 0) ctx.rotate(-rotRad);
+            ctx.fillRect(-hwPx, -hhPx, hwPx * 2, hhPx * 2);
+            ctx.restore();
         }
     });
 
@@ -20571,12 +20733,14 @@ function createTpuLedPixels(specs, stlCenter) {
     tpuLedMaterials = [];
     tpuBaseColors = [];
 
-    const winShape = specs.window_shape || params.tpuWindowShape || 'square';
-    const isRound = (winShape === 'round' || winShape === 'circle');
+    const winShape = specs.window_shape || params.tpuWindowShape || 'round_34';
+    const isRound34 = (winShape === 'round_34');
+    const isRound30 = (winShape === 'round_30' || winShape === 'round' || winShape === 'circle');
+    const isRound = isRound34 || isRound30;
+
+    const pixelGeom = isRound34 ? new THREE.CircleGeometry(1.6, 24) : (isRound30 ? new THREE.CircleGeometry(1.4, 24) : new THREE.PlaneGeometry(2.8, 2.8));
 
     const ledsList = specs.ordered_leds || [];
-    const pixelGeom = isRound ? new THREE.CircleGeometry(1.4, 24) : new THREE.PlaneGeometry(2.8, 2.8);
-
     ledsList.forEach((l, idx) => {
         const c = l.color || { r: 0, g: 255, b: 100 };
         const col = new THREE.Color(c.r / 255, c.g / 255, c.b / 255);
@@ -20598,8 +20762,12 @@ function createTpuLedPixels(specs, stlCenter) {
         pixelMesh.position.set(
             l.x - stlCenter.x,
             l.y - stlCenter.y,
-            stlCenter.z + 0.20 // Positioned cleanly inside the 3x3mm optical window
+            stlCenter.z + 0.20 // Positioned cleanly inside the optical window
         );
+        const rotDeg = l.rotation_deg !== undefined ? l.rotation_deg : (l.angle_deg !== undefined ? l.angle_deg : 0);
+        if (rotDeg !== 0) {
+            pixelMesh.rotation.z = (rotDeg * Math.PI) / 180;
+        }
         tpuLedsGroup.add(pixelMesh);
     });
 

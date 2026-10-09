@@ -392,12 +392,22 @@
                                 <span class="slider"></span>
                             </label>
                         </div>
-                        <!-- TPU Window Shape Selector -->
-                        <div id="tpuShapeSelectorRow" style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; padding: 2px 0 2px 2px;">
-                            <span style="font-size: 10px; color: #8b949e; font-weight: 500;">Hole Shape:</span>
+                        <!-- LED Well / Channel Orientation Selector -->
+                        <div id="tpuOrientationSelectorRow" style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; padding: 2px 0 2px 2px;">
+                            <span style="font-size: 10px; color: #8b949e; font-weight: 500;">Channel Alignment:</span>
                             <div style="display: flex; gap: 2px; background: rgba(0,0,0,0.35); padding: 2px; border-radius: 5px; border: 1px solid #21262d;">
-                                <button type="button" id="tpuShapeSquareBtn" onclick="setTpuWindowShape('square')" class="action-btn" style="padding: 2px 8px; font-size: 10px; font-weight: 700; background: #00ff88; color: #000; border: none; border-radius: 3px; cursor: pointer;">🔲 3×3mm Square</button>
-                                <button type="button" id="tpuShapeRoundBtn" onclick="setTpuWindowShape('round')" class="action-btn" style="padding: 2px 8px; font-size: 10px; font-weight: 600; background: transparent; color: #8b949e; border: none; border-radius: 3px; cursor: pointer;">⚪ Ø 3mm Round</button>
+                                <button type="button" id="tpuOrientHorizBtn" onclick="setTpuWellOrientation('horizontal')" class="action-btn" style="padding: 2px 7px; font-size: 10px; font-weight: 700; background: #00ff88; color: #000; border: none; border-radius: 3px; cursor: pointer;" title="Align all LED channels horizontally (0° standard baseline)">↔️ Horizontal</button>
+                                <button type="button" id="tpuOrientTangentBtn" onclick="setTpuWellOrientation('tangent')" class="action-btn" style="padding: 2px 7px; font-size: 10px; font-weight: 600; background: transparent; color: #8b949e; border: none; border-radius: 3px; cursor: pointer;" title="Rotate channels dynamically to follow the tangent of the wiring tour">〰️ Tangent to Wire</button>
+                            </div>
+                        </div>
+
+                        <!-- TPU Window Shape Selector (Default: Ø 3.4mm Round) -->
+                        <div id="tpuShapeSelectorRow" style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; padding: 2px 0 2px 2px;">
+                            <span style="font-size: 10px; color: #8b949e; font-weight: 500;">Aperture:</span>
+                            <div style="display: flex; gap: 2px; background: rgba(0,0,0,0.35); padding: 2px; border-radius: 5px; border: 1px solid #21262d;">
+                                <button type="button" id="tpuShapeRound34Btn" onclick="setTpuWindowShape('round_34')" class="action-btn" style="padding: 2px 6px; font-size: 9.5px; font-weight: 700; background: #00ff88; color: #000; border: none; border-radius: 3px; cursor: pointer;" title="Ø 3.4mm Round Optical Aperture (Recommended default for max light & easy viewing)">🔘 Ø 3.4mm Round</button>
+                                <button type="button" id="tpuShapeRound30Btn" onclick="setTpuWindowShape('round_30')" class="action-btn" style="padding: 2px 6px; font-size: 9.5px; font-weight: 600; background: transparent; color: #8b949e; border: none; border-radius: 3px; cursor: pointer;" title="Ø 3.0mm Round Optical Aperture">⚪ Ø 3.0mm</button>
+                                <button type="button" id="tpuShapeSquareBtn" onclick="setTpuWindowShape('square')" class="action-btn" style="padding: 2px 6px; font-size: 9.5px; font-weight: 600; background: transparent; color: #8b949e; border: none; border-radius: 3px; cursor: pointer;" title="3x3mm Square Optical Aperture">🔲 3×3mm Sq</button>
                             </div>
                         </div>
 
@@ -1808,7 +1818,7 @@
                             <span style="font-size: 10px; background: rgba(0, 255, 136, 0.2); color: #00ff88; padding: 2px 6px; border-radius: 10px; font-weight: 600; border: 1px solid rgba(0, 255, 136, 0.4);">95A TPU • DUAL PANELS</span>
                         </div>
                         <p style="font-size: 11px; color: var(--text-muted); line-height: 1.4; margin-top: 4px; margin-bottom: 8px;">
-                            Dual 9.0mm flexible TPU armor panels: a <strong>Front Chest Plate (~185mm)</strong> tailored for race bib clearance, and an expanded <strong>Back Torso Plate (~240mm)</strong> with proportionally scaled LED spacing maximizing the shirt back.
+                            Dual 10.0mm flexible TPU armor panels: a <strong>Front Chest Plate (~185mm)</strong> tailored for race bib clearance (with 8.0mm rim wall providing generous wire room), and an expanded <strong>Back Torso Plate (~240mm)</strong> with proportionally scaled LED spacing maximizing the shirt back.
                         </p>
                         <div style="display: flex; flex-direction: column; gap: 4px; margin-bottom: 8px; font-size: 10px;">
                             <div style="display: flex; gap: 6px;">
@@ -2755,8 +2765,15 @@
 
                     <!-- Window Shape Switcher Pill -->
                     <div style="display: inline-flex; align-items: center; background: #161b22; border: 1px solid #30363d; border-radius: 6px; padding: 2px; gap: 2px;" title="Select hole geometry and auto-regenerate STL">
-                        <button type="button" id="tpuModalShapeSquareBtn" onclick="setTpuWindowShape('square')" style="border: none; border-radius: 4px; padding: 3px 7px; font-size: 11px; font-weight: 700; cursor: pointer; background: #00ff88; color: #000; transition: all 0.15s ease;">🔲 Square</button>
-                        <button type="button" id="tpuModalShapeRoundBtn" onclick="setTpuWindowShape('round')" style="border: none; border-radius: 4px; padding: 3px 7px; font-size: 11px; font-weight: 500; cursor: pointer; background: transparent; color: #8b949e; transition: all 0.15s ease;">⚪ Round</button>
+                        <button type="button" id="tpuModalShapeRound34Btn" onclick="setTpuWindowShape('round_34')" style="border: none; border-radius: 4px; padding: 3px 7px; font-size: 11px; font-weight: 700; cursor: pointer; background: #00ff88; color: #000; transition: all 0.15s ease;">🔘 Ø 3.4mm</button>
+                        <button type="button" id="tpuModalShapeRound30Btn" onclick="setTpuWindowShape('round_30')" style="border: none; border-radius: 4px; padding: 3px 7px; font-size: 11px; font-weight: 500; cursor: pointer; background: transparent; color: #8b949e; transition: all 0.15s ease;">⚪ Ø 3.0mm</button>
+                        <button type="button" id="tpuModalShapeSquareBtn" onclick="setTpuWindowShape('square')" style="border: none; border-radius: 4px; padding: 3px 7px; font-size: 11px; font-weight: 500; cursor: pointer; background: transparent; color: #8b949e; transition: all 0.15s ease;">🔲 3×3mm Sq</button>
+                    </div>
+
+                    <!-- Alignment / Orientation Switcher Pill -->
+                    <div style="display: inline-flex; align-items: center; background: #161b22; border: 1px solid #30363d; border-radius: 6px; padding: 2px; gap: 2px;" title="Align LED wells horizontally or tangent to the wiring path">
+                        <button type="button" id="tpuModalOrientHorizBtn" onclick="setTpuWellOrientation('horizontal')" style="border: none; border-radius: 4px; padding: 3px 7px; font-size: 11px; font-weight: 700; cursor: pointer; background: #00ff88; color: #000; transition: all 0.15s ease;">↔️ Horiz</button>
+                        <button type="button" id="tpuModalOrientTangentBtn" onclick="setTpuWellOrientation('tangent')" style="border: none; border-radius: 4px; padding: 3px 7px; font-size: 11px; font-weight: 500; cursor: pointer; background: transparent; color: #8b949e; transition: all 0.15s ease;">〰️ Tangent</button>
                     </div>
 
                     <!-- LED Numbers Switcher -->
