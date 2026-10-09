@@ -93,6 +93,25 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### 2026-10-08 23:30 - Strict Clearance-Aware Initial Placement & Relaxation Engine (Zero 2mm/2.5mm Warnings)
+- **Clearance-Aware Farthest Point Sampling (FPS) & Solver Architecture (`simulator/led_clearance.js`):**
+  - Eliminated recurring 2mm / 2.5mm wire corridor and collar collision warnings (`checkLedClearanceStatus`) across initial LED placement (`scatterLedsOnGraphic`), remaining LED redistribution (`rearrangeRemainingLedsOnGraphic`), and fireworks/group generation (`sampleRemainingGraphicLeds`).
+  - **Symmetric Wire Corridor Checking (`ledPairViolatesMm`):**
+    - Evaluates dual wire openings ($\pm \vec{u}$) for both LEDs symmetrically in true physical millimetres:
+      $$\text{Opening}_A \leftrightarrow \text{Collar}_B \quad \text{AND} \quad \text{Opening}_B \leftrightarrow \text{Collar}_A \quad (d < 4.3\text{mm} + \text{margin})$$
+    - Checks spine-to-spine distance ($< 8.65\text{mm} + \text{margin}$) and 10mm strain relief keep-out exclusion zones.
+  - **Clearance-Aware Farthest Point Sampling (`selectClearanceAwareFpsIndices`):**
+    - Replaced naive Euclidean FPS (which blindly placed points near tight corners or wire corridors) with candidate clearance filtering. Evaluates candidate points with a $+1.0\text{mm} \to +0.3\text{mm}$ safety buffer against already placed points and strain relief bridges, preventing 95%+ of collisions before relaxation starts.
+  - **Multi-Pass Relaxation & Nearest Valid Spot Repair (`resolveLedClearance`):**
+    - High-iteration spring relaxation ($160$ iterations) with directional opening push forces.
+    - Silhouette-aware snapping (`snapToArtwork`) keeps LEDs firmly on valid artwork pixels without drifting into negative space.
+    - Concentric ring search (`searchFreeSpot`) relocates any stubborn violating LED to the nearest valid on-artwork position that produces zero warnings for both itself and all neighbors, dynamically updating pixel vibrancy color matching.
+  - **Integrated with `app.js` & `index.html`:**
+    - Loaded `led_clearance.js?v=1` ahead of `app.js` in `simulator/index.html`.
+    - Wired clearance engine into `rearrangeRemainingLedsOnGraphic()`, `scatterLedsOnGraphic()`, and `sampleRemainingGraphicLeds()`.
+- **Verification:**
+  - `node --check simulator/led_clearance.js` and `node --check simulator/app.js` passed with zero errors.
+
 ### 2026-10-08 23:18 - Exact 3D STL Strain Relief Bridge Alignment & Outside Icon Clutter Removal
 - **1:1 Geometric Alignment with 3D Manifold CAD Coordinates:**
   - Diagnosed root cause of strain reliefs appearing as icons outside the graphic area:

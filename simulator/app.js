@@ -12139,7 +12139,7 @@ function clampLedNoCollarOverlap(targetX, targetY, movingIndex, ledsArray) {
     };
 }
 
-function relaxLedCollarOverlaps(ledsList, iterations = 35) {
+function relaxLedCollarOverlapsLegacy(ledsList, iterations = 35) {
     if (!ledsList || ledsList.length < 2) return;
     const gb = (typeof getGraphicChestBounds === 'function') ? getGraphicChestBounds() : { normX: 0.1, normY: 0.168, normW: 0.8, normH: 0.385 };
     const plateW = (typeof selectedPlateWidthMm !== 'undefined' && selectedPlateWidthMm > 0) ? selectedPlateWidthMm : 203.2;
@@ -16054,90 +16054,57 @@ function rearrangeRemainingLedsOnGraphic(showNotification = true) {
     }
 
     const gb = getGraphicChestBounds();
-    const numCandidates = candidates.length;
-    const minDist = new Float32Array(numCandidates);
+    const candNorm = candidates.map(p => ({
+        x: gb.normX + (p.x / targetW) * gb.normW,
+        y: gb.normY + (p.y / targetH) * gb.normH,
+        r: p.r,
+        g: p.g,
+        b: p.b,
+        relX: p.x / targetW,
+        relY: p.y / targetH
+    }));
 
-    // 3. Anchor distances to existing grouped LEDs so remaining LEDs don't overlap with them
-    if (allGroupedIndices.size > 0) {
-        const groupedPixels = [];
-        allGroupedIndices.forEach(idx => {
-            const l = leds[idx];
-            if (l) {
-                const relX = (l.x - gb.normX) / gb.normW;
-                const relY = (l.y - gb.normY) / gb.normH;
-                groupedPixels.push({ px: relX * targetW, py: relY * targetH });
-            }
-        });
+    const fixedAnchors = [];
+    allGroupedIndices.forEach(idx => {
+        if (leds[idx]) fixedAnchors.push(leds[idx]);
+    });
 
-        for (let i = 0; i < numCandidates; i++) {
-            let dMin = 1e9;
-            const cx = candidates[i].x;
-            const cy = candidates[i].y;
-            for (let g = 0; g < groupedPixels.length; g++) {
-                const dx = cx - groupedPixels[g].px;
-                const dy = cy - groupedPixels[g].py;
-                const d = dx * dx + dy * dy;
-                if (d < dMin) dMin = d;
+    const pool = (typeof makeLedPool === 'function')
+        ? makeLedPool(candNorm, (step / targetW) * gb.normW, (step / targetH) * gb.normH)
+        : null;
+    if (pool) lastSampledLedPool = pool;
+
+    // 4. Clearance-Aware Farthest Point Sampling with grouped LEDs as fixed distance anchors
+    const chosenIndices = (typeof selectClearanceAwareFpsIndices === 'function')
+        ? selectClearanceAwareFpsIndices(candNorm, targetCount, fixedAnchors)
+        : [];
+
+    const newPoints = [];
+    if (chosenIndices.length > 0) {
+        for (let i = 0; i < chosenIndices.length; i++) {
+            const p = candNorm[chosenIndices[i]];
+            let col = { r: p.r, g: p.g, b: p.b };
+            if (typeof boostLedVibrancy === 'function') {
+                col = boostLedVibrancy(col.r, col.g, col.b, p.relX, p.relY);
             }
-            minDist[i] = dMin;
+            newPoints.push({
+                x: Math.max(0.05, Math.min(0.95, parseFloat(p.x.toFixed(4)))),
+                y: Math.max(0.05, Math.min(0.95, parseFloat(p.y.toFixed(4)))),
+                color: col
+            });
         }
     } else {
-        const startIdx = Math.floor(numCandidates / 2);
-        for (let i = 0; i < numCandidates; i++) {
-            const dx = candidates[i].x - candidates[startIdx].x;
-            const dy = candidates[i].y - candidates[startIdx].y;
-            minDist[i] = dx * dx + dy * dy;
+        // Fallback if clearance solver unavailable
+        for (let i = 0; i < targetCount; i++) {
+            const p = candNorm[i % candNorm.length];
+            newPoints.push({ x: p.x, y: p.y, color: { r: p.r, g: p.g, b: p.b } });
         }
     }
 
-    // 4. Farthest Point Sampling to choose positions for all remaining LEDs
-    const selected = [];
-    for (let k = 0; k < targetCount; k++) {
-        let maxD = -1;
-        let bestIdx = 0;
-        for (let i = 0; i < numCandidates; i++) {
-            if (minDist[i] > maxD) {
-                maxD = minDist[i];
-                bestIdx = i;
-            }
-        }
-
-        const chosen = candidates[bestIdx];
-        selected.push(chosen);
-
-        for (let i = 0; i < numCandidates; i++) {
-            const dx = candidates[i].x - chosen.x;
-            const dy = candidates[i].y - chosen.y;
-            const d = dx * dx + dy * dy;
-            if (d < minDist[i]) {
-                minDist[i] = d;
-            }
-        }
+    // 5. High-precision clearance resolution against fixed group anchors
+    if (typeof resolveLedClearance === 'function') {
+        resolveLedClearance(newPoints, pool, { fixedExtra: fixedAnchors, iterations: 160, recolor: true });
     }
-
-    // 5. Convert selected pixel positions to normalized coordinates & color match
-    const newPoints = [];
-    for (let i = 0; i < selected.length; i++) {
-        const p = selected[i];
-        const relX = p.x / targetW;
-        const relY = p.y / targetH;
-        const normX = gb.normX + relX * gb.normW;
-        const normY = gb.normY + relY * gb.normH;
-
-        let col = { r: p.r, g: p.g, b: p.b };
-        if (typeof boostLedVibrancy === 'function') {
-            col = boostLedVibrancy(col.r, col.g, col.b, relX, relY);
-        }
-
-        newPoints.push({
-            x: Math.max(0.05, Math.min(0.95, parseFloat(normX.toFixed(3)))),
-            y: Math.max(0.05, Math.min(0.95, parseFloat(normY.toFixed(3)))),
-            color: col
-        });
-    }
-
-    // 5b. Relax any pocket collisions to ensure zero collar overlap
-    relaxLedCollarOverlaps(newPoints, 35);
 
     // 6. Order the unassigned points along a continuous physical snake path
     const sortedPoints = optimizeLedWiringOrder(newPoints, 'bottom-left');
@@ -16148,6 +16115,15 @@ function rearrangeRemainingLedsOnGraphic(showNotification = true) {
         leds[ledIdx].x = sortedPoints[i].x;
         leds[ledIdx].y = sortedPoints[i].y;
         leds[ledIdx].color = sortedPoints[i].color;
+    }
+
+    // 8. Final pass across all LEDs (movable = unassigned)
+    if (typeof resolveLedClearance === 'function') {
+        resolveLedClearance(leds, pool, {
+            movable: allGroupedIndices.size > 0 ? new Set(unassignedIndices) : null,
+            iterations: 60,
+            recolor: true
+        });
     }
 
     while (sparkles.length < leds.length) sparkles.push(0);
@@ -16279,67 +16255,68 @@ function scatterLedsOnGraphic(targetCount = 100, colorMatch = true, markDirty = 
         return;
     }
 
-    // Farthest Point Sampling (FPS) for maximal, uniform organic distribution
-    const numCandidates = candidates.length;
-    const minDist = new Float32Array(numCandidates).fill(1e9);
-    const selected = [];
-
-    let startIdx = Math.floor(numCandidates / 2);
-    selected.push(candidates[startIdx]);
-
-    for (let i = 0; i < numCandidates; i++) {
-        const dx = candidates[i].x - candidates[startIdx].x;
-        const dy = candidates[i].y - candidates[startIdx].y;
-        minDist[i] = dx * dx + dy * dy;
-    }
-
-    for (let k = 1; k < targetCount; k++) {
-        let maxD = -1;
-        let bestIdx = 0;
-        for (let i = 0; i < numCandidates; i++) {
-            if (minDist[i] > maxD) {
-                maxD = minDist[i];
-                bestIdx = i;
-            }
-        }
-
-        const chosen = candidates[bestIdx];
-        selected.push(chosen);
-
-        for (let i = 0; i < numCandidates; i++) {
-            const dx = candidates[i].x - chosen.x;
-            const dy = candidates[i].y - chosen.y;
-            const d = dx * dx + dy * dy;
-            if (d < minDist[i]) {
-                minDist[i] = d;
-            }
-        }
-    }
-
     const gb = getGraphicChestBounds();
+    const candNorm = candidates.map(p => ({
+        x: gb.normX + (p.x / targetW) * gb.normW,
+        y: gb.normY + (p.y / targetH) * gb.normH,
+        r: p.r,
+        g: p.g,
+        b: p.b,
+        relX: p.x / targetW,
+        relY: p.y / targetH
+    }));
+
+    const pool = (typeof makeLedPool === 'function')
+        ? makeLedPool(candNorm, (step / targetW) * gb.normW, (step / targetH) * gb.normH)
+        : null;
+    if (pool) lastSampledLedPool = pool;
+
+    // Clearance-Aware Farthest Point Sampling (FPS) for collision-free distribution
+    const chosenIndices = (typeof selectClearanceAwareFpsIndices === 'function')
+        ? selectClearanceAwareFpsIndices(candNorm, targetCount, [])
+        : [];
+
     const newLeds = [];
-
-    for (let i = 0; i < selected.length; i++) {
-        const p = selected[i];
-        const relX = p.x / targetW;
-        const relY = p.y / targetH;
-        const normX = gb.normX + relX * gb.normW;
-        const normY = gb.normY + relY * gb.normH;
-
-        let col = { r: p.r, g: p.g, b: p.b };
-        if (colorMatch) {
-            col = boostLedVibrancy(col.r, col.g, col.b, relX, relY);
+    if (chosenIndices.length > 0) {
+        for (let i = 0; i < chosenIndices.length; i++) {
+            const p = candNorm[chosenIndices[i]];
+            let col = { r: p.r, g: p.g, b: p.b };
+            if (colorMatch && typeof boostLedVibrancy === 'function') {
+                col = boostLedVibrancy(col.r, col.g, col.b, p.relX, p.relY);
+            }
+            newLeds.push({
+                x: Math.max(0.05, Math.min(0.95, parseFloat(p.x.toFixed(4)))),
+                y: Math.max(0.05, Math.min(0.95, parseFloat(p.y.toFixed(4)))),
+                color: col
+            });
         }
+    } else {
+        for (let i = 0; i < targetCount; i++) {
+            const p = candNorm[i % candNorm.length];
+            let col = { r: p.r, g: p.g, b: p.b };
+            if (colorMatch && typeof boostLedVibrancy === 'function') {
+                col = boostLedVibrancy(col.r, col.g, col.b, p.relX, p.relY);
+            }
+            newLeds.push({
+                x: Math.max(0.05, Math.min(0.95, parseFloat(p.x.toFixed(4)))),
+                y: Math.max(0.05, Math.min(0.95, parseFloat(p.y.toFixed(4)))),
+                color: col
+            });
+        }
+    }
 
-        newLeds.push({
-            x: Math.max(0.05, Math.min(0.95, parseFloat(normX.toFixed(3)))),
-            y: Math.max(0.05, Math.min(0.95, parseFloat(normY.toFixed(3)))),
-            color: col
-        });
+    // High-precision relaxation + snapping + nearest free spot search
+    if (typeof resolveLedClearance === 'function') {
+        resolveLedClearance(newLeds, pool, { iterations: 160, recolor: colorMatch });
     }
 
     // Sort & renumber LEDs into a continuous physical wiring path using active mode (Nearby by default)
     leds = optimizeLedWiringOrder(newLeds, params.ledOrderingMode || 'nearby');
+
+    // Final clearance pass to ensure newly calculated orientations / wiring order have zero warnings
+    if (typeof resolveLedClearance === 'function') {
+        resolveLedClearance(leds, pool, { iterations: 80, recolor: colorMatch });
+    }
     while (sparkles.length < leds.length) sparkles.push(0);
 
     activePattern = 'steady_sparkle';
@@ -16887,53 +16864,55 @@ function sampleRemainingGraphicLeds(targetCount, excludeX = 0, excludeY = 0, exc
 
     if (candidates.length === 0) return [];
 
-    // Farthest Point Sampling
-    const numCandidates = candidates.length;
-    const countToPick = Math.min(targetCount, numCandidates);
-    const minDist = new Float32Array(numCandidates).fill(1e9);
-    const selected = [];
+    const candNorm = candidates.map(c => ({
+        x: c.normX,
+        y: c.normY,
+        r: c.r,
+        g: c.g,
+        b: c.b,
+        relX: (c.normX - gb.normX) / gb.normW,
+        relY: (c.normY - gb.normY) / gb.normH
+    }));
 
-    let startIdx = Math.floor(numCandidates / 2);
-    selected.push(candidates[startIdx]);
+    const pool = (typeof makeLedPool === 'function')
+        ? makeLedPool(candNorm, (step / targetW) * gb.normW, (step / targetH) * gb.normH)
+        : null;
+    if (pool) lastSampledLedPool = pool;
 
-    for (let i = 0; i < numCandidates; i++) {
-        const dx = candidates[i].normX - candidates[startIdx].normX;
-        const dy = candidates[i].normY - candidates[startIdx].normY;
-        minDist[i] = dx * dx + dy * dy;
-    }
-
-    for (let k = 1; k < countToPick; k++) {
-        let maxD = -1;
-        let bestIdx = 0;
-        for (let i = 0; i < numCandidates; i++) {
-            if (minDist[i] > maxD) {
-                maxD = minDist[i];
-                bestIdx = i;
-            }
-        }
-
-        const chosen = candidates[bestIdx];
-        selected.push(chosen);
-
-        for (let i = 0; i < numCandidates; i++) {
-            const dx = candidates[i].normX - chosen.normX;
-            const dy = candidates[i].normY - chosen.normY;
-            const d = dx * dx + dy * dy;
-            if (d < minDist[i]) {
-                minDist[i] = d;
-            }
-        }
-    }
+    const countToPick = Math.min(targetCount, candNorm.length);
+    const chosenIndices = (typeof selectClearanceAwareFpsIndices === 'function')
+        ? selectClearanceAwareFpsIndices(candNorm, countToPick, [])
+        : [];
 
     const result = [];
-    for (let i = 0; i < selected.length; i++) {
-        const p = selected[i];
-        let col = boostLedVibrancy(p.r, p.g, p.b, (p.normX - gb.normX) / gb.normW, (p.normY - gb.normY) / gb.normH);
-        result.push({
-            x: Math.max(0.05, Math.min(0.95, parseFloat(p.normX.toFixed(4)))),
-            y: Math.max(0.05, Math.min(0.95, parseFloat(p.normY.toFixed(4)))),
-            color: col
-        });
+    if (chosenIndices.length > 0) {
+        for (let i = 0; i < chosenIndices.length; i++) {
+            const p = candNorm[chosenIndices[i]];
+            let col = (typeof boostLedVibrancy === 'function')
+                ? boostLedVibrancy(p.r, p.g, p.b, p.relX, p.relY)
+                : { r: p.r, g: p.g, b: p.b };
+            result.push({
+                x: Math.max(0.05, Math.min(0.95, parseFloat(p.x.toFixed(4)))),
+                y: Math.max(0.05, Math.min(0.95, parseFloat(p.y.toFixed(4)))),
+                color: col
+            });
+        }
+    } else {
+        for (let i = 0; i < countToPick; i++) {
+            const p = candNorm[i];
+            let col = (typeof boostLedVibrancy === 'function')
+                ? boostLedVibrancy(p.r, p.g, p.b, p.relX, p.relY)
+                : { r: p.r, g: p.g, b: p.b };
+            result.push({
+                x: Math.max(0.05, Math.min(0.95, parseFloat(p.x.toFixed(4)))),
+                y: Math.max(0.05, Math.min(0.95, parseFloat(p.y.toFixed(4)))),
+                color: col
+            });
+        }
+    }
+
+    if (typeof resolveLedClearance === 'function') {
+        resolveLedClearance(result, pool, { iterations: 120, recolor: true });
     }
 
     return result;
