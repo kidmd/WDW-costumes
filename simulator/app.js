@@ -68,7 +68,7 @@ let params = {
     showPillSlots: false,
     showTpuWindows: false,
     tpuWindowShape: 'round_34', // 'round_34' (Ø 3.4mm, default), 'round_30' (Ø 3.0mm), or 'square' (3x3mm)
-    tpuWellOrientation: 'tangent', // 'tangent' (tangent to wiring tour, default) or 'horizontal' (0° baseline)
+    tpuWellOrientation: 'horizontal', // 'horizontal' (0° baseline, default) or 'tangent' (tangent to wiring tour)
     ledOrderingMode: 'nearby', // 'nearby' (Nearby Neighbor entrance->exit, default) or 'wide' (Wide Spacing)
     showSymmetryAxis: false,
     liveSymmetryDrag: false,
@@ -20763,7 +20763,7 @@ async function handleRecompileTpuStl(opts) {
             floatName: floatName,
             graphicType: currentGraphicType,
             windowShape: params.tpuWindowShape || 'round_34',
-            wellOrientation: params.tpuWellOrientation || 'tangent',
+            wellOrientation: params.tpuWellOrientation || 'horizontal',
             includeLedNumbers: params.tpuIncludeLedNumbers === true,
             includeClipGrooves: params.tpuIncludeClipGrooves === true,
             includeTopNubs: params.tpuIncludeTopNubs === true,
@@ -21528,10 +21528,19 @@ async function createTpuGraphicCutoutMesh(specs, stlCenter) {
     const hhPx = (apertureRadiusMm / totalH_mm) * imgH;
 
     const ledsList = specs.ordered_leds || [];
+    const effectiveOrient = specs.well_orientation || params.tpuWellOrientation || 'horizontal';
+
     ledsList.forEach(l => {
         const px = (l.x / totalW_mm) * imgW;
         const py = (1.0 - (l.y / totalH_mm)) * imgH;
-        const rotDeg = l.rotation_deg !== undefined ? l.rotation_deg : (l.angle_deg !== undefined ? l.angle_deg : 0);
+        let rotDeg = 0;
+        if (l.is_custom_rotation === true && l.rotation_deg !== undefined) {
+            rotDeg = l.rotation_deg;
+        } else if (effectiveOrient === 'horizontal') {
+            rotDeg = 0;
+        } else {
+            rotDeg = l.rotation_deg !== undefined ? l.rotation_deg : (l.angle_deg !== undefined ? l.angle_deg : 0);
+        }
         const rotRad = (rotDeg * Math.PI) / 180;
 
         if (isRound) {
@@ -21590,6 +21599,8 @@ function createTpuLedPixels(specs, stlCenter) {
     const pixelGeom = isRound34 ? new THREE.CircleGeometry(1.6, 24) : (isRound30 ? new THREE.CircleGeometry(1.4, 24) : new THREE.PlaneGeometry(2.8, 2.8));
 
     const ledsList = specs.ordered_leds || [];
+    const effectiveOrient = specs.well_orientation || params.tpuWellOrientation || 'horizontal';
+
     ledsList.forEach((l, idx) => {
         const c = l.color || { r: 0, g: 255, b: 100 };
         const col = new THREE.Color(c.r / 255, c.g / 255, c.b / 255);
@@ -21613,7 +21624,14 @@ function createTpuLedPixels(specs, stlCenter) {
             l.y - stlCenter.y,
             stlCenter.z + 0.20 // Positioned cleanly inside the optical window
         );
-        const rotDeg = l.rotation_deg !== undefined ? l.rotation_deg : (l.angle_deg !== undefined ? l.angle_deg : 0);
+        let rotDeg = 0;
+        if (l.is_custom_rotation === true && l.rotation_deg !== undefined) {
+            rotDeg = l.rotation_deg;
+        } else if (effectiveOrient === 'horizontal') {
+            rotDeg = 0;
+        } else {
+            rotDeg = l.rotation_deg !== undefined ? l.rotation_deg : (l.angle_deg !== undefined ? l.angle_deg : 0);
+        }
         if (rotDeg !== 0) {
             pixelMesh.rotation.z = (rotDeg * Math.PI) / 180;
         }

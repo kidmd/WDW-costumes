@@ -132,8 +132,8 @@ if '--top-nubs' in sys.argv:
     if _tni + 1 < len(sys.argv):
         INCLUDE_TOP_NUBS = sys.argv[_tni + 1].lower() in ('on', '1', 'true', 'yes')
 
-def compile_plate_variant(variant_name, width_mm, height_mm, raw_leds, artwork_path, window_shape='round_34', clip_grooves=False, top_nubs=False):
-    print(f"\n>>> Compiling {variant_name.upper()} Plate ({width_mm}mm x {height_mm}mm, {len(raw_leds)} LEDs, Window Shape: {window_shape.upper()}, Clip Grooves: {'ON' if clip_grooves else 'OFF'}, Top Nubs: {'ON' if top_nubs else 'OFF'})...")
+def compile_plate_variant(variant_name, width_mm, height_mm, raw_leds, artwork_path, window_shape='round_34', clip_grooves=False, top_nubs=False, well_orientation='horizontal'):
+    print(f"\n>>> Compiling {variant_name.upper()} Plate ({width_mm}mm x {height_mm}mm, {len(raw_leds)} LEDs, Window Shape: {window_shape.upper()}, Orientation: {well_orientation.upper()}, Clip Grooves: {'ON' if clip_grooves else 'OFF'}, Top Nubs: {'ON' if top_nubs else 'OFF'})...")
     v_t0 = time.time()
     num_leds = len(raw_leds)
     leds = [dict(l) for l in raw_leds]
@@ -177,7 +177,6 @@ def compile_plate_variant(variant_name, width_mm, height_mm, raw_leds, artwork_p
         safe_art_boundary = sg.box(5.0, 5.0, width_mm - 5.0, height_mm - 5.0)
 
     # 2. LED Collar Orientation & Collision Avoidance
-    well_orientation = specs.get('well_orientation', 'tangent')
     if '--orientation' in sys.argv:
         _oi = sys.argv.index('--orientation')
         if _oi + 1 < len(sys.argv):
@@ -1187,7 +1186,8 @@ front_result = compile_plate_variant(
     artwork_path,
     window_shape=window_shape,
     clip_grooves=INCLUDE_CLIP_GROOVES,
-    top_nubs=INCLUDE_TOP_NUBS
+    top_nubs=INCLUDE_TOP_NUBS,
+    well_orientation=well_orientation
 )
 
 # 2. Compile Back Plate
@@ -1199,7 +1199,8 @@ back_result = compile_plate_variant(
     artwork_path,
     window_shape=window_shape,
     clip_grooves=INCLUDE_CLIP_GROOVES,
-    top_nubs=INCLUDE_TOP_NUBS
+    top_nubs=INCLUDE_TOP_NUBS,
+    well_orientation=well_orientation
 )
 
 # Update full JSON specifications

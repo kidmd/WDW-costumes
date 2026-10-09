@@ -93,6 +93,18 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### 2026-10-08 22:47 - End-to-End Horizontal Collar Orientation 3D Preview Fix
+- **Complete Pipeline Parameter Unification:**
+  - Resolved root cause where 3D preview collars remained tangent even when horizontal alignment was selected on the layout canvas:
+    1. In `scripts/compile_clean_tpu_panel.py`, `compile_plate_variant` function signature was missing the `well_orientation` parameter and was reading from global specs with a default of `'tangent'`, ignoring the passed `--orientation horizontal` flag for internal plate compilations.
+    2. Updated `compile_plate_variant(..., well_orientation='horizontal')` signature and passed `well_orientation` explicitly to both Front and Back plate compilations.
+    3. Updated `simulator/simulator.py` and `simulator/app.js` payload builders to strictly default `wellOrientation: params.tpuWellOrientation || 'horizontal'`.
+    4. Updated Three.js optical cutout mask (`createTpuGraphicCutoutMesh`) and simulated LED pixel groups (`createTpuLedPixels`) in `simulator/app.js` to strictly enforce `rotDeg = 0` when horizontal mode is active unless an LED is explicitly marked with `is_custom_rotation: true`.
+  - Recompiled both Front and Back plate STLs and updated `3d_panels/tpu_panel_specs.json` with all un-rotated LEDs at $0.0^\circ$ baseline.
+- **Verification:**
+  - `python scripts/compile_clean_tpu_panel.py --orientation horizontal` ran successfully in 7.35s with `orientation: horizontal` for all 65 LEDs.
+  - `node --check simulator/app.js` passed with zero errors.
+
 ### 2026-10-08 22:40 - TPU Layout Signature ReferenceError & Cache Busting Fix
 - **`computeTpuLayoutSignature` Fatal ReferenceError Resolution:**
   - Diagnosed exact runtime crash causing modal loading freeze: `computeTpuLayoutSignature()` referenced undefined variables `src` and `gb`, triggering an uncaught `ReferenceError: src is not defined` immediately upon calling `openTpuPreviewModal()`.
