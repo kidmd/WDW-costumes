@@ -93,6 +93,14 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### 2026-10-09 01:28 - Browser LocalStorage Quota Overflow Recovery & Resilient Preset Disk Saving
+- **Resolved QuotaExceededError on Preset Saving (`simulator/app.js`):**
+  - Diagnosed browser screenshot showing `Save error: Failed to execute 'setItem' on 'Storage': Setting the value of 'msep_custom_presets' exceeded the quota.`
+  - Wrapped `localStorage.setItem('msep_custom_presets', ...)` in a fail-safe try/catch block with automatic LRU pruning (keeping the 3 most recent entries in browser storage).
+  - Ensured server disk saving via `/api/save_preset` executes reliably and writes `.json` files to `presets/` regardless of browser storage constraints.
+- **Verification:**
+  - Syntax validated clean with `node --check simulator/app.js`.
+
 ### 2026-10-09 01:25 - Dynamic Timestamped Float Revision Saves & Filename Updates
 - **Automatic Fresh Timestamp Generation on Save Float (`simulator/app.js`):**
   - Resolved issue where saving a float whose name already contained an older date/time string would not update the timestamp or name in the UI.

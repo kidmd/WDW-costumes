@@ -12752,10 +12752,33 @@ async function saveCurrentProfile(name, overwrite = false) {
     const profileData = buildCompletePresetData(cleanName);
     profileData.overwrite = (overwrite === true);
 
-    // 1. Save to LocalStorage
-    const localProfiles = JSON.parse(localStorage.getItem('msep_custom_presets') || '{}');
-    localProfiles[cleanName] = profileData;
-    localStorage.setItem('msep_custom_presets', JSON.stringify(localProfiles));
+    // 1. Save to LocalStorage cache (with automatic quota overflow recovery)
+    try {
+        let localProfiles = {};
+        try {
+            localProfiles = JSON.parse(localStorage.getItem('msep_custom_presets') || '{}');
+        } catch (e) {
+            localProfiles = {};
+        }
+        localProfiles[cleanName] = profileData;
+        
+        try {
+            localStorage.setItem('msep_custom_presets', JSON.stringify(localProfiles));
+        } catch (quotaErr) {
+            console.warn("localStorage quota exceeded, pruning old cached presets...", quotaErr);
+            // Keep only the 3 most recent entries in browser cache (disk / presets directory is permanent)
+            const keys = Object.keys(localProfiles);
+            const trimmedProfiles = {};
+            keys.slice(-3).forEach(k => { trimmedProfiles[k] = localProfiles[k]; });
+            try {
+                localStorage.setItem('msep_custom_presets', JSON.stringify(trimmedProfiles));
+            } catch (secondErr) {
+                try { localStorage.removeItem('msep_custom_presets'); } catch (e) {}
+            }
+        }
+    } catch (e) {
+        console.warn("Could not save to localStorage cache:", e);
+    }
 
     // Cache local profile data and assign to active runner card slot
     fleetPresetCache['local:' + cleanName] = profileData;
