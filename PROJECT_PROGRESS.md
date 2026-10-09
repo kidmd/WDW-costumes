@@ -93,6 +93,17 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### 2026-10-08 22:50 - Round Optical Aperture Persistence & 3D Synchronization Fix
+- **Window Shape Parameter Precedence & Specs Cache Override:**
+  - Diagnosed root cause why 3D preview kept reverting to square apertures when round windows were selected:
+    1. In `simulator/app.js` (`loadTpuModalData`, `createTpuGraphicCutoutMesh`, and `createTpuLedPixels`), the code evaluated `specs.window_shape || params.tpuWindowShape || 'round_34'`. If an older `tpu_panel_specs.json` on disk contained `"window_shape": "square"`, it took precedence over the active UI selection `params.tpuWindowShape`.
+    2. Fixed parameter precedence across all 3D generation functions to strictly prioritize active user intent: `params.tpuWindowShape || specs.window_shape || 'round_34'`.
+    3. Recompiled both Front and Back plate STLs with `--window-shape round_34 --orientation horizontal` and updated `3d_panels/tpu_panel_specs.json` and `3d_panels/petes_dragon_specs.json` with `"window_shape": "round_34"`.
+    4. Bumped script cache buster in `simulator/index.html` to `app.js?v=98`.
+- **Verification:**
+  - Recompilation executed in 8.05s with `window_shape: round_34` (Ø 3.4mm circular window cutters).
+  - `node --check simulator/app.js` passed with zero errors.
+
 ### 2026-10-08 22:47 - End-to-End Horizontal Collar Orientation 3D Preview Fix
 - **Complete Pipeline Parameter Unification:**
   - Resolved root cause where 3D preview collars remained tangent even when horizontal alignment was selected on the layout canvas:

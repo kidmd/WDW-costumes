@@ -5,7 +5,7 @@
   "aspect": 0.8331977217249796,
   "artwork_file": "active_artwork.png",
   "graphic_type": "custom_image",
-  "window_shape": "square",
+  "window_shape": "round_34",
   "include_led_numbers": true,
   "include_clip_grooves": false,
   "include_top_nubs": true,
@@ -1561,38 +1561,38 @@
       133.15,
       5.0
     ],
-    "stl_size": 3417784,
-    "chassis_size": 4407684,
+    "stl_size": 3729784,
+    "chassis_size": 5806984,
     "lid_size": 428284,
-    "zip_size": 2253084,
+    "zip_size": 3143030,
     "inlays": [
       {
         "key": "green",
         "name": "Dragon Body",
         "filename": "tpu_panel_front_color_green.stl",
         "hex": "#00e676",
-        "count": 5264
+        "count": 11940
       },
       {
         "key": "magenta",
         "name": "Wings & Crest",
         "filename": "tpu_panel_front_color_magenta.stl",
         "hex": "#ec4899",
-        "count": 5296
+        "count": 7796
       },
       {
         "key": "yellow",
         "name": "Belly & Horns",
         "filename": "tpu_panel_front_color_yellow.stl",
         "hex": "#facc15",
-        "count": 5756
+        "count": 7232
       },
       {
         "key": "white",
         "name": "Eyes & Teeth",
         "filename": "tpu_panel_front_color_white.stl",
         "hex": "#ffffff",
-        "count": 4060
+        "count": 5060
       }
     ],
     "stl_url": "/3d_panels/tpu_panel_front.stl",
@@ -1600,7 +1600,7 @@
     "lid_stl_url": "/3d_panels/tpu_panel_front_lid.stl",
     "multicolor_3mf_url": "/3d_panels/tpu_panel_front_multicolor.3mf",
     "multicolor_zip_url": "/3d_panels/tpu_panel_front_multicolor_bundle.zip",
-    "volume_mm3": 67677.7,
+    "volume_mm3": 67677.5,
     "is_watertight": false
   },
   "back": {
@@ -3096,38 +3096,38 @@
       133.15,
       5.0
     ],
-    "stl_size": 3417784,
-    "chassis_size": 4407684,
+    "stl_size": 3729784,
+    "chassis_size": 5806984,
     "lid_size": 428284,
-    "zip_size": 2253216,
+    "zip_size": 3142943,
     "inlays": [
       {
         "key": "green",
         "name": "Dragon Body",
         "filename": "tpu_panel_back_color_green.stl",
         "hex": "#00e676",
-        "count": 5264
+        "count": 11940
       },
       {
         "key": "magenta",
         "name": "Wings & Crest",
         "filename": "tpu_panel_back_color_magenta.stl",
         "hex": "#ec4899",
-        "count": 5296
+        "count": 7796
       },
       {
         "key": "yellow",
         "name": "Belly & Horns",
         "filename": "tpu_panel_back_color_yellow.stl",
         "hex": "#facc15",
-        "count": 5756
+        "count": 7232
       },
       {
         "key": "white",
         "name": "Eyes & Teeth",
         "filename": "tpu_panel_back_color_white.stl",
         "hex": "#ffffff",
-        "count": 4060
+        "count": 5060
       }
     ],
     "stl_url": "/3d_panels/tpu_panel_back.stl",
@@ -3135,7 +3135,7 @@
     "lid_stl_url": "/3d_panels/tpu_panel_back_lid.stl",
     "multicolor_3mf_url": "/3d_panels/tpu_panel_back_multicolor.3mf",
     "multicolor_zip_url": "/3d_panels/tpu_panel_back_multicolor_bundle.zip",
-    "volume_mm3": 67677.7,
+    "volume_mm3": 67677.5,
     "is_watertight": false
   },
   "height_mm": 273.24,
@@ -4630,38 +4630,38 @@
     133.15,
     5.0
   ],
-  "stl_size": 3417784,
-  "chassis_size": 4407684,
+  "stl_size": 3729784,
+  "chassis_size": 5806984,
   "lid_size": 428284,
-  "zip_size": 2253084,
+  "zip_size": 3143030,
   "inlays": [
     {
       "key": "green",
       "name": "Dragon Body",
       "filename": "tpu_panel_front_color_green.stl",
       "hex": "#00e676",
-      "count": 5264
+      "count": 11940
     },
     {
       "key": "magenta",
       "name": "Wings & Crest",
       "filename": "tpu_panel_front_color_magenta.stl",
       "hex": "#ec4899",
-      "count": 5296
+      "count": 7796
     },
     {
       "key": "yellow",
       "name": "Belly & Horns",
       "filename": "tpu_panel_front_color_yellow.stl",
       "hex": "#facc15",
-      "count": 5756
+      "count": 7232
     },
     {
       "key": "white",
       "name": "Eyes & Teeth",
       "filename": "tpu_panel_front_color_white.stl",
       "hex": "#ffffff",
-      "count": 4060
+      "count": 5060
     }
   ],
   "stl_url": "/3d_panels/tpu_panel_front.stl",
@@ -4669,6 +4669,6 @@
   "lid_stl_url": "/3d_panels/tpu_panel_front_lid.stl",
   "multicolor_3mf_url": "/3d_panels/tpu_panel_front_multicolor.3mf",
   "multicolor_zip_url": "/3d_panels/tpu_panel_front_multicolor_bundle.zip",
-  "volume_mm3": 67677.7,
+  "volume_mm3": 67677.5,
   "is_watertight": false
 }

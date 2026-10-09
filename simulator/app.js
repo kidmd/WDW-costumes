@@ -21154,8 +21154,8 @@ async function loadTpuModalData() {
             modalTitle.textContent = `${floatName} • ${variantTitle}`;
         }
 
-        const effectiveShape = specs.window_shape || params.tpuWindowShape || 'round_34';
-        const effectiveOrient = specs.well_orientation || params.tpuWellOrientation || 'horizontal';
+        const effectiveShape = params.tpuWindowShape || specs.window_shape || 'round_34';
+        const effectiveOrient = params.tpuWellOrientation || specs.well_orientation || 'horizontal';
         const modalSub = document.getElementById('tpuModalSubtitle');
         if (modalSub) {
             if (tpuDisplayMode === 'lid') {
@@ -21518,7 +21518,7 @@ async function createTpuGraphicCutoutMesh(specs, stlCenter) {
     const totalW_mm = specs.total_image_width_mm || specs.width_mm || 185.0;
     const totalH_mm = specs.total_image_height_mm || specs.height_mm || (Math.round((totalW_mm / (imgW / imgH)) * 100) / 100);
 
-    const winShape = specs.window_shape || params.tpuWindowShape || 'round_34';
+    const winShape = params.tpuWindowShape || specs.window_shape || 'round_34';
     const isRound34 = (winShape === 'round_34');
     const isRound30 = (winShape === 'round_30' || winShape === 'round' || winShape === 'circle');
     const isRound = isRound34 || isRound30;
@@ -21528,7 +21528,7 @@ async function createTpuGraphicCutoutMesh(specs, stlCenter) {
     const hhPx = (apertureRadiusMm / totalH_mm) * imgH;
 
     const ledsList = specs.ordered_leds || [];
-    const effectiveOrient = specs.well_orientation || params.tpuWellOrientation || 'horizontal';
+    const effectiveOrient = params.tpuWellOrientation || specs.well_orientation || 'horizontal';
 
     ledsList.forEach(l => {
         const px = (l.x / totalW_mm) * imgW;
@@ -21591,7 +21591,7 @@ function createTpuLedPixels(specs, stlCenter) {
     tpuLedMaterials = [];
     tpuBaseColors = [];
 
-    const winShape = specs.window_shape || params.tpuWindowShape || 'round_34';
+    const winShape = params.tpuWindowShape || specs.window_shape || 'round_34';
     const isRound34 = (winShape === 'round_34');
     const isRound30 = (winShape === 'round_30' || winShape === 'round' || winShape === 'circle');
     const isRound = isRound34 || isRound30;
@@ -21599,7 +21599,7 @@ function createTpuLedPixels(specs, stlCenter) {
     const pixelGeom = isRound34 ? new THREE.CircleGeometry(1.6, 24) : (isRound30 ? new THREE.CircleGeometry(1.4, 24) : new THREE.PlaneGeometry(2.8, 2.8));
 
     const ledsList = specs.ordered_leds || [];
-    const effectiveOrient = specs.well_orientation || params.tpuWellOrientation || 'horizontal';
+    const effectiveOrient = params.tpuWellOrientation || specs.well_orientation || 'horizontal';
 
     ledsList.forEach((l, idx) => {
         const c = l.color || { r: 0, g: 255, b: 100 };
