@@ -15701,47 +15701,48 @@ function optimizeLedWiringOrder(points, mode = null) {
         return Math.hypot(dx, dy);
     };
 
-    if (activeMode === 'nearby') {
+    const gb = (typeof getGraphicChestBounds === 'function') ? getGraphicChestBounds() : { normX: 0.1, normY: 0.168, normW: 0.8, normH: 0.385 };
+    const br = (typeof getTpuBridgeLocationsNorm === 'function') ? getTpuBridgeLocationsNorm() : null;
+
+    // Entrance: bottom foot/contour where wire enters from power bank
+    const entrancePos = (br && br.entrance) ? br.entrance : {
+        x: gb.normX + gb.normW * 0.3880,
+        y: gb.normY + gb.normH * 0.8250
+    };
+    // Exit: right flank contour where wire exits to route to back panel
+    const exitPos = (br && br.exit) ? br.exit : {
+        x: gb.normX + gb.normW * 0.6277,
+        y: gb.normY + gb.normH * 0.7175
+    };
+
+    // 1. Pick startIdx closest to Entrance Bridge
+    let startIdx = 0;
+    let bestDistIn = Infinity;
+    for (let i = 0; i < n; i++) {
+        const d = distCm(points[i], entrancePos);
+        if (d < bestDistIn) {
+            bestDistIn = d;
+            startIdx = i;
+        }
+    }
+
+    // 2. Pick endIdx closest to Exit Bridge (guaranteed distinct from startIdx when n > 1)
+    let endIdx = -1;
+    let bestDistOut = Infinity;
+    for (let i = 0; i < n; i++) {
+        if (i === startIdx && n > 1) continue;
+        const d = distCm(points[i], exitPos);
+        if (d < bestDistOut) {
+            bestDistOut = d;
+            endIdx = i;
+        }
+    }
+    if (endIdx === -1) endIdx = (startIdx + 1) % n;
+
+    if (activeMode === 'nearby' || activeMode === 'bottom-left') {
         // --------------------------------------------------------------------
         // NEARBY NEIGHBOR ROUTING (ENTRANCE -> NEAR NEIGHBORS -> LATERAL EXIT)
         // --------------------------------------------------------------------
-        const gb = (typeof getGraphicChestBounds === 'function') ? getGraphicChestBounds() : { normX: 0.2, normY: 0.168, normW: 0.6, normH: 0.385 };
-        // Entrance: bottom center (where wire enters the chassis tray from power bank)
-        const entrancePos = {
-            x: gb.normX + gb.normW * 0.50,
-            y: gb.normY + gb.normH
-        };
-        // Exit: lower-to-mid right lateral flank (where wire exits to route to back panel)
-        const exitPos = {
-            x: gb.normX + gb.normW,
-            y: gb.normY + gb.normH * 0.65
-        };
-
-        // 1. Pick startIdx closest to Entrance
-        let startIdx = 0;
-        let bestDistIn = Infinity;
-        for (let i = 0; i < n; i++) {
-            const d = distCm(points[i], entrancePos);
-            if (d < bestDistIn) {
-                bestDistIn = d;
-                startIdx = i;
-            }
-        }
-
-        // 2. Pick endIdx closest to Exit (distinct from startIdx if n > 1)
-        let endIdx = -1;
-        let bestDistOut = Infinity;
-        for (let i = 0; i < n; i++) {
-            if (i === startIdx && n > 1) continue;
-            const d = distCm(points[i], exitPos);
-            if (d < bestDistOut) {
-                bestDistOut = d;
-                endIdx = i;
-            }
-        }
-        if (endIdx === -1) endIdx = (startIdx + 1) % n;
-
-        // 3. Greedy Nearest Neighbor Traversal (visiting all near neighbors without skipping)
         const unvisited = new Set();
         for (let i = 0; i < n; i++) {
             if (i !== startIdx && i !== endIdx) unvisited.add(i);
@@ -15764,27 +15765,26 @@ function optimizeLedWiringOrder(points, mode = null) {
             path.push(bestCand);
             unvisited.delete(bestCand);
         }
-        // Append the designated exit node
         if (endIdx !== startIdx) {
             path.push(endIdx);
         }
 
-        // 4. 2-Opt Uncrossing Pass (eliminates criss-crossing wires while keeping entrance and exit pinned)
+        // 4. 2-Opt Uncrossing Pass (strictly keeps start at entrance and last LED at exit pinned)
         let improved = true;
         let iter = 0;
         while (improved && iter < 100) {
             improved = false;
             iter++;
             for (let i = 0; i < n - 2; i++) {
-                for (let j = i + 2; j < n; j++) {
+                for (let j = i + 2; j < n - 1; j++) {
                     const pA = points[path[i]];
                     const pB = points[path[i + 1]];
                     const pC = points[path[j]];
-                    const pD = (j < n - 1) ? points[path[j + 1]] : null;
+                    const pD = points[path[j + 1]];
 
-                    const curDist = distCm(pA, pB) + (pD ? distCm(pC, pD) : 0);
-                    const newDist = distCm(pA, pC) + (pD ? distCm(pB, pD) : 0);
-                    const intersects = pD ? doLineSegmentsIntersect(pA, pB, pC, pD) : false;
+                    const curDist = distCm(pA, pB) + distCm(pC, pD);
+                    const newDist = distCm(pA, pC) + distCm(pB, pD);
+                    const intersects = doLineSegmentsIntersect(pA, pB, pC, pD);
 
                     if (intersects || (newDist < curDist - 1e-4)) {
                         let left = i + 1, right = j;
@@ -15820,20 +15820,9 @@ function optimizeLedWiringOrder(points, mode = null) {
         else return Math.abs(d - TARGET_CM);
     };
 
-    let startIdx = 0;
-    let bestScore = -Infinity;
-    for (let i = 0; i < n; i++) {
-        const p = points[i];
-        const score = p.y * 1.5 - p.x;
-        if (score > bestScore) {
-            bestScore = score;
-            startIdx = i;
-        }
-    }
-
     const unvisited = new Set();
     for (let i = 0; i < n; i++) {
-        if (i !== startIdx) unvisited.add(i);
+        if (i !== startIdx && i !== endIdx) unvisited.add(i);
     }
 
     const path = [startIdx];
@@ -15852,6 +15841,9 @@ function optimizeLedWiringOrder(points, mode = null) {
         path.push(bestCand);
         unvisited.delete(bestCand);
     }
+    if (endIdx !== startIdx) {
+        path.push(endIdx);
+    }
 
     let improved = true;
     let iterations = 0;
@@ -15859,13 +15851,13 @@ function optimizeLedWiringOrder(points, mode = null) {
         improved = false;
         iterations++;
         for (let i = 0; i < n - 2; i++) {
-            for (let j = i + 2; j < n; j++) {
+            for (let j = i + 2; j < n - 1; j++) {
                 const pI = points[path[i]];
                 const pI1 = points[path[i + 1]];
                 const pJ = points[path[j]];
-                const pJ1 = (j < n - 1) ? points[path[j + 1]] : null;
-                const cCur = edgeCost(distCm(pI, pI1)) + (pJ1 ? edgeCost(distCm(pJ, pJ1)) : 0);
-                const cNew = edgeCost(distCm(pI, pJ)) + (pJ1 ? edgeCost(distCm(pI1, pJ1)) : 0);
+                const pJ1 = points[path[j + 1]];
+                const cCur = edgeCost(distCm(pI, pI1)) + edgeCost(distCm(pJ, pJ1));
+                const cNew = edgeCost(distCm(pI, pJ)) + edgeCost(distCm(pI1, pJ1));
                 if (cNew < cCur - 1e-4) {
                     let left = i + 1, right = j;
                     while (left < right) {

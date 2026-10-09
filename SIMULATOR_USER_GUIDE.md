@@ -1337,6 +1337,10 @@ Instead of attaching a Cricut cut vinyl graphic on top of the printed plate, the
      - Dragged LEDs display a floating warning badge indicating the specific issue (`⚠️ Wire Entrance Blocked` or `⚠️ Collision`).
 
 5. **Heavy-Duty Monolithic Strain Relief Bridges (Entrance & Lateral Exit Clearances):**
+   - **Guaranteed Entrance & Exit Terminal LED Alignment:**
+     - **LED #1 (Start):** The initial LED is seeded and routed directly adjacent to the **Bottom Entrance Strain Relief Bridge** on the foot contour.
+     - **LED #100 / #N (End):** The final LED is guaranteed to terminate directly adjacent to the **Lateral Exit Strain Relief Bridge** on the right flank flank contour, ensuring a short, clean run directly through the exit conduit to the back panel.
+     - **Pinned 2-Opt Routing:** The wiring path optimizer pins both the entrance and exit nodes, restricting 2-Opt segment uncrossing to internal edges so the terminal LED is never displaced from the exit.
    - **10.0mm Bridge Repulsion Buffer:** The first, last, and intermediate LEDs are strictly maintained at $\ge 10.0\text{ mm}$ clearance distance from both the bottom entrance and lateral exit strain relief bridge structures.
    - **Clean Monolithic Arch Construction:** Both entrance and lateral exit bridges are engineered as clean monolithic arch boxes ($8.0\text{ mm} \times 7.2\text{ mm} \times 4.5\text{ mm}$) featuring an unobstructed $3.2\text{ mm} \times 2.8\text{ mm}$ under-tunnel for miniature zip-tie heads, a contoured $4.5\text{ mm}$ top saddle cradle, and zero misplaced interior gusset geometry under the bridge.
 

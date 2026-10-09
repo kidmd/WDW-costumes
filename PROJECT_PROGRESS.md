@@ -93,6 +93,20 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### 2026-10-08 23:40 - Guaranteed Exit-Adjacent Terminal LED Placement & Pinned Wiring Route
+- **Exit-Adjacent Terminal LED Seeding & Routing Assurance:**
+  - Guaranteed that upon LED distribution (`scatterLedsOnGraphic`, `rearrangeRemainingLedsOnGraphic`, `sampleRemainingGraphicLeds`), the final LED (#100 or #N) is strictly placed directly adjacent to the **Lateral Exit Strain Relief Bridge** on the right flank:
+    1. **Exit Seeding in `selectClearanceAwareFpsIndices` (`simulator/led_clearance.js`):**
+       - The initial candidate sampling pass automatically picks the unblocked candidate closest to the **Entrance Bridge** as Seed 1, and the unblocked candidate closest to the **Lateral Exit Bridge** as Seed 2 (or first remaining unassigned pick if no group anchor exists near the exit).
+       - This guarantees high-density spatial coverage directly adjacent to both the entrance and exit conduits before Farthest Point Sampling fills out the rest of the body.
+    2. **Pinned Terminal Endpoint Routing in `optimizeLedWiringOrder` (`simulator/app.js`):**
+       - Linked `entrancePos` and `exitPos` directly to `getTpuBridgeLocationsNorm()` CAD coordinates rather than generic bounding-box estimates.
+       - Fixed a critical 2-Opt uncrossing bug: restricted 2-Opt edge swapping to internal segments (`j < n - 1`), preventing the final exit node (`path[n - 1]`) from being accidentally swapped out into the middle of the shirt during segment reversals.
+       - Both the first LED (`path[0]`) and last LED (`path[n - 1]`) remain permanently pinned at the Entrance and Exit bridges respectively.
+    3. **Bumped Cache Busters:** Updated `simulator/index.html` to `led_clearance.js?v=2` and `app.js?v=102`.
+- **Verification:**
+  - `node --check simulator/led_clearance.js` and `node --check simulator/app.js` passed with zero errors.
+
 ### 2026-10-08 23:30 - Strict Clearance-Aware Initial Placement & Relaxation Engine (Zero 2mm/2.5mm Warnings)
 - **Clearance-Aware Farthest Point Sampling (FPS) & Solver Architecture (`simulator/led_clearance.js`):**
   - Eliminated recurring 2mm / 2.5mm wire corridor and collar collision warnings (`checkLedClearanceStatus`) across initial LED placement (`scatterLedsOnGraphic`), remaining LED redistribution (`rearrangeRemainingLedsOnGraphic`), and fireworks/group generation (`sampleRemainingGraphicLeds`).

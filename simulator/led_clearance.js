@@ -85,18 +85,38 @@ function selectClearanceAwareFpsIndices(candNorm, count, anchorsNorm) {
     };
     rebuild();
 
+    let hasAnchorNearExit = false;
+    for (let p = 0; p < placedX.length; p++) {
+        if (Math.hypot(placedX[p] - bridges[1].x, placedY[p] - bridges[1].y) < 25) {
+            hasAnchorNearExit = true;
+            break;
+        }
+    }
+
     const selected = [];
     while (selected.length < want) {
         let best = -1;
         for (;;) {
             if (placedX.length === 0) {
-                // First LED: start near the middle of the artwork
-                for (let off = 0; off < n && best < 0; off++) {
-                    const c1 = Math.floor(n / 2) + off, c2 = Math.floor(n / 2) - off;
-                    if (c1 < n && !blocked[c1] && !used[c1]) best = c1;
-                    else if (c2 >= 0 && !blocked[c2] && !used[c2]) best = c2;
+                // 1. First LED: seed closest to Entrance Bridge (outside 10mm keep-out)
+                let bestEntD = 1e18;
+                for (let i = 0; i < n; i++) {
+                    if (!blocked[i] && !used[i]) {
+                        const d = (cx[i] - bridges[0].x) * (cx[i] - bridges[0].x) + (cy[i] - bridges[0].y) * (cy[i] - bridges[0].y);
+                        if (d < bestEntD) { bestEntD = d; best = i; }
+                    }
+                }
+            } else if ((placedX.length === 1 && want >= 2) || (!hasAnchorNearExit && selected.length === 0)) {
+                // 2. Second LED (or first remaining): seed closest to Exit Bridge (outside 10mm keep-out)
+                let bestExitD = 1e18;
+                for (let i = 0; i < n; i++) {
+                    if (!blocked[i] && !used[i]) {
+                        const d = (cx[i] - bridges[1].x) * (cx[i] - bridges[1].x) + (cy[i] - bridges[1].y) * (cy[i] - bridges[1].y);
+                        if (d < bestExitD) { bestExitD = d; best = i; }
+                    }
                 }
             } else {
+                // 3. Farthest Point Sampling to maximize spatial distribution across open areas
                 let bestD = -1;
                 for (let i = 0; i < n; i++) {
                     if (!blocked[i] && !used[i] && minD[i] > bestD) { bestD = minD[i]; best = i; }
