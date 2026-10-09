@@ -406,6 +406,10 @@ Attaching LEDs to a shirt by hand can easily result in tangled wire spaghetti or
       - 🟢 **Green (`4.5–8.5 cm`):** Optimal Slack Sweet Spot (Flat, zero-fold fit).
       - 🟡 **Yellow (`8.5–9.2 cm`):** Snug (minimal slack).
       - 🔴 **Red (`>9.2 cm`):** Overstretched Alert (Taut).
+   - Toggle **`⚓ Show Strain Relief Bridges (10mm Keep-Out)`**:
+      - Renders physical 3D bridge footprints directly on the 2D layout canvas for both the **Bottom IN** entrance portal ($8.0\text{ mm W} \times 7.2\text{ mm H}$, Accent Emerald `#00ff88`) and **Lateral Right OUT** exit portal ($7.2\text{ mm W} \times 8.0\text{ mm H}$, Accent Coral `#ff4d6d`).
+      - Projects a **$10.0\text{ mm}$ safety clearance keep-out halo** (dashed perimeter border with translucent fill) around both strain relief locations to prevent LED sockets from encroaching on the zip-tie anchor points.
+      - Displays internal under-tunnel pass-through channels ($3.2\text{ mm} \times 2.8\text{ mm}$), rim U-notches, and wiring conduit leader lines connecting from the outer chassis edges to the LED string sequence.
    - **Single LED Selection Isolation:** Selecting any individual LED automatically isolates the wiring visualization to only the segment arriving at the LED ($i-1 \rightarrow i$) and the segment departing from it ($i \rightarrow i+1$), removing background wire clutter for focused alignment.
 
 ### 🎆 Fireworks Starburst Generator, Multi-Burst Stamping, & Scaling

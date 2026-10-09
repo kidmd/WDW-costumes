@@ -67,6 +67,7 @@ let params = {
     showWireTension: false,
     showPillSlots: false,
     showTpuWindows: false,
+    showStrainReliefs: false,
     tpuWindowShape: 'round_34', // 'round_34' (Ø 3.4mm, default), 'round_30' (Ø 3.0mm), or 'square' (3x3mm)
     tpuWellOrientation: 'horizontal', // 'horizontal' (0° baseline, default) or 'tangent' (tangent to wiring tour)
     ledOrderingMode: 'nearby', // 'nearby' (Nearby Neighbor entrance->exit, default) or 'wide' (Wide Spacing)
@@ -96,6 +97,9 @@ try {
     const savedOrdering = localStorage.getItem('msep_led_ordering_mode');
     if (savedOrdering === 'nearby' || savedOrdering === 'wide') {
         params.ledOrderingMode = savedOrdering;
+    }
+    if (localStorage.getItem('msep_show_strain_reliefs') === '1' || localStorage.getItem('msep_show_strain_reliefs') === 'true') {
+        params.showStrainReliefs = true;
     }
 } catch (e) {}
 
@@ -4165,6 +4169,11 @@ function renderSingleShirtView(timeMs) {
             ctx.strokeStyle = '#ff4d6d';
             ctx.lineWidth = 2.5;
             ctx.stroke();
+        }
+
+        // Render Strain Relief Bridges & 10mm Keep-Out Clearance Zones
+        if (params.showStrainReliefs) {
+            drawStrainReliefBridgesOverlay(ctx);
         }
 
         // Render Entrance (Bottom IN) and Exit (Lateral Right OUT) Badges & Leader Wires
@@ -13105,8 +13114,15 @@ document.getElementById('showPillSlotsToggle')?.addEventListener('change', (e) =
 
 document.getElementById('showTpuWindowsToggle')?.addEventListener('change', (e) => {
     params.showTpuWindows = e.target.checked;
-    try { localStorage.getItem('msep_show_tpu_windows', params.showTpuWindows ? 'true' : 'false'); } catch (err) {}
+    try { localStorage.setItem('msep_show_tpu_windows', params.showTpuWindows ? 'true' : 'false'); } catch (err) {}
     markSingleShirtDirty();
+});
+
+document.getElementById('showStrainReliefsToggle')?.addEventListener('change', (e) => {
+    params.showStrainReliefs = e.target.checked;
+    try { localStorage.setItem('msep_show_strain_reliefs', params.showStrainReliefs ? '1' : '0'); } catch (err) {}
+    markSingleShirtDirty();
+    if (typeof draw === 'function') draw();
 });
 
 // ============================================================================
@@ -13713,6 +13729,155 @@ function updateBtfStripTelemetryUI() {
             statusBadgeEl.textContent = `⚠️ Exceeds 100-LED Budget (${totalLeds} LEDs)`;
         }
     }
+}
+
+function drawStrainReliefBridgesOverlay(ctx) {
+    const gb = (typeof getGraphicChestBounds === 'function') ? getGraphicChestBounds() : null;
+    if (!gb) return;
+
+    const bridges = (typeof getTpuBridgeLocationsNorm === 'function') ? getTpuBridgeLocationsNorm() : null;
+    if (!bridges) return;
+
+    const plateW = (typeof selectedPlateWidthMm !== 'undefined' && selectedPlateWidthMm > 0) ? selectedPlateWidthMm : 203.2;
+    const normW = (gb && gb.normW > 0) ? gb.normW : 0.8;
+    const normH = (gb && gb.normH > 0) ? gb.normH : 0.385;
+    const plateH = plateW * (normH / normW);
+    const mmToNormX = normW / plateW;
+    const mmToNormY = normH / plateH;
+
+    const entCanvas = normToCanvas(bridges.entrance);
+    const exitCanvas = normToCanvas(bridges.exit);
+
+    // 10mm radius in canvas pixels
+    const p10X = normToCanvas({ x: bridges.entrance.x + (10.0 * mmToNormX), y: bridges.entrance.y });
+    const r10px = Math.max(12, Math.abs(p10X.x - entCanvas.x));
+
+    // Bridge dimensions in canvas pixels
+    // Entrance Bridge: 8.0mm X width x 7.2mm Y length
+    const pEntBrHalfX = Math.max(6, Math.abs(normToCanvas({ x: bridges.entrance.x + (4.0 * mmToNormX), y: bridges.entrance.y }).x - entCanvas.x));
+    const pEntBrHalfY = Math.max(6, Math.abs(normToCanvas({ x: bridges.entrance.x, y: bridges.entrance.y + (3.6 * mmToNormY) }).y - entCanvas.y));
+
+    // Exit Bridge: 7.2mm X length x 8.0mm Y width
+    const pExitBrHalfX = Math.max(6, Math.abs(normToCanvas({ x: bridges.exit.x + (3.6 * mmToNormX), y: bridges.exit.y }).x - exitCanvas.x));
+    const pExitBrHalfY = Math.max(6, Math.abs(normToCanvas({ x: bridges.exit.x, y: bridges.exit.y + (4.0 * mmToNormY) }).y - exitCanvas.y));
+
+    // Rim Portal locations in canvas coordinates
+    const rimEntNorm = { x: gb.normX + gb.normW * 0.5, y: gb.normY + gb.normH };
+    const rimExitNorm = { x: gb.normX + gb.normW, y: gb.normY + gb.normH * 0.70 };
+    const pRimEnt = normToCanvas(rimEntNorm);
+    const pRimExit = normToCanvas(rimExitNorm);
+
+    ctx.save();
+
+    // -------------------------------------------------------------
+    // 1. ENTRANCE STRAIN RELIEF BRIDGE (Bottom IN)
+    // -------------------------------------------------------------
+    // 10mm Safety Clearance Keep-Out Halo
+    ctx.beginPath();
+    ctx.arc(entCanvas.x, entCanvas.y, r10px, 0, Math.PI * 2);
+    ctx.fillStyle = 'rgba(0, 255, 136, 0.14)';
+    ctx.fill();
+    ctx.strokeStyle = '#00ff88';
+    ctx.lineWidth = 1.8;
+    ctx.setLineDash([4, 3]);
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    // Lead wire from rim U-notch into bridge tunnel
+    ctx.beginPath();
+    ctx.moveTo(pRimEnt.x, pRimEnt.y);
+    ctx.lineTo(entCanvas.x, entCanvas.y);
+    ctx.strokeStyle = '#00ff88';
+    ctx.lineWidth = 3.0;
+    ctx.stroke();
+
+    // Solid Bridge Block Footprint
+    ctx.fillStyle = '#062817';
+    ctx.strokeStyle = '#00ff88';
+    ctx.lineWidth = 2.0;
+    if (ctx.roundRect) {
+        ctx.beginPath();
+        ctx.roundRect(entCanvas.x - pEntBrHalfX, entCanvas.y - pEntBrHalfY, pEntBrHalfX * 2, pEntBrHalfY * 2, 4);
+        ctx.fill();
+        ctx.stroke();
+    } else {
+        ctx.fillRect(entCanvas.x - pEntBrHalfX, entCanvas.y - pEntBrHalfY, pEntBrHalfX * 2, pEntBrHalfY * 2);
+        ctx.strokeRect(entCanvas.x - pEntBrHalfX, entCanvas.y - pEntBrHalfY, pEntBrHalfX * 2, pEntBrHalfY * 2);
+    }
+
+    // Bridge Arch Inner Through-Tunnel (runs vertically in Y)
+    ctx.fillStyle = '#000000';
+    ctx.fillRect(entCanvas.x - (pEntBrHalfX * 0.4), entCanvas.y - pEntBrHalfY - 1, pEntBrHalfX * 0.8, pEntBrHalfY * 2 + 2);
+    ctx.strokeStyle = '#38bdf8';
+    ctx.lineWidth = 1.2;
+    ctx.strokeRect(entCanvas.x - (pEntBrHalfX * 0.4), entCanvas.y - pEntBrHalfY - 1, pEntBrHalfX * 0.8, pEntBrHalfY * 2 + 2);
+
+    // Entrance Bridge Text Badge & Keep-Out Tag
+    ctx.font = 'bold 9px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillStyle = '#00ff88';
+    ctx.fillText('⚓ IN STRAIN RELIEF', entCanvas.x, entCanvas.y - pEntBrHalfY - 8);
+
+    ctx.font = '8.5px monospace';
+    ctx.fillStyle = '#34d399';
+    ctx.fillText('10mm KEEP-OUT', entCanvas.x, entCanvas.y + pEntBrHalfY + 8);
+
+    // -------------------------------------------------------------
+    // 2. EXIT STRAIN RELIEF BRIDGE (Lateral Right Flank OUT)
+    // -------------------------------------------------------------
+    // 10mm Safety Clearance Keep-Out Halo
+    ctx.beginPath();
+    ctx.arc(exitCanvas.x, exitCanvas.y, r10px, 0, Math.PI * 2);
+    ctx.fillStyle = 'rgba(255, 77, 109, 0.14)';
+    ctx.fill();
+    ctx.strokeStyle = '#ff4d6d';
+    ctx.lineWidth = 1.8;
+    ctx.setLineDash([4, 3]);
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    // Lead wire from bridge tunnel to lateral rim U-notch
+    ctx.beginPath();
+    ctx.moveTo(exitCanvas.x, exitCanvas.y);
+    ctx.lineTo(pRimExit.x, pRimExit.y);
+    ctx.strokeStyle = '#ff4d6d';
+    ctx.lineWidth = 3.0;
+    ctx.stroke();
+
+    // Solid Bridge Block Footprint
+    ctx.fillStyle = '#2b0c16';
+    ctx.strokeStyle = '#ff4d6d';
+    ctx.lineWidth = 2.0;
+    if (ctx.roundRect) {
+        ctx.beginPath();
+        ctx.roundRect(exitCanvas.x - pExitBrHalfX, exitCanvas.y - pExitBrHalfY, pExitBrHalfX * 2, pExitBrHalfY * 2, 4);
+        ctx.fill();
+        ctx.stroke();
+    } else {
+        ctx.fillRect(exitCanvas.x - pExitBrHalfX, exitCanvas.y - pExitBrHalfY, pExitBrHalfX * 2, pExitBrHalfY * 2);
+        ctx.strokeRect(exitCanvas.x - pExitBrHalfX, exitCanvas.y - pExitBrHalfY, pExitBrHalfX * 2, pExitBrHalfY * 2);
+    }
+
+    // Bridge Arch Inner Through-Tunnel (runs horizontally in X towards exit)
+    ctx.fillStyle = '#000000';
+    ctx.fillRect(exitCanvas.x - pExitBrHalfX - 1, exitCanvas.y - (pExitBrHalfY * 0.4), pExitBrHalfX * 2 + 2, pExitBrHalfY * 0.8);
+    ctx.strokeStyle = '#ffb703';
+    ctx.lineWidth = 1.2;
+    ctx.strokeRect(exitCanvas.x - pExitBrHalfX - 1, exitCanvas.y - (pExitBrHalfY * 0.4), pExitBrHalfX * 2 + 2, pExitBrHalfY * 0.8);
+
+    // Exit Bridge Text Badge & Keep-Out Tag
+    ctx.font = 'bold 9px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillStyle = '#ff4d6d';
+    ctx.fillText('⚓ OUT STRAIN RELIEF', exitCanvas.x, exitCanvas.y - pExitBrHalfY - 8);
+
+    ctx.font = '8.5px monospace';
+    ctx.fillStyle = '#f87171';
+    ctx.fillText('10mm KEEP-OUT', exitCanvas.x, exitCanvas.y + pExitBrHalfY + 8);
+
+    ctx.restore();
 }
 
 function drawBtfStripOverlay(ctx, timeMs) {
@@ -20404,6 +20569,8 @@ function initTpuArmorPanel() {
     setTpuLedNumbers(params.tpuIncludeLedNumbers === true);
     setTpuClipGrooves(params.tpuIncludeClipGrooves === true);
     setTpuTopNubs(params.tpuIncludeTopNubs === true);
+    const strainReliefsTog = document.getElementById('showStrainReliefsToggle');
+    if (strainReliefsTog) strainReliefsTog.checked = (params.showStrainReliefs === true);
     updateTpuDownloadButtons();
 }
 window.initTpuArmorPanel = initTpuArmorPanel;

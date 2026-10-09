@@ -5,7 +5,7 @@
   "aspect": 0.8331977217249796,
   "artwork_file": "active_artwork.png",
   "graphic_type": "custom_image",
-  "window_shape": "round_34",
+  "window_shape": "square",
   "include_led_numbers": true,
   "include_clip_grooves": false,
   "include_top_nubs": true,
@@ -65,7 +65,7 @@
       "filename": "color_white.stl"
     }
   },
-  "layout_signature": "custom_image-round_34-horizontal-num-nogrv-nub-medium-65-v6-71851057",
+  "layout_signature": "custom_image-round_34-horizontal-num-nogrv-nub-medium-65-v6-6ed4f5de",
   "size_preset": "medium",
   "width_mm": 227.66,
   "front": {
@@ -80,8 +80,8 @@
       {
         "id": 1,
         "orig_id": 0,
-        "x": 113.47,
-        "y": 67.92,
+        "x": 117.99,
+        "y": 76.42,
         "color": {
           "r": 0,
           "g": 255,
@@ -116,8 +116,8 @@
       {
         "id": 4,
         "orig_id": 3,
-        "x": 139.27,
-        "y": 72.72,
+        "x": 138.53,
+        "y": 73.88,
         "color": {
           "r": 0,
           "g": 255,
@@ -140,8 +140,8 @@
       {
         "id": 6,
         "orig_id": 5,
-        "x": 119.47,
-        "y": 81.53,
+        "x": 114.68,
+        "y": 91.32,
         "color": {
           "r": 0,
           "g": 255,
@@ -152,8 +152,8 @@
       {
         "id": 7,
         "orig_id": 6,
-        "x": 98.31,
-        "y": 70.07,
+        "x": 93.8,
+        "y": 64.78,
         "color": {
           "r": 0,
           "g": 255,
@@ -189,7 +189,7 @@
         "id": 10,
         "orig_id": 9,
         "x": 57.2,
-        "y": 76.33,
+        "y": 76.68,
         "color": {
           "r": 0,
           "g": 255,
@@ -716,8 +716,8 @@
       {
         "id": 54,
         "orig_id": 53,
-        "x": 151.92,
-        "y": 157.33,
+        "x": 152.27,
+        "y": 156.54,
         "color": {
           "r": 0,
           "g": 255,
@@ -812,8 +812,8 @@
       {
         "id": 62,
         "orig_id": 61,
-        "x": 135.2,
-        "y": 127.89,
+        "x": 132.17,
+        "y": 123.93,
         "color": {
           "r": 0,
           "g": 255,
@@ -824,8 +824,8 @@
       {
         "id": 63,
         "orig_id": 62,
-        "x": 147.68,
-        "y": 138.82,
+        "x": 146.56,
+        "y": 140.59,
         "color": {
           "r": 0,
           "g": 255,
@@ -969,36 +969,36 @@
     ],
     "number_positions": [
       [
-        113.47,
-        62.42
+        111.49,
+        71.92
       ],
       [
-        130.8,
-        56.02
+        124.3,
+        57.02
       ],
       [
         157.78,
         51.45
       ],
       [
-        145.77,
-        77.22
+        146.53,
+        73.88
       ],
       [
         140.87,
         91.23
       ],
       [
-        119.47,
-        87.03
+        114.68,
+        96.82
       ],
       [
-        98.31,
-        64.57
+        101.8,
+        64.78
       ],
       [
-        93.53,
-        47.06
+        87.03,
+        46.06
       ],
       [
         63.87,
@@ -1006,7 +1006,7 @@
       ],
       [
         57.2,
-        70.83
+        71.18
       ],
       [
         39.77,
@@ -1045,8 +1045,8 @@
         75.57
       ],
       [
-        107.28,
-        88.59
+        100.78,
+        78.59
       ],
       [
         106.03,
@@ -1181,16 +1181,16 @@
         165.09
       ],
       [
-        151.92,
-        151.83
+        152.27,
+        162.04
       ],
       [
         132.87,
         161.07
       ],
       [
-        122.08,
-        133.06
+        130.08,
+        138.56
       ],
       [
         103.82,
@@ -1205,20 +1205,20 @@
         128.46
       ],
       [
-        116.5,
-        105.24
+        123.0,
+        104.24
       ],
       [
-        144.17,
-        110.15
+        145.67,
+        105.65
       ],
       [
-        135.2,
-        122.39
+        140.17,
+        123.93
       ],
       [
-        154.18,
-        134.32
+        153.06,
+        136.09
       ],
       [
         163.87,
@@ -1561,38 +1561,38 @@
       133.15,
       5.0
     ],
-    "stl_size": 3729784,
-    "chassis_size": 5806984,
+    "stl_size": 3423184,
+    "chassis_size": 4416284,
     "lid_size": 428284,
-    "zip_size": 3143030,
+    "zip_size": 2258267,
     "inlays": [
       {
         "key": "green",
         "name": "Dragon Body",
         "filename": "tpu_panel_front_color_green.stl",
         "hex": "#00e676",
-        "count": 11940
+        "count": 5288
       },
       {
         "key": "magenta",
         "name": "Wings & Crest",
         "filename": "tpu_panel_front_color_magenta.stl",
         "hex": "#ec4899",
-        "count": 7796
+        "count": 5296
       },
       {
         "key": "yellow",
         "name": "Belly & Horns",
         "filename": "tpu_panel_front_color_yellow.stl",
         "hex": "#facc15",
-        "count": 7232
+        "count": 5844
       },
       {
         "key": "white",
         "name": "Eyes & Teeth",
         "filename": "tpu_panel_front_color_white.stl",
         "hex": "#ffffff",
-        "count": 5060
+        "count": 4060
       }
     ],
     "stl_url": "/3d_panels/tpu_panel_front.stl",
@@ -1600,7 +1600,7 @@
     "lid_stl_url": "/3d_panels/tpu_panel_front_lid.stl",
     "multicolor_3mf_url": "/3d_panels/tpu_panel_front_multicolor.3mf",
     "multicolor_zip_url": "/3d_panels/tpu_panel_front_multicolor_bundle.zip",
-    "volume_mm3": 67677.5,
+    "volume_mm3": 67679.4,
     "is_watertight": false
   },
   "back": {
@@ -1615,8 +1615,8 @@
       {
         "id": 1,
         "orig_id": 0,
-        "x": 113.47,
-        "y": 67.92,
+        "x": 117.99,
+        "y": 76.42,
         "color": {
           "r": 0,
           "g": 255,
@@ -1651,8 +1651,8 @@
       {
         "id": 4,
         "orig_id": 3,
-        "x": 139.27,
-        "y": 72.72,
+        "x": 138.53,
+        "y": 73.88,
         "color": {
           "r": 0,
           "g": 255,
@@ -1675,8 +1675,8 @@
       {
         "id": 6,
         "orig_id": 5,
-        "x": 119.47,
-        "y": 81.53,
+        "x": 114.68,
+        "y": 91.32,
         "color": {
           "r": 0,
           "g": 255,
@@ -1687,8 +1687,8 @@
       {
         "id": 7,
         "orig_id": 6,
-        "x": 98.31,
-        "y": 70.07,
+        "x": 93.8,
+        "y": 64.78,
         "color": {
           "r": 0,
           "g": 255,
@@ -1724,7 +1724,7 @@
         "id": 10,
         "orig_id": 9,
         "x": 57.2,
-        "y": 76.33,
+        "y": 76.68,
         "color": {
           "r": 0,
           "g": 255,
@@ -2251,8 +2251,8 @@
       {
         "id": 54,
         "orig_id": 53,
-        "x": 151.92,
-        "y": 157.33,
+        "x": 152.27,
+        "y": 156.54,
         "color": {
           "r": 0,
           "g": 255,
@@ -2347,8 +2347,8 @@
       {
         "id": 62,
         "orig_id": 61,
-        "x": 135.2,
-        "y": 127.89,
+        "x": 132.17,
+        "y": 123.93,
         "color": {
           "r": 0,
           "g": 255,
@@ -2359,8 +2359,8 @@
       {
         "id": 63,
         "orig_id": 62,
-        "x": 147.68,
-        "y": 138.82,
+        "x": 146.56,
+        "y": 140.59,
         "color": {
           "r": 0,
           "g": 255,
@@ -2504,36 +2504,36 @@
     ],
     "number_positions": [
       [
-        113.47,
-        62.42
+        111.49,
+        71.92
       ],
       [
-        130.8,
-        56.02
+        124.3,
+        57.02
       ],
       [
         157.78,
         51.45
       ],
       [
-        145.77,
-        77.22
+        146.53,
+        73.88
       ],
       [
         140.87,
         91.23
       ],
       [
-        119.47,
-        87.03
+        114.68,
+        96.82
       ],
       [
-        98.31,
-        64.57
+        101.8,
+        64.78
       ],
       [
-        93.53,
-        47.06
+        87.03,
+        46.06
       ],
       [
         63.87,
@@ -2541,7 +2541,7 @@
       ],
       [
         57.2,
-        70.83
+        71.18
       ],
       [
         39.77,
@@ -2580,8 +2580,8 @@
         75.57
       ],
       [
-        107.28,
-        88.59
+        100.78,
+        78.59
       ],
       [
         106.03,
@@ -2716,16 +2716,16 @@
         165.09
       ],
       [
-        151.92,
-        151.83
+        152.27,
+        162.04
       ],
       [
         132.87,
         161.07
       ],
       [
-        122.08,
-        133.06
+        130.08,
+        138.56
       ],
       [
         103.82,
@@ -2740,20 +2740,20 @@
         128.46
       ],
       [
-        116.5,
-        105.24
+        123.0,
+        104.24
       ],
       [
-        144.17,
-        110.15
+        145.67,
+        105.65
       ],
       [
-        135.2,
-        122.39
+        140.17,
+        123.93
       ],
       [
-        154.18,
-        134.32
+        153.06,
+        136.09
       ],
       [
         163.87,
@@ -3096,38 +3096,38 @@
       133.15,
       5.0
     ],
-    "stl_size": 3729784,
-    "chassis_size": 5806984,
+    "stl_size": 3423184,
+    "chassis_size": 4416284,
     "lid_size": 428284,
-    "zip_size": 3142943,
+    "zip_size": 2258283,
     "inlays": [
       {
         "key": "green",
         "name": "Dragon Body",
         "filename": "tpu_panel_back_color_green.stl",
         "hex": "#00e676",
-        "count": 11940
+        "count": 5288
       },
       {
         "key": "magenta",
         "name": "Wings & Crest",
         "filename": "tpu_panel_back_color_magenta.stl",
         "hex": "#ec4899",
-        "count": 7796
+        "count": 5296
       },
       {
         "key": "yellow",
         "name": "Belly & Horns",
         "filename": "tpu_panel_back_color_yellow.stl",
         "hex": "#facc15",
-        "count": 7232
+        "count": 5844
       },
       {
         "key": "white",
         "name": "Eyes & Teeth",
         "filename": "tpu_panel_back_color_white.stl",
         "hex": "#ffffff",
-        "count": 5060
+        "count": 4060
       }
     ],
     "stl_url": "/3d_panels/tpu_panel_back.stl",
@@ -3135,7 +3135,7 @@
     "lid_stl_url": "/3d_panels/tpu_panel_back_lid.stl",
     "multicolor_3mf_url": "/3d_panels/tpu_panel_back_multicolor.3mf",
     "multicolor_zip_url": "/3d_panels/tpu_panel_back_multicolor_bundle.zip",
-    "volume_mm3": 67677.5,
+    "volume_mm3": 67679.4,
     "is_watertight": false
   },
   "height_mm": 273.24,
@@ -3143,8 +3143,8 @@
     {
       "id": 1,
       "orig_id": 0,
-      "x": 113.47,
-      "y": 67.92,
+      "x": 117.99,
+      "y": 76.42,
       "color": {
         "r": 0,
         "g": 255,
@@ -3179,8 +3179,8 @@
     {
       "id": 4,
       "orig_id": 3,
-      "x": 139.27,
-      "y": 72.72,
+      "x": 138.53,
+      "y": 73.88,
       "color": {
         "r": 0,
         "g": 255,
@@ -3203,8 +3203,8 @@
     {
       "id": 6,
       "orig_id": 5,
-      "x": 119.47,
-      "y": 81.53,
+      "x": 114.68,
+      "y": 91.32,
       "color": {
         "r": 0,
         "g": 255,
@@ -3215,8 +3215,8 @@
     {
       "id": 7,
       "orig_id": 6,
-      "x": 98.31,
-      "y": 70.07,
+      "x": 93.8,
+      "y": 64.78,
       "color": {
         "r": 0,
         "g": 255,
@@ -3252,7 +3252,7 @@
       "id": 10,
       "orig_id": 9,
       "x": 57.2,
-      "y": 76.33,
+      "y": 76.68,
       "color": {
         "r": 0,
         "g": 255,
@@ -3779,8 +3779,8 @@
     {
       "id": 54,
       "orig_id": 53,
-      "x": 151.92,
-      "y": 157.33,
+      "x": 152.27,
+      "y": 156.54,
       "color": {
         "r": 0,
         "g": 255,
@@ -3875,8 +3875,8 @@
     {
       "id": 62,
       "orig_id": 61,
-      "x": 135.2,
-      "y": 127.89,
+      "x": 132.17,
+      "y": 123.93,
       "color": {
         "r": 0,
         "g": 255,
@@ -3887,8 +3887,8 @@
     {
       "id": 63,
       "orig_id": 62,
-      "x": 147.68,
-      "y": 138.82,
+      "x": 146.56,
+      "y": 140.59,
       "color": {
         "r": 0,
         "g": 255,
@@ -4038,36 +4038,36 @@
   ],
   "number_positions": [
     [
-      113.47,
-      62.42
+      111.49,
+      71.92
     ],
     [
-      130.8,
-      56.02
+      124.3,
+      57.02
     ],
     [
       157.78,
       51.45
     ],
     [
-      145.77,
-      77.22
+      146.53,
+      73.88
     ],
     [
       140.87,
       91.23
     ],
     [
-      119.47,
-      87.03
+      114.68,
+      96.82
     ],
     [
-      98.31,
-      64.57
+      101.8,
+      64.78
     ],
     [
-      93.53,
-      47.06
+      87.03,
+      46.06
     ],
     [
       63.87,
@@ -4075,7 +4075,7 @@
     ],
     [
       57.2,
-      70.83
+      71.18
     ],
     [
       39.77,
@@ -4114,8 +4114,8 @@
       75.57
     ],
     [
-      107.28,
-      88.59
+      100.78,
+      78.59
     ],
     [
       106.03,
@@ -4250,16 +4250,16 @@
       165.09
     ],
     [
-      151.92,
-      151.83
+      152.27,
+      162.04
     ],
     [
       132.87,
       161.07
     ],
     [
-      122.08,
-      133.06
+      130.08,
+      138.56
     ],
     [
       103.82,
@@ -4274,20 +4274,20 @@
       128.46
     ],
     [
-      116.5,
-      105.24
+      123.0,
+      104.24
     ],
     [
-      144.17,
-      110.15
+      145.67,
+      105.65
     ],
     [
-      135.2,
-      122.39
+      140.17,
+      123.93
     ],
     [
-      154.18,
-      134.32
+      153.06,
+      136.09
     ],
     [
       163.87,
@@ -4630,38 +4630,38 @@
     133.15,
     5.0
   ],
-  "stl_size": 3729784,
-  "chassis_size": 5806984,
+  "stl_size": 3423184,
+  "chassis_size": 4416284,
   "lid_size": 428284,
-  "zip_size": 3143030,
+  "zip_size": 2258267,
   "inlays": [
     {
       "key": "green",
       "name": "Dragon Body",
       "filename": "tpu_panel_front_color_green.stl",
       "hex": "#00e676",
-      "count": 11940
+      "count": 5288
     },
     {
       "key": "magenta",
       "name": "Wings & Crest",
       "filename": "tpu_panel_front_color_magenta.stl",
       "hex": "#ec4899",
-      "count": 7796
+      "count": 5296
     },
     {
       "key": "yellow",
       "name": "Belly & Horns",
       "filename": "tpu_panel_front_color_yellow.stl",
       "hex": "#facc15",
-      "count": 7232
+      "count": 5844
     },
     {
       "key": "white",
       "name": "Eyes & Teeth",
       "filename": "tpu_panel_front_color_white.stl",
       "hex": "#ffffff",
-      "count": 5060
+      "count": 4060
     }
   ],
   "stl_url": "/3d_panels/tpu_panel_front.stl",
@@ -4669,6 +4669,6 @@
   "lid_stl_url": "/3d_panels/tpu_panel_front_lid.stl",
   "multicolor_3mf_url": "/3d_panels/tpu_panel_front_multicolor.3mf",
   "multicolor_zip_url": "/3d_panels/tpu_panel_front_multicolor_bundle.zip",
-  "volume_mm3": 67677.5,
+  "volume_mm3": 67679.4,
   "is_watertight": false
 }
