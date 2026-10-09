@@ -6,6 +6,7 @@
   "artwork_file": "active_artwork.png",
   "graphic_type": "custom_image",
   "window_shape": "round_34",
+  "well_orientation": "horizontal",
   "include_led_numbers": true,
   "include_clip_grooves": false,
   "include_top_nubs": true,
@@ -65,7 +66,7 @@
       "filename": "color_white.stl"
     }
   },
-  "layout_signature": "custom_image-round_34-horizontal-num-nogrv-nub-medium-65-v6-fc85bcba",
+  "layout_signature": "custom_image-round_34-horizontal-num-nogrv-nub-medium-65-v6-d295de77",
   "size_preset": "medium",
   "width_mm": 227.66,
   "front": {
@@ -84,780 +85,845 @@
         "orig_id": 0,
         "x": 100.36,
         "y": 55.0,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
         "color": {
           "r": 0,
           "g": 255,
           "b": 0
-        },
-        "rotation_deg": 0.0
+        }
       },
       {
         "id": 2,
         "orig_id": 1,
         "x": 83.29,
         "y": 60.91,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
         "color": {
           "r": 0,
           "g": 255,
           "b": 0
-        },
-        "rotation_deg": 0.0
+        }
       },
       {
         "id": 3,
         "orig_id": 2,
         "x": 73.31,
         "y": 54.94,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
         "color": {
           "r": 0,
           "g": 255,
           "b": 0
-        },
-        "rotation_deg": 0.0
+        }
       },
       {
         "id": 4,
         "orig_id": 3,
         "x": 54.3,
         "y": 61.32,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
         "color": {
           "r": 0,
           "g": 255,
           "b": 0
-        },
-        "rotation_deg": 0.0
+        }
       },
       {
         "id": 5,
         "orig_id": 4,
         "x": 40.2,
         "y": 68.57,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
         "color": {
           "r": 0,
           "g": 255,
           "b": 0
-        },
-        "rotation_deg": 0.0
+        }
       },
       {
         "id": 6,
         "orig_id": 5,
         "x": 47.25,
         "y": 86.73,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
         "color": {
           "r": 0,
           "g": 255,
           "b": 0
-        },
-        "rotation_deg": 0.0
+        }
       },
       {
         "id": 7,
         "orig_id": 6,
         "x": 25.58,
         "y": 65.11,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
         "color": {
           "r": 0,
           "g": 255,
           "b": 0
-        },
-        "rotation_deg": 0.0
+        }
       },
       {
         "id": 8,
         "orig_id": 7,
         "x": 21.96,
         "y": 77.97,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
         "color": {
           "r": 0,
           "g": 255,
           "b": 0
-        },
-        "rotation_deg": 0.0
+        }
       },
       {
         "id": 9,
         "orig_id": 8,
         "x": 22.56,
         "y": 94.67,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
         "color": {
           "r": 0,
           "g": 255,
           "b": 0
-        },
-        "rotation_deg": 0.0
+        }
       },
       {
         "id": 10,
         "orig_id": 9,
         "x": 36.04,
         "y": 102.51,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
         "color": {
           "r": 0,
           "g": 255,
           "b": 0
-        },
-        "rotation_deg": 0.0
+        }
       },
       {
         "id": 11,
         "orig_id": 10,
-        "x": 43.65,
-        "y": 119.52,
+        "x": 44.92,
+        "y": 114.23,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
         "color": {
           "r": 0,
           "g": 255,
           "b": 0
-        },
-        "rotation_deg": 0.0
+        }
       },
       {
         "id": 12,
         "orig_id": 11,
-        "x": 27.19,
-        "y": 125.44,
+        "x": 28.84,
+        "y": 124.28,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
         "color": {
           "r": 0,
           "g": 255,
           "b": 0
-        },
-        "rotation_deg": 0.0
+        }
       },
       {
         "id": 13,
         "orig_id": 12,
         "x": 23.26,
         "y": 144.19,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
         "color": {
           "r": 0,
           "g": 255,
           "b": 0
-        },
-        "rotation_deg": 0.0
+        }
       },
       {
         "id": 14,
         "orig_id": 13,
         "x": 36.29,
         "y": 134.42,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
         "color": {
           "r": 0,
           "g": 255,
           "b": 0
-        },
-        "rotation_deg": 0.0
+        }
       },
       {
         "id": 15,
         "orig_id": 14,
         "x": 61.92,
         "y": 150.14,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
         "color": {
           "r": 0,
           "g": 255,
           "b": 0
-        },
-        "rotation_deg": 0.0
+        }
       },
       {
         "id": 16,
         "orig_id": 15,
         "x": 73.98,
         "y": 161.3,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
         "color": {
           "r": 0,
           "g": 255,
           "b": 0
-        },
-        "rotation_deg": 0.0
+        }
       },
       {
         "id": 17,
         "orig_id": 16,
         "x": 60.45,
         "y": 168.43,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
         "color": {
           "r": 0,
           "g": 255,
           "b": 0
-        },
-        "rotation_deg": 0.0
+        }
       },
       {
         "id": 18,
         "orig_id": 17,
         "x": 64.77,
         "y": 183.13,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
         "color": {
           "r": 0,
           "g": 255,
           "b": 0
-        },
-        "rotation_deg": 0.0
+        }
       },
       {
         "id": 19,
         "orig_id": 18,
         "x": 80.99,
         "y": 175.63,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
         "color": {
           "r": 0,
           "g": 255,
           "b": 0
-        },
-        "rotation_deg": 0.0
+        }
       },
       {
         "id": 20,
         "orig_id": 19,
         "x": 91.28,
         "y": 157.13,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
         "color": {
           "r": 0,
           "g": 255,
           "b": 0
-        },
-        "rotation_deg": 0.0
+        }
       },
       {
         "id": 21,
         "orig_id": 20,
         "x": 94.8,
         "y": 141.9,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
         "color": {
           "r": 0,
           "g": 255,
           "b": 0
-        },
-        "rotation_deg": 0.0
+        }
       },
       {
         "id": 22,
         "orig_id": 21,
         "x": 94.86,
         "y": 129.04,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
         "color": {
           "r": 0,
           "g": 255,
           "b": 0
-        },
-        "rotation_deg": 0.0
+        }
       },
       {
         "id": 23,
         "orig_id": 22,
-        "x": 77.79,
-        "y": 140.41,
+        "x": 76.03,
+        "y": 137.85,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
         "color": {
           "r": 0,
           "g": 255,
           "b": 0
-        },
-        "rotation_deg": 0.0
+        }
       },
       {
         "id": 24,
         "orig_id": 23,
         "x": 59.31,
         "y": 132.57,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
         "color": {
           "r": 0,
           "g": 255,
           "b": 0
-        },
-        "rotation_deg": 0.0
+        }
       },
       {
         "id": 25,
         "orig_id": 24,
         "x": 62.34,
         "y": 119.61,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
         "color": {
           "r": 0,
           "g": 255,
           "b": 0
-        },
-        "rotation_deg": 0.0
+        }
       },
       {
         "id": 26,
         "orig_id": 25,
         "x": 58.68,
         "y": 97.04,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
         "color": {
           "r": 0,
           "g": 255,
           "b": 0
-        },
-        "rotation_deg": 0.0
+        }
       },
       {
         "id": 27,
         "orig_id": 26,
         "x": 60.44,
         "y": 78.09,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
         "color": {
           "r": 0,
           "g": 255,
           "b": 0
-        },
-        "rotation_deg": 0.0
+        }
       },
       {
         "id": 28,
         "orig_id": 27,
         "x": 78.42,
         "y": 74.04,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
         "color": {
           "r": 0,
           "g": 255,
           "b": 0
-        },
-        "rotation_deg": 0.0
+        }
       },
       {
         "id": 29,
         "orig_id": 28,
         "x": 73.42,
         "y": 87.61,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
         "color": {
           "r": 0,
           "g": 255,
           "b": 0
-        },
-        "rotation_deg": 0.0
+        }
       },
       {
         "id": 30,
         "orig_id": 29,
         "x": 75.46,
         "y": 111.59,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
         "color": {
           "r": 0,
           "g": 255,
           "b": 0
-        },
-        "rotation_deg": 0.0
+        }
       },
       {
         "id": 31,
         "orig_id": 30,
         "x": 92.46,
         "y": 116.35,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
         "color": {
           "r": 0,
           "g": 255,
           "b": 0
-        },
-        "rotation_deg": 0.0
+        }
       },
       {
         "id": 32,
         "orig_id": 31,
         "x": 97.75,
         "y": 101.98,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
         "color": {
           "r": 0,
           "g": 255,
           "b": 0
-        },
-        "rotation_deg": 0.0
+        }
       },
       {
         "id": 33,
         "orig_id": 32,
         "x": 115.73,
         "y": 115.73,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
         "color": {
           "r": 0,
           "g": 255,
           "b": 0
-        },
-        "rotation_deg": 0.0
+        }
       },
       {
         "id": 34,
         "orig_id": 33,
         "x": 113.83,
         "y": 130.89,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
         "color": {
           "r": 0,
           "g": 255,
           "b": 0
-        },
-        "rotation_deg": 0.0
+        }
       },
       {
         "id": 35,
         "orig_id": 34,
         "x": 115.73,
         "y": 146.14,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
         "color": {
           "r": 0,
           "g": 255,
           "b": 0
-        },
-        "rotation_deg": 0.0
+        }
       },
       {
         "id": 36,
         "orig_id": 35,
         "x": 111.93,
         "y": 159.36,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
         "color": {
           "r": 0,
           "g": 255,
           "b": 0
-        },
-        "rotation_deg": 0.0
+        }
       },
       {
         "id": 37,
         "orig_id": 36,
         "x": 116.01,
         "y": 173.57,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
         "color": {
           "r": 0,
           "g": 255,
           "b": 0
-        },
-        "rotation_deg": 0.0
+        }
       },
       {
         "id": 38,
         "orig_id": 37,
-        "x": 128.03,
-        "y": 170.93,
+        "x": 127.81,
+        "y": 171.52,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
         "color": {
           "r": 0,
           "g": 255,
           "b": 0
-        },
-        "rotation_deg": 0.0
+        }
       },
       {
         "id": 39,
         "orig_id": 38,
-        "x": 152.84,
-        "y": 178.2,
+        "x": 155.46,
+        "y": 180.65,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
         "color": {
           "r": 0,
           "g": 255,
           "b": 0
-        },
-        "rotation_deg": 0.0
+        }
       },
       {
         "id": 40,
         "orig_id": 39,
         "x": 159.78,
         "y": 195.29,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
         "color": {
           "r": 0,
           "g": 255,
           "b": 0
-        },
-        "rotation_deg": 0.0
+        }
       },
       {
         "id": 41,
         "orig_id": 40,
         "x": 151.55,
         "y": 207.76,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
         "color": {
           "r": 0,
           "g": 255,
           "b": 0
-        },
-        "rotation_deg": 0.0
+        }
       },
       {
         "id": 42,
         "orig_id": 41,
         "x": 174.56,
         "y": 204.93,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
         "color": {
           "r": 0,
           "g": 255,
           "b": 0
-        },
-        "rotation_deg": 0.0
+        }
       },
       {
         "id": 43,
         "orig_id": 42,
         "x": 191.92,
         "y": 210.17,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
         "color": {
           "r": 0,
           "g": 255,
           "b": 0
-        },
-        "rotation_deg": 0.0
+        }
       },
       {
         "id": 44,
         "orig_id": 43,
         "x": 189.6,
         "y": 189.75,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
         "color": {
           "r": 0,
           "g": 255,
           "b": 0
-        },
-        "rotation_deg": 0.0
+        }
       },
       {
         "id": 45,
         "orig_id": 44,
         "x": 174.56,
         "y": 176.46,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
         "color": {
           "r": 0,
           "g": 255,
           "b": 0
-        },
-        "rotation_deg": 0.0
+        }
       },
       {
         "id": 46,
         "orig_id": 45,
         "x": 182.1,
         "y": 157.51,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
         "color": {
           "r": 0,
           "g": 255,
           "b": 0
-        },
-        "rotation_deg": 0.0
+        }
       },
       {
         "id": 47,
         "orig_id": 46,
         "x": 197.64,
         "y": 170.93,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
         "color": {
           "r": 0,
           "g": 255,
           "b": 0
-        },
-        "rotation_deg": 0.0
+        }
       },
       {
         "id": 48,
         "orig_id": 47,
         "x": 199.86,
         "y": 153.27,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
         "color": {
           "r": 0,
           "g": 255,
           "b": 0
-        },
-        "rotation_deg": 0.0
+        }
       },
       {
         "id": 49,
         "orig_id": 48,
         "x": 195.34,
         "y": 143.95,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
         "color": {
           "r": 0,
           "g": 255,
           "b": 0
-        },
-        "rotation_deg": 0.0
+        }
       },
       {
         "id": 50,
         "orig_id": 49,
         "x": 178.12,
         "y": 140.82,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
         "color": {
           "r": 0,
           "g": 255,
           "b": 0
-        },
-        "rotation_deg": 0.0
+        }
       },
       {
         "id": 51,
         "orig_id": 50,
         "x": 167.26,
         "y": 148.79,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
         "color": {
           "r": 0,
           "g": 255,
           "b": 0
-        },
-        "rotation_deg": 0.0
+        }
       },
       {
         "id": 52,
         "orig_id": 51,
         "x": 155.58,
         "y": 161.3,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
         "color": {
           "r": 0,
           "g": 255,
           "b": 0
-        },
-        "rotation_deg": 0.0
+        }
       },
       {
         "id": 53,
         "orig_id": 52,
         "x": 137.62,
         "y": 158.21,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
         "color": {
           "r": 0,
           "g": 255,
           "b": 0
-        },
-        "rotation_deg": 0.0
+        }
       },
       {
         "id": 54,
         "orig_id": 53,
         "x": 147.61,
         "y": 144.2,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
         "color": {
           "r": 0,
           "g": 255,
           "b": 0
-        },
-        "rotation_deg": 0.0
+        }
       },
       {
         "id": 55,
         "orig_id": 54,
         "x": 130.9,
         "y": 138.56,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
         "color": {
           "r": 0,
           "g": 255,
           "b": 0
-        },
-        "rotation_deg": 0.0
+        }
       },
       {
         "id": 56,
         "orig_id": 55,
         "x": 140.91,
         "y": 125.6,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
         "color": {
           "r": 0,
           "g": 255,
           "b": 0
-        },
-        "rotation_deg": 0.0
+        }
       },
       {
         "id": 57,
         "orig_id": 56,
         "x": 135.2,
         "y": 112.91,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
         "color": {
           "r": 0,
           "g": 255,
           "b": 0
-        },
-        "rotation_deg": 0.0
+        }
       },
       {
         "id": 58,
         "orig_id": 57,
         "x": 134.71,
         "y": 98.63,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
         "color": {
           "r": 0,
           "g": 255,
           "b": 0
-        },
-        "rotation_deg": 0.0
+        }
       },
       {
         "id": 59,
         "orig_id": 58,
         "x": 118.77,
         "y": 88.05,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
         "color": {
           "r": 0,
           "g": 255,
           "b": 0
-        },
-        "rotation_deg": 0.0
+        }
       },
       {
         "id": 60,
         "orig_id": 59,
         "x": 93.38,
         "y": 86.73,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
         "color": {
           "r": 0,
           "g": 255,
           "b": 0
-        },
-        "rotation_deg": 0.0
+        }
       },
       {
         "id": 61,
         "orig_id": 60,
         "x": 102.47,
         "y": 74.04,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
         "color": {
           "r": 0,
           "g": 255,
           "b": 0
-        },
-        "rotation_deg": 0.0
+        }
       },
       {
         "id": 62,
         "orig_id": 61,
         "x": 120.78,
         "y": 58.07,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
         "color": {
           "r": 0,
           "g": 255,
           "b": 0
-        },
-        "rotation_deg": 0.0
+        }
       },
       {
         "id": 63,
         "orig_id": 62,
         "x": 139.04,
         "y": 57.03,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
         "color": {
           "r": 0,
           "g": 255,
           "b": 0
-        },
-        "rotation_deg": 0.0
+        }
       },
       {
         "id": 64,
         "orig_id": 63,
         "x": 151.28,
         "y": 55.95,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
         "color": {
           "r": 0,
           "g": 255,
           "b": 0
-        },
-        "rotation_deg": 0.0
+        }
       },
       {
         "id": 65,
         "orig_id": 64,
         "x": 132.66,
         "y": 70.16,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
         "color": {
           "r": 0,
           "g": 255,
           "b": 0
-        },
-        "rotation_deg": 0.0
+        }
       }
     ],
     "led_count": 65,
@@ -1015,16 +1081,16 @@
         99.17
       ],
       [
-        44.04,
-        102.51
+        29.54,
+        107.01
       ],
       [
-        43.65,
-        114.02
+        44.92,
+        119.73
       ],
       [
-        20.69,
-        120.94
+        22.34,
+        119.78
       ],
       [
         16.76,
@@ -1067,8 +1133,8 @@
         129.04
       ],
       [
-        77.79,
-        134.91
+        76.03,
+        132.35
       ],
       [
         52.81,
@@ -1127,12 +1193,12 @@
         178.07
       ],
       [
-        134.53,
-        175.43
+        134.31,
+        176.02
       ],
       [
-        146.34,
-        182.7
+        147.46,
+        180.65
       ],
       [
         166.28,
@@ -1571,31 +1637,31 @@
       133.15,
       5.0
     ],
-    "stl_size": 3729584,
-    "chassis_size": 5815184,
+    "stl_size": 3731284,
+    "chassis_size": 5829584,
     "lid_size": 432084,
-    "zip_size": 3145440,
+    "zip_size": 3153309,
     "inlays": [
       {
         "key": "green",
         "name": "Dragon Body",
         "filename": "tpu_panel_front_color_green.stl",
         "hex": "#00e676",
-        "count": 12216
+        "count": 12360
       },
       {
         "key": "magenta",
         "name": "Wings & Crest",
         "filename": "tpu_panel_front_color_magenta.stl",
         "hex": "#ec4899",
-        "count": 7300
+        "count": 7268
       },
       {
         "key": "yellow",
         "name": "Belly & Horns",
         "filename": "tpu_panel_front_color_yellow.stl",
         "hex": "#facc15",
-        "count": 7296
+        "count": 7312
       },
       {
         "key": "white",
@@ -1610,7 +1676,7 @@
     "lid_stl_url": "/3d_panels/tpu_panel_front_lid.stl",
     "multicolor_3mf_url": "/3d_panels/tpu_panel_front_multicolor.3mf",
     "multicolor_zip_url": "/3d_panels/tpu_panel_front_multicolor_bundle.zip",
-    "volume_mm3": 67650.5,
+    "volume_mm3": 67650.4,
     "is_watertight": false
   },
   "back": {
@@ -1629,780 +1695,845 @@
         "orig_id": 0,
         "x": 100.36,
         "y": 55.0,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
         "color": {
           "r": 0,
           "g": 255,
           "b": 0
-        },
-        "rotation_deg": 0.0
+        }
       },
       {
         "id": 2,
         "orig_id": 1,
         "x": 83.29,
         "y": 60.91,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
         "color": {
           "r": 0,
           "g": 255,
           "b": 0
-        },
-        "rotation_deg": 0.0
+        }
       },
       {
         "id": 3,
         "orig_id": 2,
         "x": 73.31,
         "y": 54.94,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
         "color": {
           "r": 0,
           "g": 255,
           "b": 0
-        },
-        "rotation_deg": 0.0
+        }
       },
       {
         "id": 4,
         "orig_id": 3,
         "x": 54.3,
         "y": 61.32,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
         "color": {
           "r": 0,
           "g": 255,
           "b": 0
-        },
-        "rotation_deg": 0.0
+        }
       },
       {
         "id": 5,
         "orig_id": 4,
         "x": 40.2,
         "y": 68.57,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
         "color": {
           "r": 0,
           "g": 255,
           "b": 0
-        },
-        "rotation_deg": 0.0
+        }
       },
       {
         "id": 6,
         "orig_id": 5,
         "x": 47.25,
         "y": 86.73,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
         "color": {
           "r": 0,
           "g": 255,
           "b": 0
-        },
-        "rotation_deg": 0.0
+        }
       },
       {
         "id": 7,
         "orig_id": 6,
         "x": 25.58,
         "y": 65.11,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
         "color": {
           "r": 0,
           "g": 255,
           "b": 0
-        },
-        "rotation_deg": 0.0
+        }
       },
       {
         "id": 8,
         "orig_id": 7,
         "x": 21.96,
         "y": 77.97,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
         "color": {
           "r": 0,
           "g": 255,
           "b": 0
-        },
-        "rotation_deg": 0.0
+        }
       },
       {
         "id": 9,
         "orig_id": 8,
         "x": 22.56,
         "y": 94.67,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
         "color": {
           "r": 0,
           "g": 255,
           "b": 0
-        },
-        "rotation_deg": 0.0
+        }
       },
       {
         "id": 10,
         "orig_id": 9,
         "x": 36.04,
         "y": 102.51,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
         "color": {
           "r": 0,
           "g": 255,
           "b": 0
-        },
-        "rotation_deg": 0.0
+        }
       },
       {
         "id": 11,
         "orig_id": 10,
-        "x": 43.65,
-        "y": 119.52,
+        "x": 44.92,
+        "y": 114.23,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
         "color": {
           "r": 0,
           "g": 255,
           "b": 0
-        },
-        "rotation_deg": 0.0
+        }
       },
       {
         "id": 12,
         "orig_id": 11,
-        "x": 27.19,
-        "y": 125.44,
+        "x": 28.84,
+        "y": 124.28,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
         "color": {
           "r": 0,
           "g": 255,
           "b": 0
-        },
-        "rotation_deg": 0.0
+        }
       },
       {
         "id": 13,
         "orig_id": 12,
         "x": 23.26,
         "y": 144.19,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
         "color": {
           "r": 0,
           "g": 255,
           "b": 0
-        },
-        "rotation_deg": 0.0
+        }
       },
       {
         "id": 14,
         "orig_id": 13,
         "x": 36.29,
         "y": 134.42,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
         "color": {
           "r": 0,
           "g": 255,
           "b": 0
-        },
-        "rotation_deg": 0.0
+        }
       },
       {
         "id": 15,
         "orig_id": 14,
         "x": 61.92,
         "y": 150.14,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
         "color": {
           "r": 0,
           "g": 255,
           "b": 0
-        },
-        "rotation_deg": 0.0
+        }
       },
       {
         "id": 16,
         "orig_id": 15,
         "x": 73.98,
         "y": 161.3,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
         "color": {
           "r": 0,
           "g": 255,
           "b": 0
-        },
-        "rotation_deg": 0.0
+        }
       },
       {
         "id": 17,
         "orig_id": 16,
         "x": 60.45,
         "y": 168.43,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
         "color": {
           "r": 0,
           "g": 255,
           "b": 0
-        },
-        "rotation_deg": 0.0
+        }
       },
       {
         "id": 18,
         "orig_id": 17,
         "x": 64.77,
         "y": 183.13,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
         "color": {
           "r": 0,
           "g": 255,
           "b": 0
-        },
-        "rotation_deg": 0.0
+        }
       },
       {
         "id": 19,
         "orig_id": 18,
         "x": 80.99,
         "y": 175.63,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
         "color": {
           "r": 0,
           "g": 255,
           "b": 0
-        },
-        "rotation_deg": 0.0
+        }
       },
       {
         "id": 20,
         "orig_id": 19,
         "x": 91.28,
         "y": 157.13,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
         "color": {
           "r": 0,
           "g": 255,
           "b": 0
-        },
-        "rotation_deg": 0.0
+        }
       },
       {
         "id": 21,
         "orig_id": 20,
         "x": 94.8,
         "y": 141.9,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
         "color": {
           "r": 0,
           "g": 255,
           "b": 0
-        },
-        "rotation_deg": 0.0
+        }
       },
       {
         "id": 22,
         "orig_id": 21,
         "x": 94.86,
         "y": 129.04,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
         "color": {
           "r": 0,
           "g": 255,
           "b": 0
-        },
-        "rotation_deg": 0.0
+        }
       },
       {
         "id": 23,
         "orig_id": 22,
-        "x": 77.79,
-        "y": 140.41,
+        "x": 76.03,
+        "y": 137.85,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
         "color": {
           "r": 0,
           "g": 255,
           "b": 0
-        },
-        "rotation_deg": 0.0
+        }
       },
       {
         "id": 24,
         "orig_id": 23,
         "x": 59.31,
         "y": 132.57,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
         "color": {
           "r": 0,
           "g": 255,
           "b": 0
-        },
-        "rotation_deg": 0.0
+        }
       },
       {
         "id": 25,
         "orig_id": 24,
         "x": 62.34,
         "y": 119.61,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
         "color": {
           "r": 0,
           "g": 255,
           "b": 0
-        },
-        "rotation_deg": 0.0
+        }
       },
       {
         "id": 26,
         "orig_id": 25,
         "x": 58.68,
         "y": 97.04,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
         "color": {
           "r": 0,
           "g": 255,
           "b": 0
-        },
-        "rotation_deg": 0.0
+        }
       },
       {
         "id": 27,
         "orig_id": 26,
         "x": 60.44,
         "y": 78.09,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
         "color": {
           "r": 0,
           "g": 255,
           "b": 0
-        },
-        "rotation_deg": 0.0
+        }
       },
       {
         "id": 28,
         "orig_id": 27,
         "x": 78.42,
         "y": 74.04,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
         "color": {
           "r": 0,
           "g": 255,
           "b": 0
-        },
-        "rotation_deg": 0.0
+        }
       },
       {
         "id": 29,
         "orig_id": 28,
         "x": 73.42,
         "y": 87.61,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
         "color": {
           "r": 0,
           "g": 255,
           "b": 0
-        },
-        "rotation_deg": 0.0
+        }
       },
       {
         "id": 30,
         "orig_id": 29,
         "x": 75.46,
         "y": 111.59,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
         "color": {
           "r": 0,
           "g": 255,
           "b": 0
-        },
-        "rotation_deg": 0.0
+        }
       },
       {
         "id": 31,
         "orig_id": 30,
         "x": 92.46,
         "y": 116.35,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
         "color": {
           "r": 0,
           "g": 255,
           "b": 0
-        },
-        "rotation_deg": 0.0
+        }
       },
       {
         "id": 32,
         "orig_id": 31,
         "x": 97.75,
         "y": 101.98,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
         "color": {
           "r": 0,
           "g": 255,
           "b": 0
-        },
-        "rotation_deg": 0.0
+        }
       },
       {
         "id": 33,
         "orig_id": 32,
         "x": 115.73,
         "y": 115.73,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
         "color": {
           "r": 0,
           "g": 255,
           "b": 0
-        },
-        "rotation_deg": 0.0
+        }
       },
       {
         "id": 34,
         "orig_id": 33,
         "x": 113.83,
         "y": 130.89,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
         "color": {
           "r": 0,
           "g": 255,
           "b": 0
-        },
-        "rotation_deg": 0.0
+        }
       },
       {
         "id": 35,
         "orig_id": 34,
         "x": 115.73,
         "y": 146.14,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
         "color": {
           "r": 0,
           "g": 255,
           "b": 0
-        },
-        "rotation_deg": 0.0
+        }
       },
       {
         "id": 36,
         "orig_id": 35,
         "x": 111.93,
         "y": 159.36,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
         "color": {
           "r": 0,
           "g": 255,
           "b": 0
-        },
-        "rotation_deg": 0.0
+        }
       },
       {
         "id": 37,
         "orig_id": 36,
         "x": 116.01,
         "y": 173.57,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
         "color": {
           "r": 0,
           "g": 255,
           "b": 0
-        },
-        "rotation_deg": 0.0
+        }
       },
       {
         "id": 38,
         "orig_id": 37,
-        "x": 128.03,
-        "y": 170.93,
+        "x": 127.81,
+        "y": 171.52,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
         "color": {
           "r": 0,
           "g": 255,
           "b": 0
-        },
-        "rotation_deg": 0.0
+        }
       },
       {
         "id": 39,
         "orig_id": 38,
-        "x": 152.84,
-        "y": 178.2,
+        "x": 155.46,
+        "y": 180.65,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
         "color": {
           "r": 0,
           "g": 255,
           "b": 0
-        },
-        "rotation_deg": 0.0
+        }
       },
       {
         "id": 40,
         "orig_id": 39,
         "x": 159.78,
         "y": 195.29,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
         "color": {
           "r": 0,
           "g": 255,
           "b": 0
-        },
-        "rotation_deg": 0.0
+        }
       },
       {
         "id": 41,
         "orig_id": 40,
         "x": 151.55,
         "y": 207.76,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
         "color": {
           "r": 0,
           "g": 255,
           "b": 0
-        },
-        "rotation_deg": 0.0
+        }
       },
       {
         "id": 42,
         "orig_id": 41,
         "x": 174.56,
         "y": 204.93,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
         "color": {
           "r": 0,
           "g": 255,
           "b": 0
-        },
-        "rotation_deg": 0.0
+        }
       },
       {
         "id": 43,
         "orig_id": 42,
         "x": 191.92,
         "y": 210.17,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
         "color": {
           "r": 0,
           "g": 255,
           "b": 0
-        },
-        "rotation_deg": 0.0
+        }
       },
       {
         "id": 44,
         "orig_id": 43,
         "x": 189.6,
         "y": 189.75,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
         "color": {
           "r": 0,
           "g": 255,
           "b": 0
-        },
-        "rotation_deg": 0.0
+        }
       },
       {
         "id": 45,
         "orig_id": 44,
         "x": 174.56,
         "y": 176.46,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
         "color": {
           "r": 0,
           "g": 255,
           "b": 0
-        },
-        "rotation_deg": 0.0
+        }
       },
       {
         "id": 46,
         "orig_id": 45,
         "x": 182.1,
         "y": 157.51,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
         "color": {
           "r": 0,
           "g": 255,
           "b": 0
-        },
-        "rotation_deg": 0.0
+        }
       },
       {
         "id": 47,
         "orig_id": 46,
         "x": 197.64,
         "y": 170.93,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
         "color": {
           "r": 0,
           "g": 255,
           "b": 0
-        },
-        "rotation_deg": 0.0
+        }
       },
       {
         "id": 48,
         "orig_id": 47,
         "x": 199.86,
         "y": 153.27,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
         "color": {
           "r": 0,
           "g": 255,
           "b": 0
-        },
-        "rotation_deg": 0.0
+        }
       },
       {
         "id": 49,
         "orig_id": 48,
         "x": 195.34,
         "y": 143.95,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
         "color": {
           "r": 0,
           "g": 255,
           "b": 0
-        },
-        "rotation_deg": 0.0
+        }
       },
       {
         "id": 50,
         "orig_id": 49,
         "x": 178.12,
         "y": 140.82,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
         "color": {
           "r": 0,
           "g": 255,
           "b": 0
-        },
-        "rotation_deg": 0.0
+        }
       },
       {
         "id": 51,
         "orig_id": 50,
         "x": 167.26,
         "y": 148.79,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
         "color": {
           "r": 0,
           "g": 255,
           "b": 0
-        },
-        "rotation_deg": 0.0
+        }
       },
       {
         "id": 52,
         "orig_id": 51,
         "x": 155.58,
         "y": 161.3,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
         "color": {
           "r": 0,
           "g": 255,
           "b": 0
-        },
-        "rotation_deg": 0.0
+        }
       },
       {
         "id": 53,
         "orig_id": 52,
         "x": 137.62,
         "y": 158.21,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
         "color": {
           "r": 0,
           "g": 255,
           "b": 0
-        },
-        "rotation_deg": 0.0
+        }
       },
       {
         "id": 54,
         "orig_id": 53,
         "x": 147.61,
         "y": 144.2,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
         "color": {
           "r": 0,
           "g": 255,
           "b": 0
-        },
-        "rotation_deg": 0.0
+        }
       },
       {
         "id": 55,
         "orig_id": 54,
         "x": 130.9,
         "y": 138.56,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
         "color": {
           "r": 0,
           "g": 255,
           "b": 0
-        },
-        "rotation_deg": 0.0
+        }
       },
       {
         "id": 56,
         "orig_id": 55,
         "x": 140.91,
         "y": 125.6,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
         "color": {
           "r": 0,
           "g": 255,
           "b": 0
-        },
-        "rotation_deg": 0.0
+        }
       },
       {
         "id": 57,
         "orig_id": 56,
         "x": 135.2,
         "y": 112.91,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
         "color": {
           "r": 0,
           "g": 255,
           "b": 0
-        },
-        "rotation_deg": 0.0
+        }
       },
       {
         "id": 58,
         "orig_id": 57,
         "x": 134.71,
         "y": 98.63,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
         "color": {
           "r": 0,
           "g": 255,
           "b": 0
-        },
-        "rotation_deg": 0.0
+        }
       },
       {
         "id": 59,
         "orig_id": 58,
         "x": 118.77,
         "y": 88.05,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
         "color": {
           "r": 0,
           "g": 255,
           "b": 0
-        },
-        "rotation_deg": 0.0
+        }
       },
       {
         "id": 60,
         "orig_id": 59,
         "x": 93.38,
         "y": 86.73,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
         "color": {
           "r": 0,
           "g": 255,
           "b": 0
-        },
-        "rotation_deg": 0.0
+        }
       },
       {
         "id": 61,
         "orig_id": 60,
         "x": 102.47,
         "y": 74.04,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
         "color": {
           "r": 0,
           "g": 255,
           "b": 0
-        },
-        "rotation_deg": 0.0
+        }
       },
       {
         "id": 62,
         "orig_id": 61,
         "x": 120.78,
         "y": 58.07,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
         "color": {
           "r": 0,
           "g": 255,
           "b": 0
-        },
-        "rotation_deg": 0.0
+        }
       },
       {
         "id": 63,
         "orig_id": 62,
         "x": 139.04,
         "y": 57.03,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
         "color": {
           "r": 0,
           "g": 255,
           "b": 0
-        },
-        "rotation_deg": 0.0
+        }
       },
       {
         "id": 64,
         "orig_id": 63,
         "x": 151.28,
         "y": 55.95,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
         "color": {
           "r": 0,
           "g": 255,
           "b": 0
-        },
-        "rotation_deg": 0.0
+        }
       },
       {
         "id": 65,
         "orig_id": 64,
         "x": 132.66,
         "y": 70.16,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
         "color": {
           "r": 0,
           "g": 255,
           "b": 0
-        },
-        "rotation_deg": 0.0
+        }
       }
     ],
     "led_count": 65,
@@ -2560,16 +2691,16 @@
         99.17
       ],
       [
-        44.04,
-        102.51
+        29.54,
+        107.01
       ],
       [
-        43.65,
-        114.02
+        44.92,
+        119.73
       ],
       [
-        20.69,
-        120.94
+        22.34,
+        119.78
       ],
       [
         16.76,
@@ -2612,8 +2743,8 @@
         129.04
       ],
       [
-        77.79,
-        134.91
+        76.03,
+        132.35
       ],
       [
         52.81,
@@ -2672,12 +2803,12 @@
         178.07
       ],
       [
-        134.53,
-        175.43
+        134.31,
+        176.02
       ],
       [
-        146.34,
-        182.7
+        147.46,
+        180.65
       ],
       [
         166.28,
@@ -3116,31 +3247,31 @@
       133.15,
       5.0
     ],
-    "stl_size": 3729584,
-    "chassis_size": 5815184,
+    "stl_size": 3731284,
+    "chassis_size": 5829584,
     "lid_size": 432084,
-    "zip_size": 3145424,
+    "zip_size": 3153251,
     "inlays": [
       {
         "key": "green",
         "name": "Dragon Body",
         "filename": "tpu_panel_back_color_green.stl",
         "hex": "#00e676",
-        "count": 12216
+        "count": 12360
       },
       {
         "key": "magenta",
         "name": "Wings & Crest",
         "filename": "tpu_panel_back_color_magenta.stl",
         "hex": "#ec4899",
-        "count": 7300
+        "count": 7268
       },
       {
         "key": "yellow",
         "name": "Belly & Horns",
         "filename": "tpu_panel_back_color_yellow.stl",
         "hex": "#facc15",
-        "count": 7296
+        "count": 7312
       },
       {
         "key": "white",
@@ -3155,7 +3286,7 @@
     "lid_stl_url": "/3d_panels/tpu_panel_back_lid.stl",
     "multicolor_3mf_url": "/3d_panels/tpu_panel_back_multicolor.3mf",
     "multicolor_zip_url": "/3d_panels/tpu_panel_back_multicolor_bundle.zip",
-    "volume_mm3": 67650.5,
+    "volume_mm3": 67650.4,
     "is_watertight": false
   },
   "height_mm": 273.24,
@@ -3165,784 +3296,848 @@
       "orig_id": 0,
       "x": 100.36,
       "y": 55.0,
+      "is_custom_rotation": false,
+      "rotation_deg": 0.0,
       "color": {
         "r": 0,
         "g": 255,
         "b": 0
-      },
-      "rotation_deg": 0.0
+      }
     },
     {
       "id": 2,
       "orig_id": 1,
       "x": 83.29,
       "y": 60.91,
+      "is_custom_rotation": false,
+      "rotation_deg": 0.0,
       "color": {
         "r": 0,
         "g": 255,
         "b": 0
-      },
-      "rotation_deg": 0.0
+      }
     },
     {
       "id": 3,
       "orig_id": 2,
       "x": 73.31,
       "y": 54.94,
+      "is_custom_rotation": false,
+      "rotation_deg": 0.0,
       "color": {
         "r": 0,
         "g": 255,
         "b": 0
-      },
-      "rotation_deg": 0.0
+      }
     },
     {
       "id": 4,
       "orig_id": 3,
       "x": 54.3,
       "y": 61.32,
+      "is_custom_rotation": false,
+      "rotation_deg": 0.0,
       "color": {
         "r": 0,
         "g": 255,
         "b": 0
-      },
-      "rotation_deg": 0.0
+      }
     },
     {
       "id": 5,
       "orig_id": 4,
       "x": 40.2,
       "y": 68.57,
+      "is_custom_rotation": false,
+      "rotation_deg": 0.0,
       "color": {
         "r": 0,
         "g": 255,
         "b": 0
-      },
-      "rotation_deg": 0.0
+      }
     },
     {
       "id": 6,
       "orig_id": 5,
       "x": 47.25,
       "y": 86.73,
+      "is_custom_rotation": false,
+      "rotation_deg": 0.0,
       "color": {
         "r": 0,
         "g": 255,
         "b": 0
-      },
-      "rotation_deg": 0.0
+      }
     },
     {
       "id": 7,
       "orig_id": 6,
       "x": 25.58,
       "y": 65.11,
+      "is_custom_rotation": false,
+      "rotation_deg": 0.0,
       "color": {
         "r": 0,
         "g": 255,
         "b": 0
-      },
-      "rotation_deg": 0.0
+      }
     },
     {
       "id": 8,
       "orig_id": 7,
       "x": 21.96,
       "y": 77.97,
+      "is_custom_rotation": false,
+      "rotation_deg": 0.0,
       "color": {
         "r": 0,
         "g": 255,
         "b": 0
-      },
-      "rotation_deg": 0.0
+      }
     },
     {
       "id": 9,
       "orig_id": 8,
       "x": 22.56,
       "y": 94.67,
+      "is_custom_rotation": false,
+      "rotation_deg": 0.0,
       "color": {
         "r": 0,
         "g": 255,
         "b": 0
-      },
-      "rotation_deg": 0.0
+      }
     },
     {
       "id": 10,
       "orig_id": 9,
       "x": 36.04,
       "y": 102.51,
+      "is_custom_rotation": false,
+      "rotation_deg": 0.0,
       "color": {
         "r": 0,
         "g": 255,
         "b": 0
-      },
-      "rotation_deg": 0.0
+      }
     },
     {
       "id": 11,
       "orig_id": 10,
-      "x": 43.65,
-      "y": 119.52,
+      "x": 44.92,
+      "y": 114.23,
+      "is_custom_rotation": false,
+      "rotation_deg": 0.0,
       "color": {
         "r": 0,
         "g": 255,
         "b": 0
-      },
-      "rotation_deg": 0.0
+      }
     },
     {
       "id": 12,
       "orig_id": 11,
-      "x": 27.19,
-      "y": 125.44,
+      "x": 28.84,
+      "y": 124.28,
+      "is_custom_rotation": false,
+      "rotation_deg": 0.0,
       "color": {
         "r": 0,
         "g": 255,
         "b": 0
-      },
-      "rotation_deg": 0.0
+      }
     },
     {
       "id": 13,
       "orig_id": 12,
       "x": 23.26,
       "y": 144.19,
+      "is_custom_rotation": false,
+      "rotation_deg": 0.0,
       "color": {
         "r": 0,
         "g": 255,
         "b": 0
-      },
-      "rotation_deg": 0.0
+      }
     },
     {
       "id": 14,
       "orig_id": 13,
       "x": 36.29,
       "y": 134.42,
+      "is_custom_rotation": false,
+      "rotation_deg": 0.0,
       "color": {
         "r": 0,
         "g": 255,
         "b": 0
-      },
-      "rotation_deg": 0.0
+      }
     },
     {
       "id": 15,
       "orig_id": 14,
       "x": 61.92,
       "y": 150.14,
+      "is_custom_rotation": false,
+      "rotation_deg": 0.0,
       "color": {
         "r": 0,
         "g": 255,
         "b": 0
-      },
-      "rotation_deg": 0.0
+      }
     },
     {
       "id": 16,
       "orig_id": 15,
       "x": 73.98,
       "y": 161.3,
+      "is_custom_rotation": false,
+      "rotation_deg": 0.0,
       "color": {
         "r": 0,
         "g": 255,
         "b": 0
-      },
-      "rotation_deg": 0.0
+      }
     },
     {
       "id": 17,
       "orig_id": 16,
       "x": 60.45,
       "y": 168.43,
+      "is_custom_rotation": false,
+      "rotation_deg": 0.0,
       "color": {
         "r": 0,
         "g": 255,
         "b": 0
-      },
-      "rotation_deg": 0.0
+      }
     },
     {
       "id": 18,
       "orig_id": 17,
       "x": 64.77,
       "y": 183.13,
+      "is_custom_rotation": false,
+      "rotation_deg": 0.0,
       "color": {
         "r": 0,
         "g": 255,
         "b": 0
-      },
-      "rotation_deg": 0.0
+      }
     },
     {
       "id": 19,
       "orig_id": 18,
       "x": 80.99,
       "y": 175.63,
+      "is_custom_rotation": false,
+      "rotation_deg": 0.0,
       "color": {
         "r": 0,
         "g": 255,
         "b": 0
-      },
-      "rotation_deg": 0.0
+      }
     },
     {
       "id": 20,
       "orig_id": 19,
       "x": 91.28,
       "y": 157.13,
+      "is_custom_rotation": false,
+      "rotation_deg": 0.0,
       "color": {
         "r": 0,
         "g": 255,
         "b": 0
-      },
-      "rotation_deg": 0.0
+      }
     },
     {
       "id": 21,
       "orig_id": 20,
       "x": 94.8,
       "y": 141.9,
+      "is_custom_rotation": false,
+      "rotation_deg": 0.0,
       "color": {
         "r": 0,
         "g": 255,
         "b": 0
-      },
-      "rotation_deg": 0.0
+      }
     },
     {
       "id": 22,
       "orig_id": 21,
       "x": 94.86,
       "y": 129.04,
+      "is_custom_rotation": false,
+      "rotation_deg": 0.0,
       "color": {
         "r": 0,
         "g": 255,
         "b": 0
-      },
-      "rotation_deg": 0.0
+      }
     },
     {
       "id": 23,
       "orig_id": 22,
-      "x": 77.79,
-      "y": 140.41,
+      "x": 76.03,
+      "y": 137.85,
+      "is_custom_rotation": false,
+      "rotation_deg": 0.0,
       "color": {
         "r": 0,
         "g": 255,
         "b": 0
-      },
-      "rotation_deg": 0.0
+      }
     },
     {
       "id": 24,
       "orig_id": 23,
       "x": 59.31,
       "y": 132.57,
+      "is_custom_rotation": false,
+      "rotation_deg": 0.0,
       "color": {
         "r": 0,
         "g": 255,
         "b": 0
-      },
-      "rotation_deg": 0.0
+      }
     },
     {
       "id": 25,
       "orig_id": 24,
       "x": 62.34,
       "y": 119.61,
+      "is_custom_rotation": false,
+      "rotation_deg": 0.0,
       "color": {
         "r": 0,
         "g": 255,
         "b": 0
-      },
-      "rotation_deg": 0.0
+      }
     },
     {
       "id": 26,
       "orig_id": 25,
       "x": 58.68,
       "y": 97.04,
+      "is_custom_rotation": false,
+      "rotation_deg": 0.0,
       "color": {
         "r": 0,
         "g": 255,
         "b": 0
-      },
-      "rotation_deg": 0.0
+      }
     },
     {
       "id": 27,
       "orig_id": 26,
       "x": 60.44,
       "y": 78.09,
+      "is_custom_rotation": false,
+      "rotation_deg": 0.0,
       "color": {
         "r": 0,
         "g": 255,
         "b": 0
-      },
-      "rotation_deg": 0.0
+      }
     },
     {
       "id": 28,
       "orig_id": 27,
       "x": 78.42,
       "y": 74.04,
+      "is_custom_rotation": false,
+      "rotation_deg": 0.0,
       "color": {
         "r": 0,
         "g": 255,
         "b": 0
-      },
-      "rotation_deg": 0.0
+      }
     },
     {
       "id": 29,
       "orig_id": 28,
       "x": 73.42,
       "y": 87.61,
+      "is_custom_rotation": false,
+      "rotation_deg": 0.0,
       "color": {
         "r": 0,
         "g": 255,
         "b": 0
-      },
-      "rotation_deg": 0.0
+      }
     },
     {
       "id": 30,
       "orig_id": 29,
       "x": 75.46,
       "y": 111.59,
+      "is_custom_rotation": false,
+      "rotation_deg": 0.0,
       "color": {
         "r": 0,
         "g": 255,
         "b": 0
-      },
-      "rotation_deg": 0.0
+      }
     },
     {
       "id": 31,
       "orig_id": 30,
       "x": 92.46,
       "y": 116.35,
+      "is_custom_rotation": false,
+      "rotation_deg": 0.0,
       "color": {
         "r": 0,
         "g": 255,
         "b": 0
-      },
-      "rotation_deg": 0.0
+      }
     },
     {
       "id": 32,
       "orig_id": 31,
       "x": 97.75,
       "y": 101.98,
+      "is_custom_rotation": false,
+      "rotation_deg": 0.0,
       "color": {
         "r": 0,
         "g": 255,
         "b": 0
-      },
-      "rotation_deg": 0.0
+      }
     },
     {
       "id": 33,
       "orig_id": 32,
       "x": 115.73,
       "y": 115.73,
+      "is_custom_rotation": false,
+      "rotation_deg": 0.0,
       "color": {
         "r": 0,
         "g": 255,
         "b": 0
-      },
-      "rotation_deg": 0.0
+      }
     },
     {
       "id": 34,
       "orig_id": 33,
       "x": 113.83,
       "y": 130.89,
+      "is_custom_rotation": false,
+      "rotation_deg": 0.0,
       "color": {
         "r": 0,
         "g": 255,
         "b": 0
-      },
-      "rotation_deg": 0.0
+      }
     },
     {
       "id": 35,
       "orig_id": 34,
       "x": 115.73,
       "y": 146.14,
+      "is_custom_rotation": false,
+      "rotation_deg": 0.0,
       "color": {
         "r": 0,
         "g": 255,
         "b": 0
-      },
-      "rotation_deg": 0.0
+      }
     },
     {
       "id": 36,
       "orig_id": 35,
       "x": 111.93,
       "y": 159.36,
+      "is_custom_rotation": false,
+      "rotation_deg": 0.0,
       "color": {
         "r": 0,
         "g": 255,
         "b": 0
-      },
-      "rotation_deg": 0.0
+      }
     },
     {
       "id": 37,
       "orig_id": 36,
       "x": 116.01,
       "y": 173.57,
+      "is_custom_rotation": false,
+      "rotation_deg": 0.0,
       "color": {
         "r": 0,
         "g": 255,
         "b": 0
-      },
-      "rotation_deg": 0.0
+      }
     },
     {
       "id": 38,
       "orig_id": 37,
-      "x": 128.03,
-      "y": 170.93,
+      "x": 127.81,
+      "y": 171.52,
+      "is_custom_rotation": false,
+      "rotation_deg": 0.0,
       "color": {
         "r": 0,
         "g": 255,
         "b": 0
-      },
-      "rotation_deg": 0.0
+      }
     },
     {
       "id": 39,
       "orig_id": 38,
-      "x": 152.84,
-      "y": 178.2,
+      "x": 155.46,
+      "y": 180.65,
+      "is_custom_rotation": false,
+      "rotation_deg": 0.0,
       "color": {
         "r": 0,
         "g": 255,
         "b": 0
-      },
-      "rotation_deg": 0.0
+      }
     },
     {
       "id": 40,
       "orig_id": 39,
       "x": 159.78,
       "y": 195.29,
+      "is_custom_rotation": false,
+      "rotation_deg": 0.0,
       "color": {
         "r": 0,
         "g": 255,
         "b": 0
-      },
-      "rotation_deg": 0.0
+      }
     },
     {
       "id": 41,
       "orig_id": 40,
       "x": 151.55,
       "y": 207.76,
+      "is_custom_rotation": false,
+      "rotation_deg": 0.0,
       "color": {
         "r": 0,
         "g": 255,
         "b": 0
-      },
-      "rotation_deg": 0.0
+      }
     },
     {
       "id": 42,
       "orig_id": 41,
       "x": 174.56,
       "y": 204.93,
+      "is_custom_rotation": false,
+      "rotation_deg": 0.0,
       "color": {
         "r": 0,
         "g": 255,
         "b": 0
-      },
-      "rotation_deg": 0.0
+      }
     },
     {
       "id": 43,
       "orig_id": 42,
       "x": 191.92,
       "y": 210.17,
+      "is_custom_rotation": false,
+      "rotation_deg": 0.0,
       "color": {
         "r": 0,
         "g": 255,
         "b": 0
-      },
-      "rotation_deg": 0.0
+      }
     },
     {
       "id": 44,
       "orig_id": 43,
       "x": 189.6,
       "y": 189.75,
+      "is_custom_rotation": false,
+      "rotation_deg": 0.0,
       "color": {
         "r": 0,
         "g": 255,
         "b": 0
-      },
-      "rotation_deg": 0.0
+      }
     },
     {
       "id": 45,
       "orig_id": 44,
       "x": 174.56,
       "y": 176.46,
+      "is_custom_rotation": false,
+      "rotation_deg": 0.0,
       "color": {
         "r": 0,
         "g": 255,
         "b": 0
-      },
-      "rotation_deg": 0.0
+      }
     },
     {
       "id": 46,
       "orig_id": 45,
       "x": 182.1,
       "y": 157.51,
+      "is_custom_rotation": false,
+      "rotation_deg": 0.0,
       "color": {
         "r": 0,
         "g": 255,
         "b": 0
-      },
-      "rotation_deg": 0.0
+      }
     },
     {
       "id": 47,
       "orig_id": 46,
       "x": 197.64,
       "y": 170.93,
+      "is_custom_rotation": false,
+      "rotation_deg": 0.0,
       "color": {
         "r": 0,
         "g": 255,
         "b": 0
-      },
-      "rotation_deg": 0.0
+      }
     },
     {
       "id": 48,
       "orig_id": 47,
       "x": 199.86,
       "y": 153.27,
+      "is_custom_rotation": false,
+      "rotation_deg": 0.0,
       "color": {
         "r": 0,
         "g": 255,
         "b": 0
-      },
-      "rotation_deg": 0.0
+      }
     },
     {
       "id": 49,
       "orig_id": 48,
       "x": 195.34,
       "y": 143.95,
+      "is_custom_rotation": false,
+      "rotation_deg": 0.0,
       "color": {
         "r": 0,
         "g": 255,
         "b": 0
-      },
-      "rotation_deg": 0.0
+      }
     },
     {
       "id": 50,
       "orig_id": 49,
       "x": 178.12,
       "y": 140.82,
+      "is_custom_rotation": false,
+      "rotation_deg": 0.0,
       "color": {
         "r": 0,
         "g": 255,
         "b": 0
-      },
-      "rotation_deg": 0.0
+      }
     },
     {
       "id": 51,
       "orig_id": 50,
       "x": 167.26,
       "y": 148.79,
+      "is_custom_rotation": false,
+      "rotation_deg": 0.0,
       "color": {
         "r": 0,
         "g": 255,
         "b": 0
-      },
-      "rotation_deg": 0.0
+      }
     },
     {
       "id": 52,
       "orig_id": 51,
       "x": 155.58,
       "y": 161.3,
+      "is_custom_rotation": false,
+      "rotation_deg": 0.0,
       "color": {
         "r": 0,
         "g": 255,
         "b": 0
-      },
-      "rotation_deg": 0.0
+      }
     },
     {
       "id": 53,
       "orig_id": 52,
       "x": 137.62,
       "y": 158.21,
+      "is_custom_rotation": false,
+      "rotation_deg": 0.0,
       "color": {
         "r": 0,
         "g": 255,
         "b": 0
-      },
-      "rotation_deg": 0.0
+      }
     },
     {
       "id": 54,
       "orig_id": 53,
       "x": 147.61,
       "y": 144.2,
+      "is_custom_rotation": false,
+      "rotation_deg": 0.0,
       "color": {
         "r": 0,
         "g": 255,
         "b": 0
-      },
-      "rotation_deg": 0.0
+      }
     },
     {
       "id": 55,
       "orig_id": 54,
       "x": 130.9,
       "y": 138.56,
+      "is_custom_rotation": false,
+      "rotation_deg": 0.0,
       "color": {
         "r": 0,
         "g": 255,
         "b": 0
-      },
-      "rotation_deg": 0.0
+      }
     },
     {
       "id": 56,
       "orig_id": 55,
       "x": 140.91,
       "y": 125.6,
+      "is_custom_rotation": false,
+      "rotation_deg": 0.0,
       "color": {
         "r": 0,
         "g": 255,
         "b": 0
-      },
-      "rotation_deg": 0.0
+      }
     },
     {
       "id": 57,
       "orig_id": 56,
       "x": 135.2,
       "y": 112.91,
+      "is_custom_rotation": false,
+      "rotation_deg": 0.0,
       "color": {
         "r": 0,
         "g": 255,
         "b": 0
-      },
-      "rotation_deg": 0.0
+      }
     },
     {
       "id": 58,
       "orig_id": 57,
       "x": 134.71,
       "y": 98.63,
+      "is_custom_rotation": false,
+      "rotation_deg": 0.0,
       "color": {
         "r": 0,
         "g": 255,
         "b": 0
-      },
-      "rotation_deg": 0.0
+      }
     },
     {
       "id": 59,
       "orig_id": 58,
       "x": 118.77,
       "y": 88.05,
+      "is_custom_rotation": false,
+      "rotation_deg": 0.0,
       "color": {
         "r": 0,
         "g": 255,
         "b": 0
-      },
-      "rotation_deg": 0.0
+      }
     },
     {
       "id": 60,
       "orig_id": 59,
       "x": 93.38,
       "y": 86.73,
+      "is_custom_rotation": false,
+      "rotation_deg": 0.0,
       "color": {
         "r": 0,
         "g": 255,
         "b": 0
-      },
-      "rotation_deg": 0.0
+      }
     },
     {
       "id": 61,
       "orig_id": 60,
       "x": 102.47,
       "y": 74.04,
+      "is_custom_rotation": false,
+      "rotation_deg": 0.0,
       "color": {
         "r": 0,
         "g": 255,
         "b": 0
-      },
-      "rotation_deg": 0.0
+      }
     },
     {
       "id": 62,
       "orig_id": 61,
       "x": 120.78,
       "y": 58.07,
+      "is_custom_rotation": false,
+      "rotation_deg": 0.0,
       "color": {
         "r": 0,
         "g": 255,
         "b": 0
-      },
-      "rotation_deg": 0.0
+      }
     },
     {
       "id": 63,
       "orig_id": 62,
       "x": 139.04,
       "y": 57.03,
+      "is_custom_rotation": false,
+      "rotation_deg": 0.0,
       "color": {
         "r": 0,
         "g": 255,
         "b": 0
-      },
-      "rotation_deg": 0.0
+      }
     },
     {
       "id": 64,
       "orig_id": 63,
       "x": 151.28,
       "y": 55.95,
+      "is_custom_rotation": false,
+      "rotation_deg": 0.0,
       "color": {
         "r": 0,
         "g": 255,
         "b": 0
-      },
-      "rotation_deg": 0.0
+      }
     },
     {
       "id": 65,
       "orig_id": 64,
       "x": 132.66,
       "y": 70.16,
+      "is_custom_rotation": false,
+      "rotation_deg": 0.0,
       "color": {
         "r": 0,
         "g": 255,
         "b": 0
-      },
-      "rotation_deg": 0.0
+      }
     }
   ],
   "led_count": 65,
-  "well_orientation": "horizontal",
   "variant": "front",
   "panel_width_mm": 203.19,
   "panel_height_mm": 185.62,
@@ -4102,16 +4297,16 @@
       99.17
     ],
     [
-      44.04,
-      102.51
+      29.54,
+      107.01
     ],
     [
-      43.65,
-      114.02
+      44.92,
+      119.73
     ],
     [
-      20.69,
-      120.94
+      22.34,
+      119.78
     ],
     [
       16.76,
@@ -4154,8 +4349,8 @@
       129.04
     ],
     [
-      77.79,
-      134.91
+      76.03,
+      132.35
     ],
     [
       52.81,
@@ -4214,12 +4409,12 @@
       178.07
     ],
     [
-      134.53,
-      175.43
+      134.31,
+      176.02
     ],
     [
-      146.34,
-      182.7
+      147.46,
+      180.65
     ],
     [
       166.28,
@@ -4658,31 +4853,31 @@
     133.15,
     5.0
   ],
-  "stl_size": 3729584,
-  "chassis_size": 5815184,
+  "stl_size": 3731284,
+  "chassis_size": 5829584,
   "lid_size": 432084,
-  "zip_size": 3145440,
+  "zip_size": 3153309,
   "inlays": [
     {
       "key": "green",
       "name": "Dragon Body",
       "filename": "tpu_panel_front_color_green.stl",
       "hex": "#00e676",
-      "count": 12216
+      "count": 12360
     },
     {
       "key": "magenta",
       "name": "Wings & Crest",
       "filename": "tpu_panel_front_color_magenta.stl",
       "hex": "#ec4899",
-      "count": 7300
+      "count": 7268
     },
     {
       "key": "yellow",
       "name": "Belly & Horns",
       "filename": "tpu_panel_front_color_yellow.stl",
       "hex": "#facc15",
-      "count": 7296
+      "count": 7312
     },
     {
       "key": "white",
@@ -4697,6 +4892,6 @@
   "lid_stl_url": "/3d_panels/tpu_panel_front_lid.stl",
   "multicolor_3mf_url": "/3d_panels/tpu_panel_front_multicolor.3mf",
   "multicolor_zip_url": "/3d_panels/tpu_panel_front_multicolor_bundle.zip",
-  "volume_mm3": 67650.5,
+  "volume_mm3": 67650.4,
   "is_watertight": false
 }

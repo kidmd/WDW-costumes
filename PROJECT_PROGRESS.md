@@ -93,6 +93,16 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### 2026-10-09 00:28 - 3D Modal Live Layout Canvas Synchronization & Instant Recompile Button
+- **Resolved Live Canvas vs. Cached 3D STL Discrepancy:**
+  - Diagnosed screenshot evidence where LED #37 on the 2D layout canvas had #52 adjacent to it with clearance, while the 3D preview showed an older compiled STL where #38 was adjacent and touching #37.
+  - **3D Modal Live Recompile Action (`simulator/index.html` & `simulator/app.js`):**
+    - Added a dedicated `⚡ Recompile 3D Model` action button directly in the top header toolbar of `#tpuPreviewModal`.
+    - Users can now re-trigger Manifold C++ / Python CAD compilation directly from within the 3D preview without needing to close the modal.
+  - **Enhanced Auto-Recompile Detection (`simulator/app.js`):**
+    - Strengthened `openTpuPreviewModal()` stale-STL detection to directly compare in-memory canvas `leds` count and layout coordinates against `sp.ordered_leds`.
+    - Guarantees that any LED movement or re-ordering on the 2D canvas automatically recompiles fresh Front & Back STLs before opening the 3D WebGL scene.
+
 ### 2026-10-08 23:55 - Circle Aperture Selection Carry-Over Fix for 3D Preview & 3D STL/3MF Exports
 - **Seamless Aperture Shape Carry-Over from Layout Page to 3D Previews & Files:**
   - Diagnosed and resolved the root causes preventing aperture shape selections (🔘 **Ø 3.4mm Round**, ⚪ **Ø 3.0mm Round**, 🔲 **3x3mm Square**) from carrying over from the Layout page to the 3D preview and 3D files:

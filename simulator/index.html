@@ -2786,6 +2786,9 @@
                     </div>
                 </div>
                 <div style="display: flex; align-items: center; gap: 8px; flex-shrink: 0;">
+                    <button type="button" id="tpuModalRecompileBtn" onclick="handleRecompileTpuStl({ skipOpen: true }).then(() => loadTpuModalData())" class="action-btn" style="background: rgba(0, 255, 136, 0.15); border: 1px solid #00ff88; color: #00ff88; padding: 4px 10px; border-radius: 5px; font-size: 11px; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 4px;" title="Recompile 3D STL plate immediately to reflect latest layout canvas changes">
+                        ⚡ Recompile 3D Model
+                    </button>
                     <a href="/3d_panels/tpu_panel_preview.html" target="_blank" class="action-btn" style="background: #21262d; border: 1px solid #30363d; color: #c9d1d9; text-decoration: none; padding: 4px 9px; border-radius: 5px; font-size: 11px; font-weight: 600; display: flex; align-items: center; gap: 4px;" title="Open standalone full-window viewer in new tab">
                         ↗️ Full Tab
                     </a>

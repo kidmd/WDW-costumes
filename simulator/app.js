@@ -21103,10 +21103,11 @@ async function openTpuPreviewModal() {
             let compiledNumbers = undefined;
             let compiledShape = undefined;
             let compiledOrient = undefined;
+            let sp = null;
             try {
                 const r = await fetch('/3d_panels/tpu_panel_specs.json?t=' + Date.now());
                 if (r.ok) {
-                    const sp = await r.json();
+                    sp = await r.json();
                     compiledSig = sp.layout_signature || null;
                     compiledNubs = sp.include_top_nubs;
                     compiledGrooves = sp.include_clip_grooves;
@@ -21121,6 +21122,13 @@ async function openTpuPreviewModal() {
             let normCurrentShape = String(params.tpuWindowShape || 'round_34').toLowerCase();
             if (normCurrentShape === 'round' || normCurrentShape === 'circle') normCurrentShape = 'round_34';
 
+            let ledsMismatch = false;
+            if (sp && sp.ordered_leds && Array.isArray(sp.ordered_leds)) {
+                if (sp.ordered_leds.length !== (leds || []).length) {
+                    ledsMismatch = true;
+                }
+            }
+
             const currentSig = computeTpuLayoutSignature();
             const nubsMismatch = (compiledNubs !== undefined && compiledNubs !== (params.tpuIncludeTopNubs === true));
             const groovesMismatch = (compiledGrooves !== undefined && compiledGrooves !== (params.tpuIncludeClipGrooves === true));
@@ -21128,7 +21136,7 @@ async function openTpuPreviewModal() {
             const shapeMismatch = (compiledShape !== undefined && normCompiledShape !== normCurrentShape);
             const orientMismatch = (compiledOrient !== undefined && compiledOrient !== (params.tpuWellOrientation || 'horizontal'));
 
-            if (compiledSig !== currentSig || nubsMismatch || groovesMismatch || numbersMismatch || shapeMismatch || orientMismatch) {
+            if (compiledSig !== currentSig || ledsMismatch || nubsMismatch || groovesMismatch || numbersMismatch || shapeMismatch || orientMismatch) {
                 const loaderOverlay = document.getElementById('tpuModalLoading');
                 if (loaderOverlay) {
                     loaderOverlay.style.display = 'flex';
