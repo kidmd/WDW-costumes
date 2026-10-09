@@ -93,7 +93,23 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
-### 2026-10-08 23:08 - Strain Relief Bridges & 10mm Keep-Out Rendering Visibility Fix
+### 2026-10-08 23:18 - Exact 3D STL Strain Relief Bridge Alignment & Outside Icon Clutter Removal
+- **1:1 Geometric Alignment with 3D Manifold CAD Coordinates:**
+  - Diagnosed root cause of strain reliefs appearing as icons outside the graphic area:
+    1. `getTpuBridgeLocationsNorm()` had previously estimated positions using bounding box extremes (`gb.normX + gb.normW * 0.5` and `gb.normX + gb.normW - 10mm`), pushing the exit bridge out to the empty edge of the rectangular bounding box instead of the organic dragon contour.
+    2. Fallback text badges in `renderSingleShirtView()` had rendered huge external badge boxes (`pExit.x + 35`, `pEnt.y + 19.5`) floating outside the costume shirt area.
+  - Linked `getTpuBridgeLocationsNorm()` directly to compiled 3D STL plate specs (`entrance_portal`, `entrance_bridge`, `exit_portal`, `exit_bridge`):
+    - Converted 3D Manifold CAD coordinates ($x_{\text{mm}}, y_{\text{mm}}$) to normalized canvas coordinates:
+      $$x_{\text{shirt}} = gb.\text{normX} + \frac{x_{\text{mm}}}{W_{\text{img}}} \cdot gb.\text{normW}$$
+      $$y_{\text{shirt}} = gb.\text{normY} + \left(1.0 - \frac{y_{\text{mm}}}{H_{\text{img}}}\right) \cdot gb.\text{normH}$$
+    - Bottom Entrance Bridge: Positioned directly on the bottom foot contour of Elliott ($x_{\text{rel}} = 0.3880, y_{\text{rel}} = 0.8250$), matching 3D coordinates `[88.33, 47.82]`.
+    - Lateral Exit Bridge: Positioned directly on the right flank contour of Elliott ($x_{\text{rel}} = 0.6277, y_{\text{rel}} = 0.7175$), matching 3D coordinates `[142.91, 77.19]`.
+  - Removed all external floating icon boxes (`⚡ IN (P1)` and `OUT ➔` floating 35px outside the graphic).
+  - Streamlined `drawStrainReliefBridgesOverlay(ctx)` to draw compact, neat technical annotations (`⚓ IN BRIDGE` and `⚓ OUT BRIDGE` with `10mm KEEP-OUT`) directly at the physical bridge footprints inside the character silhouette.
+  - Bumped script cache buster in `simulator/index.html` to `app.js?v=101`.
+- **Verification:**
+  - `python scripts/compile_clean_tpu_panel.py --orientation horizontal` compiled both plates and verified `entrance_bridge` and `exit_bridge` coordinate exports.
+  - `node --check simulator/app.js` passed with zero errors.
 - **Independent Canvas Overlay Rendering:**
   - Resolved issue where strain relief bridges were hidden when `showWireTension` or `showWiring` were unselected by moving `drawStrainReliefBridgesOverlay(ctx)` completely outside the conditional wiring block in `renderSingleShirtView()`.
   - Defaulted `params.showStrainReliefs` to `true` and updated `#showStrainReliefsToggle` with `checked` attribute so strain relief bridge locations and 10mm keep-out circles are immediately visible on initial load.

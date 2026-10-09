@@ -952,7 +952,9 @@ def compile_plate_variant(variant_name, width_mm, height_mm, raw_leds, artwork_p
         specs[variant_name] = {}
     specs[variant_name]['inlays'] = exported_inlays
     specs[variant_name]['entrance_portal'] = [round(float(wire_portal_x), 2), round(float(wire_portal_y), 2)]
+    specs[variant_name]['entrance_bridge'] = [round(float(wire_portal_x), 2), round(float(bridge_y), 2)]
     specs[variant_name]['exit_portal'] = [round(float(exit_portal_x), 2), round(float(exit_portal_y), 2)]
+    specs[variant_name]['exit_bridge'] = [round(float(bridge_exit_x), 2), round(float(bridge_exit_y), 2)]
     specs['stl_colors'] = stl_colors
 
     if variant_name == 'front':
@@ -1080,7 +1082,9 @@ linear_extrude(front_thickness) polygon(contour_pts);
         "led_count": len(leds),
         "fastener_tabs": tab_coords,
         "entrance_portal": [round(float(wire_portal_x), 2), round(float(wire_portal_y), 2)],
+        "entrance_bridge": [round(float(wire_portal_x), 2), round(float(bridge_y), 2)],
         "exit_portal": [round(float(exit_portal_x), 2), round(float(exit_portal_y), 2)],
+        "exit_bridge": [round(float(bridge_exit_x), 2), round(float(bridge_exit_y), 2)],
         "screw_positions": screw_coords,
         "number_positions": number_positions,
         "contour_pts": contour_coords,

@@ -929,8 +929,16 @@
       88.33,
       39.82
     ],
+    "entrance_bridge": [
+      88.33,
+      47.82
+    ],
     "exit_portal": [
       150.91,
+      77.19
+    ],
+    "exit_bridge": [
+      142.91,
       77.19
     ],
     "screw_positions": [
@@ -1564,7 +1572,7 @@
     "stl_size": 3423184,
     "chassis_size": 4416284,
     "lid_size": 428284,
-    "zip_size": 2258267,
+    "zip_size": 2258263,
     "inlays": [
       {
         "key": "green",
@@ -2464,8 +2472,16 @@
       88.33,
       39.82
     ],
+    "entrance_bridge": [
+      88.33,
+      47.82
+    ],
     "exit_portal": [
       150.91,
+      77.19
+    ],
+    "exit_bridge": [
+      142.91,
       77.19
     ],
     "screw_positions": [
@@ -3099,7 +3115,7 @@
     "stl_size": 3423184,
     "chassis_size": 4416284,
     "lid_size": 428284,
-    "zip_size": 2258283,
+    "zip_size": 2258244,
     "inlays": [
       {
         "key": "green",
@@ -4633,7 +4649,7 @@
   "stl_size": 3423184,
   "chassis_size": 4416284,
   "lid_size": 428284,
-  "zip_size": 2258267,
+  "zip_size": 2258263,
   "inlays": [
     {
       "key": "green",
@@ -4670,5 +4686,13 @@
   "multicolor_3mf_url": "/3d_panels/tpu_panel_front_multicolor.3mf",
   "multicolor_zip_url": "/3d_panels/tpu_panel_front_multicolor_bundle.zip",
   "volume_mm3": 67679.4,
-  "is_watertight": false
+  "is_watertight": false,
+  "entrance_bridge": [
+    88.33,
+    47.82
+  ],
+  "exit_bridge": [
+    142.91,
+    77.19
+  ]
 }

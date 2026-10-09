@@ -113,6 +113,19 @@ try {
     if (localStorage.getItem('msep_tpu_top_nubs') === '1') params.tpuIncludeTopNubs = true;
 } catch (e) {}
 
+// Global cache of active 3D TPU panel specifications (contour, portals, bridges)
+let activeTpuSpecs = null;
+async function fetchActiveTpuSpecs() {
+    try {
+        const resp = await fetch('/3d_panels/tpu_panel_specs.json?t=' + Date.now());
+        if (resp.ok) {
+            activeTpuSpecs = await resp.json();
+            if (typeof markSingleShirtDirty === 'function') markSingleShirtDirty();
+        }
+    } catch (e) {}
+}
+fetchActiveTpuSpecs();
+
 // Default Pete's Dragon Artwork
 const defaultDragonImg = new Image();
 let defaultDragonLoaded = false;
@@ -4172,65 +4185,34 @@ function renderSingleShirtView(timeMs) {
             ctx.stroke();
         }
 
-        // Render Fallback Entrance (Bottom IN) and Exit (Lateral Right OUT) Badges when strain relief overlay is disabled
-        if (!params.showStrainReliefs) {
-            const gb = (typeof getGraphicChestBounds === 'function') ? getGraphicChestBounds() : null;
-            if (gb && leds.length > 0) {
-                const entNorm = { x: gb.normX + gb.normW * 0.5, y: gb.normY + gb.normH };
-                const exitNorm = { x: gb.normX + gb.normW, y: gb.normY + gb.normH * 0.65 };
-                const pEnt = normToCanvas(entNorm);
-                const pExit = normToCanvas(exitNorm);
+        // Subdued wire lead-in/out to true 3D portals when strain relief overlay is off
+        if (!params.showStrainReliefs && typeof getTpuBridgeLocationsNorm === 'function') {
+            const bridges = getTpuBridgeLocationsNorm();
+            if (bridges && leds.length > 0) {
+                const pEnt = normToCanvas(bridges.entrancePortal || bridges.entrance);
+                const pExit = normToCanvas(bridges.exitPortal || bridges.exit);
                 const p0 = normToCanvas(leds[0]);
                 const pEnd = normToCanvas(leds[leds.length - 1]);
 
                 ctx.save();
-                // Dotted leader from Entrance portal to LED 0
+                // Dotted leader from 3D Entrance portal to LED 0
                 ctx.beginPath();
-                ctx.moveTo(pEnt.x, pEnt.y + 12);
+                ctx.moveTo(pEnt.x, pEnt.y);
                 ctx.lineTo(p0.x, p0.y);
-                ctx.strokeStyle = 'rgba(0, 255, 136, 0.7)';
-                ctx.lineWidth = 1.8;
+                ctx.strokeStyle = 'rgba(0, 255, 136, 0.6)';
+                ctx.lineWidth = 1.6;
                 ctx.setLineDash([3, 3]);
                 ctx.stroke();
 
-                // Dotted leader from Last LED to Exit portal
+                // Dotted leader from Last LED to 3D Exit portal
                 ctx.beginPath();
                 ctx.moveTo(pEnd.x, pEnd.y);
-                ctx.lineTo(pExit.x + 10, pExit.y);
-                ctx.strokeStyle = 'rgba(255, 77, 109, 0.7)';
-                ctx.lineWidth = 1.8;
+                ctx.lineTo(pExit.x, pExit.y);
+                ctx.strokeStyle = 'rgba(255, 77, 109, 0.6)';
+                ctx.lineWidth = 1.6;
                 ctx.setLineDash([3, 3]);
                 ctx.stroke();
                 ctx.setLineDash([]);
-
-                // Entrance & Exit Badges
-                ctx.font = 'bold 9px sans-serif';
-                ctx.textAlign = 'center';
-                ctx.textBaseline = 'middle';
-                
-                // IN badge (bottom center)
-                ctx.fillStyle = '#00ff88';
-                if (ctx.roundRect) {
-                    ctx.beginPath();
-                    ctx.roundRect(pEnt.x - 24, pEnt.y + 12, 48, 15, 3);
-                    ctx.fill();
-                } else {
-                    ctx.fillRect(pEnt.x - 24, pEnt.y + 12, 48, 15);
-                }
-                ctx.fillStyle = '#000';
-                ctx.fillText('⚡ IN (P1)', pEnt.x, pEnt.y + 19.5);
-
-                // OUT badge (lower right flank)
-                ctx.fillStyle = '#ff4d6d';
-                if (ctx.roundRect) {
-                    ctx.beginPath();
-                    ctx.roundRect(pExit.x + 12, pExit.y - 7.5, 46, 15, 3);
-                    ctx.fill();
-                } else {
-                    ctx.fillRect(pExit.x + 12, pExit.y - 7.5, 46, 15);
-                }
-                ctx.fillStyle = '#fff';
-                ctx.fillText('OUT ➔', pExit.x + 35, pExit.y);
                 ctx.restore();
             }
         }
@@ -11854,17 +11836,62 @@ function getTpuBridgeLocationsNorm() {
     const normW = (gb && gb.normW > 0) ? gb.normW : 0.8;
     const normH = (gb && gb.normH > 0) ? gb.normH : 0.385;
     const plateH = plateW * (normH / normW);
-    const mmToNormX = normW / plateW;
-    const mmToNormY = normH / plateH;
 
+    // 1. Try reading the exact 3D coordinates from loaded TPU specs
+    const sp = (typeof activeTpuSpecs !== 'undefined' && activeTpuSpecs)
+        ? (activeTpuSpecs.front || activeTpuSpecs)
+        : null;
+
+    if (sp && sp.entrance_portal && sp.exit_portal) {
+        const totalW = sp.total_image_width_mm || sp.width_mm || plateW;
+        const totalH = sp.total_image_height_mm || sp.height_mm || plateH;
+
+        const entPortalMm = sp.entrance_portal; // [x, y] in 3D mm
+        const entBridgeMm = sp.entrance_bridge || [entPortalMm[0], entPortalMm[1] + 2.5 + 5.5];
+        const exitPortalMm = sp.exit_portal;
+        const exitBridgeMm = sp.exit_bridge || [exitPortalMm[0] - 2.5 - 5.5, exitPortalMm[1]];
+
+        // In 3D CAD space, Y increases upwards. In 2D canvas, Y increases downwards:
+        return {
+            entrancePortal: {
+                x: gb.normX + (entPortalMm[0] / totalW) * gb.normW,
+                y: gb.normY + (1.0 - (entPortalMm[1] / totalH)) * gb.normH
+            },
+            entrance: {
+                x: gb.normX + (entBridgeMm[0] / totalW) * gb.normW,
+                y: gb.normY + (1.0 - (entBridgeMm[1] / totalH)) * gb.normH
+            },
+            exitPortal: {
+                x: gb.normX + (exitPortalMm[0] / totalW) * gb.normW,
+                y: gb.normY + (1.0 - (exitPortalMm[1] / totalH)) * gb.normH
+            },
+            exit: {
+                x: gb.normX + (exitBridgeMm[0] / totalW) * gb.normW,
+                y: gb.normY + (1.0 - (exitBridgeMm[1] / totalH)) * gb.normH
+            }
+        };
+    }
+
+    // 2. Accurate character silhouette fallback (derived from 3D compiled dragon specs):
+    // Pete's dragon / default float contour anchor points in normalized image space:
+    // Entrance: bottom foot notch at relX = 0.3880, relY = 0.8543 (bridge at relY = 0.8250)
+    // Exit: right flank contour notch at relX = 0.6629, relY = 0.7175 (bridge at relX = 0.6277)
     return {
+        entrancePortal: {
+            x: gb.normX + 0.3880 * gb.normW,
+            y: gb.normY + 0.8543 * gb.normH
+        },
         entrance: {
-            x: gb.normX + gb.normW * 0.5,
-            y: gb.normY + gb.normH - (10.0 * mmToNormY)
+            x: gb.normX + 0.3880 * gb.normW,
+            y: gb.normY + 0.8250 * gb.normH
+        },
+        exitPortal: {
+            x: gb.normX + 0.6629 * gb.normW,
+            y: gb.normY + 0.7175 * gb.normH
         },
         exit: {
-            x: gb.normX + gb.normW - (10.0 * mmToNormX),
-            y: gb.normY + gb.normH * 0.70
+            x: gb.normX + 0.6277 * gb.normW,
+            y: gb.normY + 0.7175 * gb.normH
         }
     };
 }
@@ -13749,26 +13776,22 @@ function drawStrainReliefBridgesOverlay(ctx) {
     const mmToNormY = normH / plateH;
 
     const entCanvas = normToCanvas(bridges.entrance);
+    const entPortalCanvas = normToCanvas(bridges.entrancePortal || bridges.entrance);
     const exitCanvas = normToCanvas(bridges.exit);
+    const exitPortalCanvas = normToCanvas(bridges.exitPortal || bridges.exit);
 
     // 10mm radius in canvas pixels
     const p10X = normToCanvas({ x: bridges.entrance.x + (10.0 * mmToNormX), y: bridges.entrance.y });
-    const r10px = Math.max(16, Math.abs(p10X.x - entCanvas.x));
+    const r10px = Math.max(14, Math.abs(p10X.x - entCanvas.x));
 
     // Bridge dimensions in canvas pixels
     // Entrance Bridge: 8.0mm X width x 7.2mm Y length
-    const pEntBrHalfX = Math.max(7, Math.abs(normToCanvas({ x: bridges.entrance.x + (4.0 * mmToNormX), y: bridges.entrance.y }).x - entCanvas.x));
-    const pEntBrHalfY = Math.max(7, Math.abs(normToCanvas({ x: bridges.entrance.x, y: bridges.entrance.y + (3.6 * mmToNormY) }).y - entCanvas.y));
+    const pEntBrHalfX = Math.max(6, Math.abs(normToCanvas({ x: bridges.entrance.x + (4.0 * mmToNormX), y: bridges.entrance.y }).x - entCanvas.x));
+    const pEntBrHalfY = Math.max(6, Math.abs(normToCanvas({ x: bridges.entrance.x, y: bridges.entrance.y + (3.6 * mmToNormY) }).y - entCanvas.y));
 
     // Exit Bridge: 7.2mm X length x 8.0mm Y width
-    const pExitBrHalfX = Math.max(7, Math.abs(normToCanvas({ x: bridges.exit.x + (3.6 * mmToNormX), y: bridges.exit.y }).x - exitCanvas.x));
-    const pExitBrHalfY = Math.max(7, Math.abs(normToCanvas({ x: bridges.exit.x, y: bridges.exit.y + (4.0 * mmToNormY) }).y - exitCanvas.y));
-
-    // Rim Portal locations in canvas coordinates
-    const rimEntNorm = { x: gb.normX + gb.normW * 0.5, y: gb.normY + gb.normH };
-    const rimExitNorm = { x: gb.normX + gb.normW, y: gb.normY + gb.normH * 0.70 };
-    const pRimEnt = normToCanvas(rimEntNorm);
-    const pRimExit = normToCanvas(rimExitNorm);
+    const pExitBrHalfX = Math.max(6, Math.abs(normToCanvas({ x: bridges.exit.x + (3.6 * mmToNormX), y: bridges.exit.y }).x - exitCanvas.x));
+    const pExitBrHalfY = Math.max(6, Math.abs(normToCanvas({ x: bridges.exit.x, y: bridges.exit.y + (4.0 * mmToNormY) }).y - exitCanvas.y));
 
     ctx.save();
 
@@ -13784,7 +13807,7 @@ function drawStrainReliefBridgesOverlay(ctx) {
         ctx.moveTo(entCanvas.x, entCanvas.y);
         ctx.lineTo(p0.x, p0.y);
         ctx.strokeStyle = 'rgba(0, 255, 136, 0.75)';
-        ctx.lineWidth = 2.0;
+        ctx.lineWidth = 1.8;
         ctx.setLineDash([4, 3]);
         ctx.stroke();
 
@@ -13793,7 +13816,7 @@ function drawStrainReliefBridgesOverlay(ctx) {
         ctx.moveTo(pEnd.x, pEnd.y);
         ctx.lineTo(exitCanvas.x, exitCanvas.y);
         ctx.strokeStyle = 'rgba(255, 77, 109, 0.75)';
-        ctx.lineWidth = 2.0;
+        ctx.lineWidth = 1.8;
         ctx.setLineDash([4, 3]);
         ctx.stroke();
         ctx.setLineDash([]);
@@ -13805,38 +13828,38 @@ function drawStrainReliefBridgesOverlay(ctx) {
     // 10mm Safety Clearance Keep-Out Halo
     ctx.beginPath();
     ctx.arc(entCanvas.x, entCanvas.y, r10px, 0, Math.PI * 2);
-    ctx.fillStyle = 'rgba(0, 255, 136, 0.16)';
+    ctx.fillStyle = 'rgba(0, 255, 136, 0.14)';
     ctx.fill();
     ctx.strokeStyle = '#00ff88';
-    ctx.lineWidth = 2.0;
-    ctx.setLineDash([5, 3]);
+    ctx.lineWidth = 1.8;
+    ctx.setLineDash([4, 3]);
     ctx.stroke();
     ctx.setLineDash([]);
 
-    // Lead wire from bottom rim U-notch into bridge tunnel
+    // Solid Lead wire from rim U-notch into bridge tunnel
     ctx.beginPath();
-    ctx.moveTo(pRimEnt.x, pRimEnt.y);
+    ctx.moveTo(entPortalCanvas.x, entPortalCanvas.y);
     ctx.lineTo(entCanvas.x, entCanvas.y);
     ctx.strokeStyle = '#00ff88';
-    ctx.lineWidth = 3.2;
+    ctx.lineWidth = 2.8;
     ctx.stroke();
 
     // Rim Entrance U-notch Marker
     ctx.beginPath();
-    ctx.arc(pRimEnt.x, pRimEnt.y, 4, 0, Math.PI * 2);
+    ctx.arc(entPortalCanvas.x, entPortalCanvas.y, 3.5, 0, Math.PI * 2);
     ctx.fillStyle = '#00ff88';
     ctx.fill();
     ctx.strokeStyle = '#000';
-    ctx.lineWidth = 1.5;
+    ctx.lineWidth = 1.2;
     ctx.stroke();
 
-    // Solid Bridge Block Footprint
+    // Solid Bridge Block Footprint (8.0mm W x 7.2mm L)
     ctx.fillStyle = '#062817';
     ctx.strokeStyle = '#00ff88';
-    ctx.lineWidth = 2.2;
+    ctx.lineWidth = 2.0;
     if (ctx.roundRect) {
         ctx.beginPath();
-        ctx.roundRect(entCanvas.x - pEntBrHalfX, entCanvas.y - pEntBrHalfY, pEntBrHalfX * 2, pEntBrHalfY * 2, 4);
+        ctx.roundRect(entCanvas.x - pEntBrHalfX, entCanvas.y - pEntBrHalfY, pEntBrHalfX * 2, pEntBrHalfY * 2, 3);
         ctx.fill();
         ctx.stroke();
     } else {
@@ -13844,39 +13867,24 @@ function drawStrainReliefBridgesOverlay(ctx) {
         ctx.strokeRect(entCanvas.x - pEntBrHalfX, entCanvas.y - pEntBrHalfY, pEntBrHalfX * 2, pEntBrHalfY * 2);
     }
 
-    // Bridge Arch Inner Through-Tunnel (runs vertically in Y)
+    // Bridge Arch Inner Through-Tunnel (horizontal zip-tie tunnel in X)
     ctx.fillStyle = '#000000';
-    ctx.fillRect(entCanvas.x - (pEntBrHalfX * 0.4), entCanvas.y - pEntBrHalfY - 1, pEntBrHalfX * 0.8, pEntBrHalfY * 2 + 2);
+    ctx.fillRect(entCanvas.x - (pEntBrHalfX * 0.9), entCanvas.y - (pEntBrHalfY * 0.35), pEntBrHalfX * 1.8, pEntBrHalfY * 0.7);
     ctx.strokeStyle = '#38bdf8';
-    ctx.lineWidth = 1.4;
-    ctx.strokeRect(entCanvas.x - (pEntBrHalfX * 0.4), entCanvas.y - pEntBrHalfY - 1, pEntBrHalfX * 0.8, pEntBrHalfY * 2 + 2);
-
-    // Entrance Bridge Text Badge
-    const inBadgeY = entCanvas.y - pEntBrHalfY - 10;
-    ctx.font = 'bold 9.5px sans-serif';
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    const inTxt = '⚓ IN STRAIN RELIEF';
-    const inTw = ctx.measureText(inTxt).width;
-    ctx.fillStyle = 'rgba(6, 40, 23, 0.92)';
-    ctx.strokeStyle = '#00ff88';
     ctx.lineWidth = 1.2;
-    if (ctx.roundRect) {
-        ctx.beginPath();
-        ctx.roundRect(entCanvas.x - inTw / 2 - 6, inBadgeY - 7, inTw + 12, 14, 3);
-        ctx.fill();
-        ctx.stroke();
-    } else {
-        ctx.fillRect(entCanvas.x - inTw / 2 - 6, inBadgeY - 7, inTw + 12, 14);
-        ctx.strokeRect(entCanvas.x - inTw / 2 - 6, inBadgeY - 7, inTw + 12, 14);
-    }
-    ctx.fillStyle = '#00ff88';
-    ctx.fillText(inTxt, entCanvas.x, inBadgeY);
+    ctx.strokeRect(entCanvas.x - (pEntBrHalfX * 0.9), entCanvas.y - (pEntBrHalfY * 0.35), pEntBrHalfX * 1.8, pEntBrHalfY * 0.7);
 
-    // 10mm Keep-Out Tag
-    ctx.font = 'bold 8.5px monospace';
+    // Compact technical text label right at the bridge
+    ctx.font = 'bold 8.5px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'bottom';
+    ctx.fillStyle = '#00ff88';
+    ctx.fillText('⚓ IN BRIDGE', entCanvas.x, entCanvas.y - pEntBrHalfY - 2);
+
+    ctx.font = '8px monospace';
+    ctx.textBaseline = 'top';
     ctx.fillStyle = '#34d399';
-    ctx.fillText('10mm KEEP-OUT', entCanvas.x, entCanvas.y + pEntBrHalfY + 9);
+    ctx.fillText('10mm KEEP-OUT', entCanvas.x, entCanvas.y + pEntBrHalfY + 2);
 
     // -------------------------------------------------------------
     // 2. EXIT STRAIN RELIEF BRIDGE (Lateral Right Flank OUT)
@@ -13884,38 +13892,38 @@ function drawStrainReliefBridgesOverlay(ctx) {
     // 10mm Safety Clearance Keep-Out Halo
     ctx.beginPath();
     ctx.arc(exitCanvas.x, exitCanvas.y, r10px, 0, Math.PI * 2);
-    ctx.fillStyle = 'rgba(255, 77, 109, 0.16)';
+    ctx.fillStyle = 'rgba(255, 77, 109, 0.14)';
     ctx.fill();
     ctx.strokeStyle = '#ff4d6d';
-    ctx.lineWidth = 2.0;
-    ctx.setLineDash([5, 3]);
+    ctx.lineWidth = 1.8;
+    ctx.setLineDash([4, 3]);
     ctx.stroke();
     ctx.setLineDash([]);
 
-    // Lead wire from bridge tunnel to lateral rim U-notch
+    // Solid Lead wire from bridge tunnel to lateral rim U-notch
     ctx.beginPath();
     ctx.moveTo(exitCanvas.x, exitCanvas.y);
-    ctx.lineTo(pRimExit.x, pRimExit.y);
+    ctx.lineTo(exitPortalCanvas.x, exitPortalCanvas.y);
     ctx.strokeStyle = '#ff4d6d';
-    ctx.lineWidth = 3.2;
+    ctx.lineWidth = 2.8;
     ctx.stroke();
 
     // Rim Exit U-notch Marker
     ctx.beginPath();
-    ctx.arc(pRimExit.x, pRimExit.y, 4, 0, Math.PI * 2);
+    ctx.arc(exitPortalCanvas.x, exitPortalCanvas.y, 3.5, 0, Math.PI * 2);
     ctx.fillStyle = '#ff4d6d';
     ctx.fill();
     ctx.strokeStyle = '#000';
-    ctx.lineWidth = 1.5;
+    ctx.lineWidth = 1.2;
     ctx.stroke();
 
-    // Solid Bridge Block Footprint
+    // Solid Bridge Block Footprint (7.2mm L x 8.0mm W)
     ctx.fillStyle = '#2b0c16';
     ctx.strokeStyle = '#ff4d6d';
-    ctx.lineWidth = 2.2;
+    ctx.lineWidth = 2.0;
     if (ctx.roundRect) {
         ctx.beginPath();
-        ctx.roundRect(exitCanvas.x - pExitBrHalfX, exitCanvas.y - pExitBrHalfY, pExitBrHalfX * 2, pExitBrHalfY * 2, 4);
+        ctx.roundRect(exitCanvas.x - pExitBrHalfX, exitCanvas.y - pExitBrHalfY, pExitBrHalfX * 2, pExitBrHalfY * 2, 3);
         ctx.fill();
         ctx.stroke();
     } else {
@@ -13923,39 +13931,24 @@ function drawStrainReliefBridgesOverlay(ctx) {
         ctx.strokeRect(exitCanvas.x - pExitBrHalfX, exitCanvas.y - pExitBrHalfY, pExitBrHalfX * 2, pExitBrHalfY * 2);
     }
 
-    // Bridge Arch Inner Through-Tunnel (runs horizontally in X towards exit)
+    // Bridge Arch Inner Through-Tunnel (vertical zip-tie tunnel in Y)
     ctx.fillStyle = '#000000';
-    ctx.fillRect(exitCanvas.x - pExitBrHalfX - 1, exitCanvas.y - (pExitBrHalfY * 0.4), pExitBrHalfX * 2 + 2, pExitBrHalfY * 0.8);
+    ctx.fillRect(exitCanvas.x - (pExitBrHalfX * 0.35), exitCanvas.y - (pExitBrHalfY * 0.9), pExitBrHalfX * 0.7, pExitBrHalfY * 1.8);
     ctx.strokeStyle = '#ffb703';
-    ctx.lineWidth = 1.4;
-    ctx.strokeRect(exitCanvas.x - pExitBrHalfX - 1, exitCanvas.y - (pExitBrHalfY * 0.4), pExitBrHalfX * 2 + 2, pExitBrHalfY * 0.8);
-
-    // Exit Bridge Text Badge
-    const outBadgeY = exitCanvas.y - pExitBrHalfY - 10;
-    ctx.font = 'bold 9.5px sans-serif';
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    const outTxt = '⚓ OUT STRAIN RELIEF';
-    const outTw = ctx.measureText(outTxt).width;
-    ctx.fillStyle = 'rgba(43, 12, 22, 0.92)';
-    ctx.strokeStyle = '#ff4d6d';
     ctx.lineWidth = 1.2;
-    if (ctx.roundRect) {
-        ctx.beginPath();
-        ctx.roundRect(exitCanvas.x - outTw / 2 - 6, outBadgeY - 7, outTw + 12, 14, 3);
-        ctx.fill();
-        ctx.stroke();
-    } else {
-        ctx.fillRect(exitCanvas.x - outTw / 2 - 6, outBadgeY - 7, outTw + 12, 14);
-        ctx.strokeRect(exitCanvas.x - outTw / 2 - 6, outBadgeY - 7, outTw + 12, 14);
-    }
-    ctx.fillStyle = '#ff4d6d';
-    ctx.fillText(outTxt, exitCanvas.x, outBadgeY);
+    ctx.strokeRect(exitCanvas.x - (pExitBrHalfX * 0.35), exitCanvas.y - (pExitBrHalfY * 0.9), pExitBrHalfX * 0.7, pExitBrHalfY * 1.8);
 
-    // 10mm Keep-Out Tag
-    ctx.font = 'bold 8.5px monospace';
+    // Compact technical text label right at the bridge
+    ctx.font = 'bold 8.5px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'bottom';
+    ctx.fillStyle = '#ff4d6d';
+    ctx.fillText('⚓ OUT BRIDGE', exitCanvas.x, exitCanvas.y - pExitBrHalfY - 2);
+
+    ctx.font = '8px monospace';
+    ctx.textBaseline = 'top';
     ctx.fillStyle = '#f87171';
-    ctx.fillText('10mm KEEP-OUT', exitCanvas.x, exitCanvas.y + pExitBrHalfY + 9);
+    ctx.fillText('10mm KEEP-OUT', exitCanvas.x, exitCanvas.y + pExitBrHalfY + 2);
 
     ctx.restore();
 }
@@ -20652,6 +20645,7 @@ function initTpuArmorPanel() {
     const strainReliefsTog = document.getElementById('showStrainReliefsToggle');
     if (strainReliefsTog) strainReliefsTog.checked = (params.showStrainReliefs === true);
     updateTpuDownloadButtons();
+    fetchActiveTpuSpecs();
 }
 window.initTpuArmorPanel = initTpuArmorPanel;
 window.openTpuPreviewModal = openTpuPreviewModal;
@@ -21031,6 +21025,7 @@ async function handleRecompileTpuStl(opts) {
         const data = await resp.json();
 
         if (data.success) {
+            await fetchActiveTpuSpecs();
             if (statusEl) {
                 statusEl.style.color = '#00ff88';
                 statusEl.textContent = `✅ Compiled ${data.float_name || floatName} STL (${(data.stl_size / 1024 / 1024).toFixed(2)} MB)!`;
