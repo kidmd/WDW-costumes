@@ -93,6 +93,18 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### 2026-10-08 22:36 - 3D Preview Modal Loading Hang & Event De-duplication Fix
+- **Modal Event Listener & Double-Invocation Resolution:**
+  - Diagnosed root cause of the modal getting stuck on `"Loading Binary STL & Compiling Shaders..."`: `#openTpuPreviewModalBtn`, `#closeTpuPreviewModalBtn`, and `#closeTpuPreviewModalBottomBtn` had both inline HTML `onclick` attributes in `simulator/index.html` and JavaScript `addEventListener('click', ...)` bindings in `simulator/app.js`.
+  - When the user clicked "Preview 3D TPU Panels", `openTpuPreviewModal()` executed twice simultaneously. Request #1 incremented `tpuLoadRequestId = 1`, and Request #2 incremented it to `2`.
+  - When Request #1 finished, it evaluated `reqId !== tpuLoadRequestId` (1 !== 2) and exited early without dismissing `#tpuModalLoading`, leaving the spinner overlay permanently visible over the canvas.
+  - Stripped duplicate inline `onclick` handlers from `simulator/index.html` and added a strict re-entrancy guard in `openTpuPreviewModal()`.
+- **Three.js STLLoader Timeout & Safe Handling (`loadStlWithTimeout`):**
+  - Created `loadStlWithTimeout(stlLoader, url, timeoutMs = 8000)` wrapper that prevents unhandled promise rejections and gracefully falls back or resolves `null` on network/file fetch issues.
+  - Refactored `loadTpuModalData()` with a `try ... catch ... finally` block, ensuring `#tpuModalLoading` is guaranteed to be dismissed (`loaderOverlay.style.display = 'none'`) once processing completes.
+- **Node Syntax Verification:**
+  - Ran `node --check simulator/app.js` with zero errors.
+
 ### 2026-10-08 22:28 - Horizontal Channel Orientation & 3D STL Synchronization Fix
 - **Global Horizontal Channel Alignment Enforcement:**
   - Diagnosed root cause why horizontal alignment on the Layout tab produced tangent collars in 3D preview: `getTpuWellRotationAngle` in `simulator/app.js` and `compile_clean_tpu_panel.py` were checking `if ('rotation_deg' in leds[i])` before checking the global `well_orientation == 'horizontal'` mode. If an LED had an old tangent angle cached, it overrode the horizontal mode.

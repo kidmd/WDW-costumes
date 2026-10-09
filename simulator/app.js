@@ -20817,6 +20817,13 @@ async function openTpuPreviewModal() {
         console.error("[TPU Preview] Element #tpuPreviewModal not found in DOM");
         return;
     }
+
+    // Re-entrancy guard: if already open and not compiling, just adjust resize and return
+    if (tpuIsOpen && modal.style.display === 'flex' && !tpuAutoCompileInFlight) {
+        onTpuWindowResize();
+        return;
+    }
+
     modal.style.display = 'flex';
     tpuIsOpen = true;
 
@@ -21052,6 +21059,48 @@ function clearTpuSceneModel() {
     tpuBaseColors = [];
 }
 
+function loadStlWithTimeout(stlLoader, url, timeoutMs = 8000) {
+    return new Promise((resolve) => {
+        let done = false;
+        const timer = setTimeout(() => {
+            if (!done) {
+                done = true;
+                console.warn("[TPU Preview] STL load timed out after " + timeoutMs + "ms for:", url);
+                resolve(null);
+            }
+        }, timeoutMs);
+
+        try {
+            stlLoader.load(
+                url,
+                (geom) => {
+                    if (!done) {
+                        done = true;
+                        clearTimeout(timer);
+                        resolve(geom);
+                    }
+                },
+                undefined,
+                (err) => {
+                    if (!done) {
+                        done = true;
+                        clearTimeout(timer);
+                        console.warn("[TPU Preview] STL load failed for:", url, err);
+                        resolve(null);
+                    }
+                }
+            );
+        } catch (e) {
+            if (!done) {
+                done = true;
+                clearTimeout(timer);
+                console.warn("[TPU Preview] STLLoader exception:", e);
+                resolve(null);
+            }
+        }
+    });
+}
+
 async function loadTpuModalData() {
     const reqId = ++tpuLoadRequestId;
     const loaderOverlay = document.getElementById('tpuModalLoading');
@@ -21072,10 +21121,13 @@ async function loadTpuModalData() {
 
         if (!specs) {
             const fallbackResp = await fetch('/3d_panels/petes_dragon_specs.json?t=' + Date.now());
-            specs = await fallbackResp.json();
+            if (fallbackResp.ok) specs = await fallbackResp.json();
         }
 
         if (reqId !== tpuLoadRequestId) return; // Superceded by newer request
+        if (!specs) {
+            throw new Error("Could not load TPU panel specs from server");
+        }
         lastLoadedTpuSpecs = specs;
 
         const variantData = (specs[tpuActiveVariant]) ? specs[tpuActiveVariant] : specs;
@@ -21252,58 +21304,60 @@ async function loadTpuModalData() {
             if (tpuDisplayMode === 'lid') {
                 // Load 2.0mm Rear Cover Lid Plate
                 const lidUrl = `/3d_panels/tpu_panel_${v}_lid.stl?t=` + Date.now();
-                const lidGeom = await new Promise((resolve, reject) => {
-                    stlLoader.load(lidUrl, resolve, undefined, () => {
-                        stlLoader.load(`/3d_panels/petes_dragon_tpu_panel_lid.stl?t=` + Date.now(), resolve, undefined, reject);
-                    });
-                });
+                let lidGeom = await loadStlWithTimeout(stlLoader, lidUrl);
+                if (!lidGeom) {
+                    lidGeom = await loadStlWithTimeout(stlLoader, `/3d_panels/petes_dragon_tpu_panel_lid.stl?t=` + Date.now());
+                }
                 if (reqId !== tpuLoadRequestId) return;
 
-                lidGeom.computeVertexNormals();
-                lidGeom.computeBoundingBox();
-                stlCenter = lidGeom.boundingBox.getCenter(new THREE.Vector3());
+                if (lidGeom) {
+                    lidGeom.computeVertexNormals();
+                    lidGeom.computeBoundingBox();
+                    stlCenter = lidGeom.boundingBox.getCenter(new THREE.Vector3());
 
-                const lidMat = new THREE.MeshStandardMaterial({
-                    color: (v === 'back') ? 0x1f2937 : 0x242e3d,
-                    roughness: 0.50,
-                    metalness: 0.15,
-                    side: THREE.DoubleSide
-                });
-                const lidMesh = new THREE.Mesh(lidGeom, lidMat);
-                lidMesh.position.set(-stlCenter.x, -stlCenter.y, -stlCenter.z);
-                tpuScene.add(lidMesh);
-                tpuMultiMeshes.push(lidMesh);
+                    const lidMat = new THREE.MeshStandardMaterial({
+                        color: (v === 'back') ? 0x1f2937 : 0x242e3d,
+                        roughness: 0.50,
+                        metalness: 0.15,
+                        side: THREE.DoubleSide
+                    });
+                    const lidMesh = new THREE.Mesh(lidGeom, lidMat);
+                    lidMesh.position.set(-stlCenter.x, -stlCenter.y, -stlCenter.z);
+                    tpuScene.add(lidMesh);
+                    tpuMultiMeshes.push(lidMesh);
 
-                const b = [(lidGeom.boundingBox.max.x - lidGeom.boundingBox.min.x).toFixed(1),
-                           (lidGeom.boundingBox.max.y - lidGeom.boundingBox.min.y).toFixed(1),
-                           (lidGeom.boundingBox.max.z - lidGeom.boundingBox.min.z).toFixed(1)];
-                if (dimText) dimText.textContent = `${b[0]} × ${b[1]} × ${b[2]} mm`;
-                if (weightText) weightText.textContent = `~38 g`;
+                    const b = [(lidGeom.boundingBox.max.x - lidGeom.boundingBox.min.x).toFixed(1),
+                               (lidGeom.boundingBox.max.y - lidGeom.boundingBox.min.y).toFixed(1),
+                               (lidGeom.boundingBox.max.z - lidGeom.boundingBox.min.z).toFixed(1)];
+                    if (dimText) dimText.textContent = `${b[0]} × ${b[1]} × ${b[2]} mm`;
+                    if (weightText) weightText.textContent = `~38 g`;
+                }
                 if (legend) legend.style.display = 'none';
             } else if (tpuExportMode === 'multi') {
                 // 1. Load Black Chassis
                 const chassisUrl = `/3d_panels/tpu_panel_${v}_chassis_black.stl?t=` + Date.now();
-                const chassisGeom = await new Promise((resolve, reject) => {
-                    stlLoader.load(chassisUrl, resolve, undefined, () => {
-                        stlLoader.load(`/3d_panels/tpu_panel_${v}.stl?t=` + Date.now(), resolve, undefined, reject);
-                    });
-                });
+                let chassisGeom = await loadStlWithTimeout(stlLoader, chassisUrl);
+                if (!chassisGeom) {
+                    chassisGeom = await loadStlWithTimeout(stlLoader, `/3d_panels/tpu_panel_${v}.stl?t=` + Date.now());
+                }
                 if (reqId !== tpuLoadRequestId) return;
 
-                chassisGeom.computeVertexNormals();
-                chassisGeom.computeBoundingBox();
-                stlCenter = chassisGeom.boundingBox.getCenter(new THREE.Vector3());
+                if (chassisGeom) {
+                    chassisGeom.computeVertexNormals();
+                    chassisGeom.computeBoundingBox();
+                    stlCenter = chassisGeom.boundingBox.getCenter(new THREE.Vector3());
 
-                const chassisMat = new THREE.MeshStandardMaterial({
-                    color: 0x181f28,
-                    roughness: 0.50,
-                    metalness: 0.20,
-                    side: THREE.DoubleSide
-                });
-                const chassisMesh = new THREE.Mesh(chassisGeom, chassisMat);
-                chassisMesh.position.set(-stlCenter.x, -stlCenter.y, -stlCenter.z);
-                tpuScene.add(chassisMesh);
-                tpuMultiMeshes.push(chassisMesh);
+                    const chassisMat = new THREE.MeshStandardMaterial({
+                        color: 0x181f28,
+                        roughness: 0.50,
+                        metalness: 0.20,
+                        side: THREE.DoubleSide
+                    });
+                    const chassisMesh = new THREE.Mesh(chassisGeom, chassisMat);
+                    chassisMesh.position.set(-stlCenter.x, -stlCenter.y, -stlCenter.z);
+                    tpuScene.add(chassisMesh);
+                    tpuMultiMeshes.push(chassisMesh);
+                }
 
                 // 2. Load Color Inlays dynamically
                 let inlaysToLoad = [];
@@ -21334,9 +21388,7 @@ async function loadTpuModalData() {
 
                 for (const item of inlaysToLoad) {
                     try {
-                        const iGeom = await new Promise((resolve) => {
-                            stlLoader.load(`/3d_panels/${item.file}?t=` + Date.now(), resolve, undefined, () => resolve(null));
-                        });
+                        const iGeom = await loadStlWithTimeout(stlLoader, `/3d_panels/${item.file}?t=` + Date.now());
                         if (iGeom) {
                             iGeom.computeVertexNormals();
                             const iMat = new THREE.MeshStandardMaterial({
@@ -21351,39 +21403,39 @@ async function loadTpuModalData() {
                             tpuMultiMeshes.push(iMesh);
                         }
                     } catch (e) {
-                        console.warn("Could not load inlay:", item.file, e);
+                        console.warn("[TPU Preview] Could not load inlay:", item.file, e);
                     }
                 }
             } else {
                 // Monolithic Single STL
                 const stlFile = (v === 'back') ? 'tpu_panel_back.stl' : 'tpu_panel_front.stl';
-                const stlUrl = `/3d_panels/${stlFile}?t=` + Date.now();
-                const geom = await new Promise((resolve, reject) => {
-                    stlLoader.load(stlUrl, resolve, undefined, () => {
-                        stlLoader.load('/3d_panels/tpu_panel.stl?t=' + Date.now(), resolve, undefined, reject);
+                let geom = await loadStlWithTimeout(stlLoader, `/3d_panels/${stlFile}?t=` + Date.now());
+                if (!geom) {
+                    geom = await loadStlWithTimeout(stlLoader, `/3d_panels/tpu_panel.stl?t=` + Date.now());
+                }
+                if (reqId !== tpuLoadRequestId) return;
+
+                if (geom) {
+                    geom.computeVertexNormals();
+                    geom.computeBoundingBox();
+                    stlCenter = geom.boundingBox.getCenter(new THREE.Vector3());
+
+                    const stlMat = new THREE.MeshStandardMaterial({
+                        color: (v === 'back') ? 0x142033 : 0x1a2230,
+                        roughness: 0.55,
+                        metalness: 0.15,
+                        side: THREE.DoubleSide,
+                        transparent: true,
+                        opacity: 0.95
                     });
-                });
-                if (reqId !== tpuLoadRequestId) return;
 
-                geom.computeVertexNormals();
-                geom.computeBoundingBox();
-                stlCenter = geom.boundingBox.getCenter(new THREE.Vector3());
+                    tpuStlMesh = new THREE.Mesh(geom, stlMat);
+                    tpuStlMesh.position.set(-stlCenter.x, -stlCenter.y, -stlCenter.z);
+                    tpuScene.add(tpuStlMesh);
 
-                const stlMat = new THREE.MeshStandardMaterial({
-                    color: (v === 'back') ? 0x142033 : 0x1a2230,
-                    roughness: 0.55,
-                    metalness: 0.15,
-                    side: THREE.DoubleSide,
-                    transparent: true,
-                    opacity: 0.95
-                });
-
-                tpuStlMesh = new THREE.Mesh(geom, stlMat);
-                tpuStlMesh.position.set(-stlCenter.x, -stlCenter.y, -stlCenter.z);
-                tpuScene.add(tpuStlMesh);
-
-                await createTpuGraphicCutoutMesh(variantData, stlCenter);
-                if (reqId !== tpuLoadRequestId) return;
+                    await createTpuGraphicCutoutMesh(variantData, stlCenter);
+                    if (reqId !== tpuLoadRequestId) return;
+                }
             }
         }
 
@@ -21392,13 +21444,16 @@ async function loadTpuModalData() {
             createTpuLedPixels(variantData, stlCenter);
         }
 
-        if (loaderOverlay) loaderOverlay.style.display = 'none';
-
         startTpuAnimateLoop();
     } catch (err) {
         console.error("TPU Modal loading error:", err);
-        if (loaderOverlay) {
-            loaderOverlay.innerHTML = `<div style="color:#ef4444; font-weight:700;">Error Loading 3D Preview: ${err.message}</div>`;
+        if (loaderOverlay && reqId === tpuLoadRequestId) {
+            const errMsg = (err && err.message) ? err.message : String(err);
+            loaderOverlay.innerHTML = `<div style="color:#ef4444; font-weight:700; text-align:center; padding: 12px;">Error Loading 3D Preview: ${errMsg}</div>`;
+        }
+    } finally {
+        if (loaderOverlay && reqId === tpuLoadRequestId && !loaderOverlay.innerHTML.includes('Error Loading')) {
+            loaderOverlay.style.display = 'none';
         }
     }
 }
