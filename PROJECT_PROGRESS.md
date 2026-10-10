@@ -93,6 +93,18 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### 2026-10-10 06:10 - Workbench Mirrored Back View for LED Placement & Assembly Guide
+- **Implemented Mirrored Back View in Placement Guide Mode (`simulator/app.js` & `simulator/index.html`):**
+  - Horizontally mirrored the placement guide canvas layout, chest graphic artwork (`activeImg`), race bib, LED coordinates (`1.0 - x`), wire routing traces, optical 3×3mm apertures, and interactive mouse drag/click hit-testing when in Placement Guide mode (`graphicVersion === 'assembly_guide'`).
+  - Added dedicated UI orientation toggle controls (`[🪞 Mirrored Back]` / `[👕 Normal Front]`) in the Placement Guide options card (`#assemblyGuideOptionsCard`).
+  - Ensures workbench builders looking at the physical BACK of the garment while mounting LEDs and routing wires see a 1:1 matching left/right spatial orientation on screen.
+  - Text labels (LED numbers `#1`–`#100`, distance tags `cm`, title badge) remain rendered left-to-right for effortless legibility.
+  - Updated `printAssemblyGuide()` printable HTML document and PNG exporter to label the perspective as `🪞 Workbench Back View (Mirrored)`.
+- **Documentation & User Guide Sync:**
+  - Updated `SIMULATOR_USER_GUIDE.md` section on Placement Guide Mode detailing the new `🪞 Mirrored Back View` workbench assembly features and print controls.
+- **Verification:**
+  - Validated clean execution of `python simulator.py --test` (HTTP API verified, status 200).
+
 ### 2026-10-09 01:28 - Browser LocalStorage Quota Overflow Recovery & Resilient Preset Disk Saving
 - **Resolved QuotaExceededError on Preset Saving (`simulator/app.js`):**
   - Diagnosed browser screenshot showing `Save error: Failed to execute 'setItem' on 'Storage': Setting the value of 'msep_custom_presets' exceeded the quota.`

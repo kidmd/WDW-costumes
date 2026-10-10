@@ -77,6 +77,7 @@ let params = {
     graphicVersion: 'standard', // 'standard' or 'assembly_guide' (faint graphic + optical windows + clear numbers)
     faintGraphicOpacity: 0.22,  // 0.10 to 0.60
     assemblyPaperMode: false,   // false = Dark Garment Fabric, true = Light Print Paper
+    mirrorPlacementGuide: true, // true = Mirrored Back View for physical workbench placement & wiring
     reflectiveShine: true,
     showBib: true,
     bibYOffset: 0.57,
@@ -713,11 +714,16 @@ function getShirtBounds() {
     };
 }
 
+function isMirroredPlacementGuide() {
+    return (params.graphicVersion === 'assembly_guide' && params.mirrorPlacementGuide !== false);
+}
+
 // Convert normalized (0..1) to canvas pixels
 function normToCanvas(pt) {
     const s = getShirtBounds();
+    const effX = isMirroredPlacementGuide() ? (1.0 - pt.x) : pt.x;
     return {
-        x: s.x + pt.x * s.width,
+        x: s.x + effX * s.width,
         y: s.y + pt.y * s.height
     };
 }
@@ -725,8 +731,10 @@ function normToCanvas(pt) {
 // Convert canvas pixels to normalized
 function canvasToNorm(x, y) {
     const s = getShirtBounds();
+    const rawX = Math.max(0, Math.min(1, (x - s.x) / s.width));
+    const effX = isMirroredPlacementGuide() ? (1.0 - rawX) : rawX;
     return {
-        x: Math.max(0, Math.min(1, (x - s.x) / s.width)),
+        x: effX,
         y: Math.max(0, Math.min(1, (y - s.y) / s.height))
     };
 }
@@ -1372,6 +1380,8 @@ function drawPetesDragon(cx, s) {
     const activeImg = getActiveGraphicImg();
     const isFaint = (params.graphicVersion === 'assembly_guide');
     const faintAlpha = (params.faintGraphicOpacity !== undefined ? params.faintGraphicOpacity : 0.22);
+    const isMirrored = isMirroredPlacementGuide();
+    const shirtCenterX = s.x + s.width / 2;
 
     if (activeImg && (activeImg.complete || activeImg.naturalWidth > 0)) {
         const gb = getGraphicChestBounds();
@@ -1383,6 +1393,11 @@ function drawPetesDragon(cx, s) {
             cx.save();
             if (isFaint) {
                 cx.globalAlpha = faintAlpha;
+            }
+            if (isMirrored) {
+                cx.translate(shirtCenterX, 0);
+                cx.scale(-1, 1);
+                cx.translate(-shirtCenterX, 0);
             }
             cx.drawImage(activeImg, gx, gy, gw, gh);
             cx.restore();
@@ -1398,6 +1413,11 @@ function drawPetesDragon(cx, s) {
     cx.save();
     if (isFaint) {
         cx.globalAlpha = faintAlpha;
+    }
+    if (isMirrored) {
+        cx.translate(shirtCenterX, 0);
+        cx.scale(-1, 1);
+        cx.translate(-shirtCenterX, 0);
     }
 
     // Metallic Green Reflective Material Gradient
@@ -13329,6 +13349,38 @@ function setAssemblyPaperMode(isPaper) {
 }
 window.setAssemblyPaperMode = setAssemblyPaperMode;
 
+function setAssemblyMirrorMode(isMirrored) {
+    params.mirrorPlacementGuide = !!isMirrored;
+    try { localStorage.setItem('msep_mirror_placement_guide', params.mirrorPlacementGuide ? 'true' : 'false'); } catch (err) {}
+    
+    const btnBack = document.getElementById('assemblyMirrorBackBtn');
+    const btnFront = document.getElementById('assemblyMirrorFrontBtn');
+    if (btnBack && btnFront) {
+        if (params.mirrorPlacementGuide) {
+            btnBack.classList.add('primary');
+            btnBack.style.background = '#1f6feb';
+            btnBack.style.color = '#fff';
+            btnBack.style.borderColor = '#388bfd';
+            btnFront.classList.remove('primary');
+            btnFront.style.background = 'transparent';
+            btnFront.style.color = '#8b949e';
+            btnFront.style.borderColor = '#30363d';
+        } else {
+            btnFront.classList.add('primary');
+            btnFront.style.background = '#238636';
+            btnFront.style.color = '#fff';
+            btnFront.style.borderColor = '#238636';
+            btnBack.classList.remove('primary');
+            btnBack.style.background = 'transparent';
+            btnBack.style.color = '#8b949e';
+            btnBack.style.borderColor = '#30363d';
+        }
+    }
+    showToast(params.mirrorPlacementGuide ? '🪞 Placement Guide: Mirrored Back View (Workbench Assembly)' : '👕 Placement Guide: Normal Front View');
+    markSingleShirtDirty();
+}
+window.setAssemblyMirrorMode = setAssemblyMirrorMode;
+
 const faintSlider = document.getElementById('faintGraphicOpacitySlider');
 if (faintSlider) {
     faintSlider.addEventListener('input', (e) => {
@@ -13426,6 +13478,7 @@ function printAssemblyGuide() {
             <span>Float Assignment: <strong>${floatTitle}</strong></span>
             <span>Total LEDs: <strong>${leds.length} Pixels (WS2812B 5V)</strong></span>
             <span>Apertures: <strong>3×3 mm Square Windows</strong></span>
+            <span>Perspective: <strong>${params.mirrorPlacementGuide ? '🪞 Workbench Back View (Mirrored)' : '👕 Normal Front View'}</strong></span>
             <span>Strand: <strong>#0 (Start) &rarr; #${leds.length - 1} (End)</strong></span>
         </p>
     </div>

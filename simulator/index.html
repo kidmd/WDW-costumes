@@ -263,6 +263,13 @@
                                 <span id="faintGraphicOpacityVal" style="font-size: 10.5px; color: var(--accent-cyan); font-family: monospace; width: 32px; text-align: right;">22%</span>
                             </div>
                             <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px;">
+                                <span style="font-size: 10.5px; color: var(--text-muted);">View Orientation:</span>
+                                <div style="display: flex; gap: 3px;">
+                                    <button type="button" id="assemblyMirrorBackBtn" onclick="setAssemblyMirrorMode(true)" class="action-btn primary" style="padding: 2px 7px; font-size: 10px; font-weight: 600; background: #1f6feb; border-color: #388bfd; color: #fff;" title="Mirror horizontally so guide matches looking at the back of costume when placing LEDs and wiring">🪞 Mirrored Back</button>
+                                    <button type="button" id="assemblyMirrorFrontBtn" onclick="setAssemblyMirrorMode(false)" class="action-btn" style="padding: 2px 7px; font-size: 10px; font-weight: 600;" title="Normal front view perspective">👕 Normal Front</button>
+                                </div>
+                            </div>
+                            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px;">
                                 <span style="font-size: 10.5px; color: var(--text-muted);">Sheet Theme:</span>
                                 <div style="display: flex; gap: 3px;">
                                     <button type="button" id="assemblyBgDarkBtn" onclick="setAssemblyPaperMode(false)" class="action-btn primary" style="padding: 2px 7px; font-size: 10px; font-weight: 600;">👕 Dark Garment</button>
