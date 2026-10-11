@@ -93,6 +93,14 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### 2026-10-11 13:45 - Preset Loading State Restoration: Plate Size (Large/Medium/Small), Target LED Count UI & Coordinate Fidelity
+- **Plate Size & LED Count Restoration (`simulator/app.js`):**
+  - Resolved preset loading bug where saving a preset with **Large** plate size and **100 LEDs** (such as `presets/petes_dragon_chris_2026-10-10_22-23.json`) restored to default Medium plate size and 75-LED slider settings upon reopening.
+  - Updated `applyProfileData()` to parse and apply `profileData.plateSize` (and fall back cleanly based on `plateWidthMm`) by invoking `selectPlateSizeOption(targetPlateSize, false)`.
+  - Added `scaleLeds = true` optional parameter to `selectPlateSizeOption()`: suppresses proportional LED coordinate re-scaling when applying pre-computed preset coordinates, preventing coordinate drift or double-scaling.
+  - Updated `applyProfileData()` to restore target LED count (`profileData.ledCount` or `profileData.leds.length`) by invoking `selectLedCountOption(targetLedCount, false)`, synchronizing `#ledCountSlider`, `#activeLedCountLabel`, `#ledCountTitle`, and wiring trace markers.
+  - Added canvas redraw triggers (`markSingleShirtDirty()` and `draw()`) on `applyProfileData()` completion and image `onload` to guarantee that all 100 LEDs render directly on the active character graphic silhouette without manual interaction.
+
 ### 2026-10-11 12:30 - Pre-Print CAD Modifications: 245mm Envelope Limit, Normal-Aligned Side Exit, Relocated Bottom Portal & Extremity Lid Screws
 - **245mm Maximum Dimension Limit (`scripts/compile_clean_tpu_panel.py`, `simulator.py`, `simulator/app.js`):**
   - Enforced strict 245.0mm maximum build volume limit on the compiled STL part footprint (including 4.0mm outer perimeter rim buffer and 4.75mm outer eyelet mounting tabs).

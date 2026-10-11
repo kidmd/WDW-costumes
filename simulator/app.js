@@ -13324,6 +13324,16 @@ function applyProfileData(profileData) {
     if (!profileData) return;
     currentLoadedStlColors = profileData.stlColors || null;
 
+    // 0. Restore Plate Size and Target LED Count
+    const targetPlateSize = profileData.plateSize || (profileData.plateWidthMm >= 240 ? 'large' : (profileData.plateWidthMm <= 180 ? 'small' : 'medium'));
+    if (typeof selectPlateSizeOption === 'function') {
+        selectPlateSizeOption(targetPlateSize, false);
+    }
+    const targetLedCount = profileData.ledCount || (Array.isArray(profileData.leds) ? profileData.leds.length : 75);
+    if (typeof selectLedCountOption === 'function') {
+        selectLedCountOption(targetLedCount, false);
+    }
+
     // 1. Restore LEDs
     if (Array.isArray(profileData.leds) && profileData.leds.length > 0) {
         leds = profileData.leds;
@@ -13347,6 +13357,8 @@ function applyProfileData(profileData) {
                 if (btfStripPreviewActive) {
                     computeBtfStripMatrix();
                 }
+                if (typeof markSingleShirtDirty === 'function') markSingleShirtDirty();
+                if (typeof draw === 'function') draw();
             };
             img.src = customArtworkDataUrl;
         }
@@ -13515,6 +13527,9 @@ function applyProfileData(profileData) {
         const nubVal = (profileData.tpuIncludeTopNubs !== undefined) ? profileData.tpuIncludeTopNubs : profileData.includeTopNubs;
         if (typeof setTpuTopNubs === 'function') setTpuTopNubs(!!nubVal);
     }
+
+    if (typeof markSingleShirtDirty === 'function') markSingleShirtDirty();
+    if (typeof draw === 'function') draw();
 }
 
 // Load Selected Profile
@@ -21102,11 +21117,11 @@ function selectLedCountOption(count, shouldRedistribute = false) {
 }
 window.selectLedCountOption = selectLedCountOption;
 
-function selectPlateSizeOption(size) {
+function selectPlateSizeOption(size, scaleLeds = true) {
     if (size !== 'small' && size !== 'medium' && size !== 'large') size = 'medium';
     
     // Capture old bounds to scale existing pebble LEDs proportionally
-    const oldGb = (typeof getGraphicChestBounds === 'function') ? getGraphicChestBounds() : null;
+    const oldGb = (scaleLeds && typeof getGraphicChestBounds === 'function') ? getGraphicChestBounds() : null;
 
     selectedPlateSize = size;
     const sizeMap = {
