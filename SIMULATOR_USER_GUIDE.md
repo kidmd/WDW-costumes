@@ -407,14 +407,16 @@ Attaching LEDs to a shirt by hand can easily result in tangled wire spaghetti or
       - 🟡 **Yellow (`8.5–9.2 cm`):** Snug (minimal slack).
       - 🔴 **Red (`>9.2 cm`):** Overstretched Alert (Taut).
    - Toggle **`⚓ Show Strain Relief Bridges (10mm Keep-Out)`**:
-      - Renders the exact physical 3D bridge footprints directly on the 2D layout canvas positioned 1:1 with the 3D STL chassis geometry inside the character silhouette:
+      - Renders the exact physical 3D bridge footprints and **True 3D STL Perimeter Rim Wall Contour** directly on the 2D layout canvas positioned 1:1 with the 3D STL chassis geometry inside the character silhouette:
+        - **3D STL Perimeter Rim Wall & 5mm Keep-Out Guide:** Renders the actual organic outer perimeter wall contour polygon directly from the compiled 3D STL specs (`contour_pts` in cyan `#38bdf8`), along with a dashed inner 5.0mm clearance guide line. LEDs must be located inside this 3D STL contour and maintain at least 5.0mm clearance from the wall.
         - **Bottom IN Bridge:** Sits on the bottom foot contour floor ($8.0\text{ mm W} \times 7.2\text{ mm H}$, Accent Emerald `#00ff88`) with its $3.2\text{ mm} \times 2.8\text{ mm}$ zip-tie tunnel, rim U-notch, and direct leader wire to LED #0.
         - **Lateral Right OUT Bridge:** Sits on the right flank contour floor ($7.2\text{ mm W} \times 8.0\text{ mm H}$, Accent Coral `#ff4d6d`) with its zip-tie tunnel, rim U-notch, and direct leader wire from LED #(N-1).
       - Projects a **$10.0\text{ mm}$ safety clearance keep-out halo** (dashed perimeter border with translucent fill) around both strain relief locations to prevent LED sockets from encroaching on the zip-tie anchor points.
    - Toggle **`⚠️ Show Placement Warnings (<5mm Wall / <2.5mm Wire)`**:
       - Enables or disables real-time visual clearance alerts and floating badges on canvas.
       - When active, dragging, selecting, or hovering over an LED that violates physical clearances displays dynamic warning badges and red collar/ring indicators:
-        - 🛡️ **`⚠️ <5.0mm Perimeter Wall (X.Xmm)`:** Triggered when an LED collar is within $5.0\text{ mm}$ of the 3D TPU armor panel / chest plate perimeter walls.
+        - 🚫 **`⚠️ Outside 3D STL Wall`:** Triggered immediately when an LED is dragged or placed outside the contoured perimeter wall of the 3D STL armor panel onto the shirt canvas.
+        - 🛡️ **`⚠️ <5.0mm 3D STL Wall (X.Xmm)`:** Triggered when an LED collar is inside the 3D STL armor panel but within $5.0\text{ mm}$ of the contoured perimeter rim wall.
         - ⚓ **`⚠️ <10mm Bridge Keep-Out`:** Triggered when encroaching on entrance or lateral exit zip-tie strain relief bridge zones.
         - 💥 **`⚠️ Collar Collision`:** Triggered when two LED collars physically overlap ($d < 8.65\text{ mm}$).
         - 🧵 **`⚠️ <2.5mm Wire Channel`:** Triggered when an adjacent LED collar obstructs wire entry/exit corridors.

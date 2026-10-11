@@ -3487,8 +3487,11 @@ document.getElementById('closeCricutExportModalBottomBtn')?.addEventListener('cl
 function getClearanceWarningBadgeText(clrStatus) {
     if (!clrStatus || clrStatus.isClear) return '';
     if (clrStatus.wallBlocked) {
+        if (clrStatus.isOutside) {
+            return `⚠️ Outside 3D STL Wall`;
+        }
         const d = (clrStatus.minWallDist !== undefined && clrStatus.minWallDist < 990) ? clrStatus.minWallDist.toFixed(1) : '<5.0';
-        return `⚠️ <5.0mm Perimeter Wall (${d}mm)`;
+        return `⚠️ <5.0mm 3D STL Wall (${d}mm)`;
     }
     if (clrStatus.bridgeBlocked) {
         return `⚠️ <10mm Bridge Keep-Out`;
@@ -12009,9 +12012,163 @@ function distSegmentToSegment(a1x, a1y, a2x, a2y, b1x, b1y, b2x, b2y) {
     return Math.sqrt(Math.min(d1, d2, d3, d4));
 }
 
+function getPolygonSignedArea(p) {
+    if (!p || p.length < 3) return 0;
+    let a = 0;
+    for (let i = 0, j = p.length - 1; i < p.length; j = i++) {
+        const xi = p[j].x !== undefined ? p[j].x : p[j][0];
+        const yi = p[j].y !== undefined ? p[j].y : p[j][1];
+        const xj = p[i].x !== undefined ? p[i].x : p[i][0];
+        const yj = p[i].y !== undefined ? p[i].y : p[i][1];
+        a += (xi * yj - xj * yi);
+    }
+    return a / 2;
+}
+window.getPolygonSignedArea = getPolygonSignedArea;
+
+function offsetContourPolygon(pts, dist) {
+    if (!pts || pts.length < 3) return pts;
+    const n = pts.length;
+    const isCCW = getPolygonSignedArea(pts) > 0;
+    const res = [];
+    for (let i = 0; i < n; i++) {
+        const prev = pts[(i - 1 + n) % n];
+        const cur = pts[i];
+        const next = pts[(i + 1) % n];
+        const p0x = prev.x !== undefined ? prev.x : prev[0];
+        const p0y = prev.y !== undefined ? prev.y : prev[1];
+        const p1x = cur.x !== undefined ? cur.x : cur[0];
+        const p1y = cur.y !== undefined ? cur.y : cur[1];
+        const p2x = next.x !== undefined ? next.x : next[0];
+        const p2y = next.y !== undefined ? next.y : next[1];
+
+        const e1x = p1x - p0x, e1y = p1y - p0y;
+        const e2x = p2x - p1x, e2y = p2y - p1y;
+        const l1 = Math.hypot(e1x, e1y) || 1, l2 = Math.hypot(e2x, e2y) || 1;
+        const n1x = isCCW ? -e1y / l1 : e1y / l1;
+        const n1y = isCCW ? e1x / l1 : -e1x / l1;
+        const n2x = isCCW ? -e2y / l2 : e2y / l2;
+        const n2y = isCCW ? e2x / l2 : -e2x / l2;
+        const nx = (n1x + n2x) / 2;
+        const ny = (n1y + n2y) / 2;
+        const nl = Math.hypot(nx, ny) || 1;
+        res.push([p1x + (nx / nl) * dist, p1y + (ny / nl) * dist]);
+    }
+    return res;
+}
+window.offsetContourPolygon = offsetContourPolygon;
+
+function isPointInPolygon(px, py, poly) {
+    if (!poly || poly.length < 3) return false;
+    let inside = false;
+    for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) {
+        const xi = poly[i].x !== undefined ? poly[i].x : poly[i][0];
+        const yi = poly[i].y !== undefined ? poly[i].y : poly[i][1];
+        const xj = poly[j].x !== undefined ? poly[j].x : poly[j][0];
+        const yj = poly[j].y !== undefined ? poly[j].y : poly[j][1];
+        const intersect = ((yi > py) !== (yj > py)) && (px < (xj - xi) * (py - yi) / (yj - yi) + xi);
+        if (intersect) inside = !inside;
+    }
+    return inside;
+}
+window.isPointInPolygon = isPointInPolygon;
+
+function distPointToSegmentMm(px, py, ax, ay, bx, by) {
+    const abx = bx - ax;
+    const aby = by - ay;
+    const apx = px - ax;
+    const apy = py - ay;
+    const l2 = abx * abx + aby * aby;
+    if (l2 === 0) return Math.hypot(apx, apy);
+    let t = (apx * abx + apy * aby) / l2;
+    t = Math.max(0, Math.min(1, t));
+    const nx = ax + t * abx;
+    const ny = ay + t * aby;
+    return Math.hypot(px - nx, py - ny);
+}
+window.distPointToSegmentMm = distPointToSegmentMm;
+
+function getTpuPanelContourNorm() {
+    const gb = (typeof getGraphicChestBounds === 'function') ? getGraphicChestBounds() : null;
+    if (!gb) return null;
+    const sp = (typeof activeTpuSpecs !== 'undefined' && activeTpuSpecs)
+        ? (activeTpuSpecs.front || activeTpuSpecs)
+        : null;
+    if (sp && sp.contour_pts && sp.contour_pts.length >= 3) {
+        const totalW = sp.total_image_width_mm || sp.width_mm || (typeof selectedPlateWidthMm !== 'undefined' && selectedPlateWidthMm > 0 ? selectedPlateWidthMm : 203.2);
+        const totalH = sp.total_image_height_mm || sp.height_mm || (totalW * (gb.normH / gb.normW));
+        return sp.contour_pts.map(pt => ({
+            x: gb.normX + (pt[0] / totalW) * gb.normW,
+            y: gb.normY + (1.0 - (pt[1] / totalH)) * gb.normH
+        }));
+    }
+    return null;
+}
+window.getTpuPanelContourNorm = getTpuPanelContourNorm;
+
+function getDistToTpuPanelPerimeterMm(normPt) {
+    const gb = (typeof getGraphicChestBounds === 'function') ? getGraphicChestBounds() : null;
+    const plateW = (typeof selectedPlateWidthMm !== 'undefined' && selectedPlateWidthMm > 0) ? selectedPlateWidthMm : 203.2;
+    const normW = (gb && gb.normW > 0) ? gb.normW : 0.8;
+    const normH = (gb && gb.normH > 0) ? gb.normH : 0.385;
+    const plateH = plateW * (normH / normW);
+    const mmToNormX = normW / plateW;
+    const mmToNormY = normH / plateH;
+
+    const sp = (typeof activeTpuSpecs !== 'undefined' && activeTpuSpecs)
+        ? (activeTpuSpecs.front || activeTpuSpecs)
+        : null;
+
+    if (sp && sp.contour_pts && sp.contour_pts.length >= 3 && gb) {
+        const totalW = sp.total_image_width_mm || sp.width_mm || plateW;
+        const totalH = sp.total_image_height_mm || sp.height_mm || plateH;
+
+        // In 3D CAD space, Y increases upwards. In 2D canvas, Y increases downwards:
+        const cadX = ((normPt.x - gb.normX) / gb.normW) * totalW;
+        const cadY = (1.0 - ((normPt.y - gb.normY) / gb.normH)) * totalH;
+
+        // 1. Ray-casting point-in-polygon test against true 3D STL panel contour
+        const isInside = isPointInPolygon(cadX, cadY, sp.contour_pts);
+
+        // 2. Minimum Euclidean distance in millimeters to the perimeter contour edges
+        let minD = 1e9;
+        for (let i = 0, j = sp.contour_pts.length - 1; i < sp.contour_pts.length; j = i++) {
+            const p1 = sp.contour_pts[j];
+            const p2 = sp.contour_pts[i];
+            const d = distPointToSegmentMm(cadX, cadY, p1[0], p1[1], p2[0], p2[1]);
+            if (d < minD) minD = d;
+        }
+
+        return {
+            hasContour: true,
+            isInside: isInside,
+            distMm: minD
+        };
+    }
+
+    // Fallback when 3D TPU specs contour is not available: check against gb box
+    if (gb) {
+        const isInside = normPt.x >= gb.normX && normPt.x <= (gb.normX + gb.normW) &&
+                         normPt.y >= gb.normY && normPt.y <= (gb.normY + gb.normH);
+        const distLeftMm = (normPt.x - gb.normX) / mmToNormX;
+        const distRightMm = ((gb.normX + gb.normW) - normPt.x) / mmToNormX;
+        const distTopMm = (normPt.y - gb.normY) / mmToNormY;
+        const distBottomMm = ((gb.normY + gb.normH) - normPt.y) / mmToNormY;
+        const minD = Math.min(distLeftMm, distRightMm, distTopMm, distBottomMm);
+        return {
+            hasContour: false,
+            isInside: isInside,
+            distMm: minD
+        };
+    }
+
+    return { hasContour: false, isInside: true, distMm: 999 };
+}
+window.getDistToTpuPanelPerimeterMm = getDistToTpuPanelPerimeterMm;
+
 function checkLedClearanceStatus(index, ledsList) {
     if (!ledsList || index < 0 || index >= ledsList.length) {
-        return { isClear: true, sideBlocked: false, opening1Blocked: false, opening2Blocked: false, bridgeBlocked: false, overlapBlocked: false, reason: '' };
+        return { isClear: true, sideBlocked: false, opening1Blocked: false, opening2Blocked: false, bridgeBlocked: false, overlapBlocked: false, wallBlocked: false, isOutside: false, minWallDist: 999, reason: '' };
     }
     const gb = (typeof getGraphicChestBounds === 'function') ? getGraphicChestBounds() : null;
     const plateW = (typeof selectedPlateWidthMm !== 'undefined' && selectedPlateWidthMm > 0) ? selectedPlateWidthMm : 203.2;
@@ -12048,6 +12205,9 @@ function checkLedClearanceStatus(index, ledsList) {
     let opening2Blocked = false;
     let overlapBlocked = false;
     let bridgeBlocked = false;
+    let wallBlocked = false;
+    let isOutside = false;
+    let minWallDist = 999;
     let reason = '';
 
     // 1. Check against other LEDs
@@ -12095,20 +12255,26 @@ function checkLedClearanceStatus(index, ledsList) {
     const bridges = getTpuBridgeLocationsNorm();
     const dEntMm = Math.hypot((cur.x - bridges.entrance.x) / mmToNormX, (cur.y - bridges.entrance.y) / mmToNormY);
     const dExitMm = Math.hypot((cur.x - bridges.exit.x) / mmToNormX, (cur.y - bridges.exit.y) / mmToNormY);
+    if (dEntMm < 10.0) {
+        bridgeBlocked = true;
+        if (!reason) reason = `Entrance Bridge Keep-Out (<10mm buffer)`;
+    }
+    if (dExitMm < 10.0) {
+        bridgeBlocked = true;
+        if (!reason) reason = `Exit Bridge Keep-Out (<10mm buffer)`;
+    }
 
-    // 3. Check 5.0mm perimeter wall clearance keep-out
-    let wallBlocked = false;
-    let minWallDist = 999;
-    if (gb) {
-        const distLeftMm = (cur.x - gb.normX) / mmToNormX;
-        const distRightMm = ((gb.normX + gb.normW) - cur.x) / mmToNormX;
-        const distTopMm = (cur.y - gb.normY) / mmToNormY;
-        const distBottomMm = ((gb.normY + gb.normH) - cur.y) / mmToNormY;
-        minWallDist = Math.min(distLeftMm, distRightMm, distTopMm, distBottomMm);
-        if (minWallDist < 5.0) {
-            wallBlocked = true;
-            reason = `Perimeter Wall clearance < 5.0mm (${Math.max(0, minWallDist).toFixed(1)}mm)`;
-        }
+    // 3. Check 5.0mm perimeter wall clearance keep-out against true 3D STL panel contour
+    const wallCheck = getDistToTpuPanelPerimeterMm(cur);
+    minWallDist = wallCheck.distMm;
+    if (!wallCheck.isInside) {
+        wallBlocked = true;
+        isOutside = true;
+        if (!reason) reason = 'Outside 3D STL perimeter wall';
+    } else if (wallCheck.distMm < 5.0) {
+        wallBlocked = true;
+        isOutside = false;
+        if (!reason) reason = `Perimeter Wall clearance < 5.0mm (${Math.max(0, wallCheck.distMm).toFixed(1)}mm)`;
     }
 
     const isClear = !overlapBlocked && !opening1Blocked && !opening2Blocked && !bridgeBlocked && !wallBlocked;
@@ -12120,6 +12286,7 @@ function checkLedClearanceStatus(index, ledsList) {
         bridgeBlocked,
         overlapBlocked,
         wallBlocked,
+        isOutside,
         minWallDist,
         reason
     };
@@ -12218,11 +12385,11 @@ function clampLedNoCollarOverlap(targetX, targetY, movingIndex, ledsArray) {
         });
     }
 
-    // Outer perimeter physical bounds of the chest plate
-    const minX = gb ? gb.normX : 0.05;
-    const maxX = gb ? (gb.normX + gb.normW) : 0.95;
-    const minY = gb ? gb.normY : 0.05;
-    const maxY = gb ? (gb.normY + gb.normH) : 0.95;
+    // Outer bounds of the editable shirt canvas (allows testing LEDs outside 3D panel with instant alerts)
+    const minX = 0.05;
+    const maxX = 0.95;
+    const minY = 0.05;
+    const maxY = 0.95;
 
     return {
         x: Math.max(minX, Math.min(maxX, parseFloat(x.toFixed(4)))),
@@ -14138,28 +14305,93 @@ function drawStrainReliefBridgesOverlay(ctx) {
     ctx.fillText('10mm KEEP-OUT', exitCanvas.x, exitCanvas.y + pExitBrHalfY + 2);
 
     // -------------------------------------------------------------
-    // 3. 5mm PERIMETER WALL CLEARANCE KEEP-OUT BOUNDARY
+    // 3. 3D STL ARMOR PERIMETER WALL & 5mm KEEP-OUT BOUNDARY
     // -------------------------------------------------------------
-    const p5mmX = 5.0 * mmToNormX;
-    const p5mmY = 5.0 * mmToNormY;
-    const wallTopLeft = normToCanvas({ x: gb.normX + p5mmX, y: gb.normY + p5mmY });
-    const wallBotRight = normToCanvas({ x: gb.normX + gb.normW - p5mmX, y: gb.normY + gb.normH - p5mmY });
-    const wallW = wallBotRight.x - wallTopLeft.x;
-    const wallH = wallBotRight.y - wallTopLeft.y;
+    const contourNorm = (typeof getTpuPanelContourNorm === 'function') ? getTpuPanelContourNorm() : null;
+    if (contourNorm && contourNorm.length >= 3) {
+        // 1. Draw True 3D STL Perimeter Rim Wall Contour
+        ctx.beginPath();
+        const startPt = normToCanvas(contourNorm[0]);
+        ctx.moveTo(startPt.x, startPt.y);
+        let minYCanvas = 99999, topPoint = startPt;
+        for (let i = 1; i < contourNorm.length; i++) {
+            const cp = normToCanvas(contourNorm[i]);
+            ctx.lineTo(cp.x, cp.y);
+            if (cp.y < minYCanvas) {
+                minYCanvas = cp.y;
+                topPoint = cp;
+            }
+        }
+        ctx.closePath();
+        ctx.fillStyle = 'rgba(56, 189, 248, 0.05)';
+        ctx.fill();
+        ctx.strokeStyle = '#38bdf8';
+        ctx.lineWidth = 2.0;
+        ctx.setLineDash([]);
+        ctx.stroke();
 
-    ctx.beginPath();
-    ctx.rect(Math.min(wallTopLeft.x, wallBotRight.x), Math.min(wallTopLeft.y, wallBotRight.y), Math.abs(wallW), Math.abs(wallH));
-    ctx.strokeStyle = 'rgba(56, 189, 248, 0.55)';
-    ctx.lineWidth = 1.5;
-    ctx.setLineDash([5, 4]);
-    ctx.stroke();
-    ctx.setLineDash([]);
+        // 2. Draw 5.0mm Inward Keep-Out Guide Line
+        const sp = (typeof activeTpuSpecs !== 'undefined' && activeTpuSpecs)
+            ? (activeTpuSpecs.front || activeTpuSpecs)
+            : null;
+        if (sp && sp.contour_pts && typeof offsetContourPolygon === 'function') {
+            const inner5mmMm = offsetContourPolygon(sp.contour_pts, 5.0);
+            if (inner5mmMm && inner5mmMm.length >= 3) {
+                const totalW = sp.total_image_width_mm || sp.width_mm || plateW;
+                const totalH = sp.total_image_height_mm || sp.height_mm || plateH;
+                ctx.beginPath();
+                const inStartNorm = {
+                    x: gb.normX + (inner5mmMm[0][0] / totalW) * gb.normW,
+                    y: gb.normY + (1.0 - (inner5mmMm[0][1] / totalH)) * gb.normH
+                };
+                const inStartCanvas = normToCanvas(inStartNorm);
+                ctx.moveTo(inStartCanvas.x, inStartCanvas.y);
+                for (let i = 1; i < inner5mmMm.length; i++) {
+                    const inNorm = {
+                        x: gb.normX + (inner5mmMm[i][0] / totalW) * gb.normW,
+                        y: gb.normY + (1.0 - (inner5mmMm[i][1] / totalH)) * gb.normH
+                    };
+                    const inCanv = normToCanvas(inNorm);
+                    ctx.lineTo(inCanv.x, inCanv.y);
+                }
+                ctx.closePath();
+                ctx.strokeStyle = 'rgba(56, 189, 248, 0.65)';
+                ctx.lineWidth = 1.4;
+                ctx.setLineDash([5, 4]);
+                ctx.stroke();
+                ctx.setLineDash([]);
+            }
+        }
 
-    ctx.font = 'bold 8px sans-serif';
-    ctx.fillStyle = 'rgba(56, 189, 248, 0.90)';
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'top';
-    ctx.fillText('🛡️ 5mm Perimeter Wall Keep-Out Limit', (wallTopLeft.x + wallBotRight.x) / 2, Math.min(wallTopLeft.y, wallBotRight.y) + 3);
+        // Technical text badge at top of 3D STL plate
+        ctx.font = 'bold 8.5px sans-serif';
+        ctx.fillStyle = '#38bdf8';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'bottom';
+        ctx.fillText('🛡️ 3D STL Armor Perimeter Wall (5mm Keep-Out)', topPoint.x, topPoint.y - 4);
+    } else {
+        // Fallback rectangular bounds if contour points not yet loaded
+        const p5mmX = 5.0 * mmToNormX;
+        const p5mmY = 5.0 * mmToNormY;
+        const wallTopLeft = normToCanvas({ x: gb.normX + p5mmX, y: gb.normY + p5mmY });
+        const wallBotRight = normToCanvas({ x: gb.normX + gb.normW - p5mmX, y: gb.normY + gb.normH - p5mmY });
+        const wallW = wallBotRight.x - wallTopLeft.x;
+        const wallH = wallBotRight.y - wallTopLeft.y;
+
+        ctx.beginPath();
+        ctx.rect(Math.min(wallTopLeft.x, wallBotRight.x), Math.min(wallTopLeft.y, wallBotRight.y), Math.abs(wallW), Math.abs(wallH));
+        ctx.strokeStyle = 'rgba(56, 189, 248, 0.55)';
+        ctx.lineWidth = 1.5;
+        ctx.setLineDash([5, 4]);
+        ctx.stroke();
+        ctx.setLineDash([]);
+
+        ctx.font = 'bold 8px sans-serif';
+        ctx.fillStyle = 'rgba(56, 189, 248, 0.90)';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'top';
+        ctx.fillText('🛡️ 5mm Perimeter Wall Keep-Out Limit', (wallTopLeft.x + wallBotRight.x) / 2, Math.min(wallTopLeft.y, wallBotRight.y) + 3);
+    }
 
     ctx.restore();
 }

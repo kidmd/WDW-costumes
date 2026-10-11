@@ -93,7 +93,18 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
-### 2026-10-10 21:32 - Placement Warnings Master Toggle & Dynamic Perimeter/Channel Badges
+### 2026-10-10 21:50 - 3D STL Armor Perimeter Wall Clearance Engine & Inward 5mm Keep-Out
+- **Contoured 3D STL Armor Plate Perimeter Engine (`simulator/app.js` & `simulator/led_clearance.js`):**
+  - Resolved perimeter evaluation mismatch where LED clearance was checking the outer shirt/bounding box rectangle instead of the actual contoured perimeter wall of the 3D STL armor panel.
+  - Implemented `getTpuPanelContourNorm()`, `isPointInPolygon()`, `distPointToSegmentMm()`, `offsetContourPolygon()`, and `getDistToTpuPanelPerimeterMm()` to evaluate LEDs directly against `(activeTpuSpecs.front || activeTpuSpecs).contour_pts` in true CAD millimeters.
+  - **Differentiated Clearance Alerts:**
+    - `⚠️ Outside 3D STL Wall`: Triggered immediately if an LED is placed or dragged outside the organic 3D STL panel perimeter onto the shirt canvas.
+    - `⚠️ <5.0mm 3D STL Wall (X.Xmm)`: Triggered if an LED is located inside the 3D STL panel but within 5.0mm of the contoured perimeter rim wall.
+  - **Visual 2D Canvas Contour & 5mm Keep-Out Guide Overlay:**
+    - Updated `drawStrainReliefBridgesOverlay(ctx)` to render the true 3D STL armor perimeter wall contour (cyan solid line `#38bdf8`, 2.0px with subtle fill) and the 5.0mm inward keep-out limit (cyan dashed line, 1.4px) directly on the 2D layout canvas.
+  - **Auto-Placement & Relaxation Clearance Sync (`simulator/led_clearance.js`):**
+    - Updated `selectClearanceAwareFpsIndices` and `resolveLedClearance` to enforce the 3D STL perimeter contour and 5.0mm wall clearance during automatic distribution and physics relaxation.
+  - Verified test suite passes (`python simulator.py --test`), zero JavaScript syntax errors (`node -c`), and full documentation synchronization in `SIMULATOR_USER_GUIDE.md` and `PROJECT_PROGRESS.md`.
 - **Added Master Warning Toggle & Dynamic Badges (`simulator/app.js` & `simulator/index.html`):**
   - Added dedicated UI toggle `[⚠️ Show Placement Warnings (<5mm Wall / <2.5mm Wire)]` in Section 3 of the Layout sidebar, allowing users to show or silence real-time clearance warning badges and red collar highlights.
   - Replaced the previously hardcoded `⚠️ <2.5mm Clearance` text in `renderBulb` with dynamic diagnostic badges:

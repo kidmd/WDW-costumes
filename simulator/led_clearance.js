@@ -81,7 +81,13 @@ function selectClearanceAwareFpsIndices(candNorm, count, anchorsNorm) {
         const mg = margins[lvl];
         for (let i = 0; i < n; i++) {
             blocked[i] = 0;
-            if (cx[i] < minXmm || cx[i] > maxXmm || cy[i] < minYmm || cy[i] > maxYmm) { blocked[i] = 1; continue; }
+            if (typeof getDistToTpuPanelPerimeterMm === 'function') {
+                const wallChk = getDistToTpuPanelPerimeterMm({ x: candNorm[i].x, y: candNorm[i].y });
+                if (!wallChk.isInside || wallChk.distMm < wallClr) { blocked[i] = 1; continue; }
+            } else if (cx[i] < minXmm || cx[i] > maxXmm || cy[i] < minYmm || cy[i] > maxYmm) {
+                blocked[i] = 1;
+                continue;
+            }
             if (mg === null) continue;
             for (let b = 0; b < bridges.length; b++) {
                 if (Math.hypot(cx[i] - bridges[b].x, cy[i] - bridges[b].y) < 10.3) { blocked[i] = 1; break; }
@@ -190,7 +196,12 @@ function resolveLedClearance(ledsList, pool, opts) {
     const minY = (gb.normY / mm2n) + 5.0, maxY = ((gb.normY + gb.normH) / mm2n) - 5.0;
 
     const violatesAny = (i, mg) => {
-        if (px[i] < minX || px[i] > maxX || py[i] < minY || py[i] > maxY) return true;
+        if (typeof getDistToTpuPanelPerimeterMm === 'function') {
+            const wallChk = getDistToTpuPanelPerimeterMm({ x: px[i] * mm2n, y: py[i] * mm2n });
+            if (!wallChk.isInside || wallChk.distMm < 5.0) return true;
+        } else if (px[i] < minX || px[i] > maxX || py[i] < minY || py[i] > maxY) {
+            return true;
+        }
         for (let j = 0; j < N; j++) {
             if (j === i) continue;
             if (ledPairViolatesMm(px[i], py[i], rot[i], px[j], py[j], rot[j], mg)) return true;
@@ -274,16 +285,41 @@ function resolveLedClearance(ledsList, pool, opts) {
                     }
                 }
                 // Enforce 5mm perimeter wall repulsion
-                if (px[i] < minX) { viol++; dxA[i] += (minX - px[i]) * 1.5; }
-                if (px[i] > maxX) { viol++; dxA[i] -= (px[i] - maxX) * 1.5; }
-                if (py[i] < minY) { viol++; dyA[i] += (minY - py[i]) * 1.5; }
-                if (py[i] > maxY) { viol++; dyA[i] -= (py[i] - maxY) * 1.5; }
+                if (typeof getDistToTpuPanelPerimeterMm === 'function') {
+                    const normPt = { x: px[i] * mm2n, y: py[i] * mm2n };
+                    const wallChk = getDistToTpuPanelPerimeterMm(normPt);
+                    if (!wallChk.isInside) {
+                        viol++;
+                        const gb = ledMmFrame().gb;
+                        const centerX = (gb.normX + gb.normW / 2) / mm2n;
+                        const centerY = (gb.normY + gb.normH / 2) / mm2n;
+                        const cdx = centerX - px[i], cdy = centerY - py[i];
+                        const cdist = Math.hypot(cdx, cdy) || 1;
+                        dxA[i] += (cdx / cdist) * 3.0;
+                        dyA[i] += (cdy / cdist) * 3.0;
+                    } else if (wallChk.distMm < 5.0) {
+                        viol++;
+                        const pen = 5.0 - wallChk.distMm;
+                        const gb = ledMmFrame().gb;
+                        const centerX = (gb.normX + gb.normW / 2) / mm2n;
+                        const centerY = (gb.normY + gb.normH / 2) / mm2n;
+                        const cdx = centerX - px[i], cdy = centerY - py[i];
+                        const cdist = Math.hypot(cdx, cdy) || 1;
+                        dxA[i] += (cdx / cdist) * pen * 1.5;
+                        dyA[i] += (cdy / cdist) * pen * 1.5;
+                    }
+                } else {
+                    if (px[i] < minX) { viol++; dxA[i] += (minX - px[i]) * 1.5; }
+                    if (px[i] > maxX) { viol++; dxA[i] -= (px[i] - maxX) * 1.5; }
+                    if (py[i] < minY) { viol++; dyA[i] += (minY - py[i]) * 1.5; }
+                    if (py[i] > maxY) { viol++; dyA[i] -= (py[i] - maxY) * 1.5; }
+                }
             }
             if (viol === 0) break;
             for (let i = 0; i < m; i++) {
                 if (!movable[i]) continue;
-                px[i] = Math.max(minX, Math.min(maxX, px[i] + dxA[i] * 0.7));
-                py[i] = Math.max(minY, Math.min(maxY, py[i] + dyA[i] * 0.7));
+                px[i] = px[i] + dxA[i] * 0.7;
+                py[i] = py[i] + dyA[i] * 0.7;
             }
             if (!opts.assumeHorizontal && params.tpuWellOrientation !== 'horizontal' && iter % 10 === 9) refreshRot();
         }
