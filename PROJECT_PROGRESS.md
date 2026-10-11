@@ -93,7 +93,13 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
-### 2026-10-10 21:50 - 3D STL Armor Perimeter Wall Clearance Engine & Inward 5mm Keep-Out
+### 2026-10-10 21:58 - LED Well Wire Entrance Sides Perimeter Wall Clearance Engine
+- **LED Well Wire Entrance & Envelope Perimeter Evaluation (`simulator/app.js` & `simulator/led_clearance.js`):**
+  - Updated the 5.0mm perimeter wall clearance check to evaluate the physical sides of the LED wells where the wires enter (`Opening 1` at $+6.8\text{ mm}$ and `Opening 2` at $-6.8\text{ mm}$ along the orientation axis, notch corners at $\pm 2.0\text{ mm}$, wire corridors at $\pm 9.3\text{ mm}$, and lateral flanks at $\pm 4.3\text{ mm}$), rather than checking only the single center coordinate of the LED.
+  - When an LED is oriented towards the 3D STL plate rim, the side of the well where the wire enters is tested directly against `(activeTpuSpecs.front || activeTpuSpecs).contour_pts` in true CAD millimeters.
+  - **Directional Wire Notch Warning Feedback:** If a specific wire entrance side violates the $5.0\text{ mm}$ clearance or is outside the wall, that specific wire entrance corridor notch lights up red on the collar (`opening1WallBlocked` / `opening2WallBlocked`), providing immediate visual diagnostic feedback on the canvas.
+  - **Auto-Placement & Relaxation Sync:** Updated `selectClearanceAwareFpsIndices` and `resolveLedClearance` in `simulator/led_clearance.js` to verify both the center and the wire entrance sides of candidate LEDs, repelling encroaching well sides away from the perimeter wall.
+  - Verified test suite passes (`python simulator.py --test`), zero JavaScript syntax errors (`node -c`), and full documentation synchronization in `SIMULATOR_USER_GUIDE.md` and `PROJECT_PROGRESS.md`.
 - **Contoured 3D STL Armor Plate Perimeter Engine (`simulator/app.js` & `simulator/led_clearance.js`):**
   - Resolved perimeter evaluation mismatch where LED clearance was checking the outer shirt/bounding box rectangle instead of the actual contoured perimeter wall of the 3D STL armor panel.
   - Implemented `getTpuPanelContourNorm()`, `isPointInPolygon()`, `distPointToSegmentMm()`, `offsetContourPolygon()`, and `getDistToTpuPanelPerimeterMm()` to evaluate LEDs directly against `(activeTpuSpecs.front || activeTpuSpecs).contour_pts` in true CAD millimeters.

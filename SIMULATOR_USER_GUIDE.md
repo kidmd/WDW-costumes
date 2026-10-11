@@ -415,8 +415,8 @@ Attaching LEDs to a shirt by hand can easily result in tangled wire spaghetti or
    - Toggle **`⚠️ Show Placement Warnings (<5mm Wall / <2.5mm Wire)`**:
       - Enables or disables real-time visual clearance alerts and floating badges on canvas.
       - When active, dragging, selecting, or hovering over an LED that violates physical clearances displays dynamic warning badges and red collar/ring indicators:
-        - 🚫 **`⚠️ Outside 3D STL Wall`:** Triggered immediately when an LED is dragged or placed outside the contoured perimeter wall of the 3D STL armor panel onto the shirt canvas.
-        - 🛡️ **`⚠️ <5.0mm 3D STL Wall (X.Xmm)`:** Triggered when an LED collar is inside the 3D STL armor panel but within $5.0\text{ mm}$ of the contoured perimeter rim wall.
+        - 🚫 **`⚠️ Outside 3D STL Wall`:** Triggered immediately when any part of an LED well—especially the sides where wires enter ($\pm 6.8\text{ mm}$ along the orientation axis) or the $2.5\text{ mm}$ wire corridors ($\pm 9.3\text{ mm}$)—is positioned outside the contoured perimeter wall of the 3D STL armor panel.
+        - 🛡️ **`⚠️ <5.0mm 3D STL Wall (X.Xmm)`:** Triggered when the sides of the LED well where the wires enter, the wire corridors, or the collar outer envelope are within $5.0\text{ mm}$ of the contoured perimeter rim wall. The specific wire entrance notch violating the clearance lights up red on the collar for instant directional diagnosis.
         - ⚓ **`⚠️ <10mm Bridge Keep-Out`:** Triggered when encroaching on entrance or lateral exit zip-tie strain relief bridge zones.
         - 💥 **`⚠️ Collar Collision`:** Triggered when two LED collars physically overlap ($d < 8.65\text{ mm}$).
         - 🧵 **`⚠️ <2.5mm Wire Channel`:** Triggered when an adjacent LED collar obstructs wire entry/exit corridors.

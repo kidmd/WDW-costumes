@@ -66,7 +66,7 @@
       "filename": "color_white.stl"
     }
   },
-  "layout_signature": "custom_image-round_34-horizontal-num-nogrv-nub-medium-65-v6-8d28673c",
+  "layout_signature": "custom_image-round_34-horizontal-num-nogrv-nub-medium-65-v6-450bf3db",
   "size_preset": "medium",
   "width_mm": 227.66,
   "front": {
@@ -798,8 +798,8 @@
       {
         "id": 56,
         "orig_id": 55,
-        "x": 205.09,
-        "y": 111.85,
+        "x": 140.91,
+        "y": 125.6,
         "is_custom_rotation": false,
         "rotation_deg": 0.0,
         "color": {
@@ -1262,14 +1262,14 @@
       ],
       [
         130.9,
-        133.06
+        144.06
       ],
       [
-        211.59,
-        107.35
+        148.91,
+        125.6
       ],
       [
-        141.7,
+        128.7,
         117.41
       ],
       [
@@ -1637,10 +1637,10 @@
       133.15,
       5.0
     ],
-    "stl_size": 3683584,
-    "chassis_size": 5501584,
+    "stl_size": 3710984,
+    "chassis_size": 5547084,
     "lid_size": 428084,
-    "zip_size": 2938031,
+    "zip_size": 2962214,
     "inlays": [
       {
         "key": "green",
@@ -1661,7 +1661,7 @@
         "name": "Belly & Horns",
         "filename": "tpu_panel_front_color_yellow.stl",
         "hex": "#facc15",
-        "count": 7028
+        "count": 7228
       },
       {
         "key": "white",
@@ -1676,7 +1676,7 @@
     "lid_stl_url": "/3d_panels/tpu_panel_front_lid.stl",
     "multicolor_3mf_url": "/3d_panels/tpu_panel_front_multicolor.3mf",
     "multicolor_zip_url": "/3d_panels/tpu_panel_front_multicolor_bundle.zip",
-    "volume_mm3": 67732.2,
+    "volume_mm3": 67637.6,
     "is_watertight": false
   },
   "back": {
@@ -2408,8 +2408,8 @@
       {
         "id": 56,
         "orig_id": 55,
-        "x": 205.09,
-        "y": 111.85,
+        "x": 140.91,
+        "y": 125.6,
         "is_custom_rotation": false,
         "rotation_deg": 0.0,
         "color": {
@@ -2872,14 +2872,14 @@
       ],
       [
         130.9,
-        133.06
+        144.06
       ],
       [
-        211.59,
-        107.35
+        148.91,
+        125.6
       ],
       [
-        141.7,
+        128.7,
         117.41
       ],
       [
@@ -3247,10 +3247,10 @@
       133.15,
       5.0
     ],
-    "stl_size": 3683584,
-    "chassis_size": 5501584,
+    "stl_size": 3710984,
+    "chassis_size": 5547084,
     "lid_size": 428084,
-    "zip_size": 2937871,
+    "zip_size": 2962122,
     "inlays": [
       {
         "key": "green",
@@ -3271,7 +3271,7 @@
         "name": "Belly & Horns",
         "filename": "tpu_panel_back_color_yellow.stl",
         "hex": "#facc15",
-        "count": 7028
+        "count": 7228
       },
       {
         "key": "white",
@@ -3286,7 +3286,7 @@
     "lid_stl_url": "/3d_panels/tpu_panel_back_lid.stl",
     "multicolor_3mf_url": "/3d_panels/tpu_panel_back_multicolor.3mf",
     "multicolor_zip_url": "/3d_panels/tpu_panel_back_multicolor_bundle.zip",
-    "volume_mm3": 67732.2,
+    "volume_mm3": 67637.6,
     "is_watertight": false
   },
   "height_mm": 273.24,
@@ -4009,8 +4009,8 @@
     {
       "id": 56,
       "orig_id": 55,
-      "x": 205.09,
-      "y": 111.85,
+      "x": 140.91,
+      "y": 125.6,
       "is_custom_rotation": false,
       "rotation_deg": 0.0,
       "color": {
@@ -4478,14 +4478,14 @@
     ],
     [
       130.9,
-      133.06
+      144.06
     ],
     [
-      211.59,
-      107.35
+      148.91,
+      125.6
     ],
     [
-      141.7,
+      128.7,
       117.41
     ],
     [
@@ -4853,10 +4853,10 @@
     133.15,
     5.0
   ],
-  "stl_size": 3683584,
-  "chassis_size": 5501584,
+  "stl_size": 3710984,
+  "chassis_size": 5547084,
   "lid_size": 428084,
-  "zip_size": 2938031,
+  "zip_size": 2962214,
   "inlays": [
     {
       "key": "green",
@@ -4877,7 +4877,7 @@
       "name": "Belly & Horns",
       "filename": "tpu_panel_front_color_yellow.stl",
       "hex": "#facc15",
-      "count": 7028
+      "count": 7228
     },
     {
       "key": "white",
@@ -4892,6 +4892,6 @@
   "lid_stl_url": "/3d_panels/tpu_panel_front_lid.stl",
   "multicolor_3mf_url": "/3d_panels/tpu_panel_front_multicolor.3mf",
   "multicolor_zip_url": "/3d_panels/tpu_panel_front_multicolor_bundle.zip",
-  "volume_mm3": 67732.2,
+  "volume_mm3": 67637.6,
   "is_watertight": false
 }

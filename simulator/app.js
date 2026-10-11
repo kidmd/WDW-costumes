@@ -3679,7 +3679,7 @@ function renderBulb(cx, x, y, col, isHovered, isSelected, index) {
         const channelCorridorH = Math.max(3.5, 4.0 * ppm);
 
         // Opening 1 (+X direction - Wire Entrance/Exit)
-        if (clrStatus.opening1Blocked && isCollarWarn) {
+        if ((clrStatus.opening1Blocked || clrStatus.opening1WallBlocked) && isCollarWarn) {
             cx.fillStyle = 'rgba(255, 51, 102, 0.35)';
             cx.fillRect(outerW / 2, -channelCorridorH / 2, channelCorridorL, channelCorridorH);
             cx.strokeStyle = '#ff3366';
@@ -3696,7 +3696,7 @@ function renderBulb(cx, x, y, col, isHovered, isSelected, index) {
         }
 
         // Opening 2 (-X direction - Wire Entrance/Exit)
-        if (clrStatus.opening2Blocked && isCollarWarn) {
+        if ((clrStatus.opening2Blocked || clrStatus.opening2WallBlocked) && isCollarWarn) {
             cx.fillStyle = 'rgba(255, 51, 102, 0.35)';
             cx.fillRect(-outerW / 2 - channelCorridorL, -channelCorridorH / 2, channelCorridorL, channelCorridorH);
             cx.strokeStyle = '#ff3366';
@@ -12265,16 +12265,51 @@ function checkLedClearanceStatus(index, ledsList) {
     }
 
     // 3. Check 5.0mm perimeter wall clearance keep-out against true 3D STL panel contour
-    const wallCheck = getDistToTpuPanelPerimeterMm(cur);
-    minWallDist = wallCheck.distMm;
-    if (!wallCheck.isInside) {
-        wallBlocked = true;
-        isOutside = true;
-        if (!reason) reason = 'Outside 3D STL perimeter wall';
-    } else if (wallCheck.distMm < 5.0) {
-        wallBlocked = true;
-        isOutside = false;
-        if (!reason) reason = `Perimeter Wall clearance < 5.0mm (${Math.max(0, wallCheck.distMm).toFixed(1)}mm)`;
+    // Evaluates the sides of the LED wells where the wires enter (opening 1 at +6.8mm, opening 2 at -6.8mm,
+    // 2.5mm wire corridors at 9.3mm, and collar flanks at 4.3mm), ensuring no part of the well or wire entrances violates clearance.
+    const vx = -uy, vy = ux;
+    const wellPoints = [
+        { name: 'Wire Entrance 1', pt: { x: cur.x + (6.8 * ux) * mmToNormX, y: cur.y + (6.8 * uy) * mmToNormY }, isOp1: true },
+        { name: 'Wire Entrance 2', pt: { x: cur.x - (6.8 * ux) * mmToNormX, y: cur.y - (6.8 * uy) * mmToNormY }, isOp2: true },
+        { name: 'Wire Entrance 1 Left', pt: { x: cur.x + (6.8 * ux + 2.0 * vx) * mmToNormX, y: cur.y + (6.8 * uy + 2.0 * vy) * mmToNormY }, isOp1: true },
+        { name: 'Wire Entrance 1 Right', pt: { x: cur.x + (6.8 * ux - 2.0 * vx) * mmToNormX, y: cur.y + (6.8 * uy - 2.0 * vy) * mmToNormY }, isOp1: true },
+        { name: 'Wire Entrance 2 Left', pt: { x: cur.x - (6.8 * ux - 2.0 * vx) * mmToNormX, y: cur.y - (6.8 * uy - 2.0 * vy) * mmToNormY }, isOp2: true },
+        { name: 'Wire Entrance 2 Right', pt: { x: cur.x - (6.8 * ux + 2.0 * vx) * mmToNormX, y: cur.y - (6.8 * uy + 2.0 * vy) * mmToNormY }, isOp2: true },
+        { name: 'Wire Corridor 1', pt: { x: cur.x + (9.3 * ux) * mmToNormX, y: cur.y + (9.3 * uy) * mmToNormY }, isOp1: true },
+        { name: 'Wire Corridor 2', pt: { x: cur.x - (9.3 * ux) * mmToNormX, y: cur.y - (9.3 * uy) * mmToNormY }, isOp2: true },
+        { name: 'Collar Flank 1', pt: { x: cur.x + (4.3 * vx) * mmToNormX, y: cur.y + (4.3 * vy) * mmToNormY } },
+        { name: 'Collar Flank 2', pt: { x: cur.x - (4.3 * vx) * mmToNormX, y: cur.y - (4.3 * vy) * mmToNormY } },
+        { name: 'LED Center', pt: cur }
+    ];
+
+    minWallDist = 999;
+    let closestFeature = '';
+    let opening1WallBlocked = false;
+    let opening2WallBlocked = false;
+
+    for (let p = 0; p < wellPoints.length; p++) {
+        const wp = wellPoints[p];
+        const wCheck = getDistToTpuPanelPerimeterMm(wp.pt);
+        if (!wCheck.isInside) {
+            wallBlocked = true;
+            isOutside = true;
+            if (wp.isOp1) opening1WallBlocked = true;
+            if (wp.isOp2) opening2WallBlocked = true;
+            if (!reason) reason = `${wp.name} outside 3D STL perimeter wall`;
+        }
+        if (wCheck.distMm < minWallDist) {
+            minWallDist = wCheck.distMm;
+            closestFeature = wp.name;
+        }
+        if (wCheck.distMm < 5.0) {
+            wallBlocked = true;
+            if (wp.isOp1) opening1WallBlocked = true;
+            if (wp.isOp2) opening2WallBlocked = true;
+        }
+    }
+
+    if (wallBlocked && !isOutside && !reason) {
+        reason = `${closestFeature} clearance < 5.0mm (${Math.max(0, minWallDist).toFixed(1)}mm)`;
     }
 
     const isClear = !overlapBlocked && !opening1Blocked && !opening2Blocked && !bridgeBlocked && !wallBlocked;
@@ -12283,6 +12318,8 @@ function checkLedClearanceStatus(index, ledsList) {
         sideBlocked: false,
         opening1Blocked,
         opening2Blocked,
+        opening1WallBlocked,
+        opening2WallBlocked,
         bridgeBlocked,
         overlapBlocked,
         wallBlocked,

@@ -82,8 +82,16 @@ function selectClearanceAwareFpsIndices(candNorm, count, anchorsNorm) {
         for (let i = 0; i < n; i++) {
             blocked[i] = 0;
             if (typeof getDistToTpuPanelPerimeterMm === 'function') {
-                const wallChk = getDistToTpuPanelPerimeterMm({ x: candNorm[i].x, y: candNorm[i].y });
-                if (!wallChk.isInside || wallChk.distMm < wallClr) { blocked[i] = 1; continue; }
+                const pOp1 = { x: candNorm[i].x + 6.8 * mm2n, y: candNorm[i].y };
+                const pOp2 = { x: candNorm[i].x - 6.8 * mm2n, y: candNorm[i].y };
+                const wallChkC = getDistToTpuPanelPerimeterMm({ x: candNorm[i].x, y: candNorm[i].y });
+                const wallChk1 = getDistToTpuPanelPerimeterMm(pOp1);
+                const wallChk2 = getDistToTpuPanelPerimeterMm(pOp2);
+                if (!wallChkC.isInside || !wallChk1.isInside || !wallChk2.isInside ||
+                    wallChkC.distMm < wallClr || wallChk1.distMm < wallClr || wallChk2.distMm < wallClr) {
+                    blocked[i] = 1;
+                    continue;
+                }
             } else if (cx[i] < minXmm || cx[i] > maxXmm || cy[i] < minYmm || cy[i] > maxYmm) {
                 blocked[i] = 1;
                 continue;
@@ -197,8 +205,14 @@ function resolveLedClearance(ledsList, pool, opts) {
 
     const violatesAny = (i, mg) => {
         if (typeof getDistToTpuPanelPerimeterMm === 'function') {
-            const wallChk = getDistToTpuPanelPerimeterMm({ x: px[i] * mm2n, y: py[i] * mm2n });
-            if (!wallChk.isInside || wallChk.distMm < 5.0) return true;
+            const ux = Math.cos(rot[i]), uy = Math.sin(rot[i]);
+            const pC = { x: px[i] * mm2n, y: py[i] * mm2n };
+            const pOp1 = { x: (px[i] + 6.8 * ux) * mm2n, y: (py[i] + 6.8 * uy) * mm2n };
+            const pOp2 = { x: (px[i] - 6.8 * ux) * mm2n, y: (py[i] - 6.8 * uy) * mm2n };
+            const chkC = getDistToTpuPanelPerimeterMm(pC);
+            const chk1 = getDistToTpuPanelPerimeterMm(pOp1);
+            const chk2 = getDistToTpuPanelPerimeterMm(pOp2);
+            if (!chkC.isInside || !chk1.isInside || !chk2.isInside || chkC.distMm < 5.0 || chk1.distMm < 5.0 || chk2.distMm < 5.0) return true;
         } else if (px[i] < minX || px[i] > maxX || py[i] < minY || py[i] > maxY) {
             return true;
         }
@@ -286,9 +300,19 @@ function resolveLedClearance(ledsList, pool, opts) {
                 }
                 // Enforce 5mm perimeter wall repulsion
                 if (typeof getDistToTpuPanelPerimeterMm === 'function') {
-                    const normPt = { x: px[i] * mm2n, y: py[i] * mm2n };
-                    const wallChk = getDistToTpuPanelPerimeterMm(normPt);
-                    if (!wallChk.isInside) {
+                    const uxi = Math.cos(rot[i]), uyi = Math.sin(rot[i]);
+                    const checkPts = [
+                        { x: px[i] * mm2n, y: py[i] * mm2n },
+                        { x: (px[i] + 6.8 * uxi) * mm2n, y: (py[i] + 6.8 * uyi) * mm2n },
+                        { x: (px[i] - 6.8 * uxi) * mm2n, y: (py[i] - 6.8 * uyi) * mm2n }
+                    ];
+                    let minD = 999, insideAll = true;
+                    for (let k = 0; k < checkPts.length; k++) {
+                        const wChk = getDistToTpuPanelPerimeterMm(checkPts[k]);
+                        if (!wChk.isInside) insideAll = false;
+                        if (wChk.distMm < minD) minD = wChk.distMm;
+                    }
+                    if (!insideAll) {
                         viol++;
                         const gb = ledMmFrame().gb;
                         const centerX = (gb.normX + gb.normW / 2) / mm2n;
@@ -297,9 +321,9 @@ function resolveLedClearance(ledsList, pool, opts) {
                         const cdist = Math.hypot(cdx, cdy) || 1;
                         dxA[i] += (cdx / cdist) * 3.0;
                         dyA[i] += (cdy / cdist) * 3.0;
-                    } else if (wallChk.distMm < 5.0) {
+                    } else if (minD < 5.0) {
                         viol++;
-                        const pen = 5.0 - wallChk.distMm;
+                        const pen = 5.0 - minD;
                         const gb = ledMmFrame().gb;
                         const centerX = (gb.normX + gb.normW / 2) / mm2n;
                         const centerY = (gb.normY + gb.normH / 2) / mm2n;
