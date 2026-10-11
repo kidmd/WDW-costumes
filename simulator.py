@@ -1275,8 +1275,8 @@ const uint8_t PROGMEM SPATIAL_RADIUS_BYTE[FRONT_LEDS] = {{
                 img_w, img_h = a_img.size
                 aspect = img_w / float(img_h)
 
-            # 1. Plate Dimensions (Small 6.5"/165.1mm, Medium 8.0"/203.2mm, Large 10.0"/254.0mm)
-            target_chassis_w = float(req_data.get("widthMm", 203.2))
+            # 1. Plate Dimensions (Small 6.5"/165.1mm, Medium 8.0"/203.2mm, Large Max 245mm/9.65")
+            target_chassis_w = min(245.0, float(req_data.get("widthMm", 203.2)))
 
             # Calculate the relative bounding width of the character contour within the image
             # so the printed chassis itself precisely matches the target width (e.g. 203.2mm / 8.0")

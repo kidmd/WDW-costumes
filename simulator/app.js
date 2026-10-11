@@ -277,7 +277,7 @@ function getGraphicChestBounds() {
     const plateScaleMap = {
         'small': 0.8125,   // 6.5" / 8.0" (165.1mm)
         'medium': 1.0000,  // 8.0" / 8.0" (203.2mm)
-        'large': 1.2500    // 10.0" / 8.0" (254.0mm)
+        'large': 1.2057    // Max 245.0mm / 8.0" (245.0mm build plate envelope limit)
     };
     const plateScale = (typeof selectedPlateSize !== 'undefined' && plateScaleMap[selectedPlateSize])
         ? plateScaleMap[selectedPlateSize]
@@ -21112,7 +21112,7 @@ function selectPlateSizeOption(size) {
     const sizeMap = {
         'small': { mm: 165.1, inches: 6.5, label: 'Small (~6.5" / 165mm)' },
         'medium': { mm: 203.2, inches: 8.0, label: 'Medium (~8.0" / 203mm)' },
-        'large': { mm: 254.0, inches: 10.0, label: 'Large (~10.0" / 254mm)' }
+        'large': { mm: 245.0, inches: 9.65, label: 'Large (Max 245mm / ~9.65")' }
     };
     selectedPlateWidthMm = sizeMap[size].mm;
 

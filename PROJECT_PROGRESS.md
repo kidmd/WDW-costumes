@@ -93,6 +93,35 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### 2026-10-11 12:30 - Pre-Print CAD Modifications: 245mm Envelope Limit, Normal-Aligned Side Exit, Relocated Bottom Portal & Extremity Lid Screws
+- **245mm Maximum Dimension Limit (`scripts/compile_clean_tpu_panel.py`, `simulator.py`, `simulator/app.js`):**
+  - Enforced strict 245.0mm maximum build volume limit on the compiled STL part footprint (including 4.0mm outer perimeter rim buffer and 4.75mm outer eyelet mounting tabs).
+  - Implemented iterative footprint scaling in `compile_plate_variant`: if $\max(\text{dim}_X + 9.5, \text{dim}_Y + 9.5) > 245.0\text{ mm}$, smoothly scales `width_mm`, `height_mm`, and all LED coordinates while preserving 1:1 aspect ratio and artwork alignment.
+  - Large plate size now compiles to `[240.54, 215.64, 10.0] mm` (5.42 MB chassis, 0.49 MB lid), fitting comfortably within standard 256x256mm build envelopes (Bambu Lab X1/P1/A1, Snapmaker U1, Creality, Prusa MK4).
+  - Synchronized `sizeMap` in `simulator/app.js` and `target_chassis_w` in `simulator.py` to `245.0mm (~9.65")`.
+- **Eliminated Side Exit Slot Perimeter Wall Bump (Photo 1 Fix):**
+  - Diagnosed that the previous axis-aligned box cutter (`extents=[6.5, 5.5, 3.9]`) did not align with the slanted perimeter wall at the flank, leaving an uncut triangular wedge and protruding bump on the outer rim wall.
+  - Calculated local wall tangent and normal vectors on `smoothed_plate_2d.exterior` at `(exit_portal_x, exit_portal_y)` and applied rotation matrix $\mathbf{R}_z(\theta)$ to `exit_portal_cutter` with generous 24.0mm through-wall depth.
+  - Aligned lateral zip-tie bridge (`bridge_exit_solid_tm`), wire tunnel, saddle, and lid ridge relief cutter (`exit_portal_relief_m`) along the wall normal, completely eliminating the protruding wall bump and providing a clean, perpendicular wire exit.
+- **Relocated Bottom Wire Portal & Zip-Tie Tunnel (Photo 2 Fix):**
+  - Shifted bottom wire entrance portal and internal zip-tie bridge away from the corner jog (`X = 133.62`) into the straight horizontal segment of the bottom rim wall (`X = 114.50`, `Y = 47.22` in scaled space) circled in green in Photo 2.
+  - Entrance slot cutter and internal floor zip-tie strain relief bridge tunnel move together, providing clean orthogonal geometry and unobstructed wire entry into the chassis basin.
+- **Added Perimeter Extremity Lid Screw Bosses (Photo 3 Fix):**
+  - Added dedicated M2 screw boss positions at the 7 perimeter extremities circled in Photo 3:
+    1. Top-right ear tip
+    2. Chin / neck concave nook
+    3. Top-left ear crest
+    4. Far-left tail tip
+    5. Bottom-left foot / heel corner
+    6. Far-right jaw / snout corner
+    7. Lower-right flank (straight vertical wall above tab)
+  - Combined with perimeter spacing distribution to provide 14 total M2 screw bosses along the inner rim wall.
+  - Enforced strict keep-outs: $\ge 12\text{ mm}$ portal clearance, $\ge 6.8\text{ mm}$ collar clearance from LEDs, and strictly zero screws in the center of the lid plate.
+  - Regenerated matching pilot holes on the chassis tray as well as alignment ridge reliefs, 2.0mm through-holes, and 3.8mm flush counterbores on the rear lid plate.
+- **Verification:**
+  - Full batch compilation completed in 10.72s. Monolithic STLs, split multi-color STLs, and native multi-body `.3mf` exported successfully.
+  - Tested with `python simulator.py --test`: all endpoints and preset checks passed.
+
 ### 2026-10-10 22:20 - Redistribution Perimeter Wall Avoidance & 2.0mm Collar Bridge Clearance Rule
 - **Redistribution Wall Avoidance Engine (`simulator/app.js` & `simulator/led_clearance.js`):**
   - Resolved the issue where clicking "Re-distribute" (or changing LED count) placed LEDs whose collars touched or encroached within 5.0mm of the 3D STL perimeter wall.

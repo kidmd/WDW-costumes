@@ -159,6 +159,34 @@ def compile_plate_variant(variant_name, width_mm, height_mm, raw_leds, artwork_p
 
     raw_contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
     if raw_contours:
+        # Enforce strict 245.0mm maximum build volume limit (part + tabs <= 245.0mm)
+        MAX_PART_DIM_MM = 245.0
+        TAB_OVERHANG_MM = 9.5  # 2 * (1.5mm offset + 3.25mm outer tab radius)
+        kernel_sz_init = max(5, int(min(img_w, img_h) * 0.02))
+        if kernel_sz_init % 2 == 0: kernel_sz_init += 1
+        mask_dil_init = cv2.dilate(mask, np.ones((kernel_sz_init, kernel_sz_init), np.uint8), iterations=2)
+        cnts_init, _ = cv2.findContours(mask_dil_init, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+        if cnts_init:
+            main_c_init = max(cnts_init, key=cv2.contourArea)
+            eps_init = 0.0022 * cv2.arcLength(main_c_init, True)
+            app_c_init = cv2.approxPolyDP(main_c_init, eps_init, True)
+            while True:
+                t_pts = [[(pt[0][0] / img_w) * width_mm, (1.0 - pt[0][1] / img_h) * height_mm] for pt in app_c_init]
+                t_poly = sg.Polygon(t_pts).buffer(0).buffer(4.0, resolution=16).simplify(0.3, preserve_topology=True)
+                if t_poly.geom_type == 'MultiPolygon':
+                    t_poly = max(t_poly.geoms, key=lambda g: g.area)
+                tb = t_poly.bounds
+                est_max_dim = max((tb[2] - tb[0]) + TAB_OVERHANG_MM, (tb[3] - tb[1]) + TAB_OVERHANG_MM)
+                if est_max_dim <= MAX_PART_DIM_MM:
+                    break
+                sf_limit = (MAX_PART_DIM_MM - 0.2) / est_max_dim
+                print(f"[{variant_name}] Part envelope ({est_max_dim:.1f}mm) exceeds 245.0mm limit. Scaling by {sf_limit:.4f}...")
+                width_mm = round(width_mm * sf_limit, 2)
+                height_mm = round(height_mm * sf_limit, 2)
+                for l in leds:
+                    l['x'] = round(l['x'] * sf_limit, 2)
+                    l['y'] = round(l['y'] * sf_limit, 2)
+
         main_raw = max(raw_contours, key=cv2.contourArea)
         epsilon_raw = 0.0022 * cv2.arcLength(main_raw, True)
         approx_raw = cv2.approxPolyDP(main_raw, epsilon_raw, True)
@@ -374,22 +402,32 @@ def compile_plate_variant(variant_name, width_mm, height_mm, raw_leds, artwork_p
 
     # 4b. Bottom-Center Wire Entry Notch & Internal Strain Relief Anchor
     cx_mid = (bounds[0] + bounds[2]) / 2.0
-    bottom_pts = [p for p in contour_coords if abs(p[0] - cx_mid) < 25.0]
-    if bottom_pts:
-        lowest_pt = min(bottom_pts, key=lambda p: p[1])
-        wire_portal_x = lowest_pt[0]
-        wire_portal_y = lowest_pt[1]
+    # In Photo 2, move from corner jog (red circle) to straight horizontal run to the left (green circle)
+    flat_bottom_pts = [p for p in contour_coords if p[1] < bounds[1] + 2.5 and p[0] < cx_mid + 8.0]
+    if len(flat_bottom_pts) >= 2:
+        min_flat_x = min(p[0] for p in flat_bottom_pts)
+        max_flat_x = max(p[0] for p in flat_bottom_pts)
+        wire_portal_x = round((min_flat_x + max_flat_x) / 2.0, 2)
+        boundary_line_ent = smoothed_plate_2d.exterior
+        proj_pt = boundary_line_ent.interpolate(boundary_line_ent.project(sg.Point(wire_portal_x, bounds[1])))
+        wire_portal_y = round(float(proj_pt.y), 2)
     else:
-        wire_portal_x = cx_mid
-        wire_portal_y = bounds[1]
+        bottom_pts = [p for p in contour_coords if abs(p[0] - cx_mid) < 25.0]
+        if bottom_pts:
+            lowest_pt = min(bottom_pts, key=lambda p: p[1])
+            wire_portal_x = lowest_pt[0]
+            wire_portal_y = lowest_pt[1]
+        else:
+            wire_portal_x = cx_mid
+            wire_portal_y = bounds[1]
 
     # Parting-line wire entrance notch at top of outer rim wall (Z = 6.5 to 10.2mm in pre-flip space)
     PORTAL_NOTCH_W = 5.5   # mm wide
     PORTAL_NOTCH_H = 3.5   # mm tall
-    wire_portal_cutter = trimesh.creation.box(extents=[PORTAL_NOTCH_W, RIM_WALL_THICK + 4.0, PORTAL_NOTCH_H + 0.4])
+    wire_portal_cutter = trimesh.creation.box(extents=[PORTAL_NOTCH_W, RIM_WALL_THICK + 14.0, PORTAL_NOTCH_H + 0.4])
     wire_portal_cutter.apply_translation([wire_portal_x, wire_portal_y, TOTAL_THICK - PORTAL_NOTCH_H / 2.0 + 0.2])
 
-    # Internal floor zip-tie strain relief bridge for entrance wire:
+    # Internal floor zip-tie strain relief bridge for entrance wire (moves together with slot):
     bridge_y = wire_portal_y + RIM_WALL_THICK + 5.5
     BRIDGE_X_W = 8.0
     BRIDGE_Y_L = 7.2
@@ -404,9 +442,9 @@ def compile_plate_variant(variant_name, width_mm, height_mm, raw_leds, artwork_p
     saddle_cutter_tm.apply_translation([wire_portal_x, bridge_y, FRONT_THICK_GENERAL + BRIDGE_Z_H - 0.3])
 
     # Clean monolithic bridge arch with unobstructed through-tunnel
-    internal_bridge_m = to_m(bridge_solid_tm) - to_m(tunnel_cutter_tm) - to_m(saddle_cutter_tm)
+    internal_bridge_m = (to_m(bridge_solid_tm) - to_m(tunnel_cutter_tm) - to_m(saddle_cutter_tm)) - to_m(rim_mesh)
 
-    # 4c. Lower-Right Lateral Wire Exit Notch & Internal Strain Relief Anchor
+    # 4c. Lower-Right Lateral Wire Exit Notch & Internal Strain Relief Anchor (Photo 1 Fix)
     y_min_flank = bounds[1] + 0.18 * (bounds[3] - bounds[1])
     y_max_flank = bounds[1] + 0.45 * (bounds[3] - bounds[1])
     right_flank_pts = [p for p in contour_coords if p[0] > cx_mid and y_min_flank <= p[1] <= y_max_flank]
@@ -418,26 +456,48 @@ def compile_plate_variant(variant_name, width_mm, height_mm, raw_leds, artwork_p
         exit_portal_x = bounds[2]
         exit_portal_y = bounds[1] + 0.30 * (bounds[3] - bounds[1])
 
-    # Exit U-Notch Cutter through right rim wall (5.5mm wide in Y, clears wall in X)
-    exit_portal_cutter = trimesh.creation.box(extents=[RIM_WALL_THICK + 4.0, PORTAL_NOTCH_W, PORTAL_NOTCH_H + 0.4])
+    # Find outward normal and tangent on perimeter wall at exit portal
+    boundary_line_exit = smoothed_plate_2d.exterior
+    d_exit = boundary_line_exit.project(sg.Point(exit_portal_x, exit_portal_y))
+    pt_exit_prev = boundary_line_exit.interpolate(max(0.0, d_exit - 1.0))
+    pt_exit_next = boundary_line_exit.interpolate(min(boundary_line_exit.length, d_exit + 1.0))
+    tan_exit = np.array([pt_exit_next.x - pt_exit_prev.x, pt_exit_next.y - pt_exit_prev.y])
+    tan_exit_norm = tan_exit / (np.linalg.norm(tan_exit) + 1e-6)
+    normal_exit = np.array([-tan_exit_norm[1], tan_exit_norm[0]])
+    if smoothed_plate_2d.contains(sg.Point(exit_portal_x + normal_exit[0] * 1.5, exit_portal_y + normal_exit[1] * 1.5)):
+        normal_exit = -normal_exit
+
+    rot_angle_exit = math.atan2(normal_exit[1], normal_exit[0])
+    rot_mat_exit = trimesh.transformations.rotation_matrix(rot_angle_exit, [0, 0, 1])
+
+    # Rotated U-Notch Cutter through right rim wall (24.0mm deep through wall, 5.5mm wide)
+    # Fully punches through angled wall, eliminating any protruding wall bump or uncut corners
+    exit_portal_cutter = trimesh.creation.box(extents=[24.0, PORTAL_NOTCH_W, PORTAL_NOTCH_H + 0.4])
+    exit_portal_cutter.apply_transform(rot_mat_exit)
     exit_portal_cutter.apply_translation([exit_portal_x, exit_portal_y, TOTAL_THICK - PORTAL_NOTCH_H / 2.0 + 0.2])
 
-    # Exit Strain Relief Bridge (aligned horizontally along X towards exit):
-    bridge_exit_x = exit_portal_x - RIM_WALL_THICK - 5.5
-    bridge_exit_y = exit_portal_y
-    BRIDGE_EXIT_X_L = 7.2  # length along wire in X
-    BRIDGE_EXIT_Y_W = 8.0  # width across wire in Y
+    # Exit Strain Relief Bridge (aligned along wall normal towards interior):
+    inward_normal = -normal_exit
+    bridge_exit_center = np.array([exit_portal_x, exit_portal_y]) + inward_normal * (RIM_WALL_THICK + 5.5)
+    bridge_exit_x = round(float(bridge_exit_center[0]), 2)
+    bridge_exit_y = round(float(bridge_exit_center[1]), 2)
+
+    BRIDGE_EXIT_X_L = 7.2  # length along wire
+    BRIDGE_EXIT_Y_W = 8.0  # width across wire
     bridge_exit_solid_tm = trimesh.creation.box(extents=[BRIDGE_EXIT_X_L, BRIDGE_EXIT_Y_W, BRIDGE_Z_H])
+    bridge_exit_solid_tm.apply_transform(rot_mat_exit)
     bridge_exit_solid_tm.apply_translation([bridge_exit_x, bridge_exit_y, FRONT_THICK_GENERAL + BRIDGE_Z_H / 2.0])
 
     tunnel_exit_cutter_tm = trimesh.creation.box(extents=[3.2, BRIDGE_EXIT_Y_W + 8.0, 2.8 + 0.2])
+    tunnel_exit_cutter_tm.apply_transform(rot_mat_exit)
     tunnel_exit_cutter_tm.apply_translation([bridge_exit_x, bridge_exit_y, FRONT_THICK_GENERAL + 2.8 / 2.0])
 
     saddle_exit_cutter_tm = trimesh.creation.box(extents=[BRIDGE_EXIT_X_L + 4.0, 4.5, 0.8])
+    saddle_exit_cutter_tm.apply_transform(rot_mat_exit)
     saddle_exit_cutter_tm.apply_translation([bridge_exit_x, bridge_exit_y, FRONT_THICK_GENERAL + BRIDGE_Z_H - 0.3])
 
     # Clean monolithic exit bridge arch with unobstructed through-tunnel
-    internal_bridge_exit_m = to_m(bridge_exit_solid_tm) - to_m(tunnel_exit_cutter_tm) - to_m(saddle_exit_cutter_tm)
+    internal_bridge_exit_m = (to_m(bridge_exit_solid_tm) - to_m(tunnel_exit_cutter_tm) - to_m(saddle_exit_cutter_tm)) - to_m(rim_mesh)
 
     # 5. Collars, Recesses & Windows
     outer_collar_2d = make_stadium_polygon(COLLAR_OUTER_L, COLLAR_OUTER_W, sections=16)
@@ -719,8 +779,7 @@ def compile_plate_variant(variant_name, width_mm, height_mm, raw_leds, artwork_p
     else:
         base_with_pockets_m = base_m
 
-    # 7b. Perimeter Screw Boss Locations (6 to 8 perimeter positions avoiding LEDs and wire portal)
-    NUM_SCREWS = 8
+    # 7b. Perimeter Screw Boss Locations (Extremities from Photo 3 + Perimeter Distribution)
     SCREW_BOSS_R = 2.5       # mm (5.0mm diameter pillar)
     SCREW_HOLE_R = 1.0       # mm (2.0mm clearance hole for M2 screw body)
     SCREW_CBORE_R = 1.9      # mm (3.8mm diameter counterbore)
@@ -734,14 +793,51 @@ def compile_plate_variant(variant_name, width_mm, height_mm, raw_leds, artwork_p
 
     inner_boundary = inner_plate_2d.exterior
     total_inner_len = inner_boundary.length
-    screw_coords = []
-    
-    for i in range(NUM_SCREWS):
-        nominal_d = (i / float(NUM_SCREWS)) * total_inner_len
+    coords_inner = np.array(inner_boundary.coords)
+    ib_bounds = inner_plate_2d.bounds
+    ib_w = ib_bounds[2] - ib_bounds[0]
+    ib_h = ib_bounds[3] - ib_bounds[1]
+
+    # Find the 7 key extremity anchor points circled in Photo 3:
+    # 1. Top-right ear tip (max x+y in upper right)
+    ur_pts = coords_inner[(coords_inner[:, 0] > ib_bounds[0] + 0.6*ib_w) & (coords_inner[:, 1] > ib_bounds[1] + 0.6*ib_h)]
+    e1 = ur_pts[np.argmax(ur_pts[:, 0] + ur_pts[:, 1])] if len(ur_pts) else coords_inner[0]
+
+    # 2. Dragon jaw/neck notch nook (between head and back)
+    nook_pts = coords_inner[(coords_inner[:, 0] > ib_bounds[0] + 0.4*ib_w) & (coords_inner[:, 0] < ib_bounds[0] + 0.65*ib_w) & (coords_inner[:, 1] > ib_bounds[1] + 0.6*ib_h)]
+    e2 = nook_pts[np.argmin(nook_pts[:, 0] + nook_pts[:, 1])] if len(nook_pts) else coords_inner[0]
+
+    # 3. Upper-left tail/wing crest (max y for x < 0.4*ib_w)
+    ul_pts = coords_inner[(coords_inner[:, 0] < ib_bounds[0] + 0.4*ib_w) & (coords_inner[:, 1] > ib_bounds[1] + 0.6*ib_h)]
+    e3 = ul_pts[np.argmax(ul_pts[:, 1])] if len(ul_pts) else coords_inner[0]
+
+    # 4. Far-left tail tip (min x)
+    e4 = coords_inner[np.argmin(coords_inner[:, 0])]
+
+    # 5. Bottom-left foot corner (min x+y in lower left)
+    bl_pts = coords_inner[(coords_inner[:, 0] < ib_bounds[0] + 0.3*ib_w) & (coords_inner[:, 1] < ib_bounds[1] + 0.3*ib_h)]
+    e5 = bl_pts[np.argmin(bl_pts[:, 0] + bl_pts[:, 1])] if len(bl_pts) else coords_inner[0]
+
+    # 6. Far-right jaw/snout corner (max x for mid-upper y)
+    mr_pts = coords_inner[(coords_inner[:, 0] > ib_bounds[0] + 0.7*ib_w) & (coords_inner[:, 1] > ib_bounds[1] + 0.5*ib_h) & (coords_inner[:, 1] < ib_bounds[1] + 0.75*ib_h)]
+    e6 = mr_pts[np.argmax(mr_pts[:, 0])] if len(mr_pts) else coords_inner[0]
+
+    # 7. Lower-right flank (straight vertical wall above tab)
+    lr_pts = coords_inner[(coords_inner[:, 0] > ib_bounds[0] + 0.6*ib_w) & (coords_inner[:, 1] > ib_bounds[1] + 0.3*ib_h) & (coords_inner[:, 1] < ib_bounds[1] + 0.45*ib_h)]
+    e7 = lr_pts[np.argmin(abs(lr_pts[:, 1] - (ib_bounds[1] + 0.36*ib_h)))] if len(lr_pts) else coords_inner[0]
+
+    extremities = [e1, e2, e3, e4, e5, e6, e7]
+
+    # Prioritize keeping Photo 3 extremities in candidate list:
+    cand_screws = [(inner_boundary.project(sg.Point(p)), np.array(p), True) for p in extremities]
+
+    # Distribute additional perimeter screws to fill remaining spans (total ~14-16 perimeter screws)
+    NUM_DISTRIBUTED = 12
+    for i in range(NUM_DISTRIBUTED):
+        nominal_d = (i / float(NUM_DISTRIBUTED)) * total_inner_len
         best_pt = None
         best_clearance = -1
-        # Search along boundary arc +/- 12mm for maximum clearance from LEDs & wire portal
-        for delta in np.linspace(-12.0, 12.0, 17):
+        for delta in np.linspace(-15.0, 15.0, 21):
             cur_d = (nominal_d + delta) % total_inner_len
             cand_p = inner_boundary.interpolate(cur_d)
             dist_portal = np.linalg.norm([cand_p.x - wire_portal_x, cand_p.y - wire_portal_y])
@@ -749,13 +845,40 @@ def compile_plate_variant(variant_name, width_mm, height_mm, raw_leds, artwork_p
             if dist_portal < 14.0 or dist_exit < 14.0:
                 continue
             min_led = min(np.linalg.norm([cand_p.x - l['x'], cand_p.y - l['y']]) for l in leds) if leds else 20.0
+            if min_led < 6.8:
+                continue
             if min_led > best_clearance:
                 best_clearance = min_led
-                best_pt = cand_p
-                
-        if best_pt is None:
-            best_pt = inner_boundary.interpolate(nominal_d)
-        screw_coords.append([round(float(best_pt.x), 2), round(float(best_pt.y), 2)])
+                best_pt = np.array([cand_p.x, cand_p.y])
+        if best_pt is not None:
+            cand_screws.append((inner_boundary.project(sg.Point(best_pt)), best_pt, False))
+
+    cand_screws.sort(key=lambda x: x[0])
+
+    filtered_screws = []
+    MIN_SPACING = 24.0
+    for d, p, is_ext in cand_screws:
+        dist_portal = np.linalg.norm([p[0] - wire_portal_x, p[1] - wire_portal_y])
+        dist_exit = np.linalg.norm([p[0] - exit_portal_x, p[1] - exit_portal_y])
+        if dist_portal < 12.0 or dist_exit < 12.0:
+            continue
+        min_led = min(np.linalg.norm([p[0] - l['x'], p[1] - l['y']]) for l in leds) if leds else 20.0
+        if min_led < 6.5:
+            continue
+        if not filtered_screws:
+            filtered_screws.append((d, p, is_ext))
+        else:
+            last_d, last_p, last_ext = filtered_screws[-1]
+            if (d - last_d) >= MIN_SPACING:
+                filtered_screws.append((d, p, is_ext))
+            elif is_ext and not last_ext:
+                filtered_screws[-1] = (d, p, is_ext)
+
+    if len(filtered_screws) > 1 and (total_inner_len - filtered_screws[-1][0] + filtered_screws[0][0]) < MIN_SPACING:
+        if not filtered_screws[-1][2]:
+            filtered_screws.pop()
+
+    screw_coords = [[round(float(p[0]), 2), round(float(p[1]), 2)] for d, p, is_ext in filtered_screws]
 
     tray_boss_solids = []
     pilot_hole_cutters = []
@@ -809,8 +932,11 @@ def compile_plate_variant(variant_name, width_mm, height_mm, raw_leds, artwork_p
     ridge_m = to_m(ridge_mesh)
 
     # Cutout over entrance & exit wire portals so wires are never pinched
-    portal_relief_m = Manifold.cube([14.0, RIM_WALL_THICK + 8.0, RIDGE_HEIGHT + 0.6], True).translate([wire_portal_x, wire_portal_y, LID_THICK + RIDGE_HEIGHT / 2.0])
-    exit_portal_relief_m = Manifold.cube([RIM_WALL_THICK + 8.0, 14.0, RIDGE_HEIGHT + 0.6], True).translate([exit_portal_x, exit_portal_y, LID_THICK + RIDGE_HEIGHT / 2.0])
+    portal_relief_m = Manifold.cube([14.0, RIM_WALL_THICK + 14.0, RIDGE_HEIGHT + 0.6], True).translate([wire_portal_x, wire_portal_y, LID_THICK + RIDGE_HEIGHT / 2.0])
+    exit_relief_tm = trimesh.creation.box(extents=[RIM_WALL_THICK + 14.0, 14.0, RIDGE_HEIGHT + 0.6])
+    exit_relief_tm.apply_transform(rot_mat_exit)
+    exit_relief_tm.apply_translation([exit_portal_x, exit_portal_y, LID_THICK + RIDGE_HEIGHT / 2.0])
+    exit_portal_relief_m = to_m(exit_relief_tm)
 
     # Flush Screw Landings on Inner Face (Z = LID_THICK = 2.0mm):
     # Chassis tray boss pillars already rise flush with the rim top (Z = 9.0mm in tray).

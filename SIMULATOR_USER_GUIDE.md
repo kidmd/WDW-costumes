@@ -129,7 +129,7 @@ The sidebar navigation is organized into a clean **2-row × 3-column grid** that
       - **Wiring Sequence Selector (`[ 🔗 Nearby (Default) | 🔀 Wide Spacing ]`):**
         - **🔗 Nearby (Default):** Starts at an LED adjacent to the bottom entrance portal, visits consecutive near neighbors without skipping, eliminates link crossovers with 2-opt uncrossing, and terminates at an LED adjacent to the lower-right lateral wire exit portal.
         - **🔀 Wide Spacing:** Dispersed jump routing targeting ~6.8 cm inter-bulb spacing with slack optimization.
-      - **Plate Sizing Selector (`Small ~6.5"` / `Medium ~8.0"` / `Large ~10.0"`):** Sizing directly sets the target width for the flexible TPU armor plate (Small = 165.1mm / 6.5", Medium = 203.2mm / 8.0", Large = 254.0mm / 10.0"). Both Front and Back plates dynamically scale to the selected width and recompile.
+      - **Plate Sizing Selector (`Small ~6.5"` / `Medium ~8.0"` / `Large ~9.65"`):** Sizing directly sets the target width for the flexible TPU armor plate (Small = 165.1mm / 6.5", Medium = 203.2mm / 8.0", Large = 245.0mm / 9.65" capped to fit 245mm build envelope). Both Front and Back plates dynamically scale to the selected width and recompile.
     - **🔌 LED Placement & Wiring Route:** Consolidated toolbar uniting all bulb generation and routing in one dedicated location:
       - `🌈 100 Scatter`: Evenly disperses 100 LEDs across the character with color matching.
       - `✨ 50 Auto-Outline`: Traces the outer silhouette contour with 50 LEDs.
@@ -1366,9 +1366,9 @@ Instead of attaching a Cricut cut vinyl graphic on top of the printed plate, the
 
 6. **Selectable Plate Sizes & LED Counts on Layout Tab:**
    - **Plate Size Presets:**
-     - 📏 **Small:** $\approx 6.5\text{ inches}$ ($165\text{ mm}$) wide.
-     - 📏 **Medium:** $\approx 8.0\text{ inches}$ ($203.2\text{ mm}$) wide (default Pete's Dragon format).
-     - 📏 **Large:** $\approx 10.0\text{ inches}$ ($254\text{ mm}$) wide.
+      - 📏 **Small:** $\approx 6.5\text{ inches}$ ($165\text{ mm}$) wide.
+      - 📏 **Medium:** $\approx 8.0\text{ inches}$ ($203.2\text{ mm}$) wide (default Pete's Dragon format).
+      - 📏 **Large:** $\le 245.0\text{ mm}$ ($\approx 9.65\text{ inches}$) max dimension (strictly capped to fit within standard $256 \times 256\text{ mm}$ build plates with tab margins).
    - **LED Count Presets:** Select between **50 LEDs**, **75 LEDs**, or **100 LEDs** distributed across the graphic with automatic PBD collision clearance and wire routing.
 
 7. **Outside Perimeter Mounting Eyelets with 45° Tear-Out Gussets:**
@@ -1378,13 +1378,22 @@ Instead of attaching a Cricut cut vinyl graphic on top of the printed plate, the
    - **Dual 45° Triangular Reinforcement Gussets with Deep Wall Anchors:** Each tab is reinforced by dual $1.2\text{ mm}$ thick triangular gussets rising $3.0\text{ mm}$ up the vertical outer rim wall ($Z = 2.0$ to $5.0\text{ mm}$). Gussets feature deep $4.5\text{ mm}$ wall anchors embedded into the solid rim wall (with automated inner basin trimming), guaranteeing 100% solid contact with zero air gaps even on sharply curved or concave perimeter contours (such as the dragon's feet). This provides massive peel and tear-out resistance under tension while leaving the center $\varnothing 2.7\text{ mm}$ pin hole 100% unobstructed.
    - **Puncture-Free Front Face:** The main artwork front plate remains 100% smooth and continuous.
 
-8. **2.0mm Protective Rear Cover Plate (Lid) with Stepped Alignment Ridge & M2 Screw Bosses:**
+8. **2.0mm Protective Rear Cover Plate (Lid) with Stepped Alignment Ridge & 14-Point M2 Extremity Screws:**
     - **Full Mechanical Back Enclosure:** Complete 2.0mm thick protective rear cover plate (`tpu_panel_front_lid.stl` and `tpu_panel_back_lid.stl`) shielding internal wiring, LED nodes, and runner shirts from friction and sweat during the 10K.
     - **Matching Silhouette & 16 Eyelets:** Mirrors the exact organic outer perimeter profile of the front plate, including all 16 external circular mounting eyelets perfectly aligned so safety pins or zip-ties pass through both lid and tray simultaneously.
-    - **1.2mm Stepped Inner Alignment Ridge:** Continuous internal downward locator lip stepping $1.5\text{ mm}$ inward along the perimeter wall, protruding $1.2\text{ mm}$ downwards ($Z = 2.0$ to $3.2\text{ mm}$) with $0.25\text{ mm}$ per-side clearance tolerance to nest snugly into the open $8.0\text{ mm}$ tray rim. Features a matching arch relief cutout at the wire portal so battery leads are never pinched.
-    - **8-Point M2 Screw Fastening Architecture:**
-      - **Main Tray Basin Boss Pillars:** 8 solid cylindrical screw bosses ($\varnothing 5.0\text{ mm}$) rising from floor ($Z = 2.0\text{ mm}$) to rim top ($Z = 10.0\text{ mm}$, $8.0\text{ mm}$ tall) fused seamlessly into the interior $2.5\text{ mm}$ perimeter rim wall, featuring pre-formed $1.6\text{ mm}$ diameter $\times 5.5\text{ mm}$ deep pilot holes for self-tapping M2 screws to thread securely without splitting PLA layers.
-      - **Rear Lid Flush Boss Landings & Alignment Ridge Clearance:** The inner face of the lid ($Z = 2.0\text{ mm}$) provides completely flat, flush landings for all 8 chassis boss pillars. The downward alignment ridge is cleanly relieved with 0.3mm radial clearance ($R = 2.8\text{ mm}$, $\varnothing 5.6\text{ mm}$) around every screw boss, and raised inner pads are eliminated so the chassis pillars seat 100% flush against the lid with zero interference. The outer (shirt-facing) surface features $\varnothing 3.8\text{ mm} \times 0.8\text{ mm}$ flush counterbores with $\varnothing 2.0\text{ mm}$ clearance through-holes so standard M2 screw heads sit completely below the surface, eliminating shirt snagging.
+    - **1.2mm Stepped Inner Alignment Ridge:** Continuous internal downward locator lip stepping $1.5\text{ mm}$ inward along the perimeter wall, protruding $1.2\text{ mm}$ downwards ($Z = 2.0$ to $3.2\text{ mm}$) with $0.25\text{ mm}$ per-side clearance tolerance to nest snugly into the open $8.0\text{ mm}$ tray rim. Features normal-aligned relief cutouts at the entrance and exit wire portals so battery leads are never pinched.
+    - **14-Point M2 Screw Fastening Architecture (Extremity Clamping):**
+      - **Extremity Anchors:** Specifically places solid $\varnothing 5.0\text{ mm}$ cylindrical screw bosses along the inner rim wall at the 7 furthest geometric extremities:
+        1. Top-right ear tip
+        2. Chin / neck concave nook
+        3. Top-left ear crest
+        4. Far-left tail tip
+        5. Bottom-left foot / heel corner
+        6. Far-right jaw / snout corner
+        7. Lower-right flank (straight vertical wall above tab)
+      - **Perimeter Distribution (Zero Center Screws):** Additional screw bosses are spaced evenly along the outer rim wall (total 14 perimeter screws, $\ge 24\text{ mm}$ spacing), providing uniform clamping pressure across the entire perimeter with strictly zero screws in the center.
+      - **Main Tray Basin Boss Pillars:** Solid cylindrical screw bosses rising from floor ($Z = 2.0\text{ mm}$) to rim top ($Z = 10.0\text{ mm}$) fused seamlessly into the interior $2.5\text{ mm}$ perimeter rim wall, featuring pre-formed $1.6\text{ mm}$ diameter $\times 5.5\text{ mm}$ deep pilot holes for self-tapping M2 screws.
+      - **Rear Lid Flush Boss Landings & Alignment Ridge Clearance:** The inner face of the lid ($Z = 2.0\text{ mm}$) provides completely flat, flush landings for all 14 chassis boss pillars. The downward alignment ridge is cleanly relieved with 0.3mm radial clearance ($R = 2.8\text{ mm}$, $\varnothing 5.6\text{ mm}$) around every screw boss. The outer (shirt-facing) surface features $\varnothing 3.8\text{ mm} \times 0.8\text{ mm}$ flush counterbores with $\varnothing 2.0\text{ mm}$ clearance through-holes so standard M2 screw heads sit completely below the surface, eliminating shirt snagging.
     - **Bambu AMS Bundle Inclusion:** The rear lid STL is automatically compiled and bundled into `tpu_panel_{variant}_multicolor_bundle.zip` alongside the black chassis and color inlays.
 
 9. **Simplified 3D STL Model Viewer with Graphic Cutouts (`tpu_panel_preview.html`):**
