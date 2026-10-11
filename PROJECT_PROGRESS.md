@@ -93,6 +93,21 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### 2026-10-10 21:32 - Placement Warnings Master Toggle & Dynamic Perimeter/Channel Badges
+- **Added Master Warning Toggle & Dynamic Badges (`simulator/app.js` & `simulator/index.html`):**
+  - Added dedicated UI toggle `[⚠️ Show Placement Warnings (<5mm Wall / <2.5mm Wire)]` in Section 3 of the Layout sidebar, allowing users to show or silence real-time clearance warning badges and red collar highlights.
+  - Replaced the previously hardcoded `⚠️ <2.5mm Clearance` text in `renderBulb` with dynamic diagnostic badges:
+    - `⚠️ <5.0mm Perimeter Wall (X.Xmm)`: Triggered when an LED enters the 5mm perimeter keep-out boundary.
+    - `⚠️ <10mm Bridge Keep-Out`: Triggered when an LED encroaches on entrance/exit strain relief bridges.
+    - `⚠️ Collar Collision`: Triggered when two LED collars physically collide.
+    - `⚠️ <2.5mm Wire Channel`: Triggered when adjacent wire entrance corridors are blocked.
+  - Allowed manual dragging to reach the plate perimeter boundaries so users can test and visually verify the 5mm perimeter keep-out warnings in real time.
+  - Rendered warning badges on LED hover and selection as well as during drag.
+- **Documentation & User Guide Sync:**
+  - Updated `SIMULATOR_USER_GUIDE.md` detailing the new Placement Warnings toggle and badge types.
+- **Verification:**
+  - Tested clean execution with `python simulator.py --test` (HTTP API status 200).
+
 ### 2026-10-10 21:18 - 5.0mm Perimeter Wall Clearance Keep-Out Engine & Visual Boundary Overlay
 - **Enforced 5.0mm Perimeter Wall Clearance (`simulator/led_clearance.js` & `simulator/app.js`):**
   - Updated auto-scattering (`selectClearanceAwareFpsIndices`) to filter out any candidate positions within 5.0mm of the 3D TPU armor panel / chest graphic outer perimeter walls.

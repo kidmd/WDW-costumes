@@ -411,7 +411,14 @@ Attaching LEDs to a shirt by hand can easily result in tangled wire spaghetti or
         - **Bottom IN Bridge:** Sits on the bottom foot contour floor ($8.0\text{ mm W} \times 7.2\text{ mm H}$, Accent Emerald `#00ff88`) with its $3.2\text{ mm} \times 2.8\text{ mm}$ zip-tie tunnel, rim U-notch, and direct leader wire to LED #0.
         - **Lateral Right OUT Bridge:** Sits on the right flank contour floor ($7.2\text{ mm W} \times 8.0\text{ mm H}$, Accent Coral `#ff4d6d`) with its zip-tie tunnel, rim U-notch, and direct leader wire from LED #(N-1).
       - Projects a **$10.0\text{ mm}$ safety clearance keep-out halo** (dashed perimeter border with translucent fill) around both strain relief locations to prevent LED sockets from encroaching on the zip-tie anchor points.
-      - Displays compact technical labels directly at the bridge blocks with zero external floating badge clutter.
+   - Toggle **`⚠️ Show Placement Warnings (<5mm Wall / <2.5mm Wire)`**:
+      - Enables or disables real-time visual clearance alerts and floating badges on canvas.
+      - When active, dragging, selecting, or hovering over an LED that violates physical clearances displays dynamic warning badges and red collar/ring indicators:
+        - 🛡️ **`⚠️ <5.0mm Perimeter Wall (X.Xmm)`:** Triggered when an LED collar is within $5.0\text{ mm}$ of the 3D TPU armor panel / chest plate perimeter walls.
+        - ⚓ **`⚠️ <10mm Bridge Keep-Out`:** Triggered when encroaching on entrance or lateral exit zip-tie strain relief bridge zones.
+        - 💥 **`⚠️ Collar Collision`:** Triggered when two LED collars physically overlap ($d < 8.65\text{ mm}$).
+        - 🧵 **`⚠️ <2.5mm Wire Channel`:** Triggered when an adjacent LED collar obstructs wire entry/exit corridors.
+      - Silencing the toggle removes all red alert highlights and badges for an uncluttered visual preview.
    - **Single LED Selection Isolation:** Selecting any individual LED automatically isolates the wiring visualization to only the segment arriving at the LED ($i-1 \rightarrow i$) and the segment departing from it ($i \rightarrow i+1$), removing background wire clutter for focused alignment.
 
 ### 🎆 Fireworks Starburst Generator, Multi-Burst Stamping, & Scaling

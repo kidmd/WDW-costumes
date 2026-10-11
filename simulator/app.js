@@ -78,11 +78,19 @@ let params = {
     faintGraphicOpacity: 0.22,  // 0.10 to 0.60
     assemblyPaperMode: false,   // false = Dark Garment Fabric, true = Light Print Paper
     mirrorPlacementGuide: true, // true = Mirrored Back View for physical workbench placement & wiring
+    showPlacementWarnings: true, // true = Show red badges & collar alerts for <5mm wall and <2.5mm wire clearance
     reflectiveShine: true,
     showBib: true,
     bibYOffset: 0.57,
     bibScale: 1.0
 };
+
+try {
+    const savedWarn = localStorage.getItem('msep_show_placement_warnings');
+    if (savedWarn !== null) {
+        params.showPlacementWarnings = (savedWarn === 'true' || savedWarn === '1');
+    }
+} catch (e) {}
 
 try {
     const savedShape = localStorage.getItem('msep_tpu_window_shape');
@@ -3476,6 +3484,23 @@ ${cutoutsData.allCutoutsXml}  </g>
 document.getElementById('closeCricutExportModalBtn')?.addEventListener('click', closeCricutExportModal);
 document.getElementById('closeCricutExportModalBottomBtn')?.addEventListener('click', closeCricutExportModal);
 
+function getClearanceWarningBadgeText(clrStatus) {
+    if (!clrStatus || clrStatus.isClear) return '';
+    if (clrStatus.wallBlocked) {
+        const d = (clrStatus.minWallDist !== undefined && clrStatus.minWallDist < 990) ? clrStatus.minWallDist.toFixed(1) : '<5.0';
+        return `⚠️ <5.0mm Perimeter Wall (${d}mm)`;
+    }
+    if (clrStatus.bridgeBlocked) {
+        return `⚠️ <10mm Bridge Keep-Out`;
+    }
+    if (clrStatus.overlapBlocked) {
+        return `⚠️ Collar Collision`;
+    }
+    if (clrStatus.opening1Blocked || clrStatus.opening2Blocked) {
+        return `⚠️ <2.5mm Wire Channel`;
+    }
+    return `⚠️ ${clrStatus.reason || 'Clearance Alert'}`;
+}
 
 function renderBulb(cx, x, y, col, isHovered, isSelected, index) {
     if (!col) return;
@@ -3622,16 +3647,17 @@ function renderBulb(cx, x, y, col, isHovered, isSelected, index) {
         const clrStatus = (typeof checkLedClearanceStatus === 'function') ? checkLedClearanceStatus(index, leds) : { isClear: true };
 
         // 1. Reinforced 13.6x8.6mm Outer Collar Outline (1.8mm walls) - Red if clearance violated
+        const isCollarWarn = (!clrStatus.isClear && params.showPlacementWarnings !== false);
         cx.beginPath();
         if (typeof cx.roundRect === 'function') {
             cx.roundRect(-outerW / 2, -outerH / 2, outerW, outerH, outerH / 2);
         } else {
             cx.rect(-outerW / 2, -outerH / 2, outerW, outerH);
         }
-        cx.fillStyle = (!clrStatus.isClear) ? 'rgba(255, 51, 102, 0.22)' : 'rgba(11, 15, 23, 0.32)';
+        cx.fillStyle = isCollarWarn ? 'rgba(255, 51, 102, 0.22)' : 'rgba(11, 15, 23, 0.32)';
         cx.fill();
-        cx.strokeStyle = (!clrStatus.isClear) ? 'rgba(255, 51, 102, 0.95)' : ((isHovered || isSelected) ? 'rgba(0, 255, 136, 0.90)' : 'rgba(0, 255, 136, 0.28)');
-        cx.lineWidth = (!clrStatus.isClear) ? 2.2 : ((isHovered || isSelected) ? 1.4 : 0.7);
+        cx.strokeStyle = isCollarWarn ? 'rgba(255, 51, 102, 0.95)' : ((isHovered || isSelected) ? 'rgba(0, 255, 136, 0.90)' : 'rgba(0, 255, 136, 0.28)');
+        cx.lineWidth = isCollarWarn ? 2.2 : ((isHovered || isSelected) ? 1.4 : 0.7);
         cx.stroke();
 
         // 2. 10x5mm Inner Pocket Socket Boundary
@@ -3641,7 +3667,7 @@ function renderBulb(cx, x, y, col, isHovered, isSelected, index) {
         } else {
             cx.rect(-innerW / 2, -innerH / 2, innerW, innerH);
         }
-        cx.strokeStyle = (!clrStatus.isClear) ? 'rgba(255, 51, 102, 0.50)' : 'rgba(255, 255, 255, 0.16)';
+        cx.strokeStyle = isCollarWarn ? 'rgba(255, 51, 102, 0.50)' : 'rgba(255, 255, 255, 0.16)';
         cx.lineWidth = 0.5;
         cx.stroke();
 
@@ -3650,7 +3676,7 @@ function renderBulb(cx, x, y, col, isHovered, isSelected, index) {
         const channelCorridorH = Math.max(3.5, 4.0 * ppm);
 
         // Opening 1 (+X direction - Wire Entrance/Exit)
-        if (clrStatus.opening1Blocked) {
+        if (clrStatus.opening1Blocked && isCollarWarn) {
             cx.fillStyle = 'rgba(255, 51, 102, 0.35)';
             cx.fillRect(outerW / 2, -channelCorridorH / 2, channelCorridorL, channelCorridorH);
             cx.strokeStyle = '#ff3366';
@@ -3667,7 +3693,7 @@ function renderBulb(cx, x, y, col, isHovered, isSelected, index) {
         }
 
         // Opening 2 (-X direction - Wire Entrance/Exit)
-        if (clrStatus.opening2Blocked) {
+        if (clrStatus.opening2Blocked && isCollarWarn) {
             cx.fillStyle = 'rgba(255, 51, 102, 0.35)';
             cx.fillRect(-outerW / 2 - channelCorridorL, -channelCorridorH / 2, channelCorridorL, channelCorridorH);
             cx.strokeStyle = '#ff3366';
@@ -3931,26 +3957,59 @@ function renderBulb(cx, x, y, col, isHovered, isSelected, index) {
         cx.moveTo(x + 15 - crossLen, y); cx.lineTo(x + 15, y);
         cx.moveTo(x, y - 15); cx.lineTo(x, y - 15 + crossLen);
         cx.moveTo(x, y + 15 - crossLen); cx.lineTo(x, y + 15);
-        cx.strokeStyle = (!clrStatus.isClear) ? '#ff3366' : '#00ffff';
+        const isWarn = (!clrStatus.isClear && params.showPlacementWarnings !== false);
+        cx.strokeStyle = isWarn ? '#ff3366' : '#00ffff';
         cx.lineWidth = 2;
         cx.stroke();
 
         // Warning badge for blocked LED when dragged or selected
-        if (!clrStatus.isClear && (typeof draggedLed !== 'undefined' && draggedLed === index)) {
-            cx.fillStyle = 'rgba(255, 51, 102, 0.95)';
-            cx.font = 'bold 9px system-ui, sans-serif';
-            cx.textAlign = 'center';
-            cx.fillText(`⚠️ <2.5mm Clearance`, x, y - 18);
+        if (isWarn && ((typeof draggedLed !== 'undefined' && draggedLed === index) || isSelected)) {
+            const badgeTxt = getClearanceWarningBadgeText(clrStatus);
+            if (badgeTxt) {
+                cx.save();
+                cx.font = 'bold 9.5px system-ui, sans-serif';
+                const tw = cx.measureText(badgeTxt).width;
+                cx.fillStyle = 'rgba(15, 23, 42, 0.92)';
+                cx.strokeStyle = '#ff3366';
+                cx.lineWidth = 1;
+                cx.fillRect(x - tw / 2 - 5, y - 28, tw + 10, 16);
+                cx.strokeRect(x - tw / 2 - 5, y - 28, tw + 10, 16);
+                cx.fillStyle = '#ff4d6d';
+                cx.textAlign = 'center';
+                cx.textBaseline = 'middle';
+                cx.fillText(badgeTxt, x, y - 20);
+                cx.restore();
+            }
         }
 
         cx.restore();
     } else if (isHovered) {
         const clrStatus = (typeof checkLedClearanceStatus === 'function') ? checkLedClearanceStatus(index, leds) : { isClear: true };
+        const isWarn = (!clrStatus.isClear && params.showPlacementWarnings !== false);
         cx.beginPath();
         cx.arc(x, y, 8.5, 0, Math.PI * 2);
-        cx.strokeStyle = (!clrStatus.isClear) ? '#ff3366' : '#00e5ff';
+        cx.strokeStyle = isWarn ? '#ff3366' : '#00e5ff';
         cx.lineWidth = 2;
         cx.stroke();
+
+        if (isWarn) {
+            const badgeTxt = getClearanceWarningBadgeText(clrStatus);
+            if (badgeTxt) {
+                cx.save();
+                cx.font = 'bold 9.5px system-ui, sans-serif';
+                const tw = cx.measureText(badgeTxt).width;
+                cx.fillStyle = 'rgba(15, 23, 42, 0.92)';
+                cx.strokeStyle = '#ff3366';
+                cx.lineWidth = 1;
+                cx.fillRect(x - tw / 2 - 5, y - 28, tw + 10, 16);
+                cx.strokeRect(x - tw / 2 - 5, y - 28, tw + 10, 16);
+                cx.fillStyle = '#ff4d6d';
+                cx.textAlign = 'center';
+                cx.textBaseline = 'middle';
+                cx.fillText(badgeTxt, x, y - 20);
+                cx.restore();
+            }
+        }
     }
 
     const shouldShowNumber = params.showNumbers || (isSelected && (typeof selectedLed === 'number' && selectedLed === index && (!selectedLeds || selectedLeds.size <= 1)));
@@ -12039,15 +12098,16 @@ function checkLedClearanceStatus(index, ledsList) {
 
     // 3. Check 5.0mm perimeter wall clearance keep-out
     let wallBlocked = false;
+    let minWallDist = 999;
     if (gb) {
         const distLeftMm = (cur.x - gb.normX) / mmToNormX;
         const distRightMm = ((gb.normX + gb.normW) - cur.x) / mmToNormX;
         const distTopMm = (cur.y - gb.normY) / mmToNormY;
         const distBottomMm = ((gb.normY + gb.normH) - cur.y) / mmToNormY;
-        const minEdgeMm = Math.min(distLeftMm, distRightMm, distTopMm, distBottomMm);
-        if (minEdgeMm < 5.0) {
+        minWallDist = Math.min(distLeftMm, distRightMm, distTopMm, distBottomMm);
+        if (minWallDist < 5.0) {
             wallBlocked = true;
-            if (!reason) reason = `Perimeter Wall clearance < 5.0mm (${minEdgeMm.toFixed(1)}mm)`;
+            reason = `Perimeter Wall clearance < 5.0mm (${Math.max(0, minWallDist).toFixed(1)}mm)`;
         }
     }
 
@@ -12060,6 +12120,7 @@ function checkLedClearanceStatus(index, ledsList) {
         bridgeBlocked,
         overlapBlocked,
         wallBlocked,
+        minWallDist,
         reason
     };
 }
@@ -12157,12 +12218,11 @@ function clampLedNoCollarOverlap(targetX, targetY, movingIndex, ledsArray) {
         });
     }
 
-    const wallMarginNormX = 5.0 * mmToNormX;
-    const wallMarginNormY = 5.0 * mmToNormY;
-    const minX = gb ? (gb.normX + wallMarginNormX) : 0.08;
-    const maxX = gb ? (gb.normX + gb.normW - wallMarginNormX) : 0.92;
-    const minY = gb ? (gb.normY + wallMarginNormY) : 0.08;
-    const maxY = gb ? (gb.normY + gb.normH - wallMarginNormY) : 0.92;
+    // Outer perimeter physical bounds of the chest plate
+    const minX = gb ? gb.normX : 0.05;
+    const maxX = gb ? (gb.normX + gb.normW) : 0.95;
+    const minY = gb ? gb.normY : 0.05;
+    const maxY = gb ? (gb.normY + gb.normH) : 0.95;
 
     return {
         x: Math.max(minX, Math.min(maxX, parseFloat(x.toFixed(4)))),
@@ -13236,6 +13296,18 @@ document.getElementById('showStrainReliefsToggle')?.addEventListener('change', (
     markSingleShirtDirty();
     if (typeof draw === 'function') draw();
 });
+
+const warnToggle = document.getElementById('showPlacementWarningsToggle');
+if (warnToggle) {
+    warnToggle.checked = (params.showPlacementWarnings !== false);
+    warnToggle.addEventListener('change', (e) => {
+        params.showPlacementWarnings = e.target.checked;
+        try { localStorage.setItem('msep_show_placement_warnings', params.showPlacementWarnings ? 'true' : 'false'); } catch (err) {}
+        showToast(params.showPlacementWarnings ? '⚠️ Placement warnings enabled' : '👁️ Placement warnings hidden');
+        markSingleShirtDirty();
+        if (typeof draw === 'function') draw();
+    });
+}
 
 // ============================================================================
 // GRAPHIC DISPLAY VERSION: Assembly & Print Placement Guide
