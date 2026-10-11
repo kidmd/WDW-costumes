@@ -93,6 +93,18 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### 2026-10-10 21:18 - 5.0mm Perimeter Wall Clearance Keep-Out Engine & Visual Boundary Overlay
+- **Enforced 5.0mm Perimeter Wall Clearance (`simulator/led_clearance.js` & `simulator/app.js`):**
+  - Updated auto-scattering (`selectClearanceAwareFpsIndices`) to filter out any candidate positions within 5.0mm of the 3D TPU armor panel / chest graphic outer perimeter walls.
+  - Incorporated 5.0mm perimeter boundary repulsion into physics relaxation (`resolveLedClearance`), keeping all LEDs safely pushed away from outer panel rims.
+  - Enhanced manual drag clamping (`clampLedNoCollarOverlap`) to enforce a 5.0mm margin inside all 4 perimeter edges (`minX`, `maxX`, `minY`, `maxY`).
+  - Added real-time perimeter wall clearance checking (`checkLedClearanceStatus`), flagging `wallBlocked` warnings if any LED collar/housing comes within 5.0mm of a perimeter wall.
+  - Rendered a dashed cyan **`🛡️ 5mm Perimeter Wall Keep-Out Limit`** canvas overlay guide when strain relief or placement guide modes are visible.
+- **Documentation & User Guide Sync:**
+  - Updated `SIMULATOR_USER_GUIDE.md` with 5.0mm perimeter wall keep-out clearance specifications.
+- **Verification:**
+  - Validated clean execution with `python simulator.py --test` (HTTP API status 200).
+
 ### 2026-10-10 06:10 - Workbench Mirrored Back View for LED Placement & Assembly Guide
 - **Implemented Mirrored Back View in Placement Guide Mode (`simulator/app.js` & `simulator/index.html`):**
   - Horizontally mirrored the placement guide canvas layout, chest graphic artwork (`activeImg`), race bib, LED coordinates (`1.0 - x`), wire routing traces, optical 3×3mm apertures, and interactive mouse drag/click hit-testing when in Placement Guide mode (`graphicVersion === 'assembly_guide'`).

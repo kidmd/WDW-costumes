@@ -558,6 +558,7 @@ For physical assembly and workshop workbench printing, the Layout tab features a
   - **LED #0:** Highlighted in green (`#00ff88` / `#16a34a`) for 5V + DIN strand start.
   - **Last LED (#74 / #99):** Highlighted in red (`#ff4d6d` / `#dc2626`) for strand termination.
 - **Sheet Styles (Dark Garment vs. Light Print Paper):** Toggle between **👕 Dark Garment** (black tech shirt backing) and **📄 Light Paper** (crisp blueprint style that saves black printer toner).
+- **🛡️ 5mm Perimeter Wall Keep-Out Clearance:** Automatically enforces a strict **5.0 mm safety buffer inside all perimeter walls** of the 3D TPU armor panel / chest plate area when placing or auto-scattering LEDs. Prevents LEDs from crowding outer panel rims or strain relief walls, with real-time clearance status checking and canvas overlay guides.
 - **🖨️ Print / Save Placement Sheet:** One-click button that generates a high-resolution, print-ready document or PNG download featuring float title, view perspective (Mirrored Back View), pixel counts, aperture dimensions, wiring route trace, and a color-coded strand legend.
 
 ### 🏷️ runDisney 10K Race Bib (#1952) with Chip & Dale

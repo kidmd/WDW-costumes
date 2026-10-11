@@ -65,6 +65,14 @@ function selectClearanceAwareFpsIndices(candNorm, count, anchorsNorm) {
         }
     });
 
+    const frame = ledMmFrame();
+    const gb = frame.gb;
+    const wallClr = 5.0;
+    const minXmm = (gb.normX / mm2n) + wallClr;
+    const maxXmm = ((gb.normX + gb.normW) / mm2n) - wallClr;
+    const minYmm = (gb.normY / mm2n) + wallClr;
+    const maxYmm = ((gb.normY + gb.normH) / mm2n) - wallClr;
+
     const margins = [1.0, 0.3, null];
     let lvl = 0;
     const blocked = new Uint8Array(n);
@@ -73,6 +81,7 @@ function selectClearanceAwareFpsIndices(candNorm, count, anchorsNorm) {
         const mg = margins[lvl];
         for (let i = 0; i < n; i++) {
             blocked[i] = 0;
+            if (cx[i] < minXmm || cx[i] > maxXmm || cy[i] < minYmm || cy[i] > maxYmm) { blocked[i] = 1; continue; }
             if (mg === null) continue;
             for (let b = 0; b < bridges.length; b++) {
                 if (Math.hypot(cx[i] - bridges[b].x, cy[i] - bridges[b].y) < 10.3) { blocked[i] = 1; break; }
@@ -177,10 +186,11 @@ function resolveLedClearance(ledsList, pool, opts) {
 
     const br = getTpuBridgeLocationsNorm();
     const bridges = [br.entrance, br.exit].map(b => ({ x: b.x / mm2n, y: b.y / mm2n }));
-    const minX = gb.normX / mm2n, maxX = (gb.normX + gb.normW) / mm2n;
-    const minY = gb.normY / mm2n, maxY = (gb.normY + gb.normH) / mm2n;
+    const minX = (gb.normX / mm2n) + 5.0, maxX = ((gb.normX + gb.normW) / mm2n) - 5.0;
+    const minY = (gb.normY / mm2n) + 5.0, maxY = ((gb.normY + gb.normH) / mm2n) - 5.0;
 
     const violatesAny = (i, mg) => {
+        if (px[i] < minX || px[i] > maxX || py[i] < minY || py[i] > maxY) return true;
         for (let j = 0; j < N; j++) {
             if (j === i) continue;
             if (ledPairViolatesMm(px[i], py[i], rot[i], px[j], py[j], rot[j], mg)) return true;
@@ -263,6 +273,11 @@ function resolveLedClearance(ledsList, pool, opts) {
                         dxA[i] += ux * (need - dist + 0.2); dyA[i] += uy * (need - dist + 0.2);
                     }
                 }
+                // Enforce 5mm perimeter wall repulsion
+                if (px[i] < minX) { viol++; dxA[i] += (minX - px[i]) * 1.5; }
+                if (px[i] > maxX) { viol++; dxA[i] -= (px[i] - maxX) * 1.5; }
+                if (py[i] < minY) { viol++; dyA[i] += (minY - py[i]) * 1.5; }
+                if (py[i] > maxY) { viol++; dyA[i] -= (py[i] - maxY) * 1.5; }
             }
             if (viol === 0) break;
             for (let i = 0; i < m; i++) {

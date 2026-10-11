@@ -12037,15 +12037,21 @@ function checkLedClearanceStatus(index, ledsList) {
     const dEntMm = Math.hypot((cur.x - bridges.entrance.x) / mmToNormX, (cur.y - bridges.entrance.y) / mmToNormY);
     const dExitMm = Math.hypot((cur.x - bridges.exit.x) / mmToNormX, (cur.y - bridges.exit.y) / mmToNormY);
 
-    if (dEntMm < 10.0) {
-        bridgeBlocked = true;
-        reason = `Entrance Strain Relief clearance < 10mm (${dEntMm.toFixed(1)}mm)`;
-    } else if (dExitMm < 10.0) {
-        bridgeBlocked = true;
-        reason = `Exit Strain Relief clearance < 10mm (${dExitMm.toFixed(1)}mm)`;
+    // 3. Check 5.0mm perimeter wall clearance keep-out
+    let wallBlocked = false;
+    if (gb) {
+        const distLeftMm = (cur.x - gb.normX) / mmToNormX;
+        const distRightMm = ((gb.normX + gb.normW) - cur.x) / mmToNormX;
+        const distTopMm = (cur.y - gb.normY) / mmToNormY;
+        const distBottomMm = ((gb.normY + gb.normH) - cur.y) / mmToNormY;
+        const minEdgeMm = Math.min(distLeftMm, distRightMm, distTopMm, distBottomMm);
+        if (minEdgeMm < 5.0) {
+            wallBlocked = true;
+            if (!reason) reason = `Perimeter Wall clearance < 5.0mm (${minEdgeMm.toFixed(1)}mm)`;
+        }
     }
 
-    const isClear = !overlapBlocked && !opening1Blocked && !opening2Blocked && !bridgeBlocked;
+    const isClear = !overlapBlocked && !opening1Blocked && !opening2Blocked && !bridgeBlocked && !wallBlocked;
     return {
         isClear,
         sideBlocked: false,
@@ -12053,6 +12059,7 @@ function checkLedClearanceStatus(index, ledsList) {
         opening2Blocked,
         bridgeBlocked,
         overlapBlocked,
+        wallBlocked,
         reason
     };
 }
@@ -12150,10 +12157,12 @@ function clampLedNoCollarOverlap(targetX, targetY, movingIndex, ledsArray) {
         });
     }
 
-    const minX = gb ? gb.normX : 0.05;
-    const maxX = gb ? (gb.normX + gb.normW) : 0.95;
-    const minY = gb ? gb.normY : 0.05;
-    const maxY = gb ? (gb.normY + gb.normH) : 0.95;
+    const wallMarginNormX = 5.0 * mmToNormX;
+    const wallMarginNormY = 5.0 * mmToNormY;
+    const minX = gb ? (gb.normX + wallMarginNormX) : 0.08;
+    const maxX = gb ? (gb.normX + gb.normW - wallMarginNormX) : 0.92;
+    const minY = gb ? (gb.normY + wallMarginNormY) : 0.08;
+    const maxY = gb ? (gb.normY + gb.normH - wallMarginNormY) : 0.92;
 
     return {
         x: Math.max(minX, Math.min(maxX, parseFloat(x.toFixed(4)))),
@@ -14055,6 +14064,30 @@ function drawStrainReliefBridgesOverlay(ctx) {
     ctx.textBaseline = 'top';
     ctx.fillStyle = '#f87171';
     ctx.fillText('10mm KEEP-OUT', exitCanvas.x, exitCanvas.y + pExitBrHalfY + 2);
+
+    // -------------------------------------------------------------
+    // 3. 5mm PERIMETER WALL CLEARANCE KEEP-OUT BOUNDARY
+    // -------------------------------------------------------------
+    const p5mmX = 5.0 * mmToNormX;
+    const p5mmY = 5.0 * mmToNormY;
+    const wallTopLeft = normToCanvas({ x: gb.normX + p5mmX, y: gb.normY + p5mmY });
+    const wallBotRight = normToCanvas({ x: gb.normX + gb.normW - p5mmX, y: gb.normY + gb.normH - p5mmY });
+    const wallW = wallBotRight.x - wallTopLeft.x;
+    const wallH = wallBotRight.y - wallTopLeft.y;
+
+    ctx.beginPath();
+    ctx.rect(Math.min(wallTopLeft.x, wallBotRight.x), Math.min(wallTopLeft.y, wallBotRight.y), Math.abs(wallW), Math.abs(wallH));
+    ctx.strokeStyle = 'rgba(56, 189, 248, 0.55)';
+    ctx.lineWidth = 1.5;
+    ctx.setLineDash([5, 4]);
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    ctx.font = 'bold 8px sans-serif';
+    ctx.fillStyle = 'rgba(56, 189, 248, 0.90)';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'top';
+    ctx.fillText('🛡️ 5mm Perimeter Wall Keep-Out Limit', (wallTopLeft.x + wallBotRight.x) / 2, Math.min(wallTopLeft.y, wallBotRight.y) + 3);
 
     ctx.restore();
 }
