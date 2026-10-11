@@ -12166,6 +12166,236 @@ function getDistToTpuPanelPerimeterMm(normPt) {
 }
 window.getDistToTpuPanelPerimeterMm = getDistToTpuPanelPerimeterMm;
 
+// ---------------------------------------------------------------------------
+// GEOMETRIC CLEARANCE ENGINE: COLLAR-TO-BRIDGE & COLLAR-TO-PERIMETER-WALL
+// ---------------------------------------------------------------------------
+function distPointToBoxMm(px, py, minX, maxX, minY, maxY) {
+    const dx = Math.max(0, Math.max(minX - px, px - maxX));
+    const dy = Math.max(0, Math.max(minY - py, py - maxY));
+    return Math.hypot(dx, dy);
+}
+window.distPointToBoxMm = distPointToBoxMm;
+
+function distSegmentToBoxMm(x1, y1, x2, y2, minX, maxX, minY, maxY) {
+    if (x1 >= minX && x1 <= maxX && y1 >= minY && y1 <= maxY) return 0;
+    if (x2 >= minX && x2 <= maxX && y2 >= minY && y2 <= maxY) return 0;
+    const mx = (x1 + x2) * 0.5, my = (y1 + y2) * 0.5;
+    if (mx >= minX && mx <= maxX && my >= minY && my <= maxY) return 0;
+
+    let minD = Math.min(
+        distPointToBoxMm(x1, y1, minX, maxX, minY, maxY),
+        distPointToBoxMm(x2, y2, minX, maxX, minY, maxY)
+    );
+
+    minD = Math.min(minD, distSegmentToSegment(x1, y1, x2, y2, minX, minY, maxX, minY));
+    minD = Math.min(minD, distSegmentToSegment(x1, y1, x2, y2, maxX, minY, maxX, maxY));
+    minD = Math.min(minD, distSegmentToSegment(x1, y1, x2, y2, maxX, maxY, minX, maxY));
+    minD = Math.min(minD, distSegmentToSegment(x1, y1, x2, y2, minX, maxY, minX, minY));
+    return minD;
+}
+window.distSegmentToBoxMm = distSegmentToBoxMm;
+
+function getCollarToBridgeBoxDistMm(curXmm, curYmm, rotRad, bridgeCenterXmm, bridgeCenterYmm, halfW, halfL) {
+    const minX = bridgeCenterXmm - halfW;
+    const maxX = bridgeCenterXmm + halfW;
+    const minY = bridgeCenterYmm - halfL;
+    const maxY = bridgeCenterYmm + halfL;
+
+    const rot = (rotRad !== undefined) ? rotRad : 0;
+    const ux = Math.cos(rot);
+    const uy = Math.sin(rot);
+    const vx = -uy;
+    const vy = ux;
+
+    // 1. Central stadium spine (2.5mm half-length, 4.3mm radius collar)
+    const a1x = curXmm - 2.5 * ux, a1y = curYmm - 2.5 * uy;
+    const a2x = curXmm + 2.5 * ux, a2y = curYmm + 2.5 * uy;
+    const spineToBox = distSegmentToBoxMm(a1x, a1y, a2x, a2y, minX, maxX, minY, maxY);
+    let minD = Math.max(0, spineToBox - 4.3);
+
+    // 2. Wire entrance corridors (width +/- 2.0mm along v, length from 6.8mm to 9.3mm along u)
+    const op1_c1x = curXmm + 6.8 * ux + 2.0 * vx, op1_c1y = curYmm + 6.8 * uy + 2.0 * vy;
+    const op1_c2x = curXmm + 6.8 * ux - 2.0 * vx, op1_c2y = curYmm + 6.8 * uy - 2.0 * vy;
+    const op1_t1x = curXmm + 9.3 * ux + 2.0 * vx, op1_t1y = curYmm + 9.3 * uy + 2.0 * vy;
+    const op1_t2x = curXmm + 9.3 * ux - 2.0 * vx, op1_t2y = curYmm + 9.3 * uy - 2.0 * vy;
+
+    const op2_c1x = curXmm - 6.8 * ux + 2.0 * vx, op2_c1y = curYmm - 6.8 * uy + 2.0 * vy;
+    const op2_c2x = curXmm - 6.8 * ux - 2.0 * vx, op2_c2y = curYmm - 6.8 * uy - 2.0 * vy;
+    const op2_t1x = curXmm - 9.3 * ux + 2.0 * vx, op2_t1y = curYmm - 9.3 * uy + 2.0 * vy;
+    const op2_t2x = curXmm - 9.3 * ux - 2.0 * vx, op2_t2y = curYmm - 9.3 * uy - 2.0 * vy;
+
+    minD = Math.min(minD, distSegmentToBoxMm(op1_c1x, op1_c1y, op1_t1x, op1_t1y, minX, maxX, minY, maxY));
+    minD = Math.min(minD, distSegmentToBoxMm(op1_c2x, op1_c2y, op1_t2x, op1_t2y, minX, maxX, minY, maxY));
+    minD = Math.min(minD, distSegmentToBoxMm(op1_t1x, op1_t1y, op1_t2x, op1_t2y, minX, maxX, minY, maxY));
+
+    minD = Math.min(minD, distSegmentToBoxMm(op2_c1x, op2_c1y, op2_t1x, op2_t1y, minX, maxX, minY, maxY));
+    minD = Math.min(minD, distSegmentToBoxMm(op2_c2x, op2_c2y, op2_t2x, op2_t2y, minX, maxX, minY, maxY));
+    minD = Math.min(minD, distSegmentToBoxMm(op2_t1x, op2_t1y, op2_t2x, op2_t2y, minX, maxX, minY, maxY));
+
+    // 3. Perimeter feature points of the collar (openings, notch corners, outer caps, flanks)
+    const op1_sx = curXmm + 6.8 * ux, op1_sy = curYmm + 6.8 * uy;
+    const op1_ex = curXmm + 9.3 * ux, op1_ey = curYmm + 9.3 * uy;
+    const op2_sx = curXmm - 6.8 * ux, op2_sy = curYmm - 6.8 * uy;
+    const op2_ex = curXmm - 9.3 * ux, op2_ey = curYmm - 9.3 * uy;
+
+    const collarPts = [
+        { x: curXmm, y: curYmm },
+        { x: op1_sx, y: op1_sy },
+        { x: op2_sx, y: op2_sy },
+        { x: curXmm + 6.8 * ux + 2.0 * vx, y: curYmm + 6.8 * uy + 2.0 * vy },
+        { x: curXmm + 6.8 * ux - 2.0 * vx, y: curYmm + 6.8 * uy - 2.0 * vy },
+        { x: curXmm - 6.8 * ux - 2.0 * vx, y: curYmm - 6.8 * uy - 2.0 * vy },
+        { x: curXmm - 6.8 * ux + 2.0 * vx, y: curYmm - 6.8 * uy + 2.0 * vy },
+        { x: curXmm + 6.8 * ux + 4.3 * vx, y: curYmm + 6.8 * uy + 4.3 * vy },
+        { x: curXmm + 6.8 * ux - 4.3 * vx, y: curYmm + 6.8 * uy - 4.3 * vy },
+        { x: curXmm - 6.8 * ux - 4.3 * vx, y: curYmm - 6.8 * uy - 4.3 * vy },
+        { x: curXmm - 6.8 * ux + 4.3 * vx, y: curYmm - 6.8 * uy + 4.3 * vy },
+        { x: curXmm + 4.3 * vx, y: curYmm + 4.3 * vy },
+        { x: curXmm - 4.3 * vx, y: curYmm - 4.3 * vy },
+        { x: op1_ex, y: op1_ey },
+        { x: op2_ex, y: op2_ey }
+    ];
+
+    for (let i = 0; i < collarPts.length; i++) {
+        const pd = distPointToBoxMm(collarPts[i].x, collarPts[i].y, minX, maxX, minY, maxY);
+        if (pd < minD) minD = pd;
+    }
+
+    return minD;
+}
+window.getCollarToBridgeBoxDistMm = getCollarToBridgeBoxDistMm;
+
+function getLedCollarBridgeClearance(curNorm, rotRad, minClearanceMm = 2.0) {
+    if (typeof getTpuBridgeLocationsNorm !== 'function') {
+        return { isClear: true, minBridgeDist: 999, dEnt: 999, dExit: 999, isEntBlocked: false, isExitBlocked: false, reason: '' };
+    }
+    const bridges = getTpuBridgeLocationsNorm();
+    if (!bridges) {
+        return { isClear: true, minBridgeDist: 999, dEnt: 999, dExit: 999, isEntBlocked: false, isExitBlocked: false, reason: '' };
+    }
+
+    const gb = (typeof getGraphicChestBounds === 'function') ? getGraphicChestBounds() : null;
+    const plateW = (typeof selectedPlateWidthMm !== 'undefined' && selectedPlateWidthMm > 0) ? selectedPlateWidthMm : 203.2;
+    const normW = (gb && gb.normW > 0) ? gb.normW : 0.8;
+    const normH = (gb && gb.normH > 0) ? gb.normH : 0.385;
+    const plateH = plateW * (normH / normW);
+    const mmToNormX = normW / plateW;
+    const mmToNormY = normH / plateH;
+
+    const curXmm = curNorm.x / mmToNormX;
+    const curYmm = curNorm.y / mmToNormY;
+    const entMmX = bridges.entrance.x / mmToNormX;
+    const entMmY = bridges.entrance.y / mmToNormY;
+    const exitMmX = bridges.exit.x / mmToNormX;
+    const exitMmY = bridges.exit.y / mmToNormY;
+
+    // Entrance Bridge: 8.0mm W x 7.2mm L (halfW = 4.0, halfL = 3.6)
+    const dEnt = getCollarToBridgeBoxDistMm(curXmm, curYmm, rotRad, entMmX, entMmY, 4.0, 3.6);
+    // Exit Bridge: 7.2mm W x 8.0mm L (halfW = 3.6, halfL = 4.0)
+    const dExit = getCollarToBridgeBoxDistMm(curXmm, curYmm, rotRad, exitMmX, exitMmY, 3.6, 4.0);
+
+    const isEntBlocked = (dEnt < minClearanceMm);
+    const isExitBlocked = (dExit < minClearanceMm);
+    const isClear = !isEntBlocked && !isExitBlocked;
+    const minBridgeDist = Math.min(dEnt, dExit);
+
+    let reason = '';
+    if (isEntBlocked) {
+        reason = `Entrance Bridge Keep-Out (<${minClearanceMm.toFixed(1)}mm collar clearance: ${Math.max(0, dEnt).toFixed(1)}mm)`;
+    } else if (isExitBlocked) {
+        reason = `Exit Bridge Keep-Out (<${minClearanceMm.toFixed(1)}mm collar clearance: ${Math.max(0, dExit).toFixed(1)}mm)`;
+    }
+
+    return {
+        isClear,
+        minBridgeDist,
+        dEnt,
+        dExit,
+        isEntBlocked,
+        isExitBlocked,
+        reason
+    };
+}
+window.getLedCollarBridgeClearance = getLedCollarBridgeClearance;
+
+function getLedCollarPerimeterWallCheck(curNorm, rotRad, wallClr = 5.0) {
+    if (typeof getDistToTpuPanelPerimeterMm !== 'function') {
+        return { isClear: true, isOutside: false, wallBlocked: false, minWallDist: 999, reason: '', closestFeature: '', opening1WallBlocked: false, opening2WallBlocked: false };
+    }
+    const gb = (typeof getGraphicChestBounds === 'function') ? getGraphicChestBounds() : null;
+    const plateW = (typeof selectedPlateWidthMm !== 'undefined' && selectedPlateWidthMm > 0) ? selectedPlateWidthMm : 203.2;
+    const normW = (gb && gb.normW > 0) ? gb.normW : 0.8;
+    const normH = (gb && gb.normH > 0) ? gb.normH : 0.385;
+    const plateH = plateW * (normH / normW);
+    const mmToNormX = normW / plateW;
+    const mmToNormY = normH / plateH;
+
+    const rot = (rotRad !== undefined) ? rotRad : 0;
+    const ux = Math.cos(rot);
+    const uy = Math.sin(rot);
+    const vx = -uy;
+    const vy = ux;
+
+    const wellPoints = [
+        { name: 'Wire Entrance 1', pt: { x: curNorm.x + (6.8 * ux) * mmToNormX, y: curNorm.y + (6.8 * uy) * mmToNormY }, isOp1: true },
+        { name: 'Wire Entrance 2', pt: { x: curNorm.x - (6.8 * ux) * mmToNormX, y: curNorm.y - (6.8 * uy) * mmToNormY }, isOp2: true },
+        { name: 'Wire Entrance 1 Left', pt: { x: curNorm.x + (6.8 * ux + 2.0 * vx) * mmToNormX, y: curNorm.y + (6.8 * uy + 2.0 * vy) * mmToNormY }, isOp1: true },
+        { name: 'Wire Entrance 1 Right', pt: { x: curNorm.x + (6.8 * ux - 2.0 * vx) * mmToNormX, y: curNorm.y + (6.8 * uy - 2.0 * vy) * mmToNormY }, isOp1: true },
+        { name: 'Wire Entrance 2 Left', pt: { x: curNorm.x - (6.8 * ux - 2.0 * vx) * mmToNormX, y: curNorm.y - (6.8 * uy - 2.0 * vy) * mmToNormY }, isOp2: true },
+        { name: 'Wire Entrance 2 Right', pt: { x: curNorm.x - (6.8 * ux + 2.0 * vx) * mmToNormX, y: curNorm.y - (6.8 * uy + 2.0 * vy) * mmToNormY }, isOp2: true },
+        { name: 'Wire Corridor 1', pt: { x: curNorm.x + (9.3 * ux) * mmToNormX, y: curNorm.y + (9.3 * uy) * mmToNormY }, isOp1: true },
+        { name: 'Wire Corridor 2', pt: { x: curNorm.x - (9.3 * ux) * mmToNormX, y: curNorm.y - (9.3 * uy) * mmToNormY }, isOp2: true },
+        { name: 'Collar Flank 1', pt: { x: curNorm.x + (4.3 * vx) * mmToNormX, y: curNorm.y + (4.3 * vy) * mmToNormY } },
+        { name: 'Collar Flank 2', pt: { x: curNorm.x - (4.3 * vx) * mmToNormX, y: curNorm.y - (4.3 * vy) * mmToNormY } },
+        { name: 'LED Center', pt: curNorm }
+    ];
+
+    let minWallDist = 999;
+    let closestFeature = '';
+    let wallBlocked = false;
+    let isOutside = false;
+    let opening1WallBlocked = false;
+    let opening2WallBlocked = false;
+    let reason = '';
+
+    for (let p = 0; p < wellPoints.length; p++) {
+        const wp = wellPoints[p];
+        const wCheck = getDistToTpuPanelPerimeterMm(wp.pt);
+        if (!wCheck.isInside) {
+            wallBlocked = true;
+            isOutside = true;
+            if (wp.isOp1) opening1WallBlocked = true;
+            if (wp.isOp2) opening2WallBlocked = true;
+            if (!reason) reason = `${wp.name} outside 3D STL perimeter wall`;
+        }
+        if (wCheck.distMm < minWallDist) {
+            minWallDist = wCheck.distMm;
+            closestFeature = wp.name;
+        }
+        if (wCheck.distMm < wallClr) {
+            wallBlocked = true;
+            if (wp.isOp1) opening1WallBlocked = true;
+            if (wp.isOp2) opening2WallBlocked = true;
+        }
+    }
+
+    if (wallBlocked && !isOutside && !reason) {
+        reason = `${closestFeature} clearance < ${wallClr.toFixed(1)}mm (${Math.max(0, minWallDist).toFixed(1)}mm)`;
+    }
+
+    return {
+        isClear: !wallBlocked,
+        isOutside,
+        wallBlocked,
+        minWallDist,
+        closestFeature,
+        opening1WallBlocked,
+        opening2WallBlocked,
+        reason
+    };
+}
+window.getLedCollarPerimeterWallCheck = getLedCollarPerimeterWallCheck;
+
 function checkLedClearanceStatus(index, ledsList) {
     if (!ledsList || index < 0 || index >= ledsList.length) {
         return { isClear: true, sideBlocked: false, opening1Blocked: false, opening2Blocked: false, bridgeBlocked: false, overlapBlocked: false, wallBlocked: false, isOutside: false, minWallDist: 999, reason: '' };
@@ -12251,65 +12481,24 @@ function checkLedClearanceStatus(index, ledsList) {
         }
     }
 
-    // 2. Check bridge clearance (10.0mm buffer from entrance and lateral exit strain relief bridges)
-    const bridges = getTpuBridgeLocationsNorm();
-    const dEntMm = Math.hypot((cur.x - bridges.entrance.x) / mmToNormX, (cur.y - bridges.entrance.y) / mmToNormY);
-    const dExitMm = Math.hypot((cur.x - bridges.exit.x) / mmToNormX, (cur.y - bridges.exit.y) / mmToNormY);
-    if (dEntMm < 10.0) {
+    // 2. Check bridge clearance (2.0mm collar side clearance rule from strain relief bridges)
+    const bridgeCheck = getLedCollarBridgeClearance(cur, rotRad, 2.0);
+    if (!bridgeCheck.isClear) {
         bridgeBlocked = true;
-        if (!reason) reason = `Entrance Bridge Keep-Out (<10mm buffer)`;
-    }
-    if (dExitMm < 10.0) {
-        bridgeBlocked = true;
-        if (!reason) reason = `Exit Bridge Keep-Out (<10mm buffer)`;
+        if (!reason) reason = bridgeCheck.reason;
     }
 
     // 3. Check 5.0mm perimeter wall clearance keep-out against true 3D STL panel contour
-    // Evaluates the sides of the LED wells where the wires enter (opening 1 at +6.8mm, opening 2 at -6.8mm,
-    // 2.5mm wire corridors at 9.3mm, and collar flanks at 4.3mm), ensuring no part of the well or wire entrances violates clearance.
-    const vx = -uy, vy = ux;
-    const wellPoints = [
-        { name: 'Wire Entrance 1', pt: { x: cur.x + (6.8 * ux) * mmToNormX, y: cur.y + (6.8 * uy) * mmToNormY }, isOp1: true },
-        { name: 'Wire Entrance 2', pt: { x: cur.x - (6.8 * ux) * mmToNormX, y: cur.y - (6.8 * uy) * mmToNormY }, isOp2: true },
-        { name: 'Wire Entrance 1 Left', pt: { x: cur.x + (6.8 * ux + 2.0 * vx) * mmToNormX, y: cur.y + (6.8 * uy + 2.0 * vy) * mmToNormY }, isOp1: true },
-        { name: 'Wire Entrance 1 Right', pt: { x: cur.x + (6.8 * ux - 2.0 * vx) * mmToNormX, y: cur.y + (6.8 * uy - 2.0 * vy) * mmToNormY }, isOp1: true },
-        { name: 'Wire Entrance 2 Left', pt: { x: cur.x - (6.8 * ux - 2.0 * vx) * mmToNormX, y: cur.y - (6.8 * uy - 2.0 * vy) * mmToNormY }, isOp2: true },
-        { name: 'Wire Entrance 2 Right', pt: { x: cur.x - (6.8 * ux + 2.0 * vx) * mmToNormX, y: cur.y - (6.8 * uy + 2.0 * vy) * mmToNormY }, isOp2: true },
-        { name: 'Wire Corridor 1', pt: { x: cur.x + (9.3 * ux) * mmToNormX, y: cur.y + (9.3 * uy) * mmToNormY }, isOp1: true },
-        { name: 'Wire Corridor 2', pt: { x: cur.x - (9.3 * ux) * mmToNormX, y: cur.y - (9.3 * uy) * mmToNormY }, isOp2: true },
-        { name: 'Collar Flank 1', pt: { x: cur.x + (4.3 * vx) * mmToNormX, y: cur.y + (4.3 * vy) * mmToNormY } },
-        { name: 'Collar Flank 2', pt: { x: cur.x - (4.3 * vx) * mmToNormX, y: cur.y - (4.3 * vy) * mmToNormY } },
-        { name: 'LED Center', pt: cur }
-    ];
-
-    minWallDist = 999;
-    let closestFeature = '';
-    let opening1WallBlocked = false;
-    let opening2WallBlocked = false;
-
-    for (let p = 0; p < wellPoints.length; p++) {
-        const wp = wellPoints[p];
-        const wCheck = getDistToTpuPanelPerimeterMm(wp.pt);
-        if (!wCheck.isInside) {
-            wallBlocked = true;
-            isOutside = true;
-            if (wp.isOp1) opening1WallBlocked = true;
-            if (wp.isOp2) opening2WallBlocked = true;
-            if (!reason) reason = `${wp.name} outside 3D STL perimeter wall`;
-        }
-        if (wCheck.distMm < minWallDist) {
-            minWallDist = wCheck.distMm;
-            closestFeature = wp.name;
-        }
-        if (wCheck.distMm < 5.0) {
-            wallBlocked = true;
-            if (wp.isOp1) opening1WallBlocked = true;
-            if (wp.isOp2) opening2WallBlocked = true;
-        }
-    }
-
-    if (wallBlocked && !isOutside && !reason) {
-        reason = `${closestFeature} clearance < 5.0mm (${Math.max(0, minWallDist).toFixed(1)}mm)`;
+    // Evaluates all sides of the LED well where the wires enter (openings at +/-6.8mm, corners,
+    // 2.5mm wire corridors at +/-9.3mm, and collar flanks at +/-4.3mm)
+    const wallCheck = getLedCollarPerimeterWallCheck(cur, rotRad, 5.0);
+    let opening1WallBlocked = wallCheck.opening1WallBlocked;
+    let opening2WallBlocked = wallCheck.opening2WallBlocked;
+    if (!wallCheck.isClear) {
+        wallBlocked = true;
+        isOutside = wallCheck.isOutside;
+        minWallDist = wallCheck.minWallDist;
+        if (!reason) reason = wallCheck.reason;
     }
 
     const isClear = !overlapBlocked && !opening1Blocked && !opening2Blocked && !bridgeBlocked && !wallBlocked;
@@ -12408,18 +12597,18 @@ function clampLedNoCollarOverlap(targetX, targetY, movingIndex, ledsArray) {
             }
         }
 
-        // Bridge repulsion (10mm buffer)
-        const bridges = getTpuBridgeLocationsNorm();
-        [bridges.entrance, bridges.exit].forEach(bp => {
-            const bxMm = (x - bp.x) / mmToNormX;
-            const byMm = (y - bp.y) / mmToNormY;
-            const dist = Math.hypot(bxMm, byMm);
-            if (dist < 10.0 && dist > 1e-4) {
-                const pen = (10.0 - dist);
-                x += (bxMm / dist) * pen * mmToNormX;
-                y += (byMm / dist) * pen * mmToNormY;
-            }
-        });
+        // Bridge repulsion (2.0mm collar clearance rule)
+        const brCheck = getLedCollarBridgeClearance({ x, y }, curRot, 2.0);
+        if (!brCheck.isClear) {
+            const bridges = getTpuBridgeLocationsNorm();
+            const targetBridge = brCheck.isEntBlocked ? bridges.entrance : bridges.exit;
+            const bxMm = (x - targetBridge.x) / mmToNormX;
+            const byMm = (y - targetBridge.y) / mmToNormY;
+            const dist = Math.hypot(bxMm, byMm) || 1;
+            const pen = (2.0 - brCheck.minBridgeDist) + 0.3;
+            x += (bxMm / dist) * pen * mmToNormX;
+            y += (byMm / dist) * pen * mmToNormY;
+        }
     }
 
     // Outer bounds of the editable shirt canvas (allows testing LEDs outside 3D panel with instant alerts)
@@ -12514,17 +12703,17 @@ function relaxLedCollarOverlapsLegacy(ledsList, iterations = 35) {
                 }
             }
 
-            // Bridge repulsion (10mm buffer)
-            [bridges.entrance, bridges.exit].forEach(bp => {
-                const bxMm = (ledsList[i].x - bp.x) / mmToNormX;
-                const byMm = (ledsList[i].y - bp.y) / mmToNormY;
-                const dist = Math.hypot(bxMm, byMm);
-                if (dist < 10.0 && dist > 1e-4) {
-                    const pen = (10.0 - dist);
-                    ledsList[i].x += (bxMm / dist) * pen * mmToNormX * 0.5;
-                    ledsList[i].y += (byMm / dist) * pen * mmToNormY * 0.5;
-                }
-            });
+            // Bridge repulsion (2.0mm collar clearance rule)
+            const brCheck = getLedCollarBridgeClearance(ledsList[i], rot_i, 2.0);
+            if (!brCheck.isClear) {
+                const targetBridge = brCheck.isEntBlocked ? bridges.entrance : bridges.exit;
+                const bxMm = (ledsList[i].x - targetBridge.x) / mmToNormX;
+                const byMm = (ledsList[i].y - targetBridge.y) / mmToNormY;
+                const dist = Math.hypot(bxMm, byMm) || 1;
+                const pen = (2.0 - brCheck.minBridgeDist) + 0.3;
+                ledsList[i].x += (bxMm / dist) * pen * mmToNormX * 0.5;
+                ledsList[i].y += (byMm / dist) * pen * mmToNormY * 0.5;
+            }
         }
         for (let i = 0; i < n; i++) {
             ledsList[i].x = Math.max(gb.normX, Math.min(gb.normX + gb.normW, parseFloat(ledsList[i].x.toFixed(4))));
@@ -14275,7 +14464,7 @@ function drawStrainReliefBridgesOverlay(ctx) {
     ctx.font = '8px monospace';
     ctx.textBaseline = 'top';
     ctx.fillStyle = '#34d399';
-    ctx.fillText('10mm KEEP-OUT', entCanvas.x, entCanvas.y + pEntBrHalfY + 2);
+    ctx.fillText('2mm COLLAR KEEP-OUT', entCanvas.x, entCanvas.y + pEntBrHalfY + 2);
 
     // -------------------------------------------------------------
     // 2. EXIT STRAIN RELIEF BRIDGE (Lateral Right Flank OUT)
@@ -14339,7 +14528,7 @@ function drawStrainReliefBridgesOverlay(ctx) {
     ctx.font = '8px monospace';
     ctx.textBaseline = 'top';
     ctx.fillStyle = '#f87171';
-    ctx.fillText('10mm KEEP-OUT', exitCanvas.x, exitCanvas.y + pExitBrHalfY + 2);
+    ctx.fillText('2mm COLLAR KEEP-OUT', exitCanvas.x, exitCanvas.y + pExitBrHalfY + 2);
 
     // -------------------------------------------------------------
     // 3. 3D STL ARMOR PERIMETER WALL & 5mm KEEP-OUT BOUNDARY
@@ -16739,20 +16928,44 @@ function scatterLedsOnGraphic(targetCount = 100, colorMatch = true, markDirty = 
         relY: p.y / targetH
     }));
 
+    // Filter candidate points: strictly avoid placing LEDs where the LED collar touches or encroaches
+    // within 5.0mm of the 3D STL perimeter wall or 2.0mm of the strain relief bridges!
+    const filteredCandNorm = candNorm.filter(p => {
+        // Test primary orientation (0 rad)
+        const w0 = getLedCollarPerimeterWallCheck(p, 0, 5.0);
+        if (!w0.isClear) return false;
+        const b0 = getLedCollarBridgeClearance(p, 0, 2.0);
+        if (!b0.isClear) return false;
+
+        // Also test perpendicular orientation (pi/2) to ensure clearance regardless of wiring angle
+        const w1 = getLedCollarPerimeterWallCheck(p, Math.PI * 0.5, 5.0);
+        if (!w1.isClear) return false;
+        const b1 = getLedCollarBridgeClearance(p, Math.PI * 0.5, 2.0);
+        if (!b1.isClear) return false;
+
+        return true;
+    });
+
+    const usableCandNorm = (filteredCandNorm.length >= targetCount)
+        ? filteredCandNorm
+        : (candNorm.filter(p => getLedCollarPerimeterWallCheck(p, 0, 5.0).isClear && getLedCollarBridgeClearance(p, 0, 2.0).isClear).length >= targetCount
+            ? candNorm.filter(p => getLedCollarPerimeterWallCheck(p, 0, 5.0).isClear && getLedCollarBridgeClearance(p, 0, 2.0).isClear)
+            : (filteredCandNorm.length > 0 ? filteredCandNorm : candNorm));
+
     const pool = (typeof makeLedPool === 'function')
-        ? makeLedPool(candNorm, (step / targetW) * gb.normW, (step / targetH) * gb.normH)
+        ? makeLedPool(usableCandNorm, (step / targetW) * gb.normW, (step / targetH) * gb.normH)
         : null;
     if (pool) lastSampledLedPool = pool;
 
     // Clearance-Aware Farthest Point Sampling (FPS) for collision-free distribution
     const chosenIndices = (typeof selectClearanceAwareFpsIndices === 'function')
-        ? selectClearanceAwareFpsIndices(candNorm, targetCount, [])
+        ? selectClearanceAwareFpsIndices(usableCandNorm, targetCount, [])
         : [];
 
     const newLeds = [];
     if (chosenIndices.length > 0) {
         for (let i = 0; i < chosenIndices.length; i++) {
-            const p = candNorm[chosenIndices[i]];
+            const p = usableCandNorm[chosenIndices[i]];
             let col = { r: p.r, g: p.g, b: p.b };
             if (colorMatch && typeof boostLedVibrancy === 'function') {
                 col = boostLedVibrancy(col.r, col.g, col.b, p.relX, p.relY);
@@ -16765,7 +16978,7 @@ function scatterLedsOnGraphic(targetCount = 100, colorMatch = true, markDirty = 
         }
     } else {
         for (let i = 0; i < targetCount; i++) {
-            const p = candNorm[i % candNorm.length];
+            const p = usableCandNorm[i % usableCandNorm.length];
             let col = { r: p.r, g: p.g, b: p.b };
             if (colorMatch && typeof boostLedVibrancy === 'function') {
                 col = boostLedVibrancy(col.r, col.g, col.b, p.relX, p.relY);

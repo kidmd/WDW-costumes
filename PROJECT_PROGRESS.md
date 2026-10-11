@@ -93,6 +93,23 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### 2026-10-10 22:20 - Redistribution Perimeter Wall Avoidance & 2.0mm Collar Bridge Clearance Rule
+- **Redistribution Wall Avoidance Engine (`simulator/app.js` & `simulator/led_clearance.js`):**
+  - Resolved the issue where clicking "Re-distribute" (or changing LED count) placed LEDs whose collars touched or encroached within 5.0mm of the 3D STL perimeter wall.
+  - Implemented comprehensive candidate pre-filtering in `scatterLedsOnGraphic`: evaluates every sampled foreground pixel with `getLedCollarPerimeterWallCheck` across both baseline horizontal ($\theta = 0$) and orthogonal ($\theta = \pi/2$) orientations.
+  - Excludes all candidate spots where the collar wire entrances ($\pm 6.8\text{ mm}$), notch corners ($\pm 2.0\text{ mm}$), wire corridors ($\pm 9.3\text{ mm}$), or lateral flanks ($\pm 4.3\text{ mm}$) violate the 5.0mm wall clearance or fall outside the 3D STL panel contour polygon.
+  - Guarantees `lastSampledLedPool` (`pool.pts`) and `chosenIndices` only contain 100% collision-free interior spots, preventing `snapToArtwork` and `searchFreeSpot` from snapping LEDs into edge wall violations.
+- **2.0mm LED Collar Bridge Clearance Rule (`simulator/app.js` & `simulator/led_clearance.js`):**
+  - Replaced the previous circular LED center-die check ($< 10\text{ mm}$) with a physically accurate geometric clearance engine: `getLedCollarBridgeClearance` and `getCollarToBridgeBoxDistMm`.
+  - Evaluates distance from the outer LED collar sides, wire entrance openings ($\pm 6.8\vec{u}$), wire corridor bounding boxes ($\pm 9.3\vec{u}$), and lateral flanks ($\pm 4.3\vec{v}$) to the rectangular footprints of both the Entrance Bridge ($8.0\text{ mm W} \times 7.2\text{ mm L}$) and Exit Bridge ($7.2\text{ mm W} \times 8.0\text{ mm L}$).
+  - Strictly enforces $\ge 2.0\text{ mm}$ physical clearance between collar envelope and bridge structures.
+  - Dynamic warning badges now report exact collar clearance: `⚠️ Entrance/Exit Bridge Keep-Out (<2.0mm collar clearance: X.Xmm)`.
+  - Updated bridge overlay labels on canvas to `2mm COLLAR KEEP-OUT`.
+  - Synchronized `selectClearanceAwareFpsIndices`, `violatesAny`, and `relax` in `led_clearance.js` as well as `searchNearbyClearSpot` and `relaxLedCollarOverlapsLegacy` in `app.js` with the 2.0mm collar rule.
+- **Verification:**
+  - Automated redistribution simulation verified in Node.js on true Pete's Dragon 3D STL chassis geometry: 100 LEDs distributed with 0 wall violations, 0 bridge violations, and 0 collision violations.
+  - Python test suite passed (`python simulator.py --test`), zero JavaScript syntax errors (`node -c`), and full documentation synchronization in `SIMULATOR_USER_GUIDE.md` and `PROJECT_PROGRESS.md`.
+
 ### 2026-10-10 21:58 - LED Well Wire Entrance Sides Perimeter Wall Clearance Engine
 - **LED Well Wire Entrance & Envelope Perimeter Evaluation (`simulator/app.js` & `simulator/led_clearance.js`):**
   - Updated the 5.0mm perimeter wall clearance check to evaluate the physical sides of the LED wells where the wires enter (`Opening 1` at $+6.8\text{ mm}$ and `Opening 2` at $-6.8\text{ mm}$ along the orientation axis, notch corners at $\pm 2.0\text{ mm}$, wire corridors at $\pm 9.3\text{ mm}$, and lateral flanks at $\pm 4.3\text{ mm}$), rather than checking only the single center coordinate of the LED.

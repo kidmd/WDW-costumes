@@ -81,7 +81,11 @@ function selectClearanceAwareFpsIndices(candNorm, count, anchorsNorm) {
         const mg = margins[lvl];
         for (let i = 0; i < n; i++) {
             blocked[i] = 0;
-            if (typeof getDistToTpuPanelPerimeterMm === 'function') {
+            // 1. 5.0mm perimeter wall clearance check for LED collar
+            if (typeof getLedCollarPerimeterWallCheck === 'function') {
+                const wallChk = getLedCollarPerimeterWallCheck(candNorm[i], 0, wallClr);
+                if (!wallChk.isClear) { blocked[i] = 1; continue; }
+            } else if (typeof getDistToTpuPanelPerimeterMm === 'function') {
                 const pOp1 = { x: candNorm[i].x + 6.8 * mm2n, y: candNorm[i].y };
                 const pOp2 = { x: candNorm[i].x - 6.8 * mm2n, y: candNorm[i].y };
                 const wallChkC = getDistToTpuPanelPerimeterMm({ x: candNorm[i].x, y: candNorm[i].y });
@@ -96,11 +100,19 @@ function selectClearanceAwareFpsIndices(candNorm, count, anchorsNorm) {
                 blocked[i] = 1;
                 continue;
             }
-            if (mg === null) continue;
-            for (let b = 0; b < bridges.length; b++) {
-                if (Math.hypot(cx[i] - bridges[b].x, cy[i] - bridges[b].y) < 10.3) { blocked[i] = 1; break; }
+
+            // 2. 2.0mm strain relief bridge clearance check for LED collar sides
+            if (typeof getLedCollarBridgeClearance === 'function') {
+                const brChk = getLedCollarBridgeClearance(candNorm[i], 0, 2.0);
+                if (!brChk.isClear) { blocked[i] = 1; continue; }
+            } else {
+                for (let b = 0; b < bridges.length; b++) {
+                    if (Math.hypot(cx[i] - bridges[b].x, cy[i] - bridges[b].y) < 10.3) { blocked[i] = 1; break; }
+                }
             }
             if (blocked[i]) continue;
+
+            if (mg === null) continue;
             for (let p = 0; p < placedX.length; p++) {
                 if (ledPairViolatesMm(cx[i], cy[i], 0, placedX[p], placedY[p], 0, mg)) { blocked[i] = 1; break; }
             }
@@ -204,9 +216,14 @@ function resolveLedClearance(ledsList, pool, opts) {
     const minY = (gb.normY / mm2n) + 5.0, maxY = ((gb.normY + gb.normH) / mm2n) - 5.0;
 
     const violatesAny = (i, mg) => {
-        if (typeof getDistToTpuPanelPerimeterMm === 'function') {
+        const pNorm = { x: px[i] * mm2n, y: py[i] * mm2n };
+        // 1. Perimeter wall clearance (5.0mm rule for LED collar)
+        if (typeof getLedCollarPerimeterWallCheck === 'function') {
+            const wallChk = getLedCollarPerimeterWallCheck(pNorm, rot[i], 5.0);
+            if (!wallChk.isClear) return true;
+        } else if (typeof getDistToTpuPanelPerimeterMm === 'function') {
             const ux = Math.cos(rot[i]), uy = Math.sin(rot[i]);
-            const pC = { x: px[i] * mm2n, y: py[i] * mm2n };
+            const pC = pNorm;
             const pOp1 = { x: (px[i] + 6.8 * ux) * mm2n, y: (py[i] + 6.8 * uy) * mm2n };
             const pOp2 = { x: (px[i] - 6.8 * ux) * mm2n, y: (py[i] - 6.8 * uy) * mm2n };
             const chkC = getDistToTpuPanelPerimeterMm(pC);
@@ -216,12 +233,21 @@ function resolveLedClearance(ledsList, pool, opts) {
         } else if (px[i] < minX || px[i] > maxX || py[i] < minY || py[i] > maxY) {
             return true;
         }
+
+        // 2. Inter-LED collisions & wire corridor clearance
         for (let j = 0; j < N; j++) {
             if (j === i) continue;
             if (ledPairViolatesMm(px[i], py[i], rot[i], px[j], py[j], rot[j], mg)) return true;
         }
-        for (let b = 0; b < bridges.length; b++) {
-            if (Math.hypot(px[i] - bridges[b].x, py[i] - bridges[b].y) < 10.0 + Math.max(0.05, mg * 0.5)) return true;
+
+        // 3. Strain relief bridge clearance (2.0mm rule for collar sides)
+        if (typeof getLedCollarBridgeClearance === 'function') {
+            const brChk = getLedCollarBridgeClearance(pNorm, rot[i], 2.0 + Math.max(0, (mg || 0) * 0.3));
+            if (!brChk.isClear) return true;
+        } else {
+            for (let b = 0; b < bridges.length; b++) {
+                if (Math.hypot(px[i] - bridges[b].x, py[i] - bridges[b].y) < 10.0 + Math.max(0.05, (mg || 0) * 0.5)) return true;
+            }
         }
         return false;
     };
@@ -288,18 +314,48 @@ function resolveLedClearance(ledsList, pool, opts) {
             }
             for (let i = 0; i < m; i++) {
                 if (!movable[i]) continue;
-                for (let b = 0; b < bridges.length; b++) {
-                    const bx = px[i] - bridges[b].x, by = py[i] - bridges[b].y;
-                    const dist = Math.hypot(bx, by);
-                    const need = 10.0 + Math.max(0.05, margin * 0.5);
-                    if (dist < need) {
+                // Bridge repulsion (2.0mm collar clearance rule)
+                if (typeof getLedCollarBridgeClearance === 'function') {
+                    const pNorm = { x: px[i] * mm2n, y: py[i] * mm2n };
+                    const needClr = 2.0 + Math.max(0.05, margin * 0.3);
+                    const brChk = getLedCollarBridgeClearance(pNorm, rot[i], needClr);
+                    if (!brChk.isClear) {
                         viol++;
-                        const ux = dist > 1e-4 ? bx / dist : 1, uy = dist > 1e-4 ? by / dist : 0;
-                        dxA[i] += ux * (need - dist + 0.2); dyA[i] += uy * (need - dist + 0.2);
+                        const targetBridge = brChk.isEntBlocked ? bridges[0] : bridges[1];
+                        const bx = px[i] - targetBridge.x, by = py[i] - targetBridge.y;
+                        const dist = Math.hypot(bx, by) || 1;
+                        const pen = needClr - brChk.minBridgeDist + 0.3;
+                        dxA[i] += (bx / dist) * pen * 1.5;
+                        dyA[i] += (by / dist) * pen * 1.5;
+                    }
+                } else {
+                    for (let b = 0; b < bridges.length; b++) {
+                        const bx = px[i] - bridges[b].x, by = py[i] - bridges[b].y;
+                        const dist = Math.hypot(bx, by);
+                        const need = 10.0 + Math.max(0.05, margin * 0.5);
+                        if (dist < need) {
+                            viol++;
+                            const ux = dist > 1e-4 ? bx / dist : 1, uy = dist > 1e-4 ? by / dist : 0;
+                            dxA[i] += ux * (need - dist + 0.2); dyA[i] += uy * (need - dist + 0.2);
+                        }
                     }
                 }
-                // Enforce 5mm perimeter wall repulsion
-                if (typeof getDistToTpuPanelPerimeterMm === 'function') {
+                // Enforce 5.0mm perimeter wall repulsion for LED collar
+                if (typeof getLedCollarPerimeterWallCheck === 'function') {
+                    const pNorm = { x: px[i] * mm2n, y: py[i] * mm2n };
+                    const wallChk = getLedCollarPerimeterWallCheck(pNorm, rot[i], 5.0);
+                    if (!wallChk.isClear) {
+                        viol++;
+                        const gb = ledMmFrame().gb;
+                        const centerX = (gb.normX + gb.normW / 2) / mm2n;
+                        const centerY = (gb.normY + gb.normH / 2) / mm2n;
+                        const cdx = centerX - px[i], cdy = centerY - py[i];
+                        const cdist = Math.hypot(cdx, cdy) || 1;
+                        const pen = wallChk.isOutside ? 4.0 : Math.max(0.5, (5.0 - wallChk.minWallDist) * 1.5);
+                        dxA[i] += (cdx / cdist) * pen;
+                        dyA[i] += (cdy / cdist) * pen;
+                    }
+                } else if (typeof getDistToTpuPanelPerimeterMm === 'function') {
                     const uxi = Math.cos(rot[i]), uyi = Math.sin(rot[i]);
                     const checkPts = [
                         { x: px[i] * mm2n, y: py[i] * mm2n },
