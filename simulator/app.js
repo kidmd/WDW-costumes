@@ -167,13 +167,13 @@ spinningTurtleImg.onload = () => {
 };
 spinningTurtleImg.src = 'assets/Turtle_clean.png';
 
-// Spinning Snail Artwork (Default transparent PNG from newsnail.png)
+// Spinning Snail Artwork (Default graphic from SimpleSnail.jpg)
 const spinningSnailImg = new Image();
 let spinningSnailLoaded = false;
 spinningSnailImg.onload = () => {
     spinningSnailLoaded = true;
 };
-spinningSnailImg.src = 'assets/newsnail.png';
+spinningSnailImg.src = 'assets/SimpleSnail.jpg';
 
 const spinningSnailSimplifiedImg = new Image();
 let spinningSnailSimplifiedLoaded = false;
@@ -212,8 +212,8 @@ const floatArtworkImgs = {
 floatArtworkImgs['casey_jr_train'].src = 'assets/cricut_svg/casey_jr_train.svg';
 floatArtworkImgs['title_drum'].src = 'assets/title_drum.png';
 floatArtworkImgs['spinning_turtle'].src = 'assets/Turtle_clean.png';
-floatArtworkImgs['spinning_snail'].src = 'assets/newsnail.png';
-floatArtworkImgs['spinning_snail_original'].src = 'assets/newsnail.png';
+floatArtworkImgs['spinning_snail'].src = 'assets/SimpleSnail.jpg';
+floatArtworkImgs['spinning_snail_original'].src = 'assets/SimpleSnail.jpg';
 floatArtworkImgs['spinning_snail_simplified'].src = 'assets/spinning_snail_simplified.png';
 floatArtworkImgs['cinderella_coach'].src = 'assets/cricut_svg/cinderella_coach.svg';
 floatArtworkImgs['cinderellas_coach'].src = 'assets/cricut_svg/cinderella_coach.svg';
@@ -3105,18 +3105,18 @@ const FLOAT_STL_COLOR_CONFIG = {
         'red': { name: "Tie & Lips", hex: "#ef4444", targetRgb: [217, 29, 22], role: "inlay", filename: "color_red.stl" }
     },
     'spinning_snail': {
-        'black': { name: "Chassis & Shell Background", hex: "#11161d", targetRgb: [17, 22, 29], role: "chassis" },
-        'red': { name: "Head, Neck & Foot", hex: "#ef4444", targetRgb: [239, 68, 68], role: "inlay", filename: "color_red.stl" },
-        'gold': { name: "Antennae, Spiral & Edge", hex: "#facc15", targetRgb: [250, 204, 21], role: "inlay", filename: "color_gold.stl" },
-        'green': { name: "Green Radial Stripes", hex: "#10b981", targetRgb: [16, 185, 129], role: "inlay", filename: "color_green.stl" },
-        'blue': { name: "Blue Radial Stripes", hex: "#2563eb", targetRgb: [37, 99, 235], role: "inlay", filename: "color_blue.stl" }
+        'black': { name: "Chassis & Shell Background", hex: "#11161d", targetRgb: [1, 2, 1], role: "chassis" },
+        'red': { name: "Head, Neck & Foot", hex: "#8a261e", targetRgb: [138, 38, 30], role: "inlay", filename: "color_red.stl" },
+        'gold': { name: "Antennae, Spiral & Edge", hex: "#ca9927", targetRgb: [202, 153, 39], role: "inlay", filename: "color_gold.stl" },
+        'green': { name: "Green Radial Stripes", hex: "#1e743d", targetRgb: [30, 116, 61], role: "inlay", filename: "color_green.stl" },
+        'blue': { name: "Blue Radial Stripes", hex: "#295374", targetRgb: [41, 83, 116], role: "inlay", filename: "color_blue.stl" }
     },
     'spinning_snail_simplified': {
-        'black': { name: "Chassis & Shell Background", hex: "#11161d", targetRgb: [17, 22, 29], role: "chassis" },
-        'red': { name: "Head, Neck & Foot", hex: "#ef4444", targetRgb: [239, 68, 68], role: "inlay", filename: "color_red.stl" },
-        'gold': { name: "Antennae, Spiral & Edge", hex: "#facc15", targetRgb: [250, 204, 21], role: "inlay", filename: "color_gold.stl" },
-        'green': { name: "Green Radial Stripes", hex: "#10b981", targetRgb: [16, 185, 129], role: "inlay", filename: "color_green.stl" },
-        'blue': { name: "Blue Radial Stripes", hex: "#2563eb", targetRgb: [37, 99, 235], role: "inlay", filename: "color_blue.stl" }
+        'black': { name: "Chassis & Shell Background", hex: "#11161d", targetRgb: [1, 2, 1], role: "chassis" },
+        'red': { name: "Head, Neck & Foot", hex: "#8a261e", targetRgb: [138, 38, 30], role: "inlay", filename: "color_red.stl" },
+        'gold': { name: "Antennae, Spiral & Edge", hex: "#ca9927", targetRgb: [202, 153, 39], role: "inlay", filename: "color_gold.stl" },
+        'green': { name: "Green Radial Stripes", hex: "#1e743d", targetRgb: [30, 116, 61], role: "inlay", filename: "color_green.stl" },
+        'blue': { name: "Blue Radial Stripes", hex: "#295374", targetRgb: [41, 83, 116], role: "inlay", filename: "color_blue.stl" }
     }
 };
 

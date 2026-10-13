@@ -1259,8 +1259,14 @@ const uint8_t PROGMEM SPATIAL_RADIUS_BYTE[FRONT_LEDS] = {{
                     rgb_ch = art_arr[:, :, :3]
                     corners_opaque = (alpha_ch[0, 0] > 40 and alpha_ch[0, -1] > 40 and alpha_ch[-1, 0] > 40 and alpha_ch[-1, -1] > 40)
                     corners_black = (rgb_ch[0, 0].max() < 30 and rgb_ch[0, -1].max() < 30 and rgb_ch[-1, 0].max() < 30 and rgb_ch[-1, -1].max() < 30)
+                    corners_white = (rgb_ch[0, 0].min() > 235 and rgb_ch[0, -1].min() > 235 and rgb_ch[-1, 0].min() > 235 and rgb_ch[-1, -1].min() > 235)
                     if corners_opaque and corners_black:
                         fg_mask = (rgb_ch.max(axis=2) > 20) & (alpha_ch > 40)
+                        art_arr[~fg_mask, 3] = 0
+                        clean_art = Image.fromarray(art_arr)
+                        clean_art.save(artwork_png)
+                    elif corners_opaque and corners_white:
+                        fg_mask = (rgb_ch.min(axis=2) < 235) & (alpha_ch > 40)
                         art_arr[~fg_mask, 3] = 0
                         clean_art = Image.fromarray(art_arr)
                         clean_art.save(artwork_png)

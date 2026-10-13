@@ -93,6 +93,18 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### 2026-10-13 00:48 - Unmodified `SimpleSnail.jpg` Default Snail Graphic & 5-Color 3D Print Verification
+- **Default Snail Graphic (`assets/SimpleSnail.jpg`, `simulator/assets/SimpleSnail.jpg`, `simulator/app.js`):**
+  - Set `assets/SimpleSnail.jpg` (`1792 × 2400` JPEG, kept 100% unmodified) as the default graphic for Float 4 (The Snail) in `simulator/app.js` (`spinningSnailImg` and `floatArtworkImgs['spinning_snail']` / `floatArtworkImgs['spinning_snail_original']`).
+- **5-Color 3D Printing Palette Verification & STL Target Calibration (`simulator/app.js`, `scripts/compile_clean_tpu_panel.py`, `simulator.py`):**
+  - Verified via K-Means color cluster analysis that `SimpleSnail.jpg` (excluding its white background `#fefefd`) consists of **5 distinct 3D-printing colors**:
+    1. **Black (Chassis & Shell Dividers):** `RGB(1, 2, 1)` (`#010201`, 6.41% of image / 29.4% of snail)
+    2. **Red (Head, Neck & Foot):** `RGB(138, 38, 30)` (`#8a261e`, 5.17% of image / 23.7% of snail)
+    3. **Blue (Blue Radial Shell Stripes):** `RGB(41, 83, 116)` (`#295374`, 3.61% of image / 16.6% of snail)
+    4. **Green (Green Radial Shell Stripes):** `RGB(30, 116, 61)` (`#1e743d`, 3.45% of image / 15.8% of snail)
+    5. **Gold/Yellow (Antennae, Eye, Spiral & Rim):** `RGB(202, 153, 39)` (`#ca9927`, 3.16% of image / 14.5% of snail)
+  - Calibrated `targetRgb` centroids for `spinning_snail` in `simulator/app.js` and `scripts/compile_clean_tpu_panel.py` to match these 5 exact clusters, and added opaque white corner mask handling so the 3D STL compiler cleanly ignores the white JPEG background without modifying `SimpleSnail.jpg`.
+
 ### 2026-10-13 00:25 - Default Snail Graphic Update & Transparent Background Cleanup (`assets/newsnail.png`)
 - **Transparent Background Extraction (`assets/newsnail.png`, `simulator/assets/newsnail.png`, `assets/spinning_snail.png`, `simulator/assets/spinning_snail.png`):**
   - Removed all background elements (black background, floating background streetlamp globes/dots, and upper-right background awning) from `assets/newsnail.png` while preserving 100% of the snail's red body, golden antennae/eye/spiral/rim, and alternating green, blue, and opaque black radial shell stripes.

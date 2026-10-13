@@ -151,9 +151,12 @@ def compile_plate_variant(variant_name, width_mm, height_mm, raw_leds, artwork_p
     # Otherwise, foreground is defined by the transparent alpha channel (> 40).
     corners_opaque = (alpha[0, 0] > 40 and alpha[0, -1] > 40 and alpha[-1, 0] > 40 and alpha[-1, -1] > 40)
     corners_black = (rgb[0, 0].max() < 30 and rgb[0, -1].max() < 30 and rgb[-1, 0].max() < 30 and rgb[-1, -1].max() < 30)
+    corners_white = (rgb[0, 0].min() > 235 and rgb[0, -1].min() > 235 and rgb[-1, 0].min() > 235 and rgb[-1, -1].min() > 235)
 
     if corners_opaque and corners_black:
         mask = ((rgb.max(axis=2) > 20) & (alpha > 40)).astype(np.uint8)
+    elif corners_opaque and corners_white:
+        mask = ((rgb.min(axis=2) < 235) & (alpha > 40)).astype(np.uint8)
     else:
         mask = (alpha > 40).astype(np.uint8)
 
@@ -678,11 +681,11 @@ def compile_plate_variant(variant_name, width_mm, height_mm, raw_leds, artwork_p
         }
     elif is_snail:
         stl_colors = {
-            'black': { 'name': 'Chassis & Shell Background', 'hex': '#11161d', 'targetRgb': [17, 22, 29], 'role': 'chassis' },
-            'red': { 'name': 'Head, Neck & Foot', 'hex': '#ef4444', 'targetRgb': [239, 68, 68], 'role': 'inlay', 'filename': 'color_red.stl' },
-            'gold': { 'name': 'Antennae, Spiral & Edge', 'hex': '#facc15', 'targetRgb': [250, 204, 21], 'role': 'inlay', 'filename': 'color_gold.stl' },
-            'green': { 'name': 'Green Radial Stripes', 'hex': '#10b981', 'targetRgb': [16, 185, 129], 'role': 'inlay', 'filename': 'color_green.stl' },
-            'blue': { 'name': 'Blue Radial Stripes', 'hex': '#2563eb', 'targetRgb': [37, 99, 235], 'role': 'inlay', 'filename': 'color_blue.stl' }
+            'black': { 'name': 'Chassis & Shell Background', 'hex': '#11161d', 'targetRgb': [1, 2, 1], 'role': 'chassis' },
+            'red': { 'name': 'Head, Neck & Foot', 'hex': '#8a261e', 'targetRgb': [138, 38, 30], 'role': 'inlay', 'filename': 'color_red.stl' },
+            'gold': { 'name': 'Antennae, Spiral & Edge', 'hex': '#ca9927', 'targetRgb': [202, 153, 39], 'role': 'inlay', 'filename': 'color_gold.stl' },
+            'green': { 'name': 'Green Radial Stripes', 'hex': '#1e743d', 'targetRgb': [30, 116, 61], 'role': 'inlay', 'filename': 'color_green.stl' },
+            'blue': { 'name': 'Blue Radial Stripes', 'hex': '#295374', 'targetRgb': [41, 83, 116], 'role': 'inlay', 'filename': 'color_blue.stl' }
         }
     elif is_drum:
         stl_colors = {
