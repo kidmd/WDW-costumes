@@ -3133,9 +3133,9 @@ const FLOAT_STL_COLOR_CONFIG = {
     'casey_jr_train': {
         'black': { name: "Chassis, Roof & Cab Windows", hex: "#141414", targetRgb: [20, 20, 20], role: "chassis" },
         'red': { name: "Locomotive Body, Smokestack & Cowcatcher", hex: "#a3231e", targetRgb: [163, 35, 30], role: "inlay", filename: "color_red.stl" },
-        'gold': { name: "Piping Trim, Steam, Spokes & Wheels", hex: "#d4963a", targetRgb: [212, 150, 58], role: "inlay", filename: "color_gold.stl" },
-        'grey': { name: "Drive Rod, Wheel Rims & Undercarriage", hex: "#716f6f", targetRgb: [113, 111, 111], role: "inlay", filename: "color_grey.stl" },
-        'green': { name: "Foliage & Collar Accent", hex: "#307038", targetRgb: [48, 112, 56], role: "inlay", filename: "color_green.stl" }
+        'gold': { name: "Bright Gold Trim, Steam & Wheels", hex: "#d99e48", targetRgb: [217, 158, 72], role: "inlay", filename: "color_gold.stl" },
+        'dark_gold': { name: "Shaded Gold / Bronze Steam & Details", hex: "#a1702c", targetRgb: [161, 112, 44], role: "inlay", filename: "color_dark_gold.stl" },
+        'grey': { name: "Drive Rod, Wheel Rims & Undercarriage", hex: "#716f6f", targetRgb: [113, 111, 111], role: "inlay", filename: "color_grey.stl" }
     }
 };
 
