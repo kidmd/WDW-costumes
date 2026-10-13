@@ -3,7 +3,7 @@
 
 // Auto-generated dedicated float identity
 #ifndef COMPILED_FLOAT_ID
-#define COMPILED_FLOAT_ID 7
+#define COMPILED_FLOAT_ID 0
 #endif
 
 #endif // FLOAT_CONFIG_H

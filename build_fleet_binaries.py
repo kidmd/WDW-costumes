@@ -96,6 +96,8 @@ def build_all():
     build_binary(0)
     for flt in FLOATS:
         build_binary(flt["id"])
+    # Reset float_config.h back to 0 (generic/NVS mode) after dedicated builds complete
+    write_float_config(0)
     print("==================================================")
     print(" Finished building all 7 float ROM binaries!")
     print("==================================================")

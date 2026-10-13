@@ -93,6 +93,17 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### 2026-10-12 23:25 - ESP-NOW Walkie-Talkie Channel Lock & 5-Packet Burst Reliability Upgrade
+- **Eliminated Background Wi-Fi Channel Hopping (`src/main.cpp`, `arduino/MSEP_Costume/MSEP_Costume.ino`, `include/wifi_config.h`, `presets/wifi_settings.json`):**
+  - Cleared hardcoded home Wi-Fi credentials from `include/wifi_config.h` and `presets/wifi_settings.json` so race-day builds boot straight into pure `WIFI_STA` walkie-talkie mode without searching for an external router.
+  - Added `WiFi.persistent(false)`, `WiFi.setAutoReconnect(false)`, and `WiFi.disconnect(true, true)` at startup (and immediately on 1.5s connection timeout) to wipe any SDK-cached NVS Wi-Fi credentials and prevent the ESP32 Station driver from background-scanning Channels 1–13 while ESP-NOW is active.
+  - Explicitly locked the 2.4GHz radio to **Channel 1** (`esp_wifi_set_channel(1, WIFI_SECOND_CHAN_NONE)`) and disabled Wi-Fi modem power-save (`esp_wifi_set_ps(WIFI_PS_NONE)`) for zero-latency packet reception.
+- **5-Packet Redundant Burst Transmission & Active Show Sync Heartbeats (`src/main.cpp`, `arduino/MSEP_Costume/MSEP_Costume.ino`):**
+  - Implemented `sendEspNowBurst()` so all Leader button broadcasts (`0x30` 30s Fleet Show, `0x00` Early Stop, `0x44` Roll Call, `0x46`/`0x47` Photo Mode, `0x50` Standby, `0x51` Wake) transmit a rapid 5-packet burst spaced 6ms apart (`24ms` total) to overcome transient RF interference.
+  - Added periodic Leader sync heartbeats during active shows (`250ms` during the 30-second Fleet Routine and `150ms` during the 4-second Roll Call) and synchronized `fleetRoutineCycle` via `packet.waveHead` so all Follower costumes match the Leader's exact color cycle and millisecond offset even if powered on mid-routine.
+- **Generic Build Float ID Reset (`include/float_config.h`, `build_fleet_binaries.py`):**
+  - Reset `COMPILED_FLOAT_ID` to `0` after `build_fleet_binaries.py` finishes compiling the 7 dedicated float ROMs so standard PlatformIO uploads preserve each board's NVS-configured Float ID.
+
 ### 2026-10-12 19:15 - Formatted Race Day Button Quick Guide Document (`Race_Day_Button_Quick_Guide.docx`)
 - **Family-Ready Google Docs / Word Quick Sheet (`Race_Day_Button_Quick_Guide.docx`):**
   - Created a styled, single-page OpenXML `.docx` document (`Race_Day_Button_Quick_Guide.docx`) designed for direct upload to Google Docs or sharing with the 7-runner family team.

@@ -3,6 +3,7 @@
 #include <WiFi.h>
 #include <WiFiUdp.h>
 #include <esp_now.h>
+#include <esp_wifi.h>
 #include <esp_arduino_version.h>
 #include <Preferences.h>
 #include "soc/soc.h"
@@ -147,14 +148,31 @@ uint8_t fleetRoutineCycle = 0;
 uint32_t rapidRollCallStartTime = 0;
 uint32_t autonomousShowStartTime = 0;
 
-void broadcastFleetRoutinePacket(uint8_t mode, uint32_t masterMillis) {
+#define ESPNOW_WIFI_CHANNEL 1   // Dedicated fixed 2.4GHz walkie-talkie channel for ESP-NOW fleet sync
+
+// Rapid multi-packet burst transmitter to guarantee delivery over unacknowledged broadcast ESP-NOW
+inline void sendEspNowBurst(ParadeSyncPacket &packet, uint8_t count = 5, bool advanceMasterMillis = false) {
+    uint32_t baseMasterMillis = packet.masterMillis;
+    uint32_t tStart = millis();
+    for (uint8_t i = 0; i < count; i++) {
+        if (advanceMasterMillis) {
+            packet.masterMillis = baseMasterMillis + (millis() - tStart);
+        }
+        esp_now_send(broadcastMac, (uint8_t*)&packet, sizeof(packet));
+        if (i + 1 < count) {
+            delay(6);
+        }
+    }
+}
+
+void broadcastFleetRoutinePacket(uint8_t mode, uint32_t masterMillis, bool burst = true) {
     ParadeSyncPacket packet;
     packet.magic = 0xEE;
     packet.mode = mode; // 0x30 = Start/Sync 30s Routine, 0x00 = Stop early, 0x50 = Standby, 0x51 = Wake
     packet.masterMillis = masterMillis;
     packet.activeFloat = myFloatNumber;
-    packet.waveHead = 0;
-    esp_now_send(broadcastMac, (uint8_t*)&packet, sizeof(packet));
+    packet.waveHead = fleetRoutineCycle;
+    sendEspNowBurst(packet, burst ? 5 : 1, (mode == 0x30));
 }
 
 void broadcastStandbyPacket(uint8_t mode) {
@@ -164,7 +182,7 @@ void broadcastStandbyPacket(uint8_t mode) {
     packet.masterMillis = millis();
     packet.activeFloat = myFloatNumber;
     packet.waveHead = 0;
-    esp_now_send(broadcastMac, (uint8_t*)&packet, sizeof(packet));
+    sendEspNowBurst(packet, 5, false);
 }
 
 void broadcastPhotoModePacket(uint8_t mode) {
@@ -174,7 +192,7 @@ void broadcastPhotoModePacket(uint8_t mode) {
     packet.masterMillis = millis();
     packet.activeFloat = myFloatNumber;
     packet.waveHead = 0;
-    esp_now_send(broadcastMac, (uint8_t*)&packet, sizeof(packet));
+    sendEspNowBurst(packet, 5, false);
 }
 
 void renderCastlePhotoMode() {
@@ -266,26 +284,29 @@ void broadcastIdentifyPacket(uint8_t targetFloat) {
     packet.masterMillis = millis();
     packet.activeFloat = targetFloat;
     packet.waveHead = 0;
-    esp_now_send(broadcastMac, (uint8_t*)&packet, sizeof(packet));
+    sendEspNowBurst(packet, 3, false);
 }
 
-void broadcastRapidRollCallPacket() {
+void broadcastRapidRollCallPacket(uint32_t elapsedMs = 0, bool burst = true) {
     ParadeSyncPacket packet;
     packet.magic = 0xEE;
     packet.mode = 0x44; // 0x44 = 4s Rapid Attendance Roll Call
-    packet.masterMillis = 0;
+    packet.masterMillis = elapsedMs;
     packet.activeFloat = myFloatNumber;
     packet.waveHead = 0;
-    esp_now_send(broadcastMac, (uint8_t*)&packet, sizeof(packet));
+    sendEspNowBurst(packet, burst ? 5 : 1, true);
 }
 
 void startRapidRollCall(uint32_t now) {
-    if (currentStandaloneMode != SHOW_MODE_RAPID_ROLL_CALL) {
+    bool isNewRollCall = (currentStandaloneMode != SHOW_MODE_RAPID_ROLL_CALL);
+    if (isNewRollCall) {
         previousStandaloneMode = currentStandaloneMode;
     }
     currentStandaloneMode = SHOW_MODE_RAPID_ROLL_CALL;
     rapidRollCallStartTime = now;
-    Serial.printf("[ROLL CALL] ⚡ 4-Second Rapid Attendance Roll Call started! (Initiator: Float %d)\n", myFloatNumber);
+    if (isNewRollCall) {
+        Serial.printf("[ROLL CALL] ⚡ 4-Second Rapid Attendance Roll Call started! (Initiator: Float %d)\n", myFloatNumber);
+    }
 }
 
 void renderRapidRollCall(uint32_t elapsedMs) {
@@ -332,55 +353,66 @@ void onDataReceive(const uint8_t *mac_addr, const uint8_t *incomingData, int len
         memcpy(&packet, incomingData, sizeof(packet));
         if (packet.magic == 0xEE) {
             if (packet.mode == 0x30) {
-                // Synchronized Fleet 30s routine trigger
+                // Synchronized Fleet 30s routine trigger & ongoing sync beacon
+                bool wasAlreadyActive = (currentStandaloneMode == SHOW_MODE_FLEET_30S_ROUTINE);
                 if (currentStandaloneMode == SHOW_MODE_CORRAL_STANDBY) {
                     previousStandaloneMode = SHOW_MODE_AUTONOMOUS_SEQUENCE;
-                } else if (currentStandaloneMode != SHOW_MODE_FLEET_30S_ROUTINE) {
+                } else if (!wasAlreadyActive) {
                     previousStandaloneMode = currentStandaloneMode;
                 }
                 currentStandaloneMode = SHOW_MODE_FLEET_30S_ROUTINE;
+                fleetRoutineCycle = packet.waveHead;
                 fleetRoutineStartTime = millis() - packet.masterMillis;
-                Serial.printf("[ESP-NOW] Fleet 30s Show triggered by Float %d (sync offset: %u ms)\n",
-                              packet.activeFloat, packet.masterMillis);
-            } else if (packet.mode == 0x00 && currentStandaloneMode == SHOW_MODE_FLEET_30S_ROUTINE) {
+                if (!wasAlreadyActive) {
+                    Serial.printf("[ESP-NOW] Fleet 30s Show triggered by Float %d (cycle #%u, sync offset: %u ms)\n",
+                                  packet.activeFloat, fleetRoutineCycle, packet.masterMillis);
+                }
+            } else if (packet.mode == 0x00 && (currentStandaloneMode == SHOW_MODE_FLEET_30S_ROUTINE || currentStandaloneMode == SHOW_MODE_RAPID_ROLL_CALL)) {
                 // Early stop commanded by peer
                 currentStandaloneMode = previousStandaloneMode;
-                Serial.printf("[ESP-NOW] Fleet 30s Show stopped early by Float %d -> reverting to baseline\n",
+                Serial.printf("[ESP-NOW] Fleet Show stopped early by Float %d -> reverting to baseline\n",
                               packet.activeFloat);
             } else if (packet.mode == 0x42) {
-                // Pre-race Corral Roll Call: Identify Flash command
-                if (packet.activeFloat == 0 || packet.activeFloat == myFloatNumber) {
+                // Pre-race Corral Roll Call: Identify Flash command (debounced across burst packets)
+                static uint32_t lastIdentifyRxTime = 0;
+                if ((packet.activeFloat == 0 || packet.activeFloat == myFloatNumber) && (millis() - lastIdentifyRxTime > 800)) {
+                    lastIdentifyRxTime = millis();
                     triggerIdentifyFlash();
                 }
             } else if (packet.mode == 0x44) {
                 // 4-Second Rapid Attendance Roll Call commanded by peer
+                bool wasAlreadyActive = (currentStandaloneMode == SHOW_MODE_RAPID_ROLL_CALL);
                 startRapidRollCall(millis() - packet.masterMillis);
-                Serial.printf("[ESP-NOW] ⚡ Rapid Attendance Roll Call triggered by Float %d\n", packet.activeFloat);
+                if (!wasAlreadyActive) {
+                    Serial.printf("[ESP-NOW] ⚡ Rapid Attendance Roll Call triggered by Float %d\n", packet.activeFloat);
+                }
             } else if (packet.mode == 0x46) {
                 // Castle Photo Mode ON commanded by Leader/Peer
                 if (currentStandaloneMode != SHOW_MODE_PHOTO_STATIC) {
                     previousStandaloneMode = currentStandaloneMode;
+                    currentStandaloneMode = SHOW_MODE_PHOTO_STATIC;
+                    Serial.printf("[ESP-NOW] 📸 Photo Mode engaged across fleet by Float %d\n", packet.activeFloat);
                 }
-                currentStandaloneMode = SHOW_MODE_PHOTO_STATIC;
-                Serial.printf("[ESP-NOW] 📸 Castle Photo Mode engaged across fleet by Float %d\n", packet.activeFloat);
             } else if (packet.mode == 0x47) {
                 // Castle Photo Mode OFF commanded by Leader/Peer
                 if (currentStandaloneMode == SHOW_MODE_PHOTO_STATIC) {
                     currentStandaloneMode = previousStandaloneMode;
+                    Serial.printf("[ESP-NOW] 📸 Photo Mode disengaged by Float %d -> returned to parade mode\n", packet.activeFloat);
                 }
-                Serial.printf("[ESP-NOW] 📸 Castle Photo Mode disengaged by Float %d -> returned to parade mode\n", packet.activeFloat);
             } else if (packet.mode == 0x50) {
                 // Corral Standby Mode commanded by Leader/Peer
-                currentStandaloneMode = SHOW_MODE_CORRAL_STANDBY;
-                Serial.printf("[ESP-NOW] 🌙 Switched to Corral Standby Mode by Float %d\n", packet.activeFloat);
+                if (currentStandaloneMode != SHOW_MODE_CORRAL_STANDBY) {
+                    currentStandaloneMode = SHOW_MODE_CORRAL_STANDBY;
+                    Serial.printf("[ESP-NOW] 🌙 Switched to Corral Standby Mode by Float %d\n", packet.activeFloat);
+                }
             } else if (packet.mode == 0x51) {
-                // Wake from Corral Standby commanded by Leader/Peer into Solo Show Mode
-                if (currentStandaloneMode == SHOW_MODE_CORRAL_STANDBY) {
+                // Wake from Corral Standby or Photo Mode commanded by Leader/Peer into Solo Show Mode
+                if (currentStandaloneMode == SHOW_MODE_CORRAL_STANDBY || currentStandaloneMode == SHOW_MODE_PHOTO_STATIC) {
                     currentStandaloneMode = SHOW_MODE_AUTONOMOUS_SEQUENCE;
                     previousStandaloneMode = SHOW_MODE_AUTONOMOUS_SEQUENCE;
                     autonomousShowStartTime = millis();
+                    Serial.printf("[ESP-NOW] ☀️ Woke into Solo Show Mode by Float %d\n", packet.activeFloat);
                 }
-                Serial.printf("[ESP-NOW] ☀️ Woke from Corral Standby into Solo Show Mode by Float %d\n", packet.activeFloat);
             } else {
                 currentPacket = packet;
                 packetReceived = true;
@@ -606,11 +638,13 @@ void configureEspNowRole() {
     // Register broadcast peer so this node can transmit to all fleet costumes
     esp_now_peer_info_t peerInfo = {};
     memcpy(peerInfo.peer_addr, broadcastMac, 6);
-    peerInfo.channel = 0;
+    peerInfo.channel = 0; // 0 = use current locked radio channel (Channel 1)
+    peerInfo.ifidx = WIFI_IF_STA;
     peerInfo.encrypt = false;
-    if (!esp_now_is_peer_exist(broadcastMac)) {
-        esp_now_add_peer(&peerInfo);
+    if (esp_now_is_peer_exist(broadcastMac)) {
+        esp_now_del_peer(broadcastMac);
     }
+    esp_now_add_peer(&peerInfo);
     
     // Register receive callback so this node can receive sync packets from any costume
     esp_now_register_recv_cb(onDataReceive);
@@ -1723,12 +1757,14 @@ void setup() {
     Serial.println("  (Auto: ESP-NOW Fleet Sync + Real-Time Wi-Fi Streaming)");
     Serial.println("========================================================");
 
-    // 1. Initialize Wi-Fi in Station Mode
+    // 1. Initialize Wi-Fi in Station Mode & Lock ESP-NOW Channel
+    WiFi.persistent(false);
+    WiFi.setAutoReconnect(false);
     WiFi.mode(WIFI_STA);
-    WiFi.disconnect();
+    WiFi.disconnect(true, true); // Erase any cached NVS STA credentials & stop background scanning
     delay(50);
 
-    // Optional: Connect to Home Wi-Fi if credentials are configured (Fast non-blocking 1.5s check)
+    // Optional: Connect to Home Wi-Fi ONLY if credentials are explicitly configured (Fast 1.5s check)
 #if defined(WIFI_SSID)
     String ssid = WIFI_SSID;
     if (ssid.length() > 0 && ssid != "YourWiFiNetwork") {
@@ -1739,22 +1775,36 @@ void setup() {
             delay(50);
             digitalWrite(STATUS_LED_PIN, !digitalRead(STATUS_LED_PIN));
         }
+        if (WiFi.status() != WL_CONNECTED) {
+            // CRITICAL: Cancel STA connection attempt immediately so ESP32 never hops channels in background!
+            WiFi.disconnect(true, true);
+        }
     }
 #endif
 
     if (WiFi.status() == WL_CONNECTED) {
+        esp_wifi_set_ps(WIFI_PS_NONE);
         digitalWrite(STATUS_LED_PIN, HIGH); // Solid blue LED = Connected to Home Wi-Fi!
         Serial.print("[WIFI] Connected! IP Address: ");
         Serial.println(WiFi.localIP());
     } else {
         digitalWrite(STATUS_LED_PIN, LOW); // LED OFF = Direct Offline / Battery Mode
-        Serial.println("[WIFI] Offline mode active (ESP-NOW direct fleet sync ready).");
-#if defined(AP_SSID)
-        // Also enable SoftAP so laptops can connect directly without home router
+#if defined(ENABLE_WIFI_LIVE_STREAM) && defined(AP_SSID)
+        // Enable SoftAP only when flashed specifically as a Wi-Fi Live Stream Receiver
         WiFi.mode(WIFI_AP_STA);
-        WiFi.softAP(AP_SSID, AP_PASSWORD);
-        Serial.printf("[WIFI] Standalone Hotspot Active: '%s' (IP: %s)\n", AP_SSID, WiFi.softAPIP().toString().c_str());
+        WiFi.softAP(AP_SSID, AP_PASSWORD, ESPNOW_WIFI_CHANNEL);
+        Serial.printf("[WIFI] Standalone Hotspot Active: '%s' on Ch %d (IP: %s)\n",
+                      AP_SSID, ESPNOW_WIFI_CHANNEL, WiFi.softAPIP().toString().c_str());
+#else
+        WiFi.mode(WIFI_STA);
 #endif
+        // Lock 2.4GHz radio strictly to ESP-NOW Channel 1 with zero modem sleep latency
+        esp_wifi_set_promiscuous(true);
+        esp_wifi_set_channel(ESPNOW_WIFI_CHANNEL, WIFI_SECOND_CHAN_NONE);
+        esp_wifi_set_promiscuous(false);
+        esp_wifi_set_ps(WIFI_PS_NONE);
+        Serial.printf("[WIFI] Offline Walkie-Talkie Mode: Locked to Channel %d (WIFI_PS_NONE, zero background scanning).\n",
+                      ESPNOW_WIFI_CHANNEL);
     }
 
     // 2. Start UDP Stream Listener (Port 4210)
@@ -1933,6 +1983,8 @@ void loop() {
                 currentStandaloneMode = SHOW_MODE_AUTONOMOUS_SEQUENCE;
                 autonomousShowStartTime = now;
 
+                broadcastStandbyPacket(0x51);   // Wake entire fleet into solo show mode (from Standby or Photo Mode)
+
                 fill_solid(leds, NUM_LEDS, CRGB(0, 255, 80)); // Emerald Green flash
                 FastLED.show();
                 digitalWrite(STATUS_LED_PIN, HIGH);
@@ -1941,8 +1993,6 @@ void loop() {
                 FastLED.show();
                 digitalWrite(STATUS_LED_PIN, LOW);
 
-                broadcastPhotoModePacket(0x47); // Disengage photo mode if active across fleet
-                broadcastStandbyPacket(0x51);   // Wake entire fleet into solo show mode
                 Serial.println("[LEADER] ☀️ Button 1 Tap -> Woke ENTIRE FLEET into Solo Show Mode! (Tap again while awake to start 30s Fleet Show)");
             } else {
                 // Follower: Wake LOCALLY to baseline solo show animation (do NOT start theatrical fleet routine)
@@ -2013,6 +2063,14 @@ void loop() {
             if (holdElapsed >= 3000) {
                 // 3-SECOND LONG HOLD: ENTER CORRAL STANDBY / SLEEP
                 b2HoldHandled = true;
+                currentStandaloneMode = SHOW_MODE_CORRAL_STANDBY;
+
+                if (isLeader) {
+                    broadcastStandbyPacket(0x50);
+                    Serial.println("[LEADER] 🌙 Button 2 Held 3s -> Dropped ENTIRE FLEET into Corral Standby Mode!");
+                } else {
+                    Serial.printf("[FOLLOWER] Float %d Button 2 Held 3s -> Dropped locally into Corral Standby Mode.\n", myFloatNumber);
+                }
 
                 for (int f = 0; f < 3; f++) {
                     fill_solid(leds, NUM_LEDS, CRGB(30, 60, 255)); // 3 Soft Indigo pulses
@@ -2023,15 +2081,6 @@ void loop() {
                     FastLED.show();
                     digitalWrite(STATUS_LED_PIN, LOW);
                     delay(60);
-                }
-
-                currentStandaloneMode = SHOW_MODE_CORRAL_STANDBY;
-
-                if (isLeader) {
-                    broadcastStandbyPacket(0x50);
-                    Serial.println("[LEADER] 🌙 Button 2 Held 3s -> Dropped ENTIRE FLEET into Corral Standby Mode!");
-                } else {
-                    Serial.printf("[FOLLOWER] Float %d Button 2 Held 3s -> Dropped locally into Corral Standby Mode.\n", myFloatNumber);
                 }
                 // Wait until Button 2 is physically released so extended holds (>3s) never latch a false tap into Photo Mode
                 while (isButton2Down()) {
@@ -2183,6 +2232,11 @@ void loop() {
         } else if (currentStandaloneMode == SHOW_MODE_RAPID_ROLL_CALL) {
             uint32_t elapsedMs = now - rapidRollCallStartTime;
             if (elapsedMs < RAPID_ROLL_CALL_TOTAL_MS) {
+                static uint32_t lastRollCallSyncTx = 0;
+                if (isLeader && (now - lastRollCallSyncTx >= 150)) {
+                    lastRollCallSyncTx = now;
+                    broadcastRapidRollCallPacket(elapsedMs, false);
+                }
                 renderRapidRollCall(elapsedMs);
             } else {
                 currentStandaloneMode = previousStandaloneMode;
@@ -2193,6 +2247,11 @@ void loop() {
         } else if (currentStandaloneMode == SHOW_MODE_FLEET_30S_ROUTINE) {
             uint32_t elapsedMs = now - fleetRoutineStartTime;
             if (elapsedMs < FLEET_ROUTINE_TOTAL_MS) {
+                static uint32_t lastRoutineSyncTx = 0;
+                if (isLeader && (now - lastRoutineSyncTx >= 250)) {
+                    lastRoutineSyncTx = now;
+                    broadcastFleetRoutinePacket(0x30, elapsedMs, false);
+                }
                 render30sFleetRoutine(elapsedMs);
             } else {
                 // Routine complete! Return automatically to regular individual program
