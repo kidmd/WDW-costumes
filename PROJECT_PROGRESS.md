@@ -93,6 +93,13 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### 2026-10-13 00:25 - Default Snail Graphic Update & Transparent Background Cleanup (`assets/newsnail.png`)
+- **Transparent Background Extraction (`assets/newsnail.png`, `simulator/assets/newsnail.png`, `assets/spinning_snail.png`, `simulator/assets/spinning_snail.png`):**
+  - Removed all background elements (black background, floating background streetlamp globes/dots, and upper-right background awning) from `assets/newsnail.png` while preserving 100% of the snail's red body, golden antennae/eye/spiral/rim, and alternating green, blue, and opaque black radial shell stripes.
+  - Cropped to the canonical `183 × 183` RGBA square frame (`(17, 66, 200, 249)`) so the snail preserves its exact 1:1 aspect ratio, chest sizing above the race bib, and 100-LED preset coordinate alignment.
+- **Default Simulator Snail Asset (`simulator/app.js`):**
+  - Updated `spinningSnailImg` and `floatArtworkImgs['spinning_snail']` / `floatArtworkImgs['spinning_snail_original']` to load `assets/newsnail.png` by default.
+
 ### 2026-10-12 23:25 - ESP-NOW Walkie-Talkie Channel Lock & 5-Packet Burst Reliability Upgrade
 - **Eliminated Background Wi-Fi Channel Hopping (`src/main.cpp`, `arduino/MSEP_Costume/MSEP_Costume.ino`, `include/wifi_config.h`, `presets/wifi_settings.json`):**
   - Cleared hardcoded home Wi-Fi credentials from `include/wifi_config.h` and `presets/wifi_settings.json` so race-day builds boot straight into pure `WIFI_STA` walkie-talkie mode without searching for an external router.

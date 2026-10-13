@@ -167,13 +167,13 @@ spinningTurtleImg.onload = () => {
 };
 spinningTurtleImg.src = 'assets/Turtle_clean.png';
 
-// Spinning Snail Artwork (Original High-res transparent PNG)
+// Spinning Snail Artwork (Default transparent PNG from newsnail.png)
 const spinningSnailImg = new Image();
 let spinningSnailLoaded = false;
 spinningSnailImg.onload = () => {
     spinningSnailLoaded = true;
 };
-spinningSnailImg.src = 'assets/spinning_snail.png';
+spinningSnailImg.src = 'assets/newsnail.png';
 
 const spinningSnailSimplifiedImg = new Image();
 let spinningSnailSimplifiedLoaded = false;
@@ -212,8 +212,8 @@ const floatArtworkImgs = {
 floatArtworkImgs['casey_jr_train'].src = 'assets/cricut_svg/casey_jr_train.svg';
 floatArtworkImgs['title_drum'].src = 'assets/title_drum.png';
 floatArtworkImgs['spinning_turtle'].src = 'assets/Turtle_clean.png';
-floatArtworkImgs['spinning_snail'].src = 'assets/spinning_snail.png';
-floatArtworkImgs['spinning_snail_original'].src = 'assets/spinning_snail.png';
+floatArtworkImgs['spinning_snail'].src = 'assets/newsnail.png';
+floatArtworkImgs['spinning_snail_original'].src = 'assets/newsnail.png';
 floatArtworkImgs['spinning_snail_simplified'].src = 'assets/spinning_snail_simplified.png';
 floatArtworkImgs['cinderella_coach'].src = 'assets/cricut_svg/cinderella_coach.svg';
 floatArtworkImgs['cinderellas_coach'].src = 'assets/cricut_svg/cinderella_coach.svg';
