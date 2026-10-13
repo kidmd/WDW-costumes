@@ -93,6 +93,18 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### 2026-10-13 01:45 - 5-Color Transparent `Simpletrain.png` Default Train Graphic & 3D STL Palette
+- **Checkerboard Background Removal & Exact 5-Color Quantization (`assets/Simpletrain.png`, `simulator/assets/Simpletrain.png`):**
+  - Removed the gray/white checkerboard background (including enclosed interior pockets between undercarriage bars and smokestack) from `assets/Simpletrain.jpg` and quantized the locomotive into **strictly 5 exact 3D-printing colors** (`1260 × 1140` RGBA PNG):
+    1. **Red (Locomotive Body, Smokestack & Cowcatcher):** `RGB(163, 35, 30)` (`#a3231e`, 58.44% of train)
+    2. **Gold (Piping Trim, Steam, Spokes & Wheels):** `RGB(212, 150, 58)` (`#d4963a`, 23.94% of train)
+    3. **Black (Chassis, Roof, Cab Windows & Smokebox Ring):** `RGB(20, 20, 20)` (`#141414`, 12.33% of train)
+    4. **Grey (Drive Rod, Wheel Rims & Undercarriage):** `RGB(113, 111, 111)` (`#716f6f`, 3.99% of train)
+    5. **Green (Foliage & Collar Accent):** `RGB(48, 112, 56)` (`#307038`, 1.30% of train)
+- **Default Simulator Graphic, 3D STL Palette & Preset LEDs (`simulator/app.js`, `scripts/compile_clean_tpu_panel.py`, `presets/casey_jr_train.json`):**
+  - Set `assets/Simpletrain.png` as the default graphic for Float 1 (`casey_jr_train` / The Train) in `simulator/app.js`.
+  - Added `casey_jr_train` / `is_train` 5-color STL segmentation config (`black`, `red`, `gold`, `grey`, `green`) in `simulator/app.js` and `scripts/compile_clean_tpu_panel.py`, plus 5-color LED vibrancy mapping and updated 100-LED preset coordinates in `presets/casey_jr_train.json`.
+
 ### 2026-10-13 01:05 - Transparent `SimpleSnail.png` Default Snail Graphic & Per-Float Live Contour Re-distribute Fix
 - **Transparent Background Conversion (`assets/SimpleSnail.png`, `simulator/assets/SimpleSnail.png`, `simulator/app.js`):**
   - Converted `assets/SimpleSnail.jpg` into a crisp, halo-free transparent RGBA PNG (`assets/SimpleSnail.png` and `simulator/assets/SimpleSnail.png`, `1391 × 1391` square frame aligned 1:1 with the 100-LED Snail preset coordinates) while keeping all 5 snail colors and artwork geometry 100% unchanged.

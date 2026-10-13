@@ -182,6 +182,14 @@ spinningSnailSimplifiedImg.onload = () => {
 };
 spinningSnailSimplifiedImg.src = 'assets/spinning_snail_simplified.png';
 
+// Casey Jr. Train Artwork (5-color transparent PNG from Simpletrain.png)
+const caseyJrTrainImg = new Image();
+let caseyJrTrainLoaded = false;
+caseyJrTrainImg.onload = () => {
+    caseyJrTrainLoaded = true;
+};
+caseyJrTrainImg.src = 'assets/Simpletrain.png';
+
 // Title Drum Artwork (5-color transparent PNG)
 const titleDrumImg = new Image();
 let titleDrumLoaded = false;
@@ -197,7 +205,7 @@ let customArtworkDataUrl = null;
 
 // Cricut SVG / Custom PNG Float Artwork Suite for 7-Runner Lineup
 const floatArtworkImgs = {
-    'casey_jr_train': new Image(),
+    'casey_jr_train': caseyJrTrainImg,
     'title_drum': titleDrumImg,
     'spinning_turtle': spinningTurtleImg,
     'spinning_snail': spinningSnailImg,
@@ -209,7 +217,7 @@ const floatArtworkImgs = {
     'builtin_dragon': new Image(),
     'honor_america_eagle': new Image()
 };
-floatArtworkImgs['casey_jr_train'].src = 'assets/cricut_svg/casey_jr_train.svg';
+floatArtworkImgs['casey_jr_train'].src = 'assets/Simpletrain.png';
 floatArtworkImgs['title_drum'].src = 'assets/title_drum.png';
 floatArtworkImgs['spinning_turtle'].src = 'assets/Turtle_clean.png';
 floatArtworkImgs['spinning_snail'].src = 'assets/SimpleSnail.png';
@@ -225,6 +233,10 @@ function getGraphicImgForType(gType) {
     if (!gType) return defaultDragonImg;
     if (gType === 'custom_image' && customArtworkImg && customArtworkImg.complete && customArtworkImg.naturalWidth > 0) {
         return customArtworkImg;
+    }
+    if (gType === 'casey_jr_train') {
+        if (caseyJrTrainImg && caseyJrTrainImg.naturalWidth > 0) return caseyJrTrainImg;
+        return floatArtworkImgs['casey_jr_train'];
     }
     if (gType === 'title_drum') {
         if (titleDrumImg && titleDrumImg.naturalWidth > 0) return titleDrumImg;
@@ -3117,6 +3129,13 @@ const FLOAT_STL_COLOR_CONFIG = {
         'gold': { name: "Antennae, Spiral & Edge", hex: "#ca9927", targetRgb: [202, 153, 39], role: "inlay", filename: "color_gold.stl" },
         'green': { name: "Green Radial Stripes", hex: "#1e743d", targetRgb: [30, 116, 61], role: "inlay", filename: "color_green.stl" },
         'blue': { name: "Blue Radial Stripes", hex: "#295374", targetRgb: [41, 83, 116], role: "inlay", filename: "color_blue.stl" }
+    },
+    'casey_jr_train': {
+        'black': { name: "Chassis, Roof & Cab Windows", hex: "#141414", targetRgb: [20, 20, 20], role: "chassis" },
+        'red': { name: "Locomotive Body, Smokestack & Cowcatcher", hex: "#a3231e", targetRgb: [163, 35, 30], role: "inlay", filename: "color_red.stl" },
+        'gold': { name: "Piping Trim, Steam, Spokes & Wheels", hex: "#d4963a", targetRgb: [212, 150, 58], role: "inlay", filename: "color_gold.stl" },
+        'grey': { name: "Drive Rod, Wheel Rims & Undercarriage", hex: "#716f6f", targetRgb: [113, 111, 111], role: "inlay", filename: "color_grey.stl" },
+        'green': { name: "Foliage & Collar Accent", hex: "#307038", targetRgb: [48, 112, 56], role: "inlay", filename: "color_green.stl" }
     }
 };
 
@@ -16441,7 +16460,32 @@ function boostLedVibrancy(r, g, b, relX, relY) {
             return boostCustomImageColor(r, g, b);
         }
 
-        // For all other floats (Casey Jr., Turtle, Coach, Eagle, Custom Upload)
+        // Special 5-Color Palette for Float #1: Casey Jr. Train (Simpletrain.png)
+        if (currentGraphicType === 'casey_jr_train') {
+            // 1. Gold (Piping Trim, Steam, Spokes & Wheels): [212, 150, 58]
+            if (r > 180 && g > 120 && b < 90) {
+                return { r: 255, g: 204, b: 21 };
+            }
+            // 2. Red (Locomotive Body, Smokestack & Cowcatcher): [163, 35, 30]
+            if (r > 120 && r > g * 2.0 && r > b * 2.0) {
+                return { r: 239, g: 52, b: 42 };
+            }
+            // 3. Green (Foliage & Collar Accent): [48, 112, 56]
+            if (g > 80 && g > r * 1.4 && g > b * 1.3) {
+                return { r: 16, g: 215, b: 105 };
+            }
+            // 4. Grey (Drive Rod, Wheel Rims & Undercarriage): [113, 111, 111]
+            if (Math.abs(r - g) < 15 && Math.abs(g - b) < 15 && r >= 70) {
+                return { r: 215, g: 225, b: 245 };
+            }
+            // 5. Black (Roof, Cab Windows & Smokebox Ring) -> Warm Incandescent Starlight
+            if (Math.max(r, g, b) < 40) {
+                return { r: 255, g: 245, b: 220 };
+            }
+            return boostCustomImageColor(r, g, b);
+        }
+
+        // For all other floats (Turtle, Coach, Eagle, Custom Upload)
         return boostCustomImageColor(r, g, b);
     }
 
@@ -17196,11 +17240,11 @@ function scatterLedsOnGraphic(targetCount = 100, colorMatch = true, markDirty = 
 
             let isFg = false;
             if (hasTransparency) {
-                // For Pete's dragon built-in, avoid contour ink lines (< 60); for Snail, avoid black divider stripes (< 25)
+                // For Pete's dragon built-in, avoid contour ink lines (< 60); for Snail & Train, avoid black cutouts (< 30)
                 if (currentGraphicType === 'builtin_dragon' || currentGraphicType === 'petes_dragon') {
                     isFg = (a > 80 && Math.max(r, g, b) >= 60);
-                } else if (currentGraphicType === 'spinning_snail' || currentGraphicType === 'spinning_snail_original') {
-                    isFg = (a > 80 && Math.max(r, g, b) >= 25);
+                } else if (currentGraphicType === 'spinning_snail' || currentGraphicType === 'spinning_snail_original' || currentGraphicType === 'casey_jr_train') {
+                    isFg = (a > 80 && Math.max(r, g, b) >= 30);
                 } else {
                     isFg = (a > 60);
                 }

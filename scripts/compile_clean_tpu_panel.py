@@ -668,9 +668,18 @@ def compile_plate_variant(variant_name, width_mm, height_mm, raw_leds, artwork_p
     is_turtle = ('turtle' in str(graphic_type).lower() or 'turtle' in str(float_name).lower() or 'turtle' in str(artwork_path).lower())
     is_snail = ('snail' in str(graphic_type).lower() or 'snail' in str(float_name).lower() or 'snail' in str(artwork_path).lower())
     is_drum = ('drum' in str(graphic_type).lower() or 'drum' in str(float_name).lower() or 'drum' in str(artwork_path).lower())
+    is_train = ('train' in str(graphic_type).lower() or 'casey' in str(graphic_type).lower() or 'train' in str(float_name).lower() or 'train' in str(artwork_path).lower())
 
     if raw_stl_colors and isinstance(raw_stl_colors, dict):
         stl_colors = raw_stl_colors
+    elif is_train:
+        stl_colors = {
+            'black': { 'name': 'Chassis, Roof & Cab Windows', 'hex': '#141414', 'targetRgb': [20, 20, 20], 'role': 'chassis' },
+            'red': { 'name': 'Locomotive Body, Smokestack & Cowcatcher', 'hex': '#a3231e', 'targetRgb': [163, 35, 30], 'role': 'inlay', 'filename': 'color_red.stl' },
+            'gold': { 'name': 'Piping Trim, Steam, Spokes & Wheels', 'hex': '#d4963a', 'targetRgb': [212, 150, 58], 'role': 'inlay', 'filename': 'color_gold.stl' },
+            'grey': { 'name': 'Drive Rod, Wheel Rims & Undercarriage', 'hex': '#716f6f', 'targetRgb': [113, 111, 111], 'role': 'inlay', 'filename': 'color_grey.stl' },
+            'green': { 'name': 'Foliage & Collar Accent', 'hex': '#307038', 'targetRgb': [48, 112, 56], 'role': 'inlay', 'filename': 'color_green.stl' }
+        }
     elif is_turtle:
         stl_colors = {
             'black': { 'name': 'Chassis Black', 'hex': '#11161d', 'targetRgb': [34, 43, 51], 'role': 'chassis' },
