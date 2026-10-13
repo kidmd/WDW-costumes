@@ -93,16 +93,16 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
-### 2026-10-13 01:54 - 5-Color Transparent `Simpletrain.png` Default Train Graphic (Black, Red, Grey & 2 Shades of Gold)
-- **Checkerboard Background Removal & Exact 5-Color Quantization (`assets/Simpletrain.png`, `simulator/assets/Simpletrain.png`):**
-  - Removed the gray/white checkerboard background (including enclosed interior pockets between undercarriage bars and smokestack) from `assets/Simpletrain.jpg`, converted the small foliage area into gold, and quantized the locomotive into **strictly 5 exact 3D-printing colors** (`1260 × 1140` RGBA PNG) using 2 shades of gold to preserve all faceted gold shapes:
-    1. **Red (Locomotive Body, Smokestack & Cowcatcher):** `RGB(163, 35, 30)` (`#a3231e`, 58.44% of train)
-    2. **Light Gold (Bright Gold Trim, Steam Highlights & Wheels):** `RGB(217, 158, 72)` (`#d99e48`, 17.59% of train)
-    3. **Black (Chassis, Roof, Cab Windows & Smokebox Ring):** `RGB(20, 20, 20)` (`#141414`, 12.33% of train)
-    4. **Dark Gold / Bronze (Shaded Steam Facets, Headlight Cone & Details):** `RGB(161, 112, 44)` (`#a1702c`, 7.66% of train)
-    5. **Grey (Drive Rod, Wheel Rims & Undercarriage):** `RGB(113, 111, 111)` (`#716f6f`, 3.99% of train)
+### 2026-10-13 02:02 - 5-Color Transparent `Simpletrain.png` Default Train Graphic & Rear Cab Wall Cleanup
+- **Checkerboard Background Removal, Rear Cab Overhang Cleanup & Exact 5-Color Quantization (`assets/Simpletrain.png`, `simulator/assets/Simpletrain.png`):**
+  - Removed the gray/white checkerboard background (including enclosed interior pockets between undercarriage bars and smokestack) from `assets/Simpletrain.jpg`, removed the extra vertical red wall and enclosed dark opening at the rear cab overhang above the coal box, converted the small foliage area into gold, and quantized the locomotive into **strictly 5 exact 3D-printing colors** (`1260 × 1140` RGBA PNG) using 2 shades of gold to preserve all faceted gold shapes:
+    1. **Red (Locomotive Body, Smokestack & Cowcatcher):** `RGB(163, 35, 30)` (`#a3231e`)
+    2. **Light Gold (Bright Gold Trim, Steam Highlights & Wheels):** `RGB(217, 158, 72)` (`#d99e48`)
+    3. **Black (Chassis, Roof, Cab Windows & Smokebox Ring):** `RGB(20, 20, 20)` (`#141414`)
+    4. **Dark Gold / Bronze (Shaded Steam Facets, Headlight Cone & Details):** `RGB(161, 112, 44)` (`#a1702c`)
+    5. **Grey (Drive Rod, Wheel Rims & Undercarriage):** `RGB(113, 111, 111)` (`#716f6f`)
 - **Default Simulator Graphic, 3D STL Palette & Preset LEDs (`simulator/app.js`, `scripts/compile_clean_tpu_panel.py`, `presets/casey_jr_train.json`):**
-  - Set `assets/Simpletrain.png` as the default graphic for Float 1 (`casey_jr_train` / The Train) in `simulator/app.js`.
+  - Set `assets/Simpletrain.png` as the default graphic for Float 1 (`casey_jr_train` / The Train) in `simulator/app.js` and refreshed the 100-LED coordinates in `presets/casey_jr_train.json` so no LEDs sit in the open rear cab overhang.
   - Added `casey_jr_train` / `is_train` 5-color STL segmentation config (`black`, `red`, `gold`, `dark_gold`, `grey`) in `simulator/app.js` and `scripts/compile_clean_tpu_panel.py`.
 
 ### 2026-10-13 01:05 - Transparent `SimpleSnail.png` Default Snail Graphic & Per-Float Live Contour Re-distribute Fix
