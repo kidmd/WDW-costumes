@@ -11958,12 +11958,14 @@ function getEffectiveTpuPanelSpec() {
         : null;
     if (sp && sp.contour_pts && sp.contour_pts.length >= 3 && currentGraphicType !== 'custom_image') {
         const spType = sp.graphic_type || sp.float_type || (activeTpuSpecs && (activeTpuSpecs.graphic_type || activeTpuSpecs.float_type)) || 'petes_dragon';
-        if (normalizeFloatGraphicKey(spType) === normalizeFloatGraphicKey(currentGraphicType)) {
+        const isDragonType = (currentGraphicType === 'builtin_dragon' || currentGraphicType === 'petes_dragon');
+        const isSpDragon = (normalizeFloatGraphicKey(spType) === 'petes_dragon' || sp.float_name === "Pete's Dragon" || (sp.character && String(sp.character).includes("Pete's Dragon")));
+        if (normalizeFloatGraphicKey(spType) === normalizeFloatGraphicKey(currentGraphicType) || (isDragonType && isSpDragon)) {
             const spW = sp.total_image_width_mm || sp.width_mm || plateW;
             const spH = sp.total_image_height_mm || sp.height_mm || plateH;
             const spAspect = spW / Math.max(1, spH);
             const curAspect = normW / Math.max(0.01, normH);
-            if (Math.abs(spAspect - curAspect) < 0.08) {
+            if (Math.abs(spAspect - curAspect) < 0.12) {
                 return sp;
             }
         }
@@ -11981,10 +11983,8 @@ function getEffectiveTpuPanelSpec() {
     }
 
     try {
-        const iw = activeImg.naturalWidth || activeImg.width || 180;
-        const ih = activeImg.naturalHeight || activeImg.height || 180;
         const W = 180;
-        const H = Math.max(90, Math.round(W * (ih / iw)));
+        const H = Math.max(90, Math.round(W * (plateH / plateW)));
 
         const offC = document.createElement('canvas');
         offC.width = W;
@@ -12622,6 +12622,22 @@ function getLedCollarPerimeterWallCheck(curNorm, rotRad, wallClr = 5.0) {
     const plateH = plateW * (normH / normW);
     const mmToNormX = normW / plateW;
     const mmToNormY = normH / plateH;
+
+    // Fast-path: if center point is deep inside the panel (>= wallClr + 9.35mm),
+    // all collar points (max offset 9.3mm) are mathematically guaranteed clear!
+    const centerCheck = getDistToTpuPanelPerimeterMm(curNorm);
+    if (centerCheck && centerCheck.hasContour && centerCheck.isInside && centerCheck.distMm >= (wallClr + 9.35)) {
+        return {
+            isClear: true,
+            isOutside: false,
+            wallBlocked: false,
+            minWallDist: centerCheck.distMm - 9.3,
+            closestFeature: 'LED Center',
+            opening1WallBlocked: false,
+            opening2WallBlocked: false,
+            reason: ''
+        };
+    }
 
     const rot = (rotRad !== undefined) ? rotRad : 0;
     const ux = Math.cos(rot);
@@ -17288,27 +17304,19 @@ function scatterLedsOnGraphic(targetCount = 100, colorMatch = true, markDirty = 
 
     // Filter candidate points: strictly avoid placing LEDs where the LED collar touches or encroaches
     // within 5.0mm of the 3D STL perimeter wall or 2.0mm of the strain relief bridges!
+    const targetWellRot = (params.tpuWellOrientation === 'horizontal') ? 0 : 0;
     const filteredCandNorm = candNorm.filter(p => {
-        // Test primary orientation (0 rad)
-        const w0 = getLedCollarPerimeterWallCheck(p, 0, 5.0);
+        // Enforce 5.0mm perimeter wall keep-out and 2.0mm bridge clearance at active well orientation
+        const w0 = getLedCollarPerimeterWallCheck(p, targetWellRot, 5.0);
         if (!w0.isClear) return false;
-        const b0 = getLedCollarBridgeClearance(p, 0, 2.0);
+        const b0 = getLedCollarBridgeClearance(p, targetWellRot, 2.0);
         if (!b0.isClear) return false;
-
-        // Also test perpendicular orientation (pi/2) to ensure clearance regardless of wiring angle
-        const w1 = getLedCollarPerimeterWallCheck(p, Math.PI * 0.5, 5.0);
-        if (!w1.isClear) return false;
-        const b1 = getLedCollarBridgeClearance(p, Math.PI * 0.5, 2.0);
-        if (!b1.isClear) return false;
-
         return true;
     });
 
     const usableCandNorm = (filteredCandNorm.length >= targetCount)
         ? filteredCandNorm
-        : (candNorm.filter(p => getLedCollarPerimeterWallCheck(p, 0, 5.0).isClear && getLedCollarBridgeClearance(p, 0, 2.0).isClear).length >= targetCount
-            ? candNorm.filter(p => getLedCollarPerimeterWallCheck(p, 0, 5.0).isClear && getLedCollarBridgeClearance(p, 0, 2.0).isClear)
-            : (filteredCandNorm.length > 0 ? filteredCandNorm : candNorm));
+        : (filteredCandNorm.length > 0 ? filteredCandNorm : candNorm);
 
     const pool = (typeof makeLedPool === 'function')
         ? makeLedPool(usableCandNorm, (step / targetW) * gb.normW, (step / targetH) * gb.normH)

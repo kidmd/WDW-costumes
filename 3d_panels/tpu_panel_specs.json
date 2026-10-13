@@ -4,7 +4,7 @@
   "float_index": 5,
   "aspect": 0.8331977217249796,
   "artwork_file": "active_artwork.png",
-  "graphic_type": "custom_image",
+  "graphic_type": "petes_dragon",
   "window_shape": "round_34",
   "well_orientation": "horizontal",
   "include_led_numbers": true,

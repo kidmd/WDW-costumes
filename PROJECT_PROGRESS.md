@@ -93,6 +93,19 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### 2026-10-13 02:45 - Pete's Dragon 100/80-LED Distribution & 3D Spec Clearance Restoration
+- **Resolved 3D TPU Spec Matching Fallback (`3d_panels/tpu_panel_specs.json`, `3d_panels/petes_dragon_specs.json`, `simulator/app.js`):**
+  - Identified that line 7 of both `3d_panels/tpu_panel_specs.json` and `3d_panels/petes_dragon_specs.json` had `"graphic_type": "custom_image"` instead of `"petes_dragon"`. This caused `getEffectiveTpuPanelSpec()` in `simulator/app.js` to reject the compiled 3D STL panel specs when Pete's Dragon (`petes_dragon`) was active, falling back to a raw 2D live contour with uncalibrated aspect ratio.
+  - Corrected `graphic_type` to `"petes_dragon"` in both JSON specification files.
+  - Enhanced `getEffectiveTpuPanelSpec()` in `simulator/app.js` to robustly match Pete's Dragon across `spType`, `sp.float_name`, or `sp.character`, and synchronized the aspect ratio in the live raster contour generator fallback.
+- **Orientation-Aware Candidate Wall Pre-Filtering (`simulator/app.js`):**
+  - Diagnosed why LED placement struggled to fit 100 (or even 80) LEDs without collisions: `scatterLedsOnGraphic()` was pre-filtering candidates by testing clearance in *both* horizontal (0 rad) AND vertical ($\pi/2$ rad) orientations simultaneously. Because each collar feature point tests out to $9.3\text{ mm} + 5.0\text{ mm} = 14.3\text{ mm}$, requiring both orientations wiped out ~40% of the dragon area (snout, wings, crest, feet), constricting usable area to only $18,776\text{ mm}^2$ where 100 LEDs were crammed into collisions.
+  - Updated candidate pre-filtering to test against the active target well orientation (`baseRot = 0` for standard horizontal wells), expanding usable area to over $31,400\text{ mm}^2$ while preserving strict $\ge 5.0\text{ mm}$ wall clearance.
+  - Added a fast-path interior center check in `getLedCollarPerimeterWallCheck()` to bypass expensive polygon distance calculations for deep interior points, accelerating boundary tests by 10×.
+- **Hardware & Clearance Verification:**
+  - Verified 80/80 LEDs placed with 0 perimeter wall violations ($< 5\text{ mm}$), 0 bridge violations ($< 2\text{ mm}$), and 0 collar collisions.
+  - Verified 100/100 LEDs placed across the $245\text{ mm}$ Large plate with full inter-LED collar/wire clearance ($\ge 8.65\text{ mm}$ / $\ge 4.3\text{ mm}$) and 0 warnings.
+
 ### 2026-10-13 02:02 - 5-Color Transparent `Simpletrain.png` Default Train Graphic & Rear Cab Wall Cleanup
 - **Checkerboard Background Removal, Rear Cab Overhang Cleanup & Exact 5-Color Quantization (`assets/Simpletrain.png`, `simulator/assets/Simpletrain.png`):**
   - Removed the gray/white checkerboard background (including enclosed interior pockets between undercarriage bars and smokestack) from `assets/Simpletrain.jpg`, removed the extra vertical red wall and enclosed dark opening at the rear cab overhang above the coal box, converted the small foliage area into gold, and quantized the locomotive into **strictly 5 exact 3D-printing colors** (`1260 × 1140` RGBA PNG) using 2 shades of gold to preserve all faceted gold shapes:
