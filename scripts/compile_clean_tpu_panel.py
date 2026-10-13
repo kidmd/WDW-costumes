@@ -1302,6 +1302,10 @@ back_result = compile_plate_variant(
 )
 
 # Update full JSON specifications
+active_graphic_type = specs.get('graphic_type', '')
+front_result['graphic_type'] = active_graphic_type
+back_result['graphic_type'] = active_graphic_type
+specs['graphic_type'] = active_graphic_type
 specs['window_shape'] = window_shape
 specs['well_orientation'] = well_orientation
 specs['include_led_numbers'] = INCLUDE_LED_NUMBERS

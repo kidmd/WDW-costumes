@@ -93,10 +93,13 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
-### 2026-10-13 00:55 - Transparent `SimpleSnail.png` Default Snail Graphic & 5-Color 3D Print Verification
+### 2026-10-13 01:05 - Transparent `SimpleSnail.png` Default Snail Graphic & Per-Float Live Contour Re-distribute Fix
 - **Transparent Background Conversion (`assets/SimpleSnail.png`, `simulator/assets/SimpleSnail.png`, `simulator/app.js`):**
   - Converted `assets/SimpleSnail.jpg` into a crisp, halo-free transparent RGBA PNG (`assets/SimpleSnail.png` and `simulator/assets/SimpleSnail.png`, `1391 × 1391` square frame aligned 1:1 with the 100-LED Snail preset coordinates) while keeping all 5 snail colors and artwork geometry 100% unchanged.
   - Set `assets/SimpleSnail.png` as the default graphic for Float 4 (The Snail) in `simulator/app.js` (`spinningSnailImg` and `floatArtworkImgs['spinning_snail']` / `floatArtworkImgs['spinning_snail_original']`).
+- **Fixed `[ 🔄 Re-distribute ]` Using Cached Pete's Dragon Contour (`simulator/app.js`, `scripts/compile_clean_tpu_panel.py`):**
+  - Fixed a bug where `getDistToTpuPanelPerimeterMm()`, `getTpuPanelContourNorm()`, and `getTpuBridgeLocationsNorm()` read `activeTpuSpecs` from `/3d_panels/tpu_panel_specs.json` (which held Pete's Dragon's compiled contour) even when another float like The Snail was active, causing `[ 🔄 Re-distribute ]` to constrain LEDs into the shape of the dragon.
+  - Implemented `getEffectiveTpuPanelSpec()` in `simulator/app.js` to verify that `activeTpuSpecs` matches `currentGraphicType` and, whenever another float or custom graphic is active, dynamically trace and cache the active artwork's true 2D silhouette contour and entrance/exit portals directly from `getActiveGraphicImg()`.
 - **5-Color 3D Printing Palette Verification & STL Target Calibration (`simulator/app.js`, `scripts/compile_clean_tpu_panel.py`, `simulator.py`):**
   - Verified via K-Means color cluster analysis that `SimpleSnail` consists of **5 distinct 3D-printing colors**:
     1. **Black (Chassis & Shell Dividers):** `RGB(1, 2, 1)` (`#010201`, 29.4% of snail)

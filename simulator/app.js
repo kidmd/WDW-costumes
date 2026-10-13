@@ -11914,6 +11914,286 @@ canvas.addEventListener('mousedown', (e) => {
 // Required lateral center distance >= 11.6mm (3.0mm side clearance).
 // Required strain relief bridge clearance >= 10.0mm buffer for entrance and exit portals.
 // ---------------------------------------------------------------------------
+// Cache of live-traced 2D artwork contours & portals per float/artwork/plate size
+const _liveArtworkTpuSpecCache = {};
+
+function normalizeFloatGraphicKey(k) {
+    const s = String(k || '').toLowerCase().trim();
+    if (!s || s === 'builtin_dragon' || s === 'petes_dragon') return 'petes_dragon';
+    if (s === 'cinderella_coach' || s === 'cinderellas_coach') return 'cinderellas_coach';
+    if (s === 'spinning_snail' || s === 'spinning_snail_original') return 'spinning_snail';
+    return s;
+}
+
+function getEffectiveTpuPanelSpec() {
+    const gb = (typeof getGraphicChestBounds === 'function') ? getGraphicChestBounds() : { normX: 0.1, normY: 0.168, normW: 0.8, normH: 0.385 };
+    const plateW = (typeof selectedPlateWidthMm !== 'undefined' && selectedPlateWidthMm > 0) ? selectedPlateWidthMm : 203.2;
+    const normW = (gb && gb.normW > 0) ? gb.normW : 0.8;
+    const normH = (gb && gb.normH > 0) ? gb.normH : 0.385;
+    const plateH = plateW * (normH / normW);
+    const activeImg = (typeof getActiveGraphicImg === 'function') ? getActiveGraphicImg() : null;
+
+    // 1. Only use activeTpuSpecs if it was compiled for the currently active graphic type AND matching aspect ratio
+    const sp = (typeof activeTpuSpecs !== 'undefined' && activeTpuSpecs)
+        ? (activeTpuSpecs.front || activeTpuSpecs)
+        : null;
+    if (sp && sp.contour_pts && sp.contour_pts.length >= 3 && currentGraphicType !== 'custom_image') {
+        const spType = sp.graphic_type || sp.float_type || (activeTpuSpecs && (activeTpuSpecs.graphic_type || activeTpuSpecs.float_type)) || 'petes_dragon';
+        if (normalizeFloatGraphicKey(spType) === normalizeFloatGraphicKey(currentGraphicType)) {
+            const spW = sp.total_image_width_mm || sp.width_mm || plateW;
+            const spH = sp.total_image_height_mm || sp.height_mm || plateH;
+            const spAspect = spW / Math.max(1, spH);
+            const curAspect = normW / Math.max(0.01, normH);
+            if (Math.abs(spAspect - curAspect) < 0.08) {
+                return sp;
+            }
+        }
+    }
+
+    // 2. Live 2D silhouette contour & portal extraction directly from the active float graphic
+    if (!activeImg || !(activeImg.naturalWidth > 0 || activeImg.width > 0)) {
+        return null;
+    }
+
+    const imgSrcKey = (activeImg.src || '').slice(-120);
+    const cacheKey = `${currentGraphicType}|${imgSrcKey}|${plateW.toFixed(1)}|${plateH.toFixed(1)}`;
+    if (_liveArtworkTpuSpecCache[cacheKey]) {
+        return _liveArtworkTpuSpecCache[cacheKey];
+    }
+
+    try {
+        const iw = activeImg.naturalWidth || activeImg.width || 180;
+        const ih = activeImg.naturalHeight || activeImg.height || 180;
+        const W = 180;
+        const H = Math.max(90, Math.round(W * (ih / iw)));
+
+        const offC = document.createElement('canvas');
+        offC.width = W;
+        offC.height = H;
+        const oCtx = offC.getContext('2d');
+        oCtx.drawImage(activeImg, 0, 0, W, H);
+        const data = oCtx.getImageData(0, 0, W, H).data;
+
+        const cIdx0 = 0, cIdx1 = (W - 1) * 4, cIdx2 = (H - 1) * W * 4, cIdx3 = ((H - 1) * W + (W - 1)) * 4;
+        const cornersOpaque = (data[cIdx0 + 3] > 40 && data[cIdx1 + 3] > 40 && data[cIdx2 + 3] > 40 && data[cIdx3 + 3] > 40);
+        const cornersBlack = (
+            Math.max(data[cIdx0], data[cIdx0 + 1], data[cIdx0 + 2]) < 30 &&
+            Math.max(data[cIdx1], data[cIdx1 + 1], data[cIdx1 + 2]) < 30 &&
+            Math.max(data[cIdx2], data[cIdx2 + 1], data[cIdx2 + 2]) < 30 &&
+            Math.max(data[cIdx3], data[cIdx3 + 1], data[cIdx3 + 2]) < 30
+        );
+        const cornersWhite = (
+            Math.min(data[cIdx0], data[cIdx0 + 1], data[cIdx0 + 2]) > 235 &&
+            Math.min(data[cIdx1], data[cIdx1 + 1], data[cIdx1 + 2]) > 235 &&
+            Math.min(data[cIdx2], data[cIdx2 + 1], data[cIdx2 + 2]) > 235 &&
+            Math.min(data[cIdx3], data[cIdx3 + 1], data[cIdx3 + 2]) > 235
+        );
+
+        const fg = new Uint8Array(W * H);
+        for (let i = 0; i < W * H; i++) {
+            const p = i * 4;
+            const a = data[p + 3];
+            if (a <= 40) continue;
+            if (cornersOpaque && cornersBlack) {
+                if (Math.max(data[p], data[p + 1], data[p + 2]) > 20) fg[i] = 1;
+            } else if (cornersOpaque && cornersWhite) {
+                if (Math.min(data[p], data[p + 1], data[p + 2]) < 235) fg[i] = 1;
+            } else {
+                fg[i] = 1;
+            }
+        }
+
+        // Dilate foreground by ~6.0mm physical armor margin (matching compile_clean_tpu_panel.py)
+        const rPx = Math.max(4, Math.round((6.0 / plateW) * W));
+        const dil = new Uint8Array(W * H);
+        const offsets = [];
+        for (let dy = -rPx; dy <= rPx; dy++) {
+            for (let dx = -rPx; dx <= rPx; dx++) {
+                if (dx * dx + dy * dy <= rPx * rPx) offsets.push([dx, dy]);
+            }
+        }
+        for (let y = 0; y < H; y++) {
+            for (let x = 0; x < W; x++) {
+                if (!fg[y * W + x]) continue;
+                for (let k = 0; k < offsets.length; k++) {
+                    const nx = x + offsets[k][0], ny = y + offsets[k][1];
+                    if (nx >= 0 && nx < W && ny >= 0 && ny < H) {
+                        dil[ny * W + nx] = 1;
+                    }
+                }
+            }
+        }
+
+        // Keep largest 4-connected component so stray sparkles don't hijack contour
+        const compId = new Int32Array(W * H);
+        let bestId = 0, bestCount = 0, curId = 0;
+        const q = new Int32Array(W * H);
+        for (let i = 0; i < W * H; i++) {
+            if (dil[i] && !compId[i]) {
+                curId++;
+                let head = 0, tail = 0;
+                q[tail++] = i;
+                compId[i] = curId;
+                while (head < tail) {
+                    const curr = q[head++];
+                    const cy = Math.floor(curr / W), cx = curr - cy * W;
+                    if (cy > 0 && dil[curr - W] && !compId[curr - W]) { compId[curr - W] = curId; q[tail++] = curr - W; }
+                    if (cy < H - 1 && dil[curr + W] && !compId[curr + W]) { compId[curr + W] = curId; q[tail++] = curr + W; }
+                    if (cx > 0 && dil[curr - 1] && !compId[curr - 1]) { compId[curr - 1] = curId; q[tail++] = curr - 1; }
+                    if (cx < W - 1 && dil[curr + 1] && !compId[curr + 1]) { compId[curr + 1] = curId; q[tail++] = curr + 1; }
+                }
+                if (tail > bestCount) {
+                    bestCount = tail;
+                    bestId = curId;
+                }
+            }
+        }
+        if (bestCount < 20) return null;
+
+        // Flood-fill exterior 0s on a padded (W+2)x(H+2) grid so interior holes become solid
+        const PW = W + 2, PH = H + 2;
+        const pad = new Uint8Array(PW * PH);
+        for (let y = 0; y < H; y++) {
+            for (let x = 0; x < W; x++) {
+                if (compId[y * W + x] === bestId) {
+                    pad[(y + 1) * PW + (x + 1)] = 1;
+                }
+            }
+        }
+        const extVis = new Uint8Array(PW * PH);
+        const pq = new Int32Array(PW * PH);
+        let pHead = 0, pTail = 0;
+        pq[pTail++] = 0;
+        extVis[0] = 1;
+        while (pHead < pTail) {
+            const curr = pq[pHead++];
+            const cy = Math.floor(curr / PW), cx = curr - cy * PW;
+            if (cy > 0 && !extVis[curr - PW] && !pad[curr - PW]) { extVis[curr - PW] = 1; pq[pTail++] = curr - PW; }
+            if (cy < PH - 1 && !extVis[curr + PW] && !pad[curr + PW]) { extVis[curr + PW] = 1; pq[pTail++] = curr + PW; }
+            if (cx > 0 && !extVis[curr - 1] && !pad[curr - 1]) { extVis[curr - 1] = 1; pq[pTail++] = curr - 1; }
+            if (cx < PW - 1 && !extVis[curr + 1] && !pad[curr + 1]) { extVis[curr + 1] = 1; pq[pTail++] = curr + 1; }
+        }
+        const solid = new Uint8Array(PW * PH);
+        for (let i = 0; i < PW * PH; i++) {
+            if (!extVis[i]) solid[i] = 1;
+        }
+
+        // Moore-Neighbor boundary trace on solid
+        let sy = 0, sx = 0, found = false;
+        for (let y = 1; y <= H && !found; y++) {
+            for (let x = 1; x <= W; x++) {
+                if (solid[y * PW + x]) {
+                    sy = y; sx = x; found = true; break;
+                }
+            }
+        }
+        if (!found) return null;
+
+        const dirs = [[0, -1], [-1, -1], [-1, 0], [-1, 1], [0, 1], [1, 1], [1, 0], [1, -1]];
+        const rawPts = [];
+        let cy = sy, cx = sx, backDir = 0;
+        const maxSteps = PW * PH * 2;
+        for (let step = 0; step < maxSteps; step++) {
+            rawPts.push([
+                ((cx - 0.5) / W) * plateW,
+                (1.0 - (cy - 0.5) / H) * plateH
+            ]);
+            const startSearch = (backDir + 1) % 8;
+            let moved = false;
+            for (let k = 0; k < 8; k++) {
+                const dIdx = (startSearch + k) % 8;
+                const ny = cy + dirs[dIdx][0], nx = cx + dirs[dIdx][1];
+                if (solid[ny * PW + nx]) {
+                    cy = ny; cx = nx;
+                    backDir = (dIdx + 4) % 8;
+                    moved = true;
+                    break;
+                }
+            }
+            if (!moved || (cy === sy && cx === sx)) break;
+        }
+        if (rawPts.length < 6) return null;
+
+        // Subsample & smooth contour to ~80-110 clean vertices
+        const stride = Math.max(1, Math.floor(rawPts.length / 95));
+        let contourPts = [];
+        for (let i = 0; i < rawPts.length; i += stride) {
+            contourPts.push([rawPts[i][0], rawPts[i][1]]);
+        }
+        for (let pass = 0; pass < 2; pass++) {
+            const nextPts = [];
+            const n = contourPts.length;
+            for (let i = 0; i < n; i++) {
+                const pPrev = contourPts[(i - 1 + n) % n];
+                const pCur = contourPts[i];
+                const pNext = contourPts[(i + 1) % n];
+                nextPts.push([
+                    Number(((pPrev[0] + 2 * pCur[0] + pNext[0]) * 0.25).toFixed(2)),
+                    Number(((pPrev[1] + 2 * pCur[1] + pNext[1]) * 0.25).toFixed(2))
+                ]);
+            }
+            contourPts = nextPts;
+        }
+
+        // Compute bounds & entrance/exit portals matching compile_clean_tpu_panel.py
+        let minX = 1e9, minY = 1e9, maxX = -1e9, maxY = -1e9;
+        for (let i = 0; i < contourPts.length; i++) {
+            const p = contourPts[i];
+            if (p[0] < minX) minX = p[0];
+            if (p[0] > maxX) maxX = p[0];
+            if (p[1] < minY) minY = p[1];
+            if (p[1] > maxY) maxY = p[1];
+        }
+        const cxMid = (minX + maxX) * 0.5;
+
+        // Bottom-center entrance portal
+        const bottomPts = contourPts.filter(p => Math.abs(p[0] - cxMid) < 35.0);
+        let entX = cxMid, entY = minY;
+        if (bottomPts.length > 0) {
+            let lowest = bottomPts[0];
+            for (let i = 1; i < bottomPts.length; i++) {
+                if (bottomPts[i][1] < lowest[1]) lowest = bottomPts[i];
+            }
+            entX = lowest[0];
+            entY = lowest[1];
+        }
+        const entBridge = [Number(entX.toFixed(2)), Number((entY + 8.0).toFixed(2))];
+
+        // Lower-right lateral exit portal
+        const yMinFlank = minY + 0.18 * (maxY - minY);
+        const yMaxFlank = minY + 0.45 * (maxY - minY);
+        const rightFlankPts = contourPts.filter(p => p[0] > cxMid && p[1] >= yMinFlank && p[1] <= yMaxFlank);
+        let exitX = maxX, exitY = minY + 0.30 * (maxY - minY);
+        if (rightFlankPts.length > 0) {
+            let rightmost = rightFlankPts[0];
+            for (let i = 1; i < rightFlankPts.length; i++) {
+                if (rightFlankPts[i][0] > rightmost[0]) rightmost = rightFlankPts[i];
+            }
+            exitX = rightmost[0];
+            exitY = rightmost[1];
+        }
+        const exitBridge = [Number((exitX - 8.0).toFixed(2)), Number(exitY.toFixed(2))];
+
+        const liveSpec = {
+            graphic_type: currentGraphicType,
+            width_mm: plateW,
+            height_mm: plateH,
+            total_image_width_mm: plateW,
+            total_image_height_mm: plateH,
+            contour_pts: contourPts,
+            entrance_portal: [Number(entX.toFixed(2)), Number(entY.toFixed(2))],
+            entrance_bridge: entBridge,
+            exit_portal: [Number(exitX.toFixed(2)), Number(exitY.toFixed(2))],
+            exit_bridge: exitBridge
+        };
+        _liveArtworkTpuSpecCache[cacheKey] = liveSpec;
+        return liveSpec;
+    } catch (err) {
+        return null;
+    }
+}
+window.getEffectiveTpuPanelSpec = getEffectiveTpuPanelSpec;
+
 function getTpuBridgeLocationsNorm() {
     const gb = (typeof getGraphicChestBounds === 'function') ? getGraphicChestBounds() : { normX: 0.1, normY: 0.168, normW: 0.8, normH: 0.385 };
     const plateW = (typeof selectedPlateWidthMm !== 'undefined' && selectedPlateWidthMm > 0) ? selectedPlateWidthMm : 203.2;
@@ -11921,10 +12201,8 @@ function getTpuBridgeLocationsNorm() {
     const normH = (gb && gb.normH > 0) ? gb.normH : 0.385;
     const plateH = plateW * (normH / normW);
 
-    // 1. Try reading the exact 3D coordinates from loaded TPU specs
-    const sp = (typeof activeTpuSpecs !== 'undefined' && activeTpuSpecs)
-        ? (activeTpuSpecs.front || activeTpuSpecs)
-        : null;
+    // 1. Read from effective TPU spec (matches active float graphic)
+    const sp = getEffectiveTpuPanelSpec();
 
     if (sp && sp.entrance_portal && sp.exit_portal) {
         const totalW = sp.total_image_width_mm || sp.width_mm || plateW;
@@ -12091,9 +12369,7 @@ window.distPointToSegmentMm = distPointToSegmentMm;
 function getTpuPanelContourNorm() {
     const gb = (typeof getGraphicChestBounds === 'function') ? getGraphicChestBounds() : null;
     if (!gb) return null;
-    const sp = (typeof activeTpuSpecs !== 'undefined' && activeTpuSpecs)
-        ? (activeTpuSpecs.front || activeTpuSpecs)
-        : null;
+    const sp = getEffectiveTpuPanelSpec();
     if (sp && sp.contour_pts && sp.contour_pts.length >= 3) {
         const totalW = sp.total_image_width_mm || sp.width_mm || (typeof selectedPlateWidthMm !== 'undefined' && selectedPlateWidthMm > 0 ? selectedPlateWidthMm : 203.2);
         const totalH = sp.total_image_height_mm || sp.height_mm || (totalW * (gb.normH / gb.normW));
@@ -12115,9 +12391,7 @@ function getDistToTpuPanelPerimeterMm(normPt) {
     const mmToNormX = normW / plateW;
     const mmToNormY = normH / plateH;
 
-    const sp = (typeof activeTpuSpecs !== 'undefined' && activeTpuSpecs)
-        ? (activeTpuSpecs.front || activeTpuSpecs)
-        : null;
+    const sp = getEffectiveTpuPanelSpec();
 
     if (sp && sp.contour_pts && sp.contour_pts.length >= 3 && gb) {
         const totalW = sp.total_image_width_mm || sp.width_mm || plateW;
@@ -14572,9 +14846,7 @@ function drawStrainReliefBridgesOverlay(ctx) {
         ctx.stroke();
 
         // 2. Draw 5.0mm Inward Keep-Out Guide Line
-        const sp = (typeof activeTpuSpecs !== 'undefined' && activeTpuSpecs)
-            ? (activeTpuSpecs.front || activeTpuSpecs)
-            : null;
+        const sp = (typeof getEffectiveTpuPanelSpec === 'function') ? getEffectiveTpuPanelSpec() : null;
         if (sp && sp.contour_pts && typeof offsetContourPolygon === 'function') {
             const inner5mmMm = offsetContourPolygon(sp.contour_pts, 5.0);
             if (inner5mmMm && inner5mmMm.length >= 3) {
@@ -16144,7 +16416,32 @@ function boostLedVibrancy(r, g, b, relX, relY) {
             return boostCustomImageColor(r, g, b);
         }
 
-        // For all other floats (Casey Jr., Turtle, Snail, Coach, Eagle, Custom Upload)
+        // Special 5-Color Palette for Float #4: The Spinning Snail (SimpleSnail.png)
+        if (currentGraphicType === 'spinning_snail' || currentGraphicType === 'spinning_snail_original') {
+            // 1. Gold / Yellow (Antennae, Eye, Spiral & Rim): [202, 153, 39]
+            if (r > 150 && g > 110 && b < 95) {
+                return { r: 255, g: 204, b: 21 };
+            }
+            // 2. Red (Head, Neck & Foot): [138, 38, 30]
+            if (r > 95 && r > g * 1.6 && r > b * 1.6) {
+                return { r: 239, g: 52, b: 42 };
+            }
+            // 3. Green Radial Shell Stripes: [30, 116, 61]
+            if (g > 70 && g > r * 1.4 && g > b * 1.15) {
+                return { r: 16, g: 215, b: 105 };
+            }
+            // 4. Blue Radial Shell Stripes: [41, 83, 116]
+            if (b > 70 && b > r * 1.3 && b >= g) {
+                return { r: 37, g: 135, b: 255 };
+            }
+            // 5. Black Shell Divider Stripes -> Warm Incandescent Starlight accent
+            if (Math.max(r, g, b) < 35) {
+                return { r: 255, g: 245, b: 220 };
+            }
+            return boostCustomImageColor(r, g, b);
+        }
+
+        // For all other floats (Casey Jr., Turtle, Coach, Eagle, Custom Upload)
         return boostCustomImageColor(r, g, b);
     }
 
@@ -16899,9 +17196,11 @@ function scatterLedsOnGraphic(targetCount = 100, colorMatch = true, markDirty = 
 
             let isFg = false;
             if (hasTransparency) {
-                // For Pete's dragon built-in, avoid contour ink lines (< 60)
+                // For Pete's dragon built-in, avoid contour ink lines (< 60); for Snail, avoid black divider stripes (< 25)
                 if (currentGraphicType === 'builtin_dragon' || currentGraphicType === 'petes_dragon') {
                     isFg = (a > 80 && Math.max(r, g, b) >= 60);
+                } else if (currentGraphicType === 'spinning_snail' || currentGraphicType === 'spinning_snail_original') {
+                    isFg = (a > 80 && Math.max(r, g, b) >= 25);
                 } else {
                     isFg = (a > 60);
                 }
