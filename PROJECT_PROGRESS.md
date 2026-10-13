@@ -93,6 +93,16 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### 2026-10-13 03:40 - Solo Show Mode Ambient Background Palette Alignment & Preset Parity
+- **Solo Show Mode Preset Architecture Verification (`simulator/app.js`, `buildCompletePresetData()`):**
+  - Verified that individual float solo shows (the 90-second timeline cues configured in Tab 4: Show Director) are **100% part of the preset file** under `sequence: { loopDuration, cues }`.
+  - Confirmed that modifying, adding, deleting, or quantizing cues directly calls `markSingleShirtDirty()`, ensuring the new pre-rebuild canvas guard flags unsaved solo show modifications before `🔨 Rebuild ROMs` executes.
+- **Ambient Solo Show Artwork Palette Integration (`src/main.cpp`, `arduino/MSEP_Costume/MSEP_Costume.ino`):**
+  - Updated `renderAmbientFallback()` and `runAutonomousShowSequence()` steady-sparkle fallback to check `#elif defined(HAS_DEFAULT_FLOAT_PALETTES)` before falling back to flat hero colors.
+  - Guarantees that when running autonomously in **Solo Show Mode** (`SHOW_MODE_AUTONOMOUS_SEQUENCE`) between 30s fleet routines, each float's ambient sparkles and breathing glow display their authentic multi-color sampled background artwork.
+- **Recompiled All 8 ROM Binaries:**
+  - Recompiled and verified all 8 ROM binaries cleanly with PlatformIO (`build_fleet_binaries.py`).
+
 ### 2026-10-13 03:30 - Automated Fleet Palette Sync & Pre-Rebuild Canvas/Show Verification Guards
 - **Automated Fleet Palette Synchronization (`build_fleet_binaries.py`, `include/fleet_palettes.h`, `arduino/MSEP_Costume/fleet_palettes.h`):**
   - Implemented `sync_fleet_palettes()` in `build_fleet_binaries.py`: automatically reads the active 7 float presets from `presets/fleet_lineup.json` and updates `DEFAULT_FLOAT_PALETTES[7][100]` across both `include/fleet_palettes.h` and `arduino/MSEP_Costume/fleet_palettes.h`.

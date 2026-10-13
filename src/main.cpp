@@ -836,6 +836,9 @@ void renderAmbientFallback(uint32_t now) {
         CRGB baseColor = AMBIENT_CUSTOM_COLOR_RGB;
 #elif defined(HAS_CUSTOM_PALETTE) && HAS_CUSTOM_PALETTE
         CRGB baseColor = ARTWORK_PALETTE[i];
+#elif defined(HAS_DEFAULT_FLOAT_PALETTES) && HAS_DEFAULT_FLOAT_PALETTES
+        uint8_t floatIdx = (myFloatNumber >= 1 && myFloatNumber <= 7) ? (myFloatNumber - 1) : 0;
+        CRGB baseColor = DEFAULT_FLOAT_PALETTES[floatIdx][i];
 #else
         uint8_t floatIdx = (myFloatNumber >= 1 && myFloatNumber <= 7) ? (myFloatNumber - 1) : 0;
         CRGB baseColor = FLEET_ROSTER_INFO[floatIdx].color;
@@ -1485,6 +1488,9 @@ void runAutonomousShowSequence(uint32_t now) {
                 for (int i = 0; i < FRONT_LEDS && i < MAX_LEDS_CAPACITY; i++) {
 #if defined(HAS_CUSTOM_PALETTE) && HAS_CUSTOM_PALETTE
                     leds[i] = ARTWORK_PALETTE[i];
+#elif defined(HAS_DEFAULT_FLOAT_PALETTES) && HAS_DEFAULT_FLOAT_PALETTES
+                    uint8_t floatIdx = (myFloatNumber >= 1 && myFloatNumber <= 7) ? (myFloatNumber - 1) : 0;
+                    leds[i] = DEFAULT_FLOAT_PALETTES[floatIdx][i];
 #else
                     uint8_t floatIdx = (myFloatNumber >= 1 && myFloatNumber <= 7) ? (myFloatNumber - 1) : 0;
                     leds[i] = FLEET_ROSTER_INFO[floatIdx].color;
