@@ -25,6 +25,21 @@
 #include "fleet_palettes.h"
 #endif
 
+// In dedicated multi-float fleet builds, disable single-costume custom palette override
+// so that each float cleanly compiles with its own authentic 100-LED array from fleet_palettes.h
+#if defined(FLEET_BUILD) && FLEET_BUILD
+#undef HAS_CUSTOM_PALETTE
+#define HAS_CUSTOM_PALETTE 0
+#endif
+
+#ifndef COSTUME_SPEED_BPM
+#define COSTUME_SPEED_BPM 120
+#endif
+
+#ifndef COSTUME_SPARKLE_RATE
+#define COSTUME_SPARKLE_RATE 1.5
+#endif
+
 // ============================================================================
 // HARDWARE & PIN DEFINITIONS
 // ============================================================================

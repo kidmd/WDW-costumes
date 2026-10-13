@@ -93,6 +93,21 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### 2026-10-13 03:30 - Automated Fleet Palette Sync & Pre-Rebuild Canvas/Show Verification Guards
+- **Automated Fleet Palette Synchronization (`build_fleet_binaries.py`, `include/fleet_palettes.h`, `arduino/MSEP_Costume/fleet_palettes.h`):**
+  - Implemented `sync_fleet_palettes()` in `build_fleet_binaries.py`: automatically reads the active 7 float presets from `presets/fleet_lineup.json` and updates `DEFAULT_FLOAT_PALETTES[7][100]` across both `include/fleet_palettes.h` and `arduino/MSEP_Costume/fleet_palettes.h`.
+  - Ensures that any moved LEDs, newly sampled background colors, or preset updates (such as Pete's Dragon, Snail, Turtle, Train, and Drum) are 100% baked into the firmware for the browser Web Flasher and Arduino IDE.
+- **Dedicated Fleet Compilation Isolation (`build_fleet_binaries.py`, `src/main.cpp`, `arduino/MSEP_Costume/MSEP_Costume.ino`):**
+  - Introduced `#define FLEET_BUILD 1` in `include/float_config.h` during fleet binary compilation: cleanly disables single-costume `HAS_CUSTOM_PALETTE` overrides so each float compiles with its own authentic 100-LED array from `fleet_palettes.h`, while keeping all pattern constants, speed, and sparkle rate defines intact.
+  - Added safe fallback defines for `COSTUME_SPEED_BPM` (120) and `COSTUME_SPARKLE_RATE` (1.5) in firmware.
+- **Pre-Rebuild Canvas & Timeline Verification Guards (`simulator/app.js`):**
+  - Enhanced `rebuildFleetBinariesBtn` click handler:
+    1. **Unsaved Canvas Guard:** Detects `isSingleShirtDirty` and prompts the user to save or cancel so newly moved LEDs and background colors are saved to preset before building.
+    2. **Unsaved Fleet Show Guard:** Detects `isFleetShowDirty` and prompts the user to save or cancel so newly choreographed cues are saved before building.
+    3. **Auto C++ Routine Pre-Export:** Automatically pre-synchronizes `render30sFleetRoutine()` into `src/main.cpp` and `arduino/MSEP_Costume/MSEP_Costume.ino` via `/api/export_fleet_routine` before launching PlatformIO.
+- **Full Fleet Verification:**
+  - Compiled and verified all 8 binaries (Floats 0 through 7) cleanly with PlatformIO (`build_fleet_binaries.py`). Output verified in `firmware/` and manifests generated.
+
 ### 2026-10-13 02:45 - Pete's Dragon 100/80-LED Distribution & 3D Spec Clearance Restoration
 - **Resolved 3D TPU Spec Matching Fallback (`3d_panels/tpu_panel_specs.json`, `3d_panels/petes_dragon_specs.json`, `simulator/app.js`):**
   - Identified that line 7 of both `3d_panels/tpu_panel_specs.json` and `3d_panels/petes_dragon_specs.json` had `"graphic_type": "custom_image"` instead of `"petes_dragon"`. This caused `getEffectiveTpuPanelSpec()` in `simulator/app.js` to reject the compiled 3D STL panel specs when Pete's Dragon (`petes_dragon`) was active, falling back to a raw 2D live contour with uncalibrated aspect ratio.

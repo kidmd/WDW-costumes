@@ -19474,8 +19474,66 @@ if (flashEsp32Btn) {
 const rebuildFleetBinariesBtn = document.getElementById('rebuildFleetBinariesBtn');
 if (rebuildFleetBinariesBtn) {
     rebuildFleetBinariesBtn.addEventListener('click', async () => {
+        // 1. Verify if the active single shirt canvas float has unsaved changes
+        if (isSingleShirtDirty && activeSingleShirtRunnerSlot !== null && activeSingleShirtRunnerSlot >= 0 && fleetRunners[activeSingleShirtRunnerSlot]) {
+            const dirtyRunner = fleetRunners[activeSingleShirtRunnerSlot];
+            const dirtyName = `Float ${dirtyRunner.slot + 1} (${dirtyRunner.name})`;
+            const promptSaveFloat = confirm(
+                `⚠️ Unsaved Canvas Changes Detected!\n\n${dirtyName} currently has unsaved layout or LED changes on the canvas.\n\nSave changes now before rebuilding ROMs so the Web Flasher includes your new layout and colors?\n\n• Click OK to save "${dirtyRunner.name}" now and continue rebuilding.\n• Click Cancel to abort the rebuild.`
+            );
+            if (promptSaveFloat) {
+                const floatSaveResult = await openSavePresetModal();
+                if (!floatSaveResult || !floatSaveResult.success) {
+                    showToast("⚠️ Float save cancelled. ROM rebuild aborted.");
+                    return;
+                }
+            } else {
+                showToast("⚠️ ROM rebuild aborted. Please save or discard canvas edits first.");
+                return;
+            }
+        }
+
+        // 2. Verify if the active 30s Fleet Show routine has unsaved changes
+        if (isFleetShowDirty && activeFleetShow) {
+            const showName = activeFleetShow.name || "Active 30s Fleet Show";
+            const promptSaveShow = confirm(
+                `⚠️ Unsaved Fleet Show Detected!\n\n"${showName}" currently has unsaved choreography changes on the timeline.\n\nSave changes now before rebuilding ROMs so the Web Flasher includes your latest routine?\n\n• Click OK to save "${showName}" now and continue rebuilding.\n• Click Cancel to abort the rebuild.`
+            );
+            if (promptSaveShow) {
+                const showSaveResult = await openSaveFleetShowModal();
+                if (!showSaveResult || !showSaveResult.success) {
+                    showToast("⚠️ Fleet show save cancelled. ROM rebuild aborted.");
+                    return;
+                }
+            } else {
+                showToast("⚠️ ROM rebuild aborted. Please save fleet show edits first.");
+                return;
+            }
+        }
+
         rebuildFleetBinariesBtn.disabled = true;
         rebuildFleetBinariesBtn.textContent = '⏳ Building...';
+
+        // 3. Pre-synchronize the active 30s Fleet Routine into C++ firmware files (main.cpp and MSEP_Costume.ino)
+        if (activeFleetShow && typeof generateFleetRoutineCpp === 'function') {
+            try {
+                showToast("⚡ Synchronizing C++ fleet routine before build...");
+                const cppCode = generateFleetRoutineCpp(activeFleetShow);
+                await fetch('/api/export_fleet_routine', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        cppCode: cppCode,
+                        loopDuration: activeFleetShow.loopDuration || 30.0,
+                        showName: activeFleetShow.name || "Custom Fleet Show",
+                        verifyCompile: false // build_fleet_binaries handles full compilation
+                    })
+                });
+            } catch (syncErr) {
+                console.warn("Could not pre-export fleet routine:", syncErr);
+            }
+        }
+
         showToast('🔨 Building ROM binaries for all 7 floats in background...');
 
         try {

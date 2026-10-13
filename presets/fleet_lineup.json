@@ -9,7 +9,7 @@
     "color": "#e63946",
     "accent": "Red",
     "role": "\ud83d\udc51 Fleet Leader (Broadcast)",
-    "preset": "server:casey_jr_train.json",
+    "preset": "server:casey_jr_locomotive_100-led_vibrant_preset_2026-10-13_02-58.json",
     "defaultGraphic": "casey_jr_train"
   },
   {
@@ -22,7 +22,7 @@
     "color": "#ffb703",
     "accent": "Gold",
     "role": "\ud83d\udce1 Follower Float",
-    "preset": "server:main_street_title_drum_100-led_vibrant_preset.json",
+    "preset": "server:main_street_title_drum_100-led_vibrant_preset_2026-10-13_02-58.json",
     "defaultGraphic": "title_drum"
   },
   {
@@ -35,7 +35,7 @@
     "color": "#2ec4b6",
     "accent": "Teal",
     "role": "\ud83d\udce1 Follower Float",
-    "preset": "server:spinning_turtle_100-led_vibrant_preset.json",
+    "preset": "server:spinning_turtle_100-led_vibrant_preset_2026-10-13_02-54.json",
     "defaultGraphic": "spinning_turtle"
   },
   {
@@ -48,7 +48,7 @@
     "color": "#ff007f",
     "accent": "Pink",
     "role": "\ud83d\udce1 Follower Float",
-    "preset": "server:spinning_snail_100-led_vibrant_preset.json",
+    "preset": "server:spinning_snail_100-led_vibrant_preset_2026-10-13_02-59.json",
     "defaultGraphic": "spinning_snail"
   },
   {
@@ -74,7 +74,7 @@
     "color": "#00ff88",
     "accent": "Green",
     "role": "\ud83d\udce1 Follower Float",
-    "preset": "server:petes_dragon_chris_2026-10-10_22-23.json",
+    "preset": "server:petes_dragon_chris_2026-10-13_02-57.json",
     "defaultGraphic": "builtin_dragon"
   },
   {

@@ -1125,6 +1125,11 @@ The project provides two complementary flashing methods to suit both developers 
 - **Standalone Cloud URL (For Blank Laptops / Nothing Downloaded):** `https://kidmd.github.io/WDW-costumes/simulator/web_flasher.html`.
 - **How It Works:** Uses the HTML5 **Web Serial API** built into Google Chrome and Microsoft Edge. Flashes pre-compiled `.bin` binaries directly into the ESP32 in ~15 seconds with **zero Python, zero compilers, zero drivers, and zero software installation**.
 - **Role Assignment:** Click any float card (1 through 7) to arm that runner's identity, plug in USB, and click **Install**.
+- **`🔨 Rebuild ROMs` (With Integrated Canvas & Show Auto-Sync Guards):**
+  - Located directly in **Tab 6: Deploy & Hardware** next to the Web Flasher button.
+  - **Unsaved Canvas & Show Guard:** When clicked, the simulator verifies that neither the active canvas nor the 30s fleet choreography have unsaved edits. If unsaved edits exist, it prompts you to save or cancel so that no stale code or outdated coordinates are compiled.
+  - **Automatic C++ Routine Synchronization:** Automatically pre-exports the active timeline choreography into `src/main.cpp` and `arduino/MSEP_Costume/MSEP_Costume.ino`.
+  - **Automatic Fleet Palette Synchronization:** Automatically extracts all 100-LED sampled background colors across all 7 floats from `presets/fleet_lineup.json` and updates `include/fleet_palettes.h` and `arduino/MSEP_Costume/fleet_palettes.h`, ensuring any moved LEDs or new color assignments are 100% baked into the Web Flasher binaries.
 
 #### Method 2: In-Simulator Custom C++ Compiler (Deploy Tab — Unified Flashing Station)
 - **Location:** **Tab 6: Deploy & Hardware** ➔ **`⚡ Flash Float X: [Active Float] to ESP32 (USB)`**.
