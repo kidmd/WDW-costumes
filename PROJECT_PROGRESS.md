@@ -93,6 +93,11 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### 2026-10-12 19:15 - Formatted Race Day Button Quick Guide Document (`Race_Day_Button_Quick_Guide.docx`)
+- **Family-Ready Google Docs / Word Quick Sheet (`Race_Day_Button_Quick_Guide.docx`):**
+  - Created a styled, single-page OpenXML `.docx` document (`Race_Day_Button_Quick_Guide.docx`) designed for direct upload to Google Docs or sharing with the 7-runner family team.
+  - Clearly separates **👑 Leaders (Float 1: Train & Float 7: America)** (wireless full-fleet authority) and **👥 Followers (Floats 2–6: Drum, Turtle, Snail, Cinderella, Dragon)** (local-only, bump-proof mid-race lockouts) with simplified **Photo Mode** terminology.
+
 ### 2026-10-11 13:45 - Preset Loading State Restoration & 5mm Perimeter Wall Clearance Alignment
 - **Plate Size & LED Count Restoration (`simulator/app.js`):**
   - Resolved preset loading bug where saving a preset with **Large** plate size and **100 LEDs** (such as `presets/petes_dragon_chris_2026-10-10_22-23.json`) restored to default Medium plate size and 75-LED slider settings upon reopening.
