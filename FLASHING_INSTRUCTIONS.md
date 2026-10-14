@@ -154,7 +154,7 @@ You do **not** need to change any code to configure which float you are! Any ESP
 | **02** | **The Title Drum** | THE DRUM | 🟡 Gold / Amber | Follower |
 | **03** | **The Turtle** | SPINNING TURTLE | 🟢 Teal / Green | Follower |
 | **04** | **The Snail** | SPINNING SNAIL | 🌸 Pink | Follower |
-| **05** | **Cinderella's Coach** | CINDERELLA | 🔵 Cyan | Follower |
+| **05** | **The Pirate Ship** | PIRATE | 🔴 Crimson / Gold | Follower |
 | **06** | **Pete's Dragon** | ELLIOTT | 🟢 Green | Follower |
 | **07** | **To Honor America** | FLAG & EAGLE | 🔴⚪🔵 Patriotic Blue | **🦅 CO-LEADER / REAR MARSHAL** (Full show & standby authority) |
 

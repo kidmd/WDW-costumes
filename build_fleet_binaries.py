@@ -14,7 +14,7 @@ FLOATS = [
     {"id": 2, "name": "The Title Drum", "role": "FOLLOWER", "tag": "THE DRUM"},
     {"id": 3, "name": "The Spinning Turtle", "role": "FOLLOWER", "tag": "TURTLE"},
     {"id": 4, "name": "The Spinning Snail", "role": "FOLLOWER", "tag": "SNAIL"},
-    {"id": 5, "name": "Cinderella's Coach", "role": "FOLLOWER", "tag": "COACH"},
+    {"id": 5, "name": "Pirate Ship", "role": "FOLLOWER", "tag": "PIRATE"},
     {"id": 6, "name": "Pete's Dragon", "role": "FOLLOWER", "tag": "ELLIOTT"},
     {"id": 7, "name": "To Honor America", "role": "FOLLOWER", "tag": "FLAG & EAGLE"},
 ]

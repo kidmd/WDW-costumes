@@ -22,7 +22,7 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 | **2** | **The Title Drum** | Golden chasing marquee border, "Disney" electric text accent |
 | **3** | **The Turtle** | Whimsical spinning shell spirals, blinking amber eyes, teal/green glow |
 | **4** | **The Snail** | Rotating rainbow spiral wheels, neon antennae, vibrant spinning motion |
-| **5** | **Cinderella's Coach** | Brilliant fairy dust shimmer, pumpkin coach starlight glow |
+| **5** | **The Pirate Ship** | Crimson billowing sails, antique gold decks & rigging, emerald ocean waves |
 | **6** | **Pete's Dragon (Elliott)** | Chartreuse/green scales with orange/red fire breathing effect |
 | **7** | **To Honor America (Flag & Eagle)** | Cascading patriotic red/white/blue starbursts & majestic illuminated eagle |
 
@@ -92,6 +92,33 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 ---
 
 ## Progress Log
+
+### 2026-10-13 20:25 - Float 5 Migration to 5-Color Multi-Material Pirate Ship (`Pirateshipsimple.png`) & Full Fleet Synchronization
+- **Transparent PNG & 5-Color Quantization (`assets/Pirateshipsimple.png`, `simulator/assets/Pirateshipsimple.png`):**
+  - Converted `assets/PirateShipsimple.jpg` into a clean, transparent PNG: cleanly stripped the gray/white faux checkerboard background across all outer borders and interior enclosed mast/rigging apertures using HSV saturation/value filtering and connected-component segmentation.
+  - Quantized graphic strictly into **5 discrete 3D-printing (AMS/MMU) and HTV colors**:
+    1. **Red (Sails & Masthead Pennant):** `RGB(230, 25, 25)` (`#e61919`)
+    2. **Light Gold (Masts, Spars & Trim):** `RGB(235, 185, 65)` (`#ebb941`)
+    3. **Black (Hull, Railings & Chassis):** `RGB(20, 20, 20)` (`#141414`)
+    4. **Dark Gold / Antique Bronze (Decks & Shading):** `RGB(155, 105, 20)` (`#9b6914`)
+    5. **Green (Ocean Waves):** `RGB(20, 115, 50)` (`#147332`)
+  - Saved to all simulator and root asset aliases (`Pirateshipsimple.png`, `PirateShipsimple.png`, `pirate_ship.png`).
+- **Production Cricut HTV Cut File & Visual Catalog (`simulator/assets/cricut_svg/pirate_ship.svg`, `cricut_catalog.html`):**
+  - Generated layered vector SVG (`pirate_ship.svg`) with 5 discrete color groups for instant cutting mat separation in Cricut Design Space.
+  - Updated `cricut_catalog.html` with Float 05: The Pirate Ship showcase card, download links, and 5-mat spec breakdown.
+- **100-LED Costume Preset & Palette (`presets/pirate_ship.json`, `presets/fleet_lineup.json`):**
+  - Generated `presets/pirate_ship.json` with 100 LEDs sampled across the 5 character colors (37 Red, 28 Light Gold, 23 Black, 7 Dark Gold, 5 Green) positioned safely in the upper torso (`x: 0.220..0.780`, `y: 0.198..0.525`) preserving graphic aspect ratio strictly above the 57% race bib line.
+  - Updated `presets/fleet_lineup.json` Slot 4 to Float 05 "Pirate Ship" (`#e63946`, tag `PIRATE`, icon 🏴‍☠️).
+- **Firmware & Fleet Palettes Dual Core Synchronization (`include/fleet_palettes.h`, `arduino/MSEP_Costume/fleet_palettes.h`, `src/main.cpp`, `arduino/MSEP_Costume/MSEP_Costume.ino`):**
+  - Executed `sync_fleet_palettes()` via `build_fleet_binaries.py`, automatically baking the 100 Pirate Ship RGB colors into `DEFAULT_FLOAT_PALETTES[4]` across both PlatformIO and Arduino IDE header files.
+  - Synchronized float names and roles in `src/main.cpp` and `arduino/MSEP_Costume/MSEP_Costume.ino` line 93 (`{ "Pirate Ship", "FOLLOWER", CRGB(230, 25, 25) }`).
+- **Simulator & Web Flasher Tooling (`simulator/app.js`, `simulator/index.html`, `simulator/web_flasher.html`, `scripts/compile_clean_tpu_panel.py`):**
+  - Integrated `pirate_ship` across `simulator/app.js`: default float lineup, image loaders, Cricut metadata, 5-color TPU STL segmentation configuration, and auto-migration from legacy Cinderella presets.
+  - Updated `simulator/index.html` quick-switch buttons and artwork dropdown.
+  - Updated `simulator/web_flasher.html` Float 5 card and descriptions.
+  - Updated `scripts/compile_clean_tpu_panel.py` to support 5-color TPU armor segmentation for the Pirate Ship.
+- **100% Documentation Synchronization:**
+  - Synchronized `SIMULATOR_USER_GUIDE.md`, `README.md`, `FLASHING_INSTRUCTIONS.md`, `RACE_DAY_BUTTON_GUIDE.md`, `RACE_DAY_PACKING_CHECKLIST.md`, and `SIMULATOR_QUICKSTART.md`.
 
 ### 2026-10-13 03:40 - Solo Show Mode Ambient Background Palette Alignment & Preset Parity
 - **Solo Show Mode Preset Architecture Verification (`simulator/app.js`, `buildCompletePresetData()`):**

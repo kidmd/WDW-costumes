@@ -26,7 +26,7 @@ const DEFAULT_FLEET_RADAR = [
     { id: 2, name: "Title Drum", role: "FOLLOWER", tag: "THE DRUM", color: "#f1e05a", icon: "🥁", status: "ONLINE", rssi: -52, voltage: 5.10, batteryPct: 97, lastSeenSec: 0.5 },
     { id: 3, name: "The Turtle", role: "FOLLOWER", tag: "TURTLE", color: "#2ec4b6", icon: "🐢", status: "ONLINE", rssi: -58, voltage: 5.12, batteryPct: 98, lastSeenSec: 1.1 },
     { id: 4, name: "The Snail", role: "FOLLOWER", tag: "SNAIL", color: "#ff007f", icon: "🐌", status: "ONLINE", rssi: -61, voltage: 5.08, batteryPct: 95, lastSeenSec: 1.4 },
-    { id: 5, name: "Cinderella", role: "FOLLOWER", tag: "COACH", color: "#05d9e8", icon: "🩵", status: "ONLINE", rssi: -63, voltage: 5.11, batteryPct: 96, lastSeenSec: 0.8 },
+    { id: 5, name: "Pirate Ship", role: "FOLLOWER", tag: "PIRATE", color: "#e63946", icon: "🏴‍☠️", status: "ONLINE", rssi: -63, voltage: 5.11, batteryPct: 96, lastSeenSec: 0.8 },
     { id: 6, name: "Pete's Dragon", role: "FOLLOWER", tag: "ELLIOTT", color: "#39ff14", icon: "🐉", status: "ONLINE", rssi: -55, voltage: 5.15, batteryPct: 99, lastSeenSec: 0.4 },
     { id: 7, name: "Flag & Eagle", role: "CO-LEADER", tag: "PATRIOTIC", color: "#388bfd", icon: "🦅", status: "ONLINE", rssi: -69, voltage: 5.09, batteryPct: 94, lastSeenSec: 2.1 }
 ];
@@ -143,7 +143,15 @@ defaultDragonImg.onload = () => {
 };
 defaultDragonImg.src = 'assets/petes_dragon.png';
 
-// Cinderella's Coach Artwork
+// Pirate Ship Artwork (Float 5 Default - 5-Color Transparent PNG from Pirateshipsimple.png)
+const pirateShipImg = new Image();
+let pirateShipLoaded = false;
+pirateShipImg.onload = () => {
+    pirateShipLoaded = true;
+};
+pirateShipImg.src = 'assets/Pirateshipsimple.png';
+
+// Cinderella's Coach Artwork (Legacy)
 const cinderellasCoachImg = new Image();
 let cinderellasCoachLoaded = false;
 cinderellasCoachImg.onload = () => {
@@ -200,7 +208,7 @@ titleDrumImg.src = 'assets/title_drum.png';
 
 // Custom artwork image (if user uploads one or loads one from preset)
 let customArtworkImg = null;
-let currentGraphicType = 'builtin_dragon'; // 'builtin_dragon', 'cinderellas_coach', 'carriage_nohorses', 'casey_jr_train', 'title_drum', 'spinning_turtle', 'spinning_snail', 'honor_america_eagle', or 'custom_image'
+let currentGraphicType = 'builtin_dragon'; // 'builtin_dragon', 'pirate_ship', 'casey_jr_train', 'title_drum', 'spinning_turtle', 'spinning_snail', 'honor_america_eagle', or 'custom_image'
 let customArtworkDataUrl = null;
 
 // Cricut SVG / Custom PNG Float Artwork Suite for 7-Runner Lineup
@@ -211,8 +219,10 @@ const floatArtworkImgs = {
     'spinning_snail': spinningSnailImg,
     'spinning_snail_original': spinningSnailImg,
     'spinning_snail_simplified': spinningSnailSimplifiedImg,
-    'cinderella_coach': new Image(),
-    'cinderellas_coach': new Image(),
+    'pirate_ship': pirateShipImg,
+    'pirateshipsimple': pirateShipImg,
+    'cinderella_coach': pirateShipImg,
+    'cinderellas_coach': pirateShipImg,
     'petes_dragon': new Image(),
     'builtin_dragon': new Image(),
     'honor_america_eagle': new Image()
@@ -223,8 +233,10 @@ floatArtworkImgs['spinning_turtle'].src = 'assets/Turtle_clean.png';
 floatArtworkImgs['spinning_snail'].src = 'assets/SimpleSnail.png';
 floatArtworkImgs['spinning_snail_original'].src = 'assets/SimpleSnail.png';
 floatArtworkImgs['spinning_snail_simplified'].src = 'assets/spinning_snail_simplified.png';
-floatArtworkImgs['cinderella_coach'].src = 'assets/cricut_svg/cinderella_coach.svg';
-floatArtworkImgs['cinderellas_coach'].src = 'assets/cricut_svg/cinderella_coach.svg';
+floatArtworkImgs['pirate_ship'].src = 'assets/Pirateshipsimple.png';
+floatArtworkImgs['pirateshipsimple'].src = 'assets/Pirateshipsimple.png';
+floatArtworkImgs['cinderella_coach'].src = 'assets/Pirateshipsimple.png';
+floatArtworkImgs['cinderellas_coach'].src = 'assets/Pirateshipsimple.png';
 floatArtworkImgs['petes_dragon'].src = 'assets/cricut_svg/petes_dragon.svg';
 floatArtworkImgs['builtin_dragon'].src = 'assets/cricut_svg/petes_dragon.svg';
 floatArtworkImgs['honor_america_eagle'].src = 'assets/cricut_svg/honor_america_eagle.svg';
@@ -254,9 +266,9 @@ function getGraphicImgForType(gType) {
         if (spinningSnailSimplifiedImg && spinningSnailSimplifiedImg.naturalWidth > 0) return spinningSnailSimplifiedImg;
         return floatArtworkImgs['spinning_snail_simplified'];
     }
-    if (gType === 'cinderellas_coach' || gType === 'cinderella_coach') {
-        if (cinderellasCoachImg && cinderellasCoachImg.naturalWidth > 0) return cinderellasCoachImg;
-        return floatArtworkImgs['cinderella_coach'];
+    if (gType === 'pirate_ship' || gType === 'pirateshipsimple' || gType === 'cinderellas_coach' || gType === 'cinderella_coach') {
+        if (pirateShipImg && pirateShipImg.naturalWidth > 0) return pirateShipImg;
+        return floatArtworkImgs['pirate_ship'];
     }
     if (gType === 'carriage_nohorses') {
         if (carriageNoHorsesImg && carriageNoHorsesImg.naturalWidth > 0) return carriageNoHorsesImg;
@@ -3041,28 +3053,60 @@ const CRICUT_FLOAT_CONFIG = {
             { id: "Layer_4_White_Vinyl", name: "White Eyes & Accents", hex: "#ffffff", r: 255, g: 255, b: 255 }
         ]
     },
+    'pirate_ship': {
+        floatId: 5,
+        name: "Pirate Ship",
+        role: "FOLLOWER",
+        tag: "PIRATE",
+        svgFile: "pirate_ship.svg",
+        layers: [
+            { id: "Layer_red", name: "Red Sails & Flag", hex: "#e61919", r: 230, g: 25, b: 25 },
+            { id: "Layer_gold", name: "Bright Gold Masts & Trim", hex: "#ebb941", r: 235, g: 185, b: 65 },
+            { id: "Layer_dark_gold", name: "Bronze Decks & Rigging", hex: "#9b6914", r: 155, g: 105, b: 20 },
+            { id: "Layer_green", name: "Ocean Waves", hex: "#147332", r: 20, g: 115, b: 50 },
+            { id: "Layer_black", name: "Hull & Chassis", hex: "#141414", r: 20, g: 20, b: 20 }
+        ]
+    },
+    'pirateshipsimple': {
+        floatId: 5,
+        name: "Pirate Ship",
+        role: "FOLLOWER",
+        tag: "PIRATE",
+        svgFile: "pirate_ship.svg",
+        layers: [
+            { id: "Layer_red", name: "Red Sails & Flag", hex: "#e61919", r: 230, g: 25, b: 25 },
+            { id: "Layer_gold", name: "Bright Gold Masts & Trim", hex: "#ebb941", r: 235, g: 185, b: 65 },
+            { id: "Layer_dark_gold", name: "Bronze Decks & Rigging", hex: "#9b6914", r: 155, g: 105, b: 20 },
+            { id: "Layer_green", name: "Ocean Waves", hex: "#147332", r: 20, g: 115, b: 50 },
+            { id: "Layer_black", name: "Hull & Chassis", hex: "#141414", r: 20, g: 20, b: 20 }
+        ]
+    },
     'cinderella_coach': {
         floatId: 5,
-        name: "Cinderella's Coach",
+        name: "Pirate Ship",
         role: "FOLLOWER",
-        tag: "FAIRY TALE",
-        svgFile: "cinderella_coach.svg",
+        tag: "PIRATE",
+        svgFile: "pirate_ship.svg",
         layers: [
-            { id: "Layer_1_Cyan_Vinyl", name: "Cyan Pumpkin Drapes", hex: "#48cae4", r: 72, g: 202, b: 228 },
-            { id: "Layer_2_Gold_Vinyl", name: "Gold Filigree & Wheels", hex: "#ffb703", r: 255, g: 183, b: 3 },
-            { id: "Layer_3_White_Vinyl", name: "White Fairy Sparkles", hex: "#ffffff", r: 255, g: 255, b: 255 }
+            { id: "Layer_red", name: "Red Sails & Flag", hex: "#e61919", r: 230, g: 25, b: 25 },
+            { id: "Layer_gold", name: "Bright Gold Masts & Trim", hex: "#ebb941", r: 235, g: 185, b: 65 },
+            { id: "Layer_dark_gold", name: "Bronze Decks & Rigging", hex: "#9b6914", r: 155, g: 105, b: 20 },
+            { id: "Layer_green", name: "Ocean Waves", hex: "#147332", r: 20, g: 115, b: 50 },
+            { id: "Layer_black", name: "Hull & Chassis", hex: "#141414", r: 20, g: 20, b: 20 }
         ]
     },
     'cinderellas_coach': {
         floatId: 5,
-        name: "Cinderella's Coach",
+        name: "Pirate Ship",
         role: "FOLLOWER",
-        tag: "FAIRY TALE",
-        svgFile: "cinderella_coach.svg",
+        tag: "PIRATE",
+        svgFile: "pirate_ship.svg",
         layers: [
-            { id: "Layer_1_Cyan_Vinyl", name: "Cyan Pumpkin Drapes", hex: "#48cae4", r: 72, g: 202, b: 228 },
-            { id: "Layer_2_Gold_Vinyl", name: "Gold Filigree & Wheels", hex: "#ffb703", r: 255, g: 183, b: 3 },
-            { id: "Layer_3_White_Vinyl", name: "White Fairy Sparkles", hex: "#ffffff", r: 255, g: 255, b: 255 }
+            { id: "Layer_red", name: "Red Sails & Flag", hex: "#e61919", r: 230, g: 25, b: 25 },
+            { id: "Layer_gold", name: "Bright Gold Masts & Trim", hex: "#ebb941", r: 235, g: 185, b: 65 },
+            { id: "Layer_dark_gold", name: "Bronze Decks & Rigging", hex: "#9b6914", r: 155, g: 105, b: 20 },
+            { id: "Layer_green", name: "Ocean Waves", hex: "#147332", r: 20, g: 115, b: 50 },
+            { id: "Layer_black", name: "Hull & Chassis", hex: "#141414", r: 20, g: 20, b: 20 }
         ]
     },
     'carriage_nohorses': {
@@ -3136,6 +3180,20 @@ const FLOAT_STL_COLOR_CONFIG = {
         'gold': { name: "Bright Gold Trim, Steam & Wheels", hex: "#d99e48", targetRgb: [217, 158, 72], role: "inlay", filename: "color_gold.stl" },
         'dark_gold': { name: "Shaded Gold / Bronze Steam & Details", hex: "#a1702c", targetRgb: [161, 112, 44], role: "inlay", filename: "color_dark_gold.stl" },
         'grey': { name: "Drive Rod, Wheel Rims & Undercarriage", hex: "#716f6f", targetRgb: [113, 111, 111], role: "inlay", filename: "color_grey.stl" }
+    },
+    'pirate_ship': {
+        'black': { name: "Chassis, Hull & Rigging Accents", hex: "#141414", targetRgb: [20, 20, 20], role: "chassis" },
+        'red': { name: "Sails & Masthead Flag", hex: "#e61919", targetRgb: [230, 25, 25], role: "inlay", filename: "color_red.stl" },
+        'gold': { name: "Bright Gold Masts & Trim", hex: "#ebb941", targetRgb: [235, 185, 65], role: "inlay", filename: "color_gold.stl" },
+        'dark_gold': { name: "Antique Bronze Decks & Shading", hex: "#9b6914", targetRgb: [155, 105, 20], role: "inlay", filename: "color_dark_gold.stl" },
+        'green': { name: "Ocean Waves & Sea Keel", hex: "#147332", targetRgb: [20, 115, 50], role: "inlay", filename: "color_green.stl" }
+    },
+    'pirateshipsimple': {
+        'black': { name: "Chassis, Hull & Rigging Accents", hex: "#141414", targetRgb: [20, 20, 20], role: "chassis" },
+        'red': { name: "Sails & Masthead Flag", hex: "#e61919", targetRgb: [230, 25, 25], role: "inlay", filename: "color_red.stl" },
+        'gold': { name: "Bright Gold Masts & Trim", hex: "#ebb941", targetRgb: [235, 185, 65], role: "inlay", filename: "color_gold.stl" },
+        'dark_gold': { name: "Antique Bronze Decks & Shading", hex: "#9b6914", targetRgb: [155, 105, 20], role: "inlay", filename: "color_dark_gold.stl" },
+        'green': { name: "Ocean Waves & Sea Keel", hex: "#147332", targetRgb: [20, 115, 50], role: "inlay", filename: "color_green.stl" }
     }
 };
 
@@ -4100,9 +4158,11 @@ function renderSingleShirtView(timeMs) {
         'title_drum': "FLOAT #2: ELECTRICAL PARADE DRUM",
         'spinning_turtle': "FLOAT #3: THE SPINNING TURTLE",
         'spinning_snail': "FLOAT #4: THE SPINNING SNAIL",
-        'cinderellas_coach': "FLOAT #5: CINDERELLA'S COACH",
-        'cinderella_coach': "FLOAT #5: CINDERELLA'S COACH",
-        'carriage_nohorses': "FLOAT #5: CARRIAGE (NO HORSES)",
+        'pirate_ship': "FLOAT #5: PIRATE SHIP",
+        'pirateshipsimple': "FLOAT #5: PIRATE SHIP",
+        'cinderellas_coach': "FLOAT #5: PIRATE SHIP",
+        'cinderella_coach': "FLOAT #5: PIRATE SHIP",
+        'carriage_nohorses': "FLOAT #5: PIRATE SHIP",
         'builtin_dragon': "FLOAT #6: PETE'S DRAGON (ELLIOTT)",
         'petes_dragon': "FLOAT #6: PETE'S DRAGON (ELLIOTT)",
         'honor_america_eagle': "FLOAT #7: TO HONOR AMERICA (EAGLE)",
@@ -4407,7 +4467,7 @@ const DEFAULT_FLEET_ROSTER = [
     { slot: 1, num: "02", icon: "🥁", fullName: "Electrical Parade Drum", name: "Title Drum", tag: "THE DRUM", color: "#ffb703", accent: "Gold", role: "📡 Follower Float", preset: "server:title_drum.json", defaultGraphic: "title_drum" },
     { slot: 2, num: "03", icon: "🐢", fullName: "The Spinning Turtle", name: "The Turtle", tag: "TURTLE", color: "#2ec4b6", accent: "Teal", role: "📡 Follower Float", preset: "server:spinning_turtle.json", defaultGraphic: "spinning_turtle" },
     { slot: 3, num: "04", icon: "🐌", fullName: "The Spinning Snail", name: "The Snail", tag: "SNAIL", color: "#ff007f", accent: "Pink", role: "📡 Follower Float", preset: "server:spinning_snail.json", defaultGraphic: "spinning_snail" },
-    { slot: 4, num: "05", icon: "🩵", fullName: "Cinderella's Coach", name: "Cinderella", tag: "COACH", color: "#48cae4", accent: "Cyan", role: "📡 Follower Float", preset: "server:cinderellas_coach_both_wheel.json", defaultGraphic: "cinderella_coach" },
+    { slot: 4, num: "05", icon: "🏴‍☠️", fullName: "The Pirate Ship", name: "Pirate Ship", tag: "PIRATE", color: "#e63946", accent: "Red", role: "📡 Follower Float", preset: "server:pirate_ship.json", defaultGraphic: "pirate_ship" },
     { slot: 5, num: "06", icon: "🐉", fullName: "Pete's Dragon (Elliott)", name: "Pete's Dragon", tag: "ELLIOTT", color: "#00ff88", accent: "Green", role: "📡 Follower Float", preset: "server:petes_dragon.json", defaultGraphic: "builtin_dragon" },
     { slot: 6, num: "07", icon: "🦅", fullName: "To Honor America", name: "Flag & Eagle", tag: "HONOR AMERICA", color: "#3a86ff", accent: "Patriotic", role: "📡 Follower Float", preset: "server:honor_america_eagle.json", defaultGraphic: "honor_america_eagle" }
 ];
@@ -6040,8 +6100,8 @@ function confirmUnsavedEditsModal(prevRunner, targetRunner) {
         if (!defaultName) {
             if (prevRunner) {
                 defaultName = `${prevRunner.name} Custom`;
-            } else if (currentGraphicType === 'cinderellas_coach') {
-                defaultName = "Cinderella's Coach Custom";
+            } else if (currentGraphicType === 'pirate_ship' || currentGraphicType === 'pirateshipsimple' || currentGraphicType === 'cinderellas_coach') {
+                defaultName = "Pirate Ship Custom";
             } else if (currentGraphicType === 'carriage_nohorses') {
                 defaultName = "Carriage (No Horses) Custom";
             } else {
@@ -6206,7 +6266,7 @@ function updateActiveFloatUI(slot) {
             1: 'title_drum',
             2: 'spinning_turtle',
             3: 'spinning_snail',
-            4: 'cinderellas_coach',
+            4: 'pirate_ship',
             5: 'builtin_dragon',
             6: 'honor_america_eagle'
         };
@@ -7788,10 +7848,15 @@ async function loadFleetLineupFromStorage() {
         fleetRunners = fleetRunners.map((item, idx) => ({ ...DEFAULT_FLEET_ROSTER[idx], ...item }));
     }
 
-    // Ensure slot 4 (Cinderella/Coach) always defaults to cinderellas_coach_both_wheel.json
-    if (fleetRunners[4] && (fleetRunners[4].preset === 'server:cinderellas_coach.json' || fleetRunners[4].preset === 'server:carriage_nohorses.json' || !fleetRunners[4].preset || fleetRunners[4].preset.includes('cinderellas_coach') || fleetRunners[4].preset.includes('carriage_nohorses'))) {
-        fleetRunners[4].preset = 'server:cinderellas_coach_both_wheel.json';
-        fleetRunners[4].defaultGraphic = 'cinderella_coach';
+    // Ensure slot 4 (Pirate Ship) always defaults to pirate_ship.json
+    if (fleetRunners[4] && (fleetRunners[4].preset === 'server:cinderellas_coach.json' || fleetRunners[4].preset === 'server:cinderellas_coach_both_wheel.json' || fleetRunners[4].preset === 'server:cinderella_both_wheel_no_horses.json' || fleetRunners[4].preset === 'server:carriage_nohorses.json' || !fleetRunners[4].preset || fleetRunners[4].preset.includes('cinderella') || fleetRunners[4].preset.includes('carriage_nohorses'))) {
+        fleetRunners[4].preset = 'server:pirate_ship.json';
+        fleetRunners[4].defaultGraphic = 'pirate_ship';
+        fleetRunners[4].name = 'Pirate Ship';
+        fleetRunners[4].fullName = 'The Pirate Ship';
+        fleetRunners[4].tag = 'PIRATE';
+        fleetRunners[4].icon = '🏴‍☠️';
+        fleetRunners[4].color = '#e63946';
     }
 
     // Preload all runner presets into cache in parallel
@@ -11939,7 +12004,7 @@ const _liveArtworkTpuSpecCache = {};
 function normalizeFloatGraphicKey(k) {
     const s = String(k || '').toLowerCase().trim();
     if (!s || s === 'builtin_dragon' || s === 'petes_dragon') return 'petes_dragon';
-    if (s === 'cinderella_coach' || s === 'cinderellas_coach') return 'cinderellas_coach';
+    if (s === 'pirate_ship' || s === 'pirateshipsimple' || s === 'cinderella_coach' || s === 'cinderellas_coach') return 'pirate_ship';
     if (s === 'spinning_snail' || s === 'spinning_snail_original') return 'spinning_snail';
     return s;
 }
@@ -13389,8 +13454,8 @@ function openSavePresetModal(suggestedName = null) {
                 baseFloatName = runner.name;
             } else if (currentGraphicType === 'title_drum') {
                 baseFloatName = 'The Drum';
-            } else if (currentGraphicType === 'cinderellas_coach') {
-                baseFloatName = "Cinderella's Coach";
+            } else if (currentGraphicType === 'pirate_ship' || currentGraphicType === 'pirateshipsimple' || currentGraphicType === 'cinderellas_coach') {
+                baseFloatName = "Pirate Ship";
             } else if (currentGraphicType === 'spinning_turtle') {
                 baseFloatName = 'The Turtle';
             } else if (currentGraphicType === 'spinning_snail') {
@@ -13689,7 +13754,7 @@ function applyProfileData(profileData) {
                 }
             }
             if (!matched) {
-                if (currentGraphicType === 'cinderella_coach') graphicSelect.value = 'cinderellas_coach';
+                if (currentGraphicType === 'cinderella_coach' || currentGraphicType === 'cinderellas_coach' || currentGraphicType === 'pirateshipsimple') graphicSelect.value = 'pirate_ship';
                 else if (currentGraphicType === 'petes_dragon') graphicSelect.value = 'builtin_dragon';
             }
         }
@@ -14218,9 +14283,11 @@ function printAssemblyGuide() {
         'spinning_turtle': "Float #3: The Spinning Turtle",
         'spinning_snail': "Float #4: The Spinning Snail",
         'spinning_snail_simplified': "Float #4: The Spinning Snail (Simplified)",
-        'cinderellas_coach': "Float #5: Cinderella's Coach",
-        'cinderella_coach': "Float #5: Cinderella's Coach",
-        'carriage_nohorses': "Float #5: Carriage (No Horses)",
+        'pirate_ship': "Float #5: Pirate Ship",
+        'pirateshipsimple': "Float #5: Pirate Ship",
+        'cinderellas_coach': "Float #5: Pirate Ship",
+        'cinderella_coach': "Float #5: Pirate Ship",
+        'carriage_nohorses': "Float #5: Pirate Ship",
         'builtin_dragon': "Float #6: Pete's Dragon (Elliott)",
         'petes_dragon': "Float #6: Pete's Dragon (Elliott)",
         'honor_america_eagle': "Float #7: To Honor America (Eagle)",
@@ -14505,7 +14572,9 @@ function computeBtfStripMatrix() {
             'title_drum': { r: 255, g: 193, b: 7 },
             'spinning_turtle': { r: 46, g: 196, b: 182 },
             'spinning_snail': { r: 16, g: 185, b: 129 },
-            'cinderellas_coach': { r: 0, g: 229, b: 255 },
+            'pirate_ship': { r: 230, g: 25, b: 25 },
+            'pirateshipsimple': { r: 230, g: 25, b: 25 },
+            'cinderellas_coach': { r: 230, g: 25, b: 25 },
             'builtin_dragon': { r: 0, g: 255, b: 136 },
             'honor_america_eagle': { r: 58, g: 134, b: 255 }
         };
@@ -17600,9 +17669,11 @@ async function loadGraphicPreset(type) {
         'spinning_snail': 'spinning_snail.json',
         'spinning_snail_original': 'spinning_snail.json',
         'spinning_snail_simplified': 'spinning_snail_simplified.json',
-        'cinderellas_coach': 'cinderellas_coach_both_wheel.json',
-        'cinderella_coach': 'cinderellas_coach_both_wheel.json',
-        'carriage_nohorses': 'cinderellas_coach_both_wheel.json',
+        'pirate_ship': 'pirate_ship.json',
+        'pirateshipsimple': 'pirate_ship.json',
+        'cinderellas_coach': 'pirate_ship.json',
+        'cinderella_coach': 'pirate_ship.json',
+        'carriage_nohorses': 'pirate_ship.json',
         'builtin_dragon': 'petes_dragon.json',
         'petes_dragon': 'petes_dragon.json',
         'honor_america_eagle': 'honor_america_eagle.json'
@@ -17658,6 +17729,8 @@ if (graphicPresetSelect) {
             'spinning_snail': 3,
             'spinning_snail_simplified': 3,
             'spinning_snail_original': 3,
+            'pirate_ship': 4,
+            'pirateshipsimple': 4,
             'cinderellas_coach': 4,
             'cinderella_coach': 4,
             'carriage_nohorses': 4,
@@ -17778,7 +17851,7 @@ if (resetArtworkBtn) {
             1: 'title_drum',
             2: 'spinning_turtle',
             3: 'spinning_snail',
-            4: 'cinderellas_coach',
+            4: 'pirate_ship',
             5: 'builtin_dragon',
             6: 'honor_america_eagle'
         };
@@ -18987,7 +19060,7 @@ function exportCurrentProfileJson() {
     const runner = (activeSingleShirtRunnerSlot !== null && activeSingleShirtRunnerSlot >= 0 && fleetRunners[activeSingleShirtRunnerSlot])
         ? fleetRunners[activeSingleShirtRunnerSlot]
         : (DEFAULT_FLEET_ROSTER[activeSingleShirtRunnerSlot] || DEFAULT_FLEET_ROSTER[5]);
-    const floatBaseName = (runner && runner.name) || (currentGraphicType === 'title_drum' ? "Title Drum" : (currentGraphicType === 'cinderellas_coach' ? "Cinderella's Coach" : "Pete's Dragon"));
+    const floatBaseName = (runner && runner.name) || (currentGraphicType === 'title_drum' ? "Title Drum" : (currentGraphicType === 'pirate_ship' || currentGraphicType === 'cinderellas_coach' ? "Pirate Ship" : "Pete's Dragon"));
     const timeTag = getFormattedTimestamp(false);
     let rawName = (nameInput?.value || '').trim();
     let cleanBaseName = rawName.replace(/\s+\d{4}-\d{2}-\d{2}(?:[ _-]\d{2}[-:]\d{2}(?:[-:]\d{2})?)?.*$/i, '').trim();
@@ -19310,11 +19383,11 @@ const flashTipText = document.getElementById('flashTipText');
 
 // Fleet Flasher Metadata Roster
 const FLEET_FLASHER_ROSTER = [
-    { id: 1, name: "The Train", role: "LEADER", tag: "CASEY JR.", icon: "🚂", color: "#ff5e3a", desc: "Pulls the parade & broadcasts ESP-NOW master sync clock. Tapping BOOT triggers the fleet show!" },
-    { id: 2, name: "The Title Drum", role: "FOLLOWER", tag: "THE DRUM", icon: "🥁", color: "#f1e05a", desc: "Follows Casey Jr. with warm golden amber sparkles and traveling waves." },
-    { id: 3, name: "Cinderella's Coach", role: "FOLLOWER", tag: "CINDERELLA", icon: "🩵", color: "#05d9e8", desc: "Pumpkin coach enchanted blue glow with rotating wheel chase patterns." },
-    { id: 4, name: "Peter Pan's Ship", role: "FOLLOWER", tag: "PETER PAN", icon: "🏴‍☠️", color: "#00ff66", desc: "Captain Hook's galleon sailing with emerald pixie dust shimmers." },
-    { id: 5, name: "Dumbo the Elephant", role: "FOLLOWER", tag: "DUMBO", icon: "🐘", color: "#ff70a6", desc: "Circus pink and gold starbursts with high-flying ear wave pulses." },
+    { id: 1, name: "The Train", role: "LEADER", tag: "CASEY JR.", icon: "🚂", color: "#ff5e3a", desc: "Pulls the parade & broadcasts ESP-NOW master sync clock. Tapping Button 1 triggers the fleet show!" },
+    { id: 2, name: "The Title Drum", role: "FOLLOWER", tag: "THE DRUM", icon: "🥁", color: "#f1e05a", desc: "Follows Casey Jr. with warm golden amber marquee borders and traveling waves." },
+    { id: 3, name: "The Spinning Turtle", role: "FOLLOWER", tag: "TURTLE", icon: "🐢", color: "#2ec4b6", desc: "Whimsical spinning shell spirals, blinking amber eyes, and teal/green glow." },
+    { id: 4, name: "The Spinning Snail", role: "FOLLOWER", tag: "SNAIL", icon: "🐌", color: "#ff007f", desc: "Rotating rainbow spiral wheels, neon antennae, and energetic spinning motion." },
+    { id: 5, name: "Pirate Ship", role: "FOLLOWER", tag: "PIRATE", icon: "🏴‍☠️", color: "#e63946", desc: "Jolly Roger red & gold battle sails, rolling emerald sea waves, and majestic galleon chaser." },
     { id: 6, name: "Pete's Dragon", role: "FOLLOWER", tag: "ELLIOTT", icon: "🐉", color: "#39ff14", desc: "Bright green dragon scales, violet spine accents, and fire-breath sweeps!" },
     { id: 7, name: "To Honor America", role: "FOLLOWER", tag: "FLAG & EAGLE", icon: "🦅", color: "#388bfd", desc: "Grand Finale Stars & Stripes patriotic waves, strobes, and fireworks." },
     { id: 0, name: "Generic / Auto Board", role: "GENERIC", tag: "HOTEL BOOT SELECT", icon: "🎲", color: "#bc8cff", desc: "Universal costume firmware. Remembers previous float ID or defaults to Float 2." }
@@ -19605,7 +19678,7 @@ const FLOAT_POWER_PROFILES = [
     { id: 2, name: "Title Drum", tag: "THE DRUM", color: "#f1e05a", baseMa: 620, showPeakMa: 1050 },
     { id: 3, name: "The Turtle", tag: "TURTLE", color: "#2ec4b6", baseMa: 660, showPeakMa: 1080 },
     { id: 4, name: "The Snail", tag: "SNAIL", color: "#ff007f", baseMa: 670, showPeakMa: 1090 },
-    { id: 5, name: "Cinderella", tag: "COACH", color: "#05d9e8", baseMa: 700, showPeakMa: 1100 },
+    { id: 5, name: "Pirate Ship", tag: "PIRATE", color: "#e63946", baseMa: 700, showPeakMa: 1100 },
     { id: 6, name: "Pete's Dragon", tag: "ELLIOTT", color: "#39ff14", baseMa: 720, showPeakMa: 1150 },
     { id: 7, name: "Flag & Eagle", tag: "PATRIOTIC", color: "#388bfd", baseMa: 780, showPeakMa: 1180 }
 ];
@@ -21792,9 +21865,11 @@ function getActiveFloatName() {
         'spinning_snail': "The Spinning Snail",
         'spinning_snail_simplified': "The Spinning Snail",
         'spinning_snail_original': "The Spinning Snail",
-        'cinderellas_coach': "Cinderella's Coach",
-        'cinderella_coach': "Cinderella's Coach",
-        'carriage_nohorses': "Cinderella's Carriage",
+        'pirate_ship': "The Pirate Ship",
+        'pirateshipsimple': "The Pirate Ship",
+        'cinderellas_coach': "The Pirate Ship",
+        'cinderella_coach': "The Pirate Ship",
+        'carriage_nohorses': "The Pirate Ship",
         'builtin_dragon': "Pete's Dragon",
         'petes_dragon': "Pete's Dragon",
         'honor_america_eagle': "Honor America Eagle",

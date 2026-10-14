@@ -669,9 +669,18 @@ def compile_plate_variant(variant_name, width_mm, height_mm, raw_leds, artwork_p
     is_snail = ('snail' in str(graphic_type).lower() or 'snail' in str(float_name).lower() or 'snail' in str(artwork_path).lower())
     is_drum = ('drum' in str(graphic_type).lower() or 'drum' in str(float_name).lower() or 'drum' in str(artwork_path).lower())
     is_train = ('train' in str(graphic_type).lower() or 'casey' in str(graphic_type).lower() or 'train' in str(float_name).lower() or 'train' in str(artwork_path).lower())
+    is_pirate = ('pirate' in str(graphic_type).lower() or 'pirate' in str(float_name).lower() or 'pirate' in str(artwork_path).lower())
 
     if raw_stl_colors and isinstance(raw_stl_colors, dict):
         stl_colors = raw_stl_colors
+    elif is_pirate:
+        stl_colors = {
+            'black': { 'name': 'Chassis, Hull & Rigging Accents', 'hex': '#141414', 'targetRgb': [20, 20, 20], 'role': 'chassis' },
+            'red': { 'name': 'Sails & Masthead Flag', 'hex': '#e61919', 'targetRgb': [230, 25, 25], 'role': 'inlay', 'filename': 'color_red.stl' },
+            'gold': { 'name': 'Bright Gold Masts & Trim', 'hex': '#ebb941', 'targetRgb': [235, 185, 65], 'role': 'inlay', 'filename': 'color_gold.stl' },
+            'dark_gold': { 'name': 'Antique Bronze Decks & Shading', 'hex': '#9b6914', 'targetRgb': [155, 105, 20], 'role': 'inlay', 'filename': 'color_dark_gold.stl' },
+            'green': { 'name': 'Ocean Waves & Sea Keel', 'hex': '#147332', 'targetRgb': [20, 115, 50], 'role': 'inlay', 'filename': 'color_green.stl' }
+        }
     elif is_train:
         stl_colors = {
             'black': { 'name': 'Chassis, Roof & Cab Windows', 'hex': '#141414', 'targetRgb': [20, 20, 20], 'role': 'chassis' },

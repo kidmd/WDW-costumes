@@ -30,7 +30,7 @@ This pocket-friendly field manual explains the complete dual-button control sche
 | **02** | **The Title Drum** | 🟡 Gold, White, Red | 👥 Follower | **Local Control Only:** Local wake, local photo mode, local sleep. Show cues locked to Leader. |
 | **03** | **The Turtle** | 🟢 Teal, Emerald, Warm White | 👥 Follower | **Local Control Only:** Local wake, local photo mode, local sleep. Show cues locked to Leader. |
 | **04** | **The Snail** | 🌸 Pink, Orange, Yellow | 👥 Follower | **Local Control Only:** Local wake, local photo mode, local sleep. Show cues locked to Leader. |
-| **05** | **Cinderella's Coach** | 🩵 Cyan, Pumpkin Gold, Pink | 👥 Follower | **Local Control Only:** Local wake, local photo mode, local sleep. Show cues locked to Leader. |
+| **05** | **The Pirate Ship** | 🏴‍☠️ Crimson Red, Antique Gold, Green | 👥 Follower | **Local Control Only:** Local wake, local photo mode, local sleep. Show cues locked to Leader. |
 | **06** | **Pete's Dragon (Elliott)** | 🟢 Emerald scales, Violet, Orange | 👥 Follower | **Local Control Only:** Local wake, local photo mode, local sleep. Show cues locked to Leader. |
 | **07** | **To Honor America** | 🔵 Patriotic Blue, White, Red | **🦅 CO-LEADER / REAR** | **Full Co-Leader Authority:** Commands rear pack if runners split during the race. |
 
@@ -55,7 +55,7 @@ This pocket-friendly field manual explains the complete dual-button control sche
 
 ---
 
-### 👥 Followers (**Floats 2 to 6**: Title Drum, Turtle, Snail, Cinderella, Pete's Dragon)
+### 👥 Followers (**Floats 2 to 6**: Title Drum, Turtle, Snail, Pirate Ship, Pete's Dragon)
 
 | Button & Gesture | Current State | What Happens | Visual / Serial Confirmation |
 | :--- | :--- | :--- | :--- |
@@ -128,7 +128,7 @@ stateDiagram-v2
 
 ### 🕓 4:15 AM — Starting Corral & Pre-Race Attendance Check
 1. Line up with the family in Float order:
-   - **01:** 🚂 Train $\rightarrow$ **02:** 🥁 Drum $\rightarrow$ **03:** 🐢 Turtle $\rightarrow$ **04:** 🐌 Snail $\rightarrow$ **05:** 🩵 Cinderella $\rightarrow$ **06:** 🐉 Dragon $\rightarrow$ **07:** 🦅 America
+   - **01:** 🚂 Train $\rightarrow$ **02:** 🥁 Drum $\rightarrow$ **03:** 🐢 Turtle $\rightarrow$ **04:** 🐌 Snail $\rightarrow$ **05:** 🏴‍☠️ Pirate Ship $\rightarrow$ **06:** 🐉 Dragon $\rightarrow$ **07:** 🦅 America
 2. **Leader Attendance Roll Call:** Float 1 double-taps **Button 1**.
    - Watch the wave ripple smoothly down the line from Float 1 to Float 7 (500ms per runner) and end with the double emerald green flash!
 3. **Pre-Race Castle/Epcot Photos:** Tap **Button 2** once.

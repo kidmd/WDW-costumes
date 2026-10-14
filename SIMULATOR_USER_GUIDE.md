@@ -118,9 +118,9 @@ The sidebar navigation is organized into a clean **2-row × 3-column grid** that
 
 1. **🎨 Tab 1: Layout ("The Canvas Studio"):**
    - **🎭 Active Parade Float Banner & 7-Shirt Quick Switcher:** Unmistakable banner at the very top of the Layout tab showing exactly which float is being edited: Float number (#01 to #07), character name, parade role (`👑 Fleet Leader (Broadcast)` / `📡 Follower Float`), signature accent color, and lineup tag.
-   - **⚡ 7-Button Float Switcher Grid:** Direct 1-click switcher buttons (`[ 1 ]` through `[ 7 ]`) featuring live glowing indicator dots in each float's signature color. Seamlessly switch between Casey Jr., Title Drum, Turtle, Snail, Cinderella's Coach, Pete's Dragon, and To Honor America with unsaved-change protection!
+   - **⚡ 7-Button Float Switcher Grid:** Direct 1-click switcher buttons (`[ 1 ]` through `[ 7 ]`) featuring live glowing indicator dots in each float's signature color. Seamlessly switch between Casey Jr., Title Drum, Turtle, Snail, Pirate Ship, Pete's Dragon, and To Honor America with unsaved-change protection!
    - **🏷️ Top Navigation & Canvas Watermark Badge:** The top navigation tab updates dynamically (`👕 Single Shirt (#6 Elliott)`), while a translucent floating watermark badge in the top-left canvas corner keeps the active float number and name clearly visible while positioning LEDs.
-   - **Float / Character Artwork Picker:** Unified dropdown allowing quick selection between the 7 official parade floats (including `assets/Simpletrain.png` for Float 1: The Train and `assets/SimpleSnail.png` for Float 4: The Snail as default 5-color transparent PNG graphics) or uploading custom graphics (PNG/SVG/JPG), with a one-click `🔄 Restore Preset Defaults` button when custom artwork is active.
+   - **Float / Character Artwork Picker:** Unified dropdown allowing quick selection between the 7 official parade floats (including `assets/Simpletrain.png` for Float 1: The Train, `assets/SimpleSnail.png` for Float 4: The Snail, and `assets/Pirateshipsimple.png` for Float 5: Pirate Ship as default 5-color transparent PNG graphics) or uploading custom graphics (PNG/SVG/JPG), with a one-click `🔄 Restore Preset Defaults` button when custom artwork is active.
    - **runDisney 10K Race Bib (#1952):** Toggle overlay, height, and scale sliders to verify physical clearance.
    - **💾 Save & Export Custom Profiles:** Dedicated section for naming and saving custom design tweaks to browser cache, exporting standalone JSON costume files, or importing existing configurations.
     - **🎛️ LED Count Slider (50–100 LEDs) & Manual Re-distribute Button:**
@@ -159,7 +159,7 @@ The sidebar navigation is organized into a clean **2-row × 3-column grid** that
        - `🌟 Pixie Dust Golden Amber`: Rich fantasy amber-gold starlight.
      - **Ambient Color Palette Mode:** Switch between 4 palette engines:
        - `🎨 Sampled Artwork Colors`: Default multi-color palette sampled directly from character artwork pixels.
-       - `🏰 Float Signature Theme Color`: Automatically tint the garment baseline to the float's official theme color (Casey Jr. Locomotive Red, Drum Gold, Turtle Shell Teal, Snail Magenta, Cinderella Sky Blue, Pete's Dragon Emerald, America Patriot Red/White/Blue).
+       - `🏰 Float Signature Theme Color`: Automatically tint the garment baseline to the float's official theme color (Casey Jr. Locomotive Red, Drum Gold, Turtle Shell Teal, Snail Magenta, Pirate Ship Crimson, Pete's Dragon Emerald, America Patriot Red/White/Blue).
        - `💡 Vintage Incandescent`: 2700K warm-white uniform wash replicating classical parade bulb strings.
        - `🎯 Custom Uniform Color`: User-selected uniform tint with live color picker.
      - **Hardware LED Output:** Hardware brightness slider strictly governed by FastLED hardware power limits (5V, 2000mA max).
@@ -553,8 +553,7 @@ Use the **Costume Graphic** dropdown in the Layout tab (Section 1) to instantly 
 - **🥁 Float 02: The Title Drum (`title_drum`):** Massive illuminated bass drum with amber chase rim and classic marquee lighting. Powered by a high-resolution transparent 5-color multi-material graphic asset (`assets/title_drum.png`) optimized for Bambu AMS 3D printing (Black chassis/drum face, Gold rim & text, Red body panels, Blue flags, and Green lead flag).
 - **🐢 Float 03: The Spinning Turtle (`spinning_turtle`):** Whimsical sea turtle with concentric spinning shell spiral and glowing fins.
 - **🐌 Float 04: The Spinning Snail (`spinning_snail`):** Colorful garden snail with multi-tier shell whorls, golden spiral & antennae, and red body (`assets/newsnail.png`, transparent RGBA PNG with all background elements removed).
-- **🎃 Float 05: Cinderella's Coach (`cinderellas_coach`):** Golden carriage outline with dual spinning wheels, pumpkin body, and royal lanterns.
-- **🎠 Float 05: Carriage (No Horses) (`carriage_nohorses`):** Focused Cinderella coach design with clean wheel arches, royal carriage frame, and dedicated 100-LED preset.
+- **🏴‍☠️ Float 05: The Pirate Ship (`pirate_ship`):** Billowing crimson sails, antique gold masts & decks, emerald ocean waves, and black hull. Powered by a high-resolution transparent 5-color multi-material graphic asset (`assets/Pirateshipsimple.png`) optimized for Bambu AMS 3D printing and Cricut HTV cutting.
 - **🐉 Float 06: Pete's Dragon (Elliott) (`builtin_dragon`):** Default 100-LED layout with emerald body scales, magenta hair crest, and incandescent starlight sparkles.
 - **🦅 Float 07: To Honor America (`honor_america_eagle`):** Grand patriotic eagle finale with sweeping red, white, and blue wing chases.
 
@@ -601,7 +600,7 @@ Production-ready layered vector SVG files for all 7 floats are included in `asse
 - **The Title Drum:** [`assets/cricut_svg/title_drum.svg`](assets/cricut_svg/title_drum.svg) (4 mats: Navy, Gold, Cyan, White)
 - **The Spinning Turtle:** [`assets/cricut_svg/spinning_turtle.svg`](assets/cricut_svg/spinning_turtle.svg) (4 mats: Teal, Yellow, Red, White)
 - **The Spinning Snail:** [`assets/cricut_svg/spinning_snail.svg`](assets/cricut_svg/spinning_snail.svg) (4 mats: Yellow, Pink, Cyan, White)
-- **Cinderella's Coach:** [`assets/cricut_svg/cinderella_coach.svg`](assets/cricut_svg/cinderella_coach.svg) (3 mats: Cyan, Gold, White)
+- **The Pirate Ship:** [`assets/cricut_svg/pirate_ship.svg`](assets/cricut_svg/pirate_ship.svg) (5 mats: Red, Light Gold, Dark Gold, Green, Black)
 - **Pete's Dragon (Elliott):** [`assets/cricut_svg/petes_dragon.svg`](assets/cricut_svg/petes_dragon.svg) (4 mats: Green, Pink, Orange, White)
 - **To Honor America (Flag & Eagle):** [`assets/cricut_svg/honor_america_eagle.svg`](assets/cricut_svg/honor_america_eagle.svg) (4 mats: Blue, Red, Gold, White)
 - **Interactive Visual Catalog:** Double-click [`assets/cricut_svg/cricut_catalog.html`](assets/cricut_svg/cricut_catalog.html) to inspect layers, preview specs, and download files.
@@ -706,7 +705,7 @@ The Master Timeline dynamically switches display and transport logic depending o
 
 ## 9. Parade Cue Director (Individual Float Standby Sequences)
 
-Located in **Tab 4 (`🎬 Show`)** of the left sidebar, the **Parade Cue Director** scripts the theatrical 90-second timeline for the **active individual float** (e.g., Casey Jr.'s locomotive puffing, Cinderella's pumpkin wheels spinning, or Elliott's dragon crest flames).
+Located in **Tab 4 (`🎬 Show`)** of the left sidebar, the **Parade Cue Director** scripts the theatrical 90-second timeline for the **active individual float** (e.g., Casey Jr.'s locomotive puffing, the Pirate Ship's billowing sail chase, or Elliott's dragon crest flames).
 
 > [!IMPORTANT]
 > **Individual Standby vs. Synchronized Fleet Routine:**
@@ -716,7 +715,7 @@ Located in **Tab 4 (`🎬 Show`)** of the left sidebar, the **Parade Cue Directo
 
 ### Structuring a Cue
 Click **➕ Add Cue** to create a new cue card with the following settings:
-- **Cue Name:** A custom theatrical label (e.g., `Carriage Wheels Spin`, `Snout Fire Breath`, or automatic `[Group Name] Routine`).
+- **Cue Name:** A custom theatrical label (e.g., `Billowing Sails Chase`, `Snout Fire Breath`, or automatic `[Group Name] Routine`).
 - **Target Layer:** Select either `🌐 Global Float` or any active animation group (e.g. `🎡 Group: Front Wheel`).
   - **Group Preset Inheritance:** When an animation group is selected in the Target Layer dropdown (or when clicking **`➕ Add Cue`** while a group is active), the cue automatically inherits the **Pattern / Effect**, **Direction**, and **BPM (Tempo)** configured when the group was created, saving setup time while still allowing you to freely change the effect in the dropdown!
 - **Pattern / Effect:** Select from the unified library of 16+ built-in lighting effects (see Section 10).
@@ -735,11 +734,11 @@ Use the **Load Example Routine** dropdown to test fully orchestrated 90-second s
   - `30.0s – 60.0s`: Phase 2: Theatrical Breathing Glow (Gentle breathing pulse)
   - `60.0s – 75.0s`: Phase 3: Dynamic Traveling Chase Beam (8-LED white chasing beam)
   - `75.0s – 90.0s`: Phase 4: Solo Electrical Parade Wave (Traveling wave on dim background)
-- **🎃 Cinderella 90s (Wheels & Lanterns):**
+- **🏴‍☠️ Pirate Ship 90s (Sails & Ocean Waves):**
   - `0.0s – 25.0s`: Opening Starlight Sparkle (Global baseline)
-  - `15.0s – 50.0s`: Carriage Wheels Spin (Group chase overlay)
-  - `25.0s – 65.0s`: Royal Carriage Breathing Glow (Warm golden float glow)
-  - `35.0s – 60.0s`: Carriage Lanterns Breathing Pulse (Group pulse overlay)
+  - `15.0s – 50.0s`: Crimson Billowing Sails Chase (Group chase overlay)
+  - `25.0s – 65.0s`: Emerald Ocean Wave Breathing Pulse (Group pulse overlay)
+  - `35.0s – 60.0s`: Golden Masthead Lantern Beacon (Mast sparkle overlay)
   - `60.0s – 90.0s`: Grand Finale Electrical Wave (Cascading electrical wave)
 - **🐉 Pete's Dragon 90s (Crest Flame & Snout):**
   - `0.0s – 30.0s`: Comic Starlight Sparkle
@@ -887,7 +886,7 @@ The simulator includes a dedicated **7-Shirt Fleet Show Creator & Preset Manager
 This feature coordinates costume profiles, LED mapping, and real-time animation synchronization across all 7 runners in the Main Street Electrical Parade fleet, while providing a powerful block-based choreography studio for authoring synchronized fleet routines.
 
 ### Baseline vs. One-Shot Fleet Routine Architecture
-- **Baseline Mode (Default):** All 7 shirts continuously run their own independent float programs and animation groups (e.g., Casey Jr's spinning wheels, Cinderella's pumpkin coach flourishes, Elliott's breathing crest, patriotic starbursts).
+- **Baseline Mode (Default):** All 7 shirts continuously run their own independent float programs and animation groups (e.g., Casey Jr's spinning wheels, Pirate Ship's billowing sails, Elliott's breathing crest, patriotic starbursts).
 - **One-Shot Fleet Routine Trigger:**
   - Clicking the prominent **"⚡ ACTIVATE 30s FLEET SHOW"** button (`#fleetShowActivateBtn`) or pressing the **`[Space]`** / **`[F]`** hotkeys triggers the synchronized fleet routine once.
   - The routine plays for its exact duration (e.g., 30.0 seconds), with a live phase countdown badge, active color pill indicator, and glowing canvas progress bar.
@@ -981,7 +980,7 @@ Each of the 7 runners is represented by a dedicated preset card and canvas athle
 | **1** | **02** | **The Title Drum** | `THE DRUM` | 🟡 Gold & White | `title_drum.svg` / `title_drum.json` |
 | **2** | **03** | **The Turtle** | `TURTLE` | 🟢 Teal & Emerald | `spinning_turtle.svg` / `spinning_turtle.json` |
 | **3** | **04** | **The Snail** | `SNAIL` | 🌸 Hot Pink & Magenta | `spinning_snail.svg` / `spinning_snail.json` |
-| **4** | **05** | **Cinderella's Coach** | `COACH` | 🔵 Cyan & Midnight | `cinderella_coach.svg` / `cinderellas_coach.json` |
+| **4** | **05** | **The Pirate Ship** | `PIRATE` | 🔴 Crimson & Gold | `pirate_ship.svg` / `pirate_ship.json` |
 | **5** | **06** | **Pete's Dragon** | `ELLIOTT` | 🟢 Emerald & Lime | `petes_dragon.svg` / `petes_dragon.json` |
 | **6** | **07** | **To Honor America** | `HONOR AMERICA` | 🔴⚪🔵 Patriotic Blue | `honor_america_eagle.svg` / `honor_america_eagle.json` |
 
@@ -1169,7 +1168,7 @@ To ensure that **no runner goes dark on course** during the runDisney 10K, the D
   - **Title Drum (#2):** 620 mA baseline (gold marquee chase, blue/red twinkle) / 1,050 mA show peak.
   - **The Turtle (#3):** 660 mA baseline (teal shell whirl, green rim) / 1,080 mA show peak.
   - **The Snail (#4):** 670 mA baseline (pink spiral swirl, yellow chase) / 1,090 mA show peak.
-  - **Cinderella's Coach (#5):** 700 mA baseline (cyan sparkle, golden wheels) / 1,100 mA show peak.
+  - **The Pirate Ship (#5):** 690 mA baseline (crimson sails, golden decks, emerald waves) / 1,100 mA show peak.
   - **Pete's Dragon (#6):** 720 mA baseline (emerald scales, violet spine, orange fire breath) / 1,150 mA show peak.
   - **Flag & Eagle (#7):** 780 mA baseline (patriotic red/white waves, blue starfield) / 1,180 mA show peak.
 - **Interactive Controls:**
@@ -1222,7 +1221,7 @@ Any board can be reassigned to any of the 7 floats in the corral without touchin
    - **0s – 1s:** Normal baseline operation.
    - **1s – 4s (Progressive Charging Meter):** Crisp white LEDs illuminate one-by-one at each second milestone (1s: 1 LED, 2s: 2 LEDs, 3s: 3 LEDs, 4s: 4 LEDs). If you let go at any point during this charging window, the hold is aborted and your shirt returns to normal baseline immediately without launching the show.
    - **5s (Threshold Reached):** The LEDs flash **white 3 times** to enter Float ID Config Mode.
-2. **Visual Feedback:** The first `N` LEDs on the strip light up in that float's signature color (1=Red, 2=Gold/Amber, 3=Teal, 4=Pink, 5=Cyan, 6=Green, 7=Patriotic Blue). The onboard blue LED blinks `N` times in sequence.
+2. **Visual Feedback:** The first `N` LEDs on the strip light up in that float's signature color (1=Red, 2=Gold/Amber, 3=Teal, 4=Pink, 5=Crimson/Gold, 6=Green, 7=Patriotic Blue). The onboard blue LED blinks `N` times in sequence.
 3. **Tap to Cycle:** Each short tap cycles `1 ➔ 2 ➔ 3 ➔ 4 ➔ 5 ➔ 6 ➔ 7 ➔ 1`.
 4. **Auto-Save:** Leave untouched for 4 seconds. The LEDs flash **green 4 times** and the Float ID is permanently saved to ESP32 NVS flash (`Preferences.h`). Floats 1 and 7 act as Leaders; Floats 2–6 act as Followers.
 
@@ -1233,7 +1232,7 @@ Any board can be reassigned to any of the 7 floats in the corral without touchin
 | **02** | **The Title Drum** | THE DRUM | 🟡 Gold / Amber | Follower |
 | **03** | **The Turtle** | SPINNING TURTLE | 🟢 Teal / Green | Follower |
 | **04** | **The Snail** | SPINNING SNAIL | 🌸 Pink | Follower |
-| **05** | **Cinderella's Coach** | CINDERELLA | 🔵 Cyan | Follower |
+| **05** | **The Pirate Ship** | PIRATE | 🔴 Crimson / Gold | Follower |
 | **06** | **Pete's Dragon** | ELLIOTT | 🟢 Green | Follower |
 | **07** | **To Honor America** | FLAG & EAGLE | 🔴⚪🔵 Patriotic Blue | **🦅 CO-LEADER / REAR MARSHAL** (Full show & standby authority) |
 
@@ -1246,7 +1245,7 @@ Soundtrack audio playback (e.g. Baroque Hoedown music synchronized via speakers)
 
 ### 🚀 Zero-Install Web Serial Fleet Flasher Suite (Floats 1–7)
 You can flash any runner's ESP32 directly from Google Chrome or Microsoft Edge with zero software installation:
-- **Dedicated Float Lineup Cards (1–7):** Select any character float (🚂 *Float 1: The Train*, 🥁 *Float 2: Title Drum*, 🩵 *Float 3: Cinderella*, 🏴‍☠️ *Float 4: Peter Pan*, 🐘 *Float 5: Dumbo*, 🐉 *Float 6: Pete's Dragon*, 🦅 *Float 7: To Honor America*, or *Generic Auto*).
+- **Dedicated Float Lineup Cards (1–7):** Select any character float (🚂 *Float 1: The Train*, 🥁 *Float 2: Title Drum*, 🐢 *Float 3: The Turtle*, 🐌 *Float 4: The Snail*, 🏴‍☠️ *Float 5: The Pirate Ship*, 🐉 *Float 6: Pete's Dragon*, 🦅 *Float 7: To Honor America*, or *Generic Auto*).
 - **Automatic Role Baking:** Flashing a dedicated float ROM permanently bakes that float's ID and role (👑 Master Leader vs 📡 Fleet Follower) into the ESP32's NVS flash memory on first boot.
 - **Fleet Tab Flasher Link:** Click **"⚡ Go to Flasher ➔"** in the Fleet Show Creator toolbar to smoothly jump straight to the Deploy Tab's unified flashing station for the active float.
 - **Deploy & Hardware Tab Unified Flashing Station:** The Deploy tab flasher features an active float banner, 7 quick-switch buttons, and a dynamic action button (**"⚡ Flash Float X: [Float Name] to ESP32 (USB)"**) adhering strictly to the WYSIWYG ("What You See Is What You Flash") paradigm.

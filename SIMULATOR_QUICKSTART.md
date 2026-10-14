@@ -41,7 +41,7 @@ Make sure you are on **Tab 1: Single View** (at the top). Look at **Section 1: F
 
 - **Option A — Use a Pre-Built Float Preset (Easiest):**
   1. Click the **Float Preset** dropdown.
-  2. Pick any of our 7 parade floats (*The Train / Casey Jr.*, *Title Drum*, *The Turtle*, *The Snail*, *Cinderella's Coach*, *Pete's Dragon*, or *To Honor America*).
+  2. Pick any of our 7 parade floats (*The Train / Casey Jr.*, *Title Drum*, *The Turtle*, *The Snail*, *The Pirate Ship*, *Pete's Dragon*, or *To Honor America*).
   3. The artwork loads automatically, perfectly sized above the official #1952 race bib, with 100 color-matched LEDs already positioned!
 - **Option B — Upload Your Own Graphic:**
   1. In the preset dropdown, select **"Upload Custom Artwork Image"**.

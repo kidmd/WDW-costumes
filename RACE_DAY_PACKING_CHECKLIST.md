@@ -23,7 +23,7 @@
   - [ ] 🥁 **Float 2 (Follower - The Title Drum):** Flashed via `manifest_float2.json`.
   - [ ] 🐢 **Float 3 (Follower - The Spinning Turtle):** Flashed via `manifest_float3.json`.
   - [ ] 🐌 **Float 4 (Follower - The Spinning Snail):** Flashed via `manifest_float4.json`.
-  - [ ] 🩵 **Float 5 (Follower - Cinderella's Coach):** Flashed via `manifest_float5.json`.
+  - [ ] 🏴‍☠️ **Float 5 (Follower - Pirate Ship):** Flashed via `manifest_float5.json`.
   - [ ] 🐉 **Float 6 (Follower - Pete's Dragon):** Flashed via `manifest_float6.json`.
   - [ ] 🦅 **Float 7 (Follower - To Honor America):** Flashed via `manifest_float7.json`.
 - [ ] **3 Spare / Backup ESP32 Boards:**
