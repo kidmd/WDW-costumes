@@ -35,7 +35,7 @@
     "color": "#2ec4b6",
     "accent": "Teal",
     "role": "\ud83d\udce1 Follower Float",
-    "preset": "server:spinning_turtle_100-led_vibrant_preset_2026-10-13_02-54.json",
+    "preset": "local:Spinning Turtle 100-LED Vibrant Preset 2026-10-13 02-54",
     "defaultGraphic": "spinning_turtle"
   },
   {
@@ -54,13 +54,13 @@
   {
     "slot": 4,
     "num": "05",
-    "icon": "🏴‍☠️",
+    "icon": "\ud83c\udff4\u200d\u2620\ufe0f",
     "fullName": "The Pirate Ship",
     "name": "Pirate Ship",
     "tag": "PIRATE",
     "color": "#e63946",
-    "accent": "Red",
-    "role": "📡 Follower Float",
+    "accent": "Cyan",
+    "role": "\ud83d\udce1 Follower Float",
     "preset": "server:pirate_ship.json",
     "defaultGraphic": "pirate_ship"
   },
@@ -74,7 +74,7 @@
     "color": "#00ff88",
     "accent": "Green",
     "role": "\ud83d\udce1 Follower Float",
-    "preset": "server:petes_dragon.json",
+    "preset": "local:Pete's Dragon Chris 2026-10-13 02-57",
     "defaultGraphic": "builtin_dragon"
   },
   {

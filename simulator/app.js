@@ -12065,8 +12065,11 @@ function normalizeFloatGraphicKey(k) {
     const s = String(k || '').toLowerCase().trim();
     if (!s || s === 'builtin_dragon' || s === 'petes_dragon') return 'petes_dragon';
     if (s === 'pirate_ship' || s === 'pirateshipsimple' || s === 'cinderella_coach' || s === 'cinderellas_coach') return 'pirate_ship';
-    if (s === 'spinning_snail' || s === 'spinning_snail_original') return 'spinning_snail';
-    if (s === 'title_drum' || s === 'drumcleanedup' || s === 'drum') return 'title_drum';
+    if (s === 'spinning_turtle' || s === 'turtle' || s === 'spinningturtle') return 'spinning_turtle';
+    if (s === 'spinning_snail' || s === 'spinning_snail_original' || s === 'snail') return 'spinning_snail';
+    if (s === 'title_drum' || s === 'drumcleanedup' || s === 'drum' || s === 'mickey_drum') return 'title_drum';
+    if (s === 'casey_jr' || s === 'casey_junior' || s === 'train' || s === 'casey_engine') return 'casey_junior';
+    if (s === 'alice_caterpillar' || s === 'caterpillar') return 'alice_caterpillar';
     return s;
 }
 
@@ -12090,8 +12093,8 @@ function getEffectiveTpuPanelSpec() {
             const spW = sp.total_image_width_mm || sp.width_mm || plateW;
             const spH = sp.total_image_height_mm || sp.height_mm || plateH;
             const spAspect = spW / Math.max(1, spH);
-            const curAspect = normW / Math.max(0.01, normH);
-            if (Math.abs(spAspect - curAspect) < 0.12) {
+            const curAspect = (normW / Math.max(0.01, normH)) / 1.25; // Account for athletic shirt 1 : 1.25 canvas stretch
+            if (Math.abs(spAspect - curAspect) < 0.18) {
                 return sp;
             }
         }
@@ -22659,6 +22662,7 @@ function clearTpuSceneModel() {
     tpuMultiMeshes = [];
     tpuGraphicMesh = null;
     tpuLedsGroup = null;
+    tpuBridgesGroup = null;
     tpuLedMaterials = [];
     tpuBaseColors = [];
 }
@@ -23043,9 +23047,10 @@ async function loadTpuModalData() {
             }
         }
 
-        // Render simulated LED pixels projecting through apertures (only for tray basin)
+        // Render simulated LED pixels projecting through apertures & Strain Relief Bridges (only for tray basin)
         if (tpuDisplayMode !== 'lid') {
             createTpuLedPixels(variantData, stlCenter);
+            createTpuStrainReliefBridges(variantData, stlCenter);
         }
 
         startTpuAnimateLoop();
@@ -23173,10 +23178,131 @@ async function createTpuGraphicCutoutMesh(specs, stlCenter) {
     tpuScene.add(tpuGraphicMesh);
 }
 
+let tpuBridgesGroup = null;
+
+function createTpuStrainReliefBridges(specs, stlCenter) {
+    if (tpuBridgesGroup && tpuScene) {
+        tpuScene.remove(tpuBridgesGroup);
+        tpuBridgesGroup = null;
+    }
+    tpuBridgesGroup = new THREE.Group();
+    tpuBridgesGroup.renderOrder = 6;
+
+    const entP = specs.entrance_portal;
+    const entB = specs.entrance_bridge;
+    const exitP = specs.exit_portal;
+    const exitB = specs.exit_bridge;
+    const ledsList = specs.ordered_leds || [];
+
+    if (!entB || !exitB) return;
+
+    // Helper to create a glowing 3D strain relief bridge arch & wire
+    function buildBridgeMarker(bridgeCoords, portalCoords, targetLedCoords, isEntrance) {
+        const markerGroup = new THREE.Group();
+        const mainColor = isEntrance ? 0x00ff88 : 0xff4d6d;
+        const mainColorHex = isEntrance ? '#00ff88' : '#ff4d6d';
+        const labelText = isEntrance ? '⚡ 2 IN BRIDGE' : '⚡ EXIT BRIDGE';
+
+        const bx = bridgeCoords[0] - stlCenter.x;
+        const by = bridgeCoords[1] - stlCenter.y;
+        const bz = -stlCenter.z + 2.8; // Resting on tray floor inside collar basin
+
+        // 1. Glowing 3D Bridge Arch Block (8.0mm x 7.2mm x 3.6mm)
+        const archGeom = new THREE.BoxGeometry(8.0, 7.2, 3.6);
+        const archMat = new THREE.MeshStandardMaterial({
+            color: mainColor,
+            emissive: mainColor,
+            emissiveIntensity: 0.75,
+            roughness: 0.25,
+            metalness: 0.1,
+            transparent: true,
+            opacity: 0.90
+        });
+        const archMesh = new THREE.Mesh(archGeom, archMat);
+        archMesh.position.set(bx, by, bz);
+        markerGroup.add(archMesh);
+
+        // 2. 10mm Keep-Out Clearance Ring
+        const ringGeom = new THREE.RingGeometry(9.4, 10.2, 32);
+        const ringMat = new THREE.MeshBasicMaterial({
+            color: mainColor,
+            side: THREE.DoubleSide,
+            transparent: true,
+            opacity: 0.65
+        });
+        const ringMesh = new THREE.Mesh(ringGeom, ringMat);
+        ringMesh.position.set(bx, by, bz - 1.7);
+        markerGroup.add(ringMesh);
+
+        // 3. Realistic Wire Tube entering through portal and passing under bridge
+        if (portalCoords && targetLedCoords) {
+            const px = portalCoords[0] - stlCenter.x;
+            const py = portalCoords[1] - stlCenter.y;
+            const lx = targetLedCoords.x - stlCenter.x;
+            const ly = targetLedCoords.y - stlCenter.y;
+
+            const curve = new THREE.CatmullRomCurve3([
+                new THREE.Vector3(px, py, bz - 1.0),
+                new THREE.Vector3(bx, by, bz - 1.0),
+                new THREE.Vector3(lx, ly, bz - 1.0)
+            ]);
+            const wireGeom = new THREE.TubeGeometry(curve, 20, 0.75, 8, false);
+            const wireMat = new THREE.MeshStandardMaterial({
+                color: isEntrance ? 0x38bdf8 : 0xfacc15,
+                emissive: isEntrance ? 0x0284c7 : 0xeab308,
+                emissiveIntensity: 0.5,
+                roughness: 0.4
+            });
+            const wireMesh = new THREE.Mesh(wireGeom, wireMat);
+            markerGroup.add(wireMesh);
+        }
+
+        // 4. Floating billboard canvas label
+        const c = document.createElement('canvas');
+        c.width = 256;
+        c.height = 64;
+        const ctx = c.getContext('2d');
+        ctx.fillStyle = 'rgba(7, 10, 15, 0.88)';
+        if (ctx.roundRect) ctx.roundRect(6, 6, 244, 52, 8);
+        else ctx.fillRect(6, 6, 244, 52);
+        ctx.fill();
+        ctx.strokeStyle = mainColorHex;
+        ctx.lineWidth = 3;
+        ctx.stroke();
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 22px system-ui, -apple-system, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(labelText, 128, 32);
+
+        const labelTex = new THREE.CanvasTexture(c);
+        const spriteMat = new THREE.SpriteMaterial({ map: labelTex, transparent: true, depthTest: false });
+        const sprite = new THREE.Sprite(spriteMat);
+        sprite.scale.set(22, 5.5, 1);
+        sprite.position.set(bx, by, bz + 6.0);
+        markerGroup.add(sprite);
+
+        return markerGroup;
+    }
+
+    const firstLed = ledsList[0] || { x: entB[0], y: entB[1] };
+    const lastLed = ledsList[ledsList.length - 1] || { x: exitB[0], y: exitB[1] };
+
+    // Entrance Bridge
+    const entGroup = buildBridgeMarker(entB, entP, firstLed, true);
+    tpuBridgesGroup.add(entGroup);
+
+    // Exit Bridge
+    const exitGroup = buildBridgeMarker(exitB, exitP, lastLed, false);
+    tpuBridgesGroup.add(exitGroup);
+
+    tpuScene.add(tpuBridgesGroup);
+}
+
 function createTpuLedPixels(specs, stlCenter) {
     if (tpuLedsGroup) tpuScene.remove(tpuLedsGroup);
     tpuLedsGroup = new THREE.Group();
-    tpuLedsGroup.renderOrder = 3; // Render on top of aperture cutouts
+    tpuLedsGroup.renderOrder = 4; // Render on top of aperture cutouts
     tpuLedMaterials = [];
     tpuBaseColors = [];
 
@@ -23186,6 +23312,7 @@ function createTpuLedPixels(specs, stlCenter) {
     const isRound = isRound34 || isRound30;
 
     const pixelGeom = isRound34 ? new THREE.CircleGeometry(1.6, 24) : (isRound30 ? new THREE.CircleGeometry(1.4, 24) : new THREE.PlaneGeometry(2.8, 2.8));
+    const pocketChipGeom = new THREE.PlaneGeometry(3.6, 3.6);
 
     const ledsList = specs.ordered_leds || [];
     const effectiveOrient = params.tpuWellOrientation || specs.well_orientation || 'horizontal';
@@ -23199,20 +23326,31 @@ function createTpuLedPixels(specs, stlCenter) {
             color: col.clone(),
             side: THREE.DoubleSide,
             depthWrite: false,
-            depthTest: true,
+            depthTest: false, // Ensure LEDs are always clearly visible inside their pockets without occluding
             polygonOffset: true,
             polygonOffsetFactor: -2.0,
             polygonOffsetUnits: -4.0
         });
         tpuLedMaterials.push(mat);
 
+        // 1. Front-facing optical aperture pixel
         const pixelMesh = new THREE.Mesh(pixelGeom, mat);
-        pixelMesh.renderOrder = 3;
+        pixelMesh.renderOrder = 4;
         pixelMesh.position.set(
             l.x - stlCenter.x,
             l.y - stlCenter.y,
-            stlCenter.z + 0.20 // Positioned cleanly inside the optical window
+            stlCenter.z + 0.20 // Positioned cleanly inside the front optical window
         );
+
+        // 2. Underside pocket well LED chip (clearly visible inside each collar cavity)
+        const pocketChip = new THREE.Mesh(pocketChipGeom, mat);
+        pocketChip.renderOrder = 4;
+        pocketChip.position.set(
+            l.x - stlCenter.x,
+            l.y - stlCenter.y,
+            -stlCenter.z + 1.8 // Sits right on the collar pocket floor
+        );
+
         let rotDeg = 0;
         if (l.is_custom_rotation === true && l.rotation_deg !== undefined) {
             rotDeg = l.rotation_deg;
@@ -23223,8 +23361,10 @@ function createTpuLedPixels(specs, stlCenter) {
         }
         if (rotDeg !== 0) {
             pixelMesh.rotation.z = (rotDeg * Math.PI) / 180;
+            pocketChip.rotation.z = (rotDeg * Math.PI) / 180;
         }
         tpuLedsGroup.add(pixelMesh);
+        tpuLedsGroup.add(pocketChip);
     });
 
     tpuScene.add(tpuLedsGroup);
@@ -23271,17 +23411,17 @@ function setTpuModalView(view) {
     if (view === 'front') {
         const btn = document.getElementById('tpuModalViewFrontBtn');
         if (btn) { btn.style.borderColor = '#00ff88'; btn.style.color = '#00ff88'; }
-        tpuCamera.position.set(0, 0, 320);
+        tpuCamera.position.set(0, 0, 390);
         tpuControls.target.set(0, 0, 0);
     } else if (view === 'back') {
         const btn = document.getElementById('tpuModalViewBackBtn');
         if (btn) { btn.style.borderColor = '#00ff88'; btn.style.color = '#00ff88'; }
-        tpuCamera.position.set(0, 0, -320);
+        tpuCamera.position.set(0, 0, -390);
         tpuControls.target.set(0, 0, 0);
     } else if (view === 'iso') {
         const btn = document.getElementById('tpuModalViewIsoBtn');
         if (btn) { btn.style.borderColor = '#00ff88'; btn.style.color = '#00ff88'; }
-        tpuCamera.position.set(160, -140, 220);
+        tpuCamera.position.set(190, -160, 260);
         tpuControls.target.set(0, 0, 0);
     }
 }

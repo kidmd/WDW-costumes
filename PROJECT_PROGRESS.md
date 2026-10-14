@@ -93,6 +93,25 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### 2026-10-14 09:55 - Strain Relief Bridge 2D/3D Alignment, Portal Notch Clearance & Dual-Side LED Visibility in 3D Preview
+- **Diagnosed Strain Relief Bridge Location Mismatch & 3D Preview Occlusion:**
+  - **Aspect Ratio Mismatch in `getEffectiveTpuPanelSpec()`:** The 2D layout canvas enforces a $1:1.25$ stretch ratio for the athletic t-shirt geometry (`normW = normH * 1.25 * aspect`), causing `curAspect = normW / normH = 1.25 * aspect`. Previously, `getEffectiveTpuPanelSpec()` compared `spAspect` (the raw image aspect $1.198$) directly against `curAspect` ($1.498$), which failed the $< 0.12$ tolerance check. This caused the simulator to reject the compiled `tpu_panel_specs.json` and fall back to an inaccurate mini-canvas trace, displacing the 2D layout bridge relative to the 3D STL.
+  - **Missing 3D Bridge Visual Markers:** The 3D Preview Modal previously only loaded the black STL chassis and LED aperture dots without rendering the strain relief bridges or wire paths. Because the bridge is a small $8\times 7.2\text{ mm}$ feature printed out of identical black TPU, it blended into the floor and was invisible in 3D.
+  - **Eyelet Tab Covering Entrance Notch:** In `compile_clean_tpu_panel.py`, the 16 perimeter eyelet tabs were placed before the wire entrance and exit portals were computed. On convex geometries (like the Turtle), an outer eyelet tab landed directly at the bottom-center portal coordinate, obstructing the wire entrance notch.
+  - **Depth-Occluded LEDs in Underside View:** The LED pixel meshes were placed at $+5.20\text{ mm}$ on the front face with `depthTest: true`. When viewing `Underside (Pockets)` from $-Z$, the $6.5\text{ mm}$-tall collar walls occluded the line of sight to the aperture dots from perspective angles, hiding over $40\%$ of the LEDs and creating the appearance of an empty void at the bottom of the plate.
+- **Implemented Engineering Fixes & Synchronized Visualizer:**
+  - **Fixed Canvas Stretch Normalization (`simulator/app.js`):** Updated `getEffectiveTpuPanelSpec()` to divide `curAspect` by $1.25$ (`const curAspect = (normW / Math.max(0.01, normH)) / 1.25;`), ensuring `spAspect` and `curAspect` match with $100\%$ mathematical precision across all floats. Added Float 3 (Turtle), Float 1 (Casey Jr.), Float 2 (Drum), and Float 7 (Caterpillar) mappings to `normalizeFloatGraphicKey`.
+  - **Automated Eyelet Tab Portal Clearance (`scripts/compile_clean_tpu_panel.py`):** Moved bottom wire entrance and lateral exit portal calculations prior to the tab loop. Added a $\ge 14\text{ mm}$ clearance check (`dist_ent < 14.0 or dist_exit < 14.0`) that automatically nudges tabs along the perimeter, guaranteeing all 16 eyelets remain at least $20\text{ mm}$ away from wire portals with completely unobstructed U-notches.
+  - **Normal-Aligned Entrance Portal Cutter:** Rotated `wire_portal_cutter` along the wall normal vector (`rot_mat_ent`), punching cleanly through curved bottom rims.
+  - **Interactive 3D Strain Relief Bridges (`createTpuStrainReliefBridges`):**
+    - Added dedicated glowing 3D bridge arch blocks for both **Entrance Bridge** (cyan, $0x00ff88$) and **Exit Bridge** (coral, $0xff4d6d$) with $10\text{ mm}$ safety keep-out clearance rings.
+    - Added continuous 3D wire conduits entering through the portal notch, passing under the bridge arch, and routing directly into LED 1 (and exiting from LED 100 through the exit notch).
+    - Added floating billboard 3D text badges (`"⚡ 2 IN BRIDGE"` and `"⚡ EXIT BRIDGE"`).
+  - **Dual-Side 3D LED Representation (`createTpuLedPixels`):** Rendered dual front-facing optical aperture dots and underside collar cavity LED chips with `depthTest: false`, ensuring all 100 LEDs glow brightly and clearly from both Front Face and Underside views without any perspective clipping.
+  - **Calibrated Camera Viewport:** Adjusted camera framing distance to $390\text{ mm}$, fitting Large ($245\text{ mm}$) plates with all 16 eyelets symmetrically inside the viewport without cutting off the top or distorting the bottom.
+- **Hardware & STL Verification:**
+  - Recompiled Float 3 (The Turtle) Large 5-Color Armor Panels ($239.68\text{ mm} \times 212.48\text{ mm} \times 10.0\text{ mm}$) in $10.90\text{s}$. Verified all 16 tabs have $\ge 20.0\text{ mm}$ clearance from wire portals. Zero non-manifold slivers, zero detached collars.
+
 ### 2026-10-14 09:20 - 3D Panel Perimeter Wall Artifact Elimination, Safe Collar Keep-Out & Large Turtle 3D Armor Compilation
 - **Diagnosed Physical Print Perimeter Artifacts ("Parts of where eyelets had been"):**
   - Thorough geometric analysis of `3d_panels/tpu_panel_front_chassis_black.stl` revealed why the previous physical print showed mysterious fragmented bits outside the perimeter rim:

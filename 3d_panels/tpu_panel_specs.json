@@ -1,8 +1,8 @@
 {
   "character": "The Turtle 3D Wearable TPU Armor Panels",
   "float_name": "The Turtle",
-  "float_index": 3,
-  "aspect": 1.1980932203389831,
+  "float_index": 2,
+  "aspect": 1.1976608187134503,
   "artwork_file": "active_artwork.png",
   "graphic_type": "spinning_turtle",
   "window_shape": "round_34",
@@ -10,4204 +10,6 @@
   "include_led_numbers": true,
   "include_clip_grooves": false,
   "include_top_nubs": true,
-  "size_preset": "large",
-  "width_mm": 295.57,
-  "front": {
-    "variant": "front",
-    "width_mm": 295.57,
-    "height_mm": 246.71,
-    "panel_width_mm": 235.32,
-    "panel_height_mm": 202.82,
-    "total_image_width_mm": 295.57,
-    "total_image_height_mm": 246.71,
-    "window_shape": "round_34",
-    "well_orientation": "horizontal",
-    "ordered_leds": [
-      {
-        "id": 1,
-        "orig_id": 0,
-        "x": 160.08,
-        "y": 47.11,
-        "is_custom_rotation": false,
-        "rotation_deg": 0.0,
-        "color": {
-          "r": 41,
-          "g": 237,
-          "b": 109
-        }
-      },
-      {
-        "id": 2,
-        "orig_id": 1,
-        "x": 143.04,
-        "y": 33.59,
-        "is_custom_rotation": false,
-        "rotation_deg": 0.0,
-        "color": {
-          "r": 47,
-          "g": 126,
-          "b": 238
-        }
-      },
-      {
-        "id": 3,
-        "orig_id": 2,
-        "x": 124.97,
-        "y": 39.26,
-        "is_custom_rotation": false,
-        "rotation_deg": 0.0,
-        "color": {
-          "r": 49,
-          "g": 123,
-          "b": 233
-        }
-      },
-      {
-        "id": 4,
-        "orig_id": 3,
-        "x": 110.82,
-        "y": 49.36,
-        "is_custom_rotation": false,
-        "rotation_deg": 0.0,
-        "color": {
-          "r": 255,
-          "g": 211,
-          "b": 3
-        }
-      },
-      {
-        "id": 5,
-        "orig_id": 4,
-        "x": 105.38,
-        "y": 35.37,
-        "is_custom_rotation": false,
-        "rotation_deg": 0.0,
-        "color": {
-          "r": 48,
-          "g": 126,
-          "b": 237
-        }
-      },
-      {
-        "id": 6,
-        "orig_id": 5,
-        "x": 86.17,
-        "y": 39.52,
-        "is_custom_rotation": false,
-        "rotation_deg": 0.0,
-        "color": {
-          "r": 50,
-          "g": 126,
-          "b": 237
-        }
-      },
-      {
-        "id": 7,
-        "orig_id": 6,
-        "x": 86.63,
-        "y": 53.58,
-        "is_custom_rotation": false,
-        "rotation_deg": 0.0,
-        "color": {
-          "r": 50,
-          "g": 233,
-          "b": 222
-        }
-      },
-      {
-        "id": 8,
-        "orig_id": 7,
-        "x": 83.83,
-        "y": 67.71,
-        "is_custom_rotation": false,
-        "rotation_deg": 0.0,
-        "color": {
-          "r": 251,
-          "g": 3,
-          "b": 3
-        }
-      },
-      {
-        "id": 9,
-        "orig_id": 8,
-        "x": 81.94,
-        "y": 81.77,
-        "is_custom_rotation": false,
-        "rotation_deg": 0.0,
-        "color": {
-          "r": 254,
-          "g": 10,
-          "b": 0
-        }
-      },
-      {
-        "id": 10,
-        "orig_id": 9,
-        "x": 83.36,
-        "y": 95.76,
-        "is_custom_rotation": false,
-        "rotation_deg": 0.0,
-        "color": {
-          "r": 254,
-          "g": 8,
-          "b": 0
-        }
-      },
-      {
-        "id": 11,
-        "orig_id": 10,
-        "x": 83.79,
-        "y": 109.76,
-        "is_custom_rotation": false,
-        "rotation_deg": 0.0,
-        "color": {
-          "r": 252,
-          "g": 212,
-          "b": 9
-        }
-      },
-      {
-        "id": 12,
-        "orig_id": 11,
-        "x": 76.13,
-        "y": 123.62,
-        "is_custom_rotation": false,
-        "rotation_deg": 0.0,
-        "color": {
-          "r": 254,
-          "g": 10,
-          "b": 0
-        }
-      },
-      {
-        "id": 13,
-        "orig_id": 12,
-        "x": 69.05,
-        "y": 137.55,
-        "is_custom_rotation": false,
-        "rotation_deg": 0.0,
-        "color": {
-          "r": 255,
-          "g": 211,
-          "b": 2
-        }
-      },
-      {
-        "id": 14,
-        "orig_id": 13,
-        "x": 58.65,
-        "y": 150.48,
-        "is_custom_rotation": false,
-        "rotation_deg": 0.0,
-        "color": {
-          "r": 240,
-          "g": 169,
-          "b": 51
-        }
-      },
-      {
-        "id": 15,
-        "orig_id": 14,
-        "x": 49.26,
-        "y": 164.01,
-        "is_custom_rotation": false,
-        "rotation_deg": 0.0,
-        "color": {
-          "r": 239,
-          "g": 186,
-          "b": 51
-        }
-      },
-      {
-        "id": 16,
-        "orig_id": 15,
-        "x": 61.77,
-        "y": 176.68,
-        "is_custom_rotation": false,
-        "rotation_deg": 0.0,
-        "color": {
-          "r": 248,
-          "g": 206,
-          "b": 23
-        }
-      },
-      {
-        "id": 17,
-        "orig_id": 16,
-        "x": 51.36,
-        "y": 189.69,
-        "is_custom_rotation": false,
-        "rotation_deg": 0.0,
-        "color": {
-          "r": 239,
-          "g": 164,
-          "b": 51
-        }
-      },
-      {
-        "id": 18,
-        "orig_id": 17,
-        "x": 70.27,
-        "y": 194.57,
-        "is_custom_rotation": false,
-        "rotation_deg": 0.0,
-        "color": {
-          "r": 255,
-          "g": 211,
-          "b": 2
-        }
-      },
-      {
-        "id": 19,
-        "orig_id": 18,
-        "x": 85.33,
-        "y": 203.09,
-        "is_custom_rotation": false,
-        "rotation_deg": 0.0,
-        "color": {
-          "r": 255,
-          "g": 210,
-          "b": 2
-        }
-      },
-      {
-        "id": 20,
-        "orig_id": 19,
-        "x": 89.28,
-        "y": 188.3,
-        "is_custom_rotation": false,
-        "rotation_deg": 0.0,
-        "color": {
-          "r": 255,
-          "g": 210,
-          "b": 2
-        }
-      },
-      {
-        "id": 21,
-        "orig_id": 20,
-        "x": 82.36,
-        "y": 174.36,
-        "is_custom_rotation": false,
-        "rotation_deg": 0.0,
-        "color": {
-          "r": 255,
-          "g": 211,
-          "b": 2
-        }
-      },
-      {
-        "id": 22,
-        "orig_id": 21,
-        "x": 69.85,
-        "y": 162.96,
-        "is_custom_rotation": false,
-        "rotation_deg": 0.0,
-        "color": {
-          "r": 237,
-          "g": 188,
-          "b": 50
-        }
-      },
-      {
-        "id": 23,
-        "orig_id": 22,
-        "x": 80.52,
-        "y": 149.89,
-        "is_custom_rotation": false,
-        "rotation_deg": 0.0,
-        "color": {
-          "r": 255,
-          "g": 211,
-          "b": 2
-        }
-      },
-      {
-        "id": 24,
-        "orig_id": 23,
-        "x": 89.55,
-        "y": 134.3,
-        "is_custom_rotation": false,
-        "rotation_deg": 0.0,
-        "color": {
-          "r": 255,
-          "g": 212,
-          "b": 3
-        }
-      },
-      {
-        "id": 25,
-        "orig_id": 24,
-        "x": 97.05,
-        "y": 120.38,
-        "is_custom_rotation": false,
-        "rotation_deg": 0.0,
-        "color": {
-          "r": 255,
-          "g": 211,
-          "b": 3
-        }
-      },
-      {
-        "id": 26,
-        "orig_id": 25,
-        "x": 109.5,
-        "y": 132.06,
-        "is_custom_rotation": false,
-        "rotation_deg": 0.0,
-        "color": {
-          "r": 43,
-          "g": 123,
-          "b": 238
-        }
-      },
-      {
-        "id": 27,
-        "orig_id": 26,
-        "x": 100.37,
-        "y": 146.98,
-        "is_custom_rotation": false,
-        "rotation_deg": 0.0,
-        "color": {
-          "r": 255,
-          "g": 209,
-          "b": 2
-        }
-      },
-      {
-        "id": 28,
-        "orig_id": 27,
-        "x": 95.35,
-        "y": 160.98,
-        "is_custom_rotation": false,
-        "rotation_deg": 0.0,
-        "color": {
-          "r": 240,
-          "g": 157,
-          "b": 51
-        }
-      },
-      {
-        "id": 29,
-        "orig_id": 28,
-        "x": 102.53,
-        "y": 174.89,
-        "is_custom_rotation": false,
-        "rotation_deg": 0.0,
-        "color": {
-          "r": 50,
-          "g": 141,
-          "b": 234
-        }
-      },
-      {
-        "id": 30,
-        "orig_id": 29,
-        "x": 116.47,
-        "y": 184.8,
-        "is_custom_rotation": false,
-        "rotation_deg": 0.0,
-        "color": {
-          "r": 255,
-          "g": 211,
-          "b": 2
-        }
-      },
-      {
-        "id": 31,
-        "orig_id": 30,
-        "x": 129.36,
-        "y": 173.45,
-        "is_custom_rotation": false,
-        "rotation_deg": 0.0,
-        "color": {
-          "r": 49,
-          "g": 136,
-          "b": 233
-        }
-      },
-      {
-        "id": 32,
-        "orig_id": 31,
-        "x": 115.36,
-        "y": 163.61,
-        "is_custom_rotation": false,
-        "rotation_deg": 0.0,
-        "color": {
-          "r": 255,
-          "g": 211,
-          "b": 2
-        }
-      },
-      {
-        "id": 33,
-        "orig_id": 32,
-        "x": 120.22,
-        "y": 149.68,
-        "is_custom_rotation": false,
-        "rotation_deg": 0.0,
-        "color": {
-          "r": 50,
-          "g": 122,
-          "b": 235
-        }
-      },
-      {
-        "id": 34,
-        "orig_id": 33,
-        "x": 136.54,
-        "y": 142.69,
-        "is_custom_rotation": false,
-        "rotation_deg": 0.0,
-        "color": {
-          "r": 24,
-          "g": 242,
-          "b": 68
-        }
-      },
-      {
-        "id": 35,
-        "orig_id": 34,
-        "x": 129.36,
-        "y": 128.76,
-        "is_custom_rotation": false,
-        "rotation_deg": 0.0,
-        "color": {
-          "r": 43,
-          "g": 123,
-          "b": 238
-        }
-      },
-      {
-        "id": 36,
-        "orig_id": 35,
-        "x": 135.8,
-        "y": 112.46,
-        "is_custom_rotation": false,
-        "rotation_deg": 0.0,
-        "color": {
-          "r": 44,
-          "g": 118,
-          "b": 238
-        }
-      },
-      {
-        "id": 37,
-        "orig_id": 36,
-        "x": 138.91,
-        "y": 94.17,
-        "is_custom_rotation": false,
-        "rotation_deg": 0.0,
-        "color": {
-          "r": 49,
-          "g": 121,
-          "b": 236
-        }
-      },
-      {
-        "id": 38,
-        "orig_id": 37,
-        "x": 151.86,
-        "y": 105.4,
-        "is_custom_rotation": false,
-        "rotation_deg": 0.0,
-        "color": {
-          "r": 25,
-          "g": 242,
-          "b": 66
-        }
-      },
-      {
-        "id": 39,
-        "orig_id": 38,
-        "x": 148.42,
-        "y": 124.08,
-        "is_custom_rotation": false,
-        "rotation_deg": 0.0,
-        "color": {
-          "r": 50,
-          "g": 127,
-          "b": 235
-        }
-      },
-      {
-        "id": 40,
-        "orig_id": 39,
-        "x": 155.4,
-        "y": 138.0,
-        "is_custom_rotation": false,
-        "rotation_deg": 0.0,
-        "color": {
-          "r": 25,
-          "g": 242,
-          "b": 70
-        }
-      },
-      {
-        "id": 41,
-        "orig_id": 40,
-        "x": 162.36,
-        "y": 151.93,
-        "is_custom_rotation": false,
-        "rotation_deg": 0.0,
-        "color": {
-          "r": 28,
-          "g": 242,
-          "b": 71
-        }
-      },
-      {
-        "id": 42,
-        "orig_id": 41,
-        "x": 159.2,
-        "y": 165.93,
-        "is_custom_rotation": false,
-        "rotation_deg": 0.0,
-        "color": {
-          "r": 49,
-          "g": 138,
-          "b": 233
-        }
-      },
-      {
-        "id": 43,
-        "orig_id": 42,
-        "x": 140.39,
-        "y": 160.91,
-        "is_custom_rotation": false,
-        "rotation_deg": 0.0,
-        "color": {
-          "r": 49,
-          "g": 136,
-          "b": 233
-        }
-      },
-      {
-        "id": 44,
-        "orig_id": 43,
-        "x": 147.95,
-        "y": 178.46,
-        "is_custom_rotation": false,
-        "rotation_deg": 0.0,
-        "color": {
-          "r": 49,
-          "g": 130,
-          "b": 233
-        }
-      },
-      {
-        "id": 45,
-        "orig_id": 44,
-        "x": 135.38,
-        "y": 189.81,
-        "is_custom_rotation": false,
-        "rotation_deg": 0.0,
-        "color": {
-          "r": 24,
-          "g": 242,
-          "b": 72
-        }
-      },
-      {
-        "id": 46,
-        "orig_id": 45,
-        "x": 156.49,
-        "y": 192.47,
-        "is_custom_rotation": false,
-        "rotation_deg": 0.0,
-        "color": {
-          "r": 25,
-          "g": 242,
-          "b": 70
-        }
-      },
-      {
-        "id": 47,
-        "orig_id": 46,
-        "x": 168.22,
-        "y": 179.52,
-        "is_custom_rotation": false,
-        "rotation_deg": 0.0,
-        "color": {
-          "r": 26,
-          "g": 242,
-          "b": 71
-        }
-      },
-      {
-        "id": 48,
-        "orig_id": 47,
-        "x": 179.57,
-        "y": 191.8,
-        "is_custom_rotation": false,
-        "rotation_deg": 0.0,
-        "color": {
-          "r": 50,
-          "g": 124,
-          "b": 237
-        }
-      },
-      {
-        "id": 49,
-        "orig_id": 48,
-        "x": 196.36,
-        "y": 185.0,
-        "is_custom_rotation": false,
-        "rotation_deg": 0.0,
-        "color": {
-          "r": 26,
-          "g": 242,
-          "b": 71
-        }
-      },
-      {
-        "id": 50,
-        "orig_id": 49,
-        "x": 185.01,
-        "y": 172.59,
-        "is_custom_rotation": false,
-        "rotation_deg": 0.0,
-        "color": {
-          "r": 46,
-          "g": 123,
-          "b": 238
-        }
-      },
-      {
-        "id": 51,
-        "orig_id": 50,
-        "x": 182.32,
-        "y": 154.7,
-        "is_custom_rotation": false,
-        "rotation_deg": 0.0,
-        "color": {
-          "r": 26,
-          "g": 241,
-          "b": 69
-        }
-      },
-      {
-        "id": 52,
-        "orig_id": 51,
-        "x": 175.3,
-        "y": 140.65,
-        "is_custom_rotation": false,
-        "rotation_deg": 0.0,
-        "color": {
-          "r": 47,
-          "g": 124,
-          "b": 238
-        }
-      },
-      {
-        "id": 53,
-        "orig_id": 52,
-        "x": 195.42,
-        "y": 143.02,
-        "is_custom_rotation": false,
-        "rotation_deg": 0.0,
-        "color": {
-          "r": 28,
-          "g": 242,
-          "b": 62
-        }
-      },
-      {
-        "id": 54,
-        "orig_id": 53,
-        "x": 187.71,
-        "y": 129.16,
-        "is_custom_rotation": false,
-        "rotation_deg": 0.0,
-        "color": {
-          "r": 46,
-          "g": 125,
-          "b": 238
-        }
-      },
-      {
-        "id": 55,
-        "orig_id": 54,
-        "x": 168.7,
-        "y": 124.8,
-        "is_custom_rotation": false,
-        "rotation_deg": 0.0,
-        "color": {
-          "r": 46,
-          "g": 123,
-          "b": 238
-        }
-      },
-      {
-        "id": 56,
-        "orig_id": 55,
-        "x": 170.44,
-        "y": 110.75,
-        "is_custom_rotation": false,
-        "rotation_deg": 0.0,
-        "color": {
-          "r": 26,
-          "g": 242,
-          "b": 71
-        }
-      },
-      {
-        "id": 57,
-        "orig_id": 56,
-        "x": 166.85,
-        "y": 96.56,
-        "is_custom_rotation": false,
-        "rotation_deg": 0.0,
-        "color": {
-          "r": 28,
-          "g": 242,
-          "b": 69
-        }
-      },
-      {
-        "id": 58,
-        "orig_id": 57,
-        "x": 153.86,
-        "y": 85.4,
-        "is_custom_rotation": false,
-        "rotation_deg": 0.0,
-        "color": {
-          "r": 25,
-          "g": 242,
-          "b": 70
-        }
-      },
-      {
-        "id": 59,
-        "orig_id": 58,
-        "x": 138.33,
-        "y": 77.68,
-        "is_custom_rotation": false,
-        "rotation_deg": 0.0,
-        "color": {
-          "r": 44,
-          "g": 127,
-          "b": 238
-        }
-      },
-      {
-        "id": 60,
-        "orig_id": 59,
-        "x": 120.9,
-        "y": 85.93,
-        "is_custom_rotation": false,
-        "rotation_deg": 0.0,
-        "color": {
-          "r": 50,
-          "g": 119,
-          "b": 233
-        }
-      },
-      {
-        "id": 61,
-        "orig_id": 60,
-        "x": 122.07,
-        "y": 100.78,
-        "is_custom_rotation": false,
-        "rotation_deg": 0.0,
-        "color": {
-          "r": 26,
-          "g": 242,
-          "b": 68
-        }
-      },
-      {
-        "id": 62,
-        "orig_id": 61,
-        "x": 116.36,
-        "y": 116.22,
-        "is_custom_rotation": false,
-        "rotation_deg": 0.0,
-        "color": {
-          "r": 41,
-          "g": 238,
-          "b": 87
-        }
-      },
-      {
-        "id": 63,
-        "orig_id": 62,
-        "x": 103.11,
-        "y": 105.33,
-        "is_custom_rotation": false,
-        "rotation_deg": 0.0,
-        "color": {
-          "r": 255,
-          "g": 211,
-          "b": 2
-        }
-      },
-      {
-        "id": 64,
-        "orig_id": 63,
-        "x": 102.64,
-        "y": 91.4,
-        "is_custom_rotation": false,
-        "rotation_deg": 0.0,
-        "color": {
-          "r": 255,
-          "g": 211,
-          "b": 2
-        }
-      },
-      {
-        "id": 65,
-        "orig_id": 64,
-        "x": 100.99,
-        "y": 77.34,
-        "is_custom_rotation": false,
-        "rotation_deg": 0.0,
-        "color": {
-          "r": 254,
-          "g": 205,
-          "b": 0
-        }
-      },
-      {
-        "id": 66,
-        "orig_id": 65,
-        "x": 103.17,
-        "y": 63.29,
-        "is_custom_rotation": false,
-        "rotation_deg": 0.0,
-        "color": {
-          "r": 255,
-          "g": 211,
-          "b": 3
-        }
-      },
-      {
-        "id": 67,
-        "orig_id": 66,
-        "x": 119.42,
-        "y": 71.8,
-        "is_custom_rotation": false,
-        "rotation_deg": 0.0,
-        "color": {
-          "r": 50,
-          "g": 136,
-          "b": 233
-        }
-      },
-      {
-        "id": 68,
-        "orig_id": 67,
-        "x": 125.88,
-        "y": 57.81,
-        "is_custom_rotation": false,
-        "rotation_deg": 0.0,
-        "color": {
-          "r": 26,
-          "g": 242,
-          "b": 71
-        }
-      },
-      {
-        "id": 69,
-        "orig_id": 68,
-        "x": 139.81,
-        "y": 47.84,
-        "is_custom_rotation": false,
-        "rotation_deg": 0.0,
-        "color": {
-          "r": 25,
-          "g": 242,
-          "b": 68
-        }
-      },
-      {
-        "id": 70,
-        "orig_id": 69,
-        "x": 143.72,
-        "y": 63.68,
-        "is_custom_rotation": false,
-        "rotation_deg": 0.0,
-        "color": {
-          "r": 25,
-          "g": 242,
-          "b": 70
-        }
-      },
-      {
-        "id": 71,
-        "orig_id": 70,
-        "x": 163.78,
-        "y": 61.17,
-        "is_custom_rotation": false,
-        "rotation_deg": 0.0,
-        "color": {
-          "r": 47,
-          "g": 126,
-          "b": 238
-        }
-      },
-      {
-        "id": 72,
-        "orig_id": 71,
-        "x": 180.42,
-        "y": 38.34,
-        "is_custom_rotation": false,
-        "rotation_deg": 0.0,
-        "color": {
-          "r": 150,
-          "g": 244,
-          "b": 40
-        }
-      },
-      {
-        "id": 73,
-        "orig_id": 72,
-        "x": 178.62,
-        "y": 52.4,
-        "is_custom_rotation": false,
-        "rotation_deg": 0.0,
-        "color": {
-          "r": 44,
-          "g": 123,
-          "b": 238
-        }
-      },
-      {
-        "id": 74,
-        "orig_id": 73,
-        "x": 182.74,
-        "y": 66.59,
-        "is_custom_rotation": false,
-        "rotation_deg": 0.0,
-        "color": {
-          "r": 46,
-          "g": 236,
-          "b": 117
-        }
-      },
-      {
-        "id": 75,
-        "orig_id": 74,
-        "x": 167.64,
-        "y": 75.23,
-        "is_custom_rotation": false,
-        "rotation_deg": 0.0,
-        "color": {
-          "r": 46,
-          "g": 125,
-          "b": 238
-        }
-      },
-      {
-        "id": 76,
-        "orig_id": 75,
-        "x": 180.53,
-        "y": 86.32,
-        "is_custom_rotation": false,
-        "rotation_deg": 0.0,
-        "color": {
-          "r": 26,
-          "g": 242,
-          "b": 71
-        }
-      },
-      {
-        "id": 77,
-        "orig_id": 76,
-        "x": 195.42,
-        "y": 77.81,
-        "is_custom_rotation": false,
-        "rotation_deg": 0.0,
-        "color": {
-          "r": 46,
-          "g": 125,
-          "b": 238
-        }
-      },
-      {
-        "id": 78,
-        "orig_id": 77,
-        "x": 204.44,
-        "y": 64.34,
-        "is_custom_rotation": false,
-        "rotation_deg": 0.0,
-        "color": {
-          "r": 24,
-          "g": 242,
-          "b": 68
-        }
-      },
-      {
-        "id": 79,
-        "orig_id": 78,
-        "x": 198.63,
-        "y": 50.29,
-        "is_custom_rotation": false,
-        "rotation_deg": 0.0,
-        "color": {
-          "r": 26,
-          "g": 242,
-          "b": 71
-        }
-      },
-      {
-        "id": 80,
-        "orig_id": 79,
-        "x": 200.69,
-        "y": 36.22,
-        "is_custom_rotation": false,
-        "rotation_deg": 0.0,
-        "color": {
-          "r": 47,
-          "g": 126,
-          "b": 238
-        }
-      },
-      {
-        "id": 81,
-        "orig_id": 80,
-        "x": 220.13,
-        "y": 39.98,
-        "is_custom_rotation": false,
-        "rotation_deg": 0.0,
-        "color": {
-          "r": 47,
-          "g": 124,
-          "b": 238
-        }
-      },
-      {
-        "id": 82,
-        "orig_id": 81,
-        "x": 218.23,
-        "y": 54.05,
-        "is_custom_rotation": false,
-        "rotation_deg": 0.0,
-        "color": {
-          "r": 25,
-          "g": 242,
-          "b": 70
-        }
-      },
-      {
-        "id": 83,
-        "orig_id": 82,
-        "x": 233.48,
-        "y": 61.84,
-        "is_custom_rotation": false,
-        "rotation_deg": 0.0,
-        "color": {
-          "r": 148,
-          "g": 244,
-          "b": 40
-        }
-      },
-      {
-        "id": 84,
-        "orig_id": 83,
-        "x": 236.13,
-        "y": 75.82,
-        "is_custom_rotation": false,
-        "rotation_deg": 0.0,
-        "color": {
-          "r": 50,
-          "g": 117,
-          "b": 233
-        }
-      },
-      {
-        "id": 85,
-        "orig_id": 84,
-        "x": 215.95,
-        "y": 76.69,
-        "is_custom_rotation": false,
-        "rotation_deg": 0.0,
-        "color": {
-          "r": 43,
-          "g": 120,
-          "b": 239
-        }
-      },
-      {
-        "id": 86,
-        "orig_id": 85,
-        "x": 219.18,
-        "y": 90.74,
-        "is_custom_rotation": false,
-        "rotation_deg": 0.0,
-        "color": {
-          "r": 28,
-          "g": 242,
-          "b": 69
-        }
-      },
-      {
-        "id": 87,
-        "orig_id": 86,
-        "x": 198.8,
-        "y": 91.8,
-        "is_custom_rotation": false,
-        "rotation_deg": 0.0,
-        "color": {
-          "r": 44,
-          "g": 123,
-          "b": 238
-        }
-      },
-      {
-        "id": 88,
-        "orig_id": 87,
-        "x": 188.23,
-        "y": 104.67,
-        "is_custom_rotation": false,
-        "rotation_deg": 0.0,
-        "color": {
-          "r": 28,
-          "g": 242,
-          "b": 69
-        }
-      },
-      {
-        "id": 89,
-        "orig_id": 88,
-        "x": 199.54,
-        "y": 117.21,
-        "is_custom_rotation": false,
-        "rotation_deg": 0.0,
-        "color": {
-          "r": 49,
-          "g": 127,
-          "b": 233
-        }
-      },
-      {
-        "id": 90,
-        "orig_id": 89,
-        "x": 210.2,
-        "y": 104.41,
-        "is_custom_rotation": false,
-        "rotation_deg": 0.0,
-        "color": {
-          "r": 50,
-          "g": 129,
-          "b": 233
-        }
-      },
-      {
-        "id": 91,
-        "orig_id": 90,
-        "x": 219.49,
-        "y": 119.14,
-        "is_custom_rotation": false,
-        "rotation_deg": 0.0,
-        "color": {
-          "r": 46,
-          "g": 123,
-          "b": 238
-        }
-      },
-      {
-        "id": 92,
-        "orig_id": 91,
-        "x": 213.95,
-        "y": 133.26,
-        "is_custom_rotation": false,
-        "rotation_deg": 0.0,
-        "color": {
-          "r": 25,
-          "g": 242,
-          "b": 66
-        }
-      },
-      {
-        "id": 93,
-        "orig_id": 92,
-        "x": 200.27,
-        "y": 160.64,
-        "is_custom_rotation": false,
-        "rotation_deg": 0.0,
-        "color": {
-          "r": 26,
-          "g": 242,
-          "b": 71
-        }
-      },
-      {
-        "id": 94,
-        "orig_id": 93,
-        "x": 209.51,
-        "y": 174.05,
-        "is_custom_rotation": false,
-        "rotation_deg": 0.0,
-        "color": {
-          "r": 51,
-          "g": 123,
-          "b": 236
-        }
-      },
-      {
-        "id": 95,
-        "orig_id": 94,
-        "x": 220.6,
-        "y": 161.24,
-        "is_custom_rotation": false,
-        "rotation_deg": 0.0,
-        "color": {
-          "r": 50,
-          "g": 123,
-          "b": 233
-        }
-      },
-      {
-        "id": 96,
-        "orig_id": 95,
-        "x": 214.59,
-        "y": 147.25,
-        "is_custom_rotation": false,
-        "rotation_deg": 0.0,
-        "color": {
-          "r": 25,
-          "g": 242,
-          "b": 66
-        }
-      },
-      {
-        "id": 97,
-        "orig_id": 96,
-        "x": 234.96,
-        "y": 136.23,
-        "is_custom_rotation": false,
-        "rotation_deg": 0.0,
-        "color": {
-          "r": 44,
-          "g": 120,
-          "b": 238
-        }
-      },
-      {
-        "id": 98,
-        "orig_id": 97,
-        "x": 239.19,
-        "y": 122.16,
-        "is_custom_rotation": false,
-        "rotation_deg": 0.0,
-        "color": {
-          "r": 46,
-          "g": 125,
-          "b": 238
-        }
-      },
-      {
-        "id": 99,
-        "orig_id": 98,
-        "x": 239.45,
-        "y": 89.83,
-        "is_custom_rotation": false,
-        "rotation_deg": 0.0,
-        "color": {
-          "r": 24,
-          "g": 243,
-          "b": 67
-        }
-      },
-      {
-        "id": 100,
-        "orig_id": 99,
-        "x": 230.47,
-        "y": 106.58,
-        "is_custom_rotation": false,
-        "rotation_deg": 0.0,
-        "color": {
-          "r": 28,
-          "g": 242,
-          "b": 65
-        }
-      }
-    ],
-    "led_count": 100,
-    "fastener_tabs": [
-      [
-        31.94,
-        202.69
-      ],
-      [
-        74.88,
-        222.6
-      ],
-      [
-        116.74,
-        201.07
-      ],
-      [
-        161.98,
-        208.77
-      ],
-      [
-        209.78,
-        201.15
-      ],
-      [
-        243.85,
-        166.62
-      ],
-      [
-        261.71,
-        121.44
-      ],
-      [
-        257.58,
-        72.85
-      ],
-      [
-        255.84,
-        28.1
-      ],
-      [
-        210.3,
-        20.39
-      ],
-      [
-        161.86,
-        16.85
-      ],
-      [
-        113.22,
-        17.11
-      ],
-      [
-        64.83,
-        25.54
-      ],
-      [
-        60.34,
-        72.73
-      ],
-      [
-        54.99,
-        119.1
-      ],
-      [
-        28.03,
-        154.36
-      ]
-    ],
-    "entrance_portal": [
-      143.08,
-      18.35
-    ],
-    "entrance_bridge": [
-      143.08,
-      26.35
-    ],
-    "exit_portal": [
-      259.98,
-      86.8
-    ],
-    "exit_bridge": [
-      252.07,
-      88.0
-    ],
-    "screw_positions": [
-      [
-        73.62,
-        218.65
-      ],
-      [
-        104.39,
-        209.52
-      ],
-      [
-        145.38,
-        205.97
-      ],
-      [
-        224.49,
-        184.25
-      ],
-      [
-        245.37,
-        158.36
-      ],
-      [
-        254.66,
-        135.54
-      ],
-      [
-        257.91,
-        104.78
-      ],
-      [
-        255.62,
-        33.26
-      ],
-      [
-        189.13,
-        22.37
-      ],
-      [
-        118.44,
-        20.85
-      ],
-      [
-        68.48,
-        27.25
-      ],
-      [
-        63.33,
-        103.1
-      ],
-      [
-        38.14,
-        145.56
-      ],
-      [
-        27.98,
-        180.21
-      ]
-    ],
-    "number_positions": [
-      [
-        160.08,
-        41.61
-      ],
-      [
-        149.54,
-        29.09
-      ],
-      [
-        124.97,
-        33.76
-      ],
-      [
-        102.82,
-        49.36
-      ],
-      [
-        105.38,
-        29.87
-      ],
-      [
-        79.67,
-        35.02
-      ],
-      [
-        78.63,
-        53.58
-      ],
-      [
-        75.83,
-        67.71
-      ],
-      [
-        73.94,
-        81.77
-      ],
-      [
-        75.36,
-        95.76
-      ],
-      [
-        75.79,
-        109.76
-      ],
-      [
-        69.63,
-        119.12
-      ],
-      [
-        62.55,
-        133.05
-      ],
-      [
-        52.15,
-        145.98
-      ],
-      [
-        41.26,
-        164.01
-      ],
-      [
-        68.27,
-        181.18
-      ],
-      [
-        44.86,
-        194.19
-      ],
-      [
-        63.77,
-        199.07
-      ],
-      [
-        85.33,
-        208.59
-      ],
-      [
-        95.78,
-        192.8
-      ],
-      [
-        75.86,
-        178.86
-      ],
-      [
-        69.85,
-        157.46
-      ],
-      [
-        80.52,
-        144.39
-      ],
-      [
-        89.55,
-        139.8
-      ],
-      [
-        105.05,
-        120.38
-      ],
-      [
-        116.0,
-        136.56
-      ],
-      [
-        106.87,
-        151.48
-      ],
-      [
-        87.35,
-        160.98
-      ],
-      [
-        102.53,
-        180.39
-      ],
-      [
-        116.47,
-        190.3
-      ],
-      [
-        129.36,
-        167.95
-      ],
-      [
-        115.36,
-        169.11
-      ],
-      [
-        120.22,
-        144.18
-      ],
-      [
-        143.04,
-        147.19
-      ],
-      [
-        122.86,
-        133.26
-      ],
-      [
-        135.8,
-        106.96
-      ],
-      [
-        138.91,
-        99.67
-      ],
-      [
-        151.86,
-        99.9
-      ],
-      [
-        154.92,
-        119.58
-      ],
-      [
-        148.9,
-        142.5
-      ],
-      [
-        154.36,
-        151.93
-      ],
-      [
-        167.2,
-        165.93
-      ],
-      [
-        146.89,
-        156.41
-      ],
-      [
-        147.95,
-        172.96
-      ],
-      [
-        135.38,
-        195.31
-      ],
-      [
-        156.49,
-        197.97
-      ],
-      [
-        168.22,
-        185.02
-      ],
-      [
-        179.57,
-        197.3
-      ],
-      [
-        196.36,
-        190.5
-      ],
-      [
-        178.51,
-        168.09
-      ],
-      [
-        175.82,
-        159.2
-      ],
-      [
-        183.3,
-        140.65
-      ],
-      [
-        201.92,
-        138.52
-      ],
-      [
-        187.71,
-        123.66
-      ],
-      [
-        162.2,
-        120.3
-      ],
-      [
-        176.94,
-        115.25
-      ],
-      [
-        166.85,
-        91.06
-      ],
-      [
-        153.86,
-        79.9
-      ],
-      [
-        131.83,
-        73.18
-      ],
-      [
-        128.9,
-        85.93
-      ],
-      [
-        114.07,
-        100.78
-      ],
-      [
-        116.36,
-        121.72
-      ],
-      [
-        95.11,
-        105.33
-      ],
-      [
-        94.64,
-        91.4
-      ],
-      [
-        94.49,
-        81.84
-      ],
-      [
-        95.17,
-        63.29
-      ],
-      [
-        127.42,
-        71.8
-      ],
-      [
-        125.88,
-        52.31
-      ],
-      [
-        147.81,
-        47.84
-      ],
-      [
-        150.22,
-        68.18
-      ],
-      [
-        157.28,
-        65.67
-      ],
-      [
-        180.42,
-        32.84
-      ],
-      [
-        186.62,
-        52.4
-      ],
-      [
-        189.24,
-        62.09
-      ],
-      [
-        167.64,
-        80.73
-      ],
-      [
-        180.53,
-        91.82
-      ],
-      [
-        203.42,
-        77.81
-      ],
-      [
-        196.44,
-        64.34
-      ],
-      [
-        192.13,
-        54.79
-      ],
-      [
-        200.69,
-        30.72
-      ],
-      [
-        226.63,
-        35.48
-      ],
-      [
-        218.23,
-        59.55
-      ],
-      [
-        239.98,
-        57.34
-      ],
-      [
-        244.13,
-        75.82
-      ],
-      [
-        222.45,
-        72.19
-      ],
-      [
-        225.68,
-        86.24
-      ],
-      [
-        205.3,
-        87.3
-      ],
-      [
-        181.73,
-        100.17
-      ],
-      [
-        206.04,
-        121.71
-      ],
-      [
-        202.2,
-        104.41
-      ],
-      [
-        225.99,
-        123.64
-      ],
-      [
-        205.95,
-        133.26
-      ],
-      [
-        200.27,
-        155.14
-      ],
-      [
-        216.01,
-        178.55
-      ],
-      [
-        228.6,
-        161.24
-      ],
-      [
-        222.59,
-        147.25
-      ],
-      [
-        234.96,
-        141.73
-      ],
-      [
-        245.69,
-        117.66
-      ],
-      [
-        245.95,
-        94.33
-      ],
-      [
-        238.47,
-        106.58
-      ]
-    ],
-    "contour_pts": [
-      [
-        32.67,
-        201.38
-      ],
-      [
-        39.41,
-        205.18
-      ],
-      [
-        51.19,
-        205.12
-      ],
-      [
-        71.0,
-        220.35
-      ],
-      [
-        73.22,
-        221.17
-      ],
-      [
-        87.99,
-        220.52
-      ],
-      [
-        89.66,
-        220.07
-      ],
-      [
-        109.61,
-        209.61
-      ],
-      [
-        116.13,
-        199.23
-      ],
-      [
-        145.07,
-        208.5
-      ],
-      [
-        202.3,
-        204.31
-      ],
-      [
-        204.51,
-        203.45
-      ],
-      [
-        226.26,
-        186.03
-      ],
-      [
-        247.6,
-        159.58
-      ],
-      [
-        257.06,
-        136.28
-      ],
-      [
-        260.74,
-        118.76
-      ],
-      [
-        259.98,
-        86.8
-      ],
-      [
-        251.77,
-        57.85
-      ],
-      [
-        258.59,
-        49.27
-      ],
-      [
-        259.38,
-        47.56
-      ],
-      [
-        258.26,
-        33.22
-      ],
-      [
-        257.59,
-        31.33
-      ],
-      [
-        256.43,
-        30.21
-      ],
-      [
-        246.4,
-        24.16
-      ],
-      [
-        234.38,
-        24.17
-      ],
-      [
-        232.56,
-        25.09
-      ],
-      [
-        231.06,
-        27.22
-      ],
-      [
-        216.41,
-        22.48
-      ],
-      [
-        173.4,
-        18.35
-      ],
-      [
-        115.25,
-        18.35
-      ],
-      [
-        68.59,
-        24.52
-      ],
-      [
-        66.81,
-        25.22
-      ],
-      [
-        65.19,
-        27.75
-      ],
-      [
-        63.95,
-        41.57
-      ],
-      [
-        64.4,
-        43.39
-      ],
-      [
-        67.22,
-        47.81
-      ],
-      [
-        61.49,
-        74.54
-      ],
-      [
-        60.58,
-        114.13
-      ],
-      [
-        48.54,
-        130.23
-      ],
-      [
-        47.58,
-        140.68
-      ],
-      [
-        39.27,
-        141.37
-      ],
-      [
-        37.5,
-        142.17
-      ],
-      [
-        30.3,
-        152.17
-      ],
-      [
-        29.63,
-        153.81
-      ],
-      [
-        25.42,
-        180.37
-      ],
-      [
-        30.93,
-        199.11
-      ],
-      [
-        32.67,
-        201.38
-      ]
-    ],
-    "stl_bounds": [
-      240.18,
-      212.25,
-      10.0
-    ],
-    "stl_center": [
-      144.87,
-      119.73,
-      5.0
-    ],
-    "stl_size": 5642834,
-    "chassis_size": 8924684,
-    "lid_size": 480284,
-    "zip_size": 4804707,
-    "inlays": [
-      {
-        "key": "green",
-        "name": "Shell Plates & Glasses",
-        "filename": "tpu_panel_front_color_green.stl",
-        "hex": "#00cc66",
-        "count": 14228
-      },
-      {
-        "key": "blue",
-        "name": "Shell & Eyes",
-        "filename": "tpu_panel_front_color_blue.stl",
-        "hex": "#2563eb",
-        "count": 25526
-      },
-      {
-        "key": "yellow",
-        "name": "Body & Head",
-        "filename": "tpu_panel_front_color_yellow.stl",
-        "hex": "#facc15",
-        "count": 8304
-      },
-      {
-        "key": "red",
-        "name": "Tie & Lips",
-        "filename": "tpu_panel_front_color_red.stl",
-        "hex": "#ef4444",
-        "count": 1608
-      }
-    ],
-    "stl_url": "/3d_panels/tpu_panel_front.stl",
-    "chassis_stl_url": "/3d_panels/tpu_panel_front_chassis_black.stl",
-    "lid_stl_url": "/3d_panels/tpu_panel_front_lid.stl",
-    "multicolor_3mf_url": "/3d_panels/tpu_panel_front_multicolor.3mf",
-    "multicolor_zip_url": "/3d_panels/tpu_panel_front_multicolor_bundle.zip",
-    "volume_mm3": 96705.1,
-    "is_watertight": false,
-    "graphic_type": "spinning_turtle"
-  },
-  "back": {
-    "variant": "back",
-    "width_mm": 295.57,
-    "height_mm": 246.71,
-    "panel_width_mm": 235.32,
-    "panel_height_mm": 202.82,
-    "total_image_width_mm": 295.57,
-    "total_image_height_mm": 246.71,
-    "window_shape": "round_34",
-    "well_orientation": "horizontal",
-    "ordered_leds": [
-      {
-        "id": 1,
-        "orig_id": 0,
-        "x": 160.08,
-        "y": 47.11,
-        "is_custom_rotation": false,
-        "rotation_deg": 0.0,
-        "color": {
-          "r": 41,
-          "g": 237,
-          "b": 109
-        }
-      },
-      {
-        "id": 2,
-        "orig_id": 1,
-        "x": 143.04,
-        "y": 33.59,
-        "is_custom_rotation": false,
-        "rotation_deg": 0.0,
-        "color": {
-          "r": 47,
-          "g": 126,
-          "b": 238
-        }
-      },
-      {
-        "id": 3,
-        "orig_id": 2,
-        "x": 124.97,
-        "y": 39.26,
-        "is_custom_rotation": false,
-        "rotation_deg": 0.0,
-        "color": {
-          "r": 49,
-          "g": 123,
-          "b": 233
-        }
-      },
-      {
-        "id": 4,
-        "orig_id": 3,
-        "x": 110.82,
-        "y": 49.36,
-        "is_custom_rotation": false,
-        "rotation_deg": 0.0,
-        "color": {
-          "r": 255,
-          "g": 211,
-          "b": 3
-        }
-      },
-      {
-        "id": 5,
-        "orig_id": 4,
-        "x": 105.38,
-        "y": 35.37,
-        "is_custom_rotation": false,
-        "rotation_deg": 0.0,
-        "color": {
-          "r": 48,
-          "g": 126,
-          "b": 237
-        }
-      },
-      {
-        "id": 6,
-        "orig_id": 5,
-        "x": 86.17,
-        "y": 39.52,
-        "is_custom_rotation": false,
-        "rotation_deg": 0.0,
-        "color": {
-          "r": 50,
-          "g": 126,
-          "b": 237
-        }
-      },
-      {
-        "id": 7,
-        "orig_id": 6,
-        "x": 86.63,
-        "y": 53.58,
-        "is_custom_rotation": false,
-        "rotation_deg": 0.0,
-        "color": {
-          "r": 50,
-          "g": 233,
-          "b": 222
-        }
-      },
-      {
-        "id": 8,
-        "orig_id": 7,
-        "x": 83.83,
-        "y": 67.71,
-        "is_custom_rotation": false,
-        "rotation_deg": 0.0,
-        "color": {
-          "r": 251,
-          "g": 3,
-          "b": 3
-        }
-      },
-      {
-        "id": 9,
-        "orig_id": 8,
-        "x": 81.94,
-        "y": 81.77,
-        "is_custom_rotation": false,
-        "rotation_deg": 0.0,
-        "color": {
-          "r": 254,
-          "g": 10,
-          "b": 0
-        }
-      },
-      {
-        "id": 10,
-        "orig_id": 9,
-        "x": 83.36,
-        "y": 95.76,
-        "is_custom_rotation": false,
-        "rotation_deg": 0.0,
-        "color": {
-          "r": 254,
-          "g": 8,
-          "b": 0
-        }
-      },
-      {
-        "id": 11,
-        "orig_id": 10,
-        "x": 83.79,
-        "y": 109.76,
-        "is_custom_rotation": false,
-        "rotation_deg": 0.0,
-        "color": {
-          "r": 252,
-          "g": 212,
-          "b": 9
-        }
-      },
-      {
-        "id": 12,
-        "orig_id": 11,
-        "x": 76.13,
-        "y": 123.62,
-        "is_custom_rotation": false,
-        "rotation_deg": 0.0,
-        "color": {
-          "r": 254,
-          "g": 10,
-          "b": 0
-        }
-      },
-      {
-        "id": 13,
-        "orig_id": 12,
-        "x": 69.05,
-        "y": 137.55,
-        "is_custom_rotation": false,
-        "rotation_deg": 0.0,
-        "color": {
-          "r": 255,
-          "g": 211,
-          "b": 2
-        }
-      },
-      {
-        "id": 14,
-        "orig_id": 13,
-        "x": 58.65,
-        "y": 150.48,
-        "is_custom_rotation": false,
-        "rotation_deg": 0.0,
-        "color": {
-          "r": 240,
-          "g": 169,
-          "b": 51
-        }
-      },
-      {
-        "id": 15,
-        "orig_id": 14,
-        "x": 49.26,
-        "y": 164.01,
-        "is_custom_rotation": false,
-        "rotation_deg": 0.0,
-        "color": {
-          "r": 239,
-          "g": 186,
-          "b": 51
-        }
-      },
-      {
-        "id": 16,
-        "orig_id": 15,
-        "x": 61.77,
-        "y": 176.68,
-        "is_custom_rotation": false,
-        "rotation_deg": 0.0,
-        "color": {
-          "r": 248,
-          "g": 206,
-          "b": 23
-        }
-      },
-      {
-        "id": 17,
-        "orig_id": 16,
-        "x": 51.36,
-        "y": 189.69,
-        "is_custom_rotation": false,
-        "rotation_deg": 0.0,
-        "color": {
-          "r": 239,
-          "g": 164,
-          "b": 51
-        }
-      },
-      {
-        "id": 18,
-        "orig_id": 17,
-        "x": 70.27,
-        "y": 194.57,
-        "is_custom_rotation": false,
-        "rotation_deg": 0.0,
-        "color": {
-          "r": 255,
-          "g": 211,
-          "b": 2
-        }
-      },
-      {
-        "id": 19,
-        "orig_id": 18,
-        "x": 85.33,
-        "y": 203.09,
-        "is_custom_rotation": false,
-        "rotation_deg": 0.0,
-        "color": {
-          "r": 255,
-          "g": 210,
-          "b": 2
-        }
-      },
-      {
-        "id": 20,
-        "orig_id": 19,
-        "x": 89.28,
-        "y": 188.3,
-        "is_custom_rotation": false,
-        "rotation_deg": 0.0,
-        "color": {
-          "r": 255,
-          "g": 210,
-          "b": 2
-        }
-      },
-      {
-        "id": 21,
-        "orig_id": 20,
-        "x": 82.36,
-        "y": 174.36,
-        "is_custom_rotation": false,
-        "rotation_deg": 0.0,
-        "color": {
-          "r": 255,
-          "g": 211,
-          "b": 2
-        }
-      },
-      {
-        "id": 22,
-        "orig_id": 21,
-        "x": 69.85,
-        "y": 162.96,
-        "is_custom_rotation": false,
-        "rotation_deg": 0.0,
-        "color": {
-          "r": 237,
-          "g": 188,
-          "b": 50
-        }
-      },
-      {
-        "id": 23,
-        "orig_id": 22,
-        "x": 80.52,
-        "y": 149.89,
-        "is_custom_rotation": false,
-        "rotation_deg": 0.0,
-        "color": {
-          "r": 255,
-          "g": 211,
-          "b": 2
-        }
-      },
-      {
-        "id": 24,
-        "orig_id": 23,
-        "x": 89.55,
-        "y": 134.3,
-        "is_custom_rotation": false,
-        "rotation_deg": 0.0,
-        "color": {
-          "r": 255,
-          "g": 212,
-          "b": 3
-        }
-      },
-      {
-        "id": 25,
-        "orig_id": 24,
-        "x": 97.05,
-        "y": 120.38,
-        "is_custom_rotation": false,
-        "rotation_deg": 0.0,
-        "color": {
-          "r": 255,
-          "g": 211,
-          "b": 3
-        }
-      },
-      {
-        "id": 26,
-        "orig_id": 25,
-        "x": 109.5,
-        "y": 132.06,
-        "is_custom_rotation": false,
-        "rotation_deg": 0.0,
-        "color": {
-          "r": 43,
-          "g": 123,
-          "b": 238
-        }
-      },
-      {
-        "id": 27,
-        "orig_id": 26,
-        "x": 100.37,
-        "y": 146.98,
-        "is_custom_rotation": false,
-        "rotation_deg": 0.0,
-        "color": {
-          "r": 255,
-          "g": 209,
-          "b": 2
-        }
-      },
-      {
-        "id": 28,
-        "orig_id": 27,
-        "x": 95.35,
-        "y": 160.98,
-        "is_custom_rotation": false,
-        "rotation_deg": 0.0,
-        "color": {
-          "r": 240,
-          "g": 157,
-          "b": 51
-        }
-      },
-      {
-        "id": 29,
-        "orig_id": 28,
-        "x": 102.53,
-        "y": 174.89,
-        "is_custom_rotation": false,
-        "rotation_deg": 0.0,
-        "color": {
-          "r": 50,
-          "g": 141,
-          "b": 234
-        }
-      },
-      {
-        "id": 30,
-        "orig_id": 29,
-        "x": 116.47,
-        "y": 184.8,
-        "is_custom_rotation": false,
-        "rotation_deg": 0.0,
-        "color": {
-          "r": 255,
-          "g": 211,
-          "b": 2
-        }
-      },
-      {
-        "id": 31,
-        "orig_id": 30,
-        "x": 129.36,
-        "y": 173.45,
-        "is_custom_rotation": false,
-        "rotation_deg": 0.0,
-        "color": {
-          "r": 49,
-          "g": 136,
-          "b": 233
-        }
-      },
-      {
-        "id": 32,
-        "orig_id": 31,
-        "x": 115.36,
-        "y": 163.61,
-        "is_custom_rotation": false,
-        "rotation_deg": 0.0,
-        "color": {
-          "r": 255,
-          "g": 211,
-          "b": 2
-        }
-      },
-      {
-        "id": 33,
-        "orig_id": 32,
-        "x": 120.22,
-        "y": 149.68,
-        "is_custom_rotation": false,
-        "rotation_deg": 0.0,
-        "color": {
-          "r": 50,
-          "g": 122,
-          "b": 235
-        }
-      },
-      {
-        "id": 34,
-        "orig_id": 33,
-        "x": 136.54,
-        "y": 142.69,
-        "is_custom_rotation": false,
-        "rotation_deg": 0.0,
-        "color": {
-          "r": 24,
-          "g": 242,
-          "b": 68
-        }
-      },
-      {
-        "id": 35,
-        "orig_id": 34,
-        "x": 129.36,
-        "y": 128.76,
-        "is_custom_rotation": false,
-        "rotation_deg": 0.0,
-        "color": {
-          "r": 43,
-          "g": 123,
-          "b": 238
-        }
-      },
-      {
-        "id": 36,
-        "orig_id": 35,
-        "x": 135.8,
-        "y": 112.46,
-        "is_custom_rotation": false,
-        "rotation_deg": 0.0,
-        "color": {
-          "r": 44,
-          "g": 118,
-          "b": 238
-        }
-      },
-      {
-        "id": 37,
-        "orig_id": 36,
-        "x": 138.91,
-        "y": 94.17,
-        "is_custom_rotation": false,
-        "rotation_deg": 0.0,
-        "color": {
-          "r": 49,
-          "g": 121,
-          "b": 236
-        }
-      },
-      {
-        "id": 38,
-        "orig_id": 37,
-        "x": 151.86,
-        "y": 105.4,
-        "is_custom_rotation": false,
-        "rotation_deg": 0.0,
-        "color": {
-          "r": 25,
-          "g": 242,
-          "b": 66
-        }
-      },
-      {
-        "id": 39,
-        "orig_id": 38,
-        "x": 148.42,
-        "y": 124.08,
-        "is_custom_rotation": false,
-        "rotation_deg": 0.0,
-        "color": {
-          "r": 50,
-          "g": 127,
-          "b": 235
-        }
-      },
-      {
-        "id": 40,
-        "orig_id": 39,
-        "x": 155.4,
-        "y": 138.0,
-        "is_custom_rotation": false,
-        "rotation_deg": 0.0,
-        "color": {
-          "r": 25,
-          "g": 242,
-          "b": 70
-        }
-      },
-      {
-        "id": 41,
-        "orig_id": 40,
-        "x": 162.36,
-        "y": 151.93,
-        "is_custom_rotation": false,
-        "rotation_deg": 0.0,
-        "color": {
-          "r": 28,
-          "g": 242,
-          "b": 71
-        }
-      },
-      {
-        "id": 42,
-        "orig_id": 41,
-        "x": 159.2,
-        "y": 165.93,
-        "is_custom_rotation": false,
-        "rotation_deg": 0.0,
-        "color": {
-          "r": 49,
-          "g": 138,
-          "b": 233
-        }
-      },
-      {
-        "id": 43,
-        "orig_id": 42,
-        "x": 140.39,
-        "y": 160.91,
-        "is_custom_rotation": false,
-        "rotation_deg": 0.0,
-        "color": {
-          "r": 49,
-          "g": 136,
-          "b": 233
-        }
-      },
-      {
-        "id": 44,
-        "orig_id": 43,
-        "x": 147.95,
-        "y": 178.46,
-        "is_custom_rotation": false,
-        "rotation_deg": 0.0,
-        "color": {
-          "r": 49,
-          "g": 130,
-          "b": 233
-        }
-      },
-      {
-        "id": 45,
-        "orig_id": 44,
-        "x": 135.38,
-        "y": 189.81,
-        "is_custom_rotation": false,
-        "rotation_deg": 0.0,
-        "color": {
-          "r": 24,
-          "g": 242,
-          "b": 72
-        }
-      },
-      {
-        "id": 46,
-        "orig_id": 45,
-        "x": 156.49,
-        "y": 192.47,
-        "is_custom_rotation": false,
-        "rotation_deg": 0.0,
-        "color": {
-          "r": 25,
-          "g": 242,
-          "b": 70
-        }
-      },
-      {
-        "id": 47,
-        "orig_id": 46,
-        "x": 168.22,
-        "y": 179.52,
-        "is_custom_rotation": false,
-        "rotation_deg": 0.0,
-        "color": {
-          "r": 26,
-          "g": 242,
-          "b": 71
-        }
-      },
-      {
-        "id": 48,
-        "orig_id": 47,
-        "x": 179.57,
-        "y": 191.8,
-        "is_custom_rotation": false,
-        "rotation_deg": 0.0,
-        "color": {
-          "r": 50,
-          "g": 124,
-          "b": 237
-        }
-      },
-      {
-        "id": 49,
-        "orig_id": 48,
-        "x": 196.36,
-        "y": 185.0,
-        "is_custom_rotation": false,
-        "rotation_deg": 0.0,
-        "color": {
-          "r": 26,
-          "g": 242,
-          "b": 71
-        }
-      },
-      {
-        "id": 50,
-        "orig_id": 49,
-        "x": 185.01,
-        "y": 172.59,
-        "is_custom_rotation": false,
-        "rotation_deg": 0.0,
-        "color": {
-          "r": 46,
-          "g": 123,
-          "b": 238
-        }
-      },
-      {
-        "id": 51,
-        "orig_id": 50,
-        "x": 182.32,
-        "y": 154.7,
-        "is_custom_rotation": false,
-        "rotation_deg": 0.0,
-        "color": {
-          "r": 26,
-          "g": 241,
-          "b": 69
-        }
-      },
-      {
-        "id": 52,
-        "orig_id": 51,
-        "x": 175.3,
-        "y": 140.65,
-        "is_custom_rotation": false,
-        "rotation_deg": 0.0,
-        "color": {
-          "r": 47,
-          "g": 124,
-          "b": 238
-        }
-      },
-      {
-        "id": 53,
-        "orig_id": 52,
-        "x": 195.42,
-        "y": 143.02,
-        "is_custom_rotation": false,
-        "rotation_deg": 0.0,
-        "color": {
-          "r": 28,
-          "g": 242,
-          "b": 62
-        }
-      },
-      {
-        "id": 54,
-        "orig_id": 53,
-        "x": 187.71,
-        "y": 129.16,
-        "is_custom_rotation": false,
-        "rotation_deg": 0.0,
-        "color": {
-          "r": 46,
-          "g": 125,
-          "b": 238
-        }
-      },
-      {
-        "id": 55,
-        "orig_id": 54,
-        "x": 168.7,
-        "y": 124.8,
-        "is_custom_rotation": false,
-        "rotation_deg": 0.0,
-        "color": {
-          "r": 46,
-          "g": 123,
-          "b": 238
-        }
-      },
-      {
-        "id": 56,
-        "orig_id": 55,
-        "x": 170.44,
-        "y": 110.75,
-        "is_custom_rotation": false,
-        "rotation_deg": 0.0,
-        "color": {
-          "r": 26,
-          "g": 242,
-          "b": 71
-        }
-      },
-      {
-        "id": 57,
-        "orig_id": 56,
-        "x": 166.85,
-        "y": 96.56,
-        "is_custom_rotation": false,
-        "rotation_deg": 0.0,
-        "color": {
-          "r": 28,
-          "g": 242,
-          "b": 69
-        }
-      },
-      {
-        "id": 58,
-        "orig_id": 57,
-        "x": 153.86,
-        "y": 85.4,
-        "is_custom_rotation": false,
-        "rotation_deg": 0.0,
-        "color": {
-          "r": 25,
-          "g": 242,
-          "b": 70
-        }
-      },
-      {
-        "id": 59,
-        "orig_id": 58,
-        "x": 138.33,
-        "y": 77.68,
-        "is_custom_rotation": false,
-        "rotation_deg": 0.0,
-        "color": {
-          "r": 44,
-          "g": 127,
-          "b": 238
-        }
-      },
-      {
-        "id": 60,
-        "orig_id": 59,
-        "x": 120.9,
-        "y": 85.93,
-        "is_custom_rotation": false,
-        "rotation_deg": 0.0,
-        "color": {
-          "r": 50,
-          "g": 119,
-          "b": 233
-        }
-      },
-      {
-        "id": 61,
-        "orig_id": 60,
-        "x": 122.07,
-        "y": 100.78,
-        "is_custom_rotation": false,
-        "rotation_deg": 0.0,
-        "color": {
-          "r": 26,
-          "g": 242,
-          "b": 68
-        }
-      },
-      {
-        "id": 62,
-        "orig_id": 61,
-        "x": 116.36,
-        "y": 116.22,
-        "is_custom_rotation": false,
-        "rotation_deg": 0.0,
-        "color": {
-          "r": 41,
-          "g": 238,
-          "b": 87
-        }
-      },
-      {
-        "id": 63,
-        "orig_id": 62,
-        "x": 103.11,
-        "y": 105.33,
-        "is_custom_rotation": false,
-        "rotation_deg": 0.0,
-        "color": {
-          "r": 255,
-          "g": 211,
-          "b": 2
-        }
-      },
-      {
-        "id": 64,
-        "orig_id": 63,
-        "x": 102.64,
-        "y": 91.4,
-        "is_custom_rotation": false,
-        "rotation_deg": 0.0,
-        "color": {
-          "r": 255,
-          "g": 211,
-          "b": 2
-        }
-      },
-      {
-        "id": 65,
-        "orig_id": 64,
-        "x": 100.99,
-        "y": 77.34,
-        "is_custom_rotation": false,
-        "rotation_deg": 0.0,
-        "color": {
-          "r": 254,
-          "g": 205,
-          "b": 0
-        }
-      },
-      {
-        "id": 66,
-        "orig_id": 65,
-        "x": 103.17,
-        "y": 63.29,
-        "is_custom_rotation": false,
-        "rotation_deg": 0.0,
-        "color": {
-          "r": 255,
-          "g": 211,
-          "b": 3
-        }
-      },
-      {
-        "id": 67,
-        "orig_id": 66,
-        "x": 119.42,
-        "y": 71.8,
-        "is_custom_rotation": false,
-        "rotation_deg": 0.0,
-        "color": {
-          "r": 50,
-          "g": 136,
-          "b": 233
-        }
-      },
-      {
-        "id": 68,
-        "orig_id": 67,
-        "x": 125.88,
-        "y": 57.81,
-        "is_custom_rotation": false,
-        "rotation_deg": 0.0,
-        "color": {
-          "r": 26,
-          "g": 242,
-          "b": 71
-        }
-      },
-      {
-        "id": 69,
-        "orig_id": 68,
-        "x": 139.81,
-        "y": 47.84,
-        "is_custom_rotation": false,
-        "rotation_deg": 0.0,
-        "color": {
-          "r": 25,
-          "g": 242,
-          "b": 68
-        }
-      },
-      {
-        "id": 70,
-        "orig_id": 69,
-        "x": 143.72,
-        "y": 63.68,
-        "is_custom_rotation": false,
-        "rotation_deg": 0.0,
-        "color": {
-          "r": 25,
-          "g": 242,
-          "b": 70
-        }
-      },
-      {
-        "id": 71,
-        "orig_id": 70,
-        "x": 163.78,
-        "y": 61.17,
-        "is_custom_rotation": false,
-        "rotation_deg": 0.0,
-        "color": {
-          "r": 47,
-          "g": 126,
-          "b": 238
-        }
-      },
-      {
-        "id": 72,
-        "orig_id": 71,
-        "x": 180.42,
-        "y": 38.34,
-        "is_custom_rotation": false,
-        "rotation_deg": 0.0,
-        "color": {
-          "r": 150,
-          "g": 244,
-          "b": 40
-        }
-      },
-      {
-        "id": 73,
-        "orig_id": 72,
-        "x": 178.62,
-        "y": 52.4,
-        "is_custom_rotation": false,
-        "rotation_deg": 0.0,
-        "color": {
-          "r": 44,
-          "g": 123,
-          "b": 238
-        }
-      },
-      {
-        "id": 74,
-        "orig_id": 73,
-        "x": 182.74,
-        "y": 66.59,
-        "is_custom_rotation": false,
-        "rotation_deg": 0.0,
-        "color": {
-          "r": 46,
-          "g": 236,
-          "b": 117
-        }
-      },
-      {
-        "id": 75,
-        "orig_id": 74,
-        "x": 167.64,
-        "y": 75.23,
-        "is_custom_rotation": false,
-        "rotation_deg": 0.0,
-        "color": {
-          "r": 46,
-          "g": 125,
-          "b": 238
-        }
-      },
-      {
-        "id": 76,
-        "orig_id": 75,
-        "x": 180.53,
-        "y": 86.32,
-        "is_custom_rotation": false,
-        "rotation_deg": 0.0,
-        "color": {
-          "r": 26,
-          "g": 242,
-          "b": 71
-        }
-      },
-      {
-        "id": 77,
-        "orig_id": 76,
-        "x": 195.42,
-        "y": 77.81,
-        "is_custom_rotation": false,
-        "rotation_deg": 0.0,
-        "color": {
-          "r": 46,
-          "g": 125,
-          "b": 238
-        }
-      },
-      {
-        "id": 78,
-        "orig_id": 77,
-        "x": 204.44,
-        "y": 64.34,
-        "is_custom_rotation": false,
-        "rotation_deg": 0.0,
-        "color": {
-          "r": 24,
-          "g": 242,
-          "b": 68
-        }
-      },
-      {
-        "id": 79,
-        "orig_id": 78,
-        "x": 198.63,
-        "y": 50.29,
-        "is_custom_rotation": false,
-        "rotation_deg": 0.0,
-        "color": {
-          "r": 26,
-          "g": 242,
-          "b": 71
-        }
-      },
-      {
-        "id": 80,
-        "orig_id": 79,
-        "x": 200.69,
-        "y": 36.22,
-        "is_custom_rotation": false,
-        "rotation_deg": 0.0,
-        "color": {
-          "r": 47,
-          "g": 126,
-          "b": 238
-        }
-      },
-      {
-        "id": 81,
-        "orig_id": 80,
-        "x": 220.13,
-        "y": 39.98,
-        "is_custom_rotation": false,
-        "rotation_deg": 0.0,
-        "color": {
-          "r": 47,
-          "g": 124,
-          "b": 238
-        }
-      },
-      {
-        "id": 82,
-        "orig_id": 81,
-        "x": 218.23,
-        "y": 54.05,
-        "is_custom_rotation": false,
-        "rotation_deg": 0.0,
-        "color": {
-          "r": 25,
-          "g": 242,
-          "b": 70
-        }
-      },
-      {
-        "id": 83,
-        "orig_id": 82,
-        "x": 233.48,
-        "y": 61.84,
-        "is_custom_rotation": false,
-        "rotation_deg": 0.0,
-        "color": {
-          "r": 148,
-          "g": 244,
-          "b": 40
-        }
-      },
-      {
-        "id": 84,
-        "orig_id": 83,
-        "x": 236.13,
-        "y": 75.82,
-        "is_custom_rotation": false,
-        "rotation_deg": 0.0,
-        "color": {
-          "r": 50,
-          "g": 117,
-          "b": 233
-        }
-      },
-      {
-        "id": 85,
-        "orig_id": 84,
-        "x": 215.95,
-        "y": 76.69,
-        "is_custom_rotation": false,
-        "rotation_deg": 0.0,
-        "color": {
-          "r": 43,
-          "g": 120,
-          "b": 239
-        }
-      },
-      {
-        "id": 86,
-        "orig_id": 85,
-        "x": 219.18,
-        "y": 90.74,
-        "is_custom_rotation": false,
-        "rotation_deg": 0.0,
-        "color": {
-          "r": 28,
-          "g": 242,
-          "b": 69
-        }
-      },
-      {
-        "id": 87,
-        "orig_id": 86,
-        "x": 198.8,
-        "y": 91.8,
-        "is_custom_rotation": false,
-        "rotation_deg": 0.0,
-        "color": {
-          "r": 44,
-          "g": 123,
-          "b": 238
-        }
-      },
-      {
-        "id": 88,
-        "orig_id": 87,
-        "x": 188.23,
-        "y": 104.67,
-        "is_custom_rotation": false,
-        "rotation_deg": 0.0,
-        "color": {
-          "r": 28,
-          "g": 242,
-          "b": 69
-        }
-      },
-      {
-        "id": 89,
-        "orig_id": 88,
-        "x": 199.54,
-        "y": 117.21,
-        "is_custom_rotation": false,
-        "rotation_deg": 0.0,
-        "color": {
-          "r": 49,
-          "g": 127,
-          "b": 233
-        }
-      },
-      {
-        "id": 90,
-        "orig_id": 89,
-        "x": 210.2,
-        "y": 104.41,
-        "is_custom_rotation": false,
-        "rotation_deg": 0.0,
-        "color": {
-          "r": 50,
-          "g": 129,
-          "b": 233
-        }
-      },
-      {
-        "id": 91,
-        "orig_id": 90,
-        "x": 219.49,
-        "y": 119.14,
-        "is_custom_rotation": false,
-        "rotation_deg": 0.0,
-        "color": {
-          "r": 46,
-          "g": 123,
-          "b": 238
-        }
-      },
-      {
-        "id": 92,
-        "orig_id": 91,
-        "x": 213.95,
-        "y": 133.26,
-        "is_custom_rotation": false,
-        "rotation_deg": 0.0,
-        "color": {
-          "r": 25,
-          "g": 242,
-          "b": 66
-        }
-      },
-      {
-        "id": 93,
-        "orig_id": 92,
-        "x": 200.27,
-        "y": 160.64,
-        "is_custom_rotation": false,
-        "rotation_deg": 0.0,
-        "color": {
-          "r": 26,
-          "g": 242,
-          "b": 71
-        }
-      },
-      {
-        "id": 94,
-        "orig_id": 93,
-        "x": 209.51,
-        "y": 174.05,
-        "is_custom_rotation": false,
-        "rotation_deg": 0.0,
-        "color": {
-          "r": 51,
-          "g": 123,
-          "b": 236
-        }
-      },
-      {
-        "id": 95,
-        "orig_id": 94,
-        "x": 220.6,
-        "y": 161.24,
-        "is_custom_rotation": false,
-        "rotation_deg": 0.0,
-        "color": {
-          "r": 50,
-          "g": 123,
-          "b": 233
-        }
-      },
-      {
-        "id": 96,
-        "orig_id": 95,
-        "x": 214.59,
-        "y": 147.25,
-        "is_custom_rotation": false,
-        "rotation_deg": 0.0,
-        "color": {
-          "r": 25,
-          "g": 242,
-          "b": 66
-        }
-      },
-      {
-        "id": 97,
-        "orig_id": 96,
-        "x": 234.96,
-        "y": 136.23,
-        "is_custom_rotation": false,
-        "rotation_deg": 0.0,
-        "color": {
-          "r": 44,
-          "g": 120,
-          "b": 238
-        }
-      },
-      {
-        "id": 98,
-        "orig_id": 97,
-        "x": 239.19,
-        "y": 122.16,
-        "is_custom_rotation": false,
-        "rotation_deg": 0.0,
-        "color": {
-          "r": 46,
-          "g": 125,
-          "b": 238
-        }
-      },
-      {
-        "id": 99,
-        "orig_id": 98,
-        "x": 239.45,
-        "y": 89.83,
-        "is_custom_rotation": false,
-        "rotation_deg": 0.0,
-        "color": {
-          "r": 24,
-          "g": 243,
-          "b": 67
-        }
-      },
-      {
-        "id": 100,
-        "orig_id": 99,
-        "x": 230.47,
-        "y": 106.58,
-        "is_custom_rotation": false,
-        "rotation_deg": 0.0,
-        "color": {
-          "r": 28,
-          "g": 242,
-          "b": 65
-        }
-      }
-    ],
-    "led_count": 100,
-    "fastener_tabs": [
-      [
-        31.94,
-        202.69
-      ],
-      [
-        74.88,
-        222.6
-      ],
-      [
-        116.74,
-        201.07
-      ],
-      [
-        161.98,
-        208.77
-      ],
-      [
-        209.78,
-        201.15
-      ],
-      [
-        243.85,
-        166.62
-      ],
-      [
-        261.71,
-        121.44
-      ],
-      [
-        257.58,
-        72.85
-      ],
-      [
-        255.84,
-        28.1
-      ],
-      [
-        210.3,
-        20.39
-      ],
-      [
-        161.86,
-        16.85
-      ],
-      [
-        113.22,
-        17.11
-      ],
-      [
-        64.83,
-        25.54
-      ],
-      [
-        60.34,
-        72.73
-      ],
-      [
-        54.99,
-        119.1
-      ],
-      [
-        28.03,
-        154.36
-      ]
-    ],
-    "entrance_portal": [
-      143.08,
-      18.35
-    ],
-    "entrance_bridge": [
-      143.08,
-      26.35
-    ],
-    "exit_portal": [
-      259.98,
-      86.8
-    ],
-    "exit_bridge": [
-      252.07,
-      88.0
-    ],
-    "screw_positions": [
-      [
-        73.62,
-        218.65
-      ],
-      [
-        104.39,
-        209.52
-      ],
-      [
-        145.38,
-        205.97
-      ],
-      [
-        224.49,
-        184.25
-      ],
-      [
-        245.37,
-        158.36
-      ],
-      [
-        254.66,
-        135.54
-      ],
-      [
-        257.91,
-        104.78
-      ],
-      [
-        255.62,
-        33.26
-      ],
-      [
-        189.13,
-        22.37
-      ],
-      [
-        118.44,
-        20.85
-      ],
-      [
-        68.48,
-        27.25
-      ],
-      [
-        63.33,
-        103.1
-      ],
-      [
-        38.14,
-        145.56
-      ],
-      [
-        27.98,
-        180.21
-      ]
-    ],
-    "number_positions": [
-      [
-        160.08,
-        41.61
-      ],
-      [
-        149.54,
-        29.09
-      ],
-      [
-        124.97,
-        33.76
-      ],
-      [
-        102.82,
-        49.36
-      ],
-      [
-        105.38,
-        29.87
-      ],
-      [
-        79.67,
-        35.02
-      ],
-      [
-        78.63,
-        53.58
-      ],
-      [
-        75.83,
-        67.71
-      ],
-      [
-        73.94,
-        81.77
-      ],
-      [
-        75.36,
-        95.76
-      ],
-      [
-        75.79,
-        109.76
-      ],
-      [
-        69.63,
-        119.12
-      ],
-      [
-        62.55,
-        133.05
-      ],
-      [
-        52.15,
-        145.98
-      ],
-      [
-        41.26,
-        164.01
-      ],
-      [
-        68.27,
-        181.18
-      ],
-      [
-        44.86,
-        194.19
-      ],
-      [
-        63.77,
-        199.07
-      ],
-      [
-        85.33,
-        208.59
-      ],
-      [
-        95.78,
-        192.8
-      ],
-      [
-        75.86,
-        178.86
-      ],
-      [
-        69.85,
-        157.46
-      ],
-      [
-        80.52,
-        144.39
-      ],
-      [
-        89.55,
-        139.8
-      ],
-      [
-        105.05,
-        120.38
-      ],
-      [
-        116.0,
-        136.56
-      ],
-      [
-        106.87,
-        151.48
-      ],
-      [
-        87.35,
-        160.98
-      ],
-      [
-        102.53,
-        180.39
-      ],
-      [
-        116.47,
-        190.3
-      ],
-      [
-        129.36,
-        167.95
-      ],
-      [
-        115.36,
-        169.11
-      ],
-      [
-        120.22,
-        144.18
-      ],
-      [
-        143.04,
-        147.19
-      ],
-      [
-        122.86,
-        133.26
-      ],
-      [
-        135.8,
-        106.96
-      ],
-      [
-        138.91,
-        99.67
-      ],
-      [
-        151.86,
-        99.9
-      ],
-      [
-        154.92,
-        119.58
-      ],
-      [
-        148.9,
-        142.5
-      ],
-      [
-        154.36,
-        151.93
-      ],
-      [
-        167.2,
-        165.93
-      ],
-      [
-        146.89,
-        156.41
-      ],
-      [
-        147.95,
-        172.96
-      ],
-      [
-        135.38,
-        195.31
-      ],
-      [
-        156.49,
-        197.97
-      ],
-      [
-        168.22,
-        185.02
-      ],
-      [
-        179.57,
-        197.3
-      ],
-      [
-        196.36,
-        190.5
-      ],
-      [
-        178.51,
-        168.09
-      ],
-      [
-        175.82,
-        159.2
-      ],
-      [
-        183.3,
-        140.65
-      ],
-      [
-        201.92,
-        138.52
-      ],
-      [
-        187.71,
-        123.66
-      ],
-      [
-        162.2,
-        120.3
-      ],
-      [
-        176.94,
-        115.25
-      ],
-      [
-        166.85,
-        91.06
-      ],
-      [
-        153.86,
-        79.9
-      ],
-      [
-        131.83,
-        73.18
-      ],
-      [
-        128.9,
-        85.93
-      ],
-      [
-        114.07,
-        100.78
-      ],
-      [
-        116.36,
-        121.72
-      ],
-      [
-        95.11,
-        105.33
-      ],
-      [
-        94.64,
-        91.4
-      ],
-      [
-        94.49,
-        81.84
-      ],
-      [
-        95.17,
-        63.29
-      ],
-      [
-        127.42,
-        71.8
-      ],
-      [
-        125.88,
-        52.31
-      ],
-      [
-        147.81,
-        47.84
-      ],
-      [
-        150.22,
-        68.18
-      ],
-      [
-        157.28,
-        65.67
-      ],
-      [
-        180.42,
-        32.84
-      ],
-      [
-        186.62,
-        52.4
-      ],
-      [
-        189.24,
-        62.09
-      ],
-      [
-        167.64,
-        80.73
-      ],
-      [
-        180.53,
-        91.82
-      ],
-      [
-        203.42,
-        77.81
-      ],
-      [
-        196.44,
-        64.34
-      ],
-      [
-        192.13,
-        54.79
-      ],
-      [
-        200.69,
-        30.72
-      ],
-      [
-        226.63,
-        35.48
-      ],
-      [
-        218.23,
-        59.55
-      ],
-      [
-        239.98,
-        57.34
-      ],
-      [
-        244.13,
-        75.82
-      ],
-      [
-        222.45,
-        72.19
-      ],
-      [
-        225.68,
-        86.24
-      ],
-      [
-        205.3,
-        87.3
-      ],
-      [
-        181.73,
-        100.17
-      ],
-      [
-        206.04,
-        121.71
-      ],
-      [
-        202.2,
-        104.41
-      ],
-      [
-        225.99,
-        123.64
-      ],
-      [
-        205.95,
-        133.26
-      ],
-      [
-        200.27,
-        155.14
-      ],
-      [
-        216.01,
-        178.55
-      ],
-      [
-        228.6,
-        161.24
-      ],
-      [
-        222.59,
-        147.25
-      ],
-      [
-        234.96,
-        141.73
-      ],
-      [
-        245.69,
-        117.66
-      ],
-      [
-        245.95,
-        94.33
-      ],
-      [
-        238.47,
-        106.58
-      ]
-    ],
-    "contour_pts": [
-      [
-        32.67,
-        201.38
-      ],
-      [
-        39.41,
-        205.18
-      ],
-      [
-        51.19,
-        205.12
-      ],
-      [
-        71.0,
-        220.35
-      ],
-      [
-        73.22,
-        221.17
-      ],
-      [
-        87.99,
-        220.52
-      ],
-      [
-        89.66,
-        220.07
-      ],
-      [
-        109.61,
-        209.61
-      ],
-      [
-        116.13,
-        199.23
-      ],
-      [
-        145.07,
-        208.5
-      ],
-      [
-        202.3,
-        204.31
-      ],
-      [
-        204.51,
-        203.45
-      ],
-      [
-        226.26,
-        186.03
-      ],
-      [
-        247.6,
-        159.58
-      ],
-      [
-        257.06,
-        136.28
-      ],
-      [
-        260.74,
-        118.76
-      ],
-      [
-        259.98,
-        86.8
-      ],
-      [
-        251.77,
-        57.85
-      ],
-      [
-        258.59,
-        49.27
-      ],
-      [
-        259.38,
-        47.56
-      ],
-      [
-        258.26,
-        33.22
-      ],
-      [
-        257.59,
-        31.33
-      ],
-      [
-        256.43,
-        30.21
-      ],
-      [
-        246.4,
-        24.16
-      ],
-      [
-        234.38,
-        24.17
-      ],
-      [
-        232.56,
-        25.09
-      ],
-      [
-        231.06,
-        27.22
-      ],
-      [
-        216.41,
-        22.48
-      ],
-      [
-        173.4,
-        18.35
-      ],
-      [
-        115.25,
-        18.35
-      ],
-      [
-        68.59,
-        24.52
-      ],
-      [
-        66.81,
-        25.22
-      ],
-      [
-        65.19,
-        27.75
-      ],
-      [
-        63.95,
-        41.57
-      ],
-      [
-        64.4,
-        43.39
-      ],
-      [
-        67.22,
-        47.81
-      ],
-      [
-        61.49,
-        74.54
-      ],
-      [
-        60.58,
-        114.13
-      ],
-      [
-        48.54,
-        130.23
-      ],
-      [
-        47.58,
-        140.68
-      ],
-      [
-        39.27,
-        141.37
-      ],
-      [
-        37.5,
-        142.17
-      ],
-      [
-        30.3,
-        152.17
-      ],
-      [
-        29.63,
-        153.81
-      ],
-      [
-        25.42,
-        180.37
-      ],
-      [
-        30.93,
-        199.11
-      ],
-      [
-        32.67,
-        201.38
-      ]
-    ],
-    "stl_bounds": [
-      240.18,
-      212.25,
-      10.0
-    ],
-    "stl_center": [
-      144.87,
-      119.73,
-      5.0
-    ],
-    "stl_size": 5642834,
-    "chassis_size": 8924684,
-    "lid_size": 480284,
-    "zip_size": 4804583,
-    "inlays": [
-      {
-        "key": "green",
-        "name": "Shell Plates & Glasses",
-        "filename": "tpu_panel_back_color_green.stl",
-        "hex": "#00cc66",
-        "count": 14228
-      },
-      {
-        "key": "blue",
-        "name": "Shell & Eyes",
-        "filename": "tpu_panel_back_color_blue.stl",
-        "hex": "#2563eb",
-        "count": 25526
-      },
-      {
-        "key": "yellow",
-        "name": "Body & Head",
-        "filename": "tpu_panel_back_color_yellow.stl",
-        "hex": "#facc15",
-        "count": 8304
-      },
-      {
-        "key": "red",
-        "name": "Tie & Lips",
-        "filename": "tpu_panel_back_color_red.stl",
-        "hex": "#ef4444",
-        "count": 1608
-      }
-    ],
-    "stl_url": "/3d_panels/tpu_panel_back.stl",
-    "chassis_stl_url": "/3d_panels/tpu_panel_back_chassis_black.stl",
-    "lid_stl_url": "/3d_panels/tpu_panel_back_lid.stl",
-    "multicolor_3mf_url": "/3d_panels/tpu_panel_back_multicolor.3mf",
-    "multicolor_zip_url": "/3d_panels/tpu_panel_back_multicolor_bundle.zip",
-    "volume_mm3": 96705.1,
-    "is_watertight": false,
-    "graphic_type": "spinning_turtle"
-  },
   "stl_colors": {
     "black": {
       "name": "Chassis Black",
@@ -4264,2089 +66,6276 @@
       "filename": "color_red.stl"
     }
   },
-  "variant": "front",
-  "height_mm": 246.71,
-  "panel_width_mm": 235.32,
-  "panel_height_mm": 202.82,
-  "total_image_width_mm": 295.57,
-  "total_image_height_mm": 246.71,
+  "layout_signature": "spinning_turtle-round_34-horizontal-num-nogrv-nub-large-100-v6-9697a456",
+  "size_preset": "large",
+  "width_mm": 295.84,
+  "front": {
+    "variant": "front",
+    "width_mm": 295.84,
+    "height_mm": 247.02,
+    "panel_width_mm": 235.35,
+    "panel_height_mm": 203.0,
+    "total_image_width_mm": 295.84,
+    "total_image_height_mm": 247.02,
+    "window_shape": "round_34",
+    "well_orientation": "horizontal",
+    "ordered_leds": [
+      {
+        "id": 1,
+        "orig_id": 0,
+        "x": 160.24,
+        "y": 47.17,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
+        "color": {
+          "r": 0,
+          "g": 255,
+          "b": 0
+        }
+      },
+      {
+        "id": 2,
+        "orig_id": 1,
+        "x": 143.16,
+        "y": 33.63,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
+        "color": {
+          "r": 0,
+          "g": 255,
+          "b": 0
+        }
+      },
+      {
+        "id": 3,
+        "orig_id": 2,
+        "x": 125.09,
+        "y": 39.31,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
+        "color": {
+          "r": 0,
+          "g": 255,
+          "b": 0
+        }
+      },
+      {
+        "id": 4,
+        "orig_id": 3,
+        "x": 110.92,
+        "y": 49.43,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
+        "color": {
+          "r": 0,
+          "g": 255,
+          "b": 0
+        }
+      },
+      {
+        "id": 5,
+        "orig_id": 4,
+        "x": 105.48,
+        "y": 35.41,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
+        "color": {
+          "r": 0,
+          "g": 255,
+          "b": 0
+        }
+      },
+      {
+        "id": 6,
+        "orig_id": 5,
+        "x": 86.25,
+        "y": 39.57,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
+        "color": {
+          "r": 0,
+          "g": 255,
+          "b": 0
+        }
+      },
+      {
+        "id": 7,
+        "orig_id": 6,
+        "x": 86.72,
+        "y": 53.65,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
+        "color": {
+          "r": 0,
+          "g": 255,
+          "b": 0
+        }
+      },
+      {
+        "id": 8,
+        "orig_id": 7,
+        "x": 83.91,
+        "y": 67.8,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
+        "color": {
+          "r": 0,
+          "g": 255,
+          "b": 0
+        }
+      },
+      {
+        "id": 9,
+        "orig_id": 8,
+        "x": 82.02,
+        "y": 81.87,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
+        "color": {
+          "r": 0,
+          "g": 255,
+          "b": 0
+        }
+      },
+      {
+        "id": 10,
+        "orig_id": 9,
+        "x": 83.44,
+        "y": 95.88,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
+        "color": {
+          "r": 0,
+          "g": 255,
+          "b": 0
+        }
+      },
+      {
+        "id": 11,
+        "orig_id": 10,
+        "x": 83.87,
+        "y": 109.89,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
+        "color": {
+          "r": 0,
+          "g": 255,
+          "b": 0
+        }
+      },
+      {
+        "id": 12,
+        "orig_id": 11,
+        "x": 76.2,
+        "y": 123.77,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
+        "color": {
+          "r": 0,
+          "g": 255,
+          "b": 0
+        }
+      },
+      {
+        "id": 13,
+        "orig_id": 12,
+        "x": 69.12,
+        "y": 137.72,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
+        "color": {
+          "r": 0,
+          "g": 255,
+          "b": 0
+        }
+      },
+      {
+        "id": 14,
+        "orig_id": 13,
+        "x": 58.7,
+        "y": 150.67,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
+        "color": {
+          "r": 0,
+          "g": 255,
+          "b": 0
+        }
+      },
+      {
+        "id": 15,
+        "orig_id": 14,
+        "x": 49.31,
+        "y": 164.22,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
+        "color": {
+          "r": 0,
+          "g": 255,
+          "b": 0
+        }
+      },
+      {
+        "id": 16,
+        "orig_id": 15,
+        "x": 61.82,
+        "y": 176.91,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
+        "color": {
+          "r": 0,
+          "g": 255,
+          "b": 0
+        }
+      },
+      {
+        "id": 17,
+        "orig_id": 16,
+        "x": 51.41,
+        "y": 189.93,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
+        "color": {
+          "r": 0,
+          "g": 255,
+          "b": 0
+        }
+      },
+      {
+        "id": 18,
+        "orig_id": 17,
+        "x": 70.33,
+        "y": 194.82,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
+        "color": {
+          "r": 0,
+          "g": 255,
+          "b": 0
+        }
+      },
+      {
+        "id": 19,
+        "orig_id": 18,
+        "x": 85.39,
+        "y": 203.35,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
+        "color": {
+          "r": 0,
+          "g": 255,
+          "b": 0
+        }
+      },
+      {
+        "id": 20,
+        "orig_id": 19,
+        "x": 89.37,
+        "y": 188.55,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
+        "color": {
+          "r": 0,
+          "g": 255,
+          "b": 0
+        }
+      },
+      {
+        "id": 21,
+        "orig_id": 20,
+        "x": 82.44,
+        "y": 174.6,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
+        "color": {
+          "r": 0,
+          "g": 255,
+          "b": 0
+        }
+      },
+      {
+        "id": 22,
+        "orig_id": 21,
+        "x": 69.91,
+        "y": 163.16,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
+        "color": {
+          "r": 0,
+          "g": 255,
+          "b": 0
+        }
+      },
+      {
+        "id": 23,
+        "orig_id": 22,
+        "x": 80.59,
+        "y": 150.07,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
+        "color": {
+          "r": 0,
+          "g": 255,
+          "b": 0
+        }
+      },
+      {
+        "id": 24,
+        "orig_id": 23,
+        "x": 89.63,
+        "y": 134.49,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
+        "color": {
+          "r": 0,
+          "g": 255,
+          "b": 0
+        }
+      },
+      {
+        "id": 25,
+        "orig_id": 24,
+        "x": 97.13,
+        "y": 120.53,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
+        "color": {
+          "r": 0,
+          "g": 255,
+          "b": 0
+        }
+      },
+      {
+        "id": 26,
+        "orig_id": 25,
+        "x": 109.6,
+        "y": 132.23,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
+        "color": {
+          "r": 0,
+          "g": 255,
+          "b": 0
+        }
+      },
+      {
+        "id": 27,
+        "orig_id": 26,
+        "x": 100.46,
+        "y": 147.17,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
+        "color": {
+          "r": 0,
+          "g": 255,
+          "b": 0
+        }
+      },
+      {
+        "id": 28,
+        "orig_id": 27,
+        "x": 95.44,
+        "y": 161.18,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
+        "color": {
+          "r": 0,
+          "g": 255,
+          "b": 0
+        }
+      },
+      {
+        "id": 29,
+        "orig_id": 28,
+        "x": 102.62,
+        "y": 175.13,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
+        "color": {
+          "r": 0,
+          "g": 255,
+          "b": 0
+        }
+      },
+      {
+        "id": 30,
+        "orig_id": 29,
+        "x": 116.58,
+        "y": 185.03,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
+        "color": {
+          "r": 0,
+          "g": 255,
+          "b": 0
+        }
+      },
+      {
+        "id": 31,
+        "orig_id": 30,
+        "x": 129.48,
+        "y": 173.68,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
+        "color": {
+          "r": 0,
+          "g": 255,
+          "b": 0
+        }
+      },
+      {
+        "id": 32,
+        "orig_id": 31,
+        "x": 115.47,
+        "y": 163.83,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
+        "color": {
+          "r": 0,
+          "g": 255,
+          "b": 0
+        }
+      },
+      {
+        "id": 33,
+        "orig_id": 32,
+        "x": 120.33,
+        "y": 149.88,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
+        "color": {
+          "r": 0,
+          "g": 255,
+          "b": 0
+        }
+      },
+      {
+        "id": 34,
+        "orig_id": 33,
+        "x": 136.66,
+        "y": 142.87,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
+        "color": {
+          "r": 0,
+          "g": 255,
+          "b": 0
+        }
+      },
+      {
+        "id": 35,
+        "orig_id": 34,
+        "x": 129.48,
+        "y": 128.93,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
+        "color": {
+          "r": 0,
+          "g": 255,
+          "b": 0
+        }
+      },
+      {
+        "id": 36,
+        "orig_id": 35,
+        "x": 135.92,
+        "y": 112.61,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
+        "color": {
+          "r": 0,
+          "g": 255,
+          "b": 0
+        }
+      },
+      {
+        "id": 37,
+        "orig_id": 36,
+        "x": 139.04,
+        "y": 94.29,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
+        "color": {
+          "r": 0,
+          "g": 255,
+          "b": 0
+        }
+      },
+      {
+        "id": 38,
+        "orig_id": 37,
+        "x": 151.99,
+        "y": 105.53,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
+        "color": {
+          "r": 0,
+          "g": 255,
+          "b": 0
+        }
+      },
+      {
+        "id": 39,
+        "orig_id": 38,
+        "x": 148.56,
+        "y": 124.24,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
+        "color": {
+          "r": 0,
+          "g": 255,
+          "b": 0
+        }
+      },
+      {
+        "id": 40,
+        "orig_id": 39,
+        "x": 155.53,
+        "y": 138.18,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
+        "color": {
+          "r": 0,
+          "g": 255,
+          "b": 0
+        }
+      },
+      {
+        "id": 41,
+        "orig_id": 40,
+        "x": 162.51,
+        "y": 152.13,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
+        "color": {
+          "r": 0,
+          "g": 255,
+          "b": 0
+        }
+      },
+      {
+        "id": 42,
+        "orig_id": 41,
+        "x": 159.33,
+        "y": 166.13,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
+        "color": {
+          "r": 0,
+          "g": 255,
+          "b": 0
+        }
+      },
+      {
+        "id": 43,
+        "orig_id": 42,
+        "x": 140.52,
+        "y": 161.11,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
+        "color": {
+          "r": 0,
+          "g": 255,
+          "b": 0
+        }
+      },
+      {
+        "id": 44,
+        "orig_id": 43,
+        "x": 148.08,
+        "y": 178.7,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
+        "color": {
+          "r": 0,
+          "g": 255,
+          "b": 0
+        }
+      },
+      {
+        "id": 45,
+        "orig_id": 44,
+        "x": 135.5,
+        "y": 190.07,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
+        "color": {
+          "r": 0,
+          "g": 255,
+          "b": 0
+        }
+      },
+      {
+        "id": 46,
+        "orig_id": 45,
+        "x": 156.64,
+        "y": 192.71,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
+        "color": {
+          "r": 0,
+          "g": 255,
+          "b": 0
+        }
+      },
+      {
+        "id": 47,
+        "orig_id": 46,
+        "x": 168.37,
+        "y": 179.74,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
+        "color": {
+          "r": 0,
+          "g": 255,
+          "b": 0
+        }
+      },
+      {
+        "id": 48,
+        "orig_id": 47,
+        "x": 179.73,
+        "y": 192.05,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
+        "color": {
+          "r": 0,
+          "g": 255,
+          "b": 0
+        }
+      },
+      {
+        "id": 49,
+        "orig_id": 48,
+        "x": 196.55,
+        "y": 185.24,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
+        "color": {
+          "r": 0,
+          "g": 255,
+          "b": 0
+        }
+      },
+      {
+        "id": 50,
+        "orig_id": 49,
+        "x": 185.18,
+        "y": 172.81,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
+        "color": {
+          "r": 0,
+          "g": 255,
+          "b": 0
+        }
+      },
+      {
+        "id": 51,
+        "orig_id": 50,
+        "x": 182.49,
+        "y": 154.9,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
+        "color": {
+          "r": 0,
+          "g": 255,
+          "b": 0
+        }
+      },
+      {
+        "id": 52,
+        "orig_id": 51,
+        "x": 175.45,
+        "y": 140.83,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
+        "color": {
+          "r": 0,
+          "g": 255,
+          "b": 0
+        }
+      },
+      {
+        "id": 53,
+        "orig_id": 52,
+        "x": 195.6,
+        "y": 143.2,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
+        "color": {
+          "r": 0,
+          "g": 255,
+          "b": 0
+        }
+      },
+      {
+        "id": 54,
+        "orig_id": 53,
+        "x": 187.87,
+        "y": 129.32,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
+        "color": {
+          "r": 0,
+          "g": 255,
+          "b": 0
+        }
+      },
+      {
+        "id": 55,
+        "orig_id": 54,
+        "x": 168.85,
+        "y": 124.97,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
+        "color": {
+          "r": 0,
+          "g": 255,
+          "b": 0
+        }
+      },
+      {
+        "id": 56,
+        "orig_id": 55,
+        "x": 170.6,
+        "y": 110.88,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
+        "color": {
+          "r": 0,
+          "g": 255,
+          "b": 0
+        }
+      },
+      {
+        "id": 57,
+        "orig_id": 56,
+        "x": 167.0,
+        "y": 96.68,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
+        "color": {
+          "r": 0,
+          "g": 255,
+          "b": 0
+        }
+      },
+      {
+        "id": 58,
+        "orig_id": 57,
+        "x": 154.0,
+        "y": 85.51,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
+        "color": {
+          "r": 0,
+          "g": 255,
+          "b": 0
+        }
+      },
+      {
+        "id": 59,
+        "orig_id": 58,
+        "x": 138.46,
+        "y": 77.78,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
+        "color": {
+          "r": 0,
+          "g": 255,
+          "b": 0
+        }
+      },
+      {
+        "id": 60,
+        "orig_id": 59,
+        "x": 121.01,
+        "y": 86.04,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
+        "color": {
+          "r": 0,
+          "g": 255,
+          "b": 0
+        }
+      },
+      {
+        "id": 61,
+        "orig_id": 60,
+        "x": 122.19,
+        "y": 100.91,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
+        "color": {
+          "r": 0,
+          "g": 255,
+          "b": 0
+        }
+      },
+      {
+        "id": 62,
+        "orig_id": 61,
+        "x": 116.47,
+        "y": 116.37,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
+        "color": {
+          "r": 0,
+          "g": 255,
+          "b": 0
+        }
+      },
+      {
+        "id": 63,
+        "orig_id": 62,
+        "x": 103.21,
+        "y": 105.46,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
+        "color": {
+          "r": 0,
+          "g": 255,
+          "b": 0
+        }
+      },
+      {
+        "id": 64,
+        "orig_id": 63,
+        "x": 102.73,
+        "y": 91.52,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
+        "color": {
+          "r": 0,
+          "g": 255,
+          "b": 0
+        }
+      },
+      {
+        "id": 65,
+        "orig_id": 64,
+        "x": 101.1,
+        "y": 77.45,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
+        "color": {
+          "r": 0,
+          "g": 255,
+          "b": 0
+        }
+      },
+      {
+        "id": 66,
+        "orig_id": 65,
+        "x": 103.26,
+        "y": 63.37,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
+        "color": {
+          "r": 0,
+          "g": 255,
+          "b": 0
+        }
+      },
+      {
+        "id": 67,
+        "orig_id": 66,
+        "x": 119.54,
+        "y": 71.9,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
+        "color": {
+          "r": 0,
+          "g": 255,
+          "b": 0
+        }
+      },
+      {
+        "id": 68,
+        "orig_id": 67,
+        "x": 125.99,
+        "y": 57.88,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
+        "color": {
+          "r": 0,
+          "g": 255,
+          "b": 0
+        }
+      },
+      {
+        "id": 69,
+        "orig_id": 68,
+        "x": 139.94,
+        "y": 47.9,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
+        "color": {
+          "r": 0,
+          "g": 255,
+          "b": 0
+        }
+      },
+      {
+        "id": 70,
+        "orig_id": 69,
+        "x": 143.85,
+        "y": 63.77,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
+        "color": {
+          "r": 0,
+          "g": 255,
+          "b": 0
+        }
+      },
+      {
+        "id": 71,
+        "orig_id": 70,
+        "x": 163.94,
+        "y": 61.25,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
+        "color": {
+          "r": 0,
+          "g": 255,
+          "b": 0
+        }
+      },
+      {
+        "id": 72,
+        "orig_id": 71,
+        "x": 180.58,
+        "y": 38.39,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
+        "color": {
+          "r": 0,
+          "g": 255,
+          "b": 0
+        }
+      },
+      {
+        "id": 73,
+        "orig_id": 72,
+        "x": 178.79,
+        "y": 52.47,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
+        "color": {
+          "r": 0,
+          "g": 255,
+          "b": 0
+        }
+      },
+      {
+        "id": 74,
+        "orig_id": 73,
+        "x": 182.9,
+        "y": 66.68,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
+        "color": {
+          "r": 0,
+          "g": 255,
+          "b": 0
+        }
+      },
+      {
+        "id": 75,
+        "orig_id": 74,
+        "x": 167.8,
+        "y": 75.33,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
+        "color": {
+          "r": 0,
+          "g": 255,
+          "b": 0
+        }
+      },
+      {
+        "id": 76,
+        "orig_id": 75,
+        "x": 180.69,
+        "y": 86.43,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
+        "color": {
+          "r": 0,
+          "g": 255,
+          "b": 0
+        }
+      },
+      {
+        "id": 77,
+        "orig_id": 76,
+        "x": 195.6,
+        "y": 77.91,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
+        "color": {
+          "r": 0,
+          "g": 255,
+          "b": 0
+        }
+      },
+      {
+        "id": 78,
+        "orig_id": 77,
+        "x": 204.64,
+        "y": 64.43,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
+        "color": {
+          "r": 0,
+          "g": 255,
+          "b": 0
+        }
+      },
+      {
+        "id": 79,
+        "orig_id": 78,
+        "x": 198.82,
+        "y": 50.34,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
+        "color": {
+          "r": 0,
+          "g": 255,
+          "b": 0
+        }
+      },
+      {
+        "id": 80,
+        "orig_id": 79,
+        "x": 200.51,
+        "y": 37.0,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
+        "color": {
+          "r": 0,
+          "g": 255,
+          "b": 0
+        }
+      },
+      {
+        "id": 81,
+        "orig_id": 80,
+        "x": 220.33,
+        "y": 40.03,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
+        "color": {
+          "r": 0,
+          "g": 255,
+          "b": 0
+        }
+      },
+      {
+        "id": 82,
+        "orig_id": 81,
+        "x": 218.42,
+        "y": 54.11,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
+        "color": {
+          "r": 0,
+          "g": 255,
+          "b": 0
+        }
+      },
+      {
+        "id": 83,
+        "orig_id": 82,
+        "x": 233.71,
+        "y": 61.92,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
+        "color": {
+          "r": 0,
+          "g": 255,
+          "b": 0
+        }
+      },
+      {
+        "id": 84,
+        "orig_id": 83,
+        "x": 236.34,
+        "y": 75.92,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
+        "color": {
+          "r": 0,
+          "g": 255,
+          "b": 0
+        }
+      },
+      {
+        "id": 85,
+        "orig_id": 84,
+        "x": 216.15,
+        "y": 76.79,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
+        "color": {
+          "r": 0,
+          "g": 255,
+          "b": 0
+        }
+      },
+      {
+        "id": 86,
+        "orig_id": 85,
+        "x": 219.38,
+        "y": 90.86,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
+        "color": {
+          "r": 0,
+          "g": 255,
+          "b": 0
+        }
+      },
+      {
+        "id": 87,
+        "orig_id": 86,
+        "x": 198.97,
+        "y": 91.92,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
+        "color": {
+          "r": 0,
+          "g": 255,
+          "b": 0
+        }
+      },
+      {
+        "id": 88,
+        "orig_id": 87,
+        "x": 188.4,
+        "y": 104.81,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
+        "color": {
+          "r": 0,
+          "g": 255,
+          "b": 0
+        }
+      },
+      {
+        "id": 89,
+        "orig_id": 88,
+        "x": 199.71,
+        "y": 117.36,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
+        "color": {
+          "r": 0,
+          "g": 255,
+          "b": 0
+        }
+      },
+      {
+        "id": 90,
+        "orig_id": 89,
+        "x": 210.39,
+        "y": 104.55,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
+        "color": {
+          "r": 0,
+          "g": 255,
+          "b": 0
+        }
+      },
+      {
+        "id": 91,
+        "orig_id": 90,
+        "x": 219.7,
+        "y": 119.28,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
+        "color": {
+          "r": 0,
+          "g": 255,
+          "b": 0
+        }
+      },
+      {
+        "id": 92,
+        "orig_id": 91,
+        "x": 214.14,
+        "y": 133.42,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
+        "color": {
+          "r": 0,
+          "g": 255,
+          "b": 0
+        }
+      },
+      {
+        "id": 93,
+        "orig_id": 92,
+        "x": 200.45,
+        "y": 160.84,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
+        "color": {
+          "r": 0,
+          "g": 255,
+          "b": 0
+        }
+      },
+      {
+        "id": 94,
+        "orig_id": 93,
+        "x": 209.7,
+        "y": 174.27,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
+        "color": {
+          "r": 0,
+          "g": 255,
+          "b": 0
+        }
+      },
+      {
+        "id": 95,
+        "orig_id": 94,
+        "x": 220.8,
+        "y": 161.44,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
+        "color": {
+          "r": 0,
+          "g": 255,
+          "b": 0
+        }
+      },
+      {
+        "id": 96,
+        "orig_id": 95,
+        "x": 214.78,
+        "y": 147.44,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
+        "color": {
+          "r": 0,
+          "g": 255,
+          "b": 0
+        }
+      },
+      {
+        "id": 97,
+        "orig_id": 96,
+        "x": 235.18,
+        "y": 136.39,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
+        "color": {
+          "r": 0,
+          "g": 255,
+          "b": 0
+        }
+      },
+      {
+        "id": 98,
+        "orig_id": 97,
+        "x": 239.41,
+        "y": 122.32,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
+        "color": {
+          "r": 0,
+          "g": 255,
+          "b": 0
+        }
+      },
+      {
+        "id": 99,
+        "orig_id": 98,
+        "x": 239.67,
+        "y": 89.93,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
+        "color": {
+          "r": 0,
+          "g": 255,
+          "b": 0
+        }
+      },
+      {
+        "id": 100,
+        "orig_id": 99,
+        "x": 230.7,
+        "y": 106.72,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
+        "color": {
+          "r": 0,
+          "g": 255,
+          "b": 0
+        }
+      }
+    ],
+    "led_count": 100,
+    "fastener_tabs": [
+      [
+        31.22,
+        202.12
+      ],
+      [
+        73.74,
+        223.02
+      ],
+      [
+        116.27,
+        202.06
+      ],
+      [
+        160.85,
+        209.24
+      ],
+      [
+        208.85,
+        202.09
+      ],
+      [
+        243.06,
+        167.66
+      ],
+      [
+        261.54,
+        122.76
+      ],
+      [
+        255.26,
+        64.51
+      ],
+      [
+        256.75,
+        29.2
+      ],
+      [
+        211.55,
+        20.75
+      ],
+      [
+        163.09,
+        17.04
+      ],
+      [
+        114.42,
+        17.18
+      ],
+      [
+        65.73,
+        24.64
+      ],
+      [
+        60.61,
+        71.91
+      ],
+      [
+        55.7,
+        118.52
+      ],
+      [
+        28.36,
+        153.51
+      ]
+    ],
+    "entrance_portal": [
+      143.15,
+      18.54
+    ],
+    "entrance_bridge": [
+      143.15,
+      26.54
+    ],
+    "exit_portal": [
+      259.97,
+      85.99
+    ],
+    "exit_bridge": [
+      252.07,
+      87.23
+    ],
+    "screw_positions": [
+      [
+        73.84,
+        219.02
+      ],
+      [
+        103.64,
+        210.05
+      ],
+      [
+        145.82,
+        206.31
+      ],
+      [
+        224.09,
+        184.8
+      ],
+      [
+        245.62,
+        158.13
+      ],
+      [
+        254.8,
+        135.63
+      ],
+      [
+        257.99,
+        105.99
+      ],
+      [
+        255.45,
+        33.13
+      ],
+      [
+        188.71,
+        22.55
+      ],
+      [
+        119.48,
+        21.04
+      ],
+      [
+        68.7,
+        27.36
+      ],
+      [
+        63.46,
+        103.94
+      ],
+      [
+        37.9,
+        146.36
+      ],
+      [
+        28.03,
+        180.07
+      ]
+    ],
+    "number_positions": [
+      [
+        160.24,
+        41.67
+      ],
+      [
+        149.66,
+        29.13
+      ],
+      [
+        125.09,
+        33.81
+      ],
+      [
+        102.92,
+        49.43
+      ],
+      [
+        105.48,
+        29.91
+      ],
+      [
+        79.75,
+        35.07
+      ],
+      [
+        78.72,
+        53.65
+      ],
+      [
+        75.91,
+        67.8
+      ],
+      [
+        74.02,
+        81.87
+      ],
+      [
+        75.44,
+        95.88
+      ],
+      [
+        75.87,
+        109.89
+      ],
+      [
+        69.7,
+        119.27
+      ],
+      [
+        62.62,
+        133.22
+      ],
+      [
+        52.2,
+        146.17
+      ],
+      [
+        41.31,
+        164.22
+      ],
+      [
+        68.32,
+        181.41
+      ],
+      [
+        44.91,
+        194.43
+      ],
+      [
+        63.83,
+        199.32
+      ],
+      [
+        85.39,
+        208.85
+      ],
+      [
+        95.87,
+        193.05
+      ],
+      [
+        75.94,
+        179.1
+      ],
+      [
+        69.91,
+        157.66
+      ],
+      [
+        80.59,
+        144.57
+      ],
+      [
+        89.63,
+        139.99
+      ],
+      [
+        105.13,
+        120.53
+      ],
+      [
+        116.1,
+        136.73
+      ],
+      [
+        106.96,
+        151.67
+      ],
+      [
+        87.44,
+        161.18
+      ],
+      [
+        102.62,
+        180.63
+      ],
+      [
+        116.58,
+        190.53
+      ],
+      [
+        129.48,
+        168.18
+      ],
+      [
+        115.47,
+        169.33
+      ],
+      [
+        120.33,
+        144.38
+      ],
+      [
+        143.16,
+        147.37
+      ],
+      [
+        122.98,
+        133.43
+      ],
+      [
+        135.92,
+        107.11
+      ],
+      [
+        139.04,
+        99.79
+      ],
+      [
+        151.99,
+        100.03
+      ],
+      [
+        155.06,
+        119.74
+      ],
+      [
+        149.03,
+        142.68
+      ],
+      [
+        154.51,
+        152.13
+      ],
+      [
+        167.33,
+        166.13
+      ],
+      [
+        147.02,
+        156.61
+      ],
+      [
+        148.08,
+        173.2
+      ],
+      [
+        135.5,
+        195.57
+      ],
+      [
+        156.64,
+        198.21
+      ],
+      [
+        168.37,
+        185.24
+      ],
+      [
+        179.73,
+        197.55
+      ],
+      [
+        196.55,
+        190.74
+      ],
+      [
+        178.68,
+        168.31
+      ],
+      [
+        175.99,
+        159.4
+      ],
+      [
+        183.45,
+        140.83
+      ],
+      [
+        202.1,
+        138.7
+      ],
+      [
+        187.87,
+        123.82
+      ],
+      [
+        162.35,
+        120.47
+      ],
+      [
+        177.1,
+        115.38
+      ],
+      [
+        167.0,
+        91.18
+      ],
+      [
+        154.0,
+        80.01
+      ],
+      [
+        131.96,
+        73.28
+      ],
+      [
+        129.01,
+        86.04
+      ],
+      [
+        114.19,
+        100.91
+      ],
+      [
+        116.47,
+        121.87
+      ],
+      [
+        95.21,
+        105.46
+      ],
+      [
+        94.73,
+        91.52
+      ],
+      [
+        94.6,
+        81.95
+      ],
+      [
+        95.26,
+        63.37
+      ],
+      [
+        127.54,
+        71.9
+      ],
+      [
+        125.99,
+        52.38
+      ],
+      [
+        147.94,
+        47.9
+      ],
+      [
+        150.35,
+        68.27
+      ],
+      [
+        157.44,
+        65.75
+      ],
+      [
+        180.58,
+        32.89
+      ],
+      [
+        186.79,
+        52.47
+      ],
+      [
+        189.4,
+        62.18
+      ],
+      [
+        167.8,
+        80.83
+      ],
+      [
+        180.69,
+        91.93
+      ],
+      [
+        203.6,
+        77.91
+      ],
+      [
+        196.64,
+        64.43
+      ],
+      [
+        192.32,
+        54.84
+      ],
+      [
+        200.51,
+        31.5
+      ],
+      [
+        226.83,
+        35.53
+      ],
+      [
+        218.42,
+        59.61
+      ],
+      [
+        240.21,
+        57.42
+      ],
+      [
+        244.34,
+        75.92
+      ],
+      [
+        222.65,
+        72.29
+      ],
+      [
+        225.88,
+        86.36
+      ],
+      [
+        205.47,
+        87.42
+      ],
+      [
+        181.9,
+        100.31
+      ],
+      [
+        206.21,
+        121.86
+      ],
+      [
+        202.39,
+        104.55
+      ],
+      [
+        226.2,
+        123.78
+      ],
+      [
+        206.14,
+        133.42
+      ],
+      [
+        200.45,
+        155.34
+      ],
+      [
+        216.2,
+        178.77
+      ],
+      [
+        228.8,
+        161.44
+      ],
+      [
+        222.78,
+        147.44
+      ],
+      [
+        235.18,
+        141.89
+      ],
+      [
+        245.91,
+        117.82
+      ],
+      [
+        246.17,
+        94.43
+      ],
+      [
+        238.7,
+        106.72
+      ]
+    ],
+    "contour_pts": [
+      [
+        32.04,
+        200.86
+      ],
+      [
+        38.75,
+        205.28
+      ],
+      [
+        51.22,
+        205.37
+      ],
+      [
+        71.24,
+        220.72
+      ],
+      [
+        73.45,
+        221.54
+      ],
+      [
+        87.99,
+        220.84
+      ],
+      [
+        109.01,
+        210.13
+      ],
+      [
+        110.41,
+        208.93
+      ],
+      [
+        116.2,
+        199.25
+      ],
+      [
+        145.5,
+        208.84
+      ],
+      [
+        201.95,
+        204.78
+      ],
+      [
+        204.15,
+        203.92
+      ],
+      [
+        225.86,
+        186.59
+      ],
+      [
+        247.81,
+        159.39
+      ],
+      [
+        257.2,
+        136.36
+      ],
+      [
+        260.82,
+        118.8
+      ],
+      [
+        259.97,
+        85.99
+      ],
+      [
+        251.74,
+        57.82
+      ],
+      [
+        258.48,
+        49.63
+      ],
+      [
+        259.3,
+        47.95
+      ],
+      [
+        258.52,
+        33.83
+      ],
+      [
+        257.65,
+        31.58
+      ],
+      [
+        246.64,
+        24.39
+      ],
+      [
+        234.41,
+        24.38
+      ],
+      [
+        232.4,
+        25.43
+      ],
+      [
+        231.06,
+        27.44
+      ],
+      [
+        218.56,
+        22.94
+      ],
+      [
+        173.34,
+        18.54
+      ],
+      [
+        115.56,
+        18.54
+      ],
+      [
+        68.82,
+        24.63
+      ],
+      [
+        67.03,
+        25.33
+      ],
+      [
+        65.41,
+        27.88
+      ],
+      [
+        64.18,
+        42.22
+      ],
+      [
+        64.65,
+        44.07
+      ],
+      [
+        67.38,
+        48.18
+      ],
+      [
+        61.61,
+        74.35
+      ],
+      [
+        60.74,
+        114.2
+      ],
+      [
+        48.69,
+        130.59
+      ],
+      [
+        47.68,
+        141.02
+      ],
+      [
+        39.48,
+        141.67
+      ],
+      [
+        37.74,
+        142.43
+      ],
+      [
+        30.57,
+        151.91
+      ],
+      [
+        29.86,
+        153.62
+      ],
+      [
+        25.48,
+        180.2
+      ],
+      [
+        30.53,
+        198.69
+      ],
+      [
+        32.04,
+        200.86
+      ]
+    ],
+    "stl_bounds": [
+      239.68,
+      212.48,
+      10.0
+    ],
+    "stl_center": [
+      144.95,
+      120.03,
+      5.0
+    ],
+    "stl_size": 5641884,
+    "chassis_size": 8580084,
+    "lid_size": 480584,
+    "zip_size": 4532170,
+    "inlays": [
+      {
+        "key": "green",
+        "name": "Shell Plates & Glasses",
+        "filename": "tpu_panel_front_color_green.stl",
+        "hex": "#00cc66",
+        "count": 13360
+      },
+      {
+        "key": "blue",
+        "name": "Shell & Eyes",
+        "filename": "tpu_panel_front_color_blue.stl",
+        "hex": "#2563eb",
+        "count": 19468
+      },
+      {
+        "key": "yellow",
+        "name": "Body & Head",
+        "filename": "tpu_panel_front_color_yellow.stl",
+        "hex": "#facc15",
+        "count": 8376
+      },
+      {
+        "key": "red",
+        "name": "Tie & Lips",
+        "filename": "tpu_panel_front_color_red.stl",
+        "hex": "#ef4444",
+        "count": 1988
+      }
+    ],
+    "stl_url": "/3d_panels/tpu_panel_front.stl",
+    "chassis_stl_url": "/3d_panels/tpu_panel_front_chassis_black.stl",
+    "lid_stl_url": "/3d_panels/tpu_panel_front_lid.stl",
+    "multicolor_3mf_url": "/3d_panels/tpu_panel_front_multicolor.3mf",
+    "multicolor_zip_url": "/3d_panels/tpu_panel_front_multicolor_bundle.zip",
+    "volume_mm3": 96726.4,
+    "is_watertight": false,
+    "graphic_type": "spinning_turtle"
+  },
+  "back": {
+    "variant": "back",
+    "width_mm": 295.84,
+    "height_mm": 247.02,
+    "panel_width_mm": 235.35,
+    "panel_height_mm": 203.0,
+    "total_image_width_mm": 295.84,
+    "total_image_height_mm": 247.02,
+    "window_shape": "round_34",
+    "well_orientation": "horizontal",
+    "ordered_leds": [
+      {
+        "id": 1,
+        "orig_id": 0,
+        "x": 160.24,
+        "y": 47.17,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
+        "color": {
+          "r": 0,
+          "g": 255,
+          "b": 0
+        }
+      },
+      {
+        "id": 2,
+        "orig_id": 1,
+        "x": 143.16,
+        "y": 33.63,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
+        "color": {
+          "r": 0,
+          "g": 255,
+          "b": 0
+        }
+      },
+      {
+        "id": 3,
+        "orig_id": 2,
+        "x": 125.09,
+        "y": 39.31,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
+        "color": {
+          "r": 0,
+          "g": 255,
+          "b": 0
+        }
+      },
+      {
+        "id": 4,
+        "orig_id": 3,
+        "x": 110.92,
+        "y": 49.43,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
+        "color": {
+          "r": 0,
+          "g": 255,
+          "b": 0
+        }
+      },
+      {
+        "id": 5,
+        "orig_id": 4,
+        "x": 105.48,
+        "y": 35.41,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
+        "color": {
+          "r": 0,
+          "g": 255,
+          "b": 0
+        }
+      },
+      {
+        "id": 6,
+        "orig_id": 5,
+        "x": 86.25,
+        "y": 39.57,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
+        "color": {
+          "r": 0,
+          "g": 255,
+          "b": 0
+        }
+      },
+      {
+        "id": 7,
+        "orig_id": 6,
+        "x": 86.72,
+        "y": 53.65,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
+        "color": {
+          "r": 0,
+          "g": 255,
+          "b": 0
+        }
+      },
+      {
+        "id": 8,
+        "orig_id": 7,
+        "x": 83.91,
+        "y": 67.8,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
+        "color": {
+          "r": 0,
+          "g": 255,
+          "b": 0
+        }
+      },
+      {
+        "id": 9,
+        "orig_id": 8,
+        "x": 82.02,
+        "y": 81.87,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
+        "color": {
+          "r": 0,
+          "g": 255,
+          "b": 0
+        }
+      },
+      {
+        "id": 10,
+        "orig_id": 9,
+        "x": 83.44,
+        "y": 95.88,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
+        "color": {
+          "r": 0,
+          "g": 255,
+          "b": 0
+        }
+      },
+      {
+        "id": 11,
+        "orig_id": 10,
+        "x": 83.87,
+        "y": 109.89,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
+        "color": {
+          "r": 0,
+          "g": 255,
+          "b": 0
+        }
+      },
+      {
+        "id": 12,
+        "orig_id": 11,
+        "x": 76.2,
+        "y": 123.77,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
+        "color": {
+          "r": 0,
+          "g": 255,
+          "b": 0
+        }
+      },
+      {
+        "id": 13,
+        "orig_id": 12,
+        "x": 69.12,
+        "y": 137.72,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
+        "color": {
+          "r": 0,
+          "g": 255,
+          "b": 0
+        }
+      },
+      {
+        "id": 14,
+        "orig_id": 13,
+        "x": 58.7,
+        "y": 150.67,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
+        "color": {
+          "r": 0,
+          "g": 255,
+          "b": 0
+        }
+      },
+      {
+        "id": 15,
+        "orig_id": 14,
+        "x": 49.31,
+        "y": 164.22,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
+        "color": {
+          "r": 0,
+          "g": 255,
+          "b": 0
+        }
+      },
+      {
+        "id": 16,
+        "orig_id": 15,
+        "x": 61.82,
+        "y": 176.91,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
+        "color": {
+          "r": 0,
+          "g": 255,
+          "b": 0
+        }
+      },
+      {
+        "id": 17,
+        "orig_id": 16,
+        "x": 51.41,
+        "y": 189.93,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
+        "color": {
+          "r": 0,
+          "g": 255,
+          "b": 0
+        }
+      },
+      {
+        "id": 18,
+        "orig_id": 17,
+        "x": 70.33,
+        "y": 194.82,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
+        "color": {
+          "r": 0,
+          "g": 255,
+          "b": 0
+        }
+      },
+      {
+        "id": 19,
+        "orig_id": 18,
+        "x": 85.39,
+        "y": 203.35,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
+        "color": {
+          "r": 0,
+          "g": 255,
+          "b": 0
+        }
+      },
+      {
+        "id": 20,
+        "orig_id": 19,
+        "x": 89.37,
+        "y": 188.55,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
+        "color": {
+          "r": 0,
+          "g": 255,
+          "b": 0
+        }
+      },
+      {
+        "id": 21,
+        "orig_id": 20,
+        "x": 82.44,
+        "y": 174.6,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
+        "color": {
+          "r": 0,
+          "g": 255,
+          "b": 0
+        }
+      },
+      {
+        "id": 22,
+        "orig_id": 21,
+        "x": 69.91,
+        "y": 163.16,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
+        "color": {
+          "r": 0,
+          "g": 255,
+          "b": 0
+        }
+      },
+      {
+        "id": 23,
+        "orig_id": 22,
+        "x": 80.59,
+        "y": 150.07,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
+        "color": {
+          "r": 0,
+          "g": 255,
+          "b": 0
+        }
+      },
+      {
+        "id": 24,
+        "orig_id": 23,
+        "x": 89.63,
+        "y": 134.49,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
+        "color": {
+          "r": 0,
+          "g": 255,
+          "b": 0
+        }
+      },
+      {
+        "id": 25,
+        "orig_id": 24,
+        "x": 97.13,
+        "y": 120.53,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
+        "color": {
+          "r": 0,
+          "g": 255,
+          "b": 0
+        }
+      },
+      {
+        "id": 26,
+        "orig_id": 25,
+        "x": 109.6,
+        "y": 132.23,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
+        "color": {
+          "r": 0,
+          "g": 255,
+          "b": 0
+        }
+      },
+      {
+        "id": 27,
+        "orig_id": 26,
+        "x": 100.46,
+        "y": 147.17,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
+        "color": {
+          "r": 0,
+          "g": 255,
+          "b": 0
+        }
+      },
+      {
+        "id": 28,
+        "orig_id": 27,
+        "x": 95.44,
+        "y": 161.18,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
+        "color": {
+          "r": 0,
+          "g": 255,
+          "b": 0
+        }
+      },
+      {
+        "id": 29,
+        "orig_id": 28,
+        "x": 102.62,
+        "y": 175.13,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
+        "color": {
+          "r": 0,
+          "g": 255,
+          "b": 0
+        }
+      },
+      {
+        "id": 30,
+        "orig_id": 29,
+        "x": 116.58,
+        "y": 185.03,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
+        "color": {
+          "r": 0,
+          "g": 255,
+          "b": 0
+        }
+      },
+      {
+        "id": 31,
+        "orig_id": 30,
+        "x": 129.48,
+        "y": 173.68,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
+        "color": {
+          "r": 0,
+          "g": 255,
+          "b": 0
+        }
+      },
+      {
+        "id": 32,
+        "orig_id": 31,
+        "x": 115.47,
+        "y": 163.83,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
+        "color": {
+          "r": 0,
+          "g": 255,
+          "b": 0
+        }
+      },
+      {
+        "id": 33,
+        "orig_id": 32,
+        "x": 120.33,
+        "y": 149.88,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
+        "color": {
+          "r": 0,
+          "g": 255,
+          "b": 0
+        }
+      },
+      {
+        "id": 34,
+        "orig_id": 33,
+        "x": 136.66,
+        "y": 142.87,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
+        "color": {
+          "r": 0,
+          "g": 255,
+          "b": 0
+        }
+      },
+      {
+        "id": 35,
+        "orig_id": 34,
+        "x": 129.48,
+        "y": 128.93,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
+        "color": {
+          "r": 0,
+          "g": 255,
+          "b": 0
+        }
+      },
+      {
+        "id": 36,
+        "orig_id": 35,
+        "x": 135.92,
+        "y": 112.61,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
+        "color": {
+          "r": 0,
+          "g": 255,
+          "b": 0
+        }
+      },
+      {
+        "id": 37,
+        "orig_id": 36,
+        "x": 139.04,
+        "y": 94.29,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
+        "color": {
+          "r": 0,
+          "g": 255,
+          "b": 0
+        }
+      },
+      {
+        "id": 38,
+        "orig_id": 37,
+        "x": 151.99,
+        "y": 105.53,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
+        "color": {
+          "r": 0,
+          "g": 255,
+          "b": 0
+        }
+      },
+      {
+        "id": 39,
+        "orig_id": 38,
+        "x": 148.56,
+        "y": 124.24,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
+        "color": {
+          "r": 0,
+          "g": 255,
+          "b": 0
+        }
+      },
+      {
+        "id": 40,
+        "orig_id": 39,
+        "x": 155.53,
+        "y": 138.18,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
+        "color": {
+          "r": 0,
+          "g": 255,
+          "b": 0
+        }
+      },
+      {
+        "id": 41,
+        "orig_id": 40,
+        "x": 162.51,
+        "y": 152.13,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
+        "color": {
+          "r": 0,
+          "g": 255,
+          "b": 0
+        }
+      },
+      {
+        "id": 42,
+        "orig_id": 41,
+        "x": 159.33,
+        "y": 166.13,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
+        "color": {
+          "r": 0,
+          "g": 255,
+          "b": 0
+        }
+      },
+      {
+        "id": 43,
+        "orig_id": 42,
+        "x": 140.52,
+        "y": 161.11,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
+        "color": {
+          "r": 0,
+          "g": 255,
+          "b": 0
+        }
+      },
+      {
+        "id": 44,
+        "orig_id": 43,
+        "x": 148.08,
+        "y": 178.7,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
+        "color": {
+          "r": 0,
+          "g": 255,
+          "b": 0
+        }
+      },
+      {
+        "id": 45,
+        "orig_id": 44,
+        "x": 135.5,
+        "y": 190.07,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
+        "color": {
+          "r": 0,
+          "g": 255,
+          "b": 0
+        }
+      },
+      {
+        "id": 46,
+        "orig_id": 45,
+        "x": 156.64,
+        "y": 192.71,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
+        "color": {
+          "r": 0,
+          "g": 255,
+          "b": 0
+        }
+      },
+      {
+        "id": 47,
+        "orig_id": 46,
+        "x": 168.37,
+        "y": 179.74,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
+        "color": {
+          "r": 0,
+          "g": 255,
+          "b": 0
+        }
+      },
+      {
+        "id": 48,
+        "orig_id": 47,
+        "x": 179.73,
+        "y": 192.05,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
+        "color": {
+          "r": 0,
+          "g": 255,
+          "b": 0
+        }
+      },
+      {
+        "id": 49,
+        "orig_id": 48,
+        "x": 196.55,
+        "y": 185.24,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
+        "color": {
+          "r": 0,
+          "g": 255,
+          "b": 0
+        }
+      },
+      {
+        "id": 50,
+        "orig_id": 49,
+        "x": 185.18,
+        "y": 172.81,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
+        "color": {
+          "r": 0,
+          "g": 255,
+          "b": 0
+        }
+      },
+      {
+        "id": 51,
+        "orig_id": 50,
+        "x": 182.49,
+        "y": 154.9,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
+        "color": {
+          "r": 0,
+          "g": 255,
+          "b": 0
+        }
+      },
+      {
+        "id": 52,
+        "orig_id": 51,
+        "x": 175.45,
+        "y": 140.83,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
+        "color": {
+          "r": 0,
+          "g": 255,
+          "b": 0
+        }
+      },
+      {
+        "id": 53,
+        "orig_id": 52,
+        "x": 195.6,
+        "y": 143.2,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
+        "color": {
+          "r": 0,
+          "g": 255,
+          "b": 0
+        }
+      },
+      {
+        "id": 54,
+        "orig_id": 53,
+        "x": 187.87,
+        "y": 129.32,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
+        "color": {
+          "r": 0,
+          "g": 255,
+          "b": 0
+        }
+      },
+      {
+        "id": 55,
+        "orig_id": 54,
+        "x": 168.85,
+        "y": 124.97,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
+        "color": {
+          "r": 0,
+          "g": 255,
+          "b": 0
+        }
+      },
+      {
+        "id": 56,
+        "orig_id": 55,
+        "x": 170.6,
+        "y": 110.88,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
+        "color": {
+          "r": 0,
+          "g": 255,
+          "b": 0
+        }
+      },
+      {
+        "id": 57,
+        "orig_id": 56,
+        "x": 167.0,
+        "y": 96.68,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
+        "color": {
+          "r": 0,
+          "g": 255,
+          "b": 0
+        }
+      },
+      {
+        "id": 58,
+        "orig_id": 57,
+        "x": 154.0,
+        "y": 85.51,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
+        "color": {
+          "r": 0,
+          "g": 255,
+          "b": 0
+        }
+      },
+      {
+        "id": 59,
+        "orig_id": 58,
+        "x": 138.46,
+        "y": 77.78,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
+        "color": {
+          "r": 0,
+          "g": 255,
+          "b": 0
+        }
+      },
+      {
+        "id": 60,
+        "orig_id": 59,
+        "x": 121.01,
+        "y": 86.04,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
+        "color": {
+          "r": 0,
+          "g": 255,
+          "b": 0
+        }
+      },
+      {
+        "id": 61,
+        "orig_id": 60,
+        "x": 122.19,
+        "y": 100.91,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
+        "color": {
+          "r": 0,
+          "g": 255,
+          "b": 0
+        }
+      },
+      {
+        "id": 62,
+        "orig_id": 61,
+        "x": 116.47,
+        "y": 116.37,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
+        "color": {
+          "r": 0,
+          "g": 255,
+          "b": 0
+        }
+      },
+      {
+        "id": 63,
+        "orig_id": 62,
+        "x": 103.21,
+        "y": 105.46,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
+        "color": {
+          "r": 0,
+          "g": 255,
+          "b": 0
+        }
+      },
+      {
+        "id": 64,
+        "orig_id": 63,
+        "x": 102.73,
+        "y": 91.52,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
+        "color": {
+          "r": 0,
+          "g": 255,
+          "b": 0
+        }
+      },
+      {
+        "id": 65,
+        "orig_id": 64,
+        "x": 101.1,
+        "y": 77.45,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
+        "color": {
+          "r": 0,
+          "g": 255,
+          "b": 0
+        }
+      },
+      {
+        "id": 66,
+        "orig_id": 65,
+        "x": 103.26,
+        "y": 63.37,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
+        "color": {
+          "r": 0,
+          "g": 255,
+          "b": 0
+        }
+      },
+      {
+        "id": 67,
+        "orig_id": 66,
+        "x": 119.54,
+        "y": 71.9,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
+        "color": {
+          "r": 0,
+          "g": 255,
+          "b": 0
+        }
+      },
+      {
+        "id": 68,
+        "orig_id": 67,
+        "x": 125.99,
+        "y": 57.88,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
+        "color": {
+          "r": 0,
+          "g": 255,
+          "b": 0
+        }
+      },
+      {
+        "id": 69,
+        "orig_id": 68,
+        "x": 139.94,
+        "y": 47.9,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
+        "color": {
+          "r": 0,
+          "g": 255,
+          "b": 0
+        }
+      },
+      {
+        "id": 70,
+        "orig_id": 69,
+        "x": 143.85,
+        "y": 63.77,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
+        "color": {
+          "r": 0,
+          "g": 255,
+          "b": 0
+        }
+      },
+      {
+        "id": 71,
+        "orig_id": 70,
+        "x": 163.94,
+        "y": 61.25,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
+        "color": {
+          "r": 0,
+          "g": 255,
+          "b": 0
+        }
+      },
+      {
+        "id": 72,
+        "orig_id": 71,
+        "x": 180.58,
+        "y": 38.39,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
+        "color": {
+          "r": 0,
+          "g": 255,
+          "b": 0
+        }
+      },
+      {
+        "id": 73,
+        "orig_id": 72,
+        "x": 178.79,
+        "y": 52.47,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
+        "color": {
+          "r": 0,
+          "g": 255,
+          "b": 0
+        }
+      },
+      {
+        "id": 74,
+        "orig_id": 73,
+        "x": 182.9,
+        "y": 66.68,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
+        "color": {
+          "r": 0,
+          "g": 255,
+          "b": 0
+        }
+      },
+      {
+        "id": 75,
+        "orig_id": 74,
+        "x": 167.8,
+        "y": 75.33,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
+        "color": {
+          "r": 0,
+          "g": 255,
+          "b": 0
+        }
+      },
+      {
+        "id": 76,
+        "orig_id": 75,
+        "x": 180.69,
+        "y": 86.43,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
+        "color": {
+          "r": 0,
+          "g": 255,
+          "b": 0
+        }
+      },
+      {
+        "id": 77,
+        "orig_id": 76,
+        "x": 195.6,
+        "y": 77.91,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
+        "color": {
+          "r": 0,
+          "g": 255,
+          "b": 0
+        }
+      },
+      {
+        "id": 78,
+        "orig_id": 77,
+        "x": 204.64,
+        "y": 64.43,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
+        "color": {
+          "r": 0,
+          "g": 255,
+          "b": 0
+        }
+      },
+      {
+        "id": 79,
+        "orig_id": 78,
+        "x": 198.82,
+        "y": 50.34,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
+        "color": {
+          "r": 0,
+          "g": 255,
+          "b": 0
+        }
+      },
+      {
+        "id": 80,
+        "orig_id": 79,
+        "x": 200.51,
+        "y": 37.0,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
+        "color": {
+          "r": 0,
+          "g": 255,
+          "b": 0
+        }
+      },
+      {
+        "id": 81,
+        "orig_id": 80,
+        "x": 220.33,
+        "y": 40.03,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
+        "color": {
+          "r": 0,
+          "g": 255,
+          "b": 0
+        }
+      },
+      {
+        "id": 82,
+        "orig_id": 81,
+        "x": 218.42,
+        "y": 54.11,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
+        "color": {
+          "r": 0,
+          "g": 255,
+          "b": 0
+        }
+      },
+      {
+        "id": 83,
+        "orig_id": 82,
+        "x": 233.71,
+        "y": 61.92,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
+        "color": {
+          "r": 0,
+          "g": 255,
+          "b": 0
+        }
+      },
+      {
+        "id": 84,
+        "orig_id": 83,
+        "x": 236.34,
+        "y": 75.92,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
+        "color": {
+          "r": 0,
+          "g": 255,
+          "b": 0
+        }
+      },
+      {
+        "id": 85,
+        "orig_id": 84,
+        "x": 216.15,
+        "y": 76.79,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
+        "color": {
+          "r": 0,
+          "g": 255,
+          "b": 0
+        }
+      },
+      {
+        "id": 86,
+        "orig_id": 85,
+        "x": 219.38,
+        "y": 90.86,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
+        "color": {
+          "r": 0,
+          "g": 255,
+          "b": 0
+        }
+      },
+      {
+        "id": 87,
+        "orig_id": 86,
+        "x": 198.97,
+        "y": 91.92,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
+        "color": {
+          "r": 0,
+          "g": 255,
+          "b": 0
+        }
+      },
+      {
+        "id": 88,
+        "orig_id": 87,
+        "x": 188.4,
+        "y": 104.81,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
+        "color": {
+          "r": 0,
+          "g": 255,
+          "b": 0
+        }
+      },
+      {
+        "id": 89,
+        "orig_id": 88,
+        "x": 199.71,
+        "y": 117.36,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
+        "color": {
+          "r": 0,
+          "g": 255,
+          "b": 0
+        }
+      },
+      {
+        "id": 90,
+        "orig_id": 89,
+        "x": 210.39,
+        "y": 104.55,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
+        "color": {
+          "r": 0,
+          "g": 255,
+          "b": 0
+        }
+      },
+      {
+        "id": 91,
+        "orig_id": 90,
+        "x": 219.7,
+        "y": 119.28,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
+        "color": {
+          "r": 0,
+          "g": 255,
+          "b": 0
+        }
+      },
+      {
+        "id": 92,
+        "orig_id": 91,
+        "x": 214.14,
+        "y": 133.42,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
+        "color": {
+          "r": 0,
+          "g": 255,
+          "b": 0
+        }
+      },
+      {
+        "id": 93,
+        "orig_id": 92,
+        "x": 200.45,
+        "y": 160.84,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
+        "color": {
+          "r": 0,
+          "g": 255,
+          "b": 0
+        }
+      },
+      {
+        "id": 94,
+        "orig_id": 93,
+        "x": 209.7,
+        "y": 174.27,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
+        "color": {
+          "r": 0,
+          "g": 255,
+          "b": 0
+        }
+      },
+      {
+        "id": 95,
+        "orig_id": 94,
+        "x": 220.8,
+        "y": 161.44,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
+        "color": {
+          "r": 0,
+          "g": 255,
+          "b": 0
+        }
+      },
+      {
+        "id": 96,
+        "orig_id": 95,
+        "x": 214.78,
+        "y": 147.44,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
+        "color": {
+          "r": 0,
+          "g": 255,
+          "b": 0
+        }
+      },
+      {
+        "id": 97,
+        "orig_id": 96,
+        "x": 235.18,
+        "y": 136.39,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
+        "color": {
+          "r": 0,
+          "g": 255,
+          "b": 0
+        }
+      },
+      {
+        "id": 98,
+        "orig_id": 97,
+        "x": 239.41,
+        "y": 122.32,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
+        "color": {
+          "r": 0,
+          "g": 255,
+          "b": 0
+        }
+      },
+      {
+        "id": 99,
+        "orig_id": 98,
+        "x": 239.67,
+        "y": 89.93,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
+        "color": {
+          "r": 0,
+          "g": 255,
+          "b": 0
+        }
+      },
+      {
+        "id": 100,
+        "orig_id": 99,
+        "x": 230.7,
+        "y": 106.72,
+        "is_custom_rotation": false,
+        "rotation_deg": 0.0,
+        "color": {
+          "r": 0,
+          "g": 255,
+          "b": 0
+        }
+      }
+    ],
+    "led_count": 100,
+    "fastener_tabs": [
+      [
+        31.22,
+        202.12
+      ],
+      [
+        73.74,
+        223.02
+      ],
+      [
+        116.27,
+        202.06
+      ],
+      [
+        160.85,
+        209.24
+      ],
+      [
+        208.85,
+        202.09
+      ],
+      [
+        243.06,
+        167.66
+      ],
+      [
+        261.54,
+        122.76
+      ],
+      [
+        255.26,
+        64.51
+      ],
+      [
+        256.75,
+        29.2
+      ],
+      [
+        211.55,
+        20.75
+      ],
+      [
+        163.09,
+        17.04
+      ],
+      [
+        114.42,
+        17.18
+      ],
+      [
+        65.73,
+        24.64
+      ],
+      [
+        60.61,
+        71.91
+      ],
+      [
+        55.7,
+        118.52
+      ],
+      [
+        28.36,
+        153.51
+      ]
+    ],
+    "entrance_portal": [
+      143.15,
+      18.54
+    ],
+    "entrance_bridge": [
+      143.15,
+      26.54
+    ],
+    "exit_portal": [
+      259.97,
+      85.99
+    ],
+    "exit_bridge": [
+      252.07,
+      87.23
+    ],
+    "screw_positions": [
+      [
+        73.84,
+        219.02
+      ],
+      [
+        103.64,
+        210.05
+      ],
+      [
+        145.82,
+        206.31
+      ],
+      [
+        224.09,
+        184.8
+      ],
+      [
+        245.62,
+        158.13
+      ],
+      [
+        254.8,
+        135.63
+      ],
+      [
+        257.99,
+        105.99
+      ],
+      [
+        255.45,
+        33.13
+      ],
+      [
+        188.71,
+        22.55
+      ],
+      [
+        119.48,
+        21.04
+      ],
+      [
+        68.7,
+        27.36
+      ],
+      [
+        63.46,
+        103.94
+      ],
+      [
+        37.9,
+        146.36
+      ],
+      [
+        28.03,
+        180.07
+      ]
+    ],
+    "number_positions": [
+      [
+        160.24,
+        41.67
+      ],
+      [
+        149.66,
+        29.13
+      ],
+      [
+        125.09,
+        33.81
+      ],
+      [
+        102.92,
+        49.43
+      ],
+      [
+        105.48,
+        29.91
+      ],
+      [
+        79.75,
+        35.07
+      ],
+      [
+        78.72,
+        53.65
+      ],
+      [
+        75.91,
+        67.8
+      ],
+      [
+        74.02,
+        81.87
+      ],
+      [
+        75.44,
+        95.88
+      ],
+      [
+        75.87,
+        109.89
+      ],
+      [
+        69.7,
+        119.27
+      ],
+      [
+        62.62,
+        133.22
+      ],
+      [
+        52.2,
+        146.17
+      ],
+      [
+        41.31,
+        164.22
+      ],
+      [
+        68.32,
+        181.41
+      ],
+      [
+        44.91,
+        194.43
+      ],
+      [
+        63.83,
+        199.32
+      ],
+      [
+        85.39,
+        208.85
+      ],
+      [
+        95.87,
+        193.05
+      ],
+      [
+        75.94,
+        179.1
+      ],
+      [
+        69.91,
+        157.66
+      ],
+      [
+        80.59,
+        144.57
+      ],
+      [
+        89.63,
+        139.99
+      ],
+      [
+        105.13,
+        120.53
+      ],
+      [
+        116.1,
+        136.73
+      ],
+      [
+        106.96,
+        151.67
+      ],
+      [
+        87.44,
+        161.18
+      ],
+      [
+        102.62,
+        180.63
+      ],
+      [
+        116.58,
+        190.53
+      ],
+      [
+        129.48,
+        168.18
+      ],
+      [
+        115.47,
+        169.33
+      ],
+      [
+        120.33,
+        144.38
+      ],
+      [
+        143.16,
+        147.37
+      ],
+      [
+        122.98,
+        133.43
+      ],
+      [
+        135.92,
+        107.11
+      ],
+      [
+        139.04,
+        99.79
+      ],
+      [
+        151.99,
+        100.03
+      ],
+      [
+        155.06,
+        119.74
+      ],
+      [
+        149.03,
+        142.68
+      ],
+      [
+        154.51,
+        152.13
+      ],
+      [
+        167.33,
+        166.13
+      ],
+      [
+        147.02,
+        156.61
+      ],
+      [
+        148.08,
+        173.2
+      ],
+      [
+        135.5,
+        195.57
+      ],
+      [
+        156.64,
+        198.21
+      ],
+      [
+        168.37,
+        185.24
+      ],
+      [
+        179.73,
+        197.55
+      ],
+      [
+        196.55,
+        190.74
+      ],
+      [
+        178.68,
+        168.31
+      ],
+      [
+        175.99,
+        159.4
+      ],
+      [
+        183.45,
+        140.83
+      ],
+      [
+        202.1,
+        138.7
+      ],
+      [
+        187.87,
+        123.82
+      ],
+      [
+        162.35,
+        120.47
+      ],
+      [
+        177.1,
+        115.38
+      ],
+      [
+        167.0,
+        91.18
+      ],
+      [
+        154.0,
+        80.01
+      ],
+      [
+        131.96,
+        73.28
+      ],
+      [
+        129.01,
+        86.04
+      ],
+      [
+        114.19,
+        100.91
+      ],
+      [
+        116.47,
+        121.87
+      ],
+      [
+        95.21,
+        105.46
+      ],
+      [
+        94.73,
+        91.52
+      ],
+      [
+        94.6,
+        81.95
+      ],
+      [
+        95.26,
+        63.37
+      ],
+      [
+        127.54,
+        71.9
+      ],
+      [
+        125.99,
+        52.38
+      ],
+      [
+        147.94,
+        47.9
+      ],
+      [
+        150.35,
+        68.27
+      ],
+      [
+        157.44,
+        65.75
+      ],
+      [
+        180.58,
+        32.89
+      ],
+      [
+        186.79,
+        52.47
+      ],
+      [
+        189.4,
+        62.18
+      ],
+      [
+        167.8,
+        80.83
+      ],
+      [
+        180.69,
+        91.93
+      ],
+      [
+        203.6,
+        77.91
+      ],
+      [
+        196.64,
+        64.43
+      ],
+      [
+        192.32,
+        54.84
+      ],
+      [
+        200.51,
+        31.5
+      ],
+      [
+        226.83,
+        35.53
+      ],
+      [
+        218.42,
+        59.61
+      ],
+      [
+        240.21,
+        57.42
+      ],
+      [
+        244.34,
+        75.92
+      ],
+      [
+        222.65,
+        72.29
+      ],
+      [
+        225.88,
+        86.36
+      ],
+      [
+        205.47,
+        87.42
+      ],
+      [
+        181.9,
+        100.31
+      ],
+      [
+        206.21,
+        121.86
+      ],
+      [
+        202.39,
+        104.55
+      ],
+      [
+        226.2,
+        123.78
+      ],
+      [
+        206.14,
+        133.42
+      ],
+      [
+        200.45,
+        155.34
+      ],
+      [
+        216.2,
+        178.77
+      ],
+      [
+        228.8,
+        161.44
+      ],
+      [
+        222.78,
+        147.44
+      ],
+      [
+        235.18,
+        141.89
+      ],
+      [
+        245.91,
+        117.82
+      ],
+      [
+        246.17,
+        94.43
+      ],
+      [
+        238.7,
+        106.72
+      ]
+    ],
+    "contour_pts": [
+      [
+        32.04,
+        200.86
+      ],
+      [
+        38.75,
+        205.28
+      ],
+      [
+        51.22,
+        205.37
+      ],
+      [
+        71.24,
+        220.72
+      ],
+      [
+        73.45,
+        221.54
+      ],
+      [
+        87.99,
+        220.84
+      ],
+      [
+        109.01,
+        210.13
+      ],
+      [
+        110.41,
+        208.93
+      ],
+      [
+        116.2,
+        199.25
+      ],
+      [
+        145.5,
+        208.84
+      ],
+      [
+        201.95,
+        204.78
+      ],
+      [
+        204.15,
+        203.92
+      ],
+      [
+        225.86,
+        186.59
+      ],
+      [
+        247.81,
+        159.39
+      ],
+      [
+        257.2,
+        136.36
+      ],
+      [
+        260.82,
+        118.8
+      ],
+      [
+        259.97,
+        85.99
+      ],
+      [
+        251.74,
+        57.82
+      ],
+      [
+        258.48,
+        49.63
+      ],
+      [
+        259.3,
+        47.95
+      ],
+      [
+        258.52,
+        33.83
+      ],
+      [
+        257.65,
+        31.58
+      ],
+      [
+        246.64,
+        24.39
+      ],
+      [
+        234.41,
+        24.38
+      ],
+      [
+        232.4,
+        25.43
+      ],
+      [
+        231.06,
+        27.44
+      ],
+      [
+        218.56,
+        22.94
+      ],
+      [
+        173.34,
+        18.54
+      ],
+      [
+        115.56,
+        18.54
+      ],
+      [
+        68.82,
+        24.63
+      ],
+      [
+        67.03,
+        25.33
+      ],
+      [
+        65.41,
+        27.88
+      ],
+      [
+        64.18,
+        42.22
+      ],
+      [
+        64.65,
+        44.07
+      ],
+      [
+        67.38,
+        48.18
+      ],
+      [
+        61.61,
+        74.35
+      ],
+      [
+        60.74,
+        114.2
+      ],
+      [
+        48.69,
+        130.59
+      ],
+      [
+        47.68,
+        141.02
+      ],
+      [
+        39.48,
+        141.67
+      ],
+      [
+        37.74,
+        142.43
+      ],
+      [
+        30.57,
+        151.91
+      ],
+      [
+        29.86,
+        153.62
+      ],
+      [
+        25.48,
+        180.2
+      ],
+      [
+        30.53,
+        198.69
+      ],
+      [
+        32.04,
+        200.86
+      ]
+    ],
+    "stl_bounds": [
+      239.68,
+      212.48,
+      10.0
+    ],
+    "stl_center": [
+      144.95,
+      120.03,
+      5.0
+    ],
+    "stl_size": 5641884,
+    "chassis_size": 8580084,
+    "lid_size": 480584,
+    "zip_size": 4531914,
+    "inlays": [
+      {
+        "key": "green",
+        "name": "Shell Plates & Glasses",
+        "filename": "tpu_panel_back_color_green.stl",
+        "hex": "#00cc66",
+        "count": 13360
+      },
+      {
+        "key": "blue",
+        "name": "Shell & Eyes",
+        "filename": "tpu_panel_back_color_blue.stl",
+        "hex": "#2563eb",
+        "count": 19468
+      },
+      {
+        "key": "yellow",
+        "name": "Body & Head",
+        "filename": "tpu_panel_back_color_yellow.stl",
+        "hex": "#facc15",
+        "count": 8376
+      },
+      {
+        "key": "red",
+        "name": "Tie & Lips",
+        "filename": "tpu_panel_back_color_red.stl",
+        "hex": "#ef4444",
+        "count": 1988
+      }
+    ],
+    "stl_url": "/3d_panels/tpu_panel_back.stl",
+    "chassis_stl_url": "/3d_panels/tpu_panel_back_chassis_black.stl",
+    "lid_stl_url": "/3d_panels/tpu_panel_back_lid.stl",
+    "multicolor_3mf_url": "/3d_panels/tpu_panel_back_multicolor.3mf",
+    "multicolor_zip_url": "/3d_panels/tpu_panel_back_multicolor_bundle.zip",
+    "volume_mm3": 96726.4,
+    "is_watertight": false,
+    "graphic_type": "spinning_turtle"
+  },
+  "height_mm": 247.02,
   "ordered_leds": [
     {
       "id": 1,
       "orig_id": 0,
-      "x": 160.08,
-      "y": 47.11,
+      "x": 160.24,
+      "y": 47.17,
       "is_custom_rotation": false,
       "rotation_deg": 0.0,
       "color": {
-        "r": 41,
-        "g": 237,
-        "b": 109
+        "r": 0,
+        "g": 255,
+        "b": 0
       }
     },
     {
       "id": 2,
       "orig_id": 1,
-      "x": 143.04,
-      "y": 33.59,
+      "x": 143.16,
+      "y": 33.63,
       "is_custom_rotation": false,
       "rotation_deg": 0.0,
       "color": {
-        "r": 47,
-        "g": 126,
-        "b": 238
+        "r": 0,
+        "g": 255,
+        "b": 0
       }
     },
     {
       "id": 3,
       "orig_id": 2,
-      "x": 124.97,
-      "y": 39.26,
+      "x": 125.09,
+      "y": 39.31,
       "is_custom_rotation": false,
       "rotation_deg": 0.0,
       "color": {
-        "r": 49,
-        "g": 123,
-        "b": 233
+        "r": 0,
+        "g": 255,
+        "b": 0
       }
     },
     {
       "id": 4,
       "orig_id": 3,
-      "x": 110.82,
-      "y": 49.36,
+      "x": 110.92,
+      "y": 49.43,
       "is_custom_rotation": false,
       "rotation_deg": 0.0,
       "color": {
-        "r": 255,
-        "g": 211,
-        "b": 3
+        "r": 0,
+        "g": 255,
+        "b": 0
       }
     },
     {
       "id": 5,
       "orig_id": 4,
-      "x": 105.38,
-      "y": 35.37,
+      "x": 105.48,
+      "y": 35.41,
       "is_custom_rotation": false,
       "rotation_deg": 0.0,
       "color": {
-        "r": 48,
-        "g": 126,
-        "b": 237
+        "r": 0,
+        "g": 255,
+        "b": 0
       }
     },
     {
       "id": 6,
       "orig_id": 5,
-      "x": 86.17,
-      "y": 39.52,
+      "x": 86.25,
+      "y": 39.57,
       "is_custom_rotation": false,
       "rotation_deg": 0.0,
       "color": {
-        "r": 50,
-        "g": 126,
-        "b": 237
+        "r": 0,
+        "g": 255,
+        "b": 0
       }
     },
     {
       "id": 7,
       "orig_id": 6,
-      "x": 86.63,
-      "y": 53.58,
+      "x": 86.72,
+      "y": 53.65,
       "is_custom_rotation": false,
       "rotation_deg": 0.0,
       "color": {
-        "r": 50,
-        "g": 233,
-        "b": 222
+        "r": 0,
+        "g": 255,
+        "b": 0
       }
     },
     {
       "id": 8,
       "orig_id": 7,
-      "x": 83.83,
-      "y": 67.71,
+      "x": 83.91,
+      "y": 67.8,
       "is_custom_rotation": false,
       "rotation_deg": 0.0,
       "color": {
-        "r": 251,
-        "g": 3,
-        "b": 3
+        "r": 0,
+        "g": 255,
+        "b": 0
       }
     },
     {
       "id": 9,
       "orig_id": 8,
-      "x": 81.94,
-      "y": 81.77,
+      "x": 82.02,
+      "y": 81.87,
       "is_custom_rotation": false,
       "rotation_deg": 0.0,
       "color": {
-        "r": 254,
-        "g": 10,
+        "r": 0,
+        "g": 255,
         "b": 0
       }
     },
     {
       "id": 10,
       "orig_id": 9,
-      "x": 83.36,
-      "y": 95.76,
+      "x": 83.44,
+      "y": 95.88,
       "is_custom_rotation": false,
       "rotation_deg": 0.0,
       "color": {
-        "r": 254,
-        "g": 8,
+        "r": 0,
+        "g": 255,
         "b": 0
       }
     },
     {
       "id": 11,
       "orig_id": 10,
-      "x": 83.79,
-      "y": 109.76,
+      "x": 83.87,
+      "y": 109.89,
       "is_custom_rotation": false,
       "rotation_deg": 0.0,
       "color": {
-        "r": 252,
-        "g": 212,
-        "b": 9
+        "r": 0,
+        "g": 255,
+        "b": 0
       }
     },
     {
       "id": 12,
       "orig_id": 11,
-      "x": 76.13,
-      "y": 123.62,
+      "x": 76.2,
+      "y": 123.77,
       "is_custom_rotation": false,
       "rotation_deg": 0.0,
       "color": {
-        "r": 254,
-        "g": 10,
+        "r": 0,
+        "g": 255,
         "b": 0
       }
     },
     {
       "id": 13,
       "orig_id": 12,
-      "x": 69.05,
-      "y": 137.55,
+      "x": 69.12,
+      "y": 137.72,
       "is_custom_rotation": false,
       "rotation_deg": 0.0,
       "color": {
-        "r": 255,
-        "g": 211,
-        "b": 2
+        "r": 0,
+        "g": 255,
+        "b": 0
       }
     },
     {
       "id": 14,
       "orig_id": 13,
-      "x": 58.65,
-      "y": 150.48,
+      "x": 58.7,
+      "y": 150.67,
       "is_custom_rotation": false,
       "rotation_deg": 0.0,
       "color": {
-        "r": 240,
-        "g": 169,
-        "b": 51
+        "r": 0,
+        "g": 255,
+        "b": 0
       }
     },
     {
       "id": 15,
       "orig_id": 14,
-      "x": 49.26,
-      "y": 164.01,
+      "x": 49.31,
+      "y": 164.22,
       "is_custom_rotation": false,
       "rotation_deg": 0.0,
       "color": {
-        "r": 239,
-        "g": 186,
-        "b": 51
+        "r": 0,
+        "g": 255,
+        "b": 0
       }
     },
     {
       "id": 16,
       "orig_id": 15,
-      "x": 61.77,
-      "y": 176.68,
+      "x": 61.82,
+      "y": 176.91,
       "is_custom_rotation": false,
       "rotation_deg": 0.0,
       "color": {
-        "r": 248,
-        "g": 206,
-        "b": 23
+        "r": 0,
+        "g": 255,
+        "b": 0
       }
     },
     {
       "id": 17,
       "orig_id": 16,
-      "x": 51.36,
-      "y": 189.69,
+      "x": 51.41,
+      "y": 189.93,
       "is_custom_rotation": false,
       "rotation_deg": 0.0,
       "color": {
-        "r": 239,
-        "g": 164,
-        "b": 51
+        "r": 0,
+        "g": 255,
+        "b": 0
       }
     },
     {
       "id": 18,
       "orig_id": 17,
-      "x": 70.27,
-      "y": 194.57,
+      "x": 70.33,
+      "y": 194.82,
       "is_custom_rotation": false,
       "rotation_deg": 0.0,
       "color": {
-        "r": 255,
-        "g": 211,
-        "b": 2
+        "r": 0,
+        "g": 255,
+        "b": 0
       }
     },
     {
       "id": 19,
       "orig_id": 18,
-      "x": 85.33,
-      "y": 203.09,
+      "x": 85.39,
+      "y": 203.35,
       "is_custom_rotation": false,
       "rotation_deg": 0.0,
       "color": {
-        "r": 255,
-        "g": 210,
-        "b": 2
+        "r": 0,
+        "g": 255,
+        "b": 0
       }
     },
     {
       "id": 20,
       "orig_id": 19,
-      "x": 89.28,
-      "y": 188.3,
+      "x": 89.37,
+      "y": 188.55,
       "is_custom_rotation": false,
       "rotation_deg": 0.0,
       "color": {
-        "r": 255,
-        "g": 210,
-        "b": 2
+        "r": 0,
+        "g": 255,
+        "b": 0
       }
     },
     {
       "id": 21,
       "orig_id": 20,
-      "x": 82.36,
-      "y": 174.36,
+      "x": 82.44,
+      "y": 174.6,
       "is_custom_rotation": false,
       "rotation_deg": 0.0,
       "color": {
-        "r": 255,
-        "g": 211,
-        "b": 2
+        "r": 0,
+        "g": 255,
+        "b": 0
       }
     },
     {
       "id": 22,
       "orig_id": 21,
-      "x": 69.85,
-      "y": 162.96,
+      "x": 69.91,
+      "y": 163.16,
       "is_custom_rotation": false,
       "rotation_deg": 0.0,
       "color": {
-        "r": 237,
-        "g": 188,
-        "b": 50
+        "r": 0,
+        "g": 255,
+        "b": 0
       }
     },
     {
       "id": 23,
       "orig_id": 22,
-      "x": 80.52,
-      "y": 149.89,
+      "x": 80.59,
+      "y": 150.07,
       "is_custom_rotation": false,
       "rotation_deg": 0.0,
       "color": {
-        "r": 255,
-        "g": 211,
-        "b": 2
+        "r": 0,
+        "g": 255,
+        "b": 0
       }
     },
     {
       "id": 24,
       "orig_id": 23,
-      "x": 89.55,
-      "y": 134.3,
+      "x": 89.63,
+      "y": 134.49,
       "is_custom_rotation": false,
       "rotation_deg": 0.0,
       "color": {
-        "r": 255,
-        "g": 212,
-        "b": 3
+        "r": 0,
+        "g": 255,
+        "b": 0
       }
     },
     {
       "id": 25,
       "orig_id": 24,
-      "x": 97.05,
-      "y": 120.38,
+      "x": 97.13,
+      "y": 120.53,
       "is_custom_rotation": false,
       "rotation_deg": 0.0,
       "color": {
-        "r": 255,
-        "g": 211,
-        "b": 3
+        "r": 0,
+        "g": 255,
+        "b": 0
       }
     },
     {
       "id": 26,
       "orig_id": 25,
-      "x": 109.5,
-      "y": 132.06,
+      "x": 109.6,
+      "y": 132.23,
       "is_custom_rotation": false,
       "rotation_deg": 0.0,
       "color": {
-        "r": 43,
-        "g": 123,
-        "b": 238
+        "r": 0,
+        "g": 255,
+        "b": 0
       }
     },
     {
       "id": 27,
       "orig_id": 26,
-      "x": 100.37,
-      "y": 146.98,
+      "x": 100.46,
+      "y": 147.17,
       "is_custom_rotation": false,
       "rotation_deg": 0.0,
       "color": {
-        "r": 255,
-        "g": 209,
-        "b": 2
+        "r": 0,
+        "g": 255,
+        "b": 0
       }
     },
     {
       "id": 28,
       "orig_id": 27,
-      "x": 95.35,
-      "y": 160.98,
+      "x": 95.44,
+      "y": 161.18,
       "is_custom_rotation": false,
       "rotation_deg": 0.0,
       "color": {
-        "r": 240,
-        "g": 157,
-        "b": 51
+        "r": 0,
+        "g": 255,
+        "b": 0
       }
     },
     {
       "id": 29,
       "orig_id": 28,
-      "x": 102.53,
-      "y": 174.89,
+      "x": 102.62,
+      "y": 175.13,
       "is_custom_rotation": false,
       "rotation_deg": 0.0,
       "color": {
-        "r": 50,
-        "g": 141,
-        "b": 234
+        "r": 0,
+        "g": 255,
+        "b": 0
       }
     },
     {
       "id": 30,
       "orig_id": 29,
-      "x": 116.47,
-      "y": 184.8,
+      "x": 116.58,
+      "y": 185.03,
       "is_custom_rotation": false,
       "rotation_deg": 0.0,
       "color": {
-        "r": 255,
-        "g": 211,
-        "b": 2
+        "r": 0,
+        "g": 255,
+        "b": 0
       }
     },
     {
       "id": 31,
       "orig_id": 30,
-      "x": 129.36,
-      "y": 173.45,
+      "x": 129.48,
+      "y": 173.68,
       "is_custom_rotation": false,
       "rotation_deg": 0.0,
       "color": {
-        "r": 49,
-        "g": 136,
-        "b": 233
+        "r": 0,
+        "g": 255,
+        "b": 0
       }
     },
     {
       "id": 32,
       "orig_id": 31,
-      "x": 115.36,
-      "y": 163.61,
+      "x": 115.47,
+      "y": 163.83,
       "is_custom_rotation": false,
       "rotation_deg": 0.0,
       "color": {
-        "r": 255,
-        "g": 211,
-        "b": 2
+        "r": 0,
+        "g": 255,
+        "b": 0
       }
     },
     {
       "id": 33,
       "orig_id": 32,
-      "x": 120.22,
-      "y": 149.68,
+      "x": 120.33,
+      "y": 149.88,
       "is_custom_rotation": false,
       "rotation_deg": 0.0,
       "color": {
-        "r": 50,
-        "g": 122,
-        "b": 235
+        "r": 0,
+        "g": 255,
+        "b": 0
       }
     },
     {
       "id": 34,
       "orig_id": 33,
-      "x": 136.54,
-      "y": 142.69,
+      "x": 136.66,
+      "y": 142.87,
       "is_custom_rotation": false,
       "rotation_deg": 0.0,
       "color": {
-        "r": 24,
-        "g": 242,
-        "b": 68
+        "r": 0,
+        "g": 255,
+        "b": 0
       }
     },
     {
       "id": 35,
       "orig_id": 34,
-      "x": 129.36,
-      "y": 128.76,
+      "x": 129.48,
+      "y": 128.93,
       "is_custom_rotation": false,
       "rotation_deg": 0.0,
       "color": {
-        "r": 43,
-        "g": 123,
-        "b": 238
+        "r": 0,
+        "g": 255,
+        "b": 0
       }
     },
     {
       "id": 36,
       "orig_id": 35,
-      "x": 135.8,
-      "y": 112.46,
+      "x": 135.92,
+      "y": 112.61,
       "is_custom_rotation": false,
       "rotation_deg": 0.0,
       "color": {
-        "r": 44,
-        "g": 118,
-        "b": 238
+        "r": 0,
+        "g": 255,
+        "b": 0
       }
     },
     {
       "id": 37,
       "orig_id": 36,
-      "x": 138.91,
-      "y": 94.17,
+      "x": 139.04,
+      "y": 94.29,
       "is_custom_rotation": false,
       "rotation_deg": 0.0,
       "color": {
-        "r": 49,
-        "g": 121,
-        "b": 236
+        "r": 0,
+        "g": 255,
+        "b": 0
       }
     },
     {
       "id": 38,
       "orig_id": 37,
-      "x": 151.86,
-      "y": 105.4,
+      "x": 151.99,
+      "y": 105.53,
       "is_custom_rotation": false,
       "rotation_deg": 0.0,
       "color": {
-        "r": 25,
-        "g": 242,
-        "b": 66
+        "r": 0,
+        "g": 255,
+        "b": 0
       }
     },
     {
       "id": 39,
       "orig_id": 38,
-      "x": 148.42,
-      "y": 124.08,
+      "x": 148.56,
+      "y": 124.24,
       "is_custom_rotation": false,
       "rotation_deg": 0.0,
       "color": {
-        "r": 50,
-        "g": 127,
-        "b": 235
+        "r": 0,
+        "g": 255,
+        "b": 0
       }
     },
     {
       "id": 40,
       "orig_id": 39,
-      "x": 155.4,
-      "y": 138.0,
+      "x": 155.53,
+      "y": 138.18,
       "is_custom_rotation": false,
       "rotation_deg": 0.0,
       "color": {
-        "r": 25,
-        "g": 242,
-        "b": 70
+        "r": 0,
+        "g": 255,
+        "b": 0
       }
     },
     {
       "id": 41,
       "orig_id": 40,
-      "x": 162.36,
-      "y": 151.93,
+      "x": 162.51,
+      "y": 152.13,
       "is_custom_rotation": false,
       "rotation_deg": 0.0,
       "color": {
-        "r": 28,
-        "g": 242,
-        "b": 71
+        "r": 0,
+        "g": 255,
+        "b": 0
       }
     },
     {
       "id": 42,
       "orig_id": 41,
-      "x": 159.2,
-      "y": 165.93,
+      "x": 159.33,
+      "y": 166.13,
       "is_custom_rotation": false,
       "rotation_deg": 0.0,
       "color": {
-        "r": 49,
-        "g": 138,
-        "b": 233
+        "r": 0,
+        "g": 255,
+        "b": 0
       }
     },
     {
       "id": 43,
       "orig_id": 42,
-      "x": 140.39,
-      "y": 160.91,
+      "x": 140.52,
+      "y": 161.11,
       "is_custom_rotation": false,
       "rotation_deg": 0.0,
       "color": {
-        "r": 49,
-        "g": 136,
-        "b": 233
+        "r": 0,
+        "g": 255,
+        "b": 0
       }
     },
     {
       "id": 44,
       "orig_id": 43,
-      "x": 147.95,
-      "y": 178.46,
+      "x": 148.08,
+      "y": 178.7,
       "is_custom_rotation": false,
       "rotation_deg": 0.0,
       "color": {
-        "r": 49,
-        "g": 130,
-        "b": 233
+        "r": 0,
+        "g": 255,
+        "b": 0
       }
     },
     {
       "id": 45,
       "orig_id": 44,
-      "x": 135.38,
-      "y": 189.81,
+      "x": 135.5,
+      "y": 190.07,
       "is_custom_rotation": false,
       "rotation_deg": 0.0,
       "color": {
-        "r": 24,
-        "g": 242,
-        "b": 72
+        "r": 0,
+        "g": 255,
+        "b": 0
       }
     },
     {
       "id": 46,
       "orig_id": 45,
-      "x": 156.49,
-      "y": 192.47,
+      "x": 156.64,
+      "y": 192.71,
       "is_custom_rotation": false,
       "rotation_deg": 0.0,
       "color": {
-        "r": 25,
-        "g": 242,
-        "b": 70
+        "r": 0,
+        "g": 255,
+        "b": 0
       }
     },
     {
       "id": 47,
       "orig_id": 46,
-      "x": 168.22,
-      "y": 179.52,
+      "x": 168.37,
+      "y": 179.74,
       "is_custom_rotation": false,
       "rotation_deg": 0.0,
       "color": {
-        "r": 26,
-        "g": 242,
-        "b": 71
+        "r": 0,
+        "g": 255,
+        "b": 0
       }
     },
     {
       "id": 48,
       "orig_id": 47,
-      "x": 179.57,
-      "y": 191.8,
+      "x": 179.73,
+      "y": 192.05,
       "is_custom_rotation": false,
       "rotation_deg": 0.0,
       "color": {
-        "r": 50,
-        "g": 124,
-        "b": 237
+        "r": 0,
+        "g": 255,
+        "b": 0
       }
     },
     {
       "id": 49,
       "orig_id": 48,
-      "x": 196.36,
-      "y": 185.0,
+      "x": 196.55,
+      "y": 185.24,
       "is_custom_rotation": false,
       "rotation_deg": 0.0,
       "color": {
-        "r": 26,
-        "g": 242,
-        "b": 71
+        "r": 0,
+        "g": 255,
+        "b": 0
       }
     },
     {
       "id": 50,
       "orig_id": 49,
-      "x": 185.01,
-      "y": 172.59,
+      "x": 185.18,
+      "y": 172.81,
       "is_custom_rotation": false,
       "rotation_deg": 0.0,
       "color": {
-        "r": 46,
-        "g": 123,
-        "b": 238
+        "r": 0,
+        "g": 255,
+        "b": 0
       }
     },
     {
       "id": 51,
       "orig_id": 50,
-      "x": 182.32,
-      "y": 154.7,
+      "x": 182.49,
+      "y": 154.9,
       "is_custom_rotation": false,
       "rotation_deg": 0.0,
       "color": {
-        "r": 26,
-        "g": 241,
-        "b": 69
+        "r": 0,
+        "g": 255,
+        "b": 0
       }
     },
     {
       "id": 52,
       "orig_id": 51,
-      "x": 175.3,
-      "y": 140.65,
+      "x": 175.45,
+      "y": 140.83,
       "is_custom_rotation": false,
       "rotation_deg": 0.0,
       "color": {
-        "r": 47,
-        "g": 124,
-        "b": 238
+        "r": 0,
+        "g": 255,
+        "b": 0
       }
     },
     {
       "id": 53,
       "orig_id": 52,
-      "x": 195.42,
-      "y": 143.02,
+      "x": 195.6,
+      "y": 143.2,
       "is_custom_rotation": false,
       "rotation_deg": 0.0,
       "color": {
-        "r": 28,
-        "g": 242,
-        "b": 62
+        "r": 0,
+        "g": 255,
+        "b": 0
       }
     },
     {
       "id": 54,
       "orig_id": 53,
-      "x": 187.71,
-      "y": 129.16,
+      "x": 187.87,
+      "y": 129.32,
       "is_custom_rotation": false,
       "rotation_deg": 0.0,
       "color": {
-        "r": 46,
-        "g": 125,
-        "b": 238
+        "r": 0,
+        "g": 255,
+        "b": 0
       }
     },
     {
       "id": 55,
       "orig_id": 54,
-      "x": 168.7,
-      "y": 124.8,
+      "x": 168.85,
+      "y": 124.97,
       "is_custom_rotation": false,
       "rotation_deg": 0.0,
       "color": {
-        "r": 46,
-        "g": 123,
-        "b": 238
+        "r": 0,
+        "g": 255,
+        "b": 0
       }
     },
     {
       "id": 56,
       "orig_id": 55,
-      "x": 170.44,
-      "y": 110.75,
+      "x": 170.6,
+      "y": 110.88,
       "is_custom_rotation": false,
       "rotation_deg": 0.0,
       "color": {
-        "r": 26,
-        "g": 242,
-        "b": 71
+        "r": 0,
+        "g": 255,
+        "b": 0
       }
     },
     {
       "id": 57,
       "orig_id": 56,
-      "x": 166.85,
-      "y": 96.56,
+      "x": 167.0,
+      "y": 96.68,
       "is_custom_rotation": false,
       "rotation_deg": 0.0,
       "color": {
-        "r": 28,
-        "g": 242,
-        "b": 69
+        "r": 0,
+        "g": 255,
+        "b": 0
       }
     },
     {
       "id": 58,
       "orig_id": 57,
-      "x": 153.86,
-      "y": 85.4,
+      "x": 154.0,
+      "y": 85.51,
       "is_custom_rotation": false,
       "rotation_deg": 0.0,
       "color": {
-        "r": 25,
-        "g": 242,
-        "b": 70
+        "r": 0,
+        "g": 255,
+        "b": 0
       }
     },
     {
       "id": 59,
       "orig_id": 58,
-      "x": 138.33,
-      "y": 77.68,
+      "x": 138.46,
+      "y": 77.78,
       "is_custom_rotation": false,
       "rotation_deg": 0.0,
       "color": {
-        "r": 44,
-        "g": 127,
-        "b": 238
+        "r": 0,
+        "g": 255,
+        "b": 0
       }
     },
     {
       "id": 60,
       "orig_id": 59,
-      "x": 120.9,
-      "y": 85.93,
+      "x": 121.01,
+      "y": 86.04,
       "is_custom_rotation": false,
       "rotation_deg": 0.0,
       "color": {
-        "r": 50,
-        "g": 119,
-        "b": 233
+        "r": 0,
+        "g": 255,
+        "b": 0
       }
     },
     {
       "id": 61,
       "orig_id": 60,
-      "x": 122.07,
-      "y": 100.78,
+      "x": 122.19,
+      "y": 100.91,
       "is_custom_rotation": false,
       "rotation_deg": 0.0,
       "color": {
-        "r": 26,
-        "g": 242,
-        "b": 68
+        "r": 0,
+        "g": 255,
+        "b": 0
       }
     },
     {
       "id": 62,
       "orig_id": 61,
-      "x": 116.36,
-      "y": 116.22,
+      "x": 116.47,
+      "y": 116.37,
       "is_custom_rotation": false,
       "rotation_deg": 0.0,
       "color": {
-        "r": 41,
-        "g": 238,
-        "b": 87
+        "r": 0,
+        "g": 255,
+        "b": 0
       }
     },
     {
       "id": 63,
       "orig_id": 62,
-      "x": 103.11,
-      "y": 105.33,
+      "x": 103.21,
+      "y": 105.46,
       "is_custom_rotation": false,
       "rotation_deg": 0.0,
       "color": {
-        "r": 255,
-        "g": 211,
-        "b": 2
+        "r": 0,
+        "g": 255,
+        "b": 0
       }
     },
     {
       "id": 64,
       "orig_id": 63,
-      "x": 102.64,
-      "y": 91.4,
+      "x": 102.73,
+      "y": 91.52,
       "is_custom_rotation": false,
       "rotation_deg": 0.0,
       "color": {
-        "r": 255,
-        "g": 211,
-        "b": 2
+        "r": 0,
+        "g": 255,
+        "b": 0
       }
     },
     {
       "id": 65,
       "orig_id": 64,
-      "x": 100.99,
-      "y": 77.34,
+      "x": 101.1,
+      "y": 77.45,
       "is_custom_rotation": false,
       "rotation_deg": 0.0,
       "color": {
-        "r": 254,
-        "g": 205,
+        "r": 0,
+        "g": 255,
         "b": 0
       }
     },
     {
       "id": 66,
       "orig_id": 65,
-      "x": 103.17,
-      "y": 63.29,
+      "x": 103.26,
+      "y": 63.37,
       "is_custom_rotation": false,
       "rotation_deg": 0.0,
       "color": {
-        "r": 255,
-        "g": 211,
-        "b": 3
+        "r": 0,
+        "g": 255,
+        "b": 0
       }
     },
     {
       "id": 67,
       "orig_id": 66,
-      "x": 119.42,
-      "y": 71.8,
+      "x": 119.54,
+      "y": 71.9,
       "is_custom_rotation": false,
       "rotation_deg": 0.0,
       "color": {
-        "r": 50,
-        "g": 136,
-        "b": 233
+        "r": 0,
+        "g": 255,
+        "b": 0
       }
     },
     {
       "id": 68,
       "orig_id": 67,
-      "x": 125.88,
-      "y": 57.81,
+      "x": 125.99,
+      "y": 57.88,
       "is_custom_rotation": false,
       "rotation_deg": 0.0,
       "color": {
-        "r": 26,
-        "g": 242,
-        "b": 71
+        "r": 0,
+        "g": 255,
+        "b": 0
       }
     },
     {
       "id": 69,
       "orig_id": 68,
-      "x": 139.81,
-      "y": 47.84,
+      "x": 139.94,
+      "y": 47.9,
       "is_custom_rotation": false,
       "rotation_deg": 0.0,
       "color": {
-        "r": 25,
-        "g": 242,
-        "b": 68
+        "r": 0,
+        "g": 255,
+        "b": 0
       }
     },
     {
       "id": 70,
       "orig_id": 69,
-      "x": 143.72,
-      "y": 63.68,
+      "x": 143.85,
+      "y": 63.77,
       "is_custom_rotation": false,
       "rotation_deg": 0.0,
       "color": {
-        "r": 25,
-        "g": 242,
-        "b": 70
+        "r": 0,
+        "g": 255,
+        "b": 0
       }
     },
     {
       "id": 71,
       "orig_id": 70,
-      "x": 163.78,
-      "y": 61.17,
+      "x": 163.94,
+      "y": 61.25,
       "is_custom_rotation": false,
       "rotation_deg": 0.0,
       "color": {
-        "r": 47,
-        "g": 126,
-        "b": 238
+        "r": 0,
+        "g": 255,
+        "b": 0
       }
     },
     {
       "id": 72,
       "orig_id": 71,
-      "x": 180.42,
-      "y": 38.34,
+      "x": 180.58,
+      "y": 38.39,
       "is_custom_rotation": false,
       "rotation_deg": 0.0,
       "color": {
-        "r": 150,
-        "g": 244,
-        "b": 40
+        "r": 0,
+        "g": 255,
+        "b": 0
       }
     },
     {
       "id": 73,
       "orig_id": 72,
-      "x": 178.62,
-      "y": 52.4,
+      "x": 178.79,
+      "y": 52.47,
       "is_custom_rotation": false,
       "rotation_deg": 0.0,
       "color": {
-        "r": 44,
-        "g": 123,
-        "b": 238
+        "r": 0,
+        "g": 255,
+        "b": 0
       }
     },
     {
       "id": 74,
       "orig_id": 73,
-      "x": 182.74,
-      "y": 66.59,
+      "x": 182.9,
+      "y": 66.68,
       "is_custom_rotation": false,
       "rotation_deg": 0.0,
       "color": {
-        "r": 46,
-        "g": 236,
-        "b": 117
+        "r": 0,
+        "g": 255,
+        "b": 0
       }
     },
     {
       "id": 75,
       "orig_id": 74,
-      "x": 167.64,
-      "y": 75.23,
+      "x": 167.8,
+      "y": 75.33,
       "is_custom_rotation": false,
       "rotation_deg": 0.0,
       "color": {
-        "r": 46,
-        "g": 125,
-        "b": 238
+        "r": 0,
+        "g": 255,
+        "b": 0
       }
     },
     {
       "id": 76,
       "orig_id": 75,
-      "x": 180.53,
-      "y": 86.32,
+      "x": 180.69,
+      "y": 86.43,
       "is_custom_rotation": false,
       "rotation_deg": 0.0,
       "color": {
-        "r": 26,
-        "g": 242,
-        "b": 71
+        "r": 0,
+        "g": 255,
+        "b": 0
       }
     },
     {
       "id": 77,
       "orig_id": 76,
-      "x": 195.42,
-      "y": 77.81,
+      "x": 195.6,
+      "y": 77.91,
       "is_custom_rotation": false,
       "rotation_deg": 0.0,
       "color": {
-        "r": 46,
-        "g": 125,
-        "b": 238
+        "r": 0,
+        "g": 255,
+        "b": 0
       }
     },
     {
       "id": 78,
       "orig_id": 77,
-      "x": 204.44,
-      "y": 64.34,
+      "x": 204.64,
+      "y": 64.43,
       "is_custom_rotation": false,
       "rotation_deg": 0.0,
       "color": {
-        "r": 24,
-        "g": 242,
-        "b": 68
+        "r": 0,
+        "g": 255,
+        "b": 0
       }
     },
     {
       "id": 79,
       "orig_id": 78,
-      "x": 198.63,
-      "y": 50.29,
+      "x": 198.82,
+      "y": 50.34,
       "is_custom_rotation": false,
       "rotation_deg": 0.0,
       "color": {
-        "r": 26,
-        "g": 242,
-        "b": 71
+        "r": 0,
+        "g": 255,
+        "b": 0
       }
     },
     {
       "id": 80,
       "orig_id": 79,
-      "x": 200.69,
-      "y": 36.22,
+      "x": 200.51,
+      "y": 37.0,
       "is_custom_rotation": false,
       "rotation_deg": 0.0,
       "color": {
-        "r": 47,
-        "g": 126,
-        "b": 238
+        "r": 0,
+        "g": 255,
+        "b": 0
       }
     },
     {
       "id": 81,
       "orig_id": 80,
-      "x": 220.13,
-      "y": 39.98,
+      "x": 220.33,
+      "y": 40.03,
       "is_custom_rotation": false,
       "rotation_deg": 0.0,
       "color": {
-        "r": 47,
-        "g": 124,
-        "b": 238
+        "r": 0,
+        "g": 255,
+        "b": 0
       }
     },
     {
       "id": 82,
       "orig_id": 81,
-      "x": 218.23,
-      "y": 54.05,
+      "x": 218.42,
+      "y": 54.11,
       "is_custom_rotation": false,
       "rotation_deg": 0.0,
       "color": {
-        "r": 25,
-        "g": 242,
-        "b": 70
+        "r": 0,
+        "g": 255,
+        "b": 0
       }
     },
     {
       "id": 83,
       "orig_id": 82,
-      "x": 233.48,
-      "y": 61.84,
+      "x": 233.71,
+      "y": 61.92,
       "is_custom_rotation": false,
       "rotation_deg": 0.0,
       "color": {
-        "r": 148,
-        "g": 244,
-        "b": 40
+        "r": 0,
+        "g": 255,
+        "b": 0
       }
     },
     {
       "id": 84,
       "orig_id": 83,
-      "x": 236.13,
-      "y": 75.82,
+      "x": 236.34,
+      "y": 75.92,
       "is_custom_rotation": false,
       "rotation_deg": 0.0,
       "color": {
-        "r": 50,
-        "g": 117,
-        "b": 233
+        "r": 0,
+        "g": 255,
+        "b": 0
       }
     },
     {
       "id": 85,
       "orig_id": 84,
-      "x": 215.95,
-      "y": 76.69,
+      "x": 216.15,
+      "y": 76.79,
       "is_custom_rotation": false,
       "rotation_deg": 0.0,
       "color": {
-        "r": 43,
-        "g": 120,
-        "b": 239
+        "r": 0,
+        "g": 255,
+        "b": 0
       }
     },
     {
       "id": 86,
       "orig_id": 85,
-      "x": 219.18,
-      "y": 90.74,
+      "x": 219.38,
+      "y": 90.86,
       "is_custom_rotation": false,
       "rotation_deg": 0.0,
       "color": {
-        "r": 28,
-        "g": 242,
-        "b": 69
+        "r": 0,
+        "g": 255,
+        "b": 0
       }
     },
     {
       "id": 87,
       "orig_id": 86,
-      "x": 198.8,
-      "y": 91.8,
+      "x": 198.97,
+      "y": 91.92,
       "is_custom_rotation": false,
       "rotation_deg": 0.0,
       "color": {
-        "r": 44,
-        "g": 123,
-        "b": 238
+        "r": 0,
+        "g": 255,
+        "b": 0
       }
     },
     {
       "id": 88,
       "orig_id": 87,
-      "x": 188.23,
-      "y": 104.67,
+      "x": 188.4,
+      "y": 104.81,
       "is_custom_rotation": false,
       "rotation_deg": 0.0,
       "color": {
-        "r": 28,
-        "g": 242,
-        "b": 69
+        "r": 0,
+        "g": 255,
+        "b": 0
       }
     },
     {
       "id": 89,
       "orig_id": 88,
-      "x": 199.54,
-      "y": 117.21,
+      "x": 199.71,
+      "y": 117.36,
       "is_custom_rotation": false,
       "rotation_deg": 0.0,
       "color": {
-        "r": 49,
-        "g": 127,
-        "b": 233
+        "r": 0,
+        "g": 255,
+        "b": 0
       }
     },
     {
       "id": 90,
       "orig_id": 89,
-      "x": 210.2,
-      "y": 104.41,
+      "x": 210.39,
+      "y": 104.55,
       "is_custom_rotation": false,
       "rotation_deg": 0.0,
       "color": {
-        "r": 50,
-        "g": 129,
-        "b": 233
+        "r": 0,
+        "g": 255,
+        "b": 0
       }
     },
     {
       "id": 91,
       "orig_id": 90,
-      "x": 219.49,
-      "y": 119.14,
+      "x": 219.7,
+      "y": 119.28,
       "is_custom_rotation": false,
       "rotation_deg": 0.0,
       "color": {
-        "r": 46,
-        "g": 123,
-        "b": 238
+        "r": 0,
+        "g": 255,
+        "b": 0
       }
     },
     {
       "id": 92,
       "orig_id": 91,
-      "x": 213.95,
-      "y": 133.26,
+      "x": 214.14,
+      "y": 133.42,
       "is_custom_rotation": false,
       "rotation_deg": 0.0,
       "color": {
-        "r": 25,
-        "g": 242,
-        "b": 66
+        "r": 0,
+        "g": 255,
+        "b": 0
       }
     },
     {
       "id": 93,
       "orig_id": 92,
-      "x": 200.27,
-      "y": 160.64,
+      "x": 200.45,
+      "y": 160.84,
       "is_custom_rotation": false,
       "rotation_deg": 0.0,
       "color": {
-        "r": 26,
-        "g": 242,
-        "b": 71
+        "r": 0,
+        "g": 255,
+        "b": 0
       }
     },
     {
       "id": 94,
       "orig_id": 93,
-      "x": 209.51,
-      "y": 174.05,
+      "x": 209.7,
+      "y": 174.27,
       "is_custom_rotation": false,
       "rotation_deg": 0.0,
       "color": {
-        "r": 51,
-        "g": 123,
-        "b": 236
+        "r": 0,
+        "g": 255,
+        "b": 0
       }
     },
     {
       "id": 95,
       "orig_id": 94,
-      "x": 220.6,
-      "y": 161.24,
+      "x": 220.8,
+      "y": 161.44,
       "is_custom_rotation": false,
       "rotation_deg": 0.0,
       "color": {
-        "r": 50,
-        "g": 123,
-        "b": 233
+        "r": 0,
+        "g": 255,
+        "b": 0
       }
     },
     {
       "id": 96,
       "orig_id": 95,
-      "x": 214.59,
-      "y": 147.25,
+      "x": 214.78,
+      "y": 147.44,
       "is_custom_rotation": false,
       "rotation_deg": 0.0,
       "color": {
-        "r": 25,
-        "g": 242,
-        "b": 66
+        "r": 0,
+        "g": 255,
+        "b": 0
       }
     },
     {
       "id": 97,
       "orig_id": 96,
-      "x": 234.96,
-      "y": 136.23,
+      "x": 235.18,
+      "y": 136.39,
       "is_custom_rotation": false,
       "rotation_deg": 0.0,
       "color": {
-        "r": 44,
-        "g": 120,
-        "b": 238
+        "r": 0,
+        "g": 255,
+        "b": 0
       }
     },
     {
       "id": 98,
       "orig_id": 97,
-      "x": 239.19,
-      "y": 122.16,
+      "x": 239.41,
+      "y": 122.32,
       "is_custom_rotation": false,
       "rotation_deg": 0.0,
       "color": {
-        "r": 46,
-        "g": 125,
-        "b": 238
+        "r": 0,
+        "g": 255,
+        "b": 0
       }
     },
     {
       "id": 99,
       "orig_id": 98,
-      "x": 239.45,
-      "y": 89.83,
+      "x": 239.67,
+      "y": 89.93,
       "is_custom_rotation": false,
       "rotation_deg": 0.0,
       "color": {
-        "r": 24,
-        "g": 243,
-        "b": 67
+        "r": 0,
+        "g": 255,
+        "b": 0
       }
     },
     {
       "id": 100,
       "orig_id": 99,
-      "x": 230.47,
-      "y": 106.58,
+      "x": 230.7,
+      "y": 106.72,
       "is_custom_rotation": false,
       "rotation_deg": 0.0,
       "color": {
-        "r": 28,
-        "g": 242,
-        "b": 65
+        "r": 0,
+        "g": 255,
+        "b": 0
       }
     }
   ],
   "led_count": 100,
+  "variant": "front",
+  "panel_width_mm": 235.35,
+  "panel_height_mm": 203.0,
+  "total_image_width_mm": 295.84,
+  "total_image_height_mm": 247.02,
   "fastener_tabs": [
     [
-      31.94,
-      202.69
+      31.22,
+      202.12
     ],
     [
-      74.88,
-      222.6
+      73.74,
+      223.02
     ],
     [
-      116.74,
-      201.07
+      116.27,
+      202.06
     ],
     [
-      161.98,
-      208.77
+      160.85,
+      209.24
     ],
     [
-      209.78,
-      201.15
+      208.85,
+      202.09
     ],
     [
-      243.85,
-      166.62
+      243.06,
+      167.66
     ],
     [
-      261.71,
-      121.44
+      261.54,
+      122.76
     ],
     [
-      257.58,
-      72.85
+      255.26,
+      64.51
     ],
     [
-      255.84,
-      28.1
+      256.75,
+      29.2
     ],
     [
-      210.3,
-      20.39
+      211.55,
+      20.75
     ],
     [
-      161.86,
-      16.85
+      163.09,
+      17.04
     ],
     [
-      113.22,
-      17.11
+      114.42,
+      17.18
     ],
     [
-      64.83,
-      25.54
+      65.73,
+      24.64
     ],
     [
-      60.34,
-      72.73
+      60.61,
+      71.91
     ],
     [
-      54.99,
-      119.1
+      55.7,
+      118.52
     ],
     [
-      28.03,
-      154.36
+      28.36,
+      153.51
     ]
   ],
   "entrance_portal": [
-    143.08,
-    18.35
+    143.15,
+    18.54
   ],
   "entrance_bridge": [
-    143.08,
-    26.35
+    143.15,
+    26.54
   ],
   "exit_portal": [
-    259.98,
-    86.8
+    259.97,
+    85.99
   ],
   "exit_bridge": [
     252.07,
-    88.0
+    87.23
   ],
   "screw_positions": [
     [
-      73.62,
-      218.65
+      73.84,
+      219.02
     ],
     [
-      104.39,
-      209.52
+      103.64,
+      210.05
     ],
     [
-      145.38,
-      205.97
+      145.82,
+      206.31
     ],
     [
-      224.49,
-      184.25
+      224.09,
+      184.8
     ],
     [
-      245.37,
-      158.36
+      245.62,
+      158.13
     ],
     [
-      254.66,
-      135.54
+      254.8,
+      135.63
     ],
     [
-      257.91,
-      104.78
+      257.99,
+      105.99
     ],
     [
-      255.62,
-      33.26
+      255.45,
+      33.13
     ],
     [
-      189.13,
-      22.37
+      188.71,
+      22.55
     ],
     [
-      118.44,
-      20.85
+      119.48,
+      21.04
     ],
     [
-      68.48,
-      27.25
+      68.7,
+      27.36
     ],
     [
-      63.33,
-      103.1
+      63.46,
+      103.94
     ],
     [
-      38.14,
-      145.56
+      37.9,
+      146.36
     ],
     [
-      27.98,
-      180.21
+      28.03,
+      180.07
     ]
   ],
   "number_positions": [
     [
-      160.08,
-      41.61
+      160.24,
+      41.67
     ],
     [
-      149.54,
-      29.09
+      149.66,
+      29.13
     ],
     [
-      124.97,
-      33.76
+      125.09,
+      33.81
     ],
     [
-      102.82,
-      49.36
+      102.92,
+      49.43
     ],
     [
-      105.38,
-      29.87
+      105.48,
+      29.91
     ],
     [
-      79.67,
-      35.02
+      79.75,
+      35.07
     ],
     [
-      78.63,
-      53.58
+      78.72,
+      53.65
     ],
     [
-      75.83,
-      67.71
+      75.91,
+      67.8
     ],
     [
-      73.94,
-      81.77
+      74.02,
+      81.87
     ],
     [
-      75.36,
-      95.76
+      75.44,
+      95.88
     ],
     [
-      75.79,
-      109.76
+      75.87,
+      109.89
     ],
     [
-      69.63,
-      119.12
+      69.7,
+      119.27
     ],
     [
-      62.55,
-      133.05
+      62.62,
+      133.22
     ],
     [
-      52.15,
-      145.98
+      52.2,
+      146.17
     ],
     [
-      41.26,
-      164.01
+      41.31,
+      164.22
     ],
     [
-      68.27,
-      181.18
+      68.32,
+      181.41
     ],
     [
-      44.86,
-      194.19
+      44.91,
+      194.43
     ],
     [
-      63.77,
-      199.07
+      63.83,
+      199.32
     ],
     [
-      85.33,
-      208.59
+      85.39,
+      208.85
     ],
     [
-      95.78,
-      192.8
+      95.87,
+      193.05
     ],
     [
-      75.86,
-      178.86
+      75.94,
+      179.1
     ],
     [
-      69.85,
-      157.46
+      69.91,
+      157.66
     ],
     [
-      80.52,
-      144.39
+      80.59,
+      144.57
     ],
     [
-      89.55,
-      139.8
+      89.63,
+      139.99
     ],
     [
-      105.05,
-      120.38
+      105.13,
+      120.53
     ],
     [
-      116.0,
-      136.56
+      116.1,
+      136.73
     ],
     [
-      106.87,
-      151.48
+      106.96,
+      151.67
     ],
     [
-      87.35,
-      160.98
+      87.44,
+      161.18
     ],
     [
-      102.53,
-      180.39
+      102.62,
+      180.63
+    ],
+    [
+      116.58,
+      190.53
+    ],
+    [
+      129.48,
+      168.18
+    ],
+    [
+      115.47,
+      169.33
+    ],
+    [
+      120.33,
+      144.38
+    ],
+    [
+      143.16,
+      147.37
+    ],
+    [
+      122.98,
+      133.43
+    ],
+    [
+      135.92,
+      107.11
+    ],
+    [
+      139.04,
+      99.79
+    ],
+    [
+      151.99,
+      100.03
+    ],
+    [
+      155.06,
+      119.74
+    ],
+    [
+      149.03,
+      142.68
+    ],
+    [
+      154.51,
+      152.13
+    ],
+    [
+      167.33,
+      166.13
+    ],
+    [
+      147.02,
+      156.61
+    ],
+    [
+      148.08,
+      173.2
+    ],
+    [
+      135.5,
+      195.57
+    ],
+    [
+      156.64,
+      198.21
+    ],
+    [
+      168.37,
+      185.24
+    ],
+    [
+      179.73,
+      197.55
+    ],
+    [
+      196.55,
+      190.74
+    ],
+    [
+      178.68,
+      168.31
+    ],
+    [
+      175.99,
+      159.4
+    ],
+    [
+      183.45,
+      140.83
+    ],
+    [
+      202.1,
+      138.7
+    ],
+    [
+      187.87,
+      123.82
+    ],
+    [
+      162.35,
+      120.47
+    ],
+    [
+      177.1,
+      115.38
+    ],
+    [
+      167.0,
+      91.18
+    ],
+    [
+      154.0,
+      80.01
+    ],
+    [
+      131.96,
+      73.28
+    ],
+    [
+      129.01,
+      86.04
+    ],
+    [
+      114.19,
+      100.91
     ],
     [
       116.47,
-      190.3
+      121.87
     ],
     [
-      129.36,
-      167.95
+      95.21,
+      105.46
     ],
     [
-      115.36,
-      169.11
+      94.73,
+      91.52
     ],
     [
-      120.22,
-      144.18
+      94.6,
+      81.95
     ],
     [
-      143.04,
-      147.19
+      95.26,
+      63.37
     ],
     [
-      122.86,
-      133.26
+      127.54,
+      71.9
     ],
     [
-      135.8,
-      106.96
+      125.99,
+      52.38
     ],
     [
-      138.91,
-      99.67
+      147.94,
+      47.9
     ],
     [
-      151.86,
-      99.9
+      150.35,
+      68.27
     ],
     [
-      154.92,
-      119.58
+      157.44,
+      65.75
     ],
     [
-      148.9,
-      142.5
+      180.58,
+      32.89
     ],
     [
-      154.36,
-      151.93
+      186.79,
+      52.47
     ],
     [
-      167.2,
-      165.93
+      189.4,
+      62.18
     ],
     [
-      146.89,
-      156.41
+      167.8,
+      80.83
     ],
     [
-      147.95,
-      172.96
+      180.69,
+      91.93
     ],
     [
-      135.38,
-      195.31
+      203.6,
+      77.91
     ],
     [
-      156.49,
-      197.97
+      196.64,
+      64.43
     ],
     [
-      168.22,
-      185.02
+      192.32,
+      54.84
     ],
     [
-      179.57,
-      197.3
+      200.51,
+      31.5
     ],
     [
-      196.36,
-      190.5
+      226.83,
+      35.53
     ],
     [
-      178.51,
-      168.09
+      218.42,
+      59.61
     ],
     [
-      175.82,
-      159.2
+      240.21,
+      57.42
     ],
     [
-      183.3,
-      140.65
+      244.34,
+      75.92
     ],
     [
-      201.92,
-      138.52
+      222.65,
+      72.29
     ],
     [
-      187.71,
-      123.66
+      225.88,
+      86.36
     ],
     [
-      162.2,
-      120.3
+      205.47,
+      87.42
     ],
     [
-      176.94,
-      115.25
+      181.9,
+      100.31
     ],
     [
-      166.85,
-      91.06
+      206.21,
+      121.86
     ],
     [
-      153.86,
-      79.9
+      202.39,
+      104.55
     ],
     [
-      131.83,
-      73.18
+      226.2,
+      123.78
     ],
     [
-      128.9,
-      85.93
+      206.14,
+      133.42
     ],
     [
-      114.07,
-      100.78
+      200.45,
+      155.34
     ],
     [
-      116.36,
-      121.72
+      216.2,
+      178.77
     ],
     [
-      95.11,
-      105.33
+      228.8,
+      161.44
     ],
     [
-      94.64,
-      91.4
+      222.78,
+      147.44
     ],
     [
-      94.49,
-      81.84
+      235.18,
+      141.89
     ],
     [
-      95.17,
-      63.29
+      245.91,
+      117.82
     ],
     [
-      127.42,
-      71.8
+      246.17,
+      94.43
     ],
     [
-      125.88,
-      52.31
-    ],
-    [
-      147.81,
-      47.84
-    ],
-    [
-      150.22,
-      68.18
-    ],
-    [
-      157.28,
-      65.67
-    ],
-    [
-      180.42,
-      32.84
-    ],
-    [
-      186.62,
-      52.4
-    ],
-    [
-      189.24,
-      62.09
-    ],
-    [
-      167.64,
-      80.73
-    ],
-    [
-      180.53,
-      91.82
-    ],
-    [
-      203.42,
-      77.81
-    ],
-    [
-      196.44,
-      64.34
-    ],
-    [
-      192.13,
-      54.79
-    ],
-    [
-      200.69,
-      30.72
-    ],
-    [
-      226.63,
-      35.48
-    ],
-    [
-      218.23,
-      59.55
-    ],
-    [
-      239.98,
-      57.34
-    ],
-    [
-      244.13,
-      75.82
-    ],
-    [
-      222.45,
-      72.19
-    ],
-    [
-      225.68,
-      86.24
-    ],
-    [
-      205.3,
-      87.3
-    ],
-    [
-      181.73,
-      100.17
-    ],
-    [
-      206.04,
-      121.71
-    ],
-    [
-      202.2,
-      104.41
-    ],
-    [
-      225.99,
-      123.64
-    ],
-    [
-      205.95,
-      133.26
-    ],
-    [
-      200.27,
-      155.14
-    ],
-    [
-      216.01,
-      178.55
-    ],
-    [
-      228.6,
-      161.24
-    ],
-    [
-      222.59,
-      147.25
-    ],
-    [
-      234.96,
-      141.73
-    ],
-    [
-      245.69,
-      117.66
-    ],
-    [
-      245.95,
-      94.33
-    ],
-    [
-      238.47,
-      106.58
+      238.7,
+      106.72
     ]
   ],
   "contour_pts": [
     [
-      32.67,
-      201.38
+      32.04,
+      200.86
     ],
     [
-      39.41,
-      205.18
+      38.75,
+      205.28
     ],
     [
-      51.19,
-      205.12
+      51.22,
+      205.37
     ],
     [
-      71.0,
-      220.35
+      71.24,
+      220.72
     ],
     [
-      73.22,
-      221.17
+      73.45,
+      221.54
     ],
     [
       87.99,
-      220.52
+      220.84
     ],
     [
-      89.66,
-      220.07
+      109.01,
+      210.13
     ],
     [
-      109.61,
-      209.61
+      110.41,
+      208.93
     ],
     [
-      116.13,
-      199.23
+      116.2,
+      199.25
     ],
     [
-      145.07,
-      208.5
+      145.5,
+      208.84
     ],
     [
-      202.3,
-      204.31
+      201.95,
+      204.78
     ],
     [
-      204.51,
-      203.45
+      204.15,
+      203.92
     ],
     [
-      226.26,
-      186.03
+      225.86,
+      186.59
     ],
     [
-      247.6,
-      159.58
+      247.81,
+      159.39
     ],
     [
-      257.06,
-      136.28
+      257.2,
+      136.36
     ],
     [
-      260.74,
-      118.76
+      260.82,
+      118.8
     ],
     [
-      259.98,
-      86.8
+      259.97,
+      85.99
     ],
     [
-      251.77,
-      57.85
+      251.74,
+      57.82
     ],
     [
-      258.59,
-      49.27
+      258.48,
+      49.63
     ],
     [
-      259.38,
-      47.56
+      259.3,
+      47.95
     ],
     [
-      258.26,
-      33.22
+      258.52,
+      33.83
     ],
     [
-      257.59,
-      31.33
+      257.65,
+      31.58
     ],
     [
-      256.43,
-      30.21
+      246.64,
+      24.39
     ],
     [
-      246.4,
-      24.16
+      234.41,
+      24.38
     ],
     [
-      234.38,
-      24.17
-    ],
-    [
-      232.56,
-      25.09
+      232.4,
+      25.43
     ],
     [
       231.06,
-      27.22
+      27.44
     ],
     [
-      216.41,
-      22.48
+      218.56,
+      22.94
     ],
     [
-      173.4,
-      18.35
+      173.34,
+      18.54
     ],
     [
-      115.25,
-      18.35
+      115.56,
+      18.54
     ],
     [
-      68.59,
-      24.52
+      68.82,
+      24.63
     ],
     [
-      66.81,
-      25.22
+      67.03,
+      25.33
     ],
     [
-      65.19,
-      27.75
+      65.41,
+      27.88
     ],
     [
-      63.95,
-      41.57
+      64.18,
+      42.22
     ],
     [
-      64.4,
-      43.39
+      64.65,
+      44.07
     ],
     [
-      67.22,
-      47.81
+      67.38,
+      48.18
     ],
     [
-      61.49,
-      74.54
+      61.61,
+      74.35
     ],
     [
-      60.58,
-      114.13
+      60.74,
+      114.2
     ],
     [
-      48.54,
-      130.23
+      48.69,
+      130.59
     ],
     [
-      47.58,
-      140.68
+      47.68,
+      141.02
     ],
     [
-      39.27,
-      141.37
+      39.48,
+      141.67
     ],
     [
-      37.5,
-      142.17
+      37.74,
+      142.43
     ],
     [
-      30.3,
-      152.17
+      30.57,
+      151.91
     ],
     [
-      29.63,
-      153.81
+      29.86,
+      153.62
     ],
     [
-      25.42,
-      180.37
+      25.48,
+      180.2
     ],
     [
-      30.93,
-      199.11
+      30.53,
+      198.69
     ],
     [
-      32.67,
-      201.38
+      32.04,
+      200.86
     ]
   ],
   "stl_bounds": [
-    240.18,
-    212.25,
+    239.68,
+    212.48,
     10.0
   ],
   "stl_center": [
-    144.87,
-    119.73,
+    144.95,
+    120.03,
     5.0
   ],
-  "stl_size": 5642834,
-  "chassis_size": 8924684,
-  "lid_size": 480284,
-  "zip_size": 4804707,
+  "stl_size": 5641884,
+  "chassis_size": 8580084,
+  "lid_size": 480584,
+  "zip_size": 4532170,
   "inlays": [
     {
       "key": "green",
       "name": "Shell Plates & Glasses",
       "filename": "tpu_panel_front_color_green.stl",
       "hex": "#00cc66",
-      "count": 14228
+      "count": 13360
     },
     {
       "key": "blue",
       "name": "Shell & Eyes",
       "filename": "tpu_panel_front_color_blue.stl",
       "hex": "#2563eb",
-      "count": 25526
+      "count": 19468
     },
     {
       "key": "yellow",
       "name": "Body & Head",
       "filename": "tpu_panel_front_color_yellow.stl",
       "hex": "#facc15",
-      "count": 8304
+      "count": 8376
     },
     {
       "key": "red",
       "name": "Tie & Lips",
       "filename": "tpu_panel_front_color_red.stl",
       "hex": "#ef4444",
-      "count": 1608
+      "count": 1988
     }
   ],
   "stl_url": "/3d_panels/tpu_panel_front.stl",
@@ -6354,6 +6343,6 @@
   "lid_stl_url": "/3d_panels/tpu_panel_front_lid.stl",
   "multicolor_3mf_url": "/3d_panels/tpu_panel_front_multicolor.3mf",
   "multicolor_zip_url": "/3d_panels/tpu_panel_front_multicolor_bundle.zip",
-  "volume_mm3": 96705.1,
+  "volume_mm3": 96726.4,
   "is_watertight": false
 }

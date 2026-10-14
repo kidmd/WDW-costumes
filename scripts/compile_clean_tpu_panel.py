@@ -337,92 +337,6 @@ def compile_plate_variant(variant_name, width_mm, height_mm, raw_leds, artwork_p
     inner_basin_cutter_mesh.apply_translation([0, 0, -1.0])
     inner_basin_cutter_m = to_m(inner_basin_cutter_mesh)
 
-    # 4. 16 Outside Perimeter Mounting Eyelets
-    boundary_line = smoothed_plate_2d.exterior
-    total_len = boundary_line.length
-    num_tabs = 16
-    tab_meshes = []
-    tab_coords = []
-    TAB_INNER_R = 1.25
-    TAB_WALL_THICK = 2.0
-    TAB_OUTER_R = TAB_INNER_R + TAB_WALL_THICK
-    TAB_HEIGHT = 2.0
-
-    for k in range(num_tabs):
-        dist_along = (k / float(num_tabs)) * total_len
-        pt = boundary_line.interpolate(dist_along)
-        pt_prev = boundary_line.interpolate(max(0.0, dist_along - 1.0))
-        pt_next = boundary_line.interpolate(min(total_len, dist_along + 1.0))
-        tan = np.array([pt_next.x - pt_prev.x, pt_next.y - pt_prev.y])
-        tan_norm = tan / (np.linalg.norm(tan) + 1e-6)
-        normal = np.array([-tan_norm[1], tan_norm[0]])
-        cand_out = np.array([pt.x, pt.y]) + normal * 1.5
-        cand_opp = np.array([pt.x, pt.y]) - normal * 1.5
-        if smoothed_plate_2d.contains(sg.Point(cand_out)) and not smoothed_plate_2d.contains(sg.Point(cand_opp)):
-            normal = -normal
-            cand_center = cand_opp
-        elif not smoothed_plate_2d.contains(sg.Point(cand_out)):
-            cand_center = cand_out
-        else:
-            d_out = smoothed_plate_2d.distance(sg.Point(cand_out))
-            d_opp = smoothed_plate_2d.distance(sg.Point(cand_opp))
-            if d_opp > d_out:
-                normal = -normal
-                cand_center = cand_opp
-            else:
-                cand_center = cand_out
-            
-        tab_coords.append([round(float(cand_center[0]), 2), round(float(cand_center[1]), 2)])
-        cyl = make_clean_cylinder(TAB_HEIGHT, TAB_OUTER_R, 32).translate([cand_center[0], cand_center[1], TOTAL_THICK - TAB_HEIGHT])
-        hole = make_clean_cylinder(TAB_HEIGHT + 0.4, TAB_INNER_R, 32).translate([cand_center[0], cand_center[1], TOTAL_THICK - TAB_HEIGHT - 0.2])
-        tab_m = cyl - hole
-
-        # Dual 45° triangular gusset braces flanking tab shoulders (Image 3)
-        # Rises 3.0mm up the vertical rim wall from the tab surface (Z = 7.0 to 4.0 in pre-flip space)
-        # and extends outward along the tab top.
-        # Deep wall anchor: extends from x = -4.5mm (deep inside the 2.5mm rim wall) to x = -1.0mm at full height Z_TOP (4.0mm),
-        # then slopes at 45° down to x = +2.0mm at Z_BASE (7.0mm) onto the tab shoulder.
-        # This completely cures mid-air gaps on curved or concave perimeter regions (e.g. dragon feet).
-        GUSSET_RISE = 3.0
-        GUSSET_THICK = 1.2
-        Z_BASE = TOTAL_THICK - TAB_HEIGHT
-        Z_TOP = Z_BASE - GUSSET_RISE
-
-        tri_pts = [
-            [-4.5, Z_TOP],
-            [-1.0, Z_TOP],
-            [2.0, Z_BASE],
-            [-4.5, Z_BASE]
-        ]
-        tri_ext = trimesh.creation.extrude_polygon(sg.Polygon(tri_pts), height=GUSSET_THICK)
-        v_tri = tri_ext.vertices
-        v_tri_new = np.zeros_like(v_tri)
-        v_tri_new[:, 0] = v_tri[:, 0]                      # outward normal from cand_center
-        v_tri_new[:, 1] = v_tri[:, 2] - GUSSET_THICK / 2.0 # tangent centered
-        v_tri_new[:, 2] = v_tri[:, 1]                      # Z height
-        tri_base_tm = trimesh.Trimesh(vertices=v_tri_new, faces=tri_ext.faces[:, ::-1], process=True)
-
-        rot_mat = np.eye(4)
-        rot_mat[0, 0] = normal[0]
-        rot_mat[1, 0] = normal[1]
-        rot_mat[0, 1] = tan_norm[0]
-        rot_mat[1, 1] = tan_norm[1]
-
-        gussets_m = []
-        for s_sign in [-1, 1]:
-            g_tm = tri_base_tm.copy()
-            g_tm.apply_transform(rot_mat)
-            g_pos = cand_center + tan_norm * (s_sign * 2.2)
-            g_tm.apply_translation([g_pos[0], g_pos[1], 0.0])
-            vg = np.ascontiguousarray(g_tm.vertices, dtype=np.float32)
-            fg = np.ascontiguousarray(g_tm.faces, dtype=np.uint32)
-            gussets_m.append(Manifold(Mesh(vert_properties=vg, tri_verts=fg)))
-
-        full_tab_m = (tab_m + Manifold.batch_boolean(gussets_m, OpType.Add)) - inner_basin_cutter_m
-        tab_mesh_data = full_tab_m.to_mesh()
-        tab_solid = trimesh.Trimesh(vertices=tab_mesh_data.vert_properties[:, :3], faces=tab_mesh_data.tri_verts)
-        tab_meshes.append(tab_solid)
-
     # 4b. Bottom-Center Wire Entry Notch & Internal Strain Relief Anchor
     cx_mid = (bounds[0] + bounds[2]) / 2.0
     boundary_line_ent = smoothed_plate_2d.exterior
@@ -451,10 +365,14 @@ def compile_plate_variant(variant_name, width_mm, height_mm, raw_leds, artwork_p
     if not smoothed_plate_2d.contains(sg.Point(wire_portal_x + inward_ent[0] * 1.5, wire_portal_y + inward_ent[1] * 1.5)):
         inward_ent = -inward_ent
 
+    rot_angle_ent = math.atan2(inward_ent[1], inward_ent[0])
+    rot_mat_ent = trimesh.transformations.rotation_matrix(rot_angle_ent, [0, 0, 1])
+
     # Parting-line wire entrance notch at top of outer rim wall (Z = 6.5 to 10.2mm in pre-flip space)
     PORTAL_NOTCH_W = 5.5   # mm wide
     PORTAL_NOTCH_H = 3.5   # mm tall
-    wire_portal_cutter = trimesh.creation.box(extents=[PORTAL_NOTCH_W, RIM_WALL_THICK + 14.0, PORTAL_NOTCH_H + 0.4])
+    wire_portal_cutter = trimesh.creation.box(extents=[RIM_WALL_THICK + 14.0, PORTAL_NOTCH_W, PORTAL_NOTCH_H + 0.4])
+    wire_portal_cutter.apply_transform(rot_mat_ent)
     wire_portal_cutter.apply_translation([wire_portal_x, wire_portal_y, TOTAL_THICK - PORTAL_NOTCH_H / 2.0 + 0.2])
 
     # Internal floor zip-tie strain relief bridge for entrance wire (moves inward along normal):
@@ -530,6 +448,108 @@ def compile_plate_variant(variant_name, width_mm, height_mm, raw_leds, artwork_p
 
     # Clean monolithic exit bridge arch with unobstructed through-tunnel
     internal_bridge_exit_m = (to_m(bridge_exit_solid_tm) - to_m(tunnel_exit_cutter_tm) - to_m(saddle_exit_cutter_tm)) - to_m(rim_mesh)
+
+    # 4. 16 Outside Perimeter Mounting Eyelets (with strict portal notch clearance)
+    boundary_line = smoothed_plate_2d.exterior
+    total_len = boundary_line.length
+    num_tabs = 16
+    tab_meshes = []
+    tab_coords = []
+    TAB_INNER_R = 1.25
+    TAB_WALL_THICK = 2.0
+    TAB_OUTER_R = TAB_INNER_R + TAB_WALL_THICK
+    TAB_HEIGHT = 2.0
+
+    for k in range(num_tabs):
+        dist_along = (k / float(num_tabs)) * total_len
+        pt = boundary_line.interpolate(dist_along)
+
+        # Check clearance against entrance & exit portals so eyelet tab never blocks wire notch:
+        cand_p = np.array([pt.x, pt.y])
+        dist_ent = np.linalg.norm(cand_p - np.array([wire_portal_x, wire_portal_y]))
+        dist_exit = np.linalg.norm(cand_p - np.array([exit_portal_x, exit_portal_y]))
+        if dist_ent < 14.0 or dist_exit < 14.0:
+            for shift_d in [10.0, -10.0, 15.0, -15.0, 20.0, -20.0]:
+                test_dist = (dist_along + shift_d) % total_len
+                test_pt = boundary_line.interpolate(test_dist)
+                d_e = np.linalg.norm([test_pt.x - wire_portal_x, test_pt.y - wire_portal_y])
+                d_x = np.linalg.norm([test_pt.x - exit_portal_x, test_pt.y - exit_portal_y])
+                if d_e >= 14.0 and d_x >= 14.0:
+                    dist_along = test_dist
+                    pt = test_pt
+                    break
+
+        pt_prev = boundary_line.interpolate(max(0.0, dist_along - 1.0))
+        pt_next = boundary_line.interpolate(min(total_len, dist_along + 1.0))
+        tan = np.array([pt_next.x - pt_prev.x, pt_next.y - pt_prev.y])
+        tan_norm = tan / (np.linalg.norm(tan) + 1e-6)
+        normal = np.array([-tan_norm[1], tan_norm[0]])
+        cand_out = np.array([pt.x, pt.y]) + normal * 1.5
+        cand_opp = np.array([pt.x, pt.y]) - normal * 1.5
+        if smoothed_plate_2d.contains(sg.Point(cand_out)) and not smoothed_plate_2d.contains(sg.Point(cand_opp)):
+            normal = -normal
+            cand_center = cand_opp
+        elif not smoothed_plate_2d.contains(sg.Point(cand_out)):
+            cand_center = cand_out
+        else:
+            d_out = smoothed_plate_2d.distance(sg.Point(cand_out))
+            d_opp = smoothed_plate_2d.distance(sg.Point(cand_opp))
+            if d_opp > d_out:
+                normal = -normal
+                cand_center = cand_opp
+            else:
+                cand_center = cand_out
+            
+        tab_coords.append([round(float(cand_center[0]), 2), round(float(cand_center[1]), 2)])
+        cyl = make_clean_cylinder(TAB_HEIGHT, TAB_OUTER_R, 32).translate([cand_center[0], cand_center[1], TOTAL_THICK - TAB_HEIGHT])
+        hole = make_clean_cylinder(TAB_HEIGHT + 0.4, TAB_INNER_R, 32).translate([cand_center[0], cand_center[1], TOTAL_THICK - TAB_HEIGHT - 0.2])
+        tab_m = cyl - hole
+
+        # Dual 45° triangular gusset braces flanking tab shoulders (Image 3)
+        # Rises 3.0mm up the vertical rim wall from the tab surface (Z = 7.0 to 4.0 in pre-flip space)
+        # and extends outward along the tab top.
+        # Deep wall anchor: extends from x = -4.5mm (deep inside the 2.5mm rim wall) to x = -1.0mm at full height Z_TOP (4.0mm),
+        # then slopes at 45° down to x = +2.0mm at Z_BASE (7.0mm) onto the tab shoulder.
+        # This completely cures mid-air gaps on curved or concave perimeter regions (e.g. dragon feet).
+        GUSSET_RISE = 3.0
+        GUSSET_THICK = 1.2
+        Z_BASE = TOTAL_THICK - TAB_HEIGHT
+        Z_TOP = Z_BASE - GUSSET_RISE
+
+        tri_pts = [
+            [-4.5, Z_TOP],
+            [-1.0, Z_TOP],
+            [2.0, Z_BASE],
+            [-4.5, Z_BASE]
+        ]
+        tri_ext = trimesh.creation.extrude_polygon(sg.Polygon(tri_pts), height=GUSSET_THICK)
+        v_tri = tri_ext.vertices
+        v_tri_new = np.zeros_like(v_tri)
+        v_tri_new[:, 0] = v_tri[:, 0]                      # outward normal from cand_center
+        v_tri_new[:, 1] = v_tri[:, 2] - GUSSET_THICK / 2.0 # tangent centered
+        v_tri_new[:, 2] = v_tri[:, 1]                      # Z height
+        tri_base_tm = trimesh.Trimesh(vertices=v_tri_new, faces=tri_ext.faces[:, ::-1], process=True)
+
+        rot_mat = np.eye(4)
+        rot_mat[0, 0] = normal[0]
+        rot_mat[1, 0] = normal[1]
+        rot_mat[0, 1] = tan_norm[0]
+        rot_mat[1, 1] = tan_norm[1]
+
+        gussets_m = []
+        for s_sign in [-1, 1]:
+            g_tm = tri_base_tm.copy()
+            g_tm.apply_transform(rot_mat)
+            g_pos = cand_center + tan_norm * (s_sign * 2.2)
+            g_tm.apply_translation([g_pos[0], g_pos[1], 0.0])
+            vg = np.ascontiguousarray(g_tm.vertices, dtype=np.float32)
+            fg = np.ascontiguousarray(g_tm.faces, dtype=np.uint32)
+            gussets_m.append(Manifold(Mesh(vert_properties=vg, tri_verts=fg)))
+
+        full_tab_m = (tab_m + Manifold.batch_boolean(gussets_m, OpType.Add)) - inner_basin_cutter_m
+        tab_mesh_data = full_tab_m.to_mesh()
+        tab_solid = trimesh.Trimesh(vertices=tab_mesh_data.vert_properties[:, :3], faces=tab_mesh_data.tri_verts)
+        tab_meshes.append(tab_solid)
 
     # 5. Collars, Recesses & Windows
     outer_collar_2d = make_stadium_polygon(COLLAR_OUTER_L, COLLAR_OUTER_W, sections=16)
