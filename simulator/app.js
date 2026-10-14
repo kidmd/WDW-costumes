@@ -215,6 +215,8 @@ let customArtworkDataUrl = null;
 const floatArtworkImgs = {
     'casey_jr_train': caseyJrTrainImg,
     'title_drum': titleDrumImg,
+    'drumcleanedup': titleDrumImg,
+    'drum': titleDrumImg,
     'spinning_turtle': spinningTurtleImg,
     'spinning_snail': spinningSnailImg,
     'spinning_snail_original': spinningSnailImg,
@@ -229,6 +231,7 @@ const floatArtworkImgs = {
 };
 floatArtworkImgs['casey_jr_train'].src = 'assets/Simpletrain.png';
 floatArtworkImgs['title_drum'].src = 'assets/title_drum.png';
+floatArtworkImgs['drumcleanedup'].src = 'assets/Drumcleanedup.png';
 floatArtworkImgs['spinning_turtle'].src = 'assets/Turtle_clean.png';
 floatArtworkImgs['spinning_snail'].src = 'assets/SimpleSnail.png';
 floatArtworkImgs['spinning_snail_original'].src = 'assets/SimpleSnail.png';
@@ -3194,6 +3197,20 @@ const FLOAT_STL_COLOR_CONFIG = {
         'gold': { name: "Bright Gold Masts & Trim", hex: "#ebb941", targetRgb: [235, 185, 65], role: "inlay", filename: "color_gold.stl" },
         'dark_gold': { name: "Antique Bronze Decks & Shading", hex: "#9b6914", targetRgb: [155, 105, 20], role: "inlay", filename: "color_dark_gold.stl" },
         'green': { name: "Ocean Waves & Sea Keel", hex: "#147332", targetRgb: [20, 115, 50], role: "inlay", filename: "color_green.stl" }
+    },
+    'title_drum': {
+        'black': { name: "Chassis, Drum Face & Wheels", hex: "#11161d", targetRgb: [17, 22, 29], role: "chassis" },
+        'gold': { name: "Drum Ring, Text & Flag", hex: "#facc15", targetRgb: [250, 204, 21], role: "inlay", filename: "color_gold.stl" },
+        'red': { name: "Cab Body Panels, Arches & Streamer", hex: "#ef4444", targetRgb: [239, 68, 68], role: "inlay", filename: "color_red.stl" },
+        'blue': { name: "Streamer Pennant Tip", hex: "#2563eb", targetRgb: [37, 99, 235], role: "inlay", filename: "color_blue.stl" },
+        'green': { name: "Lead Flag", hex: "#10b981", targetRgb: [16, 185, 129], role: "inlay", filename: "color_green.stl" }
+    },
+    'drumcleanedup': {
+        'black': { name: "Chassis, Drum Face & Wheels", hex: "#11161d", targetRgb: [17, 22, 29], role: "chassis" },
+        'gold': { name: "Drum Ring, Text & Flag", hex: "#facc15", targetRgb: [250, 204, 21], role: "inlay", filename: "color_gold.stl" },
+        'red': { name: "Cab Body Panels, Arches & Streamer", hex: "#ef4444", targetRgb: [239, 68, 68], role: "inlay", filename: "color_red.stl" },
+        'blue': { name: "Streamer Pennant Tip", hex: "#2563eb", targetRgb: [37, 99, 235], role: "inlay", filename: "color_blue.stl" },
+        'green': { name: "Lead Flag", hex: "#10b981", targetRgb: [16, 185, 129], role: "inlay", filename: "color_green.stl" }
     }
 };
 
@@ -12006,6 +12023,7 @@ function normalizeFloatGraphicKey(k) {
     if (!s || s === 'builtin_dragon' || s === 'petes_dragon') return 'petes_dragon';
     if (s === 'pirate_ship' || s === 'pirateshipsimple' || s === 'cinderella_coach' || s === 'cinderellas_coach') return 'pirate_ship';
     if (s === 'spinning_snail' || s === 'spinning_snail_original') return 'spinning_snail';
+    if (s === 'title_drum' || s === 'drumcleanedup' || s === 'drum') return 'title_drum';
     return s;
 }
 

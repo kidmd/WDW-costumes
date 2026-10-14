@@ -93,6 +93,22 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### 2026-10-13 20:45 - Title Drum High-Res Transparent PNG (`Drumcleanedup.png`) & Hidden Mickey Flag Integration
+- **Transparent PNG & White Background Stripping (`assets/Drumcleanedup.png`, `assets/title_drum.png`, `simulator/assets/`):**
+  - Converted the new high-resolution `assets/Drumcleanedup.jpg` asset (2358×1824) into a transparent PNG (`2319×1805` with 25px uniform padding, preserving the exact 1.285 aspect ratio): stripped the white background across outer boundaries and interior driver cab window aperture using HSV value/saturation thresholding.
+  - Quantized strictly into the canonical 5-color multi-material palette for Bambu AMS 3D printing and Cricut HTV vinyl cutting:
+    1. **Black (Chassis, Drum Face, Wheels & Hidden Mickey):** `RGB(17, 22, 29)` (`#11161d`, 21.60%)
+    2. **Gold (Drum Marquee Ring, Text, Wheel Rims & Yellow Flag):** `RGB(250, 204, 21)` (`#facc15`, 21.66%)
+    3. **Red (Cab Body Panels, Arches & Streamer):** `RGB(239, 68, 68)` (`#ef4444`, 10.28%)
+    4. **Blue (Streamer Pennant Tip):** `RGB(37, 99, 235)` (`#2563eb`, 0.85%)
+    5. **Green (Lead Flag):** `RGB(16, 185, 129)` (`#10b981`, 1.78%)
+- **Hidden Mickey Silhouette Integration on the Yellow Swallowtail Flag:**
+  - Added an authentic Disney Imagineering 3-circle Hidden Mickey silhouette in black (`#11161d`) to the rear yellow swallowtail flag centered at `(cx=2040, cy=690)` (`R_head=36px`, `R_ear=21px`, `dist=48px`, angle $55^\circ$ from vertical) with balanced 28px golden margins on all sides.
+- **Asset Mirroring & Simulator Support (`simulator/app.js`, `scripts/process_title_drum.py`):**
+  - Saved transparent PNG across all alias locations: `assets/Drumcleanedup.png`, `assets/drumcleanedup.png`, `assets/title_drum.png`, `assets/Drum.png`, `simulator/assets/Drumcleanedup.png`, `simulator/assets/drumcleanedup.png`, and `simulator/assets/title_drum.png`.
+  - Updated `simulator/app.js` with `'drumcleanedup'` alias in `floatArtworkImgs`, `normalizeFloatGraphicKey`, and `FLOAT_STL_COLOR_CONFIG`.
+  - Updated reproducible automation script `scripts/process_title_drum.py`.
+
 ### 2026-10-13 20:25 - Float 5 Migration to 5-Color Multi-Material Pirate Ship (`Pirateshipsimple.png`) & Full Fleet Synchronization
 - **Transparent PNG & 5-Color Quantization (`assets/Pirateshipsimple.png`, `simulator/assets/Pirateshipsimple.png`):**
   - Converted `assets/PirateShipsimple.jpg` into a clean, transparent PNG: cleanly stripped the gray/white faux checkerboard background across all outer borders and interior enclosed mast/rigging apertures using HSV saturation/value filtering and connected-component segmentation.
