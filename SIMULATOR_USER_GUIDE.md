@@ -1382,11 +1382,12 @@ Instead of attaching a Cricut cut vinyl graphic on top of the printed plate, the
       - 📏 **Large:** $\le 245.0\text{ mm}$ ($\approx 9.65\text{ inches}$) max dimension (strictly capped to fit within standard $256 \times 256\text{ mm}$ build plates with tab margins).
    - **LED Count Presets:** Select between **50 LEDs**, **75 LEDs**, or **100 LEDs** distributed across the graphic with automatic PBD collision clearance and wire routing.
 
-7. **Outside Perimeter Mounting Eyelets with 45° Tear-Out Gussets:**
+7. **Outside Perimeter Mounting Eyelets with 45° Tear-Out Gussets & Safe Perimeter Boundary Guard:**
    - 16 streamlined mounting ears placed strictly on the **OUTSIDE** of the perimeter rim wall.
    - **Smooth Circular Geometry:** Each eyelet is a concentric circular cylinder of outer diameter $6.7\text{ mm}$ (outer radius $3.35\text{ mm}$, wall thickness $2.0\text{ mm}$) with a $\varnothing 2.7\text{ mm}$ clearance through-hole, completely eliminating sharp points or knife edges.
    - **Back-Flush Orientation:** Base sits at $Z = 0.0\text{ mm}$, completely flush with the back perimeter rim touching the runner's shirt ($Z = 0.0\text{ mm}$).
    - **Dual 45° Triangular Reinforcement Gussets with Deep Wall Anchors:** Each tab is reinforced by dual $1.2\text{ mm}$ thick triangular gussets rising $3.0\text{ mm}$ up the vertical outer rim wall ($Z = 2.0$ to $5.0\text{ mm}$). Gussets feature deep $4.5\text{ mm}$ wall anchors embedded into the solid rim wall (with automated inner basin trimming), guaranteeing 100% solid contact with zero air gaps even on sharply curved or concave perimeter contours (such as the dragon's feet). This provides massive peel and tear-out resistance under tension while leaving the center $\varnothing 2.7\text{ mm}$ pin hole 100% unobstructed.
+   - **Safe Collar Perimeter Keep-Out Clamping:** Automated boundary guard enforces that all LED node retention wells stay safely within `smoothed_plate_2d.buffer(-(RIM_WALL_THICK + COLLAR_OUTER_W / 2.0))` ($6.8\text{ mm}$ inward keep-out). Any LED positioned close to the edge is automatically projected into the interior tray basin, preventing LED collars from ever hanging outside the rim into thin air or printing as disconnected perimeter fragments.
    - **Puncture-Free Front Face:** The main artwork front plate remains 100% smooth and continuous.
 
 8. **2.0mm Protective Rear Cover Plate (Lid) with Stepped Alignment Ridge & 14-Point M2 Extremity Screws:**

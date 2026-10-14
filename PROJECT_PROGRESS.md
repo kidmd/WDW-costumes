@@ -93,6 +93,27 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### 2026-10-14 09:20 - 3D Panel Perimeter Wall Artifact Elimination, Safe Collar Keep-Out & Large Turtle 3D Armor Compilation
+- **Diagnosed Physical Print Perimeter Artifacts ("Parts of where eyelets had been"):**
+  - Thorough geometric analysis of `3d_panels/tpu_panel_front_chassis_black.stl` revealed why the previous physical print showed mysterious fragmented bits outside the perimeter rim:
+    1. **Out-of-Bounds LED Collars on Legacy STL:** On the earlier Pete's Dragon STL, 12 LEDs along the flanks (LEDs 6, 7, 8, 9, 11, 12, 13, 77, 78, 79, 80, 81) were positioned right on or slightly outside the organic perimeter contour, generating 23 detached U-shaped collar halves floating in thin air outside the chassis rim at Z = 6.0 to 9.0 mm. Slicers generated support trees and perimeter print strokes for these hovering features, appearing to the runner as fragmented pieces of outer tabs ("where eyelets had been").
+    2. **Severed Wire Entrance Bridge on Convex Contours:** The entrance portal previously searched discrete polygon vertices near `cx_mid`. On rounded hulls (like the Turtle), the nearest discrete vertex was located at the top of the costume ($Y = 208.5\text{ mm}$), causing the bridge to be placed at the top rim and cleanly severed by `to_m(rim_mesh)`, leaving a detached floating rectangular arch.
+    3. **Degenerate Coplanar Triangle Slivers:** Manifold-to-Trimesh conversion in `flip_z_manifold` retained 58 zero-area degenerate face pairs (`Faces: [[2 0 2], [2 2 1]]`), creating false non-manifold components.
+- **Implemented Watertight Geometry Safeguards (`scripts/compile_clean_tpu_panel.py`):**
+  - **Safe Collar Basin Containment:** Added automated boundary clamping with `smoothed_plate_2d.buffer(-(RIM_WALL_THICK + COLLAR_OUTER_W / 2.0))` ($6.8\text{ mm}$ inward offset). Any LED placed within or outside this boundary is automatically projected safely into the interior tray basin, mathematically preventing any collar or window from ever breaching the perimeter rim wall.
+  - **Continuous Geometry Projection for Entrance Portal:** Replaced discrete vertex selection with true continuous boundary projection (`boundary_line_ent.project(sg.Point(cx_mid, bounds[1]))`) and inward normal traversal. The bottom wire entrance slot and zip-tie relief bridge now consistently land at the true bottom perimeter ($Y = 18.35\text{ mm}$ on the Turtle) and remain 100% fused to the chassis floor.
+  - **Robust Outward Eyelet Tab Positioning:** Updated all 16 outer fastener tabs to test both normal and opposing normal vectors against `smoothed_plate_2d.contains()`, guaranteeing that all 16 mounting ears and 45° triangular gussets sit strictly outside the chassis perimeter.
+  - **Non-Degenerate Mesh Sanitization:** Integrated `update_faces(nondegenerate_faces())`, `unique_faces()`, and `remove_unreferenced_vertices()` into `flip_z_manifold` and `flip_z_trimesh`, stripping away all zero-area triangle slivers.
+- **Compiled Large-Size (245mm) 5-Color Turtle Armor Panels (`3d_panels/`):**
+  - Generated full 5-color multi-material suite for **Float 3 (The Turtle)** in Large size ($240.18\text{ mm} \times 212.25\text{ mm} \times 10.0\text{ mm}$):
+    - `tpu_panel_front_chassis_black.stl` (8.51 MB) — **100% single continuous component (`decompose() len == 1`), 0 disconnected parts, 0 floating bits**.
+    - `tpu_panel_front_lid.stl` (0.46 MB) — **100% watertight single solid (`is_watertight: True`)** with matching 16 eyelets, M2 counterbores, and alignment ridge.
+    - 4 discrete multi-material inlays: `color_green.stl` (Shell Plates & Glasses, watertight), `color_blue.stl` (Shell & Eyes), `color_yellow.stl` (Body & Head, watertight), and `color_red.stl` (Tie & Lips, watertight).
+    - Multi-body `tpu_panel_front_multicolor.3mf` (5 bodies) and ready-to-print `tpu_panel_front_multicolor_bundle.zip` (4.58 MB).
+    - Identical matching Back plate suite.
+- **Restarted Simulator Service:**
+  - Terminated previous background process on port 8000 and cleanly relaunched `simulator.py` as a daemon on `http://localhost:8000`. Verified all 39 presets and API endpoints are responsive.
+
 ### 2026-10-13 21:35 - Pete's Dragon Transparent Default, Startup Active Float Sync & Instant LED Float Distribution
 - **Pete's Dragon Transparent Default Artwork (`assets/petes_dragon_transparent.png`, `simulator/assets/`):**
   - Updated all dragon artwork bindings in `simulator/app.js` (`defaultDragonImg.src`, `floatArtworkImgs['petes_dragon']`, `floatArtworkImgs['builtin_dragon']`, `floatArtworkImgs['petes_dragon_transparent']`) to load the authentic 4-channel transparent PNG (`1024×853`) instead of the legacy opaque/white-background graphic.

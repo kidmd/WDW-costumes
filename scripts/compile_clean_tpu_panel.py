@@ -98,7 +98,11 @@ def flip_z_manifold(m):
     v = mesh_data.vert_properties[:, :3].copy()
     v[:, 2] = TOTAL_THICK - v[:, 2]
     f = mesh_data.tri_verts[:, ::-1].copy()
-    return trimesh.Trimesh(vertices=v, faces=f, process=True)
+    tm = trimesh.Trimesh(vertices=v, faces=f, process=True)
+    tm.update_faces(tm.nondegenerate_faces())
+    tm.update_faces(tm.unique_faces())
+    tm.remove_unreferenced_vertices()
+    return tm
 
 def flip_z_trimesh(tm):
     if tm is None or len(tm.faces) == 0:
@@ -106,7 +110,11 @@ def flip_z_trimesh(tm):
     v = tm.vertices.copy()
     v[:, 2] = TOTAL_THICK - v[:, 2]
     f = tm.faces[:, ::-1].copy()
-    return trimesh.Trimesh(vertices=v, faces=f, process=True)
+    res = trimesh.Trimesh(vertices=v, faces=f, process=True)
+    res.update_faces(res.nondegenerate_faces())
+    res.update_faces(res.unique_faces())
+    res.remove_unreferenced_vertices()
+    return res
 
 INCLUDE_LED_NUMBERS = False
 if 'include_led_numbers' in specs:
@@ -343,14 +351,26 @@ def compile_plate_variant(variant_name, width_mm, height_mm, raw_leds, artwork_p
     for k in range(num_tabs):
         dist_along = (k / float(num_tabs)) * total_len
         pt = boundary_line.interpolate(dist_along)
+        pt_prev = boundary_line.interpolate(max(0.0, dist_along - 1.0))
         pt_next = boundary_line.interpolate(min(total_len, dist_along + 1.0))
-        tan = np.array([pt_next.x - pt.x, pt_next.y - pt.y])
+        tan = np.array([pt_next.x - pt_prev.x, pt_next.y - pt_prev.y])
         tan_norm = tan / (np.linalg.norm(tan) + 1e-6)
         normal = np.array([-tan_norm[1], tan_norm[0]])
-        cand_center = np.array([pt.x, pt.y]) + normal * 1.5
-        if smoothed_plate_2d.contains(sg.Point(cand_center)):
+        cand_out = np.array([pt.x, pt.y]) + normal * 1.5
+        cand_opp = np.array([pt.x, pt.y]) - normal * 1.5
+        if smoothed_plate_2d.contains(sg.Point(cand_out)) and not smoothed_plate_2d.contains(sg.Point(cand_opp)):
             normal = -normal
-            cand_center = np.array([pt.x, pt.y]) + normal * 1.5
+            cand_center = cand_opp
+        elif not smoothed_plate_2d.contains(sg.Point(cand_out)):
+            cand_center = cand_out
+        else:
+            d_out = smoothed_plate_2d.distance(sg.Point(cand_out))
+            d_opp = smoothed_plate_2d.distance(sg.Point(cand_opp))
+            if d_opp > d_out:
+                normal = -normal
+                cand_center = cand_opp
+            else:
+                cand_center = cand_out
             
         tab_coords.append([round(float(cand_center[0]), 2), round(float(cand_center[1]), 2)])
         cyl = make_clean_cylinder(TAB_HEIGHT, TAB_OUTER_R, 32).translate([cand_center[0], cand_center[1], TOTAL_THICK - TAB_HEIGHT])
@@ -405,24 +425,31 @@ def compile_plate_variant(variant_name, width_mm, height_mm, raw_leds, artwork_p
 
     # 4b. Bottom-Center Wire Entry Notch & Internal Strain Relief Anchor
     cx_mid = (bounds[0] + bounds[2]) / 2.0
-    # In Photo 2, move from corner jog (red circle) to straight horizontal run to the left (green circle)
+    boundary_line_ent = smoothed_plate_2d.exterior
+    
+    # In Photo 2, move from corner jog to straight horizontal run to the left if available:
     flat_bottom_pts = [p for p in contour_coords if p[1] < bounds[1] + 2.5 and p[0] < cx_mid + 8.0]
     if len(flat_bottom_pts) >= 2:
         min_flat_x = min(p[0] for p in flat_bottom_pts)
         max_flat_x = max(p[0] for p in flat_bottom_pts)
-        wire_portal_x = round((min_flat_x + max_flat_x) / 2.0, 2)
-        boundary_line_ent = smoothed_plate_2d.exterior
-        proj_pt = boundary_line_ent.interpolate(boundary_line_ent.project(sg.Point(wire_portal_x, bounds[1])))
-        wire_portal_y = round(float(proj_pt.y), 2)
+        cand_ent_x = round((min_flat_x + max_flat_x) / 2.0, 2)
+        d_ent = boundary_line_ent.project(sg.Point(cand_ent_x, bounds[1]))
     else:
-        bottom_pts = [p for p in contour_coords if abs(p[0] - cx_mid) < 25.0]
-        if bottom_pts:
-            lowest_pt = min(bottom_pts, key=lambda p: p[1])
-            wire_portal_x = lowest_pt[0]
-            wire_portal_y = lowest_pt[1]
-        else:
-            wire_portal_x = cx_mid
-            wire_portal_y = bounds[1]
+        # Robust geometric projection onto bottom perimeter
+        d_ent = boundary_line_ent.project(sg.Point(cx_mid, bounds[1]))
+
+    pt_ent = boundary_line_ent.interpolate(d_ent)
+    wire_portal_x = round(float(pt_ent.x), 2)
+    wire_portal_y = round(float(pt_ent.y), 2)
+
+    # Inward normal vector at entrance portal directed into the tray basin
+    pt_ent_prev = boundary_line_ent.interpolate(max(0.0, d_ent - 1.0))
+    pt_ent_next = boundary_line_ent.interpolate(min(boundary_line_ent.length, d_ent + 1.0))
+    tan_ent = np.array([pt_ent_next.x - pt_ent_prev.x, pt_ent_next.y - pt_ent_prev.y])
+    tan_ent_norm = tan_ent / (np.linalg.norm(tan_ent) + 1e-6)
+    inward_ent = np.array([-tan_ent_norm[1], tan_ent_norm[0]])
+    if not smoothed_plate_2d.contains(sg.Point(wire_portal_x + inward_ent[0] * 1.5, wire_portal_y + inward_ent[1] * 1.5)):
+        inward_ent = -inward_ent
 
     # Parting-line wire entrance notch at top of outer rim wall (Z = 6.5 to 10.2mm in pre-flip space)
     PORTAL_NOTCH_W = 5.5   # mm wide
@@ -430,19 +457,21 @@ def compile_plate_variant(variant_name, width_mm, height_mm, raw_leds, artwork_p
     wire_portal_cutter = trimesh.creation.box(extents=[PORTAL_NOTCH_W, RIM_WALL_THICK + 14.0, PORTAL_NOTCH_H + 0.4])
     wire_portal_cutter.apply_translation([wire_portal_x, wire_portal_y, TOTAL_THICK - PORTAL_NOTCH_H / 2.0 + 0.2])
 
-    # Internal floor zip-tie strain relief bridge for entrance wire (moves together with slot):
-    bridge_y = wire_portal_y + RIM_WALL_THICK + 5.5
+    # Internal floor zip-tie strain relief bridge for entrance wire (moves inward along normal):
+    bridge_pos = np.array([wire_portal_x, wire_portal_y]) + inward_ent * (RIM_WALL_THICK + 5.5)
+    bridge_x = round(float(bridge_pos[0]), 2)
+    bridge_y = round(float(bridge_pos[1]), 2)
     BRIDGE_X_W = 8.0
     BRIDGE_Y_L = 7.2
     BRIDGE_Z_H = 4.5
     bridge_solid_tm = trimesh.creation.box(extents=[BRIDGE_X_W, BRIDGE_Y_L, BRIDGE_Z_H])
-    bridge_solid_tm.apply_translation([wire_portal_x, bridge_y, FRONT_THICK_GENERAL + BRIDGE_Z_H / 2.0])
+    bridge_solid_tm.apply_translation([bridge_x, bridge_y, FRONT_THICK_GENERAL + BRIDGE_Z_H / 2.0])
 
     tunnel_cutter_tm = trimesh.creation.box(extents=[BRIDGE_X_W + 8.0, 3.2, 2.8 + 0.2])
-    tunnel_cutter_tm.apply_translation([wire_portal_x, bridge_y, FRONT_THICK_GENERAL + 2.8 / 2.0])
+    tunnel_cutter_tm.apply_translation([bridge_x, bridge_y, FRONT_THICK_GENERAL + 2.8 / 2.0])
 
     saddle_cutter_tm = trimesh.creation.box(extents=[4.5, BRIDGE_Y_L + 4.0, 0.8])
-    saddle_cutter_tm.apply_translation([wire_portal_x, bridge_y, FRONT_THICK_GENERAL + BRIDGE_Z_H - 0.3])
+    saddle_cutter_tm.apply_translation([bridge_x, bridge_y, FRONT_THICK_GENERAL + BRIDGE_Z_H - 0.3])
 
     # Clean monolithic bridge arch with unobstructed through-tunnel
     internal_bridge_m = (to_m(bridge_solid_tm) - to_m(tunnel_cutter_tm) - to_m(saddle_cutter_tm)) - to_m(rim_mesh)
@@ -527,9 +556,24 @@ def compile_plate_variant(variant_name, width_mm, height_mm, raw_leds, artwork_p
     # 2D window apertures for cutting into color inlays
     led_windows_2d_list = []
 
+    # Safe boundary zone ensuring collars never hang past outer rim wall into thin air
+    safe_collar_zone = smoothed_plate_2d.buffer(-(RIM_WALL_THICK + COLLAR_OUTER_W / 2.0))
+    if safe_collar_zone.geom_type == 'MultiPolygon':
+        safe_collar_zone = max(safe_collar_zone.geoms, key=lambda g: g.area)
+
     for i in range(num_leds):
         l = leds[i]
         cx, cy = l['x'], l['y']
+
+        # Clamp LED inside safe tray basin so collar never hangs past the outer perimeter rim
+        if not safe_collar_zone.is_empty:
+            led_pt = sg.Point(cx, cy)
+            if not safe_collar_zone.contains(led_pt):
+                proj_pt = safe_collar_zone.exterior.interpolate(safe_collar_zone.exterior.project(led_pt))
+                cx = round(float(proj_pt.x), 2)
+                cy = round(float(proj_pt.y), 2)
+                leds[i]['x'] = cx
+                leds[i]['y'] = cy
         angle_deg = led_rotations_deg[i]
         rad = math.radians(angle_deg)
         rot = trimesh.transformations.rotation_matrix(rad, [0, 0, 1])
@@ -1060,8 +1104,9 @@ def compile_plate_variant(variant_name, width_mm, height_mm, raw_leds, artwork_p
 
     if variant_name == 'front':
         shutil.copyfile(mono_path, os.path.join(out_dir, 'tpu_panel.stl'))
-        shutil.copyfile(mono_path, os.path.join(out_dir, 'petes_dragon_tpu_panel.stl'))
-        shutil.copyfile(lid_path, os.path.join(out_dir, 'petes_dragon_tpu_panel_lid.stl'))
+        if 'dragon' in str(specs.get('graphic_type', '')).lower():
+            shutil.copyfile(mono_path, os.path.join(out_dir, 'petes_dragon_tpu_panel.stl'))
+            shutil.copyfile(lid_path, os.path.join(out_dir, 'petes_dragon_tpu_panel_lid.stl'))
 
     # 10. EXPORT NATIVE MULTI-BODY .3MF PROJECT
     mf3_filename = f"tpu_panel_{variant_name}_multicolor.3mf"
