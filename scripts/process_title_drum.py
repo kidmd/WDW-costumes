@@ -21,25 +21,36 @@ def process_drum():
         (16, 185, 129, 255)   # Green:  #10b981
     ]
 
-    # 1. Erase the front/right flag and flagpole completely down to the fender shelf
-    # Pole was at x in [2180, 2210], extending up to y = 430
-    # Flag was at x >= 1800, y <= 1000
-    # The fender surface at the socket junction is at y ~ 1276.
-    # We erase x >= 1800 with y <= 1276, and cleanly smooth the fender top contour across [2170, 2220]
-    erase_mask = np.zeros((h, w), dtype=bool)
-    erase_mask[0:1276, 1800:] = True
-    img[erase_mask] = [255, 255, 255] # White background
+    # 1. Fit the central black drum face circle/ellipse to restore the exact round outer gold marquee ring
+    hsv_orig = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
+    is_black_face = (hsv_orig[:, :, 2] < 50) & (hsv_orig[:, :, 1] < 100)
+    drum_mask = np.zeros((h, w), dtype=np.uint8)
+    drum_mask[500:1600, 650:1800] = is_black_face[500:1600, 650:1800]
+    contours, _ = cv2.findContours(drum_mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
+    c = max(contours, key=cv2.contourArea)
+    ellipse = cv2.fitEllipse(c)
+    (ecx, ecy), (e_w, e_h), e_ang = ellipse
 
-    # Smooth the fender contour between x=2170 and x=2220 along y(x) = 1275 + (x - 2170) * (3.0 / 50.0)
-    for x in range(2170, 2221):
+    # Outer gold marquee ring: thickness is 66px -> expand axes by 132px
+    gold_ring_outer = np.zeros((h, w), dtype=np.uint8)
+    cv2.ellipse(gold_ring_outer, ((ecx, ecy), (e_w + 132, e_h + 132), e_ang), 255, -1)
+
+    # 2. Erase the front flagpole, swallowtail flag, and space outside the round drum ring down to the fender shelf
+    # Streamer pole at x in [1760, 1780] remains untouched; front swallowtail starts at x >= 1785.
+    erase = np.zeros((h, w), dtype=bool)
+    erase[0:1276, 1785:] = True
+    erase[gold_ring_outer > 0] = False # Protect the full circular drum marquee curve!
+    img[erase] = [255, 255, 255]
+
+    # Smooth the fender contour between x=2170 and x=2225 along y(x) = 1275 + (x - 2170) * (3.0 / 50.0)
+    for x in range(2170, 2225):
         target_y = int(round(1275.0 + (x - 2170) * (3.0 / 50.0)))
         img[0:target_y, x] = [255, 255, 255]
 
-    # 2. Base Color Classification
+    # 3. Base Color Classification
     hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
     is_bg = (hsv[:, :, 1] < 40) & (hsv[:, :, 2] > 200)
 
-    # Classify foreground regions
     fg = ~is_bg
     is_black = fg & (hsv[:, :, 2] < 50)
     is_red   = fg & (~is_black) & ((hsv[:, :, 0] < 14) | (hsv[:, :, 0] > 165)) & (hsv[:, :, 1] > 60)
@@ -66,22 +77,24 @@ def process_drum():
             coords = np.where(remaining)
             out[coords[0][mask_p], coords[1][mask_p]] = p_val
 
-    # 3. Transform the large square flag on the cab roof:
-    # Outer flag quad corners: [158, 545], [454, 630], [393, 905], [107, 832]
+    # 4. Fill the drum marquee ring with continuous, seamless solid Gold
+    drum_ring_exact = (gold_ring_outer > 0) & (drum_mask == 0) & (np.arange(w)[None, :] >= 1650)
+    out[drum_ring_exact] = PALETTE[1]
+
+    # 5. Transform the large square flag on the cab roof:
     outer_flag_mask = np.zeros((h, w), dtype=np.uint8)
     quad_pts = np.array([[158, 545], [454, 630], [393, 905], [107, 832]], dtype=np.int32)
     cv2.fillPoly(outer_flag_mask, [quad_pts], 255)
 
-    # Gold border: Set entire flag quad to Gold
-    out[outer_flag_mask > 0] = PALETTE[1] # Gold
+    # Gold perimeter border: Set entire flag quad to Gold
+    out[outer_flag_mask > 0] = PALETTE[1]
 
-    # Black interior: 18px inward morphological erosion
+    # Black interior field: 18px inward morphological erosion
     kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (37, 37))
     inner_black_mask = cv2.erode(outer_flag_mask, kernel)
-    out[inner_black_mask > 0] = PALETTE[0] # Black
+    out[inner_black_mask > 0] = PALETTE[0]
 
-    # 4. Red Hidden Mickey silhouette inside the square flag
-    # Centered along tilted flag axis (16.0 deg)
+    # 6. Red Hidden Mickey silhouette inside the square flag
     C = np.array([278.0, 728.0])
     v_down = np.array([-np.sin(np.radians(16.0)), np.cos(np.radians(16.0))])
     C_mickey = C + 14.0 * v_down
@@ -95,7 +108,6 @@ def process_drum():
     u_ear = np.array([np.cos(np.radians(16.0)), np.sin(np.radians(16.0))])
     v_ear_up = np.array([np.sin(np.radians(16.0)), -np.cos(np.radians(16.0))])
 
-    # Left & right ears
     ear_l = C_mickey - dist_ear * np.sin(ear_angle) * u_ear + dist_ear * np.cos(ear_angle) * v_ear_up
     ear_r = C_mickey + dist_ear * np.sin(ear_angle) * u_ear + dist_ear * np.cos(ear_angle) * v_ear_up
 
@@ -103,10 +115,9 @@ def process_drum():
     cv2.circle(mickey_mask, (cx_m, cy_m), r_head, 255, -1, cv2.LINE_AA)
     cv2.circle(mickey_mask, (int(round(ear_l[0])), int(round(ear_l[1]))), r_ear, 255, -1, cv2.LINE_AA)
     cv2.circle(mickey_mask, (int(round(ear_r[0])), int(round(ear_r[1]))), r_ear, 255, -1, cv2.LINE_AA)
-
     out[mickey_mask > 0] = PALETTE[2] # Red
 
-    # 5. Crop with 25px padding
+    # 7. Crop with uniform 25px padding
     ys, xs = np.where(out[:, :, 3] > 0)
     min_x = max(0, xs.min() - 25)
     max_x = min(w, xs.max() + 25)
@@ -117,11 +128,9 @@ def process_drum():
     # Save to canonical paths
     paths = [
         'assets/Drumcleanedup.png',
-        'assets/drumcleanedup.png',
         'assets/title_drum.png',
         'assets/Drum.png',
         'simulator/assets/Drumcleanedup.png',
-        'simulator/assets/drumcleanedup.png',
         'simulator/assets/title_drum.png'
     ]
 
@@ -131,7 +140,7 @@ def process_drum():
         print(f"Saved: {p}")
 
     print(f"\nCropped size: {cropped.shape[1]}x{cropped.shape[0]} (aspect ratio {cropped.shape[1]/cropped.shape[0]:.4f})")
-    print(f"Successfully generated transparent drum PNG with Red Hidden Mickey on gold/black square flag and removed front pole!")
+    print(f"Successfully generated transparent drum PNG with perfectly round gold drum edge and red hidden mickey!")
 
 if __name__ == '__main__':
     process_drum()

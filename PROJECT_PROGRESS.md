@@ -93,6 +93,23 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### 2026-10-13 21:10 - Title Drum Front Gold Marquee Curvature Restoration & Streamer Pole Intactness
+- **Full Circular Curvature of the Front Gold Marquee Ring (`assets/title_drum.png`, `simulator/assets/`):**
+  - Resolved the subtle ~34px vertical flat cutoff on the front of the gold marquee ring ($x \in [1800, 1834], y \in [875, 1250]$) caused by the previous rectangular flag erase boundary.
+  - Parameterized the central black drum face contour ($ecx = 1232.4$, $ecy = 1052.7$, $e_w = 1021.6$, $e_h = 1072.4$) and expanded its outer ellipse by 66px ($+132\text{px}$ to axes) to guarantee an uninterrupted, perfectly round circular gold marquee contour all the way down to the fender junction.
+  - Preserved the vertical streamer pole at $x \in [1760, 1780]$ connecting directly to the top center ribbon pennant.
+- **Strict 5-Color Compliance & Transparent Padding:**
+  - Quantized output (`2319×1805`, 1.2848 aspect ratio):
+    1. **Transparent Alpha:** 46.87%
+    2. **Black (`#11161d`):** 22.75% (Chassis, Drum face, tires, square flag field)
+    3. **Gold (`#facc15`):** 17.95% (Drum ring, lettering, rims, cab trim, square flag border)
+    4. **Red (`#ef4444`):** 9.80% (Cab panels, arches, streamer ribbon, square flag Hidden Mickey)
+    5. **Green (`#10b981`):** 1.78% (Lead pennant)
+    6. **Blue (`#2563eb`):** 0.85% (Streamer tip)
+- **Asset Mirroring & Automation Script (`scripts/process_title_drum.py`):**
+  - Updated reproducible Python script `scripts/process_title_drum.py` and regenerated all canonical assets across `assets/` and `simulator/assets/`.
+  - Updated `SIMULATOR_USER_GUIDE.md` and `PROJECT_PROGRESS.md`.
+
 ### 2026-10-13 21:00 - Title Drum Square Flag Red Hidden Mickey Silhouette & Front Flagpole Removal
 - **Driver Cab Square Flag Transformation (`assets/Drumcleanedup.png`, `assets/title_drum.png`, `simulator/assets/`):**
   - Updated the large tilted square flag on the driver cab roof (`16.0°` tilt):
