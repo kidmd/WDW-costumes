@@ -93,6 +93,28 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### 2026-10-13 21:35 - Pete's Dragon Transparent Default, Startup Active Float Sync & Instant LED Float Distribution
+- **Pete's Dragon Transparent Default Artwork (`assets/petes_dragon_transparent.png`, `simulator/assets/`):**
+  - Updated all dragon artwork bindings in `simulator/app.js` (`defaultDragonImg.src`, `floatArtworkImgs['petes_dragon']`, `floatArtworkImgs['builtin_dragon']`, `floatArtworkImgs['petes_dragon_transparent']`) to load the authentic 4-channel transparent PNG (`1024×853`) instead of the legacy opaque/white-background graphic.
+  - Mirrored `assets/petes_dragon_transparent.png` directly into `simulator/assets/petes_dragon_transparent.png`.
+- **Title Drum & Active Float Startup Synchronization:**
+  - Resolved root cause where refreshing the simulator while on Float 2 (Electrical Parade Drum) or other floats caused the canvas to draw Pete's Dragon:
+    1. Dynamic initialization: replaced hardcoded `let currentGraphicType = 'builtin_dragon'` with `defaultFloatGraphicMap[activeSingleShirtRunnerSlot]`.
+    2. Synchronized `updateActiveFloatUI`: ensures `currentGraphicType` is strictly updated alongside `graphicSelect.value` whenever a float slot is activated.
+    3. Removed hardcoded `selected` attribute on `builtin_dragon` in `simulator/index.html`.
+    4. Guarded `loadProfile` startup routines with fallback profile synthesis and active runner preset resolution to prevent asynchronous startup limbo.
+- **Instant LED Shape Distribution on Float Switch:**
+  - Resolved root cause where switching floats initially retained the previous float's (or dragon's) LED shape until double-switching:
+    1. Guarded `editRunnerInSingleView`: removed aggressive early return when graphic/LED count mismatched the target float (`slot === activeSingleShirtRunnerSlot && currentGraphicType === runner.defaultGraphic && leds.length >= 20`).
+    2. Immediate graphic update: sets `currentGraphicType = runner.defaultGraphic` immediately when initiating float edit.
+    3. Empty LED reset in `applyProfileData`: clears `leds = []` if incoming profile data lacks LEDs, ensuring the automatic 100-LED contour scatter fires immediately.
+    4. Image readiness latch: ensures target float graphic (`activeImg`) has loaded before executing `scatterLedsOnGraphic(100, true)`, preventing premature fallback to dragon silhouette.
+    5. Fallback perimeter guard: constrained `defaultDragonImg` fallback in `scatterLedsOnGraphic` exclusively to dragon float types, eliminating dragon-shaped LED distributions on train, drum, turtle, snail, ship, and eagle.
+    6. Fleet lineup consistency (`presets/fleet_lineup.json`): updated Float 3 (Turtle) and Float 6 (Dragon) from local storage keys to persistent server presets (`spinning_turtle_100-led_vibrant_preset_2026-10-13_02-54.json` and `petes_dragon.json`).
+- **Verification:**
+  - PlatformIO firmware build compiled cleanly (`RAM: 14.3%`, `Flash: 60.4%`).
+  - Python simulator server endpoint tests passed (`python simulator.py --test`).
+
 ### 2026-10-13 21:10 - Title Drum Front Gold Marquee Curvature Restoration & Streamer Pole Intactness
 - **Full Circular Curvature of the Front Gold Marquee Ring (`assets/title_drum.png`, `simulator/assets/`):**
   - Resolved the subtle ~34px vertical flat cutoff on the front of the gold marquee ring ($x \in [1800, 1834], y \in [875, 1250]$) caused by the previous rectangular flag erase boundary.

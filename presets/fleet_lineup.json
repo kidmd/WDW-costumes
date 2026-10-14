@@ -35,7 +35,7 @@
     "color": "#2ec4b6",
     "accent": "Teal",
     "role": "\ud83d\udce1 Follower Float",
-    "preset": "local:Spinning Turtle 100-LED Vibrant Preset 2026-10-13 02-54",
+    "preset": "server:spinning_turtle_100-led_vibrant_preset_2026-10-13_02-54.json",
     "defaultGraphic": "spinning_turtle"
   },
   {
@@ -74,7 +74,7 @@
     "color": "#00ff88",
     "accent": "Green",
     "role": "\ud83d\udce1 Follower Float",
-    "preset": "local:Pete's Dragon Chris 2026-10-13 02-57",
+    "preset": "server:petes_dragon.json",
     "defaultGraphic": "builtin_dragon"
   },
   {

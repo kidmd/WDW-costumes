@@ -554,8 +554,11 @@ Use the **Costume Graphic** dropdown in the Layout tab (Section 1) to instantly 
 - **🐢 Float 03: The Spinning Turtle (`spinning_turtle`):** Whimsical sea turtle with concentric spinning shell spiral and glowing fins.
 - **🐌 Float 04: The Spinning Snail (`spinning_snail`):** Colorful garden snail with multi-tier shell whorls, golden spiral & antennae, and red body (`assets/newsnail.png`, transparent RGBA PNG with all background elements removed).
 - **🏴‍☠️ Float 05: The Pirate Ship (`pirate_ship`):** Billowing crimson sails, antique gold masts & decks, emerald ocean waves, and black hull. Powered by a high-resolution transparent 5-color multi-material graphic asset (`assets/Pirateshipsimple.png`) optimized for Bambu AMS 3D printing and Cricut HTV cutting.
-- **🐉 Float 06: Pete's Dragon (Elliott) (`builtin_dragon`):** Default 100-LED layout with emerald body scales, magenta hair crest, and incandescent starlight sparkles.
+- **🐉 Float 06: Pete's Dragon (Elliott) (`builtin_dragon`):** Powered by the official high-resolution transparent 5-color multi-material graphic asset (`assets/petes_dragon_transparent.png`), featuring emerald body scales, magenta hair crest, yellow belly, and incandescent starlight sparkles.
 - **🦅 Float 07: To Honor America (`honor_america_eagle`):** Grand patriotic eagle finale with sweeping red, white, and blue wing chases.
+
+> [!TIP]
+> **Instant Float & Artwork Synchronization:** Whenever you refresh the simulator or switch between runners using the 7-Button Float Switcher Grid (`[ 1 ]` to `[ 7 ]`), the canvas instantly synchronizes both the background artwork and the 100-LED contour layout to that float's authentic geometry on the very first click, completely eliminating any lingering dragon shapes or mismatched startup graphics.
 
 ### 🖨️ Assembly & Print Placement Guide Mode (`🖨️ Placement Guide`)
 For physical assembly and workshop workbench printing, the Layout tab features a dedicated **Graphic View Mode** toggle (`[🎨 Full Color]` / `[🖨️ Placement Guide]`), also accessible via the canvas zoom toolbar:

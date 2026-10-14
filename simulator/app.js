@@ -141,7 +141,7 @@ let defaultDragonLoaded = false;
 defaultDragonImg.onload = () => {
     defaultDragonLoaded = true;
 };
-defaultDragonImg.src = 'assets/petes_dragon.png';
+defaultDragonImg.src = 'assets/petes_dragon_transparent.png';
 
 // Pirate Ship Artwork (Float 5 Default - 5-Color Transparent PNG from Pirateshipsimple.png)
 const pirateShipImg = new Image();
@@ -208,7 +208,16 @@ titleDrumImg.src = 'assets/title_drum.png';
 
 // Custom artwork image (if user uploads one or loads one from preset)
 let customArtworkImg = null;
-let currentGraphicType = 'builtin_dragon'; // 'builtin_dragon', 'pirate_ship', 'casey_jr_train', 'title_drum', 'spinning_turtle', 'spinning_snail', 'honor_america_eagle', or 'custom_image'
+const defaultFloatGraphicMap = {
+    0: 'casey_jr_train',
+    1: 'title_drum',
+    2: 'spinning_turtle',
+    3: 'spinning_snail',
+    4: 'pirate_ship',
+    5: 'builtin_dragon',
+    6: 'honor_america_eagle'
+};
+let currentGraphicType = defaultFloatGraphicMap[activeSingleShirtRunnerSlot] || 'casey_jr_train';
 let customArtworkDataUrl = null;
 
 // Cricut SVG / Custom PNG Float Artwork Suite for 7-Runner Lineup
@@ -225,8 +234,9 @@ const floatArtworkImgs = {
     'pirateshipsimple': pirateShipImg,
     'cinderella_coach': pirateShipImg,
     'cinderellas_coach': pirateShipImg,
-    'petes_dragon': new Image(),
-    'builtin_dragon': new Image(),
+    'petes_dragon': defaultDragonImg,
+    'builtin_dragon': defaultDragonImg,
+    'petes_dragon_transparent': defaultDragonImg,
     'honor_america_eagle': new Image()
 };
 floatArtworkImgs['casey_jr_train'].src = 'assets/Simpletrain.png';
@@ -240,8 +250,9 @@ floatArtworkImgs['pirate_ship'].src = 'assets/Pirateshipsimple.png';
 floatArtworkImgs['pirateshipsimple'].src = 'assets/Pirateshipsimple.png';
 floatArtworkImgs['cinderella_coach'].src = 'assets/Pirateshipsimple.png';
 floatArtworkImgs['cinderellas_coach'].src = 'assets/Pirateshipsimple.png';
-floatArtworkImgs['petes_dragon'].src = 'assets/cricut_svg/petes_dragon.svg';
-floatArtworkImgs['builtin_dragon'].src = 'assets/cricut_svg/petes_dragon.svg';
+floatArtworkImgs['petes_dragon'].src = 'assets/petes_dragon_transparent.png';
+floatArtworkImgs['builtin_dragon'].src = 'assets/petes_dragon_transparent.png';
+floatArtworkImgs['petes_dragon_transparent'].src = 'assets/petes_dragon_transparent.png';
 floatArtworkImgs['honor_america_eagle'].src = 'assets/cricut_svg/honor_america_eagle.svg';
 
 function getGraphicImgForType(gType) {
@@ -276,7 +287,7 @@ function getGraphicImgForType(gType) {
     if (gType === 'carriage_nohorses') {
         if (carriageNoHorsesImg && carriageNoHorsesImg.naturalWidth > 0) return carriageNoHorsesImg;
     }
-    if (gType === 'builtin_dragon' || gType === 'petes_dragon') {
+    if (gType === 'builtin_dragon' || gType === 'petes_dragon' || gType === 'petes_dragon_transparent') {
         if (defaultDragonLoaded && defaultDragonImg.complete && defaultDragonImg.naturalWidth > 0) return defaultDragonImg;
         return floatArtworkImgs['petes_dragon'];
     }
@@ -4540,6 +4551,22 @@ async function getPresetDataForRunner(runner) {
                 sequence: { loopDuration: sequenceLoopDuration, cues: sequenceCues }
             };
         }
+
+        // Fallback: Check if DEFAULT_FLEET_ROSTER has a valid server preset for this slot
+        const fallbackKey = (DEFAULT_FLEET_ROSTER[runner.slot] && DEFAULT_FLEET_ROSTER[runner.slot].preset)
+            ? DEFAULT_FLEET_ROSTER[runner.slot].preset
+            : (runner.defaultGraphic ? `server:${runner.defaultGraphic}.json` : null);
+        if (fallbackKey && fallbackKey !== key && fallbackKey.startsWith('server:')) {
+            const fname = fallbackKey.replace('server:', '');
+            try {
+                const res = await fetch(`/api/preset/${encodeURIComponent(fname)}`);
+                if (res.ok) {
+                    const data = await res.json();
+                    fleetPresetCache[key] = data;
+                    return data;
+                }
+            } catch (e) {}
+        }
         return null;
     })();
 
@@ -6290,6 +6317,7 @@ function updateActiveFloatUI(slot) {
         const targetVal = defaultMap[slot];
         if (targetVal) {
             graphicSelect.value = targetVal;
+            currentGraphicType = targetVal;
         }
     }
 
@@ -6458,9 +6486,9 @@ async function editRunnerInSingleView(slot) {
             stopFleetShow();
         }
 
-        // If user is already editing this runner slot, simply return to the single view
-        // without reloading and wiping out their active live in-memory edits!
-        if (slot === activeSingleShirtRunnerSlot) {
+        // If user is already editing this runner slot, and the graphic & LEDs are correctly loaded,
+        // simply return to the single view without wiping out active edits!
+        if (slot === activeSingleShirtRunnerSlot && currentGraphicType === runner.defaultGraphic && leds && leds.length >= 20) {
             currentView = 'single';
             document.getElementById('singleViewBtn')?.classList.add('active');
             document.getElementById('fleetViewBtn')?.classList.remove('active');
@@ -6499,6 +6527,11 @@ async function editRunnerInSingleView(slot) {
         }
         isSingleShirtDirty = false;
 
+        // Immediately update currentGraphicType to this runner's default float graphic
+        if (runner.defaultGraphic) {
+            currentGraphicType = runner.defaultGraphic;
+        }
+
         // Switch view to Single Shirt FIRST before loading preset data
         currentView = 'single';
         document.getElementById('singleViewBtn')?.classList.add('active');
@@ -6515,19 +6548,29 @@ async function editRunnerInSingleView(slot) {
                 floatName: `Float ${runner.slot + 1} - ${runner.name}`,
                 ledCount: 100,
                 leds: [],
-                graphicType: runner.defaultGraphic || 'builtin_dragon',
+                graphicType: runner.defaultGraphic || 'casey_jr_train',
                 settings: { pattern: 'steady_sparkle', speedBpm: 120, sparkleRate: 1.5, greenHue: 140, brightness: 80, glowSize: 22 },
                 animationGroups: [],
                 sequence: { loopDuration: 90.0, cues: [] }
             };
+        } else if (!pData.graphicType) {
+            pData.graphicType = runner.defaultGraphic || 'casey_jr_train';
         }
 
         // Apply preset to main editor (now runs with currentView === 'single' so individual timeline loads)
         applyProfileData(pData);
         clearHistoryStacks();
 
-        // If preset has no leds, generate 100 on graphic
-        if (!leds || leds.length === 0) {
+        // If preset has no leds or fewer than 20 leds, generate 100 on the new graphic outline immediately!
+        if (!leds || leds.length < 20) {
+            const activeImg = getActiveGraphicImg();
+            if (activeImg && !activeImg.complete) {
+                await new Promise((resolve) => {
+                    const to = setTimeout(resolve, 800);
+                    activeImg.addEventListener('load', () => { clearTimeout(to); resolve(); }, { once: true });
+                    activeImg.addEventListener('error', () => { clearTimeout(to); resolve(); }, { once: true });
+                });
+            }
             scatterLedsOnGraphic(100, true);
         }
 
@@ -13731,10 +13774,16 @@ function applyProfileData(profileData) {
         leds = profileData.leds;
         while (sparkles.length < leds.length) sparkles.push(0);
         updateLedCountUI();
+    } else {
+        leds = [];
+        updateLedCountUI();
     }
 
     // 2. Restore Graphic
-    currentGraphicType = profileData.graphicType || 'builtin_dragon';
+    const activeSlotDefaultGraphic = (activeSingleShirtRunnerSlot !== null && activeSingleShirtRunnerSlot >= 0 && DEFAULT_FLEET_ROSTER[activeSingleShirtRunnerSlot])
+        ? DEFAULT_FLEET_ROSTER[activeSingleShirtRunnerSlot].defaultGraphic
+        : 'casey_jr_train';
+    currentGraphicType = profileData.graphicType || activeSlotDefaultGraphic;
     const resetBtn = document.getElementById('resetArtworkBtn');
     const graphicSelect = document.getElementById('graphicPresetSelect');
     const uploadContainer = document.getElementById('customUploadContainer');
@@ -13938,16 +13987,45 @@ async function loadProfile(sourceValue) {
                 profileData = await res.json();
             }
         } catch (e) {
-            showToast("⚠️ Failed to load preset from server.");
-            return;
+            console.warn("Could not fetch server preset:", filename, e);
         }
     } else if (sourceValue.startsWith('local:')) {
         const name = sourceValue.replace('local:', '');
-        const localProfiles = JSON.parse(localStorage.getItem('msep_custom_presets') || '{}');
-        profileData = localProfiles[name];
+        try {
+            const localProfiles = JSON.parse(localStorage.getItem('msep_custom_presets') || '{}');
+            profileData = localProfiles[name];
+        } catch (e) {}
     }
 
-    if (!profileData) return;
+    if (!profileData) {
+        // Fallback: Try default server preset from DEFAULT_FLEET_ROSTER
+        const fallbackRunner = (DEFAULT_FLEET_ROSTER[activeSingleShirtRunnerSlot] || DEFAULT_FLEET_ROSTER[0]);
+        if (fallbackRunner && fallbackRunner.preset && fallbackRunner.preset !== sourceValue && fallbackRunner.preset.startsWith('server:')) {
+            const fbFile = fallbackRunner.preset.replace('server:', '');
+            try {
+                const res = await fetch(`/api/preset/${encodeURIComponent(fbFile)}`);
+                if (res.ok) {
+                    profileData = await res.json();
+                }
+            } catch (e) {}
+        }
+    }
+
+    if (!profileData) {
+        // Baseline fallback profile if preset file not reachable
+        const r = (DEFAULT_FLEET_ROSTER[activeSingleShirtRunnerSlot] || DEFAULT_FLEET_ROSTER[0]);
+        profileData = {
+            name: `${r.name} Costume`,
+            floatName: `Float ${r.slot + 1} - ${r.name}`,
+            ledCount: 100,
+            leds: [],
+            graphicType: r.defaultGraphic || 'casey_jr_train',
+            settings: { pattern: 'steady_sparkle', speedBpm: 120, sparkleRate: 1.5, greenHue: 140, brightness: 80, glowSize: 22 },
+            animationGroups: [],
+            sequence: { loopDuration: 90.0, cues: [] }
+        };
+    }
+
     applyProfileData(profileData);
     isSingleShirtDirty = false;
     if (activeSingleShirtRunnerSlot !== null && activeSingleShirtRunnerSlot >= 0 && fleetRunners[activeSingleShirtRunnerSlot]) {
@@ -13963,19 +14041,44 @@ refreshPresetDropdown().then(() => {
     const startupRunner = (fleetRunners && fleetRunners[activeSingleShirtRunnerSlot])
         ? fleetRunners[activeSingleShirtRunnerSlot]
         : (DEFAULT_FLEET_ROSTER[activeSingleShirtRunnerSlot] || DEFAULT_FLEET_ROSTER[0]);
-    const targetPreset = startupRunner.preset || 'server:casey_jr_train.json';
+    const targetPreset = startupRunner.preset || (startupRunner.defaultGraphic ? `server:${startupRunner.defaultGraphic}.json` : 'server:casey_jr_train.json');
 
-    loadProfile(targetPreset).then(() => {
+    loadProfile(targetPreset).then(async () => {
         isSingleShirtDirty = false;
         const pSel = document.getElementById('presetSelect');
         if (pSel) pSel.value = targetPreset;
         updateActiveFloatUI(activeSingleShirtRunnerSlot);
-    }).catch(() => {
-        if (leds.length === 0) {
-            initDefaultDragonLeds();
+        if (!leds || leds.length < 20) {
+            const activeImg = getActiveGraphicImg();
+            if (activeImg && !activeImg.complete) {
+                await new Promise((resolve) => {
+                    const to = setTimeout(resolve, 800);
+                    activeImg.addEventListener('load', () => { clearTimeout(to); resolve(); }, { once: true });
+                    activeImg.addEventListener('error', () => { clearTimeout(to); resolve(); }, { once: true });
+                });
+            }
+            scatterLedsOnGraphic(100, true, false);
+        }
+        if (typeof draw === 'function') draw();
+    }).catch(async () => {
+        if (!leds || leds.length < 20) {
+            if (startupRunner.defaultGraphic === 'builtin_dragon' || startupRunner.defaultGraphic === 'petes_dragon') {
+                initDefaultDragonLeds();
+            } else {
+                const activeImg = getActiveGraphicImg();
+                if (activeImg && !activeImg.complete) {
+                    await new Promise((resolve) => {
+                        const to = setTimeout(resolve, 800);
+                        activeImg.addEventListener('load', () => { clearTimeout(to); resolve(); }, { once: true });
+                        activeImg.addEventListener('error', () => { clearTimeout(to); resolve(); }, { once: true });
+                    });
+                }
+                scatterLedsOnGraphic(100, true, false);
+            }
         }
         isSingleShirtDirty = false;
         updateActiveFloatUI(activeSingleShirtRunnerSlot);
+        if (typeof draw === 'function') draw();
     });
 });
 rebuildLedGroupMap();
@@ -17280,7 +17383,7 @@ function scatterLedsOnGraphic(targetCount = 100, colorMatch = true, markDirty = 
         offCanvas.width = targetW;
         offCanvas.height = targetH;
         offCtx.drawImage(activeImg, 0, 0, targetW, targetH);
-    } else if (defaultDragonImg && (defaultDragonImg.naturalWidth > 0 || defaultDragonImg.width > 0)) {
+    } else if ((currentGraphicType === 'builtin_dragon' || currentGraphicType === 'petes_dragon' || currentGraphicType === 'petes_dragon_transparent') && defaultDragonImg && (defaultDragonImg.naturalWidth > 0 || defaultDragonImg.width > 0)) {
         const iw = defaultDragonImg.naturalWidth || defaultDragonImg.width || 300;
         const ih = defaultDragonImg.naturalHeight || defaultDragonImg.height || 425;
         targetH = Math.max(120, Math.round(targetW * (ih / iw)));
@@ -17290,9 +17393,9 @@ function scatterLedsOnGraphic(targetCount = 100, colorMatch = true, markDirty = 
     } else {
         offCanvas.width = targetW;
         offCanvas.height = targetH;
-        offCtx.fillStyle = '#00ff88';
+        offCtx.fillStyle = '#ffb703';
         offCtx.beginPath();
-        offCtx.arc(targetW * 0.5, targetH * 0.5, targetW * 0.35, 0, Math.PI * 2);
+        offCtx.ellipse(targetW * 0.5, targetH * 0.5, targetW * 0.38, targetH * 0.35, 0, 0, Math.PI * 2);
         offCtx.fill();
     }
 
@@ -17678,7 +17781,7 @@ async function loadGraphicPreset(type) {
     customArtworkImg = null;
     customArtworkDataUrl = null;
     if (uploadContainer) uploadContainer.style.display = 'none';
-    if (resetBtn) resetBtn.style.display = (type === 'builtin_dragon' || type === 'petes_dragon') ? 'none' : 'block';
+    if (resetBtn) resetBtn.style.display = (type === 'builtin_dragon' || type === 'petes_dragon' || type === 'petes_dragon_transparent') ? 'none' : 'block';
 
     const presetFileMap = {
         'casey_jr_train': 'casey_jr_train.json',
@@ -17694,6 +17797,7 @@ async function loadGraphicPreset(type) {
         'carriage_nohorses': 'pirate_ship.json',
         'builtin_dragon': 'petes_dragon.json',
         'petes_dragon': 'petes_dragon.json',
+        'petes_dragon_transparent': 'petes_dragon.json',
         'honor_america_eagle': 'honor_america_eagle.json'
     };
 
@@ -17754,6 +17858,7 @@ if (graphicPresetSelect) {
             'carriage_nohorses': 4,
             'builtin_dragon': 5,
             'petes_dragon': 5,
+            'petes_dragon_transparent': 5,
             'honor_america_eagle': 6
         };
         const targetSlot = floatToSlot[val];
