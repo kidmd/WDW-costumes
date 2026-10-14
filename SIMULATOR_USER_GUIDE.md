@@ -626,12 +626,14 @@ In both the pixel sampling engine (`boostLedVibrancy`) and the Cricut cut export
 
 #### 🥁 Float #2: The Title Drum 5-Color Authentic Sampling Rule
 When Float #2 (The Title Drum) is selected, `boostLedVibrancy` activates an authentic 5-color mapping engine matching the 3D-printable and vinyl artwork palette:
-- **Marquee Gold (`#facc15` / `[250, 204, 21]`):** High-vibrancy parade golden amber (`{ r: 255, g: 204, b: 21 }`).
-- **Body & Streamers Red (`#ef4444` / `[239, 68, 68]`):** Radiant crimson red (`{ r: 239, g: 68, b: 68 }`).
+- **Marquee Gold (`#facc15` / `[250, 204, 21]`):** High-vibrancy parade golden amber (`{ r: 255, g: 204, b: 21 }`). Accents the outer marquee ring, chassis trim, wheels, and the gold border on the driver cab square flag.
+- **Body & Streamers Red (`#ef4444` / `[239, 68, 68]`):** Radiant crimson red (`{ r: 239, g: 68, b: 68 }`). Highlights the cab body panels, arches, streamer ribbons, and the **Red Hidden Mickey silhouette** centered inside the square flag.
 - **Lead Pennant Green (`#10b981` / `[16, 185, 129]`):** Electric flag green (`{ r: 16, g: 200, b: 129 }`).
 - **Flags & Pennants Blue (`#2563eb` / `[37, 99, 235]`):** Electric royal blue (`{ r: 37, g: 99, b: 255 }`).
-- **Drum Face & Chassis Black (`#11161d` / `[17, 22, 29]`):** Warm incandescent starlight white (`{ r: 255, g: 245, b: 220 }`), representing the illuminated vintage interior starlight bulbs of the Electrical Parade drum face rather than remaining unlit or falling back to Pete's Dragon pink/green.
+- **Drum Face & Chassis Black (`#11161d` / `[17, 22, 29]`):** Warm incandescent starlight white (`{ r: 255, g: 245, b: 220 }`), representing the illuminated vintage interior starlight bulbs of the Electrical Parade drum face and the black field of the square cab flag rather than remaining unlit or falling back to Pete's Dragon pink/green.
+- **Clean Silhouette & Flag Architecture:** The right-hand front flagpole and swallowtail pennant have been cleanly removed down to the smoothed fender contour. The large square flag on the cab roof features a 18px gold perimeter border, solid black field, and an authentic 3-circle Mickey silhouette in vibrant red aligned with the flag's 16° tilt.
 - **Robust Image Guarding:** All sampling routines (`sampleColorAtNorm`, `resampleAllLedColors`, `rearrangeRemainingLedsOnGraphic`, `scatterLedsOnGraphic`) verify that the float artwork image is fully decoded (`naturalWidth > 0`), ensuring crisp instant resampling upon float switching, scattering, or group rearrangement.
+
 
 ---
 

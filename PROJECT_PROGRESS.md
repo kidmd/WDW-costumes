@@ -93,6 +93,29 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### 2026-10-13 21:00 - Title Drum Square Flag Red Hidden Mickey Silhouette & Front Flagpole Removal
+- **Driver Cab Square Flag Transformation (`assets/Drumcleanedup.png`, `assets/title_drum.png`, `simulator/assets/`):**
+  - Updated the large tilted square flag on the driver cab roof (`16.0°` tilt):
+    - **18px Outer Border:** Solid Marquee Gold (`#facc15` / `RGB(250, 204, 21)`).
+    - **Interior Field:** Solid Black (`#11161d` / `RGB(17, 22, 29)`).
+    - **Centered Red Hidden Mickey Silhouette:** Rendered an authentic 3-circle silhouette in solid Red (`#ef4444` / `RGB(239, 68, 68)`) with `R_head = 44px`, `R_ear = 25px`, `dist = 59px`, rotated along the flag's coordinate axis (55° from flag vertical) and shifted down 14px to perfectly center within the flag geometry.
+- **Front Flagpole & Swallowtail Flag Removal:**
+  - Completely erased the right-hand front flagpole and swallowtail flag down to the gold fender shelf (`x >= 1800, y <= 1276`).
+  - Smoothed the fender top contour across `x = 2170` to `2220` along $y(x) = 1275 + (x - 2170) \times (3/50)$, eliminating the socket protrusion and restoring a clean, aerodynamic fender line.
+- **Strict 5-Color Compliance & Transparent Cropping:**
+  - Output image (`2319×1805`) strictly adheres to the 5 discrete color requirement for Bambu AMS/MMU 3D printing and Cricut vinyl cutting:
+    1. **Transparent Alpha:** 47.12%
+    2. **Black (`#11161d`):** 22.80% (Chassis, Drum face, tires, square flag field)
+    3. **Gold (`#facc15`):** 17.64% (Drum ring, letters, wheels, cab trim, square flag border)
+    4. **Red (`#ef4444`):** 9.81% (Cab panels, arches, streamer, square flag Hidden Mickey)
+    5. **Green (`#10b981`):** 1.78% (Lead pennant)
+    6. **Blue (`#2563eb`):** 0.85% (Streamer tip)
+- **Asset Mirroring & Python Processing Pipeline:**
+  - Mirrored across all 7 asset paths: `assets/Drumcleanedup.png`, `assets/drumcleanedup.png`, `assets/title_drum.png`, `assets/Drum.png`, `simulator/assets/Drumcleanedup.png`, `simulator/assets/drumcleanedup.png`, and `simulator/assets/title_drum.png`.
+  - Updated reproducible automation script `scripts/process_title_drum.py`.
+- **Documentation Parity:**
+  - Updated `SIMULATOR_USER_GUIDE.md` Float 2 sampling rules and `PROJECT_PROGRESS.md`.
+
 ### 2026-10-13 20:45 - Title Drum High-Res Transparent PNG (`Drumcleanedup.png`) & Hidden Mickey Flag Integration
 - **Transparent PNG & White Background Stripping (`assets/Drumcleanedup.png`, `assets/title_drum.png`, `simulator/assets/`):**
   - Converted the new high-resolution `assets/Drumcleanedup.jpg` asset (2358×1824) into a transparent PNG (`2319×1805` with 25px uniform padding, preserving the exact 1.285 aspect ratio): stripped the white background across outer boundaries and interior driver cab window aperture using HSV value/saturation thresholding.

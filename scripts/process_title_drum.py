@@ -13,47 +13,33 @@ def process_drum():
     h, w = img.shape[:2]
 
     # --- Target 5-Color Palette (Flat, Unshaded for Multi-Material 3D Printing) ---
-    # 1. Black:  #11161d -> RGB [17, 22, 29]   (Chassis, Drum Face, Wheels Tire Body, Hidden Mickey Silhouette)
-    # 2. Gold:   #facc15 -> RGB [250, 204, 21]  (Drum Ring, Text, Wheel Rims/Hubs, Flagpoles, Yellow Flag, Canopy Dome)
-    # 3. Red:    #ef4444 -> RGB [239, 68, 68]   (Cab Body Panels, Arches, Streamer Ribbon)
-    # 4. Blue:   #2563eb -> RGB [37, 99, 235]   (Streamer Pennant Tip)
-    # 5. Green:  #10b981 -> RGB [16, 185, 129]  (Lead Flag)
     PALETTE = [
-        (17, 22, 29, 255),    # Black
-        (250, 204, 21, 255),  # Gold
-        (239, 68, 68, 255),   # Red
-        (37, 99, 235, 255),   # Blue
-        (16, 185, 129, 255)   # Green
+        (17, 22, 29, 255),    # Black:  #11161d
+        (250, 204, 21, 255),  # Gold:   #facc15
+        (239, 68, 68, 255),   # Red:    #ef4444
+        (37, 99, 235, 255),   # Blue:   #2563eb
+        (16, 185, 129, 255)   # Green:  #10b981
     ]
 
-    # Add Hidden Mickey silhouette to the yellow flag (rear flag)
-    # Mickey Head Center: cx = 2040, cy = 690 in Drumcleanedup.jpg coordinates (scaled proportionally if other size)
-    scale_x = w / 2358.0
-    scale_y = h / 1824.0
-    cx = int(2040 * scale_x)
-    cy = int(690 * scale_y)
-    r_head = int(36 * ((scale_x + scale_y) / 2.0))
-    r_ear = int(r_head * 0.58)
-    dist_center = int(r_head * 1.35)
-    rad = np.radians(55)
+    # 1. Erase the front/right flag and flagpole completely down to the fender shelf
+    # Pole was at x in [2180, 2210], extending up to y = 430
+    # Flag was at x >= 1800, y <= 1000
+    # The fender surface at the socket junction is at y ~ 1276.
+    # We erase x >= 1800 with y <= 1276, and cleanly smooth the fender top contour across [2170, 2220]
+    erase_mask = np.zeros((h, w), dtype=bool)
+    erase_mask[0:1276, 1800:] = True
+    img[erase_mask] = [255, 255, 255] # White background
 
-    ear_l_x = int(cx - dist_center * np.sin(rad))
-    ear_l_y = int(cy - dist_center * np.cos(rad))
-    ear_r_x = int(cx + dist_center * np.sin(rad))
-    ear_r_y = int(cy - dist_center * np.cos(rad))
+    # Smooth the fender contour between x=2170 and x=2220 along y(x) = 1275 + (x - 2170) * (3.0 / 50.0)
+    for x in range(2170, 2221):
+        target_y = int(round(1275.0 + (x - 2170) * (3.0 / 50.0)))
+        img[0:target_y, x] = [255, 255, 255]
 
-    C_BLACK_BGR = (27, 22, 17)
-    cv2.circle(img, (cx, cy), r_head, C_BLACK_BGR, -1, cv2.LINE_AA)
-    cv2.circle(img, (ear_l_x, ear_l_y), r_ear, C_BLACK_BGR, -1, cv2.LINE_AA)
-    cv2.circle(img, (ear_r_x, ear_r_y), r_ear, C_BLACK_BGR, -1, cv2.LINE_AA)
-
+    # 2. Base Color Classification
     hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
-
-    # Detect Background (outer background and cab window opening)
-    # Background pixels are white: (S < 40) & (V > 200)
     is_bg = (hsv[:, :, 1] < 40) & (hsv[:, :, 2] > 200)
 
-    # Classification of foreground:
+    # Classify foreground regions
     fg = ~is_bg
     is_black = fg & (hsv[:, :, 2] < 50)
     is_red   = fg & (~is_black) & ((hsv[:, :, 0] < 14) | (hsv[:, :, 0] > 165)) & (hsv[:, :, 1] > 60)
@@ -80,7 +66,47 @@ def process_drum():
             coords = np.where(remaining)
             out[coords[0][mask_p], coords[1][mask_p]] = p_val
 
-    # Tight crop around float bounds with 25px padding
+    # 3. Transform the large square flag on the cab roof:
+    # Outer flag quad corners: [158, 545], [454, 630], [393, 905], [107, 832]
+    outer_flag_mask = np.zeros((h, w), dtype=np.uint8)
+    quad_pts = np.array([[158, 545], [454, 630], [393, 905], [107, 832]], dtype=np.int32)
+    cv2.fillPoly(outer_flag_mask, [quad_pts], 255)
+
+    # Gold border: Set entire flag quad to Gold
+    out[outer_flag_mask > 0] = PALETTE[1] # Gold
+
+    # Black interior: 18px inward morphological erosion
+    kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (37, 37))
+    inner_black_mask = cv2.erode(outer_flag_mask, kernel)
+    out[inner_black_mask > 0] = PALETTE[0] # Black
+
+    # 4. Red Hidden Mickey silhouette inside the square flag
+    # Centered along tilted flag axis (16.0 deg)
+    C = np.array([278.0, 728.0])
+    v_down = np.array([-np.sin(np.radians(16.0)), np.cos(np.radians(16.0))])
+    C_mickey = C + 14.0 * v_down
+    cx_m, cy_m = int(round(C_mickey[0])), int(round(C_mickey[1]))
+
+    r_head = 44
+    r_ear = 25
+    dist_ear = 59
+    ear_angle = np.radians(55.0)
+
+    u_ear = np.array([np.cos(np.radians(16.0)), np.sin(np.radians(16.0))])
+    v_ear_up = np.array([np.sin(np.radians(16.0)), -np.cos(np.radians(16.0))])
+
+    # Left & right ears
+    ear_l = C_mickey - dist_ear * np.sin(ear_angle) * u_ear + dist_ear * np.cos(ear_angle) * v_ear_up
+    ear_r = C_mickey + dist_ear * np.sin(ear_angle) * u_ear + dist_ear * np.cos(ear_angle) * v_ear_up
+
+    mickey_mask = np.zeros((h, w), dtype=np.uint8)
+    cv2.circle(mickey_mask, (cx_m, cy_m), r_head, 255, -1, cv2.LINE_AA)
+    cv2.circle(mickey_mask, (int(round(ear_l[0])), int(round(ear_l[1]))), r_ear, 255, -1, cv2.LINE_AA)
+    cv2.circle(mickey_mask, (int(round(ear_r[0])), int(round(ear_r[1]))), r_ear, 255, -1, cv2.LINE_AA)
+
+    out[mickey_mask > 0] = PALETTE[2] # Red
+
+    # 5. Crop with 25px padding
     ys, xs = np.where(out[:, :, 3] > 0)
     min_x = max(0, xs.min() - 25)
     max_x = min(w, xs.max() + 25)
@@ -104,7 +130,8 @@ def process_drum():
         pil_crop.save(p)
         print(f"Saved: {p}")
 
-    print(f"\nSuccessfully generated transparent drum PNG ({cropped.shape[1]}x{cropped.shape[0]}) with Hidden Mickey on yellow flag!")
+    print(f"\nCropped size: {cropped.shape[1]}x{cropped.shape[0]} (aspect ratio {cropped.shape[1]/cropped.shape[0]:.4f})")
+    print(f"Successfully generated transparent drum PNG with Red Hidden Mickey on gold/black square flag and removed front pole!")
 
 if __name__ == '__main__':
     process_drum()
