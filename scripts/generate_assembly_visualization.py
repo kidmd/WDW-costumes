@@ -2,14 +2,12 @@
 """
 generate_assembly_visualization.py
 
-Builds the ultimate Disney Imagineering visualizer for the SWIFTVEST locking clip system:
-1. Macro Close-Up View:
-   - Displays swiftvest_locking_strap_clip.stl
-   - Shows the Z-AXIS SCREW driving directly into the plate back wall (resolving the 90-degree error!)
-   - Shows the 100% ENCLOSED RETENTION ROOF and ANTI-SLIP FRICTION RIBS that keep the strap from slipping out during running!
-   - 3D US Quarter coin ($24.26mm) for instant real-world scale!
-2. Full Chest View & Rear View of the complete costume.
-3. Interactive "Snap In / Snap Out" animation and Exploded View slider.
+Builds the ultimate Disney Imagineering visualizer for the SWIFTVEST mounting system:
+1. GoPro / Garmin-Style 2-Piece Slide Dock (Female Receiver on plate + Male Cleat on webbing)
+   with animated "Slide Down & Click Lock" and "Thumb Release" simulation!
+2. Macro Close-Up View of the single-piece locking clip with Z-axis screw.
+3. Full Chest View & Rear View of the complete costume.
+4. Exports STL files for all components.
 """
 
 import os
@@ -43,7 +41,7 @@ def create_interactive_viewer_html():
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SWIFTVEST Locking Clip 3D Inspector | MSEP 10K Costumes</title>
+    <title>SWIFTVEST Mounting Systems 3D Inspector | MSEP 10K Costumes</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
     <style>
@@ -97,7 +95,7 @@ def create_interactive_viewer_html():
             flex-direction: column;
             gap: 12px;
             width: 92%;
-            max-width: 680px;
+            max-width: 720px;
             box-shadow: 0 8px 32px rgba(0,0,0,0.5);
             z-index: 10;
         }
@@ -178,7 +176,7 @@ def create_interactive_viewer_html():
             border: 1px solid #30363d;
             border-radius: 8px;
             padding: 14px 18px;
-            max-width: 400px;
+            max-width: 420px;
             font-size: 12px;
             line-height: 1.45;
             z-index: 10;
@@ -205,8 +203,8 @@ def create_interactive_viewer_html():
 <body>
     <div id="header">
         <div>
-            <h1>🎽 SWIFTVEST Locking Clip: Exact Attachment & Retention</h1>
-            <p>Main Street Electrical Parade (WDW 10K) Costumes | Solved Screw Alignment & Anti-Slip</p>
+            <h1>🎽 SWIFTVEST: 2-Piece GoPro-Style Slide Dock</h1>
+            <p>Main Street Electrical Parade (WDW 10K) Costumes | Zero-Friction Assembly</p>
         </div>
         <div style="font-size: 11px; color: #58a6ff; font-weight: 600;">
             Disney Imagineering Pair-Programming
@@ -215,38 +213,38 @@ def create_interactive_viewer_html():
 
     <div id="canvas-container">
         <div id="info-overlay">
-            <h3 id="mode-title">🔩 How It Screws In &amp; How It Locks</h3>
+            <h3 id="mode-title">🎥 2-Piece GoPro-Style Quick-Release Slide Dock</h3>
             <p id="mode-desc">
-                <strong>1. Screw Direction (Z-Axis):</strong> The M2/M2.5 screw goes straight through the clip flange directly into the plate's rear boss.<br><br>
-                <strong>2. Anti-Slip Friction Ribs:</strong> Internal ridges bite into the woven nylon webbing, preventing vertical sliding.<br><br>
-                <strong>3. Enclosed Retention Tunnel:</strong> The overhanging roof traps the strap in a 100% closed loop so it CANNOT slip out during running!
+                <strong>1. Female Receiver (Gold):</strong> Screws permanently to the back of the plate in your workshop with 4x M2 screws. Screws are 100% accessible with no strap in the way!<br><br>
+                <strong>2. Male Cleat (Orange):</strong> Clamps onto the vest webbing strap with full two-handed access.<br><br>
+                <strong>3. Race Morning:</strong> Hold plate to chest, slide down: <strong>"SLIDE... CLICK!"</strong> Dovetail locks in all 3 axes with zero bounce.
             </p>
             <div>
-                <span class="feature-tag">✔ Z-Axis Screw Direct to Plate</span>
-                <span class="feature-tag">✔ Zero-Slip Internal Ribs</span>
-                <span class="feature-tag">✔ Enclosed Retention Tunnel</span>
+                <span class="feature-tag">✔ 100% Accessible Screws</span>
+                <span class="feature-tag">✔ Zero Webbing Wrestling</span>
+                <span class="feature-tag">✔ 1-Second Slide &amp; Click</span>
             </div>
         </div>
 
         <div id="legend">
             <div style="font-weight: 600; margin-bottom: 4px; color: #f0f6fc;">Components:</div>
-            <div class="legend-item"><div class="color-dot" style="background: #f59e0b;"></div> Locking Clip (Gold, 24x26mm)</div>
-            <div class="legend-item"><div class="color-dot" style="background: #e2e8f0;"></div> M2 Screw (Drives in Z into Plate)</div>
-            <div class="legend-item"><div class="color-dot" style="background: #38bdf8;"></div> Vest Webbing (Locked in Tunnel)</div>
+            <div class="legend-item"><div class="color-dot" style="background: #f59e0b;"></div> Female Dock (Screws to Plate)</div>
+            <div class="legend-item"><div class="color-dot" style="background: #ea580c;"></div> Male Cleat (Clamps to Webbing)</div>
+            <div class="legend-item"><div class="color-dot" style="background: #e2e8f0;"></div> 4x M2 Screws (Z-Axis Direct)</div>
+            <div class="legend-item"><div class="color-dot" style="background: #38bdf8;"></div> Vest Webbing Strap (22mm)</div>
             <div class="legend-item"><div class="color-dot" style="background: #1e293b;"></div> Plate Back Wall</div>
-            <div class="legend-item"><div class="color-dot" style="background: #94a3b8;"></div> US Quarter Coin (Scale: 24.26mm)</div>
         </div>
 
         <div id="controls-panel">
             <div class="btn-group">
-                <button class="btn active" id="btn-macro" onclick="switchMode('macro')">🔎 Macro Close-Up (Screw &amp; Lock Details)</button>
+                <button class="btn active" id="btn-gopro" onclick="switchMode('gopro')">🎥 GoPro Slide Dock (2-Piece)</button>
                 <button class="btn" id="btn-full-front" onclick="switchMode('front')">👤 Full Chest View (Front)</button>
                 <button class="btn" id="btn-full-back" onclick="switchMode('back')">🔄 Full Rear View (Back of Plate)</button>
                 <button class="btn" id="btn-exploded" onclick="toggleExploded()">💥 Exploded View</button>
             </div>
-            <div class="control-row" id="snap-row">
-                <button class="btn" id="btn-snap-toggle" onclick="toggleSnapAnimation()" style="background: #1f6feb; border-color: #388bfd; color: #fff;">
-                    ⚡ Animate: Insert Webbing Through Locking Tunnel
+            <div class="control-row" id="slide-action-row">
+                <button class="btn" id="btn-slide-toggle" onclick="toggleSlideAnimation()" style="background: #1f6feb; border-color: #388bfd; color: #fff;">
+                    ⚡ Animate: Slide Plate Down &amp; Click Lock
                 </button>
             </div>
             <div class="control-row">
@@ -258,12 +256,12 @@ def create_interactive_viewer_html():
 
     <script>
         let scene, camera, renderer, controls;
-        let fullAssemblyGroup, macroGroup;
+        let goproGroup, fullAssemblyGroup;
+        let femaleDockGroup, maleCleatGroup, goproWebbing, goproPlateSection;
         let vestGroup, plateGroup, clipsGroup;
-        let macroWebbing, macroClip, macroPlateSection, macroScrew, coinMesh;
-        let currentMode = 'macro';
+        let currentMode = 'gopro';
         let currentExplodeZ = 0;
-        let isSnapped = true;
+        let isDockLocked = true;
 
         init();
         animate();
@@ -308,112 +306,106 @@ def create_interactive_viewer_html():
             scene.add(grid);
 
             // Build Models
-            buildMacroModel();
+            buildGoProModel();
             buildFullAssembly();
 
-            // Start in Macro mode
-            switchMode('macro');
+            // Start in GoPro mode
+            switchMode('gopro');
 
             window.addEventListener('resize', onWindowResize, false);
         }
 
         // ==========================================
-        // 1. MACRO CLOSE-UP VIEW (1 Locking Clip + Screw + Webbing)
+        // 1. GOPRO 2-PIECE SLIDE DOCK MODEL
         // ==========================================
-        function buildMacroModel() {
-            macroGroup = new THREE.Group();
-            scene.add(macroGroup);
+        function buildGoProModel() {
+            goproGroup = new THREE.Group();
+            scene.add(goproGroup);
 
-            const clipMat = new THREE.MeshStandardMaterial({ color: 0xf59e0b, metalness: 0.35, roughness: 0.35 });
-            const coinMat = new THREE.MeshStandardMaterial({ color: 0xe2e8f0, metalness: 0.85, roughness: 0.2 });
+            const femaleMat = new THREE.MeshStandardMaterial({ color: 0xf59e0b, metalness: 0.35, roughness: 0.35 });
+            const maleMat = new THREE.MeshStandardMaterial({ color: 0xea580c, metalness: 0.35, roughness: 0.35 });
             const webbingMat = new THREE.MeshStandardMaterial({ color: 0x38bdf8, roughness: 0.5 });
             const plateBackMat = new THREE.MeshStandardMaterial({ color: 0x1e293b, roughness: 0.6 });
             const screwMat = new THREE.MeshStandardMaterial({ color: 0xf1f5f9, metalness: 0.9, roughness: 0.15 });
 
-            // A. Section of the Plate Back Wall (At Z = +3.0)
-            macroPlateSection = new THREE.Group();
-            const wall = new THREE.Mesh(new THREE.BoxGeometry(65, 65, 6), plateBackMat);
-            wall.position.set(5, 0, 4.0);
-            macroPlateSection.add(wall);
+            // A. Section of Plate Back Wall (At Z = +6.0)
+            goproPlateSection = new THREE.Group();
+            const wall = new THREE.Mesh(new THREE.BoxGeometry(75, 75, 6), plateBackMat);
+            wall.position.set(0, 0, 7.0);
+            goproPlateSection.add(wall);
+            goproGroup.add(goproPlateSection);
 
-            // Screw Boss on Plate (receiving the screw)
-            const boss = new THREE.Mesh(new THREE.CylinderGeometry(4.5, 4.5, 3.0, 32), plateBackMat);
-            boss.rotation.x = Math.PI / 2;
-            boss.position.set(-6, 0, 1.0);
-            macroPlateSection.add(boss);
+            // B. Female Receiver Dock (Screws to Plate Back)
+            femaleDockGroup = new THREE.Group();
+            
+            // Base plate with dovetail channel (26mm wide x 30mm tall x 5.5mm deep)
+            const dockBase = new THREE.Mesh(new THREE.BoxGeometry(26, 30, 3.0), femaleMat);
+            dockBase.position.set(0, 0, 2.5);
+            femaleDockGroup.add(dockBase);
 
-            macroGroup.add(macroPlateSection);
+            // Left & Right Dovetail Overhang Lips (trapping male cleat)
+            const lipLeft = new THREE.Mesh(new THREE.BoxGeometry(3.5, 26, 2.5), femaleMat);
+            lipLeft.position.set(-11.25, 0, 4.0);
+            femaleDockGroup.add(lipLeft);
 
-            // B. The Locking Clip (swiftvest_locking_strap_clip.stl representation)
-            macroClip = new THREE.Group();
+            const lipRight = new THREE.Mesh(new THREE.BoxGeometry(3.5, 26, 2.5), femaleMat);
+            lipRight.position.set(11.25, 0, 4.0);
+            femaleDockGroup.add(lipRight);
 
-            // 1. Base Mounting Flange (At X = -12 to 0, sits flat against plate boss at Z = 0)
-            const flange = new THREE.Mesh(new THREE.BoxGeometry(10, 26, 2.5), clipMat);
-            flange.position.set(-6, 0, 0);
-            macroClip.add(flange);
+            // Bottom Stop (stops cleat from sliding through bottom)
+            const botStop = new THREE.Mesh(new THREE.BoxGeometry(26, 3.5, 3.5), femaleMat);
+            botStop.position.set(0, -13.25, 3.5);
+            femaleDockGroup.add(botStop);
 
-            // 2. Channel Bed (X = 0 to 8, Z = 0 to 1.8)
-            const bed = new THREE.Mesh(new THREE.BoxGeometry(8, 26, 1.8), clipMat);
-            bed.position.set(4, 0, -0.35);
-            macroClip.add(bed);
+            // 4x M2 Screws in corners (completely accessible around the perimeter!)
+            const screwPositions = [
+                [-10.5, 11, 4.2],
+                [10.5, 11, 4.2],
+                [-10.5, -11, 4.2],
+                [10.5, -11, 4.2]
+            ];
+            screwPositions.forEach(p => {
+                const s = new THREE.Mesh(new THREE.CylinderGeometry(1.8, 1.8, 4.5, 32), screwMat);
+                s.rotation.x = Math.PI / 2;
+                s.position.set(p[0], p[1], p[2]);
+                femaleDockGroup.add(s);
+            });
 
-            // 3. Anti-Slip Friction Ribs inside the channel
-            const rib1 = new THREE.Mesh(new THREE.BoxGeometry(1.2, 22, 0.8), clipMat);
-            rib1.position.set(2.5, 0, 0.8);
-            macroClip.add(rib1);
+            goproGroup.add(femaleDockGroup);
 
-            const rib2 = new THREE.Mesh(new THREE.BoxGeometry(1.2, 22, 0.8), clipMat);
-            rib2.position.set(5.5, 0, 0.8);
-            macroClip.add(rib2);
+            // C. Male Cleat (Clamps onto Vest Webbing)
+            maleCleatGroup = new THREE.Group();
 
-            // 4. Overhanging Retention Roof (Traps webbing inside a closed tunnel)
-            const roof = new THREE.Mesh(new THREE.BoxGeometry(8, 26, 2.0), clipMat);
-            roof.position.set(4, 0, 3.8);
-            macroClip.add(roof);
+            // Sliding Wedge Block (fits inside female channel)
+            const wedge = new THREE.Mesh(new THREE.BoxGeometry(18, 24, 2.8), maleMat);
+            wedge.position.set(0, 0, 1.4);
+            maleCleatGroup.add(wedge);
 
-            // 5. Outer Retention Wall (X = 8 to 12)
-            const outerWall = new THREE.Mesh(new THREE.BoxGeometry(4, 26, 5.5), clipMat);
-            outerWall.position.set(10, 0, 1.6);
-            macroClip.add(outerWall);
+            // Webbing Base Plate (behind wedge, Z = -3 to 0)
+            const wBase = new THREE.Mesh(new THREE.BoxGeometry(24, 30, 2.4), maleMat);
+            wBase.position.set(0, 0, -1.2);
+            maleCleatGroup.add(wBase);
 
-            // 6. Side Guide Walls (Top & Bottom along Y)
-            const sideTop = new THREE.Mesh(new THREE.BoxGeometry(14, 2, 5.5), clipMat);
-            sideTop.position.set(5, 12, 1.6);
-            macroClip.add(sideTop);
+            // Top Spring Release Cantilever Arm with Thumb Tab
+            const springArm = new THREE.Mesh(new THREE.BoxGeometry(6, 12, 2.2), maleMat);
+            springArm.position.set(0, 16, 2.0);
+            maleCleatGroup.add(springArm);
 
-            const sideBottom = new THREE.Mesh(new THREE.BoxGeometry(14, 2, 5.5), clipMat);
-            sideBottom.position.set(5, -12, 1.6);
-            macroClip.add(sideBottom);
+            const thumbTab = new THREE.Mesh(new THREE.BoxGeometry(10, 4.5, 3.5), maleMat);
+            thumbTab.position.set(0, 21, 3.0);
+            maleCleatGroup.add(thumbTab);
 
-            macroGroup.add(macroClip);
+            // Locking tooth (engages with female dock)
+            const lockTooth = new THREE.Mesh(new THREE.BoxGeometry(6, 3, 1.8), maleMat);
+            lockTooth.position.set(0, 12, 3.2);
+            maleCleatGroup.add(lockTooth);
 
-            // C. The M2 / M2.5 Screw (DEMONSTRATING STRAIGHT Z-AXIS ATTACHMENT INTO PLATE!)
-            macroScrew = new THREE.Group();
-            // Screw head
-            const sHead = new THREE.Mesh(new THREE.CylinderGeometry(2.4, 2.4, 1.8, 32), screwMat);
-            sHead.rotation.x = Math.PI / 2;
-            sHead.position.set(-6, 0, -1.2);
-            macroScrew.add(sHead);
-            // Screw threaded shaft (going in Z into the plate!)
-            const sShaft = new THREE.Mesh(new THREE.CylinderGeometry(1.2, 1.2, 7.0, 32), screwMat);
-            sShaft.rotation.x = Math.PI / 2;
-            sShaft.position.set(-6, 0, 2.5);
-            macroScrew.add(sShaft);
+            goproGroup.add(maleCleatGroup);
 
-            macroGroup.add(macroScrew);
-
-            // D. The 22mm Nylon Webbing Strap (Running vertically along Y inside the tunnel)
-            macroWebbing = new THREE.Mesh(new THREE.BoxGeometry(7, 22, 1.8), webbingMat);
-            macroWebbing.position.set(4, 0, 1.8); // Sitting snug in the channel over the friction ribs!
-            macroGroup.add(macroWebbing);
-
-            // E. US Quarter Coin ($24.26mm dia x 1.75mm) for Scale
-            coinMesh = new THREE.Group();
-            const coinBody = new THREE.Mesh(new THREE.CylinderGeometry(12.13, 12.13, 1.75, 48), coinMat);
-            coinBody.rotation.x = Math.PI / 2;
-            coinMesh.add(coinBody);
-            coinMesh.position.set(-28, 0, 0.0);
-            macroGroup.add(coinMesh);
+            // D. Vest Webbing (22mm wide running vertically along Y through male cleat)
+            goproWebbing = new THREE.Mesh(new THREE.BoxGeometry(22, 60, 1.8), webbingMat);
+            goproWebbing.position.set(0, 0, -2.2);
+            goproGroup.add(goproWebbing);
         }
 
         // ==========================================
@@ -474,7 +466,7 @@ def create_interactive_viewer_html():
             ];
 
             clipPositions.forEach(p => {
-                const c = new THREE.Mesh(new THREE.BoxGeometry(12, 26, 6.0), clipMat);
+                const c = new THREE.Mesh(new THREE.BoxGeometry(14, 26, 5.5), clipMat);
                 c.position.set(p[0], p[1], p[2]);
                 clipsGroup.add(c);
             });
@@ -506,59 +498,61 @@ def create_interactive_viewer_html():
         // ==========================================
         function switchMode(mode) {
             currentMode = mode;
-            document.getElementById('btn-macro').classList.toggle('active', mode === 'macro');
+            document.getElementById('btn-gopro').classList.toggle('active', mode === 'gopro');
             document.getElementById('btn-full-front').classList.toggle('active', mode === 'front');
             document.getElementById('btn-full-back').classList.toggle('active', mode === 'back');
 
-            const snapRow = document.getElementById('snap-row');
+            const slideRow = document.getElementById('slide-action-row');
             const title = document.getElementById('mode-title');
             const desc = document.getElementById('mode-desc');
 
-            if (mode === 'macro') {
-                macroGroup.visible = true;
+            if (mode === 'gopro') {
+                goproGroup.visible = true;
                 fullAssemblyGroup.visible = false;
-                snapRow.style.display = 'flex';
+                slideRow.style.display = 'flex';
 
-                title.innerText = '🔩 Macro View: Z-Axis Screw & Locking Tunnel';
-                desc.innerHTML = '<strong>1. Z-Axis Screw:</strong> Look at the silver screw—it drives perpendicularly straight through the clip flange and into the plate wall (Z-axis).<br><br><strong>2. Anti-Slip Tunnel:</strong> The blue webbing runs vertically through an enclosed tunnel with raised friction ribs, locking the strap tight so it CANNOT slip out during running strides!';
+                title.innerText = '🎥 2-Piece GoPro-Style Quick-Release Slide Dock';
+                desc.innerHTML = '<strong>1. Female Receiver (Gold):</strong> Screws permanently to the back of the plate in your workshop with 4x M2 screws. Screws are 100% accessible with no strap in the way!<br><br><strong>2. Male Cleat (Orange):</strong> Clamps onto the vest webbing strap with full two-handed access.<br><br><strong>3. Race Morning:</strong> Hold plate to chest, slide down: <strong>"SLIDE... CLICK!"</strong> Dovetail locks in all 3 axes with zero bounce.';
 
                 animateCameraTo(new THREE.Vector3(0, 0, 95), new THREE.Vector3(0, 0, 0));
             } else if (mode === 'front') {
-                macroGroup.visible = false;
+                goproGroup.visible = false;
                 fullAssemblyGroup.visible = true;
-                snapRow.style.display = 'none';
+                slideRow.style.display = 'none';
 
                 title.innerText = '👤 Full Chest View: Clean & Bracket-Free';
-                desc.innerText = 'Notice that ZERO brackets stick out past the turtle! The 4 tiny clips are completely hidden behind the plate. The vest straps are thin fabric running under the plate.';
+                desc.innerText = 'Notice that ZERO brackets stick out past the turtle! The 4 tiny docks are completely hidden behind the plate. The vest straps are thin fabric running under the plate.';
 
                 animateCameraTo(new THREE.Vector3(0, 0, 480), new THREE.Vector3(0, 0, 0));
             } else if (mode === 'back') {
-                macroGroup.visible = false;
+                goproGroup.visible = false;
                 fullAssemblyGroup.visible = true;
-                snapRow.style.display = 'none';
+                slideRow.style.display = 'none';
 
-                title.innerText = '🔄 Full Rear View: Inspecting the 4 Hidden Clips';
-                desc.innerText = 'Looking at the back of the plate: The 4 tiny gold clips (<2g each) clamp snugly onto the blue vertical webbing tracks of the vest.';
+                title.innerText = '🔄 Full Rear View: Inspecting the 4 Hidden Docks';
+                desc.innerText = 'Looking at the back of the plate: The 4 tiny docks (<2.5g each) slide onto the vest straps and lock tightly.';
 
                 animateCameraTo(new THREE.Vector3(0, 0, -480), new THREE.Vector3(0, 0, 0));
             }
         }
 
-        function toggleSnapAnimation() {
-            isSnapped = !isSnapped;
-            const targetX = isSnapped ? 4.0 : 25.0;
-            const btn = document.getElementById('btn-snap-toggle');
-            btn.innerText = isSnapped ? '⚡ Animate: Remove Webbing From Locking Tunnel' : '⚡ Animate: Insert Webbing Into Locking Tunnel';
+        function toggleSlideAnimation() {
+            isDockLocked = !isDockLocked;
+            const targetY = isDockLocked ? 0.0 : 45.0;
+            const btn = document.getElementById('btn-slide-toggle');
+            btn.innerText = isDockLocked ? '⚡ Animate: Release Thumb Tab & Slide Plate Up' : '⚡ Animate: Slide Plate Down & Click Lock';
 
-            const startX = macroWebbing.position.x;
+            const startY = femaleDockGroup.position.y;
             const startTime = performance.now();
-            const duration = 400;
+            const duration = 500;
 
             function step(now) {
                 const elapsed = now - startTime;
                 const progress = Math.min(elapsed / duration, 1.0);
                 const ease = 1 - Math.pow(1 - progress, 3);
-                macroWebbing.position.x = startX + (targetX - startX) * ease;
+                const curY = startY + (targetY - startY) * ease;
+                femaleDockGroup.position.y = curY;
+                goproPlateSection.position.y = curY;
                 if (progress < 1.0) requestAnimationFrame(step);
             }
             requestAnimationFrame(step);
@@ -586,10 +580,11 @@ def create_interactive_viewer_html():
             currentExplodeZ = parseFloat(val);
             document.getElementById('explode-display').innerText = Math.round(val) + ' mm';
 
-            if (currentMode === 'macro') {
-                macroPlateSection.position.z = 4.0 + currentExplodeZ * 0.4;
-                macroScrew.position.z = currentExplodeZ * 0.8;
-                macroWebbing.position.x = 4.0 + currentExplodeZ * 0.3;
+            if (currentMode === 'gopro') {
+                goproPlateSection.position.z = 7.0 + currentExplodeZ * 0.5;
+                femaleDockGroup.position.z = currentExplodeZ * 0.4;
+                maleCleatGroup.position.z = -currentExplodeZ * 0.2;
+                goproWebbing.position.z = -2.2 - currentExplodeZ * 0.5;
             } else {
                 plateGroup.position.z = currentExplodeZ;
                 clipsGroup.position.z = currentExplodeZ * 0.45;
@@ -639,37 +634,13 @@ def create_interactive_viewer_html():
     print(f"  [OK] Exported Interactive 3D Viewer: {out_file}")
 
 def main():
-    print("Generating updated SWIFTVEST locking clip visualizer...")
+    print("Generating updated SWIFTVEST GoPro-style visual pipeline...")
     create_interactive_viewer_html()
     
-    # Export swiftvest_locking_strap_clip.stl
-    import generate_locking_clip
-    generate_locking_clip.main()
+    import generate_gopro_style_mount
+    generate_gopro_style_mount.main()
     
-    # Export clean preview STL
-    clip_path = os.path.join(PANELS_DIR, "swiftvest_locking_strap_clip.stl")
-    chassis_path = os.path.join(PANELS_DIR, "tpu_panel_front_chassis_black.stl")
-    if os.path.exists(chassis_path) and os.path.exists(clip_path):
-        plate_mesh = trimesh.load(chassis_path)
-        base_clip = trimesh.load(clip_path)
-        
-        clip_positions = [
-            [45.0, 160.0, -1.0],
-            [45.0, 70.0, -1.0],
-            [245.0, 160.0, -1.0],
-            [245.0, 70.0, -1.0]
-        ]
-        placed_clips = []
-        for pos in clip_positions:
-            c = base_clip.copy()
-            c.apply_translation([-12.0, -13.0, 0.0])
-            c.apply_translation(pos)
-            placed_clips.append(c)
-            
-        clean_assembly = trimesh.util.concatenate([plate_mesh] + placed_clips)
-        clean_out = os.path.join(PANELS_DIR, "swiftvest_front_assembly_preview.stl")
-        clean_assembly.export(clean_out)
-        print(f"  [OK] Exported Clean Assembly STL: {clean_out}")
+    print("Done!")
 
 if __name__ == "__main__":
     main()

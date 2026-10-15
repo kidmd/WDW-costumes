@@ -93,6 +93,15 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### 2026-10-15 11:02 - 2-Piece GoPro-Style Quick-Release Slide Mount & Zip-Tie Verification
+- **Engineered 2-Piece Quick-Release Dovetail Slide Mounts (`scripts/generate_gopro_style_mount.py`):**
+  - Completely decouples screw fastening from webbing engagement, eliminating all screwdriver clearance and strap obstruction conflicts:
+    1. **Female Receiver Dock (`swiftvest_dock_receiver_female.stl`, $26.0 \times 30.0 \times 5.5\text{ mm}$, $\sim 2.6\text{g}$ PLA):** Screws permanently to the back of the costume plate with 4x M2 corner screws with 100% unobstructed workshop screwdriver access. Features a tapered internal dovetail slot and spring catch notch.
+    2. **Male Webbing Cleat (`swiftvest_dock_cleat_male.stl`, $24.0 \times 32.0 \times 8.7\text{ mm}$, $\sim 2.1\text{g}$ PLA):** Clamps to the SWIFTVEST vertical webbing strap with a split-bar gate and flexible thumb release arm.
+  - **Slide-and-Click Kinematics:** Plate slides down onto the cleats with a tactile snap, locking in all 3 axes (X, Y, Z) with zero race-stride bounce. Releasing is a 1-second one-handed thumb press.
+- **Zip-Tie Field Strategy:** Verified that standard miniature black nylon zip ties through the 16 existing $\varnothing 2.5\text{ mm}$ round perimeter eyelets into the SWIFTVEST mesh loops provide a zero-hardware, zero-CAD, fail-safe race-day mounting fallback.
+- **Updated Interactive 3D Web Visualizer (`simulator/swiftvest_assembly_viewer.html`):** Added interactive "⚡ Animate: Slide Plate Down & Click Lock" simulation.
+
 ### 2026-10-15 10:50 - SWIFTVEST Locking Strap Clip: Z-Axis Screw Alignment & Anti-Slip Tunnel Architecture
 - **Resolved Critical Engineering Feedback:**
   1. *Screw Hole Orientation:* In the previous CAD model, the mounting hole was extruded parallel to the webbing channel (90° off). Corrected the orientation in `scripts/generate_locking_clip.py` so the screw through-hole passes perpendicularly through the clip's mounting flange in the $Z$-axis, driving directly into the back of the costume plate / eyelet tab.

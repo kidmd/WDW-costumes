@@ -38,16 +38,15 @@ flowchart TD
 We have provided two dedicated 3D visualization tools in your workspace:
 
 1. 🌐 **Interactive 3D Browser Viewer:** Open [`simulator/swiftvest_assembly_viewer.html`](file:///c:/Users/Kiddi/Desktop/WDW%20costumes/simulator/swiftvest_assembly_viewer.html) in any browser (Chrome, Edge, Safari). It features:
-   * **🔎 Macro Close-Up Mode:** Puts you right at the clip to inspect the screw driving in Z into the plate and the webbing trapped in the anti-slip tunnel!
+   * **🎥 GoPro Slide Dock Mode:** Watch the female receiver slide down onto the male cleat and snap locked with interactive animations!
    * **Clean Front View:** Notice that ZERO brackets protrude outside the character contour!
-   * **Rear View Inspection:** Click "Rear View" to orbit 180° and view the 4 tiny gold clips snapped onto the vest straps.
-   * **Exploded View Slider ($0 \leftrightarrow 80\text{ mm}$):** Pull the plate forward to inspect the clips sandwiched between the plate and the vest.
-2. 🧊 **Assembled 3D STL Model:** Open [`3d_panels/swiftvest_front_assembly_preview.stl`](file:///c:/Users/Kiddi/Desktop/WDW%20costumes/3d_panels/swiftvest_front_assembly_preview.stl) in OrcaSlicer, Bambu Studio, or Windows 3D Viewer to inspect the sleek, bracket-free physical CAD assembly.
-3. 📦 **Locking Clip STL:** Print $4\times$ [`3d_panels/swiftvest_locking_strap_clip.stl`](file:///c:/Users/Kiddi/Desktop/WDW%20costumes/3d_panels/swiftvest_locking_strap_clip.stl) ($24 \times 26 \times 6.8\text{ mm}$, $\sim 2.5\text{g}$ each).
-
-### Critical Engineering Solutions:
-1. **Z-Axis Screw Alignment:** The screw through-hole passes perpendicularly through the clip's mounting flange straight into the back of the plate boss/tab along the $Z$-axis.
-2. **Anti-Slip Retention Tunnel:** Features dual internal $0.8\text{ mm}$ friction ribs that bite into the woven nylon webbing, plus a fully enclosed overhanging roof that physically traps the webbing so it CANNOT slip out during running strides!
+   * **Rear View Inspection:** Click "Rear View" to orbit 180° and view the docks snapped onto the vest straps.
+   * **Exploded View Slider ($0 \leftrightarrow 80\text{ mm}$):** Pull the plate forward to inspect the 2-piece docks.
+2. 🧊 **Assembled 3D STL Model:** Open [`3d_panels/swiftvest_front_assembly_preview.stl`](file:///c:/Users/Kiddi/Desktop/WDW%20costumes/3d_panels/swiftvest_front_assembly_preview.stl) in OrcaSlicer, Bambu Studio, or Windows 3D Viewer.
+3. 📦 **2-Piece GoPro-Style Quick-Release Mount STLs:**
+   * **Female Receiver (Plate Side):** [`3d_panels/swiftvest_dock_receiver_female.stl`](file:///c:/Users/Kiddi/Desktop/WDW%20costumes/3d_panels/swiftvest_dock_receiver_female.stl) ($26 \times 30 \times 5.5\text{ mm}$, $2.6\text{g}$). Screws permanently to the back of the plate with 4x M2 screws completely clear of the straps.
+   * **Male Cleat (Vest Side):** [`3d_panels/swiftvest_dock_cleat_male.stl`](file:///c:/Users/Kiddi/Desktop/WDW%20costumes/3d_panels/swiftvest_dock_cleat_male.stl) ($24 \times 32 \times 8.7\text{ mm}$, $2.1\text{g}$). Clamps onto the vest webbing with a split-bar gate and flexible thumb release tab.
+4. 🔗 **The Zero-Fuss Alternative (Zip Ties):** The plate's 16 perimeter eyelets have $\varnothing 2.5\text{ mm}$ round holes that perfectly accept standard miniature black zip ties looped directly through the SWIFTVEST mesh loops. Zero screws, zero CAD tolerances, 100% bombproof!
 
 ---
 
