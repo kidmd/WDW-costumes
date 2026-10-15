@@ -210,7 +210,7 @@
             scene.background = new THREE.Color(0x0d1117);
 
             camera = new THREE.PerspectiveCamera(45, container.clientWidth / container.clientHeight, 1, 2000);
-            camera.position.set(145, -280, 240);
+            camera.position.set(145, 120, 480);
 
             renderer = new THREE.WebGLRenderer({ antialias: true });
             renderer.setSize(container.clientWidth, container.clientHeight);
@@ -224,15 +224,19 @@
             controls.dampingFactor = 0.05;
 
             // Lighting
-            const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.85);
             scene.add(ambientLight);
 
             const dirLight = new THREE.DirectionalLight(0xffffff, 0.9);
-            dirLight.position.set(100, -150, 300);
+            dirLight.position.set(145, 200, 350);
             scene.add(dirLight);
 
-            const rimLight = new THREE.DirectionalLight(0x58a6ff, 0.5);
-            rimLight.position.set(-100, 200, 100);
+            const backLight = new THREE.DirectionalLight(0xffffff, 0.4);
+            backLight.position.set(145, -100, -300);
+            scene.add(backLight);
+
+            const rimLight = new THREE.DirectionalLight(0x58a6ff, 0.6);
+            rimLight.position.set(-200, 200, 200);
             scene.add(rimLight);
 
             // Ground grid
@@ -391,9 +395,10 @@
             
             const start = currentExplodeZ;
             const startTime = performance.now();
+            const duration = 400;
             function step(now) {
                 const elapsed = now - startTime;
-                const progress = Math.min(elapsed / duration = 400, 1.0);
+                const progress = Math.min(elapsed / duration, 1.0);
                 const ease = 1 - Math.pow(1 - progress, 3);
                 const z = start + (target - start) * ease;
                 updateExplode(z);
