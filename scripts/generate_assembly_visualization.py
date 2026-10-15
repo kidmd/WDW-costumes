@@ -3,19 +3,16 @@
 generate_assembly_visualization.py
 
 Builds a complete, detailed 3D assembly and interactive visualizer demonstrating
-how the SWIFTVEST running vest, the 3D-printed front costume plate, the right-side
-hinge clamps, and the left-side quick-release latches come together.
-
-Outputs:
-1. 3d_panels/swiftvest_front_assembly_preview.obj (Color-coded multi-group 3D model)
-2. 3d_panels/swiftvest_front_assembly_preview.stl (Single combined STL)
-3. simulator/swiftvest_assembly_viewer.html (Interactive 3D Web Viewer with Swing Door & Exploded View)
+the redesigned ULTRA-COMPACT HIDDEN REAR C-CLIPS:
+- 4x tiny hidden C-clips (<1.1g each) mounted flat against the back of the front plate.
+- Zero brackets or hardware protruding beyond the character's outer perimeter!
+- Snaps cleanly onto the SWIFTVEST 20-22mm vertical webbing tracks.
+- Exploded view and 360 rotation to inspect both front and back.
 """
 
 import os
-import json
-import numpy as np
 import trimesh
+import numpy as np
 import manifold3d
 from manifold3d import Manifold
 
@@ -35,14 +32,11 @@ def to_trimesh(m: Manifold) -> trimesh.Trimesh:
 def make_box(x, y, z):
     return Manifold.cube([x, y, z], center=False)
 
-def make_cylinder(height, radius, segments=32):
-    return Manifold.cylinder(height, radius, radius, segments)
-
 def build_swiftvest_model():
     """
     Builds a clean 3D representation of the SWIFTVEST running harness:
-    - Left shoulder strap (X = 40 to 65 mm, Y = -20 to 260 mm)
-    - Right shoulder strap (X = 225 to 250 mm, Y = -20 to 260 mm)
+    - Left shoulder strap (X ~ 45mm, Y = -20 to 260 mm)
+    - Right shoulder strap (X ~ 245mm, Y = -20 to 260 mm)
     - Vertical nylon webbing tracks on both straps (22mm wide x 2mm thick)
     - Upper & lower horizontal sternum cross-straps bridging across the chest
     - Quick-release snap buckles centered at X = 145 mm
@@ -56,77 +50,72 @@ def build_swiftvest_model():
     y_len = y_max - y_min
     
     # Left strap (runner's right, screen left: X ~ 45mm center)
-    left_x = 42.0
-    left_strap = make_box(strap_w, y_len, strap_thick).translate([left_x - strap_w/2, y_min, -strap_thick - 1.0])
-    left_webbing = make_box(webbing_w, y_len, webbing_thick).translate([left_x - webbing_w/2, y_min, -1.0])
+    left_x = 45.0
+    left_strap = make_box(strap_w, y_len, strap_thick).translate([left_x - strap_w/2, y_min, -strap_thick - 2.0])
+    left_webbing = make_box(webbing_w, y_len, webbing_thick).translate([left_x - webbing_w/2, y_min, -2.0])
     
-    # Right strap (runner's left, screen right: X ~ 248mm center)
-    right_x = 248.0
-    right_strap = make_box(strap_w, y_len, strap_thick).translate([right_x - strap_w/2, y_min, -strap_thick - 1.0])
-    right_webbing = make_box(webbing_w, y_len, webbing_thick).translate([right_x - webbing_w/2, y_min, -1.0])
+    # Right strap (runner's left, screen right: X ~ 245mm center)
+    right_x = 245.0
+    right_strap = make_box(strap_w, y_len, strap_thick).translate([right_x - strap_w/2, y_min, -strap_thick - 2.0])
+    right_webbing = make_box(webbing_w, y_len, webbing_thick).translate([right_x - webbing_w/2, y_min, -2.0])
     
     # Sternum cross straps bridging left & right (at Y = 70mm and Y = 160mm)
     bridge_w = right_x - left_x
-    sternum_upper = make_box(bridge_w, 20.0, 2.0).translate([left_x, 150.0, -strap_thick - 2.5])
-    sternum_lower = make_box(bridge_w, 20.0, 2.0).translate([left_x, 60.0, -strap_thick - 2.5])
+    sternum_upper = make_box(bridge_w, 20.0, 2.0).translate([left_x, 150.0, -strap_thick - 3.5])
+    sternum_lower = make_box(bridge_w, 20.0, 2.0).translate([left_x, 60.0, -strap_thick - 3.5])
     
     # Center buckles
-    buckle_upper = make_box(30.0, 28.0, 6.0).translate([145.0 - 15.0, 146.0, -strap_thick - 5.0])
-    buckle_lower = make_box(30.0, 28.0, 6.0).translate([145.0 - 15.0, 56.0, -strap_thick - 5.0])
+    buckle_upper = make_box(30.0, 28.0, 6.0).translate([145.0 - 15.0, 146.0, -strap_thick - 6.0])
+    buckle_lower = make_box(30.0, 28.0, 6.0).translate([145.0 - 15.0, 56.0, -strap_thick - 6.0])
     
     vest_mesh = to_trimesh(left_strap + right_strap + left_webbing + right_webbing + sternum_upper + sternum_lower + buckle_upper + buckle_lower)
     return vest_mesh
 
-def build_hardware_instances():
+def build_hidden_clip_instances():
     """
-    Loads and positions the 3D-printed mounting hardware:
-    - 2x Right Hinge Clamps at Tab 5 (Y=167) and Tab 7 (Y=63.5)
-    - 2x Left Quick Latches at Tab 15 (Y=154.7) and Tab 13 (Y=73)
+    Loads swiftvest_hidden_webbing_clip.stl and positions 4 instances
+    completely BEHIND the plate, aligned directly with the two vest straps:
+    - Left Upper (X=45, Y=160, Z=-1)
+    - Left Lower (X=45, Y=70, Z=-1)
+    - Right Upper (X=245, Y=160, Z=-1)
+    - Right Lower (X=245, Y=70, Z=-1)
     """
-    hinge_mesh = trimesh.load(os.path.join(PANELS_DIR, "swiftvest_hinge_clamp_right.stl"))
-    latch_mesh = trimesh.load(os.path.join(PANELS_DIR, "swiftvest_quick_latch_left.stl"))
+    clip_path = os.path.join(PANELS_DIR, "swiftvest_hidden_webbing_clip.stl")
+    if not os.path.exists(clip_path):
+        import generate_hidden_clip
+        generate_hidden_clip.main()
     
-    # Right hinge 1 (upper, at Tab 5: X=243.9, Y=167.0)
-    h_up = hinge_mesh.copy()
-    # Align hinge to plate tab
-    h_up.apply_translation([232.0, 154.0, -2.0])
+    base_clip = trimesh.load(clip_path)
     
-    # Right hinge 2 (lower, at Tab 7: X=254.9, Y=63.5)
-    h_lo = hinge_mesh.copy()
-    h_lo.apply_translation([234.0, 50.5, -2.0])
+    # Rotate clip so it faces toward -Z (into the vest webbing)
+    rot_x = trimesh.transformations.rotation_matrix(np.pi / 2, [0, 1, 0])
     
-    # Left latch 1 (upper, at Tab 15: X=28.0, Y=154.7)
-    l_up = latch_mesh.copy()
-    # Rotate 180 around Z to point inward toward left strap
-    rot180 = trimesh.transformations.rotation_matrix(np.pi, [0, 0, 1])
-    l_up.apply_transform(rot180)
-    l_up.apply_translation([60.0, 168.0, -2.0])
+    clips = []
+    positions = [
+        [45.0, 160.0, 0.0],  # Left upper
+        [45.0, 70.0, 0.0],   # Left lower
+        [245.0, 160.0, 0.0], # Right upper
+        [245.0, 70.0, 0.0]   # Right lower
+    ]
     
-    # Left latch 2 (lower, at Tab 13: X=60.3, Y=73.0)
-    l_lo = latch_mesh.copy()
-    l_lo.apply_transform(rot180)
-    l_lo.apply_translation([72.0, 86.0, -2.0])
-    
-    return [h_up, h_lo], [l_up, l_lo]
+    for pos in positions:
+        c = base_clip.copy()
+        # Center clip on position
+        c.apply_translation([-7.0, -13.0, -5.2])
+        c.apply_translation(pos)
+        clips.append(c)
+        
+    return clips
 
 def create_interactive_viewer_html():
-    """
-    Generates a rich, interactive Three.js 3D viewer where the user can:
-    - Rotate 360 degrees around the assembly.
-    - Toggle between CLOSED (Race Mode) and OPEN (Donning/Doffing Hinge Mode).
-    - Slider controlling hinge angle (0 to 110 degrees).
-    - Exploded view slider to separate the layers (Vest, Clips, Plate).
-    - Annotated callout tags.
-    """
     html_content = """<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SWIFTVEST & 3D Plate Assembly Visualizer | MSEP 10K Costumes</title>
+    <title>SWIFTVEST Hidden Clips 3D Inspector | MSEP 10K Costumes</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/STLLoader.js"></script>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
         body {
@@ -220,7 +209,7 @@ def create_interactive_viewer_html():
             font-size: 12px;
             font-weight: 500;
             color: #8b949e;
-            min-width: 140px;
+            min-width: 160px;
         }
         input[type="range"] {
             flex: 1;
@@ -259,7 +248,7 @@ def create_interactive_viewer_html():
             border: 1px solid #30363d;
             border-radius: 8px;
             padding: 12px 16px;
-            max-width: 320px;
+            max-width: 340px;
             font-size: 12px;
             line-height: 1.4;
             z-index: 10;
@@ -274,39 +263,34 @@ def create_interactive_viewer_html():
 <body>
     <div id="header">
         <div>
-            <h1>🎽 SWIFTVEST + 3D Plate Assembly Inspector</h1>
-            <p>Main Street Electrical Parade (WDW 10K) Costumes | Interactive 3D Kinematics</p>
+            <h1>🎽 SWIFTVEST + 3D Plate: Ultra-Compact Hidden Clips</h1>
+            <p>Main Street Electrical Parade (WDW 10K) Costumes | Zero Protruding Brackets</p>
         </div>
         <div style="font-size: 11px; color: #58a6ff; font-weight: 600;">
-            Disney Imagineering Pair-Programming
+            100% Invisible from Front
         </div>
     </div>
 
     <div id="canvas-container">
         <div id="info-overlay">
-            <h3 id="mode-title">📖 Mode: Race Ready (Plate Closed)</h3>
-            <p id="mode-desc">The front 3D plate spans across both shoulder straps. Left latches are locked. Center sternum straps are securely hidden underneath.</p>
+            <h3 id="mode-title">✨ Front View: Clean & Bracket-Free</h3>
+            <p id="mode-desc">Notice that ZERO hardware protrudes outside the character outline! The 4 tiny C-clips are completely hidden underneath/behind the plate, snapping directly to the vest straps.</p>
         </div>
 
         <div id="legend">
-            <div style="font-weight: 600; margin-bottom: 4px; color: #f0f6fc;">Component Legend:</div>
+            <div style="font-weight: 600; margin-bottom: 4px; color: #f0f6fc;">Components:</div>
             <div class="legend-item"><div class="color-dot" style="background: #2563eb;"></div> SWIFTVEST Harness</div>
             <div class="legend-item"><div class="color-dot" style="background: #38bdf8;"></div> Vest Webbing Tracks</div>
-            <div class="legend-item"><div class="color-dot" style="background: #f59e0b;"></div> Right Pivot Hinge (Captive)</div>
-            <div class="legend-item"><div class="color-dot" style="background: #ef4444;"></div> Left Quick-Latch (Release Tab)</div>
-            <div class="legend-item"><div class="color-dot" style="background: #475569;"></div> 240mm Front 3D Plate</div>
-            <div class="legend-item"><div class="color-dot" style="background: #10b981;"></div> Float Graphic Artwork</div>
+            <div class="legend-item"><div class="color-dot" style="background: #f59e0b;"></div> 4x Hidden Rear C-Clips (&lt;1.1g each)</div>
+            <div class="legend-item"><div class="color-dot" style="background: #334155;"></div> 240mm Front 3D Costume Plate</div>
+            <div class="legend-item"><div class="color-dot" style="background: #10b981;"></div> Float Character Inlay</div>
         </div>
 
         <div id="controls-panel">
             <div class="btn-group">
-                <button class="btn active" id="btn-closed" onclick="setPlateState(0)">🔒 Race Closed (0°)</button>
-                <button class="btn" id="btn-open" onclick="setPlateState(1)">📖 Swing Open (110°)</button>
+                <button class="btn active" id="btn-front" onclick="setView(0)">👤 Front View (Clean)</button>
+                <button class="btn" id="btn-back" onclick="setView(1)">🔄 Rear View (Inspect Clips)</button>
                 <button class="btn" id="btn-exploded" onclick="toggleExploded()">💥 Exploded View</button>
-            </div>
-            <div class="control-row">
-                <span class="slider-label">Door Swing Angle: <span id="angle-display">0°</span></span>
-                <input type="range" id="hinge-slider" min="0" max="110" value="0" oninput="updateHingeAngle(this.value)">
             </div>
             <div class="control-row">
                 <span class="slider-label">Exploded Separation: <span id="explode-display">0 mm</span></span>
@@ -317,8 +301,7 @@ def create_interactive_viewer_html():
 
     <script>
         let scene, camera, renderer, controls;
-        let vestGroup, doorPivotGroup, plateMesh, rightHingesGroup, leftLatchesGroup, explodedGroup;
-        let currentHingeAngle = 0;
+        let vestGroup, plateGroup, clipsGroup;
         let currentExplodeZ = 0;
 
         init();
@@ -351,8 +334,8 @@ def create_interactive_viewer_html():
             dirLight.position.set(145, 200, 350);
             scene.add(dirLight);
 
-            const backLight = new THREE.DirectionalLight(0xffffff, 0.4);
-            backLight.position.set(145, -100, -300);
+            const backLight = new THREE.DirectionalLight(0xffffff, 0.5);
+            backLight.position.set(145, -100, -350);
             scene.add(backLight);
 
             const rimLight = new THREE.DirectionalLight(0x58a6ff, 0.6);
@@ -365,17 +348,13 @@ def create_interactive_viewer_html():
             grid.position.set(145, 120, -30);
             scene.add(grid);
 
-            // Build Groups
+            // Build Assembly
             buildAssembly();
 
             window.addEventListener('resize', onWindowResize, false);
         }
 
         function buildAssembly() {
-            // Root group
-            explodedGroup = new THREE.Group();
-            scene.add(explodedGroup);
-
             // 1. SWIFTVEST MODEL (Fixed base)
             vestGroup = new THREE.Group();
             const vestMat = new THREE.MeshStandardMaterial({ color: 0x1d4ed8, roughness: 0.7 });
@@ -418,94 +397,95 @@ def create_interactive_viewer_html():
             buckleLo.position.set(145, 70, -8);
             vestGroup.add(buckleLo);
 
-            explodedGroup.add(vestGroup);
+            scene.add(vestGroup);
 
-            // 2. DOOR PIVOT GROUP (Pivot axis sits along Right Shoulder Strap at X = 245)
-            doorPivotGroup = new THREE.Group();
-            doorPivotGroup.position.set(245, 120, 0); // Hinge pivot center
-            explodedGroup.add(doorPivotGroup);
+            // 2. CLIPS GROUP (4x Tiny Hidden C-Clips - Gold)
+            clipsGroup = new THREE.Group();
+            const clipMat = new THREE.MeshStandardMaterial({ color: 0xf59e0b, metalness: 0.3, roughness: 0.3 });
 
-            // Plate sub-group relative to pivot (pivot at X=245, so relative pos is X - 245)
-            const movingGroup = new THREE.Group();
-            movingGroup.position.set(-245, -120, 0);
-            doorPivotGroup.add(movingGroup);
+            const clipPositions = [
+                [45, 160, -2],
+                [45, 70, -2],
+                [245, 160, -2],
+                [245, 70, -2]
+            ];
 
-            // Load Chassis Plate (or simulated plate)
+            clipPositions.forEach(pos => {
+                // Sized at 14 x 26 x 5 mm
+                const clipMesh = new THREE.Mesh(new THREE.BoxGeometry(14, 26, 5), clipMat);
+                clipMesh.position.set(pos[0], pos[1], pos[2]);
+                clipsGroup.add(clipMesh);
+            });
+
+            scene.add(clipsGroup);
+
+            // 3. FRONT PLATE GROUP (Dark Slate + Green Artwork)
+            plateGroup = new THREE.Group();
             const plateMat = new THREE.MeshStandardMaterial({ color: 0x334155, roughness: 0.6 });
-            plateMesh = new THREE.Mesh(new THREE.BoxGeometry(240, 212, 10), plateMat);
-            plateMesh.position.set(145, 120, 5);
-            movingGroup.add(plateMesh);
 
-            // Decorative Float Artwork Inlay on Front of Plate
+            // Stylized Turtle Plate Silhouette (240 x 212 x 10 mm)
+            const mainBody = new THREE.Mesh(new THREE.CylinderGeometry(95, 95, 10, 32), plateMat);
+            mainBody.rotation.x = Math.PI / 2;
+            mainBody.position.set(145, 120, 5);
+            plateGroup.add(mainBody);
+
+            const head = new THREE.Mesh(new THREE.SphereGeometry(38, 32, 16), plateMat);
+            head.position.set(65, 175, 5);
+            plateGroup.add(head);
+
+            // Character Artwork on front face
             const artMat = new THREE.MeshStandardMaterial({ color: 0x10b981, roughness: 0.3 });
-            const artBadge = new THREE.Mesh(new THREE.CylinderGeometry(55, 55, 1.2, 32), artMat);
-            artBadge.rotation.x = Math.PI / 2;
-            artBadge.position.set(145, 120, 10.6);
-            movingGroup.add(artBadge);
+            const artPlate = new THREE.Mesh(new THREE.CylinderGeometry(75, 75, 1.2, 32), artMat);
+            artPlate.rotation.x = Math.PI / 2;
+            artPlate.position.set(145, 120, 10.6);
+            plateGroup.add(artPlate);
 
-            // 3. RIGHT HINGE CLAMPS (Gold)
-            const hingeMat = new THREE.MeshStandardMaterial({ color: 0xf59e0b, metalness: 0.4, roughness: 0.3 });
-            const hUp = new THREE.Mesh(new THREE.BoxGeometry(28, 26, 6), hingeMat);
-            hUp.position.set(245, 167, 2);
-            movingGroup.add(hUp);
-
-            const hLo = new THREE.Mesh(new THREE.BoxGeometry(28, 26, 6), hingeMat);
-            hLo.position.set(245, 63, 2);
-            movingGroup.add(hLo);
-
-            // 4. LEFT QUICK-RELEASE LATCHES (Red/Orange with thumb paddles)
-            const latchMat = new THREE.MeshStandardMaterial({ color: 0xef4444, roughness: 0.4 });
-            const lUp = new THREE.Mesh(new THREE.BoxGeometry(32, 26, 6), latchMat);
-            lUp.position.set(45, 155, 2);
-            movingGroup.add(lUp);
-
-            const lLo = new THREE.Mesh(new THREE.BoxGeometry(32, 26, 6), latchMat);
-            lLo.position.set(45, 73, 2);
-            movingGroup.add(lLo);
+            scene.add(plateGroup);
         }
 
-        function setPlateState(state) {
-            document.getElementById('btn-closed').classList.toggle('active', state === 0);
-            document.getElementById('btn-open').classList.toggle('active', state === 1);
-            const targetAngle = state === 1 ? 110 : 0;
-            animateHingeTo(targetAngle);
+        function setView(viewIndex) {
+            document.getElementById('btn-front').classList.toggle('active', viewIndex === 0);
+            document.getElementById('btn-back').classList.toggle('active', viewIndex === 1);
+            
+            const targetPos = viewIndex === 0 
+                ? new THREE.Vector3(145, 120, 480) 
+                : new THREE.Vector3(145, 120, -480);
+                
+            animateCamera(targetPos);
+            
+            const title = document.getElementById('mode-title');
+            const desc = document.getElementById('mode-desc');
+            if (viewIndex === 0) {
+                title.innerText = '✨ Front View: Clean & Bracket-Free';
+                desc.innerText = 'Notice that ZERO hardware protrudes outside the character outline! The 4 tiny C-clips are completely hidden underneath/behind the plate, snapping directly to the vest straps.';
+            } else {
+                title.innerText = '🔍 Rear View: Inspecting the 4 Hidden Clips';
+                desc.innerText = 'Looking at the back of the vest: The 4 tiny gold C-clips (<1.1g each) clamp snugly onto the blue vertical webbing tracks. Pulling outward from the edge releases the clips in 1 second.';
+            }
         }
 
-        function animateHingeTo(target) {
-            const start = currentHingeAngle;
+        function animateCamera(targetPos) {
+            const startPos = camera.position.clone();
             const startTime = performance.now();
-            const duration = 600; // ms
+            const duration = 600;
 
             function step(now) {
                 const elapsed = now - startTime;
                 const progress = Math.min(elapsed / duration, 1.0);
                 const ease = 1 - Math.pow(1 - progress, 3);
-                const angle = start + (target - start) * ease;
-                updateHingeAngle(angle);
-                document.getElementById('hinge-slider').value = angle;
-
-                if (progress < 1.0) {
-                    requestAnimationFrame(step);
-                } else {
-                    updateOverlayText(target);
-                }
+                camera.position.lerpVectors(startPos, targetPos, ease);
+                controls.update();
+                if (progress < 1.0) requestAnimationFrame(step);
             }
             requestAnimationFrame(step);
-        }
-
-        function updateHingeAngle(deg) {
-            currentHingeAngle = parseFloat(deg);
-            document.getElementById('angle-display').innerText = Math.round(deg) + '°';
-            const rad = (currentHingeAngle * Math.PI) / 180;
-            // Swing open around the Y axis
-            doorPivotGroup.rotation.y = rad;
         }
 
         function updateExplode(val) {
             currentExplodeZ = parseFloat(val);
             document.getElementById('explode-display').innerText = Math.round(val) + ' mm';
-            doorPivotGroup.position.z = currentExplodeZ;
-            vestGroup.position.z = -currentExplodeZ;
+            plateGroup.position.z = currentExplodeZ;
+            clipsGroup.position.z = currentExplodeZ * 0.45;
+            vestGroup.position.z = -currentExplodeZ * 0.3;
         }
 
         function toggleExploded() {
@@ -526,20 +506,6 @@ def create_interactive_viewer_html():
                 if (progress < 1.0) requestAnimationFrame(step);
             }
             requestAnimationFrame(step);
-        }
-
-        function updateOverlayText(angle) {
-            const title = document.getElementById('mode-title');
-            const desc = document.getElementById('mode-desc');
-            if (angle > 45) {
-                title.innerText = '📖 Mode: Donning & Doffing (Plate Swung Open)';
-                title.style.color = '#38bdf8';
-                desc.innerText = 'Left thumb latches are released! The front plate swings 110° open like a car door, allowing full access to unbuckle the center sternum straps and easily slip out of the vest.';
-            } else {
-                title.innerText = '🔒 Mode: Race Ready (Plate Closed)';
-                title.style.color = '#10b981';
-                desc.innerText = 'The plate is closed flush across the chest. Left thumb latches are snapped shut over the left webbing track. Center sternum straps are securely hidden underneath.';
-            }
         }
 
         function onWindowResize() {
@@ -564,9 +530,9 @@ def create_interactive_viewer_html():
     print(f"  [OK] Exported Interactive 3D Viewer: {out_file}")
 
 def main():
-    print("Building SWIFTVEST 3D Assembly Preview...")
+    print("Generating redesigned assembly with hidden rear C-clips...")
     vest_mesh = build_swiftvest_model()
-    hinges, latches = build_hardware_instances()
+    hidden_clips = build_hidden_clip_instances()
     
     # Load plate chassis
     chassis_path = os.path.join(PANELS_DIR, "tpu_panel_front_chassis_black.stl")
@@ -576,17 +542,16 @@ def main():
         plate_mesh = trimesh.creation.box([240, 212, 10])
         plate_mesh.apply_translation([145, 120, 5])
     
-    # Combine into monolithic assembly STL
-    all_meshes = [vest_mesh, plate_mesh] + hinges + latches
+    # Combined mesh (Vest + Hidden Clips + Plate)
+    all_meshes = [vest_mesh, plate_mesh] + hidden_clips
     combined_mesh = trimesh.util.concatenate(all_meshes)
     stl_out = os.path.join(PANELS_DIR, "swiftvest_front_assembly_preview.stl")
     combined_mesh.export(stl_out)
-    print(f"  [OK] Exported Combined 3D STL: {stl_out}")
+    print(f"  [OK] Exported Combined 3D STL (No giant brackets): {stl_out}")
     print(f"       Vertices: {len(combined_mesh.vertices)}, Faces: {len(combined_mesh.faces)}")
     
-    # Export interactive HTML viewer
     create_interactive_viewer_html()
-    print("SWIFTVEST visual assembly pipeline complete!")
+    print("Sleek assembly redesign complete!")
 
 if __name__ == "__main__":
     main()

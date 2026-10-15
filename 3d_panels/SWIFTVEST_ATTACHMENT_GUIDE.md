@@ -31,35 +31,37 @@ flowchart TD
 
 ---
 
+---
+
 ## 2. Interactive 3D Assembly & Visual Inspection
 
 We have provided two dedicated 3D visualization tools in your workspace:
 
 1. 🌐 **Interactive 3D Browser Viewer:** Open [`simulator/swiftvest_assembly_viewer.html`](file:///c:/Users/Kiddi/Desktop/WDW%20costumes/simulator/swiftvest_assembly_viewer.html) in any browser (Chrome, Edge, Safari). It features:
-   * **Full 360° Orbit & Zoom:** Inspect every angle of the vest, plate, and mounting clips.
-   * **Interactive "Swing Door" Slider ($0^\circ \leftrightarrow 110^\circ$):** Watch the front plate swing open like a car door on the right hinge, revealing the center sternum buckles underneath.
-   * **Exploded View Slider ($0 \leftrightarrow 80\text{ mm}$):** Separate the vest, mounting clips, and plate along the Z-axis to see exactly how each layer mates.
-2. 🧊 **Assembled 3D STL Model:** Open [`3d_panels/swiftvest_front_assembly_preview.stl`](file:///c:/Users/Kiddi/Desktop/WDW%20costumes/3d_panels/swiftvest_front_assembly_preview.stl) in OrcaSlicer, Bambu Studio, or Windows 3D Viewer to inspect the complete physical fit.
+   * **Clean Front View:** Notice that ZERO brackets protrude outside the character contour!
+   * **Rear View Inspection:** Click "Rear View" to orbit 180° and view the 4 tiny gold C-clips snapped onto the vest straps.
+   * **Exploded View Slider ($0 \leftrightarrow 80\text{ mm}$):** Pull the plate forward to inspect the clips sandwiched between the plate and the vest.
+2. 🧊 **Assembled 3D STL Model:** Open [`3d_panels/swiftvest_front_assembly_preview.stl`](file:///c:/Users/Kiddi/Desktop/WDW%20costumes/3d_panels/swiftvest_front_assembly_preview.stl) in OrcaSlicer, Bambu Studio, or Windows 3D Viewer to inspect the sleek, bracket-free physical CAD assembly.
+3. 📦 **Standalone Clip STL:** Print $4\times$ [`3d_panels/swiftvest_hidden_webbing_clip.stl`](file:///c:/Users/Kiddi/Desktop/WDW%20costumes/3d_panels/swiftvest_hidden_webbing_clip.stl) ($14 \times 26 \times 5.2\text{ mm}$, $\sim 1.1\text{g}$ each).
 
 ---
 
-## 3. Illustrated Schematics: How the Assembly Works
+## 3. Illustrated Schematics: Hidden Rear C-Clip Architecture
 
-### Front Elevation View (Race Mode — Latched Closed Across Chest)
+### Front Elevation View (100% Clean Silhouette — Zero Protruding Hardware!)
 ```text
                   [ RUNNER'S NECK / COLLAR ]
                    /                      \
                   /   [SWIFTVEST HARNESS]  \
                  /                          \
         +-------+----------------------------+-------+
-        | LEFT  |                            | RIGHT |
-        | STRAP |    240mm RIGID PLA PLATE   | STRAP |
-        | (Web) |    (Chest / Character Art) | (Web) |
         |       |                            |       |
-        | [LATCH]============================[HINGE] |  <-- Hinge stays pinned to right strap
-        |  (Red)|       [TURTLE / DRAGON]    | (Gold)|  <-- Latches snap onto left strap
+        | LEFT  |    240mm RIGID PLA PLATE   | RIGHT |
+        | STRAP |    (Chest / Character Art) | STRAP |
         |       |                            |       |
-        | [LATCH]============================[HINGE] |
+        |       |    (Clips Hidden Behind)   |       |  <-- 100% clean edges!
+        |       |      [TURTLE / DRAGON]     |       |      No side brackets!
+        |       |                            |       |
         |       |                            |       |
         +-------+----------------------------+-------+
          \     /                              \     /
@@ -67,6 +69,30 @@ We have provided two dedicated 3D visualization tools in your workspace:
            \ /       (Hidden Behind Plate)      \ /
             V                                    V
 ```
+
+### Top-Down Cross-Section View (Looking Down from Your Chin)
+```text
+TOP-DOWN CROSS SECTION (CLIPS HIDDEN UNDERNEATH PLATE):
+
+             Runner's Chest / Vest Straps
+             ============================
+                     |          |
+                 [Webbing]  [Webbing]
+                     |          |
+                   [C-CLIP]   [C-CLIP]  <-- 4x Tiny Hidden C-Clips (<1.1g each)
+                     |          |
+         ====================================
+           240mm FRONT 3D PLATE (CLEAN FACE)
+           (Zero hardware visible from front!)
+```
+
+---
+
+## 4. Operation: Snap-On / Peel-Off Workflow
+
+1. **Step 1 (Vest On):** Slip on the SWIFTVEST and zip/buckle the center sternum straps normally.
+2. **Step 2 (Snap Plate On):** Align the costume plate with your chest and press firmly against the left and right shoulder straps $\rightarrow$ **"SNAP!"** The 4 hidden C-clips lock onto the vertical webbing tracks.
+3. **Step 3 (Taking Off):** Grab the plate by the outer edge and peel outward with a firm tug $\rightarrow$ the clips pop free from the webbing in 1 second $\rightarrow$ unbuckle your vest and slide out!
 
 ### Top-Down Cross-Section View (Looking Down from Chin)
 ```text

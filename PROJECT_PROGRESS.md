@@ -93,6 +93,17 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### 2026-10-15 10:30 - Ultra-Compact Hidden Rear C-Clip Redesign (<1.1g Each, Zero Protruding Brackets)
+- **Engineered Minimalist Hidden Webbing Clip (`scripts/generate_hidden_clip.py` -> `3d_panels/swiftvest_hidden_webbing_clip.stl`):**
+  - Completely discarded bulky exterior side-hinge brackets following user visual feedback.
+  - Sized at an ultra-compact thumbnail footprint: $14.0 \times 26.0 \times 5.2\text{ mm}$ ($0.90\text{ cm}^3$, $\sim 1.1\text{g}$ in PLA).
+  - Designed with an internal $22.0 \times 2.4\text{ mm}$ captive webbing slot, $45^\circ$ snap lead-in ramp, and counterbored M2/M2.5 mounting flange.
+  - **100% Hidden Behind Plate:** 4 clips mount flat against the rear of the costume plate and snap directly onto the SWIFTVEST's vertical webbing. Looking at the costume from the front, zero mounting plastic or hardware extends past the character contour.
+  - **Snap-On / Peel-Off Operation:** Allows runners to wear the vest normally, snap the plate onto their chest in 2 seconds, and peel it off effortlessly post-race.
+- **Updated 3D Assembly & Interactive Viewer:**
+  - Regenerated `3d_panels/swiftvest_front_assembly_preview.stl` with hidden rear clips.
+  - Updated `simulator/swiftvest_assembly_viewer.html` with Front Clean View, Rear Inspection View, and Exploded View.
+
 ### 2026-10-15 10:22 - SWIFTVEST 3D Assembly Viewer Script Bug Fix & Camera Recalibration
 - **Diagnosed and Resolved Blank Viewport Bug in `simulator/swiftvest_assembly_viewer.html`:**
   - Identified a JavaScript parse error in `toggleExploded()` (`SyntaxError: Invalid left-hand side in assignment` caused by an inline default assignment typo in `Math.min(elapsed / duration = 400, 1.0)`).

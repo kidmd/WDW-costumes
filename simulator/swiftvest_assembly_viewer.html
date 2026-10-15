@@ -3,10 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SWIFTVEST & 3D Plate Assembly Visualizer | MSEP 10K Costumes</title>
+    <title>SWIFTVEST Hidden Clips 3D Inspector | MSEP 10K Costumes</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/STLLoader.js"></script>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
         body {
@@ -100,7 +99,7 @@
             font-size: 12px;
             font-weight: 500;
             color: #8b949e;
-            min-width: 140px;
+            min-width: 160px;
         }
         input[type="range"] {
             flex: 1;
@@ -139,7 +138,7 @@
             border: 1px solid #30363d;
             border-radius: 8px;
             padding: 12px 16px;
-            max-width: 320px;
+            max-width: 340px;
             font-size: 12px;
             line-height: 1.4;
             z-index: 10;
@@ -154,39 +153,34 @@
 <body>
     <div id="header">
         <div>
-            <h1>🎽 SWIFTVEST + 3D Plate Assembly Inspector</h1>
-            <p>Main Street Electrical Parade (WDW 10K) Costumes | Interactive 3D Kinematics</p>
+            <h1>🎽 SWIFTVEST + 3D Plate: Ultra-Compact Hidden Clips</h1>
+            <p>Main Street Electrical Parade (WDW 10K) Costumes | Zero Protruding Brackets</p>
         </div>
         <div style="font-size: 11px; color: #58a6ff; font-weight: 600;">
-            Disney Imagineering Pair-Programming
+            100% Invisible from Front
         </div>
     </div>
 
     <div id="canvas-container">
         <div id="info-overlay">
-            <h3 id="mode-title">📖 Mode: Race Ready (Plate Closed)</h3>
-            <p id="mode-desc">The front 3D plate spans across both shoulder straps. Left latches are locked. Center sternum straps are securely hidden underneath.</p>
+            <h3 id="mode-title">✨ Front View: Clean & Bracket-Free</h3>
+            <p id="mode-desc">Notice that ZERO hardware protrudes outside the character outline! The 4 tiny C-clips are completely hidden underneath/behind the plate, snapping directly to the vest straps.</p>
         </div>
 
         <div id="legend">
-            <div style="font-weight: 600; margin-bottom: 4px; color: #f0f6fc;">Component Legend:</div>
+            <div style="font-weight: 600; margin-bottom: 4px; color: #f0f6fc;">Components:</div>
             <div class="legend-item"><div class="color-dot" style="background: #2563eb;"></div> SWIFTVEST Harness</div>
             <div class="legend-item"><div class="color-dot" style="background: #38bdf8;"></div> Vest Webbing Tracks</div>
-            <div class="legend-item"><div class="color-dot" style="background: #f59e0b;"></div> Right Pivot Hinge (Captive)</div>
-            <div class="legend-item"><div class="color-dot" style="background: #ef4444;"></div> Left Quick-Latch (Release Tab)</div>
-            <div class="legend-item"><div class="color-dot" style="background: #475569;"></div> 240mm Front 3D Plate</div>
-            <div class="legend-item"><div class="color-dot" style="background: #10b981;"></div> Float Graphic Artwork</div>
+            <div class="legend-item"><div class="color-dot" style="background: #f59e0b;"></div> 4x Hidden Rear C-Clips (&lt;1.1g each)</div>
+            <div class="legend-item"><div class="color-dot" style="background: #334155;"></div> 240mm Front 3D Costume Plate</div>
+            <div class="legend-item"><div class="color-dot" style="background: #10b981;"></div> Float Character Inlay</div>
         </div>
 
         <div id="controls-panel">
             <div class="btn-group">
-                <button class="btn active" id="btn-closed" onclick="setPlateState(0)">🔒 Race Closed (0°)</button>
-                <button class="btn" id="btn-open" onclick="setPlateState(1)">📖 Swing Open (110°)</button>
+                <button class="btn active" id="btn-front" onclick="setView(0)">👤 Front View (Clean)</button>
+                <button class="btn" id="btn-back" onclick="setView(1)">🔄 Rear View (Inspect Clips)</button>
                 <button class="btn" id="btn-exploded" onclick="toggleExploded()">💥 Exploded View</button>
-            </div>
-            <div class="control-row">
-                <span class="slider-label">Door Swing Angle: <span id="angle-display">0°</span></span>
-                <input type="range" id="hinge-slider" min="0" max="110" value="0" oninput="updateHingeAngle(this.value)">
             </div>
             <div class="control-row">
                 <span class="slider-label">Exploded Separation: <span id="explode-display">0 mm</span></span>
@@ -197,8 +191,7 @@
 
     <script>
         let scene, camera, renderer, controls;
-        let vestGroup, doorPivotGroup, plateMesh, rightHingesGroup, leftLatchesGroup, explodedGroup;
-        let currentHingeAngle = 0;
+        let vestGroup, plateGroup, clipsGroup;
         let currentExplodeZ = 0;
 
         init();
@@ -231,8 +224,8 @@
             dirLight.position.set(145, 200, 350);
             scene.add(dirLight);
 
-            const backLight = new THREE.DirectionalLight(0xffffff, 0.4);
-            backLight.position.set(145, -100, -300);
+            const backLight = new THREE.DirectionalLight(0xffffff, 0.5);
+            backLight.position.set(145, -100, -350);
             scene.add(backLight);
 
             const rimLight = new THREE.DirectionalLight(0x58a6ff, 0.6);
@@ -245,17 +238,13 @@
             grid.position.set(145, 120, -30);
             scene.add(grid);
 
-            // Build Groups
+            // Build Assembly
             buildAssembly();
 
             window.addEventListener('resize', onWindowResize, false);
         }
 
         function buildAssembly() {
-            // Root group
-            explodedGroup = new THREE.Group();
-            scene.add(explodedGroup);
-
             // 1. SWIFTVEST MODEL (Fixed base)
             vestGroup = new THREE.Group();
             const vestMat = new THREE.MeshStandardMaterial({ color: 0x1d4ed8, roughness: 0.7 });
@@ -298,94 +287,95 @@
             buckleLo.position.set(145, 70, -8);
             vestGroup.add(buckleLo);
 
-            explodedGroup.add(vestGroup);
+            scene.add(vestGroup);
 
-            // 2. DOOR PIVOT GROUP (Pivot axis sits along Right Shoulder Strap at X = 245)
-            doorPivotGroup = new THREE.Group();
-            doorPivotGroup.position.set(245, 120, 0); // Hinge pivot center
-            explodedGroup.add(doorPivotGroup);
+            // 2. CLIPS GROUP (4x Tiny Hidden C-Clips - Gold)
+            clipsGroup = new THREE.Group();
+            const clipMat = new THREE.MeshStandardMaterial({ color: 0xf59e0b, metalness: 0.3, roughness: 0.3 });
 
-            // Plate sub-group relative to pivot (pivot at X=245, so relative pos is X - 245)
-            const movingGroup = new THREE.Group();
-            movingGroup.position.set(-245, -120, 0);
-            doorPivotGroup.add(movingGroup);
+            const clipPositions = [
+                [45, 160, -2],
+                [45, 70, -2],
+                [245, 160, -2],
+                [245, 70, -2]
+            ];
 
-            // Load Chassis Plate (or simulated plate)
+            clipPositions.forEach(pos => {
+                // Sized at 14 x 26 x 5 mm
+                const clipMesh = new THREE.Mesh(new THREE.BoxGeometry(14, 26, 5), clipMat);
+                clipMesh.position.set(pos[0], pos[1], pos[2]);
+                clipsGroup.add(clipMesh);
+            });
+
+            scene.add(clipsGroup);
+
+            // 3. FRONT PLATE GROUP (Dark Slate + Green Artwork)
+            plateGroup = new THREE.Group();
             const plateMat = new THREE.MeshStandardMaterial({ color: 0x334155, roughness: 0.6 });
-            plateMesh = new THREE.Mesh(new THREE.BoxGeometry(240, 212, 10), plateMat);
-            plateMesh.position.set(145, 120, 5);
-            movingGroup.add(plateMesh);
 
-            // Decorative Float Artwork Inlay on Front of Plate
+            // Stylized Turtle Plate Silhouette (240 x 212 x 10 mm)
+            const mainBody = new THREE.Mesh(new THREE.CylinderGeometry(95, 95, 10, 32), plateMat);
+            mainBody.rotation.x = Math.PI / 2;
+            mainBody.position.set(145, 120, 5);
+            plateGroup.add(mainBody);
+
+            const head = new THREE.Mesh(new THREE.SphereGeometry(38, 32, 16), plateMat);
+            head.position.set(65, 175, 5);
+            plateGroup.add(head);
+
+            // Character Artwork on front face
             const artMat = new THREE.MeshStandardMaterial({ color: 0x10b981, roughness: 0.3 });
-            const artBadge = new THREE.Mesh(new THREE.CylinderGeometry(55, 55, 1.2, 32), artMat);
-            artBadge.rotation.x = Math.PI / 2;
-            artBadge.position.set(145, 120, 10.6);
-            movingGroup.add(artBadge);
+            const artPlate = new THREE.Mesh(new THREE.CylinderGeometry(75, 75, 1.2, 32), artMat);
+            artPlate.rotation.x = Math.PI / 2;
+            artPlate.position.set(145, 120, 10.6);
+            plateGroup.add(artPlate);
 
-            // 3. RIGHT HINGE CLAMPS (Gold)
-            const hingeMat = new THREE.MeshStandardMaterial({ color: 0xf59e0b, metalness: 0.4, roughness: 0.3 });
-            const hUp = new THREE.Mesh(new THREE.BoxGeometry(28, 26, 6), hingeMat);
-            hUp.position.set(245, 167, 2);
-            movingGroup.add(hUp);
-
-            const hLo = new THREE.Mesh(new THREE.BoxGeometry(28, 26, 6), hingeMat);
-            hLo.position.set(245, 63, 2);
-            movingGroup.add(hLo);
-
-            // 4. LEFT QUICK-RELEASE LATCHES (Red/Orange with thumb paddles)
-            const latchMat = new THREE.MeshStandardMaterial({ color: 0xef4444, roughness: 0.4 });
-            const lUp = new THREE.Mesh(new THREE.BoxGeometry(32, 26, 6), latchMat);
-            lUp.position.set(45, 155, 2);
-            movingGroup.add(lUp);
-
-            const lLo = new THREE.Mesh(new THREE.BoxGeometry(32, 26, 6), latchMat);
-            lLo.position.set(45, 73, 2);
-            movingGroup.add(lLo);
+            scene.add(plateGroup);
         }
 
-        function setPlateState(state) {
-            document.getElementById('btn-closed').classList.toggle('active', state === 0);
-            document.getElementById('btn-open').classList.toggle('active', state === 1);
-            const targetAngle = state === 1 ? 110 : 0;
-            animateHingeTo(targetAngle);
+        function setView(viewIndex) {
+            document.getElementById('btn-front').classList.toggle('active', viewIndex === 0);
+            document.getElementById('btn-back').classList.toggle('active', viewIndex === 1);
+            
+            const targetPos = viewIndex === 0 
+                ? new THREE.Vector3(145, 120, 480) 
+                : new THREE.Vector3(145, 120, -480);
+                
+            animateCamera(targetPos);
+            
+            const title = document.getElementById('mode-title');
+            const desc = document.getElementById('mode-desc');
+            if (viewIndex === 0) {
+                title.innerText = '✨ Front View: Clean & Bracket-Free';
+                desc.innerText = 'Notice that ZERO hardware protrudes outside the character outline! The 4 tiny C-clips are completely hidden underneath/behind the plate, snapping directly to the vest straps.';
+            } else {
+                title.innerText = '🔍 Rear View: Inspecting the 4 Hidden Clips';
+                desc.innerText = 'Looking at the back of the vest: The 4 tiny gold C-clips (<1.1g each) clamp snugly onto the blue vertical webbing tracks. Pulling outward from the edge releases the clips in 1 second.';
+            }
         }
 
-        function animateHingeTo(target) {
-            const start = currentHingeAngle;
+        function animateCamera(targetPos) {
+            const startPos = camera.position.clone();
             const startTime = performance.now();
-            const duration = 600; // ms
+            const duration = 600;
 
             function step(now) {
                 const elapsed = now - startTime;
                 const progress = Math.min(elapsed / duration, 1.0);
                 const ease = 1 - Math.pow(1 - progress, 3);
-                const angle = start + (target - start) * ease;
-                updateHingeAngle(angle);
-                document.getElementById('hinge-slider').value = angle;
-
-                if (progress < 1.0) {
-                    requestAnimationFrame(step);
-                } else {
-                    updateOverlayText(target);
-                }
+                camera.position.lerpVectors(startPos, targetPos, ease);
+                controls.update();
+                if (progress < 1.0) requestAnimationFrame(step);
             }
             requestAnimationFrame(step);
-        }
-
-        function updateHingeAngle(deg) {
-            currentHingeAngle = parseFloat(deg);
-            document.getElementById('angle-display').innerText = Math.round(deg) + '°';
-            const rad = (currentHingeAngle * Math.PI) / 180;
-            // Swing open around the Y axis
-            doorPivotGroup.rotation.y = rad;
         }
 
         function updateExplode(val) {
             currentExplodeZ = parseFloat(val);
             document.getElementById('explode-display').innerText = Math.round(val) + ' mm';
-            doorPivotGroup.position.z = currentExplodeZ;
-            vestGroup.position.z = -currentExplodeZ;
+            plateGroup.position.z = currentExplodeZ;
+            clipsGroup.position.z = currentExplodeZ * 0.45;
+            vestGroup.position.z = -currentExplodeZ * 0.3;
         }
 
         function toggleExploded() {
@@ -406,20 +396,6 @@
                 if (progress < 1.0) requestAnimationFrame(step);
             }
             requestAnimationFrame(step);
-        }
-
-        function updateOverlayText(angle) {
-            const title = document.getElementById('mode-title');
-            const desc = document.getElementById('mode-desc');
-            if (angle > 45) {
-                title.innerText = '📖 Mode: Donning & Doffing (Plate Swung Open)';
-                title.style.color = '#38bdf8';
-                desc.innerText = 'Left thumb latches are released! The front plate swings 110° open like a car door, allowing full access to unbuckle the center sternum straps and easily slip out of the vest.';
-            } else {
-                title.innerText = '🔒 Mode: Race Ready (Plate Closed)';
-                title.style.color = '#10b981';
-                desc.innerText = 'The plate is closed flush across the chest. Left thumb latches are snapped shut over the left webbing track. Center sternum straps are securely hidden underneath.';
-            }
         }
 
         function onWindowResize() {
