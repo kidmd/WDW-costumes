@@ -93,6 +93,18 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### 2026-10-15 09:48 - Snapmaker U1 (4-Toolhead Toolchanger) 5-Color PLA Printing Strategy & Documentation
+- **Authored Comprehensive 5-Color Printing Guide (`3d_panels/SNAPMAKER_U1_5COLOR_PRINTING_OPTIONS.md`):**
+  - Evaluated the transition from single-nozzle Bambu multi-material setup to the 4-toolhead Snapmaker U1 direct-drive CoreXY toolchanger using 100% PLA filament.
+  - **Geometric Model Analysis:** Verified that across the $240.4 \times 212.4 \times 10.0\text{ mm}$ chest chassis, $Z = 0.00$ to $9.20\text{ mm}$ (92% of print volume) is 100% black chassis, with all 4 accent colors residing solely in the top $0.80\text{ mm}$ ($Z = 9.20$ to $10.00\text{ mm}$). Red (`5_Tie_and_Lips`) accounts for only $0.78\text{ cm}^3$ (2,200 triangles).
+  - **Formulated 5 Distinct Implementation Strategies:**
+    1. **Option 1 (Z-Height Stagger - Single Pause):** Red printed on layers 47 & 48 ($0.40\text{ mm}$), followed by one single `PAUSE`/`M600` at $Z = 9.60\text{ mm}$ to swap Toolhead 3 to Yellow for layers 49 & 50.
+    2. **Option 2 (Modular 2-Piece Badge):** Black chassis printed unattended on Toolhead 0 with a $1.2\text{ mm}$ recessed pocket; decorative emblem badge printed separately and bonded with cyanoacrylate/snap tabs for failure isolation.
+    3. **Option 3 (Face-Down First-Layer Swap):** Artwork printed face-down against textured PEI with swaps occurring in the first 5 minutes on the bed.
+    4. **Option 4 (Slicer Virtual Extruder):** Toolhead 3 shared across 4 layers with 4 manual swaps in the final 20 minutes.
+    5. **Option 5 (4-Color Native + Paint Pen):** 4-color unattended print with red accent added post-print using an acrylic paint marker.
+  - **Slicer & Thermal Specifications:** Defined OrcaSlicer/Klipper standby temperature macros ($175^\circ\text{C}$ idle, $210^\circ\text{C}$ active) to prevent PLA cooking/drool on docked heads, along with PLA infill ($10\text{--}12\%$ gyroid, $<170\text{g}$) and chest mounting ergonomics.
+
 ### 2026-10-15 09:34 - Unified Float & 3D File Naming Convention (`<float_name>_<size>_<leds>_<date>_<time>`)
 - **Established Standardized File Naming Architecture Across All Float & 3D Exports:**
   - Implemented `getStandardFloatFileBaseName(options)` in `simulator/app.js` enforcing the uniform naming syntax:
