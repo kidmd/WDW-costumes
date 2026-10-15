@@ -3431,8 +3431,12 @@ async function exportCricutSvgWithPillSlots() {
         }
 
         const floatKey = currentGraphicType || 'builtin_dragon';
-        const floatConfig = CRICUT_FLOAT_CONFIG[floatKey] || CRICUT_FLOAT_CONFIG['petes_dragon'];
-        const svgBaseName = floatConfig.svgFile.replace('.svg', '');
+        const size = selectedPlateSize || 'medium';
+        const ledCount = (Array.isArray(leds) && leds.length > 0) ? leds.length : 100;
+        const timeTag = (typeof getFormattedTimestamp === 'function') ? getFormattedTimestamp(true) : '';
+        const svgBaseName = (typeof getStandardFloatFileBaseName === 'function')
+            ? getStandardFloatFileBaseName({ size, ledCount, timeTag })
+            : floatConfig.svgFile.replace('.svg', '');
 
         // Fetch master vector artwork
         let rawSvgText = await fetchMasterSvgText(floatConfig.svgFile);
@@ -13498,6 +13502,34 @@ function getFormattedTimestamp(forFilename = false) {
 }
 window.getFormattedTimestamp = getFormattedTimestamp;
 
+// Universal naming convention for 3D files and saved float files:
+// <float_name>_<size>_<leds>_<date>_<time> (strictly omitting front/back)
+// Example: the_turtle_large_100led_2026-10-15_09-25
+function getStandardFloatFileBaseName(options = {}) {
+    let floatSlug = '';
+    if (activeSingleShirtRunnerSlot !== null && activeSingleShirtRunnerSlot >= 0 && fleetRunners[activeSingleShirtRunnerSlot]) {
+        const rName = fleetRunners[activeSingleShirtRunnerSlot].name || '';
+        floatSlug = rName.toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '');
+    }
+    if (!floatSlug && currentGraphicType) {
+        floatSlug = currentGraphicType.toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '');
+    }
+    if (!floatSlug) floatSlug = 'float';
+
+    let size = (options.size || selectedPlateSize || 'medium').toString().toLowerCase();
+    if (size !== 'small' && size !== 'medium' && size !== 'large') {
+        size = 'medium';
+    }
+
+    const count = (options.ledCount !== undefined) ? options.ledCount : (Array.isArray(leds) ? leds.length : 75);
+    const ledStr = `${count}led`;
+
+    const timeTag = options.timeTag || getFormattedTimestamp(true);
+
+    return `${floatSlug}_${size}_${ledStr}_${timeTag}`;
+}
+window.getStandardFloatFileBaseName = getStandardFloatFileBaseName;
+
 // Open interactive Save Float Modal with Duplicate File Checking and Rename Support
 function openSavePresetModal(suggestedName = null) {
     return new Promise((resolve) => {
@@ -13506,36 +13538,16 @@ function openSavePresetModal(suggestedName = null) {
             ? fleetRunners[activeSingleShirtRunnerSlot]
             : (DEFAULT_FLEET_ROSTER[activeSingleShirtRunnerSlot] || DEFAULT_FLEET_ROSTER[5]);
 
-        const timeTag = getFormattedTimestamp(false);
-        let baseFloatName = '';
+        const timeTag = getFormattedTimestamp(true);
+        const size = selectedPlateSize || 'medium';
+        const ledCount = (Array.isArray(leds) && leds.length > 0) ? leds.length : 75;
+
+        let defaultName = '';
         if (suggestedName && suggestedName.trim()) {
-            baseFloatName = suggestedName.trim().replace(/\s+\d{4}-\d{2}-\d{2}(?:[ _-]\d{2}[-:]\d{2}(?:[-:]\d{2})?)?.*$/i, '').trim();
+            defaultName = suggestedName.trim();
         } else {
-            const inputVal = (document.getElementById('profileNameInput')?.value || '').trim();
-            if (inputVal) {
-                baseFloatName = inputVal.replace(/\s+\d{4}-\d{2}-\d{2}(?:[ _-]\d{2}[-:]\d{2}(?:[-:]\d{2})?)?.*$/i, '').trim();
-            } else if (runner && runner.name) {
-                baseFloatName = runner.name;
-            } else if (currentGraphicType === 'title_drum') {
-                baseFloatName = 'The Drum';
-            } else if (currentGraphicType === 'pirate_ship' || currentGraphicType === 'pirateshipsimple' || currentGraphicType === 'cinderellas_coach') {
-                baseFloatName = "Pirate Ship";
-            } else if (currentGraphicType === 'spinning_turtle') {
-                baseFloatName = 'The Turtle';
-            } else if (currentGraphicType === 'spinning_snail') {
-                baseFloatName = 'The Snail';
-            } else if (currentGraphicType === 'honor_america_eagle') {
-                baseFloatName = 'Flag & Eagle';
-            } else if (currentGraphicType === 'casey_jr_train') {
-                baseFloatName = 'The Train';
-            } else {
-                baseFloatName = "Pete's Dragon";
-            }
+            defaultName = getStandardFloatFileBaseName({ size, ledCount, timeTag });
         }
-        if (!baseFloatName) {
-            baseFloatName = (runner && runner.name) ? runner.name : "Float";
-        }
-        const defaultName = `${baseFloatName} ${timeTag}`;
         if (document.getElementById('profileNameInput')) {
             document.getElementById('profileNameInput').value = defaultName;
         }
@@ -13560,8 +13572,9 @@ function openSavePresetModal(suggestedName = null) {
         if (cueBadge) cueBadge.textContent = `${sequenceCues.length} Theatrical Cues (${sequenceLoopDuration}s loop)`;
 
         const sanitizeFilename = (val) => {
-            const safe = (val || 'untitled').replace(/[^a-zA-Z0-9 _-]/g, '').trim().replace(/\s+/g, '_').toLowerCase();
-            return safe.endsWith('.json') ? safe : `${safe}.json`;
+            let safe = (val || 'untitled').replace(/[^a-zA-Z0-9 _-]/g, '').trim().replace(/\s+/g, '_').toLowerCase();
+            if (safe.endsWith('.json')) safe = safe.slice(0, -5);
+            return `${safe}.json`;
         };
 
         const updateFilenamePreview = () => {
@@ -14419,11 +14432,16 @@ function printAssemblyGuide() {
     };
     const floatTitle = floatTitles[currentGraphicType] || "Main Street Electrical Parade";
 
+    const pgBaseName = (typeof getStandardFloatFileBaseName === 'function')
+        ? getStandardFloatFileBaseName()
+        : `placement_guide_${currentGraphicType || 'float'}`;
+    const pgFilename = `${pgBaseName}_placement_guide.png`;
+
     const printWin = window.open('', '_blank', 'width=920,height=980');
     if (!printWin) {
         const a = document.createElement('a');
         a.href = dataUrl;
-        a.download = `MSEP_LED_Placement_Guide_${currentGraphicType || 'Float'}.png`;
+        a.download = pgFilename;
         a.click();
         showToast('📥 Downloaded LED placement sheet PNG!');
         return;
@@ -14459,7 +14477,7 @@ function printAssemblyGuide() {
 <body>
     <div class="no-print">
         <button class="btn btn-primary" onclick="window.print()">🖨️ Print to Paper / PDF</button>
-        <a class="btn btn-secondary" href="${dataUrl}" download="MSEP_LED_Placement_Guide_${currentGraphicType || 'Float'}.png">⬇️ Download PNG Image</a>
+        <a class="btn btn-secondary" href="${dataUrl}" download="${pgFilename}">⬇️ Download PNG Image</a>
     </div>
     <div class="header">
         <h1>${floatTitle} — LED Placement Guide</h1>
@@ -19182,27 +19200,21 @@ document.getElementById('presetSelect').addEventListener('change', async (e) => 
 
 // Export complete profile configuration JSON
 function exportCurrentProfileJson() {
+    const timeTag = getFormattedTimestamp(true);
+    const size = selectedPlateSize || 'medium';
+    const ledCount = (Array.isArray(leds) && leds.length > 0) ? leds.length : 75;
+    const saveName = getStandardFloatFileBaseName({ size, ledCount, timeTag });
+
     const nameInput = document.getElementById('profileNameInput');
-    const runner = (activeSingleShirtRunnerSlot !== null && activeSingleShirtRunnerSlot >= 0 && fleetRunners[activeSingleShirtRunnerSlot])
-        ? fleetRunners[activeSingleShirtRunnerSlot]
-        : (DEFAULT_FLEET_ROSTER[activeSingleShirtRunnerSlot] || DEFAULT_FLEET_ROSTER[5]);
-    const floatBaseName = (runner && runner.name) || (currentGraphicType === 'title_drum' ? "Title Drum" : (currentGraphicType === 'pirate_ship' || currentGraphicType === 'cinderellas_coach' ? "Pirate Ship" : "Pete's Dragon"));
-    const timeTag = getFormattedTimestamp(false);
-    let rawName = (nameInput?.value || '').trim();
-    let cleanBaseName = rawName.replace(/\s+\d{4}-\d{2}-\d{2}(?:[ _-]\d{2}[-:]\d{2}(?:[-:]\d{2})?)?.*$/i, '').trim();
-    if (!cleanBaseName || cleanBaseName === "Pete's Dragon 50 Outline") {
-        cleanBaseName = floatBaseName;
-    }
-    const enteredName = `${cleanBaseName} ${timeTag}`;
     if (nameInput) {
-        nameInput.value = enteredName;
+        nameInput.value = saveName;
     }
-    const profileData = buildCompletePresetData(enteredName);
+    const profileData = buildCompletePresetData(saveName);
 
     const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(profileData, null, 2));
     const dlAnchor = document.createElement('a');
     dlAnchor.setAttribute("href", dataStr);
-    const safeFilename = `${enteredName.toLowerCase().replace(/[^a-z0-9_-]/g, '_')}.json`;
+    const safeFilename = `${saveName}.json`;
     dlAnchor.setAttribute("download", safeFilename);
     dlAnchor.click();
     showToast(`⬇ Exported ${safeFilename} (${leds.length} LEDs, ${animationGroups.length} groups)`);
@@ -19211,17 +19223,21 @@ function exportCurrentProfileJson() {
 // Save Float button (Section 2 - Sidebar) saves directly to disk with instant feedback and fresh timestamp
 document.getElementById('saveProfileBtn')?.addEventListener('click', async () => {
     let rawName = (document.getElementById('profileNameInput')?.value || '').trim();
-    let baseName = rawName.replace(/\s+\d{4}-\d{2}-\d{2}(?:[ _-]\d{2}[-:]\d{2}(?:[-:]\d{2})?)?.*$/i, '').trim();
-    if (!baseName) {
-        const runner = (activeSingleShirtRunnerSlot !== null && activeSingleShirtRunnerSlot >= 0 && fleetRunners[activeSingleShirtRunnerSlot])
-            ? fleetRunners[activeSingleShirtRunnerSlot]
-            : (DEFAULT_FLEET_ROSTER[activeSingleShirtRunnerSlot] || DEFAULT_FLEET_ROSTER[5]);
-        baseName = runner ? runner.name : "Pete's Dragon";
+    const timeTag = getFormattedTimestamp(true);
+    const size = selectedPlateSize || 'medium';
+    const ledCount = (Array.isArray(leds) && leds.length > 0) ? leds.length : 75;
+
+    let saveName = getStandardFloatFileBaseName({ size, ledCount, timeTag });
+    if (rawName && rawName !== "Pete's Dragon 50 Outline") {
+        let cleanBase = rawName.replace(/\s+\d{4}-\d{2}-\d{2}(?:[ _-]\d{2}[-:]\d{2}(?:[-:]\d{2})?)?.*$/i, '').trim();
+        cleanBase = cleanBase.replace(/_(small|medium|large)(_\d+leds?)?_\d{4}-\d{2}-\d{2}_\d{2}-\d{2}$/i, '').trim();
+        if (cleanBase && !cleanBase.toLowerCase().includes('untitled') && !cleanBase.toLowerCase().includes('default')) {
+            const floatSlug = cleanBase.toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '');
+            if (floatSlug) {
+                saveName = `${floatSlug}_${size}_${ledCount}led_${timeTag}`;
+            }
+        }
     }
-    
-    // Always generate fresh date & time tag for every save
-    const timeTag = getFormattedTimestamp(false);
-    const saveName = `${baseName} ${timeTag}`;
     
     const saveBtn = document.getElementById('saveProfileBtn');
     if (saveBtn) {
@@ -21829,24 +21845,21 @@ function updateTpuDownloadButtons() {
     const v = tpuActiveVariant || 'front';
     const ts = Date.now();
     const timeTag = (typeof getFormattedTimestamp === 'function') ? getFormattedTimestamp(true) : new Date().toISOString().slice(0, 16).replace(/[:T]/g, '_');
-    
-    // Determine float slug from active runner or graphic type
-    let floatSlug = 'costume';
-    if (activeSingleShirtRunnerSlot !== null && activeSingleShirtRunnerSlot >= 0 && fleetRunners[activeSingleShirtRunnerSlot]) {
-        const rName = fleetRunners[activeSingleShirtRunnerSlot].name || '';
-        floatSlug = rName.toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '');
-    } else if (currentGraphicType) {
-        floatSlug = currentGraphicType.toLowerCase().replace(/[^a-z0-9]+/g, '_');
-    }
-    if (!floatSlug) floatSlug = 'float';
+    const size = selectedPlateSize || 'medium';
+    const ledCount = (Array.isArray(leds) && leds.length > 0) ? leds.length : 75;
+
+    // Standardized naming convention: <float_name>_<size>_<leds>_<date>_<time> (strictly omitting front/back)
+    const baseName = (typeof getStandardFloatFileBaseName === 'function')
+        ? getStandardFloatFileBaseName({ size, ledCount, timeTag })
+        : `float_${size}_${ledCount}led_${timeTag}`;
 
     if (tpuExportMode === 'multi') {
-        const bundleFilename = `${floatSlug}_${v}_${timeTag}_multicolor_bundle.zip`;
-        const projectFilename = `${floatSlug}_${v}_${timeTag}_multicolor.3mf`;
-        const lidFilename = `${floatSlug}_${v}_${timeTag}_lid.stl`;
+        const bundleFilename = `${baseName}.zip`;
+        const projectFilename = `${baseName}.3mf`;
+        const lidFilename = `${baseName}_lid.stl`;
 
         let individualOptions = `<option value="">⬇️ Individual STLs...</option>`;
-        const blackChassisFilename = `${floatSlug}_${v}_${timeTag}_chassis_black.stl`;
+        const blackChassisFilename = `${baseName}_chassis_black.stl`;
         individualOptions += `<option value="/3d_panels/tpu_panel_${v}_chassis_black.stl" data-download="${blackChassisFilename}">1. Black Chassis STL</option>`;
 
         let activeInlays = [];
@@ -21867,7 +21880,7 @@ function updateTpuDownloadButtons() {
 
         activeInlays.forEach((inl, idx) => {
             const serverPath = inl.filename ? inl.filename.replace(/tpu_panel_(front|back)_/, `tpu_panel_${v}_`) : `tpu_panel_${v}_color_${inl.key}.stl`;
-            const customDlName = `${floatSlug}_${v}_${timeTag}_${inl.key}.stl`;
+            const customDlName = `${baseName}_${inl.key}.stl`;
             individualOptions += `<option value="/3d_panels/${serverPath}" data-download="${customDlName}">${idx + 2}. ${inl.name} STL</option>`;
         });
         individualOptions += `<option value="/3d_panels/tpu_panel_${v}_lid.stl" data-download="${lidFilename}">🛡️ Rear Cover Lid (2.0mm Plate)</option>`;
@@ -21889,11 +21902,11 @@ function updateTpuDownloadButtons() {
             </div>
         `;
     } else {
-        const monoFilename = `${floatSlug}_${v}_${timeTag}_monolithic.stl`;
-        const lidFilename = `${floatSlug}_${v}_${timeTag}_lid.stl`;
+        const monoFilename = `${baseName}.stl`;
+        const lidFilename = `${baseName}_lid.stl`;
         container.innerHTML = `
             <a href="/3d_panels/tpu_panel_${v}.stl?t=${ts}" download="${monoFilename}" class="action-btn primary" style="padding: 6px 14px; font-size: 11px; color: #58a6ff; border-color: #388bfd; text-decoration: none; display: inline-flex; align-items: center; gap: 4px;" title="Download monolithic single black STL">
-                ⬇️ Download ${v.toUpperCase()} STL
+                ⬇️ Download STL
             </a>
             <a href="/3d_panels/tpu_panel_${v}_lid.stl?t=${ts}" download="${lidFilename}" class="action-btn" style="padding: 6px 11px; font-size: 11px; color: #a371f7; border-color: #8957e5; text-decoration: none; display: inline-flex; align-items: center; gap: 4px;" title="Download 2.0mm rear cover lid with alignment ridge and M2 screw holes">
                 🛡️ Rear Lid STL
@@ -22624,9 +22637,15 @@ window.switchTpuDisplayMode = switchTpuDisplayMode;
 
 function downloadBothTpuStls() {
     const ts = Date.now();
+    const size = selectedPlateSize || 'medium';
+    const ledCount = (Array.isArray(leds) && leds.length > 0) ? leds.length : 75;
+    const baseName = (typeof getStandardFloatFileBaseName === 'function')
+        ? getStandardFloatFileBaseName({ size, ledCount })
+        : `float_${size}_${ledCount}led`;
+
     const a1 = document.createElement('a');
     a1.href = `/3d_panels/tpu_panel_front.stl?t=${ts}`;
-    a1.download = 'tpu_panel_front.stl';
+    a1.download = `${baseName}.stl`;
     document.body.appendChild(a1);
     a1.click();
     document.body.removeChild(a1);
@@ -22634,11 +22653,11 @@ function downloadBothTpuStls() {
     setTimeout(() => {
         const a2 = document.createElement('a');
         a2.href = `/3d_panels/tpu_panel_back.stl?t=${ts}`;
-        a2.download = 'tpu_panel_back.stl';
+        a2.download = `${baseName}_back.stl`;
         document.body.appendChild(a2);
         a2.click();
         document.body.removeChild(a2);
-        showToast('📦 Downloading both Front & Back TPU STLs!');
+        showToast('📦 Downloading TPU STLs!');
     }, 400);
 }
 window.downloadBothTpuStls = downloadBothTpuStls;

@@ -276,7 +276,10 @@ class SimulatorRequestHandler(http.server.SimpleHTTPRequestHandler):
 
             # Sanitize filename
             safe_name = "".join(c for c in raw_name if c.isalnum() or c in (' ', '_', '-')).rstrip()
-            safe_name = safe_name.replace(" ", "_").lower() + ".json"
+            safe_name = safe_name.replace(" ", "_").lower()
+            if safe_name.endswith(".json"):
+                safe_name = safe_name[:-5]
+            safe_name = safe_name + ".json"
             
             filepath = os.path.join(PRESETS_DIR, safe_name)
             if os.path.exists(filepath) and not allow_overwrite:

@@ -93,6 +93,30 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### 2026-10-15 09:34 - Unified Float & 3D File Naming Convention (`<float_name>_<size>_<leds>_<date>_<time>`)
+- **Established Standardized File Naming Architecture Across All Float & 3D Exports:**
+  - Implemented `getStandardFloatFileBaseName(options)` in `simulator/app.js` enforcing the uniform naming syntax:
+    $$\text{<float\_name>}\_\text{<size>}\_\text{<led\_count>led}\_\text{<date>}\_\text{<time>}.\text{<ext>}$$
+  - **Omission of Front / Back Descriptors:** Strictly eliminated `_front_` and `_back_` substrings from file basenames across 3D model downloads and float file saves, preventing confusing duplicates when saving interchangeable fleet files.
+  - **Embedded Parameters:**
+    1. **Float Name:** Normalized lowercase snake_case slug (e.g., `the_turtle`, `petes_dragon`, `the_train`, `title_drum`, `the_snail`, `pirate_ship`, `flag_and_eagle`).
+    2. **Size:** Explicit chassis plate size category (`small`, `medium`, `large`).
+    3. **LED Count:** Exact active canvas pixel count formatted as `<count>led` (e.g., `100led`, `75led`).
+    4. **Date & Time:** Timestamp formatted as `YYYY-MM-DD_HH-MM` (e.g., `2026-10-15_09-25`).
+- **Synchronized Export & Save Handlers:**
+  - **3D Preview Downloads (`updateTpuDownloadButtons`):**
+    - Multi-Color Bundle ZIP: `<float_name>_<size>_<leds>_<date>_<time>.zip`
+    - Bambu Lab Project: `<float_name>_<size>_<leds>_<date>_<time>.3mf`
+    - Monolithic Black STL: `<float_name>_<size>_<leds>_<date>_<time>.stl`
+    - Rear Cover Lid STL: `<float_name>_<size>_<leds>_<date>_<time>_lid.stl`
+    - Split Inlay STLs: `<float_name>_<size>_<leds>_<date>_<time>_<part>.stl`
+  - **Preset Save & Export (`openSavePresetModal`, `saveProfileBtn`, `exportCurrentProfileJson`):**
+    - Modal suggestions, disk filename previews, and exported JSON files default to `<float_name>_<size>_<leds>_<date>_<time>.json`.
+  - **Vector Cutting & Placement Guides:**
+    - Cricut SVGs and LED placement guide PNGs format with matching standardized base identifiers.
+  - **Backend Sanitization (`simulator.py`):** Cleaned `handle_save_preset` to strip redundant `.json` extensions before disk persistence.
+  - **Cache Busting:** Bumped script cache buster in `simulator/index.html` to `app.js?v=104`.
+
 ### 2026-10-15 09:22 - 3D Preview LED Visualization Alignment: Clean Optical Aperture Lights (Eliminated Extraneous Pocket Squares)
 - **Diagnosed Extraneous Green Squares in 3D Preview Modal (`createTpuLedPixels`):**
   - In a previous commit, secondary `pocketChipGeom = new THREE.PlaneGeometry(3.6, 3.6)` square meshes were placed at `-stlCenter.z + 1.8` inside each underside collar pocket.
