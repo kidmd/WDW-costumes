@@ -93,6 +93,15 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### 2026-10-15 10:50 - SWIFTVEST Locking Strap Clip: Z-Axis Screw Alignment & Anti-Slip Tunnel Architecture
+- **Resolved Critical Engineering Feedback:**
+  1. *Screw Hole Orientation:* In the previous CAD model, the mounting hole was extruded parallel to the webbing channel (90° off). Corrected the orientation in `scripts/generate_locking_clip.py` so the screw through-hole passes perpendicularly through the clip's mounting flange in the $Z$-axis, driving directly into the back of the costume plate / eyelet tab.
+  2. *Race-Day Strap Slippage Prevention:* Replaced open C-jaws with a **100% enclosed retention tunnel** featuring a rigid overhanging roof and a $0.9\text{ mm}$ undercut retention lip. Added **dual internal $0.8\text{ mm}$ friction ribs** that bite into the woven texture of the $20\text{--}22\text{ mm}$ nylon webbing, preventing the plate from sliding vertically during running strides.
+- **Exported `swiftvest_locking_strap_clip.stl`:** Sized at $24.0 \times 26.0 \times 6.8\text{ mm}$ ($2.00\text{ cm}^3$, $\sim 2.5\text{g}$ PLA), 100% watertight.
+- **Updated Interactive 3D Web Visualizer (`simulator/swiftvest_assembly_viewer.html`):**
+  - Displays the M2 screw driving straight along the Z-axis into the plate boss.
+  - Interactive "⚡ Animate: Insert Webbing Through Locking Tunnel" button demonstrating strap capture.
+
 ### 2026-10-15 10:42 - SWIFTVEST Macro Coin Scale 3D Inspector & Clean STL Assembly (Eliminated Vest Dummy Slabs)
 - **Diagnosed STL Viewer Confusion:**
   - Realized that because standard STL files lack color, the $280\text{ mm}$ dummy fabric strap mockups in `swiftvest_front_assembly_preview.stl` merged into solid grey plastic slabs, giving the false illusion of a massive $280\text{ mm}$ bracket.
