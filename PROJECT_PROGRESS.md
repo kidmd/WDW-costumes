@@ -93,6 +93,13 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### 2026-10-15 10:22 - SWIFTVEST 3D Assembly Viewer Script Bug Fix & Camera Recalibration
+- **Diagnosed and Resolved Blank Viewport Bug in `simulator/swiftvest_assembly_viewer.html`:**
+  - Identified a JavaScript parse error in `toggleExploded()` (`SyntaxError: Invalid left-hand side in assignment` caused by an inline default assignment typo in `Math.min(elapsed / duration = 400, 1.0)`).
+  - Verified JavaScript engine syntax cleanliness with `node -c`.
+  - Recalibrated Three.js camera position from a steep $+60^\circ$ bottom-up angle `(145, -280, 240)` to an optimal straight-on front chest elevation `(145, 120, 480)`, centering the vest, plate, and mounting clips immediately in view on page load.
+  - Enhanced directional and back-fill lighting for high contrast between the blue harness, gold right hinges, red left latches, and dark gray chest plate.
+
 ### 2026-10-15 10:16 - SWIFTVEST + 3D Plate Full Assembly Preview & Interactive 3D Kinematics Viewer
 - **Built Interactive 3D Web Visualizer (`simulator/swiftvest_assembly_viewer.html`):**
   - Engineered a standalone Three.js browser inspector providing 360° orbital rotation, zoom, dynamic lighting, and real-time kinematic simulation.
