@@ -93,6 +93,15 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### 2026-10-15 10:04 - SWIFTVEST 3D-Printable Mounting Hardware Generation (Watertight STLs)
+- **Engineered & Exported 4 Custom 3D Mounting Components (`scripts/generate_swiftvest_mounts.py`):**
+  - Built a dedicated Python CAD generator using `manifold3d` and `trimesh` producing 100% watertight STL files in `3d_panels/`:
+    1. **`swiftvest_hinge_clamp_right.stl` ($3.44\text{ cm}^3$, $\sim 4.3\text{g}$ PLA):** Captive right shoulder strap hinge clamp with $22.0 \times 3.0\text{ mm}$ webbing channel, $1.4\text{ mm}$ entry gate, M2.5 mounting through-hole, and nut counterbore. Keeps front plate permanently anchored to the right strap, pivoting freely.
+    2. **`swiftvest_quick_latch_left.stl` ($2.59\text{ cm}^3$, $\sim 3.2\text{g}$ PLA):** Left shoulder strap quick-release latch with dual $3.5\text{ mm}$ cantilever flexure arms, $45^\circ$ snap lead-in ramp, positive retention tooth, and textured thumb paddle for instant one-handed release.
+    3. **`swiftvest_bungee_anchor_hook.stl` ($0.96\text{ cm}^3$, $\sim 1.2\text{g}$ PLA):** Low-profile corner hook with radiused $3.8\text{ mm}$ channel and retention lip for $2.5\text{--}3.0\text{ mm}$ elastic shock cord on the rear mesh plate.
+    4. **`swiftvest_cord_lock_slide.stl` ($0.77\text{ cm}^3$, $\sim 1.0\text{g}$ PLA):** Dual-hole friction cord cinch with side grip scallops for hardware-free bungee tensioning.
+  - Verified watertight geometry across all 4 models and updated the vest mounting guide.
+
 ### 2026-10-15 09:58 - SWIFTVEST Running Vest Plate Attachment & Battery Routing Guide
 - **Authored Comprehensive Vest Integration Guide (`3d_panels/SWIFTVEST_ATTACHMENT_GUIDE.md`):**
   - Designed the mechanical mounting architecture for attaching the $240.4 \times 212.4 \times 10.0\text{ mm}$ rigid PLA front and back costume panels to the **SWIFTVEST running vest** ([Amazon ASIN B0CGPYLG6H](https://www.amazon.com/dp/B0CGPYLG6H)) for the WDW 10K.
