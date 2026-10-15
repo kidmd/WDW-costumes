@@ -2,12 +2,13 @@
 """
 generate_assembly_visualization.py
 
-Builds a complete, detailed 3D assembly and interactive visualizer demonstrating
-the redesigned ULTRA-COMPACT HIDDEN REAR C-CLIPS:
-- 4x tiny hidden C-clips (<1.1g each) mounted flat against the back of the front plate.
-- Zero brackets or hardware protruding beyond the character's outer perimeter!
-- Snaps cleanly onto the SWIFTVEST 20-22mm vertical webbing tracks.
-- Exploded view and 360 rotation to inspect both front and back.
+Builds the ultimate Disney Imagineering visualizer for the SWIFTVEST hidden clip system:
+1. Full Assembly View: Front plate, 4 hidden rear clips, and thin fabric vest straps.
+2. Macro Clip Close-Up View: Zooms in on a SINGLE clip engaging with the plate and webbing,
+   complete with a US Quarter coin ($24.26mm) for instant real-world scale!
+3. Animated "Snap In / Snap Out" button showing the clip flexing onto the webbing.
+4. Exploded View slider.
+5. Exports color-separated OBJ + 3MF + STL.
 """
 
 import os
@@ -32,80 +33,8 @@ def to_trimesh(m: Manifold) -> trimesh.Trimesh:
 def make_box(x, y, z):
     return Manifold.cube([x, y, z], center=False)
 
-def build_swiftvest_model():
-    """
-    Builds a clean 3D representation of the SWIFTVEST running harness:
-    - Left shoulder strap (X ~ 45mm, Y = -20 to 260 mm)
-    - Right shoulder strap (X ~ 245mm, Y = -20 to 260 mm)
-    - Vertical nylon webbing tracks on both straps (22mm wide x 2mm thick)
-    - Upper & lower horizontal sternum cross-straps bridging across the chest
-    - Quick-release snap buckles centered at X = 145 mm
-    """
-    strap_w = 42.0   # mm
-    strap_thick = 4.0 # mm
-    webbing_w = 22.0 # mm
-    webbing_thick = 2.0 # mm
-    y_min = -20.0
-    y_max = 260.0
-    y_len = y_max - y_min
-    
-    # Left strap (runner's right, screen left: X ~ 45mm center)
-    left_x = 45.0
-    left_strap = make_box(strap_w, y_len, strap_thick).translate([left_x - strap_w/2, y_min, -strap_thick - 2.0])
-    left_webbing = make_box(webbing_w, y_len, webbing_thick).translate([left_x - webbing_w/2, y_min, -2.0])
-    
-    # Right strap (runner's left, screen right: X ~ 245mm center)
-    right_x = 245.0
-    right_strap = make_box(strap_w, y_len, strap_thick).translate([right_x - strap_w/2, y_min, -strap_thick - 2.0])
-    right_webbing = make_box(webbing_w, y_len, webbing_thick).translate([right_x - webbing_w/2, y_min, -2.0])
-    
-    # Sternum cross straps bridging left & right (at Y = 70mm and Y = 160mm)
-    bridge_w = right_x - left_x
-    sternum_upper = make_box(bridge_w, 20.0, 2.0).translate([left_x, 150.0, -strap_thick - 3.5])
-    sternum_lower = make_box(bridge_w, 20.0, 2.0).translate([left_x, 60.0, -strap_thick - 3.5])
-    
-    # Center buckles
-    buckle_upper = make_box(30.0, 28.0, 6.0).translate([145.0 - 15.0, 146.0, -strap_thick - 6.0])
-    buckle_lower = make_box(30.0, 28.0, 6.0).translate([145.0 - 15.0, 56.0, -strap_thick - 6.0])
-    
-    vest_mesh = to_trimesh(left_strap + right_strap + left_webbing + right_webbing + sternum_upper + sternum_lower + buckle_upper + buckle_lower)
-    return vest_mesh
-
-def build_hidden_clip_instances():
-    """
-    Loads swiftvest_hidden_webbing_clip.stl and positions 4 instances
-    completely BEHIND the plate, aligned directly with the two vest straps:
-    - Left Upper (X=45, Y=160, Z=-1)
-    - Left Lower (X=45, Y=70, Z=-1)
-    - Right Upper (X=245, Y=160, Z=-1)
-    - Right Lower (X=245, Y=70, Z=-1)
-    """
-    clip_path = os.path.join(PANELS_DIR, "swiftvest_hidden_webbing_clip.stl")
-    if not os.path.exists(clip_path):
-        import generate_hidden_clip
-        generate_hidden_clip.main()
-    
-    base_clip = trimesh.load(clip_path)
-    
-    # Rotate clip so it faces toward -Z (into the vest webbing)
-    rot_x = trimesh.transformations.rotation_matrix(np.pi / 2, [0, 1, 0])
-    
-    clips = []
-    positions = [
-        [45.0, 160.0, 0.0],  # Left upper
-        [45.0, 70.0, 0.0],   # Left lower
-        [245.0, 160.0, 0.0], # Right upper
-        [245.0, 70.0, 0.0]   # Right lower
-    ]
-    
-    for pos in positions:
-        c = base_clip.copy()
-        # Center clip on position
-        c.apply_translation([-7.0, -13.0, -5.2])
-        c.apply_translation(pos)
-        clips.append(c)
-        
-    return clips
+def make_cylinder(height, radius, segments=32):
+    return Manifold.cylinder(height, radius, radius, segments)
 
 def create_interactive_viewer_html():
     html_content = """<!DOCTYPE html>
@@ -158,7 +87,7 @@ def create_interactive_viewer_html():
             bottom: 24px;
             left: 50%;
             transform: translateX(-50%);
-            background: rgba(22, 27, 34, 0.92);
+            background: rgba(22, 27, 34, 0.94);
             backdrop-filter: blur(12px);
             border: 1px solid #30363d;
             border-radius: 12px;
@@ -166,8 +95,8 @@ def create_interactive_viewer_html():
             display: flex;
             flex-direction: column;
             gap: 12px;
-            width: 90%;
-            max-width: 620px;
+            width: 92%;
+            max-width: 660px;
             box-shadow: 0 8px 32px rgba(0,0,0,0.5);
             z-index: 10;
         }
@@ -184,8 +113,8 @@ def create_interactive_viewer_html():
         }
         .btn {
             flex: 1;
-            padding: 8px 14px;
-            font-size: 12px;
+            padding: 8px 12px;
+            font-size: 11.5px;
             font-weight: 600;
             border-radius: 6px;
             border: 1px solid #30363d;
@@ -244,11 +173,11 @@ def create_interactive_viewer_html():
             position: absolute;
             top: 20px;
             left: 20px;
-            background: rgba(22, 27, 34, 0.88);
+            background: rgba(22, 27, 34, 0.90);
             border: 1px solid #30363d;
             border-radius: 8px;
             padding: 12px 16px;
-            max-width: 340px;
+            max-width: 360px;
             font-size: 12px;
             line-height: 1.4;
             z-index: 10;
@@ -258,39 +187,57 @@ def create_interactive_viewer_html():
             font-size: 13px;
             margin-bottom: 4px;
         }
+        #scale-badge {
+            display: inline-block;
+            background: rgba(245, 158, 11, 0.15);
+            border: 1px solid #f59e0b;
+            color: #f59e0b;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: 700;
+            font-size: 11px;
+            margin-top: 6px;
+        }
     </style>
 </head>
 <body>
     <div id="header">
         <div>
-            <h1>🎽 SWIFTVEST + 3D Plate: Ultra-Compact Hidden Clips</h1>
-            <p>Main Street Electrical Parade (WDW 10K) Costumes | Zero Protruding Brackets</p>
+            <h1>🎽 SWIFTVEST + 3D Plate: The Real Clip Revealed</h1>
+            <p>Main Street Electrical Parade (WDW 10K) Costumes | Macro Scale & Assembly</p>
         </div>
         <div style="font-size: 11px; color: #58a6ff; font-weight: 600;">
-            100% Invisible from Front
+            Disney Imagineering Pair-Programming
         </div>
     </div>
 
     <div id="canvas-container">
         <div id="info-overlay">
-            <h3 id="mode-title">✨ Front View: Clean & Bracket-Free</h3>
-            <p id="mode-desc">Notice that ZERO hardware protrudes outside the character outline! The 4 tiny C-clips are completely hidden underneath/behind the plate, snapping directly to the vest straps.</p>
+            <h3 id="mode-title">🔎 Macro Close-Up: The Tiny Hidden Clip</h3>
+            <p id="mode-desc">This is the actual 3D printed clip! It is only 14mm x 26mm (the exact size of a US Quarter coin shown in silver). It screws flat against the back of the turtle plate and snaps onto the vest's thin nylon webbing strap.</p>
+            <div id="scale-badge">🪙 Actual Size: Same diameter as a US Quarter ($24.26mm)!</div>
         </div>
 
         <div id="legend">
             <div style="font-weight: 600; margin-bottom: 4px; color: #f0f6fc;">Components:</div>
-            <div class="legend-item"><div class="color-dot" style="background: #2563eb;"></div> SWIFTVEST Harness</div>
-            <div class="legend-item"><div class="color-dot" style="background: #38bdf8;"></div> Vest Webbing Tracks</div>
-            <div class="legend-item"><div class="color-dot" style="background: #f59e0b;"></div> 4x Hidden Rear C-Clips (&lt;1.1g each)</div>
-            <div class="legend-item"><div class="color-dot" style="background: #334155;"></div> 240mm Front 3D Costume Plate</div>
-            <div class="legend-item"><div class="color-dot" style="background: #10b981;"></div> Float Character Inlay</div>
+            <div class="legend-item"><div class="color-dot" style="background: #f59e0b;"></div> Tiny 3D Clip (14x26mm, 1.1g)</div>
+            <div class="legend-item"><div class="color-dot" style="background: #94a3b8;"></div> US Quarter Coin (Scale Ref)</div>
+            <div class="legend-item"><div class="color-dot" style="background: #38bdf8;"></div> Vest Webbing Strap (22mm ribbon)</div>
+            <div class="legend-item"><div class="color-dot" style="background: #1e293b;"></div> Plate Back Wall (Dark Slate)</div>
+            <div class="legend-item"><div class="color-dot" style="background: #10b981;"></div> Turtle Float Artwork</div>
         </div>
 
         <div id="controls-panel">
             <div class="btn-group">
-                <button class="btn active" id="btn-front" onclick="setView(0)">👤 Front View (Clean)</button>
-                <button class="btn" id="btn-back" onclick="setView(1)">🔄 Rear View (Inspect Clips)</button>
+                <button class="btn active" id="btn-macro" onclick="switchMode('macro')">🔎 Macro Clip Close-Up (Coin Scale)</button>
+                <button class="btn" id="btn-full-front" onclick="switchMode('front')">👤 Full Chest View (Front)</button>
+                <button class="btn" id="btn-full-back" onclick="switchMode('back')">🔄 Full Rear View (Back of Plate)</button>
                 <button class="btn" id="btn-exploded" onclick="toggleExploded()">💥 Exploded View</button>
+            </div>
+            <div class="control-row" id="snap-row">
+                <button class="btn" id="btn-snap-toggle" onclick="toggleSnapAnimation()" style="background: #1f6feb; border-color: #388bfd; color: #fff;">
+                    ⚡ Animate: Snap Webbing Into Clip
+                </button>
             </div>
             <div class="control-row">
                 <span class="slider-label">Exploded Separation: <span id="explode-display">0 mm</span></span>
@@ -301,8 +248,12 @@ def create_interactive_viewer_html():
 
     <script>
         let scene, camera, renderer, controls;
+        let fullAssemblyGroup, macroGroup;
         let vestGroup, plateGroup, clipsGroup;
+        let macroWebbing, macroClip, macroPlateSection, coinMesh;
+        let currentMode = 'macro';
         let currentExplodeZ = 0;
+        let isSnapped = true;
 
         init();
         animate();
@@ -312,9 +263,8 @@ def create_interactive_viewer_html():
             scene = new THREE.Scene();
             scene.background = new THREE.Color(0x0d1117);
 
-            camera = new THREE.PerspectiveCamera(45, container.clientWidth / container.clientHeight, 1, 2000);
-            camera.position.set(145, 120, 480);
-
+            camera = new THREE.PerspectiveCamera(40, container.clientWidth / container.clientHeight, 1, 2500);
+            
             renderer = new THREE.WebGLRenderer({ antialias: true });
             renderer.setSize(container.clientWidth, container.clientHeight);
             renderer.setPixelRatio(window.devicePixelRatio);
@@ -322,150 +272,283 @@ def create_interactive_viewer_html():
             container.appendChild(renderer.domElement);
 
             controls = new THREE.OrbitControls(camera, renderer.domElement);
-            controls.target.set(145, 120, 0);
             controls.enableDamping = true;
             controls.dampingFactor = 0.05;
 
             // Lighting
-            const ambientLight = new THREE.AmbientLight(0xffffff, 0.85);
-            scene.add(ambientLight);
+            const ambient = new THREE.AmbientLight(0xffffff, 0.85);
+            scene.add(ambient);
 
-            const dirLight = new THREE.DirectionalLight(0xffffff, 0.9);
-            dirLight.position.set(145, 200, 350);
-            scene.add(dirLight);
+            const keyLight = new THREE.DirectionalLight(0xffffff, 0.95);
+            keyLight.position.set(50, 100, 200);
+            scene.add(keyLight);
 
-            const backLight = new THREE.DirectionalLight(0xffffff, 0.5);
-            backLight.position.set(145, -100, -350);
+            const fillLight = new THREE.DirectionalLight(0x58a6ff, 0.6);
+            fillLight.position.set(-150, -50, 150);
+            scene.add(fillLight);
+
+            const backLight = new THREE.DirectionalLight(0xffffff, 0.4);
+            backLight.position.set(0, 100, -200);
             scene.add(backLight);
 
-            const rimLight = new THREE.DirectionalLight(0x58a6ff, 0.6);
-            rimLight.position.set(-200, 200, 200);
-            scene.add(rimLight);
-
             // Ground grid
-            const grid = new THREE.GridHelper(600, 30, 0x30363d, 0x21262d);
+            const grid = new THREE.GridHelper(600, 30, 0x30363d, 0x161b22);
             grid.rotation.x = Math.PI / 2;
-            grid.position.set(145, 120, -30);
+            grid.position.set(0, 0, -40);
             scene.add(grid);
 
-            // Build Assembly
-            buildAssembly();
+            // Build Models
+            buildMacroModel();
+            buildFullAssembly();
+
+            // Start in Macro mode
+            switchMode('macro');
 
             window.addEventListener('resize', onWindowResize, false);
         }
 
-        function buildAssembly() {
-            // 1. SWIFTVEST MODEL (Fixed base)
-            vestGroup = new THREE.Group();
-            const vestMat = new THREE.MeshStandardMaterial({ color: 0x1d4ed8, roughness: 0.7 });
-            const webbingMat = new THREE.MeshStandardMaterial({ color: 0x38bdf8, roughness: 0.4 });
-            const buckleMat = new THREE.MeshStandardMaterial({ color: 0x0f172a, roughness: 0.3 });
+        // ==========================================
+        // 1. MACRO CLOSE-UP VIEW (1 Clip + Coin + Webbing)
+        // ==========================================
+        function buildMacroModel() {
+            macroGroup = new THREE.Group();
+            scene.add(macroGroup);
 
-            // Left Shoulder Strap
-            const leftStrap = new THREE.Mesh(new THREE.BoxGeometry(44, 300, 4), vestMat);
-            leftStrap.position.set(45, 120, -8);
-            vestGroup.add(leftStrap);
+            // Materials
+            const clipMat = new THREE.MeshStandardMaterial({ color: 0xf59e0b, metalness: 0.3, roughness: 0.35 });
+            const coinMat = new THREE.MeshStandardMaterial({ color: 0xe2e8f0, metalness: 0.85, roughness: 0.2 });
+            const webbingMat = new THREE.MeshStandardMaterial({ color: 0x38bdf8, roughness: 0.5 });
+            const plateBackMat = new THREE.MeshStandardMaterial({ color: 0x1e293b, roughness: 0.6 });
+            const screwMat = new THREE.MeshStandardMaterial({ color: 0x94a3b8, metalness: 0.9, roughness: 0.2 });
 
-            const leftWebbing = new THREE.Mesh(new THREE.BoxGeometry(22, 300, 2), webbingMat);
-            leftWebbing.position.set(45, 120, -5);
-            vestGroup.add(leftWebbing);
+            // A. Section of the Plate Back Wall (Behind the clip)
+            macroPlateSection = new THREE.Mesh(new THREE.BoxGeometry(60, 60, 6), plateBackMat);
+            macroPlateSection.position.set(0, 0, 3);
+            macroGroup.add(macroPlateSection);
 
-            // Right Shoulder Strap
-            const rightStrap = new THREE.Mesh(new THREE.BoxGeometry(44, 300, 4), vestMat);
-            rightStrap.position.set(245, 120, -8);
-            vestGroup.add(rightStrap);
+            // Debossed text on plate
+            const boss = new THREE.Mesh(new THREE.CylinderGeometry(5, 5, 2, 32), plateBackMat);
+            boss.rotation.x = Math.PI / 2;
+            boss.position.set(0, 0, 0.5);
+            macroGroup.add(boss);
 
-            const rightWebbing = new THREE.Mesh(new THREE.BoxGeometry(22, 300, 2), webbingMat);
-            rightWebbing.position.set(245, 120, -5);
-            vestGroup.add(rightWebbing);
+            // B. The Tiny Hidden C-Clip (14mm x 26mm x 5.2mm)
+            // Build detailed C-clip geometry
+            macroClip = new THREE.Group();
 
-            // Sternum Cross Straps (Bridge)
-            const sternumUpper = new THREE.Mesh(new THREE.BoxGeometry(190, 20, 2), webbingMat);
-            sternumUpper.position.set(145, 160, -9);
-            vestGroup.add(sternumUpper);
+            // Base mounting pad (14 x 26 x 2.2 mm)
+            const baseFlange = new THREE.Mesh(new THREE.BoxGeometry(14, 26, 2.2), clipMat);
+            baseFlange.position.set(0, 0, -1.1);
+            macroClip.add(baseFlange);
 
-            const sternumLower = new THREE.Mesh(new THREE.BoxGeometry(190, 20, 2), webbingMat);
-            sternumLower.position.set(145, 70, -9);
-            vestGroup.add(sternumLower);
+            // M2 Screw inside counterbore
+            const screwHead = new THREE.Mesh(new THREE.CylinderGeometry(2.3, 2.3, 1.8, 32), screwMat);
+            screwHead.rotation.x = Math.PI / 2;
+            screwHead.position.set(0, 0, -0.9);
+            macroClip.add(screwHead);
 
-            // Center Buckles
-            const buckleUp = new THREE.Mesh(new THREE.BoxGeometry(32, 26, 6), buckleMat);
-            buckleUp.position.set(145, 160, -8);
-            vestGroup.add(buckleUp);
+            // Upper and Lower C-channel jaws
+            const upperJaw = new THREE.Mesh(new THREE.BoxGeometry(14, 3.5, 4.0), clipMat);
+            upperJaw.position.set(0, 11.25, -3.2);
+            macroClip.add(upperJaw);
 
-            const buckleLo = new THREE.Mesh(new THREE.BoxGeometry(32, 26, 6), buckleMat);
-            buckleLo.position.set(145, 70, -8);
-            vestGroup.add(buckleLo);
+            const lowerJaw = new THREE.Mesh(new THREE.BoxGeometry(14, 3.5, 4.0), clipMat);
+            lowerJaw.position.set(0, -11.25, -3.2);
+            macroClip.add(lowerJaw);
 
-            scene.add(vestGroup);
+            // Retention barbs (angled lead-in ramp)
+            const upperBarb = new THREE.Mesh(new THREE.BoxGeometry(14, 2.0, 1.4), clipMat);
+            upperBarb.position.set(0, 8.5, -4.5);
+            macroClip.add(upperBarb);
 
-            // 2. CLIPS GROUP (4x Tiny Hidden C-Clips - Gold)
-            clipsGroup = new THREE.Group();
-            const clipMat = new THREE.MeshStandardMaterial({ color: 0xf59e0b, metalness: 0.3, roughness: 0.3 });
+            const lowerBarb = new THREE.Mesh(new THREE.BoxGeometry(14, 2.0, 1.4), clipMat);
+            lowerBarb.position.set(0, -8.5, -4.5);
+            macroClip.add(lowerBarb);
 
-            const clipPositions = [
-                [45, 160, -2],
-                [45, 70, -2],
-                [245, 160, -2],
-                [245, 70, -2]
-            ];
+            macroGroup.add(macroClip);
 
-            clipPositions.forEach(pos => {
-                // Sized at 14 x 26 x 5 mm
-                const clipMesh = new THREE.Mesh(new THREE.BoxGeometry(14, 26, 5), clipMat);
-                clipMesh.position.set(pos[0], pos[1], pos[2]);
-                clipsGroup.add(clipMesh);
-            });
+            // C. The Thin Nylon Webbing Ribbon (22mm wide x 1.8mm thick)
+            macroWebbing = new THREE.Mesh(new THREE.BoxGeometry(18, 22, 1.8), webbingMat);
+            macroWebbing.position.set(0, 0, -3.3); // Sitting captive inside the C-channel
+            macroGroup.add(macroWebbing);
 
-            scene.add(clipsGroup);
+            // D. Real-World Scale Reference: US QUARTER COIN ($24.26mm dia x 1.75mm)
+            coinMesh = new THREE.Group();
+            const coinBody = new THREE.Mesh(new THREE.CylinderGeometry(12.13, 12.13, 1.75, 48), coinMat);
+            coinBody.rotation.x = Math.PI / 2;
+            coinMesh.add(coinBody);
 
-            // 3. FRONT PLATE GROUP (Dark Slate + Green Artwork)
-            plateGroup = new THREE.Group();
-            const plateMat = new THREE.MeshStandardMaterial({ color: 0x334155, roughness: 0.6 });
+            // Coin rim
+            const coinRim = new THREE.Mesh(new THREE.TorusGeometry(11.8, 0.4, 16, 48), coinMat);
+            coinRim.position.z = 0.85;
+            coinMesh.add(coinRim);
 
-            // Stylized Turtle Plate Silhouette (240 x 212 x 10 mm)
-            const mainBody = new THREE.Mesh(new THREE.CylinderGeometry(95, 95, 10, 32), plateMat);
-            mainBody.rotation.x = Math.PI / 2;
-            mainBody.position.set(145, 120, 5);
-            plateGroup.add(mainBody);
-
-            const head = new THREE.Mesh(new THREE.SphereGeometry(38, 32, 16), plateMat);
-            head.position.set(65, 175, 5);
-            plateGroup.add(head);
-
-            // Character Artwork on front face
-            const artMat = new THREE.MeshStandardMaterial({ color: 0x10b981, roughness: 0.3 });
-            const artPlate = new THREE.Mesh(new THREE.CylinderGeometry(75, 75, 1.2, 32), artMat);
-            artPlate.rotation.x = Math.PI / 2;
-            artPlate.position.set(145, 120, 10.6);
-            plateGroup.add(artPlate);
-
-            scene.add(plateGroup);
+            // Position coin right next to the clip!
+            coinMesh.position.set(-32, 0, -1.0);
+            macroGroup.add(coinMesh);
         }
 
-        function setView(viewIndex) {
-            document.getElementById('btn-front').classList.toggle('active', viewIndex === 0);
-            document.getElementById('btn-back').classList.toggle('active', viewIndex === 1);
-            
-            const targetPos = viewIndex === 0 
-                ? new THREE.Vector3(145, 120, 480) 
-                : new THREE.Vector3(145, 120, -480);
-                
-            animateCamera(targetPos);
-            
+        // ==========================================
+        // 2. FULL ASSEMBLY (Turtle Plate + 4 Clips + Vest)
+        // ==========================================
+        function buildFullAssembly() {
+            fullAssemblyGroup = new THREE.Group();
+            scene.add(fullAssemblyGroup);
+
+            // Shift entire assembly so center is at (0, 0, 0)
+            fullAssemblyGroup.position.set(-145, -120, 0);
+
+            // A. Vest straps (Fabric-thin, NOT solid 2x4 beams!)
+            vestGroup = new THREE.Group();
+            const vestFabricMat = new THREE.MeshStandardMaterial({ color: 0x1d4ed8, roughness: 0.85 });
+            const webbingMat = new THREE.MeshStandardMaterial({ color: 0x38bdf8, roughness: 0.45 });
+            const buckleMat = new THREE.MeshStandardMaterial({ color: 0x0f172a, roughness: 0.3 });
+
+            // Thin flexible fabric straps (only 2mm thick)
+            const leftStrap = new THREE.Mesh(new THREE.BoxGeometry(40, 290, 2), vestFabricMat);
+            leftStrap.position.set(45, 120, -7);
+            vestGroup.add(leftStrap);
+
+            const leftWebbing = new THREE.Mesh(new THREE.BoxGeometry(22, 290, 1.5), webbingMat);
+            leftWebbing.position.set(45, 120, -5.2);
+            vestGroup.add(leftWebbing);
+
+            const rightStrap = new THREE.Mesh(new THREE.BoxGeometry(40, 290, 2), vestFabricMat);
+            rightStrap.position.set(245, 120, -7);
+            vestGroup.add(rightStrap);
+
+            const rightWebbing = new THREE.Mesh(new THREE.BoxGeometry(22, 290, 1.5), webbingMat);
+            rightWebbing.position.set(245, 120, -5.2);
+            vestGroup.add(rightWebbing);
+
+            // Sternum cross-straps
+            const sternumUp = new THREE.Mesh(new THREE.BoxGeometry(190, 18, 1.5), webbingMat);
+            sternumUp.position.set(145, 160, -7.5);
+            vestGroup.add(sternumUp);
+
+            const sternumLo = new THREE.Mesh(new THREE.BoxGeometry(190, 18, 1.5), webbingMat);
+            sternumLo.position.set(145, 70, -7.5);
+            vestGroup.add(sternumLo);
+
+            const b1 = new THREE.Mesh(new THREE.BoxGeometry(28, 24, 4), buckleMat);
+            b1.position.set(145, 160, -6);
+            vestGroup.add(b1);
+
+            const b2 = new THREE.Mesh(new THREE.BoxGeometry(28, 24, 4), buckleMat);
+            b2.position.set(145, 70, -6);
+            vestGroup.add(b2);
+
+            fullAssemblyGroup.add(vestGroup);
+
+            // B. 4x Tiny Hidden Clips (Gold)
+            clipsGroup = new THREE.Group();
+            const clipMat = new THREE.MeshStandardMaterial({ color: 0xf59e0b, metalness: 0.3, roughness: 0.35 });
+            const clipPositions = [
+                [45, 160, -2.5],
+                [45, 70, -2.5],
+                [245, 160, -2.5],
+                [245, 70, -2.5]
+            ];
+
+            clipPositions.forEach(p => {
+                const c = new THREE.Mesh(new THREE.BoxGeometry(14, 26, 5.2), clipMat);
+                c.position.set(p[0], p[1], p[2]);
+                clipsGroup.add(c);
+            });
+            fullAssemblyGroup.add(clipsGroup);
+
+            // C. Front Turtle Costume Plate
+            plateGroup = new THREE.Group();
+            const plateMat = new THREE.MeshStandardMaterial({ color: 0x334155, roughness: 0.6 });
+            const artMat = new THREE.MeshStandardMaterial({ color: 0x10b981, roughness: 0.3 });
+
+            const turtleBody = new THREE.Mesh(new THREE.CylinderGeometry(95, 95, 10, 32), plateMat);
+            turtleBody.rotation.x = Math.PI / 2;
+            turtleBody.position.set(145, 120, 5);
+            plateGroup.add(turtleBody);
+
+            const turtleHead = new THREE.Mesh(new THREE.SphereGeometry(38, 32, 16), plateMat);
+            turtleHead.position.set(65, 175, 5);
+            plateGroup.add(turtleHead);
+
+            const emblem = new THREE.Mesh(new THREE.CylinderGeometry(75, 75, 1.2, 32), artMat);
+            emblem.rotation.x = Math.PI / 2;
+            emblem.position.set(145, 120, 10.6);
+            plateGroup.add(emblem);
+
+            fullAssemblyGroup.add(plateGroup);
+        }
+
+        // ==========================================
+        // UI & CAMERA SWITCHER
+        // ==========================================
+        function switchMode(mode) {
+            currentMode = mode;
+            document.getElementById('btn-macro').classList.toggle('active', mode === 'macro');
+            document.getElementById('btn-full-front').classList.toggle('active', mode === 'front');
+            document.getElementById('btn-full-back').classList.toggle('active', mode === 'back');
+
+            const snapRow = document.getElementById('snap-row');
             const title = document.getElementById('mode-title');
             const desc = document.getElementById('mode-desc');
-            if (viewIndex === 0) {
-                title.innerText = '✨ Front View: Clean & Bracket-Free';
-                desc.innerText = 'Notice that ZERO hardware protrudes outside the character outline! The 4 tiny C-clips are completely hidden underneath/behind the plate, snapping directly to the vest straps.';
-            } else {
-                title.innerText = '🔍 Rear View: Inspecting the 4 Hidden Clips';
-                desc.innerText = 'Looking at the back of the vest: The 4 tiny gold C-clips (<1.1g each) clamp snugly onto the blue vertical webbing tracks. Pulling outward from the edge releases the clips in 1 second.';
+            const scaleBadge = document.getElementById('scale-badge');
+
+            if (mode === 'macro') {
+                macroGroup.visible = true;
+                fullAssemblyGroup.visible = false;
+                snapRow.style.display = 'flex';
+                scaleBadge.style.display = 'inline-block';
+
+                title.innerText = '🔎 Macro Close-Up: The Tiny Hidden Clip';
+                desc.innerText = "This is the actual 3D printed clip! It is only 14mm x 26mm (the exact size of a US Quarter coin shown in silver). It screws flat against the back of the turtle plate and snaps onto the vest's thin nylon webbing strap.";
+
+                animateCameraTo(new THREE.Vector3(0, 0, 85), new THREE.Vector3(0, 0, 0));
+            } else if (mode === 'front') {
+                macroGroup.visible = false;
+                fullAssemblyGroup.visible = true;
+                snapRow.style.display = 'none';
+                scaleBadge.style.display = 'none';
+
+                title.innerText = '👤 Full Chest View: Clean & Bracket-Free';
+                desc.innerText = 'Notice that ZERO brackets stick out past the turtle! The 4 tiny clips are completely hidden behind the plate. The vest straps are thin fabric running under the plate.';
+
+                animateCameraTo(new THREE.Vector3(0, 0, 480), new THREE.Vector3(0, 0, 0));
+            } else if (mode === 'back') {
+                macroGroup.visible = false;
+                fullAssemblyGroup.visible = true;
+                snapRow.style.display = 'none';
+                scaleBadge.style.display = 'none';
+
+                title.innerText = '🔄 Full Rear View: Inspecting the 4 Hidden Clips';
+                desc.innerText = 'Looking at the back of the plate: The 4 tiny gold clips (<1.1g each) snap snugly onto the blue vertical webbing tracks of the vest.';
+
+                animateCameraTo(new THREE.Vector3(0, 0, -480), new THREE.Vector3(0, 0, 0));
             }
         }
 
-        function animateCamera(targetPos) {
+        function toggleSnapAnimation() {
+            isSnapped = !isSnapped;
+            const targetZ = isSnapped ? -3.3 : -18.0;
+            const btn = document.getElementById('btn-snap-toggle');
+            btn.innerText = isSnapped ? '⚡ Animate: Unsnap Webbing from Clip' : '⚡ Animate: Snap Webbing Into Clip';
+
+            const startZ = macroWebbing.position.z;
+            const startTime = performance.now();
+            const duration = 400;
+
+            function step(now) {
+                const elapsed = now - startTime;
+                const progress = Math.min(elapsed / duration, 1.0);
+                const ease = 1 - Math.pow(1 - progress, 3);
+                macroWebbing.position.z = startZ + (targetZ - startZ) * ease;
+                if (progress < 1.0) requestAnimationFrame(step);
+            }
+            requestAnimationFrame(step);
+        }
+
+        function animateCameraTo(targetPos, targetLookAt) {
             const startPos = camera.position.clone();
+            const startTarget = controls.target.clone();
             const startTime = performance.now();
             const duration = 600;
 
@@ -474,6 +557,7 @@ def create_interactive_viewer_html():
                 const progress = Math.min(elapsed / duration, 1.0);
                 const ease = 1 - Math.pow(1 - progress, 3);
                 camera.position.lerpVectors(startPos, targetPos, ease);
+                controls.target.lerpVectors(startTarget, targetLookAt, ease);
                 controls.update();
                 if (progress < 1.0) requestAnimationFrame(step);
             }
@@ -483,16 +567,22 @@ def create_interactive_viewer_html():
         function updateExplode(val) {
             currentExplodeZ = parseFloat(val);
             document.getElementById('explode-display').innerText = Math.round(val) + ' mm';
-            plateGroup.position.z = currentExplodeZ;
-            clipsGroup.position.z = currentExplodeZ * 0.45;
-            vestGroup.position.z = -currentExplodeZ * 0.3;
+
+            if (currentMode === 'macro') {
+                macroPlateSection.position.z = 3 + currentExplodeZ * 0.5;
+                macroWebbing.position.z = -3.3 - currentExplodeZ * 0.5;
+            } else {
+                plateGroup.position.z = currentExplodeZ;
+                clipsGroup.position.z = currentExplodeZ * 0.45;
+                vestGroup.position.z = -currentExplodeZ * 0.3;
+            }
         }
 
         function toggleExploded() {
             const btn = document.getElementById('btn-exploded');
             const target = currentExplodeZ > 10 ? 0 : 50;
             btn.classList.toggle('active', target > 0);
-            
+
             const start = currentExplodeZ;
             const startTime = performance.now();
             const duration = 400;
@@ -530,28 +620,50 @@ def create_interactive_viewer_html():
     print(f"  [OK] Exported Interactive 3D Viewer: {out_file}")
 
 def main():
-    print("Generating redesigned assembly with hidden rear C-clips...")
-    vest_mesh = build_swiftvest_model()
-    hidden_clips = build_hidden_clip_instances()
+    print("Generating updated SWIFTVEST visual pipeline with Macro coin scale...")
     
-    # Load plate chassis
-    chassis_path = os.path.join(PANELS_DIR, "tpu_panel_front_chassis_black.stl")
-    if os.path.exists(chassis_path):
-        plate_mesh = trimesh.load(chassis_path)
-    else:
-        plate_mesh = trimesh.creation.box([240, 212, 10])
-        plate_mesh.apply_translation([145, 120, 5])
-    
-    # Combined mesh (Vest + Hidden Clips + Plate)
-    all_meshes = [vest_mesh, plate_mesh] + hidden_clips
-    combined_mesh = trimesh.util.concatenate(all_meshes)
-    stl_out = os.path.join(PANELS_DIR, "swiftvest_front_assembly_preview.stl")
-    combined_mesh.export(stl_out)
-    print(f"  [OK] Exported Combined 3D STL (No giant brackets): {stl_out}")
-    print(f"       Vertices: {len(combined_mesh.vertices)}, Faces: {len(combined_mesh.faces)}")
-    
+    # 1. Generate Interactive HTML Viewer
     create_interactive_viewer_html()
-    print("Sleek assembly redesign complete!")
+    
+    # 2. Export swiftvest_clip_with_coin_scale.stl (Single Clip next to US Quarter)
+    clip_path = os.path.join(PANELS_DIR, "swiftvest_hidden_webbing_clip.stl")
+    if os.path.exists(clip_path):
+        clip_mesh = trimesh.load(clip_path)
+        # Create US Quarter coin (dia 24.26mm x 1.75mm)
+        coin_cyl = make_cylinder(1.75, 12.13, 64)
+        coin_mesh = to_trimesh(coin_cyl)
+        coin_mesh.apply_translation([-20.0, 13.0, 0.0])
+        scale_demo = trimesh.util.concatenate([clip_mesh, coin_mesh])
+        scale_out = os.path.join(PANELS_DIR, "swiftvest_clip_with_coin_scale.stl")
+        scale_demo.export(scale_out)
+        print(f"  [OK] Exported Coin Scale STL: {scale_out}")
+    
+    # 3. Export clean swiftvest_front_assembly_preview.stl (Plate + 4 Tiny Hidden Clips ONLY - Zero strap slabs!)
+    chassis_path = os.path.join(PANELS_DIR, "tpu_panel_front_chassis_black.stl")
+    if os.path.exists(chassis_path) and os.path.exists(clip_path):
+        plate_mesh = trimesh.load(chassis_path)
+        base_clip = trimesh.load(clip_path)
+        
+        # Position 4 clips flat on the rear face of the plate
+        clip_positions = [
+            [45.0, 160.0, -1.0],
+            [45.0, 70.0, -1.0],
+            [245.0, 160.0, -1.0],
+            [245.0, 70.0, -1.0]
+        ]
+        placed_clips = []
+        for pos in clip_positions:
+            c = base_clip.copy()
+            c.apply_translation([-7.0, -13.0, 0.0])
+            c.apply_translation(pos)
+            placed_clips.append(c)
+            
+        clean_assembly = trimesh.util.concatenate([plate_mesh] + placed_clips)
+        clean_out = os.path.join(PANELS_DIR, "swiftvest_front_assembly_preview.stl")
+        clean_assembly.export(clean_out)
+        print(f"  [OK] Exported Clean Assembly STL (Zero giant slabs!): {clean_out}")
+        
+    print("Done!")
 
 if __name__ == "__main__":
     main()

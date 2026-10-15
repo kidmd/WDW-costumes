@@ -93,6 +93,16 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### 2026-10-15 10:42 - SWIFTVEST Macro Coin Scale 3D Inspector & Clean STL Assembly (Eliminated Vest Dummy Slabs)
+- **Diagnosed STL Viewer Confusion:**
+  - Realized that because standard STL files lack color, the $280\text{ mm}$ dummy fabric strap mockups in `swiftvest_front_assembly_preview.stl` merged into solid grey plastic slabs, giving the false illusion of a massive $280\text{ mm}$ bracket.
+  - Eliminated all vest strap dummy geometry from `3d_panels/swiftvest_front_assembly_preview.stl`. Sized strictly to the $240.4 \times 212.4 \times 11.0\text{ mm}$ plate plus the 4 tiny rear clips.
+- **Engineered Macro Real-World Scale STL (`3d_panels/swiftvest_clip_with_coin_scale.stl`):**
+  - Combined the $14 \times 26 \times 5.2\text{ mm}$ clip side-by-side with an exact 3D US Quarter coin ($\varnothing 24.26\text{ mm} \times 1.75\text{ mm}$) for instant visual scale in any 3D viewer.
+- **Enhanced Interactive 3D Web Visualizer (`simulator/swiftvest_assembly_viewer.html`):**
+  - Added dedicated **"🔎 Macro Clip Close-Up"** view displaying the single clip, M2 screw, and webbing ribbon next to the silver US Quarter.
+  - Added an interactive **"⚡ Animate: Snap Webbing Into Clip"** button demonstrating the mechanical deflection and snap action of the clip jaws.
+
 ### 2026-10-15 10:30 - Ultra-Compact Hidden Rear C-Clip Redesign (<1.1g Each, Zero Protruding Brackets)
 - **Engineered Minimalist Hidden Webbing Clip (`scripts/generate_hidden_clip.py` -> `3d_panels/swiftvest_hidden_webbing_clip.stl`):**
   - Completely discarded bulky exterior side-hinge brackets following user visual feedback.
