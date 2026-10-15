@@ -35,7 +35,7 @@
     "color": "#2ec4b6",
     "accent": "Teal",
     "role": "\ud83d\udce1 Follower Float",
-    "preset": "local:Spinning Turtle 100-LED Vibrant Preset 2026-10-13 02-54",
+    "preset": "server:spinning_turtle_100-led_vibrant_preset_2026-10-14_10-07.json",
     "defaultGraphic": "spinning_turtle"
   },
   {

@@ -23312,7 +23312,6 @@ function createTpuLedPixels(specs, stlCenter) {
     const isRound = isRound34 || isRound30;
 
     const pixelGeom = isRound34 ? new THREE.CircleGeometry(1.6, 24) : (isRound30 ? new THREE.CircleGeometry(1.4, 24) : new THREE.PlaneGeometry(2.8, 2.8));
-    const pocketChipGeom = new THREE.PlaneGeometry(3.6, 3.6);
 
     const ledsList = specs.ordered_leds || [];
     const effectiveOrient = params.tpuWellOrientation || specs.well_orientation || 'horizontal';
@@ -23326,29 +23325,20 @@ function createTpuLedPixels(specs, stlCenter) {
             color: col.clone(),
             side: THREE.DoubleSide,
             depthWrite: false,
-            depthTest: false, // Ensure LEDs are always clearly visible inside their pockets without occluding
+            depthTest: false, // Ensure simulated LEDs remain visible inside the aperture windows without occluding
             polygonOffset: true,
             polygonOffsetFactor: -2.0,
             polygonOffsetUnits: -4.0
         });
         tpuLedMaterials.push(mat);
 
-        // 1. Front-facing optical aperture pixel
+        // Optical aperture pixel positioned cleanly in the optical window
         const pixelMesh = new THREE.Mesh(pixelGeom, mat);
         pixelMesh.renderOrder = 4;
         pixelMesh.position.set(
             l.x - stlCenter.x,
             l.y - stlCenter.y,
             stlCenter.z + 0.20 // Positioned cleanly inside the front optical window
-        );
-
-        // 2. Underside pocket well LED chip (clearly visible inside each collar cavity)
-        const pocketChip = new THREE.Mesh(pocketChipGeom, mat);
-        pocketChip.renderOrder = 4;
-        pocketChip.position.set(
-            l.x - stlCenter.x,
-            l.y - stlCenter.y,
-            -stlCenter.z + 1.8 // Sits right on the collar pocket floor
         );
 
         let rotDeg = 0;
@@ -23361,10 +23351,8 @@ function createTpuLedPixels(specs, stlCenter) {
         }
         if (rotDeg !== 0) {
             pixelMesh.rotation.z = (rotDeg * Math.PI) / 180;
-            pocketChip.rotation.z = (rotDeg * Math.PI) / 180;
         }
         tpuLedsGroup.add(pixelMesh);
-        tpuLedsGroup.add(pocketChip);
     });
 
     tpuScene.add(tpuLedsGroup);

@@ -93,6 +93,16 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### 2026-10-15 09:22 - 3D Preview LED Visualization Alignment: Clean Optical Aperture Lights (Eliminated Extraneous Pocket Squares)
+- **Diagnosed Extraneous Green Squares in 3D Preview Modal (`createTpuLedPixels`):**
+  - In a previous commit, secondary `pocketChipGeom = new THREE.PlaneGeometry(3.6, 3.6)` square meshes were placed at `-stlCenter.z + 1.8` inside each underside collar pocket.
+  - Because `depthTest: false` was active, both the front aperture light (`pixelMesh`) and the underside square (`pocketChip`) projected through simultaneously with noticeable perspective parallax, cluttering the underside preview with floating green squares alongside the round window apertures.
+- **Implemented Clean Optical Aperture Projection (`simulator/app.js`):**
+  - Removed all `pocketChip` square plane meshes from `createTpuLedPixels()`.
+  - Retained single, geometrically accurate optical aperture simulated lights (`pixelMesh`) that dynamically conform to the chosen window geometry (`CircleGeometry` for $\varnothing 3.4\text{ mm}$ and $\varnothing 3.0\text{ mm}$ round apertures; `PlaneGeometry` for $3\times 3\text{ mm}$ square apertures).
+  - Maintained `side: THREE.DoubleSide` and `depthTest: false` depth-independent visibility on `pixelMesh`, ensuring every simulated light glows cleanly and directly inside its round aperture window from both Front Face, Underside/Pockets, and orbiting 3D Angle views with zero visual clutter.
+  - Bumped script cache buster in `simulator/index.html` to `app.js?v=103`.
+
 ### 2026-10-14 09:55 - Strain Relief Bridge 2D/3D Alignment, Portal Notch Clearance & Dual-Side LED Visibility in 3D Preview
 - **Diagnosed Strain Relief Bridge Location Mismatch & 3D Preview Occlusion:**
   - **Aspect Ratio Mismatch in `getEffectiveTpuPanelSpec()`:** The 2D layout canvas enforces a $1:1.25$ stretch ratio for the athletic t-shirt geometry (`normW = normH * 1.25 * aspect`), causing `curAspect = normW / normH = 1.25 * aspect`. Previously, `getEffectiveTpuPanelSpec()` compared `spAspect` (the raw image aspect $1.198$) directly against `curAspect` ($1.498$), which failed the $< 0.12$ tolerance check. This caused the simulator to reject the compiled `tpu_panel_specs.json` and fall back to an inaccurate mini-canvas trace, displacing the 2D layout bridge relative to the 3D STL.
