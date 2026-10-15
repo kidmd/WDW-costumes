@@ -31,7 +31,70 @@ flowchart TD
 
 ---
 
-## 2. Front Plate Mounting: "Book-Style" Hinge Action
+## 2. Interactive 3D Assembly & Visual Inspection
+
+We have provided two dedicated 3D visualization tools in your workspace:
+
+1. 🌐 **Interactive 3D Browser Viewer:** Open [`simulator/swiftvest_assembly_viewer.html`](file:///c:/Users/Kiddi/Desktop/WDW%20costumes/simulator/swiftvest_assembly_viewer.html) in any browser (Chrome, Edge, Safari). It features:
+   * **Full 360° Orbit & Zoom:** Inspect every angle of the vest, plate, and mounting clips.
+   * **Interactive "Swing Door" Slider ($0^\circ \leftrightarrow 110^\circ$):** Watch the front plate swing open like a car door on the right hinge, revealing the center sternum buckles underneath.
+   * **Exploded View Slider ($0 \leftrightarrow 80\text{ mm}$):** Separate the vest, mounting clips, and plate along the Z-axis to see exactly how each layer mates.
+2. 🧊 **Assembled 3D STL Model:** Open [`3d_panels/swiftvest_front_assembly_preview.stl`](file:///c:/Users/Kiddi/Desktop/WDW%20costumes/3d_panels/swiftvest_front_assembly_preview.stl) in OrcaSlicer, Bambu Studio, or Windows 3D Viewer to inspect the complete physical fit.
+
+---
+
+## 3. Illustrated Schematics: How the Assembly Works
+
+### Front Elevation View (Race Mode — Latched Closed Across Chest)
+```text
+                  [ RUNNER'S NECK / COLLAR ]
+                   /                      \
+                  /   [SWIFTVEST HARNESS]  \
+                 /                          \
+        +-------+----------------------------+-------+
+        | LEFT  |                            | RIGHT |
+        | STRAP |    240mm RIGID PLA PLATE   | STRAP |
+        | (Web) |    (Chest / Character Art) | (Web) |
+        |       |                            |       |
+        | [LATCH]============================[HINGE] |  <-- Hinge stays pinned to right strap
+        |  (Red)|       [TURTLE / DRAGON]    | (Gold)|  <-- Latches snap onto left strap
+        |       |                            |       |
+        | [LATCH]============================[HINGE] |
+        |       |                            |       |
+        +-------+----------------------------+-------+
+         \     /                              \     /
+          \   /     [CENTER STERNUM STRAPS]    \   /
+           \ /       (Hidden Behind Plate)      \ /
+            V                                    V
+```
+
+### Top-Down Cross-Section View (Looking Down from Chin)
+```text
+1. RACE MODE (CLOSED & LOCKED):
+   Left Strap                                            Right Strap
+   [ WEBBING ]                                           [ WEBBING ]
+        |                                                     |
+     [LATCH] <--(Snapped Shut)                       (Hinged) [HINGE]
+        |                                                     |
+     ==============================================================
+                      240mm RIGID 3D PLA PLATE (FRONT)
+
+2. DONNING / DOFFING MODE (SWUNG OPEN LIKE A CAR DOOR):
+   Left Strap                                            Right Strap
+   [ WEBBING ]                                           [ WEBBING ]
+        |                                                     |
+     (Open)                                          (Hinged) [HINGE]
+                                                              \
+        [ UNBUCKLE STERNUM STRAPS HERE! ]                      \
+             (Vest opens to take off)                           \  240mm FRONT PLATE
+                                                                 \  SWUNG OPEN 110°!
+                                                                  \
+                                                                 [LATCHES]
+```
+
+---
+
+## 4. Front Plate Mounting: "Book-Style" Hinge Action
 
 * **Right Shoulder Strap (Permanent Pivot Hinge):**
   * Two 3D-printed captive hinge brackets (`swiftvest_hinge_clamp_right.stl`) screw into the right-hand perimeter eyelets using M2 hardware into the existing chassis pilot bosses.

@@ -93,6 +93,16 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### 2026-10-15 10:16 - SWIFTVEST + 3D Plate Full Assembly Preview & Interactive 3D Kinematics Viewer
+- **Built Interactive 3D Web Visualizer (`simulator/swiftvest_assembly_viewer.html`):**
+  - Engineered a standalone Three.js browser inspector providing 360° orbital rotation, zoom, dynamic lighting, and real-time kinematic simulation.
+  - **Interactive Door Swing Slider ($0^\circ \leftrightarrow 110^\circ$):** Simulates the front plate swinging open on the right-hand captive hinge clamps, demonstrating clear access to unbuckle the SWIFTVEST's central sternum straps for donning/doffing.
+  - **Exploded View Slider ($0 \leftrightarrow 80\text{ mm}$):** Animates Z-axis layer separation between the blue vest harness, gold right hinge clamps, red left quick-release latches, and dark gray 3D plate.
+- **Exported Assembled Monolithic 3D Model (`3d_panels/swiftvest_front_assembly_preview.stl`):**
+  - Generated a merged 85,990-vertex watertight STL model combining the running harness, strap webbing, center buckles, front chest plate, and all 4 mounting clips for direct inspection in OrcaSlicer or Windows 3D Viewer.
+- **Illustrated Assembly Schematics (`3d_panels/SWIFTVEST_ATTACHMENT_GUIDE.md`):**
+  - Documented front elevation and top-down cross-sectional schematics clearly depicting the left latch vs right hinge relationship and the 4-step donning/doffing sequence.
+
 ### 2026-10-15 10:04 - SWIFTVEST 3D-Printable Mounting Hardware Generation (Watertight STLs)
 - **Engineered & Exported 4 Custom 3D Mounting Components (`scripts/generate_swiftvest_mounts.py`):**
   - Built a dedicated Python CAD generator using `manifold3d` and `trimesh` producing 100% watertight STL files in `3d_panels/`:
