@@ -93,6 +93,16 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### 2026-10-15 09:58 - SWIFTVEST Running Vest Plate Attachment & Battery Routing Guide
+- **Authored Comprehensive Vest Integration Guide (`3d_panels/SWIFTVEST_ATTACHMENT_GUIDE.md`):**
+  - Designed the mechanical mounting architecture for attaching the $240.4 \times 212.4 \times 10.0\text{ mm}$ rigid PLA front and back costume panels to the **SWIFTVEST running vest** ([Amazon ASIN B0CGPYLG6H](https://www.amazon.com/dp/B0CGPYLG6H)) for the WDW 10K.
+  - **Hinged Book-Style Front Plate:** Overcame the central split sternum closure challenge by designing a dual-strap interface:
+    - *Right Shoulder Strap:* Captive 3D-printed pivot hinge clamps anchored to the plate's right perimeter eyelets.
+    - *Left Shoulder Strap:* Quick-release thumb-actuated snap latches allowing the plate to swing open like a book door for $<5$-second vest donning/doffing with zero fabric alteration.
+  - **Dynamic Bungee Back Plate:** Utilizes $2.5\text{ mm}$ marine elastic shock-cord laced through the 16 perimeter eyelets and rear mesh panel, accommodating $15\text{--}20\text{ mm}$ of thoracic breathing compliance and absorbing running stride bounce.
+  - **Power Bank Architecture (Waist Belt vs Front Pocket):** Evaluated weight distribution tradeoffs between Option A (built-in front elastic flask pocket for lightweight $\le 5000\text{ mAh}$ batteries) and Option B (separate lumbar running waist belt for heavier $10,000\text{ mAh}$ battery packs to shift weight to the pelvic center of gravity).
+  - Updated implementation plan artifact `vest_attachment_plan.md` with complete specifications and test protocols.
+
 ### 2026-10-15 09:48 - Snapmaker U1 (4-Toolhead Toolchanger) 5-Color PLA Printing Strategy & Documentation
 - **Authored Comprehensive 5-Color Printing Guide (`3d_panels/SNAPMAKER_U1_5COLOR_PRINTING_OPTIONS.md`):**
   - Evaluated the transition from single-nozzle Bambu multi-material setup to the 4-toolhead Snapmaker U1 direct-drive CoreXY toolchanger using 100% PLA filament.
