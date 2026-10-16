@@ -172,3 +172,44 @@ FastLED.setMaxPowerInVoltsAndMilliamps(5, 2000); // 5V, 2.0A max limit
   - **90-minute Corral Sleep:** $1.5\text{ hr} \times 120\text{ mA} = 180\text{ mAh}$.
   - **90-minute 10K Race Run:** $1.5\text{ hr} \times 750\text{ mA} = 1,125\text{ mAh}$.
   - **Total Consumed:** ~1,305 mAh out of 7,000 mAh available (**> 80% battery remaining at the finish line!**).
+
+---
+
+## 8. Universal 100mm × 100mm 6×6 Modular Panel Wiring & FPC Interconnects
+
+When utilizing the modular FR-4 PCB quadrant system (`scripts/generate_universal_6x6_pcb.py`), 4 identical 36-LED panels ($100\text{ mm} \times 100\text{ mm}$) tile into a $2 \times 2$ matrix ($206\text{ mm} \times 206\text{ mm}$) across the chest:
+
+```
+  ESP32 GPIO 16 ──► [220Ω Resistor]
+                          │
+                          ▼
+            ┌───────────────────────────┐    4-Pin FPC Ribbon (50mm)   ┌───────────────────────────┐
+            │   QUADRANT 1 (Top-Left)   │ ═══════════════════════════► │  QUADRANT 2 (Top-Right)   │
+            │   LED 001 ──► LED 036     │                              │  LED 037 ──► LED 072     │
+            │   [J1_IN]        [J2_OUT] │                              │  [J1_IN]        [J2_OUT] │
+            └───────────────────────────┘                              └─────────────┬─────────────┘
+                                                                                     │ 4-Pin FPC Ribbon
+                                                                                     ▼
+            ┌───────────────────────────┐    4-Pin FPC Ribbon (50mm)   ┌───────────────────────────┐
+            │  QUADRANT 4 (Bottom-Left) │ ◄═══════════════════════════ │ QUADRANT 3 (Bottom-Right) │
+            │  LED 109 ──► LED 144     │                              │ LED 073 ──► LED 108      │
+            │  [J1_IN]        [J2_OUT] │                              │ [J1_IN]        [J2_OUT]  │
+            └─────────────┬─────────────┘                              └───────────────────────────┘
+                          │ Data Out of LED 144
+                          ▼
+              (To Back LED Strand: LED 145..288)
+```
+
+### Connector Specifications & Pinouts:
+* **J1_IN (4-Pin 1.0mm FPC SMT - Left Edge):**
+  * Pin 1: `+5V`
+  * Pin 2: `+5V` (dual power pins for minimal voltage drop)
+  * Pin 3: `DIN` (Serial Data In)
+  * Pin 4: `GND`
+* **J2_OUT (4-Pin 1.0mm FPC SMT - Right Edge):**
+  * Pin 1: `+5V`
+  * Pin 2: `+5V`
+  * Pin 3: `DOUT` (Serial Data Out)
+  * Pin 4: `GND`
+* **Direct-Solder Pad Fallback:**
+  * Alongside J1 and J2, each board features $2.54\text{ mm}$ pitch plated through-hole pads labeled `IN_PADS` and `OUT_PADS` (`+5V`, `DATA`, `GND`) allowing immediate direct soldering of 26/28 AWG flexible silicone ribbon wire if FPC cables are not used.

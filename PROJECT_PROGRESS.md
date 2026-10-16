@@ -93,6 +93,20 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### 2026-10-16 12:45 - Universal 100mm × 100mm 6×6 LED Matrix Panel (JLCPCB Turnkey SMT & FPC Ribbon Suite)
+- **Engineered Standardized Modular 100mm × 100mm 6×6 LED Matrix Panel (`scripts/generate_universal_6x6_pcb.py`):**
+  - Designed a universal, modular rigid FR-4 PCB tile to replace 7 custom float-by-float FPC runs with a single mass-produced, cost-optimized panel.
+  - Sized at exactly $100.0\text{ mm} \times 100.0\text{ mm}$ (sub-$100\times 100\text{ mm}$ tier) with 36 addressable WS2812B-2020 LEDs (`C2843818`) in a uniform $16.0\text{ mm}$ pitch grid and 36 local 0402 100nF decoupling capacitors (`C1525`).
+  - Four tiles cluster into a $2 \times 2$ array ($206.0\text{ mm} \times 206.0\text{ mm}$) inside a $2.0\text{ mm}$ craft felt pocket with full-color printable HTV artwork and selective window apertures, delivering 144 front chest LEDs with articulated living hinges across the sternum and ribcage.
+- **Thin FPC Ribbon Interconnects & Backup Solder Headers:**
+  - Integrated dual 4-pin 1.0mm pitch horizontal SMT FPC/FFC ribbon connectors (`C2840003`): `J1` Input port (Left edge) and `J2` Output port (Right edge), supporting ultra-thin 50mm flat flex ribbon cables between adjacent quadrants across the $6.0\text{ mm}$ felt seam.
+  - Added parallel 2.54mm direct-wire solder pad headers (`+5V`, `DIN`/`DOUT`, `GND`) on both edges as an instant workshop wiring fallback.
+- **Turnkey JLCPCB SMT Assembly & Instant Quote Bundle:**
+  - Generated verified KiCad 5 PCB project (`pcb/universal_6x6_100mm.kicad_pcb`), JLCPCB Bill of Materials (`pcb/universal_6x6_100mm_bom.csv`), and Pick-and-Place Centroid list (`pcb/universal_6x6_100mm_cpl.csv`).
+  - Packaged `pcb/universal_6x6_100mm_kicad.zip` (for instant quote board upload) and `pcb/universal_6x6_100mm_smt.zip` (for turnkey machine assembly).
+- **Interactive Web Inspector (`pcb/universal_6x6_preview.html`):**
+  - Features 1-Tile Inspector View and 4-Tile Chest Cluster View, animated DIN data pulse simulation, "Light Up All LEDs" mode, and direct download links.
+
 ### 2026-10-15 11:02 - 2-Piece GoPro-Style Quick-Release Slide Mount & Zip-Tie Verification
 - **Engineered 2-Piece Quick-Release Dovetail Slide Mounts (`scripts/generate_gopro_style_mount.py`):**
   - Completely decouples screw fastening from webbing engagement, eliminating all screwdriver clearance and strap obstruction conflicts:
