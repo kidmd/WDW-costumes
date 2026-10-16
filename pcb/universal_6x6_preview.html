@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Universal 100mm × 100mm 6×6 LED Matrix Inspector (36 LEDs + FPC Ribbons)</title>
+<title>Universal 100mm × 100mm Staggered Brick 6×6 LED Matrix Inspector</title>
 <style>
   :root {
     --bg: #0d1117;
@@ -41,8 +41,8 @@
     border-radius: 12px;
     font-weight: 600;
   }
-  .badge-blue {
-    background: #1f6feb;
+  .badge-gold {
+    background: #b08800;
     color: #fff;
     font-size: 12px;
     padding: 3px 8px;
@@ -161,17 +161,17 @@
 
 <div class="container">
   <h1>
-    Universal 100mm × 100mm 6×6 LED Matrix
+    Universal 100mm × 100mm Staggered Brick 6×6 LED Matrix
     <span class="badge">JLCPCB Turnkey SMT</span>
-    <span class="badge-blue">36 WS2812B-2020 LEDs</span>
+    <span class="badge-gold">🧱 Offset Brick Rows (15mm Pitch)</span>
   </h1>
   <p style="margin: 0 0 12px 0; color: #8b949e; font-size: 14px;">
-    Standardized modular tile for Disney WDW 10K synchronized runner costumes. 4 tiles cluster into a 144-LED chest array (206mm &times; 206mm) inside a 2mm felt living-hinge pocket with thin FPC ribbon interconnects.
+    Rows alternate with a 7.5mm horizontal shift like running-bond brickwork! Provides smooth, organic curves for Disney float characters while maintaining a standard 100mm &times; 100mm JLCPCB form factor with thin FPC ribbon interconnects.
   </p>
 
   <div class="ctrl-row">
-    <button id="btn-toggle-view" class="active" onclick="toggleViewMode()">📐 1-Tile Inspector View</button>
-    <button id="btn-toggle-chest" onclick="toggleChestMode()">🎽 4-Tile Chest Cluster View</button>
+    <button id="btn-toggle-view" class="active" onclick="toggleViewMode()">📐 1-Tile Staggered View</button>
+    <button id="btn-toggle-chest" onclick="toggleChestMode()">🎽 4-Tile Chest Cluster View (144 LEDs)</button>
     <button id="btn-light-all" onclick="toggleLightAll()">✨ Light Up All LEDs</button>
     <button id="btn-data-pulse" onclick="toggleDataPulse()">⚡ Animated DIN Data Pulse</button>
     <a href="universal_6x6_100mm_kicad.zip" download><button class="btn-download">📦 Download JLCPCB Upload ZIP</button></a>
@@ -228,331 +228,482 @@
 
         <!-- Daisy Chain Copper Tracks -->
         <g id="copper-tracks">
-          <line x1="10.0" y1="10.0" x2="26.0" y2="10.0" stroke="#ffd700" stroke-width="0.3" stroke-linecap="round" opacity="0.85"/>
-<line x1="26.0" y1="10.0" x2="42.0" y2="10.0" stroke="#ffd700" stroke-width="0.3" stroke-linecap="round" opacity="0.85"/>
-<line x1="42.0" y1="10.0" x2="58.0" y2="10.0" stroke="#ffd700" stroke-width="0.3" stroke-linecap="round" opacity="0.85"/>
-<line x1="58.0" y1="10.0" x2="74.0" y2="10.0" stroke="#ffd700" stroke-width="0.3" stroke-linecap="round" opacity="0.85"/>
-<line x1="74.0" y1="10.0" x2="90.0" y2="10.0" stroke="#ffd700" stroke-width="0.3" stroke-linecap="round" opacity="0.85"/>
-<line x1="90.0" y1="10.0" x2="90.0" y2="26.0" stroke="#ffd700" stroke-width="0.3" stroke-linecap="round" opacity="0.85"/>
-<line x1="90.0" y1="26.0" x2="74.0" y2="26.0" stroke="#ffd700" stroke-width="0.3" stroke-linecap="round" opacity="0.85"/>
-<line x1="74.0" y1="26.0" x2="58.0" y2="26.0" stroke="#ffd700" stroke-width="0.3" stroke-linecap="round" opacity="0.85"/>
-<line x1="58.0" y1="26.0" x2="42.0" y2="26.0" stroke="#ffd700" stroke-width="0.3" stroke-linecap="round" opacity="0.85"/>
-<line x1="42.0" y1="26.0" x2="26.0" y2="26.0" stroke="#ffd700" stroke-width="0.3" stroke-linecap="round" opacity="0.85"/>
-<line x1="26.0" y1="26.0" x2="10.0" y2="26.0" stroke="#ffd700" stroke-width="0.3" stroke-linecap="round" opacity="0.85"/>
-<line x1="10.0" y1="26.0" x2="10.0" y2="42.0" stroke="#ffd700" stroke-width="0.3" stroke-linecap="round" opacity="0.85"/>
-<line x1="10.0" y1="42.0" x2="26.0" y2="42.0" stroke="#ffd700" stroke-width="0.3" stroke-linecap="round" opacity="0.85"/>
-<line x1="26.0" y1="42.0" x2="42.0" y2="42.0" stroke="#ffd700" stroke-width="0.3" stroke-linecap="round" opacity="0.85"/>
-<line x1="42.0" y1="42.0" x2="58.0" y2="42.0" stroke="#ffd700" stroke-width="0.3" stroke-linecap="round" opacity="0.85"/>
-<line x1="58.0" y1="42.0" x2="74.0" y2="42.0" stroke="#ffd700" stroke-width="0.3" stroke-linecap="round" opacity="0.85"/>
-<line x1="74.0" y1="42.0" x2="90.0" y2="42.0" stroke="#ffd700" stroke-width="0.3" stroke-linecap="round" opacity="0.85"/>
-<line x1="90.0" y1="42.0" x2="90.0" y2="58.0" stroke="#ffd700" stroke-width="0.3" stroke-linecap="round" opacity="0.85"/>
-<line x1="90.0" y1="58.0" x2="74.0" y2="58.0" stroke="#ffd700" stroke-width="0.3" stroke-linecap="round" opacity="0.85"/>
-<line x1="74.0" y1="58.0" x2="58.0" y2="58.0" stroke="#ffd700" stroke-width="0.3" stroke-linecap="round" opacity="0.85"/>
-<line x1="58.0" y1="58.0" x2="42.0" y2="58.0" stroke="#ffd700" stroke-width="0.3" stroke-linecap="round" opacity="0.85"/>
-<line x1="42.0" y1="58.0" x2="26.0" y2="58.0" stroke="#ffd700" stroke-width="0.3" stroke-linecap="round" opacity="0.85"/>
-<line x1="26.0" y1="58.0" x2="10.0" y2="58.0" stroke="#ffd700" stroke-width="0.3" stroke-linecap="round" opacity="0.85"/>
-<line x1="10.0" y1="58.0" x2="10.0" y2="74.0" stroke="#ffd700" stroke-width="0.3" stroke-linecap="round" opacity="0.85"/>
-<line x1="10.0" y1="74.0" x2="26.0" y2="74.0" stroke="#ffd700" stroke-width="0.3" stroke-linecap="round" opacity="0.85"/>
-<line x1="26.0" y1="74.0" x2="42.0" y2="74.0" stroke="#ffd700" stroke-width="0.3" stroke-linecap="round" opacity="0.85"/>
-<line x1="42.0" y1="74.0" x2="58.0" y2="74.0" stroke="#ffd700" stroke-width="0.3" stroke-linecap="round" opacity="0.85"/>
-<line x1="58.0" y1="74.0" x2="74.0" y2="74.0" stroke="#ffd700" stroke-width="0.3" stroke-linecap="round" opacity="0.85"/>
-<line x1="74.0" y1="74.0" x2="90.0" y2="74.0" stroke="#ffd700" stroke-width="0.3" stroke-linecap="round" opacity="0.85"/>
-<line x1="90.0" y1="74.0" x2="90.0" y2="90.0" stroke="#ffd700" stroke-width="0.3" stroke-linecap="round" opacity="0.85"/>
-<line x1="90.0" y1="90.0" x2="74.0" y2="90.0" stroke="#ffd700" stroke-width="0.3" stroke-linecap="round" opacity="0.85"/>
-<line x1="74.0" y1="90.0" x2="58.0" y2="90.0" stroke="#ffd700" stroke-width="0.3" stroke-linecap="round" opacity="0.85"/>
-<line x1="58.0" y1="90.0" x2="42.0" y2="90.0" stroke="#ffd700" stroke-width="0.3" stroke-linecap="round" opacity="0.85"/>
-<line x1="42.0" y1="90.0" x2="26.0" y2="90.0" stroke="#ffd700" stroke-width="0.3" stroke-linecap="round" opacity="0.85"/>
-<line x1="26.0" y1="90.0" x2="10.0" y2="90.0" stroke="#ffd700" stroke-width="0.3" stroke-linecap="round" opacity="0.85"/>
+          <line x1="8.75" y1="12.5" x2="23.75" y2="12.5" stroke="#ffd700" stroke-width="0.3" stroke-linecap="round" opacity="0.85"/>
+<line x1="23.75" y1="12.5" x2="38.75" y2="12.5" stroke="#ffd700" stroke-width="0.3" stroke-linecap="round" opacity="0.85"/>
+<line x1="38.75" y1="12.5" x2="53.75" y2="12.5" stroke="#ffd700" stroke-width="0.3" stroke-linecap="round" opacity="0.85"/>
+<line x1="53.75" y1="12.5" x2="68.75" y2="12.5" stroke="#ffd700" stroke-width="0.3" stroke-linecap="round" opacity="0.85"/>
+<line x1="68.75" y1="12.5" x2="83.75" y2="12.5" stroke="#ffd700" stroke-width="0.3" stroke-linecap="round" opacity="0.85"/>
+<line x1="83.75" y1="12.5" x2="91.25" y2="27.5" stroke="#ffd700" stroke-width="0.3" stroke-linecap="round" opacity="0.85"/>
+<line x1="91.25" y1="27.5" x2="76.25" y2="27.5" stroke="#ffd700" stroke-width="0.3" stroke-linecap="round" opacity="0.85"/>
+<line x1="76.25" y1="27.5" x2="61.25" y2="27.5" stroke="#ffd700" stroke-width="0.3" stroke-linecap="round" opacity="0.85"/>
+<line x1="61.25" y1="27.5" x2="46.25" y2="27.5" stroke="#ffd700" stroke-width="0.3" stroke-linecap="round" opacity="0.85"/>
+<line x1="46.25" y1="27.5" x2="31.25" y2="27.5" stroke="#ffd700" stroke-width="0.3" stroke-linecap="round" opacity="0.85"/>
+<line x1="31.25" y1="27.5" x2="16.25" y2="27.5" stroke="#ffd700" stroke-width="0.3" stroke-linecap="round" opacity="0.85"/>
+<line x1="16.25" y1="27.5" x2="8.75" y2="42.5" stroke="#ffd700" stroke-width="0.3" stroke-linecap="round" opacity="0.85"/>
+<line x1="8.75" y1="42.5" x2="23.75" y2="42.5" stroke="#ffd700" stroke-width="0.3" stroke-linecap="round" opacity="0.85"/>
+<line x1="23.75" y1="42.5" x2="38.75" y2="42.5" stroke="#ffd700" stroke-width="0.3" stroke-linecap="round" opacity="0.85"/>
+<line x1="38.75" y1="42.5" x2="53.75" y2="42.5" stroke="#ffd700" stroke-width="0.3" stroke-linecap="round" opacity="0.85"/>
+<line x1="53.75" y1="42.5" x2="68.75" y2="42.5" stroke="#ffd700" stroke-width="0.3" stroke-linecap="round" opacity="0.85"/>
+<line x1="68.75" y1="42.5" x2="83.75" y2="42.5" stroke="#ffd700" stroke-width="0.3" stroke-linecap="round" opacity="0.85"/>
+<line x1="83.75" y1="42.5" x2="91.25" y2="57.5" stroke="#ffd700" stroke-width="0.3" stroke-linecap="round" opacity="0.85"/>
+<line x1="91.25" y1="57.5" x2="76.25" y2="57.5" stroke="#ffd700" stroke-width="0.3" stroke-linecap="round" opacity="0.85"/>
+<line x1="76.25" y1="57.5" x2="61.25" y2="57.5" stroke="#ffd700" stroke-width="0.3" stroke-linecap="round" opacity="0.85"/>
+<line x1="61.25" y1="57.5" x2="46.25" y2="57.5" stroke="#ffd700" stroke-width="0.3" stroke-linecap="round" opacity="0.85"/>
+<line x1="46.25" y1="57.5" x2="31.25" y2="57.5" stroke="#ffd700" stroke-width="0.3" stroke-linecap="round" opacity="0.85"/>
+<line x1="31.25" y1="57.5" x2="16.25" y2="57.5" stroke="#ffd700" stroke-width="0.3" stroke-linecap="round" opacity="0.85"/>
+<line x1="16.25" y1="57.5" x2="8.75" y2="72.5" stroke="#ffd700" stroke-width="0.3" stroke-linecap="round" opacity="0.85"/>
+<line x1="8.75" y1="72.5" x2="23.75" y2="72.5" stroke="#ffd700" stroke-width="0.3" stroke-linecap="round" opacity="0.85"/>
+<line x1="23.75" y1="72.5" x2="38.75" y2="72.5" stroke="#ffd700" stroke-width="0.3" stroke-linecap="round" opacity="0.85"/>
+<line x1="38.75" y1="72.5" x2="53.75" y2="72.5" stroke="#ffd700" stroke-width="0.3" stroke-linecap="round" opacity="0.85"/>
+<line x1="53.75" y1="72.5" x2="68.75" y2="72.5" stroke="#ffd700" stroke-width="0.3" stroke-linecap="round" opacity="0.85"/>
+<line x1="68.75" y1="72.5" x2="83.75" y2="72.5" stroke="#ffd700" stroke-width="0.3" stroke-linecap="round" opacity="0.85"/>
+<line x1="83.75" y1="72.5" x2="91.25" y2="87.5" stroke="#ffd700" stroke-width="0.3" stroke-linecap="round" opacity="0.85"/>
+<line x1="91.25" y1="87.5" x2="76.25" y2="87.5" stroke="#ffd700" stroke-width="0.3" stroke-linecap="round" opacity="0.85"/>
+<line x1="76.25" y1="87.5" x2="61.25" y2="87.5" stroke="#ffd700" stroke-width="0.3" stroke-linecap="round" opacity="0.85"/>
+<line x1="61.25" y1="87.5" x2="46.25" y2="87.5" stroke="#ffd700" stroke-width="0.3" stroke-linecap="round" opacity="0.85"/>
+<line x1="46.25" y1="87.5" x2="31.25" y2="87.5" stroke="#ffd700" stroke-width="0.3" stroke-linecap="round" opacity="0.85"/>
+<line x1="31.25" y1="87.5" x2="16.25" y2="87.5" stroke="#ffd700" stroke-width="0.3" stroke-linecap="round" opacity="0.85"/>
 
+          <!-- DOUT path to J2 via bottom margin -->
+          <path d="M 15.4 88.15 L 15.4 94.5 L 93.5 94.5 L 93.5 80.0 L 95.5 80.0" fill="none" stroke="#ffd700" stroke-width="0.25" opacity="0.85"/>
         </g>
 
-        <!-- 36 LEDs and Capacitors -->
+        <!-- 36 LEDs and Capacitors in Staggered Brick Positions -->
         <g id="led-elements">
           
     <!-- LED 1 (Row 1, Col 1) -->
     <g class="led-group" data-idx="1">
-      <rect class="led-pkg" x="9.0" y="9.0" width="2.0" height="2.0" rx="0.25" fill="#1e1e1e" stroke="#444" stroke-width="0.1"/>
-      <rect id="die-1" class="led-die" x="9.3" y="9.3" width="1.4" height="1.4" rx="0.15" fill="#fff5cc" stroke="none"/>
-      <rect class="cap-pkg" x="11.5" y="9.5" width="1.0" height="1.0" rx="0.1" fill="#b8860b" stroke="#333" stroke-width="0.08"/>
-      <text x="10.0" y="8.6" font-size="0.65" fill="#888" text-anchor="middle" font-family="monospace">D1</text>
+      <rect class="led-pkg" x="7.75" y="11.5" width="2.0" height="2.0" rx="0.25" fill="#1e1e1e" stroke="#444" stroke-width="0.1"/>
+      <rect id="die-1" class="led-die" x="8.05" y="11.8" width="1.4" height="1.4" rx="0.15" fill="#fff5cc" stroke="none"/>
+      <rect class="cap-pkg" x="10.25" y="12.0" width="1.0" height="1.0" rx="0.1" fill="#b8860b" stroke="#333" stroke-width="0.08"/>
+      <text x="8.75" y="11.1" font-size="0.65" fill="#888" text-anchor="middle" font-family="monospace">D1</text>
     </g>
     <!-- LED 2 (Row 1, Col 2) -->
     <g class="led-group" data-idx="2">
-      <rect class="led-pkg" x="25.0" y="9.0" width="2.0" height="2.0" rx="0.25" fill="#1e1e1e" stroke="#444" stroke-width="0.1"/>
-      <rect id="die-2" class="led-die" x="25.3" y="9.3" width="1.4" height="1.4" rx="0.15" fill="#fff5cc" stroke="none"/>
-      <rect class="cap-pkg" x="27.5" y="9.5" width="1.0" height="1.0" rx="0.1" fill="#b8860b" stroke="#333" stroke-width="0.08"/>
-      <text x="26.0" y="8.6" font-size="0.65" fill="#888" text-anchor="middle" font-family="monospace">D2</text>
+      <rect class="led-pkg" x="22.75" y="11.5" width="2.0" height="2.0" rx="0.25" fill="#1e1e1e" stroke="#444" stroke-width="0.1"/>
+      <rect id="die-2" class="led-die" x="23.05" y="11.8" width="1.4" height="1.4" rx="0.15" fill="#fff5cc" stroke="none"/>
+      <rect class="cap-pkg" x="25.25" y="12.0" width="1.0" height="1.0" rx="0.1" fill="#b8860b" stroke="#333" stroke-width="0.08"/>
+      <text x="23.75" y="11.1" font-size="0.65" fill="#888" text-anchor="middle" font-family="monospace">D2</text>
     </g>
     <!-- LED 3 (Row 1, Col 3) -->
     <g class="led-group" data-idx="3">
-      <rect class="led-pkg" x="41.0" y="9.0" width="2.0" height="2.0" rx="0.25" fill="#1e1e1e" stroke="#444" stroke-width="0.1"/>
-      <rect id="die-3" class="led-die" x="41.3" y="9.3" width="1.4" height="1.4" rx="0.15" fill="#fff5cc" stroke="none"/>
-      <rect class="cap-pkg" x="43.5" y="9.5" width="1.0" height="1.0" rx="0.1" fill="#b8860b" stroke="#333" stroke-width="0.08"/>
-      <text x="42.0" y="8.6" font-size="0.65" fill="#888" text-anchor="middle" font-family="monospace">D3</text>
+      <rect class="led-pkg" x="37.75" y="11.5" width="2.0" height="2.0" rx="0.25" fill="#1e1e1e" stroke="#444" stroke-width="0.1"/>
+      <rect id="die-3" class="led-die" x="38.05" y="11.8" width="1.4" height="1.4" rx="0.15" fill="#fff5cc" stroke="none"/>
+      <rect class="cap-pkg" x="40.25" y="12.0" width="1.0" height="1.0" rx="0.1" fill="#b8860b" stroke="#333" stroke-width="0.08"/>
+      <text x="38.75" y="11.1" font-size="0.65" fill="#888" text-anchor="middle" font-family="monospace">D3</text>
     </g>
     <!-- LED 4 (Row 1, Col 4) -->
     <g class="led-group" data-idx="4">
-      <rect class="led-pkg" x="57.0" y="9.0" width="2.0" height="2.0" rx="0.25" fill="#1e1e1e" stroke="#444" stroke-width="0.1"/>
-      <rect id="die-4" class="led-die" x="57.3" y="9.3" width="1.4" height="1.4" rx="0.15" fill="#fff5cc" stroke="none"/>
-      <rect class="cap-pkg" x="59.5" y="9.5" width="1.0" height="1.0" rx="0.1" fill="#b8860b" stroke="#333" stroke-width="0.08"/>
-      <text x="58.0" y="8.6" font-size="0.65" fill="#888" text-anchor="middle" font-family="monospace">D4</text>
+      <rect class="led-pkg" x="52.75" y="11.5" width="2.0" height="2.0" rx="0.25" fill="#1e1e1e" stroke="#444" stroke-width="0.1"/>
+      <rect id="die-4" class="led-die" x="53.05" y="11.8" width="1.4" height="1.4" rx="0.15" fill="#fff5cc" stroke="none"/>
+      <rect class="cap-pkg" x="55.25" y="12.0" width="1.0" height="1.0" rx="0.1" fill="#b8860b" stroke="#333" stroke-width="0.08"/>
+      <text x="53.75" y="11.1" font-size="0.65" fill="#888" text-anchor="middle" font-family="monospace">D4</text>
     </g>
     <!-- LED 5 (Row 1, Col 5) -->
     <g class="led-group" data-idx="5">
-      <rect class="led-pkg" x="73.0" y="9.0" width="2.0" height="2.0" rx="0.25" fill="#1e1e1e" stroke="#444" stroke-width="0.1"/>
-      <rect id="die-5" class="led-die" x="73.3" y="9.3" width="1.4" height="1.4" rx="0.15" fill="#fff5cc" stroke="none"/>
-      <rect class="cap-pkg" x="75.5" y="9.5" width="1.0" height="1.0" rx="0.1" fill="#b8860b" stroke="#333" stroke-width="0.08"/>
-      <text x="74.0" y="8.6" font-size="0.65" fill="#888" text-anchor="middle" font-family="monospace">D5</text>
+      <rect class="led-pkg" x="67.75" y="11.5" width="2.0" height="2.0" rx="0.25" fill="#1e1e1e" stroke="#444" stroke-width="0.1"/>
+      <rect id="die-5" class="led-die" x="68.05" y="11.8" width="1.4" height="1.4" rx="0.15" fill="#fff5cc" stroke="none"/>
+      <rect class="cap-pkg" x="70.25" y="12.0" width="1.0" height="1.0" rx="0.1" fill="#b8860b" stroke="#333" stroke-width="0.08"/>
+      <text x="68.75" y="11.1" font-size="0.65" fill="#888" text-anchor="middle" font-family="monospace">D5</text>
     </g>
     <!-- LED 6 (Row 1, Col 6) -->
     <g class="led-group" data-idx="6">
-      <rect class="led-pkg" x="89.0" y="9.0" width="2.0" height="2.0" rx="0.25" fill="#1e1e1e" stroke="#444" stroke-width="0.1"/>
-      <rect id="die-6" class="led-die" x="89.3" y="9.3" width="1.4" height="1.4" rx="0.15" fill="#fff5cc" stroke="none"/>
-      <rect class="cap-pkg" x="91.5" y="9.5" width="1.0" height="1.0" rx="0.1" fill="#b8860b" stroke="#333" stroke-width="0.08"/>
-      <text x="90.0" y="8.6" font-size="0.65" fill="#888" text-anchor="middle" font-family="monospace">D6</text>
+      <rect class="led-pkg" x="82.75" y="11.5" width="2.0" height="2.0" rx="0.25" fill="#1e1e1e" stroke="#444" stroke-width="0.1"/>
+      <rect id="die-6" class="led-die" x="83.05" y="11.8" width="1.4" height="1.4" rx="0.15" fill="#fff5cc" stroke="none"/>
+      <rect class="cap-pkg" x="85.25" y="12.0" width="1.0" height="1.0" rx="0.1" fill="#b8860b" stroke="#333" stroke-width="0.08"/>
+      <text x="83.75" y="11.1" font-size="0.65" fill="#888" text-anchor="middle" font-family="monospace">D6</text>
     </g>
     <!-- LED 7 (Row 2, Col 6) -->
     <g class="led-group" data-idx="7">
-      <rect class="led-pkg" x="89.0" y="25.0" width="2.0" height="2.0" rx="0.25" fill="#1e1e1e" stroke="#444" stroke-width="0.1"/>
-      <rect id="die-7" class="led-die" x="89.3" y="25.3" width="1.4" height="1.4" rx="0.15" fill="#fff5cc" stroke="none"/>
-      <rect class="cap-pkg" x="91.5" y="25.5" width="1.0" height="1.0" rx="0.1" fill="#b8860b" stroke="#333" stroke-width="0.08"/>
-      <text x="90.0" y="24.6" font-size="0.65" fill="#888" text-anchor="middle" font-family="monospace">D7</text>
+      <rect class="led-pkg" x="90.25" y="26.5" width="2.0" height="2.0" rx="0.25" fill="#1e1e1e" stroke="#444" stroke-width="0.1"/>
+      <rect id="die-7" class="led-die" x="90.55" y="26.8" width="1.4" height="1.4" rx="0.15" fill="#fff5cc" stroke="none"/>
+      <rect class="cap-pkg" x="92.75" y="27.0" width="1.0" height="1.0" rx="0.1" fill="#b8860b" stroke="#333" stroke-width="0.08"/>
+      <text x="91.25" y="26.1" font-size="0.65" fill="#888" text-anchor="middle" font-family="monospace">D7</text>
     </g>
     <!-- LED 8 (Row 2, Col 5) -->
     <g class="led-group" data-idx="8">
-      <rect class="led-pkg" x="73.0" y="25.0" width="2.0" height="2.0" rx="0.25" fill="#1e1e1e" stroke="#444" stroke-width="0.1"/>
-      <rect id="die-8" class="led-die" x="73.3" y="25.3" width="1.4" height="1.4" rx="0.15" fill="#fff5cc" stroke="none"/>
-      <rect class="cap-pkg" x="75.5" y="25.5" width="1.0" height="1.0" rx="0.1" fill="#b8860b" stroke="#333" stroke-width="0.08"/>
-      <text x="74.0" y="24.6" font-size="0.65" fill="#888" text-anchor="middle" font-family="monospace">D8</text>
+      <rect class="led-pkg" x="75.25" y="26.5" width="2.0" height="2.0" rx="0.25" fill="#1e1e1e" stroke="#444" stroke-width="0.1"/>
+      <rect id="die-8" class="led-die" x="75.55" y="26.8" width="1.4" height="1.4" rx="0.15" fill="#fff5cc" stroke="none"/>
+      <rect class="cap-pkg" x="77.75" y="27.0" width="1.0" height="1.0" rx="0.1" fill="#b8860b" stroke="#333" stroke-width="0.08"/>
+      <text x="76.25" y="26.1" font-size="0.65" fill="#888" text-anchor="middle" font-family="monospace">D8</text>
     </g>
     <!-- LED 9 (Row 2, Col 4) -->
     <g class="led-group" data-idx="9">
-      <rect class="led-pkg" x="57.0" y="25.0" width="2.0" height="2.0" rx="0.25" fill="#1e1e1e" stroke="#444" stroke-width="0.1"/>
-      <rect id="die-9" class="led-die" x="57.3" y="25.3" width="1.4" height="1.4" rx="0.15" fill="#fff5cc" stroke="none"/>
-      <rect class="cap-pkg" x="59.5" y="25.5" width="1.0" height="1.0" rx="0.1" fill="#b8860b" stroke="#333" stroke-width="0.08"/>
-      <text x="58.0" y="24.6" font-size="0.65" fill="#888" text-anchor="middle" font-family="monospace">D9</text>
+      <rect class="led-pkg" x="60.25" y="26.5" width="2.0" height="2.0" rx="0.25" fill="#1e1e1e" stroke="#444" stroke-width="0.1"/>
+      <rect id="die-9" class="led-die" x="60.55" y="26.8" width="1.4" height="1.4" rx="0.15" fill="#fff5cc" stroke="none"/>
+      <rect class="cap-pkg" x="62.75" y="27.0" width="1.0" height="1.0" rx="0.1" fill="#b8860b" stroke="#333" stroke-width="0.08"/>
+      <text x="61.25" y="26.1" font-size="0.65" fill="#888" text-anchor="middle" font-family="monospace">D9</text>
     </g>
     <!-- LED 10 (Row 2, Col 3) -->
     <g class="led-group" data-idx="10">
-      <rect class="led-pkg" x="41.0" y="25.0" width="2.0" height="2.0" rx="0.25" fill="#1e1e1e" stroke="#444" stroke-width="0.1"/>
-      <rect id="die-10" class="led-die" x="41.3" y="25.3" width="1.4" height="1.4" rx="0.15" fill="#fff5cc" stroke="none"/>
-      <rect class="cap-pkg" x="43.5" y="25.5" width="1.0" height="1.0" rx="0.1" fill="#b8860b" stroke="#333" stroke-width="0.08"/>
-      <text x="42.0" y="24.6" font-size="0.65" fill="#888" text-anchor="middle" font-family="monospace">D10</text>
+      <rect class="led-pkg" x="45.25" y="26.5" width="2.0" height="2.0" rx="0.25" fill="#1e1e1e" stroke="#444" stroke-width="0.1"/>
+      <rect id="die-10" class="led-die" x="45.55" y="26.8" width="1.4" height="1.4" rx="0.15" fill="#fff5cc" stroke="none"/>
+      <rect class="cap-pkg" x="47.75" y="27.0" width="1.0" height="1.0" rx="0.1" fill="#b8860b" stroke="#333" stroke-width="0.08"/>
+      <text x="46.25" y="26.1" font-size="0.65" fill="#888" text-anchor="middle" font-family="monospace">D10</text>
     </g>
     <!-- LED 11 (Row 2, Col 2) -->
     <g class="led-group" data-idx="11">
-      <rect class="led-pkg" x="25.0" y="25.0" width="2.0" height="2.0" rx="0.25" fill="#1e1e1e" stroke="#444" stroke-width="0.1"/>
-      <rect id="die-11" class="led-die" x="25.3" y="25.3" width="1.4" height="1.4" rx="0.15" fill="#fff5cc" stroke="none"/>
-      <rect class="cap-pkg" x="27.5" y="25.5" width="1.0" height="1.0" rx="0.1" fill="#b8860b" stroke="#333" stroke-width="0.08"/>
-      <text x="26.0" y="24.6" font-size="0.65" fill="#888" text-anchor="middle" font-family="monospace">D11</text>
+      <rect class="led-pkg" x="30.25" y="26.5" width="2.0" height="2.0" rx="0.25" fill="#1e1e1e" stroke="#444" stroke-width="0.1"/>
+      <rect id="die-11" class="led-die" x="30.55" y="26.8" width="1.4" height="1.4" rx="0.15" fill="#fff5cc" stroke="none"/>
+      <rect class="cap-pkg" x="32.75" y="27.0" width="1.0" height="1.0" rx="0.1" fill="#b8860b" stroke="#333" stroke-width="0.08"/>
+      <text x="31.25" y="26.1" font-size="0.65" fill="#888" text-anchor="middle" font-family="monospace">D11</text>
     </g>
     <!-- LED 12 (Row 2, Col 1) -->
     <g class="led-group" data-idx="12">
-      <rect class="led-pkg" x="9.0" y="25.0" width="2.0" height="2.0" rx="0.25" fill="#1e1e1e" stroke="#444" stroke-width="0.1"/>
-      <rect id="die-12" class="led-die" x="9.3" y="25.3" width="1.4" height="1.4" rx="0.15" fill="#fff5cc" stroke="none"/>
-      <rect class="cap-pkg" x="11.5" y="25.5" width="1.0" height="1.0" rx="0.1" fill="#b8860b" stroke="#333" stroke-width="0.08"/>
-      <text x="10.0" y="24.6" font-size="0.65" fill="#888" text-anchor="middle" font-family="monospace">D12</text>
+      <rect class="led-pkg" x="15.25" y="26.5" width="2.0" height="2.0" rx="0.25" fill="#1e1e1e" stroke="#444" stroke-width="0.1"/>
+      <rect id="die-12" class="led-die" x="15.55" y="26.8" width="1.4" height="1.4" rx="0.15" fill="#fff5cc" stroke="none"/>
+      <rect class="cap-pkg" x="17.75" y="27.0" width="1.0" height="1.0" rx="0.1" fill="#b8860b" stroke="#333" stroke-width="0.08"/>
+      <text x="16.25" y="26.1" font-size="0.65" fill="#888" text-anchor="middle" font-family="monospace">D12</text>
     </g>
     <!-- LED 13 (Row 3, Col 1) -->
     <g class="led-group" data-idx="13">
-      <rect class="led-pkg" x="9.0" y="41.0" width="2.0" height="2.0" rx="0.25" fill="#1e1e1e" stroke="#444" stroke-width="0.1"/>
-      <rect id="die-13" class="led-die" x="9.3" y="41.3" width="1.4" height="1.4" rx="0.15" fill="#fff5cc" stroke="none"/>
-      <rect class="cap-pkg" x="11.5" y="41.5" width="1.0" height="1.0" rx="0.1" fill="#b8860b" stroke="#333" stroke-width="0.08"/>
-      <text x="10.0" y="40.6" font-size="0.65" fill="#888" text-anchor="middle" font-family="monospace">D13</text>
+      <rect class="led-pkg" x="7.75" y="41.5" width="2.0" height="2.0" rx="0.25" fill="#1e1e1e" stroke="#444" stroke-width="0.1"/>
+      <rect id="die-13" class="led-die" x="8.05" y="41.8" width="1.4" height="1.4" rx="0.15" fill="#fff5cc" stroke="none"/>
+      <rect class="cap-pkg" x="10.25" y="42.0" width="1.0" height="1.0" rx="0.1" fill="#b8860b" stroke="#333" stroke-width="0.08"/>
+      <text x="8.75" y="41.1" font-size="0.65" fill="#888" text-anchor="middle" font-family="monospace">D13</text>
     </g>
     <!-- LED 14 (Row 3, Col 2) -->
     <g class="led-group" data-idx="14">
-      <rect class="led-pkg" x="25.0" y="41.0" width="2.0" height="2.0" rx="0.25" fill="#1e1e1e" stroke="#444" stroke-width="0.1"/>
-      <rect id="die-14" class="led-die" x="25.3" y="41.3" width="1.4" height="1.4" rx="0.15" fill="#fff5cc" stroke="none"/>
-      <rect class="cap-pkg" x="27.5" y="41.5" width="1.0" height="1.0" rx="0.1" fill="#b8860b" stroke="#333" stroke-width="0.08"/>
-      <text x="26.0" y="40.6" font-size="0.65" fill="#888" text-anchor="middle" font-family="monospace">D14</text>
+      <rect class="led-pkg" x="22.75" y="41.5" width="2.0" height="2.0" rx="0.25" fill="#1e1e1e" stroke="#444" stroke-width="0.1"/>
+      <rect id="die-14" class="led-die" x="23.05" y="41.8" width="1.4" height="1.4" rx="0.15" fill="#fff5cc" stroke="none"/>
+      <rect class="cap-pkg" x="25.25" y="42.0" width="1.0" height="1.0" rx="0.1" fill="#b8860b" stroke="#333" stroke-width="0.08"/>
+      <text x="23.75" y="41.1" font-size="0.65" fill="#888" text-anchor="middle" font-family="monospace">D14</text>
     </g>
     <!-- LED 15 (Row 3, Col 3) -->
     <g class="led-group" data-idx="15">
-      <rect class="led-pkg" x="41.0" y="41.0" width="2.0" height="2.0" rx="0.25" fill="#1e1e1e" stroke="#444" stroke-width="0.1"/>
-      <rect id="die-15" class="led-die" x="41.3" y="41.3" width="1.4" height="1.4" rx="0.15" fill="#fff5cc" stroke="none"/>
-      <rect class="cap-pkg" x="43.5" y="41.5" width="1.0" height="1.0" rx="0.1" fill="#b8860b" stroke="#333" stroke-width="0.08"/>
-      <text x="42.0" y="40.6" font-size="0.65" fill="#888" text-anchor="middle" font-family="monospace">D15</text>
+      <rect class="led-pkg" x="37.75" y="41.5" width="2.0" height="2.0" rx="0.25" fill="#1e1e1e" stroke="#444" stroke-width="0.1"/>
+      <rect id="die-15" class="led-die" x="38.05" y="41.8" width="1.4" height="1.4" rx="0.15" fill="#fff5cc" stroke="none"/>
+      <rect class="cap-pkg" x="40.25" y="42.0" width="1.0" height="1.0" rx="0.1" fill="#b8860b" stroke="#333" stroke-width="0.08"/>
+      <text x="38.75" y="41.1" font-size="0.65" fill="#888" text-anchor="middle" font-family="monospace">D15</text>
     </g>
     <!-- LED 16 (Row 3, Col 4) -->
     <g class="led-group" data-idx="16">
-      <rect class="led-pkg" x="57.0" y="41.0" width="2.0" height="2.0" rx="0.25" fill="#1e1e1e" stroke="#444" stroke-width="0.1"/>
-      <rect id="die-16" class="led-die" x="57.3" y="41.3" width="1.4" height="1.4" rx="0.15" fill="#fff5cc" stroke="none"/>
-      <rect class="cap-pkg" x="59.5" y="41.5" width="1.0" height="1.0" rx="0.1" fill="#b8860b" stroke="#333" stroke-width="0.08"/>
-      <text x="58.0" y="40.6" font-size="0.65" fill="#888" text-anchor="middle" font-family="monospace">D16</text>
+      <rect class="led-pkg" x="52.75" y="41.5" width="2.0" height="2.0" rx="0.25" fill="#1e1e1e" stroke="#444" stroke-width="0.1"/>
+      <rect id="die-16" class="led-die" x="53.05" y="41.8" width="1.4" height="1.4" rx="0.15" fill="#fff5cc" stroke="none"/>
+      <rect class="cap-pkg" x="55.25" y="42.0" width="1.0" height="1.0" rx="0.1" fill="#b8860b" stroke="#333" stroke-width="0.08"/>
+      <text x="53.75" y="41.1" font-size="0.65" fill="#888" text-anchor="middle" font-family="monospace">D16</text>
     </g>
     <!-- LED 17 (Row 3, Col 5) -->
     <g class="led-group" data-idx="17">
-      <rect class="led-pkg" x="73.0" y="41.0" width="2.0" height="2.0" rx="0.25" fill="#1e1e1e" stroke="#444" stroke-width="0.1"/>
-      <rect id="die-17" class="led-die" x="73.3" y="41.3" width="1.4" height="1.4" rx="0.15" fill="#fff5cc" stroke="none"/>
-      <rect class="cap-pkg" x="75.5" y="41.5" width="1.0" height="1.0" rx="0.1" fill="#b8860b" stroke="#333" stroke-width="0.08"/>
-      <text x="74.0" y="40.6" font-size="0.65" fill="#888" text-anchor="middle" font-family="monospace">D17</text>
+      <rect class="led-pkg" x="67.75" y="41.5" width="2.0" height="2.0" rx="0.25" fill="#1e1e1e" stroke="#444" stroke-width="0.1"/>
+      <rect id="die-17" class="led-die" x="68.05" y="41.8" width="1.4" height="1.4" rx="0.15" fill="#fff5cc" stroke="none"/>
+      <rect class="cap-pkg" x="70.25" y="42.0" width="1.0" height="1.0" rx="0.1" fill="#b8860b" stroke="#333" stroke-width="0.08"/>
+      <text x="68.75" y="41.1" font-size="0.65" fill="#888" text-anchor="middle" font-family="monospace">D17</text>
     </g>
     <!-- LED 18 (Row 3, Col 6) -->
     <g class="led-group" data-idx="18">
-      <rect class="led-pkg" x="89.0" y="41.0" width="2.0" height="2.0" rx="0.25" fill="#1e1e1e" stroke="#444" stroke-width="0.1"/>
-      <rect id="die-18" class="led-die" x="89.3" y="41.3" width="1.4" height="1.4" rx="0.15" fill="#fff5cc" stroke="none"/>
-      <rect class="cap-pkg" x="91.5" y="41.5" width="1.0" height="1.0" rx="0.1" fill="#b8860b" stroke="#333" stroke-width="0.08"/>
-      <text x="90.0" y="40.6" font-size="0.65" fill="#888" text-anchor="middle" font-family="monospace">D18</text>
+      <rect class="led-pkg" x="82.75" y="41.5" width="2.0" height="2.0" rx="0.25" fill="#1e1e1e" stroke="#444" stroke-width="0.1"/>
+      <rect id="die-18" class="led-die" x="83.05" y="41.8" width="1.4" height="1.4" rx="0.15" fill="#fff5cc" stroke="none"/>
+      <rect class="cap-pkg" x="85.25" y="42.0" width="1.0" height="1.0" rx="0.1" fill="#b8860b" stroke="#333" stroke-width="0.08"/>
+      <text x="83.75" y="41.1" font-size="0.65" fill="#888" text-anchor="middle" font-family="monospace">D18</text>
     </g>
     <!-- LED 19 (Row 4, Col 6) -->
     <g class="led-group" data-idx="19">
-      <rect class="led-pkg" x="89.0" y="57.0" width="2.0" height="2.0" rx="0.25" fill="#1e1e1e" stroke="#444" stroke-width="0.1"/>
-      <rect id="die-19" class="led-die" x="89.3" y="57.3" width="1.4" height="1.4" rx="0.15" fill="#fff5cc" stroke="none"/>
-      <rect class="cap-pkg" x="91.5" y="57.5" width="1.0" height="1.0" rx="0.1" fill="#b8860b" stroke="#333" stroke-width="0.08"/>
-      <text x="90.0" y="56.6" font-size="0.65" fill="#888" text-anchor="middle" font-family="monospace">D19</text>
+      <rect class="led-pkg" x="90.25" y="56.5" width="2.0" height="2.0" rx="0.25" fill="#1e1e1e" stroke="#444" stroke-width="0.1"/>
+      <rect id="die-19" class="led-die" x="90.55" y="56.8" width="1.4" height="1.4" rx="0.15" fill="#fff5cc" stroke="none"/>
+      <rect class="cap-pkg" x="92.75" y="57.0" width="1.0" height="1.0" rx="0.1" fill="#b8860b" stroke="#333" stroke-width="0.08"/>
+      <text x="91.25" y="56.1" font-size="0.65" fill="#888" text-anchor="middle" font-family="monospace">D19</text>
     </g>
     <!-- LED 20 (Row 4, Col 5) -->
     <g class="led-group" data-idx="20">
-      <rect class="led-pkg" x="73.0" y="57.0" width="2.0" height="2.0" rx="0.25" fill="#1e1e1e" stroke="#444" stroke-width="0.1"/>
-      <rect id="die-20" class="led-die" x="73.3" y="57.3" width="1.4" height="1.4" rx="0.15" fill="#fff5cc" stroke="none"/>
-      <rect class="cap-pkg" x="75.5" y="57.5" width="1.0" height="1.0" rx="0.1" fill="#b8860b" stroke="#333" stroke-width="0.08"/>
-      <text x="74.0" y="56.6" font-size="0.65" fill="#888" text-anchor="middle" font-family="monospace">D20</text>
+      <rect class="led-pkg" x="75.25" y="56.5" width="2.0" height="2.0" rx="0.25" fill="#1e1e1e" stroke="#444" stroke-width="0.1"/>
+      <rect id="die-20" class="led-die" x="75.55" y="56.8" width="1.4" height="1.4" rx="0.15" fill="#fff5cc" stroke="none"/>
+      <rect class="cap-pkg" x="77.75" y="57.0" width="1.0" height="1.0" rx="0.1" fill="#b8860b" stroke="#333" stroke-width="0.08"/>
+      <text x="76.25" y="56.1" font-size="0.65" fill="#888" text-anchor="middle" font-family="monospace">D20</text>
     </g>
     <!-- LED 21 (Row 4, Col 4) -->
     <g class="led-group" data-idx="21">
-      <rect class="led-pkg" x="57.0" y="57.0" width="2.0" height="2.0" rx="0.25" fill="#1e1e1e" stroke="#444" stroke-width="0.1"/>
-      <rect id="die-21" class="led-die" x="57.3" y="57.3" width="1.4" height="1.4" rx="0.15" fill="#fff5cc" stroke="none"/>
-      <rect class="cap-pkg" x="59.5" y="57.5" width="1.0" height="1.0" rx="0.1" fill="#b8860b" stroke="#333" stroke-width="0.08"/>
-      <text x="58.0" y="56.6" font-size="0.65" fill="#888" text-anchor="middle" font-family="monospace">D21</text>
+      <rect class="led-pkg" x="60.25" y="56.5" width="2.0" height="2.0" rx="0.25" fill="#1e1e1e" stroke="#444" stroke-width="0.1"/>
+      <rect id="die-21" class="led-die" x="60.55" y="56.8" width="1.4" height="1.4" rx="0.15" fill="#fff5cc" stroke="none"/>
+      <rect class="cap-pkg" x="62.75" y="57.0" width="1.0" height="1.0" rx="0.1" fill="#b8860b" stroke="#333" stroke-width="0.08"/>
+      <text x="61.25" y="56.1" font-size="0.65" fill="#888" text-anchor="middle" font-family="monospace">D21</text>
     </g>
     <!-- LED 22 (Row 4, Col 3) -->
     <g class="led-group" data-idx="22">
-      <rect class="led-pkg" x="41.0" y="57.0" width="2.0" height="2.0" rx="0.25" fill="#1e1e1e" stroke="#444" stroke-width="0.1"/>
-      <rect id="die-22" class="led-die" x="41.3" y="57.3" width="1.4" height="1.4" rx="0.15" fill="#fff5cc" stroke="none"/>
-      <rect class="cap-pkg" x="43.5" y="57.5" width="1.0" height="1.0" rx="0.1" fill="#b8860b" stroke="#333" stroke-width="0.08"/>
-      <text x="42.0" y="56.6" font-size="0.65" fill="#888" text-anchor="middle" font-family="monospace">D22</text>
+      <rect class="led-pkg" x="45.25" y="56.5" width="2.0" height="2.0" rx="0.25" fill="#1e1e1e" stroke="#444" stroke-width="0.1"/>
+      <rect id="die-22" class="led-die" x="45.55" y="56.8" width="1.4" height="1.4" rx="0.15" fill="#fff5cc" stroke="none"/>
+      <rect class="cap-pkg" x="47.75" y="57.0" width="1.0" height="1.0" rx="0.1" fill="#b8860b" stroke="#333" stroke-width="0.08"/>
+      <text x="46.25" y="56.1" font-size="0.65" fill="#888" text-anchor="middle" font-family="monospace">D22</text>
     </g>
     <!-- LED 23 (Row 4, Col 2) -->
     <g class="led-group" data-idx="23">
-      <rect class="led-pkg" x="25.0" y="57.0" width="2.0" height="2.0" rx="0.25" fill="#1e1e1e" stroke="#444" stroke-width="0.1"/>
-      <rect id="die-23" class="led-die" x="25.3" y="57.3" width="1.4" height="1.4" rx="0.15" fill="#fff5cc" stroke="none"/>
-      <rect class="cap-pkg" x="27.5" y="57.5" width="1.0" height="1.0" rx="0.1" fill="#b8860b" stroke="#333" stroke-width="0.08"/>
-      <text x="26.0" y="56.6" font-size="0.65" fill="#888" text-anchor="middle" font-family="monospace">D23</text>
+      <rect class="led-pkg" x="30.25" y="56.5" width="2.0" height="2.0" rx="0.25" fill="#1e1e1e" stroke="#444" stroke-width="0.1"/>
+      <rect id="die-23" class="led-die" x="30.55" y="56.8" width="1.4" height="1.4" rx="0.15" fill="#fff5cc" stroke="none"/>
+      <rect class="cap-pkg" x="32.75" y="57.0" width="1.0" height="1.0" rx="0.1" fill="#b8860b" stroke="#333" stroke-width="0.08"/>
+      <text x="31.25" y="56.1" font-size="0.65" fill="#888" text-anchor="middle" font-family="monospace">D23</text>
     </g>
     <!-- LED 24 (Row 4, Col 1) -->
     <g class="led-group" data-idx="24">
-      <rect class="led-pkg" x="9.0" y="57.0" width="2.0" height="2.0" rx="0.25" fill="#1e1e1e" stroke="#444" stroke-width="0.1"/>
-      <rect id="die-24" class="led-die" x="9.3" y="57.3" width="1.4" height="1.4" rx="0.15" fill="#fff5cc" stroke="none"/>
-      <rect class="cap-pkg" x="11.5" y="57.5" width="1.0" height="1.0" rx="0.1" fill="#b8860b" stroke="#333" stroke-width="0.08"/>
-      <text x="10.0" y="56.6" font-size="0.65" fill="#888" text-anchor="middle" font-family="monospace">D24</text>
+      <rect class="led-pkg" x="15.25" y="56.5" width="2.0" height="2.0" rx="0.25" fill="#1e1e1e" stroke="#444" stroke-width="0.1"/>
+      <rect id="die-24" class="led-die" x="15.55" y="56.8" width="1.4" height="1.4" rx="0.15" fill="#fff5cc" stroke="none"/>
+      <rect class="cap-pkg" x="17.75" y="57.0" width="1.0" height="1.0" rx="0.1" fill="#b8860b" stroke="#333" stroke-width="0.08"/>
+      <text x="16.25" y="56.1" font-size="0.65" fill="#888" text-anchor="middle" font-family="monospace">D24</text>
     </g>
     <!-- LED 25 (Row 5, Col 1) -->
     <g class="led-group" data-idx="25">
-      <rect class="led-pkg" x="9.0" y="73.0" width="2.0" height="2.0" rx="0.25" fill="#1e1e1e" stroke="#444" stroke-width="0.1"/>
-      <rect id="die-25" class="led-die" x="9.3" y="73.3" width="1.4" height="1.4" rx="0.15" fill="#fff5cc" stroke="none"/>
-      <rect class="cap-pkg" x="11.5" y="73.5" width="1.0" height="1.0" rx="0.1" fill="#b8860b" stroke="#333" stroke-width="0.08"/>
-      <text x="10.0" y="72.6" font-size="0.65" fill="#888" text-anchor="middle" font-family="monospace">D25</text>
+      <rect class="led-pkg" x="7.75" y="71.5" width="2.0" height="2.0" rx="0.25" fill="#1e1e1e" stroke="#444" stroke-width="0.1"/>
+      <rect id="die-25" class="led-die" x="8.05" y="71.8" width="1.4" height="1.4" rx="0.15" fill="#fff5cc" stroke="none"/>
+      <rect class="cap-pkg" x="10.25" y="72.0" width="1.0" height="1.0" rx="0.1" fill="#b8860b" stroke="#333" stroke-width="0.08"/>
+      <text x="8.75" y="71.1" font-size="0.65" fill="#888" text-anchor="middle" font-family="monospace">D25</text>
     </g>
     <!-- LED 26 (Row 5, Col 2) -->
     <g class="led-group" data-idx="26">
-      <rect class="led-pkg" x="25.0" y="73.0" width="2.0" height="2.0" rx="0.25" fill="#1e1e1e" stroke="#444" stroke-width="0.1"/>
-      <rect id="die-26" class="led-die" x="25.3" y="73.3" width="1.4" height="1.4" rx="0.15" fill="#fff5cc" stroke="none"/>
-      <rect class="cap-pkg" x="27.5" y="73.5" width="1.0" height="1.0" rx="0.1" fill="#b8860b" stroke="#333" stroke-width="0.08"/>
-      <text x="26.0" y="72.6" font-size="0.65" fill="#888" text-anchor="middle" font-family="monospace">D26</text>
+      <rect class="led-pkg" x="22.75" y="71.5" width="2.0" height="2.0" rx="0.25" fill="#1e1e1e" stroke="#444" stroke-width="0.1"/>
+      <rect id="die-26" class="led-die" x="23.05" y="71.8" width="1.4" height="1.4" rx="0.15" fill="#fff5cc" stroke="none"/>
+      <rect class="cap-pkg" x="25.25" y="72.0" width="1.0" height="1.0" rx="0.1" fill="#b8860b" stroke="#333" stroke-width="0.08"/>
+      <text x="23.75" y="71.1" font-size="0.65" fill="#888" text-anchor="middle" font-family="monospace">D26</text>
     </g>
     <!-- LED 27 (Row 5, Col 3) -->
     <g class="led-group" data-idx="27">
-      <rect class="led-pkg" x="41.0" y="73.0" width="2.0" height="2.0" rx="0.25" fill="#1e1e1e" stroke="#444" stroke-width="0.1"/>
-      <rect id="die-27" class="led-die" x="41.3" y="73.3" width="1.4" height="1.4" rx="0.15" fill="#fff5cc" stroke="none"/>
-      <rect class="cap-pkg" x="43.5" y="73.5" width="1.0" height="1.0" rx="0.1" fill="#b8860b" stroke="#333" stroke-width="0.08"/>
-      <text x="42.0" y="72.6" font-size="0.65" fill="#888" text-anchor="middle" font-family="monospace">D27</text>
+      <rect class="led-pkg" x="37.75" y="71.5" width="2.0" height="2.0" rx="0.25" fill="#1e1e1e" stroke="#444" stroke-width="0.1"/>
+      <rect id="die-27" class="led-die" x="38.05" y="71.8" width="1.4" height="1.4" rx="0.15" fill="#fff5cc" stroke="none"/>
+      <rect class="cap-pkg" x="40.25" y="72.0" width="1.0" height="1.0" rx="0.1" fill="#b8860b" stroke="#333" stroke-width="0.08"/>
+      <text x="38.75" y="71.1" font-size="0.65" fill="#888" text-anchor="middle" font-family="monospace">D27</text>
     </g>
     <!-- LED 28 (Row 5, Col 4) -->
     <g class="led-group" data-idx="28">
-      <rect class="led-pkg" x="57.0" y="73.0" width="2.0" height="2.0" rx="0.25" fill="#1e1e1e" stroke="#444" stroke-width="0.1"/>
-      <rect id="die-28" class="led-die" x="57.3" y="73.3" width="1.4" height="1.4" rx="0.15" fill="#fff5cc" stroke="none"/>
-      <rect class="cap-pkg" x="59.5" y="73.5" width="1.0" height="1.0" rx="0.1" fill="#b8860b" stroke="#333" stroke-width="0.08"/>
-      <text x="58.0" y="72.6" font-size="0.65" fill="#888" text-anchor="middle" font-family="monospace">D28</text>
+      <rect class="led-pkg" x="52.75" y="71.5" width="2.0" height="2.0" rx="0.25" fill="#1e1e1e" stroke="#444" stroke-width="0.1"/>
+      <rect id="die-28" class="led-die" x="53.05" y="71.8" width="1.4" height="1.4" rx="0.15" fill="#fff5cc" stroke="none"/>
+      <rect class="cap-pkg" x="55.25" y="72.0" width="1.0" height="1.0" rx="0.1" fill="#b8860b" stroke="#333" stroke-width="0.08"/>
+      <text x="53.75" y="71.1" font-size="0.65" fill="#888" text-anchor="middle" font-family="monospace">D28</text>
     </g>
     <!-- LED 29 (Row 5, Col 5) -->
     <g class="led-group" data-idx="29">
-      <rect class="led-pkg" x="73.0" y="73.0" width="2.0" height="2.0" rx="0.25" fill="#1e1e1e" stroke="#444" stroke-width="0.1"/>
-      <rect id="die-29" class="led-die" x="73.3" y="73.3" width="1.4" height="1.4" rx="0.15" fill="#fff5cc" stroke="none"/>
-      <rect class="cap-pkg" x="75.5" y="73.5" width="1.0" height="1.0" rx="0.1" fill="#b8860b" stroke="#333" stroke-width="0.08"/>
-      <text x="74.0" y="72.6" font-size="0.65" fill="#888" text-anchor="middle" font-family="monospace">D29</text>
+      <rect class="led-pkg" x="67.75" y="71.5" width="2.0" height="2.0" rx="0.25" fill="#1e1e1e" stroke="#444" stroke-width="0.1"/>
+      <rect id="die-29" class="led-die" x="68.05" y="71.8" width="1.4" height="1.4" rx="0.15" fill="#fff5cc" stroke="none"/>
+      <rect class="cap-pkg" x="70.25" y="72.0" width="1.0" height="1.0" rx="0.1" fill="#b8860b" stroke="#333" stroke-width="0.08"/>
+      <text x="68.75" y="71.1" font-size="0.65" fill="#888" text-anchor="middle" font-family="monospace">D29</text>
     </g>
     <!-- LED 30 (Row 5, Col 6) -->
     <g class="led-group" data-idx="30">
-      <rect class="led-pkg" x="89.0" y="73.0" width="2.0" height="2.0" rx="0.25" fill="#1e1e1e" stroke="#444" stroke-width="0.1"/>
-      <rect id="die-30" class="led-die" x="89.3" y="73.3" width="1.4" height="1.4" rx="0.15" fill="#fff5cc" stroke="none"/>
-      <rect class="cap-pkg" x="91.5" y="73.5" width="1.0" height="1.0" rx="0.1" fill="#b8860b" stroke="#333" stroke-width="0.08"/>
-      <text x="90.0" y="72.6" font-size="0.65" fill="#888" text-anchor="middle" font-family="monospace">D30</text>
+      <rect class="led-pkg" x="82.75" y="71.5" width="2.0" height="2.0" rx="0.25" fill="#1e1e1e" stroke="#444" stroke-width="0.1"/>
+      <rect id="die-30" class="led-die" x="83.05" y="71.8" width="1.4" height="1.4" rx="0.15" fill="#fff5cc" stroke="none"/>
+      <rect class="cap-pkg" x="85.25" y="72.0" width="1.0" height="1.0" rx="0.1" fill="#b8860b" stroke="#333" stroke-width="0.08"/>
+      <text x="83.75" y="71.1" font-size="0.65" fill="#888" text-anchor="middle" font-family="monospace">D30</text>
     </g>
     <!-- LED 31 (Row 6, Col 6) -->
     <g class="led-group" data-idx="31">
-      <rect class="led-pkg" x="89.0" y="89.0" width="2.0" height="2.0" rx="0.25" fill="#1e1e1e" stroke="#444" stroke-width="0.1"/>
-      <rect id="die-31" class="led-die" x="89.3" y="89.3" width="1.4" height="1.4" rx="0.15" fill="#fff5cc" stroke="none"/>
-      <rect class="cap-pkg" x="91.5" y="89.5" width="1.0" height="1.0" rx="0.1" fill="#b8860b" stroke="#333" stroke-width="0.08"/>
-      <text x="90.0" y="88.6" font-size="0.65" fill="#888" text-anchor="middle" font-family="monospace">D31</text>
+      <rect class="led-pkg" x="90.25" y="86.5" width="2.0" height="2.0" rx="0.25" fill="#1e1e1e" stroke="#444" stroke-width="0.1"/>
+      <rect id="die-31" class="led-die" x="90.55" y="86.8" width="1.4" height="1.4" rx="0.15" fill="#fff5cc" stroke="none"/>
+      <rect class="cap-pkg" x="92.75" y="87.0" width="1.0" height="1.0" rx="0.1" fill="#b8860b" stroke="#333" stroke-width="0.08"/>
+      <text x="91.25" y="86.1" font-size="0.65" fill="#888" text-anchor="middle" font-family="monospace">D31</text>
     </g>
     <!-- LED 32 (Row 6, Col 5) -->
     <g class="led-group" data-idx="32">
-      <rect class="led-pkg" x="73.0" y="89.0" width="2.0" height="2.0" rx="0.25" fill="#1e1e1e" stroke="#444" stroke-width="0.1"/>
-      <rect id="die-32" class="led-die" x="73.3" y="89.3" width="1.4" height="1.4" rx="0.15" fill="#fff5cc" stroke="none"/>
-      <rect class="cap-pkg" x="75.5" y="89.5" width="1.0" height="1.0" rx="0.1" fill="#b8860b" stroke="#333" stroke-width="0.08"/>
-      <text x="74.0" y="88.6" font-size="0.65" fill="#888" text-anchor="middle" font-family="monospace">D32</text>
+      <rect class="led-pkg" x="75.25" y="86.5" width="2.0" height="2.0" rx="0.25" fill="#1e1e1e" stroke="#444" stroke-width="0.1"/>
+      <rect id="die-32" class="led-die" x="75.55" y="86.8" width="1.4" height="1.4" rx="0.15" fill="#fff5cc" stroke="none"/>
+      <rect class="cap-pkg" x="77.75" y="87.0" width="1.0" height="1.0" rx="0.1" fill="#b8860b" stroke="#333" stroke-width="0.08"/>
+      <text x="76.25" y="86.1" font-size="0.65" fill="#888" text-anchor="middle" font-family="monospace">D32</text>
     </g>
     <!-- LED 33 (Row 6, Col 4) -->
     <g class="led-group" data-idx="33">
-      <rect class="led-pkg" x="57.0" y="89.0" width="2.0" height="2.0" rx="0.25" fill="#1e1e1e" stroke="#444" stroke-width="0.1"/>
-      <rect id="die-33" class="led-die" x="57.3" y="89.3" width="1.4" height="1.4" rx="0.15" fill="#fff5cc" stroke="none"/>
-      <rect class="cap-pkg" x="59.5" y="89.5" width="1.0" height="1.0" rx="0.1" fill="#b8860b" stroke="#333" stroke-width="0.08"/>
-      <text x="58.0" y="88.6" font-size="0.65" fill="#888" text-anchor="middle" font-family="monospace">D33</text>
+      <rect class="led-pkg" x="60.25" y="86.5" width="2.0" height="2.0" rx="0.25" fill="#1e1e1e" stroke="#444" stroke-width="0.1"/>
+      <rect id="die-33" class="led-die" x="60.55" y="86.8" width="1.4" height="1.4" rx="0.15" fill="#fff5cc" stroke="none"/>
+      <rect class="cap-pkg" x="62.75" y="87.0" width="1.0" height="1.0" rx="0.1" fill="#b8860b" stroke="#333" stroke-width="0.08"/>
+      <text x="61.25" y="86.1" font-size="0.65" fill="#888" text-anchor="middle" font-family="monospace">D33</text>
     </g>
     <!-- LED 34 (Row 6, Col 3) -->
     <g class="led-group" data-idx="34">
-      <rect class="led-pkg" x="41.0" y="89.0" width="2.0" height="2.0" rx="0.25" fill="#1e1e1e" stroke="#444" stroke-width="0.1"/>
-      <rect id="die-34" class="led-die" x="41.3" y="89.3" width="1.4" height="1.4" rx="0.15" fill="#fff5cc" stroke="none"/>
-      <rect class="cap-pkg" x="43.5" y="89.5" width="1.0" height="1.0" rx="0.1" fill="#b8860b" stroke="#333" stroke-width="0.08"/>
-      <text x="42.0" y="88.6" font-size="0.65" fill="#888" text-anchor="middle" font-family="monospace">D34</text>
+      <rect class="led-pkg" x="45.25" y="86.5" width="2.0" height="2.0" rx="0.25" fill="#1e1e1e" stroke="#444" stroke-width="0.1"/>
+      <rect id="die-34" class="led-die" x="45.55" y="86.8" width="1.4" height="1.4" rx="0.15" fill="#fff5cc" stroke="none"/>
+      <rect class="cap-pkg" x="47.75" y="87.0" width="1.0" height="1.0" rx="0.1" fill="#b8860b" stroke="#333" stroke-width="0.08"/>
+      <text x="46.25" y="86.1" font-size="0.65" fill="#888" text-anchor="middle" font-family="monospace">D34</text>
     </g>
     <!-- LED 35 (Row 6, Col 2) -->
     <g class="led-group" data-idx="35">
-      <rect class="led-pkg" x="25.0" y="89.0" width="2.0" height="2.0" rx="0.25" fill="#1e1e1e" stroke="#444" stroke-width="0.1"/>
-      <rect id="die-35" class="led-die" x="25.3" y="89.3" width="1.4" height="1.4" rx="0.15" fill="#fff5cc" stroke="none"/>
-      <rect class="cap-pkg" x="27.5" y="89.5" width="1.0" height="1.0" rx="0.1" fill="#b8860b" stroke="#333" stroke-width="0.08"/>
-      <text x="26.0" y="88.6" font-size="0.65" fill="#888" text-anchor="middle" font-family="monospace">D35</text>
+      <rect class="led-pkg" x="30.25" y="86.5" width="2.0" height="2.0" rx="0.25" fill="#1e1e1e" stroke="#444" stroke-width="0.1"/>
+      <rect id="die-35" class="led-die" x="30.55" y="86.8" width="1.4" height="1.4" rx="0.15" fill="#fff5cc" stroke="none"/>
+      <rect class="cap-pkg" x="32.75" y="87.0" width="1.0" height="1.0" rx="0.1" fill="#b8860b" stroke="#333" stroke-width="0.08"/>
+      <text x="31.25" y="86.1" font-size="0.65" fill="#888" text-anchor="middle" font-family="monospace">D35</text>
     </g>
     <!-- LED 36 (Row 6, Col 1) -->
     <g class="led-group" data-idx="36">
-      <rect class="led-pkg" x="9.0" y="89.0" width="2.0" height="2.0" rx="0.25" fill="#1e1e1e" stroke="#444" stroke-width="0.1"/>
-      <rect id="die-36" class="led-die" x="9.3" y="89.3" width="1.4" height="1.4" rx="0.15" fill="#fff5cc" stroke="none"/>
-      <rect class="cap-pkg" x="11.5" y="89.5" width="1.0" height="1.0" rx="0.1" fill="#b8860b" stroke="#333" stroke-width="0.08"/>
-      <text x="10.0" y="88.6" font-size="0.65" fill="#888" text-anchor="middle" font-family="monospace">D36</text>
+      <rect class="led-pkg" x="15.25" y="86.5" width="2.0" height="2.0" rx="0.25" fill="#1e1e1e" stroke="#444" stroke-width="0.1"/>
+      <rect id="die-36" class="led-die" x="15.55" y="86.8" width="1.4" height="1.4" rx="0.15" fill="#fff5cc" stroke="none"/>
+      <rect class="cap-pkg" x="17.75" y="87.0" width="1.0" height="1.0" rx="0.1" fill="#b8860b" stroke="#333" stroke-width="0.08"/>
+      <text x="16.25" y="86.1" font-size="0.65" fill="#888" text-anchor="middle" font-family="monospace">D36</text>
     </g>
         </g>
 
         <!-- Animated Data Pulse Dot -->
-        <circle id="pulse-dot" cx="10" cy="10" r="1.2" fill="#fff" opacity="0" filter="drop-shadow(0 0 2px #00ffcc)"/>
+        <circle id="pulse-dot" cx="8.75" cy="12.5" r="1.2" fill="#fff" opacity="0" filter="drop-shadow(0 0 2px #00ffcc)"/>
       </svg>
 
-      <!-- SVG 4-Tile Chest View (Initially Hidden) -->
+      <!-- SVG 4-Tile Chest View (Staggered Honeycomb Array) -->
       <svg id="svg-chest" viewBox="-15 -15 236 236" style="display: none;">
         <!-- Living Hinge Felt Base Background -->
         <rect x="-8" y="-8" width="222" height="222" rx="6" fill="#1c1917" stroke="#444" stroke-width="0.8"/>
         <text x="103" y="-2" font-size="2.8" fill="#888" text-anchor="middle" font-weight="bold">2.0mm FELT LIVING HINGE CHEST ENVELOPE (206mm × 206mm)</text>
         
-        <!-- Tile 1 (Top Left: x=0, y=0) -->
-        <g transform="translate(0, 0)">
-          <rect x="0" y="0" width="100" height="100" rx="2" fill="#13231b" stroke="#ffd700" stroke-width="0.3"/>
-          <text x="50" y="50" font-size="4.0" fill="#2d5a3f" text-anchor="middle" font-weight="bold" opacity="0.4">QUAD 1 (TOP-L)</text>
-        </g>
-        <!-- Tile 2 (Top Right: x=106, y=0) -->
-        <g transform="translate(106, 0)">
-          <rect x="0" y="0" width="100" height="100" rx="2" fill="#13231b" stroke="#ffd700" stroke-width="0.3"/>
-          <text x="50" y="50" font-size="4.0" fill="#2d5a3f" text-anchor="middle" font-weight="bold" opacity="0.4">QUAD 2 (TOP-R)</text>
-        </g>
-        <!-- Tile 3 (Bottom Right: x=106, y=106) -->
-        <g transform="translate(106, 106)">
-          <rect x="0" y="0" width="100" height="100" rx="2" fill="#13231b" stroke="#ffd700" stroke-width="0.3"/>
-          <text x="50" y="50" font-size="4.0" fill="#2d5a3f" text-anchor="middle" font-weight="bold" opacity="0.4">QUAD 3 (BOT-R)</text>
-        </g>
-        <!-- Tile 4 (Bottom Left: x=0, y=106) -->
-        <g transform="translate(0, 106)">
-          <rect x="0" y="0" width="100" height="100" rx="2" fill="#13231b" stroke="#ffd700" stroke-width="0.3"/>
-          <text x="50" y="50" font-size="4.0" fill="#2d5a3f" text-anchor="middle" font-weight="bold" opacity="0.4">QUAD 4 (BOT-L)</text>
-        </g>
+        
+    <!-- QUAD 1 (TOP-L) -->
+    <g transform="translate(0, 0)">
+      <rect x="0" y="0" width="100" height="100" rx="2" fill="#13231b" stroke="#ffd700" stroke-width="0.3"/>
+      <text x="50" y="50" font-size="4.0" fill="#2d5a3f" text-anchor="middle" font-weight="bold" opacity="0.35">QUAD 1 (TOP-L)</text>
+    <circle cx="8.75" cy="12.5" r="1.1" fill="#00ff88" opacity="0.8"/>
+<circle cx="23.75" cy="12.5" r="1.1" fill="#00ff88" opacity="0.8"/>
+<circle cx="38.75" cy="12.5" r="1.1" fill="#00ff88" opacity="0.8"/>
+<circle cx="53.75" cy="12.5" r="1.1" fill="#00ff88" opacity="0.8"/>
+<circle cx="68.75" cy="12.5" r="1.1" fill="#00ff88" opacity="0.8"/>
+<circle cx="83.75" cy="12.5" r="1.1" fill="#00ff88" opacity="0.8"/>
+<circle cx="91.25" cy="27.5" r="1.1" fill="#00ff88" opacity="0.8"/>
+<circle cx="76.25" cy="27.5" r="1.1" fill="#00ff88" opacity="0.8"/>
+<circle cx="61.25" cy="27.5" r="1.1" fill="#00ff88" opacity="0.8"/>
+<circle cx="46.25" cy="27.5" r="1.1" fill="#00ff88" opacity="0.8"/>
+<circle cx="31.25" cy="27.5" r="1.1" fill="#00ff88" opacity="0.8"/>
+<circle cx="16.25" cy="27.5" r="1.1" fill="#00ff88" opacity="0.8"/>
+<circle cx="8.75" cy="42.5" r="1.1" fill="#00ff88" opacity="0.8"/>
+<circle cx="23.75" cy="42.5" r="1.1" fill="#00ff88" opacity="0.8"/>
+<circle cx="38.75" cy="42.5" r="1.1" fill="#00ff88" opacity="0.8"/>
+<circle cx="53.75" cy="42.5" r="1.1" fill="#00ff88" opacity="0.8"/>
+<circle cx="68.75" cy="42.5" r="1.1" fill="#00ff88" opacity="0.8"/>
+<circle cx="83.75" cy="42.5" r="1.1" fill="#00ff88" opacity="0.8"/>
+<circle cx="91.25" cy="57.5" r="1.1" fill="#00ff88" opacity="0.8"/>
+<circle cx="76.25" cy="57.5" r="1.1" fill="#00ff88" opacity="0.8"/>
+<circle cx="61.25" cy="57.5" r="1.1" fill="#00ff88" opacity="0.8"/>
+<circle cx="46.25" cy="57.5" r="1.1" fill="#00ff88" opacity="0.8"/>
+<circle cx="31.25" cy="57.5" r="1.1" fill="#00ff88" opacity="0.8"/>
+<circle cx="16.25" cy="57.5" r="1.1" fill="#00ff88" opacity="0.8"/>
+<circle cx="8.75" cy="72.5" r="1.1" fill="#00ff88" opacity="0.8"/>
+<circle cx="23.75" cy="72.5" r="1.1" fill="#00ff88" opacity="0.8"/>
+<circle cx="38.75" cy="72.5" r="1.1" fill="#00ff88" opacity="0.8"/>
+<circle cx="53.75" cy="72.5" r="1.1" fill="#00ff88" opacity="0.8"/>
+<circle cx="68.75" cy="72.5" r="1.1" fill="#00ff88" opacity="0.8"/>
+<circle cx="83.75" cy="72.5" r="1.1" fill="#00ff88" opacity="0.8"/>
+<circle cx="91.25" cy="87.5" r="1.1" fill="#00ff88" opacity="0.8"/>
+<circle cx="76.25" cy="87.5" r="1.1" fill="#00ff88" opacity="0.8"/>
+<circle cx="61.25" cy="87.5" r="1.1" fill="#00ff88" opacity="0.8"/>
+<circle cx="46.25" cy="87.5" r="1.1" fill="#00ff88" opacity="0.8"/>
+<circle cx="31.25" cy="87.5" r="1.1" fill="#00ff88" opacity="0.8"/>
+<circle cx="16.25" cy="87.5" r="1.1" fill="#00ff88" opacity="0.8"/>
+    </g>
+
+    <!-- QUAD 2 (TOP-R) -->
+    <g transform="translate(106, 0)">
+      <rect x="0" y="0" width="100" height="100" rx="2" fill="#13231b" stroke="#ffd700" stroke-width="0.3"/>
+      <text x="50" y="50" font-size="4.0" fill="#2d5a3f" text-anchor="middle" font-weight="bold" opacity="0.35">QUAD 2 (TOP-R)</text>
+    <circle cx="8.75" cy="12.5" r="1.1" fill="#00ff88" opacity="0.8"/>
+<circle cx="23.75" cy="12.5" r="1.1" fill="#00ff88" opacity="0.8"/>
+<circle cx="38.75" cy="12.5" r="1.1" fill="#00ff88" opacity="0.8"/>
+<circle cx="53.75" cy="12.5" r="1.1" fill="#00ff88" opacity="0.8"/>
+<circle cx="68.75" cy="12.5" r="1.1" fill="#00ff88" opacity="0.8"/>
+<circle cx="83.75" cy="12.5" r="1.1" fill="#00ff88" opacity="0.8"/>
+<circle cx="91.25" cy="27.5" r="1.1" fill="#00ff88" opacity="0.8"/>
+<circle cx="76.25" cy="27.5" r="1.1" fill="#00ff88" opacity="0.8"/>
+<circle cx="61.25" cy="27.5" r="1.1" fill="#00ff88" opacity="0.8"/>
+<circle cx="46.25" cy="27.5" r="1.1" fill="#00ff88" opacity="0.8"/>
+<circle cx="31.25" cy="27.5" r="1.1" fill="#00ff88" opacity="0.8"/>
+<circle cx="16.25" cy="27.5" r="1.1" fill="#00ff88" opacity="0.8"/>
+<circle cx="8.75" cy="42.5" r="1.1" fill="#00ff88" opacity="0.8"/>
+<circle cx="23.75" cy="42.5" r="1.1" fill="#00ff88" opacity="0.8"/>
+<circle cx="38.75" cy="42.5" r="1.1" fill="#00ff88" opacity="0.8"/>
+<circle cx="53.75" cy="42.5" r="1.1" fill="#00ff88" opacity="0.8"/>
+<circle cx="68.75" cy="42.5" r="1.1" fill="#00ff88" opacity="0.8"/>
+<circle cx="83.75" cy="42.5" r="1.1" fill="#00ff88" opacity="0.8"/>
+<circle cx="91.25" cy="57.5" r="1.1" fill="#00ff88" opacity="0.8"/>
+<circle cx="76.25" cy="57.5" r="1.1" fill="#00ff88" opacity="0.8"/>
+<circle cx="61.25" cy="57.5" r="1.1" fill="#00ff88" opacity="0.8"/>
+<circle cx="46.25" cy="57.5" r="1.1" fill="#00ff88" opacity="0.8"/>
+<circle cx="31.25" cy="57.5" r="1.1" fill="#00ff88" opacity="0.8"/>
+<circle cx="16.25" cy="57.5" r="1.1" fill="#00ff88" opacity="0.8"/>
+<circle cx="8.75" cy="72.5" r="1.1" fill="#00ff88" opacity="0.8"/>
+<circle cx="23.75" cy="72.5" r="1.1" fill="#00ff88" opacity="0.8"/>
+<circle cx="38.75" cy="72.5" r="1.1" fill="#00ff88" opacity="0.8"/>
+<circle cx="53.75" cy="72.5" r="1.1" fill="#00ff88" opacity="0.8"/>
+<circle cx="68.75" cy="72.5" r="1.1" fill="#00ff88" opacity="0.8"/>
+<circle cx="83.75" cy="72.5" r="1.1" fill="#00ff88" opacity="0.8"/>
+<circle cx="91.25" cy="87.5" r="1.1" fill="#00ff88" opacity="0.8"/>
+<circle cx="76.25" cy="87.5" r="1.1" fill="#00ff88" opacity="0.8"/>
+<circle cx="61.25" cy="87.5" r="1.1" fill="#00ff88" opacity="0.8"/>
+<circle cx="46.25" cy="87.5" r="1.1" fill="#00ff88" opacity="0.8"/>
+<circle cx="31.25" cy="87.5" r="1.1" fill="#00ff88" opacity="0.8"/>
+<circle cx="16.25" cy="87.5" r="1.1" fill="#00ff88" opacity="0.8"/>
+    </g>
+
+    <!-- QUAD 3 (BOT-R) -->
+    <g transform="translate(106, 106)">
+      <rect x="0" y="0" width="100" height="100" rx="2" fill="#13231b" stroke="#ffd700" stroke-width="0.3"/>
+      <text x="50" y="50" font-size="4.0" fill="#2d5a3f" text-anchor="middle" font-weight="bold" opacity="0.35">QUAD 3 (BOT-R)</text>
+    <circle cx="8.75" cy="12.5" r="1.1" fill="#00ff88" opacity="0.8"/>
+<circle cx="23.75" cy="12.5" r="1.1" fill="#00ff88" opacity="0.8"/>
+<circle cx="38.75" cy="12.5" r="1.1" fill="#00ff88" opacity="0.8"/>
+<circle cx="53.75" cy="12.5" r="1.1" fill="#00ff88" opacity="0.8"/>
+<circle cx="68.75" cy="12.5" r="1.1" fill="#00ff88" opacity="0.8"/>
+<circle cx="83.75" cy="12.5" r="1.1" fill="#00ff88" opacity="0.8"/>
+<circle cx="91.25" cy="27.5" r="1.1" fill="#00ff88" opacity="0.8"/>
+<circle cx="76.25" cy="27.5" r="1.1" fill="#00ff88" opacity="0.8"/>
+<circle cx="61.25" cy="27.5" r="1.1" fill="#00ff88" opacity="0.8"/>
+<circle cx="46.25" cy="27.5" r="1.1" fill="#00ff88" opacity="0.8"/>
+<circle cx="31.25" cy="27.5" r="1.1" fill="#00ff88" opacity="0.8"/>
+<circle cx="16.25" cy="27.5" r="1.1" fill="#00ff88" opacity="0.8"/>
+<circle cx="8.75" cy="42.5" r="1.1" fill="#00ff88" opacity="0.8"/>
+<circle cx="23.75" cy="42.5" r="1.1" fill="#00ff88" opacity="0.8"/>
+<circle cx="38.75" cy="42.5" r="1.1" fill="#00ff88" opacity="0.8"/>
+<circle cx="53.75" cy="42.5" r="1.1" fill="#00ff88" opacity="0.8"/>
+<circle cx="68.75" cy="42.5" r="1.1" fill="#00ff88" opacity="0.8"/>
+<circle cx="83.75" cy="42.5" r="1.1" fill="#00ff88" opacity="0.8"/>
+<circle cx="91.25" cy="57.5" r="1.1" fill="#00ff88" opacity="0.8"/>
+<circle cx="76.25" cy="57.5" r="1.1" fill="#00ff88" opacity="0.8"/>
+<circle cx="61.25" cy="57.5" r="1.1" fill="#00ff88" opacity="0.8"/>
+<circle cx="46.25" cy="57.5" r="1.1" fill="#00ff88" opacity="0.8"/>
+<circle cx="31.25" cy="57.5" r="1.1" fill="#00ff88" opacity="0.8"/>
+<circle cx="16.25" cy="57.5" r="1.1" fill="#00ff88" opacity="0.8"/>
+<circle cx="8.75" cy="72.5" r="1.1" fill="#00ff88" opacity="0.8"/>
+<circle cx="23.75" cy="72.5" r="1.1" fill="#00ff88" opacity="0.8"/>
+<circle cx="38.75" cy="72.5" r="1.1" fill="#00ff88" opacity="0.8"/>
+<circle cx="53.75" cy="72.5" r="1.1" fill="#00ff88" opacity="0.8"/>
+<circle cx="68.75" cy="72.5" r="1.1" fill="#00ff88" opacity="0.8"/>
+<circle cx="83.75" cy="72.5" r="1.1" fill="#00ff88" opacity="0.8"/>
+<circle cx="91.25" cy="87.5" r="1.1" fill="#00ff88" opacity="0.8"/>
+<circle cx="76.25" cy="87.5" r="1.1" fill="#00ff88" opacity="0.8"/>
+<circle cx="61.25" cy="87.5" r="1.1" fill="#00ff88" opacity="0.8"/>
+<circle cx="46.25" cy="87.5" r="1.1" fill="#00ff88" opacity="0.8"/>
+<circle cx="31.25" cy="87.5" r="1.1" fill="#00ff88" opacity="0.8"/>
+<circle cx="16.25" cy="87.5" r="1.1" fill="#00ff88" opacity="0.8"/>
+    </g>
+
+    <!-- QUAD 4 (BOT-L) -->
+    <g transform="translate(0, 106)">
+      <rect x="0" y="0" width="100" height="100" rx="2" fill="#13231b" stroke="#ffd700" stroke-width="0.3"/>
+      <text x="50" y="50" font-size="4.0" fill="#2d5a3f" text-anchor="middle" font-weight="bold" opacity="0.35">QUAD 4 (BOT-L)</text>
+    <circle cx="8.75" cy="12.5" r="1.1" fill="#00ff88" opacity="0.8"/>
+<circle cx="23.75" cy="12.5" r="1.1" fill="#00ff88" opacity="0.8"/>
+<circle cx="38.75" cy="12.5" r="1.1" fill="#00ff88" opacity="0.8"/>
+<circle cx="53.75" cy="12.5" r="1.1" fill="#00ff88" opacity="0.8"/>
+<circle cx="68.75" cy="12.5" r="1.1" fill="#00ff88" opacity="0.8"/>
+<circle cx="83.75" cy="12.5" r="1.1" fill="#00ff88" opacity="0.8"/>
+<circle cx="91.25" cy="27.5" r="1.1" fill="#00ff88" opacity="0.8"/>
+<circle cx="76.25" cy="27.5" r="1.1" fill="#00ff88" opacity="0.8"/>
+<circle cx="61.25" cy="27.5" r="1.1" fill="#00ff88" opacity="0.8"/>
+<circle cx="46.25" cy="27.5" r="1.1" fill="#00ff88" opacity="0.8"/>
+<circle cx="31.25" cy="27.5" r="1.1" fill="#00ff88" opacity="0.8"/>
+<circle cx="16.25" cy="27.5" r="1.1" fill="#00ff88" opacity="0.8"/>
+<circle cx="8.75" cy="42.5" r="1.1" fill="#00ff88" opacity="0.8"/>
+<circle cx="23.75" cy="42.5" r="1.1" fill="#00ff88" opacity="0.8"/>
+<circle cx="38.75" cy="42.5" r="1.1" fill="#00ff88" opacity="0.8"/>
+<circle cx="53.75" cy="42.5" r="1.1" fill="#00ff88" opacity="0.8"/>
+<circle cx="68.75" cy="42.5" r="1.1" fill="#00ff88" opacity="0.8"/>
+<circle cx="83.75" cy="42.5" r="1.1" fill="#00ff88" opacity="0.8"/>
+<circle cx="91.25" cy="57.5" r="1.1" fill="#00ff88" opacity="0.8"/>
+<circle cx="76.25" cy="57.5" r="1.1" fill="#00ff88" opacity="0.8"/>
+<circle cx="61.25" cy="57.5" r="1.1" fill="#00ff88" opacity="0.8"/>
+<circle cx="46.25" cy="57.5" r="1.1" fill="#00ff88" opacity="0.8"/>
+<circle cx="31.25" cy="57.5" r="1.1" fill="#00ff88" opacity="0.8"/>
+<circle cx="16.25" cy="57.5" r="1.1" fill="#00ff88" opacity="0.8"/>
+<circle cx="8.75" cy="72.5" r="1.1" fill="#00ff88" opacity="0.8"/>
+<circle cx="23.75" cy="72.5" r="1.1" fill="#00ff88" opacity="0.8"/>
+<circle cx="38.75" cy="72.5" r="1.1" fill="#00ff88" opacity="0.8"/>
+<circle cx="53.75" cy="72.5" r="1.1" fill="#00ff88" opacity="0.8"/>
+<circle cx="68.75" cy="72.5" r="1.1" fill="#00ff88" opacity="0.8"/>
+<circle cx="83.75" cy="72.5" r="1.1" fill="#00ff88" opacity="0.8"/>
+<circle cx="91.25" cy="87.5" r="1.1" fill="#00ff88" opacity="0.8"/>
+<circle cx="76.25" cy="87.5" r="1.1" fill="#00ff88" opacity="0.8"/>
+<circle cx="61.25" cy="87.5" r="1.1" fill="#00ff88" opacity="0.8"/>
+<circle cx="46.25" cy="87.5" r="1.1" fill="#00ff88" opacity="0.8"/>
+<circle cx="31.25" cy="87.5" r="1.1" fill="#00ff88" opacity="0.8"/>
+<circle cx="16.25" cy="87.5" r="1.1" fill="#00ff88" opacity="0.8"/>
+    </g>
+
 
         <!-- Thin Flexible Ribbon Interconnect Cables Across 6mm Seams -->
         <!-- Ribbon 1: Quad 1 (Top-L) OUT to Quad 2 (Top-R) IN -->
@@ -576,7 +727,7 @@
     <!-- Sidebar Stats & JLCPCB Quote Guide -->
     <div>
       <div class="card">
-        <h3 style="margin-top:0; color:#fff;">📋 Board Specifications</h3>
+        <h3 style="margin-top:0; color:#fff;">🧱 Staggered Brick Specifications</h3>
         <div class="stat-grid">
           <div class="stat-box">
             <div class="stat-val">100 × 100</div>
@@ -587,12 +738,12 @@
             <div class="stat-lbl">WS2812B-2020 LEDs</div>
           </div>
           <div class="stat-box">
-            <div class="stat-val">16.0 mm</div>
-            <div class="stat-lbl">Uniform Pixel Pitch</div>
+            <div class="stat-val">15.0 mm</div>
+            <div class="stat-lbl">Horizontal / Vert Pitch</div>
           </div>
           <div class="stat-box">
-            <div class="stat-val">144</div>
-            <div class="stat-lbl">Chest Total (4 Tiles)</div>
+            <div class="stat-val">7.5 mm</div>
+            <div class="stat-lbl">Brick Offset Stagger</div>
           </div>
         </div>
 
@@ -625,7 +776,7 @@
         </div>
         <div class="step-box">
           <strong>Step 4: Review Instant Quote</strong><br>
-          The interactive DFM viewer will display all 36 LEDs and 2 FPC ribbon connectors positioned on the board with exact cost calculation!
+          The interactive DFM viewer will display all 36 LEDs and 2 FPC ribbon connectors positioned in the staggered brick pattern with exact cost calculation!
         </div>
       </div>
     </div>

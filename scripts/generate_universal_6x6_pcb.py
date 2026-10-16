@@ -7,32 +7,38 @@ PCB_DIR = os.path.join(BASE_DIR, "pcb")
 os.makedirs(PCB_DIR, exist_ok=True)
 
 # -------------------------------------------------------------
-# Configuration: 6x6 Universal Quadrant Panel on 100mm x 100mm
+# Configuration: Staggered Brick 6x6 LED Matrix (100mm x 100mm)
 # -------------------------------------------------------------
 BOARD_SIZE_MM = 100.0
 GRID_ROWS = 6
 GRID_COLS = 6
 NUM_LEDS = GRID_ROWS * GRID_COLS  # 36 LEDs
 
-PITCH_MM = 16.0
-MARGIN_MM = (BOARD_SIZE_MM - (GRID_COLS - 1) * PITCH_MM) / 2.0  # 10.0 mm exactly!
+# Staggered Brick Geometry:
+# Rows alternate horizontal position like offset bricks!
+# Row 1, 3, 5: Normal position (left aligned with 8.75mm margin)
+# Row 2, 4, 6: Shifted right by half a brick (7.5mm offset)
+PITCH_X = 15.0
+PITCH_Y = 15.0
+ROW_OFFSET = PITCH_X / 2.0  # 7.5 mm offset for brick stagger!
 
-# Grid Coordinates (Row 1-6, Col 1-6)
-# Serpentine daisy chain:
-# Row 1: Col 1 -> 6 (L to R)
-# Row 2: Col 6 -> 1 (R to L)
-# Row 3: Col 1 -> 6 (L to R)
-# Row 4: Col 6 -> 1 (R to L)
-# Row 5: Col 1 -> 6 (L to R)
-# Row 6: Col 6 -> 1 (R to L)
+# Total horizontal pattern footprint: (5 * 15.0) + 7.5 = 82.5 mm
+# Margins centered on 100mm board:
+MARGIN_X = (BOARD_SIZE_MM - ((GRID_COLS - 1) * PITCH_X + ROW_OFFSET)) / 2.0  # 8.75 mm
+MARGIN_Y = (BOARD_SIZE_MM - (GRID_ROWS - 1) * PITCH_Y) / 2.0                 # 12.5 mm
+
+# Generate 36 Staggered LED coordinates in Serpentine sequence
 led_positions = []
 led_idx = 1
 
 for r in range(GRID_ROWS):
-    y = round(MARGIN_MM + r * PITCH_MM, 2)
+    y = round(MARGIN_Y + r * PITCH_Y, 2)
+    # Stagger: odd row indices (Row 2, 4, 6) shift right by ROW_OFFSET
+    row_shift = ROW_OFFSET if (r % 2 == 1) else 0.0
+    
     col_range = range(GRID_COLS) if (r % 2 == 0) else range(GRID_COLS - 1, -1, -1)
     for c in col_range:
-        x = round(MARGIN_MM + c * PITCH_MM, 2)
+        x = round(MARGIN_X + row_shift + c * PITCH_X, 2)
         led_positions.append({
             "id": led_idx,
             "ref": f"D{led_idx}",
@@ -197,7 +203,7 @@ kicad_content += f"""  (module "Connector_FFC-FPC:Molex_200528-0040_1x04-1MP_P1.
   )
 """
 
-# 36 LEDs and 36 Decoupling Capacitors
+# 36 LEDs and 36 Decoupling Capacitors (Staggered Brick Layout)
 for d in led_positions:
     idx = d["id"]
     x = d["x"]
@@ -270,10 +276,14 @@ for i in range(NUM_LEDS - 1):
     if d1["row"] == d2["row"]:
         kicad_content += f'  (segment (start {c1_5v[0]} {c1_5v[1]}) (end {c2_5v[0]} {c2_5v[1]}) (width 0.6) (layer F.Cu) (net 1))\n'
 
-# LED 36 DOUT to J2 Connector
+# LED 36 DOUT to J2 Connector via bottom border channel (clean routing)
 led36 = led_positions[-1]
 p36_dout = (round(led36["x"] - 0.85, 2), round(led36["y"] + 0.65, 2))
-kicad_content += f'  (segment (start {p36_dout[0]} {p36_dout[1]}) (end {j2_pos["x"]} {j2_pos["y"]}) (width 0.25) (layer F.Cu) (net {NUM_LEDS+3}))\n'
+# Trace steps: D36 -> bottom margin y=95.0 -> across to x=94.0 -> up to J2
+kicad_content += f'  (segment (start {p36_dout[0]} {p36_dout[1]}) (end {p36_dout[0]} 94.5) (width 0.25) (layer F.Cu) (net {NUM_LEDS+3}))\n'
+kicad_content += f'  (segment (start {p36_dout[0]} 94.5) (end 93.5 94.5) (width 0.25) (layer F.Cu) (net {NUM_LEDS+3}))\n'
+kicad_content += f'  (segment (start 93.5 94.5) (end 93.5 {j2_pos["y"]}) (width 0.25) (layer F.Cu) (net {NUM_LEDS+3}))\n'
+kicad_content += f'  (segment (start 93.5 {j2_pos["y"]}) (end {j2_pos["x"]} {j2_pos["y"]}) (width 0.25) (layer F.Cu) (net {NUM_LEDS+3}))\n'
 
 # Solid GND Plane Zone on B.Cu
 kicad_content += f"""  (zone (net 2) (net_name "GND") (layer B.Cu) (tstamp 5E000001) (hatch edge 0.5)
@@ -328,7 +338,6 @@ for d in led_positions:
     x = d["x"]
     y = d["y"]
     idx = d["id"]
-    # 2.0x2.0mm package, 1.4x1.4mm die, 1.0x1.0mm capacitor
     svg_leds += f"""
     <!-- LED {idx} (Row {d['row']}, Col {d['col']}) -->
     <g class="led-group" data-idx="{idx}">
@@ -345,12 +354,34 @@ for i in range(NUM_LEDS - 1):
     d2 = led_positions[i + 1]
     svg_tracks += f'<line x1="{d1["x"]}" y1="{d1["y"]}" x2="{d2["x"]}" y2="{d2["y"]}" stroke="#ffd700" stroke-width="0.3" stroke-linecap="round" opacity="0.85"/>\n'
 
+# SVG 4-Tile Chest Cluster LEDs generator (Staggered Brick Layout for all 4 quadrants)
+svg_chest_tiles = ""
+quad_offsets = [
+    ("QUAD 1 (TOP-L)", 0, 0),
+    ("QUAD 2 (TOP-R)", 106, 0),
+    ("QUAD 3 (BOT-R)", 106, 106),
+    ("QUAD 4 (BOT-L)", 0, 106)
+]
+
+for q_label, qx, qy in quad_offsets:
+    svg_chest_tiles += f"""
+    <!-- {q_label} -->
+    <g transform="translate({qx}, {qy})">
+      <rect x="0" y="0" width="100" height="100" rx="2" fill="#13231b" stroke="#ffd700" stroke-width="0.3"/>
+      <text x="50" y="50" font-size="4.0" fill="#2d5a3f" text-anchor="middle" font-weight="bold" opacity="0.35">{q_label}</text>
+    """
+    for d in led_positions:
+        lx = d["x"]
+        ly = d["y"]
+        svg_chest_tiles += f'<circle cx="{lx}" cy="{ly}" r="1.1" fill="#00ff88" opacity="0.8"/>\n'
+    svg_chest_tiles += "    </g>\n"
+
 html_content = f"""<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Universal 100mm × 100mm 6×6 LED Matrix Inspector (36 LEDs + FPC Ribbons)</title>
+<title>Universal 100mm × 100mm Staggered Brick 6×6 LED Matrix Inspector</title>
 <style>
   :root {{
     --bg: #0d1117;
@@ -388,8 +419,8 @@ html_content = f"""<!DOCTYPE html>
     border-radius: 12px;
     font-weight: 600;
   }}
-  .badge-blue {{
-    background: #1f6feb;
+  .badge-gold {{
+    background: #b08800;
     color: #fff;
     font-size: 12px;
     padding: 3px 8px;
@@ -508,17 +539,17 @@ html_content = f"""<!DOCTYPE html>
 
 <div class="container">
   <h1>
-    Universal 100mm × 100mm 6×6 LED Matrix
+    Universal 100mm × 100mm Staggered Brick 6×6 LED Matrix
     <span class="badge">JLCPCB Turnkey SMT</span>
-    <span class="badge-blue">36 WS2812B-2020 LEDs</span>
+    <span class="badge-gold">🧱 Offset Brick Rows (15mm Pitch)</span>
   </h1>
   <p style="margin: 0 0 12px 0; color: #8b949e; font-size: 14px;">
-    Standardized modular tile for Disney WDW 10K synchronized runner costumes. 4 tiles cluster into a 144-LED chest array (206mm &times; 206mm) inside a 2mm felt living-hinge pocket with thin FPC ribbon interconnects.
+    Rows alternate with a 7.5mm horizontal shift like running-bond brickwork! Provides smooth, organic curves for Disney float characters while maintaining a standard 100mm &times; 100mm JLCPCB form factor with thin FPC ribbon interconnects.
   </p>
 
   <div class="ctrl-row">
-    <button id="btn-toggle-view" class="active" onclick="toggleViewMode()">📐 1-Tile Inspector View</button>
-    <button id="btn-toggle-chest" onclick="toggleChestMode()">🎽 4-Tile Chest Cluster View</button>
+    <button id="btn-toggle-view" class="active" onclick="toggleViewMode()">📐 1-Tile Staggered View</button>
+    <button id="btn-toggle-chest" onclick="toggleChestMode()">🎽 4-Tile Chest Cluster View (144 LEDs)</button>
     <button id="btn-light-all" onclick="toggleLightAll()">✨ Light Up All LEDs</button>
     <button id="btn-data-pulse" onclick="toggleDataPulse()">⚡ Animated DIN Data Pulse</button>
     <a href="universal_6x6_100mm_kicad.zip" download><button class="btn-download">📦 Download JLCPCB Upload ZIP</button></a>
@@ -576,43 +607,26 @@ html_content = f"""<!DOCTYPE html>
         <!-- Daisy Chain Copper Tracks -->
         <g id="copper-tracks">
           {svg_tracks}
+          <!-- DOUT path to J2 via bottom margin -->
+          <path d="M 15.4 88.15 L 15.4 94.5 L 93.5 94.5 L 93.5 80.0 L 95.5 80.0" fill="none" stroke="#ffd700" stroke-width="0.25" opacity="0.85"/>
         </g>
 
-        <!-- 36 LEDs and Capacitors -->
+        <!-- 36 LEDs and Capacitors in Staggered Brick Positions -->
         <g id="led-elements">
           {svg_leds}
         </g>
 
         <!-- Animated Data Pulse Dot -->
-        <circle id="pulse-dot" cx="10" cy="10" r="1.2" fill="#fff" opacity="0" filter="drop-shadow(0 0 2px #00ffcc)"/>
+        <circle id="pulse-dot" cx="8.75" cy="12.5" r="1.2" fill="#fff" opacity="0" filter="drop-shadow(0 0 2px #00ffcc)"/>
       </svg>
 
-      <!-- SVG 4-Tile Chest View (Initially Hidden) -->
+      <!-- SVG 4-Tile Chest View (Staggered Honeycomb Array) -->
       <svg id="svg-chest" viewBox="-15 -15 236 236" style="display: none;">
         <!-- Living Hinge Felt Base Background -->
         <rect x="-8" y="-8" width="222" height="222" rx="6" fill="#1c1917" stroke="#444" stroke-width="0.8"/>
         <text x="103" y="-2" font-size="2.8" fill="#888" text-anchor="middle" font-weight="bold">2.0mm FELT LIVING HINGE CHEST ENVELOPE (206mm × 206mm)</text>
         
-        <!-- Tile 1 (Top Left: x=0, y=0) -->
-        <g transform="translate(0, 0)">
-          <rect x="0" y="0" width="100" height="100" rx="2" fill="#13231b" stroke="#ffd700" stroke-width="0.3"/>
-          <text x="50" y="50" font-size="4.0" fill="#2d5a3f" text-anchor="middle" font-weight="bold" opacity="0.4">QUAD 1 (TOP-L)</text>
-        </g>
-        <!-- Tile 2 (Top Right: x=106, y=0) -->
-        <g transform="translate(106, 0)">
-          <rect x="0" y="0" width="100" height="100" rx="2" fill="#13231b" stroke="#ffd700" stroke-width="0.3"/>
-          <text x="50" y="50" font-size="4.0" fill="#2d5a3f" text-anchor="middle" font-weight="bold" opacity="0.4">QUAD 2 (TOP-R)</text>
-        </g>
-        <!-- Tile 3 (Bottom Right: x=106, y=106) -->
-        <g transform="translate(106, 106)">
-          <rect x="0" y="0" width="100" height="100" rx="2" fill="#13231b" stroke="#ffd700" stroke-width="0.3"/>
-          <text x="50" y="50" font-size="4.0" fill="#2d5a3f" text-anchor="middle" font-weight="bold" opacity="0.4">QUAD 3 (BOT-R)</text>
-        </g>
-        <!-- Tile 4 (Bottom Left: x=0, y=106) -->
-        <g transform="translate(0, 106)">
-          <rect x="0" y="0" width="100" height="100" rx="2" fill="#13231b" stroke="#ffd700" stroke-width="0.3"/>
-          <text x="50" y="50" font-size="4.0" fill="#2d5a3f" text-anchor="middle" font-weight="bold" opacity="0.4">QUAD 4 (BOT-L)</text>
-        </g>
+        {svg_chest_tiles}
 
         <!-- Thin Flexible Ribbon Interconnect Cables Across 6mm Seams -->
         <!-- Ribbon 1: Quad 1 (Top-L) OUT to Quad 2 (Top-R) IN -->
@@ -636,7 +650,7 @@ html_content = f"""<!DOCTYPE html>
     <!-- Sidebar Stats & JLCPCB Quote Guide -->
     <div>
       <div class="card">
-        <h3 style="margin-top:0; color:#fff;">📋 Board Specifications</h3>
+        <h3 style="margin-top:0; color:#fff;">🧱 Staggered Brick Specifications</h3>
         <div class="stat-grid">
           <div class="stat-box">
             <div class="stat-val">100 × 100</div>
@@ -647,12 +661,12 @@ html_content = f"""<!DOCTYPE html>
             <div class="stat-lbl">WS2812B-2020 LEDs</div>
           </div>
           <div class="stat-box">
-            <div class="stat-val">16.0 mm</div>
-            <div class="stat-lbl">Uniform Pixel Pitch</div>
+            <div class="stat-val">15.0 mm</div>
+            <div class="stat-lbl">Horizontal / Vert Pitch</div>
           </div>
           <div class="stat-box">
-            <div class="stat-val">144</div>
-            <div class="stat-lbl">Chest Total (4 Tiles)</div>
+            <div class="stat-val">7.5 mm</div>
+            <div class="stat-lbl">Brick Offset Stagger</div>
           </div>
         </div>
 
@@ -685,7 +699,7 @@ html_content = f"""<!DOCTYPE html>
         </div>
         <div class="step-box">
           <strong>Step 4: Review Instant Quote</strong><br>
-          The interactive DFM viewer will display all 36 LEDs and 2 FPC ribbon connectors positioned on the board with exact cost calculation!
+          The interactive DFM viewer will display all 36 LEDs and 2 FPC ribbon connectors positioned in the staggered brick pattern with exact cost calculation!
         </div>
       </div>
     </div>
