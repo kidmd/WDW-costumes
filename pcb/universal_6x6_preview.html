@@ -186,16 +186,57 @@
         <!-- Board Background (Matte Green FR-4 with gold border) -->
         <rect x="0" y="0" width="100" height="100" rx="1.0" ry="1.0" fill="#13231b" stroke="#ffd700" stroke-width="0.35"/>
         
-        <!-- Corner Mounting Holes (Ø3.2mm M3 clearance, 6.0mm keepout) -->
-        <g id="mounting-holes">
-          <circle cx="4.0" cy="4.0" r="3.0" fill="#2d3748" stroke="#ffd700" stroke-width="0.2"/>
-          <circle cx="4.0" cy="4.0" r="1.6" fill="#05080c"/>
-          <circle cx="96.0" cy="4.0" r="3.0" fill="#2d3748" stroke="#ffd700" stroke-width="0.2"/>
-          <circle cx="96.0" cy="4.0" r="1.6" fill="#05080c"/>
-          <circle cx="4.0" cy="96.0" r="3.0" fill="#2d3748" stroke="#ffd700" stroke-width="0.2"/>
-          <circle cx="4.0" cy="96.0" r="1.6" fill="#05080c"/>
-          <circle cx="96.0" cy="96.0" r="3.0" fill="#2d3748" stroke="#ffd700" stroke-width="0.2"/>
-          <circle cx="96.0" cy="96.0" r="1.6" fill="#05080c"/>
+        <!-- Corner M3 Mounting Holes & Fabric Sewing Eyelets -->
+        <g id="mounting-and-sewing-holes">
+          
+    <!-- M3 Mounting Hole H1 -->
+    <g class="mount-hole">
+      <circle cx="4.0" cy="3.5" r="2.5" fill="#2d3748" stroke="#ffd700" stroke-width="0.3"/>
+      <circle cx="4.0" cy="3.5" r="1.6" fill="#05080c"/>
+      <text x="4.0" y="0.5" font-size="0.8" fill="#ffd700" text-anchor="middle" font-weight="bold">M3</text>
+    </g>
+    <!-- M3 Mounting Hole H2 -->
+    <g class="mount-hole">
+      <circle cx="96.0" cy="3.5" r="2.5" fill="#2d3748" stroke="#ffd700" stroke-width="0.3"/>
+      <circle cx="96.0" cy="3.5" r="1.6" fill="#05080c"/>
+      <text x="96.0" y="0.5" font-size="0.8" fill="#ffd700" text-anchor="middle" font-weight="bold">M3</text>
+    </g>
+    <!-- M3 Mounting Hole H3 -->
+    <g class="mount-hole">
+      <circle cx="4.0" cy="96.5" r="2.5" fill="#2d3748" stroke="#ffd700" stroke-width="0.3"/>
+      <circle cx="4.0" cy="96.5" r="1.6" fill="#05080c"/>
+      <text x="4.0" y="93.5" font-size="0.8" fill="#ffd700" text-anchor="middle" font-weight="bold">M3</text>
+    </g>
+    <!-- M3 Mounting Hole H4 -->
+    <g class="mount-hole">
+      <circle cx="96.0" cy="96.5" r="2.5" fill="#2d3748" stroke="#ffd700" stroke-width="0.3"/>
+      <circle cx="96.0" cy="96.5" r="1.6" fill="#05080c"/>
+      <text x="96.0" y="93.5" font-size="0.8" fill="#ffd700" text-anchor="middle" font-weight="bold">M3</text>
+    </g>
+    <!-- Fabric Sewing Eyelet S1 -->
+    <g class="sew-hole">
+      <circle cx="10.0" cy="3.5" r="1.75" fill="#2d3748" stroke="#00ffff" stroke-width="0.25"/>
+      <circle cx="10.0" cy="3.5" r="1.0" fill="#05080c"/>
+      <text x="10.0" y="1.2999999999999998" font-size="0.65" fill="#00ffff" text-anchor="middle" font-weight="bold">SEW</text>
+    </g>
+    <!-- Fabric Sewing Eyelet S2 -->
+    <g class="sew-hole">
+      <circle cx="90.0" cy="3.5" r="1.75" fill="#2d3748" stroke="#00ffff" stroke-width="0.25"/>
+      <circle cx="90.0" cy="3.5" r="1.0" fill="#05080c"/>
+      <text x="90.0" y="1.2999999999999998" font-size="0.65" fill="#00ffff" text-anchor="middle" font-weight="bold">SEW</text>
+    </g>
+    <!-- Fabric Sewing Eyelet S3 -->
+    <g class="sew-hole">
+      <circle cx="10.0" cy="96.5" r="1.75" fill="#2d3748" stroke="#00ffff" stroke-width="0.25"/>
+      <circle cx="10.0" cy="96.5" r="1.0" fill="#05080c"/>
+      <text x="10.0" y="94.3" font-size="0.65" fill="#00ffff" text-anchor="middle" font-weight="bold">SEW</text>
+    </g>
+    <!-- Fabric Sewing Eyelet S4 -->
+    <g class="sew-hole">
+      <circle cx="90.0" cy="96.5" r="1.75" fill="#2d3748" stroke="#00ffff" stroke-width="0.25"/>
+      <circle cx="90.0" cy="96.5" r="1.0" fill="#05080c"/>
+      <text x="90.0" y="94.3" font-size="0.65" fill="#00ffff" text-anchor="middle" font-weight="bold">SEW</text>
+    </g>
         </g>
 
         <!-- 8 JST Connectors (4 IN on cyan, 4 OUT on magenta) -->
@@ -579,7 +620,15 @@
     <g transform="translate(0, 0)">
       <rect x="0" y="0" width="100" height="100" rx="1.5" fill="#13231b" stroke="#ffd700" stroke-width="0.25"/>
       <text x="50" y="50" font-size="3.5" fill="#2d5a3f" text-anchor="middle" font-weight="bold" opacity="0.35">QUAD 1 (TOP-L)</text>
-    <circle cx="3.0" cy="7.5" r="1.15" fill="#00ff88" opacity="0.85"/>
+    <circle cx="4.0" cy="3.5" r="1.6" fill="#05080c" stroke="#ffd700" stroke-width="0.3"/>
+<circle cx="96.0" cy="3.5" r="1.6" fill="#05080c" stroke="#ffd700" stroke-width="0.3"/>
+<circle cx="4.0" cy="96.5" r="1.6" fill="#05080c" stroke="#ffd700" stroke-width="0.3"/>
+<circle cx="96.0" cy="96.5" r="1.6" fill="#05080c" stroke="#ffd700" stroke-width="0.3"/>
+<circle cx="10.0" cy="3.5" r="1.0" fill="#05080c" stroke="#00ffff" stroke-width="0.25"/>
+<circle cx="90.0" cy="3.5" r="1.0" fill="#05080c" stroke="#00ffff" stroke-width="0.25"/>
+<circle cx="10.0" cy="96.5" r="1.0" fill="#05080c" stroke="#00ffff" stroke-width="0.25"/>
+<circle cx="90.0" cy="96.5" r="1.0" fill="#05080c" stroke="#00ffff" stroke-width="0.25"/>
+<circle cx="3.0" cy="7.5" r="1.15" fill="#00ff88" opacity="0.85"/>
 <circle cx="20.0" cy="7.5" r="1.15" fill="#00ff88" opacity="0.85"/>
 <circle cx="37.0" cy="7.5" r="1.15" fill="#00ff88" opacity="0.85"/>
 <circle cx="54.0" cy="7.5" r="1.15" fill="#00ff88" opacity="0.85"/>
@@ -621,7 +670,15 @@
     <g transform="translate(102, 0)">
       <rect x="0" y="0" width="100" height="100" rx="1.5" fill="#13231b" stroke="#ffd700" stroke-width="0.25"/>
       <text x="50" y="50" font-size="3.5" fill="#2d5a3f" text-anchor="middle" font-weight="bold" opacity="0.35">QUAD 2 (TOP-R)</text>
-    <circle cx="3.0" cy="7.5" r="1.15" fill="#00ff88" opacity="0.85"/>
+    <circle cx="4.0" cy="3.5" r="1.6" fill="#05080c" stroke="#ffd700" stroke-width="0.3"/>
+<circle cx="96.0" cy="3.5" r="1.6" fill="#05080c" stroke="#ffd700" stroke-width="0.3"/>
+<circle cx="4.0" cy="96.5" r="1.6" fill="#05080c" stroke="#ffd700" stroke-width="0.3"/>
+<circle cx="96.0" cy="96.5" r="1.6" fill="#05080c" stroke="#ffd700" stroke-width="0.3"/>
+<circle cx="10.0" cy="3.5" r="1.0" fill="#05080c" stroke="#00ffff" stroke-width="0.25"/>
+<circle cx="90.0" cy="3.5" r="1.0" fill="#05080c" stroke="#00ffff" stroke-width="0.25"/>
+<circle cx="10.0" cy="96.5" r="1.0" fill="#05080c" stroke="#00ffff" stroke-width="0.25"/>
+<circle cx="90.0" cy="96.5" r="1.0" fill="#05080c" stroke="#00ffff" stroke-width="0.25"/>
+<circle cx="3.0" cy="7.5" r="1.15" fill="#00ff88" opacity="0.85"/>
 <circle cx="20.0" cy="7.5" r="1.15" fill="#00ff88" opacity="0.85"/>
 <circle cx="37.0" cy="7.5" r="1.15" fill="#00ff88" opacity="0.85"/>
 <circle cx="54.0" cy="7.5" r="1.15" fill="#00ff88" opacity="0.85"/>
@@ -663,7 +720,15 @@
     <g transform="translate(102, 102)">
       <rect x="0" y="0" width="100" height="100" rx="1.5" fill="#13231b" stroke="#ffd700" stroke-width="0.25"/>
       <text x="50" y="50" font-size="3.5" fill="#2d5a3f" text-anchor="middle" font-weight="bold" opacity="0.35">QUAD 3 (BOT-R)</text>
-    <circle cx="3.0" cy="7.5" r="1.15" fill="#00ff88" opacity="0.85"/>
+    <circle cx="4.0" cy="3.5" r="1.6" fill="#05080c" stroke="#ffd700" stroke-width="0.3"/>
+<circle cx="96.0" cy="3.5" r="1.6" fill="#05080c" stroke="#ffd700" stroke-width="0.3"/>
+<circle cx="4.0" cy="96.5" r="1.6" fill="#05080c" stroke="#ffd700" stroke-width="0.3"/>
+<circle cx="96.0" cy="96.5" r="1.6" fill="#05080c" stroke="#ffd700" stroke-width="0.3"/>
+<circle cx="10.0" cy="3.5" r="1.0" fill="#05080c" stroke="#00ffff" stroke-width="0.25"/>
+<circle cx="90.0" cy="3.5" r="1.0" fill="#05080c" stroke="#00ffff" stroke-width="0.25"/>
+<circle cx="10.0" cy="96.5" r="1.0" fill="#05080c" stroke="#00ffff" stroke-width="0.25"/>
+<circle cx="90.0" cy="96.5" r="1.0" fill="#05080c" stroke="#00ffff" stroke-width="0.25"/>
+<circle cx="3.0" cy="7.5" r="1.15" fill="#00ff88" opacity="0.85"/>
 <circle cx="20.0" cy="7.5" r="1.15" fill="#00ff88" opacity="0.85"/>
 <circle cx="37.0" cy="7.5" r="1.15" fill="#00ff88" opacity="0.85"/>
 <circle cx="54.0" cy="7.5" r="1.15" fill="#00ff88" opacity="0.85"/>
@@ -705,7 +770,15 @@
     <g transform="translate(0, 102)">
       <rect x="0" y="0" width="100" height="100" rx="1.5" fill="#13231b" stroke="#ffd700" stroke-width="0.25"/>
       <text x="50" y="50" font-size="3.5" fill="#2d5a3f" text-anchor="middle" font-weight="bold" opacity="0.35">QUAD 4 (BOT-L)</text>
-    <circle cx="3.0" cy="7.5" r="1.15" fill="#00ff88" opacity="0.85"/>
+    <circle cx="4.0" cy="3.5" r="1.6" fill="#05080c" stroke="#ffd700" stroke-width="0.3"/>
+<circle cx="96.0" cy="3.5" r="1.6" fill="#05080c" stroke="#ffd700" stroke-width="0.3"/>
+<circle cx="4.0" cy="96.5" r="1.6" fill="#05080c" stroke="#ffd700" stroke-width="0.3"/>
+<circle cx="96.0" cy="96.5" r="1.6" fill="#05080c" stroke="#ffd700" stroke-width="0.3"/>
+<circle cx="10.0" cy="3.5" r="1.0" fill="#05080c" stroke="#00ffff" stroke-width="0.25"/>
+<circle cx="90.0" cy="3.5" r="1.0" fill="#05080c" stroke="#00ffff" stroke-width="0.25"/>
+<circle cx="10.0" cy="96.5" r="1.0" fill="#05080c" stroke="#00ffff" stroke-width="0.25"/>
+<circle cx="90.0" cy="96.5" r="1.0" fill="#05080c" stroke="#00ffff" stroke-width="0.25"/>
+<circle cx="3.0" cy="7.5" r="1.15" fill="#00ff88" opacity="0.85"/>
 <circle cx="20.0" cy="7.5" r="1.15" fill="#00ff88" opacity="0.85"/>
 <circle cx="37.0" cy="7.5" r="1.15" fill="#00ff88" opacity="0.85"/>
 <circle cx="54.0" cy="7.5" r="1.15" fill="#00ff88" opacity="0.85"/>

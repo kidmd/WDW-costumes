@@ -78,6 +78,25 @@ jst_ports = [
 ]
 
 # -------------------------------------------------------------
+# Corner Mounting & Fabric Sewing Holes Architecture
+# 4 Corner M3 Screw Mounting Holes (Ø3.2mm drill, 5.0mm pad)
+# 4 Dedicated Fabric Sewing Eyelets (Ø2.0mm drill, 3.5mm pad)
+# -------------------------------------------------------------
+m3_holes = [
+    {"ref": "H1", "x": 4.0, "y": 3.5, "drill": 3.2, "pad": 5.0, "label": "M3"},
+    {"ref": "H2", "x": 96.0, "y": 3.5, "drill": 3.2, "pad": 5.0, "label": "M3"},
+    {"ref": "H3", "x": 4.0, "y": 96.5, "drill": 3.2, "pad": 5.0, "label": "M3"},
+    {"ref": "H4", "x": 96.0, "y": 96.5, "drill": 3.2, "pad": 5.0, "label": "M3"},
+]
+
+sew_holes = [
+    {"ref": "S1", "x": 10.0, "y": 3.5, "drill": 2.0, "pad": 3.5, "label": "SEW"},
+    {"ref": "S2", "x": 90.0, "y": 3.5, "drill": 2.0, "pad": 3.5, "label": "SEW"},
+    {"ref": "S3", "x": 10.0, "y": 96.5, "drill": 2.0, "pad": 3.5, "label": "SEW"},
+    {"ref": "S4", "x": 90.0, "y": 96.5, "drill": 2.0, "pad": 3.5, "label": "SEW"},
+]
+
+# -------------------------------------------------------------
 # 1. Generate JLCPCB BOM (Bill of Materials) CSV
 # -------------------------------------------------------------
 bom_path = os.path.join(PCB_DIR, "universal_6x6_100mm_bom.csv")
@@ -123,7 +142,7 @@ kicad_content = f"""(kicad_pcb (version 20171130) (host pcbnew "(5.1.9)-1")
     (drawings 0)
     (tracks 0)
     (zones 0)
-    (modules {NUM_LEDS * 2 + len(jst_ports) + 4})
+    (modules {NUM_LEDS * 2 + len(jst_ports) + len(m3_holes) + len(sew_holes)})
     (nets {num_nets})
   )
   (page A4)
@@ -157,17 +176,35 @@ kicad_content += f"""  (gr_line (start 0 0) (end {b} 0) (layer Edge.Cuts) (width
   (gr_line (start 0 {b}) (end 0 0) (layer Edge.Cuts) (width 0.15))
 """
 
-# 4 Corner Mounting Holes (Ø3.2mm M3 clearance with 6.0mm pad keepout)
-corners = [(4.0, 4.0), (96.0, 4.0), (4.0, 96.0), (96.0, 96.0)]
-for idx, (cx, cy) in enumerate(corners):
+# 4 Corner M3 Mounting Holes (Ø3.2mm M3 clearance with 5.0mm pad)
+for h in m3_holes:
     kicad_content += f"""  (module "MountingHole:MountingHole_3.2mm_M3" (layer F.Cu) (tedit 5D5A6E4F)
-    (at {cx} {cy})
+    (at {h['x']} {h['y']})
     (descr "Mounting Hole 3.2mm M3")
-    (path "/hole_{idx+1}")
-    (fp_text reference "H{idx+1}" (at 0 -2.5) (layer F.SilkS)
-      (effects (font (size 0.8 0.8) (thickness 0.15)))
+    (path "/{h['ref']}")
+    (fp_text reference "{h['ref']}" (at 0 -2.6) (layer F.SilkS)
+      (effects (font (size 0.7 0.7) (thickness 0.12)))
     )
-    (pad 1 thru_hole circle (at 0 0) (size 6.0 6.0) (drill 3.2) (layers *.Cu *.Mask))
+    (fp_text user "M3" (at 0 2.6) (layer F.SilkS)
+      (effects (font (size 0.6 0.6) (thickness 0.1)))
+    )
+    (pad 1 thru_hole circle (at 0 0) (size {h['pad']} {h['pad']}) (drill {h['drill']}) (layers *.Cu *.Mask))
+  )
+"""
+
+# 4 Dedicated Fabric Sewing Eyelets (Ø2.0mm drill with 3.5mm pad)
+for s in sew_holes:
+    kicad_content += f"""  (module "MountingHole:MountingHole_2.0mm" (layer F.Cu) (tedit 5D5A6E4F)
+    (at {s['x']} {s['y']})
+    (descr "Fabric Sewing Eyelet 2.0mm")
+    (path "/{s['ref']}")
+    (fp_text reference "{s['ref']}" (at 0 -2.0) (layer F.SilkS)
+      (effects (font (size 0.6 0.6) (thickness 0.1)))
+    )
+    (fp_text user "SEW" (at 0 2.0) (layer F.SilkS)
+      (effects (font (size 0.5 0.5) (thickness 0.08)))
+    )
+    (pad 1 thru_hole circle (at 0 0) (size {s['pad']} {s['pad']}) (drill {s['drill']}) (layers *.Cu *.Mask))
   )
 """
 
@@ -352,28 +389,32 @@ X0Y0D01*
 M02*
 """)
 
-# Excellon Drill File (.DRL)
+# Excellon Drill File (.DRL) - 100% Standard Decimal Format for JLCPCB
 drl_path = os.path.join(PCB_DIR, "universal_6x6_100mm.DRL")
 with open(drl_path, "w", encoding="utf-8") as f:
-    f.write("""M48
-; DRILL file for Universal 6x6 100mm PCB with 4-Edge JST Ports
-METRIC,LZ
+    f.write("""; DRILL file for Universal 6x6 100mm PCB with 4-Edge JST Ports
+; FORMAT={-:-/ absolute / metric / decimal}
+M48
+METRIC
 T1C3.200
-T2C0.400
+T2C2.000
+T3C0.400
 %
 G90
 G05
+; 4 Corner M3 Mounting Holes
 T1
-X4000000Y4000000
-X96000000Y4000000
-X4000000Y96000000
-X96000000Y96000000
-T2
 """)
+    for h in m3_holes:
+        f.write(f"X{h['x']:.3f}Y{h['y']:.3f}\n")
+    f.write("; 4 Dedicated Fabric Sewing Eyelets\nT2\n")
+    for s in sew_holes:
+        f.write(f"X{s['x']:.3f}Y{s['y']:.3f}\n")
+    f.write("; Ground Vias\nT3\n")
     for d in led_positions:
         vx = round(d["x"] + 2.0, 2)
         vy = round(d["y"] + 1.2, 2)
-        f.write(f"X{int(round(vx*1000000)):d}Y{int(round(vy*1000000)):d}\n")
+        f.write(f"X{vx:.3f}Y{vy:.3f}\n")
     f.write("M30\n")
 
 # Top Copper (.GTL)
@@ -390,12 +431,18 @@ with open(gtl_path, "w", encoding="utf-8") as f:
 %ADD14R,0.560X0.620*%
 %ADD15R,1.000X1.600*%
 %ADD18C,0.800*%
-%ADD19C,6.000*%
+%ADD19C,5.000*%
+%ADD20C,3.500*%
 """)
-    # 4 Corner Mounting Hole Pads
-    f.write("; Mounting Hole Pads\nD19*\n")
-    for cx, cy in corners:
-        f.write(f"{coord_gbr(cx, cy)}D03*\n")
+    # 4 Corner M3 Mounting Hole Pads
+    f.write("; 4 M3 Mounting Hole Pads\nD19*\n")
+    for h in m3_holes:
+        f.write(f"{coord_gbr(h['x'], h['y'])}D03*\n")
+    
+    # 4 Fabric Sewing Eyelet Pads
+    f.write("; 4 Fabric Sewing Eyelet Pads\nD20*\n")
+    for s in sew_holes:
+        f.write(f"{coord_gbr(s['x'], s['y'])}D03*\n")
     
     # 8 JST Connectors SMD Pads
     f.write("; 8 JST-PH 3P Connectors\nD15*\n")
@@ -452,17 +499,19 @@ with open(gbl_path, "w", encoding="utf-8") as f:
 %MOMM*%
 %LPD*%
 %ADD10C,0.800*%
-%ADD11C,6.000*%
+%ADD11C,5.000*%
+%ADD12C,3.500*%
 %ADD13R,96.000X96.000*%
 D13*
 X50000000Y50000000D03*
 D11*
-X4000000Y4000000D03*
-X96000000Y4000000D03*
-X4000000Y96000000D03*
-X96000000Y96000000D03*
-M02*
 """)
+    for h in m3_holes:
+        f.write(f"{coord_gbr(h['x'], h['y'])}D03*\n")
+    f.write("D12*\n")
+    for s in sew_holes:
+        f.write(f"{coord_gbr(s['x'], s['y'])}D03*\n")
+    f.write("M02*\n")
 
 # Top Solder Mask (.GTS)
 gts_path = os.path.join(PCB_DIR, "universal_6x6_100mm.GTS")
@@ -474,14 +523,16 @@ with open(gts_path, "w", encoding="utf-8") as f:
 %ADD10R,0.700X0.600*%
 %ADD11R,0.660X0.720*%
 %ADD12R,1.100X1.700*%
-%ADD15C,6.200*%
+%ADD15C,5.200*%
+%ADD16C,3.700*%
 D15*
-X4000000Y4000000D03*
-X96000000Y4000000D03*
-X4000000Y96000000D03*
-X96000000Y96000000D03*
-D12*
 """)
+    for h in m3_holes:
+        f.write(f"{coord_gbr(h['x'], h['y'])}D03*\n")
+    f.write("D16*\n")
+    for s in sew_holes:
+        f.write(f"{coord_gbr(s['x'], s['y'])}D03*\n")
+    f.write("D12*\n")
     for j in jst_ports:
         jx = j["x"]
         jy = j["y"]
@@ -514,14 +565,16 @@ with open(gbs_path, "w", encoding="utf-8") as f:
 %FSLAX46Y46*%
 %MOMM*%
 %LPD*%
-%ADD10C,6.200*%
-D10*
-X4000000Y4000000D03*
-X96000000Y4000000D03*
-X4000000Y96000000D03*
-X96000000Y96000000D03*
-M02*
+%ADD15C,5.200*%
+%ADD16C,3.700*%
+D15*
 """)
+    for h in m3_holes:
+        f.write(f"{coord_gbr(h['x'], h['y'])}D03*\n")
+    f.write("D16*\n")
+    for s in sew_holes:
+        f.write(f"{coord_gbr(s['x'], s['y'])}D03*\n")
+    f.write("M02*\n")
 
 # Top Silkscreen (.GTO)
 gto_path = os.path.join(PCB_DIR, "universal_6x6_100mm.GTO")
@@ -533,6 +586,36 @@ with open(gto_path, "w", encoding="utf-8") as f:
 %ADD10C,0.150*%
 D10*
 """)
+    # Silkscreen outlines for M3 mounting holes
+    for h in m3_holes:
+        hx = h["x"]
+        hy = h["y"]
+        r = 2.6
+        f.write(f"{coord_gbr(hx - r, hy)}D02*\n")
+        f.write(f"{coord_gbr(hx - r*0.7, hy + r*0.7)}D01*\n")
+        f.write(f"{coord_gbr(hx, hy + r)}D01*\n")
+        f.write(f"{coord_gbr(hx + r*0.7, hy + r*0.7)}D01*\n")
+        f.write(f"{coord_gbr(hx + r, hy)}D01*\n")
+        f.write(f"{coord_gbr(hx + r*0.7, hy - r*0.7)}D01*\n")
+        f.write(f"{coord_gbr(hx, hy - r)}D01*\n")
+        f.write(f"{coord_gbr(hx - r*0.7, hy - r*0.7)}D01*\n")
+        f.write(f"{coord_gbr(hx - r, hy)}D01*\n")
+    
+    # Silkscreen outlines for Sewing Eyelets
+    for s in sew_holes:
+        sx = s["x"]
+        sy = s["y"]
+        r = 1.8
+        f.write(f"{coord_gbr(sx - r, sy)}D02*\n")
+        f.write(f"{coord_gbr(sx - r*0.7, sy + r*0.7)}D01*\n")
+        f.write(f"{coord_gbr(sx, sy + r)}D01*\n")
+        f.write(f"{coord_gbr(sx + r*0.7, sy + r*0.7)}D01*\n")
+        f.write(f"{coord_gbr(sx + r, sy)}D01*\n")
+        f.write(f"{coord_gbr(sx + r*0.7, sy - r*0.7)}D01*\n")
+        f.write(f"{coord_gbr(sx, sy - r)}D01*\n")
+        f.write(f"{coord_gbr(sx - r*0.7, sy - r*0.7)}D01*\n")
+        f.write(f"{coord_gbr(sx - r, sy)}D01*\n")
+        
     for d in led_positions:
         x = d["x"]
         y = d["y"]
@@ -588,6 +671,30 @@ for j in jst_ports:
       <text x="0" y="4.0" font-size="0.55" fill="#888" text-anchor="middle">+5V DAT GND</text>
     </g>"""
 
+# Precompute SVG Holes (M3 Mounting Holes and Fabric Sewing Eyelets)
+svg_holes = ""
+for h in m3_holes:
+    hx = h["x"]
+    hy = h["y"]
+    svg_holes += f"""
+    <!-- M3 Mounting Hole {h['ref']} -->
+    <g class="mount-hole">
+      <circle cx="{hx}" cy="{hy}" r="2.5" fill="#2d3748" stroke="#ffd700" stroke-width="0.3"/>
+      <circle cx="{hx}" cy="{hy}" r="1.6" fill="#05080c"/>
+      <text x="{hx}" y="{hy-3.0}" font-size="0.8" fill="#ffd700" text-anchor="middle" font-weight="bold">M3</text>
+    </g>"""
+
+for s in sew_holes:
+    sx = s["x"]
+    sy = s["y"]
+    svg_holes += f"""
+    <!-- Fabric Sewing Eyelet {s['ref']} -->
+    <g class="sew-hole">
+      <circle cx="{sx}" cy="{sy}" r="1.75" fill="#2d3748" stroke="#00ffff" stroke-width="0.25"/>
+      <circle cx="{sx}" cy="{sy}" r="1.0" fill="#05080c"/>
+      <text x="{sx}" y="{sy-2.2}" font-size="0.65" fill="#00ffff" text-anchor="middle" font-weight="bold">SEW</text>
+    </g>"""
+
 # SVG Daisy Chain Tracks
 svg_tracks = ""
 for i in range(NUM_LEDS - 1):
@@ -611,6 +718,10 @@ for q_label, qx, qy in quad_offsets:
       <rect x="0" y="0" width="100" height="100" rx="1.5" fill="#13231b" stroke="#ffd700" stroke-width="0.25"/>
       <text x="50" y="50" font-size="3.5" fill="#2d5a3f" text-anchor="middle" font-weight="bold" opacity="0.35">{q_label}</text>
     """
+    for h in m3_holes:
+        svg_chest_tiles += f'<circle cx="{h["x"]}" cy="{h["y"]}" r="1.6" fill="#05080c" stroke="#ffd700" stroke-width="0.3"/>\n'
+    for s in sew_holes:
+        svg_chest_tiles += f'<circle cx="{s["x"]}" cy="{s["y"]}" r="1.0" fill="#05080c" stroke="#00ffff" stroke-width="0.25"/>\n'
     for d in led_positions:
         lx = d["x"]
         ly = d["y"]
@@ -805,16 +916,9 @@ html_content = f"""<!DOCTYPE html>
         <!-- Board Background (Matte Green FR-4 with gold border) -->
         <rect x="0" y="0" width="100" height="100" rx="1.0" ry="1.0" fill="#13231b" stroke="#ffd700" stroke-width="0.35"/>
         
-        <!-- Corner Mounting Holes (Ø3.2mm M3 clearance, 6.0mm keepout) -->
-        <g id="mounting-holes">
-          <circle cx="4.0" cy="4.0" r="3.0" fill="#2d3748" stroke="#ffd700" stroke-width="0.2"/>
-          <circle cx="4.0" cy="4.0" r="1.6" fill="#05080c"/>
-          <circle cx="96.0" cy="4.0" r="3.0" fill="#2d3748" stroke="#ffd700" stroke-width="0.2"/>
-          <circle cx="96.0" cy="4.0" r="1.6" fill="#05080c"/>
-          <circle cx="4.0" cy="96.0" r="3.0" fill="#2d3748" stroke="#ffd700" stroke-width="0.2"/>
-          <circle cx="4.0" cy="96.0" r="1.6" fill="#05080c"/>
-          <circle cx="96.0" cy="96.0" r="3.0" fill="#2d3748" stroke="#ffd700" stroke-width="0.2"/>
-          <circle cx="96.0" cy="96.0" r="1.6" fill="#05080c"/>
+        <!-- Corner M3 Mounting Holes & Fabric Sewing Eyelets -->
+        <g id="mounting-and-sewing-holes">
+          {svg_holes}
         </g>
 
         <!-- 8 JST Connectors (4 IN on cyan, 4 OUT on magenta) -->
