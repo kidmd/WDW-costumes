@@ -64,7 +64,7 @@ with open(bom_path, "w", encoding="utf-8") as f:
     f.write("Comment,Designator,Footprint,LCSC Part #\n")
     led_refs = " ".join([d["ref"] for d in led_positions])
     cap_refs = " ".join([d["cap_ref"] for d in led_positions])
-    f.write(f'"WS2812B-2020 Addressable RGB LED","{led_refs}","LED-SMD_4P-L2.0-W2.0-TL","C2843818"\n')
+    f.write(f'"WS2812B-2020 Addressable RGB LED","{led_refs}","LED-SMD_4P-L2.0-W2.0-TL","C965555"\n')
     f.write(f'"100nF (0.1uF) 50V 0402 Capacitor","{cap_refs}","C0402","C1525"\n')
     f.write('"4-Pin 1.0mm Pitch FPC/FFC Horizontal SMT Connector","J1 J2","FPC-1.0-4P-SMT","C2840003"\n')
 
@@ -962,7 +962,7 @@ html_content = f"""<!DOCTYPE html>
             <tr><th>Component</th><th>Package</th><th>LCSC Part #</th></tr>
           </thead>
           <tbody>
-            <tr><td>WS2812B-2020 (36x)</td><td>SMD 2020</td><td><code>C2843818</code></td></tr>
+            <tr><td>WS2812B-2020 (36x)</td><td>SMD 2020</td><td><code>C965555</code></td></tr>
             <tr><td>100nF Cap (36x)</td><td>0402 50V</td><td><code>C1525</code></td></tr>
             <tr><td>FPC 4P 1.0mm (2x)</td><td>Horizontal SMT</td><td><code>C2840003</code></td></tr>
           </tbody>
