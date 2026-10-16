@@ -183,33 +183,38 @@ When utilizing the modular FR-4 PCB quadrant system (`scripts/generate_universal
   ESP32 GPIO 16 ──► [220Ω Resistor]
                           │
                           ▼
-            ┌───────────────────────────┐   Straight 3-Pin JST Cable (30mm)   ┌───────────────────────────┐
+            ┌───────────────────────────┐   Diagonal 3-Pin JST Cable (50mm)   ┌───────────────────────────┐
             │   QUADRANT 1 (Top-Left)   │ ══════════════════════════════════► │  QUADRANT 2 (Top-Right)   │
-            │   LED 001 ──► LED 036     │  (y=33.0mm, Pins 1-3 match:         │  LED 037 ──► LED 072     │
-            │   [J_IN_L]      [J_OUT_R] │   +5V top, DAT mid, GND bottom)     │  [J_IN_L]      [J_OUT_B] │
+            │   LED 001 ──► LED 036     │  (From J_OUT_R at y=33 to           │  LED 037 ──► LED 072     │
+            │   [J_OUT_L]     [J_OUT_R] │   J_IN_L at y=67: span = 40.5mm)    │  [J_IN_L]       [J_OUT_B] │
             └───────────────────────────┘                                     └─────────────┬─────────────┘
-                                                                                            │ Straight 3-Pin JST
-                                                                                            │ (x=33.0mm, Pins 1-3:
-                                                                                            │  +5V L, DAT M, GND R)
+                                                                                            │ Diagonal 50mm JST
+                                                                                            │ (From J_OUT_B x=37 to
+                                                                                            │  J_IN_T x=62.5: 33.7mm)
                                                                                             ▼
-            ┌───────────────────────────┐   Straight 3-Pin JST Cable (30mm)   ┌───────────────────────────┐
+            ┌───────────────────────────┐   Diagonal 3-Pin JST Cable (50mm)   ┌───────────────────────────┐
             │  QUADRANT 4 (Bottom-Left) │ ◄══════════════════════════════════ │ QUADRANT 3 (Bottom-Right) │
-            │  LED 109 ──► LED 144     │  (y=67.0mm, Pins 1-3 match:         │ LED 073 ──► LED 108      │
-            │  [J_IN_R]       [J_OUT_B] │   +5V top, DAT mid, GND bottom)     │ [J_IN_T]       [J_OUT_L] │
+            │  LED 109 ──► LED 144     │  (From J_OUT_L at y=33 to           │ LED 073 ──► LED 108      │
+            │   [J_IN_L]       [J_IN_R] │   J_IN_R at y=67: span = 40.5mm)    │ [J_IN_T]       [J_OUT_L] │
             └─────────────┬─────────────┘                                     └───────────────────────────┘
                           │ Data Out of LED 144 (J_OUT_B)
                           ▼
               (To Back LED Strand: LED 145..288)
 ```
 
-### 4-Edge Universal JST-PH 2.0mm Port Architecture:
-To allow total routing freedom in any board orientation or configuration, each quadrant PCB is equipped with **8 JST-PH 2.0mm 3-pin SMT horizontal headers** (`C3029441`) and parallel 2.54mm direct-wire solder pads:
-- **Left Edge ($x = 4.5\text{ mm}$):** `J_IN_L` at $y = 33.0\text{ mm}$ (DIN) and `J_OUT_L` at $y = 67.0\text{ mm}$ (DOUT)
-- **Right Edge ($x = 95.5\text{ mm}$):** `J_OUT_R` at $y = 33.0\text{ mm}$ (DOUT, directly faces `J_IN_L` across the seam) and `J_IN_R` at $y = 67.0\text{ mm}$ (DIN, directly faces `J_OUT_L` across the seam)
-- **Top Edge ($y = 4.5\text{ mm}$):** `J_IN_T` at $x = 33.0\text{ mm}$ (DIN) and `J_OUT_T` at $x = 67.0\text{ mm}$ (DOUT)
-- **Bottom Edge ($y = 95.5\text{ mm}$):** `J_OUT_B` at $x = 33.0\text{ mm}$ (DOUT, directly faces `J_IN_T` across the seam) and `J_IN_B` at $x = 67.0\text{ mm}$ (DIN, directly faces `J_OUT_T` across the seam)
+### 4-Edge Universal JST-PH 2.0mm Port Architecture (Diagonal 50mm Jumpers):
+To allow total routing freedom in any board orientation or configuration, each quadrant PCB is equipped with **8 JST-PH 2.0mm 3-pin SMT horizontal headers** (`C3029441`) and parallel 2.54mm direct-wire solder pads, set back $10.0\text{ mm}$ from all board edges into wide-open inter-pixel valleys for 100% zero component overlap:
+- **Left Edge ($x = 10.0\text{ mm}$):** `J_OUT_L` at $y = 33.0\text{ mm}$ (DOUT) and `J_IN_L` at $y = 67.0\text{ mm}$ (DIN)
+- **Right Edge ($x = 90.0\text{ mm}$):** `J_OUT_R` at $y = 33.0\text{ mm}$ (DOUT) and `J_IN_R` at $y = 67.0\text{ mm}$ (DIN)
+- **Top Edge ($y = 10.0\text{ mm}$):** `J_OUT_T` at $x = 28.5\text{ mm}$ (DOUT) and `J_IN_T` at $x = 62.5\text{ mm}$ (DIN)
+- **Bottom Edge ($y = 90.0\text{ mm}$):** `J_OUT_B` at $x = 37.0\text{ mm}$ (DOUT) and `J_IN_B` at $x = 71.0\text{ mm}$ (DIN)
 
-All four DIN ports are internally bused to Pixel 1 DIN; all four DOUT ports are internally bused to Pixel 36 DOUT. Plug your JST patch cable into whichever edge faces the adjacent board!
+All four DIN ports are internally bused to Pixel 1 DIN; all four DOUT ports are internally bused to Pixel 36 DOUT.
+
+### Uniform 50mm Cable Fit Across All Seams:
+* **Quad 1 $\rightarrow$ Quad 2:** Spans from Quad 1 `J_OUT_R` $(90.0, 33.0)$ to Quad 2 `J_IN_L` $(112.0, 67.0)$ across the $2.0\text{ mm}$ seam. Center-to-center span is **$40.50\text{ mm}$**. Wire span between plug exits is $\sim 35.0\text{ mm}$, leaving only **$3.0\text{ mm}$ of slack**! The $50\text{ mm}$ cable lays completely flat on the PCB ($\le 5\text{ mm}$ height, flush with the connector housing).
+* **Quad 2 $\rightarrow$ Quad 3:** Spans from Quad 2 `J_OUT_B` $(139.0, 90.0)$ to Quad 3 `J_IN_T` $(164.5, 112.0)$ across the $2.0\text{ mm}$ seam. Center-to-center span is **$33.68\text{ mm}$**. Wire span is $\sim 28.0\text{ mm}$, fitting the $50\text{ mm}$ cable with a gentle low-profile curve.
+* **Quad 3 $\rightarrow$ Quad 4:** Spans from Quad 3 `J_OUT_L` $(112.0, 135.0)$ to Quad 4 `J_IN_R` $(90.0, 169.0)$ across the $2.0\text{ mm}$ seam. Center-to-center span is **$40.50\text{ mm}$**. Fits identically flat!
 
 ### Straight 3-Wire Pinout (Zero Wire Twisting / Crossing):
 The physical pin order is mirrored so that off-the-shelf straight 3-conductor ribbon patch cables plug directly across boards without crossing or twisting wires:
@@ -225,8 +230,9 @@ The physical pin order is mirrored so that off-the-shelf straight 3-conductor ri
 ### Silkscreen & Mounting Features:
 - **Silkscreen Labels:** Every connector clearly displays its role (`[IN]` or `[OUT]`) and pin functions (`+5V`, `DAT`, `GND`) etched into the Top Silkscreen (`.GTO`) layer.
 - **On-Board LED Numbering:** Numbers `1` through `36` are printed on the PCB surface ($1.4\text{ mm}$ above each LED package) so they remain fully visible after SMD assembly.
+- **Dark, Clean LED Faces:** KiCad footprint reference designators are set to `hide`, eliminating pink component labels on the LED lenses.
 - **Mounting & Sewing:**
-  - 4× Corner M3 Screw Holes (`H1`–`H4`): $\varnothing 3.2\text{ mm}$ non-plated through-holes at $(3.5, 3.5)$, $(96.5, 3.5)$, $(3.5, 96.5)$, $(96.5, 96.5)$.
+  - 4× Corner M3 Screw Holes (`H1`–`H4`): $\varnothing 3.2\text{ mm}$ non-plated through-holes at $(4.0, 3.5)$, $(96.0, 3.5)$, $(4.0, 96.5)$, $(96.0, 96.5)$.
   - 4× Sewing Eyelets (`S1`–`S4`): $\varnothing 2.0\text{ mm}$ plated through-holes paired $6.0\text{ mm}$ from corners for button-style needle/thread garment attachment.
 
 ### Direct-Solder Pad Fallback:

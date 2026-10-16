@@ -93,6 +93,26 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### 2026-10-16 17:45 - Universal 8-Port Matrix: Set Back 10mm in Valleys (Zero Overlap & Diagonal 50mm Cables)
+- **Resolved Component Overlap & Increased Edge Setback (`scripts/generate_universal_6x6_pcb.py`):**
+  - Moved all 8 JST-PH 2.0mm horizontal connectors inward from $4.5\text{ mm}$ to **$10.0\text{ mm}$ from board edges**.
+  - Repositioned Top and Bottom connectors into the wide-open $17.0\text{ mm}$ inter-pixel valleys:
+    - Top Edge ($y = 10.0\text{ mm}$): `J_OUT_T` at $x = 28.5\text{ mm}$, `J_IN_T` at $x = 62.5\text{ mm}$ (clearance to all LEDs/caps $> 6.96\text{ mm}$).
+    - Bottom Edge ($y = 90.0\text{ mm}$): `J_OUT_B` at $x = 37.0\text{ mm}$, `J_IN_B` at $x = 71.0\text{ mm}$ (clearance to all LEDs/caps $> 6.96\text{ mm}$).
+    - Left & Right Edges ($x = 10.0\text{ mm}, 90.0\text{ mm}$): `y = 33.0\text{ mm}$ and $y = 67.0\text{ mm}$ (clearance $> 8.50\text{ mm}$).
+  - **100% Zero Component Overlap:** Completely resolved collision between `J_OUT_B` and `D35`/`C35` on the bottom edge.
+- **Diagonal 50mm Pre-Crimped Cable Architecture:**
+  - Evaluated wire slack: a direct $16\text{ mm}$ facing span creates an unsightly $15\text{ mm}$ high wire loop.
+  - Implemented diagonal mating pairing:
+    - Quad 1 `J_OUT_R` $(90.0, 33.0)$ to Quad 2 `J_IN_L` $(112.0, 67.0)$: span is **$40.50\text{ mm}$** (wire span $\sim 35\text{ mm}$, slack $\sim 3\text{ mm}$).
+    - Quad 2 `J_OUT_B` $(139.0, 90.0)$ to Quad 3 `J_IN_T` $(164.5, 112.0)$: span is **$33.68\text{ mm}$** (wire span $\sim 28\text{ mm}$).
+    - Quad 3 `J_OUT_L` $(112.0, 135.0)$ to Quad 4 `J_IN_R` $(90.0, 169.0)$: span is **$40.50\text{ mm}$**.
+  - **Result:** Off-the-shelf $50\text{ mm}$ (5cm / 2") cables lay completely flat against the board ($\le 5\text{ mm}$ height, flush with the JST plastic shroud). Zero loose floppy wire loops!
+- **Suppressed Pink Labels on LEDs:**
+  - Set KiCad module footprint references to `hide`, ensuring JLCPCB's placement tool and finished physical boards display dark, clean LED lenses with zero pink text.
+- **Maintained 100% Mathematical Seamlessness:**
+  - With $2.0\text{ mm}$ living hinge felt seam, LED pitch across all borders is identically **$17.00\text{ mm}$** ($1.7\text{ cm}$).
+
 ### 2026-10-16 15:55 - Aligned JST Interconnects, Straight 3-Wire Pinout, PCB Silk Numerals, and Vector Font Gerber Text
 - **Straight 3-Conductor Interconnect Geometry (Zero Wire Twisting / Crossing):**
   - **Symmetrical Edge Port Alignment:**

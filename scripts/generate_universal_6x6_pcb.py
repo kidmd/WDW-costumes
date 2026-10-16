@@ -58,23 +58,24 @@ for r in range(GRID_ROWS):
         led_idx += 1
 
 # -------------------------------------------------------------
-# 4-Edge JST 3-Pin Interconnect Architecture
+# 4-Edge JST 3-Pin Interconnect Architecture (Diagonal 50mm Cables)
 # 4 IN ports (Top, Bottom, Left, Right)
 # 4 OUT ports (Top, Bottom, Left, Right)
+# Set back 10.0mm from edges into open valleys for zero overlap
 # -------------------------------------------------------------
 jst_ports = [
-    # Left Edge (x = 4.5 mm)
-    {"ref": "J_IN_L",  "type": "IN",  "edge": "LEFT",   "x": 4.5,  "y": 33.0, "rot": 90,  "label": "IN_L"},
-    {"ref": "J_OUT_L", "type": "OUT", "edge": "LEFT",   "x": 4.5,  "y": 67.0, "rot": 90,  "label": "OUT_L"},
-    # Right Edge (x = 95.5 mm) - J_OUT_R at y=33 aligns directly with J_IN_L at y=33!
-    {"ref": "J_OUT_R", "type": "OUT", "edge": "RIGHT",  "x": 95.5, "y": 33.0, "rot": 90,  "label": "OUT_R"},
-    {"ref": "J_IN_R",  "type": "IN",  "edge": "RIGHT",  "x": 95.5, "y": 67.0, "rot": 90,  "label": "IN_R"},
-    # Top Edge (y = 4.5 mm)
-    {"ref": "J_IN_T",  "type": "IN",  "edge": "TOP",    "x": 33.0, "y": 4.5,  "rot": 0,   "label": "IN_T"},
-    {"ref": "J_OUT_T", "type": "OUT", "edge": "TOP",    "x": 67.0, "y": 4.5,  "rot": 0,   "label": "OUT_T"},
-    # Bottom Edge (y = 95.5 mm) - J_OUT_B at x=33 aligns directly with J_IN_T at x=33!
-    {"ref": "J_OUT_B", "type": "OUT", "edge": "BOTTOM", "x": 33.0, "y": 95.5, "rot": 0,   "label": "OUT_B"},
-    {"ref": "J_IN_B",  "type": "IN",  "edge": "BOTTOM", "x": 67.0, "y": 95.5, "rot": 0,   "label": "IN_B"},
+    # Left Edge (x = 10.0 mm)
+    {"ref": "J_OUT_L", "type": "OUT", "edge": "LEFT",   "x": 10.0, "y": 33.0, "rot": 90,  "label": "OUT_L"},
+    {"ref": "J_IN_L",  "type": "IN",  "edge": "LEFT",   "x": 10.0, "y": 67.0, "rot": 90,  "label": "IN_L"},
+    # Right Edge (x = 90.0 mm)
+    {"ref": "J_OUT_R", "type": "OUT", "edge": "RIGHT",  "x": 90.0, "y": 33.0, "rot": 90,  "label": "OUT_R"},
+    {"ref": "J_IN_R",  "type": "IN",  "edge": "RIGHT",  "x": 90.0, "y": 67.0, "rot": 90,  "label": "IN_R"},
+    # Top Edge (y = 10.0 mm)
+    {"ref": "J_OUT_T", "type": "OUT", "edge": "TOP",    "x": 28.5, "y": 10.0, "rot": 0,   "label": "OUT_T"},
+    {"ref": "J_IN_T",  "type": "IN",  "edge": "TOP",    "x": 62.5, "y": 10.0, "rot": 0,   "label": "IN_T"},
+    # Bottom Edge (y = 90.0 mm)
+    {"ref": "J_OUT_B", "type": "OUT", "edge": "BOTTOM", "x": 37.0, "y": 90.0, "rot": 0,   "label": "OUT_B"},
+    {"ref": "J_IN_B",  "type": "IN",  "edge": "BOTTOM", "x": 71.0, "y": 90.0, "rot": 0,   "label": "IN_B"},
 ]
 
 # -------------------------------------------------------------
@@ -292,8 +293,8 @@ for d in led_positions:
     (at {x} {y})
     (descr "WS2812B-2020 LED {idx}")
     (path "/led_{idx}")
-    (fp_text reference "{idx}" (at 0 -2.5) (layer F.SilkS)
-      (effects (font (size 0.8 0.8) (thickness 0.15)))
+    (fp_text reference "D{idx}" (at 0 0) (layer F.Fab) hide
+      (effects (font (size 0.5 0.5) (thickness 0.1)))
     )
     (fp_line (start -1.0 -1.0) (end 1.0 -1.0) (layer F.SilkS) (width 0.12))
     (fp_line (start 1.0 -1.0) (end 1.0 1.0) (layer F.SilkS) (width 0.12))
@@ -308,7 +309,7 @@ for d in led_positions:
     (at {round(x+2.0, 2)} {y} 90)
     (descr "100nF 0402 Capacitor {idx}")
     (path "/cap_{idx}")
-    (fp_text reference "C{idx}" (at 0 -0.9 90) (layer F.SilkS)
+    (fp_text reference "C{idx}" (at 0 0 90) (layer F.Fab) hide
       (effects (font (size 0.35 0.35) (thickness 0.07)))
     )
     (pad 1 smd rect (at -0.48 0 90) (size 0.56 0.62) (layers F.Cu F.Paste F.Mask) (net 1 "+5V"))
@@ -935,18 +936,18 @@ for q_label, qx, qy in quad_offsets:
         svg_chest_tiles += f'<circle cx="{lx}" cy="{ly}" r="1.15" fill="#00ff88" opacity="0.85"/>\n'
     svg_chest_tiles += "    </g>\n"
 
-# Straight inter-tile 3-wire patch cables!
-# 1. Straight horizontal cable from Quad 1 (Top-Left) J_OUT_R to Quad 2 (Top-Right) J_IN_L at y = 33.0 mm!
-svg_chest_tiles += '<line x1="95.5" y1="33.0" x2="106.5" y2="33.0" stroke="#ff3366" stroke-width="0.9" stroke-dasharray="1.5,1.0"/>\n'
-svg_chest_tiles += '<text x="101.0" y="30.5" font-size="2.0" fill="#ff3366" text-anchor="middle" font-weight="bold">STRAIGHT CABLE (y=33)</text>\n'
+# Diagonal inter-tile 3-wire 50mm patch cables!
+# 1. Diagonal cable from Quad 1 (Top-Left) J_OUT_R (90.0, 33.0) to Quad 2 (Top-Right) J_IN_L (112.0, 67.0): span = 40.5mm!
+svg_chest_tiles += '<line x1="90.0" y1="33.0" x2="112.0" y2="67.0" stroke="#ff3366" stroke-width="1.2" stroke-linecap="round"/>\n'
+svg_chest_tiles += '<text x="101.0" y="48.0" font-size="2.2" fill="#ff3366" text-anchor="middle" font-weight="bold">50mm CABLE (40.5mm span)</text>\n'
 
-# 2. Straight vertical cable from Quad 2 (Top-Right) J_OUT_B to Quad 3 (Bottom-Right) J_IN_T at x = 135.0 mm!
-svg_chest_tiles += '<line x1="135.0" y1="95.5" x2="135.0" y2="106.5" stroke="#ff3366" stroke-width="0.9" stroke-dasharray="1.5,1.0"/>\n'
-svg_chest_tiles += '<text x="137.5" y="101.5" font-size="2.0" fill="#ff3366" text-anchor="start" font-weight="bold">STRAIGHT CABLE (x=33)</text>\n'
+# 2. Diagonal cable from Quad 2 (Top-Right) J_OUT_B (139.0, 90.0) to Quad 3 (Bottom-Right) J_IN_T (164.5, 112.0): span = 33.7mm!
+svg_chest_tiles += '<line x1="139.0" y1="90.0" x2="164.5" y2="112.0" stroke="#ff3366" stroke-width="1.2" stroke-linecap="round"/>\n'
+svg_chest_tiles += '<text x="156.0" y="103.0" font-size="2.2" fill="#ff3366" text-anchor="middle" font-weight="bold">50mm CABLE (33.7mm span)</text>\n'
 
-# 3. Straight horizontal cable from Quad 3 (Bottom-Right) J_OUT_L to Quad 4 (Bottom-Left) J_IN_R at y = 169.0 mm!
-svg_chest_tiles += '<line x1="106.5" y1="169.0" x2="95.5" y2="169.0" stroke="#ff3366" stroke-width="0.9" stroke-dasharray="1.5,1.0"/>\n'
-svg_chest_tiles += '<text x="101.0" y="166.5" font-size="2.0" fill="#ff3366" text-anchor="middle" font-weight="bold">STRAIGHT CABLE (y=67)</text>\n'
+# 3. Diagonal cable from Quad 3 (Bottom-Right) J_OUT_L (112.0, 135.0) to Quad 4 (Bottom-Left) J_IN_R (90.0, 169.0): span = 40.5mm!
+svg_chest_tiles += '<line x1="112.0" y1="135.0" x2="90.0" y2="169.0" stroke="#ff3366" stroke-width="1.2" stroke-linecap="round"/>\n'
+svg_chest_tiles += '<text x="101.0" y="154.0" font-size="2.2" fill="#ff3366" text-anchor="middle" font-weight="bold">50mm CABLE (40.5mm span)</text>\n'
 
 html_content = f"""<!DOCTYPE html>
 <html lang="en">
