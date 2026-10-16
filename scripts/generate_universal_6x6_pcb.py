@@ -91,8 +91,8 @@ with open(bom_path, "w", encoding="utf-8") as f:
     f.write(f'"WS2812B-2020-V6 Addressable RGB LED","{led_refs}","LED-SMD_4P-L2.0-W2.0-TL","C52917434"\n')
     # 100nF 0402 Capacitor
     f.write(f'"100nF (0.1uF) 50V 0402 Capacitor","{cap_refs}","C0402","C1525"\n')
-    # JST-PH 2.0mm 3-Pin Horizontal SMT Header
-    f.write(f'"JST-PH 2.0mm 3-Pin Horizontal SMT Header","{jst_refs}","JST_PH_S3B-PH-SM4-TB","C145946"\n')
+    # JST-PH 2.0mm 3-Pin Horizontal SMT Header (WAFER-PH2.0-3PWB)
+    f.write(f'"WAFER-PH2.0-3PWB","{jst_refs}","CONN-SMD_3P-P2.00_WAFER-PH2.0-3PWB","C3029441"\n')
 
 print(f"Generated BOM: {bom_path}")
 
