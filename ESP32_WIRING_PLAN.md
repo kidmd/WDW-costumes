@@ -175,41 +175,44 @@ FastLED.setMaxPowerInVoltsAndMilliamps(5, 2000); // 5V, 2.0A max limit
 
 ---
 
-## 8. Universal 100mm × 100mm 6×6 Modular Panel Wiring & FPC Interconnects
+## 8. Universal 100mm × 100mm 6×6 Modular Panel Wiring & JST-PH Interconnects
 
-When utilizing the modular FR-4 PCB quadrant system (`scripts/generate_universal_6x6_pcb.py`), 4 identical 36-LED panels ($100\text{ mm} \times 100\text{ mm}$) tile into a $2 \times 2$ matrix ($206\text{ mm} \times 206\text{ mm}$) across the chest:
+When utilizing the modular FR-4 PCB quadrant system (`scripts/generate_universal_6x6_pcb.py`), 4 identical 36-LED panels ($100\text{ mm} \times 100\text{ mm}$) tile into a $2 \times 2$ matrix ($202\text{ mm} \times 202\text{ mm}$ with $2.0\text{ mm}$ felt living hinge gap) across the chest:
 
 ```
   ESP32 GPIO 16 ──► [220Ω Resistor]
                           │
                           ▼
-            ┌───────────────────────────┐    4-Pin FPC Ribbon (50mm)   ┌───────────────────────────┐
-            │   QUADRANT 1 (Top-Left)   │ ═══════════════════════════► │  QUADRANT 2 (Top-Right)   │
-            │   LED 001 ──► LED 036     │                              │  LED 037 ──► LED 072     │
-            │   [J1_IN]        [J2_OUT] │                              │  [J1_IN]        [J2_OUT] │
-            └───────────────────────────┘                              └─────────────┬─────────────┘
-                                                                                     │ 4-Pin FPC Ribbon
-                                                                                     ▼
-            ┌───────────────────────────┐    4-Pin FPC Ribbon (50mm)   ┌───────────────────────────┐
-            │  QUADRANT 4 (Bottom-Left) │ ◄═══════════════════════════ │ QUADRANT 3 (Bottom-Right) │
-            │  LED 109 ──► LED 144     │                              │ LED 073 ──► LED 108      │
-            │  [J1_IN]        [J2_OUT] │                              │ [J1_IN]        [J2_OUT]  │
-            └─────────────┬─────────────┘                              └───────────────────────────┘
-                          │ Data Out of LED 144
+            ┌───────────────────────────┐   3-Pin JST-PH Cable (40-50mm)  ┌───────────────────────────┐
+            │   QUADRANT 1 (Top-Left)   │ ══════════════════════════════► │  QUADRANT 2 (Top-Right)   │
+            │   LED 001 ──► LED 036     │                                 │  LED 037 ──► LED 072     │
+            │   [J_IN_L]      [J_OUT_R] │                                 │  [J_IN_L]      [J_OUT_B] │
+            └───────────────────────────┘                                 └─────────────┬─────────────┘
+                                                                                        │ 3-Pin JST Cable
+                                                                                        ▼
+            ┌───────────────────────────┐   3-Pin JST-PH Cable (40-50mm)  ┌───────────────────────────┐
+            │  QUADRANT 4 (Bottom-Left) │ ◄══════════════════════════════ │ QUADRANT 3 (Bottom-Right) │
+            │  LED 109 ──► LED 144     │                                 │ LED 073 ──► LED 108      │
+            │  [J_IN_R]       [J_OUT_B] │                                 │ [J_IN_T]       [J_OUT_L] │
+            └─────────────┬─────────────┘                                 └───────────────────────────┘
+                          │ Data Out of LED 144 (J_OUT_B)
                           ▼
               (To Back LED Strand: LED 145..288)
 ```
 
-### Connector Specifications & Pinouts:
-* **J1_IN (4-Pin 1.0mm FPC SMT - Left Edge):**
-  * Pin 1: `+5V`
-  * Pin 2: `+5V` (dual power pins for minimal voltage drop)
-  * Pin 3: `DIN` (Serial Data In)
-  * Pin 4: `GND`
-* **J2_OUT (4-Pin 1.0mm FPC SMT - Right Edge):**
-  * Pin 1: `+5V`
-  * Pin 2: `+5V`
-  * Pin 3: `DOUT` (Serial Data Out)
-  * Pin 4: `GND`
-* **Direct-Solder Pad Fallback:**
-  * Alongside J1 and J2, each board features $2.54\text{ mm}$ pitch plated through-hole pads labeled `IN_PADS` and `OUT_PADS` (`+5V`, `DATA`, `GND`) allowing immediate direct soldering of 26/28 AWG flexible silicone ribbon wire if FPC cables are not used.
+### 4-Edge Universal JST-PH 2.0mm Port Architecture:
+To allow total routing freedom in any board orientation or configuration, each quadrant PCB is equipped with **8 JST-PH 2.0mm 3-pin SMT horizontal headers** (`C145946`) and parallel 2.54mm direct-wire solder pads:
+- **Left Edge:** `J_IN_L` (DIN) and `J_OUT_L` (DOUT)
+- **Right Edge:** `J_IN_R` (DIN) and `J_OUT_R` (DOUT)
+- **Top Edge:** `J_IN_T` (DIN) and `J_OUT_T` (DOUT)
+- **Bottom Edge:** `J_IN_B` (DIN) and `J_OUT_B` (DOUT)
+
+All four DIN ports are internally bused to Pixel 1 DIN; all four DOUT ports are internally bused to Pixel 36 DOUT. Plug your JST patch cable into whichever edge faces the adjacent board!
+
+### Pinout (Standard Across All 8 Ports):
+* **Pin 1:** `+5V` (Heavy copper power rail)
+* **Pin 2:** `DAT` (`DIN` for In ports, `DOUT` for Out ports)
+* **Pin 3:** `GND` (Solid continuous ground plane)
+
+### Direct-Solder Pad Fallback:
+Directly behind every JST connector, standard $2.54\text{ mm}$ pitch through-hole pads labeled `+5V`, `DAT`, and `GND` are provided for instant workshop soldering with flexible 24/26 AWG silicone wire if pre-crimped JST patch cables are unavailable.

@@ -93,6 +93,24 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### 2026-10-16 15:05 - Seamless 17.0mm Optical Pitch & 4-Edge Universal JST Interconnect Suite (6×6 Matrix)
+- **Engineered Mathematically Seamless 2×2 Cluster Geometry (`scripts/generate_universal_6x6_pcb.py`):**
+  - Solved optical tile boundary visibility: Calibrated internal LED pitch to $P_x = P_y = 17.00\text{ mm}$, alternating row stagger to $8.50\text{ mm}$, and felt living hinge gap to $G = 2.0\text{ mm}$.
+  - The distance between adjacent pixels across both horizontal and vertical seams between boards is mathematically identical ($17.00\text{ mm}$) to the internal pixel spacing for all rows. A viewer looking at the illuminated 144-LED chest panel through felt apertures sees an unbroken, continuous honeycomb matrix with zero visible quadrant seams.
+- **4-Edge Universal JST-PH 2.0mm 3-Pin Ports (8 Ports Total):**
+  - Replaced ribbon connectors with industry-standard JST-PH 2.0mm 3-pin SMT horizontal headers (`C145946`):
+    - **4 Data In Ports:** `J_IN_L` (Left), `J_IN_R` (Right), `J_IN_T` (Top), `J_IN_B` (Bottom), all bused to Pixel 1 DIN.
+    - **4 Data Out Ports:** `J_OUT_L` (Left), `J_OUT_R` (Right), `J_OUT_T` (Top), `J_OUT_B` (Bottom), all bused to Pixel 36 DOUT.
+  - Pinout: Pin 1: `+5V`, Pin 2: `DAT`, Pin 3: `GND`. Plug into whichever edge faces the neighboring tile without needing custom wire bending or complex routing loops.
+  - Parallel 2.54mm through-hole direct-solder pads behind all 8 ports for instant wire-soldering fallback.
+- **High-Visibility Silkscreen Numbering & Port Labels:**
+  - Silkscreen numerals `1` through `36` printed on top silkscreen directly next to each LED package for instant workshop diagnostic tracing.
+  - Clear polarity silkscreen (`IN`, `OUT`, `+5V`, `DAT`, `GND`) along all 4 board edges.
+- **Turnkey Production Re-Compilation & Verification:**
+  - Re-compiled `universal_6x6_100mm_gerbers.zip`, `universal_6x6_100mm_smt.zip`, `universal_6x6_100mm_bom.csv`, and `universal_6x6_100mm_cpl.csv` with verified in-stock JLCPCB parts (WS2812B-2020-V6 `C52917434`, 100nF `C1525`, JST-PH `C145946`).
+  - Validated KiCad PCB balanced S-expression syntax and checked RS-274X Gerber layer outputs (`.GKO`, `.DRL`, `.GTL`, `.GBL`, `.GTS`, `.GBS`, `.GTO`).
+  - Updated interactive web inspector (`pcb/universal_6x6_preview.html`).
+
 ### 2026-10-16 12:58 - Universal 100mm × 100mm Staggered Brick 6×6 LED Matrix (JLCPCB Turnkey SMT Suite)
 - **Engineered Staggered Offset Brick Layout (`scripts/generate_universal_6x6_pcb.py`):**
   - Upgraded the $100.0\text{ mm} \times 100.0\text{ mm}$ universal quadrant PCB from a rectilinear Cartesian grid to an authentic **staggered running-bond brick layout** ($15.0\text{ mm}$ pitch, $7.5\text{ mm}$ alternating row offset).
