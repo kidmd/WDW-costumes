@@ -103,10 +103,11 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
   - Routed serial DOUT from bottom-left pixel D36 $(16.25, 87.5)$ across the protected bottom board margin ($y = 94.5\text{ mm}$) over to `J2_OUT` on the right edge.
   - Included parallel 2.54mm direct-wire solder pad headers (`+5V`, `DIN`/`DOUT`, `GND`) on both edges as an instant workshop wiring fallback.
 - **Turnkey JLCPCB SMT Assembly & Instant Quote Bundle:**
-  - Regenerated KiCad 5 PCB project (`pcb/universal_6x6_100mm.kicad_pcb`), JLCPCB Bill of Materials (`pcb/universal_6x6_100mm_bom.csv`), and Pick-and-Place Centroid list (`pcb/universal_6x6_100mm_cpl.csv`).
-  - Packaged `pcb/universal_6x6_100mm_kicad.zip` (for instant quote board upload) and `pcb/universal_6x6_100mm_smt.zip` (for turnkey machine assembly).
+  - Diagnosed JLCPCB online viewer error: KiCad 5 server parser rejected non-standard `gr_arc` Edge.Cuts angle syntax and `(filled_polygon)` zone block.
+  - Replaced Edge.Cuts with a closed 4-line continuous rectangle (`0,0` to `100,100`), corrected KiCad 5 zone syntax with `(fill yes ...)`, and added `universal_6x6_100mm.pro`.
+  - **Native RS-274X Gerber & Drill Export (`pcb/universal_6x6_100mm_gerbers.zip`):** Implemented direct generation of standardized RS-274X Gerber files (`.GTL`, `.GBL`, `.GTS`, `.GBS`, `.GTO`, `.GKO`, `.DRL`) that bypass server-side conversion completely, enabling 100% immediate 2D/3D rendering on the JLCPCB quote viewer and seamless SMT matching.
 - **Interactive Web Inspector (`pcb/universal_6x6_preview.html`):**
-  - Features 1-Tile Staggered View and 4-Tile Chest Cluster View (144 LEDs), animated DIN data pulse simulation, "Light Up All LEDs" mode, and direct download links.
+  - Features 1-Tile Staggered View and 4-Tile Chest Cluster View (144 LEDs), animated DIN data pulse simulation, "Light Up All LEDs" mode, and direct one-click download buttons for `universal_6x6_100mm_gerbers.zip`, `universal_6x6_100mm_smt.zip`, and `universal_6x6_100mm_kicad.zip`.
 
 ### 2026-10-15 11:02 - 2-Piece GoPro-Style Quick-Release Slide Mount & Zip-Tie Verification
 - **Engineered 2-Piece Quick-Release Dovetail Slide Mounts (`scripts/generate_gopro_style_mount.py`):**

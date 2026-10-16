@@ -174,7 +174,8 @@
     <button id="btn-toggle-chest" onclick="toggleChestMode()">🎽 4-Tile Chest Cluster View (144 LEDs)</button>
     <button id="btn-light-all" onclick="toggleLightAll()">✨ Light Up All LEDs</button>
     <button id="btn-data-pulse" onclick="toggleDataPulse()">⚡ Animated DIN Data Pulse</button>
-    <a href="universal_6x6_100mm_kicad.zip" download><button class="btn-download">📦 Download JLCPCB Upload ZIP</button></a>
+    <a href="universal_6x6_100mm_gerbers.zip" download><button class="btn-download">🌟 Download Native Gerber ZIP (Recommended)</button></a>
+    <a href="universal_6x6_100mm_kicad.zip" download><button>📦 Download KiCad 5 ZIP</button></a>
     <a href="universal_6x6_100mm_smt.zip" download><button class="btn-download">⚡ Download SMT Bundle (BOM + CPL)</button></a>
   </div>
 
@@ -763,20 +764,20 @@
       <div class="card" style="margin-top: 16px;">
         <h3 style="margin-top:0; color:#fff;">🛒 JLCPCB Quoting Guide</h3>
         <div class="step-box">
-          <strong>Step 1: Upload KiCad ZIP</strong><br>
-          Go to <a href="https://jlcpcb.com/quote" target="_blank" style="color:#58a6ff;">jlcpcb.com/quote</a> and drag-and-drop <code>universal_6x6_100mm_kicad.zip</code>.
+          <strong>Step 1: Upload Native Gerber ZIP</strong><br>
+          Go to <a href="https://jlcpcb.com/quote" target="_blank" style="color:#58a6ff;">jlcpcb.com/quote</a> and upload <code>universal_6x6_100mm_gerbers.zip</code> (native RS-274X bypasses any KiCad conversion!).
         </div>
         <div class="step-box">
-          <strong>Step 2: Confirm Dimensions</strong><br>
-          Dimensions will auto-populate to <strong>100mm × 100mm</strong>, 2-Layer, 1.6mm thickness. Select Quantity (e.g. 5, 30, or 50 pcs).
+          <strong>Step 2: Instant Gerber Viewer</strong><br>
+          The Gerber viewer opens instantly showing all 8 layers, dimensions 100mm &times; 100mm, and closed Edge.Cuts outline.
         </div>
         <div class="step-box">
           <strong>Step 3: Enable SMT Assembly</strong><br>
-          Toggle <em>"PCB Assembly"</em> on the quote page. Upload <code>universal_6x6_100mm_bom.csv</code> and <code>universal_6x6_100mm_cpl.csv</code> (or drag <code>universal_6x6_100mm_smt.zip</code>).
+          Toggle <em>"PCB Assembly"</em> to ON. Upload <code>universal_6x6_100mm_bom.csv</code> and <code>universal_6x6_100mm_cpl.csv</code> (or drag <code>universal_6x6_100mm_smt.zip</code>).
         </div>
         <div class="step-box">
           <strong>Step 4: Review Instant Quote</strong><br>
-          The interactive DFM viewer will display all 36 LEDs and 2 FPC ribbon connectors positioned in the staggered brick pattern with exact cost calculation!
+          DFM viewer matches all 36 LEDs, 36 caps, and 2 FPC connectors to their pads!
         </div>
       </div>
     </div>

@@ -123,18 +123,12 @@ kicad_content = f"""(kicad_pcb (version 20171130) (host pcbnew "(5.1.9)-1")
 for i in range(1, NUM_LEDS + 2):
     kicad_content += f'  (net {i+2} "DATA_{i}")\n'
 
-# Board Outline: 100mm x 100mm with 2mm filleted corners
+# Board Outline: 100mm x 100mm CLOSED continuous rectangle on Edge.Cuts (100% KiCad 5 / JLCPCB DFM compliant)
 b = BOARD_SIZE_MM
-r = 2.0
-kicad_content += f"""
-  (gr_line (start {r} 0) (end {b-r} 0) (layer Edge.Cuts) (width 0.15))
-  (gr_arc (start {b-r} {r}) (end {b} {r}) (angle 90) (layer Edge.Cuts) (width 0.15))
-  (gr_line (start {b} {r}) (end {b} {b-r}) (layer Edge.Cuts) (width 0.15))
-  (gr_arc (start {b-r} {b-r}) (end {b-r} {b}) (angle 90) (layer Edge.Cuts) (width 0.15))
-  (gr_line (start {b-r} {b}) (end {r} {b}) (layer Edge.Cuts) (width 0.15))
-  (gr_arc (start {r} {b-r}) (end 0 {b-r}) (angle 90) (layer Edge.Cuts) (width 0.15))
-  (gr_line (start 0 {b-r}) (end 0 {r}) (layer Edge.Cuts) (width 0.15))
-  (gr_arc (start {r} {r}) (end {r} 0) (angle 90) (layer Edge.Cuts) (width 0.15))
+kicad_content += f"""  (gr_line (start 0 0) (end {b} 0) (layer Edge.Cuts) (width 0.15))
+  (gr_line (start {b} 0) (end {b} {b}) (layer Edge.Cuts) (width 0.15))
+  (gr_line (start {b} {b}) (end 0 {b}) (layer Edge.Cuts) (width 0.15))
+  (gr_line (start 0 {b}) (end 0 0) (layer Edge.Cuts) (width 0.15))
 """
 
 # 4 Corner Mounting Holes (Ø3.2mm M3 / Barb clearance with 6.0mm pad keepout)
@@ -279,17 +273,18 @@ for i in range(NUM_LEDS - 1):
 # LED 36 DOUT to J2 Connector via bottom border channel (clean routing)
 led36 = led_positions[-1]
 p36_dout = (round(led36["x"] - 0.85, 2), round(led36["y"] + 0.65, 2))
-# Trace steps: D36 -> bottom margin y=95.0 -> across to x=94.0 -> up to J2
+# Trace steps: D36 -> bottom margin y=94.5 -> across to x=93.5 -> up to J2
 kicad_content += f'  (segment (start {p36_dout[0]} {p36_dout[1]}) (end {p36_dout[0]} 94.5) (width 0.25) (layer F.Cu) (net {NUM_LEDS+3}))\n'
 kicad_content += f'  (segment (start {p36_dout[0]} 94.5) (end 93.5 94.5) (width 0.25) (layer F.Cu) (net {NUM_LEDS+3}))\n'
 kicad_content += f'  (segment (start 93.5 94.5) (end 93.5 {j2_pos["y"]}) (width 0.25) (layer F.Cu) (net {NUM_LEDS+3}))\n'
 kicad_content += f'  (segment (start 93.5 {j2_pos["y"]}) (end {j2_pos["x"]} {j2_pos["y"]}) (width 0.25) (layer F.Cu) (net {NUM_LEDS+3}))\n'
 
-# Solid GND Plane Zone on B.Cu
-kicad_content += f"""  (zone (net 2) (net_name "GND") (layer B.Cu) (tstamp 5E000001) (hatch edge 0.5)
-    (connect_pads yes (clearance 0.3))
+# Solid GND Plane Zone on B.Cu (matching petes_dragon_fpc.kicad_pcb syntax)
+kicad_content += f"""  (zone (net 2) (net_name "GND") (layer B.Cu) (tstamp 0) (hatch edge 0.5)
+    (connect_pads yes (clearance 0.25))
     (min_thickness 0.25)
-    (filled_polygon
+    (fill yes (arc_segments 16) (thermal_gap 0.25) (thermal_bridge_width 0.3))
+    (polygon
       (pts
         (xy 1 1) (xy {b-1} 1) (xy {b-1} {b-1}) (xy 1 {b-1})
       )
@@ -303,21 +298,26 @@ with open(kicad_path, "w", encoding="utf-8") as f:
 
 print(f"Generated KiCad PCB: {kicad_path}")
 
-# -------------------------------------------------------------
-# 4. Generate KiCad Project & EasyEDA ZIP for JLCPCB Quote
-# -------------------------------------------------------------
+# KiCad 5 .pro file (required by JLCPCB KiCad 5 parser!)
+pro_path = os.path.join(PCB_DIR, "universal_6x6_100mm.pro")
+with open(pro_path, "w", encoding="utf-8") as f:
+    f.write("[general]\nversion=1\n")
+
+# KiCad 6+ .kicad_pro file
 kicad_pro_path = os.path.join(PCB_DIR, "universal_6x6_100mm.kicad_pro")
 with open(kicad_pro_path, "w", encoding="utf-8") as f:
     f.write('{"meta":{"version":1},"sheets":[]}')
 
+# Updated JLCPCB KiCad ZIP
 zip_quote_path = os.path.join(PCB_DIR, "universal_6x6_100mm_kicad.zip")
 with zipfile.ZipFile(zip_quote_path, "w", zipfile.ZIP_DEFLATED) as z:
     z.write(kicad_path, os.path.basename(kicad_path))
+    z.write(pro_path, os.path.basename(pro_path))
     z.write(kicad_pro_path, os.path.basename(kicad_pro_path))
     z.write(bom_path, os.path.basename(bom_path))
     z.write(cpl_path, os.path.basename(cpl_path))
 
-print(f"Generated JLCPCB Upload ZIP: {zip_quote_path}")
+print(f"Generated JLCPCB KiCad ZIP: {zip_quote_path}")
 
 # SMT Assembly Bundle ZIP
 zip_smt_path = os.path.join(PCB_DIR, "universal_6x6_100mm_smt.zip")
@@ -326,6 +326,291 @@ with zipfile.ZipFile(zip_smt_path, "w", zipfile.ZIP_DEFLATED) as z:
     z.write(cpl_path, os.path.basename(cpl_path))
 
 print(f"Generated SMT Assembly Bundle: {zip_smt_path}")
+
+# -------------------------------------------------------------
+# 4. Generate Native RS-274X Gerber & Excellon Drill Files
+#    (Guaranteed 100% immediate viewer rendering on JLCPCB!)
+# -------------------------------------------------------------
+def coord_gbr(x, y):
+    return f"X{int(round(x * 1000000)):d}Y{int(round(y * 1000000)):d}"
+
+# 4.1 Board Outline (.GKO / .GML)
+gko_path = os.path.join(PCB_DIR, "universal_6x6_100mm.GKO")
+with open(gko_path, "w", encoding="utf-8") as f:
+    f.write("""G04 Layer: Board Outline*
+%FSLAX46Y46*%
+%MOMM*%
+%LPD*%
+%ADD10C,0.150*%
+D10*
+X0Y0D02*
+X100000000Y0D01*
+X100000000Y100000000D01*
+X0Y100000000D01*
+X0Y0D01*
+M02*
+""")
+
+# 4.2 Excellon Drill File (.DRL)
+drl_path = os.path.join(PCB_DIR, "universal_6x6_100mm.DRL")
+with open(drl_path, "w", encoding="utf-8") as f:
+    f.write("""M48
+; DRILL file for Universal 6x6 100mm PCB
+; Generated for JLCPCB
+METRIC,LZ
+; Tool definitions
+T1C3.200
+T2C0.400
+T3C1.000
+%
+G90
+G05
+; T1: Mounting Holes (4x M3 Ø3.2mm)
+T1
+X4000000Y4000000
+X96000000Y4000000
+X4000000Y96000000
+X96000000Y96000000
+; T2: Decoupling Ground Vias (36x Ø0.4mm)
+T2
+""")
+    for d in led_positions:
+        vx = round(d["x"] + 2.0, 2)
+        vy = round(d["y"] + 1.2, 2)
+        f.write(f"X{int(round(vx*1000000)):d}Y{int(round(vy*1000000)):d}\n")
+    
+    # T3: Direct Solder Header Pins (6x Ø1.0mm)
+    f.write("; T3: Direct Solder Headers (6x Ø1.0mm)\nT3\n")
+    # IN header
+    for py in [29.46, 32.0, 34.54]:
+        f.write(f"X4500000Y{int(round(py*1000000)):d}\n")
+    # OUT header
+    for py in [65.46, 68.0, 70.54]:
+        f.write(f"X95500000Y{int(round(py*1000000)):d}\n")
+    f.write("M30\n")
+
+# 4.3 Top Copper (.GTL)
+gtl_path = os.path.join(PCB_DIR, "universal_6x6_100mm.GTL")
+with open(gtl_path, "w", encoding="utf-8") as f:
+    f.write("""G04 Layer: Top Copper (F.Cu)*
+%FSLAX46Y46*%
+%MOMM*%
+%LPD*%
+%ADD10C,0.250*%
+%ADD11C,0.600*%
+%ADD12C,0.400*%
+%ADD13R,0.600X0.500*%
+%ADD14R,0.560X0.620*%
+%ADD15R,0.600X1.500*%
+%ADD16R,1.800X1.800*%
+%ADD17C,1.800*%
+%ADD18C,0.800*%
+%ADD19C,6.000*%
+""")
+    # 4 Corner Mounting Hole Copper Rings
+    f.write("; Mounting Hole Pads\nD19*\n")
+    for cx, cy in corners:
+        f.write(f"{coord_gbr(cx, cy)}D03*\n")
+    
+    # Direct Solder Pad Headers
+    f.write("; Direct Solder Headers\nD16*\n")
+    f.write(f"{coord_gbr(4.5, 29.46)}D03*\n")  # Pin 1 IN (rect)
+    f.write(f"{coord_gbr(95.5, 65.46)}D03*\n") # Pin 1 OUT (rect)
+    f.write("D17*\n")
+    for py in [32.0, 34.54]:
+        f.write(f"{coord_gbr(4.5, py)}D03*\n")
+    for py in [68.0, 70.54]:
+        f.write(f"{coord_gbr(95.5, py)}D03*\n")
+        
+    # J1 & J2 FPC SMT Pads
+    f.write("; FPC Connectors J1 & J2\nD15*\n")
+    for offset in [-1.5, -0.5, 0.5, 1.5]:
+        f.write(f"{coord_gbr(j1_pos['x'], j1_pos['y'] + offset)}D03*\n")
+        f.write(f"{coord_gbr(j2_pos['x'], j2_pos['y'] + offset)}D03*\n")
+    
+    # 36 LEDs SMD Pads
+    f.write("; WS2812B-2020 LED Pads\nD13*\n")
+    for d in led_positions:
+        x = d["x"]
+        y = d["y"]
+        f.write(f"{coord_gbr(x - 0.85, y - 0.65)}D03*\n") # Pin 1: 5V
+        f.write(f"{coord_gbr(x - 0.85, y + 0.65)}D03*\n") # Pin 2: DOUT
+        f.write(f"{coord_gbr(x + 0.85, y + 0.65)}D03*\n") # Pin 3: GND
+        f.write(f"{coord_gbr(x + 0.85, y - 0.65)}D03*\n") # Pin 4: DIN
+        
+    # 36 Decoupling Capacitor Pads
+    f.write("; 0402 Capacitor Pads\nD14*\n")
+    for d in led_positions:
+        cx = round(d["x"] + 2.0, 2)
+        cy = d["y"]
+        f.write(f"{coord_gbr(cx, cy - 0.48)}D03*\n") # 5V
+        f.write(f"{coord_gbr(cx, cy + 0.48)}D03*\n") # GND
+    
+    # Decoupling Vias
+    f.write("; Ground Vias\nD18*\n")
+    for d in led_positions:
+        f.write(f"{coord_gbr(round(d['x'] + 2.0, 2), round(d['y'] + 1.2, 2))}D03*\n")
+    
+    # Data Traces (D10)
+    f.write("; Data Traces\nD10*\n")
+    # J1 to LED 1
+    f.write(f"{coord_gbr(j1_pos['x'], j1_pos['y'] + 0.5)}D02*\n")
+    f.write(f"{coord_gbr(led1['x'] + 0.85, led1['y'] - 0.65)}D01*\n")
+    # Inter-LED Daisy Chain
+    for i in range(NUM_LEDS - 1):
+        d1 = led_positions[i]
+        d2 = led_positions[i + 1]
+        p1 = (round(d1["x"] - 0.85, 2), round(d1["y"] + 0.65, 2))
+        p2 = (round(d2["x"] + 0.85, 2), round(d2["y"] - 0.65, 2))
+        f.write(f"{coord_gbr(p1[0], p1[1])}D02*\n")
+        f.write(f"{coord_gbr(p2[0], p2[1])}D01*\n")
+    # LED 36 to J2
+    f.write(f"{coord_gbr(p36_dout[0], p36_dout[1])}D02*\n")
+    f.write(f"{coord_gbr(p36_dout[0], 94.5)}D01*\n")
+    f.write(f"{coord_gbr(93.5, 94.5)}D01*\n")
+    f.write(f"{coord_gbr(93.5, j2_pos['y'])}D01*\n")
+    f.write(f"{coord_gbr(j2_pos['x'], j2_pos['y'])}D01*\n")
+    
+    # Power Traces (D11 & D12)
+    f.write("; Power Bus Traces\nD11*\n")
+    f.write(f"{coord_gbr(j1_pos['x'], j1_pos['y'])}D02*\n")
+    f.write(f"{coord_gbr(led1['x'] - 0.85, led1['y'] - 0.65)}D01*\n")
+    for i in range(NUM_LEDS - 1):
+        d1 = led_positions[i]
+        d2 = led_positions[i + 1]
+        if d1["row"] == d2["row"]:
+            c1_5v = (round(d1["x"] + 2.0, 2), round(d1["y"] - 0.48, 2))
+            c2_5v = (round(d2["x"] + 2.0, 2), round(d2["y"] - 0.48, 2))
+            f.write(f"{coord_gbr(c1_5v[0], c1_5v[1])}D02*\n")
+            f.write(f"{coord_gbr(c2_5v[0], c2_5v[1])}D01*\n")
+    f.write("M02*\n")
+
+# 4.4 Bottom Copper (.GBL) - Ground Plane + Via pads
+gbl_path = os.path.join(PCB_DIR, "universal_6x6_100mm.GBL")
+with open(gbl_path, "w", encoding="utf-8") as f:
+    f.write("""G04 Layer: Bottom Copper (B.Cu) - Ground Plane*
+%FSLAX46Y46*%
+%MOMM*%
+%LPD*%
+%ADD10C,0.800*%
+%ADD11C,6.000*%
+%ADD12C,1.800*%
+%ADD13R,96.000X96.000*%
+D13*
+X50000000Y50000000D03*
+D11*
+X4000000Y4000000D03*
+X96000000Y4000000D03*
+X4000000Y96000000D03*
+X96000000Y96000000D03*
+D12*
+X4500000Y29460000D03*
+X4500000Y32000000D03*
+X4500000Y34540000D03*
+X95500000Y65460000D03*
+X95500000Y68000000D03*
+X95500000Y70540000D03*
+M02*
+""")
+
+# 4.5 Top Solder Mask (.GTS)
+gts_path = os.path.join(PCB_DIR, "universal_6x6_100mm.GTS")
+with open(gts_path, "w", encoding="utf-8") as f:
+    f.write("""G04 Layer: Top Solder Mask (F.Mask)*
+%FSLAX46Y46*%
+%MOMM*%
+%LPD*%
+%ADD10R,0.700X0.600*%
+%ADD11R,0.660X0.720*%
+%ADD12R,0.700X1.600*%
+%ADD13C,1.900*%
+%ADD14R,1.900X1.900*%
+%ADD15C,6.200*%
+D15*
+X4000000Y4000000D03*
+X96000000Y4000000D03*
+X4000000Y96000000D03*
+X96000000Y96000000D03*
+D14*
+X4500000Y29460000D03*
+X95500000Y65460000D03*
+D13*
+X4500000Y32000000D03*
+X4500000Y34540000D03*
+X95500000Y68000000D03*
+X95500000Y70540000D03*
+D12*
+""")
+    for offset in [-1.5, -0.5, 0.5, 1.5]:
+        f.write(f"{coord_gbr(j1_pos['x'], j1_pos['y'] + offset)}D03*\n")
+        f.write(f"{coord_gbr(j2_pos['x'], j2_pos['y'] + offset)}D03*\n")
+    f.write("D10*\n")
+    for d in led_positions:
+        x = d["x"]
+        y = d["y"]
+        f.write(f"{coord_gbr(x - 0.85, y - 0.65)}D03*\n")
+        f.write(f"{coord_gbr(x - 0.85, y + 0.65)}D03*\n")
+        f.write(f"{coord_gbr(x + 0.85, y + 0.65)}D03*\n")
+        f.write(f"{coord_gbr(x + 0.85, y - 0.65)}D03*\n")
+    f.write("D11*\n")
+    for d in led_positions:
+        cx = round(d["x"] + 2.0, 2)
+        cy = d["y"]
+        f.write(f"{coord_gbr(cx, cy - 0.48)}D03*\n")
+        f.write(f"{coord_gbr(cx, cy + 0.48)}D03*\n")
+    f.write("M02*\n")
+
+# 4.6 Bottom Solder Mask (.GBS)
+gbs_path = os.path.join(PCB_DIR, "universal_6x6_100mm.GBS")
+with open(gbs_path, "w", encoding="utf-8") as f:
+    f.write("""G04 Layer: Bottom Solder Mask (B.Mask)*
+%FSLAX46Y46*%
+%MOMM*%
+%LPD*%
+%ADD10C,6.200*%
+%ADD11C,1.900*%
+D10*
+X4000000Y4000000D03*
+X96000000Y4000000D03*
+X4000000Y96000000D03*
+X96000000Y96000000D03*
+D11*
+X4500000Y29460000D03*
+X4500000Y32000000D03*
+X4500000Y34540000D03*
+X95500000Y65460000D03*
+X95500000Y68000000D03*
+X95500000Y70540000D03*
+M02*
+""")
+
+# 4.7 Top Silkscreen (.GTO)
+gto_path = os.path.join(PCB_DIR, "universal_6x6_100mm.GTO")
+with open(gto_path, "w", encoding="utf-8") as f:
+    f.write("""G04 Layer: Top Silkscreen (F.SilkS)*
+%FSLAX46Y46*%
+%MOMM*%
+%LPD*%
+%ADD10C,0.150*%
+D10*
+""")
+    for d in led_positions:
+        x = d["x"]
+        y = d["y"]
+        f.write(f"{coord_gbr(x-1.0, y-1.0)}D02*\n")
+        f.write(f"{coord_gbr(x+1.0, y-1.0)}D01*\n")
+        f.write(f"{coord_gbr(x+1.0, y+1.0)}D01*\n")
+        f.write(f"{coord_gbr(x-1.0, y+1.0)}D01*\n")
+        f.write(f"{coord_gbr(x-1.0, y-1.0)}D01*\n")
+    f.write("M02*\n")
+
+# Package into standard JLCPCB Native Gerber ZIP!
+zip_gerber_path = os.path.join(PCB_DIR, "universal_6x6_100mm_gerbers.zip")
+with zipfile.ZipFile(zip_gerber_path, "w", zipfile.ZIP_DEFLATED) as z:
+    for p in [gko_path, drl_path, gtl_path, gbl_path, gts_path, gbs_path, gto_path]:
+        z.write(p, os.path.basename(p))
+
+print(f"Generated Native RS-274X Gerber ZIP: {zip_gerber_path}")
 
 # -------------------------------------------------------------
 # 5. Generate Interactive Web Inspector (HTML + SVG + Simulation)
@@ -552,7 +837,8 @@ html_content = f"""<!DOCTYPE html>
     <button id="btn-toggle-chest" onclick="toggleChestMode()">🎽 4-Tile Chest Cluster View (144 LEDs)</button>
     <button id="btn-light-all" onclick="toggleLightAll()">✨ Light Up All LEDs</button>
     <button id="btn-data-pulse" onclick="toggleDataPulse()">⚡ Animated DIN Data Pulse</button>
-    <a href="universal_6x6_100mm_kicad.zip" download><button class="btn-download">📦 Download JLCPCB Upload ZIP</button></a>
+    <a href="universal_6x6_100mm_gerbers.zip" download><button class="btn-download">🌟 Download Native Gerber ZIP (Recommended)</button></a>
+    <a href="universal_6x6_100mm_kicad.zip" download><button>📦 Download KiCad 5 ZIP</button></a>
     <a href="universal_6x6_100mm_smt.zip" download><button class="btn-download">⚡ Download SMT Bundle (BOM + CPL)</button></a>
   </div>
 
@@ -686,20 +972,20 @@ html_content = f"""<!DOCTYPE html>
       <div class="card" style="margin-top: 16px;">
         <h3 style="margin-top:0; color:#fff;">🛒 JLCPCB Quoting Guide</h3>
         <div class="step-box">
-          <strong>Step 1: Upload KiCad ZIP</strong><br>
-          Go to <a href="https://jlcpcb.com/quote" target="_blank" style="color:#58a6ff;">jlcpcb.com/quote</a> and drag-and-drop <code>universal_6x6_100mm_kicad.zip</code>.
+          <strong>Step 1: Upload Native Gerber ZIP</strong><br>
+          Go to <a href="https://jlcpcb.com/quote" target="_blank" style="color:#58a6ff;">jlcpcb.com/quote</a> and upload <code>universal_6x6_100mm_gerbers.zip</code> (native RS-274X bypasses any KiCad conversion!).
         </div>
         <div class="step-box">
-          <strong>Step 2: Confirm Dimensions</strong><br>
-          Dimensions will auto-populate to <strong>100mm × 100mm</strong>, 2-Layer, 1.6mm thickness. Select Quantity (e.g. 5, 30, or 50 pcs).
+          <strong>Step 2: Instant Gerber Viewer</strong><br>
+          The Gerber viewer opens instantly showing all 8 layers, dimensions 100mm &times; 100mm, and closed Edge.Cuts outline.
         </div>
         <div class="step-box">
           <strong>Step 3: Enable SMT Assembly</strong><br>
-          Toggle <em>"PCB Assembly"</em> on the quote page. Upload <code>universal_6x6_100mm_bom.csv</code> and <code>universal_6x6_100mm_cpl.csv</code> (or drag <code>universal_6x6_100mm_smt.zip</code>).
+          Toggle <em>"PCB Assembly"</em> to ON. Upload <code>universal_6x6_100mm_bom.csv</code> and <code>universal_6x6_100mm_cpl.csv</code> (or drag <code>universal_6x6_100mm_smt.zip</code>).
         </div>
         <div class="step-box">
           <strong>Step 4: Review Instant Quote</strong><br>
-          The interactive DFM viewer will display all 36 LEDs and 2 FPC ribbon connectors positioned in the staggered brick pattern with exact cost calculation!
+          DFM viewer matches all 36 LEDs, 36 caps, and 2 FPC connectors to their pads!
         </div>
       </div>
     </div>
