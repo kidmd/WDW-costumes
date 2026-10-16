@@ -93,6 +93,28 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### 2026-10-16 15:55 - Aligned JST Interconnects, Straight 3-Wire Pinout, PCB Silk Numerals, and Vector Font Gerber Text
+- **Straight 3-Conductor Interconnect Geometry (Zero Wire Twisting / Crossing):**
+  - **Symmetrical Edge Port Alignment:**
+    - Left Edge: `J_IN_L` at $y = 33.0\text{ mm}$, `J_OUT_L` at $y = 67.0\text{ mm}$.
+    - Right Edge: `J_OUT_R` at $y = 33.0\text{ mm}$ (faces `J_IN_L` directly across seam), `J_IN_R` at $y = 67.0\text{ mm}$ (faces `J_OUT_L` directly across seam).
+    - Top Edge: `J_IN_T` at $x = 33.0\text{ mm}$, `J_OUT_T` at $x = 67.0\text{ mm}$.
+    - Bottom Edge: `J_OUT_B` at $x = 33.0\text{ mm}$ (faces `J_IN_T` directly across seam), `J_IN_B` at $x = 67.0\text{ mm}$ (faces `J_OUT_T` directly across seam).
+    - Across any seam (Top-Left to Top-Right horizontally, Top-Right to Bottom-Right vertically, Bottom-Right to Bottom-Left horizontally), cables run strictly in a straight line with zero angled runs.
+  - **Consistent Straight Pinout:**
+    - Left/Right edges: Pin 1 at top ($y - 2.0\text{ mm}$) = `+5V`, Pin 2 at middle ($y$) = `DAT`, Pin 3 at bottom ($y + 2.0\text{ mm}$) = `GND`.
+    - Top/Bottom edges: Pin 1 at left ($x - 2.0\text{ mm}$) = `+5V`, Pin 2 at middle ($x$) = `DAT`, Pin 3 at right ($x + 2.0\text{ mm}$) = `GND`.
+    - Standard straight 3-pin ribbon patch cables connect directly without crossing `+5V` and `GND` or twisting the cable assembly.
+- **On-Board Silkscreen Numerals & Connector Markings:**
+  - Moved LED numbers `1` through `36` onto the PCB substrate at $(x, y - 2.4\text{ mm})$, $1.4\text{ mm}$ above the WS2812B package, ensuring numbers remain completely visible after component placement.
+  - Labeled all 8 JST headers with their port role (`[IN]` or `[OUT]`) and explicit pin callouts (`+5V`, `DAT`, `GND`).
+- **Gerber Vector Stroke Font Engine (`scripts/generate_universal_6x6_pcb.py`):**
+  - Built an internal Hershey-style stroke font table (`FONT_GLYPHS` and `write_gbr_text`) into the Gerber exporter.
+  - Text characters are now drawn with native D10 aperture stroke vectors directly in the `.GTO` (Top Silkscreen Gerber) file, guaranteeing that pin labels, board titles, and LED numbers render prominently in JLCPCB's 2D/3D gerber viewer and physically print on fabricated boards.
+- **Interactive Visualizer Update (`pcb/universal_6x6_preview.html`):**
+  - Rendered visible silkscreen pin callouts (`+5V`, `DAT`, `GND`) on all 8 connectors.
+  - Illustrated straight 30mm horizontal and vertical 3-conductor JST patch cables bridging the 4 quadrant tiles with color-coded wires (Red `+5V`, Green `DAT`, Black `GND`).
+
 ### 2026-10-16 15:25 - Corner M3 Mounting & Fabric Sewing Holes Architecture with Auto-Match BOM (`C3029441`)
 - **Corner M3 Screw Mounting & Dedicated Fabric Sewing Eyelets (`scripts/generate_universal_6x6_pcb.py`):**
   - **4 Corner M3 Mounting Holes (`H1`–`H4`):** $\varnothing 3.2\text{ mm}$ drill with $5.0\text{ mm}$ copper annular pads at `(4.0, 3.5)`, `(96.0, 3.5)`, `(4.0, 96.5)`, and `(96.0, 96.5)`. Perfectly cleared from all LED packages and JST headers, supporting M3/M2.5 machine screws, standoffs, or zip ties.

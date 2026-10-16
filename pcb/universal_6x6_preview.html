@@ -242,69 +242,93 @@
         <!-- 8 JST Connectors (4 IN on cyan, 4 OUT on magenta) -->
         <g id="jst-connectors">
           
-    <g class="jst-port" transform="translate(4.5, 33.0) rotate(90)">
-      <rect x="-3.5" y="-2.5" width="7.0" height="5.0" rx="0.6" fill="#2a2a2a" stroke="#00ffcc" stroke-width="0.2"/>
-      <circle cx="-2.0" cy="0" r="0.5" fill="#ffd700"/>
-      <circle cx="0" cy="0" r="0.5" fill="#ffd700"/>
-      <circle cx="2.0" cy="0" r="0.5" fill="#ffd700"/>
-      <text x="0" y="-3.2" font-size="0.75" fill="#00ffcc" text-anchor="middle" font-weight="bold">[IN]</text>
-      <text x="0" y="4.0" font-size="0.55" fill="#888" text-anchor="middle">+5V DAT GND</text>
+    <!-- J_IN_L (IN) on LEFT edge -->
+    <g class="jst-port">
+      <rect x="2.0" y="29.2" width="5.0" height="7.6" rx="0.5" fill="#2a2a2a" stroke="#00ffcc" stroke-width="0.25"/>
+      <circle cx="4.5" cy="31.0" r="0.5" fill="#ffd700"/>
+      <circle cx="4.5" cy="33.0" r="0.5" fill="#ffd700"/>
+      <circle cx="4.5" cy="35.0" r="0.5" fill="#ffd700"/>
+      <text x="4.5" y="28.5" font-size="0.8" fill="#00ffcc" text-anchor="middle" font-weight="bold">[IN]</text>
+      <text x="8.5" y="31.3" font-size="0.55" fill="#ffd700" text-anchor="middle">+5V</text>
+      <text x="8.5" y="33.3" font-size="0.55" fill="#00ffcc" text-anchor="middle">DAT</text>
+      <text x="8.5" y="35.3" font-size="0.55" fill="#888" text-anchor="middle">GND</text>
     </g>
-    <g class="jst-port" transform="translate(4.5, 67.0) rotate(90)">
-      <rect x="-3.5" y="-2.5" width="7.0" height="5.0" rx="0.6" fill="#2a2a2a" stroke="#ff3366" stroke-width="0.2"/>
-      <circle cx="-2.0" cy="0" r="0.5" fill="#ffd700"/>
-      <circle cx="0" cy="0" r="0.5" fill="#ffd700"/>
-      <circle cx="2.0" cy="0" r="0.5" fill="#ffd700"/>
-      <text x="0" y="-3.2" font-size="0.75" fill="#ff3366" text-anchor="middle" font-weight="bold">[OUT]</text>
-      <text x="0" y="4.0" font-size="0.55" fill="#888" text-anchor="middle">+5V DAT GND</text>
+    <!-- J_OUT_L (OUT) on LEFT edge -->
+    <g class="jst-port">
+      <rect x="2.0" y="63.2" width="5.0" height="7.6" rx="0.5" fill="#2a2a2a" stroke="#ff3366" stroke-width="0.25"/>
+      <circle cx="4.5" cy="65.0" r="0.5" fill="#ffd700"/>
+      <circle cx="4.5" cy="67.0" r="0.5" fill="#ffd700"/>
+      <circle cx="4.5" cy="69.0" r="0.5" fill="#ffd700"/>
+      <text x="4.5" y="62.5" font-size="0.8" fill="#ff3366" text-anchor="middle" font-weight="bold">[OUT]</text>
+      <text x="8.5" y="65.3" font-size="0.55" fill="#ffd700" text-anchor="middle">+5V</text>
+      <text x="8.5" y="67.3" font-size="0.55" fill="#00ffcc" text-anchor="middle">DAT</text>
+      <text x="8.5" y="69.3" font-size="0.55" fill="#888" text-anchor="middle">GND</text>
     </g>
-    <g class="jst-port" transform="translate(95.5, 33.0) rotate(270)">
-      <rect x="-3.5" y="-2.5" width="7.0" height="5.0" rx="0.6" fill="#2a2a2a" stroke="#00ffcc" stroke-width="0.2"/>
-      <circle cx="-2.0" cy="0" r="0.5" fill="#ffd700"/>
-      <circle cx="0" cy="0" r="0.5" fill="#ffd700"/>
-      <circle cx="2.0" cy="0" r="0.5" fill="#ffd700"/>
-      <text x="0" y="-3.2" font-size="0.75" fill="#00ffcc" text-anchor="middle" font-weight="bold">[IN]</text>
-      <text x="0" y="4.0" font-size="0.55" fill="#888" text-anchor="middle">+5V DAT GND</text>
+    <!-- J_OUT_R (OUT) on RIGHT edge -->
+    <g class="jst-port">
+      <rect x="93.0" y="29.2" width="5.0" height="7.6" rx="0.5" fill="#2a2a2a" stroke="#ff3366" stroke-width="0.25"/>
+      <circle cx="95.5" cy="31.0" r="0.5" fill="#ffd700"/>
+      <circle cx="95.5" cy="33.0" r="0.5" fill="#ffd700"/>
+      <circle cx="95.5" cy="35.0" r="0.5" fill="#ffd700"/>
+      <text x="95.5" y="28.5" font-size="0.8" fill="#ff3366" text-anchor="middle" font-weight="bold">[OUT]</text>
+      <text x="91.5" y="31.3" font-size="0.55" fill="#ffd700" text-anchor="middle">+5V</text>
+      <text x="91.5" y="33.3" font-size="0.55" fill="#00ffcc" text-anchor="middle">DAT</text>
+      <text x="91.5" y="35.3" font-size="0.55" fill="#888" text-anchor="middle">GND</text>
     </g>
-    <g class="jst-port" transform="translate(95.5, 67.0) rotate(270)">
-      <rect x="-3.5" y="-2.5" width="7.0" height="5.0" rx="0.6" fill="#2a2a2a" stroke="#ff3366" stroke-width="0.2"/>
-      <circle cx="-2.0" cy="0" r="0.5" fill="#ffd700"/>
-      <circle cx="0" cy="0" r="0.5" fill="#ffd700"/>
-      <circle cx="2.0" cy="0" r="0.5" fill="#ffd700"/>
-      <text x="0" y="-3.2" font-size="0.75" fill="#ff3366" text-anchor="middle" font-weight="bold">[OUT]</text>
-      <text x="0" y="4.0" font-size="0.55" fill="#888" text-anchor="middle">+5V DAT GND</text>
+    <!-- J_IN_R (IN) on RIGHT edge -->
+    <g class="jst-port">
+      <rect x="93.0" y="63.2" width="5.0" height="7.6" rx="0.5" fill="#2a2a2a" stroke="#00ffcc" stroke-width="0.25"/>
+      <circle cx="95.5" cy="65.0" r="0.5" fill="#ffd700"/>
+      <circle cx="95.5" cy="67.0" r="0.5" fill="#ffd700"/>
+      <circle cx="95.5" cy="69.0" r="0.5" fill="#ffd700"/>
+      <text x="95.5" y="62.5" font-size="0.8" fill="#00ffcc" text-anchor="middle" font-weight="bold">[IN]</text>
+      <text x="91.5" y="65.3" font-size="0.55" fill="#ffd700" text-anchor="middle">+5V</text>
+      <text x="91.5" y="67.3" font-size="0.55" fill="#00ffcc" text-anchor="middle">DAT</text>
+      <text x="91.5" y="69.3" font-size="0.55" fill="#888" text-anchor="middle">GND</text>
     </g>
-    <g class="jst-port" transform="translate(33.0, 4.5) rotate(180)">
-      <rect x="-3.5" y="-2.5" width="7.0" height="5.0" rx="0.6" fill="#2a2a2a" stroke="#00ffcc" stroke-width="0.2"/>
-      <circle cx="-2.0" cy="0" r="0.5" fill="#ffd700"/>
-      <circle cx="0" cy="0" r="0.5" fill="#ffd700"/>
-      <circle cx="2.0" cy="0" r="0.5" fill="#ffd700"/>
-      <text x="0" y="-3.2" font-size="0.75" fill="#00ffcc" text-anchor="middle" font-weight="bold">[IN]</text>
-      <text x="0" y="4.0" font-size="0.55" fill="#888" text-anchor="middle">+5V DAT GND</text>
+    <!-- J_IN_T (IN) on TOP edge -->
+    <g class="jst-port">
+      <rect x="29.2" y="2.0" width="7.6" height="5.0" rx="0.5" fill="#2a2a2a" stroke="#00ffcc" stroke-width="0.25"/>
+      <circle cx="31.0" cy="4.5" r="0.5" fill="#ffd700"/>
+      <circle cx="33.0" cy="4.5" r="0.5" fill="#ffd700"/>
+      <circle cx="35.0" cy="4.5" r="0.5" fill="#ffd700"/>
+      <text x="28.2" y="4.8" font-size="0.8" fill="#00ffcc" text-anchor="end" font-weight="bold">[IN]</text>
+      <text x="31.0" y="8.7" font-size="0.55" fill="#ffd700" text-anchor="middle">+5V</text>
+      <text x="33.0" y="8.7" font-size="0.55" fill="#00ffcc" text-anchor="middle">DAT</text>
+      <text x="35.0" y="8.7" font-size="0.55" fill="#888" text-anchor="middle">GND</text>
     </g>
-    <g class="jst-port" transform="translate(67.0, 4.5) rotate(180)">
-      <rect x="-3.5" y="-2.5" width="7.0" height="5.0" rx="0.6" fill="#2a2a2a" stroke="#ff3366" stroke-width="0.2"/>
-      <circle cx="-2.0" cy="0" r="0.5" fill="#ffd700"/>
-      <circle cx="0" cy="0" r="0.5" fill="#ffd700"/>
-      <circle cx="2.0" cy="0" r="0.5" fill="#ffd700"/>
-      <text x="0" y="-3.2" font-size="0.75" fill="#ff3366" text-anchor="middle" font-weight="bold">[OUT]</text>
-      <text x="0" y="4.0" font-size="0.55" fill="#888" text-anchor="middle">+5V DAT GND</text>
+    <!-- J_OUT_T (OUT) on TOP edge -->
+    <g class="jst-port">
+      <rect x="63.2" y="2.0" width="7.6" height="5.0" rx="0.5" fill="#2a2a2a" stroke="#ff3366" stroke-width="0.25"/>
+      <circle cx="65.0" cy="4.5" r="0.5" fill="#ffd700"/>
+      <circle cx="67.0" cy="4.5" r="0.5" fill="#ffd700"/>
+      <circle cx="69.0" cy="4.5" r="0.5" fill="#ffd700"/>
+      <text x="62.2" y="4.8" font-size="0.8" fill="#ff3366" text-anchor="end" font-weight="bold">[OUT]</text>
+      <text x="65.0" y="8.7" font-size="0.55" fill="#ffd700" text-anchor="middle">+5V</text>
+      <text x="67.0" y="8.7" font-size="0.55" fill="#00ffcc" text-anchor="middle">DAT</text>
+      <text x="69.0" y="8.7" font-size="0.55" fill="#888" text-anchor="middle">GND</text>
     </g>
-    <g class="jst-port" transform="translate(33.0, 95.5) rotate(0)">
-      <rect x="-3.5" y="-2.5" width="7.0" height="5.0" rx="0.6" fill="#2a2a2a" stroke="#00ffcc" stroke-width="0.2"/>
-      <circle cx="-2.0" cy="0" r="0.5" fill="#ffd700"/>
-      <circle cx="0" cy="0" r="0.5" fill="#ffd700"/>
-      <circle cx="2.0" cy="0" r="0.5" fill="#ffd700"/>
-      <text x="0" y="-3.2" font-size="0.75" fill="#00ffcc" text-anchor="middle" font-weight="bold">[IN]</text>
-      <text x="0" y="4.0" font-size="0.55" fill="#888" text-anchor="middle">+5V DAT GND</text>
+    <!-- J_OUT_B (OUT) on BOTTOM edge -->
+    <g class="jst-port">
+      <rect x="29.2" y="93.0" width="7.6" height="5.0" rx="0.5" fill="#2a2a2a" stroke="#ff3366" stroke-width="0.25"/>
+      <circle cx="31.0" cy="95.5" r="0.5" fill="#ffd700"/>
+      <circle cx="33.0" cy="95.5" r="0.5" fill="#ffd700"/>
+      <circle cx="35.0" cy="95.5" r="0.5" fill="#ffd700"/>
+      <text x="28.2" y="95.8" font-size="0.8" fill="#ff3366" text-anchor="end" font-weight="bold">[OUT]</text>
+      <text x="31.0" y="92.3" font-size="0.55" fill="#ffd700" text-anchor="middle">+5V</text>
+      <text x="33.0" y="92.3" font-size="0.55" fill="#00ffcc" text-anchor="middle">DAT</text>
+      <text x="35.0" y="92.3" font-size="0.55" fill="#888" text-anchor="middle">GND</text>
     </g>
-    <g class="jst-port" transform="translate(67.0, 95.5) rotate(0)">
-      <rect x="-3.5" y="-2.5" width="7.0" height="5.0" rx="0.6" fill="#2a2a2a" stroke="#ff3366" stroke-width="0.2"/>
-      <circle cx="-2.0" cy="0" r="0.5" fill="#ffd700"/>
-      <circle cx="0" cy="0" r="0.5" fill="#ffd700"/>
-      <circle cx="2.0" cy="0" r="0.5" fill="#ffd700"/>
-      <text x="0" y="-3.2" font-size="0.75" fill="#ff3366" text-anchor="middle" font-weight="bold">[OUT]</text>
-      <text x="0" y="4.0" font-size="0.55" fill="#888" text-anchor="middle">+5V DAT GND</text>
+    <!-- J_IN_B (IN) on BOTTOM edge -->
+    <g class="jst-port">
+      <rect x="63.2" y="93.0" width="7.6" height="5.0" rx="0.5" fill="#2a2a2a" stroke="#00ffcc" stroke-width="0.25"/>
+      <circle cx="65.0" cy="95.5" r="0.5" fill="#ffd700"/>
+      <circle cx="67.0" cy="95.5" r="0.5" fill="#ffd700"/>
+      <circle cx="69.0" cy="95.5" r="0.5" fill="#ffd700"/>
+      <text x="62.2" y="95.8" font-size="0.8" fill="#00ffcc" text-anchor="end" font-weight="bold">[IN]</text>
+      <text x="65.0" y="92.3" font-size="0.55" fill="#ffd700" text-anchor="middle">+5V</text>
+      <text x="67.0" y="92.3" font-size="0.55" fill="#00ffcc" text-anchor="middle">DAT</text>
+      <text x="69.0" y="92.3" font-size="0.55" fill="#888" text-anchor="middle">GND</text>
     </g>
         </g>
 
@@ -356,252 +380,288 @@
       <rect class="led-pkg" x="2.0" y="6.5" width="2.0" height="2.0" rx="0.25" fill="#1e1e1e" stroke="#444" stroke-width="0.1"/>
       <rect id="die-1" class="led-die" x="2.3" y="6.8" width="1.4" height="1.4" rx="0.15" fill="#fff5cc" stroke="none"/>
       <rect class="cap-pkg" x="4.5" y="7.0" width="1.0" height="1.0" rx="0.1" fill="#b8860b" stroke="#333" stroke-width="0.08"/>
-      <text x="3.0" y="6.1" font-size="0.8" fill="#58a6ff" text-anchor="middle" font-family="monospace" font-weight="bold">1</text>
+      <!-- Silkscreen LED number on PCB surface above LED -->
+      <text x="3.0" y="5.1" font-size="0.85" fill="#58a6ff" text-anchor="middle" font-family="monospace" font-weight="bold">1</text>
     </g>
     <!-- LED 2 (Row 1, Col 2) -->
     <g class="led-group" data-idx="2">
       <rect class="led-pkg" x="19.0" y="6.5" width="2.0" height="2.0" rx="0.25" fill="#1e1e1e" stroke="#444" stroke-width="0.1"/>
       <rect id="die-2" class="led-die" x="19.3" y="6.8" width="1.4" height="1.4" rx="0.15" fill="#fff5cc" stroke="none"/>
       <rect class="cap-pkg" x="21.5" y="7.0" width="1.0" height="1.0" rx="0.1" fill="#b8860b" stroke="#333" stroke-width="0.08"/>
-      <text x="20.0" y="6.1" font-size="0.8" fill="#58a6ff" text-anchor="middle" font-family="monospace" font-weight="bold">2</text>
+      <!-- Silkscreen LED number on PCB surface above LED -->
+      <text x="20.0" y="5.1" font-size="0.85" fill="#58a6ff" text-anchor="middle" font-family="monospace" font-weight="bold">2</text>
     </g>
     <!-- LED 3 (Row 1, Col 3) -->
     <g class="led-group" data-idx="3">
       <rect class="led-pkg" x="36.0" y="6.5" width="2.0" height="2.0" rx="0.25" fill="#1e1e1e" stroke="#444" stroke-width="0.1"/>
       <rect id="die-3" class="led-die" x="36.3" y="6.8" width="1.4" height="1.4" rx="0.15" fill="#fff5cc" stroke="none"/>
       <rect class="cap-pkg" x="38.5" y="7.0" width="1.0" height="1.0" rx="0.1" fill="#b8860b" stroke="#333" stroke-width="0.08"/>
-      <text x="37.0" y="6.1" font-size="0.8" fill="#58a6ff" text-anchor="middle" font-family="monospace" font-weight="bold">3</text>
+      <!-- Silkscreen LED number on PCB surface above LED -->
+      <text x="37.0" y="5.1" font-size="0.85" fill="#58a6ff" text-anchor="middle" font-family="monospace" font-weight="bold">3</text>
     </g>
     <!-- LED 4 (Row 1, Col 4) -->
     <g class="led-group" data-idx="4">
       <rect class="led-pkg" x="53.0" y="6.5" width="2.0" height="2.0" rx="0.25" fill="#1e1e1e" stroke="#444" stroke-width="0.1"/>
       <rect id="die-4" class="led-die" x="53.3" y="6.8" width="1.4" height="1.4" rx="0.15" fill="#fff5cc" stroke="none"/>
       <rect class="cap-pkg" x="55.5" y="7.0" width="1.0" height="1.0" rx="0.1" fill="#b8860b" stroke="#333" stroke-width="0.08"/>
-      <text x="54.0" y="6.1" font-size="0.8" fill="#58a6ff" text-anchor="middle" font-family="monospace" font-weight="bold">4</text>
+      <!-- Silkscreen LED number on PCB surface above LED -->
+      <text x="54.0" y="5.1" font-size="0.85" fill="#58a6ff" text-anchor="middle" font-family="monospace" font-weight="bold">4</text>
     </g>
     <!-- LED 5 (Row 1, Col 5) -->
     <g class="led-group" data-idx="5">
       <rect class="led-pkg" x="70.0" y="6.5" width="2.0" height="2.0" rx="0.25" fill="#1e1e1e" stroke="#444" stroke-width="0.1"/>
       <rect id="die-5" class="led-die" x="70.3" y="6.8" width="1.4" height="1.4" rx="0.15" fill="#fff5cc" stroke="none"/>
       <rect class="cap-pkg" x="72.5" y="7.0" width="1.0" height="1.0" rx="0.1" fill="#b8860b" stroke="#333" stroke-width="0.08"/>
-      <text x="71.0" y="6.1" font-size="0.8" fill="#58a6ff" text-anchor="middle" font-family="monospace" font-weight="bold">5</text>
+      <!-- Silkscreen LED number on PCB surface above LED -->
+      <text x="71.0" y="5.1" font-size="0.85" fill="#58a6ff" text-anchor="middle" font-family="monospace" font-weight="bold">5</text>
     </g>
     <!-- LED 6 (Row 1, Col 6) -->
     <g class="led-group" data-idx="6">
       <rect class="led-pkg" x="87.0" y="6.5" width="2.0" height="2.0" rx="0.25" fill="#1e1e1e" stroke="#444" stroke-width="0.1"/>
       <rect id="die-6" class="led-die" x="87.3" y="6.8" width="1.4" height="1.4" rx="0.15" fill="#fff5cc" stroke="none"/>
       <rect class="cap-pkg" x="89.5" y="7.0" width="1.0" height="1.0" rx="0.1" fill="#b8860b" stroke="#333" stroke-width="0.08"/>
-      <text x="88.0" y="6.1" font-size="0.8" fill="#58a6ff" text-anchor="middle" font-family="monospace" font-weight="bold">6</text>
+      <!-- Silkscreen LED number on PCB surface above LED -->
+      <text x="88.0" y="5.1" font-size="0.85" fill="#58a6ff" text-anchor="middle" font-family="monospace" font-weight="bold">6</text>
     </g>
     <!-- LED 7 (Row 2, Col 6) -->
     <g class="led-group" data-idx="7">
       <rect class="led-pkg" x="95.5" y="23.5" width="2.0" height="2.0" rx="0.25" fill="#1e1e1e" stroke="#444" stroke-width="0.1"/>
       <rect id="die-7" class="led-die" x="95.8" y="23.8" width="1.4" height="1.4" rx="0.15" fill="#fff5cc" stroke="none"/>
       <rect class="cap-pkg" x="98.0" y="24.0" width="1.0" height="1.0" rx="0.1" fill="#b8860b" stroke="#333" stroke-width="0.08"/>
-      <text x="96.5" y="23.1" font-size="0.8" fill="#58a6ff" text-anchor="middle" font-family="monospace" font-weight="bold">7</text>
+      <!-- Silkscreen LED number on PCB surface above LED -->
+      <text x="96.5" y="22.1" font-size="0.85" fill="#58a6ff" text-anchor="middle" font-family="monospace" font-weight="bold">7</text>
     </g>
     <!-- LED 8 (Row 2, Col 5) -->
     <g class="led-group" data-idx="8">
       <rect class="led-pkg" x="78.5" y="23.5" width="2.0" height="2.0" rx="0.25" fill="#1e1e1e" stroke="#444" stroke-width="0.1"/>
       <rect id="die-8" class="led-die" x="78.8" y="23.8" width="1.4" height="1.4" rx="0.15" fill="#fff5cc" stroke="none"/>
       <rect class="cap-pkg" x="81.0" y="24.0" width="1.0" height="1.0" rx="0.1" fill="#b8860b" stroke="#333" stroke-width="0.08"/>
-      <text x="79.5" y="23.1" font-size="0.8" fill="#58a6ff" text-anchor="middle" font-family="monospace" font-weight="bold">8</text>
+      <!-- Silkscreen LED number on PCB surface above LED -->
+      <text x="79.5" y="22.1" font-size="0.85" fill="#58a6ff" text-anchor="middle" font-family="monospace" font-weight="bold">8</text>
     </g>
     <!-- LED 9 (Row 2, Col 4) -->
     <g class="led-group" data-idx="9">
       <rect class="led-pkg" x="61.5" y="23.5" width="2.0" height="2.0" rx="0.25" fill="#1e1e1e" stroke="#444" stroke-width="0.1"/>
       <rect id="die-9" class="led-die" x="61.8" y="23.8" width="1.4" height="1.4" rx="0.15" fill="#fff5cc" stroke="none"/>
       <rect class="cap-pkg" x="64.0" y="24.0" width="1.0" height="1.0" rx="0.1" fill="#b8860b" stroke="#333" stroke-width="0.08"/>
-      <text x="62.5" y="23.1" font-size="0.8" fill="#58a6ff" text-anchor="middle" font-family="monospace" font-weight="bold">9</text>
+      <!-- Silkscreen LED number on PCB surface above LED -->
+      <text x="62.5" y="22.1" font-size="0.85" fill="#58a6ff" text-anchor="middle" font-family="monospace" font-weight="bold">9</text>
     </g>
     <!-- LED 10 (Row 2, Col 3) -->
     <g class="led-group" data-idx="10">
       <rect class="led-pkg" x="44.5" y="23.5" width="2.0" height="2.0" rx="0.25" fill="#1e1e1e" stroke="#444" stroke-width="0.1"/>
       <rect id="die-10" class="led-die" x="44.8" y="23.8" width="1.4" height="1.4" rx="0.15" fill="#fff5cc" stroke="none"/>
       <rect class="cap-pkg" x="47.0" y="24.0" width="1.0" height="1.0" rx="0.1" fill="#b8860b" stroke="#333" stroke-width="0.08"/>
-      <text x="45.5" y="23.1" font-size="0.8" fill="#58a6ff" text-anchor="middle" font-family="monospace" font-weight="bold">10</text>
+      <!-- Silkscreen LED number on PCB surface above LED -->
+      <text x="45.5" y="22.1" font-size="0.85" fill="#58a6ff" text-anchor="middle" font-family="monospace" font-weight="bold">10</text>
     </g>
     <!-- LED 11 (Row 2, Col 2) -->
     <g class="led-group" data-idx="11">
       <rect class="led-pkg" x="27.5" y="23.5" width="2.0" height="2.0" rx="0.25" fill="#1e1e1e" stroke="#444" stroke-width="0.1"/>
       <rect id="die-11" class="led-die" x="27.8" y="23.8" width="1.4" height="1.4" rx="0.15" fill="#fff5cc" stroke="none"/>
       <rect class="cap-pkg" x="30.0" y="24.0" width="1.0" height="1.0" rx="0.1" fill="#b8860b" stroke="#333" stroke-width="0.08"/>
-      <text x="28.5" y="23.1" font-size="0.8" fill="#58a6ff" text-anchor="middle" font-family="monospace" font-weight="bold">11</text>
+      <!-- Silkscreen LED number on PCB surface above LED -->
+      <text x="28.5" y="22.1" font-size="0.85" fill="#58a6ff" text-anchor="middle" font-family="monospace" font-weight="bold">11</text>
     </g>
     <!-- LED 12 (Row 2, Col 1) -->
     <g class="led-group" data-idx="12">
       <rect class="led-pkg" x="10.5" y="23.5" width="2.0" height="2.0" rx="0.25" fill="#1e1e1e" stroke="#444" stroke-width="0.1"/>
       <rect id="die-12" class="led-die" x="10.8" y="23.8" width="1.4" height="1.4" rx="0.15" fill="#fff5cc" stroke="none"/>
       <rect class="cap-pkg" x="13.0" y="24.0" width="1.0" height="1.0" rx="0.1" fill="#b8860b" stroke="#333" stroke-width="0.08"/>
-      <text x="11.5" y="23.1" font-size="0.8" fill="#58a6ff" text-anchor="middle" font-family="monospace" font-weight="bold">12</text>
+      <!-- Silkscreen LED number on PCB surface above LED -->
+      <text x="11.5" y="22.1" font-size="0.85" fill="#58a6ff" text-anchor="middle" font-family="monospace" font-weight="bold">12</text>
     </g>
     <!-- LED 13 (Row 3, Col 1) -->
     <g class="led-group" data-idx="13">
       <rect class="led-pkg" x="2.0" y="40.5" width="2.0" height="2.0" rx="0.25" fill="#1e1e1e" stroke="#444" stroke-width="0.1"/>
       <rect id="die-13" class="led-die" x="2.3" y="40.8" width="1.4" height="1.4" rx="0.15" fill="#fff5cc" stroke="none"/>
       <rect class="cap-pkg" x="4.5" y="41.0" width="1.0" height="1.0" rx="0.1" fill="#b8860b" stroke="#333" stroke-width="0.08"/>
-      <text x="3.0" y="40.1" font-size="0.8" fill="#58a6ff" text-anchor="middle" font-family="monospace" font-weight="bold">13</text>
+      <!-- Silkscreen LED number on PCB surface above LED -->
+      <text x="3.0" y="39.1" font-size="0.85" fill="#58a6ff" text-anchor="middle" font-family="monospace" font-weight="bold">13</text>
     </g>
     <!-- LED 14 (Row 3, Col 2) -->
     <g class="led-group" data-idx="14">
       <rect class="led-pkg" x="19.0" y="40.5" width="2.0" height="2.0" rx="0.25" fill="#1e1e1e" stroke="#444" stroke-width="0.1"/>
       <rect id="die-14" class="led-die" x="19.3" y="40.8" width="1.4" height="1.4" rx="0.15" fill="#fff5cc" stroke="none"/>
       <rect class="cap-pkg" x="21.5" y="41.0" width="1.0" height="1.0" rx="0.1" fill="#b8860b" stroke="#333" stroke-width="0.08"/>
-      <text x="20.0" y="40.1" font-size="0.8" fill="#58a6ff" text-anchor="middle" font-family="monospace" font-weight="bold">14</text>
+      <!-- Silkscreen LED number on PCB surface above LED -->
+      <text x="20.0" y="39.1" font-size="0.85" fill="#58a6ff" text-anchor="middle" font-family="monospace" font-weight="bold">14</text>
     </g>
     <!-- LED 15 (Row 3, Col 3) -->
     <g class="led-group" data-idx="15">
       <rect class="led-pkg" x="36.0" y="40.5" width="2.0" height="2.0" rx="0.25" fill="#1e1e1e" stroke="#444" stroke-width="0.1"/>
       <rect id="die-15" class="led-die" x="36.3" y="40.8" width="1.4" height="1.4" rx="0.15" fill="#fff5cc" stroke="none"/>
       <rect class="cap-pkg" x="38.5" y="41.0" width="1.0" height="1.0" rx="0.1" fill="#b8860b" stroke="#333" stroke-width="0.08"/>
-      <text x="37.0" y="40.1" font-size="0.8" fill="#58a6ff" text-anchor="middle" font-family="monospace" font-weight="bold">15</text>
+      <!-- Silkscreen LED number on PCB surface above LED -->
+      <text x="37.0" y="39.1" font-size="0.85" fill="#58a6ff" text-anchor="middle" font-family="monospace" font-weight="bold">15</text>
     </g>
     <!-- LED 16 (Row 3, Col 4) -->
     <g class="led-group" data-idx="16">
       <rect class="led-pkg" x="53.0" y="40.5" width="2.0" height="2.0" rx="0.25" fill="#1e1e1e" stroke="#444" stroke-width="0.1"/>
       <rect id="die-16" class="led-die" x="53.3" y="40.8" width="1.4" height="1.4" rx="0.15" fill="#fff5cc" stroke="none"/>
       <rect class="cap-pkg" x="55.5" y="41.0" width="1.0" height="1.0" rx="0.1" fill="#b8860b" stroke="#333" stroke-width="0.08"/>
-      <text x="54.0" y="40.1" font-size="0.8" fill="#58a6ff" text-anchor="middle" font-family="monospace" font-weight="bold">16</text>
+      <!-- Silkscreen LED number on PCB surface above LED -->
+      <text x="54.0" y="39.1" font-size="0.85" fill="#58a6ff" text-anchor="middle" font-family="monospace" font-weight="bold">16</text>
     </g>
     <!-- LED 17 (Row 3, Col 5) -->
     <g class="led-group" data-idx="17">
       <rect class="led-pkg" x="70.0" y="40.5" width="2.0" height="2.0" rx="0.25" fill="#1e1e1e" stroke="#444" stroke-width="0.1"/>
       <rect id="die-17" class="led-die" x="70.3" y="40.8" width="1.4" height="1.4" rx="0.15" fill="#fff5cc" stroke="none"/>
       <rect class="cap-pkg" x="72.5" y="41.0" width="1.0" height="1.0" rx="0.1" fill="#b8860b" stroke="#333" stroke-width="0.08"/>
-      <text x="71.0" y="40.1" font-size="0.8" fill="#58a6ff" text-anchor="middle" font-family="monospace" font-weight="bold">17</text>
+      <!-- Silkscreen LED number on PCB surface above LED -->
+      <text x="71.0" y="39.1" font-size="0.85" fill="#58a6ff" text-anchor="middle" font-family="monospace" font-weight="bold">17</text>
     </g>
     <!-- LED 18 (Row 3, Col 6) -->
     <g class="led-group" data-idx="18">
       <rect class="led-pkg" x="87.0" y="40.5" width="2.0" height="2.0" rx="0.25" fill="#1e1e1e" stroke="#444" stroke-width="0.1"/>
       <rect id="die-18" class="led-die" x="87.3" y="40.8" width="1.4" height="1.4" rx="0.15" fill="#fff5cc" stroke="none"/>
       <rect class="cap-pkg" x="89.5" y="41.0" width="1.0" height="1.0" rx="0.1" fill="#b8860b" stroke="#333" stroke-width="0.08"/>
-      <text x="88.0" y="40.1" font-size="0.8" fill="#58a6ff" text-anchor="middle" font-family="monospace" font-weight="bold">18</text>
+      <!-- Silkscreen LED number on PCB surface above LED -->
+      <text x="88.0" y="39.1" font-size="0.85" fill="#58a6ff" text-anchor="middle" font-family="monospace" font-weight="bold">18</text>
     </g>
     <!-- LED 19 (Row 4, Col 6) -->
     <g class="led-group" data-idx="19">
       <rect class="led-pkg" x="95.5" y="57.5" width="2.0" height="2.0" rx="0.25" fill="#1e1e1e" stroke="#444" stroke-width="0.1"/>
       <rect id="die-19" class="led-die" x="95.8" y="57.8" width="1.4" height="1.4" rx="0.15" fill="#fff5cc" stroke="none"/>
       <rect class="cap-pkg" x="98.0" y="58.0" width="1.0" height="1.0" rx="0.1" fill="#b8860b" stroke="#333" stroke-width="0.08"/>
-      <text x="96.5" y="57.1" font-size="0.8" fill="#58a6ff" text-anchor="middle" font-family="monospace" font-weight="bold">19</text>
+      <!-- Silkscreen LED number on PCB surface above LED -->
+      <text x="96.5" y="56.1" font-size="0.85" fill="#58a6ff" text-anchor="middle" font-family="monospace" font-weight="bold">19</text>
     </g>
     <!-- LED 20 (Row 4, Col 5) -->
     <g class="led-group" data-idx="20">
       <rect class="led-pkg" x="78.5" y="57.5" width="2.0" height="2.0" rx="0.25" fill="#1e1e1e" stroke="#444" stroke-width="0.1"/>
       <rect id="die-20" class="led-die" x="78.8" y="57.8" width="1.4" height="1.4" rx="0.15" fill="#fff5cc" stroke="none"/>
       <rect class="cap-pkg" x="81.0" y="58.0" width="1.0" height="1.0" rx="0.1" fill="#b8860b" stroke="#333" stroke-width="0.08"/>
-      <text x="79.5" y="57.1" font-size="0.8" fill="#58a6ff" text-anchor="middle" font-family="monospace" font-weight="bold">20</text>
+      <!-- Silkscreen LED number on PCB surface above LED -->
+      <text x="79.5" y="56.1" font-size="0.85" fill="#58a6ff" text-anchor="middle" font-family="monospace" font-weight="bold">20</text>
     </g>
     <!-- LED 21 (Row 4, Col 4) -->
     <g class="led-group" data-idx="21">
       <rect class="led-pkg" x="61.5" y="57.5" width="2.0" height="2.0" rx="0.25" fill="#1e1e1e" stroke="#444" stroke-width="0.1"/>
       <rect id="die-21" class="led-die" x="61.8" y="57.8" width="1.4" height="1.4" rx="0.15" fill="#fff5cc" stroke="none"/>
       <rect class="cap-pkg" x="64.0" y="58.0" width="1.0" height="1.0" rx="0.1" fill="#b8860b" stroke="#333" stroke-width="0.08"/>
-      <text x="62.5" y="57.1" font-size="0.8" fill="#58a6ff" text-anchor="middle" font-family="monospace" font-weight="bold">21</text>
+      <!-- Silkscreen LED number on PCB surface above LED -->
+      <text x="62.5" y="56.1" font-size="0.85" fill="#58a6ff" text-anchor="middle" font-family="monospace" font-weight="bold">21</text>
     </g>
     <!-- LED 22 (Row 4, Col 3) -->
     <g class="led-group" data-idx="22">
       <rect class="led-pkg" x="44.5" y="57.5" width="2.0" height="2.0" rx="0.25" fill="#1e1e1e" stroke="#444" stroke-width="0.1"/>
       <rect id="die-22" class="led-die" x="44.8" y="57.8" width="1.4" height="1.4" rx="0.15" fill="#fff5cc" stroke="none"/>
       <rect class="cap-pkg" x="47.0" y="58.0" width="1.0" height="1.0" rx="0.1" fill="#b8860b" stroke="#333" stroke-width="0.08"/>
-      <text x="45.5" y="57.1" font-size="0.8" fill="#58a6ff" text-anchor="middle" font-family="monospace" font-weight="bold">22</text>
+      <!-- Silkscreen LED number on PCB surface above LED -->
+      <text x="45.5" y="56.1" font-size="0.85" fill="#58a6ff" text-anchor="middle" font-family="monospace" font-weight="bold">22</text>
     </g>
     <!-- LED 23 (Row 4, Col 2) -->
     <g class="led-group" data-idx="23">
       <rect class="led-pkg" x="27.5" y="57.5" width="2.0" height="2.0" rx="0.25" fill="#1e1e1e" stroke="#444" stroke-width="0.1"/>
       <rect id="die-23" class="led-die" x="27.8" y="57.8" width="1.4" height="1.4" rx="0.15" fill="#fff5cc" stroke="none"/>
       <rect class="cap-pkg" x="30.0" y="58.0" width="1.0" height="1.0" rx="0.1" fill="#b8860b" stroke="#333" stroke-width="0.08"/>
-      <text x="28.5" y="57.1" font-size="0.8" fill="#58a6ff" text-anchor="middle" font-family="monospace" font-weight="bold">23</text>
+      <!-- Silkscreen LED number on PCB surface above LED -->
+      <text x="28.5" y="56.1" font-size="0.85" fill="#58a6ff" text-anchor="middle" font-family="monospace" font-weight="bold">23</text>
     </g>
     <!-- LED 24 (Row 4, Col 1) -->
     <g class="led-group" data-idx="24">
       <rect class="led-pkg" x="10.5" y="57.5" width="2.0" height="2.0" rx="0.25" fill="#1e1e1e" stroke="#444" stroke-width="0.1"/>
       <rect id="die-24" class="led-die" x="10.8" y="57.8" width="1.4" height="1.4" rx="0.15" fill="#fff5cc" stroke="none"/>
       <rect class="cap-pkg" x="13.0" y="58.0" width="1.0" height="1.0" rx="0.1" fill="#b8860b" stroke="#333" stroke-width="0.08"/>
-      <text x="11.5" y="57.1" font-size="0.8" fill="#58a6ff" text-anchor="middle" font-family="monospace" font-weight="bold">24</text>
+      <!-- Silkscreen LED number on PCB surface above LED -->
+      <text x="11.5" y="56.1" font-size="0.85" fill="#58a6ff" text-anchor="middle" font-family="monospace" font-weight="bold">24</text>
     </g>
     <!-- LED 25 (Row 5, Col 1) -->
     <g class="led-group" data-idx="25">
       <rect class="led-pkg" x="2.0" y="74.5" width="2.0" height="2.0" rx="0.25" fill="#1e1e1e" stroke="#444" stroke-width="0.1"/>
       <rect id="die-25" class="led-die" x="2.3" y="74.8" width="1.4" height="1.4" rx="0.15" fill="#fff5cc" stroke="none"/>
       <rect class="cap-pkg" x="4.5" y="75.0" width="1.0" height="1.0" rx="0.1" fill="#b8860b" stroke="#333" stroke-width="0.08"/>
-      <text x="3.0" y="74.1" font-size="0.8" fill="#58a6ff" text-anchor="middle" font-family="monospace" font-weight="bold">25</text>
+      <!-- Silkscreen LED number on PCB surface above LED -->
+      <text x="3.0" y="73.1" font-size="0.85" fill="#58a6ff" text-anchor="middle" font-family="monospace" font-weight="bold">25</text>
     </g>
     <!-- LED 26 (Row 5, Col 2) -->
     <g class="led-group" data-idx="26">
       <rect class="led-pkg" x="19.0" y="74.5" width="2.0" height="2.0" rx="0.25" fill="#1e1e1e" stroke="#444" stroke-width="0.1"/>
       <rect id="die-26" class="led-die" x="19.3" y="74.8" width="1.4" height="1.4" rx="0.15" fill="#fff5cc" stroke="none"/>
       <rect class="cap-pkg" x="21.5" y="75.0" width="1.0" height="1.0" rx="0.1" fill="#b8860b" stroke="#333" stroke-width="0.08"/>
-      <text x="20.0" y="74.1" font-size="0.8" fill="#58a6ff" text-anchor="middle" font-family="monospace" font-weight="bold">26</text>
+      <!-- Silkscreen LED number on PCB surface above LED -->
+      <text x="20.0" y="73.1" font-size="0.85" fill="#58a6ff" text-anchor="middle" font-family="monospace" font-weight="bold">26</text>
     </g>
     <!-- LED 27 (Row 5, Col 3) -->
     <g class="led-group" data-idx="27">
       <rect class="led-pkg" x="36.0" y="74.5" width="2.0" height="2.0" rx="0.25" fill="#1e1e1e" stroke="#444" stroke-width="0.1"/>
       <rect id="die-27" class="led-die" x="36.3" y="74.8" width="1.4" height="1.4" rx="0.15" fill="#fff5cc" stroke="none"/>
       <rect class="cap-pkg" x="38.5" y="75.0" width="1.0" height="1.0" rx="0.1" fill="#b8860b" stroke="#333" stroke-width="0.08"/>
-      <text x="37.0" y="74.1" font-size="0.8" fill="#58a6ff" text-anchor="middle" font-family="monospace" font-weight="bold">27</text>
+      <!-- Silkscreen LED number on PCB surface above LED -->
+      <text x="37.0" y="73.1" font-size="0.85" fill="#58a6ff" text-anchor="middle" font-family="monospace" font-weight="bold">27</text>
     </g>
     <!-- LED 28 (Row 5, Col 4) -->
     <g class="led-group" data-idx="28">
       <rect class="led-pkg" x="53.0" y="74.5" width="2.0" height="2.0" rx="0.25" fill="#1e1e1e" stroke="#444" stroke-width="0.1"/>
       <rect id="die-28" class="led-die" x="53.3" y="74.8" width="1.4" height="1.4" rx="0.15" fill="#fff5cc" stroke="none"/>
       <rect class="cap-pkg" x="55.5" y="75.0" width="1.0" height="1.0" rx="0.1" fill="#b8860b" stroke="#333" stroke-width="0.08"/>
-      <text x="54.0" y="74.1" font-size="0.8" fill="#58a6ff" text-anchor="middle" font-family="monospace" font-weight="bold">28</text>
+      <!-- Silkscreen LED number on PCB surface above LED -->
+      <text x="54.0" y="73.1" font-size="0.85" fill="#58a6ff" text-anchor="middle" font-family="monospace" font-weight="bold">28</text>
     </g>
     <!-- LED 29 (Row 5, Col 5) -->
     <g class="led-group" data-idx="29">
       <rect class="led-pkg" x="70.0" y="74.5" width="2.0" height="2.0" rx="0.25" fill="#1e1e1e" stroke="#444" stroke-width="0.1"/>
       <rect id="die-29" class="led-die" x="70.3" y="74.8" width="1.4" height="1.4" rx="0.15" fill="#fff5cc" stroke="none"/>
       <rect class="cap-pkg" x="72.5" y="75.0" width="1.0" height="1.0" rx="0.1" fill="#b8860b" stroke="#333" stroke-width="0.08"/>
-      <text x="71.0" y="74.1" font-size="0.8" fill="#58a6ff" text-anchor="middle" font-family="monospace" font-weight="bold">29</text>
+      <!-- Silkscreen LED number on PCB surface above LED -->
+      <text x="71.0" y="73.1" font-size="0.85" fill="#58a6ff" text-anchor="middle" font-family="monospace" font-weight="bold">29</text>
     </g>
     <!-- LED 30 (Row 5, Col 6) -->
     <g class="led-group" data-idx="30">
       <rect class="led-pkg" x="87.0" y="74.5" width="2.0" height="2.0" rx="0.25" fill="#1e1e1e" stroke="#444" stroke-width="0.1"/>
       <rect id="die-30" class="led-die" x="87.3" y="74.8" width="1.4" height="1.4" rx="0.15" fill="#fff5cc" stroke="none"/>
       <rect class="cap-pkg" x="89.5" y="75.0" width="1.0" height="1.0" rx="0.1" fill="#b8860b" stroke="#333" stroke-width="0.08"/>
-      <text x="88.0" y="74.1" font-size="0.8" fill="#58a6ff" text-anchor="middle" font-family="monospace" font-weight="bold">30</text>
+      <!-- Silkscreen LED number on PCB surface above LED -->
+      <text x="88.0" y="73.1" font-size="0.85" fill="#58a6ff" text-anchor="middle" font-family="monospace" font-weight="bold">30</text>
     </g>
     <!-- LED 31 (Row 6, Col 6) -->
     <g class="led-group" data-idx="31">
       <rect class="led-pkg" x="95.5" y="91.5" width="2.0" height="2.0" rx="0.25" fill="#1e1e1e" stroke="#444" stroke-width="0.1"/>
       <rect id="die-31" class="led-die" x="95.8" y="91.8" width="1.4" height="1.4" rx="0.15" fill="#fff5cc" stroke="none"/>
       <rect class="cap-pkg" x="98.0" y="92.0" width="1.0" height="1.0" rx="0.1" fill="#b8860b" stroke="#333" stroke-width="0.08"/>
-      <text x="96.5" y="91.1" font-size="0.8" fill="#58a6ff" text-anchor="middle" font-family="monospace" font-weight="bold">31</text>
+      <!-- Silkscreen LED number on PCB surface above LED -->
+      <text x="96.5" y="90.1" font-size="0.85" fill="#58a6ff" text-anchor="middle" font-family="monospace" font-weight="bold">31</text>
     </g>
     <!-- LED 32 (Row 6, Col 5) -->
     <g class="led-group" data-idx="32">
       <rect class="led-pkg" x="78.5" y="91.5" width="2.0" height="2.0" rx="0.25" fill="#1e1e1e" stroke="#444" stroke-width="0.1"/>
       <rect id="die-32" class="led-die" x="78.8" y="91.8" width="1.4" height="1.4" rx="0.15" fill="#fff5cc" stroke="none"/>
       <rect class="cap-pkg" x="81.0" y="92.0" width="1.0" height="1.0" rx="0.1" fill="#b8860b" stroke="#333" stroke-width="0.08"/>
-      <text x="79.5" y="91.1" font-size="0.8" fill="#58a6ff" text-anchor="middle" font-family="monospace" font-weight="bold">32</text>
+      <!-- Silkscreen LED number on PCB surface above LED -->
+      <text x="79.5" y="90.1" font-size="0.85" fill="#58a6ff" text-anchor="middle" font-family="monospace" font-weight="bold">32</text>
     </g>
     <!-- LED 33 (Row 6, Col 4) -->
     <g class="led-group" data-idx="33">
       <rect class="led-pkg" x="61.5" y="91.5" width="2.0" height="2.0" rx="0.25" fill="#1e1e1e" stroke="#444" stroke-width="0.1"/>
       <rect id="die-33" class="led-die" x="61.8" y="91.8" width="1.4" height="1.4" rx="0.15" fill="#fff5cc" stroke="none"/>
       <rect class="cap-pkg" x="64.0" y="92.0" width="1.0" height="1.0" rx="0.1" fill="#b8860b" stroke="#333" stroke-width="0.08"/>
-      <text x="62.5" y="91.1" font-size="0.8" fill="#58a6ff" text-anchor="middle" font-family="monospace" font-weight="bold">33</text>
+      <!-- Silkscreen LED number on PCB surface above LED -->
+      <text x="62.5" y="90.1" font-size="0.85" fill="#58a6ff" text-anchor="middle" font-family="monospace" font-weight="bold">33</text>
     </g>
     <!-- LED 34 (Row 6, Col 3) -->
     <g class="led-group" data-idx="34">
       <rect class="led-pkg" x="44.5" y="91.5" width="2.0" height="2.0" rx="0.25" fill="#1e1e1e" stroke="#444" stroke-width="0.1"/>
       <rect id="die-34" class="led-die" x="44.8" y="91.8" width="1.4" height="1.4" rx="0.15" fill="#fff5cc" stroke="none"/>
       <rect class="cap-pkg" x="47.0" y="92.0" width="1.0" height="1.0" rx="0.1" fill="#b8860b" stroke="#333" stroke-width="0.08"/>
-      <text x="45.5" y="91.1" font-size="0.8" fill="#58a6ff" text-anchor="middle" font-family="monospace" font-weight="bold">34</text>
+      <!-- Silkscreen LED number on PCB surface above LED -->
+      <text x="45.5" y="90.1" font-size="0.85" fill="#58a6ff" text-anchor="middle" font-family="monospace" font-weight="bold">34</text>
     </g>
     <!-- LED 35 (Row 6, Col 2) -->
     <g class="led-group" data-idx="35">
       <rect class="led-pkg" x="27.5" y="91.5" width="2.0" height="2.0" rx="0.25" fill="#1e1e1e" stroke="#444" stroke-width="0.1"/>
       <rect id="die-35" class="led-die" x="27.8" y="91.8" width="1.4" height="1.4" rx="0.15" fill="#fff5cc" stroke="none"/>
       <rect class="cap-pkg" x="30.0" y="92.0" width="1.0" height="1.0" rx="0.1" fill="#b8860b" stroke="#333" stroke-width="0.08"/>
-      <text x="28.5" y="91.1" font-size="0.8" fill="#58a6ff" text-anchor="middle" font-family="monospace" font-weight="bold">35</text>
+      <!-- Silkscreen LED number on PCB surface above LED -->
+      <text x="28.5" y="90.1" font-size="0.85" fill="#58a6ff" text-anchor="middle" font-family="monospace" font-weight="bold">35</text>
     </g>
     <!-- LED 36 (Row 6, Col 1) -->
     <g class="led-group" data-idx="36">
       <rect class="led-pkg" x="10.5" y="91.5" width="2.0" height="2.0" rx="0.25" fill="#1e1e1e" stroke="#444" stroke-width="0.1"/>
       <rect id="die-36" class="led-die" x="10.8" y="91.8" width="1.4" height="1.4" rx="0.15" fill="#fff5cc" stroke="none"/>
       <rect class="cap-pkg" x="13.0" y="92.0" width="1.0" height="1.0" rx="0.1" fill="#b8860b" stroke="#333" stroke-width="0.08"/>
-      <text x="11.5" y="91.1" font-size="0.8" fill="#58a6ff" text-anchor="middle" font-family="monospace" font-weight="bold">36</text>
+      <!-- Silkscreen LED number on PCB surface above LED -->
+      <text x="11.5" y="90.1" font-size="0.85" fill="#58a6ff" text-anchor="middle" font-family="monospace" font-weight="bold">36</text>
     </g>
         </g>
 
@@ -815,6 +875,12 @@
 <circle cx="28.5" cy="92.5" r="1.15" fill="#00ff88" opacity="0.85"/>
 <circle cx="11.5" cy="92.5" r="1.15" fill="#00ff88" opacity="0.85"/>
     </g>
+<line x1="95.5" y1="33.0" x2="106.5" y2="33.0" stroke="#ff3366" stroke-width="0.9" stroke-dasharray="1.5,1.0"/>
+<text x="101.0" y="30.5" font-size="2.0" fill="#ff3366" text-anchor="middle" font-weight="bold">STRAIGHT CABLE (y=33)</text>
+<line x1="135.0" y1="95.5" x2="135.0" y2="106.5" stroke="#ff3366" stroke-width="0.9" stroke-dasharray="1.5,1.0"/>
+<text x="137.5" y="101.5" font-size="2.0" fill="#ff3366" text-anchor="start" font-weight="bold">STRAIGHT CABLE (x=33)</text>
+<line x1="106.5" y1="169.0" x2="95.5" y2="169.0" stroke="#ff3366" stroke-width="0.9" stroke-dasharray="1.5,1.0"/>
+<text x="101.0" y="166.5" font-size="2.0" fill="#ff3366" text-anchor="middle" font-weight="bold">STRAIGHT CABLE (y=67)</text>
 
 
         <!-- JST 3-Wire Jumpers Across 2.0mm Seams -->

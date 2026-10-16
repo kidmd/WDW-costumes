@@ -183,36 +183,51 @@ When utilizing the modular FR-4 PCB quadrant system (`scripts/generate_universal
   ESP32 GPIO 16 ──► [220Ω Resistor]
                           │
                           ▼
-            ┌───────────────────────────┐   3-Pin JST-PH Cable (40-50mm)  ┌───────────────────────────┐
-            │   QUADRANT 1 (Top-Left)   │ ══════════════════════════════► │  QUADRANT 2 (Top-Right)   │
-            │   LED 001 ──► LED 036     │                                 │  LED 037 ──► LED 072     │
-            │   [J_IN_L]      [J_OUT_R] │                                 │  [J_IN_L]      [J_OUT_B] │
-            └───────────────────────────┘                                 └─────────────┬─────────────┘
-                                                                                        │ 3-Pin JST Cable
-                                                                                        ▼
-            ┌───────────────────────────┐   3-Pin JST-PH Cable (40-50mm)  ┌───────────────────────────┐
-            │  QUADRANT 4 (Bottom-Left) │ ◄══════════════════════════════ │ QUADRANT 3 (Bottom-Right) │
-            │  LED 109 ──► LED 144     │                                 │ LED 073 ──► LED 108      │
-            │  [J_IN_R]       [J_OUT_B] │                                 │ [J_IN_T]       [J_OUT_L] │
-            └─────────────┬─────────────┘                                 └───────────────────────────┘
+            ┌───────────────────────────┐   Straight 3-Pin JST Cable (30mm)   ┌───────────────────────────┐
+            │   QUADRANT 1 (Top-Left)   │ ══════════════════════════════════► │  QUADRANT 2 (Top-Right)   │
+            │   LED 001 ──► LED 036     │  (y=33.0mm, Pins 1-3 match:         │  LED 037 ──► LED 072     │
+            │   [J_IN_L]      [J_OUT_R] │   +5V top, DAT mid, GND bottom)     │  [J_IN_L]      [J_OUT_B] │
+            └───────────────────────────┘                                     └─────────────┬─────────────┘
+                                                                                            │ Straight 3-Pin JST
+                                                                                            │ (x=33.0mm, Pins 1-3:
+                                                                                            │  +5V L, DAT M, GND R)
+                                                                                            ▼
+            ┌───────────────────────────┐   Straight 3-Pin JST Cable (30mm)   ┌───────────────────────────┐
+            │  QUADRANT 4 (Bottom-Left) │ ◄══════════════════════════════════ │ QUADRANT 3 (Bottom-Right) │
+            │  LED 109 ──► LED 144     │  (y=67.0mm, Pins 1-3 match:         │ LED 073 ──► LED 108      │
+            │  [J_IN_R]       [J_OUT_B] │   +5V top, DAT mid, GND bottom)     │ [J_IN_T]       [J_OUT_L] │
+            └─────────────┬─────────────┘                                     └───────────────────────────┘
                           │ Data Out of LED 144 (J_OUT_B)
                           ▼
               (To Back LED Strand: LED 145..288)
 ```
 
 ### 4-Edge Universal JST-PH 2.0mm Port Architecture:
-To allow total routing freedom in any board orientation or configuration, each quadrant PCB is equipped with **8 JST-PH 2.0mm 3-pin SMT horizontal headers** (`C145946`) and parallel 2.54mm direct-wire solder pads:
-- **Left Edge:** `J_IN_L` (DIN) and `J_OUT_L` (DOUT)
-- **Right Edge:** `J_IN_R` (DIN) and `J_OUT_R` (DOUT)
-- **Top Edge:** `J_IN_T` (DIN) and `J_OUT_T` (DOUT)
-- **Bottom Edge:** `J_IN_B` (DIN) and `J_OUT_B` (DOUT)
+To allow total routing freedom in any board orientation or configuration, each quadrant PCB is equipped with **8 JST-PH 2.0mm 3-pin SMT horizontal headers** (`C3029441`) and parallel 2.54mm direct-wire solder pads:
+- **Left Edge ($x = 4.5\text{ mm}$):** `J_IN_L` at $y = 33.0\text{ mm}$ (DIN) and `J_OUT_L` at $y = 67.0\text{ mm}$ (DOUT)
+- **Right Edge ($x = 95.5\text{ mm}$):** `J_OUT_R` at $y = 33.0\text{ mm}$ (DOUT, directly faces `J_IN_L` across the seam) and `J_IN_R` at $y = 67.0\text{ mm}$ (DIN, directly faces `J_OUT_L` across the seam)
+- **Top Edge ($y = 4.5\text{ mm}$):** `J_IN_T` at $x = 33.0\text{ mm}$ (DIN) and `J_OUT_T` at $x = 67.0\text{ mm}$ (DOUT)
+- **Bottom Edge ($y = 95.5\text{ mm}$):** `J_OUT_B` at $x = 33.0\text{ mm}$ (DOUT, directly faces `J_IN_T` across the seam) and `J_IN_B` at $x = 67.0\text{ mm}$ (DIN, directly faces `J_OUT_T` across the seam)
 
 All four DIN ports are internally bused to Pixel 1 DIN; all four DOUT ports are internally bused to Pixel 36 DOUT. Plug your JST patch cable into whichever edge faces the adjacent board!
 
-### Pinout (Standard Across All 8 Ports):
-* **Pin 1:** `+5V` (Heavy copper power rail)
-* **Pin 2:** `DAT` (`DIN` for In ports, `DOUT` for Out ports)
-* **Pin 3:** `GND` (Solid continuous ground plane)
+### Straight 3-Wire Pinout (Zero Wire Twisting / Crossing):
+The physical pin order is mirrored so that off-the-shelf straight 3-conductor ribbon patch cables plug directly across boards without crossing or twisting wires:
+* **Left & Right Edges (Vertical headers):**
+  - Pin 1 (Top, $y - 2.0\text{ mm}$): `+5V`
+  - Pin 2 (Middle, $y$): `DAT` (`DIN` or `DOUT`)
+  - Pin 3 (Bottom, $y + 2.0\text{ mm}$): `GND`
+* **Top & Bottom Edges (Horizontal headers):**
+  - Pin 1 (Left, $x - 2.0\text{ mm}$): `+5V`
+  - Pin 2 (Middle, $x$): `DAT` (`DIN` or `DOUT`)
+  - Pin 3 (Right, $x + 2.0\text{ mm}$): `GND`
+
+### Silkscreen & Mounting Features:
+- **Silkscreen Labels:** Every connector clearly displays its role (`[IN]` or `[OUT]`) and pin functions (`+5V`, `DAT`, `GND`) etched into the Top Silkscreen (`.GTO`) layer.
+- **On-Board LED Numbering:** Numbers `1` through `36` are printed on the PCB surface ($1.4\text{ mm}$ above each LED package) so they remain fully visible after SMD assembly.
+- **Mounting & Sewing:**
+  - 4× Corner M3 Screw Holes (`H1`–`H4`): $\varnothing 3.2\text{ mm}$ non-plated through-holes at $(3.5, 3.5)$, $(96.5, 3.5)$, $(3.5, 96.5)$, $(96.5, 96.5)$.
+  - 4× Sewing Eyelets (`S1`–`S4`): $\varnothing 2.0\text{ mm}$ plated through-holes paired $6.0\text{ mm}$ from corners for button-style needle/thread garment attachment.
 
 ### Direct-Solder Pad Fallback:
 Directly behind every JST connector, standard $2.54\text{ mm}$ pitch through-hole pads labeled `+5V`, `DAT`, and `GND` are provided for instant workshop soldering with flexible 24/26 AWG silicone wire if pre-crimped JST patch cables are unavailable.

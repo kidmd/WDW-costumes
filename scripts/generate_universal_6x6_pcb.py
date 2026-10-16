@@ -63,18 +63,18 @@ for r in range(GRID_ROWS):
 # 4 OUT ports (Top, Bottom, Left, Right)
 # -------------------------------------------------------------
 jst_ports = [
-    # Left Edge
+    # Left Edge (x = 4.5 mm)
     {"ref": "J_IN_L",  "type": "IN",  "edge": "LEFT",   "x": 4.5,  "y": 33.0, "rot": 90,  "label": "IN_L"},
     {"ref": "J_OUT_L", "type": "OUT", "edge": "LEFT",   "x": 4.5,  "y": 67.0, "rot": 90,  "label": "OUT_L"},
-    # Right Edge
-    {"ref": "J_IN_R",  "type": "IN",  "edge": "RIGHT",  "x": 95.5, "y": 33.0, "rot": 270, "label": "IN_R"},
-    {"ref": "J_OUT_R", "type": "OUT", "edge": "RIGHT",  "x": 95.5, "y": 67.0, "rot": 270, "label": "OUT_R"},
-    # Top Edge
-    {"ref": "J_IN_T",  "type": "IN",  "edge": "TOP",    "x": 33.0, "y": 4.5,  "rot": 180, "label": "IN_T"},
-    {"ref": "J_OUT_T", "type": "OUT", "edge": "TOP",    "x": 67.0, "y": 4.5,  "rot": 180, "label": "OUT_T"},
-    # Bottom Edge
-    {"ref": "J_IN_B",  "type": "IN",  "edge": "BOTTOM", "x": 33.0, "y": 95.5, "rot": 0,   "label": "IN_B"},
-    {"ref": "J_OUT_B", "type": "OUT", "edge": "BOTTOM", "x": 67.0, "y": 95.5, "rot": 0,   "label": "OUT_B"},
+    # Right Edge (x = 95.5 mm) - J_OUT_R at y=33 aligns directly with J_IN_L at y=33!
+    {"ref": "J_OUT_R", "type": "OUT", "edge": "RIGHT",  "x": 95.5, "y": 33.0, "rot": 90,  "label": "OUT_R"},
+    {"ref": "J_IN_R",  "type": "IN",  "edge": "RIGHT",  "x": 95.5, "y": 67.0, "rot": 90,  "label": "IN_R"},
+    # Top Edge (y = 4.5 mm)
+    {"ref": "J_IN_T",  "type": "IN",  "edge": "TOP",    "x": 33.0, "y": 4.5,  "rot": 0,   "label": "IN_T"},
+    {"ref": "J_OUT_T", "type": "OUT", "edge": "TOP",    "x": 67.0, "y": 4.5,  "rot": 0,   "label": "OUT_T"},
+    # Bottom Edge (y = 95.5 mm) - J_OUT_B at x=33 aligns directly with J_IN_T at x=33!
+    {"ref": "J_OUT_B", "type": "OUT", "edge": "BOTTOM", "x": 33.0, "y": 95.5, "rot": 0,   "label": "OUT_B"},
+    {"ref": "J_IN_B",  "type": "IN",  "edge": "BOTTOM", "x": 67.0, "y": 95.5, "rot": 0,   "label": "IN_B"},
 ]
 
 # -------------------------------------------------------------
@@ -218,20 +218,64 @@ for j in jst_ports:
     data_net = 3 if (j["type"] == "IN") else (NUM_LEDS + 3)
     data_net_name = "DATA_1" if (j["type"] == "IN") else f"DATA_{NUM_LEDS+1}"
     
-    # SMT JST-PH-3P footprint
-    kicad_content += f"""  (module "Connector_JST:JST_PH_S3B-PH-SM4-TB_1x03-1MP_P2.00mm_Horizontal" (layer F.Cu) (tedit 5D5A6E4F)
-    (at {jx} {jy} {jrot})
+    if j["edge"] in ["LEFT", "RIGHT"]:
+        p1_x, p1_y = 0.0, -2.0
+        p2_x, p2_y = 0.0, 0.0
+        p3_x, p3_y = 0.0, 2.0
+        pad_w, pad_h = 1.6, 1.0
+        txt_x = 3.2 if (j["edge"] == "LEFT") else -3.2
+        kicad_content += f"""  (module "Connector_JST:JST_PH_S3B-PH-SM4-TB_1x03-1MP_P2.00mm_Horizontal" (layer F.Cu) (tedit 5D5A6E4F)
+    (at {jx} {jy})
     (descr "JST PH 3-pin {j['type']} connector ({j['edge']})")
     (path "/{jref}")
-    (fp_text reference "{jref}" (at 0 -2.6 {jrot}) (layer F.SilkS)
+    (fp_text reference "{jref}" (at 0 -3.6) (layer F.SilkS)
       (effects (font (size 0.7 0.7) (thickness 0.12)))
     )
-    (fp_text user "[{j['type']}] +5V DAT GND" (at 0 2.6 {jrot}) (layer F.SilkS)
+    (fp_text user "[{j['type']}]" (at 0 3.6) (layer F.SilkS)
+      (effects (font (size 0.65 0.65) (thickness 0.12)))
+    )
+    (fp_text user "5V" (at {txt_x} -2.0) (layer F.SilkS)
       (effects (font (size 0.55 0.55) (thickness 0.1)))
     )
-    (pad 1 smd rect (at -2.0 0 {jrot}) (size 1.0 1.6) (layers F.Cu F.Paste F.Mask) (net 1 "+5V"))
-    (pad 2 smd rect (at 0 0 {jrot}) (size 1.0 1.6) (layers F.Cu F.Paste F.Mask) (net {data_net} "{data_net_name}"))
-    (pad 3 smd rect (at 2.0 0 {jrot}) (size 1.0 1.6) (layers F.Cu F.Paste F.Mask) (net 2 "GND"))
+    (fp_text user "DAT" (at {txt_x} 0.0) (layer F.SilkS)
+      (effects (font (size 0.55 0.55) (thickness 0.1)))
+    )
+    (fp_text user "GND" (at {txt_x} 2.0) (layer F.SilkS)
+      (effects (font (size 0.55 0.55) (thickness 0.1)))
+    )
+    (pad 1 smd rect (at {p1_x} {p1_y}) (size {pad_w} {pad_h}) (layers F.Cu F.Paste F.Mask) (net 1 "+5V"))
+    (pad 2 smd rect (at {p2_x} {p2_y}) (size {pad_w} {pad_h}) (layers F.Cu F.Paste F.Mask) (net {data_net} "{data_net_name}"))
+    (pad 3 smd rect (at {p3_x} {p3_y}) (size {pad_w} {pad_h}) (layers F.Cu F.Paste F.Mask) (net 2 "GND"))
+  )
+"""
+    else:  # TOP, BOTTOM
+        p1_x, p1_y = -2.0, 0.0
+        p2_x, p2_y = 0.0, 0.0
+        p3_x, p3_y = 2.0, 0.0
+        pad_w, pad_h = 1.0, 1.6
+        txt_y = 3.2 if (j["edge"] == "TOP") else -3.2
+        kicad_content += f"""  (module "Connector_JST:JST_PH_S3B-PH-SM4-TB_1x03-1MP_P2.00mm_Horizontal" (layer F.Cu) (tedit 5D5A6E4F)
+    (at {jx} {jy})
+    (descr "JST PH 3-pin {j['type']} connector ({j['edge']})")
+    (path "/{jref}")
+    (fp_text reference "{jref}" (at -4.2 0) (layer F.SilkS)
+      (effects (font (size 0.7 0.7) (thickness 0.12)))
+    )
+    (fp_text user "[{j['type']}]" (at 4.2 0) (layer F.SilkS)
+      (effects (font (size 0.65 0.65) (thickness 0.12)))
+    )
+    (fp_text user "5V" (at -2.0 {txt_y}) (layer F.SilkS)
+      (effects (font (size 0.55 0.55) (thickness 0.1)))
+    )
+    (fp_text user "DAT" (at 0.0 {txt_y}) (layer F.SilkS)
+      (effects (font (size 0.55 0.55) (thickness 0.1)))
+    )
+    (fp_text user "GND" (at 2.0 {txt_y}) (layer F.SilkS)
+      (effects (font (size 0.55 0.55) (thickness 0.1)))
+    )
+    (pad 1 smd rect (at {p1_x} {p1_y}) (size {pad_w} {pad_h}) (layers F.Cu F.Paste F.Mask) (net 1 "+5V"))
+    (pad 2 smd rect (at {p2_x} {p2_y}) (size {pad_w} {pad_h}) (layers F.Cu F.Paste F.Mask) (net {data_net} "{data_net_name}"))
+    (pad 3 smd rect (at {p3_x} {p3_y}) (size {pad_w} {pad_h}) (layers F.Cu F.Paste F.Mask) (net 2 "GND"))
   )
 """
 
@@ -243,13 +287,13 @@ for d in led_positions:
     net_in = 2 + idx
     net_out = 3 + idx
     
-    # WS2812B-2020 footprint with silkscreen number (1-36)
+    # WS2812B-2020 footprint with silkscreen number on PCB above LED (at y-2.5)
     kicad_content += f"""  (module "LED_SMD:LED_WS2812B_PLCC4_2.0x2.0mm" (layer F.Cu) (tedit 5D5A6E4F)
     (at {x} {y})
     (descr "WS2812B-2020 LED {idx}")
     (path "/led_{idx}")
-    (fp_text reference "{idx}" (at 0 -1.9) (layer F.SilkS)
-      (effects (font (size 0.75 0.75) (thickness 0.14)))
+    (fp_text reference "{idx}" (at 0 -2.5) (layer F.SilkS)
+      (effects (font (size 0.8 0.8) (thickness 0.15)))
     )
     (fp_line (start -1.0 -1.0) (end 1.0 -1.0) (layer F.SilkS) (width 0.12))
     (fp_line (start 1.0 -1.0) (end 1.0 1.0) (layer F.SilkS) (width 0.12))
@@ -430,6 +474,7 @@ with open(gtl_path, "w", encoding="utf-8") as f:
 %ADD13R,0.600X0.500*%
 %ADD14R,0.560X0.620*%
 %ADD15R,1.000X1.600*%
+%ADD16R,1.600X1.000*%
 %ADD18C,0.800*%
 %ADD19C,5.000*%
 %ADD20C,3.500*%
@@ -445,16 +490,20 @@ with open(gtl_path, "w", encoding="utf-8") as f:
         f.write(f"{coord_gbr(s['x'], s['y'])}D03*\n")
     
     # 8 JST Connectors SMD Pads
-    f.write("; 8 JST-PH 3P Connectors\nD15*\n")
+    f.write("; 8 JST-PH 3P Connectors\n")
     for j in jst_ports:
         jx = j["x"]
         jy = j["y"]
-        if j["rot"] in [90, 270]:
-            for offset in [-2.0, 0.0, 2.0]:
-                f.write(f"{coord_gbr(jx, jy + offset)}D03*\n")
+        if j["edge"] in ["LEFT", "RIGHT"]:
+            f.write("D16*\n")
+            f.write(f"{coord_gbr(jx, jy - 2.0)}D03*\n")
+            f.write(f"{coord_gbr(jx, jy)}D03*\n")
+            f.write(f"{coord_gbr(jx, jy + 2.0)}D03*\n")
         else:
-            for offset in [-2.0, 0.0, 2.0]:
-                f.write(f"{coord_gbr(jx + offset, jy)}D03*\n")
+            f.write("D15*\n")
+            f.write(f"{coord_gbr(jx - 2.0, jy)}D03*\n")
+            f.write(f"{coord_gbr(jx, jy)}D03*\n")
+            f.write(f"{coord_gbr(jx + 2.0, jy)}D03*\n")
     
     # 36 LEDs SMD Pads
     f.write("; WS2812B-2020 LED Pads\nD13*\n")
@@ -525,6 +574,7 @@ with open(gts_path, "w", encoding="utf-8") as f:
 %ADD12R,1.100X1.700*%
 %ADD15C,5.200*%
 %ADD16C,3.700*%
+%ADD17R,1.700X1.100*%
 D15*
 """)
     for h in m3_holes:
@@ -532,16 +582,19 @@ D15*
     f.write("D16*\n")
     for s in sew_holes:
         f.write(f"{coord_gbr(s['x'], s['y'])}D03*\n")
-    f.write("D12*\n")
     for j in jst_ports:
         jx = j["x"]
         jy = j["y"]
-        if j["rot"] in [90, 270]:
-            for offset in [-2.0, 0.0, 2.0]:
-                f.write(f"{coord_gbr(jx, jy + offset)}D03*\n")
+        if j["edge"] in ["LEFT", "RIGHT"]:
+            f.write("D17*\n")
+            f.write(f"{coord_gbr(jx, jy - 2.0)}D03*\n")
+            f.write(f"{coord_gbr(jx, jy)}D03*\n")
+            f.write(f"{coord_gbr(jx, jy + 2.0)}D03*\n")
         else:
-            for offset in [-2.0, 0.0, 2.0]:
-                f.write(f"{coord_gbr(jx + offset, jy)}D03*\n")
+            f.write("D12*\n")
+            f.write(f"{coord_gbr(jx - 2.0, jy)}D03*\n")
+            f.write(f"{coord_gbr(jx, jy)}D03*\n")
+            f.write(f"{coord_gbr(jx + 2.0, jy)}D03*\n")
     f.write("D10*\n")
     for d in led_positions:
         x = d["x"]
@@ -576,6 +629,77 @@ D15*
         f.write(f"{coord_gbr(s['x'], s['y'])}D03*\n")
     f.write("M02*\n")
 
+# Vector Stroke Font Dictionary for Top Silkscreen (.GTO)
+FONT_GLYPHS = {
+    '0': [(0,0, 2,0), (2,0, 2,4), (2,4, 0,4), (0,4, 0,0), (0,0, 2,4)],
+    '1': [(1,0, 1,4), (0,3, 1,4)],
+    '2': [(0,4, 2,4), (2,4, 2,2), (2,2, 0,2), (0,2, 0,0), (0,0, 2,0)],
+    '3': [(0,4, 2,4), (2,4, 2,0), (0,0, 2,0), (0,2, 2,2)],
+    '4': [(0,4, 0,2), (0,2, 2,2), (2,4, 2,0)],
+    '5': [(2,4, 0,4), (0,4, 0,2), (0,2, 2,2), (2,2, 2,0), (2,0, 0,0)],
+    '6': [(2,4, 0,4), (0,4, 0,0), (0,0, 2,0), (2,0, 2,2), (2,2, 0,2)],
+    '7': [(0,4, 2,4), (2,4, 0,0)],
+    '8': [(0,0, 2,0), (2,0, 2,4), (2,4, 0,4), (0,4, 0,0), (0,2, 2,2)],
+    '9': [(2,0, 2,4), (2,4, 0,4), (0,4, 0,2), (0,2, 2,2), (2,2, 2,0)],
+    'A': [(0,0, 0,3), (0,3, 1,4), (1,4, 2,3), (2,3, 2,0), (0,1.5, 2,1.5)],
+    'B': [(0,0, 0,4), (0,4, 1.5,4), (1.5,4, 2,3), (2,3, 1.5,2), (1.5,2, 0,2), (1.5,2, 2,1), (2,1, 1.5,0), (1.5,0, 0,0)],
+    'C': [(2,4, 0,4), (0,4, 0,0), (0,0, 2,0)],
+    'D': [(0,0, 0,4), (0,4, 1.5,4), (1.5,4, 2,2), (2,2, 1.5,0), (1.5,0, 0,0)],
+    'E': [(2,4, 0,4), (0,4, 0,0), (0,0, 2,0), (0,2, 1.5,2)],
+    'F': [(2,4, 0,4), (0,4, 0,0), (0,2, 1.5,2)],
+    'G': [(2,4, 0,4), (0,4, 0,0), (0,0, 2,0), (2,0, 2,2), (1,2, 2,2)],
+    'H': [(0,0, 0,4), (2,0, 2,4), (0,2, 2,2)],
+    'I': [(0,4, 2,4), (1,4, 1,0), (0,0, 2,0)],
+    'J': [(0,1, 1,0), (1,0, 2,0), (2,0, 2,4), (1,4, 2,4)],
+    'K': [(0,0, 0,4), (2,4, 0,2), (0,2, 2,0)],
+    'L': [(0,4, 0,0), (0,0, 2,0)],
+    'M': [(0,0, 0,4), (0,4, 1,2), (1,2, 2,4), (2,4, 2,0)],
+    'N': [(0,0, 0,4), (0,4, 2,0), (2,0, 2,4)],
+    'O': [(0,0, 2,0), (2,0, 2,4), (2,4, 0,4), (0,4, 0,0)],
+    'P': [(0,0, 0,4), (0,4, 2,4), (2,4, 2,2), (2,2, 0,2)],
+    'Q': [(0,0, 2,0), (2,0, 2,4), (2,4, 0,4), (0,4, 0,0), (1,1, 2,0)],
+    'R': [(0,0, 0,4), (0,4, 2,4), (2,4, 2,2), (2,2, 0,2), (1,2, 2,0)],
+    'S': [(2,4, 0,4), (0,4, 0,2), (0,2, 2,2), (2,2, 2,0), (2,0, 0,0)],
+    'T': [(0,4, 2,4), (1,4, 1,0)],
+    'U': [(0,4, 0,0), (0,0, 2,0), (2,0, 2,4)],
+    'V': [(0,4, 1,0), (1,0, 2,4)],
+    'W': [(0,4, 0.5,0), (0.5,0, 1,2), (1,2, 1.5,0), (1.5,0, 2,4)],
+    'X': [(0,0, 2,4), (0,4, 2,0)],
+    'Y': [(0,4, 1,2), (2,4, 1,2), (1,2, 1,0)],
+    'Z': [(0,4, 2,4), (2,4, 0,0), (0,0, 2,0)],
+    '+': [(1,1, 1,3), (0,2, 2,2)],
+    '-': [(0,2, 2,2)],
+    '.': [(0.8,0, 1.2,0)],
+    '[': [(1.5,4, 0.5,4), (0.5,4, 0.5,0), (0.5,0, 1.5,0)],
+    ']': [(0.5,4, 1.5,4), (1.5,4, 1.5,0), (1.5,0, 0.5,0)],
+    ' ': [],
+}
+
+def write_gbr_text(f, text, cx, cy, char_w=0.6, char_h=0.9, spacing=0.2, rot=0):
+    import math
+    sx = char_w / 2.0
+    sy = char_h / 4.0
+    total_w = len(text) * char_w + max(0, len(text) - 1) * spacing
+    start_x = -total_w / 2.0
+    start_y = -char_h / 2.0
+    rad = math.radians(rot)
+    cos_r = math.cos(rad)
+    sin_r = math.sin(rad)
+    for i, ch in enumerate(text.upper()):
+        if ch not in FONT_GLYPHS: continue
+        ch_x = start_x + i * (char_w + spacing)
+        for x1, y1, x2, y2 in FONT_GLYPHS[ch]:
+            lx1 = ch_x + x1 * sx
+            ly1 = start_y + y1 * sy
+            lx2 = ch_x + x2 * sx
+            ly2 = start_y + y2 * sy
+            rx1 = lx1 * cos_r - ly1 * sin_r
+            ry1 = lx1 * sin_r + ly1 * cos_r
+            rx2 = lx2 * cos_r - ly2 * sin_r
+            ry2 = lx2 * sin_r + ly2 * cos_r
+            f.write(f"{coord_gbr(cx + rx1, cy + ry1)}D02*\n")
+            f.write(f"{coord_gbr(cx + rx2, cy + ry2)}D01*\n")
+
 # Top Silkscreen (.GTO)
 gto_path = os.path.join(PCB_DIR, "universal_6x6_100mm.GTO")
 with open(gto_path, "w", encoding="utf-8") as f:
@@ -586,7 +710,7 @@ with open(gto_path, "w", encoding="utf-8") as f:
 %ADD10C,0.150*%
 D10*
 """)
-    # Silkscreen outlines for M3 mounting holes
+    # 1. Silkscreen outlines & labels for M3 mounting holes
     for h in m3_holes:
         hx = h["x"]
         hy = h["y"]
@@ -600,8 +724,11 @@ D10*
         f.write(f"{coord_gbr(hx, hy - r)}D01*\n")
         f.write(f"{coord_gbr(hx - r*0.7, hy - r*0.7)}D01*\n")
         f.write(f"{coord_gbr(hx - r, hy)}D01*\n")
+        # Text label M3
+        lbl_x = hx + 3.2 if (hx < 50) else hx - 3.2
+        write_gbr_text(f, "M3", lbl_x, hy, char_w=0.6, char_h=0.9)
     
-    # Silkscreen outlines for Sewing Eyelets
+    # 2. Silkscreen outlines & labels for Sewing Eyelets
     for s in sew_holes:
         sx = s["x"]
         sy = s["y"]
@@ -615,15 +742,73 @@ D10*
         f.write(f"{coord_gbr(sx, sy - r)}D01*\n")
         f.write(f"{coord_gbr(sx - r*0.7, sy - r*0.7)}D01*\n")
         f.write(f"{coord_gbr(sx - r, sy)}D01*\n")
+        # Text label SEW
+        lbl_y = sy + 2.5 if (sy < 50) else sy - 2.5
+        write_gbr_text(f, "SEW", sx, lbl_y, char_w=0.5, char_h=0.75)
         
+    # 3. Silkscreen outlines for 8 JST Connectors & Bold Pin Labels (+5V, DAT, GND, IN, OUT)
+    for j in jst_ports:
+        jx = j["x"]
+        jy = j["y"]
+        jtype = j["type"]
+        edge = j["edge"]
+        
+        if edge in ["LEFT", "RIGHT"]:
+            # Housing outline
+            hw = 2.5
+            hh = 3.8
+            f.write(f"{coord_gbr(jx - hw, jy - hh)}D02*\n")
+            f.write(f"{coord_gbr(jx + hw, jy - hh)}D01*\n")
+            f.write(f"{coord_gbr(jx + hw, jy + hh)}D01*\n")
+            f.write(f"{coord_gbr(jx - hw, jy + hh)}D01*\n")
+            f.write(f"{coord_gbr(jx - hw, jy - hh)}D01*\n")
+            
+            # Text position towards board center
+            tx = jx + 4.2 if (edge == "LEFT") else jx - 4.2
+            # Pin 1 (Top, y - 2.0): +5V
+            write_gbr_text(f, "+5V", tx, jy - 2.0, char_w=0.55, char_h=0.85)
+            # Pin 2 (Mid, y): DAT
+            write_gbr_text(f, "DAT", tx, jy, char_w=0.55, char_h=0.85)
+            # Pin 3 (Bot, y + 2.0): GND
+            write_gbr_text(f, "GND", tx, jy + 2.0, char_w=0.55, char_h=0.85)
+            # Connector Role Title
+            write_gbr_text(f, f"[{jtype}]", jx, jy - 4.8, char_w=0.6, char_h=0.9)
+        else: # TOP, BOTTOM
+            hw = 3.8
+            hh = 2.5
+            f.write(f"{coord_gbr(jx - hw, jy - hh)}D02*\n")
+            f.write(f"{coord_gbr(jx + hw, jy - hh)}D01*\n")
+            f.write(f"{coord_gbr(jx + hw, jy + hh)}D01*\n")
+            f.write(f"{coord_gbr(jx - hw, jy + hh)}D01*\n")
+            f.write(f"{coord_gbr(jx - hw, jy - hh)}D01*\n")
+            
+            # Text position towards board center
+            ty = jy + 4.2 if (edge == "TOP") else jy - 4.2
+            # Pin 1 (Left, x - 2.0): +5V
+            write_gbr_text(f, "+5V", jx - 2.0, ty, char_w=0.55, char_h=0.85, rot=90)
+            # Pin 2 (Mid, x): DAT
+            write_gbr_text(f, "DAT", jx, ty, char_w=0.55, char_h=0.85, rot=90)
+            # Pin 3 (Right, x + 2.0): GND
+            write_gbr_text(f, "GND", jx + 2.0, ty, char_w=0.55, char_h=0.85, rot=90)
+            # Connector Role Title
+            write_gbr_text(f, f"[{jtype}]", jx - 4.8, jy, char_w=0.6, char_h=0.9, rot=90)
+
+    # 4. Silkscreen outlines for LEDs & Numerals on the PCB Surface (at y - 2.5)
     for d in led_positions:
         x = d["x"]
         y = d["y"]
+        # Package boundary outline
         f.write(f"{coord_gbr(x-1.0, y-1.0)}D02*\n")
         f.write(f"{coord_gbr(x+1.0, y-1.0)}D01*\n")
         f.write(f"{coord_gbr(x+1.0, y+1.0)}D01*\n")
         f.write(f"{coord_gbr(x-1.0, y+1.0)}D01*\n")
         f.write(f"{coord_gbr(x-1.0, y-1.0)}D01*\n")
+        # Silkscreen numeral on PCB surface above LED
+        write_gbr_text(f, str(d["id"]), x, y - 2.4, char_w=0.65, char_h=1.0)
+    
+    # 5. Board Title Silkscreen
+    write_gbr_text(f, "MSEP 6X6 UNIVERSAL", 50.0, 50.0, char_w=0.9, char_h=1.4)
+    write_gbr_text(f, "17MM SEAMLESS PITCH", 50.0, 52.4, char_w=0.6, char_h=0.9)
     f.write("M02*\n")
 
 # Package into standard JLCPCB Native Gerber ZIP!
@@ -651,24 +836,46 @@ for d in led_positions:
       <rect class="led-pkg" x="{x-1.0}" y="{y-1.0}" width="2.0" height="2.0" rx="0.25" fill="#1e1e1e" stroke="#444" stroke-width="0.1"/>
       <rect id="die-{idx}" class="led-die" x="{x-0.7}" y="{y-0.7}" width="1.4" height="1.4" rx="0.15" fill="#fff5cc" stroke="none"/>
       <rect class="cap-pkg" x="{x+1.5}" y="{y-0.5}" width="1.0" height="1.0" rx="0.1" fill="#b8860b" stroke="#333" stroke-width="0.08"/>
-      <text x="{x}" y="{y-1.4}" font-size="0.8" fill="#58a6ff" text-anchor="middle" font-family="monospace" font-weight="bold">{idx}</text>
+      <!-- Silkscreen LED number on PCB surface above LED -->
+      <text x="{x}" y="{y-2.4}" font-size="0.85" fill="#58a6ff" text-anchor="middle" font-family="monospace" font-weight="bold">{idx}</text>
     </g>"""
 
-# Precompute SVG 8 JST Connectors
+# Precompute SVG 8 JST Connectors with visible Pin and Polarity Silkscreen
 svg_jsts = ""
 for j in jst_ports:
     jx = j["x"]
     jy = j["y"]
     jtype = j["type"]
+    edge = j["edge"]
     color = "#00ffcc" if jtype == "IN" else "#ff3366"
-    svg_jsts += f"""
-    <g class="jst-port" transform="translate({jx}, {jy}) rotate({j['rot']})">
-      <rect x="-3.5" y="-2.5" width="7.0" height="5.0" rx="0.6" fill="#2a2a2a" stroke="{color}" stroke-width="0.2"/>
-      <circle cx="-2.0" cy="0" r="0.5" fill="#ffd700"/>
-      <circle cx="0" cy="0" r="0.5" fill="#ffd700"/>
-      <circle cx="2.0" cy="0" r="0.5" fill="#ffd700"/>
-      <text x="0" y="-3.2" font-size="0.75" fill="{color}" text-anchor="middle" font-weight="bold">[{jtype}]</text>
-      <text x="0" y="4.0" font-size="0.55" fill="#888" text-anchor="middle">+5V DAT GND</text>
+    
+    if edge in ["LEFT", "RIGHT"]:
+        txt_x = jx + 4.0 if (edge == "LEFT") else jx - 4.0
+        svg_jsts += f"""
+    <!-- {j['ref']} ({jtype}) on {edge} edge -->
+    <g class="jst-port">
+      <rect x="{jx-2.5}" y="{jy-3.8}" width="5.0" height="7.6" rx="0.5" fill="#2a2a2a" stroke="{color}" stroke-width="0.25"/>
+      <circle cx="{jx}" cy="{jy-2.0}" r="0.5" fill="#ffd700"/>
+      <circle cx="{jx}" cy="{jy}" r="0.5" fill="#ffd700"/>
+      <circle cx="{jx}" cy="{jy+2.0}" r="0.5" fill="#ffd700"/>
+      <text x="{jx}" y="{jy-4.5}" font-size="0.8" fill="{color}" text-anchor="middle" font-weight="bold">[{jtype}]</text>
+      <text x="{txt_x}" y="{jy-1.7}" font-size="0.55" fill="#ffd700" text-anchor="middle">+5V</text>
+      <text x="{txt_x}" y="{jy+0.3}" font-size="0.55" fill="#00ffcc" text-anchor="middle">DAT</text>
+      <text x="{txt_x}" y="{jy+2.3}" font-size="0.55" fill="#888" text-anchor="middle">GND</text>
+    </g>"""
+    else:  # TOP, BOTTOM
+        txt_y = jy + 4.2 if (edge == "TOP") else jy - 3.2
+        svg_jsts += f"""
+    <!-- {j['ref']} ({jtype}) on {edge} edge -->
+    <g class="jst-port">
+      <rect x="{jx-3.8}" y="{jy-2.5}" width="7.6" height="5.0" rx="0.5" fill="#2a2a2a" stroke="{color}" stroke-width="0.25"/>
+      <circle cx="{jx-2.0}" cy="{jy}" r="0.5" fill="#ffd700"/>
+      <circle cx="{jx}" cy="{jy}" r="0.5" fill="#ffd700"/>
+      <circle cx="{jx+2.0}" cy="{jy}" r="0.5" fill="#ffd700"/>
+      <text x="{jx-4.8}" y="{jy+0.3}" font-size="0.8" fill="{color}" text-anchor="end" font-weight="bold">[{jtype}]</text>
+      <text x="{jx-2.0}" y="{txt_y}" font-size="0.55" fill="#ffd700" text-anchor="middle">+5V</text>
+      <text x="{jx}" y="{txt_y}" font-size="0.55" fill="#00ffcc" text-anchor="middle">DAT</text>
+      <text x="{jx+2.0}" y="{txt_y}" font-size="0.55" fill="#888" text-anchor="middle">GND</text>
     </g>"""
 
 # Precompute SVG Holes (M3 Mounting Holes and Fabric Sewing Eyelets)
@@ -727,6 +934,19 @@ for q_label, qx, qy in quad_offsets:
         ly = d["y"]
         svg_chest_tiles += f'<circle cx="{lx}" cy="{ly}" r="1.15" fill="#00ff88" opacity="0.85"/>\n'
     svg_chest_tiles += "    </g>\n"
+
+# Straight inter-tile 3-wire patch cables!
+# 1. Straight horizontal cable from Quad 1 (Top-Left) J_OUT_R to Quad 2 (Top-Right) J_IN_L at y = 33.0 mm!
+svg_chest_tiles += '<line x1="95.5" y1="33.0" x2="106.5" y2="33.0" stroke="#ff3366" stroke-width="0.9" stroke-dasharray="1.5,1.0"/>\n'
+svg_chest_tiles += '<text x="101.0" y="30.5" font-size="2.0" fill="#ff3366" text-anchor="middle" font-weight="bold">STRAIGHT CABLE (y=33)</text>\n'
+
+# 2. Straight vertical cable from Quad 2 (Top-Right) J_OUT_B to Quad 3 (Bottom-Right) J_IN_T at x = 135.0 mm!
+svg_chest_tiles += '<line x1="135.0" y1="95.5" x2="135.0" y2="106.5" stroke="#ff3366" stroke-width="0.9" stroke-dasharray="1.5,1.0"/>\n'
+svg_chest_tiles += '<text x="137.5" y="101.5" font-size="2.0" fill="#ff3366" text-anchor="start" font-weight="bold">STRAIGHT CABLE (x=33)</text>\n'
+
+# 3. Straight horizontal cable from Quad 3 (Bottom-Right) J_OUT_L to Quad 4 (Bottom-Left) J_IN_R at y = 169.0 mm!
+svg_chest_tiles += '<line x1="106.5" y1="169.0" x2="95.5" y2="169.0" stroke="#ff3366" stroke-width="0.9" stroke-dasharray="1.5,1.0"/>\n'
+svg_chest_tiles += '<text x="101.0" y="166.5" font-size="2.0" fill="#ff3366" text-anchor="middle" font-weight="bold">STRAIGHT CABLE (y=67)</text>\n'
 
 html_content = f"""<!DOCTYPE html>
 <html lang="en">
