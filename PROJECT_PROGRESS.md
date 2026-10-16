@@ -93,6 +93,28 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### 2026-10-16 18:20 - Bottom-Mounted JST Connector Variant: 100% Flush Front Face & Symmetrical 22mm Straight Spans
+- **100% Flush Front Layer (`F.Cu`):**
+  - Designed dedicated bottom-mounted PCB generator (`scripts/generate_universal_6x6_bottom_pcb.py`).
+  - Front side contains **only** the 36 WS2812B-2020 LEDs ($0.9\text{ mm}$ height) and 36 0402 bypass capacitors ($0.5\text{ mm}$ height).
+  - Eliminates the $5.1\text{ mm}$ vertical protrusion of front-mounted horizontal JST headers.
+  - Fabric shirts, optical diffusion sheets, or 3D-printed faceplates touch the LEDs directly with **0.0 mm gap**, eliminating light bleed and fabric tenting.
+- **Rear-Mounted SMT JST-PH 2.0mm Connectors (`B.Cu`):**
+  - All 8 horizontal JST-PH headers (`C3029441`) are mounted on the bottom copper layer facing outwards.
+  - Solder pads, pin callouts (`+5V`, `DAT`, `GND`), port markers (`[IN]`, `[OUT]`), and direct-solder wire eyelets are routed on the bottom silkscreen (`.GBO`) and bottom copper (`.GBL`).
+- **Symmetrical 22.0mm Straight Spans (Zero Angle, Zero Cable Twisting):**
+  - With no LEDs to avoid on the rear, connectors on all 4 borders align at identical $33.0\text{ mm}$ and $67.0\text{ mm}$ positions.
+  - Across the $2.0\text{ mm}$ felt seam, opposing ports face each other directly with a straight-line center-to-center span of **$22.0\text{ mm}$**.
+  - Standard $50\text{ mm}$ pre-crimped JST cables plug straight across with a relaxed, low-profile rear wire loop ($\le 8\text{ mm}$ loop height on the back side).
+- **JLCPCB Turnkey Deliverables (`pcb/bottom_connectors/`):**
+  - Native KiCad PCB: `universal_6x6_bottom_100mm.kicad_pcb`
+  - RS-274X Gerbers: `universal_6x6_bottom_100mm_gerbers.zip` (complete 10-layer set including `.GBP` bottom paste and `.GBO` bottom silkscreen)
+  - JLCPCB BOM: `universal_6x6_bottom_100mm_bom.csv`
+  - JLCPCB CPL Centroid: `universal_6x6_bottom_100mm_cpl.csv` (72 Top parts, 8 Bottom parts)
+  - Interactive Dual-View Web Inspector: `universal_6x6_bottom_preview.html` (interactive Front flush view vs. Rear wiring view toggle)
+- **Assembly Cost Verification:**
+  - Double-sided SMT requires JLCPCB "Standard PCBA" (two stencils, two reflow passes), adding $\sim \$60.00$ setup fee per batch ($\approx +\$0.80$ per board across a 75-board fleet order).
+
 ### 2026-10-16 17:45 - Universal 8-Port Matrix: Set Back 10mm in Valleys (Zero Overlap & Diagonal 50mm Cables)
 - **Resolved Component Overlap & Increased Edge Setback (`scripts/generate_universal_6x6_pcb.py`):**
   - Moved all 8 JST-PH 2.0mm horizontal connectors inward from $4.5\text{ mm}$ to **$10.0\text{ mm}$ from board edges**.

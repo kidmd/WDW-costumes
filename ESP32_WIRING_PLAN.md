@@ -237,3 +237,37 @@ The physical pin order is mirrored so that off-the-shelf straight 3-conductor ri
 
 ### Direct-Solder Pad Fallback:
 Directly behind every JST connector, standard $2.54\text{ mm}$ pitch through-hole pads labeled `+5V`, `DAT`, and `GND` are provided for instant workshop soldering with flexible 24/26 AWG silicone wire if pre-crimped JST patch cables are unavailable.
+
+---
+
+## 8.1 Bottom-Mounted Connector Variant: 100% Flush Front Face & Symmetrical 22mm Straight Spans
+
+For applications where the front face must press completely flush against fabric, diffusion layers, or 3D-printed faceplates without any gap, tenting, or optical light bleed, a dedicated **Bottom-Mounted Variant** is provided in `pcb/bottom_connectors/` (generated via `scripts/generate_universal_6x6_bottom_pcb.py`).
+
+### Key Differences & Advantages:
+1. **100% Flush Front Face:**
+   - The front layer (`F.Cu`) contains **only** the 36 WS2812B-2020 LEDs ($0.9\text{ mm}$ height) and 36 0402 bypass capacitors ($0.5\text{ mm}$ height).
+   - Zero connectors or wire bundles protrude from the front. Fabric shirts, acrylic diffuser panels, or 3D-printed front faceplates rest directly on the LED lenses with **0.0 mm gap**, eliminating light bleed and fabric bulges.
+2. **Rear-Mounted JST-PH Connectors (`B.Cu`):**
+   - All 8 JST-PH 2.0mm horizontal connectors (`C3029441`) are mounted on the bottom side of the PCB, facing outwards toward board edges.
+   - Solder pads, silkscreen labels (`[IN]`, `[OUT]`, `+5V`, `DAT`, `GND`), and fallback solder eyelets reside on the rear layer (`B.Cu` / `B.Silk`).
+3. **Symmetrical 22.0mm Straight Spans (All 4 Directions):**
+   - Because the bottom side has no LED packages to avoid, connector ports on all 4 edges are placed symmetrically at coordinates **$33.0\text{ mm}$ and $67.0\text{ mm}$**:
+     - Left Edge ($x = 10.0\text{ mm}$): `J_OUT_L` ($y = 33.0\text{ mm}$) and `J_IN_L` ($y = 67.0\text{ mm}$).
+     - Right Edge ($x = 90.0\text{ mm}$): `J_OUT_R` ($y = 33.0\text{ mm}$) and `J_IN_R` ($y = 67.0\text{ mm}$).
+     - Top Edge ($y = 10.0\text{ mm}$): `J_IN_T` ($x = 33.0\text{ mm}$) and `J_OUT_T` ($x = 67.0\text{ mm}$).
+     - Bottom Edge ($y = 90.0\text{ mm}$): `J_IN_B` ($x = 33.0\text{ mm}$) and `J_OUT_B` ($x = 67.0\text{ mm}$).
+   - Across any $2.0\text{ mm}$ board seam, adjacent connectors face each other **directly in a straight line**:
+     $$\text{Span} = (100.0 - 90.0) + 2.0\text{ mm (seam)} + 10.0 = \mathbf{22.0\text{ mm}}$$
+   - Standard $50\text{ mm}$ pre-crimped JST-PH patch cables plug straight across with a relaxed, low-profile rear wire loop ($\le 8\text{ mm}$ loop height on the back side), keeping the entire front completely flat.
+4. **JLCPCB Double-Sided PCBA Setup:**
+   - Single-sided top variant uses JLCPCB "Economic PCBA" (base setup $\approx \$10.00$).
+   - Double-sided bottom variant requires JLCPCB "Standard PCBA" (two SMT stencils and two reflow passes, base setup $\approx \$70.00$).
+   - The flat $+\$60.00$ setup fee adds only **$\approx +\$0.80$ per board** across a full 75-board fleet order.
+5. **Turnkey Deliverables Target (`pcb/bottom_connectors/`):**
+   - KiCad PCB: `universal_6x6_bottom_100mm.kicad_pcb`
+   - Production Gerbers: `universal_6x6_bottom_100mm_gerbers.zip` (includes `.GBP` bottom paste and `.GBO` bottom silkscreen)
+   - JLCPCB BOM: `universal_6x6_bottom_100mm_bom.csv`
+   - JLCPCB CPL: `universal_6x6_bottom_100mm_cpl.csv` (properly categorized with 72 Top components and 8 Bottom components)
+   - Interactive Dual-View Web Inspector: `universal_6x6_bottom_preview.html` (with Front flush view vs. Rear wiring view toggle)
+
