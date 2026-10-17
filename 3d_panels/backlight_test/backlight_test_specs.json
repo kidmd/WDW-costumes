@@ -1,0 +1,171 @@
+{
+  "project": "Main Street Electrical Parade - Pete's Dragon Backlighting Test Panels",
+  "chassis_dimensions_mm": [
+    200.0,
+    200.0
+  ],
+  "image_bounding_box_mm": [
+    180.0,
+    163.238
+  ],
+  "image_fit_square_mm": 180.0,
+  "centered_offset_mm": [
+    10.0,
+    18.381
+  ],
+  "thickness_variants_mm": [
+    1.0,
+    0.8,
+    0.6,
+    0.48
+  ],
+  "features_removed": [
+    "led_holes",
+    "led_channels",
+    "side_walls",
+    "screw_holes",
+    "eyelets",
+    "zip_tie_tunnels"
+  ],
+  "colors": {
+    "black": {
+      "name": "Chassis & Outlines (Black)",
+      "hex": "#11161d",
+      "targetRgb": [
+        13,
+        25,
+        8
+      ],
+      "slicerRgb": [
+        20,
+        20,
+        20,
+        255
+      ],
+      "role": "chassis",
+      "filename": "chassis_black.stl"
+    },
+    "green": {
+      "name": "Dragon Body (Green)",
+      "hex": "#00e676",
+      "targetRgb": [
+        4,
+        250,
+        6
+      ],
+      "slicerRgb": [
+        0,
+        230,
+        118,
+        255
+      ],
+      "role": "inlay",
+      "filename": "color_green.stl"
+    },
+    "magenta": {
+      "name": "Wings & Crest (Magenta)",
+      "hex": "#ec4899",
+      "targetRgb": [
+        210,
+        10,
+        200
+      ],
+      "slicerRgb": [
+        236,
+        72,
+        153,
+        255
+      ],
+      "role": "inlay",
+      "filename": "color_magenta.stl"
+    },
+    "yellow": {
+      "name": "Belly & Horns (Yellow)",
+      "hex": "#facc15",
+      "targetRgb": [
+        249,
+        249,
+        12
+      ],
+      "slicerRgb": [
+        250,
+        204,
+        21,
+        255
+      ],
+      "role": "inlay",
+      "filename": "color_yellow.stl"
+    },
+    "white": {
+      "name": "Eyes & Teeth (White)",
+      "hex": "#ffffff",
+      "targetRgb": [
+        247,
+        248,
+        247
+      ],
+      "slicerRgb": [
+        255,
+        255,
+        255,
+        255
+      ],
+      "role": "inlay",
+      "filename": "color_white.stl"
+    }
+  },
+  "variants": [
+    {
+      "thickness": 1.0,
+      "folder": "thickness_1.00mm",
+      "3mf": "petes_dragon_backlight_test_1.00mm.3mf",
+      "zip": "petes_dragon_backlight_test_1.00mm_bundle.zip",
+      "volumes": {
+        "black": 28129.84,
+        "green": 7542.45,
+        "magenta": 1950.53,
+        "yellow": 1811.56,
+        "white": 565.63
+      }
+    },
+    {
+      "thickness": 0.8,
+      "folder": "thickness_0.80mm",
+      "3mf": "petes_dragon_backlight_test_0.80mm.3mf",
+      "zip": "petes_dragon_backlight_test_0.80mm_bundle.zip",
+      "volumes": {
+        "black": 22503.87,
+        "green": 6033.96,
+        "magenta": 1560.42,
+        "yellow": 1449.25,
+        "white": 452.5
+      }
+    },
+    {
+      "thickness": 0.6,
+      "folder": "thickness_0.60mm",
+      "3mf": "petes_dragon_backlight_test_0.60mm.3mf",
+      "zip": "petes_dragon_backlight_test_0.60mm_bundle.zip",
+      "volumes": {
+        "black": 16877.9,
+        "green": 4525.47,
+        "magenta": 1170.32,
+        "yellow": 1086.94,
+        "white": 339.38
+      }
+    },
+    {
+      "thickness": 0.48,
+      "folder": "thickness_0.48mm",
+      "3mf": "petes_dragon_backlight_test_0.48mm.3mf",
+      "zip": "petes_dragon_backlight_test_0.48mm_bundle.zip",
+      "volumes": {
+        "black": 13502.32,
+        "green": 3620.37,
+        "magenta": 936.25,
+        "yellow": 869.55,
+        "white": 271.5
+      }
+    }
+  ]
+}

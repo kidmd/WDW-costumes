@@ -1446,6 +1446,22 @@ Instead of attaching a Cricut cut vinyl graphic on top of the printed plate, the
    - **Live Drag Repulsion:** When dragging any LED across the canvas, a collision solver ensures its $12.4 \times 7.4\text{ mm}$ collar stadium maintains $\ge 7.9\text{ mm}$ center-to-center distance from all other LEDs ($0.5\text{ mm}$ clear wall gap), preventing accidental collisions.
    - **Auto-Relaxation on Scatter & Fill:** Position-Based Dynamics (PBD) stadium separation is built into **Scatter** and **Fill Graphic with Remaining LEDs**, automatically nudging apart any overlapping collars to guarantee 100% collision-free layouts before STL compilation.
 
+12. **💡 Optical Backlighting Test Panels (Pete's Dragon 200mm × 200mm Swatches across 4 Thicknesses):**
+   - **Purpose & Optics Testing:** To evaluate filament translucency, light transmission, and diffusion under high-intensity rear LED backlighting, the generator pipeline (`scripts/generate_backlight_test_panels.py`) produces four flat multi-color test panels.
+   - **Full Feature Stripping (Pure Flat Plate):** Completely removes all LED holes, channels, sidewalls, screw holes, eyelets, and zip-tie tunnels. The output is a clean, flat $200.0\text{ mm} \times 200.0\text{ mm}$ square plate.
+   - **Aspect-Preserved Centered Artwork:** Pete's Dragon ($698 \times 633\text{ px}$, aspect $1.103$) is scaled to fit within a $180.0\text{ mm}$ square ($180.00\text{ mm W} \times 163.24\text{ mm H}$) and centered inside the $200\text{ mm}$ chassis at $(100.0, 100.0)\text{ mm}$ ($10.0\text{ mm}$ left/right borders, $18.38\text{ mm}$ top/bottom borders).
+   - **100% Z-Thickness Colors:** All colored features (Green body, Magenta wings/crest, Yellow belly/horns, White eyes/teeth) extend completely through the full thickness from $Z = 0$ to $Z = T$. The surrounding black chassis plate and outlines are formed via Boolean subtraction ($\sum \text{Volume} = 40,000 \times T\text{ mm}^3$), guaranteeing zero gaps and zero overlaps.
+   - **Four Thickness Models (`3d_panels/backlight_test/`):**
+     - **1.00 mm** (`petes_dragon_backlight_test_1.00mm.3mf`): 5 layers @ 0.20mm (or 10 layers @ 0.10mm).
+     - **0.80 mm** (`petes_dragon_backlight_test_0.80mm.3mf`): 4 layers @ 0.20mm (or 8 layers @ 0.10mm).
+     - **0.60 mm** (`petes_dragon_backlight_test_0.60mm.3mf`): 3 layers @ 0.20mm (or 5 layers @ 0.12mm).
+     - **0.48 mm** (`petes_dragon_backlight_test_0.48mm.3mf`): 3 layers @ 0.16mm (or 4 layers @ 0.12mm, or 6 layers @ 0.08mm).
+   - **Deliverables & Slicer Files:**
+     - Native multi-material `.3mf` files with pre-configured color slots for Bambu Studio, OrcaSlicer, and Snapmaker Luban.
+     - Individual aligned `.stl` files (`chassis_black.stl`, `color_green.stl`, `color_magenta.stl`, `color_yellow.stl`, `color_white.stl`, `monolithic_panel.stl`).
+     - Bundled ZIP files for each thickness, plus `petes_dragon_backlight_test_all_thicknesses.zip`.
+     - Interactive 3D WebGL Backlight Simulator: `3d_panels/backlight_test_preview.html`.
+
 ### 🖨️ Snapmaker U1 95A TPU Slicing Profile:
 - **Nozzle Temp:** 225°C – 235°C (0.4mm nozzle).
 - **Bed Temp:** 50°C (PEI textured sheet).

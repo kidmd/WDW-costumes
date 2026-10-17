@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pete's Dragon 200mm Backlighting Test Panel 3D Viewer</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/STLLoader.js"></script>
+<style>
+  :root {
+    --bg: #070a0f;
+    --card: rgba(18, 24, 32, 0.90);
+    --border: #1e293b;
+    --accent: #00ff88;
+    --cyan: #00e5ff;
+    --gold: #facc15;
+    --magenta: #ec4899;
+    --text: #e2e8f0;
+    --text-dim: #94a3b8;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    padding: 0;
+    width: 100vw;
+    height: 100vh;
+    overflow: hidden;
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  }
+  #canvas-container {
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    top: 0;
+    left: 0;
+  }
+  .header-bar {
+    position: absolute;
+    top: 16px;
+    left: 20px;
+    right: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    pointer-events: none;
+    z-index: 10;
+  }
+  .title-box {
+    background: var(--card);
+    backdrop-filter: blur(12px);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 12px 20px;
+    pointer-events: auto;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+  }
+  .title-box h1 {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 700;
+    color: #fff;
+    letter-spacing: 0.3px;
+  }
+  .badge {
+    font-size: 11px;
+    padding: 3px 8px;
+    border-radius: 6px;
+    font-weight: 600;
+    color: #fff;
+  }
+  .badge-plate { background: #0284c7; }
+  .badge-optics { background: #10b981; }
+
+  .floating-controls {
+    position: absolute;
+    top: 80px;
+    left: 20px;
+    background: var(--card);
+    backdrop-filter: blur(12px);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px;
+    width: 320px;
+    max-height: calc(100vh - 110px);
+    overflow-y: auto;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.6);
+    z-index: 10;
+  }
+  .section-label {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: var(--accent);
+    letter-spacing: 1px;
+    margin-bottom: 8px;
+    display: flex;
+    justify-content: space-between;
+  }
+  .btn-group {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 6px;
+    margin-bottom: 14px;
+  }
+  .btn {
+    background: #1e293b;
+    border: 1px solid #334155;
+    color: var(--text);
+    padding: 8px 4px;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    text-align: center;
+    transition: all 0.2s ease;
+  }
+  .btn:hover {
+    background: #334155;
+    border-color: var(--cyan);
+  }
+  .btn.active {
+    background: linear-gradient(135deg, #0284c7, #0369a1);
+    color: #fff;
+    border-color: var(--cyan);
+    box-shadow: 0 0 12px rgba(2, 132, 199, 0.4);
+  }
+
+  .toggle-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 6px 0;
+    border-bottom: 1px solid #1e293b;
+    font-size: 13px;
+  }
+  .toggle-row:last-child { border-bottom: none; }
+  .color-dot {
+    display: inline-block;
+    width: 12px;
+    height: 12px;
+    border-radius: 3px;
+    margin-right: 8px;
+    vertical-align: middle;
+  }
+
+  .switch {
+    position: relative;
+    display: inline-block;
+    width: 36px;
+    height: 20px;
+  }
+  .switch input { opacity: 0; width: 0; height: 0; }
+  .slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background-color: #334155;
+    transition: .3s;
+    border-radius: 20px;
+  }
+  .slider:before {
+    position: absolute;
+    content: "";
+    height: 14px;
+    width: 14px;
+    left: 3px;
+    bottom: 3px;
+    background-color: white;
+    transition: .3s;
+    border-radius: 50%;
+  }
+  input:checked + .slider { background-color: var(--accent); }
+  input:checked + .slider:before { transform: translateX(16px); }
+
+  .specs-box {
+    margin-top: 14px;
+    background: rgba(0,0,0,0.3);
+    border: 1px solid #1e293b;
+    border-radius: 8px;
+    padding: 10px;
+    font-size: 11px;
+    color: var(--text-dim);
+    line-height: 1.5;
+  }
+  .specs-box strong { color: #fff; }
+
+  .download-btn {
+    display: block;
+    margin-top: 10px;
+    background: linear-gradient(135deg, #10b981, #059669);
+    color: #fff;
+    padding: 10px;
+    border-radius: 8px;
+    text-align: center;
+    font-size: 12px;
+    font-weight: 700;
+    text-decoration: none;
+    box-shadow: 0 4px 14px rgba(16, 185, 129, 0.3);
+    transition: all 0.2s;
+  }
+  .download-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 18px rgba(16, 185, 129, 0.5);
+  }
+
+  .loading-overlay {
+    position: absolute;
+    top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(7, 10, 15, 0.85);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    z-index: 100;
+    transition: opacity 0.4s;
+    pointer-events: none;
+  }
+  .spinner {
+    width: 48px;
+    height: 48px;
+    border: 4px solid #1e293b;
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin-bottom: 12px;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+</style>
+</head>
+<body>
+
+<div id="canvas-container"></div>
+
+<div class="header-bar">
+  <div class="title-box">
+    <span>🏰</span>
+    <div>
+      <h1>Pete's Dragon 200mm Backlighting Test Panel</h1>
+      <div style="font-size: 11px; color: var(--text-dim); margin-top: 2px;">
+        Flat 200×200mm Square • Centered 180mm Dragon • 100% Z-Thickness Colors
+      </div>
+    </div>
+    <span class="badge badge-plate">200×200 mm</span>
+    <span class="badge badge-optics">Zero Cavities / Solid</span>
+  </div>
+</div>
+
+<div class="floating-controls">
+  <div class="section-label">Panel Thickness Variant</div>
+  <div class="btn-group">
+    <button class="btn" onclick="selectThickness(1.00)">1.00 mm</button>
+    <button class="btn active" onclick="selectThickness(0.80)">0.80 mm</button>
+    <button class="btn" onclick="selectThickness(0.60)">0.60 mm</button>
+    <button class="btn" onclick="selectThickness(0.48)">0.48 mm</button>
+  </div>
+
+  <div class="section-label">Backlight Illumination Test</div>
+  <div class="toggle-row">
+    <span>💡 Rear LED Backlight Simulation</span>
+    <label class="switch">
+      <input type="checkbox" id="backlight-toggle" onchange="toggleBacklight(this.checked)" checked>
+      <span class="slider"></span>
+    </label>
+  </div>
+  <div class="toggle-row">
+    <span>🔲 180mm Centered Guide Box</span>
+    <label class="switch">
+      <input type="checkbox" id="guide-toggle" onchange="toggleGuide(this.checked)" checked>
+      <span class="slider"></span>
+    </label>
+  </div>
+
+  <div class="section-label" style="margin-top: 14px;">Filament Layers</div>
+  <div class="toggle-row">
+    <span><span class="color-dot" style="background:#11161d; border: 1px solid #444;"></span>Chassis Black</span>
+    <label class="switch">
+      <input type="checkbox" checked onchange="toggleLayer('black', this.checked)">
+      <span class="slider"></span>
+    </label>
+  </div>
+  <div class="toggle-row">
+    <span><span class="color-dot" style="background:#00e676;"></span>Dragon Body (Green)</span>
+    <label class="switch">
+      <input type="checkbox" checked onchange="toggleLayer('green', this.checked)">
+      <span class="slider"></span>
+    </label>
+  </div>
+  <div class="toggle-row">
+    <span><span class="color-dot" style="background:#ec4899;"></span>Wings & Crest (Magenta)</span>
+    <label class="switch">
+      <input type="checkbox" checked onchange="toggleLayer('magenta', this.checked)">
+      <span class="slider"></span>
+    </label>
+  </div>
+  <div class="toggle-row">
+    <span><span class="color-dot" style="background:#facc15;"></span>Belly & Horns (Yellow)</span>
+    <label class="switch">
+      <input type="checkbox" checked onchange="toggleLayer('yellow', this.checked)">
+      <span class="slider"></span>
+    </label>
+  </div>
+  <div class="toggle-row">
+    <span><span class="color-dot" style="background:#ffffff;"></span>Eyes & Teeth (White)</span>
+    <label class="switch">
+      <input type="checkbox" checked onchange="toggleLayer('white', this.checked)">
+      <span class="slider"></span>
+    </label>
+  </div>
+
+  <div class="specs-box" id="specs-content">
+    <strong>Chassis Plate:</strong> 200.0 × 200.0 mm<br>
+    <strong>Dragon Bounds:</strong> 180.0 × 163.2 mm (Centered)<br>
+    <strong>Thickness:</strong> <span id="cur-thick">0.80</span> mm<br>
+    <strong>Z-Profile:</strong> Extends full height Z=0 to Z=<span id="cur-thick-2">0.80</span> mm<br>
+    <strong>Cavities/Holes:</strong> None (100% Solid Extrusion)
+  </div>
+
+  <a id="download-3mf-btn" class="download-btn" href="backlight_test/petes_dragon_backlight_test_0.80mm.3mf" download>
+    ⬇️ Download Native 3MF Project
+  </a>
+  <a id="download-zip-btn" class="download-btn" style="background: #1e293b; margin-top: 6px; border: 1px solid #334155;" href="backlight_test/petes_dragon_backlight_test_0.80mm_bundle.zip" download>
+    📦 Download STL ZIP Bundle
+  </a>
+  <a class="download-btn" style="background: #0284c7; margin-top: 6px;" href="backlight_test/petes_dragon_backlight_test_all_thicknesses.zip" download>
+    🌟 Download All 4 Models (Master ZIP)
+  </a>
+</div>
+
+<div class="loading-overlay" id="loading">
+  <div class="spinner"></div>
+  <div id="loading-text" style="font-size: 13px; font-weight: 600;">Loading 3D Models...</div>
+</div>
+
+<script>
+  let scene, camera, renderer, controls;
+  let currentThickness = 0.80;
+  let loadedMeshes = {};
+  let guideBox = null;
+  let backLight = null;
+
+  const colorDefs = {
+    black:   { color: 0x141416, roughness: 0.85, metalness: 0.1, transmission: 0.0, opacity: 1.0 },
+    green:   { color: 0x00e676, roughness: 0.35, metalness: 0.1, transmission: 0.65, opacity: 0.9 },
+    magenta: { color: 0xec4899, roughness: 0.35, metalness: 0.1, transmission: 0.65, opacity: 0.9 },
+    yellow:  { color: 0xfacc15, roughness: 0.35, metalness: 0.1, transmission: 0.70, opacity: 0.9 },
+    white:   { color: 0xf8fafc, roughness: 0.40, metalness: 0.1, transmission: 0.80, opacity: 0.92 }
+  };
+
+  const stlFiles = {
+    black:   'chassis_black.stl',
+    green:   'color_green.stl',
+    magenta: 'color_magenta.stl',
+    yellow:  'color_yellow.stl',
+    white:   'color_white.stl'
+  };
+
+  function init() {
+    const container = document.getElementById('canvas-container');
+    scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x070a0f);
+
+    camera = new THREE.PerspectiveCamera(40, window.innerWidth / window.innerHeight, 1, 2000);
+    camera.position.set(0, -180, 240);
+
+    renderer = new THREE.WebGLRenderer({ antialias: true });
+    renderer.setPixelRatio(window.devicePixelRatio);
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.shadowMap.enabled = true;
+    container.appendChild(renderer.domElement);
+
+    controls = new THREE.OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true;
+    controls.dampingFactor = 0.05;
+    controls.target.set(0, 0, 0);
+
+    // Ambient light
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.45);
+    scene.add(ambientLight);
+
+    // Front directional key light
+    const keyLight = new THREE.DirectionalLight(0xffffff, 0.75);
+    keyLight.position.set(100, -150, 200);
+    scene.add(keyLight);
+
+    // Rim light
+    const rimLight = new THREE.DirectionalLight(0x00e5ff, 0.4);
+    rimLight.position.set(-150, 150, 100);
+    scene.add(rimLight);
+
+    // Rear Backlight for backlighting simulation
+    backLight = new THREE.PointLight(0xffffff, 2.5, 400);
+    backLight.position.set(0, 0, -50);
+    scene.add(backLight);
+
+    // Create 180mm guide wireframe box
+    const guideGeo = new THREE.BufferGeometry();
+    const gMin = -90, gMax = 90;
+    const guidePts = [
+      new THREE.Vector3(gMin, gMin, 0.1), new THREE.Vector3(gMax, gMin, 0.1),
+      new THREE.Vector3(gMax, gMin, 0.1), new THREE.Vector3(gMax, gMax, 0.1),
+      new THREE.Vector3(gMax, gMax, 0.1), new THREE.Vector3(gMin, gMax, 0.1),
+      new THREE.Vector3(gMin, gMax, 0.1), new THREE.Vector3(gMin, gMin, 0.1),
+    ];
+    guideGeo.setFromPoints(guidePts);
+    const guideMat = new THREE.LineBasicMaterial({ color: 0x00e5ff, transparent: true, opacity: 0.5 });
+    guideBox = new THREE.LineSegments(guideGeo, guideMat);
+    scene.add(guideBox);
+
+    // Build plate grid (250x250)
+    const grid = new THREE.GridHelper(300, 30, 0x1e293b, 0x0f172a);
+    grid.rotation.x = Math.PI / 2;
+    grid.position.z = -0.5;
+    scene.add(grid);
+
+    loadThicknessModels(currentThickness);
+
+    window.addEventListener('resize', onWindowResize);
+    animate();
+  }
+
+  function loadThicknessModels(t) {
+    const loading = document.getElementById('loading');
+    const loadText = document.getElementById('loading-text');
+    loading.style.opacity = '1';
+    loading.style.pointerEvents = 'auto';
+    loadText.innerText = `Loading ${t.toFixed(2)} mm Test Panel...`;
+
+    // Remove existing meshes
+    for (const k in loadedMeshes) {
+      if (loadedMeshes[k]) scene.remove(loadedMeshes[k]);
+    }
+    loadedMeshes = {};
+
+    const folder = `backlight_test/thickness_${t.toFixed(2)}mm/`;
+    const loader = new THREE.STLLoader();
+    let loadedCount = 0;
+    const totalFiles = Object.keys(stlFiles).length;
+
+    for (const [key, filename] of Object.entries(stlFiles)) {
+      loader.load(folder + filename, (geo) => {
+        geo.center(); // Center at origin (0, 0, 0)
+        const def = colorDefs[key];
+        const mat = new THREE.MeshStandardMaterial({
+          color: def.color,
+          roughness: def.roughness,
+          metalness: def.metalness,
+          transparent: true,
+          opacity: def.opacity
+        });
+        const mesh = new THREE.Mesh(geo, mat);
+        loadedMeshes[key] = mesh;
+        scene.add(mesh);
+
+        loadedCount++;
+        if (loadedCount === totalFiles) {
+          loading.style.opacity = '0';
+          loading.style.pointerEvents = 'none';
+        }
+      }, undefined, (err) => {
+        console.error('Error loading:', filename, err);
+        loadedCount++;
+        if (loadedCount === totalFiles) {
+          loading.style.opacity = '0';
+          loading.style.pointerEvents = 'none';
+        }
+      });
+    }
+  }
+
+  function selectThickness(t) {
+    currentThickness = t;
+    document.querySelectorAll('.btn-group .btn').forEach(b => {
+      b.classList.toggle('active', b.innerText.includes(t.toFixed(2)));
+    });
+    document.getElementById('cur-thick').innerText = t.toFixed(2);
+    document.getElementById('cur-thick-2').innerText = t.toFixed(2);
+    document.getElementById('download-3mf-btn').href = `backlight_test/petes_dragon_backlight_test_${t.toFixed(2)}mm.3mf`;
+    document.getElementById('download-zip-btn').href = `backlight_test/petes_dragon_backlight_test_${t.toFixed(2)}mm_bundle.zip`;
+    loadThicknessModels(t);
+  }
+
+  function toggleLayer(key, visible) {
+    if (loadedMeshes[key]) {
+      loadedMeshes[key].visible = visible;
+    }
+  }
+
+  function toggleBacklight(enabled) {
+    if (backLight) {
+      backLight.visible = enabled;
+      // Also adjust translucent material transmission
+      for (const [k, mesh] of Object.entries(loadedMeshes)) {
+        if (k !== 'black' && mesh && mesh.material) {
+          mesh.material.emissive = enabled ? new THREE.Color(colorDefs[k].color).multiplyScalar(0.4) : new THREE.Color(0x000000);
+        }
+      }
+    }
+  }
+
+  function toggleGuide(enabled) {
+    if (guideBox) guideBox.visible = enabled;
+  }
+
+  function onWindowResize() {
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(window.innerWidth, window.innerHeight);
+  }
+
+  function animate() {
+    requestAnimationFrame(animate);
+    controls.update();
+    renderer.render(scene, camera);
+  }
+
+  window.onload = init;
+</script>
+</body>
+</html>

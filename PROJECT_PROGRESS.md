@@ -93,7 +93,24 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
-### 2026-10-17 00:50 - 3D-Printable PLA PCB Mockups: 1:1 Weight & Thickness Physical Test Mules
+### 2026-10-17 13:10 - 💡 Pete's Dragon 200mm × 200mm Multi-Color Backlighting Test Panels (4 Thicknesses)
+- **Optical Backlighting Calibration & Testing (`scripts/generate_backlight_test_panels.py`):**
+  - Designed and generated 4 flat multi-color test panels to evaluate rear LED backlighting transmission, translucency, and light diffusion through multi-color filament before final costume fabrication.
+  - **Full Feature Stripping (Pure Flat Panel):** Completely removed all 100 LED socket holes, wiring trenches, perimeter side walls/rims, mounting tabs, screw holes, eyelets, and zip-tie tunnels per hardware testing specs.
+  - **Chassis Geometry:** $200.0\text{ mm} \times 200.0\text{ mm}$ square flat chassis plate printed in black filament.
+  - **Proportional Artwork Centering (Strict Aspect Ratio):** Pete's Dragon character artwork ($698 \times 633\text{ px}$, aspect $1.103$) scaled to fit perfectly within a $180.0\text{ mm}$ square ($180.00\text{ mm}\text{ W} \times 163.24\text{ mm}\text{ H}$), centered at $(100.0, 100.0)\text{ mm}$ with $10.0\text{ mm}$ horizontal margins and $18.38\text{ mm}$ vertical margins.
+  - **100% Z-Thickness Color Inlays:** All colored regions (Green body, Magenta wings/crest, Yellow belly/horns, White eyes/teeth) extend completely from $Z = 0.00\text{ mm}$ to the top surface across all layers. The black chassis forms the surrounding $200\times 200\text{ mm}$ plate and internal black outlines via boolean difference ($\sum \text{Volume} \equiv 40,000 \times T\text{ mm}^3$ with zero air gaps and zero overlaps).
+  - **4 Thickness Variants Produced (`3d_panels/backlight_test/`):**
+    1. **1.00 mm** (`thickness_1.00mm/` & `petes_dragon_backlight_test_1.00mm.3mf`): 5 layers @ 0.20mm (or 10 @ 0.10mm).
+    2. **0.80 mm** (`thickness_0.80mm/` & `petes_dragon_backlight_test_0.80mm.3mf`): 4 layers @ 0.20mm (or 8 @ 0.10mm).
+    3. **0.60 mm** (`thickness_0.60mm/` & `petes_dragon_backlight_test_0.60mm.3mf`): 3 layers @ 0.20mm (or 5 @ 0.12mm).
+    4. **0.48 mm** (`thickness_0.48mm/` & `petes_dragon_backlight_test_0.48mm.3mf`): 3 layers @ 0.16mm (or 4 @ 0.12mm, or 6 @ 0.08mm).
+- **Deliverables & Slicer Support:**
+  - **Native Multi-Material 3MF:** Pre-configured with 5 color slots (Black, Green, Magenta, Yellow, White) for 1-click import into Bambu Studio, OrcaSlicer, or Snapmaker Luban.
+  - **Individual Aligned STLs:** Exported for each color sharing origin $(0, 0, 0)$ (`chassis_black.stl`, `color_green.stl`, `color_magenta.stl`, `color_yellow.stl`, `color_white.stl`, `monolithic_panel.stl`).
+  - **Bundled ZIPs & Master Package:** Per-thickness zips plus `petes_dragon_backlight_test_all_thicknesses.zip`.
+  - **Parametric OpenSCAD Source:** `petes_dragon_backlight_panel.scad`.
+  - **Interactive 3D WebGL Viewer:** `3d_panels/backlight_test_preview.html` with real-time rear backlight illumination simulation.
 - **Physics-Calibrated Weight Simulation in PLA (`scripts/generate_pcb_mockup_stls.py`):**
   - Designed two 1:1 scale test mockups to simulate the physical feel, thickness, chest curvature, and bounce on a running shirt before spending \$400+ on PCB fabrication.
   - **The 2.5mm Equivalence Rule:** Because PLA ($1.24\text{ g/cm}^3$) is 36% less dense than FR-4 fiberglass ($1.95\text{ g/cm}^3$), printing the mockup at $2.50\text{ mm}$ solid thickness (100% infill) matches both the total Z-height of the loaded board ($1.6\text{ mm}$ PCB + $0.9\text{ mm}$ LEDs) AND the exact weight (**$123.7\text{ grams}$ PLA vs. $126.5\text{ grams}$ real PCB — a 97.8% match!**).
