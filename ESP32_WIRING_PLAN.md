@@ -271,3 +271,33 @@ For applications where the front face must press completely flush against fabric
    - JLCPCB CPL: `universal_6x6_bottom_100mm_cpl.csv` (properly categorized with 72 Top components and 8 Bottom components)
    - Interactive Dual-View Web Inspector: `universal_6x6_bottom_preview.html` (with Front flush view vs. Rear wiring view toggle)
 
+---
+
+## 8.2 Monolithic 200mm × 200mm LED Panels (144 LEDs & 288 LEDs)
+
+For single-piece chest and back displays that eliminate all internal jumper cables, two monolithic $200.0\text{ mm} \times 200.0\text{ mm}$ ($7.87'' \times 7.87''$) boards are available:
+
+### 1. Model 1: 144 LEDs (12×12 Staggered Brick Grid)
+- **Directory:** `pcb/monolithic_200mm_144/` (generated via `scripts/generate_monolithic_200mm_144_pcb.py`).
+- **Resolution:** 144 WS2812B-2020 LEDs (`C52917434`) + 144 0402 bypass caps (`C1525`).
+- **Pitch:** $15.5\text{ mm} \times 16.0\text{ mm}$ staggered brick layout (matching the scale of the 4-tile modular array).
+- **Interconnects:** ZERO cables on the board! 100% internal etched copper traces.
+- **Connectors on Rear (`B.Cu`):**
+  - `J_IN`: JST-PH 2.0mm horizontal header at bottom-left $(35.0, 192.0)$ from waist controller (`+5V`, `DAT`, `GND`).
+  - `J_OUT`: JST-PH 2.0mm horizontal header at bottom-right $(165.0, 192.0)$ daisy-chaining to back panel.
+  - Parallel $2.54\text{ mm}$ direct-solder eyelets for 22/24 AWG silicone wire.
+
+### 2. Model 2: 288 LEDs (18×16 Double-Density Offset Lattice)
+- **Directory:** `pcb/monolithic_200mm_288/` (generated via `scripts/generate_monolithic_200mm_288_pcb.py`).
+- **Resolution:** Exactly **288 WS2812B-2020 LEDs** ($144 \times 2$) + 288 0402 bypass caps.
+- **Pitch:** High-density $11.6\text{ mm} \times 10.6\text{ mm}$ isotropic staggered offset lattice.
+- **Visuals:** Double resolution for ultra-smooth animation curves and sharp graphic silhouettes.
+- **Power Limiting:** Enforce FastLED 5V, 2000mA hardware power limit (`FastLED.setMaxPowerInVoltsAndMilliamps(5, 2000)`). Running at ~6.9mA per LED average under the 2.0A battery cap provides brilliant night visibility while maintaining 3+ hour battery life on standard 5,000–10,000 mAh packs.
+- **Connectors on Rear (`B.Cu`):**
+  - `J_IN` at $(35.0, 194.0)$ and `J_OUT` at $(165.0, 194.0)$ with heavy-duty copper power planes.
+
+### 3. Mounting & Attachment:
+- 4 Corner M3 Screw Holes (`H1`–`H4`) at $(6.0, 6.0)$, $(194.0, 6.0)$, $(6.0, 194.0)$, and $(194.0, 194.0)$.
+- 12 Perimeter Sewing Eyelets (`S1`–`S12`): $\varnothing 2.0\text{ mm}$ plated through-holes spaced evenly along all four edges for stitching into shirt pockets.
+
+

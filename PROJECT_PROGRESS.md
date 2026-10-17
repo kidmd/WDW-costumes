@@ -93,6 +93,27 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### 2026-10-16 23:30 - Monolithic 200mm × 200mm Panels: 144-LED & 288-LED Double-Density Models
+- **Model 1: 144 LEDs (12×12 Staggered Brick Grid — `pcb/monolithic_200mm_144/`):**
+  - Generated via `scripts/generate_monolithic_200mm_144_pcb.py`.
+  - Single-piece $200.0\text{ mm} \times 200.0\text{ mm}$ board covering the full chest/back with 144 WS2812B-2020 LEDs and 144 0402 bypass caps.
+  - $15.5\text{ mm} \times 16.0\text{ mm}$ pitch in an authentic Disney Electrical Parade alternating brick pattern.
+  - **ZERO internal jumper cables:** 100% etched internal copper traces between LEDs 1 through 144.
+  - Turnkey KiCad PCB, RS-274X Gerbers (`monolithic_200mm_144_gerbers.zip`), JLCPCB BOM/CPL files, and interactive HTML preview (`monolithic_200mm_144_preview.html`).
+- **Model 2: 288 LEDs (18×16 Double-Density Offset Lattice — `pcb/monolithic_200mm_288/`):**
+  - Generated via `scripts/generate_monolithic_200mm_288_pcb.py`.
+  - Exactly twice as many LEDs ($144 \times 2 = 288$ LEDs) with 288 0402 caps.
+  - High-density $11.6\text{ mm} \times 10.6\text{ mm}$ isotropic offset grid delivering double the pixel density ("Retina" display).
+  - FastLED hardware power limiting enforced ($5\text{V}, 2000\text{mA}$ max) drawing ~6.9mA average per LED for brilliant night visibility and 3+ hours runtime on 5,000–10,000 mAh battery packs.
+  - Turnkey KiCad PCB, RS-274X Gerbers (`monolithic_200mm_288_gerbers.zip`), JLCPCB BOM/CPL files, and interactive HTML preview (`monolithic_200mm_288_preview.html`).
+- **Clean Rear Connector Architecture on Both Boards (`B.Cu`):**
+  - 100% flush front face (only 0.9mm LEDs and 0.5mm caps).
+  - 2 rear horizontal JST-PH 2.0mm ports (`J_IN` at bottom-left, `J_OUT` at bottom-right) plus parallel $2.54\text{ mm}$ direct-solder wire pads.
+  - 4 corner M3 mounting holes and 12 perimeter sewing eyelets.
+- **Fleet Economics (8 Runners: Front + Back = 16 Panels / 18 Boards with Spares):**
+  - 144-LED Model: $\approx \$280.67$ total ($\$35.08$ per runner for Front + Back complete).
+  - 288-LED Model: $\approx \$426.44$ total ($\$53.30$ per runner for Front + Back complete).
+
 ### 2026-10-16 18:20 - Bottom-Mounted JST Connector Variant: 100% Flush Front Face & Symmetrical 22mm Straight Spans
 - **100% Flush Front Layer (`F.Cu`):**
   - Designed dedicated bottom-mounted PCB generator (`scripts/generate_universal_6x6_bottom_pcb.py`).
