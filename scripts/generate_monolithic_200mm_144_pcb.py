@@ -10,6 +10,8 @@ os.makedirs(MONO_144_DIR, exist_ok=True)
 
 # -------------------------------------------------------------
 # Configuration: Monolithic 200mm x 200mm 12x12 Staggered Brick Matrix
+# Pure Single-Sided SMT Assembly (100% Top-Layer Components)
+# Solder pins for IN and OUT (No SMT connectors on bottom!)
 # Total LEDs: 144 WS2812B-2020 LEDs (C52917434)
 # -------------------------------------------------------------
 BOARD_SIZE_MM = 200.0
@@ -46,19 +48,43 @@ for r in range(GRID_ROWS):
         led_idx += 1
 
 # -------------------------------------------------------------
-# Connectors on BOTTOM LAYER (B.Cu)
-# J_IN at bottom-left, J_OUT at bottom-right
+# Solder Pin Headers: 2.54mm Pitch Plated Through-Hole (PTH)
+# Can be soldered from TOP or BOTTOM!
 # -------------------------------------------------------------
-jst_ports = [
-    {"ref": "J_IN",  "type": "IN",  "x": 35.0,  "y": 192.0, "rot": 0, "label": "IN (ESP32)"},
-    {"ref": "J_OUT", "type": "OUT", "x": 165.0, "y": 192.0, "rot": 0, "label": "OUT (Daisy)"},
+solder_ports = [
+    {
+        "name": "IN",
+        "label": "DATA IN",
+        "x": 30.0,
+        "y": 192.0,
+        "pins": [
+            {"num": 1, "label": "+5V", "net": 1, "net_name": "+5V", "x": 30.0 - 2.54, "y": 192.0},
+            {"num": 2, "label": "DAT", "net": 3, "net_name": "DATA_1", "x": 30.0,        "y": 192.0},
+            {"num": 3, "label": "GND", "net": 2, "net_name": "GND",    "x": 30.0 + 2.54, "y": 192.0},
+        ],
+        "strain_holes": [
+            {"x": 26.0, "y": 186.5, "drill": 2.2},
+            {"x": 34.0, "y": 186.5, "drill": 2.2},
+        ]
+    },
+    {
+        "name": "OUT",
+        "label": "DATA OUT",
+        "x": 170.0,
+        "y": 192.0,
+        "pins": [
+            {"num": 1, "label": "+5V", "net": 1, "net_name": "+5V", "x": 170.0 - 2.54, "y": 192.0},
+            {"num": 2, "label": "DAT", "net": NUM_LEDS + 3, "net_name": f"DATA_{NUM_LEDS+1}", "x": 170.0, "y": 192.0},
+            {"num": 3, "label": "GND", "net": 2, "net_name": "GND", "x": 170.0 + 2.54, "y": 192.0},
+        ],
+        "strain_holes": [
+            {"x": 166.0, "y": 186.5, "drill": 2.2},
+            {"x": 174.0, "y": 186.5, "drill": 2.2},
+        ]
+    }
 ]
 
-# -------------------------------------------------------------
 # Mounting & Sewing Features
-# 4 Corner M3 Holes (Ø3.2mm drill, 5.0mm pad)
-# 12 Perimeter Sewing Eyelets (Ø2.0mm drill, 3.5mm pad)
-# -------------------------------------------------------------
 m3_holes = [
     {"ref": "H1", "x": 6.0,   "y": 6.0,   "drill": 3.2, "pad": 5.0, "label": "M3"},
     {"ref": "H2", "x": 194.0, "y": 6.0,   "drill": 3.2, "pad": 5.0, "label": "M3"},
@@ -86,22 +112,20 @@ sew_holes = [
 ]
 
 # -------------------------------------------------------------
-# 1. Generate JLCPCB BOM File
+# 1. Generate JLCPCB BOM File (Pure Single-Sided: LEDs + Caps ONLY!)
 # -------------------------------------------------------------
 bom_path = os.path.join(MONO_144_DIR, "monolithic_200mm_144_bom.csv")
 with open(bom_path, "w", encoding="utf-8") as f:
     f.write("Comment,Designator,Footprint,LCSC Part #\n")
     led_refs = " ".join([d["ref"] for d in led_positions])
     cap_refs = " ".join([d["cap_ref"] for d in led_positions])
-    jst_refs = " ".join([j["ref"] for j in jst_ports])
     f.write(f'WS2812B-2020-V6,"{led_refs}",LED_SMD:LED_WS2812B-2020_PLCC4_2.0x2.0mm,C52917434\n')
     f.write(f'100nF (0.1uF) 50V 0402,"{cap_refs}",Capacitor_SMD:C_0402_1005Metric,C1525\n')
-    f.write(f'JST-PH-3P-Horizontal-SMD,"{jst_refs}",Connector_JST:JST_PH_S3B-PH-SM4-TB_1x03-1MP_P2.00mm_Horizontal,C3029441\n')
 
-print(f"Generated BOM: {bom_path}")
+print(f"Generated BOM (100% Single-Sided): {bom_path}")
 
 # -------------------------------------------------------------
-# 2. Generate JLCPCB CPL (Centroid) File
+# 2. Generate JLCPCB CPL (Centroid) File (100% Top Layer Only!)
 # -------------------------------------------------------------
 cpl_path = os.path.join(MONO_144_DIR, "monolithic_200mm_144_cpl.csv")
 with open(cpl_path, "w", encoding="utf-8") as f:
@@ -111,10 +135,8 @@ with open(cpl_path, "w", encoding="utf-8") as f:
         cx = round(d["x"] + 2.0, 2)
         cy = d["y"]
         f.write(f'{d["cap_ref"]},100nF,C_0402,{cx:.2f},{cy:.2f},90.0,Top\n')
-    for j in jst_ports:
-        f.write(f'{j["ref"]},JST_PH_3P_SMT,JST_PH_Horizontal,{j["x"]:.2f},{j["y"]:.2f},{float(j["rot"]):.1f},Bottom\n')
 
-print(f"Generated CPL: {cpl_path}")
+print(f"Generated CPL (100% Top Layer): {cpl_path}")
 
 # -------------------------------------------------------------
 # 3. Generate KiCad PCB (.kicad_pcb) File
@@ -128,7 +150,7 @@ kicad_content = f"""(kicad_pcb (version 20211014) (generator "Antigravity Imagin
     (drawings 0)
     (tracks 0)
     (zones 0)
-    (modules {NUM_LEDS * 2 + len(jst_ports) + len(m3_holes) + len(sew_holes)})
+    (modules {NUM_LEDS * 2 + len(m3_holes) + len(sew_holes)})
     (nets {num_nets})
   )
   (page A4)
@@ -163,7 +185,7 @@ kicad_content += f"""  (gr_line (start 0 0) (end {b} 0) (layer Edge.Cuts) (width
   (gr_line (start 0 {b}) (end 0 0) (layer Edge.Cuts) (width 0.15))
 """
 
-# M3 Mounting Holes
+# M3 Holes
 for h in m3_holes:
     kicad_content += f"""  (module "MountingHole:MountingHole_3.2mm_M3" (layer F.Cu) (tedit 5D5A6E4F)
     (at {h['x']} {h['y']})
@@ -189,37 +211,51 @@ for s in sew_holes:
   )
 """
 
-# Connectors on B.Cu
-for j in jst_ports:
-    jx = j["x"]
-    jy = j["y"]
-    jref = j["ref"]
-    jtype = j["type"]
-    data_net = 3 if (jtype == "IN") else (NUM_LEDS + 3)
-    kicad_content += f"""  (module "Connector_JST:JST_PH_S3B-PH-SM4-TB_1x03-1MP_P2.00mm_Horizontal" (layer B.Cu) (tedit 5D5A6E4F)
-    (at {jx} {jy})
-    (descr "JST PH 3-pin {jtype} connector on Bottom")
-    (path "/{jref}")
-    (fp_text reference "{jref}" (at 0 -3.6) (layer B.SilkS)
+# 2.54mm Through-Hole Solder Pin Headers for IN and OUT (Both Sides Soldering!)
+for sp in solder_ports:
+    pname = sp["name"]
+    plabel = sp["label"]
+    px = sp["x"]
+    py = sp["y"]
+    
+    # Solder header module with 3 pins
+    kicad_content += f"""  (module "Connector_PinHeader_2.54mm:PinHeader_1x03_P2.54mm_Vertical" (layer F.Cu) (tedit 5D5A6E4F)
+    (at {px} {py})
+    (descr "2.54mm Pin Header for {plabel}")
+    (path "/HDR_{pname}")
+    (fp_text reference "J_{pname}" (at 0 -3.0) (layer F.SilkS)
       (effects (font (size 0.7 0.7) (thickness 0.12)))
     )
-    (fp_text user "[{jtype}]" (at 0 3.6) (layer B.SilkS)
+    (fp_text user "[{pname}]" (at 0 3.0) (layer F.SilkS)
       (effects (font (size 0.65 0.65) (thickness 0.12)))
     )
-    (pad 1 smd rect (at -2.0 0.0) (size 1.0 1.6) (layers B.Cu B.Paste B.Mask) (net 1))
-    (pad 2 smd rect (at 0.0 0.0) (size 1.0 1.6) (layers B.Cu B.Paste B.Mask) (net {data_net}))
-    (pad 3 smd rect (at 2.0 0.0) (size 1.0 1.6) (layers B.Cu B.Paste B.Mask) (net 2))
-    (pad MP smd rect (at -3.4 -1.5) (size 1.5 1.8) (layers B.Cu B.Paste B.Mask) (net 2))
-    (pad MP smd rect (at 3.4 -1.5) (size 1.5 1.8) (layers B.Cu B.Paste B.Mask) (net 2))
-  )
+    (fp_text user "[{pname}]" (at 0 3.0) (layer B.SilkS)
+      (effects (font (size 0.65 0.65) (thickness 0.12)))
+    )
+    (fp_line (start -4.0 -1.6) (end 4.0 -1.6) (layer F.SilkS) (width 0.15))
+    (fp_line (start 4.0 -1.6) (end 4.0 1.6) (layer F.SilkS) (width 0.15))
+    (fp_line (start 4.0 1.6) (end -4.0 1.6) (layer F.SilkS) (width 0.15))
+    (fp_line (start -4.0 1.6) (end -4.0 -1.6) (layer F.SilkS) (width 0.15))
+    (fp_line (start -4.0 -1.6) (end 4.0 -1.6) (layer B.SilkS) (width 0.15))
+    (fp_line (start 4.0 -1.6) (end 4.0 1.6) (layer B.SilkS) (width 0.15))
+    (fp_line (start 4.0 1.6) (end -4.0 1.6) (layer B.SilkS) (width 0.15))
+    (fp_line (start -4.0 1.6) (end -4.0 -1.6) (layer B.SilkS) (width 0.15))
 """
-    # Direct-Solder Eyelets (2.54mm pitch)
-    for p_idx, (p_name, p_net, p_xoff) in enumerate([("5V", 1, -2.54), ("DAT", data_net, 0.0), ("GND", 2, 2.54)]):
-        kicad_content += f"""  (module "TestPoint:TestPoint_Pad_D1.5mm" (layer B.Cu) (tedit 5D5A6E4F)
-    (at {round(jx + p_xoff, 2)} {round(jy - 5.0, 2)})
-    (descr "Direct solder eyelet {p_name}")
-    (path "/{jref}_{p_name}")
-    (pad 1 thru_hole circle (at 0 0) (size 2.0 2.0) (drill 1.2) (layers *.Cu *.Mask) (net {p_net}))
+    for pin in sp["pins"]:
+        p_xoff = round(pin["x"] - px, 2)
+        kicad_content += f"""    (pad {pin['num']} thru_hole circle (at {p_xoff} 0) (size 2.2 2.2) (drill 1.2) (layers *.Cu *.Mask) (net {pin['net']}))
+    (fp_text user "{pin['label']}" (at {p_xoff} -2.0) (layer F.SilkS) (effects (font (size 0.55 0.55) (thickness 0.1))))
+    (fp_text user "{pin['label']}" (at {p_xoff} -2.0) (layer B.SilkS) (effects (font (size 0.55 0.55) (thickness 0.1))))
+"""
+    kicad_content += "  )\n"
+    
+    # Strain Relief Non-Plated Holes
+    for sh_idx, sh in enumerate(sp["strain_holes"]):
+        kicad_content += f"""  (module "MountingHole:MountingHole_2.2mm" (layer F.Cu) (tedit 5D5A6E4F)
+    (at {sh['x']} {sh['y']})
+    (descr "Wire Strain Relief Hole 2.2mm")
+    (path "/STRAIN_{pname}_{sh_idx+1}")
+    (pad 1 np_thru_hole circle (at 0 0) (size 2.2 2.2) (drill 2.2) (layers *.Mask))
   )
 """
 
@@ -252,7 +288,6 @@ for d in led_positions:
     (pad 4 smd rect (at 0.85 -0.65) (size 0.6 0.5) (layers F.Cu F.Paste F.Mask) (net {net_din}))
   )
 """
-    # 0402 Decoupling Capacitor
     cx = round(x + 2.0, 2)
     cy = y
     kicad_content += f"""  (module "Capacitor_SMD:C_0402_1005Metric" (layer F.Cu) (tedit 5D5A6E4F)
@@ -296,19 +331,17 @@ for i in range(NUM_LEDS - 1):
     if d1["row"] == d2["row"]:
         kicad_content += f'  (segment (start {c1_5v[0]} {c1_5v[1]}) (end {c2_5v[0]} {c2_5v[1]}) (width 0.8) (layer F.Cu) (net 1))\n'
 
-# Connect J_IN to LED 1
+# Connect IN Header (Pin 2: DAT) to LED 1
 led1 = led_positions[0]
 p1_din = (round(led1["x"] + 0.85, 2), round(led1["y"] - 0.65, 2))
-kicad_content += f'  (via (at 35.0 188.0) (size 0.8) (drill 0.4) (layers F.Cu B.Cu) (net 3))\n'
-kicad_content += f'  (segment (start 35.0 192.0) (end 35.0 188.0) (width 0.3) (layer B.Cu) (net 3))\n'
-kicad_content += f'  (segment (start 35.0 188.0) (end {p1_din[0]} {p1_din[1]}) (width 0.25) (layer F.Cu) (net 3))\n'
+kicad_content += f'  (segment (start 30.0 192.0) (end 30.0 180.0) (width 0.3) (layer F.Cu) (net 3))\n'
+kicad_content += f'  (segment (start 30.0 180.0) (end {p1_din[0]} {p1_din[1]}) (width 0.25) (layer F.Cu) (net 3))\n'
 
-# Connect LED 144 to J_OUT
+# Connect LED 144 to OUT Header (Pin 2: DAT)
 led_last = led_positions[-1]
 plast_dout = (round(led_last["x"] - 0.85, 2), round(led_last["y"] + 0.65, 2))
-kicad_content += f'  (via (at 165.0 188.0) (size 0.8) (drill 0.4) (layers F.Cu B.Cu) (net {NUM_LEDS+3}))\n'
-kicad_content += f'  (segment (start {plast_dout[0]} {plast_dout[1]}) (end 165.0 188.0) (width 0.25) (layer F.Cu) (net {NUM_LEDS+3}))\n'
-kicad_content += f'  (segment (start 165.0 188.0) (end 165.0 192.0) (width 0.3) (layer B.Cu) (net {NUM_LEDS+3}))\n'
+kicad_content += f'  (segment (start {plast_dout[0]} {plast_dout[1]}) (end 170.0 180.0) (width 0.25) (layer F.Cu) (net {NUM_LEDS+3}))\n'
+kicad_content += f'  (segment (start 170.0 180.0) (end 170.0 192.0) (width 0.3) (layer F.Cu) (net {NUM_LEDS+3}))\n'
 
 # Ground Zone on B.Cu
 kicad_content += f"""  (zone (net 2) (net_name "GND") (layer B.Cu) (tstamp 0) (hatch edge 0.5)
@@ -377,6 +410,7 @@ T1C3.200
 T2C2.000
 T3C0.400
 T4C1.200
+T5C2.200
 %
 G90
 G05
@@ -390,16 +424,20 @@ T1
     f.write("T3\n")
     for d in led_positions:
         f.write(f"X{round(d['x'] + 2.0, 3):.3f}Y{round(d['y'] + 1.2, 3):.3f}\n")
-    f.write("X35.000Y188.000\nX165.000Y188.000\n")
     f.write("T4\n")
-    f.write("X32.460Y187.000\nX35.000Y187.000\nX37.540Y187.000\n")
-    f.write("X162.460Y187.000\nX165.000Y187.000\nX167.540Y187.000\n")
+    for sp in solder_ports:
+        for pin in sp["pins"]:
+            f.write(f"X{pin['x']:.3f}Y{pin['y']:.3f}\n")
+    f.write("T5\n")
+    for sp in solder_ports:
+        for sh in sp["strain_holes"]:
+            f.write(f"X{sh['x']:.3f}Y{sh['y']:.3f}\n")
     f.write("M30\n")
 
 # Top Copper (.GTL)
 gtl_path = os.path.join(MONO_144_DIR, "monolithic_200mm_144.GTL")
 with open(gtl_path, "w", encoding="utf-8") as f:
-    f.write("""G04 Layer: Top Copper (F.Cu) - Monolithic 144 LED Matrix*
+    f.write("""G04 Layer: Top Copper (F.Cu) - Monolithic 144 LED Matrix (Pure Single-Sided)*
 %FSLAX46Y46*%
 %MOMM*%
 %LPD*%
@@ -411,15 +449,18 @@ with open(gtl_path, "w", encoding="utf-8") as f:
 %ADD18C,0.800*%
 %ADD19C,5.000*%
 %ADD20C,3.500*%
+%ADD21C,2.200*%
 """)
-    # M3 holes
     f.write("D19*\n")
     for h in m3_holes:
         f.write(f"{coord_gbr(h['x'], h['y'])}D03*\n")
     f.write("D20*\n")
     for s in sew_holes:
         f.write(f"{coord_gbr(s['x'], s['y'])}D03*\n")
-    # LEDs
+    f.write("D21*\n")
+    for sp in solder_ports:
+        for pin in sp["pins"]:
+            f.write(f"{coord_gbr(pin['x'], pin['y'])}D03*\n")
     f.write("D13*\n")
     for d in led_positions:
         x = d["x"]
@@ -428,18 +469,15 @@ with open(gtl_path, "w", encoding="utf-8") as f:
         f.write(f"{coord_gbr(x - 0.85, y + 0.65)}D03*\n")
         f.write(f"{coord_gbr(x + 0.85, y + 0.65)}D03*\n")
         f.write(f"{coord_gbr(x + 0.85, y - 0.65)}D03*\n")
-    # Caps
     f.write("D14*\n")
     for d in led_positions:
         cx = round(d["x"] + 2.0, 2)
         cy = d["y"]
         f.write(f"{coord_gbr(cx, cy - 0.48)}D03*\n")
         f.write(f"{coord_gbr(cx, cy + 0.48)}D03*\n")
-    # Vias
     f.write("D18*\n")
     for d in led_positions:
         f.write(f"{coord_gbr(round(d['x'] + 2.0, 2), round(d['y'] + 1.2, 2))}D03*\n")
-    # Data traces
     f.write("D10*\n")
     for i in range(NUM_LEDS - 1):
         d1 = led_positions[i]
@@ -450,7 +488,7 @@ with open(gtl_path, "w", encoding="utf-8") as f:
         f.write(f"{coord_gbr(p2[0], p2[1])}D01*\n")
     f.write("M02*\n")
 
-# Bottom Copper (.GBL)
+# Bottom Copper (.GBL) - Ground Plane and Solder Pad Annular Rings
 gbl_path = os.path.join(MONO_144_DIR, "monolithic_200mm_144.GBL")
 with open(gbl_path, "w", encoding="utf-8") as f:
     f.write("""G04 Layer: Bottom Copper (B.Cu)*
@@ -461,8 +499,7 @@ with open(gbl_path, "w", encoding="utf-8") as f:
 %ADD11C,5.000*%
 %ADD12C,3.500*%
 %ADD13R,196.000X196.000*%
-%ADD15R,1.000X1.600*%
-%ADD16C,2.000*%
+%ADD14C,2.200*%
 D13*
 X100000000Y100000000D03*
 D11*
@@ -472,16 +509,10 @@ D11*
     f.write("D12*\n")
     for s in sew_holes:
         f.write(f"{coord_gbr(s['x'], s['y'])}D03*\n")
-    f.write("D15*\n")
-    for j in jst_ports:
-        jx = j["x"]
-        jy = j["y"]
-        f.write(f"{coord_gbr(jx - 2.0, jy)}D03*\n")
-        f.write(f"{coord_gbr(jx, jy)}D03*\n")
-        f.write(f"{coord_gbr(jx + 2.0, jy)}D03*\n")
-    f.write("D16*\n")
-    f.write("X32460000Y187000000D03*\nX35000000Y187000000D03*\nX37540000Y187000000D03*\n")
-    f.write("X162460000Y187000000D03*\nX165000000Y187000000D03*\nX167540000Y187000000D03*\n")
+    f.write("D14*\n")
+    for sp in solder_ports:
+        for pin in sp["pins"]:
+            f.write(f"{coord_gbr(pin['x'], pin['y'])}D03*\n")
     f.write("M02*\n")
 
 # Top Mask (.GTS)
@@ -495,6 +526,7 @@ with open(gts_path, "w", encoding="utf-8") as f:
 %ADD11R,0.660X0.720*%
 %ADD12C,5.100*%
 %ADD13C,3.600*%
+%ADD14C,2.300*%
 D12*
 """)
     for h in m3_holes:
@@ -502,6 +534,10 @@ D12*
     f.write("D13*\n")
     for s in sew_holes:
         f.write(f"{coord_gbr(s['x'], s['y'])}D03*\n")
+    f.write("D14*\n")
+    for sp in solder_ports:
+        for pin in sp["pins"]:
+            f.write(f"{coord_gbr(pin['x'], pin['y'])}D03*\n")
     f.write("D10*\n")
     for d in led_positions:
         x = d["x"]
@@ -518,7 +554,7 @@ D12*
         f.write(f"{coord_gbr(cx, cy + 0.48)}D03*\n")
     f.write("M02*\n")
 
-# Bottom Mask (.GBS)
+# Bottom Mask (.GBS) - Opens Solder Pins for Rear-Soldering!
 gbs_path = os.path.join(MONO_144_DIR, "monolithic_200mm_144.GBS")
 with open(gbs_path, "w", encoding="utf-8") as f:
     f.write("""G04 Layer: Bottom Solder Mask*
@@ -527,8 +563,7 @@ with open(gbs_path, "w", encoding="utf-8") as f:
 %LPD*%
 %ADD10C,5.100*%
 %ADD11C,3.600*%
-%ADD12R,1.100X1.700*%
-%ADD13C,2.100*%
+%ADD12C,2.300*%
 D10*
 """)
     for h in m3_holes:
@@ -537,15 +572,9 @@ D10*
     for s in sew_holes:
         f.write(f"{coord_gbr(s['x'], s['y'])}D03*\n")
     f.write("D12*\n")
-    for j in jst_ports:
-        jx = j["x"]
-        jy = j["y"]
-        f.write(f"{coord_gbr(jx - 2.0, jy)}D03*\n")
-        f.write(f"{coord_gbr(jx, jy)}D03*\n")
-        f.write(f"{coord_gbr(jx + 2.0, jy)}D03*\n")
-    f.write("D13*\n")
-    f.write("X32460000Y187000000D03*\nX35000000Y187000000D03*\nX37540000Y187000000D03*\n")
-    f.write("X162460000Y187000000D03*\nX165000000Y187000000D03*\nX167540000Y187000000D03*\n")
+    for sp in solder_ports:
+        for pin in sp["pins"]:
+            f.write(f"{coord_gbr(pin['x'], pin['y'])}D03*\n")
     f.write("M02*\n")
 
 # Top Paste (.GTP)
@@ -574,23 +603,15 @@ D10*
         f.write(f"{coord_gbr(cx, cy + 0.48)}D03*\n")
     f.write("M02*\n")
 
-# Bottom Paste (.GBP)
+# Bottom Paste (.GBP) - EMPTY! ZERO SMT PARTS ON BOTTOM!
 gbp_path = os.path.join(MONO_144_DIR, "monolithic_200mm_144.GBP")
 with open(gbp_path, "w", encoding="utf-8") as f:
-    f.write("""G04 Layer: Bottom Paste*
+    f.write("""G04 Layer: Bottom Paste (Empty - 100% Single Sided)*
 %FSLAX46Y46*%
 %MOMM*%
 %LPD*%
-%ADD10R,1.000X1.600*%
-D10*
+M02*
 """)
-    for j in jst_ports:
-        jx = j["x"]
-        jy = j["y"]
-        f.write(f"{coord_gbr(jx - 2.0, jy)}D03*\n")
-        f.write(f"{coord_gbr(jx, jy)}D03*\n")
-        f.write(f"{coord_gbr(jx + 2.0, jy)}D03*\n")
-    f.write("M02*\n")
 
 # Top Silkscreen (.GTO)
 gto_path = os.path.join(MONO_144_DIR, "monolithic_200mm_144.GTO")
@@ -602,12 +623,9 @@ with open(gto_path, "w", encoding="utf-8") as f:
 %ADD10C,0.150*%
 D10*
 """)
-    # Title text
-    f.write(f"X{int(20*1000000)}Y{int(5*1000000)}D02*\nX{int(180*1000000)}Y{int(5*1000000)}D01*\n")
     for d in led_positions:
         x = d["x"]
         y = d["y"]
-        # Draw box outline
         f.write(f"{coord_gbr(x-1.0, y-1.0)}D02*\n{coord_gbr(x+1.0, y-1.0)}D01*\n")
         f.write(f"{coord_gbr(x+1.0, y+1.0)}D01*\n{coord_gbr(x-1.0, y+1.0)}D01*\n")
         f.write(f"{coord_gbr(x-1.0, y-1.0)}D01*\n")
@@ -623,12 +641,12 @@ with open(gbo_path, "w", encoding="utf-8") as f:
 %ADD10C,0.150*%
 D10*
 """)
-    for j in jst_ports:
-        jx = j["x"]
-        jy = j["y"]
-        f.write(f"{coord_gbr(jx - 4.0, jy - 3.0)}D02*\n{coord_gbr(jx + 4.0, jy - 3.0)}D01*\n")
-        f.write(f"{coord_gbr(jx + 4.0, jy + 3.0)}D01*\n{coord_gbr(jx - 4.0, jy + 3.0)}D01*\n")
-        f.write(f"{coord_gbr(jx - 4.0, jy - 3.0)}D01*\n")
+    for sp in solder_ports:
+        px = sp["x"]
+        py = sp["y"]
+        f.write(f"{coord_gbr(px - 4.5, py - 2.0)}D02*\n{coord_gbr(px + 4.5, py - 2.0)}D01*\n")
+        f.write(f"{coord_gbr(px + 4.5, py + 2.0)}D01*\n{coord_gbr(px - 4.5, py + 2.0)}D01*\n")
+        f.write(f"{coord_gbr(px - 4.5, py - 2.0)}D01*\n")
     f.write("M02*\n")
 
 # Gerber ZIP
@@ -647,7 +665,7 @@ html_content = f"""<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Monolithic 200mm x 200mm (144 LEDs) Inspector</title>
+<title>Monolithic 200mm x 200mm (144 LEDs - Solder Pins) Inspector</title>
 <style>
 body {{ font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #0f172a; color: #f8fafc; margin: 0; padding: 20px; text-align: center; }}
 h1 {{ color: #38bdf8; margin-bottom: 5px; }}
@@ -661,22 +679,23 @@ svg {{ width: 100%; height: 100%; }}
 .stat {{ background: #1e293b; padding: 10px 18px; border-radius: 8px; border: 1px solid #334155; }}
 .stat-val {{ font-size: 1.4em; font-weight: bold; color: #38bdf8; }}
 .stat-lbl {{ font-size: 0.8em; color: #94a3b8; }}
+.badge {{ display: inline-block; background: #059669; color: white; padding: 3px 8px; border-radius: 4px; font-size: 0.85em; font-weight: bold; margin-bottom: 10px; }}
 </style>
 </head>
 <body>
-<h1>Monolithic 200mm x 200mm (144 LEDs) Inspector</h1>
-<p>Disney Imagineering MSEP Wearable Display • 12x12 Staggered Brick Grid</p>
+<h1>Monolithic 200mm x 200mm (144 LEDs)</h1>
+<div class="badge">100% Single-Sided SMT (Economic PCBA - Saves $55 Setup!)</div>
+<p>Through-Hole Solder Pins for IN & OUT • Can be soldered from Front or Back</p>
 <div>
   <button id="btnFront" class="btn active" onclick="setView('front')">Front View (Flush LEDs)</button>
-  <button id="btnRear" class="btn" onclick="setView('rear')">Rear View (JST Connectors)</button>
+  <button id="btnRear" class="btn" onclick="setView('rear')">Rear View (Solder Pins & Strain Relief)</button>
 </div>
 
 <div id="viewport">
   <svg viewBox="0 0 200 200" id="pcbSvg">
-    <!-- Board Substrate -->
     <rect x="0" y="0" width="200" height="200" fill="#064e3b" stroke="#047857" stroke-width="0.8" rx="2" />
     
-    <!-- M3 Mounting Holes -->
+    <!-- M3 Holes -->
     <g id="m3Layer">
       <circle cx="6" cy="6" r="2.5" fill="none" stroke="#d97706" stroke-width="0.8" />
       <circle cx="6" cy="6" r="1.6" fill="#020617" />
@@ -686,6 +705,29 @@ svg {{ width: 100%; height: 100%; }}
       <circle cx="6" cy="194" r="1.6" fill="#020617" />
       <circle cx="194" cy="194" r="2.5" fill="none" stroke="#d97706" stroke-width="0.8" />
       <circle cx="194" cy="194" r="1.6" fill="#020617" />
+    </g>
+    
+    <!-- Solder Pin Headers (Visible on Both Views) -->
+    <g id="solderLayer">
+      <!-- IN Header -->
+      <rect x="25.5" y="190.5" width="9.0" height="3.0" fill="#334155" stroke="#94a3b8" stroke-width="0.3" rx="0.4" />
+      <circle cx="27.46" cy="192" r="1.1" fill="#fbbf24" stroke="#d97706" stroke-width="0.2" />
+      <circle cx="30.00" cy="192" r="1.1" fill="#fbbf24" stroke="#d97706" stroke-width="0.2" />
+      <circle cx="32.54" cy="192" r="1.1" fill="#fbbf24" stroke="#d97706" stroke-width="0.2" />
+      <text x="30" y="189.5" font-size="1.4" fill="#f8fafc" text-anchor="middle" font-weight="bold">[IN: 5V DAT GND]</text>
+      <!-- Strain Relief Holes -->
+      <circle cx="26" cy="186.5" r="1.1" fill="#020617" stroke="#94a3b8" stroke-width="0.4" />
+      <circle cx="34" cy="186.5" r="1.1" fill="#020617" stroke="#94a3b8" stroke-width="0.4" />
+      
+      <!-- OUT Header -->
+      <rect x="165.5" y="190.5" width="9.0" height="3.0" fill="#334155" stroke="#94a3b8" stroke-width="0.3" rx="0.4" />
+      <circle cx="167.46" cy="192" r="1.1" fill="#fbbf24" stroke="#d97706" stroke-width="0.2" />
+      <circle cx="170.00" cy="192" r="1.1" fill="#fbbf24" stroke="#d97706" stroke-width="0.2" />
+      <circle cx="172.54" cy="192" r="1.1" fill="#fbbf24" stroke="#d97706" stroke-width="0.2" />
+      <text x="170" y="189.5" font-size="1.4" fill="#f8fafc" text-anchor="middle" font-weight="bold">[OUT: 5V DAT GND]</text>
+      <!-- Strain Relief Holes -->
+      <circle cx="166" cy="186.5" r="1.1" fill="#020617" stroke="#94a3b8" stroke-width="0.4" />
+      <circle cx="174" cy="186.5" r="1.1" fill="#020617" stroke="#94a3b8" stroke-width="0.4" />
     </g>
     
     <!-- Front Layer: LEDs and Caps -->
@@ -704,26 +746,24 @@ for d in led_positions:
 
 html_content += f"""    </g>
 
-    <!-- Rear Layer: JST Connectors and Solder Pads -->
+    <!-- Rear Layer: Solder Pins and Wire Strain Relief Guidance -->
     <g id="rearLayer" style="display: none;">
-      <!-- J_IN -->
-      <rect x="31" y="189" width="8" height="6" fill="#f1f5f9" stroke="#94a3b8" stroke-width="0.4" rx="0.5" />
-      <text x="35" y="193" font-size="1.4" fill="#0f172a" text-anchor="middle" font-weight="bold">[IN]</text>
-      <!-- J_OUT -->
-      <rect x="161" y="189" width="8" height="6" fill="#f1f5f9" stroke="#94a3b8" stroke-width="0.4" rx="0.5" />
-      <text x="165" y="193" font-size="1.4" fill="#0f172a" text-anchor="middle" font-weight="bold">[OUT]</text>
-      <!-- Internal Copper Trace Indicator -->
-      <path d="M 35 189 L 35 170 L 100 170 L 165 170 L 165 189" stroke="#10b981" stroke-width="1.2" fill="none" stroke-dasharray="2,2" />
-      <text x="100" y="167" font-size="1.6" fill="#34d399" text-anchor="middle">Internal 144-LED Trace Backbone (Zero Jumper Wires!)</text>
+      <!-- Solder wire path demonstration -->
+      <path d="M 26 186.5 Q 28 183 30 192" stroke="#ef4444" stroke-width="0.8" fill="none" stroke-dasharray="1.5,1.5" />
+      <text x="30" y="182" font-size="1.3" fill="#fca5a5" text-anchor="middle">S-Curve Wire Strain Relief</text>
+      
+      <path d="M 30 192 L 30 170 L 100 170 L 170 170 L 170 192" stroke="#10b981" stroke-width="1.2" fill="none" stroke-dasharray="2,2" />
+      <text x="100" y="167" font-size="1.6" fill="#34d399" text-anchor="middle">100% Internal Copper Traces (Zero Inter-Tile Jumpers!)</text>
+      <text x="100" y="174" font-size="1.2" fill="#94a3b8" text-anchor="middle">Zero SMT parts on back • Clean bare fiberglass plane</text>
     </g>
   </svg>
 </div>
 
 <div class="stat-box">
-  <div class="stat"><div class="stat-val">200 x 200 mm</div><div class="stat-lbl">Dimensions</div></div>
+  <div class="stat"><div class="stat-val">Single-Sided</div><div class="stat-lbl">Economic PCBA ($15 Setup)</div></div>
   <div class="stat"><div class="stat-val">144</div><div class="stat-lbl">WS2812B-2020 LEDs</div></div>
-  <div class="stat"><div class="stat-val">16.0 mm</div><div class="stat-lbl">Staggered Pitch</div></div>
-  <div class="stat"><div class="stat-val">ZERO</div><div class="stat-lbl">Inter-Tile Wires</div></div>
+  <div class="stat"><div class="stat-val">2.54 mm</div><div class="stat-lbl">Standard Solder Pitch</div></div>
+  <div class="stat"><div class="stat-val">S-Curve</div><div class="stat-lbl">Strain Relief Built-In</div></div>
 </div>
 
 <script>

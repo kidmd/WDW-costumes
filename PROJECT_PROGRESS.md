@@ -93,26 +93,28 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
-### 2026-10-16 23:30 - Monolithic 200mm × 200mm Panels: 144-LED & 288-LED Double-Density Models
+### 2026-10-16 23:50 - Monolithic 200mm × 200mm Panels: Pure Single-Sided SMT (Economic PCBA) with Through-Hole Solder Pins
+- **100% Single-Sided SMT Assembly (Top Layer Only):**
+  - Removed all SMT connectors from the bottom layer (`B.Cu`), making CPL 100% Top-layer parts (LEDs and 0402 Caps only).
+  - Qualifies for JLCPCB **Single-Sided "Economic PCBA"** ($\sim \$15.00$ setup fee instead of $\sim \$70.00$), saving **$\$55.00$ per batch**!
+  - Empty bottom paste stencil (`.GBP`) and zero extended part feeder fees.
+- **2.54mm Through-Hole Solder Pins for IN and OUT:**
+  - Standard $2.54\text{ mm}$ pitch plated through-hole pads labeled `+5V`, `DAT`, and `GND` at bottom-left (`IN`) and bottom-right (`OUT`).
+  - **Solder from Front or Back:** Both copper layers (`F.Cu` and `B.Cu`) have soldermask apertures, allowing direct soldering of 22/24 AWG silicone wire, right-angle pin headers, or DuPont jumpers from either side.
+  - **Dual S-Curve Wire Strain Relief:** Dual $\varnothing 2.2\text{ mm}$ non-plated anchor holes next to each pad group let wires loop through the board, mechanically isolating the solder joints from 10K running vibrations.
 - **Model 1: 144 LEDs (12×12 Staggered Brick Grid — `pcb/monolithic_200mm_144/`):**
-  - Generated via `scripts/generate_monolithic_200mm_144_pcb.py`.
   - Single-piece $200.0\text{ mm} \times 200.0\text{ mm}$ board covering the full chest/back with 144 WS2812B-2020 LEDs and 144 0402 bypass caps.
-  - $15.5\text{ mm} \times 16.0\text{ mm}$ pitch in an authentic Disney Electrical Parade alternating brick pattern.
-  - **ZERO internal jumper cables:** 100% etched internal copper traces between LEDs 1 through 144.
+  - $15.5\text{ mm} \times 16.0\text{ mm}$ pitch. ZERO internal jumper cables (100% internal traces).
   - Turnkey KiCad PCB, RS-274X Gerbers (`monolithic_200mm_144_gerbers.zip`), JLCPCB BOM/CPL files, and interactive HTML preview (`monolithic_200mm_144_preview.html`).
 - **Model 2: 288 LEDs (18×16 Double-Density Offset Lattice — `pcb/monolithic_200mm_288/`):**
-  - Generated via `scripts/generate_monolithic_200mm_288_pcb.py`.
   - Exactly twice as many LEDs ($144 \times 2 = 288$ LEDs) with 288 0402 caps.
   - High-density $11.6\text{ mm} \times 10.6\text{ mm}$ isotropic offset grid delivering double the pixel density ("Retina" display).
   - FastLED hardware power limiting enforced ($5\text{V}, 2000\text{mA}$ max) drawing ~6.9mA average per LED for brilliant night visibility and 3+ hours runtime on 5,000–10,000 mAh battery packs.
   - Turnkey KiCad PCB, RS-274X Gerbers (`monolithic_200mm_288_gerbers.zip`), JLCPCB BOM/CPL files, and interactive HTML preview (`monolithic_200mm_288_preview.html`).
-- **Clean Rear Connector Architecture on Both Boards (`B.Cu`):**
-  - 100% flush front face (only 0.9mm LEDs and 0.5mm caps).
-  - 2 rear horizontal JST-PH 2.0mm ports (`J_IN` at bottom-left, `J_OUT` at bottom-right) plus parallel $2.54\text{ mm}$ direct-solder wire pads.
-  - 4 corner M3 mounting holes and 12 perimeter sewing eyelets.
-- **Fleet Economics (8 Runners: Front + Back = 16 Panels / 18 Boards with Spares):**
-  - 144-LED Model: $\approx \$280.67$ total ($\$35.08$ per runner for Front + Back complete).
-  - 288-LED Model: $\approx \$426.44$ total ($\$53.30$ per runner for Front + Back complete).
+- **Updated Fleet Economics (8 Runners: Front + Back = 16 Panels / 18 Boards with Spares):**
+  - 144-LED Model: **$\approx \$220.72$ total** ($\mathbf{\$27.59}$ per runner for Front + Back complete).
+  - 288-LED Model: **$\approx \$368.45$ total** ($\mathbf{\$46.06}$ per runner for Front + Back complete).
+
 
 ### 2026-10-16 18:20 - Bottom-Mounted JST Connector Variant: 100% Flush Front Face & Symmetrical 22mm Straight Spans
 - **100% Flush Front Layer (`F.Cu`):**

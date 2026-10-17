@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Monolithic 200mm x 200mm (144 LEDs) Inspector</title>
+<title>Monolithic 200mm x 200mm (144 LEDs - Solder Pins) Inspector</title>
 <style>
 body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #0f172a; color: #f8fafc; margin: 0; padding: 20px; text-align: center; }
 h1 { color: #38bdf8; margin-bottom: 5px; }
@@ -16,22 +16,23 @@ svg { width: 100%; height: 100%; }
 .stat { background: #1e293b; padding: 10px 18px; border-radius: 8px; border: 1px solid #334155; }
 .stat-val { font-size: 1.4em; font-weight: bold; color: #38bdf8; }
 .stat-lbl { font-size: 0.8em; color: #94a3b8; }
+.badge { display: inline-block; background: #059669; color: white; padding: 3px 8px; border-radius: 4px; font-size: 0.85em; font-weight: bold; margin-bottom: 10px; }
 </style>
 </head>
 <body>
-<h1>Monolithic 200mm x 200mm (144 LEDs) Inspector</h1>
-<p>Disney Imagineering MSEP Wearable Display • 12x12 Staggered Brick Grid</p>
+<h1>Monolithic 200mm x 200mm (144 LEDs)</h1>
+<div class="badge">100% Single-Sided SMT (Economic PCBA - Saves $55 Setup!)</div>
+<p>Through-Hole Solder Pins for IN & OUT • Can be soldered from Front or Back</p>
 <div>
   <button id="btnFront" class="btn active" onclick="setView('front')">Front View (Flush LEDs)</button>
-  <button id="btnRear" class="btn" onclick="setView('rear')">Rear View (JST Connectors)</button>
+  <button id="btnRear" class="btn" onclick="setView('rear')">Rear View (Solder Pins & Strain Relief)</button>
 </div>
 
 <div id="viewport">
   <svg viewBox="0 0 200 200" id="pcbSvg">
-    <!-- Board Substrate -->
     <rect x="0" y="0" width="200" height="200" fill="#064e3b" stroke="#047857" stroke-width="0.8" rx="2" />
     
-    <!-- M3 Mounting Holes -->
+    <!-- M3 Holes -->
     <g id="m3Layer">
       <circle cx="6" cy="6" r="2.5" fill="none" stroke="#d97706" stroke-width="0.8" />
       <circle cx="6" cy="6" r="1.6" fill="#020617" />
@@ -41,6 +42,29 @@ svg { width: 100%; height: 100%; }
       <circle cx="6" cy="194" r="1.6" fill="#020617" />
       <circle cx="194" cy="194" r="2.5" fill="none" stroke="#d97706" stroke-width="0.8" />
       <circle cx="194" cy="194" r="1.6" fill="#020617" />
+    </g>
+    
+    <!-- Solder Pin Headers (Visible on Both Views) -->
+    <g id="solderLayer">
+      <!-- IN Header -->
+      <rect x="25.5" y="190.5" width="9.0" height="3.0" fill="#334155" stroke="#94a3b8" stroke-width="0.3" rx="0.4" />
+      <circle cx="27.46" cy="192" r="1.1" fill="#fbbf24" stroke="#d97706" stroke-width="0.2" />
+      <circle cx="30.00" cy="192" r="1.1" fill="#fbbf24" stroke="#d97706" stroke-width="0.2" />
+      <circle cx="32.54" cy="192" r="1.1" fill="#fbbf24" stroke="#d97706" stroke-width="0.2" />
+      <text x="30" y="189.5" font-size="1.4" fill="#f8fafc" text-anchor="middle" font-weight="bold">[IN: 5V DAT GND]</text>
+      <!-- Strain Relief Holes -->
+      <circle cx="26" cy="186.5" r="1.1" fill="#020617" stroke="#94a3b8" stroke-width="0.4" />
+      <circle cx="34" cy="186.5" r="1.1" fill="#020617" stroke="#94a3b8" stroke-width="0.4" />
+      
+      <!-- OUT Header -->
+      <rect x="165.5" y="190.5" width="9.0" height="3.0" fill="#334155" stroke="#94a3b8" stroke-width="0.3" rx="0.4" />
+      <circle cx="167.46" cy="192" r="1.1" fill="#fbbf24" stroke="#d97706" stroke-width="0.2" />
+      <circle cx="170.00" cy="192" r="1.1" fill="#fbbf24" stroke="#d97706" stroke-width="0.2" />
+      <circle cx="172.54" cy="192" r="1.1" fill="#fbbf24" stroke="#d97706" stroke-width="0.2" />
+      <text x="170" y="189.5" font-size="1.4" fill="#f8fafc" text-anchor="middle" font-weight="bold">[OUT: 5V DAT GND]</text>
+      <!-- Strain Relief Holes -->
+      <circle cx="166" cy="186.5" r="1.1" fill="#020617" stroke="#94a3b8" stroke-width="0.4" />
+      <circle cx="174" cy="186.5" r="1.1" fill="#020617" stroke="#94a3b8" stroke-width="0.4" />
     </g>
     
     <!-- Front Layer: LEDs and Caps -->
@@ -623,26 +647,24 @@ svg { width: 100%; height: 100%; }
       <text x="18.62" y="186.20" font-size="0.9" fill="#f8fafc" text-anchor="middle" font-family="monospace">144</text>
     </g>
 
-    <!-- Rear Layer: JST Connectors and Solder Pads -->
+    <!-- Rear Layer: Solder Pins and Wire Strain Relief Guidance -->
     <g id="rearLayer" style="display: none;">
-      <!-- J_IN -->
-      <rect x="31" y="189" width="8" height="6" fill="#f1f5f9" stroke="#94a3b8" stroke-width="0.4" rx="0.5" />
-      <text x="35" y="193" font-size="1.4" fill="#0f172a" text-anchor="middle" font-weight="bold">[IN]</text>
-      <!-- J_OUT -->
-      <rect x="161" y="189" width="8" height="6" fill="#f1f5f9" stroke="#94a3b8" stroke-width="0.4" rx="0.5" />
-      <text x="165" y="193" font-size="1.4" fill="#0f172a" text-anchor="middle" font-weight="bold">[OUT]</text>
-      <!-- Internal Copper Trace Indicator -->
-      <path d="M 35 189 L 35 170 L 100 170 L 165 170 L 165 189" stroke="#10b981" stroke-width="1.2" fill="none" stroke-dasharray="2,2" />
-      <text x="100" y="167" font-size="1.6" fill="#34d399" text-anchor="middle">Internal 144-LED Trace Backbone (Zero Jumper Wires!)</text>
+      <!-- Solder wire path demonstration -->
+      <path d="M 26 186.5 Q 28 183 30 192" stroke="#ef4444" stroke-width="0.8" fill="none" stroke-dasharray="1.5,1.5" />
+      <text x="30" y="182" font-size="1.3" fill="#fca5a5" text-anchor="middle">S-Curve Wire Strain Relief</text>
+      
+      <path d="M 30 192 L 30 170 L 100 170 L 170 170 L 170 192" stroke="#10b981" stroke-width="1.2" fill="none" stroke-dasharray="2,2" />
+      <text x="100" y="167" font-size="1.6" fill="#34d399" text-anchor="middle">100% Internal Copper Traces (Zero Inter-Tile Jumpers!)</text>
+      <text x="100" y="174" font-size="1.2" fill="#94a3b8" text-anchor="middle">Zero SMT parts on back • Clean bare fiberglass plane</text>
     </g>
   </svg>
 </div>
 
 <div class="stat-box">
-  <div class="stat"><div class="stat-val">200 x 200 mm</div><div class="stat-lbl">Dimensions</div></div>
+  <div class="stat"><div class="stat-val">Single-Sided</div><div class="stat-lbl">Economic PCBA ($15 Setup)</div></div>
   <div class="stat"><div class="stat-val">144</div><div class="stat-lbl">WS2812B-2020 LEDs</div></div>
-  <div class="stat"><div class="stat-val">16.0 mm</div><div class="stat-lbl">Staggered Pitch</div></div>
-  <div class="stat"><div class="stat-val">ZERO</div><div class="stat-lbl">Inter-Tile Wires</div></div>
+  <div class="stat"><div class="stat-val">2.54 mm</div><div class="stat-lbl">Standard Solder Pitch</div></div>
+  <div class="stat"><div class="stat-val">S-Curve</div><div class="stat-lbl">Strain Relief Built-In</div></div>
 </div>
 
 <script>
