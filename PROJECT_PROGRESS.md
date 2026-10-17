@@ -93,6 +93,16 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### 2026-10-17 00:50 - 3D-Printable PLA PCB Mockups: 1:1 Weight & Thickness Physical Test Mules
+- **Physics-Calibrated Weight Simulation in PLA (`scripts/generate_pcb_mockup_stls.py`):**
+  - Designed two 1:1 scale test mockups to simulate the physical feel, thickness, chest curvature, and bounce on a running shirt before spending \$400+ on PCB fabrication.
+  - **The 2.5mm Equivalence Rule:** Because PLA ($1.24\text{ g/cm}^3$) is 36% less dense than FR-4 fiberglass ($1.95\text{ g/cm}^3$), printing the mockup at $2.50\text{ mm}$ solid thickness (100% infill) matches both the total Z-height of the loaded board ($1.6\text{ mm}$ PCB + $0.9\text{ mm}$ LEDs) AND the exact weight (**$123.7\text{ grams}$ PLA vs. $126.5\text{ grams}$ real PCB — a 97.8% match!**).
+- **Deliverables Generated (`3d_panels/mockups/`):**
+  - `mockup_monolithic_200x200.stl`: $200.0\text{ mm} \times 200.0\text{ mm} \times 2.50\text{ mm}$ single-piece plate with 4 corner M3 holes, 12 perimeter sewing eyelets, solder pin holes, and wire strain relief holes. Weighs $123.7\text{ grams}$ at 100% infill.
+  - `mockup_modular_100x100.stl`: $100.0\text{ mm} \times 100.0\text{ mm} \times 2.50\text{ mm}$ quadrant tile with corner M3 and sewing eyelets. Weighs $30.9\text{ grams}$ per tile ($123.4\text{ grams}$ for all 4). Taping 4 together with a $2.0\text{ mm}$ seam physically simulates the articulating felt living hinge!
+  - `mockups_preview.html`: Interactive 3D WebGL (Three.js) viewer allowing 360° inspection, dimension checks, and slicing instructions.
+- **Slicer Requirements:** Set infill to **100% (or Top/Bottom shells to 99)** to achieve the full $124\text{g}$ real-world weight.
+
 ### 2026-10-16 23:50 - Monolithic 200mm × 200mm Panels: Pure Single-Sided SMT (Economic PCBA) with Through-Hole Solder Pins
 - **100% Single-Sided SMT Assembly (Top Layer Only):**
   - Removed all SMT connectors from the bottom layer (`B.Cu`), making CPL 100% Top-layer parts (LEDs and 0402 Caps only).
