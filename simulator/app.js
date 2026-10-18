@@ -314,9 +314,9 @@ function getGraphicChestBounds() {
 
     if (typeof btfMatrix16x16Active !== 'undefined' && btfMatrix16x16Active) {
         // BTF 16x16 Matrix is 160.0 x 160.0mm inside a 176.0 x 176.0mm square plate.
-        // Fit the active graphic within a 156.0 x 156.0mm square centered at (0.50, Y_center).
-        const artFitW = 156.0 / 457.2;          // ~0.341207
-        const artFitH = artFitW / 1.25;         // ~0.272966
+        // Maximize graphic size to fit the panel envelope (168.0 x 168.0mm, preserving aspect ratio).
+        const artFitW = 168.0 / 457.2;          // ~0.367454
+        const artFitH = artFitW / 1.25;         // ~0.293963
         const aspect = (activeImg && activeImg.naturalWidth > 0 && activeImg.naturalHeight > 0)
             ? (activeImg.naturalWidth / activeImg.naturalHeight)
             : 0.706;
@@ -15969,6 +15969,14 @@ function updateBtfMatrix16x16TelemetryUI() {
     }
     if (open3dBtn) {
         open3dBtn.textContent = `🧊 Open 3D Square Plate Preview (${btfMatrix16x16Config.thicknessMm.toFixed(2)}mm)`;
+    }
+
+    const spreadBtn = document.getElementById('btfMatrixAutoSpreadBtn');
+    if (spreadBtn) {
+        const targetWin = Math.round(btfMatrix16x16Config.windowCount);
+        const targetGlow = Math.round(btfMatrix16x16Config.backlightCount);
+        spreadBtn.textContent = `🎯 Spread ${targetWin} Win + ${targetGlow} Glow`;
+        spreadBtn.title = `Click to redistribute ${targetWin} Windowed and ${targetGlow} Backlit LEDs across the graphic`;
     }
 }
 

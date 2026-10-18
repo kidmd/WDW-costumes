@@ -538,12 +538,17 @@ The telemetry card continuously updates as sliders, presets, or plate sizes chan
 - **Proportional 5.0mm SMD 5050 Packages & Radiant Phosphor Glow:** Draws square black SMD 5050 bodies (`#0d1117`) scaled to **strictly 5.0 mm wide** (occupying exactly 50% of the 10.0mm strip width with 2.5mm silicone margins on each side). Features circular phosphor emitter lenses ($3.2\text{ mm}$ die diameter), specular lens highlights, and breathing radial bloom glow.
 - **Segment Callout Badges:** At higher zoom levels, each segment displays a high-contrast identifier (`S1`, `S2`...) indicating where physical cuts and 3-pin solder jumpers (5V, Data, GND) will be required.
 
-#### 6. "Apply Strip Layout as Active LEDs"
-If you decide to proceed with physical LED strips instead of pebble lights:
-- Click **`✅ Apply Strip Layout as Active LEDs`** (`#btfApplyLayoutBtn`).
-- The simulator replaces the active costume's pebble LEDs with the exact $(x, y)$ coordinates and sampled colors of the generated strip matrix.
-- Recorded into the **Universal Undo History (`Ctrl+Z`)**, enabling instant reversal if needed.
-- Once applied, the layout can be utilized immediately across the Wiring Optimizer, Cricut Cut Exporter, 3D TPU Armor Panel Compiler, and ESP32 Firmware Exporters.
+#### 7. BTF-LIGHTING WS2812B 16×16 (256-LED) Flexible Matrix Mode & 3D Plate Integration
+For runners using the **BTF-LIGHTING WS2812B ECO RGB 16×16 (256-Pixel) Flexible FPCB Matrix** ($160.0\text{ mm} \times 160.0\text{ mm}$ with $10.0\text{ mm}$ pitch):
+- **176.0mm × 176.0mm Square Plate Simulation:** Displays the physical black 3D printed plate enclosing the matrix with an $8.0\text{ mm}$ perimeter flange and **16 perimeter shirt-stitching holes** ($\varnothing 2.8\text{ mm}$, inset $4.0\text{ mm}$ from plate edges to clear the FPCB).
+- **Maximized Graphic Sizing:** Automatically maximizes the active float graphic to fit across the panel ($168.0\text{ mm}$ maximum dimension) centered at $(x=88.0, y=88.0)\text{ mm}$ while strictly preserving the artwork's authentic aspect ratio. All area outside the graphic remains solid black filament.
+- **Dynamic LED Allocation & 1-Click Redistribution:**
+  - **Windowed LEDs (Cutout Holes):** Sliders allow selecting target count (`0–200`, default `50`). Windowed LEDs are punched out as through-holes in the plate for crisp direct beam illumination.
+  - **Backlighting LEDs (Glow Thru Thin PLA):** Sliders allow selecting target count (`0–200`, default `25`). Backlit LEDs shine directly beneath solid thin PLA with no window cutouts, producing a soft diffused subsurface glow.
+  - **Remaining LEDs Dark (Off):** Kept off to maintain low current draw (~1.35A max, safe for 2.0A portable power banks).
+  - **Dynamic Spread Button (`#btfMatrixAutoSpreadBtn`):** The button label dynamically tracks the active slider targets: **`🎯 Spread <W> Win + <G> Glow`**. A single click redistributes the chosen counts evenly across the maximized graphic using Farthest-Point Sampling (FPS).
+  - **Individual Cell Toggling:** Clicking any of the 256 matrix cells in the Layout canvas manually cycles its role: `Window ➔ Backlight ➔ Dark ➔ Window`.
+- **Selectable Plate Thickness (Default 0.60mm):** Quick-select buttons for `0.48mm`, `0.60mm ★`, `0.80mm`, and `1.00mm`. Opening the **3D Preview Modal** (`#tpuPreviewModal`) automatically defaults to **`🔲 16×16 Matrix Plate`** mode with full-Z multi-color filament preview.
 
 ---
 

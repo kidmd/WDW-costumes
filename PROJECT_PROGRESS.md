@@ -92,6 +92,15 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 ---
 
 ## Progress Log
+ 
+### 2026-10-18 00:05 - 🔲 BTF 16×16 Matrix: Maximized Graphic Sizing & Dynamic LED Redistribution
+- **Maximized Graphic Fit on Panel Envelope:**
+  - Increased `artFitW` in `simulator/app.js` (`getGraphicChestBounds`) from `156.0 / 457.2` to `168.0 / 457.2` (~36.7% of shirt width), allowing the active character artwork to utilize virtually the entire $176\text{ mm} \times 176\text{ mm}$ plate envelope without clipping the 16 perimeter shirt-mounting holes.
+  - Aligned `ART_FIT_MM` in `scripts/compile_clean_tpu_panel.py` to `168.0` for 3D multi-color STL/3MF generation.
+- **Dynamic LED Target Redistribution & Reactive Spread Button:**
+  - Expanded slider ranges for Windowed LEDs and Backlight LEDs from `0–120` / `0–100` to `0–200` on both controls.
+  - Linked the button label `#btfMatrixAutoSpreadBtn` dynamically in `updateBtfMatrix16x16TelemetryUI()`: updates automatically to **`🎯 Spread <W> Win + <G> Glow`** whenever slider values change.
+  - Clicking the button recalculates Farthest-Point Sampling across the enlarged graphic contour and redistributes the newly specified LED counts with a single click.
 
 ### 2026-10-17 23:40 - 🔲 BTF-LIGHTING 16×16 (256-LED) Flexible FPCB Matrix Hybrid Window + Backlight Mode & 176×176mm Square 3D Plate Compiler
 - **Hardware & Physical Architecture:**

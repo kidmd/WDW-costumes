@@ -159,7 +159,7 @@ def compile_matrix_16x16_plate_variant(variant_name, artwork_path, window_shape=
     PLATE_SIZE_MM = 176.0
     MATRIX_SIZE_MM = 160.0
     MARGIN_MM = 8.0
-    ART_FIT_MM = 156.0
+    ART_FIT_MM = 168.0
     THICK_MM = round(max(0.20, min(3.00, float(plate_thickness_mm))), 2)
 
     print(f"\n>>> Compiling {variant_name.upper()} 16x16 Matrix Backlight Plate ({PLATE_SIZE_MM}x{PLATE_SIZE_MM}x{THICK_MM:.2f}mm, Window Shape: {window_shape.upper()})...")
