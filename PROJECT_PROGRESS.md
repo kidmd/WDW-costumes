@@ -93,6 +93,20 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
  
+### 2026-10-18 01:25 - ⚡ 16×16 Matrix ESP32 Firmware Integration, Preset Persistence & Pre-Flash Auto-Save (Title Drum Active)
+- **Preset Save & Restore for 16×16 Matrix Mode (`simulator/app.js`):**
+  - Updated `buildCompletePresetData()` and `applyProfileData()` so saving a float profile persists `btfMatrix16x16Active`, `btfMatrix16x16Config` (`windowCount`, `backlightCount`, `thicknessMm`), `matrixWindowedLeds`, and `matrixBacklightLeds` (each storing its physical serpentine `id` $0 \dots 255$, `row`, `col`, `x`, `y`, and sampled `color`).
+  - Loading a saved 16×16 matrix preset automatically activates the 16×16 Matrix toggle, restores slider counts and plate thickness, and restores the exact saved Windowed, Backlit, and Dark cell assignments without re-randomizing.
+  - Updated `presets/main_street_title_drum_100_led_vibrant_preset_large_100led_2026-10-18_01-04.json` with the active Title Drum 16×16 matrix layout (**55 Windowed LEDs + 28 Backlit LEDs = 83 Active LEDs**, 0.60mm plate, and 5-color Title Drum palette).
+- **Automatic Pre-Flash & Pre-Build Float Saving (`triggerUsbFirmwareFlash` & `rebuildFleetBinariesBtn`):**
+  - Before flashing firmware over USB or rebuilding the 7-float ROM binaries, if the active float has any unsaved changes (`isSingleShirtDirty`), the simulator automatically saves the float preset to disk (`presets/<name>.json`) and syncs `presets/fleet_lineup.json` so changes are never lost and the compiled firmware always reflects the exact displayed layout.
+- **ESP32 Firmware 16×16 Matrix Serpentine Mapping (`src/main.cpp`, `arduino/MSEP_Costume/MSEP_Costume.ino`, `simulator.py`, `build_fleet_binaries.py`):**
+  - Expanded `MAX_LEDS_CAPACITY` to `512` (supporting two 256-pixel 16×16 matrices for Front + Back).
+  - Updated `simulator.py` (`handle_flash_firmware`) to emit `COSTUME_MATRIX_16X16_MODE`, `MATRIX_ACTIVE_LED_COUNT`, and `MATRIX_ACTIVE_INDICES[FRONT_LEDS]` in `include/costume_config.h`, along with 2D spatial metrics (`SPATIAL_X_BYTE`, `SPATIAL_Y_BYTE`, `SPATIAL_RANK_Y`, `SPATIAL_RADIUS_BYTE`) computed directly from the active matrix LED coordinates.
+  - Updated `build_fleet_binaries.py` (`sync_fleet_palettes`) to emit `FLOAT_IS_MATRIX_16X16[7]`, `FLOAT_ACTIVE_LED_COUNT[7]`, and `FLOAT_MATRIX_INDICES[7][100]` in `include/fleet_palettes.h` and `arduino/MSEP_Costume/fleet_palettes.h`.
+  - Updated `duplicateFrontToBack()` and `fillActiveCostumeSolid()` in both `src/main.cpp` and `arduino/MSEP_Costume/MSEP_Costume.ino` so that when a float uses 16×16 Matrix Mode, only the active Windowed and Backlit LEDs illuminate at their exact physical serpentine indices ($0 \dots 255$ Front and $256 \dots 511$ Back), while all remaining un-windowed cells stay strictly `CRGB::Black` (`0, 0, 0`) across all modes (Autonomous Show, Ambient Fallback, Castle Photo Mode, Corral Standby, 30s Fleet Show, and Rapid Roll Call).
+  - Compiled and verified `firmware/firmware.bin` and `firmware/firmware_float2.bin` for **Float 2 (The Title Drum)** using PlatformIO (`RAM: 14.6%`, `Flash: 60.7%`, `SUCCESS`).
+
 ### 2026-10-18 00:20 - 🔲 BTF 16×16 Matrix 3D Plate: Pure Flat Full-Z Geometry, Ø 3.4mm Round Windows, 4 Corner Sewing Holes & Native 3MF Assembly
 - **Strict Backlighting Test Panel Geometry Rules Applied:**
   - **Removed All Legacy Tray Features:** Completely removed all LED channels/collars, side walls, screw holes, outer sewing eyelets, and zip-tie strain-relief tunnels.

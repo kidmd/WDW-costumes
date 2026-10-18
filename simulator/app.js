@@ -13506,6 +13506,14 @@ function buildCompletePresetData(name) {
         tpuIncludeLedNumbers: params.tpuIncludeLedNumbers === true,
         tpuIncludeClipGrooves: params.tpuIncludeClipGrooves === true,
         tpuIncludeTopNubs: params.tpuIncludeTopNubs === true,
+        btfMatrix16x16Active: (typeof btfMatrix16x16Active !== 'undefined') ? !!btfMatrix16x16Active : false,
+        btfMatrix16x16Config: (typeof btfMatrix16x16Config !== 'undefined') ? { ...btfMatrix16x16Config } : { windowCount: 50, backlightCount: 25, thicknessMm: 0.60 },
+        matrixWindowedLeds: (typeof btfMatrix16x16Active !== 'undefined' && btfMatrix16x16Active && typeof getBtfMatrix16x16ListsForExport === 'function')
+            ? getBtfMatrix16x16ListsForExport().windowedLeds
+            : [],
+        matrixBacklightLeds: (typeof btfMatrix16x16Active !== 'undefined' && btfMatrix16x16Active && typeof getBtfMatrix16x16ListsForExport === 'function')
+            ? getBtfMatrix16x16ListsForExport().backlightLeds
+            : [],
         settings: {
             pattern: activePattern,
             direction: params.direction || 1,
@@ -13998,12 +14006,83 @@ function applyProfileData(profileData) {
         nameInput.value = profileData.name;
     }
 
-    // 7. Recompute BTF Strip / 16x16 Matrix Preview if active
+    // 7. Restore BTF Strip / 16x16 Matrix Preview & Saved Cell Distribution
+    if (typeof btfMatrix16x16Active !== 'undefined') {
+        const hasMatrixMode = (profileData.btfMatrix16x16Active === true) ||
+            (profileData.matrix_16x16_mode === true) ||
+            (Array.isArray(profileData.matrixWindowedLeds) && profileData.matrixWindowedLeds.length > 0);
+        btfMatrix16x16Active = hasMatrixMode;
+
+        if (profileData.btfMatrix16x16Config && typeof profileData.btfMatrix16x16Config === 'object') {
+            if (typeof profileData.btfMatrix16x16Config.windowCount === 'number') {
+                btfMatrix16x16Config.windowCount = profileData.btfMatrix16x16Config.windowCount;
+            }
+            if (typeof profileData.btfMatrix16x16Config.backlightCount === 'number') {
+                btfMatrix16x16Config.backlightCount = profileData.btfMatrix16x16Config.backlightCount;
+            }
+            if (typeof profileData.btfMatrix16x16Config.thicknessMm === 'number') {
+                btfMatrix16x16Config.thicknessMm = profileData.btfMatrix16x16Config.thicknessMm;
+            }
+        } else if (hasMatrixMode) {
+            if (Array.isArray(profileData.matrixWindowedLeds)) btfMatrix16x16Config.windowCount = profileData.matrixWindowedLeds.length;
+            if (Array.isArray(profileData.matrixBacklightLeds)) btfMatrix16x16Config.backlightCount = profileData.matrixBacklightLeds.length;
+        }
+
+        const matToggle = document.getElementById('btfMatrix16x16Toggle');
+        const matCard = document.getElementById('btfMatrix16x16OptionsCard');
+        const winSlider = document.getElementById('btfMatrixWindowCountSlider');
+        const glowSlider = document.getElementById('btfMatrixBacklightCountSlider');
+        if (matToggle) matToggle.checked = btfMatrix16x16Active;
+        if (matCard) matCard.style.display = btfMatrix16x16Active ? 'block' : 'none';
+        if (winSlider) winSlider.value = btfMatrix16x16Config.windowCount;
+        if (glowSlider) glowSlider.value = btfMatrix16x16Config.backlightCount;
+        if (typeof syncBtfMatrixThicknessUI === 'function') {
+            syncBtfMatrixThicknessUI(btfMatrix16x16Config.thicknessMm);
+        }
+
+        if (btfMatrix16x16Active) {
+            if (btfStripPreviewActive) {
+                btfStripPreviewActive = false;
+                const stripToggle = document.getElementById('btfStripPreviewToggle');
+                const stripCard = document.getElementById('btfStripOptionsCard');
+                if (stripToggle) stripToggle.checked = false;
+                if (stripCard) stripCard.style.display = 'none';
+            }
+            tpuDisplayMode = 'matrix16';
+            computeBtfMatrix16x16Layout();
+
+            // If exact windowed/backlit cell assignments were saved in the preset, restore them!
+            const savedWins = Array.isArray(profileData.matrixWindowedLeds) ? profileData.matrixWindowedLeds : null;
+            const savedGlows = Array.isArray(profileData.matrixBacklightLeds) ? profileData.matrixBacklightLeds : null;
+            if ((savedWins && savedWins.length > 0) || (savedGlows && savedGlows.length > 0)) {
+                const winMap = new Map();
+                const glowMap = new Map();
+                if (savedWins) savedWins.forEach(item => { if (item && typeof item.id === 'number') winMap.set(item.id, item); });
+                if (savedGlows) savedGlows.forEach(item => { if (item && typeof item.id === 'number') glowMap.set(item.id, item); });
+
+                btfMatrix16x16Cells.forEach(cell => {
+                    if (winMap.has(cell.matrixIdx)) {
+                        cell.role = 'window';
+                        const item = winMap.get(cell.matrixIdx);
+                        if (item.color && typeof item.color.r === 'number') cell.color = { ...item.color };
+                    } else if (glowMap.has(cell.matrixIdx)) {
+                        cell.role = 'backlight';
+                        const item = glowMap.get(cell.matrixIdx);
+                        if (item.color && typeof item.color.r === 'number') cell.color = { ...item.color };
+                    } else {
+                        cell.role = 'dark';
+                    }
+                });
+                if (typeof updateBtfMatrix16x16TelemetryUI === 'function') {
+                    updateBtfMatrix16x16TelemetryUI();
+                }
+            }
+        } else {
+            if (tpuDisplayMode === 'matrix16') tpuDisplayMode = 'tray';
+        }
+    }
     if (btfStripPreviewActive) {
         computeBtfStripMatrix();
-    }
-    if (typeof btfMatrix16x16Active !== 'undefined' && btfMatrix16x16Active) {
-        computeBtfMatrix16x16Layout();
     }
 
     // 8. Restore TPU Armor Panel Features (Aperture Shape, Orientation, Numbers, Grooves, Nubs)
@@ -20309,6 +20388,52 @@ async function triggerUsbFirmwareFlash(floatId = 0) {
     const floatMeta = FLEET_FLASHER_ROSTER.find(f => f.id === effectiveFloatId) || FLEET_FLASHER_ROSTER[5];
     const floatLabel = `Float ${effectiveFloatId}: ${floatMeta.name}`;
 
+    // Auto-save unsaved float changes before flashing so firmware always uses the latest saved settings
+    let autoSavedLogLine = '';
+    if (isSingleShirtDirty && activeSingleShirtRunnerSlot !== null && activeSingleShirtRunnerSlot >= 0 && fleetRunners[activeSingleShirtRunnerSlot]) {
+        const dirtyRunner = fleetRunners[activeSingleShirtRunnerSlot];
+        let saveTargetName = '';
+        if (dirtyRunner.preset) {
+            saveTargetName = dirtyRunner.preset.replace(/^(server:|local:)/, '').replace(/\.json$/i, '');
+        }
+        if (!saveTargetName) {
+            const nameInput = document.getElementById('profileNameInput');
+            if (nameInput && nameInput.value.trim()) saveTargetName = nameInput.value.trim();
+        }
+        if (!saveTargetName) {
+            saveTargetName = getStandardFloatFileBaseName({
+                size: selectedPlateSize || 'large',
+                ledCount: (typeof btfMatrix16x16Active !== 'undefined' && btfMatrix16x16Active)
+                    ? (Math.round(btfMatrix16x16Config.windowCount) + Math.round(btfMatrix16x16Config.backlightCount))
+                    : (leds.length || 100)
+            });
+        }
+        try {
+            const saveRes = await saveCurrentProfile(saveTargetName, true);
+            if (saveRes && saveRes.success) {
+                autoSavedLogLine = `[SIMULATOR] Auto-saved unsaved float changes to "${saveRes.filename || saveTargetName}" before flashing...\n`;
+            }
+        } catch (saveErr) {
+            console.warn("Auto-save before flash warning:", saveErr);
+        }
+    }
+    if (typeof saveFleetLineupToStorage === 'function') {
+        saveFleetLineupToStorage();
+    }
+
+    const isMatrix16x16 = (typeof btfMatrix16x16Active !== 'undefined' && btfMatrix16x16Active);
+    let matrixExportLists = { windowedLeds: [], backlightLeds: [] };
+    let activeMatrixLeds = [];
+    if (isMatrix16x16 && typeof getBtfMatrix16x16ListsForExport === 'function') {
+        matrixExportLists = getBtfMatrix16x16ListsForExport();
+        activeMatrixLeds = [...matrixExportLists.windowedLeds, ...matrixExportLists.backlightLeds]
+            .sort((a, b) => a.id - b.id);
+    }
+
+    const totalActiveFront = (isMatrix16x16 && activeMatrixLeds.length > 0)
+        ? activeMatrixLeds.length
+        : (leds.length || 100);
+
     // Open main flash progress modal
     flashModal.classList.add('open');
     flashStatusText.textContent = `Building & Flashing ${floatLabel}...`;
@@ -20318,7 +20443,10 @@ async function triggerUsbFirmwareFlash(floatId = 0) {
     flashDoneBtn.style.display = 'none';
     flashTipText.textContent = `Baking ${floatLabel} (${floatMeta.role}) into ESP32 NVS flash over USB...`;
 
-    flashTerminal.textContent = `[SIMULATOR] Preparing firmware for 200 LEDs (100 Front + 100 Back)...\n` +
+    flashTerminal.textContent = autoSavedLogLine +
+        (isMatrix16x16
+            ? `[SIMULATOR] Preparing 16×16 Matrix firmware (${matrixExportLists.windowedLeds.length} Windowed + ${matrixExportLists.backlightLeds.length} Backlit = ${totalActiveFront} active LEDs mapped across 256-pixel matrix)...\n`
+            : `[SIMULATOR] Preparing firmware for ${totalActiveFront * 2} LEDs (${totalActiveFront} Front + ${totalActiveFront} Back)...\n`) +
         `[SIMULATOR] Assigned Float Role: ${floatLabel} (${floatMeta.role})\n` +
         `[SIMULATOR] Active Pattern: Unified Master Timeline (${sequenceCues.length} cues, fallback: ambient)\n` +
         `[SIMULATOR] Generating include/float_config.h (COMPILED_FLOAT_ID=${effectiveFloatId})...\n` +
@@ -20339,9 +20467,24 @@ async function triggerUsbFirmwareFlash(floatId = 0) {
     }, 600);
 
     try {
+        const effectivePalette = (isMatrix16x16 && activeMatrixLeds.length > 0)
+            ? activeMatrixLeds.map(l => l.color || { r: 255, g: 183, b: 3 })
+            : leds.map(l => l.color || { r: 15, g: 255, b: 35 });
+
+        const effectiveCoords = (isMatrix16x16 && activeMatrixLeds.length > 0)
+            ? activeMatrixLeds.map(l => ({
+                x: Math.max(0, Math.min(1, (typeof l.x === 'number' ? l.x : 88) / 176.0)),
+                y: Math.max(0, Math.min(1, 1.0 - ((typeof l.y === 'number' ? l.y : 88) / 176.0)))
+            }))
+            : leds.map(l => ({ x: (typeof l.x === 'number' ? l.x : 0.5), y: (typeof l.y === 'number' ? l.y : 0.5) }));
+
         const payload = {
-            numLeds: leds.length || 100,
+            numLeds: totalActiveFront,
             floatId: effectiveFloatId,
+            matrix16x16Mode: isMatrix16x16,
+            matrixActiveIndices: (isMatrix16x16 && activeMatrixLeds.length > 0) ? activeMatrixLeds.map(l => l.id) : [],
+            matrixWindowCount: isMatrix16x16 ? matrixExportLists.windowedLeds.length : 0,
+            matrixBacklightCount: isMatrix16x16 ? matrixExportLists.backlightLeds.length : 0,
             pattern: 'autonomous_90s',
             ambientPattern: activePattern,   // User's selected ambient mode (steady_sparkle, photo_mode, breathing_glow, etc.)
             ambientDirection: params.direction || 1,
@@ -20352,8 +20495,8 @@ async function triggerUsbFirmwareFlash(floatId = 0) {
             sparkleRate: params.sparkleRate,
             greenHue: params.greenHue,
             brightness: params.brightness,
-            palette: leds.map(l => l.color || { r: 15, g: 255, b: 35 }),
-            coords: leds.map(l => ({ x: (typeof l.x === 'number' ? l.x : 0.5), y: (typeof l.y === 'number' ? l.y : 0.5) })),
+            palette: effectivePalette,
+            coords: effectiveCoords,
             sequenceCues: sequenceCues || [],
             sequenceLoopDuration: sequenceLoopDuration || 90.0
         };
@@ -20381,8 +20524,10 @@ async function triggerUsbFirmwareFlash(floatId = 0) {
             flashTerminal.textContent += (data.log || '') + '\n\n' +
                 `==================================================\n` +
                 `[SUCCESS] Flashed successfully as ${floatLabel} to ESP32 on ${data.port}!\n` +
-                `The ESP32 has saved Float ID ${floatId} into NVS flash memory.\n` +
-                `Outputting 200 LEDs on GPIO 16 (FastLED 2.0A power limiter active).\n` +
+                `The ESP32 has saved Float ID ${effectiveFloatId} into NVS flash memory.\n` +
+                (isMatrix16x16
+                    ? `Outputting 16×16 Matrix (${totalActiveFront} active LEDs: ${matrixExportLists.windowedLeds.length} Windowed + ${matrixExportLists.backlightLeds.length} Backlit) on GPIO 16 (FastLED 2.0A power limiter active).\n`
+                    : `Outputting 200 LEDs on GPIO 16 (FastLED 2.0A power limiter active).\n`) +
                 `==================================================`;
             showToast(`⚡ Flashed ${floatLabel} to ${data.port}!`);
         } else {
@@ -20429,23 +20574,30 @@ if (flashEsp32Btn) {
 const rebuildFleetBinariesBtn = document.getElementById('rebuildFleetBinariesBtn');
 if (rebuildFleetBinariesBtn) {
     rebuildFleetBinariesBtn.addEventListener('click', async () => {
-        // 1. Verify if the active single shirt canvas float has unsaved changes
+        // 1. Automatically save any unsaved float changes on the active canvas so nothing is lost
         if (isSingleShirtDirty && activeSingleShirtRunnerSlot !== null && activeSingleShirtRunnerSlot >= 0 && fleetRunners[activeSingleShirtRunnerSlot]) {
             const dirtyRunner = fleetRunners[activeSingleShirtRunnerSlot];
-            const dirtyName = `Float ${dirtyRunner.slot + 1} (${dirtyRunner.name})`;
-            const promptSaveFloat = confirm(
-                `⚠️ Unsaved Canvas Changes Detected!\n\n${dirtyName} currently has unsaved layout or LED changes on the canvas.\n\nSave changes now before rebuilding ROMs so the Web Flasher includes your new layout and colors?\n\n• Click OK to save "${dirtyRunner.name}" now and continue rebuilding.\n• Click Cancel to abort the rebuild.`
-            );
-            if (promptSaveFloat) {
-                const floatSaveResult = await openSavePresetModal();
-                if (!floatSaveResult || !floatSaveResult.success) {
-                    showToast("⚠️ Float save cancelled. ROM rebuild aborted.");
-                    return;
-                }
-            } else {
-                showToast("⚠️ ROM rebuild aborted. Please save or discard canvas edits first.");
-                return;
+            let saveTargetName = '';
+            if (dirtyRunner.preset) {
+                saveTargetName = dirtyRunner.preset.replace(/^(server:|local:)/, '').replace(/\.json$/i, '');
             }
+            if (!saveTargetName) {
+                const nameInput = document.getElementById('profileNameInput');
+                if (nameInput && nameInput.value.trim()) saveTargetName = nameInput.value.trim();
+            }
+            if (!saveTargetName) {
+                saveTargetName = getStandardFloatFileBaseName({
+                    size: selectedPlateSize || 'large',
+                    ledCount: (typeof btfMatrix16x16Active !== 'undefined' && btfMatrix16x16Active)
+                        ? (Math.round(btfMatrix16x16Config.windowCount) + Math.round(btfMatrix16x16Config.backlightCount))
+                        : (leds.length || 100)
+                });
+            }
+            showToast(`💾 Auto-saving "${dirtyRunner.name}" before rebuilding ROMs...`);
+            await saveCurrentProfile(saveTargetName, true);
+        }
+        if (typeof saveFleetLineupToStorage === 'function') {
+            saveFleetLineupToStorage();
         }
 
         // 2. Verify if the active 30s Fleet Show routine has unsaved changes

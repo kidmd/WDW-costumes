@@ -21,9 +21,9 @@ FLOATS = [
 
 def sync_fleet_palettes():
     """
-    Synchronizes DEFAULT_FLOAT_PALETTES in include/fleet_palettes.h and
-    arduino/MSEP_Costume/fleet_palettes.h from active presets in presets/fleet_lineup.json.
-    Ensures that any LED moves, newly sampled background colors, or preset updates
+    Synchronizes DEFAULT_FLOAT_PALETTES and 16x16 Matrix mappings in include/fleet_palettes.h
+    and arduino/MSEP_Costume/fleet_palettes.h from active presets in presets/fleet_lineup.json.
+    Ensures that any LED moves, newly sampled background colors, 16x16 matrix settings, or preset updates
     are 100% baked into the firmware for all 7 floats.
     """
     lineup_file = os.path.join(BASE_DIR, "presets", "fleet_lineup.json")
@@ -39,31 +39,69 @@ def sync_fleet_palettes():
         return False
 
     palettes_by_float = {}
+    is_matrix_by_float = {}
+    active_count_by_float = {}
+    matrix_indices_by_float = {}
+
     for flt in lineup:
         slot = flt.get("slot", 0)
         float_id = slot + 1
         preset_rel = flt.get("preset", "").replace("server:", "")
         preset_path = os.path.join(BASE_DIR, "presets", preset_rel)
         colors = []
+        is_mat = 0
+        act_count = 100
+        mat_indices = [i for i in range(100)]
+
         if os.path.exists(preset_path):
             try:
                 with open(preset_path, "r", encoding="utf-8") as pf:
                     p_data = json.load(pf)
-                leds = p_data.get("leds", [])
-                if leds:
+
+                mat_active = bool(p_data.get("btfMatrix16x16Active", False) or p_data.get("matrix_16x16_mode", False))
+                win_leds = p_data.get("matrixWindowedLeds", p_data.get("matrix_windowed_leds", []))
+                glow_leds = p_data.get("matrixBacklightLeds", p_data.get("matrix_backlight_leds", []))
+
+                if mat_active and (len(win_leds) > 0 or len(glow_leds) > 0):
+                    is_mat = 1
+                    combined = sorted(win_leds + glow_leds, key=lambda item: int(item.get("id", 0)))
+                    act_count = min(256, len(combined))
+                    mat_indices = []
                     for i in range(100):
-                        led_entry = leds[i % len(leds)]
-                        c = led_entry.get("color", {})
+                        entry = combined[i % len(combined)]
+                        c = entry.get("color", {})
                         r = int(c.get("r", 255))
                         g = int(c.get("g", 183))
                         b = int(c.get("b", 3))
                         colors.append((r, g, b))
+                        if i < len(combined):
+                            mat_indices.append(max(0, min(255, int(entry.get("id", i)))))
+                        else:
+                            mat_indices.append(255)
+                    print(f"[MATRIX 16x16] Float {float_id} ({flt.get('name', '')}): {len(win_leds)} Windowed + {len(glow_leds)} Backlit = {act_count} active LEDs.")
+                else:
+                    leds = p_data.get("leds", [])
+                    if leds:
+                        act_count = min(100, len(leds))
+                        for i in range(100):
+                            led_entry = leds[i % len(leds)]
+                            c = led_entry.get("color", {})
+                            r = int(c.get("r", 255))
+                            g = int(c.get("g", 183))
+                            b = int(c.get("b", 3))
+                            colors.append((r, g, b))
             except Exception as pe:
                 print(f"[WARN] Error reading {preset_rel} for Float {float_id}: {pe}")
 
         if len(colors) < 100:
             colors = [(255, 183, 3)] * 100
+        if len(mat_indices) < 100:
+            mat_indices = [i % 256 for i in range(100)]
+
         palettes_by_float[float_id] = colors
+        is_matrix_by_float[float_id] = is_mat
+        active_count_by_float[float_id] = act_count
+        matrix_indices_by_float[float_id] = mat_indices
 
     lines = [
         "#ifndef FLEET_PALETTES_H",
@@ -72,12 +110,31 @@ def sync_fleet_palettes():
         "#include <FastLED.h>",
         "",
         "#define HAS_DEFAULT_FLOAT_PALETTES 1",
+        "#define HAS_FLEET_MATRIX_CONFIG 1",
+        "",
+        "// 16x16 BTF Matrix Mode flags & active LED counts per float (Floats 1..7 -> indices 0..6)",
+        "const uint8_t PROGMEM FLOAT_IS_MATRIX_16X16[7] = { " + ", ".join(str(is_matrix_by_float.get(fid, 0)) for fid in range(1, 8)) + " };",
+        "const uint8_t PROGMEM FLOAT_ACTIVE_LED_COUNT[7] = { " + ", ".join(str(active_count_by_float.get(fid, 100)) for fid in range(1, 8)) + " };",
+        "",
+        "// Physical 16x16 serpentine matrix indices (0..255) for active Windowed + Backlit LEDs",
+        "const uint8_t PROGMEM FLOAT_MATRIX_INDICES[7][100] = {"
+    ]
+
+    for fid in range(1, 8):
+        flt_meta = next((f for f in FLOATS if f["id"] == fid), {"name": f"Float {fid}"})
+        m_idxs = matrix_indices_by_float.get(fid, [i for i in range(100)])
+        idx_str = ", ".join(str(v) for v in m_idxs[:100])
+        close_comma = "," if fid < 7 else ""
+        lines.append(f"    {{ {idx_str} }}{close_comma} // Float {fid}: {flt_meta['name']}")
+
+    lines.extend([
+        "};",
         "",
         "// Authentic default background graphic colors for all 7 floats (100 LEDs each)",
         "// Automatically synchronized from active fleet presets by build_fleet_binaries.py",
         "// Used for 📸 Castle Photo Mode and default float palettes",
         "const CRGB PROGMEM DEFAULT_FLOAT_PALETTES[7][100] = {"
-    ]
+    ])
 
     for fid in range(1, 8):
         flt_meta = next((f for f in FLOATS if f["id"] == fid), {"name": f"Float {fid}"})

@@ -61,20 +61,13 @@
 #ifndef NUM_LEDS
 #define NUM_LEDS            200     // 200 total LEDs (100 front + 100 back)
 #endif
-#define MAX_LEDS_CAPACITY   256     // Buffer capacity supporting 200 LEDs
+#define MAX_LEDS_CAPACITY   512     // Buffer capacity supporting 200 pebble LEDs or 512 (2x256) 16x16 matrix LEDs
 #ifndef MAX_BRIGHTNESS
 #define MAX_BRIGHTNESS      60      // Bench/wearable safe brightness
 #endif
 #define MAX_MILLIAMPS       2000    // 2.0A limit for 200 LEDs on wearable power bank
 
 CRGB leds[MAX_LEDS_CAPACITY];
-
-// Duplicate front 100 LEDs to back 100 LEDs so entire 200-LED costume illuminates identically
-inline void duplicateFrontToBack() {
-    for (int i = 0; i < FRONT_LEDS && (FRONT_LEDS + i) < NUM_LEDS && (FRONT_LEDS + i) < MAX_LEDS_CAPACITY; i++) {
-        leds[FRONT_LEDS + i] = leds[i];
-    }
-}
 
 Preferences preferences;
 
@@ -123,6 +116,65 @@ struct __attribute__((packed)) ParadeSyncPacket {
 ParadeSyncPacket currentPacket;
 bool isLeader = false;
 uint8_t myFloatNumber = 2;
+
+// Check if current active float uses a BTF-LIGHTING 16x16 (256-pixel) Matrix Panel
+inline bool isCurrentFloatMatrix16x16() {
+#if defined(HAS_CUSTOM_PALETTE) && HAS_CUSTOM_PALETTE && defined(COSTUME_MATRIX_16X16_MODE) && COSTUME_MATRIX_16X16_MODE
+    return true;
+#elif defined(HAS_FLEET_MATRIX_CONFIG) && HAS_FLEET_MATRIX_CONFIG
+    uint8_t floatIdx = (myFloatNumber >= 1 && myFloatNumber <= 7) ? (myFloatNumber - 1) : 0;
+    return pgm_read_byte(&FLOAT_IS_MATRIX_16X16[floatIdx]) != 0;
+#else
+    return false;
+#endif
+}
+
+// Duplicate front LEDs to back LEDs (or scatter active LEDs across 16x16 matrix indices 0..255 + 256..511)
+inline void duplicateFrontToBack() {
+    if (isCurrentFloatMatrix16x16()) {
+        CRGB tempActive[256];
+        int activeCount = FRONT_LEDS;
+#if !(defined(HAS_CUSTOM_PALETTE) && HAS_CUSTOM_PALETTE) && defined(HAS_FLEET_MATRIX_CONFIG) && HAS_FLEET_MATRIX_CONFIG
+        uint8_t floatIdx = (myFloatNumber >= 1 && myFloatNumber <= 7) ? (myFloatNumber - 1) : 0;
+        activeCount = min((int)FRONT_LEDS, (int)pgm_read_byte(&FLOAT_ACTIVE_LED_COUNT[floatIdx]));
+#endif
+        if (activeCount > 256) activeCount = 256;
+        for (int i = 0; i < activeCount; i++) {
+            tempActive[i] = leds[i];
+        }
+        // Clear all 512 pixels so non-windowed / non-backlit dark cells stay strictly off
+        fill_solid(leds, MAX_LEDS_CAPACITY, CRGB::Black);
+        for (int i = 0; i < activeCount; i++) {
+            uint8_t physIdx = i;
+#if defined(HAS_CUSTOM_PALETTE) && HAS_CUSTOM_PALETTE && defined(COSTUME_MATRIX_16X16_MODE) && COSTUME_MATRIX_16X16_MODE
+            physIdx = pgm_read_byte(&MATRIX_ACTIVE_INDICES[i]);
+#elif defined(HAS_FLEET_MATRIX_CONFIG) && HAS_FLEET_MATRIX_CONFIG
+            uint8_t fIdx = (myFloatNumber >= 1 && myFloatNumber <= 7) ? (myFloatNumber - 1) : 0;
+            if (i < 100) {
+                physIdx = pgm_read_byte(&FLOAT_MATRIX_INDICES[fIdx][i]);
+            }
+#endif
+            leds[physIdx] = tempActive[i];
+            if ((256 + (int)physIdx) < MAX_LEDS_CAPACITY) {
+                leds[256 + (int)physIdx] = tempActive[i];
+            }
+        }
+        return;
+    }
+
+    for (int i = 0; i < FRONT_LEDS && (FRONT_LEDS + i) < NUM_LEDS && (FRONT_LEDS + i) < MAX_LEDS_CAPACITY; i++) {
+        leds[FRONT_LEDS + i] = leds[i];
+    }
+    for (int i = NUM_LEDS; i < MAX_LEDS_CAPACITY; i++) {
+        leds[i] = CRGB::Black;
+    }
+}
+
+// Helper to flash a uniform confirmation color across active LEDs (respecting 16x16 matrix layout)
+inline void fillActiveCostumeSolid(CRGB color) {
+    fill_solid(leds, FRONT_LEDS, color);
+    duplicateFrontToBack();
+}
 
 volatile bool packetReceived = false;
 uint32_t lastPacketTime = 0;
@@ -281,11 +333,11 @@ void triggerIdentifyFlash() {
     Serial.printf("[RADAR] ✨ Identify Flash triggered for Float %d: %s (%s)!\n", 
                   myFloatNumber, FLEET_ROSTER_INFO[fIdx].name, FLEET_ROSTER_INFO[fIdx].tag);
     for (int f = 0; f < 3; f++) {
-        fill_solid(leds, NUM_LEDS, color);
+        fillActiveCostumeSolid(color);
         FastLED.show();
         digitalWrite(STATUS_LED_PIN, HIGH);
         delay(120);
-        fill_solid(leds, NUM_LEDS, CRGB::Black);
+        fillActiveCostumeSolid(CRGB::Black);
         FastLED.show();
         digitalWrite(STATUS_LED_PIN, LOW);
         delay(100);
@@ -635,13 +687,8 @@ void runFleetSync(uint32_t now) {
         }
     }
 
-    // Duplicate front 100 LEDs to back 100 LEDs for full 200-LED costume!
+    // Duplicate front LEDs to back LEDs (or scatter active LEDs across 16x16 matrix)
     duplicateFrontToBack();
-
-    // Clear any extra LEDs beyond strand count
-    for (int i = NUM_LEDS; i < MAX_LEDS_CAPACITY; i++) {
-        leds[i] = CRGB::Black;
-    }
 
     FastLED.show();
     delay(15);
@@ -688,11 +735,11 @@ void handleFloatConfigMode() {
 
     // Entry alert: Flash white 3 times
     for (int f = 0; f < 3; f++) {
-        fill_solid(leds, NUM_LEDS, CRGB(240, 240, 240));
+        fillActiveCostumeSolid(CRGB(240, 240, 240));
         FastLED.show();
         digitalWrite(STATUS_LED_PIN, HIGH);
         delay(140);
-        fill_solid(leds, NUM_LEDS, CRGB::Black);
+        fillActiveCostumeSolid(CRGB::Black);
         FastLED.show();
         digitalWrite(STATUS_LED_PIN, LOW);
         delay(100);
@@ -765,11 +812,11 @@ void handleFloatConfigMode() {
 
     // Exit alert: Flash green 4 times
     for (int s = 0; s < 4; s++) {
-        fill_solid(leds, NUM_LEDS, CRGB(0, 255, 80));
+        fillActiveCostumeSolid(CRGB(0, 255, 80));
         FastLED.show();
         digitalWrite(STATUS_LED_PIN, HIGH);
         delay(80);
-        fill_solid(leds, NUM_LEDS, CRGB::Black);
+        fillActiveCostumeSolid(CRGB::Black);
         FastLED.show();
         digitalWrite(STATUS_LED_PIN, LOW);
         delay(80);
@@ -1559,17 +1606,12 @@ void runAutonomousShowSequence(uint32_t now) {
     }
 #endif
 
-    // Duplicate front 100 LEDs to back 100 LEDs for full 200-LED costume!
+    // Duplicate front LEDs to back LEDs (or scatter active LEDs across 16x16 matrix)
     duplicateFrontToBack();
 
     // Status LED gentle breath during autonomous sequence
     uint8_t breathLed = ((seqTime / 1000) % 2 == 0) ? HIGH : LOW;
     digitalWrite(STATUS_LED_PIN, breathLed);
-
-    // Clear any extra LEDs beyond strand count
-    for (int i = NUM_LEDS; i < MAX_LEDS_CAPACITY; i++) {
-        leds[i] = CRGB::Black;
-    }
 
     FastLED.show();
     delay(15);
@@ -1753,13 +1795,8 @@ void render30sFleetRoutine(uint32_t elapsedMs) {
         fill_solid(leds, FRONT_LEDS, CRGB::Black);
     }
 
-    // Duplicate front 100 LEDs to back 100 LEDs for full 200-LED costume!
+    // Duplicate front LEDs to back LEDs (or scatter active LEDs across 16x16 matrix)
     duplicateFrontToBack();
-
-    // Clear any extra LEDs beyond strand count
-    for (int i = NUM_LEDS; i < MAX_LEDS_CAPACITY; i++) {
-        leds[i] = CRGB::Black;
-    }
 
     // Status LED blink cadence during fleet routine
     digitalWrite(STATUS_LED_PIN, ((elapsedMs / 200) % 2 == 0) ? HIGH : LOW);
@@ -2021,11 +2058,11 @@ void loop() {
 
                 broadcastStandbyPacket(0x51);   // Wake entire fleet into solo show mode (from Standby or Photo Mode)
 
-                fill_solid(leds, NUM_LEDS, CRGB(0, 255, 80)); // Emerald Green flash
+                fillActiveCostumeSolid(CRGB(0, 255, 80)); // Emerald Green flash
                 FastLED.show();
                 digitalWrite(STATUS_LED_PIN, HIGH);
                 delay(150);
-                fill_solid(leds, NUM_LEDS, CRGB::Black);
+                fillActiveCostumeSolid(CRGB::Black);
                 FastLED.show();
                 digitalWrite(STATUS_LED_PIN, LOW);
 
@@ -2036,11 +2073,11 @@ void loop() {
                 currentStandaloneMode = SHOW_MODE_AUTONOMOUS_SEQUENCE;
                 autonomousShowStartTime = now;
 
-                fill_solid(leds, NUM_LEDS, CRGB(0, 255, 80)); // Emerald Green flash
+                fillActiveCostumeSolid(CRGB(0, 255, 80)); // Emerald Green flash
                 FastLED.show();
                 digitalWrite(STATUS_LED_PIN, HIGH);
                 delay(150);
-                fill_solid(leds, NUM_LEDS, CRGB::Black);
+                fillActiveCostumeSolid(CRGB::Black);
                 FastLED.show();
                 digitalWrite(STATUS_LED_PIN, LOW);
 
@@ -2054,11 +2091,11 @@ void loop() {
                 Serial.println("[LEADER] Early stop triggered via Button 1 -> returning to baseline.");
 
                 for (int f = 0; f < 2; f++) {
-                    fill_solid(leds, NUM_LEDS, CRGB(255, 140, 0));
+                    fillActiveCostumeSolid(CRGB(255, 140, 0));
                     FastLED.show();
                     digitalWrite(STATUS_LED_PIN, HIGH);
                     delay(120);
-                    fill_solid(leds, NUM_LEDS, CRGB::Black);
+                    fillActiveCostumeSolid(CRGB::Black);
                     FastLED.show();
                     digitalWrite(STATUS_LED_PIN, LOW);
                     delay(80);
@@ -2109,11 +2146,11 @@ void loop() {
                 }
 
                 for (int f = 0; f < 3; f++) {
-                    fill_solid(leds, NUM_LEDS, CRGB(30, 60, 255)); // 3 Soft Indigo pulses
+                    fillActiveCostumeSolid(CRGB(30, 60, 255)); // 3 Soft Indigo pulses
                     FastLED.show();
                     digitalWrite(STATUS_LED_PIN, HIGH);
                     delay(80);
-                    fill_solid(leds, NUM_LEDS, CRGB::Black);
+                    fillActiveCostumeSolid(CRGB::Black);
                     FastLED.show();
                     digitalWrite(STATUS_LED_PIN, LOW);
                     delay(60);
@@ -2231,12 +2268,8 @@ void loop() {
                     leds[i].b = buffer[pIdx++];
                 }
 
-                // Duplicate front 100 LEDs to back 100 LEDs for full 200-LED costume!
+                // Duplicate front LEDs to back LEDs (or scatter active LEDs across 16x16 matrix)
                 duplicateFrontToBack();
-                
-                for (int i = NUM_LEDS; i < MAX_LEDS_CAPACITY; i++) {
-                    leds[i] = CRGB::Black;
-                }
                 
                 FastLED.show();
                 lastStreamPacketTime = now;
@@ -2276,7 +2309,7 @@ void loop() {
                 renderRapidRollCall(elapsedMs);
             } else {
                 currentStandaloneMode = previousStandaloneMode;
-                fill_solid(leds, NUM_LEDS, CRGB::Black);
+                fillActiveCostumeSolid(CRGB::Black);
                 FastLED.show();
                 Serial.println("[ROLL CALL] ⚡ Rapid Attendance Roll Call complete -> returned to baseline.");
             }
