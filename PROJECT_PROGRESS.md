@@ -93,6 +93,22 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
  
+### 2026-10-18 11:15 - 🔄 16×16 Matrix Serpentine Orientation (Upper-Right to Lower-Left), Revert to RGB Color Order & Strict Black Drum Face
+- **Serpentine Matrix Orientation Correction (`simulator/app.js`, `include/costume_config.h`, `presets/main_street_title_drum_100_led_vibrant_preset_large_100led_2026-10-18_01-04.json`):**
+  - Updated matrix physical indexing to start at the **upper right** (Row 0, Col 15 -> Index 0) and end at the **lower left** (Row 15, Col 0 -> Index 255):
+    - Even rows ($0, 2, 4 \dots 14$): right-to-left sweep (`row * 16 + (15 - col)`).
+    - Odd rows ($1, 3, 5 \dots 15$): left-to-right sweep (`row * 16 + col`).
+  - Re-mapped all 55 windowed LEDs and backlit LEDs in the Title Drum preset to match this physical wiring layout.
+- **Revert Color Order to `RGB` (`src/main.cpp`, `arduino/MSEP_Costume/MSEP_Costume.ino`, `simulator.py`, `include/costume_config.h`):**
+  - Per hardware testing feedback, reverted FastLED color ordering back to standard **`RGB`** across all firmware definitions and generation scripts (`FastLED.addLeds<LED_TYPE, DATA_PIN, COLOR_ORDER>`).
+- **Strict Black Drum Face & Chassis Dark Isolation (`simulator/app.js`):**
+  - Removed old legacy white boost (`{ r: 255, g: 245, b: 220 }`) from `boostLedVibrancy()` on the black drum face and chassis. Dark pixels now return `{ r: 17, g: 22, b: 29 }`.
+  - Refined `autoBacklightAllColoredAreas()`: Strictly checks that a cell has distinct vibrant color (`maxCh >= 50 && lum >= 40`) and is not chassis/black (`!(r < 45 && g < 45 && b < 45)`). Only true colored regions (red drum body, gold marquee border, green/blue pennants) are illuminated. All black areas remain strictly unlit (`CRGB::Black`).
+- **Clean PlatformIO Compilation & USB Binary Sync (`firmware/`):**
+  - PlatformIO compiled with zero warnings and `[SUCCESS]` (RAM: 14.6%, Flash: 60.7%).
+  - Synced `firmware/firmware.bin` and `firmware/firmware_float2.bin`.
+  - Terminated and restarted `simulator.py` on port 8000.
+
 ### 2026-10-18 11:00 - 🥁 Fix Title Drum GRB Color Order Swap, 16×16 Serpentine Active Scattering & Dark Black Drum Face
 - **WS2812B 16×16 Flexible Matrix Hardware GRB Color Order Fix (`src/main.cpp`, `arduino/MSEP_Costume/MSEP_Costume.ino`, `simulator.py`):**
   - Resolved root cause of green standby mode and red drum panels appearing green/unlit: BTF-LIGHTING WS2812B 16×16 FPCB matrices natively use **`GRB`** color order on the wire, whereas pebble fairy pixel strands use `RGB`.

@@ -15889,7 +15889,11 @@ function computeBtfMatrix16x16Layout() {
                 }
             }
 
-            const matrixIdx = (row % 2 === 0) ? (row * 16 + col) : (row * 16 + (15 - col));
+            // Serpentine 16x16 matrix: Starts upper-right (row 0, col 15 -> index 0)
+            // Even rows (0, 2, 4...) run Right-to-Left (col 15 -> 0, col 0 -> 15)
+            // Odd rows (1, 3, 5...) run Left-to-Right (col 0 -> 16, col 15 -> 31)
+            // Finishes lower-left (row 15, col 0 -> index 255)
+            const matrixIdx = (row % 2 === 0) ? (row * 16 + (15 - col)) : (row * 16 + col);
             btfMatrix16x16Cells.push({
                 row,
                 col,
@@ -16495,8 +16499,8 @@ function autoBacklightAllColoredAreas() {
         const c = cell.color || { r: 0, g: 0, b: 0 };
         const lum = 0.299 * c.r + 0.587 * c.g + 0.114 * c.b;
         const maxCh = Math.max(c.r, c.g, c.b);
-        // Colored area check: on the graphic, not near-black background / chassis outline
-        const isColored = cell.onGraphic && (maxCh >= 30 || lum >= 25) && !(c.r < 28 && c.g < 28 && c.b < 28);
+        // Colored area check: on the graphic, distinct color (not dark black drum face or chassis)
+        const isColored = cell.onGraphic && (maxCh >= 50 && lum >= 40) && !(c.r < 45 && c.g < 45 && c.b < 45);
         if (isColored) {
             cell.role = 'backlight';
             backlitCount++;
@@ -17524,10 +17528,10 @@ function boostLedVibrancy(r, g, b, relX, relY) {
                 return { r: 37, g: 99, b: 255 }; // Electric Royal Blue
             }
             // 5. Drum Face & Chassis: [17, 22, 29] / #11161d
-            // The black drum face represents illuminated incandescent starlight bulbs inside the drum
+            // The black drum face and chassis must remain dark
             const maxV = Math.max(r, g, b);
             if (maxV < 60) {
-                return { r: 255, g: 245, b: 220 }; // Warm Incandescent Starlight White
+                return { r: 17, g: 22, b: 29 }; // Dark Black Drum Face & Chassis
             }
             return boostCustomImageColor(r, g, b);
         }

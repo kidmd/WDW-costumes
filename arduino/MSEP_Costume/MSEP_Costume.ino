@@ -46,11 +46,7 @@
 #define DATA_PIN            16      // 8th pin down on the right
 #define LED_TYPE            WS2812B
 #ifndef COLOR_ORDER
-#if defined(COSTUME_MATRIX_16X16_MODE) && COSTUME_MATRIX_16X16_MODE
-#define COLOR_ORDER         GRB     // Calibrated hardware color order for BTF 16x16 WS2812B matrix
-#else
-#define COLOR_ORDER         RGB     // Calibrated hardware color order for fairy pebble lights
-#endif
+#define COLOR_ORDER         RGB     // Calibrated hardware color order
 #endif
 #define STATUS_LED_PIN      2       // Onboard Blue LED
 
@@ -1936,13 +1932,8 @@ void setup() {
     }
 
     // 4. Initialize FastLED
-    if (isCurrentFloatMatrix16x16()) {
-        FastLED.addLeds<LED_TYPE, DATA_PIN, GRB>(leds, MAX_LEDS_CAPACITY)
-               .setCorrection(TypicalLEDStrip);
-    } else {
-        FastLED.addLeds<LED_TYPE, DATA_PIN, COLOR_ORDER>(leds, MAX_LEDS_CAPACITY)
-               .setCorrection(TypicalLEDStrip);
-    }
+    FastLED.addLeds<LED_TYPE, DATA_PIN, COLOR_ORDER>(leds, MAX_LEDS_CAPACITY)
+           .setCorrection(TypicalLEDStrip);
     uint8_t effectiveBrightness = MAX_BRIGHTNESS;
 #if defined(COSTUME_BRIGHTNESS)
     effectiveBrightness = COSTUME_BRIGHTNESS;

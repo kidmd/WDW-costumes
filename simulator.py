@@ -641,7 +641,7 @@ class SimulatorRequestHandler(http.server.SimpleHTTPRequestHandler):
             fastled_brightness = max(30, min(85, int(brightness_pct * 85 / 100)))
             if matrix_16x16_mode:
                 fastled_brightness = max(15, min(42, int(fastled_brightness / 2)))
-            color_order = payload.get("colorOrder", "GRB" if matrix_16x16_mode else "RGB")
+            color_order = payload.get("colorOrder", "RGB")
             palette = payload.get("palette", [])
             
             pattern_map = {
