@@ -3247,11 +3247,14 @@ const FLOAT_STL_COLOR_CONFIG = {
 };
 
 function getActiveFloatStlColors() {
+    const activeType = currentGraphicType || 'builtin_dragon';
+    if (FLOAT_STL_COLOR_CONFIG[activeType]) {
+        return FLOAT_STL_COLOR_CONFIG[activeType];
+    }
     if (currentLoadedStlColors && typeof currentLoadedStlColors === 'object') {
         return currentLoadedStlColors;
     }
-    const activeType = currentGraphicType || 'builtin_dragon';
-    return FLOAT_STL_COLOR_CONFIG[activeType] || FLOAT_STL_COLOR_CONFIG['petes_dragon'];
+    return FLOAT_STL_COLOR_CONFIG['petes_dragon'];
 }
 window.getActiveFloatStlColors = getActiveFloatStlColors;
 

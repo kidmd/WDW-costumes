@@ -155,6 +155,63 @@ if '--plate-thickness' in sys.argv:
         except Exception:
             pass
 
+def export_assembled_3mf(scene_items, mf3_path, assembly_name="MSEP_MultiColor_Plate"):
+    """Exports a multi-part trimesh dictionary as a single 3MF parent assembly with <components> so Bambu Studio / OrcaSlicer / Snapmaker Orca treat all color inlays as parts of ONE object (preventing 'too close to others' collision errors)."""
+    import uuid
+    import xml.etree.ElementTree as ET
+    scene = trimesh.Scene(scene_items)
+    scene.export(mf3_path)
+    try:
+        with zipfile.ZipFile(mf3_path, 'r') as zin:
+            namelist = zin.namelist()
+            files_data = {name: zin.read(name) for name in namelist}
+        if '3D/3dmodel.model' in files_data:
+            ET.register_namespace('', "http://schemas.microsoft.com/3dmanufacturing/core/2015/02")
+            ET.register_namespace('m', "http://schemas.microsoft.com/3dmanufacturing/material/2015/02")
+            ET.register_namespace('p', "http://schemas.microsoft.com/3dmanufacturing/production/2015/06")
+            ET.register_namespace('b', "http://schemas.microsoft.com/3dmanufacturing/beamlattice/2017/02")
+            ET.register_namespace('s', "http://schemas.microsoft.com/3dmanufacturing/slice/2015/07")
+            ET.register_namespace('sc', "http://schemas.microsoft.com/3dmanufacturing/securecontent/2019/04")
+            ns = "http://schemas.microsoft.com/3dmanufacturing/core/2015/02"
+            p_ns = "http://schemas.microsoft.com/3dmanufacturing/production/2015/06"
+            root = ET.fromstring(files_data['3D/3dmodel.model'])
+            resources = root.find(f"{{{ns}}}resources")
+            build = root.find(f"{{{ns}}}build")
+            if resources is not None and build is not None:
+                objs = resources.findall(f"{{{ns}}}object")
+                if len(objs) > 1:
+                    max_id = max(int(o.attrib.get('id', 0)) for o in objs)
+                    parent_id = str(max_id + 1)
+                    parent_obj = ET.Element(f"{{{ns}}}object", {
+                        'id': parent_id,
+                        'name': assembly_name,
+                        'type': 'model',
+                        f"{{{p_ns}}}UUID": str(uuid.uuid4())
+                    })
+                    comps = ET.SubElement(parent_obj, f"{{{ns}}}components")
+                    for o in objs:
+                        oid = o.attrib.get('id')
+                        ET.SubElement(comps, f"{{{ns}}}component", {
+                            'objectid': oid,
+                            'transform': '1.0 0.0 0.0 0.0 1.0 0.0 0.0 0.0 1.0 0.0 0.0 0.0',
+                            f"{{{p_ns}}}UUID": str(uuid.uuid4())
+                        })
+                    resources.append(parent_obj)
+                    for item in list(build):
+                        build.remove(item)
+                    ET.SubElement(build, f"{{{ns}}}item", {
+                        'objectid': parent_id,
+                        'transform': '1.0 0.0 0.0 0.0 1.0 0.0 0.0 0.0 1.0 0.0 0.0 0.0',
+                        f"{{{p_ns}}}UUID": str(uuid.uuid4()),
+                        'partnumber': assembly_name
+                    })
+                    files_data['3D/3dmodel.model'] = ET.tostring(root, encoding='utf-8', xml_declaration=True)
+                    with zipfile.ZipFile(mf3_path, 'w', zipfile.ZIP_DEFLATED) as zout:
+                        for name, content in files_data.items():
+                            zout.writestr(name, content)
+    except Exception as e:
+        print(f"[3MF Assembly Post-Process Warning]: {e}")
+
 def compile_matrix_16x16_plate_variant(variant_name, artwork_path, window_shape='round_34', plate_thickness_mm=0.60, windowed_leds=None, backlight_leds=None):
     PLATE_SIZE_MM = 176.0
     MATRIX_SIZE_MM = 160.0
@@ -208,9 +265,7 @@ def compile_matrix_16x16_plate_variant(variant_name, artwork_path, window_shape=
     is_train = ('train' in str(graphic_type).lower() or 'casey' in str(graphic_type).lower() or 'train' in str(float_name).lower())
     is_pirate = ('pirate' in str(graphic_type).lower() or 'pirate' in str(float_name).lower())
 
-    if raw_stl_colors and isinstance(raw_stl_colors, dict):
-        stl_colors = raw_stl_colors
-    elif is_pirate:
+    if is_pirate:
         stl_colors = {
             'black': { 'name': 'Chassis, Hull & Rigging Accents', 'hex': '#141414', 'targetRgb': [20, 20, 20], 'role': 'chassis' },
             'red': { 'name': 'Sails & Masthead Flag', 'hex': '#e61919', 'targetRgb': [230, 25, 25], 'role': 'inlay', 'filename': 'color_red.stl' },
@@ -250,6 +305,8 @@ def compile_matrix_16x16_plate_variant(variant_name, artwork_path, window_shape=
             'blue': { 'name': 'Flags & Pennants', 'hex': '#2563eb', 'targetRgb': [37, 99, 235], 'role': 'inlay', 'filename': 'color_blue.stl' },
             'green': { 'name': 'Lead Flag', 'hex': '#10b981', 'targetRgb': [16, 185, 129], 'role': 'inlay', 'filename': 'color_green.stl' }
         }
+    elif raw_stl_colors and isinstance(raw_stl_colors, dict):
+        stl_colors = raw_stl_colors
     else:
         stl_colors = {
             'black': { 'name': 'Chassis Black', 'hex': '#11161d', 'targetRgb': [13, 25, 8], 'role': 'chassis' },
@@ -258,6 +315,7 @@ def compile_matrix_16x16_plate_variant(variant_name, artwork_path, window_shape=
             'yellow': { 'name': 'Belly & Horns', 'hex': '#facc15', 'targetRgb': [249, 249, 12], 'role': 'inlay', 'filename': 'color_yellow.stl' },
             'white': { 'name': 'Eyes & Teeth', 'hex': '#ffffff', 'targetRgb': [247, 248, 247], 'role': 'inlay', 'filename': 'color_white.stl' }
         }
+    specs['stl_colors'] = stl_colors
 
     targets = {c_k: np.array(c_v.get('targetRgb', [128, 128, 128]), dtype=np.float32) for c_k, c_v in stl_colors.items()}
     color_names = list(targets.keys())
@@ -446,8 +504,8 @@ def compile_matrix_16x16_plate_variant(variant_name, artwork_path, window_shape=
     mf3_filename = f"tpu_panel_{variant_name}_multicolor.3mf"
     mf3_path = os.path.join(out_dir, mf3_filename)
     try:
-        scene = trimesh.Scene(scene_items)
-        scene.export(mf3_path)
+        clean_float_asm = str(specs.get('float_name', 'MSEP_Float')).replace(' ', '_').replace("'", "")
+        export_assembled_3mf(scene_items, mf3_path, assembly_name=f"{clean_float_asm}_{variant_name}_16x16_Plate")
     except Exception as e:
         print(f"[{variant_name}] 3MF export warning: {e}")
 
@@ -1116,9 +1174,7 @@ def compile_plate_variant(variant_name, width_mm, height_mm, raw_leds, artwork_p
     is_train = ('train' in str(graphic_type).lower() or 'casey' in str(graphic_type).lower() or 'train' in str(float_name).lower() or 'train' in str(artwork_path).lower())
     is_pirate = ('pirate' in str(graphic_type).lower() or 'pirate' in str(float_name).lower() or 'pirate' in str(artwork_path).lower())
 
-    if raw_stl_colors and isinstance(raw_stl_colors, dict):
-        stl_colors = raw_stl_colors
-    elif is_pirate:
+    if is_pirate:
         stl_colors = {
             'black': { 'name': 'Chassis, Hull & Rigging Accents', 'hex': '#141414', 'targetRgb': [20, 20, 20], 'role': 'chassis' },
             'red': { 'name': 'Sails & Masthead Flag', 'hex': '#e61919', 'targetRgb': [230, 25, 25], 'role': 'inlay', 'filename': 'color_red.stl' },
@@ -1158,6 +1214,8 @@ def compile_plate_variant(variant_name, width_mm, height_mm, raw_leds, artwork_p
             'blue': { 'name': 'Flags & Pennants', 'hex': '#2563eb', 'targetRgb': [37, 99, 235], 'role': 'inlay', 'filename': 'color_blue.stl' },
             'green': { 'name': 'Lead Flag', 'hex': '#10b981', 'targetRgb': [16, 185, 129], 'role': 'inlay', 'filename': 'color_green.stl' }
         }
+    elif raw_stl_colors and isinstance(raw_stl_colors, dict):
+        stl_colors = raw_stl_colors
     else:
         stl_colors = {
             'black': { 'name': 'Chassis Black', 'hex': '#11161d', 'targetRgb': [13, 25, 8], 'role': 'chassis' },
@@ -1514,11 +1572,10 @@ def compile_plate_variant(variant_name, width_mm, height_mm, raw_leds, artwork_p
     mf3_path = os.path.join(out_dir, mf3_filename)
 
     try:
-        scene = trimesh.Scene(scene_items)
-        scene.export(mf3_path)
-        print(f"[{variant_name}] Exported native 3MF with {len(scene_items)} parts: {mf3_filename}")
+        clean_float_asm = str(specs.get('float_name', 'MSEP_Float')).replace(' ', '_').replace("'", "")
+        export_assembled_3mf(scene_items, mf3_path, assembly_name=f"{clean_float_asm}_{variant_name}_Armor_Panel")
+        print(f"[{variant_name}] Exported native 3MF assembly with {len(scene_items)} parts: {mf3_filename}")
     except Exception as e:
-        print(f"[{variant_name}] 3MF export warning: {e}")
         print(f"[{variant_name}] 3MF export warning: {e}")
 
     # 11. EXPORT READY-TO-PRINT ZIP BUNDLE
