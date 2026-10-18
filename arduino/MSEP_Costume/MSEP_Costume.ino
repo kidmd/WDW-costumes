@@ -298,21 +298,13 @@ void renderCastlePhotoMode() {
 }
 
 void renderCorralStandby(uint32_t t) {
-    // 16x16 Matrix Mode: Random assortment of dim warm yellow LEDs (~25% scattered) with gentle starlight shimmer
+    // 16x16 Matrix Mode: Light ALL 256 physical LEDs in dim warm yellow
     if (isCurrentFloatMatrix16x16()) {
-        fill_solid(leds, MAX_LEDS_CAPACITY, CRGB::Black);
-        CRGB dimYellowBase = CRGB(30, 24, 0); // Very soft dim yellow base
-        CRGB yellowTwinkle = CRGB(75, 60, 2); // Soft starlight peak
+        CRGB dimYellow = CRGB(65, 52, 0); // Visible, comfortable dim warm yellow (Front + Back)
         for (int i = 0; i < 256; i++) {
-            // Pseudo-random static spatial hash for each cell to pick an assortment of ~25% active yellow lights
-            uint8_t hash = (uint8_t)((i * 109 + 37) ^ (i >> 3));
-            if (hash < 68) { // ~26% of LEDs selected in random assortment
-                uint8_t wave = sin8((t / 22) + (i * 31)); // Slow individual breathing sparkle
-                CRGB c = (wave > 220) ? blend(dimYellowBase, yellowTwinkle, (wave - 220) * 7) : dimYellowBase;
-                leds[i] = c;
-                if ((256 + i) < MAX_LEDS_CAPACITY) {
-                    leds[256 + i] = c;
-                }
+            leds[i] = dimYellow;
+            if ((256 + i) < MAX_LEDS_CAPACITY) {
+                leds[256 + i] = dimYellow;
             }
         }
         return;
@@ -2332,7 +2324,9 @@ void loop() {
             delay(20);
         } else if (currentStandaloneMode == SHOW_MODE_CORRAL_STANDBY) {
             renderCorralStandby(now);
-            duplicateFrontToBack();
+            if (!isCurrentFloatMatrix16x16()) {
+                duplicateFrontToBack();
+            }
             FastLED.show();
             delay(20);
         } else if (currentStandaloneMode == SHOW_MODE_RAPID_ROLL_CALL) {

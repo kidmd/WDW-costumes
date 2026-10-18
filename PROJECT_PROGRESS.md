@@ -99,10 +99,10 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
     - **Toggle ON:** Stores the previous manual slider value (`previousBacklightSliderCount`), automatically backlights all colored regions on the graphic (`maxCh >= 50 && lum >= 40`), updates the slider position to the exact count of colored LEDs, and **locks / greys out the slider** (`disabled = true`, `opacity: 0.45`, cursor `not-allowed`).
     - **Toggle OFF:** When clicked again, restores the exact previous manual slider count, re-enables and unlocks the slider (`disabled = false`, `opacity: 1.0`), and recalculates the layout.
     - Moving the backlight slider manually at any time automatically disengages the auto-backlight lock and saves the new manual value.
-- **Random Assortment Yellow Standby Mode (`src/main.cpp`, `arduino/MSEP_Costume/MSEP_Costume.ino`):**
-  - Updated `renderCorralStandby()` for 16×16 Matrix mode:
-  - Replaced the solid 256-pixel fill with a **random assortment of dim warm yellow LEDs (~25% of the panel)** using a pseudo-random spatial hash and a gentle starlight breathing shimmer (`CRGB(30, 24, 0)` base with smooth peaks to `CRGB(75, 60, 2)`).
-  - The remaining 75% of LEDs remain dark, creating an authentic, atmospheric pre-race starlight shimmer across the Title Drum.
+- **ALL 256-LED Dim Yellow Standby Hardware Diagnostic (`src/main.cpp`, `arduino/MSEP_Costume/MSEP_Costume.ino`):**
+  - Identified why the previous build did not light all 256 LEDs: In the main loop for `SHOW_MODE_CORRAL_STANDBY`, `duplicateFrontToBack()` was being called immediately after `renderCorralStandby()`. In 16×16 Matrix Mode, `duplicateFrontToBack()` wipes the matrix to `CRGB::Black` and only scatters the active front LEDs, instantly blacking out the other ~129 pixels!
+  - Fixed by bypassing `duplicateFrontToBack()` during standby when `isCurrentFloatMatrix16x16()` is true.
+  - In `renderCorralStandby()`, all **256 physical LEDs** across the 16×16 matrix now illuminate solidly and comfortably in **dim warm yellow (`CRGB(65, 52, 0)`)**, providing full illumination across every single pixel from upper-right (0) to lower-left (255) for physical grid inspection.
 - **Firmware Compilation & Binary Sync (`firmware/`):**
   - Compiled release build cleanly with PlatformIO (`RAM: 14.6%`, `Flash: 60.7%`, `[SUCCESS]`).
   - Synced `firmware/firmware.bin` and `firmware/firmware_float2.bin`.
