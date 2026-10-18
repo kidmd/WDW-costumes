@@ -16476,9 +16476,16 @@ function autoBacklightAllColoredAreas() {
     if (!btfMatrix16x16Cells || btfMatrix16x16Cells.length !== 256) {
         computeBtfMatrix16x16Layout();
     }
+    let winCount = 0;
     let backlitCount = 0;
     let darkCount = 0;
     btfMatrix16x16Cells.forEach(cell => {
+        // Keep all existing windowed LEDs intact (do not overwrite windowed through-holes)
+        if (cell.role === 'window') {
+            winCount++;
+            return;
+        }
+
         const c = cell.color || { r: 0, g: 0, b: 0 };
         const lum = 0.299 * c.r + 0.587 * c.g + 0.114 * c.b;
         const maxCh = Math.max(c.r, c.g, c.b);
@@ -16493,19 +16500,19 @@ function autoBacklightAllColoredAreas() {
         }
     });
 
-    btfMatrix16x16Config.windowCount = 0;
+    btfMatrix16x16Config.windowCount = winCount;
     btfMatrix16x16Config.backlightCount = backlitCount;
 
     const winSlider = document.getElementById('btfMatrixWindowCountSlider');
     const glowSlider = document.getElementById('btfMatrixBacklightCountSlider');
-    if (winSlider) winSlider.value = 0;
+    if (winSlider) winSlider.value = winCount;
     if (glowSlider) glowSlider.value = backlitCount;
 
     updateBtfMatrix16x16TelemetryUI();
     markSingleShirtDirty();
     if (typeof draw === 'function') draw();
     if (btfMatrix16x16Active) handleRecompileTpuStl({ skipOpen: true });
-    showToast(`✨ Automatically backlit ${backlitCount} colored LEDs! (${darkCount} black/off-graphic LEDs dark)`);
+    showToast(`✨ Kept ${winCount} Windowed LEDs & back-lit ${backlitCount} colored LEDs! (${darkCount} black/off-graphic LEDs dark)`);
 }
 window.autoBacklightAllColoredAreas = autoBacklightAllColoredAreas;
 

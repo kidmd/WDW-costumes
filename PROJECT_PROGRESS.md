@@ -106,8 +106,8 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
   - In `simulator.py` (`handle_flash_firmware`), `fastled_brightness` is capped at $15 \dots 42$ (halved from $30 \dots 85$).
   - Updated `include/costume_config.h` `COSTUME_BRIGHTNESS` from 68 down to 34.
 - **Auto-Backlight All Colored Areas in Simulator Layout Card (`simulator/index.html`, `simulator/app.js`):**
-  - Added new action button: `💡 Auto-Backlight All Colored Areas (Keep Black Dark)` to the 16×16 Matrix card in the Layout panel.
-  - Implemented `autoBacklightAllColoredAreas()`: Analyzes all 256 matrix cells, automatically setting every cell covering colored graphic regions (`maxCh >= 30` or `lum >= 25`) to `backlight` role, while keeping black chassis/lettering/margins and off-graphic cells strictly `dark`.
+  - Added new action button: `💡 Auto-Backlight Colored Areas (Keep Windows & Black Dark)` to the 16×16 Matrix card in the Layout panel.
+  - Implemented `autoBacklightAllColoredAreas()`: Analyzes all 256 matrix cells, **strictly preserving all existing Windowed LEDs**, while automatically setting every remaining non-windowed cell covering colored graphic regions (`maxCh >= 30` or `lum >= 25`) to `backlight` role. All black chassis/lettering/margins and off-graphic cells remain strictly `dark`.
   - Automatically updates slider counts, telemetry, re-renders canvas, and regenerates 3D backplate geometry.
 - **Title Drum Firmware Verification (`firmware/firmware.bin`, `firmware/firmware_float2.bin`):**
   - PlatformIO release build verified with `[SUCCESS]` (RAM: 14.6%, Flash: 60.7%). Synced `firmware/firmware.bin` and `firmware/firmware_float2.bin`.
