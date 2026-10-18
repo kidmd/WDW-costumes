@@ -93,19 +93,19 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
  
-### 2026-10-18 11:35 - 💡 Toggleable Auto-Backlight in Simulator & 256-LED Dim Yellow Standby Test Mode in Firmware
-- **Toggleable Auto-Backlight in Simulator Layout Tab (`simulator/app.js`):**
-  - Updated `autoBacklightAllColoredAreas()`: Now acts as an active **toggle switch**.
-  - If any non-windowed LEDs are currently backlit, clicking the button turns **OFF** all backlighting (leaving all 55 windowed through-hole LEDs active and setting the rest to dark).
-  - Clicking the button a second time scans all graphic cells again and turns **ON** backlighting for all colored regions (`maxCh >= 50 && lum >= 40`), keeping dark black chassis pixels dark.
-  - Automatically updates the telemetry badge, sliders, re-renders the 2D canvas, and notifies via toast message.
-- **256-LED Dim Yellow Standby Hardware Diagnostic (`src/main.cpp`, `arduino/MSEP_Costume/MSEP_Costume.ino`):**
-  - In `renderCorralStandby()`, added a hardware diagnostic bypass whenever `isCurrentFloatMatrix16x16()` is true:
-  - Fills all **256 physical LEDs** across the entire 16×16 matrix (Front + Back) with a solid, comfortable **dim yellow (`CRGB(60, 48, 0)`)**.
-  - Allows immediate visual inspection on hardware to verify that every single pixel in all 16 rows from upper-right to lower-left is healthy, seated, and uniformly illuminated.
+### 2026-10-18 11:48 - ✨ Smart Auto-Backlight Toggle with Slider Grey-Out & Random Yellow Standby Mode
+- **Smart Toggleable Auto-Backlight & Slider Lock (`simulator/app.js`):**
+  - Updated `autoBacklightAllColoredAreas()`:
+    - **Toggle ON:** Stores the previous manual slider value (`previousBacklightSliderCount`), automatically backlights all colored regions on the graphic (`maxCh >= 50 && lum >= 40`), updates the slider position to the exact count of colored LEDs, and **locks / greys out the slider** (`disabled = true`, `opacity: 0.45`, cursor `not-allowed`).
+    - **Toggle OFF:** When clicked again, restores the exact previous manual slider count, re-enables and unlocks the slider (`disabled = false`, `opacity: 1.0`), and recalculates the layout.
+    - Moving the backlight slider manually at any time automatically disengages the auto-backlight lock and saves the new manual value.
+- **Random Assortment Yellow Standby Mode (`src/main.cpp`, `arduino/MSEP_Costume/MSEP_Costume.ino`):**
+  - Updated `renderCorralStandby()` for 16×16 Matrix mode:
+  - Replaced the solid 256-pixel fill with a **random assortment of dim warm yellow LEDs (~25% of the panel)** using a pseudo-random spatial hash and a gentle starlight breathing shimmer (`CRGB(30, 24, 0)` base with smooth peaks to `CRGB(75, 60, 2)`).
+  - The remaining 75% of LEDs remain dark, creating an authentic, atmospheric pre-race starlight shimmer across the Title Drum.
 - **Firmware Compilation & Binary Sync (`firmware/`):**
-  - Compiled release build with PlatformIO (`RAM: 14.6%`, `Flash: 60.7%`, `[SUCCESS]`).
-  - Synced `.pio/build/esp32dev/firmware.bin` to `firmware/firmware.bin` and `firmware/firmware_float2.bin`.
+  - Compiled release build cleanly with PlatformIO (`RAM: 14.6%`, `Flash: 60.7%`, `[SUCCESS]`).
+  - Synced `firmware/firmware.bin` and `firmware/firmware_float2.bin`.
 
 ### 2026-10-18 11:15 - 🔄 16×16 Matrix Serpentine Orientation (Upper-Right to Lower-Left), Revert to RGB Color Order & Strict Black Drum Face
 - **Serpentine Matrix Orientation Correction (`simulator/app.js`, `include/costume_config.h`, `presets/main_street_title_drum_100_led_vibrant_preset_large_100led_2026-10-18_01-04.json`):**

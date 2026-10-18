@@ -16425,7 +16425,12 @@ function initBtfMatrix16x16Mode() {
 
     if (glowSlider) {
         glowSlider.addEventListener('input', (e) => {
-            btfMatrix16x16Config.backlightCount = parseInt(e.target.value, 10) || 0;
+            const count = parseInt(e.target.value, 10) || 0;
+            btfMatrix16x16Config.backlightCount = count;
+            previousBacklightSliderCount = count;
+            if (typeof setAutoBacklightUIState === 'function') {
+                setAutoBacklightUIState(false);
+            }
             computeBtfMatrix16x16Layout();
             markSingleShirtDirty();
         });
@@ -16482,13 +16487,62 @@ function initBtfMatrix16x16Mode() {
 }
 window.initBtfMatrix16x16Mode = initBtfMatrix16x16Mode;
 
+let isAutoBacklightActive = false;
+let previousBacklightSliderCount = 25;
+
+function setAutoBacklightUIState(isActive) {
+    isAutoBacklightActive = isActive;
+    const glowSlider = document.getElementById('btfMatrixBacklightCountSlider');
+    const allBacklightBtn = document.getElementById('btfMatrixAllBacklightColoredBtn');
+    
+    if (glowSlider) {
+        glowSlider.disabled = isActive;
+        glowSlider.style.opacity = isActive ? '0.45' : '1.0';
+        glowSlider.style.cursor = isActive ? 'not-allowed' : 'pointer';
+        glowSlider.title = isActive ? 'Auto-backlight is active. Click Auto-Backlight button to re-enable manual slider adjustment.' : '';
+    }
+    
+    if (allBacklightBtn) {
+        if (isActive) {
+            allBacklightBtn.style.background = 'rgba(56, 189, 248, 0.35)';
+            allBacklightBtn.style.borderColor = '#38bdf8';
+            allBacklightBtn.style.color = '#fff';
+            allBacklightBtn.style.boxShadow = '0 0 10px rgba(56, 189, 248, 0.4)';
+        } else {
+            allBacklightBtn.style.background = 'rgba(56, 189, 248, 0.16)';
+            allBacklightBtn.style.borderColor = '#38bdf8';
+            allBacklightBtn.style.color = '#38bdf8';
+            allBacklightBtn.style.boxShadow = 'none';
+        }
+    }
+}
+
 function autoBacklightAllColoredAreas() {
     if (!btfMatrix16x16Cells || btfMatrix16x16Cells.length !== 256) {
         computeBtfMatrix16x16Layout();
     }
 
-    // Check if backlighting is currently enabled (has any active backlit cells)
-    const currentlyHasBacklight = btfMatrix16x16Cells.some(c => c.role === 'backlight');
+    const glowSlider = document.getElementById('btfMatrixBacklightCountSlider');
+
+    if (isAutoBacklightActive) {
+        // TOGGLE OFF -> Return to previous manual slider count and re-enable slider
+        setAutoBacklightUIState(false);
+        const restoreCount = (typeof previousBacklightSliderCount === 'number' && previousBacklightSliderCount >= 0)
+            ? previousBacklightSliderCount
+            : 25;
+        btfMatrix16x16Config.backlightCount = restoreCount;
+        if (glowSlider) glowSlider.value = restoreCount;
+        computeBtfMatrix16x16Layout();
+        markSingleShirtDirty();
+        if (typeof draw === 'function') draw();
+        if (btfMatrix16x16Active) handleRecompileTpuStl({ skipOpen: true });
+        showToast(`🎚️ Restored manual backlighting to slider value (${restoreCount} LEDs) — Slider re-activated!`);
+        return;
+    }
+
+    // TOGGLE ON -> Save current slider count, grey out slider, and backlight ALL colored areas
+    const currentVal = glowSlider ? parseInt(glowSlider.value, 10) : btfMatrix16x16Config.backlightCount;
+    previousBacklightSliderCount = (!isNaN(currentVal) && currentVal >= 0) ? currentVal : 25;
 
     let winCount = 0;
     let backlitCount = 0;
@@ -16501,45 +16555,32 @@ function autoBacklightAllColoredAreas() {
             return;
         }
 
-        if (currentlyHasBacklight) {
-            // TOGGLE OFF: Set all non-windowed LEDs to dark
+        const c = cell.color || { r: 0, g: 0, b: 0 };
+        const lum = 0.299 * c.r + 0.587 * c.g + 0.114 * c.b;
+        const maxCh = Math.max(c.r, c.g, c.b);
+        // Colored area check: on the graphic, distinct color (not dark black drum face or chassis)
+        const isColored = cell.onGraphic && (maxCh >= 50 && lum >= 40) && !(c.r < 45 && c.g < 45 && c.b < 45);
+        if (isColored) {
+            cell.role = 'backlight';
+            backlitCount++;
+        } else {
             cell.role = 'dark';
             darkCount++;
-        } else {
-            // TOGGLE ON: Turn on all non-windowed colored areas
-            const c = cell.color || { r: 0, g: 0, b: 0 };
-            const lum = 0.299 * c.r + 0.587 * c.g + 0.114 * c.b;
-            const maxCh = Math.max(c.r, c.g, c.b);
-            // Colored area check: on the graphic, distinct color (not dark black drum face or chassis)
-            const isColored = cell.onGraphic && (maxCh >= 50 && lum >= 40) && !(c.r < 45 && c.g < 45 && c.b < 45);
-            if (isColored) {
-                cell.role = 'backlight';
-                backlitCount++;
-            } else {
-                cell.role = 'dark';
-                darkCount++;
-            }
         }
     });
 
     btfMatrix16x16Config.windowCount = winCount;
     btfMatrix16x16Config.backlightCount = backlitCount;
 
-    const winSlider = document.getElementById('btfMatrixWindowCountSlider');
-    const glowSlider = document.getElementById('btfMatrixBacklightCountSlider');
-    if (winSlider) winSlider.value = winCount;
     if (glowSlider) glowSlider.value = backlitCount;
+    setAutoBacklightUIState(true);
 
     updateBtfMatrix16x16TelemetryUI();
     markSingleShirtDirty();
     if (typeof draw === 'function') draw();
     if (btfMatrix16x16Active) handleRecompileTpuStl({ skipOpen: true });
 
-    if (currentlyHasBacklight) {
-        showToast(`🌙 Turned OFF all backlighting (${winCount} Windowed LEDs remain active, ${darkCount} Dark)`);
-    } else {
-        showToast(`💡 Turned ON ${backlitCount} Backlit colored LEDs! (${winCount} Windowed LEDs kept, ${darkCount} Dark)`);
-    }
+    showToast(`💡 Auto-backlit ${backlitCount} colored LEDs! (Slider locked — click button again to restore manual slider)`);
 }
 window.autoBacklightAllColoredAreas = autoBacklightAllColoredAreas;
 
