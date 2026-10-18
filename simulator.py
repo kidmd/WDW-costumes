@@ -1376,6 +1376,17 @@ const uint8_t PROGMEM SPATIAL_RADIUS_BYTE[FRONT_LEDS] = {{
             if str(well_orientation).lower() not in ["horizontal", "tangent"]:
                 well_orientation = "horizontal"
 
+            matrix_16x16_mode = bool(req_data.get("matrix16x16Mode", False))
+            try:
+                plate_thickness_mm = float(req_data.get("plateThicknessMm", 0.60))
+            except Exception:
+                plate_thickness_mm = 0.60
+            if plate_thickness_mm not in [0.48, 0.60, 0.80, 1.00]:
+                plate_thickness_mm = round(max(0.20, min(2.00, plate_thickness_mm)), 2)
+
+            matrix_windowed_leds = req_data.get("matrixWindowedLeds", [])
+            matrix_backlight_leds = req_data.get("matrixBacklightLeds", [])
+
             specs = {
                 "character": f"{float_name} 3D Wearable TPU Armor Panels",
                 "float_name": float_name,
@@ -1388,6 +1399,10 @@ const uint8_t PROGMEM SPATIAL_RADIUS_BYTE[FRONT_LEDS] = {{
                 "include_led_numbers": bool(req_data.get("includeLedNumbers", False)),
                 "include_clip_grooves": bool(req_data.get("includeClipGrooves", False)),
                 "include_top_nubs": bool(req_data.get("includeTopNubs", False)),
+                "matrix_16x16_mode": matrix_16x16_mode,
+                "plate_thickness_mm": plate_thickness_mm,
+                "matrix_windowed_leds": matrix_windowed_leds,
+                "matrix_backlight_leds": matrix_backlight_leds,
                 "stl_colors": req_data.get("stlColors"),
                 "layout_signature": req_data.get("layoutSignature"),
                 "size_preset": req_data.get("sizePreset", "medium"),
@@ -1434,7 +1449,11 @@ const uint8_t PROGMEM SPATIAL_RADIUS_BYTE[FRONT_LEDS] = {{
                 "--clip-grooves",
                 "on" if req_data.get("includeClipGrooves", False) else "off",
                 "--top-nubs",
-                "on" if req_data.get("includeTopNubs", False) else "off"
+                "on" if req_data.get("includeTopNubs", False) else "off",
+                "--matrix-16x16",
+                "on" if matrix_16x16_mode else "off",
+                "--plate-thickness",
+                str(plate_thickness_mm)
             ]
             res = subprocess.run(cmd, cwd=BASE_DIR, capture_output=True, text=True, timeout=90)
             if res.returncode != 0:

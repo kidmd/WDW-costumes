@@ -608,6 +608,92 @@
                         </div>
                     </div>
 
+                    <!-- 3d. BTF-LIGHTING 16x16 (256-LED) Flexible FPCB Matrix Hybrid Window + Backlight Mode -->
+                    <div class="control-section" style="background: rgba(16, 185, 129, 0.08); border: 1px solid rgba(16, 185, 129, 0.4); border-radius: 8px; padding: 10px; margin-top: 10px;">
+                        <div class="section-title" style="margin-bottom: 6px; color: #34d399; display: flex; align-items: center; justify-content: space-between;">
+                            <span>🔲 BTF 16×16 Matrix (256-LED)</span>
+                            <span id="btfMatrix16x16Badge" style="font-size: 9.5px; color: #a7f3d0; background: rgba(16, 185, 129, 0.22); padding: 1px 6px; border-radius: 4px; font-weight: 700;">176×176mm Plate</span>
+                        </div>
+
+                        <div class="toggle-row" style="margin-bottom: 6px;">
+                            <span style="font-size: 11px; color: #e6edf3; font-weight: 600;">Enable 16×16 Matrix Backlight Mode</span>
+                            <label class="switch">
+                                <input type="checkbox" id="btfMatrix16x16Toggle">
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+
+                        <div id="btfMatrix16x16OptionsCard" style="display: none; margin-top: 8px; border-top: 1px solid rgba(16, 185, 129, 0.28); padding-top: 8px;">
+                            <p style="font-size: 10px; color: #9ca3af; margin: 0 0 8px 0; line-height: 1.35;">
+                                Places graphic on a <b>160×160mm</b> BTF 16×16 FPCB matrix (10mm pitch) inside a <b>176×176mm</b> black square 3D plate with 16 perimeter shirt-stitching holes. Click any grid cell on the canvas to cycle: <b>Window ➔ Backlight ➔ Dark</b>.
+                            </p>
+
+                            <!-- Windowed LEDs Target Slider -->
+                            <div style="margin-bottom: 8px;">
+                                <div style="display: flex; justify-content: space-between; font-size: 10.5px; margin-bottom: 3px;">
+                                    <span style="color: #e6edf3;">🔆 Windowed LEDs (Cutout Holes):</span>
+                                    <span id="btfMatrixWindowCountLabel" style="font-weight: 700; color: #00ff88; font-family: monospace;">50 LEDs</span>
+                                </div>
+                                <input type="range" id="btfMatrixWindowCountSlider" min="0" max="120" step="1" value="50" style="width: 100%; accent-color: #00ff88;">
+                            </div>
+
+                            <!-- Backlighting LEDs Target Slider -->
+                            <div style="margin-bottom: 8px;">
+                                <div style="display: flex; justify-content: space-between; font-size: 10.5px; margin-bottom: 3px;">
+                                    <span style="color: #e6edf3;">✨ Backlit LEDs (Glow Thru Thin PLA):</span>
+                                    <span id="btfMatrixBacklightCountLabel" style="font-weight: 700; color: #38bdf8; font-family: monospace;">25 LEDs</span>
+                                </div>
+                                <input type="range" id="btfMatrixBacklightCountSlider" min="0" max="100" step="1" value="25" style="width: 100%; accent-color: #38bdf8;">
+                            </div>
+
+                            <!-- 3D Plate Thickness Selector (Default 0.60mm) -->
+                            <div style="margin-bottom: 8px;">
+                                <label style="font-size: 10px; color: var(--text-muted); display: block; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.5px;">3D Square Plate Thickness (Full-Z Color):</label>
+                                <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px;">
+                                    <button type="button" class="action-btn btf-matrix-thick-btn" data-thick="0.48" style="font-size: 10px; padding: 4px 2px;">0.48mm</button>
+                                    <button type="button" class="action-btn btf-matrix-thick-btn active" data-thick="0.60" style="font-size: 10px; padding: 4px 2px; background: rgba(16, 185, 129, 0.25); border-color: #10b981; color: #fff; font-weight: 700;">0.60mm ★</button>
+                                    <button type="button" class="action-btn btf-matrix-thick-btn" data-thick="0.80" style="font-size: 10px; padding: 4px 2px;">0.80mm</button>
+                                    <button type="button" class="action-btn btf-matrix-thick-btn" data-thick="1.00" style="font-size: 10px; padding: 4px 2px;">1.00mm</button>
+                                </div>
+                            </div>
+
+                            <!-- Quick Presets -->
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 5px; margin-bottom: 8px;">
+                                <button type="button" id="btfMatrixAutoSpreadBtn" class="action-btn accent" style="font-size: 10px; padding: 5px 4px; font-weight: 700;" title="Evenly spread 50 Windowed LEDs and 25 Backlighting LEDs across the graphic">🎯 Spread 50 Win + 25 Glow</button>
+                                <button type="button" id="btfMatrixResetCountsBtn" class="action-btn" style="font-size: 10px; padding: 5px 4px;" title="Reset sliders to 50 Windowed + 25 Backlighting + 181 Dark">🔄 Reset 50 / 25</button>
+                            </div>
+
+                            <!-- Live 256-Pixel Matrix Telemetry Card -->
+                            <div style="background: rgba(13, 17, 23, 0.9); border: 1px solid rgba(16, 185, 129, 0.35); border-radius: 6px; padding: 8px 10px; margin-bottom: 8px; font-size: 10.5px;">
+                                <div style="display: flex; justify-content: space-between; margin-bottom: 3px;">
+                                    <span style="color: var(--text-muted);">🔆 Windowed (Through-Holes):</span>
+                                    <span id="btfMatrixWinActualVal" style="font-weight: 700; color: #00ff88; font-family: monospace;">50 LEDs</span>
+                                </div>
+                                <div style="display: flex; justify-content: space-between; margin-bottom: 3px;">
+                                    <span style="color: var(--text-muted);">✨ Backlit (Diffused PLA Glow):</span>
+                                    <span id="btfMatrixGlowActualVal" style="font-weight: 700; color: #38bdf8; font-family: monospace;">25 LEDs</span>
+                                </div>
+                                <div style="display: flex; justify-content: space-between; margin-bottom: 3px;">
+                                    <span style="color: var(--text-muted);">⬛ Dark (Unlit Matrix Pixels):</span>
+                                    <span id="btfMatrixDarkActualVal" style="font-weight: 700; color: #8b949e; font-family: monospace;">181 LEDs</span>
+                                </div>
+                                <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+                                    <span style="color: var(--text-muted);">📐 Square Plate &amp; Holes:</span>
+                                    <span id="btfMatrixPlateSpecVal" style="font-weight: 700; color: #fbbf24; font-family: monospace;">176×176×0.60mm (16 Holes)</span>
+                                </div>
+                                <div style="display: flex; justify-content: space-between; padding-top: 4px; border-top: 1px solid rgba(255,255,255,0.08);">
+                                    <span style="color: var(--text-muted);">⚡ Est. Current (75 Lit / 256):</span>
+                                    <span id="btfMatrixCurrentVal" style="font-weight: 700; color: #34d399; font-family: monospace;">~1.35A max (2.0A Safe)</span>
+                                </div>
+                            </div>
+
+                            <!-- Open 3D Preview Modal directly in 16x16 Square Plate Mode -->
+                            <button type="button" id="btfMatrixOpen3dModalBtn" class="action-btn" style="width: 100%; font-size: 10.5px; padding: 7px; font-weight: 700; background: linear-gradient(135deg, rgba(16, 185, 129, 0.28), rgba(56, 189, 248, 0.25)); border-color: #10b981; color: #ecfdf5;" title="Open the 3D Print Preview Modal with this 176x176mm Square Backlight Plate">
+                                🧊 Open 3D Square Plate Preview (0.60mm)
+                            </button>
+                        </div>
+                    </div>
+
                     <!-- 3b. Bilateral Symmetry & Mirroring Tool -->
                     <div class="control-section" style="background: rgba(168, 85, 247, 0.08); border: 1px solid rgba(168, 85, 247, 0.35); border-radius: 8px; padding: 10px; margin-top: 10px;">
                         <div class="section-title" style="margin-bottom: 6px; color: #d8b4fe;">
@@ -2821,10 +2907,20 @@
                         <button type="button" id="tpuModalSelectBackBtn" onclick="switchTpuModalVariant('back')" style="border: none; border-radius: 4px; padding: 3px 8px; font-size: 11px; font-weight: 500; cursor: pointer; background: transparent; color: #8b949e; transition: all 0.15s ease;">🎒 Back</button>
                     </div>
 
-                    <!-- Tray Basin vs Rear Lid Switcher Pill -->
-                    <div style="display: inline-flex; align-items: center; background: #161b22; border: 1px solid #30363d; border-radius: 6px; padding: 2px; gap: 2px;" title="Switch between Main Armor Tray and 2.0mm Rear Cover Lid Plate">
+                    <!-- Tray Basin vs Rear Lid vs 16x16 Matrix Square Plate Switcher Pill -->
+                    <div style="display: inline-flex; align-items: center; background: #161b22; border: 1px solid #30363d; border-radius: 6px; padding: 2px; gap: 2px;" title="Switch between Main Armor Tray, 2.0mm Rear Cover Lid, and 176x176mm 16x16 Matrix Backlight Plate">
                         <button type="button" id="tpuModalDisplayTrayBtn" onclick="switchTpuDisplayMode('tray')" style="border: none; border-radius: 4px; padding: 3px 8px; font-size: 11px; font-weight: 700; cursor: pointer; background: #00ff88; color: #000; transition: all 0.15s ease;">📦 Tray Basin</button>
                         <button type="button" id="tpuModalDisplayLidBtn" onclick="switchTpuDisplayMode('lid')" style="border: none; border-radius: 4px; padding: 3px 8px; font-size: 11px; font-weight: 500; cursor: pointer; background: transparent; color: #8b949e; transition: all 0.15s ease;">🛡️ Rear Lid (2mm)</button>
+                        <button type="button" id="tpuModalDisplayMatrix16Btn" onclick="switchTpuDisplayMode('matrix16')" style="border: none; border-radius: 4px; padding: 3px 8px; font-size: 11px; font-weight: 500; cursor: pointer; background: transparent; color: #8b949e; transition: all 0.15s ease;">🔲 16×16 Matrix Plate</button>
+                    </div>
+
+                    <!-- 16x16 Matrix Square Plate Thickness Pill (Default 0.60mm) -->
+                    <div id="tpuModalThicknessPill" style="display: inline-flex; align-items: center; background: #161b22; border: 1px solid #10b981; border-radius: 6px; padding: 2px; gap: 2px;" title="Select 176x176mm Backlight Plate Thickness (Full-Z Color Inlays) and auto-regenerate STL/3MF">
+                        <span style="font-size: 10px; color: #6ee7b7; padding: 0 5px; font-weight: 700;">📏 Z:</span>
+                        <button type="button" id="tpuModalThick048Btn" onclick="setTpuMatrixThickness(0.48)" style="border: none; border-radius: 4px; padding: 3px 6px; font-size: 11px; font-weight: 500; cursor: pointer; background: transparent; color: #8b949e; transition: all 0.15s ease;">0.48mm</button>
+                        <button type="button" id="tpuModalThick060Btn" onclick="setTpuMatrixThickness(0.60)" style="border: none; border-radius: 4px; padding: 3px 6px; font-size: 11px; font-weight: 700; cursor: pointer; background: #10b981; color: #000; transition: all 0.15s ease;">0.60mm ★</button>
+                        <button type="button" id="tpuModalThick080Btn" onclick="setTpuMatrixThickness(0.80)" style="border: none; border-radius: 4px; padding: 3px 6px; font-size: 11px; font-weight: 500; cursor: pointer; background: transparent; color: #8b949e; transition: all 0.15s ease;">0.80mm</button>
+                        <button type="button" id="tpuModalThick100Btn" onclick="setTpuMatrixThickness(1.00)" style="border: none; border-radius: 4px; padding: 3px 6px; font-size: 11px; font-weight: 500; cursor: pointer; background: transparent; color: #8b949e; transition: all 0.15s ease;">1.00mm</button>
                     </div>
 
                     <div style="width: 1px; height: 16px; background: #30363d; margin: 0 1px;"></div>

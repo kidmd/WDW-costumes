@@ -93,6 +93,19 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### 2026-10-17 23:40 - 🔲 BTF-LIGHTING 16×16 (256-LED) Flexible FPCB Matrix Hybrid Window + Backlight Mode & 176×176mm Square 3D Plate Compiler
+- **Hardware & Physical Architecture:**
+  - Added full 2D Layout simulation, 3D WebGL preview, and multi-color 3MF/STL compilation for the **BTF-LIGHTING WS2812B ECO 16×16 (256-Pixel) Flexible FPCB Matrix** ($160.0\text{ mm} \times 160.0\text{ mm}$, $10.0\text{ mm}$ pixel pitch).
+  - **176.0mm × 176.0mm Square Cover Plate:** Covers the $160\times 160\text{ mm}$ flexible matrix with an $8.0\text{ mm}$ black mounting flange on all four sides and **16 perimeter shirt-stitching holes** ($\varnothing 2.8\text{ mm}$, inset $4.0\text{ mm}$ from the outer edge so needles/snaps clear the FPCB).
+  - **Proportional Graphic Centering:** Scales and centers the active float artwork inside a $156.0\text{ mm} \times 156.0\text{ mm}$ box within the $160\times 160\text{ mm}$ matrix while strictly preserving aspect ratio (`normW = normH * 1.25 * aspect`). All plate area outside the graphic is solid black filament (`#11161d`).
+- **256-LED Hybrid Allocation (~50 Windowed + ~25 Backlit + ~181 Dark):**
+  - **Farthest-Point Sampling (`computeBtfMatrix16x16Layout`):** Automatically spreads **50 Windowed LEDs** (through-hole optical apertures in the 3D plate) and **25 Backlighting LEDs** (solid thin colored PLA over the pixel—no window hole—for soft subsurface glow) evenly across the graphic, keeping the remaining **181 LEDs Dark (Off)** (~1.35A max draw, well within the 2.0A USB power bank budget).
+  - **Interactive Sliders & Cell Clicking:** Added sliders for Windowed LED count (`0–120`, default `50`) and Backlit LED count (`0–100`, default `25`), plus direct 2D canvas click-cycling on any of the 256 grid cells (`Window ➔ Backlight ➔ Dark ➔ Window`).
+- **3D Preview Modal (`#tpuPreviewModal`) & Full-Z Multi-Color Compiler (`scripts/compile_clean_tpu_panel.py`):**
+  - **Auto-Defaulting:** Opening `#tpuPreviewModal` while 16×16 Matrix Mode is enabled in the Layout tab automatically defaults to **`🔲 16×16 Matrix Plate`** mode.
+  - **Selectable Plate Thickness (Default `0.60mm`):** Added thickness selector buttons (`0.48mm`, `0.60mm ★`, `0.80mm`, `1.00mm`) in both the Layout tab and the `#tpuPreviewModal` toolbar.
+  - **Pure Flat Full-Z 3D Geometry (`compile_matrix_16x16_plate_variant`):** Strips all TPU sidewalls, LED collars, wire channels, and zip-tie bridges; extrudes all 5 filament color inlays 100% through the Z-thickness ($Z = 0$ to $T$) and cuts through-holes only for the ~50 windowed LEDs + 16 perimeter shirt holes. Renders both crisp window pixels and diffused subsurface backlit PLA glows in the 3D WebGL viewer.
+
 ### 2026-10-17 13:10 - 💡 Pete's Dragon 200mm × 200mm Multi-Color Backlighting Test Panels (4 Thicknesses)
 - **Optical Backlighting Calibration & Testing (`scripts/generate_backlight_test_panels.py`):**
   - Designed and generated 4 flat multi-color test panels to evaluate rear LED backlighting transmission, translucency, and light diffusion through multi-color filament before final costume fabrication.

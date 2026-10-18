@@ -140,6 +140,393 @@ if '--top-nubs' in sys.argv:
     if _tni + 1 < len(sys.argv):
         INCLUDE_TOP_NUBS = sys.argv[_tni + 1].lower() in ('on', '1', 'true', 'yes')
 
+MATRIX_16X16_MODE = bool(specs.get('matrix_16x16_mode', False))
+if '--matrix-16x16' in sys.argv:
+    _m16i = sys.argv.index('--matrix-16x16')
+    if _m16i + 1 < len(sys.argv):
+        MATRIX_16X16_MODE = sys.argv[_m16i + 1].lower() in ('on', '1', 'true', 'yes')
+
+PLATE_THICKNESS_MM = float(specs.get('plate_thickness_mm', 0.60))
+if '--plate-thickness' in sys.argv:
+    _pti = sys.argv.index('--plate-thickness')
+    if _pti + 1 < len(sys.argv):
+        try:
+            PLATE_THICKNESS_MM = float(sys.argv[_pti + 1])
+        except Exception:
+            pass
+
+def compile_matrix_16x16_plate_variant(variant_name, artwork_path, window_shape='round_34', plate_thickness_mm=0.60, windowed_leds=None, backlight_leds=None):
+    PLATE_SIZE_MM = 176.0
+    MATRIX_SIZE_MM = 160.0
+    MARGIN_MM = 8.0
+    ART_FIT_MM = 156.0
+    THICK_MM = round(max(0.20, min(3.00, float(plate_thickness_mm))), 2)
+
+    print(f"\n>>> Compiling {variant_name.upper()} 16x16 Matrix Backlight Plate ({PLATE_SIZE_MM}x{PLATE_SIZE_MM}x{THICK_MM:.2f}mm, Window Shape: {window_shape.upper()})...")
+    v_t0 = time.time()
+
+    active_img = Image.open(artwork_path).convert('RGBA')
+    img_w, img_h = active_img.size
+    img_arr = np.array(active_img)
+    alpha = img_arr[:, :, 3]
+    rgb = img_arr[:, :, :3].astype(np.float32)
+
+    corners_opaque = (alpha[0, 0] > 40 and alpha[0, -1] > 40 and alpha[-1, 0] > 40 and alpha[-1, -1] > 40)
+    corners_black = (rgb[0, 0].max() < 30 and rgb[0, -1].max() < 30 and rgb[-1, 0].max() < 30 and rgb[-1, -1].max() < 30)
+    corners_white = (rgb[0, 0].min() > 235 and rgb[0, -1].min() > 235 and rgb[-1, 0].min() > 235 and rgb[-1, -1].min() > 235)
+
+    if corners_opaque and corners_black:
+        fg_mask = (rgb.max(axis=2) > 20) & (alpha > 40)
+    elif corners_opaque and corners_white:
+        fg_mask = (rgb.min(axis=2) < 235) & (alpha > 40)
+    else:
+        fg_mask = alpha > 30
+
+    y_idx, x_idx = np.where(fg_mask)
+    if len(x_idx) > 0:
+        min_x, max_x = int(x_idx.min()), int(x_idx.max())
+        min_y, max_y = int(y_idx.min()), int(y_idx.max())
+    else:
+        min_x, max_x = 0, img_w - 1
+        min_y, max_y = 0, img_h - 1
+
+    w_px = max(1, max_x - min_x + 1)
+    h_px = max(1, max_y - min_y + 1)
+    scale = ART_FIT_MM / max(w_px, h_px)
+    target_w_mm = round(w_px * scale, 3)
+    target_h_mm = round(h_px * scale, 3)
+    offset_x = round((PLATE_SIZE_MM - target_w_mm) / 2.0, 3)
+    offset_y = round((PLATE_SIZE_MM - target_h_mm) / 2.0, 3)
+
+    # Color segmentation palette
+    float_name = specs.get('float_name', '')
+    graphic_type = specs.get('graphic_type', '')
+    raw_stl_colors = specs.get('stl_colors')
+    is_turtle = ('turtle' in str(graphic_type).lower() or 'turtle' in str(float_name).lower())
+    is_snail = ('snail' in str(graphic_type).lower() or 'snail' in str(float_name).lower())
+    is_drum = ('drum' in str(graphic_type).lower() or 'drum' in str(float_name).lower())
+    is_train = ('train' in str(graphic_type).lower() or 'casey' in str(graphic_type).lower() or 'train' in str(float_name).lower())
+    is_pirate = ('pirate' in str(graphic_type).lower() or 'pirate' in str(float_name).lower())
+
+    if raw_stl_colors and isinstance(raw_stl_colors, dict):
+        stl_colors = raw_stl_colors
+    elif is_pirate:
+        stl_colors = {
+            'black': { 'name': 'Chassis, Hull & Rigging Accents', 'hex': '#141414', 'targetRgb': [20, 20, 20], 'role': 'chassis' },
+            'red': { 'name': 'Sails & Masthead Flag', 'hex': '#e61919', 'targetRgb': [230, 25, 25], 'role': 'inlay', 'filename': 'color_red.stl' },
+            'gold': { 'name': 'Bright Gold Masts & Trim', 'hex': '#ebb941', 'targetRgb': [235, 185, 65], 'role': 'inlay', 'filename': 'color_gold.stl' },
+            'dark_gold': { 'name': 'Antique Bronze Decks & Shading', 'hex': '#9b6914', 'targetRgb': [155, 105, 20], 'role': 'inlay', 'filename': 'color_dark_gold.stl' },
+            'green': { 'name': 'Ocean Waves & Sea Keel', 'hex': '#147332', 'targetRgb': [20, 115, 50], 'role': 'inlay', 'filename': 'color_green.stl' }
+        }
+    elif is_train:
+        stl_colors = {
+            'black': { 'name': 'Chassis, Roof & Cab Windows', 'hex': '#141414', 'targetRgb': [20, 20, 20], 'role': 'chassis' },
+            'red': { 'name': 'Locomotive Body, Smokestack & Cowcatcher', 'hex': '#a3231e', 'targetRgb': [163, 35, 30], 'role': 'inlay', 'filename': 'color_red.stl' },
+            'gold': { 'name': 'Bright Gold Trim, Steam & Wheels', 'hex': '#d99e48', 'targetRgb': [217, 158, 72], 'role': 'inlay', 'filename': 'color_gold.stl' },
+            'dark_gold': { 'name': 'Shaded Gold / Bronze Steam & Details', 'hex': '#a1702c', 'targetRgb': [161, 112, 44], 'role': 'inlay', 'filename': 'color_dark_gold.stl' },
+            'grey': { 'name': 'Drive Rod, Wheel Rims & Undercarriage', 'hex': '#716f6f', 'targetRgb': [113, 111, 111], 'role': 'inlay', 'filename': 'color_grey.stl' }
+        }
+    elif is_turtle:
+        stl_colors = {
+            'black': { 'name': 'Chassis Black', 'hex': '#11161d', 'targetRgb': [34, 43, 51], 'role': 'chassis' },
+            'green': { 'name': 'Shell Plates & Glasses', 'hex': '#00cc66', 'targetRgb': [43, 109, 49], 'role': 'inlay', 'filename': 'color_green.stl' },
+            'blue': { 'name': 'Shell & Eyes', 'hex': '#2563eb', 'targetRgb': [41, 63, 96], 'role': 'inlay', 'filename': 'color_blue.stl' },
+            'yellow': { 'name': 'Body & Head', 'hex': '#facc15', 'targetRgb': [231, 199, 49], 'role': 'inlay', 'filename': 'color_yellow.stl' },
+            'red': { 'name': 'Tie & Lips', 'hex': '#ef4444', 'targetRgb': [217, 29, 22], 'role': 'inlay', 'filename': 'color_red.stl' }
+        }
+    elif is_snail:
+        stl_colors = {
+            'black': { 'name': 'Chassis & Shell Background', 'hex': '#11161d', 'targetRgb': [1, 2, 1], 'role': 'chassis' },
+            'red': { 'name': 'Head, Neck & Foot', 'hex': '#8a261e', 'targetRgb': [138, 38, 30], 'role': 'inlay', 'filename': 'color_red.stl' },
+            'gold': { 'name': 'Antennae, Spiral & Edge', 'hex': '#ca9927', 'targetRgb': [202, 153, 39], 'role': 'inlay', 'filename': 'color_gold.stl' },
+            'green': { 'name': 'Green Radial Stripes', 'hex': '#1e743d', 'targetRgb': [30, 116, 61], 'role': 'inlay', 'filename': 'color_green.stl' },
+            'blue': { 'name': 'Blue Radial Stripes', 'hex': '#295374', 'targetRgb': [41, 83, 116], 'role': 'inlay', 'filename': 'color_blue.stl' }
+        }
+    elif is_drum:
+        stl_colors = {
+            'black': { 'name': 'Chassis, Drum Face & Wheels', 'hex': '#11161d', 'targetRgb': [17, 22, 29], 'role': 'chassis' },
+            'gold': { 'name': 'Drum Ring, Text & Scrollwork', 'hex': '#facc15', 'targetRgb': [250, 204, 21], 'role': 'inlay', 'filename': 'color_gold.stl' },
+            'red': { 'name': 'Body Panels & Streamer', 'hex': '#ef4444', 'targetRgb': [239, 68, 68], 'role': 'inlay', 'filename': 'color_red.stl' },
+            'blue': { 'name': 'Flags & Pennants', 'hex': '#2563eb', 'targetRgb': [37, 99, 235], 'role': 'inlay', 'filename': 'color_blue.stl' },
+            'green': { 'name': 'Lead Flag', 'hex': '#10b981', 'targetRgb': [16, 185, 129], 'role': 'inlay', 'filename': 'color_green.stl' }
+        }
+    else:
+        stl_colors = {
+            'black': { 'name': 'Chassis Black', 'hex': '#11161d', 'targetRgb': [13, 25, 8], 'role': 'chassis' },
+            'green': { 'name': 'Dragon Body', 'hex': '#00e676', 'targetRgb': [4, 250, 6], 'role': 'inlay', 'filename': 'color_green.stl' },
+            'magenta': { 'name': 'Wings & Crest', 'hex': '#ec4899', 'targetRgb': [210, 10, 200], 'role': 'inlay', 'filename': 'color_magenta.stl' },
+            'yellow': { 'name': 'Belly & Horns', 'hex': '#facc15', 'targetRgb': [249, 249, 12], 'role': 'inlay', 'filename': 'color_yellow.stl' },
+            'white': { 'name': 'Eyes & Teeth', 'hex': '#ffffff', 'targetRgb': [247, 248, 247], 'role': 'inlay', 'filename': 'color_white.stl' }
+        }
+
+    targets = {c_k: np.array(c_v.get('targetRgb', [128, 128, 128]), dtype=np.float32) for c_k, c_v in stl_colors.items()}
+    color_names = list(targets.keys())
+    color_diffs = np.stack([np.sum((rgb - targets[k])**2, axis=2) for k in color_names], axis=2)
+    closest_color_idx = np.argmin(color_diffs, axis=2)
+
+    # If windowed_leds not supplied, auto-spread 50 windowed + 25 backlit on the 16x16 matrix (10mm pitch)
+    if not windowed_leds:
+        candidates = []
+        for r in range(16):
+            for c in range(16):
+                mx_mm = MARGIN_MM + 5.0 + c * 10.0  # 13.0 to 163.0 mm
+                my_mm = MARGIN_MM + 5.0 + (15 - r) * 10.0
+                # Map back to image pixel
+                px = int(round(min_x + (mx_mm - offset_x) / scale))
+                py = int(round(max_y - (my_mm - offset_y) / scale))
+                if 0 <= px < img_w and 0 <= py < img_h and fg_mask[py, px]:
+                    c_idx = closest_color_idx[py, px]
+                    c_key = color_names[c_idx]
+                    if c_key != 'black':
+                        pr, pg_c, pb = int(rgb[py, px, 0]), int(rgb[py, px, 1]), int(rgb[py, px, 2])
+                        candidates.append({
+                            'id': r * 16 + c + 1,
+                            'row': r,
+                            'col': c,
+                            'x': round(mx_mm, 2),
+                            'y': round(my_mm, 2),
+                            'color': {'r': pr, 'g': pg_c, 'b': pb}
+                        })
+        # Farthest-point sampling for 50 windowed and 25 backlit
+        def fps_select(pool, count):
+            if len(pool) <= count:
+                return list(pool), []
+            chosen = [pool[0]]
+            rem = list(pool[1:])
+            while len(chosen) < count and rem:
+                best_i = 0
+                best_d = -1.0
+                for idx_r, cand in enumerate(rem):
+                    min_d = min((cand['x'] - ch['x'])**2 + (cand['y'] - ch['y'])**2 for ch in chosen)
+                    if min_d > best_d:
+                        best_d = min_d
+                        best_i = idx_r
+                chosen.append(rem.pop(best_i))
+            return chosen, rem
+
+        windowed_leds, rem_cands = fps_select(candidates, 50)
+        if not backlight_leds:
+            backlight_leds, _ = fps_select(rem_cands, 25)
+
+    windowed_leds = [dict(l) for l in (windowed_leds or [])]
+    backlight_leds = [dict(l) for l in (backlight_leds or [])]
+
+    # Build 2D aperture cutouts ONLY for windowed_leds (~50 LEDs)
+    w_shape_str = str(window_shape).lower()
+    win_polys = []
+    for l in windowed_leds:
+        lx, ly = float(l['x']), float(l['y'])
+        if '30' in w_shape_str or '3.0' in w_shape_str:
+            win_polys.append(sg.Point(lx, ly).buffer(1.50, resolution=24))
+        elif 'square' in w_shape_str:
+            win_polys.append(sg.box(lx - 1.50, ly - 1.50, lx + 1.50, ly + 1.50))
+        else:
+            win_polys.append(sg.Point(lx, ly).buffer(1.70, resolution=24))
+    windows_union_2d = unary_union(win_polys) if win_polys else sg.Polygon()
+
+    # Build 16 perimeter shirt-mounting holes (O 2.8mm) along the 8mm border (4mm inset from 176mm edges)
+    edge_offsets = [26.0, 67.33, 108.67, 150.0]
+    shirt_hole_coords = []
+    for pos in edge_offsets:
+        shirt_hole_coords.append([round(pos, 2), 4.0])               # Bottom edge
+        shirt_hole_coords.append([round(pos, 2), PLATE_SIZE_MM - 4.0]) # Top edge
+        shirt_hole_coords.append([4.0, round(pos, 2)])               # Left edge
+        shirt_hole_coords.append([PLATE_SIZE_MM - 4.0, round(pos, 2)]) # Right edge
+    shirt_holes_union_2d = unary_union([sg.Point(hx, hy).buffer(1.40, resolution=24) for hx, hy in shirt_hole_coords])
+
+    # Extract 2D polygons for each non-black color inlay
+    polys_2d = {}
+    for c_i, c_name in enumerate(color_names):
+        c_info = stl_colors.get(c_name, {})
+        if c_name == 'black' or c_info.get('role') == 'chassis':
+            continue
+        c_mask = ((closest_color_idx == c_i) & fg_mask).astype(np.uint8) * 255
+        c_mask = cv2.morphologyEx(c_mask, cv2.MORPH_OPEN, np.ones((2, 2), np.uint8))
+        cnts, hier = cv2.findContours(c_mask, cv2.RETR_CCOMP, cv2.CHAIN_APPROX_SIMPLE)
+
+        def _cnt_to_poly_m16(c):
+            if cv2.contourArea(c) < 3:
+                return None
+            eps = 0.001 * cv2.arcLength(c, True)
+            approx = cv2.approxPolyDP(c, eps, True)
+            if len(approx) < 3:
+                return None
+            pts = [(round(offset_x + (pt[0][0] - min_x) * scale, 3),
+                    round(offset_y + (max_y - pt[0][1]) * scale, 3)) for pt in approx]
+            pg = sg.Polygon(pts)
+            return pg.buffer(0) if not pg.is_valid else pg
+
+        c_polys = []
+        if hier is not None:
+            for idx_c, c in enumerate(cnts):
+                if hier[0][idx_c][3] != -1:
+                    continue
+                outer = _cnt_to_poly_m16(c)
+                if outer is None or outer.is_empty:
+                    continue
+                child = hier[0][idx_c][2]
+                while child != -1:
+                    hp = _cnt_to_poly_m16(cnts[child])
+                    if hp is not None and not hp.is_empty:
+                        outer = outer.difference(hp)
+                    child = hier[0][child][0]
+                if not outer.is_empty and outer.area > 0.05:
+                    c_polys.append(outer)
+
+        if c_polys:
+            u = unary_union(c_polys)
+            if not windows_union_2d.is_empty:
+                u = u.difference(windows_union_2d)
+            if not shirt_holes_union_2d.is_empty:
+                u = u.difference(shirt_holes_union_2d)
+            polys_2d[c_name] = u if u.is_valid else u.buffer(0)
+
+    plate_box_2d = sg.box(0.0, 0.0, PLATE_SIZE_MM, PLATE_SIZE_MM)
+    all_inlays_2d = unary_union(list(polys_2d.values())) if polys_2d else sg.Polygon()
+    chassis_2d = plate_box_2d.difference(all_inlays_2d)
+    if not windows_union_2d.is_empty:
+        chassis_2d = chassis_2d.difference(windows_union_2d)
+    if not shirt_holes_union_2d.is_empty:
+        chassis_2d = chassis_2d.difference(shirt_holes_union_2d)
+    if not chassis_2d.is_valid:
+        chassis_2d = chassis_2d.buffer(0)
+
+    mono_2d = plate_box_2d
+    if not windows_union_2d.is_empty:
+        mono_2d = mono_2d.difference(windows_union_2d)
+    if not shirt_holes_union_2d.is_empty:
+        mono_2d = mono_2d.difference(shirt_holes_union_2d)
+
+    # Extrude all parts through full Z thickness (0 to THICK_MM)
+    final_chassis_tm = extrude_shapely(chassis_2d, THICK_MM)
+    final_monolithic_tm = extrude_shapely(mono_2d, THICK_MM)
+    final_lid_tm = extrude_shapely(plate_box_2d.difference(shirt_holes_union_2d), THICK_MM)
+
+    out_dir = '3d_panels'
+    os.makedirs(out_dir, exist_ok=True)
+    import glob
+    for old_stl in glob.glob(os.path.join(out_dir, f"tpu_panel_{variant_name}_color_*.stl")):
+        try:
+            os.remove(old_stl)
+        except Exception:
+            pass
+
+    mono_filename = f"tpu_panel_{variant_name}.stl"
+    mono_path = os.path.join(out_dir, mono_filename)
+    final_monolithic_tm.export(mono_path)
+
+    chassis_filename = f"tpu_panel_{variant_name}_chassis_black.stl"
+    chassis_path = os.path.join(out_dir, chassis_filename)
+    final_chassis_tm.export(chassis_path)
+
+    lid_filename = f"tpu_panel_{variant_name}_lid.stl"
+    lid_path = os.path.join(out_dir, lid_filename)
+    final_lid_tm.export(lid_path)
+    lid_size = os.path.getsize(lid_path)
+
+    color_stls = {}
+    exported_inlays = []
+    scene_items = {'1_Chassis_Black': final_chassis_tm}
+    slot_idx = 2
+
+    for c_name, c_info in stl_colors.items():
+        if c_name == 'black' or c_info.get('role') == 'chassis':
+            continue
+        if c_name in polys_2d and not polys_2d[c_name].is_empty:
+            c_tm = extrude_shapely(polys_2d[c_name], THICK_MM)
+            if c_tm is not None and len(c_tm.faces) > 0:
+                c_filename = f"tpu_panel_{variant_name}_color_{c_name}.stl"
+                c_path = os.path.join(out_dir, c_filename)
+                c_tm.export(c_path)
+                color_stls[c_name] = c_path
+                clean_name = c_info.get('name', c_name.capitalize()).replace(' ', '_').replace('&', 'and')
+                scene_items[f"{slot_idx}_{clean_name}"] = c_tm
+                slot_idx += 1
+                exported_inlays.append({
+                    "key": c_name,
+                    "name": c_info.get('name', c_name.capitalize()),
+                    "filename": c_filename,
+                    "hex": c_info.get('hex', '#00ff88'),
+                    "count": len(c_tm.faces)
+                })
+
+    mf3_filename = f"tpu_panel_{variant_name}_multicolor.3mf"
+    mf3_path = os.path.join(out_dir, mf3_filename)
+    try:
+        scene = trimesh.Scene(scene_items)
+        scene.export(mf3_path)
+    except Exception as e:
+        print(f"[{variant_name}] 3MF export warning: {e}")
+
+    zip_filename = f"tpu_panel_{variant_name}_multicolor_bundle.zip"
+    zip_path = os.path.join(out_dir, zip_filename)
+    readme_txt = f"""🏰 MAIN STREET ELECTRICAL PARADE - 16x16 MATRIX HYBRID BACKLIGHT PLATE
+VARIANT: {variant_name.upper()} ({specs.get('float_name', 'MSEP Float')})
+======================================================================
+PLATE SIZE: {PLATE_SIZE_MM:.1f} mm x {PLATE_SIZE_MM:.1f} mm Square (Covers 160x160mm BTF 16x16 FPCB)
+THICKNESS: {THICK_MM:.2f} mm (100% Full Z-Thickness Color Inlays)
+WINDOWED LEDS: {len(windowed_leds)} Open Apertures ({window_shape})
+BACKLIT LEDS: {len(backlight_leds)} Solid Diffused Glow Positions (Zero Holes)
+SHIRT HOLES: {len(shirt_hole_coords)} Perimeter Stitching Holes (Ø 2.8mm along 8mm margin)
+"""
+    with zipfile.ZipFile(zip_path, 'w', zipfile.ZIP_DEFLATED) as zf:
+        zf.writestr('README_16X16_MATRIX_PLATE.txt', readme_txt)
+        zf.write(chassis_path, chassis_filename)
+        for c_n, c_p in color_stls.items():
+            zf.write(c_p, os.path.basename(c_p))
+        if os.path.exists(mf3_path):
+            zf.write(mf3_path, mf3_filename)
+
+    if variant_name == 'front':
+        shutil.copyfile(mono_path, os.path.join(out_dir, 'tpu_panel.stl'))
+
+    stl_size = os.path.getsize(mono_path)
+    chassis_size = os.path.getsize(chassis_path)
+    zip_size = os.path.getsize(zip_path)
+    stl_bounds = [PLATE_SIZE_MM, PLATE_SIZE_MM, THICK_MM]
+    stl_center = [PLATE_SIZE_MM / 2.0, PLATE_SIZE_MM / 2.0, round(THICK_MM / 2.0, 3)]
+    contour_coords = [[0.0, 0.0], [PLATE_SIZE_MM, 0.0], [PLATE_SIZE_MM, PLATE_SIZE_MM], [0.0, PLATE_SIZE_MM], [0.0, 0.0]]
+
+    print(f"[{variant_name}] 16x16 Matrix Plate compiled in {time.time()-v_t0:.2f}s! ({len(windowed_leds)} windows, {len(backlight_leds)} backlit, {THICK_MM:.2f}mm thick)")
+
+    return {
+        "variant": variant_name,
+        "matrix_16x16_mode": True,
+        "plate_thickness_mm": THICK_MM,
+        "width_mm": PLATE_SIZE_MM,
+        "height_mm": PLATE_SIZE_MM,
+        "panel_width_mm": PLATE_SIZE_MM,
+        "panel_height_mm": PLATE_SIZE_MM,
+        "total_image_width_mm": PLATE_SIZE_MM,
+        "total_image_height_mm": PLATE_SIZE_MM,
+        "artwork_offset_mm": [offset_x, offset_y],
+        "artwork_size_mm": [target_w_mm, target_h_mm],
+        "window_shape": window_shape,
+        "well_orientation": "horizontal",
+        "ordered_leds": windowed_leds,
+        "backlight_leds": backlight_leds,
+        "led_count": len(windowed_leds),
+        "backlight_led_count": len(backlight_leds),
+        "fastener_tabs": shirt_hole_coords,
+        "screw_positions": shirt_hole_coords,
+        "number_positions": [],
+        "contour_pts": contour_coords,
+        "stl_bounds": stl_bounds,
+        "stl_center": stl_center,
+        "stl_size": stl_size,
+        "chassis_size": chassis_size,
+        "lid_size": lid_size,
+        "zip_size": zip_size,
+        "inlays": exported_inlays,
+        "stl_url": f"/3d_panels/{mono_filename}",
+        "chassis_stl_url": f"/3d_panels/{chassis_filename}",
+        "lid_stl_url": f"/3d_panels/{lid_filename}",
+        "multicolor_3mf_url": f"/3d_panels/{mf3_filename}" if os.path.exists(mf3_path) else None,
+        "multicolor_zip_url": f"/3d_panels/{zip_filename}",
+        "volume_mm3": round(PLATE_SIZE_MM * PLATE_SIZE_MM * THICK_MM, 1),
+        "is_watertight": True
+    }
+
 def compile_plate_variant(variant_name, width_mm, height_mm, raw_leds, artwork_path, window_shape='round_34', clip_grooves=False, top_nubs=False, well_orientation='horizontal'):
     print(f"\n>>> Compiling {variant_name.upper()} Plate ({width_mm}mm x {height_mm}mm, {len(raw_leds)} LEDs, Window Shape: {window_shape.upper()}, Orientation: {well_orientation.upper()}, Clip Grooves: {'ON' if clip_grooves else 'OFF'}, Top Nubs: {'ON' if top_nubs else 'OFF'})...")
     v_t0 = time.time()
@@ -1358,31 +1745,53 @@ if '--orientation' in sys.argv:
     except Exception:
         pass
 
-# 1. Compile Front Plate
-front_result = compile_plate_variant(
-    'front',
-    front_specs['width_mm'],
-    front_specs['height_mm'],
-    front_specs['ordered_leds'],
-    artwork_path,
-    window_shape=window_shape,
-    clip_grooves=INCLUDE_CLIP_GROOVES,
-    top_nubs=INCLUDE_TOP_NUBS,
-    well_orientation=well_orientation
-)
+if MATRIX_16X16_MODE:
+    windowed_leds_spec = specs.get('matrix_windowed_leds', None)
+    backlight_leds_spec = specs.get('matrix_backlight_leds', None)
+    # 1. Compile Front 16x16 Matrix Backlight Plate
+    front_result = compile_matrix_16x16_plate_variant(
+        'front',
+        artwork_path,
+        window_shape=window_shape,
+        plate_thickness_mm=PLATE_THICKNESS_MM,
+        windowed_leds=windowed_leds_spec,
+        backlight_leds=backlight_leds_spec
+    )
+    # 2. Compile Back 16x16 Matrix Backlight Plate
+    back_result = compile_matrix_16x16_plate_variant(
+        'back',
+        artwork_path,
+        window_shape=window_shape,
+        plate_thickness_mm=PLATE_THICKNESS_MM,
+        windowed_leds=windowed_leds_spec,
+        backlight_leds=backlight_leds_spec
+    )
+else:
+    # 1. Compile Front Plate
+    front_result = compile_plate_variant(
+        'front',
+        front_specs['width_mm'],
+        front_specs['height_mm'],
+        front_specs['ordered_leds'],
+        artwork_path,
+        window_shape=window_shape,
+        clip_grooves=INCLUDE_CLIP_GROOVES,
+        top_nubs=INCLUDE_TOP_NUBS,
+        well_orientation=well_orientation
+    )
 
-# 2. Compile Back Plate
-back_result = compile_plate_variant(
-    'back',
-    back_specs['width_mm'],
-    back_specs['height_mm'],
-    back_specs['ordered_leds'],
-    artwork_path,
-    window_shape=window_shape,
-    clip_grooves=INCLUDE_CLIP_GROOVES,
-    top_nubs=INCLUDE_TOP_NUBS,
-    well_orientation=well_orientation
-)
+    # 2. Compile Back Plate
+    back_result = compile_plate_variant(
+        'back',
+        back_specs['width_mm'],
+        back_specs['height_mm'],
+        back_specs['ordered_leds'],
+        artwork_path,
+        window_shape=window_shape,
+        clip_grooves=INCLUDE_CLIP_GROOVES,
+        top_nubs=INCLUDE_TOP_NUBS,
+        well_orientation=well_orientation
+    )
 
 # Update full JSON specifications
 active_graphic_type = specs.get('graphic_type', '')
@@ -1394,6 +1803,8 @@ specs['well_orientation'] = well_orientation
 specs['include_led_numbers'] = INCLUDE_LED_NUMBERS
 specs['include_clip_grooves'] = INCLUDE_CLIP_GROOVES
 specs['include_top_nubs'] = INCLUDE_TOP_NUBS
+specs['matrix_16x16_mode'] = MATRIX_16X16_MODE
+specs['plate_thickness_mm'] = round(PLATE_THICKNESS_MM, 2)
 specs['front'] = front_result
 specs['back'] = back_result
 

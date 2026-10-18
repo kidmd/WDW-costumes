@@ -312,6 +312,27 @@ function getGraphicChestBounds() {
     const topY = 0.168; // Just below crew neck collar dip (0.14)
     const Y_center = 0.3615; // Vertical center between collar (0.168) and bib (0.555)
 
+    if (typeof btfMatrix16x16Active !== 'undefined' && btfMatrix16x16Active) {
+        // BTF 16x16 Matrix is 160.0 x 160.0mm inside a 176.0 x 176.0mm square plate.
+        // Fit the active graphic within a 156.0 x 156.0mm square centered at (0.50, Y_center).
+        const artFitW = 156.0 / 457.2;          // ~0.341207
+        const artFitH = artFitW / 1.25;         // ~0.272966
+        const aspect = (activeImg && activeImg.naturalWidth > 0 && activeImg.naturalHeight > 0)
+            ? (activeImg.naturalWidth / activeImg.naturalHeight)
+            : 0.706;
+        let normW, normH;
+        if (aspect >= 1.0) {
+            normW = artFitW;
+            normH = normW / (1.25 * aspect);
+        } else {
+            normH = artFitH;
+            normW = normH * 1.25 * aspect;
+        }
+        const normX = 0.50 - normW / 2.0;
+        const normY = Y_center - normH / 2.0;
+        return { normX, normY, normW, normH };
+    }
+
     const plateScaleMap = {
         'small': 0.8125,   // 6.5" / 8.0" (165.1mm)
         'medium': 1.0000,  // 8.0" / 8.0" (203.2mm)
@@ -4202,6 +4223,9 @@ function renderSingleShirtView(timeMs) {
     };
     let shirtTitle = FLOAT_TITLES[currentGraphicType] || "MAIN STREET ELECTRICAL PARADE";
     drawRunningShirt(ctx, s.x, s.y, s.width, s.height, shirtTitle);
+    if (typeof btfMatrix16x16Active !== 'undefined' && btfMatrix16x16Active) {
+        drawBtfMatrix16x16PlateBackdrop(ctx, s);
+    }
     drawPetesDragon(ctx, s);
     drawRaceBib(ctx, s);
 
@@ -4244,7 +4268,7 @@ function renderSingleShirtView(timeMs) {
     }
 
     // Wire Tension Heatmap or Standard Wiring Trace
-    if ((params.showWireTension || params.showWiring) && leds.length > 1 && !btfStripPreviewActive) {
+    if ((params.showWireTension || params.showWiring) && leds.length > 1 && !btfStripPreviewActive && !btfMatrix16x16Active) {
         ctx.save();
         const SHIRT_PHYSICAL_WIDTH_CM = 18.0 * 2.54;
         const SHIRT_PHYSICAL_HEIGHT_CM = 24.0 * 2.54;
@@ -4414,11 +4438,13 @@ function renderSingleShirtView(timeMs) {
     }
 
     // Render Strain Relief Bridges & 10mm Keep-Out Clearance Zones (Always visible when toggled ON)
-    if (params.showStrainReliefs && !btfStripPreviewActive) {
+    if (params.showStrainReliefs && !btfStripPreviewActive && !btfMatrix16x16Active) {
         drawStrainReliefBridgesOverlay(ctx);
     }
 
-    if (btfStripPreviewActive) {
+    if (btfMatrix16x16Active) {
+        drawBtfMatrix16x16Overlay(ctx, s, timeMs);
+    } else if (btfStripPreviewActive) {
         drawBtfStripOverlay(ctx, timeMs);
     } else {
         for (let i = 0; i < leds.length; i++) {
@@ -11901,6 +11927,14 @@ canvas.addEventListener('mousedown', (e) => {
 
     if (e.button !== 0) return;
 
+    if (typeof btfMatrix16x16Active !== 'undefined' && btfMatrix16x16Active) {
+        const worldX = (mx - panX) / zoomScale;
+        const worldY = (my - panY) / zoomScale;
+        if (typeof handleBtfMatrix16x16CanvasClick === 'function' && handleBtfMatrix16x16CanvasClick(worldX, worldY)) {
+            return;
+        }
+    }
+
     // Click-to-Draw Sequential Mode Handler
     if (isDrawGroupMode) {
         const worldX = (mx - panX) / zoomScale;
@@ -13814,6 +13848,9 @@ function applyProfileData(profileData) {
                 if (btfStripPreviewActive) {
                     computeBtfStripMatrix();
                 }
+                if (typeof btfMatrix16x16Active !== 'undefined' && btfMatrix16x16Active) {
+                    computeBtfMatrix16x16Layout();
+                }
                 if (typeof markSingleShirtDirty === 'function') markSingleShirtDirty();
                 if (typeof draw === 'function') draw();
             };
@@ -13958,9 +13995,12 @@ function applyProfileData(profileData) {
         nameInput.value = profileData.name;
     }
 
-    // 7. Recompute BTF Strip Preview if active
+    // 7. Recompute BTF Strip / 16x16 Matrix Preview if active
     if (btfStripPreviewActive) {
         computeBtfStripMatrix();
+    }
+    if (typeof btfMatrix16x16Active !== 'undefined' && btfMatrix16x16Active) {
+        computeBtfMatrix16x16Layout();
     }
 
     // 8. Restore TPU Armor Panel Features (Aperture Shape, Orientation, Numbers, Grooves, Nubs)
@@ -15651,6 +15691,689 @@ function initBtfStripPreview() {
 }
 window.initBtfStripPreview = initBtfStripPreview;
 window.computeBtfStripMatrix = computeBtfStripMatrix;
+
+// ============================================================================
+// 🔲 BTF-LIGHTING WS2812B ECO 16×16 (256-PIXEL) FLEXIBLE FPCB MATRIX
+// HYBRID WINDOW (~50 LEDs) + THIN-PLA BACKLIGHT (~25 LEDs) + DARK (~181 LEDs)
+// Physical Matrix: 160.0 × 160.0mm (10.0mm pitch)
+// 3D Square Cover Plate: 176.0 × 176.0mm (8.0mm border with 16 Ø2.8mm shirt holes)
+// ============================================================================
+let btfMatrix16x16Active = false;
+let btfMatrix16x16Config = {
+    windowCount: 50,
+    backlightCount: 25,
+    thicknessMm: 0.60
+};
+let btfMatrix16x16Cells = []; // 256 entries: { row, col, matrixIdx, plateX, plateY, nx, ny, role: 'window'|'backlight'|'dark', color, onGraphic }
+
+function getBtfMatrix16x16GeometryNorm() {
+    const SHIRT_W_MM = 457.2;
+    const Y_CENTER = 0.3615;
+    const plateNormW = 176.0 / SHIRT_W_MM;          // ~0.384952
+    const plateNormH = plateNormW / 1.25;           // ~0.307961
+    const matrixNormW = 160.0 / SHIRT_W_MM;         // ~0.349956
+    const matrixNormH = matrixNormW / 1.25;         // ~0.279965
+
+    return {
+        plateNormX: 0.50 - plateNormW / 2.0,
+        plateNormY: Y_CENTER - plateNormH / 2.0,
+        plateNormW,
+        plateNormH,
+        matrixNormX: 0.50 - matrixNormW / 2.0,
+        matrixNormY: Y_CENTER - matrixNormH / 2.0,
+        matrixNormW,
+        matrixNormH
+    };
+}
+
+function computeBtfMatrix16x16Layout() {
+    const geom = getBtfMatrix16x16GeometryNorm();
+    const gb = getGraphicChestBounds();
+    const activeImg = getActiveGraphicImg();
+
+    const targetW = 320;
+    const targetH = (activeImg && activeImg.naturalWidth > 0)
+        ? Math.max(120, Math.round(targetW * (activeImg.naturalHeight / activeImg.naturalWidth)))
+        : 320;
+    const offCanvas = document.createElement('canvas');
+    offCanvas.width = targetW;
+    offCanvas.height = targetH;
+    const offCtx = offCanvas.getContext('2d');
+    if (activeImg && activeImg.naturalWidth > 0) {
+        offCtx.drawImage(activeImg, 0, 0, targetW, targetH);
+    } else {
+        drawPetesDragon(offCtx, { x: 0, y: 0, width: targetW, height: targetH });
+    }
+    const imgData = offCtx.getImageData(0, 0, targetW, targetH).data;
+
+    // Detect if image has opaque black corners
+    const c0 = (imgData[3] > 40 && imgData[0] < 30 && imgData[1] < 30 && imgData[2] < 30);
+    const c1 = (imgData[(targetW - 1) * 4 + 3] > 40 && imgData[(targetW - 1) * 4] < 30 && imgData[(targetW - 1) * 4 + 1] < 30 && imgData[(targetW - 1) * 4 + 2] < 30);
+    const opaqueBlackBg = c0 && c1;
+
+    btfMatrix16x16Cells = [];
+
+    for (let row = 0; row < 16; row++) {
+        for (let col = 0; col < 16; col++) {
+            // Physical 176x176mm plate coordinates (X: left-to-right 0..176, Y: bottom-to-top 0..176)
+            const plateX = 8.0 + col * 10.0 + 5.0;
+            const plateY = 8.0 + (15 - row) * 10.0 + 5.0;
+
+            // Normalized shirt coordinates
+            const nx = geom.matrixNormX + ((col + 0.5) / 16.0) * geom.matrixNormW;
+            const ny = geom.matrixNormY + ((row + 0.5) / 16.0) * geom.matrixNormH;
+
+            // Sample graphic within a small 3x3 neighborhood around cell center
+            const relX = (nx - gb.normX) / gb.normW;
+            const relY = (ny - gb.normY) / gb.normH;
+            let onGraphic = false;
+            let sumR = 0, sumG = 0, sumB = 0, countValid = 0;
+
+            if (relX >= -0.02 && relX <= 1.02 && relY >= -0.02 && relY <= 1.02) {
+                const cxPx = Math.floor(Math.max(0, Math.min(0.999, relX)) * targetW);
+                const cyPx = Math.floor(Math.max(0, Math.min(0.999, relY)) * targetH);
+                const radPx = Math.max(2, Math.round(targetW * 0.018));
+                for (let dy = -radPx; dy <= radPx; dy += Math.max(1, Math.floor(radPx / 2))) {
+                    for (let dx = -radPx; dx <= radPx; dx += Math.max(1, Math.floor(radPx / 2))) {
+                        const px = cxPx + dx;
+                        const py = cyPx + dy;
+                        if (px < 0 || px >= targetW || py < 0 || py >= targetH) continue;
+                        const pIdx = (py * targetW + px) * 4;
+                        const r = imgData[pIdx], g = imgData[pIdx + 1], b = imgData[pIdx + 2], a = imgData[pIdx + 3];
+                        if (a > 40 && !(opaqueBlackBg && r < 28 && g < 28 && b < 28)) {
+                            sumR += r;
+                            sumG += g;
+                            sumB += b;
+                            countValid++;
+                        }
+                    }
+                }
+            }
+
+            let cellColor = { r: 0, g: 255, b: 136 };
+            if (countValid > 0) {
+                onGraphic = true;
+                const avgR = Math.round(sumR / countValid);
+                const avgG = Math.round(sumG / countValid);
+                const avgB = Math.round(sumB / countValid);
+                cellColor = (typeof boostLedVibrancy === 'function')
+                    ? boostLedVibrancy(avgR, avgG, avgB, Math.max(0, Math.min(1, relX)), Math.max(0, Math.min(1, relY)))
+                    : { r: avgR, g: avgG, b: avgB };
+            }
+
+            const matrixIdx = (row % 2 === 0) ? (row * 16 + col) : (row * 16 + (15 - col));
+            btfMatrix16x16Cells.push({
+                row,
+                col,
+                matrixIdx,
+                plateX,
+                plateY,
+                nx,
+                ny,
+                role: 'dark',
+                color: cellColor,
+                onGraphic
+            });
+        }
+    }
+
+    // Candidate pool: prefer cells on the graphic; if user asks for more than graphic cells, include nearest margin cells
+    const graphicIndices = [];
+    const nonGraphicIndices = [];
+    btfMatrix16x16Cells.forEach((cell, i) => {
+        if (cell.onGraphic) graphicIndices.push(i);
+        else nonGraphicIndices.push(i);
+    });
+
+    // Sort non-graphic indices by closeness to center of matrix in case needed
+    nonGraphicIndices.sort((a, b) => {
+        const ca = btfMatrix16x16Cells[a], cb = btfMatrix16x16Cells[b];
+        const da = Math.hypot(ca.plateX - 88, ca.plateY - 88);
+        const db = Math.hypot(cb.plateX - 88, cb.plateY - 88);
+        return da - db;
+    });
+
+    const targetWin = Math.max(0, Math.min(256, Math.round(btfMatrix16x16Config.windowCount)));
+    const targetGlow = Math.max(0, Math.min(256 - targetWin, Math.round(btfMatrix16x16Config.backlightCount)));
+
+    // Helper: Farthest-Point Sampling (FPS) to spread points evenly
+    function selectEvenlySpread(poolIndices, count, existingSelectedIndices = []) {
+        if (count <= 0 || poolIndices.length === 0) return [];
+        if (poolIndices.length <= count) return [...poolIndices];
+
+        const selected = [];
+        const remaining = new Set(poolIndices);
+
+        // If no existing seed points, pick the cell closest to the bounding center of the pool first
+        if (existingSelectedIndices.length === 0 && selected.length === 0) {
+            let cx = 0, cy = 0;
+            poolIndices.forEach(idx => {
+                cx += btfMatrix16x16Cells[idx].plateX;
+                cy += btfMatrix16x16Cells[idx].plateY;
+            });
+            cx /= poolIndices.length;
+            cy /= poolIndices.length;
+            let firstIdx = poolIndices[0], bestD = 1e9;
+            poolIndices.forEach(idx => {
+                const c = btfMatrix16x16Cells[idx];
+                const d = Math.hypot(c.plateX - cx, c.plateY - cy);
+                if (d < bestD) { bestD = d; firstIdx = idx; }
+            });
+            selected.push(firstIdx);
+            remaining.delete(firstIdx);
+        }
+
+        while (selected.length < count && remaining.size > 0) {
+            let bestCand = -1;
+            let bestScore = -1;
+            for (const candIdx of remaining) {
+                const cand = btfMatrix16x16Cells[candIdx];
+                // Minimum distance to other cells of the SAME role
+                let minSameDist = 1e9;
+                for (const selIdx of selected) {
+                    const s = btfMatrix16x16Cells[selIdx];
+                    const d = Math.hypot(cand.plateX - s.plateX, cand.plateY - s.plateY);
+                    if (d < minSameDist) minSameDist = d;
+                }
+                // Minimum distance to cells of the OTHER role (weighted so backlight nestles between windows)
+                let minOtherDist = 1e9;
+                for (const exIdx of existingSelectedIndices) {
+                    const ex = btfMatrix16x16Cells[exIdx];
+                    const d = Math.hypot(cand.plateX - ex.plateX, cand.plateY - ex.plateY);
+                    if (d < minOtherDist) minOtherDist = d;
+                }
+                const score = (selected.length === 0)
+                    ? minOtherDist
+                    : (minSameDist * 0.72 + (existingSelectedIndices.length > 0 ? minOtherDist * 0.28 : 0));
+                if (score > bestScore) {
+                    bestScore = score;
+                    bestCand = candIdx;
+                }
+            }
+            if (bestCand === -1) break;
+            selected.push(bestCand);
+            remaining.delete(bestCand);
+        }
+        return selected;
+    }
+
+    const fullPool = [...graphicIndices, ...nonGraphicIndices];
+    const primaryPool = graphicIndices.length >= (targetWin + targetGlow)
+        ? graphicIndices
+        : fullPool.slice(0, Math.max(graphicIndices.length, targetWin + targetGlow));
+
+    // 1. Spread ~50 Windowed LEDs evenly across the graphic
+    const winSelected = selectEvenlySpread(primaryPool, targetWin, []);
+    const winSet = new Set(winSelected);
+    winSelected.forEach(idx => { btfMatrix16x16Cells[idx].role = 'window'; });
+
+    // 2. Spread ~25 Backlighting LEDs evenly across the remaining graphic cells
+    const remainingPool = primaryPool.filter(idx => !winSet.has(idx));
+    const glowSelected = selectEvenlySpread(remainingPool, targetGlow, winSelected);
+    glowSelected.forEach(idx => { btfMatrix16x16Cells[idx].role = 'backlight'; });
+
+    updateBtfMatrix16x16TelemetryUI();
+}
+window.computeBtfMatrix16x16Layout = computeBtfMatrix16x16Layout;
+
+function getBtfMatrix16x16ListsForExport() {
+    if (!btfMatrix16x16Cells || btfMatrix16x16Cells.length !== 256) {
+        computeBtfMatrix16x16Layout();
+    }
+    const windowedLeds = [];
+    const backlightLeds = [];
+    btfMatrix16x16Cells.forEach(c => {
+        const item = {
+            id: c.matrixIdx,
+            row: c.row,
+            col: c.col,
+            x: c.plateX,
+            y: c.plateY,
+            color: c.color || { r: 0, g: 255, b: 136 }
+        };
+        if (c.role === 'window') windowedLeds.push(item);
+        else if (c.role === 'backlight') backlightLeds.push(item);
+    });
+    return { windowedLeds, backlightLeds };
+}
+window.getBtfMatrix16x16ListsForExport = getBtfMatrix16x16ListsForExport;
+
+function updateBtfMatrix16x16TelemetryUI() {
+    let winCount = 0, glowCount = 0, darkCount = 0;
+    btfMatrix16x16Cells.forEach(c => {
+        if (c.role === 'window') winCount++;
+        else if (c.role === 'backlight') glowCount++;
+        else darkCount++;
+    });
+
+    const winLabel = document.getElementById('btfMatrixWindowCountLabel');
+    const glowLabel = document.getElementById('btfMatrixBacklightCountLabel');
+    const winActual = document.getElementById('btfMatrixWinActualVal');
+    const glowActual = document.getElementById('btfMatrixGlowActualVal');
+    const darkActual = document.getElementById('btfMatrixDarkActualVal');
+    const plateSpec = document.getElementById('btfMatrixPlateSpecVal');
+    const curVal = document.getElementById('btfMatrixCurrentVal');
+    const open3dBtn = document.getElementById('btfMatrixOpen3dModalBtn');
+
+    if (winLabel) winLabel.textContent = `${winCount} LEDs`;
+    if (glowLabel) glowLabel.textContent = `${glowCount} LEDs`;
+    if (winActual) winActual.textContent = `${winCount} LEDs (Open Holes)`;
+    if (glowActual) glowActual.textContent = `${glowCount} LEDs (Thin PLA Glow)`;
+    if (darkActual) darkActual.textContent = `${darkCount} LEDs (Off)`;
+    if (plateSpec) plateSpec.textContent = `176×176×${btfMatrix16x16Config.thicknessMm.toFixed(2)}mm (16 Holes)`;
+
+    const totalLit = winCount + glowCount;
+    const estCurrentA = (totalLit * 0.018).toFixed(2);
+    if (curVal) {
+        curVal.textContent = `~${estCurrentA}A (${totalLit}/256 Lit • 2.0A Safe)`;
+    }
+    if (open3dBtn) {
+        open3dBtn.textContent = `🧊 Open 3D Square Plate Preview (${btfMatrix16x16Config.thicknessMm.toFixed(2)}mm)`;
+    }
+}
+
+function drawBtfMatrix16x16PlateBackdrop(ctx, s) {
+    const geom = getBtfMatrix16x16GeometryNorm();
+    const px = s.x + geom.plateNormX * s.width;
+    const py = s.y + geom.plateNormY * s.height;
+    const pw = geom.plateNormW * s.width;
+    const ph = geom.plateNormH * s.height;
+
+    const mx = s.x + geom.matrixNormX * s.width;
+    const my = s.y + geom.matrixNormY * s.height;
+    const mw = geom.matrixNormW * s.width;
+    const mh = geom.matrixNormH * s.height;
+
+    ctx.save();
+
+    // 1. 176x176mm Black Square 3D Plate Chassis (makes the part beyond the graphic black)
+    ctx.shadowColor = 'rgba(0, 0, 0, 0.65)';
+    ctx.shadowBlur = 12;
+    ctx.shadowOffsetY = 4;
+    ctx.fillStyle = '#0e131a';
+    ctx.strokeStyle = '#334155';
+    ctx.lineWidth = 2.0;
+    if (ctx.roundRect) {
+        ctx.beginPath();
+        ctx.roundRect(px, py, pw, ph, 5);
+        ctx.fill();
+        ctx.shadowBlur = 0;
+        ctx.stroke();
+    } else {
+        ctx.fillRect(px, py, pw, ph);
+        ctx.shadowBlur = 0;
+        ctx.strokeRect(px, py, pw, ph);
+    }
+
+    // 2. 16 Perimeter Shirt-Stitching Holes (Ø 2.8mm) along the 8mm margin outside the 160x160mm FPCB
+    const holeOffsetsMm = [4.0, 38.0, 88.0, 138.0, 172.0];
+    const holePtsMm = [];
+    holeOffsetsMm.forEach(xMm => {
+        holePtsMm.push([xMm, 4.0]);
+        holePtsMm.push([xMm, 172.0]);
+    });
+    [38.0, 88.0, 138.0].forEach(yMm => {
+        holePtsMm.push([4.0, yMm]);
+        holePtsMm.push([172.0, yMm]);
+    });
+
+    const holeRadPx = Math.max(2.2, (1.4 / 176.0) * pw);
+    holePtsMm.forEach(([hxMm, hyMm]) => {
+        const hcx = px + (hxMm / 176.0) * pw;
+        const hcy = py + ((176.0 - hyMm) / 176.0) * ph;
+        ctx.beginPath();
+        ctx.arc(hcx, hcy, holeRadPx, 0, Math.PI * 2);
+        ctx.fillStyle = '#1e293b';
+        ctx.fill();
+        ctx.strokeStyle = '#64748b';
+        ctx.lineWidth = 1.0;
+        ctx.stroke();
+    });
+
+    // 3. 160x160mm BTF 16x16 FPCB Inner Boundary
+    ctx.strokeStyle = 'rgba(16, 185, 129, 0.5)';
+    ctx.lineWidth = 1.2;
+    ctx.setLineDash([4, 3]);
+    ctx.strokeRect(mx, my, mw, mh);
+    ctx.setLineDash([]);
+
+    // 4. Plate Title Badge at Top Edge of 176x176mm Square Plate
+    ctx.fillStyle = 'rgba(16, 185, 129, 0.92)';
+    ctx.font = 'bold 9.5px monospace';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'bottom';
+    ctx.fillText(
+        `🔲 176×176×${btfMatrix16x16Config.thicknessMm.toFixed(2)}mm Square Plate • 160×160mm BTF 16×16 Matrix (16 Shirt Holes)`,
+        px + pw / 2,
+        py - 4
+    );
+
+    ctx.restore();
+}
+
+function drawBtfMatrix16x16Overlay(ctx, s, timeMs) {
+    if (!btfMatrix16x16Cells || btfMatrix16x16Cells.length !== 256) {
+        computeBtfMatrix16x16Layout();
+    }
+
+    const geom = getBtfMatrix16x16GeometryNorm();
+    const mx = s.x + geom.matrixNormX * s.width;
+    const my = s.y + geom.matrixNormY * s.height;
+    const mw = geom.matrixNormW * s.width;
+    const mh = geom.matrixNormH * s.height;
+    const cellW = mw / 16.0;
+    const cellH = mh / 16.0;
+
+    // Transmittance factor based on chosen PLA thickness (0.48mm glows brightest, 1.00mm softer)
+    const thick = btfMatrix16x16Config.thicknessMm || 0.60;
+    const transAlpha = Math.max(0.42, Math.min(0.88, 0.72 * (0.60 / thick)));
+
+    ctx.save();
+
+    // Faint 16x16 FPCB Cell Grid Lines
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.055)';
+    ctx.lineWidth = 0.75;
+    for (let i = 1; i < 16; i++) {
+        ctx.beginPath();
+        ctx.moveTo(mx + i * cellW, my);
+        ctx.lineTo(mx + i * cellW, my + mh);
+        ctx.stroke();
+
+        ctx.beginPath();
+        ctx.moveTo(mx, my + i * cellH);
+        ctx.lineTo(mx + mw, my + i * cellH);
+        ctx.stroke();
+    }
+
+    // PASS 1: Render ~25 Backlit LEDs (Subsurface Diffused Glow through Thin Colored PLA — NO Window Cutout)
+    btfMatrix16x16Cells.forEach((cell, idx) => {
+        if (cell.role !== 'backlight') return;
+        const pt = normToCanvas({ x: cell.nx, y: cell.ny });
+        let r = cell.color.r, g = cell.color.g, b = cell.color.b;
+        let pulse = 1.0;
+        if (typeof isPlaying !== 'undefined' && isPlaying && timeMs) {
+            pulse = 0.75 + 0.25 * Math.sin(timeMs * 0.004 + idx * 0.35);
+        }
+
+        const glowRad = cellW * 1.45;
+        const grad = ctx.createRadialGradient(pt.x, pt.y, cellW * 0.08, pt.x, pt.y, glowRad);
+        grad.addColorStop(0.0, `rgba(${Math.min(255, r + 45)}, ${Math.min(255, g + 45)}, ${Math.min(255, b + 45)}, ${(transAlpha * pulse).toFixed(3)})`);
+        grad.addColorStop(0.45, `rgba(${r}, ${g}, ${b}, ${(transAlpha * 0.55 * pulse).toFixed(3)})`);
+        grad.addColorStop(1.0, `rgba(${r}, ${g}, ${b}, 0)`);
+
+        ctx.save();
+        ctx.globalCompositeOperation = 'screen';
+        ctx.fillStyle = grad;
+        ctx.beginPath();
+        ctx.arc(pt.x, pt.y, glowRad, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+
+        // Subtle dashed ring indicating hidden backlit 5050 pixel beneath solid PLA
+        ctx.beginPath();
+        ctx.arc(pt.x, pt.y, cellW * 0.30, 0, Math.PI * 2);
+        ctx.strokeStyle = `rgba(56, 189, 248, 0.55)`;
+        ctx.lineWidth = 1.0;
+        ctx.setLineDash([2, 2]);
+        ctx.stroke();
+        ctx.setLineDash([]);
+    });
+
+    // PASS 2: Render ~181 Dark LEDs (Unlit 5050 SMD footprints)
+    btfMatrix16x16Cells.forEach(cell => {
+        if (cell.role !== 'dark') return;
+        const pt = normToCanvas({ x: cell.nx, y: cell.ny });
+        const smdS = Math.max(2.2, cellW * 0.24);
+        ctx.strokeStyle = cell.onGraphic ? 'rgba(255, 255, 255, 0.14)' : 'rgba(255, 255, 255, 0.06)';
+        ctx.lineWidth = 0.8;
+        ctx.strokeRect(pt.x - smdS / 2, pt.y - smdS / 2, smdS, smdS);
+    });
+
+    // PASS 3: Render ~50 Windowed LEDs (Crisp Physical Cutout Aperture + Bright Direct LED Core)
+    const winShape = params.tpuWindowShape || 'round_34';
+    const isSquareWin = (winShape === 'square');
+    const winRadPx = Math.max(2.6, (1.7 / 160.0) * mw);
+
+    btfMatrix16x16Cells.forEach((cell, idx) => {
+        if (cell.role !== 'window') return;
+        const pt = normToCanvas({ x: cell.nx, y: cell.ny });
+        const r = cell.color.r, g = cell.color.g, b = cell.color.b;
+        let sparkle = 1.0;
+        if (typeof isPlaying !== 'undefined' && isPlaying && timeMs) {
+            sparkle = 0.80 + 0.20 * Math.sin(timeMs * 0.006 + idx * 0.7);
+        }
+
+        // Outer crisp bloom
+        const haloRad = winRadPx * 2.4;
+        const halo = ctx.createRadialGradient(pt.x, pt.y, winRadPx * 0.4, pt.x, pt.y, haloRad);
+        halo.addColorStop(0, `rgba(${r}, ${g}, ${b}, ${(0.85 * sparkle).toFixed(2)})`);
+        halo.addColorStop(1, `rgba(${r}, ${g}, ${b}, 0)`);
+        ctx.fillStyle = halo;
+        ctx.beginPath();
+        ctx.arc(pt.x, pt.y, haloRad, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Physical 3D Window Cutout Rim (dark bezel edge)
+        ctx.beginPath();
+        if (isSquareWin) {
+            ctx.rect(pt.x - winRadPx, pt.y - winRadPx, winRadPx * 2, winRadPx * 2);
+        } else {
+            ctx.arc(pt.x, pt.y, winRadPx, 0, Math.PI * 2);
+        }
+        ctx.fillStyle = `rgb(${Math.min(255, Math.round(r * sparkle))}, ${Math.min(255, Math.round(g * sparkle))}, ${Math.min(255, Math.round(b * sparkle))})`;
+        ctx.fill();
+        ctx.strokeStyle = '#000000';
+        ctx.lineWidth = 1.4;
+        ctx.stroke();
+
+        // Specular hot white LED core inside window
+        ctx.beginPath();
+        ctx.arc(pt.x, pt.y, winRadPx * 0.48, 0, Math.PI * 2);
+        ctx.fillStyle = '#ffffff';
+        ctx.fill();
+    });
+
+    ctx.restore();
+}
+
+function handleBtfMatrix16x16CanvasClick(worldX, worldY) {
+    if (!btfMatrix16x16Active) return false;
+    const norm = canvasToNorm(worldX, worldY);
+    const geom = getBtfMatrix16x16GeometryNorm();
+
+    if (norm.x < geom.matrixNormX || norm.x > geom.matrixNormX + geom.matrixNormW ||
+        norm.y < geom.matrixNormY || norm.y > geom.matrixNormY + geom.matrixNormH) {
+        return false;
+    }
+
+    const col = Math.min(15, Math.max(0, Math.floor(((norm.x - geom.matrixNormX) / geom.matrixNormW) * 16)));
+    const row = Math.min(15, Math.max(0, Math.floor(((norm.y - geom.matrixNormY) / geom.matrixNormH) * 16)));
+    const cell = btfMatrix16x16Cells.find(c => c.row === row && c.col === col);
+    if (!cell) return false;
+
+    // Cycle: window -> backlight -> dark -> window
+    if (cell.role === 'window') cell.role = 'backlight';
+    else if (cell.role === 'backlight') cell.role = 'dark';
+    else cell.role = 'window';
+
+    // Sync sliders to actual counts
+    let winCount = 0, glowCount = 0;
+    btfMatrix16x16Cells.forEach(c => {
+        if (c.role === 'window') winCount++;
+        else if (c.role === 'backlight') glowCount++;
+    });
+    btfMatrix16x16Config.windowCount = winCount;
+    btfMatrix16x16Config.backlightCount = glowCount;
+
+    const winSlider = document.getElementById('btfMatrixWindowCountSlider');
+    const glowSlider = document.getElementById('btfMatrixBacklightCountSlider');
+    if (winSlider) winSlider.value = winCount;
+    if (glowSlider) glowSlider.value = glowCount;
+
+    updateBtfMatrix16x16TelemetryUI();
+    markSingleShirtDirty();
+    const roleLabel = cell.role === 'window' ? '🔆 Windowed Cutout' : (cell.role === 'backlight' ? '✨ Backlit PLA Glow' : '⬛ Dark (Off)');
+    showToast(`Matrix [${row + 1}, ${col + 1}] (#${cell.matrixIdx}) ➔ ${roleLabel}`);
+    return true;
+}
+window.handleBtfMatrix16x16CanvasClick = handleBtfMatrix16x16CanvasClick;
+
+function syncBtfMatrixThicknessUI(thickVal) {
+    const t = parseFloat(thickVal) || 0.60;
+    btfMatrix16x16Config.thicknessMm = t;
+
+    // Sync Layout tab thickness buttons
+    document.querySelectorAll('.btf-matrix-thick-btn').forEach(btn => {
+        const bVal = parseFloat(btn.getAttribute('data-thick'));
+        if (Math.abs(bVal - t) < 0.01) {
+            btn.classList.add('active');
+            btn.style.background = 'rgba(16, 185, 129, 0.25)';
+            btn.style.borderColor = '#10b981';
+            btn.style.color = '#fff';
+            btn.style.fontWeight = '700';
+        } else {
+            btn.classList.remove('active');
+            btn.style.background = '';
+            btn.style.borderColor = '';
+            btn.style.color = '';
+            btn.style.fontWeight = '';
+        }
+    });
+
+    // Sync 3D Preview Modal thickness pill buttons
+    const modalMap = [
+        { id: 'tpuModalThick048Btn', val: 0.48 },
+        { id: 'tpuModalThick060Btn', val: 0.60 },
+        { id: 'tpuModalThick080Btn', val: 0.80 },
+        { id: 'tpuModalThick100Btn', val: 1.00 }
+    ];
+    modalMap.forEach(item => {
+        const el = document.getElementById(item.id);
+        if (!el) return;
+        if (Math.abs(item.val - t) < 0.01) {
+            el.style.background = '#10b981';
+            el.style.color = '#000';
+            el.style.fontWeight = '700';
+        } else {
+            el.style.background = 'transparent';
+            el.style.color = '#8b949e';
+            el.style.fontWeight = '500';
+        }
+    });
+
+    updateBtfMatrix16x16TelemetryUI();
+}
+
+function setTpuMatrixThickness(thickVal) {
+    syncBtfMatrixThicknessUI(thickVal);
+    markSingleShirtDirty();
+
+    if (typeof tpuIsOpen !== 'undefined' && tpuIsOpen) {
+        if (tpuDisplayMode !== 'matrix16') {
+            tpuDisplayMode = 'matrix16';
+        }
+        const loaderOverlay = document.getElementById('tpuModalLoading');
+        if (loaderOverlay) {
+            loaderOverlay.style.display = 'flex';
+            loaderOverlay.innerHTML = `
+                <div class="spinner" style="width: 32px; height: 32px; border: 3px solid rgba(16, 185, 129, 0.2); border-top-color: #10b981; border-radius: 50%; animation: spin 0.8s linear infinite;"></div>
+                <span>Recompiling 176×176×${btfMatrix16x16Config.thicknessMm.toFixed(2)}mm Full-Z Square Backlight Plate...</span>
+            `;
+        }
+        handleRecompileTpuStl({ skipOpen: true }).then(() => {
+            if (tpuIsOpen) loadTpuModalData();
+        });
+    }
+}
+window.setTpuMatrixThickness = setTpuMatrixThickness;
+
+function initBtfMatrix16x16Mode() {
+    const toggle = document.getElementById('btfMatrix16x16Toggle');
+    const card = document.getElementById('btfMatrix16x16OptionsCard');
+    const winSlider = document.getElementById('btfMatrixWindowCountSlider');
+    const glowSlider = document.getElementById('btfMatrixBacklightCountSlider');
+    const spreadBtn = document.getElementById('btfMatrixAutoSpreadBtn');
+    const resetBtn = document.getElementById('btfMatrixResetCountsBtn');
+    const open3dBtn = document.getElementById('btfMatrixOpen3dModalBtn');
+
+    if (toggle) {
+        toggle.addEventListener('change', (e) => {
+            btfMatrix16x16Active = e.target.checked;
+            if (card) card.style.display = btfMatrix16x16Active ? 'block' : 'none';
+            if (btfMatrix16x16Active) {
+                // Turn off linear strip preview if active so they don't overlap
+                if (btfStripPreviewActive) {
+                    btfStripPreviewActive = false;
+                    const stripTog = document.getElementById('btfStripPreviewToggle');
+                    const stripCard = document.getElementById('btfStripOptionsCard');
+                    if (stripTog) stripTog.checked = false;
+                    if (stripCard) stripCard.style.display = 'none';
+                }
+                tpuDisplayMode = 'matrix16';
+                computeBtfMatrix16x16Layout();
+            } else {
+                if (tpuDisplayMode === 'matrix16') tpuDisplayMode = 'tray';
+            }
+            markSingleShirtDirty();
+        });
+    }
+
+    if (winSlider) {
+        winSlider.addEventListener('input', (e) => {
+            btfMatrix16x16Config.windowCount = parseInt(e.target.value, 10) || 0;
+            computeBtfMatrix16x16Layout();
+            markSingleShirtDirty();
+        });
+    }
+
+    if (glowSlider) {
+        glowSlider.addEventListener('input', (e) => {
+            btfMatrix16x16Config.backlightCount = parseInt(e.target.value, 10) || 0;
+            computeBtfMatrix16x16Layout();
+            markSingleShirtDirty();
+        });
+    }
+
+    document.querySelectorAll('.btf-matrix-thick-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const val = parseFloat(btn.getAttribute('data-thick')) || 0.60;
+            setTpuMatrixThickness(val);
+            showToast(`📐 3D Square Backlight Plate thickness set to ${val.toFixed(2)}mm`);
+        });
+    });
+
+    if (spreadBtn) {
+        spreadBtn.addEventListener('click', () => {
+            computeBtfMatrix16x16Layout();
+            markSingleShirtDirty();
+            showToast(`🎯 Evenly spread ${btfMatrix16x16Config.windowCount} Windowed + ${btfMatrix16x16Config.backlightCount} Backlit LEDs across graphic!`);
+        });
+    }
+
+    if (resetBtn) {
+        resetBtn.addEventListener('click', () => {
+            btfMatrix16x16Config.windowCount = 50;
+            btfMatrix16x16Config.backlightCount = 25;
+            btfMatrix16x16Config.thicknessMm = 0.60;
+            if (winSlider) winSlider.value = 50;
+            if (glowSlider) glowSlider.value = 25;
+            syncBtfMatrixThicknessUI(0.60);
+            computeBtfMatrix16x16Layout();
+            markSingleShirtDirty();
+            showToast('🔄 Reset to 50 Windowed + 25 Backlighting + 181 Dark LEDs (0.60mm plate)');
+        });
+    }
+
+    if (open3dBtn) {
+        open3dBtn.addEventListener('click', () => {
+            tpuDisplayMode = 'matrix16';
+            openTpuPreviewModal();
+        });
+    }
+
+    syncBtfMatrixThicknessUI(btfMatrix16x16Config.thicknessMm);
+}
+window.initBtfMatrix16x16Mode = initBtfMatrix16x16Mode;
 
 // ============================================================================
 // COMPUTER VISION & COLOR-MATCHED SAMPLING
@@ -17853,6 +18576,9 @@ async function loadGraphicPreset(type) {
     if (btfStripPreviewActive) {
         computeBtfStripMatrix();
     }
+    if (typeof btfMatrix16x16Active !== 'undefined' && btfMatrix16x16Active) {
+        computeBtfMatrix16x16Layout();
+    }
     showToast(`🎨 Switched graphic to ${type.replace(/_/g, ' ')}!`);
 }
 
@@ -17916,6 +18642,9 @@ if (artworkUploadInput) {
                     scatterLedsOnGraphic(100, true);
                     if (btfStripPreviewActive) {
                         computeBtfStripMatrix();
+                    }
+                    if (typeof btfMatrix16x16Active !== 'undefined' && btfMatrix16x16Active) {
+                        computeBtfMatrix16x16Layout();
                     }
                 };
                 img.src = customArtworkDataUrl;
@@ -22018,7 +22747,7 @@ function getActiveFloatName() {
 }
 window.getActiveFloatName = getActiveFloatName;
 
-// Fingerprint of everything that shapes the STL (artwork silhouette, LED layout, chest bounds, window shape, well orientation, size, count, numbers, clip grooves, top nubs).
+// Fingerprint of everything that shapes the STL (artwork silhouette, LED layout, chest bounds, window shape, well orientation, size, count, numbers, clip grooves, top nubs, 16x16 matrix mode & thickness).
 function computeTpuLayoutSignature() {
     try {
         const activeImg = (typeof getActiveGraphicImg === 'function') ? getActiveGraphicImg() : null;
@@ -22029,6 +22758,8 @@ function computeTpuLayoutSignature() {
         const numFlag = (params.tpuIncludeLedNumbers === true) ? 'num' : 'nonum';
         const grvFlag = (params.tpuIncludeClipGrooves === true) ? 'grv' : 'nogrv';
         const nubFlag = (params.tpuIncludeTopNubs === true) ? 'nub' : 'nonub';
+        const isMatrix16 = (typeof btfMatrix16x16Active !== 'undefined' && (btfMatrix16x16Active || (typeof tpuDisplayMode !== 'undefined' && tpuDisplayMode === 'matrix16')));
+        const matThick = (typeof btfMatrix16x16Config !== 'undefined' && btfMatrix16x16Config.thicknessMm) ? Number(btfMatrix16x16Config.thicknessMm).toFixed(2) : '0.60';
         let h = 5381;
         const mix = (str) => {
             if (!str) return;
@@ -22047,6 +22778,14 @@ function computeTpuLayoutSignature() {
         mix('wireportal-v2');
         mix('floatcolors-v1');
         mix(JSON.stringify((typeof getActiveFloatStlColors === 'function') ? getActiveFloatStlColors() : {}));
+        if (isMatrix16) {
+            mix('matrix16x16-v1');
+            mix(matThick);
+            if (typeof btfMatrix16x16Cells !== 'undefined' && Array.isArray(btfMatrix16x16Cells)) {
+                mix(btfMatrix16x16Cells.map(c => c.role[0]).join(''));
+            }
+            return `${currentGraphicType || 'custom'}-matrix16-${matThick}mm-${winShape}-v7-${h.toString(16)}`;
+        }
         mix(String(selectedPlateWidthMm || 203.2));
         mix(String(selectedPlateSize || 'medium'));
         mix([gb.normX, gb.normY, gb.normW, gb.normH].map(v => Number(v || 0).toFixed(4)).join(','));
@@ -22263,7 +23002,8 @@ function setTpuModalControlsDisabled(disabled) {
         'tpuModalShapeRound34Btn', 'tpuModalShapeRound30Btn', 'tpuModalShapeSquareBtn',
         'tpuModalOrientHorizBtn', 'tpuModalOrientTangentBtn',
         'tpuModalSelectFrontBtn', 'tpuModalSelectBackBtn',
-        'tpuModalDisplayTrayBtn', 'tpuModalDisplayLidBtn',
+        'tpuModalDisplayTrayBtn', 'tpuModalDisplayLidBtn', 'tpuModalDisplayMatrix16Btn',
+        'tpuModalThick048Btn', 'tpuModalThick060Btn', 'tpuModalThick080Btn', 'tpuModalThick100Btn',
         'tpuModalModeMultiBtn', 'tpuModalModeMonoBtn',
         'compileTpuStlBtn'
     ];
@@ -22312,10 +23052,13 @@ async function handleRecompileTpuStl(opts) {
     const skipOpen = !!(opts && opts.skipOpen === true);
     const statusEl = document.getElementById('tpuCompileStatus');
     const compileBtn = document.getElementById('compileTpuStlBtn');
+    const isMatrix16 = (typeof btfMatrix16x16Active !== 'undefined' && (btfMatrix16x16Active || tpuDisplayMode === 'matrix16'));
     if (statusEl) {
         statusEl.style.display = 'block';
         statusEl.style.color = '#58a6ff';
-        statusEl.textContent = '⚙️ Compiling watertight 95A TPU STL for active float...';
+        statusEl.textContent = isMatrix16
+            ? `⚙️ Compiling 176×176×${(btfMatrix16x16Config.thicknessMm || 0.60).toFixed(2)}mm 16×16 Matrix Square Backlight Plate...`
+            : '⚙️ Compiling watertight 95A TPU STL for active float...';
     }
     if (compileBtn) compileBtn.disabled = true;
 
@@ -22347,6 +23090,10 @@ async function handleRecompileTpuStl(opts) {
                 : 0.0
         }));
 
+        const matrixLists = isMatrix16 && typeof getBtfMatrix16x16ListsForExport === 'function'
+            ? getBtfMatrix16x16ListsForExport()
+            : { windowedLeds: [], backlightLeds: [] };
+
         const payload = {
             leds: ledsWithRotations,
             floatIndex: slot,
@@ -22357,9 +23104,13 @@ async function handleRecompileTpuStl(opts) {
             includeLedNumbers: params.tpuIncludeLedNumbers === true,
             includeClipGrooves: params.tpuIncludeClipGrooves === true,
             includeTopNubs: params.tpuIncludeTopNubs === true,
+            matrix16x16Mode: isMatrix16,
+            plateThicknessMm: (typeof btfMatrix16x16Config !== 'undefined' && btfMatrix16x16Config.thicknessMm) ? btfMatrix16x16Config.thicknessMm : 0.60,
+            matrixWindowedLeds: matrixLists.windowedLeds,
+            matrixBacklightLeds: matrixLists.backlightLeds,
             widthMm: selectedPlateWidthMm,
             sizePreset: selectedPlateSize,
-            ledCount: (leds || []).length,
+            ledCount: isMatrix16 ? matrixLists.windowedLeds.length : (leds || []).length,
             bounds: gb,
             artworkDataUrl: artworkDataUrl,
             stlColors: getActiveFloatStlColors(),
@@ -22379,7 +23130,9 @@ async function handleRecompileTpuStl(opts) {
                 statusEl.style.color = '#00ff88';
                 statusEl.textContent = `✅ Compiled ${data.float_name || floatName} STL (${(data.stl_size / 1024 / 1024).toFixed(2)} MB)!`;
             }
-            showToast(`✨ ${data.float_name || floatName} 3D TPU Armor Plate STL compiled!`);
+            showToast(isMatrix16
+                ? `✨ ${data.float_name || floatName} 176×176×${payload.plateThicknessMm.toFixed(2)}mm Square Backlight Plate compiled!`
+                : `✨ ${data.float_name || floatName} 3D TPU Armor Plate STL compiled!`);
             if (!skipOpen) openTpuPreviewModal();
             return true;
         } else {
@@ -22418,6 +23171,11 @@ async function openTpuPreviewModal() {
         return;
     }
 
+    // Default to 16x16 Matrix Square Plate mode if active in the Layout tab!
+    if (typeof btfMatrix16x16Active !== 'undefined' && btfMatrix16x16Active) {
+        tpuDisplayMode = 'matrix16';
+    }
+
     // Re-entrancy guard: if already open and not compiling, just adjust resize and return
     if (tpuIsOpen && modal.style.display === 'flex' && !tpuAutoCompileInFlight) {
         onTpuWindowResize();
@@ -22439,7 +23197,7 @@ async function openTpuPreviewModal() {
         setTimeout(onTpuWindowResize, 60);
 
         // Stale-STL guard: if the compiled panel was built for a different graphic, LED layout,
-        // or feature toggle (top nubs, grooves, numbers, window shape, orientation), recompile first so the 3D model
+        // or feature toggle (top nubs, grooves, numbers, window shape, orientation, 16x16 matrix mode, thickness), recompile first so the 3D model
         // 100% matches what the user selected.
         if (!tpuAutoCompileInFlight) {
             let compiledSig = null;
@@ -22448,6 +23206,8 @@ async function openTpuPreviewModal() {
             let compiledNumbers = undefined;
             let compiledShape = undefined;
             let compiledOrient = undefined;
+            let compiledMatrix16 = false;
+            let compiledThick = 0.60;
             let sp = null;
             try {
                 const r = await fetch('/3d_panels/tpu_panel_specs.json?t=' + Date.now());
@@ -22459,6 +23219,8 @@ async function openTpuPreviewModal() {
                     compiledNumbers = sp.include_led_numbers;
                     compiledShape = sp.window_shape || (sp.front && sp.front.window_shape);
                     compiledOrient = sp.well_orientation || (sp.front && sp.front.well_orientation);
+                    compiledMatrix16 = !!sp.matrix_16x16_mode;
+                    compiledThick = parseFloat(sp.plate_thickness_mm || 0.60);
                 }
             } catch (e) {}
 
@@ -22467,27 +23229,31 @@ async function openTpuPreviewModal() {
             let normCurrentShape = String(params.tpuWindowShape || 'round_34').toLowerCase();
             if (normCurrentShape === 'round' || normCurrentShape === 'circle') normCurrentShape = 'round_34';
 
+            const wantMatrix16 = (typeof btfMatrix16x16Active !== 'undefined' && (btfMatrix16x16Active || tpuDisplayMode === 'matrix16'));
+            const wantThick = (typeof btfMatrix16x16Config !== 'undefined' && btfMatrix16x16Config.thicknessMm) ? btfMatrix16x16Config.thicknessMm : 0.60;
+            const matrixModeMismatch = (compiledMatrix16 !== wantMatrix16) || (wantMatrix16 && Math.abs(compiledThick - wantThick) > 0.01);
+
             let ledsMismatch = false;
-            if (sp && sp.ordered_leds && Array.isArray(sp.ordered_leds)) {
+            if (!wantMatrix16 && sp && sp.ordered_leds && Array.isArray(sp.ordered_leds)) {
                 if (sp.ordered_leds.length !== (leds || []).length) {
                     ledsMismatch = true;
                 }
             }
 
             const currentSig = computeTpuLayoutSignature();
-            const nubsMismatch = (compiledNubs !== undefined && compiledNubs !== (params.tpuIncludeTopNubs === true));
-            const groovesMismatch = (compiledGrooves !== undefined && compiledGrooves !== (params.tpuIncludeClipGrooves === true));
-            const numbersMismatch = (compiledNumbers !== undefined && compiledNumbers !== (params.tpuIncludeLedNumbers === true));
+            const nubsMismatch = (!wantMatrix16 && compiledNubs !== undefined && compiledNubs !== (params.tpuIncludeTopNubs === true));
+            const groovesMismatch = (!wantMatrix16 && compiledGrooves !== undefined && compiledGrooves !== (params.tpuIncludeClipGrooves === true));
+            const numbersMismatch = (!wantMatrix16 && compiledNumbers !== undefined && compiledNumbers !== (params.tpuIncludeLedNumbers === true));
             const shapeMismatch = (compiledShape !== undefined && normCompiledShape !== normCurrentShape);
-            const orientMismatch = (compiledOrient !== undefined && compiledOrient !== (params.tpuWellOrientation || 'horizontal'));
+            const orientMismatch = (!wantMatrix16 && compiledOrient !== undefined && compiledOrient !== (params.tpuWellOrientation || 'horizontal'));
 
-            if (compiledSig !== currentSig || ledsMismatch || nubsMismatch || groovesMismatch || numbersMismatch || shapeMismatch || orientMismatch) {
+            if (compiledSig !== currentSig || matrixModeMismatch || ledsMismatch || nubsMismatch || groovesMismatch || numbersMismatch || shapeMismatch || orientMismatch) {
                 const loaderOverlay = document.getElementById('tpuModalLoading');
                 if (loaderOverlay) {
                     loaderOverlay.style.display = 'flex';
                     loaderOverlay.innerHTML = `
                         <div class="spinner" style="width: 32px; height: 32px; border: 3px solid rgba(0, 255, 136, 0.2); border-top-color: #00ff88; border-radius: 50%; animation: spin 0.8s linear infinite;"></div>
-                        <span>Configuration changed — compiling fresh Front &amp; Back STLs with updated features...</span>
+                        <span>${wantMatrix16 ? `Compiling 176×176×${wantThick.toFixed(2)}mm 16×16 Matrix Square Backlight Plate...` : 'Configuration changed — compiling fresh Front &amp; Back STLs with updated features...'}</span>
                     `;
                 }
                 tpuAutoCompileInFlight = true;
@@ -22598,7 +23364,7 @@ function onTpuWindowResize() {
 }
 
 let tpuActiveVariant = 'front'; // 'front' or 'back'
-let tpuDisplayMode = 'tray'; // 'tray' or 'lid'
+let tpuDisplayMode = 'tray'; // 'tray', 'lid', or 'matrix16'
 
 function switchTpuModalVariant(variant) {
     if (variant !== 'front' && variant !== 'back') variant = 'front';
@@ -22618,19 +23384,60 @@ function switchTpuModalVariant(variant) {
 }
 window.switchTpuModalVariant = switchTpuModalVariant;
 
-function switchTpuDisplayMode(mode) {
-    if (mode !== 'tray' && mode !== 'lid') mode = 'tray';
-    tpuDisplayMode = mode;
-
+function syncTpuDisplayModePills(mode) {
     const trayBtn = document.getElementById('tpuModalDisplayTrayBtn');
     const lidBtn = document.getElementById('tpuModalDisplayLidBtn');
-    if (trayBtn && lidBtn) {
-        if (mode === 'lid') {
-            setTpuModalPillState(lidBtn, trayBtn);
-        } else {
-            setTpuModalPillState(trayBtn, lidBtn);
-        }
+    const matBtn = document.getElementById('tpuModalDisplayMatrix16Btn');
+    [trayBtn, lidBtn, matBtn].forEach(b => {
+        if (!b) return;
+        b.style.background = 'transparent';
+        b.style.color = '#8b949e';
+        b.style.fontWeight = '500';
+    });
+    const activeBtn = (mode === 'lid') ? lidBtn : (mode === 'matrix16' ? matBtn : trayBtn);
+    if (activeBtn) {
+        activeBtn.style.background = '#00ff88';
+        activeBtn.style.color = '#000';
+        activeBtn.style.fontWeight = '700';
     }
+    const thickPill = document.getElementById('tpuModalThicknessPill');
+    if (thickPill) {
+        thickPill.style.display = (mode === 'matrix16') ? 'inline-flex' : 'none';
+    }
+}
+
+function switchTpuDisplayMode(mode) {
+    if (mode !== 'tray' && mode !== 'lid' && mode !== 'matrix16') mode = 'tray';
+    const prevMode = tpuDisplayMode;
+    tpuDisplayMode = mode;
+    syncTpuDisplayModePills(mode);
+
+    // If toggling between 16x16 Matrix Plate and standard Tray, sync Layout toggle & recompile STL
+    const wasMatrix = (prevMode === 'matrix16') || (lastLoadedTpuSpecs && lastLoadedTpuSpecs.matrix_16x16_mode === true);
+    const nowMatrix = (mode === 'matrix16');
+    if (mode !== 'lid' && wasMatrix !== nowMatrix) {
+        btfMatrix16x16Active = nowMatrix;
+        const toggle = document.getElementById('btfMatrix16x16Toggle');
+        const card = document.getElementById('btfMatrix16x16OptionsCard');
+        if (toggle) toggle.checked = nowMatrix;
+        if (card) card.style.display = nowMatrix ? 'block' : 'none';
+        if (nowMatrix) computeBtfMatrix16x16Layout();
+        markSingleShirtDirty();
+
+        const loaderOverlay = document.getElementById('tpuModalLoading');
+        if (loaderOverlay) {
+            loaderOverlay.style.display = 'flex';
+            loaderOverlay.innerHTML = `
+                <div class="spinner" style="width: 32px; height: 32px; border: 3px solid rgba(0, 255, 136, 0.2); border-top-color: #00ff88; border-radius: 50%; animation: spin 0.8s linear infinite;"></div>
+                <span>${nowMatrix ? `Compiling 176×176×${(btfMatrix16x16Config.thicknessMm || 0.60).toFixed(2)}mm 16×16 Matrix Square Backlight Plate...` : 'Compiling contoured 95A TPU Armor Tray...'}</span>
+            `;
+        }
+        handleRecompileTpuStl({ skipOpen: true }).then(() => {
+            if (tpuIsOpen) loadTpuModalData();
+        });
+        return;
+    }
+
     loadTpuModalData();
 }
 window.switchTpuDisplayMode = switchTpuDisplayMode;
@@ -22766,12 +23573,26 @@ async function loadTpuModalData() {
             modalTitle.textContent = `${floatName} • ${variantTitle}`;
         }
 
+        const isMatrixPlate = (tpuDisplayMode === 'matrix16') || (specs.matrix_16x16_mode === true && tpuDisplayMode !== 'lid');
+        if (isMatrixPlate && tpuDisplayMode !== 'matrix16') {
+            tpuDisplayMode = 'matrix16';
+        }
+        const effectiveThick = parseFloat(variantData.plate_thickness_mm || specs.plate_thickness_mm || (btfMatrix16x16Config && btfMatrix16x16Config.thicknessMm) || 0.60);
+        if (typeof syncBtfMatrixThicknessUI === 'function') {
+            syncBtfMatrixThicknessUI(effectiveThick);
+        }
+
         const effectiveShape = params.tpuWindowShape || specs.window_shape || 'round_34';
         const effectiveOrient = params.tpuWellOrientation || specs.well_orientation || 'horizontal';
         const modalSub = document.getElementById('tpuModalSubtitle');
         if (modalSub) {
             if (tpuDisplayMode === 'lid') {
                 modalSub.textContent = `2.0mm Solid Lid • 1.2mm Alignment Ridge • 8 M2 Screws • 16 Eyelets`;
+            } else if (isMatrixPlate) {
+                const winC = (variantData.ordered_leds || []).length;
+                const glowC = (variantData.backlight_leds || []).length;
+                const shapeText = (effectiveShape === 'round_34') ? 'Ø 3.4mm Windows' : ((effectiveShape === 'round_30' || effectiveShape === 'round' || effectiveShape === 'circle') ? 'Ø 3.0mm Windows' : '3×3mm Sq Windows');
+                modalSub.textContent = `176×176×${effectiveThick.toFixed(2)}mm Full-Z Square Plate • ${winC} ${shapeText} + ${glowC} Backlit Glow • 16 Shirt Holes`;
             } else {
                 const shapeText = (effectiveShape === 'round_34') ? 'Ø 3.4mm Round Apertures (Default)' : ((effectiveShape === 'round_30' || effectiveShape === 'round' || effectiveShape === 'circle') ? 'Ø 3.0mm Round Apertures' : '3×3mm Square Apertures');
                 const orientText = (effectiveOrient === 'tangent') ? 'Tangent to Wire' : 'Horizontal Alignment';
@@ -22849,13 +23670,8 @@ async function loadTpuModalData() {
             else setTpuModalPillState(vbBtn, vfBtn);
         }
 
-        // Sync modal display mode buttons (Tray Basin vs Rear Lid)
-        const dTrayBtn = document.getElementById('tpuModalDisplayTrayBtn');
-        const dLidBtn = document.getElementById('tpuModalDisplayLidBtn');
-        if (dTrayBtn && dLidBtn) {
-            if (tpuDisplayMode === 'lid') setTpuModalPillState(dLidBtn, dTrayBtn);
-            else setTpuModalPillState(dTrayBtn, dLidBtn);
-        }
+        // Sync modal display mode buttons (Tray Basin vs Rear Lid vs 16x16 Matrix Plate)
+        syncTpuDisplayModePills(tpuDisplayMode);
 
         // Sync multi-color vs single mode buttons
         const multiBtn = document.getElementById('tpuModalModeMultiBtn');
@@ -22868,14 +23684,16 @@ async function loadTpuModalData() {
 
         // Update aperture badge & floating AMS legend
         const activeCount = (variantData.ordered_leds || leds || []).length;
+        const glowCount = (variantData.backlight_leds || []).length;
+        const badgeText = isMatrixPlate ? `${activeCount} Windows + ${glowCount} Backlit` : `${activeCount} Open Windows`;
         if (legend) {
             legend.style.display = (tpuExportMode === 'multi') ? 'flex' : 'none';
             if (tpuExportMode === 'multi') {
                 const activeColors = specs.stl_colors || getActiveFloatStlColors() || {};
                 let slotsHtml = `
                     <div style="font-weight: 700; color: #00ff88; font-size: 10px; display: flex; justify-content: space-between; gap: 12px;">
-                        <span>BAMBU LAB AMS (5 SLOTS):</span>
-                        <span id="tpuLegendAperturesBadge" style="color: #38bdf8;">${activeCount} Open Windows</span>
+                        <span>BAMBU LAB AMS (5 SLOTS${isMatrixPlate ? ` • FULL-Z ${effectiveThick.toFixed(2)}mm` : ''}):</span>
+                        <span id="tpuLegendAperturesBadge" style="color: #38bdf8;">${badgeText}</span>
                     </div>
                     <div style="display: flex; gap: 8px; flex-wrap: wrap;">
                 `;
@@ -22893,7 +23711,7 @@ async function loadTpuModalData() {
         }
 
         const apBadge = document.getElementById('tpuLegendAperturesBadge');
-        if (apBadge) apBadge.textContent = `${activeCount} Open Windows`;
+        if (apBadge) apBadge.textContent = badgeText;
 
         // Update dimensions badge & bed clearance text
         const dimText = document.getElementById('tpuModalDimText');
@@ -23069,7 +23887,9 @@ async function loadTpuModalData() {
         // Render simulated LED pixels projecting through apertures & Strain Relief Bridges (only for tray basin)
         if (tpuDisplayMode !== 'lid') {
             createTpuLedPixels(variantData, stlCenter);
-            createTpuStrainReliefBridges(variantData, stlCenter);
+            if (!isMatrixPlate) {
+                createTpuStrainReliefBridges(variantData, stlCenter);
+            }
         }
 
         startTpuAnimateLoop();
@@ -23374,6 +24194,61 @@ function createTpuLedPixels(specs, stlCenter) {
         tpuLedsGroup.add(pixelMesh);
     });
 
+    // Render ~25 Backlit LEDs (Subsurface Diffused Glow through Thin Colored PLA — NO Window Cutout)
+    const backlightList = specs.backlight_leds || [];
+    if (backlightList.length > 0) {
+        const glowCanvas = document.createElement('canvas');
+        glowCanvas.width = 128;
+        glowCanvas.height = 128;
+        const gCtx = glowCanvas.getContext('2d');
+        const grad = gCtx.createRadialGradient(64, 64, 4, 64, 64, 62);
+        grad.addColorStop(0.0, 'rgba(255, 255, 255, 0.90)');
+        grad.addColorStop(0.38, 'rgba(255, 255, 255, 0.50)');
+        grad.addColorStop(0.75, 'rgba(255, 255, 255, 0.14)');
+        grad.addColorStop(1.0, 'rgba(255, 255, 255, 0.0)');
+        gCtx.fillStyle = grad;
+        gCtx.fillRect(0, 0, 128, 128);
+        const glowTex = new THREE.CanvasTexture(glowCanvas);
+
+        const thickMm = parseFloat(specs.plate_thickness_mm || 0.60);
+        const transOpacity = Math.max(0.45, Math.min(0.92, 0.76 * (0.60 / thickMm)));
+        const glowDiskGeom = new THREE.PlaneGeometry(14.5, 14.5);
+
+        backlightList.forEach(bl => {
+            const c = bl.color || { r: 56, g: 189, b: 248 };
+            const col = new THREE.Color(
+                Math.min(1.0, (c.r + 35) / 255),
+                Math.min(1.0, (c.g + 35) / 255),
+                Math.min(1.0, (c.b + 35) / 255)
+            );
+            tpuBaseColors.push(col);
+
+            const glowMat = new THREE.MeshBasicMaterial({
+                map: glowTex,
+                color: col.clone(),
+                transparent: true,
+                opacity: transOpacity,
+                blending: THREE.AdditiveBlending,
+                side: THREE.DoubleSide,
+                depthWrite: false,
+                depthTest: true,
+                polygonOffset: true,
+                polygonOffsetFactor: -3.0,
+                polygonOffsetUnits: -5.0
+            });
+            tpuLedMaterials.push(glowMat);
+
+            const glowMesh = new THREE.Mesh(glowDiskGeom, glowMat);
+            glowMesh.renderOrder = 5;
+            glowMesh.position.set(
+                bl.x - stlCenter.x,
+                bl.y - stlCenter.y,
+                stlCenter.z + 0.12 // Diffused subsurface PLA glow on front face
+            );
+            tpuLedsGroup.add(glowMesh);
+        });
+    }
+
     tpuScene.add(tpuLedsGroup);
 }
 
@@ -23472,6 +24347,7 @@ if (document.readyState === 'loading') {
         initBaroqueSynth();
         initTpuArmorPanel();
         initBtfStripPreview();
+        initBtfMatrix16x16Mode();
         updateUndoRedoUI();
     });
 } else {
@@ -23486,6 +24362,7 @@ if (document.readyState === 'loading') {
     initBaroqueSynth();
     initTpuArmorPanel();
     initBtfStripPreview();
+    initBtfMatrix16x16Mode();
     updateUndoRedoUI();
 }
 
