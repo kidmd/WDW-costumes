@@ -540,15 +540,15 @@ The telemetry card continuously updates as sliders, presets, or plate sizes chan
 
 #### 7. BTF-LIGHTING WS2812B 16×16 (256-LED) Flexible Matrix Mode & 3D Plate Integration
 For runners using the **BTF-LIGHTING WS2812B ECO RGB 16×16 (256-Pixel) Flexible FPCB Matrix** ($160.0\text{ mm} \times 160.0\text{ mm}$ with $10.0\text{ mm}$ pitch):
-- **176.0mm × 176.0mm Square Plate Simulation:** Displays the physical black 3D printed plate enclosing the matrix with an $8.0\text{ mm}$ perimeter flange and **16 perimeter shirt-stitching holes** ($\varnothing 2.8\text{ mm}$, inset $4.0\text{ mm}$ from plate edges to clear the FPCB).
-- **Maximized Graphic Sizing:** Automatically maximizes the active float graphic to fit across the panel ($168.0\text{ mm}$ maximum dimension) centered at $(x=88.0, y=88.0)\text{ mm}$ while strictly preserving the artwork's authentic aspect ratio. All area outside the graphic remains solid black filament.
+- **176.0mm × 176.0mm Flat Square Plate (All Legacy Tray Features Stripped):** Generates a pure flat square plate with **no LED channels, no side walls, no screw holes, no outer eyelets, and no zip-tie tunnels**. Includes **4 corner sewing holes** ($\varnothing 2.8\text{ mm}$ at $(4, 4), (172, 4), (4, 172), (172, 172)\text{ mm}$, clearing the $160\times 160\text{ mm}$ FPCB).
+- **Maximized Graphic Sizing & Full-Z Color Thickness:** Automatically maximizes the active float graphic to fit across the panel ($168.0\text{ mm}$ maximum dimension) centered at $(x=88.0, y=88.0)\text{ mm}$ while strictly preserving aspect ratio. Every color part of the image extends **100% from top to bottom of the entire Z-thickness** ($Z = 0$ to $T$). All area outside the graphic is solid black filament.
 - **Dynamic LED Allocation & 1-Click Redistribution:**
-  - **Windowed LEDs (Cutout Holes):** Sliders allow selecting target count (`0–200`, default `50`). Windowed LEDs are punched out as through-holes in the plate for crisp direct beam illumination.
+  - **Windowed LEDs ($\varnothing 3.4\text{ mm}$ Round Cutout Holes):** Sliders allow selecting target count (`0–200`, default `50`). Windowed LEDs are cut as $\varnothing 3.4\text{ mm}$ circular through-holes in the plate for crisp direct beam illumination.
   - **Backlighting LEDs (Glow Thru Thin PLA):** Sliders allow selecting target count (`0–200`, default `25`). Backlit LEDs shine directly beneath solid thin PLA with no window cutouts, producing a soft diffused subsurface glow.
   - **Remaining LEDs Dark (Off):** Kept off to maintain low current draw (~1.35A max, safe for 2.0A portable power banks).
-  - **Dynamic Spread Button (`#btfMatrixAutoSpreadBtn`):** The button label dynamically tracks the active slider targets: **`🎯 Spread <W> Win + <G> Glow`**. A single click redistributes the chosen counts evenly across the maximized graphic using Farthest-Point Sampling (FPS).
+  - **Dynamic Spread Button (`#btfMatrixAutoSpreadBtn`):** The button label dynamically tracks the active slider targets: **`🎯 Spread <W> Win + <G> Glow`**. A single click redistributes the chosen counts evenly across the maximized graphic using Farthest-Point Sampling (FPS) and automatically recompiles the 3D files.
   - **Individual Cell Toggling:** Clicking any of the 256 matrix cells in the Layout canvas manually cycles its role: `Window ➔ Backlight ➔ Dark ➔ Window`.
-- **Selectable Plate Thickness (Default 0.60mm):** Quick-select buttons for `0.48mm`, `0.60mm ★`, `0.80mm`, and `1.00mm`. Opening the **3D Preview Modal** (`#tpuPreviewModal`) automatically defaults to **`🔲 16×16 Matrix Plate`** mode with full-Z multi-color filament preview.
+- **Selectable Plate Thickness (Default 0.60mm):** Quick-select buttons for `0.48mm`, `0.60mm ★`, `0.80mm`, and `1.00mm`. Toggling 16×16 Matrix Mode or changing thickness automatically compiles the flat square 3D STLs and 3MF bundles in the background.
 
 ---
 

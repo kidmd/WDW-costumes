@@ -93,6 +93,16 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
  
+### 2026-10-18 00:20 - 🔲 BTF 16×16 Matrix 3D Plate: Pure Flat Full-Z Geometry, Ø 3.4mm Round Windows & 4 Corner Sewing Holes
+- **Strict Backlighting Test Panel Geometry Rules Applied:**
+  - **Removed All Legacy Tray Features:** Completely removed all LED channels/collars, side walls, screw holes, outer sewing eyelets, and zip-tie strain-relief tunnels.
+  - **100% Full Z-Thickness Color Inlays:** Every colored region of the active float artwork extends from the top to the bottom of the entire thickness ($Z = 0$ to $T$).
+  - **Ø 3.4mm Round LED Windows Only:** Windowed LED positions are punched out strictly as $\varnothing 3.4\text{ mm}$ ($R = 1.70\text{ mm}$) circular through-holes; Backlit LED positions remain solid colored PLA with zero holes.
+  - **4 Corner Sewing Holes:** Replaced the 16 perimeter holes with **4 corner sewing holes** ($\varnothing 2.8\text{ mm}$ at $(4.0, 4.0), (172.0, 4.0), (4.0, 172.0), (172.0, 172.0)\text{ mm}$) in both the 2D Layout view and 3D STL/3MF compiler.
+- **Automatic Background STL Compilation & Server Restart:**
+  - Fixed a stale Python server process on port 8000 that had been running an older `simulator.py` lacking `--matrix-16x16 on` flag forwarding.
+  - Added automatic background compilation (`handleRecompileTpuStl({ skipOpen: true })`) whenever 16×16 Matrix Mode is toggled on, redistributed, or changed in thickness so downloaded `.stl`, `.3mf`, and `.zip` files immediately reflect the flat square plate without needing to open the 3D preview modal first.
+
 ### 2026-10-18 00:05 - 🔲 BTF 16×16 Matrix: Maximized Graphic Sizing & Dynamic LED Redistribution
 - **Maximized Graphic Fit on Panel Envelope:**
   - Increased `artFitW` in `simulator/app.js` (`getGraphicChestBounds`) from `156.0 / 457.2` to `168.0 / 457.2` (~36.7% of shirt width), allowing the active character artwork to utilize virtually the entire $176\text{ mm} \times 176\text{ mm}$ plate envelope without clipping the 16 perimeter shirt-mounting holes.

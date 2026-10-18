@@ -311,27 +311,20 @@ def compile_matrix_16x16_plate_variant(variant_name, artwork_path, window_shape=
     windowed_leds = [dict(l) for l in (windowed_leds or [])]
     backlight_leds = [dict(l) for l in (backlight_leds or [])]
 
-    # Build 2D aperture cutouts ONLY for windowed_leds (~50 LEDs)
-    w_shape_str = str(window_shape).lower()
+    # Build 2D aperture cutouts ONLY for windowed_leds: strictly Ø 3.4mm round holes (radius 1.70mm)
     win_polys = []
     for l in windowed_leds:
         lx, ly = float(l['x']), float(l['y'])
-        if '30' in w_shape_str or '3.0' in w_shape_str:
-            win_polys.append(sg.Point(lx, ly).buffer(1.50, resolution=24))
-        elif 'square' in w_shape_str:
-            win_polys.append(sg.box(lx - 1.50, ly - 1.50, lx + 1.50, ly + 1.50))
-        else:
-            win_polys.append(sg.Point(lx, ly).buffer(1.70, resolution=24))
+        win_polys.append(sg.Point(lx, ly).buffer(1.70, resolution=24))
     windows_union_2d = unary_union(win_polys) if win_polys else sg.Polygon()
 
-    # Build 16 perimeter shirt-mounting holes (O 2.8mm) along the 8mm border (4mm inset from 176mm edges)
-    edge_offsets = [26.0, 67.33, 108.67, 150.0]
-    shirt_hole_coords = []
-    for pos in edge_offsets:
-        shirt_hole_coords.append([round(pos, 2), 4.0])               # Bottom edge
-        shirt_hole_coords.append([round(pos, 2), PLATE_SIZE_MM - 4.0]) # Top edge
-        shirt_hole_coords.append([4.0, round(pos, 2)])               # Left edge
-        shirt_hole_coords.append([PLATE_SIZE_MM - 4.0, round(pos, 2)]) # Right edge
+    # Build 4 corner sewing holes (Ø 2.8mm, radius 1.40mm) at 4.0mm inset from the 176mm square corners
+    shirt_hole_coords = [
+        [4.0, 4.0],                                     # Bottom-Left corner
+        [PLATE_SIZE_MM - 4.0, 4.0],                     # Bottom-Right corner
+        [4.0, PLATE_SIZE_MM - 4.0],                     # Top-Left corner
+        [PLATE_SIZE_MM - 4.0, PLATE_SIZE_MM - 4.0]      # Top-Right corner
+    ]
     shirt_holes_union_2d = unary_union([sg.Point(hx, hy).buffer(1.40, resolution=24) for hx, hy in shirt_hole_coords])
 
     # Extract 2D polygons for each non-black color inlay
@@ -464,10 +457,11 @@ def compile_matrix_16x16_plate_variant(variant_name, artwork_path, window_shape=
 VARIANT: {variant_name.upper()} ({specs.get('float_name', 'MSEP Float')})
 ======================================================================
 PLATE SIZE: {PLATE_SIZE_MM:.1f} mm x {PLATE_SIZE_MM:.1f} mm Square (Covers 160x160mm BTF 16x16 FPCB)
-THICKNESS: {THICK_MM:.2f} mm (100% Full Z-Thickness Color Inlays)
-WINDOWED LEDS: {len(windowed_leds)} Open Apertures ({window_shape})
+THICKNESS: {THICK_MM:.2f} mm (100% Full Z-Thickness Color Inlays, Top to Bottom)
+WINDOWED LEDS: {len(windowed_leds)} Open Apertures (Ø 3.4mm Round Through-Holes)
 BACKLIT LEDS: {len(backlight_leds)} Solid Diffused Glow Positions (Zero Holes)
-SHIRT HOLES: {len(shirt_hole_coords)} Perimeter Stitching Holes (Ø 2.8mm along 8mm margin)
+SEWING HOLES: {len(shirt_hole_coords)} Corner Sewing Holes (Ø 2.8mm at 4 Corners)
+REMOVED FEATURES: No LED channels, no side walls, no screw holes, no eyelets, no zip-tie tunnels.
 """
     with zipfile.ZipFile(zip_path, 'w', zipfile.ZIP_DEFLATED) as zf:
         zf.writestr('README_16X16_MATRIX_PLATE.txt', readme_txt)
@@ -487,7 +481,7 @@ SHIRT HOLES: {len(shirt_hole_coords)} Perimeter Stitching Holes (Ø 2.8mm along 
     stl_center = [PLATE_SIZE_MM / 2.0, PLATE_SIZE_MM / 2.0, round(THICK_MM / 2.0, 3)]
     contour_coords = [[0.0, 0.0], [PLATE_SIZE_MM, 0.0], [PLATE_SIZE_MM, PLATE_SIZE_MM], [0.0, PLATE_SIZE_MM], [0.0, 0.0]]
 
-    print(f"[{variant_name}] 16x16 Matrix Plate compiled in {time.time()-v_t0:.2f}s! ({len(windowed_leds)} windows, {len(backlight_leds)} backlit, {THICK_MM:.2f}mm thick)")
+    print(f"[{variant_name}] 16x16 Matrix Plate compiled in {time.time()-v_t0:.2f}s! ({len(windowed_leds)} Ø3.4mm windows, {len(backlight_leds)} backlit, 4 corner sewing holes, {THICK_MM:.2f}mm thick)")
 
     return {
         "variant": variant_name,
@@ -501,14 +495,14 @@ SHIRT HOLES: {len(shirt_hole_coords)} Perimeter Stitching Holes (Ø 2.8mm along 
         "total_image_height_mm": PLATE_SIZE_MM,
         "artwork_offset_mm": [offset_x, offset_y],
         "artwork_size_mm": [target_w_mm, target_h_mm],
-        "window_shape": window_shape,
+        "window_shape": "round_34",
         "well_orientation": "horizontal",
         "ordered_leds": windowed_leds,
         "backlight_leds": backlight_leds,
         "led_count": len(windowed_leds),
         "backlight_led_count": len(backlight_leds),
         "fastener_tabs": shirt_hole_coords,
-        "screw_positions": shirt_hole_coords,
+        "screw_positions": [],
         "number_positions": [],
         "contour_pts": contour_coords,
         "stl_bounds": stl_bounds,

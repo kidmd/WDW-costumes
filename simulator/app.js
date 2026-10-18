@@ -15957,10 +15957,10 @@ function updateBtfMatrix16x16TelemetryUI() {
 
     if (winLabel) winLabel.textContent = `${winCount} LEDs`;
     if (glowLabel) glowLabel.textContent = `${glowCount} LEDs`;
-    if (winActual) winActual.textContent = `${winCount} LEDs (Open Holes)`;
+    if (winActual) winActual.textContent = `${winCount} LEDs (Ø 3.4mm Holes)`;
     if (glowActual) glowActual.textContent = `${glowCount} LEDs (Thin PLA Glow)`;
     if (darkActual) darkActual.textContent = `${darkCount} LEDs (Off)`;
-    if (plateSpec) plateSpec.textContent = `176×176×${btfMatrix16x16Config.thicknessMm.toFixed(2)}mm (16 Holes)`;
+    if (plateSpec) plateSpec.textContent = `176×176×${btfMatrix16x16Config.thicknessMm.toFixed(2)}mm (4 Corner Holes)`;
 
     const totalLit = winCount + glowCount;
     const estCurrentA = (totalLit * 0.018).toFixed(2);
@@ -16013,17 +16013,13 @@ function drawBtfMatrix16x16PlateBackdrop(ctx, s) {
         ctx.strokeRect(px, py, pw, ph);
     }
 
-    // 2. 16 Perimeter Shirt-Stitching Holes (Ø 2.8mm) along the 8mm margin outside the 160x160mm FPCB
-    const holeOffsetsMm = [4.0, 38.0, 88.0, 138.0, 172.0];
-    const holePtsMm = [];
-    holeOffsetsMm.forEach(xMm => {
-        holePtsMm.push([xMm, 4.0]);
-        holePtsMm.push([xMm, 172.0]);
-    });
-    [38.0, 88.0, 138.0].forEach(yMm => {
-        holePtsMm.push([4.0, yMm]);
-        holePtsMm.push([172.0, yMm]);
-    });
+    // 2. 4 Corner Sewing Holes (Ø 2.8mm) at 4mm inset from the 176x176mm corners
+    const holePtsMm = [
+        [4.0, 4.0],
+        [172.0, 4.0],
+        [4.0, 172.0],
+        [172.0, 172.0]
+    ];
 
     const holeRadPx = Math.max(2.2, (1.4 / 176.0) * pw);
     holePtsMm.forEach(([hxMm, hyMm]) => {
@@ -16051,7 +16047,7 @@ function drawBtfMatrix16x16PlateBackdrop(ctx, s) {
     ctx.textAlign = 'center';
     ctx.textBaseline = 'bottom';
     ctx.fillText(
-        `🔲 176×176×${btfMatrix16x16Config.thicknessMm.toFixed(2)}mm Square Plate • 160×160mm BTF 16×16 Matrix (16 Shirt Holes)`,
+        `🔲 176×176×${btfMatrix16x16Config.thicknessMm.toFixed(2)}mm Square Plate • 160×160mm BTF 16×16 Matrix (4 Corner Sewing Holes)`,
         px + pw / 2,
         py - 4
     );
@@ -16323,6 +16319,7 @@ function initBtfMatrix16x16Mode() {
                 if (tpuDisplayMode === 'matrix16') tpuDisplayMode = 'tray';
             }
             markSingleShirtDirty();
+            handleRecompileTpuStl({ skipOpen: true });
         });
     }
 
@@ -16347,6 +16344,7 @@ function initBtfMatrix16x16Mode() {
             const val = parseFloat(btn.getAttribute('data-thick')) || 0.60;
             setTpuMatrixThickness(val);
             showToast(`📐 3D Square Backlight Plate thickness set to ${val.toFixed(2)}mm`);
+            if (btfMatrix16x16Active) handleRecompileTpuStl({ skipOpen: true });
         });
     });
 
@@ -16355,6 +16353,7 @@ function initBtfMatrix16x16Mode() {
             computeBtfMatrix16x16Layout();
             markSingleShirtDirty();
             showToast(`🎯 Evenly spread ${btfMatrix16x16Config.windowCount} Windowed + ${btfMatrix16x16Config.backlightCount} Backlit LEDs across graphic!`);
+            if (btfMatrix16x16Active) handleRecompileTpuStl({ skipOpen: true });
         });
     }
 
@@ -16369,6 +16368,7 @@ function initBtfMatrix16x16Mode() {
             computeBtfMatrix16x16Layout();
             markSingleShirtDirty();
             showToast('🔄 Reset to 50 Windowed + 25 Backlighting + 181 Dark LEDs (0.60mm plate)');
+            if (btfMatrix16x16Active) handleRecompileTpuStl({ skipOpen: true });
         });
     }
 
@@ -23412,6 +23412,19 @@ function syncTpuDisplayModePills(mode) {
     if (thickPill) {
         thickPill.style.display = (mode === 'matrix16') ? 'inline-flex' : 'none';
     }
+    const trayOnlyBtnIds = [
+        'tpuModalShapeRound34Btn', 'tpuModalShapeRound30Btn', 'tpuModalShapeSquareBtn',
+        'tpuModalOrientHorizBtn', 'tpuModalOrientTangentBtn',
+        'tpuModalNumbersOnBtn', 'tpuModalNumbersOffBtn',
+        'tpuModalTopNubsOnBtn', 'tpuModalTopNubsOffBtn',
+        'tpuModalGroovesOnBtn', 'tpuModalGroovesOffBtn'
+    ];
+    trayOnlyBtnIds.forEach(id => {
+        const btn = document.getElementById(id);
+        if (btn && btn.parentElement) {
+            btn.parentElement.style.display = (mode === 'matrix16') ? 'none' : 'inline-flex';
+        }
+    });
 }
 
 function switchTpuDisplayMode(mode) {
@@ -23599,8 +23612,7 @@ async function loadTpuModalData() {
             } else if (isMatrixPlate) {
                 const winC = (variantData.ordered_leds || []).length;
                 const glowC = (variantData.backlight_leds || []).length;
-                const shapeText = (effectiveShape === 'round_34') ? 'Ø 3.4mm Windows' : ((effectiveShape === 'round_30' || effectiveShape === 'round' || effectiveShape === 'circle') ? 'Ø 3.0mm Windows' : '3×3mm Sq Windows');
-                modalSub.textContent = `176×176×${effectiveThick.toFixed(2)}mm Full-Z Square Plate • ${winC} ${shapeText} + ${glowC} Backlit Glow • 16 Shirt Holes`;
+                modalSub.textContent = `176×176×${effectiveThick.toFixed(2)}mm Full-Z Square Plate • ${winC} Ø 3.4mm Windows + ${glowC} Backlit Glow • 4 Corner Sewing Holes`;
             } else {
                 const shapeText = (effectiveShape === 'round_34') ? 'Ø 3.4mm Round Apertures (Default)' : ((effectiveShape === 'round_30' || effectiveShape === 'round' || effectiveShape === 'circle') ? 'Ø 3.0mm Round Apertures' : '3×3mm Square Apertures');
                 const orientText = (effectiveOrient === 'tangent') ? 'Tangent to Wire' : 'Horizontal Alignment';
