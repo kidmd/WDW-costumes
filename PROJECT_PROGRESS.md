@@ -93,6 +93,25 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
  
+### 2026-10-18 10:35 - 🥁 Title Drum Yellow Standby Color, 16×16 Matrix 50% Brightness Scaling & Auto-Backlight Colored Areas
+- **Title Drum (Float 2) Pure Yellow Standby & Wake Flashes (`src/main.cpp`, `arduino/MSEP_Costume/MSEP_Costume.ino`, `simulator/app.js`):**
+  - Updated Float 2 signature color in `FLEET_ROSTER_INFO[1]` from amber/gold `CRGB(255, 180, 20)` to radiant parade yellow `CRGB(255, 235, 0)` (`#ffeb3b`).
+  - Updated `renderCorralStandby()` starlight sparkle `subtleWarm` blue channel offset to keep yellow starlight sparkles crisp and warm with zero hint of green.
+  - Replaced the hardcoded emerald green wake alert flash on Button 1 tap and Float ID config mode exit with the active float's dynamic signature color (`FLEET_ROSTER_INFO[wakeFloatIdx].color`), so the Title Drum flashes pure yellow when waking from Corral Standby or exiting config.
+  - Updated `DEFAULT_FLEET_ROSTER[1]`, `DEFAULT_FLEET_RADAR[1]`, and `presets/fleet_lineup.json` color from `#ffb703` to `#ffeb3b` (Yellow).
+- **50% Brightness Scaling in 16×16 Matrix Firmware (`src/main.cpp`, `arduino/MSEP_Costume/MSEP_Costume.ino`, `simulator.py`, `include/costume_config.h`):**
+  - Applied automatic 50% brightness scaling whenever 16×16 Matrix Mode is active (`isCurrentFloatMatrix16x16()`), preventing glare and reducing thermal dissipation on dense 16×16 FPCB matrices.
+  - In `duplicateFrontToBack()`, active matrix LEDs are scaled via `c.nscale8_video(128)`.
+  - In `setup()`, `effectiveBrightness` is scaled down to ~half (`max(15, effectiveBrightness / 2)`).
+  - In `simulator.py` (`handle_flash_firmware`), `fastled_brightness` is capped at $15 \dots 42$ (halved from $30 \dots 85$).
+  - Updated `include/costume_config.h` `COSTUME_BRIGHTNESS` from 68 down to 34.
+- **Auto-Backlight All Colored Areas in Simulator Layout Card (`simulator/index.html`, `simulator/app.js`):**
+  - Added new action button: `💡 Auto-Backlight All Colored Areas (Keep Black Dark)` to the 16×16 Matrix card in the Layout panel.
+  - Implemented `autoBacklightAllColoredAreas()`: Analyzes all 256 matrix cells, automatically setting every cell covering colored graphic regions (`maxCh >= 30` or `lum >= 25`) to `backlight` role, while keeping black chassis/lettering/margins and off-graphic cells strictly `dark`.
+  - Automatically updates slider counts, telemetry, re-renders canvas, and regenerates 3D backplate geometry.
+- **Title Drum Firmware Verification (`firmware/firmware.bin`, `firmware/firmware_float2.bin`):**
+  - PlatformIO release build verified with `[SUCCESS]` (RAM: 14.6%, Flash: 60.7%). Synced `firmware/firmware.bin` and `firmware/firmware_float2.bin`.
+ 
 ### 2026-10-18 01:25 - ⚡ 16×16 Matrix ESP32 Firmware Integration, Preset Persistence & Pre-Flash Auto-Save (Title Drum Active)
 - **Preset Save & Restore for 16×16 Matrix Mode (`simulator/app.js`):**
   - Updated `buildCompletePresetData()` and `applyProfileData()` so saving a float profile persists `btfMatrix16x16Active`, `btfMatrix16x16Config` (`windowCount`, `backlightCount`, `thicknessMm`), `matrixWindowedLeds`, and `matrixBacklightLeds` (each storing its physical serpentine `id` $0 \dots 255$, `row`, `col`, `x`, `y`, and sampled `color`).

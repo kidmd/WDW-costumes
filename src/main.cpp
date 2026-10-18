@@ -80,7 +80,7 @@ struct FloatMeta {
 
 const FloatMeta FLEET_ROSTER_INFO[7] = {
     { "The Train",      "LEADER",     CRGB(230, 40, 50)   }, // Float 1 (Red)
-    { "Title Drum",     "FOLLOWER",   CRGB(255, 180, 20)  }, // Float 2 (Gold/Amber)
+    { "Title Drum",     "FOLLOWER",   CRGB(255, 235, 0)   }, // Float 2 (Parade Yellow)
     { "The Turtle",     "FOLLOWER",   CRGB(40, 200, 180)  }, // Float 3 (Teal)
     { "The Snail",      "FOLLOWER",   CRGB(255, 20, 140)  }, // Float 4 (Pink)
     { "Pirate Ship",    "FOLLOWER",   CRGB(230, 25, 25)   }, // Float 5 (Pirate Red & Gold)
@@ -154,9 +154,11 @@ inline void duplicateFrontToBack() {
                 physIdx = pgm_read_byte(&FLOAT_MATRIX_INDICES[fIdx][i]);
             }
 #endif
-            leds[physIdx] = tempActive[i];
+            CRGB c = tempActive[i];
+            c.nscale8_video(128); // 50% brightness scaling for high-density 16x16 matrix
+            leds[physIdx] = c;
             if ((256 + (int)physIdx) < MAX_LEDS_CAPACITY) {
-                leds[256 + (int)physIdx] = tempActive[i];
+                leds[256 + (int)physIdx] = c;
             }
         }
         return;
@@ -312,7 +314,7 @@ void renderCorralStandby(uint32_t t) {
     CRGB subtleWarm = CRGB(
         min(255, dimBase.r + 45),
         min(255, dimBase.g + 38),
-        min(255, dimBase.b + 20)
+        min(255, dimBase.b + 8)
     );
 
     for (int i = 0; i < FRONT_LEDS; i++) {
@@ -810,9 +812,11 @@ void handleFloatConfigMode() {
     // Reconfigure ESP-NOW role
     configureEspNowRole();
 
-    // Exit alert: Flash green 4 times
+    // Exit alert: Flash signature float color 4 times
+    uint8_t cfgFloatIdx = (myFloatNumber >= 1 && myFloatNumber <= 7) ? (myFloatNumber - 1) : 0;
+    CRGB exitColor = FLEET_ROSTER_INFO[cfgFloatIdx].color;
     for (int s = 0; s < 4; s++) {
-        fillActiveCostumeSolid(CRGB(0, 255, 80));
+        fillActiveCostumeSolid(exitColor);
         FastLED.show();
         digitalWrite(STATUS_LED_PIN, HIGH);
         delay(80);
@@ -1930,7 +1934,14 @@ void setup() {
     // 4. Initialize FastLED
     FastLED.addLeds<LED_TYPE, DATA_PIN, COLOR_ORDER>(leds, MAX_LEDS_CAPACITY)
            .setCorrection(TypicalLEDStrip);
-    FastLED.setBrightness(MAX_BRIGHTNESS);
+    uint8_t effectiveBrightness = MAX_BRIGHTNESS;
+#if defined(COSTUME_BRIGHTNESS)
+    effectiveBrightness = COSTUME_BRIGHTNESS;
+#endif
+    if (isCurrentFloatMatrix16x16() && effectiveBrightness > 35) {
+        effectiveBrightness = max((uint8_t)15, (uint8_t)(effectiveBrightness / 2));
+    }
+    FastLED.setBrightness(effectiveBrightness);
     FastLED.setMaxPowerInVoltsAndMilliamps(5, MAX_MILLIAMPS);
 
     Serial.println("[INFO] Setup complete! Starting default parade loop...\n");
@@ -2058,7 +2069,10 @@ void loop() {
 
                 broadcastStandbyPacket(0x51);   // Wake entire fleet into solo show mode (from Standby or Photo Mode)
 
-                fillActiveCostumeSolid(CRGB(0, 255, 80)); // Emerald Green flash
+                uint8_t wakeFloatIdx = (myFloatNumber >= 1 && myFloatNumber <= 7) ? (myFloatNumber - 1) : 0;
+                CRGB wakeColor = FLEET_ROSTER_INFO[wakeFloatIdx].color;
+
+                fillActiveCostumeSolid(wakeColor); // Float signature color flash
                 FastLED.show();
                 digitalWrite(STATUS_LED_PIN, HIGH);
                 delay(150);
@@ -2073,7 +2087,10 @@ void loop() {
                 currentStandaloneMode = SHOW_MODE_AUTONOMOUS_SEQUENCE;
                 autonomousShowStartTime = now;
 
-                fillActiveCostumeSolid(CRGB(0, 255, 80)); // Emerald Green flash
+                uint8_t wakeFloatIdx = (myFloatNumber >= 1 && myFloatNumber <= 7) ? (myFloatNumber - 1) : 0;
+                CRGB wakeColor = FLEET_ROSTER_INFO[wakeFloatIdx].color;
+
+                fillActiveCostumeSolid(wakeColor); // Float signature color flash
                 FastLED.show();
                 digitalWrite(STATUS_LED_PIN, HIGH);
                 delay(150);

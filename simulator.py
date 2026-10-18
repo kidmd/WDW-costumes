@@ -639,6 +639,8 @@ class SimulatorRequestHandler(http.server.SimpleHTTPRequestHandler):
             green_hue = int(payload.get("greenHue", 140))
             brightness_pct = int(payload.get("brightness", 80))
             fastled_brightness = max(30, min(85, int(brightness_pct * 85 / 100)))
+            if matrix_16x16_mode:
+                fastled_brightness = max(15, min(42, int(fastled_brightness / 2)))
             palette = payload.get("palette", [])
             
             pattern_map = {

@@ -23,7 +23,7 @@ let isPhotoModeActive = false;
 
 const DEFAULT_FLEET_RADAR = [
     { id: 1, name: "The Train", role: "LEADER", tag: "CASEY JR.", color: "#ff5e3a", icon: "🚂", status: "ONLINE", rssi: -44, voltage: 5.14, batteryPct: 99, lastSeenSec: 0.2 },
-    { id: 2, name: "Title Drum", role: "FOLLOWER", tag: "THE DRUM", color: "#f1e05a", icon: "🥁", status: "ONLINE", rssi: -52, voltage: 5.10, batteryPct: 97, lastSeenSec: 0.5 },
+    { id: 2, name: "Title Drum", role: "FOLLOWER", tag: "THE DRUM", color: "#ffeb3b", icon: "🥁", status: "ONLINE", rssi: -52, voltage: 5.10, batteryPct: 97, lastSeenSec: 0.5 },
     { id: 3, name: "The Turtle", role: "FOLLOWER", tag: "TURTLE", color: "#2ec4b6", icon: "🐢", status: "ONLINE", rssi: -58, voltage: 5.12, batteryPct: 98, lastSeenSec: 1.1 },
     { id: 4, name: "The Snail", role: "FOLLOWER", tag: "SNAIL", color: "#ff007f", icon: "🐌", status: "ONLINE", rssi: -61, voltage: 5.08, batteryPct: 95, lastSeenSec: 1.4 },
     { id: 5, name: "Pirate Ship", role: "FOLLOWER", tag: "PIRATE", color: "#e63946", icon: "🏴‍☠️", status: "ONLINE", rssi: -63, voltage: 5.11, batteryPct: 96, lastSeenSec: 0.8 },
@@ -4525,7 +4525,7 @@ function renderSingleShirtView(timeMs) {
 // ============================================================================
 const DEFAULT_FLEET_ROSTER = [
     { slot: 0, num: "01", icon: "🚂", fullName: "The Train (Casey Jr.)", name: "The Train", tag: "CASEY JR.", color: "#e63946", accent: "Red", role: "👑 Fleet Leader (Broadcast)", preset: "server:casey_jr_train.json", defaultGraphic: "casey_jr_train" },
-    { slot: 1, num: "02", icon: "🥁", fullName: "Electrical Parade Drum", name: "Title Drum", tag: "THE DRUM", color: "#ffb703", accent: "Gold", role: "📡 Follower Float", preset: "server:title_drum.json", defaultGraphic: "title_drum" },
+    { slot: 1, num: "02", icon: "🥁", fullName: "Electrical Parade Drum", name: "Title Drum", tag: "THE DRUM", color: "#ffeb3b", accent: "Yellow", role: "📡 Follower Float", preset: "server:title_drum.json", defaultGraphic: "title_drum" },
     { slot: 2, num: "03", icon: "🐢", fullName: "The Spinning Turtle", name: "The Turtle", tag: "TURTLE", color: "#2ec4b6", accent: "Teal", role: "📡 Follower Float", preset: "server:spinning_turtle.json", defaultGraphic: "spinning_turtle" },
     { slot: 3, num: "04", icon: "🐌", fullName: "The Spinning Snail", name: "The Snail", tag: "SNAIL", color: "#ff007f", accent: "Pink", role: "📡 Follower Float", preset: "server:spinning_snail.json", defaultGraphic: "spinning_snail" },
     { slot: 4, num: "05", icon: "🏴‍☠️", fullName: "The Pirate Ship", name: "Pirate Ship", tag: "PIRATE", color: "#e63946", accent: "Red", role: "📡 Follower Float", preset: "server:pirate_ship.json", defaultGraphic: "pirate_ship" },
@@ -16439,6 +16439,13 @@ function initBtfMatrix16x16Mode() {
         });
     }
 
+    const allBacklightBtn = document.getElementById('btfMatrixAllBacklightColoredBtn');
+    if (allBacklightBtn) {
+        allBacklightBtn.addEventListener('click', () => {
+            autoBacklightAllColoredAreas();
+        });
+    }
+
     if (resetBtn) {
         resetBtn.addEventListener('click', () => {
             btfMatrix16x16Config.windowCount = 50;
@@ -16464,6 +16471,43 @@ function initBtfMatrix16x16Mode() {
     syncBtfMatrixThicknessUI(btfMatrix16x16Config.thicknessMm);
 }
 window.initBtfMatrix16x16Mode = initBtfMatrix16x16Mode;
+
+function autoBacklightAllColoredAreas() {
+    if (!btfMatrix16x16Cells || btfMatrix16x16Cells.length !== 256) {
+        computeBtfMatrix16x16Layout();
+    }
+    let backlitCount = 0;
+    let darkCount = 0;
+    btfMatrix16x16Cells.forEach(cell => {
+        const c = cell.color || { r: 0, g: 0, b: 0 };
+        const lum = 0.299 * c.r + 0.587 * c.g + 0.114 * c.b;
+        const maxCh = Math.max(c.r, c.g, c.b);
+        // Colored area check: on the graphic, not near-black background / chassis outline
+        const isColored = cell.onGraphic && (maxCh >= 30 || lum >= 25) && !(c.r < 28 && c.g < 28 && c.b < 28);
+        if (isColored) {
+            cell.role = 'backlight';
+            backlitCount++;
+        } else {
+            cell.role = 'dark';
+            darkCount++;
+        }
+    });
+
+    btfMatrix16x16Config.windowCount = 0;
+    btfMatrix16x16Config.backlightCount = backlitCount;
+
+    const winSlider = document.getElementById('btfMatrixWindowCountSlider');
+    const glowSlider = document.getElementById('btfMatrixBacklightCountSlider');
+    if (winSlider) winSlider.value = 0;
+    if (glowSlider) glowSlider.value = backlitCount;
+
+    updateBtfMatrix16x16TelemetryUI();
+    markSingleShirtDirty();
+    if (typeof draw === 'function') draw();
+    if (btfMatrix16x16Active) handleRecompileTpuStl({ skipOpen: true });
+    showToast(`✨ Automatically backlit ${backlitCount} colored LEDs! (${darkCount} black/off-graphic LEDs dark)`);
+}
+window.autoBacklightAllColoredAreas = autoBacklightAllColoredAreas;
 
 // ============================================================================
 // COMPUTER VISION & COLOR-MATCHED SAMPLING

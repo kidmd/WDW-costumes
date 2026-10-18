@@ -59,8 +59,8 @@ This pocket-friendly field manual explains the complete dual-button control sche
 
 | Button & Gesture | Current State | What Happens | Visual / Serial Confirmation |
 | :--- | :--- | :--- | :--- |
-| **Button 1 — Single Tap** (< 600ms) | 🌙 In Sleep (Standby) | ☀️ **Wakes THIS COSTUME ONLY** into **Solo Show Mode** (does NOT trigger fleet show). | 🟢 Emerald green flash on your shirt. |
-| **Button 1 — Single Tap** (< 600ms) | 📸 In Castle Photo Mode | ☀️ **Exits Photo Mode locally** into **Solo Show Mode**. | 🟢 Emerald green flash, starts parade. |
+| **Button 1 — Single Tap** (< 600ms) | 🌙 In Sleep (Standby) | ☀️ **Wakes THIS COSTUME ONLY** into **Solo Show Mode** (does NOT trigger fleet show). | ✨ Signature float color flash on your shirt (🟡 Yellow for Title Drum). |
+| **Button 1 — Single Tap** (< 600ms) | 📸 In Castle Photo Mode | ☀️ **Exits Photo Mode locally** into **Solo Show Mode**. | ✨ Signature float color flash, starts parade. |
 | **Button 1 — Single Tap** (< 600ms) | 🏃 Running Awake | 🛡️ **IGNORED:** Prevents family runners from accidentally disrupting parade show. | Animation continues smoothly without glitch. |
 | **Button 1 — Double Tap** (< 400ms) | Any State | 🛡️ **IGNORED:** Roll Call broadcast is reserved for Leader. | No action. |
 | **Button 1 — Hold 5s** *(White meter)* | Any State | ⚪ **Enters Float ID Configuration Mode** (reassign role 1–7 in the corral). | 1s–4s white charging meter $\rightarrow$ ⚪ 3 white flashes. |

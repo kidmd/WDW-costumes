@@ -19,8 +19,8 @@
     "fullName": "Electrical Parade Drum",
     "name": "Title Drum",
     "tag": "THE DRUM",
-    "color": "#ffb703",
-    "accent": "Gold",
+    "color": "#ffeb3b",
+    "accent": "Yellow",
     "role": "\ud83d\udce1 Follower Float",
     "preset": "server:main_street_title_drum_100_led_vibrant_preset_large_100led_2026-10-18_01-04.json",
     "defaultGraphic": "title_drum"
