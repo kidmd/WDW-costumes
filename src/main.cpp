@@ -298,6 +298,19 @@ void renderCastlePhotoMode() {
 }
 
 void renderCorralStandby(uint32_t t) {
+    // 16x16 Matrix Mode Test Feature: illuminate all 256 physical LEDs in dim warm yellow (Front + Back)
+    if (isCurrentFloatMatrix16x16()) {
+        CRGB dimYellow = CRGB(60, 48, 0); // Dim yellow across all 256 matrix pixels
+        fill_solid(leds, MAX_LEDS_CAPACITY, CRGB::Black);
+        for (int i = 0; i < 256; i++) {
+            leds[i] = dimYellow;
+            if ((256 + i) < MAX_LEDS_CAPACITY) {
+                leds[256 + i] = dimYellow;
+            }
+        }
+        return;
+    }
+
     // Ultra-low power starlight shimmer (<120mA draw) with visible midnight float-glow
     uint8_t floatIdx = (myFloatNumber >= 1 && myFloatNumber <= 7) ? (myFloatNumber - 1) : 0;
     CRGB baseColor = FLEET_ROSTER_INFO[floatIdx].color;

@@ -93,6 +93,20 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
  
+### 2026-10-18 11:35 - 💡 Toggleable Auto-Backlight in Simulator & 256-LED Dim Yellow Standby Test Mode in Firmware
+- **Toggleable Auto-Backlight in Simulator Layout Tab (`simulator/app.js`):**
+  - Updated `autoBacklightAllColoredAreas()`: Now acts as an active **toggle switch**.
+  - If any non-windowed LEDs are currently backlit, clicking the button turns **OFF** all backlighting (leaving all 55 windowed through-hole LEDs active and setting the rest to dark).
+  - Clicking the button a second time scans all graphic cells again and turns **ON** backlighting for all colored regions (`maxCh >= 50 && lum >= 40`), keeping dark black chassis pixels dark.
+  - Automatically updates the telemetry badge, sliders, re-renders the 2D canvas, and notifies via toast message.
+- **256-LED Dim Yellow Standby Hardware Diagnostic (`src/main.cpp`, `arduino/MSEP_Costume/MSEP_Costume.ino`):**
+  - In `renderCorralStandby()`, added a hardware diagnostic bypass whenever `isCurrentFloatMatrix16x16()` is true:
+  - Fills all **256 physical LEDs** across the entire 16×16 matrix (Front + Back) with a solid, comfortable **dim yellow (`CRGB(60, 48, 0)`)**.
+  - Allows immediate visual inspection on hardware to verify that every single pixel in all 16 rows from upper-right to lower-left is healthy, seated, and uniformly illuminated.
+- **Firmware Compilation & Binary Sync (`firmware/`):**
+  - Compiled release build with PlatformIO (`RAM: 14.6%`, `Flash: 60.7%`, `[SUCCESS]`).
+  - Synced `.pio/build/esp32dev/firmware.bin` to `firmware/firmware.bin` and `firmware/firmware_float2.bin`.
+
 ### 2026-10-18 11:15 - 🔄 16×16 Matrix Serpentine Orientation (Upper-Right to Lower-Left), Revert to RGB Color Order & Strict Black Drum Face
 - **Serpentine Matrix Orientation Correction (`simulator/app.js`, `include/costume_config.h`, `presets/main_street_title_drum_100_led_vibrant_preset_large_100led_2026-10-18_01-04.json`):**
   - Updated matrix physical indexing to start at the **upper right** (Row 0, Col 15 -> Index 0) and end at the **lower left** (Row 15, Col 0 -> Index 255):

@@ -16486,27 +16486,39 @@ function autoBacklightAllColoredAreas() {
     if (!btfMatrix16x16Cells || btfMatrix16x16Cells.length !== 256) {
         computeBtfMatrix16x16Layout();
     }
+
+    // Check if backlighting is currently enabled (has any active backlit cells)
+    const currentlyHasBacklight = btfMatrix16x16Cells.some(c => c.role === 'backlight');
+
     let winCount = 0;
     let backlitCount = 0;
     let darkCount = 0;
+
     btfMatrix16x16Cells.forEach(cell => {
-        // Keep all existing windowed LEDs intact (do not overwrite windowed through-holes)
+        // Keep all existing windowed LEDs strictly intact (do not overwrite windowed through-holes)
         if (cell.role === 'window') {
             winCount++;
             return;
         }
 
-        const c = cell.color || { r: 0, g: 0, b: 0 };
-        const lum = 0.299 * c.r + 0.587 * c.g + 0.114 * c.b;
-        const maxCh = Math.max(c.r, c.g, c.b);
-        // Colored area check: on the graphic, distinct color (not dark black drum face or chassis)
-        const isColored = cell.onGraphic && (maxCh >= 50 && lum >= 40) && !(c.r < 45 && c.g < 45 && c.b < 45);
-        if (isColored) {
-            cell.role = 'backlight';
-            backlitCount++;
-        } else {
+        if (currentlyHasBacklight) {
+            // TOGGLE OFF: Set all non-windowed LEDs to dark
             cell.role = 'dark';
             darkCount++;
+        } else {
+            // TOGGLE ON: Turn on all non-windowed colored areas
+            const c = cell.color || { r: 0, g: 0, b: 0 };
+            const lum = 0.299 * c.r + 0.587 * c.g + 0.114 * c.b;
+            const maxCh = Math.max(c.r, c.g, c.b);
+            // Colored area check: on the graphic, distinct color (not dark black drum face or chassis)
+            const isColored = cell.onGraphic && (maxCh >= 50 && lum >= 40) && !(c.r < 45 && c.g < 45 && c.b < 45);
+            if (isColored) {
+                cell.role = 'backlight';
+                backlitCount++;
+            } else {
+                cell.role = 'dark';
+                darkCount++;
+            }
         }
     });
 
@@ -16522,7 +16534,12 @@ function autoBacklightAllColoredAreas() {
     markSingleShirtDirty();
     if (typeof draw === 'function') draw();
     if (btfMatrix16x16Active) handleRecompileTpuStl({ skipOpen: true });
-    showToast(`✨ Kept ${winCount} Windowed LEDs & back-lit ${backlitCount} colored LEDs! (${darkCount} black/off-graphic LEDs dark)`);
+
+    if (currentlyHasBacklight) {
+        showToast(`🌙 Turned OFF all backlighting (${winCount} Windowed LEDs remain active, ${darkCount} Dark)`);
+    } else {
+        showToast(`💡 Turned ON ${backlitCount} Backlit colored LEDs! (${winCount} Windowed LEDs kept, ${darkCount} Dark)`);
+    }
 }
 window.autoBacklightAllColoredAreas = autoBacklightAllColoredAreas;
 
