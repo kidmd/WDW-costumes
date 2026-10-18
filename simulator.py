@@ -641,6 +641,7 @@ class SimulatorRequestHandler(http.server.SimpleHTTPRequestHandler):
             fastled_brightness = max(30, min(85, int(brightness_pct * 85 / 100)))
             if matrix_16x16_mode:
                 fastled_brightness = max(15, min(42, int(fastled_brightness / 2)))
+            color_order = payload.get("colorOrder", "GRB" if matrix_16x16_mode else "RGB")
             palette = payload.get("palette", [])
             
             pattern_map = {
@@ -866,7 +867,7 @@ class SimulatorRequestHandler(http.server.SimpleHTTPRequestHandler):
 #define COSTUME_SPARKLE_RATE             {sparkle_rate}
 #define COSTUME_GREEN_HUE                {green_hue}
 #define COSTUME_BRIGHTNESS               {fastled_brightness}
-#define COLOR_ORDER                      RGB
+#define COLOR_ORDER                      {color_order}
 #define HAS_CUSTOM_PALETTE               1
 #define COSTUME_OVERRIDE_STANDALONE      1
 #define AMBIENT_FALLBACK_PATTERN         {ambient_fallback_code}

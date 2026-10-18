@@ -93,6 +93,24 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
  
+### 2026-10-18 11:00 - 🥁 Fix Title Drum GRB Color Order Swap, 16×16 Serpentine Active Scattering & Dark Black Drum Face
+- **WS2812B 16×16 Flexible Matrix Hardware GRB Color Order Fix (`src/main.cpp`, `arduino/MSEP_Costume/MSEP_Costume.ino`, `simulator.py`):**
+  - Resolved root cause of green standby mode and red drum panels appearing green/unlit: BTF-LIGHTING WS2812B 16×16 FPCB matrices natively use **`GRB`** color order on the wire, whereas pebble fairy pixel strands use `RGB`.
+  - When `COLOR_ORDER` was set to `RGB`, Red and Green channels were swapped, making vibrant red (`239, 68, 68`) display as green, and yellow/gold (`255, 235, 0`) display as lime green (`G=255, R=235`).
+  - In `src/main.cpp` and `arduino/MSEP_Costume/MSEP_Costume.ino`, updated FastLED hardware initialization in `setup()` to explicitly instantiate `FastLED.addLeds<LED_TYPE, DATA_PIN, GRB>` whenever `isCurrentFloatMatrix16x16()` is true, and fall back to `#ifndef COLOR_ORDER` defaulting to `GRB` if `COSTUME_MATRIX_16X16_MODE` is active.
+  - In `simulator.py`, updated configuration generator to automatically emit `#define COLOR_ORDER GRB` whenever `matrix_16x16_mode` is enabled.
+- **16×16 Serpentine Physical Scattering Fix & Background Server Refresh (`simulator.py`, `src/main.cpp`, `arduino/MSEP_Costume/MSEP_Costume.ino`):**
+  - Identified that background task `task-974` was running an older in-memory version of `simulator.py`, generating `costume_config.h` without `COSTUME_MATRIX_16X16_MODE 1` and without `MATRIX_ACTIVE_INDICES`.
+  - Because `duplicateFrontToBack()` fell back to linear 1D indexing ($0 \dots 147$), only the top 9 rows of the 16×16 matrix were addressed, leaving rows 9–15 (all lower red drum panels and wheels) dark.
+  - Terminated `task-974` and launched fresh server task `task-1685` on port 8000.
+  - Removed unnecessary `defined(HAS_CUSTOM_PALETTE)` guard in `duplicateFrontToBack()` and `isCurrentFloatMatrix16x16()`, guaranteeing that `MATRIX_ACTIVE_INDICES` scatter immediately to their exact 2D serpentine coordinates across all 16 rows.
+- **Strict Black Drum Face & Chassis Dark Thresholding (`simulator/app.js`):**
+  - Updated `computeBtfMatrix16x16Layout()` and `autoBacklightAllColoredAreas()`: dark drum face and chassis cells (`lum < 35` and `maxCh < 45`) are strictly preserved as dark (`CRGB::Black`), preventing previous false incandescent white boosts on black pixels.
+  - Only non-windowed cells covering colored regions (red drum body, gold border, green banner) are set to `'backlight'`, while all existing windowed LEDs are 100% preserved.
+- **Compiler Bounds Safety & Firmware Build (`src/main.cpp`, `arduino/MSEP_Costume/MSEP_Costume.ino`, `firmware/`):**
+  - Added bounds guards `(i < 100) ? DEFAULT_FLOAT_PALETTES[floatIdx][i] : FLEET_ROSTER_INFO[floatIdx].color` for matrices with `FRONT_LEDS > 100`, eliminating GCC `-Waggressive-loop-optimizations` warnings.
+  - Built PlatformIO release binary cleanly with `[SUCCESS]` (RAM: 14.6%, Flash: 60.9%). Synced `firmware/firmware.bin` and `firmware/firmware_float2.bin`.
+
 ### 2026-10-18 10:35 - 🥁 Title Drum Yellow Standby Color, 16×16 Matrix 50% Brightness Scaling & Auto-Backlight Colored Areas
 - **Title Drum (Float 2) Pure Yellow Standby & Wake Flashes (`src/main.cpp`, `arduino/MSEP_Costume/MSEP_Costume.ino`, `simulator/app.js`):**
   - Updated Float 2 signature color in `FLEET_ROSTER_INFO[1]` from amber/gold `CRGB(255, 180, 20)` to radiant parade yellow `CRGB(255, 235, 0)` (`#ffeb3b`).

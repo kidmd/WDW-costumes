@@ -46,7 +46,11 @@
 #define DATA_PIN            16      // 8th pin down on the right
 #define LED_TYPE            WS2812B
 #ifndef COLOR_ORDER
-#define COLOR_ORDER         RGB     // Calibrated hardware color order (Red, Green, Blue)
+#if defined(COSTUME_MATRIX_16X16_MODE) && COSTUME_MATRIX_16X16_MODE
+#define COLOR_ORDER         GRB     // Calibrated hardware color order for BTF 16x16 WS2812B matrix
+#else
+#define COLOR_ORDER         RGB     // Calibrated hardware color order for fairy pebble lights
+#endif
 #endif
 #define STATUS_LED_PIN      2       // Onboard Blue LED
 
@@ -119,7 +123,7 @@ uint8_t myFloatNumber = 2;
 
 // Check if current active float uses a BTF-LIGHTING 16x16 (256-pixel) Matrix Panel
 inline bool isCurrentFloatMatrix16x16() {
-#if defined(HAS_CUSTOM_PALETTE) && HAS_CUSTOM_PALETTE && defined(COSTUME_MATRIX_16X16_MODE) && COSTUME_MATRIX_16X16_MODE
+#if defined(COSTUME_MATRIX_16X16_MODE) && COSTUME_MATRIX_16X16_MODE
     return true;
 #elif defined(HAS_FLEET_MATRIX_CONFIG) && HAS_FLEET_MATRIX_CONFIG
     uint8_t floatIdx = (myFloatNumber >= 1 && myFloatNumber <= 7) ? (myFloatNumber - 1) : 0;
@@ -146,7 +150,7 @@ inline void duplicateFrontToBack() {
         fill_solid(leds, MAX_LEDS_CAPACITY, CRGB::Black);
         for (int i = 0; i < activeCount; i++) {
             uint8_t physIdx = i;
-#if defined(HAS_CUSTOM_PALETTE) && HAS_CUSTOM_PALETTE && defined(COSTUME_MATRIX_16X16_MODE) && COSTUME_MATRIX_16X16_MODE
+#if defined(COSTUME_MATRIX_16X16_MODE) && COSTUME_MATRIX_16X16_MODE
             physIdx = pgm_read_byte(&MATRIX_ACTIVE_INDICES[i]);
 #elif defined(HAS_FLEET_MATRIX_CONFIG) && HAS_FLEET_MATRIX_CONFIG
             uint8_t fIdx = (myFloatNumber >= 1 && myFloatNumber <= 7) ? (myFloatNumber - 1) : 0;
@@ -287,7 +291,7 @@ void renderCastlePhotoMode() {
 
 #if defined(HAS_DEFAULT_FLOAT_PALETTES) && HAS_DEFAULT_FLOAT_PALETTES
     for (int i = 0; i < FRONT_LEDS && i < MAX_LEDS_CAPACITY; i++) {
-        leds[i] = DEFAULT_FLOAT_PALETTES[floatIdx][i];
+        leds[i] = (i < 100) ? DEFAULT_FLOAT_PALETTES[floatIdx][i] : FLEET_ROSTER_INFO[floatIdx].color;
     }
 #else
     CRGB heroColor = FLEET_ROSTER_INFO[floatIdx].color;
@@ -889,7 +893,7 @@ void renderAmbientFallback(uint32_t now) {
         CRGB baseColor = ARTWORK_PALETTE[i];
 #elif defined(HAS_DEFAULT_FLOAT_PALETTES) && HAS_DEFAULT_FLOAT_PALETTES
         uint8_t floatIdx = (myFloatNumber >= 1 && myFloatNumber <= 7) ? (myFloatNumber - 1) : 0;
-        CRGB baseColor = DEFAULT_FLOAT_PALETTES[floatIdx][i];
+        CRGB baseColor = (i < 100) ? DEFAULT_FLOAT_PALETTES[floatIdx][i] : FLEET_ROSTER_INFO[floatIdx].color;
 #else
         uint8_t floatIdx = (myFloatNumber >= 1 && myFloatNumber <= 7) ? (myFloatNumber - 1) : 0;
         CRGB baseColor = FLEET_ROSTER_INFO[floatIdx].color;
@@ -1541,7 +1545,7 @@ void runAutonomousShowSequence(uint32_t now) {
                     leds[i] = ARTWORK_PALETTE[i];
 #elif defined(HAS_DEFAULT_FLOAT_PALETTES) && HAS_DEFAULT_FLOAT_PALETTES
                     uint8_t floatIdx = (myFloatNumber >= 1 && myFloatNumber <= 7) ? (myFloatNumber - 1) : 0;
-                    leds[i] = DEFAULT_FLOAT_PALETTES[floatIdx][i];
+                    leds[i] = (i < 100) ? DEFAULT_FLOAT_PALETTES[floatIdx][i] : FLEET_ROSTER_INFO[floatIdx].color;
 #else
                     uint8_t floatIdx = (myFloatNumber >= 1 && myFloatNumber <= 7) ? (myFloatNumber - 1) : 0;
                     leds[i] = FLEET_ROSTER_INFO[floatIdx].color;
@@ -1932,8 +1936,13 @@ void setup() {
     }
 
     // 4. Initialize FastLED
-    FastLED.addLeds<LED_TYPE, DATA_PIN, COLOR_ORDER>(leds, MAX_LEDS_CAPACITY)
-           .setCorrection(TypicalLEDStrip);
+    if (isCurrentFloatMatrix16x16()) {
+        FastLED.addLeds<LED_TYPE, DATA_PIN, GRB>(leds, MAX_LEDS_CAPACITY)
+               .setCorrection(TypicalLEDStrip);
+    } else {
+        FastLED.addLeds<LED_TYPE, DATA_PIN, COLOR_ORDER>(leds, MAX_LEDS_CAPACITY)
+               .setCorrection(TypicalLEDStrip);
+    }
     uint8_t effectiveBrightness = MAX_BRIGHTNESS;
 #if defined(COSTUME_BRIGHTNESS)
     effectiveBrightness = COSTUME_BRIGHTNESS;

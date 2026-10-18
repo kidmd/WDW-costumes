@@ -15878,9 +15878,15 @@ function computeBtfMatrix16x16Layout() {
                 const avgR = Math.round(sumR / countValid);
                 const avgG = Math.round(sumG / countValid);
                 const avgB = Math.round(sumB / countValid);
-                cellColor = (typeof boostLedVibrancy === 'function')
-                    ? boostLedVibrancy(avgR, avgG, avgB, Math.max(0, Math.min(1, relX)), Math.max(0, Math.min(1, relY)))
-                    : { r: avgR, g: avgG, b: avgB };
+                const maxAvg = Math.max(avgR, avgG, avgB);
+                if (maxAvg < 45) {
+                    // True black chassis, wheels, drum face & dark outlines: preserve as dark black
+                    cellColor = { r: 17, g: 22, b: 29 };
+                } else {
+                    cellColor = (typeof boostLedVibrancy === 'function')
+                        ? boostLedVibrancy(avgR, avgG, avgB, Math.max(0, Math.min(1, relX)), Math.max(0, Math.min(1, relY)))
+                        : { r: avgR, g: avgG, b: avgB };
+                }
             }
 
             const matrixIdx = (row % 2 === 0) ? (row * 16 + col) : (row * 16 + (15 - col));
