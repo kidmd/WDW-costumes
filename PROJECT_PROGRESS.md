@@ -93,6 +93,20 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
  
+### 2026-10-18 12:20 - 🐉 Content-Aware 16x16 Matrix Graphic Maximization & Transparent Margin Trimming
+- **Content-Aware Bounding Box & Active Grid Maximization (simulator/app.js):**
+  - **Identified Root Cause of Small Pete's Dragon:** ssets/petes_dragon_transparent.png (853×1024) contained massive transparent borders (20.6% top, 17.6% bottom, 18.2% horizontal). When fitted to the plate envelope using raw file dimensions, the visible dragon occupied only ~64.8% of matrix height (103.8mm / 160mm) and left rows 0–2, rows 13–15, and outer columns completely empty (only 59 LEDs active).
+  - **Implemented getImageContentBounds(img) Analyzer & Cache:** Uses a high-speed offscreen canvas scan (256px resolution) to detect true non-transparent foreground bounding boxes (handling alpha transparency, black background corners, or full-bleed graphics).
+  - **Maximized Envelope Fit in getGraphicChestBounds():** Scales visible artwork content to fill the full 168.0mm × 168.0mm plate envelope (ART_FIT_MM = 168.0, centered at x = 0.50, y = 0.3615) while strictly preserving aspect ratio (contentAspect = 1.103 for Pete's Dragon).
+  - **Coverage Doubled Across Grid:**
+    - Active LEDs on Pete's Dragon increased from **59 ➔ 128 LEDs** (out of 256).
+    - Every row from Row 0 to Row 15 is active: [1, 3, 3, 5, 9, 11, 11, 11, 11, 10, 11, 11, 10, 11, 9, 1].
+    - Every column from Col 0 to Col 15 is active: [6, 6, 7, 10, 12, 11, 11, 7, 11, 11, 8, 5, 5, 7, 7, 4].
+    - Auto-backlight detects **115 colored LEDs** across green scales, magenta wings, and dragon crest.
+  - **Full Python 3D STL Parity:** The simulator canvas sampling now 100% matches scripts/compile_clean_tpu_panel.py line 219 (ART_FIT_MM = 168.0, scale = ART_FIT_MM / max(w_px, h_px)).
+  - **Asynchronous Asset Load Reactivity:** Hooked 
+otifyFloatImgLoaded() to all float asset onload events so the 16×16 matrix recalculates and re-renders immediately upon image load.
+
 ### 2026-10-18 11:48 - ✨ Smart Auto-Backlight Toggle with Slider Grey-Out & Random Yellow Standby Mode
 - **Smart Toggleable Auto-Backlight & Slider Lock (`simulator/app.js`):**
   - Updated `autoBacklightAllColoredAreas()`:

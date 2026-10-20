@@ -135,11 +135,20 @@ async function fetchActiveTpuSpecs() {
 }
 fetchActiveTpuSpecs();
 
+function notifyFloatImgLoaded() {
+    if (typeof btfMatrix16x16Active !== 'undefined' && btfMatrix16x16Active) {
+        if (typeof computeBtfMatrix16x16Layout === 'function') computeBtfMatrix16x16Layout();
+        if (typeof markSingleShirtDirty === 'function') markSingleShirtDirty();
+        if (typeof draw === 'function') draw();
+    }
+}
+
 // Default Pete's Dragon Artwork
 const defaultDragonImg = new Image();
 let defaultDragonLoaded = false;
 defaultDragonImg.onload = () => {
     defaultDragonLoaded = true;
+    notifyFloatImgLoaded();
 };
 defaultDragonImg.src = 'assets/petes_dragon_transparent.png';
 
@@ -148,6 +157,7 @@ const pirateShipImg = new Image();
 let pirateShipLoaded = false;
 pirateShipImg.onload = () => {
     pirateShipLoaded = true;
+    notifyFloatImgLoaded();
 };
 pirateShipImg.src = 'assets/Pirateshipsimple.png';
 
@@ -156,6 +166,7 @@ const cinderellasCoachImg = new Image();
 let cinderellasCoachLoaded = false;
 cinderellasCoachImg.onload = () => {
     cinderellasCoachLoaded = true;
+    notifyFloatImgLoaded();
 };
 cinderellasCoachImg.src = 'assets/cinderellas_coach.png';
 
@@ -164,6 +175,7 @@ const carriageNoHorsesImg = new Image();
 let carriageNoHorsesLoaded = false;
 carriageNoHorsesImg.onload = () => {
     carriageNoHorsesLoaded = true;
+    notifyFloatImgLoaded();
 };
 carriageNoHorsesImg.src = 'assets/Carriage_nohorses.png';
 
@@ -172,6 +184,7 @@ const spinningTurtleImg = new Image();
 let spinningTurtleLoaded = false;
 spinningTurtleImg.onload = () => {
     spinningTurtleLoaded = true;
+    notifyFloatImgLoaded();
 };
 spinningTurtleImg.src = 'assets/Turtle_clean.png';
 
@@ -180,6 +193,7 @@ const spinningSnailImg = new Image();
 let spinningSnailLoaded = false;
 spinningSnailImg.onload = () => {
     spinningSnailLoaded = true;
+    notifyFloatImgLoaded();
 };
 spinningSnailImg.src = 'assets/SimpleSnail.png';
 
@@ -187,6 +201,7 @@ const spinningSnailSimplifiedImg = new Image();
 let spinningSnailSimplifiedLoaded = false;
 spinningSnailSimplifiedImg.onload = () => {
     spinningSnailSimplifiedLoaded = true;
+    notifyFloatImgLoaded();
 };
 spinningSnailSimplifiedImg.src = 'assets/spinning_snail_simplified.png';
 
@@ -195,6 +210,7 @@ const caseyJrTrainImg = new Image();
 let caseyJrTrainLoaded = false;
 caseyJrTrainImg.onload = () => {
     caseyJrTrainLoaded = true;
+    notifyFloatImgLoaded();
 };
 caseyJrTrainImg.src = 'assets/Simpletrain.png';
 
@@ -203,6 +219,7 @@ const titleDrumImg = new Image();
 let titleDrumLoaded = false;
 titleDrumImg.onload = () => {
     titleDrumLoaded = true;
+    notifyFloatImgLoaded();
 };
 titleDrumImg.src = 'assets/title_drum.png';
 
@@ -304,6 +321,110 @@ function getActiveGraphicImg() {
 let selectedPlateSize = 'medium';
 let selectedPlateWidthMm = 203.2;
 
+// Universal cache and computer-vision analyzer to crop transparent/black outer padding
+// so graphics use maximum active area on the 16x16 grid without empty borders.
+function getImageContentBounds(img) {
+    if (!img) {
+        return { minXFrac: 0, maxXFrac: 1, minYFrac: 0, maxYFrac: 1, contentAspect: 1.0, isContentTrimmed: false };
+    }
+    const iw = img.naturalWidth || img.width || 0;
+    const ih = img.naturalHeight || img.height || 0;
+    if (iw === 0 || ih === 0) {
+        return { minXFrac: 0, maxXFrac: 1, minYFrac: 0, maxYFrac: 1, contentAspect: 1.0, isContentTrimmed: false };
+    }
+
+    if (img._msepContentBounds && img._msepCachedW === iw && img._msepCachedH === ih) {
+        return img._msepContentBounds;
+    }
+
+    try {
+        const scanW = 256;
+        const scanH = Math.max(32, Math.round(scanW * (ih / iw)));
+        const canvas = document.createElement('canvas');
+        canvas.width = scanW;
+        canvas.height = scanH;
+        const ctx = canvas.getContext('2d', { willReadFrequently: true });
+        ctx.drawImage(img, 0, 0, scanW, scanH);
+        const data = ctx.getImageData(0, 0, scanW, scanH).data;
+
+        // Check if image has transparent pixels
+        let hasTrans = false;
+        for (let i = 3; i < data.length; i += 4) {
+            if (data[i] < 200) {
+                hasTrans = true;
+                break;
+            }
+        }
+
+        // Check corner pixels for black background if fully opaque
+        let isBlackCorners = false;
+        let isWhiteCorners = false;
+        if (!hasTrans) {
+            const c0 = 0, c1 = (scanW - 1) * 4, c2 = (scanH - 1) * scanW * 4, c3 = ((scanH - 1) * scanW + (scanW - 1)) * 4;
+            const corners = [c0, c1, c2, c3];
+            isBlackCorners = corners.every(c => Math.max(data[c], data[c + 1], data[c + 2]) < 30);
+            isWhiteCorners = corners.every(c => Math.min(data[c], data[c + 1], data[c + 2]) > 235);
+        }
+
+        let minX = scanW, maxX = -1, minY = scanH, maxY = -1;
+        for (let y = 0; y < scanH; y++) {
+            const rowOffset = y * scanW * 4;
+            for (let x = 0; x < scanW; x++) {
+                const idx = rowOffset + x * 4;
+                const a = data[idx + 3];
+                let isFg = false;
+                if (hasTrans) {
+                    isFg = (a > 30);
+                } else if (isBlackCorners) {
+                    isFg = (a > 30 && Math.max(data[idx], data[idx + 1], data[idx + 2]) > 25);
+                } else if (isWhiteCorners) {
+                    isFg = (a > 30 && Math.min(data[idx], data[idx + 1], data[idx + 2]) < 235);
+                } else {
+                    isFg = true;
+                }
+                if (isFg) {
+                    if (x < minX) minX = x;
+                    if (x > maxX) maxX = x;
+                    if (y < minY) minY = y;
+                    if (y > maxY) maxY = y;
+                }
+            }
+        }
+
+        if (maxX >= minX && maxY >= minY) {
+            const minXFrac = minX / scanW;
+            const maxXFrac = (maxX + 1) / scanW;
+            const minYFrac = minY / scanH;
+            const maxYFrac = (maxY + 1) / scanH;
+            const contentW = Math.max(1, (maxX - minX + 1) * (iw / scanW));
+            const contentH = Math.max(1, (maxY - minY + 1) * (ih / scanH));
+            const contentAspect = contentW / contentH;
+            const isContentTrimmed = (minXFrac > 0.02 || maxXFrac < 0.98 || minYFrac > 0.02 || maxYFrac < 0.98);
+
+            const result = { minXFrac, maxXFrac, minYFrac, maxYFrac, contentAspect, isContentTrimmed };
+            img._msepContentBounds = result;
+            img._msepCachedW = iw;
+            img._msepCachedH = ih;
+            return result;
+        }
+    } catch (e) {
+        console.warn('Error computing image content bounds:', e);
+    }
+
+    const fallback = {
+        minXFrac: 0,
+        maxXFrac: 1,
+        minYFrac: 0,
+        maxYFrac: 1,
+        contentAspect: (iw > 0 && ih > 0) ? (iw / ih) : 1.0,
+        isContentTrimmed: false
+    };
+    img._msepContentBounds = fallback;
+    img._msepCachedW = iw;
+    img._msepCachedH = ih;
+    return fallback;
+}
+
 // Compute normalized bounds of the graphic on the athletic shirt
 function getGraphicChestBounds() {
     const activeImg = getActiveGraphicImg();
@@ -312,24 +433,41 @@ function getGraphicChestBounds() {
     const topY = 0.168; // Just below crew neck collar dip (0.14)
     const Y_center = 0.3615; // Vertical center between collar (0.168) and bib (0.555)
 
-    if (typeof btfMatrix16x16Active !== 'undefined' && btfMatrix16x16Active) {
+    const isMatrix16 = (typeof btfMatrix16x16Active !== 'undefined' && btfMatrix16x16Active) ||
+                       (typeof tpuDisplayMode !== 'undefined' && tpuDisplayMode === 'matrix16');
+
+    if (isMatrix16) {
         // BTF 16x16 Matrix is 160.0 x 160.0mm inside a 176.0 x 176.0mm square plate.
-        // Maximize graphic size to fit the panel envelope (168.0 x 168.0mm, preserving aspect ratio).
-        const artFitW = 168.0 / 457.2;          // ~0.367454
-        const artFitH = artFitW / 1.25;         // ~0.293963
-        const aspect = (activeImg && activeImg.naturalWidth > 0 && activeImg.naturalHeight > 0)
-            ? (activeImg.naturalWidth / activeImg.naturalHeight)
-            : 0.706;
-        let normW, normH;
-        if (aspect >= 1.0) {
-            normW = artFitW;
-            normH = normW / (1.25 * aspect);
+        // Maximize visible artwork content size to fill the 168.0 x 168.0mm envelope
+        // (eliminating empty transparent outer margins while strictly preserving aspect ratio).
+        const cb = getImageContentBounds(activeImg);
+        const contentAspect = cb.contentAspect;
+        const contentFracW = Math.max(0.05, cb.maxXFrac - cb.minXFrac);
+        const contentFracH = Math.max(0.05, cb.maxYFrac - cb.minYFrac);
+
+        const ART_FIT_MM = 168.0;
+        const fitNormW = ART_FIT_MM / 457.2;
+        const fitNormH = fitNormW / 1.25;
+
+        let contentNormW, contentNormH;
+        if (contentAspect >= 1.0) {
+            // Landscape or square content: scale width to ART_FIT_MM (168mm)
+            contentNormW = fitNormW;
+            contentNormH = contentNormW / (1.25 * contentAspect);
         } else {
-            normH = artFitH;
-            normW = normH * 1.25 * aspect;
+            // Portrait content: scale height to ART_FIT_MM (168mm)
+            contentNormH = fitNormH;
+            contentNormW = contentNormH * 1.25 * contentAspect;
         }
-        const normX = 0.50 - normW / 2.0;
-        const normY = Y_center - normH / 2.0;
+
+        // Full image bounds such that visible content is exactly centered at (0.50, Y_center)
+        const normW = contentNormW / contentFracW;
+        const normH = contentNormH / contentFracH;
+        const contentNormX0 = 0.50 - contentNormW / 2.0;
+        const contentNormY0 = Y_center - contentNormH / 2.0;
+        const normX = contentNormX0 - cb.minXFrac * normW;
+        const normY = contentNormY0 - cb.minYFrac * normH;
+
         return { normX, normY, normW, normH };
     }
 
