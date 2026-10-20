@@ -657,15 +657,16 @@
                                 </div>
                             </div>
 
-                            <!-- 3D Backside PCB Alignment Lip Selector (Default 2mm) -->
+                            <!-- 3D Backside LED Standoff Gap & Ledge Frame (Default 3mm) -->
                             <div style="margin-bottom: 8px;">
-                                <label style="font-size: 10px; color: var(--text-muted); display: block; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.5px;">Backside PCB Alignment Lip (Board Pocket):</label>
-                                <div style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px;">
-                                    <button type="button" class="action-btn btf-matrix-lip-btn" data-lip="0" style="font-size: 10px; padding: 4px 2px;" title="Flat backside without lip">None</button>
-                                    <button type="button" class="action-btn btf-matrix-lip-btn active" data-lip="2" style="font-size: 10px; padding: 4px 2px; background: rgba(16, 185, 129, 0.25); border-color: #10b981; color: #fff; font-weight: 700;" title="2mm alignment pocket (Default)">2mm ★</button>
-                                    <button type="button" class="action-btn btf-matrix-lip-btn" data-lip="3" style="font-size: 10px; padding: 4px 2px;" title="3mm alignment pocket">3mm</button>
-                                    <button type="button" class="action-btn btf-matrix-lip-btn" data-lip="4" style="font-size: 10px; padding: 4px 2px;" title="4mm alignment pocket">4mm</button>
-                                    <button type="button" class="action-btn btf-matrix-lip-btn" data-lip="5" style="font-size: 10px; padding: 4px 2px;" title="5mm alignment pocket">5mm</button>
+                                <label style="font-size: 10px; color: var(--text-muted); display: block; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.5px;">LED Standoff Gap (3mm Frame Ledge):</label>
+                                <div style="display: grid; grid-template-columns: repeat(6, 1fr); gap: 4px;">
+                                    <button type="button" class="action-btn btf-matrix-gap-btn btf-matrix-lip-btn" data-gap="0" data-lip="0" style="font-size: 10px; padding: 4px 2px;" title="0mm standoff (LEDs sit directly against panel)">0mm</button>
+                                    <button type="button" class="action-btn btf-matrix-gap-btn btf-matrix-lip-btn" data-gap="1" data-lip="1" style="font-size: 10px; padding: 4px 2px;" title="1mm standoff gap">1mm</button>
+                                    <button type="button" class="action-btn btf-matrix-gap-btn btf-matrix-lip-btn" data-gap="2" data-lip="2" style="font-size: 10px; padding: 4px 2px;" title="2mm standoff gap">2mm</button>
+                                    <button type="button" class="action-btn btf-matrix-gap-btn btf-matrix-lip-btn active" data-gap="3" data-lip="3" style="font-size: 10px; padding: 4px 2px; background: rgba(16, 185, 129, 0.25); border-color: #10b981; color: #fff; font-weight: 700;" title="3mm standoff gap with 2mm ledge and 2mm pocket (Default)">3mm ★</button>
+                                    <button type="button" class="action-btn btf-matrix-gap-btn btf-matrix-lip-btn" data-gap="4" data-lip="4" style="font-size: 10px; padding: 4px 2px;" title="4mm standoff gap">4mm</button>
+                                    <button type="button" class="action-btn btf-matrix-gap-btn btf-matrix-lip-btn" data-gap="5" data-lip="5" style="font-size: 10px; padding: 4px 2px;" title="5mm standoff gap">5mm</button>
                                 </div>
                             </div>
 
@@ -2938,14 +2939,15 @@
                         <button type="button" id="tpuModalThick100Btn" onclick="setTpuMatrixThickness(1.00)" style="border: none; border-radius: 4px; padding: 3px 6px; font-size: 11px; font-weight: 500; cursor: pointer; background: transparent; color: #8b949e; transition: all 0.15s ease;">1.00mm</button>
                     </div>
 
-                    <!-- 16x16 Matrix Backside PCB Alignment Lip Pill (Default 2mm) -->
-                    <div id="tpuModalLipPill" style="display: inline-flex; align-items: center; background: #161b22; border: 1px solid #10b981; border-radius: 6px; padding: 2px; gap: 2px;" title="Select Backside PCB Alignment Lip Height (Retaining Pocket for 16x16 Flexible Board) and auto-regenerate STL/3MF">
-                        <span style="font-size: 10px; color: #6ee7b7; padding: 0 5px; font-weight: 700;">🔲 Lip:</span>
-                        <button type="button" id="tpuModalLipNoneBtn" onclick="setTpuMatrixLip(0)" style="border: none; border-radius: 4px; padding: 3px 6px; font-size: 11px; font-weight: 500; cursor: pointer; background: transparent; color: #8b949e; transition: all 0.15s ease;">None</button>
-                        <button type="button" id="tpuModalLip2Btn" onclick="setTpuMatrixLip(2)" style="border: none; border-radius: 4px; padding: 3px 6px; font-size: 11px; font-weight: 700; cursor: pointer; background: #10b981; color: #000; transition: all 0.15s ease;">2mm ★</button>
-                        <button type="button" id="tpuModalLip3Btn" onclick="setTpuMatrixLip(3)" style="border: none; border-radius: 4px; padding: 3px 6px; font-size: 11px; font-weight: 500; cursor: pointer; background: transparent; color: #8b949e; transition: all 0.15s ease;">3mm</button>
-                        <button type="button" id="tpuModalLip4Btn" onclick="setTpuMatrixLip(4)" style="border: none; border-radius: 4px; padding: 3px 6px; font-size: 11px; font-weight: 500; cursor: pointer; background: transparent; color: #8b949e; transition: all 0.15s ease;">4mm</button>
-                        <button type="button" id="tpuModalLip5Btn" onclick="setTpuMatrixLip(5)" style="border: none; border-radius: 4px; padding: 3px 6px; font-size: 11px; font-weight: 500; cursor: pointer; background: transparent; color: #8b949e; transition: all 0.15s ease;">5mm</button>
+                    <!-- 16x16 Matrix LED Standoff Gap & Ledge Frame Pill (Default 3mm) -->
+                    <div id="tpuModalGapPill" style="display: inline-flex; align-items: center; background: #161b22; border: 1px solid #10b981; border-radius: 6px; padding: 2px; gap: 2px;" title="Select LED Standoff Gap from Front Panel (2mm wide, 1mm thick internal ledge): 0, 1, 2, 3mm ★ Default, 4, 5mm">
+                        <span style="font-size: 10px; color: #6ee7b7; padding: 0 5px; font-weight: 700;">📏 Gap:</span>
+                        <button type="button" id="tpuModalGap0Btn" onclick="setTpuMatrixGap(0)" style="border: none; border-radius: 4px; padding: 3px 6px; font-size: 11px; font-weight: 500; cursor: pointer; background: transparent; color: #8b949e; transition: all 0.15s ease;">0mm</button>
+                        <button type="button" id="tpuModalGap1Btn" onclick="setTpuMatrixGap(1)" style="border: none; border-radius: 4px; padding: 3px 6px; font-size: 11px; font-weight: 500; cursor: pointer; background: transparent; color: #8b949e; transition: all 0.15s ease;">1mm</button>
+                        <button type="button" id="tpuModalGap2Btn" onclick="setTpuMatrixGap(2)" style="border: none; border-radius: 4px; padding: 3px 6px; font-size: 11px; font-weight: 500; cursor: pointer; background: transparent; color: #8b949e; transition: all 0.15s ease;">2mm</button>
+                        <button type="button" id="tpuModalGap3Btn" onclick="setTpuMatrixGap(3)" style="border: none; border-radius: 4px; padding: 3px 6px; font-size: 11px; font-weight: 700; cursor: pointer; background: #10b981; color: #000; transition: all 0.15s ease;">3mm ★</button>
+                        <button type="button" id="tpuModalGap4Btn" onclick="setTpuMatrixGap(4)" style="border: none; border-radius: 4px; padding: 3px 6px; font-size: 11px; font-weight: 500; cursor: pointer; background: transparent; color: #8b949e; transition: all 0.15s ease;">4mm</button>
+                        <button type="button" id="tpuModalGap5Btn" onclick="setTpuMatrixGap(5)" style="border: none; border-radius: 4px; padding: 3px 6px; font-size: 11px; font-weight: 500; cursor: pointer; background: transparent; color: #8b949e; transition: all 0.15s ease;">5mm</button>
                     </div>
 
                     <div style="width: 1px; height: 16px; background: #30363d; margin: 0 1px;"></div>

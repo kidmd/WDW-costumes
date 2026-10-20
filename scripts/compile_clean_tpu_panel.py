@@ -155,14 +155,33 @@ if '--plate-thickness' in sys.argv:
         except Exception:
             pass
 
-MATRIX_LIP_MM = float(specs.get('matrix_lip_mm', 2.0))
-if '--matrix-lip' in sys.argv:
+MATRIX_GAP_MM = 3.0
+if 'matrix_gap_mm' in specs:
+    try:
+        MATRIX_GAP_MM = float(specs['matrix_gap_mm'])
+    except Exception:
+        pass
+elif 'matrix_lip_mm' in specs:
+    try:
+        MATRIX_GAP_MM = float(specs['matrix_lip_mm'])
+    except Exception:
+        pass
+
+if '--matrix-gap' in sys.argv:
+    _mgi = sys.argv.index('--matrix-gap')
+    if _mgi + 1 < len(sys.argv):
+        try:
+            MATRIX_GAP_MM = float(sys.argv[_mgi + 1])
+        except Exception:
+            pass
+elif '--matrix-lip' in sys.argv:
     _mli = sys.argv.index('--matrix-lip')
     if _mli + 1 < len(sys.argv):
         try:
-            MATRIX_LIP_MM = float(sys.argv[_mli + 1])
+            MATRIX_GAP_MM = float(sys.argv[_mli + 1])
         except Exception:
             pass
+MATRIX_LIP_MM = MATRIX_GAP_MM
 
 def export_assembled_3mf(scene_items, mf3_path, assembly_name="MSEP_MultiColor_Plate"):
     """Exports a multi-part trimesh dictionary as a single 3MF parent assembly with <components> so Bambu Studio / OrcaSlicer / Snapmaker Orca treat all color inlays as parts of ONE object (preventing 'too close to others' collision errors)."""
@@ -221,13 +240,16 @@ def export_assembled_3mf(scene_items, mf3_path, assembly_name="MSEP_MultiColor_P
     except Exception as e:
         print(f"[3MF Assembly Post-Process Warning]: {e}")
 
-def compile_matrix_16x16_plate_variant(variant_name, artwork_path, window_shape='round_34', plate_thickness_mm=0.60, lip_mm=2.0, windowed_leds=None, backlight_leds=None):
+def compile_matrix_16x16_plate_variant(variant_name, artwork_path, window_shape='round_34', plate_thickness_mm=0.60, gap_mm=3.0, lip_mm=None, windowed_leds=None, backlight_leds=None):
     PLATE_SIZE_MM = 176.0
     MATRIX_SIZE_MM = 160.0
     MARGIN_MM = 8.0
     ART_FIT_MM = 168.0
     THICK_MM = round(max(0.20, min(3.00, float(plate_thickness_mm))), 2)
-    LIP_MM = round(max(0.0, min(10.0, float(lip_mm))), 1)
+    if gap_mm is None and lip_mm is not None:
+        gap_mm = lip_mm
+    GAP_MM = round(max(0.0, min(10.0, float(gap_mm))), 1)
+    LIP_MM = GAP_MM
 
     print(f"\n>>> Compiling {variant_name.upper()} 16x16 Matrix Backlight Plate ({PLATE_SIZE_MM}x{PLATE_SIZE_MM}x{THICK_MM:.2f}mm, Window Shape: {window_shape.upper()})...")
     v_t0 = time.time()
@@ -458,47 +480,76 @@ def compile_matrix_16x16_plate_variant(variant_name, artwork_path, window_shape=
     if not shirt_holes_union_2d.is_empty:
         mono_2d = mono_2d.difference(shirt_holes_union_2d)
 
-    TOTAL_Z = round(THICK_MM + LIP_MM, 2)
+    PCB_POCKET_DEPTH = 2.0 # mm (depth from back of frame down to the supporting ledge)
+    LEDGE_THICK = 1.0 if GAP_MM > 0 else 0.0 # mm (supporting shelf thickness)
+    STANDOFF_GAP = max(0.0, GAP_MM - LEDGE_THICK) # mm (open gap between front panel and bottom of ledge)
+    FRAME_HEIGHT = round(STANDOFF_GAP + LEDGE_THICK + PCB_POCKET_DEPTH, 2) if GAP_MM > 0 else 2.0
+    TOTAL_Z = round(THICK_MM + FRAME_HEIGHT, 2)
 
     # Extrude all front plate parts through full face thickness (0 to THICK_MM)
     final_chassis_tm = extrude_shapely(chassis_2d, THICK_MM)
     final_monolithic_tm = extrude_shapely(mono_2d, THICK_MM)
     final_lid_tm = extrude_shapely(plate_box_2d.difference(shirt_holes_union_2d), THICK_MM)
 
-    # Optional Backside Alignment Lip: 2.0mm wide retaining perimeter rim / pocket for 160x160mm flexible PCB matrix
-    # When LIP_MM > 0, the front face sits at Z = [LIP_MM, TOTAL_Z] facing +Z (front),
-    # while the lip sits on the BACK at Z = [0.0, LIP_MM] facing -Z (back / shirt).
-    if LIP_MM > 0:
-        # Move front faceplate up so its front surface is at Z = TOTAL_Z (e.g. 0.8 + 2.0 = 2.8mm)
-        final_chassis_tm.apply_translation([0.0, 0.0, LIP_MM])
-        final_monolithic_tm.apply_translation([0.0, 0.0, LIP_MM])
-        final_lid_tm.apply_translation([0.0, 0.0, LIP_MM])
+    # Move front faceplate up so its front surface is at Z = TOTAL_Z facing +Z
+    final_chassis_tm.apply_translation([0.0, 0.0, FRAME_HEIGHT])
+    final_monolithic_tm.apply_translation([0.0, 0.0, FRAME_HEIGHT])
+    final_lid_tm.apply_translation([0.0, 0.0, FRAME_HEIGHT])
 
-        # Inner pocket: 160.4 x 160.4mm (centered at 88.0, 88.0, provides 0.20mm perimeter clearance so board drops in cleanly)
-        pocket_x0 = round((PLATE_SIZE_MM - 160.4) / 2.0, 3) # 7.80 mm
-        pocket_y0 = pocket_x0                               # 7.80 mm
-        pocket_x1 = round(pocket_x0 + 160.4, 3)             # 168.20 mm
-        pocket_y1 = round(pocket_y0 + 160.4, 3)             # 168.20 mm
-        inner_pocket_2d = sg.box(pocket_x0, pocket_y0, pocket_x1, pocket_y1)
+    # Inner pocket: 160.4 x 160.4mm (centered at 88.0, 88.0, provides 0.20mm perimeter clearance so board drops in cleanly)
+    pocket_x0 = round((PLATE_SIZE_MM - 160.4) / 2.0, 3) # 7.80 mm
+    pocket_y0 = pocket_x0                               # 7.80 mm
+    pocket_x1 = round(pocket_x0 + 160.4, 3)             # 168.20 mm
+    pocket_y1 = round(pocket_y0 + 160.4, 3)             # 168.20 mm
+    inner_pocket_2d = sg.box(pocket_x0, pocket_y0, pocket_x1, pocket_y1)
 
-        # Lip wall width: 2.0mm wide (does not extend all the way to the 176mm plate edge, leaving a 5.8mm flange)
-        LIP_WALL_WIDTH = 2.0 # mm
-        lip_outer_x0 = round(pocket_x0 - LIP_WALL_WIDTH, 3) # 5.80 mm
-        lip_outer_y0 = round(pocket_y0 - LIP_WALL_WIDTH, 3) # 5.80 mm
-        lip_outer_x1 = round(pocket_x1 + LIP_WALL_WIDTH, 3) # 170.20 mm
-        lip_outer_y1 = round(pocket_y1 + LIP_WALL_WIDTH, 3) # 170.20 mm
-        lip_outer_box_2d = sg.box(lip_outer_x0, lip_outer_y0, lip_outer_x1, lip_outer_y1)
+    # Frame outer wall width: 2.0mm wide (outer envelope 164.4 x 164.4mm, leaving a 5.8mm flange around plate)
+    FRAME_WALL_WIDTH = 2.0 # mm
+    frame_outer_x0 = round(pocket_x0 - FRAME_WALL_WIDTH, 3) # 5.80 mm
+    frame_outer_y0 = round(pocket_y0 - FRAME_WALL_WIDTH, 3) # 5.80 mm
+    frame_outer_x1 = round(pocket_x1 + FRAME_WALL_WIDTH, 3) # 170.20 mm
+    frame_outer_y1 = round(pocket_y1 + FRAME_WALL_WIDTH, 3) # 170.20 mm
+    outer_frame_2d = sg.box(frame_outer_x0, frame_outer_y0, frame_outer_x1, frame_outer_y1)
 
-        # Bottom wire exit notch (16.0mm wide centered at 88.0mm, cutting through the 2.0mm bottom wall)
-        wire_notch_2d = sg.box(PLATE_SIZE_MM / 2.0 - 8.0, 0.0, PLATE_SIZE_MM / 2.0 + 8.0, pocket_y0 + 0.5)
+    # Bottom wire exit notch (16.0mm wide centered at 88.0mm, cutting through bottom frame wall)
+    wire_notch_2d = sg.box(PLATE_SIZE_MM / 2.0 - 8.0, 0.0, PLATE_SIZE_MM / 2.0 + 8.0, pocket_y0 + 0.5)
 
-        lip_2d = lip_outer_box_2d.difference(inner_pocket_2d).difference(shirt_holes_union_2d).difference(wire_notch_2d)
-        if lip_2d.is_valid and not lip_2d.is_empty:
-            lip_tm = extrude_shapely(lip_2d, LIP_MM)
-            if lip_tm is not None and len(lip_tm.faces) > 0:
-                # Lip sits on the backside from Z = 0.0 to LIP_MM, perfectly fusing with the faceplate at Z = LIP_MM
-                final_chassis_tm = trimesh.util.concatenate([final_chassis_tm, lip_tm])
-                final_monolithic_tm = trimesh.util.concatenate([final_monolithic_tm, lip_tm])
+    # Ledge inner aperture: 156.4 x 156.4mm (forms a 2.0mm wide supporting shelf inwards for the 160x160mm PCB)
+    LEDGE_WIDTH = 2.0 # mm
+    ledge_in_x0 = round(pocket_x0 + LEDGE_WIDTH, 3) # 9.80 mm
+    ledge_in_y0 = round(pocket_y0 + LEDGE_WIDTH, 3) # 9.80 mm
+    ledge_in_x1 = round(pocket_x1 - LEDGE_WIDTH, 3) # 166.20 mm
+    ledge_in_y1 = round(pocket_y1 - LEDGE_WIDTH, 3) # 166.20 mm
+    ledge_aperture_2d = sg.box(ledge_in_x0, ledge_in_y0, ledge_in_x1, ledge_in_y1)
+
+    pocket_wall_2d = outer_frame_2d.difference(inner_pocket_2d).difference(shirt_holes_union_2d).difference(wire_notch_2d)
+    ledge_wall_2d = outer_frame_2d.difference(ledge_aperture_2d).difference(shirt_holes_union_2d).difference(wire_notch_2d)
+    standoff_wall_2d = outer_frame_2d.difference(inner_pocket_2d).difference(shirt_holes_union_2d).difference(wire_notch_2d)
+
+    frame_solids = []
+    # 1. PCB Pocket section (Z = 0.0 to 2.0)
+    tm_pocket = extrude_shapely(pocket_wall_2d, PCB_POCKET_DEPTH)
+    if tm_pocket is not None:
+        frame_solids.append(tm_pocket)
+
+    # 2. Ledge shelf section (Z = 2.0 to 2.0 + LEDGE_THICK)
+    if LEDGE_THICK > 0:
+        tm_ledge = extrude_shapely(ledge_wall_2d, LEDGE_THICK)
+        if tm_ledge is not None:
+            tm_ledge.apply_translation([0.0, 0.0, PCB_POCKET_DEPTH])
+            frame_solids.append(tm_ledge)
+
+    # 3. Standoff gap section (Z = 2.0 + LEDGE_THICK to FRAME_HEIGHT)
+    if STANDOFF_GAP > 0:
+        tm_standoff = extrude_shapely(standoff_wall_2d, STANDOFF_GAP)
+        if tm_standoff is not None:
+            tm_standoff.apply_translation([0.0, 0.0, PCB_POCKET_DEPTH + LEDGE_THICK])
+            frame_solids.append(tm_standoff)
+
+    if frame_solids:
+        full_frame_tm = trimesh.util.concatenate(frame_solids)
+        final_chassis_tm = trimesh.util.concatenate([final_chassis_tm, full_frame_tm])
+        final_monolithic_tm = trimesh.util.concatenate([final_monolithic_tm, full_frame_tm])
 
     out_dir = '3d_panels'
     os.makedirs(out_dir, exist_ok=True)
@@ -533,8 +584,7 @@ def compile_matrix_16x16_plate_variant(variant_name, artwork_path, window_shape=
         if c_name in polys_2d and not polys_2d[c_name].is_empty:
             c_tm = extrude_shapely(polys_2d[c_name], THICK_MM)
             if c_tm is not None and len(c_tm.faces) > 0:
-                if LIP_MM > 0:
-                    c_tm.apply_translation([0.0, 0.0, LIP_MM])
+                c_tm.apply_translation([0.0, 0.0, FRAME_HEIGHT])
                 c_filename = f"tpu_panel_{variant_name}_color_{c_name}.stl"
                 c_path = os.path.join(out_dir, c_filename)
                 c_tm.export(c_path)
@@ -565,8 +615,8 @@ VARIANT: {variant_name.upper()} ({specs.get('float_name', 'MSEP Float')})
 ======================================================================
 PLATE SIZE: {PLATE_SIZE_MM:.1f} mm x {PLATE_SIZE_MM:.1f} mm Square (Covers 160x160mm BTF 16x16 FPCB)
 FACE THICKNESS: {THICK_MM:.2f} mm (100% Full Z-Thickness Color Inlays, Top to Bottom)
-BACKSIDE ALIGNMENT LIP: {LIP_MM:.1f} mm (160.4 x 160.4 mm PCB Retaining Pocket)
-TOTAL HEIGHT: {THICK_MM + LIP_MM:.2f} mm
+LED STANDOFF GAP: {GAP_MM:.1f} mm\nFRAME HEIGHT: {FRAME_HEIGHT:.1f} mm (2.0mm Pocket + 1.0mm Ledge + {STANDOFF_GAP:.1f}mm Gap)
+TOTAL HEIGHT: {TOTAL_Z:.2f} mm
 WINDOWED LEDS: {len(windowed_leds)} Open Apertures (Ø 3.4mm Round Through-Holes)
 BACKLIT LEDS: {len(backlight_leds)} Solid Diffused Glow Positions (Zero Holes)
 SEWING HOLES: {len(shirt_hole_coords)} Corner Sewing Holes (Ø 2.8mm at 4 Corners)
@@ -586,7 +636,7 @@ REMOVED FEATURES: No LED channels, no side walls, no screw holes, no eyelets, no
     stl_size = os.path.getsize(mono_path)
     chassis_size = os.path.getsize(chassis_path)
     zip_size = os.path.getsize(zip_path)
-    total_z = round(THICK_MM + LIP_MM, 2)
+    total_z = TOTAL_Z
     stl_bounds = [PLATE_SIZE_MM, PLATE_SIZE_MM, total_z]
     stl_center = [PLATE_SIZE_MM / 2.0, PLATE_SIZE_MM / 2.0, round(total_z / 2.0, 3)]
     contour_coords = [[0.0, 0.0], [PLATE_SIZE_MM, 0.0], [PLATE_SIZE_MM, PLATE_SIZE_MM], [0.0, PLATE_SIZE_MM], [0.0, 0.0]]
@@ -597,7 +647,11 @@ REMOVED FEATURES: No LED channels, no side walls, no screw holes, no eyelets, no
         "variant": variant_name,
         "matrix_16x16_mode": True,
         "plate_thickness_mm": THICK_MM,
-        "lip_mm": LIP_MM,
+        "gap_mm": GAP_MM,
+        "matrix_gap_mm": GAP_MM,
+        "lip_mm": GAP_MM,
+        "matrix_lip_mm": GAP_MM,
+        "frame_height_mm": FRAME_HEIGHT,
         "total_thickness_mm": total_z,
         "width_mm": PLATE_SIZE_MM,
         "height_mm": PLATE_SIZE_MM,
@@ -1859,7 +1913,8 @@ if MATRIX_16X16_MODE:
         artwork_path,
         window_shape=window_shape,
         plate_thickness_mm=PLATE_THICKNESS_MM,
-        lip_mm=MATRIX_LIP_MM,
+        gap_mm=MATRIX_GAP_MM,
+        lip_mm=MATRIX_GAP_MM,
         windowed_leds=windowed_leds_spec,
         backlight_leds=backlight_leds_spec
     )
@@ -1869,7 +1924,8 @@ if MATRIX_16X16_MODE:
         artwork_path,
         window_shape=window_shape,
         plate_thickness_mm=PLATE_THICKNESS_MM,
-        lip_mm=MATRIX_LIP_MM,
+        gap_mm=MATRIX_GAP_MM,
+        lip_mm=MATRIX_GAP_MM,
         windowed_leds=windowed_leds_spec,
         backlight_leds=backlight_leds_spec
     )

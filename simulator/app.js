@@ -15924,13 +15924,17 @@ let btfMatrix16x16Config = {
     windowCount: 50,
     backlightCount: 25,
     thicknessMm: 0.60,
-    lipMm: 2.0
+    gapMm: 3.0,
+    lipMm: 3.0
 };
 try {
-    const savedLip = localStorage.getItem('msep_matrix_lip_mm');
-    if (savedLip !== null) {
-        const pLip = parseFloat(savedLip);
-        if (!isNaN(pLip) && [0, 2, 3, 4, 5].includes(pLip)) btfMatrix16x16Config.lipMm = pLip;
+    const savedGap = localStorage.getItem('msep_matrix_gap_mm') || localStorage.getItem('msep_matrix_lip_mm');
+    if (savedGap !== null) {
+        const pGap = parseFloat(savedGap);
+        if (!isNaN(pGap) && [0, 1, 2, 3, 4, 5].includes(pGap)) {
+            btfMatrix16x16Config.gapMm = pGap;
+            btfMatrix16x16Config.lipMm = pGap;
+        }
     }
 } catch (e) {}
 let btfMatrix16x16Cells = []; // 256 entries: { row, col, matrixIdx, plateX, plateY, nx, ny, role: 'window'|'backlight'|'dark', color, onGraphic }
@@ -16533,16 +16537,20 @@ function setTpuMatrixThickness(thickVal) {
 }
 window.setTpuMatrixThickness = setTpuMatrixThickness;
 
-function syncBtfMatrixLipUI(lipVal) {
-    const l = parseFloat(lipVal);
-    const validLip = isNaN(l) ? 2.0 : (l <= 0 ? 0 : l);
-    btfMatrix16x16Config.lipMm = validLip;
-    try { localStorage.setItem('msep_matrix_lip_mm', String(validLip)); } catch (e) {}
+function syncBtfMatrixGapUI(gapVal) {
+    const g = parseFloat(gapVal);
+    const validGap = isNaN(g) ? 3.0 : (g < 0 ? 0 : g);
+    btfMatrix16x16Config.gapMm = validGap;
+    btfMatrix16x16Config.lipMm = validGap;
+    try {
+        localStorage.setItem('msep_matrix_gap_mm', String(validGap));
+        localStorage.setItem('msep_matrix_lip_mm', String(validGap));
+    } catch (e) {}
 
-    // Sync Layout tab lip buttons
-    document.querySelectorAll('.btf-matrix-lip-btn').forEach(btn => {
-        const bVal = parseFloat(btn.getAttribute('data-lip'));
-        if (Math.abs(bVal - validLip) < 0.01) {
+    // Sync Layout tab gap buttons
+    document.querySelectorAll('.btf-matrix-gap-btn, .btf-matrix-lip-btn').forEach(btn => {
+        const bVal = parseFloat(btn.getAttribute('data-gap') !== null ? btn.getAttribute('data-gap') : btn.getAttribute('data-lip'));
+        if (Math.abs(bVal - validGap) < 0.01) {
             btn.classList.add('active');
             btn.style.background = 'rgba(16, 185, 129, 0.25)';
             btn.style.borderColor = '#10b981';
@@ -16557,8 +16565,15 @@ function syncBtfMatrixLipUI(lipVal) {
         }
     });
 
-    // Sync 3D Preview Modal lip pill buttons
+    // Sync 3D Preview Modal gap pill buttons
     const modalMap = [
+        { id: 'tpuModalGap0Btn', val: 0.0 },
+        { id: 'tpuModalGap1Btn', val: 1.0 },
+        { id: 'tpuModalGap2Btn', val: 2.0 },
+        { id: 'tpuModalGap3Btn', val: 3.0 },
+        { id: 'tpuModalGap4Btn', val: 4.0 },
+        { id: 'tpuModalGap5Btn', val: 5.0 },
+        // Fallback IDs for backwards compatibility
         { id: 'tpuModalLipNoneBtn', val: 0.0 },
         { id: 'tpuModalLip2Btn', val: 2.0 },
         { id: 'tpuModalLip3Btn', val: 3.0 },
@@ -16568,7 +16583,7 @@ function syncBtfMatrixLipUI(lipVal) {
     modalMap.forEach(item => {
         const el = document.getElementById(item.id);
         if (!el) return;
-        if (Math.abs(item.val - validLip) < 0.01) {
+        if (Math.abs(item.val - validGap) < 0.01) {
             el.style.background = '#10b981';
             el.style.color = '#000';
             el.style.fontWeight = '700';
@@ -16581,15 +16596,16 @@ function syncBtfMatrixLipUI(lipVal) {
 
     updateBtfMatrix16x16TelemetryUI();
 }
-window.syncBtfMatrixLipUI = syncBtfMatrixLipUI;
+window.syncBtfMatrixGapUI = syncBtfMatrixGapUI;
+window.syncBtfMatrixLipUI = syncBtfMatrixGapUI;
 
-function setTpuMatrixLip(lipVal) {
-    syncBtfMatrixLipUI(lipVal);
+function setTpuMatrixGap(gapVal) {
+    syncBtfMatrixGapUI(gapVal);
     markSingleShirtDirty();
 
-    const lipText = (btfMatrix16x16Config.lipMm > 0)
-        ? `${btfMatrix16x16Config.lipMm.toFixed(1)}mm Backside Alignment Lip`
-        : 'Flat Backside (No Lip)';
+    const gapText = (btfMatrix16x16Config.gapMm > 0)
+        ? `${btfMatrix16x16Config.gapMm.toFixed(1)}mm LED Standoff Gap (5mm Frame + 2mm Ledge)`
+        : '0mm Direct Contact (2mm Pocket)';
 
     if (typeof tpuIsOpen !== 'undefined' && tpuIsOpen) {
         if (tpuDisplayMode !== 'matrix16') {
@@ -16600,16 +16616,17 @@ function setTpuMatrixLip(lipVal) {
             loaderOverlay.style.display = 'flex';
             loaderOverlay.innerHTML = `
                 <div class="spinner" style="width: 32px; height: 32px; border: 3px solid rgba(16, 185, 129, 0.2); border-top-color: #10b981; border-radius: 50%; animation: spin 0.8s linear infinite;"></div>
-                <span>Recompiling 16x16 Matrix 3D Plate with ${lipText}...</span>
+                <span>Recompiling 16×16 Matrix 3D Plate with ${gapText}...</span>
             `;
         }
         handleRecompileTpuStl({ skipOpen: true }).then(() => {
             if (tpuIsOpen) loadTpuModalData();
         });
     }
-    showToast(`🔲 16x16 Matrix PCB Lip set to: ${lipText}`);
+    showToast(`📏 16×16 Matrix LED Gap set to: ${gapText}`);
 }
-window.setTpuMatrixLip = setTpuMatrixLip;
+window.setTpuMatrixGap = setTpuMatrixGap;
+window.setTpuMatrixLip = setTpuMatrixGap;
 
 function initBtfMatrix16x16Mode() {
     const toggle = document.getElementById('btfMatrix16x16Toggle');
@@ -23283,7 +23300,8 @@ function computeTpuLayoutSignature() {
         const nubFlag = (params.tpuIncludeTopNubs === true) ? 'nub' : 'nonub';
         const isMatrix16 = (typeof btfMatrix16x16Active !== 'undefined' && (btfMatrix16x16Active || (typeof tpuDisplayMode !== 'undefined' && tpuDisplayMode === 'matrix16')));
         const matThick = (typeof btfMatrix16x16Config !== 'undefined' && btfMatrix16x16Config.thicknessMm) ? Number(btfMatrix16x16Config.thicknessMm).toFixed(2) : '0.60';
-        const matLip = (typeof btfMatrix16x16Config !== 'undefined' && btfMatrix16x16Config.lipMm !== undefined) ? Number(btfMatrix16x16Config.lipMm).toFixed(2) : '2.00';
+        const matGap = (typeof btfMatrix16x16Config !== 'undefined' && btfMatrix16x16Config.gapMm !== undefined) ? Number(btfMatrix16x16Config.gapMm).toFixed(2) : '3.00';
+        const matLip = matGap;
         let h = 5381;
         const mix = (str) => {
             if (!str) return;
@@ -23309,7 +23327,7 @@ function computeTpuLayoutSignature() {
             if (typeof btfMatrix16x16Cells !== 'undefined' && Array.isArray(btfMatrix16x16Cells)) {
                 mix(btfMatrix16x16Cells.map(c => c.role[0]).join(''));
             }
-            return `${currentGraphicType || 'custom'}-matrix16-${matThick}mm-lip${matLip}mm-${winShape}-v8-${h.toString(16)}`;
+            return `${currentGraphicType || 'custom'}-matrix16-${matThick}mm-gap${matGap}mm-${winShape}-v9-${h.toString(16)}`;
         }
         mix(String(selectedPlateWidthMm || 203.2));
         mix(String(selectedPlateSize || 'medium'));
@@ -23632,7 +23650,8 @@ async function handleRecompileTpuStl(opts) {
             includeTopNubs: params.tpuIncludeTopNubs === true,
             matrix16x16Mode: isMatrix16,
             plateThicknessMm: (typeof btfMatrix16x16Config !== 'undefined' && btfMatrix16x16Config.thicknessMm) ? btfMatrix16x16Config.thicknessMm : 0.60,
-            matrixLipMm: (typeof btfMatrix16x16Config !== 'undefined' && btfMatrix16x16Config.lipMm !== undefined) ? btfMatrix16x16Config.lipMm : 2.0,
+            matrixGapMm: (typeof btfMatrix16x16Config !== 'undefined' && btfMatrix16x16Config.gapMm !== undefined) ? btfMatrix16x16Config.gapMm : 3.0,
+            matrixLipMm: (typeof btfMatrix16x16Config !== 'undefined' && btfMatrix16x16Config.gapMm !== undefined) ? btfMatrix16x16Config.gapMm : 3.0,
             matrixWindowedLeds: matrixLists.windowedLeds,
             matrixBacklightLeds: matrixLists.backlightLeds,
             widthMm: selectedPlateWidthMm,
@@ -23748,7 +23767,8 @@ async function openTpuPreviewModal() {
                     compiledOrient = sp.well_orientation || (sp.front && sp.front.well_orientation);
                     compiledMatrix16 = !!sp.matrix_16x16_mode;
                     compiledThick = parseFloat(sp.plate_thickness_mm || 0.60);
-                    compiledLip = (sp.matrix_lip_mm !== undefined) ? parseFloat(sp.matrix_lip_mm) : 2.0;
+                    compiledGap = (sp.matrix_gap_mm !== undefined) ? parseFloat(sp.matrix_gap_mm) : ((sp.matrix_lip_mm !== undefined) ? parseFloat(sp.matrix_lip_mm) : 3.0);
+                    compiledLip = compiledGap;
                 }
             } catch (e) {}
 
@@ -23759,8 +23779,8 @@ async function openTpuPreviewModal() {
 
             const wantMatrix16 = (typeof btfMatrix16x16Active !== 'undefined' && (btfMatrix16x16Active || tpuDisplayMode === 'matrix16'));
             const wantThick = (typeof btfMatrix16x16Config !== 'undefined' && btfMatrix16x16Config.thicknessMm) ? btfMatrix16x16Config.thicknessMm : 0.60;
-            const wantLip = (typeof btfMatrix16x16Config !== 'undefined' && btfMatrix16x16Config.lipMm !== undefined) ? btfMatrix16x16Config.lipMm : 2.0;
-            const matrixModeMismatch = (compiledMatrix16 !== wantMatrix16) || (wantMatrix16 && (Math.abs(compiledThick - wantThick) > 0.01 || Math.abs((typeof compiledLip !== 'undefined' ? compiledLip : 2.0) - wantLip) > 0.05));
+            const wantLip = (typeof btfMatrix16x16Config !== 'undefined' && btfMatrix16x16Config.gapMm !== undefined) ? btfMatrix16x16Config.gapMm : ((btfMatrix16x16Config && btfMatrix16x16Config.lipMm !== undefined) ? btfMatrix16x16Config.lipMm : 3.0);
+            const matrixModeMismatch = (compiledMatrix16 !== wantMatrix16) || (wantMatrix16 && (Math.abs(compiledThick - wantThick) > 0.01 || Math.abs((typeof compiledLip !== 'undefined' ? compiledLip : 3.0) - wantLip) > 0.05));
 
             let ledsMismatch = false;
             if (!wantMatrix16 && sp && sp.ordered_leds && Array.isArray(sp.ordered_leds)) {

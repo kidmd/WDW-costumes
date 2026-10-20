@@ -93,6 +93,28 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### 2026-10-18 18:00 - 🔲 3mm LED Standoff Gap with 5mm Frame & 2mm Internal Ledge (Selectable 0–5mm)
+- **3-Tier Rear Frame Architecture (scripts/compile_clean_tpu_panel.py):**
+  - Implemented an integrated 5.0mm-tall frame on the rear of the  \times 176\,\text{mm}$ 3D plate with an internal supporting ledge that separates the LED matrix from the front panel by an exact **3.0mm standoff gap**.
+  - **Z-Direction Stacking Breakdown:**
+    - **Front Panel Skin:** .80\,\text{mm}$ (front-facing $+Z$, carrying full-Z multi-material artwork inlays and through-hole optical apertures).
+    - **Standoff Frame Cavity:** .0\,\text{mm}$ ( = 3.0 \dots 5.0\,\text{mm}$ from the back), forming an open chamber for optical diffusion.
+    - **Internal Supporting Ledge:** .0\,\text{mm}$ thick ( = 2.0 \dots 3.0\,\text{mm}$ from the back), projecting inward by .0\,\text{mm}$ (.4 \times 156.4\,\text{mm}$ open aperture) to support the PCB margins without obscuring any active LEDs.
+    - **Rear PCB Pocket:** .0\,\text{mm}$ deep ( = 0.0 \dots 2.0\,\text{mm}$ from the back, .4 \times 160.4\,\text{mm}$ friction fit) to hold the  \times 160\,\text{mm}$ flexible matrix securely in place.
+    - **Exact Total Z Depth:** .8 + 2.0 + 1.0 + 2.0 = 5.8\,\text{mm}$ (bounds $[176.0, 176.0, 5.8]$).
+  - **Outer Perimeter Flange & Wire Exit:**
+    - Outer frame measures .4 \times 164.4\,\text{mm}$, leaving a .8\,\text{mm}$ flat perimeter flange so the 4 corner $\varnothing 2.8\,\text{mm}$ sewing holes (at .0, 4.0\,\text{mm}$) pass solely through the thin front skin for easy needle stitching.
+    - Bottom wire exit notch (\,\text{mm}$ wide centered at  = 88.0\,\text{mm}$) cuts cleanly across all frame tiers for the JST connector and 5V/GND injection leads.
+- **Selectable Gap Controls (0, 1, 2, 3mm ★ Default, 4, 5mm):**
+  - Updated API (simulator.py) and UI controls (simulator/index.html & simulator/app.js):
+    - **0mm:** Direct contact (.0\,\text{mm}$ pocket, total Z = .8\,\text{mm}$).
+    - **1mm:** .0\,\text{mm}$ ledge directly against panel (.0\,\text{mm}$ frame, total Z = .8\,\text{mm}$).
+    - **2mm:** .0\,\text{mm}$ standoff $+ 1.0\,\text{mm}$ ledge (.0\,\text{mm}$ frame, total Z = .8\,\text{mm}$).
+    - **3mm ★ (Default):** .0\,\text{mm}$ standoff $+ 1.0\,\text{mm}$ ledge $+ 2.0\,\text{mm}$ pocket (.0\,\text{mm}$ frame, total Z = .8\,\text{mm}$).
+    - **4mm:** .0\,\text{mm}$ standoff $+ 1.0\,\text{mm}$ ledge (.0\,\text{mm}$ frame, total Z = .8\,\text{mm}$).
+    - **5mm:** .0\,\text{mm}$ standoff $+ 1.0\,\text{mm}$ ledge (.0\,\text{mm}$ frame, total Z = .8\,\text{mm}$).
+  - Fully bidirectional synchronization between the **Layout Tab** and the **3D Print Preview Modal**.
+
 ### 2026-10-18 17:15 - 🛠️ Fix: Backside PCB Lip Orientation, 2mm Wall Width & Exact Z Stacking
 - **Fixed Backside (-Z) vs Front (+Z) Plate Orientation (scripts/compile_clean_tpu_panel.py):**
   - **Identified Root Cause:** The lip was previously extruded upward from  = \text{THICK\_MM}$ to $\text{THICK\_MM} + \text{LIP\_MM}$, positioning it on the positive $ (front/camera) side of the model while the artwork inlays remained at  = [0.0, \text{THICK\_MM}]$ facing away from the front view.

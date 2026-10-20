@@ -22,7 +22,7 @@
     "color": "#ffb703",
     "accent": "Gold",
     "role": "\ud83d\udce1 Follower Float",
-    "preset": "server:main_street_title_drum_100_led_vibrant_preset_large_100led_2026-10-19_21-55.json",
+    "preset": "local:main_street_title_drum_100_led_vibrant_preset_large_100led_2026-10-19_21-55",
     "defaultGraphic": "title_drum"
   },
   {
@@ -74,7 +74,7 @@
     "color": "#00ff88",
     "accent": "Green",
     "role": "\ud83d\udce1 Follower Float",
-    "preset": "local:pete_s_dragon_chris_large_81led_2026-10-19_21-44",
+    "preset": "server:pete_s_dragon_chris_large_81led_2026-10-19_22-28.json",
     "defaultGraphic": "builtin_dragon"
   },
   {
