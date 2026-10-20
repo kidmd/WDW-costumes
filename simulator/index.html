@@ -657,6 +657,18 @@
                                 </div>
                             </div>
 
+                            <!-- 3D Backside PCB Alignment Lip Selector (Default 2mm) -->
+                            <div style="margin-bottom: 8px;">
+                                <label style="font-size: 10px; color: var(--text-muted); display: block; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.5px;">Backside PCB Alignment Lip (Board Pocket):</label>
+                                <div style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px;">
+                                    <button type="button" class="action-btn btf-matrix-lip-btn" data-lip="0" style="font-size: 10px; padding: 4px 2px;" title="Flat backside without lip">None</button>
+                                    <button type="button" class="action-btn btf-matrix-lip-btn active" data-lip="2" style="font-size: 10px; padding: 4px 2px; background: rgba(16, 185, 129, 0.25); border-color: #10b981; color: #fff; font-weight: 700;" title="2mm alignment pocket (Default)">2mm ★</button>
+                                    <button type="button" class="action-btn btf-matrix-lip-btn" data-lip="3" style="font-size: 10px; padding: 4px 2px;" title="3mm alignment pocket">3mm</button>
+                                    <button type="button" class="action-btn btf-matrix-lip-btn" data-lip="4" style="font-size: 10px; padding: 4px 2px;" title="4mm alignment pocket">4mm</button>
+                                    <button type="button" class="action-btn btf-matrix-lip-btn" data-lip="5" style="font-size: 10px; padding: 4px 2px;" title="5mm alignment pocket">5mm</button>
+                                </div>
+                            </div>
+
                             <!-- Quick Presets -->
                             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 5px; margin-bottom: 8px;">
                                 <button type="button" id="btfMatrixAutoSpreadBtn" class="action-btn accent" style="font-size: 10px; padding: 5px 4px; font-weight: 700;" title="Click to redistribute Windowed and Backlit LEDs across the graphic">🎯 Spread 50 Win + 25 Glow</button>
@@ -2924,6 +2936,16 @@
                         <button type="button" id="tpuModalThick060Btn" onclick="setTpuMatrixThickness(0.60)" style="border: none; border-radius: 4px; padding: 3px 6px; font-size: 11px; font-weight: 700; cursor: pointer; background: #10b981; color: #000; transition: all 0.15s ease;">0.60mm ★</button>
                         <button type="button" id="tpuModalThick080Btn" onclick="setTpuMatrixThickness(0.80)" style="border: none; border-radius: 4px; padding: 3px 6px; font-size: 11px; font-weight: 500; cursor: pointer; background: transparent; color: #8b949e; transition: all 0.15s ease;">0.80mm</button>
                         <button type="button" id="tpuModalThick100Btn" onclick="setTpuMatrixThickness(1.00)" style="border: none; border-radius: 4px; padding: 3px 6px; font-size: 11px; font-weight: 500; cursor: pointer; background: transparent; color: #8b949e; transition: all 0.15s ease;">1.00mm</button>
+                    </div>
+
+                    <!-- 16x16 Matrix Backside PCB Alignment Lip Pill (Default 2mm) -->
+                    <div id="tpuModalLipPill" style="display: inline-flex; align-items: center; background: #161b22; border: 1px solid #10b981; border-radius: 6px; padding: 2px; gap: 2px;" title="Select Backside PCB Alignment Lip Height (Retaining Pocket for 16x16 Flexible Board) and auto-regenerate STL/3MF">
+                        <span style="font-size: 10px; color: #6ee7b7; padding: 0 5px; font-weight: 700;">🔲 Lip:</span>
+                        <button type="button" id="tpuModalLipNoneBtn" onclick="setTpuMatrixLip(0)" style="border: none; border-radius: 4px; padding: 3px 6px; font-size: 11px; font-weight: 500; cursor: pointer; background: transparent; color: #8b949e; transition: all 0.15s ease;">None</button>
+                        <button type="button" id="tpuModalLip2Btn" onclick="setTpuMatrixLip(2)" style="border: none; border-radius: 4px; padding: 3px 6px; font-size: 11px; font-weight: 700; cursor: pointer; background: #10b981; color: #000; transition: all 0.15s ease;">2mm ★</button>
+                        <button type="button" id="tpuModalLip3Btn" onclick="setTpuMatrixLip(3)" style="border: none; border-radius: 4px; padding: 3px 6px; font-size: 11px; font-weight: 500; cursor: pointer; background: transparent; color: #8b949e; transition: all 0.15s ease;">3mm</button>
+                        <button type="button" id="tpuModalLip4Btn" onclick="setTpuMatrixLip(4)" style="border: none; border-radius: 4px; padding: 3px 6px; font-size: 11px; font-weight: 500; cursor: pointer; background: transparent; color: #8b949e; transition: all 0.15s ease;">4mm</button>
+                        <button type="button" id="tpuModalLip5Btn" onclick="setTpuMatrixLip(5)" style="border: none; border-radius: 4px; padding: 3px 6px; font-size: 11px; font-weight: 500; cursor: pointer; background: transparent; color: #8b949e; transition: all 0.15s ease;">5mm</button>
                     </div>
 
                     <div style="width: 1px; height: 16px; background: #30363d; margin: 0 1px;"></div>

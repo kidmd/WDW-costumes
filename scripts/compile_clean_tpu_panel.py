@@ -155,6 +155,15 @@ if '--plate-thickness' in sys.argv:
         except Exception:
             pass
 
+MATRIX_LIP_MM = float(specs.get('matrix_lip_mm', 2.0))
+if '--matrix-lip' in sys.argv:
+    _mli = sys.argv.index('--matrix-lip')
+    if _mli + 1 < len(sys.argv):
+        try:
+            MATRIX_LIP_MM = float(sys.argv[_mli + 1])
+        except Exception:
+            pass
+
 def export_assembled_3mf(scene_items, mf3_path, assembly_name="MSEP_MultiColor_Plate"):
     """Exports a multi-part trimesh dictionary as a single 3MF parent assembly with <components> so Bambu Studio / OrcaSlicer / Snapmaker Orca treat all color inlays as parts of ONE object (preventing 'too close to others' collision errors)."""
     import uuid
@@ -212,12 +221,13 @@ def export_assembled_3mf(scene_items, mf3_path, assembly_name="MSEP_MultiColor_P
     except Exception as e:
         print(f"[3MF Assembly Post-Process Warning]: {e}")
 
-def compile_matrix_16x16_plate_variant(variant_name, artwork_path, window_shape='round_34', plate_thickness_mm=0.60, windowed_leds=None, backlight_leds=None):
+def compile_matrix_16x16_plate_variant(variant_name, artwork_path, window_shape='round_34', plate_thickness_mm=0.60, lip_mm=2.0, windowed_leds=None, backlight_leds=None):
     PLATE_SIZE_MM = 176.0
     MATRIX_SIZE_MM = 160.0
     MARGIN_MM = 8.0
     ART_FIT_MM = 168.0
     THICK_MM = round(max(0.20, min(3.00, float(plate_thickness_mm))), 2)
+    LIP_MM = round(max(0.0, min(10.0, float(lip_mm))), 1)
 
     print(f"\n>>> Compiling {variant_name.upper()} 16x16 Matrix Backlight Plate ({PLATE_SIZE_MM}x{PLATE_SIZE_MM}x{THICK_MM:.2f}mm, Window Shape: {window_shape.upper()})...")
     v_t0 = time.time()
@@ -453,6 +463,27 @@ def compile_matrix_16x16_plate_variant(variant_name, artwork_path, window_shape=
     final_monolithic_tm = extrude_shapely(mono_2d, THICK_MM)
     final_lid_tm = extrude_shapely(plate_box_2d.difference(shirt_holes_union_2d), THICK_MM)
 
+    # Optional Backside Alignment Lip: Retaining perimeter rim / pocket for 160x160mm flexible PCB matrix
+    if LIP_MM > 0:
+        # Inner pocket: 160.4 x 160.4mm (centered at 88.0, 88.0, provides 0.20mm perimeter clearance so board drops in cleanly)
+        pocket_x0 = round((PLATE_SIZE_MM - 160.4) / 2.0, 3) # 7.80 mm
+        pocket_y0 = pocket_x0                               # 7.80 mm
+        pocket_x1 = round(pocket_x0 + 160.4, 3)             # 168.20 mm
+        pocket_y1 = round(pocket_y0 + 160.4, 3)             # 168.20 mm
+        inner_pocket_2d = sg.box(pocket_x0, pocket_y0, pocket_x1, pocket_y1)
+
+        # Bottom wire exit notch (16.0mm wide centered at 88.0mm, depth 8.5mm to bridge across the 7.8mm wall)
+        wire_notch_2d = sg.box(PLATE_SIZE_MM / 2.0 - 8.0, 0.0, PLATE_SIZE_MM / 2.0 + 8.0, 8.5)
+
+        lip_2d = plate_box_2d.difference(inner_pocket_2d).difference(shirt_holes_union_2d).difference(wire_notch_2d)
+        if lip_2d.is_valid and not lip_2d.is_empty:
+            lip_tm = extrude_shapely(lip_2d, LIP_MM)
+            if lip_tm is not None and len(lip_tm.faces) > 0:
+                # Lip sits on the backside (Z = THICK_MM to THICK_MM + LIP_MM)
+                lip_tm.apply_translation([0.0, 0.0, THICK_MM])
+                final_chassis_tm = trimesh.util.concatenate([final_chassis_tm, lip_tm])
+                final_monolithic_tm = trimesh.util.concatenate([final_monolithic_tm, lip_tm])
+
     out_dir = '3d_panels'
     os.makedirs(out_dir, exist_ok=True)
     import glob
@@ -515,7 +546,9 @@ def compile_matrix_16x16_plate_variant(variant_name, artwork_path, window_shape=
 VARIANT: {variant_name.upper()} ({specs.get('float_name', 'MSEP Float')})
 ======================================================================
 PLATE SIZE: {PLATE_SIZE_MM:.1f} mm x {PLATE_SIZE_MM:.1f} mm Square (Covers 160x160mm BTF 16x16 FPCB)
-THICKNESS: {THICK_MM:.2f} mm (100% Full Z-Thickness Color Inlays, Top to Bottom)
+FACE THICKNESS: {THICK_MM:.2f} mm (100% Full Z-Thickness Color Inlays, Top to Bottom)
+BACKSIDE ALIGNMENT LIP: {LIP_MM:.1f} mm (160.4 x 160.4 mm PCB Retaining Pocket)
+TOTAL HEIGHT: {THICK_MM + LIP_MM:.2f} mm
 WINDOWED LEDS: {len(windowed_leds)} Open Apertures (Ø 3.4mm Round Through-Holes)
 BACKLIT LEDS: {len(backlight_leds)} Solid Diffused Glow Positions (Zero Holes)
 SEWING HOLES: {len(shirt_hole_coords)} Corner Sewing Holes (Ø 2.8mm at 4 Corners)
@@ -535,8 +568,9 @@ REMOVED FEATURES: No LED channels, no side walls, no screw holes, no eyelets, no
     stl_size = os.path.getsize(mono_path)
     chassis_size = os.path.getsize(chassis_path)
     zip_size = os.path.getsize(zip_path)
-    stl_bounds = [PLATE_SIZE_MM, PLATE_SIZE_MM, THICK_MM]
-    stl_center = [PLATE_SIZE_MM / 2.0, PLATE_SIZE_MM / 2.0, round(THICK_MM / 2.0, 3)]
+    total_z = round(THICK_MM + LIP_MM, 2)
+    stl_bounds = [PLATE_SIZE_MM, PLATE_SIZE_MM, total_z]
+    stl_center = [PLATE_SIZE_MM / 2.0, PLATE_SIZE_MM / 2.0, round(total_z / 2.0, 3)]
     contour_coords = [[0.0, 0.0], [PLATE_SIZE_MM, 0.0], [PLATE_SIZE_MM, PLATE_SIZE_MM], [0.0, PLATE_SIZE_MM], [0.0, 0.0]]
 
     print(f"[{variant_name}] 16x16 Matrix Plate compiled in {time.time()-v_t0:.2f}s! ({len(windowed_leds)} Ø3.4mm windows, {len(backlight_leds)} backlit, 4 corner sewing holes, {THICK_MM:.2f}mm thick)")
@@ -545,6 +579,8 @@ REMOVED FEATURES: No LED channels, no side walls, no screw holes, no eyelets, no
         "variant": variant_name,
         "matrix_16x16_mode": True,
         "plate_thickness_mm": THICK_MM,
+        "lip_mm": LIP_MM,
+        "total_thickness_mm": total_z,
         "width_mm": PLATE_SIZE_MM,
         "height_mm": PLATE_SIZE_MM,
         "panel_width_mm": PLATE_SIZE_MM,
@@ -1805,6 +1841,7 @@ if MATRIX_16X16_MODE:
         artwork_path,
         window_shape=window_shape,
         plate_thickness_mm=PLATE_THICKNESS_MM,
+        lip_mm=MATRIX_LIP_MM,
         windowed_leds=windowed_leds_spec,
         backlight_leds=backlight_leds_spec
     )
@@ -1814,6 +1851,7 @@ if MATRIX_16X16_MODE:
         artwork_path,
         window_shape=window_shape,
         plate_thickness_mm=PLATE_THICKNESS_MM,
+        lip_mm=MATRIX_LIP_MM,
         windowed_leds=windowed_leds_spec,
         backlight_leds=backlight_leds_spec
     )

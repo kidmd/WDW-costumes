@@ -1408,6 +1408,13 @@ const uint8_t PROGMEM SPATIAL_RADIUS_BYTE[FRONT_LEDS] = {{
             if plate_thickness_mm not in [0.48, 0.60, 0.80, 1.00]:
                 plate_thickness_mm = round(max(0.20, min(2.00, plate_thickness_mm)), 2)
 
+            try:
+                matrix_lip_mm = float(req_data.get("matrixLipMm", 2.0))
+            except Exception:
+                matrix_lip_mm = 2.0
+            if matrix_lip_mm not in [0.0, 2.0, 3.0, 4.0, 5.0]:
+                matrix_lip_mm = round(max(0.0, min(10.0, matrix_lip_mm)), 1)
+
             matrix_windowed_leds = req_data.get("matrixWindowedLeds", [])
             matrix_backlight_leds = req_data.get("matrixBacklightLeds", [])
 
@@ -1425,6 +1432,7 @@ const uint8_t PROGMEM SPATIAL_RADIUS_BYTE[FRONT_LEDS] = {{
                 "include_top_nubs": bool(req_data.get("includeTopNubs", False)),
                 "matrix_16x16_mode": matrix_16x16_mode,
                 "plate_thickness_mm": plate_thickness_mm,
+                "matrix_lip_mm": matrix_lip_mm,
                 "matrix_windowed_leds": matrix_windowed_leds,
                 "matrix_backlight_leds": matrix_backlight_leds,
                 "stl_colors": req_data.get("stlColors"),
@@ -1477,7 +1485,9 @@ const uint8_t PROGMEM SPATIAL_RADIUS_BYTE[FRONT_LEDS] = {{
                 "--matrix-16x16",
                 "on" if matrix_16x16_mode else "off",
                 "--plate-thickness",
-                str(plate_thickness_mm)
+                str(plate_thickness_mm),
+                "--matrix-lip",
+                str(matrix_lip_mm)
             ]
             res = subprocess.run(cmd, cwd=BASE_DIR, capture_output=True, text=True, timeout=90)
             if res.returncode != 0:

@@ -92,6 +92,21 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 ---
 
 ## Progress Log
+
+### 2026-10-18 16:30 - 🔲 Optional Backside Alignment Lip & Retaining Pocket for 16x16 Flexible LED Matrix Plates
+- **Backside Alignment Lip & Retaining Pocket Architecture (`scripts/compile_clean_tpu_panel.py`):**
+  - Designed an integrated perimeter rim / recessed pocket on the rear of the $176 \times 176\,\text{mm}$ 3D plate that snugly holds the $160 \times 160\,\text{mm}$ flexible FPCB LED matrix in place.
+  - Sized the inner retaining pocket to $160.4 \times 160.4\,\text{mm}$ ($0.2\,\text{mm}$ perimeter clearance), guaranteeing a drop-in friction fit that prevents lateral shifting and perfectly aligns all 256 matrix LEDs directly with the faceplate's $\varnothing 3.4\,\text{mm}$ through-hole windows.
+  - Added an open $16\,\text{mm}$ wide bottom wire exit notch ($X = 80 \dots 96\,\text{mm}$, $Y = 0 \dots 8.5\,\text{mm}$) to allow the 3-wire JST harness and 5V/GND power injection wires to route cleanly out the bottom without pinching.
+  - Preserved all 4 corner $\varnothing 2.8\,\text{mm}$ garment sewing holes through the full plate + lip depth.
+  - Supports selectable lip heights: `None` ($0.0\,\text{mm}$ flat back), `2mm ★` (Default, total $2.6\,\text{mm}$ depth), `3mm` (total $3.6\,\text{mm}$), `4mm` (total $4.6\,\text{mm}$), and `5mm` (total $5.6\,\text{mm}$).
+  - Designed for 100% zero-support printing: faceplate prints flat on the bed ($Z = 0 \dots \text{THICK\_MM}$), with lip walls extruding upward ($Z = \text{THICK\_MM} \dots \text{THICK\_MM} + \text{LIP\_MM}$).
+- **Backend API & CLI Integration (`simulator.py`):**
+  - Updated `/api/generate_tpu_stl` endpoint to parse `matrixLipMm` (validated against `[0.0, 2.0, 3.0, 4.0, 5.0]`, default $2.0\,\text{mm}$) and forward `--matrix-lip` to `compile_clean_tpu_panel.py`.
+  - Persists `matrix_lip_mm` into `3d_panels/tpu_panel_specs.json`.
+- **Bidirectional UI Controls (`simulator/index.html` & `simulator/app.js`):**
+  - Added dedicated lip selector pill groups in both the **Layout Tab** 16x16 Matrix section (`.btf-matrix-lip-btn`) and the **3D Print Preview Modal** header toolbar (`#tpuModalLipPill`).
+  - Implemented bidirectional synchronization (`setMatrixLipMm(val)`): changing the lip in either view immediately updates the other, refreshes the layout signature cache key (`matLip:X`), and automatically re-renders the 3D preview.
  
 ### 2026-10-18 12:20 - 🐉 Content-Aware 16x16 Matrix Graphic Maximization & Transparent Margin Trimming
 - **Content-Aware Bounding Box & Active Grid Maximization (simulator/app.js):**
