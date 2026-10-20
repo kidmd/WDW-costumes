@@ -458,13 +458,22 @@ def compile_matrix_16x16_plate_variant(variant_name, artwork_path, window_shape=
     if not shirt_holes_union_2d.is_empty:
         mono_2d = mono_2d.difference(shirt_holes_union_2d)
 
-    # Extrude all parts through full Z thickness (0 to THICK_MM)
+    TOTAL_Z = round(THICK_MM + LIP_MM, 2)
+
+    # Extrude all front plate parts through full face thickness (0 to THICK_MM)
     final_chassis_tm = extrude_shapely(chassis_2d, THICK_MM)
     final_monolithic_tm = extrude_shapely(mono_2d, THICK_MM)
     final_lid_tm = extrude_shapely(plate_box_2d.difference(shirt_holes_union_2d), THICK_MM)
 
-    # Optional Backside Alignment Lip: Retaining perimeter rim / pocket for 160x160mm flexible PCB matrix
+    # Optional Backside Alignment Lip: 2.0mm wide retaining perimeter rim / pocket for 160x160mm flexible PCB matrix
+    # When LIP_MM > 0, the front face sits at Z = [LIP_MM, TOTAL_Z] facing +Z (front),
+    # while the lip sits on the BACK at Z = [0.0, LIP_MM] facing -Z (back / shirt).
     if LIP_MM > 0:
+        # Move front faceplate up so its front surface is at Z = TOTAL_Z (e.g. 0.8 + 2.0 = 2.8mm)
+        final_chassis_tm.apply_translation([0.0, 0.0, LIP_MM])
+        final_monolithic_tm.apply_translation([0.0, 0.0, LIP_MM])
+        final_lid_tm.apply_translation([0.0, 0.0, LIP_MM])
+
         # Inner pocket: 160.4 x 160.4mm (centered at 88.0, 88.0, provides 0.20mm perimeter clearance so board drops in cleanly)
         pocket_x0 = round((PLATE_SIZE_MM - 160.4) / 2.0, 3) # 7.80 mm
         pocket_y0 = pocket_x0                               # 7.80 mm
@@ -472,15 +481,22 @@ def compile_matrix_16x16_plate_variant(variant_name, artwork_path, window_shape=
         pocket_y1 = round(pocket_y0 + 160.4, 3)             # 168.20 mm
         inner_pocket_2d = sg.box(pocket_x0, pocket_y0, pocket_x1, pocket_y1)
 
-        # Bottom wire exit notch (16.0mm wide centered at 88.0mm, depth 8.5mm to bridge across the 7.8mm wall)
-        wire_notch_2d = sg.box(PLATE_SIZE_MM / 2.0 - 8.0, 0.0, PLATE_SIZE_MM / 2.0 + 8.0, 8.5)
+        # Lip wall width: 2.0mm wide (does not extend all the way to the 176mm plate edge, leaving a 5.8mm flange)
+        LIP_WALL_WIDTH = 2.0 # mm
+        lip_outer_x0 = round(pocket_x0 - LIP_WALL_WIDTH, 3) # 5.80 mm
+        lip_outer_y0 = round(pocket_y0 - LIP_WALL_WIDTH, 3) # 5.80 mm
+        lip_outer_x1 = round(pocket_x1 + LIP_WALL_WIDTH, 3) # 170.20 mm
+        lip_outer_y1 = round(pocket_y1 + LIP_WALL_WIDTH, 3) # 170.20 mm
+        lip_outer_box_2d = sg.box(lip_outer_x0, lip_outer_y0, lip_outer_x1, lip_outer_y1)
 
-        lip_2d = plate_box_2d.difference(inner_pocket_2d).difference(shirt_holes_union_2d).difference(wire_notch_2d)
+        # Bottom wire exit notch (16.0mm wide centered at 88.0mm, cutting through the 2.0mm bottom wall)
+        wire_notch_2d = sg.box(PLATE_SIZE_MM / 2.0 - 8.0, 0.0, PLATE_SIZE_MM / 2.0 + 8.0, pocket_y0 + 0.5)
+
+        lip_2d = lip_outer_box_2d.difference(inner_pocket_2d).difference(shirt_holes_union_2d).difference(wire_notch_2d)
         if lip_2d.is_valid and not lip_2d.is_empty:
             lip_tm = extrude_shapely(lip_2d, LIP_MM)
             if lip_tm is not None and len(lip_tm.faces) > 0:
-                # Lip sits on the backside (Z = THICK_MM to THICK_MM + LIP_MM)
-                lip_tm.apply_translation([0.0, 0.0, THICK_MM])
+                # Lip sits on the backside from Z = 0.0 to LIP_MM, perfectly fusing with the faceplate at Z = LIP_MM
                 final_chassis_tm = trimesh.util.concatenate([final_chassis_tm, lip_tm])
                 final_monolithic_tm = trimesh.util.concatenate([final_monolithic_tm, lip_tm])
 
@@ -517,6 +533,8 @@ def compile_matrix_16x16_plate_variant(variant_name, artwork_path, window_shape=
         if c_name in polys_2d and not polys_2d[c_name].is_empty:
             c_tm = extrude_shapely(polys_2d[c_name], THICK_MM)
             if c_tm is not None and len(c_tm.faces) > 0:
+                if LIP_MM > 0:
+                    c_tm.apply_translation([0.0, 0.0, LIP_MM])
                 c_filename = f"tpu_panel_{variant_name}_color_{c_name}.stl"
                 c_path = os.path.join(out_dir, c_filename)
                 c_tm.export(c_path)

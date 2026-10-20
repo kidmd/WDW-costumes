@@ -93,6 +93,18 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### 2026-10-18 17:15 - 🛠️ Fix: Backside PCB Lip Orientation, 2mm Wall Width & Exact Z Stacking
+- **Fixed Backside (-Z) vs Front (+Z) Plate Orientation (scripts/compile_clean_tpu_panel.py):**
+  - **Identified Root Cause:** The lip was previously extruded upward from  = \text{THICK\_MM}$ to $\text{THICK\_MM} + \text{LIP\_MM}$, positioning it on the positive $ (front/camera) side of the model while the artwork inlays remained at  = [0.0, \text{THICK\_MM}]$ facing away from the front view.
+  - **Corrected Coordinate System:** The front faceplate (chassis + multi-material inlays + window through-holes) now translates to  = [\text{LIP\_MM}, \text{TOTAL\_Z}]$, placing the visible character graphic on the front face facing $+Z$. The lip is constructed on the backside at  = [0.0, \text{LIP\_MM}]$ facing $-Z$ toward the runner's shirt.
+- **Accurate Additive Total Z Distance (Front Skin + Lip Height):**
+  - Verified that total Z height strictly equals $\text{THICK\_MM} + \text{LIP\_MM}$ (e.g. .8\,\text{mm}$ front thickness $+ 2.0\,\text{mm}$ lip $= 2.8\,\text{mm}$ total Z depth; .6\,\text{mm} + 2.0\,\text{mm} = 2.6\,\text{mm}$; .8\,\text{mm} + 3.0\,\text{mm} = 3.8\,\text{mm}$).
+  - Dimension badge and API specs report the exact total Z depth ( \times 176 \times 2.8\,\text{mm}$).
+- **2.0mm Lip Wall Width (Not Full-Bleed to Outer Edge):**
+  - Replaced the full .8\,\text{mm}$ outer rim with a crisp **.0\,\text{mm}$ wide lip wall** framing the .4 \times 160.4\,\text{mm}$ pocket (outer lip envelope: .4 \times 164.4\,\text{mm}$, spanning , Y = 5.8\,\text{mm} \dots 170.2\,\text{mm}$).
+  - Leaves a flat .8\,\text{mm}$ perimeter flange where the 4 corner $\varnothing 2.8\,\text{mm}$ sewing holes (at .0, 4.0\,\text{mm}$) pass solely through the thin front skin (.8\,\text{mm}$), eliminating the need to pierce needles through thick .8\,\text{mm}$ blocks.
+  - Preserves the \,\text{mm}$ wide bottom wire exit notch ( = 80 \dots 96\,\text{mm}$) across the bottom .0\,\text{mm}$ lip wall.
+
 ### 2026-10-18 16:30 - 🔲 Optional Backside Alignment Lip & Retaining Pocket for 16x16 Flexible LED Matrix Plates
 - **Backside Alignment Lip & Retaining Pocket Architecture (`scripts/compile_clean_tpu_panel.py`):**
   - Designed an integrated perimeter rim / recessed pocket on the rear of the $176 \times 176\,\text{mm}$ 3D plate that snugly holds the $160 \times 160\,\text{mm}$ flexible FPCB LED matrix in place.
