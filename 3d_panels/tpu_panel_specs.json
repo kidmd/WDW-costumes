@@ -15,6 +15,7 @@
   "gap_mm": 3.0,
   "matrix_gap_mm": 3.0,
   "matrix_lip_mm": 3.0,
+  "matrix_lenses_mode": true,
   "matrix_windowed_leds": [],
   "matrix_backlight_leds": [],
   "stl_colors": {
@@ -1063,7 +1064,7 @@
     "stl_size": 1055084,
     "chassis_size": 1327884,
     "lid_size": 78284,
-    "zip_size": 1059070,
+    "zip_size": 1308373,
     "inlays": [
       {
         "key": "green",
@@ -1092,6 +1093,13 @@
         "filename": "tpu_panel_front_color_white.stl",
         "hex": "#ffffff",
         "count": 4512
+      },
+      {
+        "key": "lenses",
+        "name": "Lenses (Translucent White)",
+        "filename": "tpu_panel_front_color_lenses.stl",
+        "hex": "#e6f1f8",
+        "count": 19000
       }
     ],
     "stl_url": "/3d_panels/tpu_panel_front.stl",
@@ -2090,7 +2098,7 @@
     "stl_size": 1055084,
     "chassis_size": 1327884,
     "lid_size": 78284,
-    "zip_size": 1060030,
+    "zip_size": 1308317,
     "inlays": [
       {
         "key": "green",
@@ -2119,6 +2127,13 @@
         "filename": "tpu_panel_back_color_white.stl",
         "hex": "#ffffff",
         "count": 4512
+      },
+      {
+        "key": "lenses",
+        "name": "Lenses (Translucent White)",
+        "filename": "tpu_panel_back_color_lenses.stl",
+        "hex": "#e6f1f8",
+        "count": 19000
       }
     ],
     "stl_url": "/3d_panels/tpu_panel_back.stl",
@@ -3108,7 +3123,7 @@
   "stl_size": 1055084,
   "chassis_size": 1327884,
   "lid_size": 78284,
-  "zip_size": 1059070,
+  "zip_size": 1308373,
   "inlays": [
     {
       "key": "green",
@@ -3137,6 +3152,13 @@
       "filename": "tpu_panel_front_color_white.stl",
       "hex": "#ffffff",
       "count": 4512
+    },
+    {
+      "key": "lenses",
+      "name": "Lenses (Translucent White)",
+      "filename": "tpu_panel_front_color_lenses.stl",
+      "hex": "#e6f1f8",
+      "count": 19000
     }
   ],
   "stl_url": "/3d_panels/tpu_panel_front.stl",

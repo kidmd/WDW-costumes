@@ -670,6 +670,15 @@
                                 </div>
                             </div>
 
+                            <!-- Translucent Lens Cylinders Toggle -->
+                            <div style="margin-bottom: 8px; display: flex; align-items: center; justify-content: space-between; background: rgba(56, 189, 248, 0.08); border: 1px solid rgba(56, 189, 248, 0.25); border-radius: 6px; padding: 5px 8px;">
+                                <label for="btfMatrixLensesToggle" style="font-size: 10px; color: #7dd3fc; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 6px; margin: 0;">
+                                    <span>💎 Translucent Lens Cylinders</span>
+                                    <span style="font-size: 9px; color: var(--text-muted); font-weight: normal;">(Light Pipes to LEDs)</span>
+                                </label>
+                                <input type="checkbox" id="btfMatrixLensesToggle" checked style="cursor: pointer; accent-color: #38bdf8;" title="Generate 3D translucent light-pipe cylinders spanning from LEDs to front panel">
+                            </div>
+
                             <!-- Quick Presets -->
                             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 5px; margin-bottom: 8px;">
                                 <button type="button" id="btfMatrixAutoSpreadBtn" class="action-btn accent" style="font-size: 10px; padding: 5px 4px; font-weight: 700;" title="Click to redistribute Windowed and Backlit LEDs across the graphic">🎯 Spread 50 Win + 25 Glow</button>
@@ -2948,6 +2957,13 @@
                         <button type="button" id="tpuModalGap3Btn" onclick="setTpuMatrixGap(3)" style="border: none; border-radius: 4px; padding: 3px 6px; font-size: 11px; font-weight: 700; cursor: pointer; background: #10b981; color: #000; transition: all 0.15s ease;">3mm ★</button>
                         <button type="button" id="tpuModalGap4Btn" onclick="setTpuMatrixGap(4)" style="border: none; border-radius: 4px; padding: 3px 6px; font-size: 11px; font-weight: 500; cursor: pointer; background: transparent; color: #8b949e; transition: all 0.15s ease;">4mm</button>
                         <button type="button" id="tpuModalGap5Btn" onclick="setTpuMatrixGap(5)" style="border: none; border-radius: 4px; padding: 3px 6px; font-size: 11px; font-weight: 500; cursor: pointer; background: transparent; color: #8b949e; transition: all 0.15s ease;">5mm</button>
+                    </div>
+
+                    <!-- 16x16 Matrix Translucent Light-Pipe Lenses Pill -->
+                    <div id="tpuModalLensesPill" style="display: inline-flex; align-items: center; background: #161b22; border: 1px solid #38bdf8; border-radius: 6px; padding: 2px; gap: 2px;" title="Toggle Translucent White Lens Cylinders / Light Pipes bridging the air gap from LEDs to front panel surface">
+                        <span style="font-size: 10px; color: #7dd3fc; padding: 0 5px; font-weight: 700;">💎 Lenses:</span>
+                        <button type="button" id="tpuModalLensesOnBtn" onclick="setTpuMatrixLenses(true)" style="border: none; border-radius: 4px; padding: 3px 6px; font-size: 11px; font-weight: 700; cursor: pointer; background: #38bdf8; color: #000; transition: all 0.15s ease;">ON ★</button>
+                        <button type="button" id="tpuModalLensesOffBtn" onclick="setTpuMatrixLenses(false)" style="border: none; border-radius: 4px; padding: 3px 6px; font-size: 11px; font-weight: 500; cursor: pointer; background: transparent; color: #8b949e; transition: all 0.15s ease;">OFF</button>
                     </div>
 
                     <div style="width: 1px; height: 16px; background: #30363d; margin: 0 1px;"></div>

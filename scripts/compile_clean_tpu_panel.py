@@ -183,6 +183,21 @@ elif '--matrix-lip' in sys.argv:
             pass
 MATRIX_LIP_MM = MATRIX_GAP_MM
 
+INCLUDE_LENSES = True
+if 'matrix_lenses_mode' in specs:
+    INCLUDE_LENSES = bool(specs['matrix_lenses_mode'])
+elif 'include_lenses' in specs:
+    INCLUDE_LENSES = bool(specs['include_lenses'])
+
+if '--matrix-lenses' in sys.argv:
+    _mls = sys.argv.index('--matrix-lenses')
+    if _mls + 1 < len(sys.argv):
+        INCLUDE_LENSES = sys.argv[_mls + 1].lower() in ('on', '1', 'true', 'yes')
+elif '--lenses' in sys.argv:
+    _ls = sys.argv.index('--lenses')
+    if _ls + 1 < len(sys.argv):
+        INCLUDE_LENSES = sys.argv[_ls + 1].lower() in ('on', '1', 'true', 'yes')
+
 def export_assembled_3mf(scene_items, mf3_path, assembly_name="MSEP_MultiColor_Plate"):
     """Exports a multi-part trimesh dictionary as a single 3MF parent assembly with <components> so Bambu Studio / OrcaSlicer / Snapmaker Orca treat all color inlays as parts of ONE object (preventing 'too close to others' collision errors)."""
     import uuid
@@ -240,7 +255,7 @@ def export_assembled_3mf(scene_items, mf3_path, assembly_name="MSEP_MultiColor_P
     except Exception as e:
         print(f"[3MF Assembly Post-Process Warning]: {e}")
 
-def compile_matrix_16x16_plate_variant(variant_name, artwork_path, window_shape='round_34', plate_thickness_mm=0.60, gap_mm=3.0, lip_mm=None, windowed_leds=None, backlight_leds=None):
+def compile_matrix_16x16_plate_variant(variant_name, artwork_path, window_shape='round_34', plate_thickness_mm=0.60, gap_mm=3.0, lip_mm=None, include_lenses=True, windowed_leds=None, backlight_leds=None):
     PLATE_SIZE_MM = 176.0
     MATRIX_SIZE_MM = 160.0
     MARGIN_MM = 8.0
@@ -599,6 +614,26 @@ def compile_matrix_16x16_plate_variant(variant_name, artwork_path, window_shape=
                     "hex": c_info.get('hex', '#00ff88'),
                     "count": len(c_tm.faces)
                 })
+
+    # Optional Translucent Light-Pipe Lens Cylinders bridging from LED seating plane to front surface
+    if include_lenses and not windows_union_2d.is_empty:
+        lens_h = round(TOTAL_Z - PCB_POCKET_DEPTH, 2)
+        lenses_tm = extrude_shapely(windows_union_2d, lens_h)
+        if lenses_tm is not None and len(lenses_tm.faces) > 0:
+            lenses_tm.apply_translation([0.0, 0.0, PCB_POCKET_DEPTH])
+            lens_filename = f"tpu_panel_{variant_name}_color_lenses.stl"
+            lens_path = os.path.join(out_dir, lens_filename)
+            lenses_tm.export(lens_path)
+            color_stls['lenses'] = lens_path
+            scene_items[f"{slot_idx}_Lenses_Translucent_White"] = lenses_tm
+            slot_idx += 1
+            exported_inlays.append({
+                "key": "lenses",
+                "name": "Lenses (Translucent White)",
+                "filename": lens_filename,
+                "hex": "#e6f1f8",
+                "count": len(lenses_tm.faces)
+            })
 
     mf3_filename = f"tpu_panel_{variant_name}_multicolor.3mf"
     mf3_path = os.path.join(out_dir, mf3_filename)
@@ -1915,6 +1950,7 @@ if MATRIX_16X16_MODE:
         plate_thickness_mm=PLATE_THICKNESS_MM,
         gap_mm=MATRIX_GAP_MM,
         lip_mm=MATRIX_GAP_MM,
+        include_lenses=INCLUDE_LENSES,
         windowed_leds=windowed_leds_spec,
         backlight_leds=backlight_leds_spec
     )
@@ -1926,6 +1962,7 @@ if MATRIX_16X16_MODE:
         plate_thickness_mm=PLATE_THICKNESS_MM,
         gap_mm=MATRIX_GAP_MM,
         lip_mm=MATRIX_GAP_MM,
+        include_lenses=INCLUDE_LENSES,
         windowed_leds=windowed_leds_spec,
         backlight_leds=backlight_leds_spec
     )
@@ -1968,6 +2005,8 @@ specs['include_clip_grooves'] = INCLUDE_CLIP_GROOVES
 specs['include_top_nubs'] = INCLUDE_TOP_NUBS
 specs['matrix_16x16_mode'] = MATRIX_16X16_MODE
 specs['plate_thickness_mm'] = round(PLATE_THICKNESS_MM, 2)
+specs['matrix_gap_mm'] = round(MATRIX_GAP_MM, 1)
+specs['matrix_lenses_mode'] = INCLUDE_LENSES
 specs['front'] = front_result
 specs['back'] = back_result
 

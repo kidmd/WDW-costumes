@@ -1476,6 +1476,22 @@ Instead of attaching a Cricut cut vinyl graphic on top of the printed plate, the
      - Bundled ZIP files for each thickness, plus `petes_dragon_backlight_test_all_thicknesses.zip`.
      - Interactive 3D WebGL Backlight Simulator: `3d_panels/backlight_test_preview.html`.
 
+13. **🔲 BTF 16×16 Matrix Plate with Stepped Standoff Frame, Internal Ledge & Translucent Light-Pipe Lenses:**
+   - **Commercial Flexible FPCB Integration:** Precision-engineered $176.0\text{ mm} \times 176.0\text{ mm}$ square plate accepting standard BTF-LIGHTING WS2812B ECO 16×16 (256-pixel) flexible panels ($160.0\text{ mm} \times 160.0\text{ mm}$, $10.0\text{ mm}$ pitch).
+   - **Stepped 3-Tier Rear Standoff Architecture:**
+     - **Rear PCB Pocket ($Z = 0.0 \dots 2.0\text{ mm}$):** $2.0\text{ mm}$ deep recess measuring $160.4\text{ mm} \times 160.4\text{ mm}$ ($0.2\text{ mm}$ per-side clearance) for a snug friction fit holding the flexible FPCB.
+     - **Internal Supporting Ledge ($Z = 2.0 \dots 3.0\text{ mm}$):** $1.0\text{ mm}$ thick step projecting inward by $2.0\text{ mm}$ ($156.4\text{ mm} \times 156.4\text{ mm}$ open aperture), supporting the non-copper FPCB perimeter margins while leaving all 256 LEDs completely unobstructed.
+     - **Selectable Standoff Diffusion Chamber ($Z = 3.0 \dots 5.0\text{ mm}$):** Default $3.0\text{ mm}$ air gap chamber (selectable: `0mm`, `1mm`, `2mm`, `3mm ★`, `4mm`, `5mm`) for optical diffusion.
+     - **Front Multi-Color Skin ($Z = 5.0 \dots 5.8\text{ mm}$):** $0.80\text{ mm}$ faceplate carrying full-Z multi-material artwork inlays and window apertures.
+     - **Total Z Stack:** Default $0.8 + 2.0 + 1.0 + 2.0 = 5.8\text{ mm}$ overall depth.
+     - **Sewing Flange & Wire Notch:** $5.8\text{ mm}$ perimeter flange leaves the 4 corner $\varnothing 2.8\text{ mm}$ sewing holes passing strictly through the thin $0.8\text{ mm}$ skin for easy garment needle stitching; open $16\text{ mm}$ wide bottom notch allows 3-pin JST harness and 5V/GND injection leads to exit freely without pinching.
+   - **Translucent White Light-Pipe Lens Cylinders:**
+     - **Optical Waveguides:** Solves light dispersal across the $3\text{ mm}$ air gap by generating solid vertical cylinders/prisms extending from the LED seating plane ($Z = 2.0\text{ mm}$) through the air gap and faceplate all the way to the front surface ($Z = \text{TOTAL\_Z} = 5.8\text{ mm}$).
+     - **Lens Height & Alignment:** Total lens height is exactly $\text{TOTAL\_Z} - 2.0 = \text{THICK\_MM} + \text{GAP\_MM} = 3.8\text{ mm}$ (for default 3mm gap), perfectly aligned with every active window aperture ($\varnothing 3.4\text{ mm}$ round, $\varnothing 3.0\text{ mm}$ round, or $3.2 \times 3.2\text{ mm}$ square).
+     - **Multi-Part Slicer Separation (`Lenses_Translucent_White`):** Unified into a single multi-body part inside `tpu_panel_front_multicolor.3mf` and exported as `tpu_panel_front_color_lenses.stl` in the split ZIP bundle. Users can select the lenses object in Bambu Studio / OrcaSlicer with one click and assign it to translucent/clear filament (PETG, PLA, or TPU) while the chassis prints in black and the character inlays print in their respective colors.
+     - **UI Controls:** Toggleable via the **`Lenses`** pill button (`ON ★ / OFF`) in the 3D Print Preview Modal toolbar (`#tpuModalLensesPill`) and the **`Translucent Lenses`** checkbox in the Layout Tab 16x16 Matrix Mode section (`#btfMatrixLensesToggle`). Preserved across sessions in browser storage.
+
+
 ### 🖨️ Snapmaker U1 95A TPU Slicing Profile:
 - **Nozzle Temp:** 225°C – 235°C (0.4mm nozzle).
 - **Bed Temp:** 50°C (PEI textured sheet).

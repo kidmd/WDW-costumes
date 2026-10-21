@@ -1416,6 +1416,7 @@ const uint8_t PROGMEM SPATIAL_RADIUS_BYTE[FRONT_LEDS] = {{
                 matrix_gap_mm = round(max(0.0, min(10.0, matrix_gap_mm)), 1)
             matrix_lip_mm = matrix_gap_mm
 
+            matrix_lenses_mode = bool(req_data.get("matrixLensesMode", req_data.get("includeLenses", True)))
             matrix_windowed_leds = req_data.get("matrixWindowedLeds", [])
             matrix_backlight_leds = req_data.get("matrixBacklightLeds", [])
 
@@ -1436,6 +1437,7 @@ const uint8_t PROGMEM SPATIAL_RADIUS_BYTE[FRONT_LEDS] = {{
                 "gap_mm": matrix_gap_mm,
                 "matrix_gap_mm": matrix_gap_mm,
                 "matrix_lip_mm": matrix_lip_mm,
+                "matrix_lenses_mode": matrix_lenses_mode,
                 "matrix_windowed_leds": matrix_windowed_leds,
                 "matrix_backlight_leds": matrix_backlight_leds,
                 "stl_colors": req_data.get("stlColors"),
@@ -1492,7 +1494,9 @@ const uint8_t PROGMEM SPATIAL_RADIUS_BYTE[FRONT_LEDS] = {{
                 "--matrix-gap",
                 str(matrix_gap_mm),
                 "--matrix-lip",
-                str(matrix_lip_mm)
+                str(matrix_lip_mm),
+                "--matrix-lenses",
+                "on" if matrix_lenses_mode else "off" 
             ]
             res = subprocess.run(cmd, cwd=BASE_DIR, capture_output=True, text=True, timeout=90)
             if res.returncode != 0:

@@ -93,6 +93,24 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### 2026-10-18 19:30 - 🔍 Translucent White Light-Pipe Lens Cylinders for 16x16 Matrix Plate
+- **Translucent Light Pipes Spanning Matrix Air Gap (`scripts/compile_clean_tpu_panel.py`):**
+  - **Optical Waveguide Design:** Implemented dedicated translucent lens cylinders/prisms extending from the internal LED seating ledge plane ($Z = \text{PCB\_POCKET\_DEPTH} = 2.0\,\text{mm}$) through the air gap and faceplate to the exterior front surface ($Z = \text{TOTAL\_Z} = 5.8\,\text{mm}$).
+  - **Exact Height & Alignment:** Lens height equals $\text{TOTAL\_Z} - 2.0 = \text{THICK\_MM} + \text{GAP\_MM} = 3.8\,\text{mm}$ (for standard 3mm gap), aligning precisely with each active window aperture ($\varnothing 3.4\,\text{mm}$ round, $\varnothing 3.0\,\text{mm}$ round, or $3.2 \times 3.2\,\text{mm}$ square).
+  - **Slicer Assembly Multi-Part Isolation (`Lenses_Translucent_White`):**
+    - Extruded windows geometry is unified into a single solid component named `Lenses_Translucent_White` within `tpu_panel_front_multicolor.3mf`.
+    - Exported as `tpu_panel_front_color_lenses.stl` (`hex: #e6f1f8`) inside `tpu_panel_front_multicolor_bundle.zip` and specs JSON.
+    - Slicers (Bambu Studio, OrcaSlicer, PrusaSlicer) treat the lenses as a separate selectable part, allowing 1-click assignment to Translucent/Clear filament without manual geometric splitting.
+    - Single-color monolithic STL (`tpu_panel_front.stl`) preserves open pass-through apertures for unobstructed bare-LED projection.
+- **Backend API & Compiler CLI (`simulator.py`):**
+  - Added CLI flag `--matrix-lenses [on|off]` to `scripts/compile_clean_tpu_panel.py`.
+  - Updated `/api/generate_tpu_stl` endpoint to parse `matrixLensesMode` (default `True`), forward `--matrix-lenses`, and record state in `tpu_panel_specs.json`.
+- **Bidirectional UI Controls & Live 3D Preview (`simulator/index.html` & `simulator/app.js`):**
+  - **3D Preview Modal Toolbar:** Added `#tpuModalLensesPill` toggle (`ON ★ / OFF`) with dynamic layout signature caching (`lenses`/`nolenses`).
+  - **Layout Tab Section 16x16 Matrix Mode:** Added `#btfMatrixLensesToggle` checkbox directly under the gap selector pills.
+  - **Bidirectional State Sync:** Persists to `localStorage` (`btfMatrix16x16Config.lensesActive`), instantly synchronizing both controls.
+  - **Photorealistic WebGL Rendering:** Renders `color_lenses.stl` in the 3D modal with a translucent crystalline physical material (`roughness: 0.15`, `transmission: 0.85`, `transparent: true`, `opacity: 0.82`, `depthWrite: false`).
+
 ### 2026-10-18 18:00 - 🔲 3mm LED Standoff Gap with 5mm Frame & 2mm Internal Ledge (Selectable 0–5mm)
 - **3-Tier Rear Frame Architecture (scripts/compile_clean_tpu_panel.py):**
   - Implemented an integrated 5.0mm-tall frame on the rear of the  \times 176\,\text{mm}$ 3D plate with an internal supporting ledge that separates the LED matrix from the front panel by an exact **3.0mm standoff gap**.

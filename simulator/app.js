@@ -15925,7 +15925,8 @@ let btfMatrix16x16Config = {
     backlightCount: 25,
     thicknessMm: 0.60,
     gapMm: 3.0,
-    lipMm: 3.0
+    lipMm: 3.0,
+    lensesActive: true
 };
 try {
     const savedGap = localStorage.getItem('msep_matrix_gap_mm') || localStorage.getItem('msep_matrix_lip_mm');
@@ -15935,6 +15936,10 @@ try {
             btfMatrix16x16Config.gapMm = pGap;
             btfMatrix16x16Config.lipMm = pGap;
         }
+    }
+    const savedLenses = localStorage.getItem('msep_matrix_lenses_mode');
+    if (savedLenses !== null) {
+        btfMatrix16x16Config.lensesActive = (savedLenses === 'true');
     }
 } catch (e) {}
 let btfMatrix16x16Cells = []; // 256 entries: { row, col, matrixIdx, plateX, plateY, nx, ny, role: 'window'|'backlight'|'dark', color, onGraphic }
@@ -16628,6 +16633,64 @@ function setTpuMatrixGap(gapVal) {
 window.setTpuMatrixGap = setTpuMatrixGap;
 window.setTpuMatrixLip = setTpuMatrixGap;
 
+function syncBtfMatrixLensesUI(active) {
+    const isAct = (active !== false);
+    btfMatrix16x16Config.lensesActive = isAct;
+    try { localStorage.setItem('msep_matrix_lenses_mode', isAct ? 'true' : 'false'); } catch (e) {}
+
+    const onBtn = document.getElementById('tpuModalLensesOnBtn');
+    const offBtn = document.getElementById('tpuModalLensesOffBtn');
+    if (onBtn && offBtn) {
+        if (isAct) {
+            onBtn.style.background = '#38bdf8';
+            onBtn.style.color = '#000';
+            onBtn.style.fontWeight = '700';
+            offBtn.style.background = 'transparent';
+            offBtn.style.color = '#8b949e';
+            offBtn.style.fontWeight = '500';
+        } else {
+            offBtn.style.background = '#38bdf8';
+            offBtn.style.color = '#000';
+            offBtn.style.fontWeight = '700';
+            onBtn.style.background = 'transparent';
+            onBtn.style.color = '#8b949e';
+            onBtn.style.fontWeight = '500';
+        }
+    }
+
+    const tog = document.getElementById('btfMatrixLensesToggle');
+    if (tog) tog.checked = isAct;
+
+    updateBtfMatrix16x16TelemetryUI();
+}
+window.syncBtfMatrixLensesUI = syncBtfMatrixLensesUI;
+
+function setTpuMatrixLenses(active) {
+    syncBtfMatrixLensesUI(active);
+    markSingleShirtDirty();
+
+    const txt = btfMatrix16x16Config.lensesActive ? 'Translucent Lens Cylinders ON (Light Pipes)' : 'Translucent Lenses OFF (Open Through-Holes)';
+
+    if (typeof tpuIsOpen !== 'undefined' && tpuIsOpen) {
+        if (tpuDisplayMode !== 'matrix16') {
+            tpuDisplayMode = 'matrix16';
+        }
+        const loaderOverlay = document.getElementById('tpuModalLoading');
+        if (loaderOverlay) {
+            loaderOverlay.style.display = 'flex';
+            loaderOverlay.innerHTML = `
+                <div class="spinner" style="width: 32px; height: 32px; border: 3px solid rgba(56, 189, 248, 0.2); border-top-color: #38bdf8; border-radius: 50%; animation: spin 0.8s linear infinite;"></div>
+                <span>Recompiling 16×16 Matrix with ${txt}...</span>
+            `;
+        }
+        handleRecompileTpuStl({ skipOpen: true }).then(() => {
+            if (tpuIsOpen) loadTpuModalData();
+        });
+    }
+    showToast(`💎 16×16 Matrix: ${txt}`);
+}
+window.setTpuMatrixLenses = setTpuMatrixLenses;
+
 function initBtfMatrix16x16Mode() {
     const toggle = document.getElementById('btfMatrix16x16Toggle');
     const card = document.getElementById('btfMatrix16x16OptionsCard');
@@ -16706,6 +16769,14 @@ function initBtfMatrix16x16Mode() {
             markSingleShirtDirty();
             showToast(`🎯 Evenly spread ${btfMatrix16x16Config.windowCount} Windowed + ${btfMatrix16x16Config.backlightCount} Backlit LEDs across graphic!`);
             if (btfMatrix16x16Active) handleRecompileTpuStl({ skipOpen: true });
+        });
+    }
+
+    const lensesToggle = document.getElementById('btfMatrixLensesToggle');
+    if (lensesToggle) {
+        lensesToggle.checked = (btfMatrix16x16Config.lensesActive !== false);
+        lensesToggle.addEventListener('change', (e) => {
+            setTpuMatrixLenses(e.target.checked);
         });
     }
 
@@ -23324,6 +23395,7 @@ function computeTpuLayoutSignature() {
             mix('matrix16x16-v2');
             mix(matThick);
             mix(matLip);
+            mix(btfMatrix16x16Config.lensesActive !== false ? 'lenses' : 'nolenses');
             if (typeof btfMatrix16x16Cells !== 'undefined' && Array.isArray(btfMatrix16x16Cells)) {
                 mix(btfMatrix16x16Cells.map(c => c.role[0]).join(''));
             }
@@ -23652,6 +23724,7 @@ async function handleRecompileTpuStl(opts) {
             plateThicknessMm: (typeof btfMatrix16x16Config !== 'undefined' && btfMatrix16x16Config.thicknessMm) ? btfMatrix16x16Config.thicknessMm : 0.60,
             matrixGapMm: (typeof btfMatrix16x16Config !== 'undefined' && btfMatrix16x16Config.gapMm !== undefined) ? btfMatrix16x16Config.gapMm : 3.0,
             matrixLipMm: (typeof btfMatrix16x16Config !== 'undefined' && btfMatrix16x16Config.gapMm !== undefined) ? btfMatrix16x16Config.gapMm : 3.0,
+            matrixLensesMode: (typeof btfMatrix16x16Config !== 'undefined' && btfMatrix16x16Config.lensesActive !== false),
             matrixWindowedLeds: matrixLists.windowedLeds,
             matrixBacklightLeds: matrixLists.backlightLeds,
             widthMm: selectedPlateWidthMm,
@@ -24404,12 +24477,24 @@ async function loadTpuModalData() {
                         const iGeom = await loadStlWithTimeout(stlLoader, `/3d_panels/${item.file}?t=` + Date.now());
                         if (iGeom) {
                             iGeom.computeVertexNormals();
-                            const iMat = new THREE.MeshStandardMaterial({
-                                color: item.color,
-                                roughness: item.roughness,
-                                metalness: 0.05,
-                                side: THREE.DoubleSide
-                            });
+                            let iMat;
+                            if (item.file && item.file.includes('color_lenses.stl')) {
+                                iMat = new THREE.MeshStandardMaterial({
+                                    color: 0xf0f9ff, // Translucent crystalline white
+                                    roughness: 0.15,
+                                    metalness: 0.05,
+                                    transparent: true,
+                                    opacity: 0.82,
+                                    side: THREE.DoubleSide
+                                });
+                            } else {
+                                iMat = new THREE.MeshStandardMaterial({
+                                    color: item.color,
+                                    roughness: item.roughness,
+                                    metalness: 0.05,
+                                    side: THREE.DoubleSide
+                                });
+                            }
                             const iMesh = new THREE.Mesh(iGeom, iMat);
                             iMesh.position.set(-stlCenter.x, -stlCenter.y, -stlCenter.z);
                             tpuScene.add(iMesh);
