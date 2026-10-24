@@ -369,52 +369,81 @@ def compile_matrix_16x16_plate_variant(variant_name, artwork_path, window_shape=
     color_diffs = np.stack([np.sum((rgb - targets[k])**2, axis=2) for k in color_names], axis=2)
     closest_color_idx = np.argmin(color_diffs, axis=2)
 
-    # If windowed_leds not supplied, auto-spread 50 windowed + 25 backlit on the 16x16 matrix (10mm pitch)
-    if not windowed_leds:
-        candidates = []
-        for r in range(16):
-            for c in range(16):
-                mx_mm = MARGIN_MM + 5.0 + c * 10.0  # 13.0 to 163.0 mm
-                my_mm = MARGIN_MM + 5.0 + (15 - r) * 10.0
-                # Map back to image pixel
-                px = int(round(min_x + (mx_mm - offset_x) / scale))
-                py = int(round(max_y - (my_mm - offset_y) / scale))
-                if 0 <= px < img_w and 0 <= py < img_h and fg_mask[py, px]:
-                    c_idx = closest_color_idx[py, px]
-                    c_key = color_names[c_idx]
-                    if c_key != 'black':
-                        pr, pg_c, pb = int(rgb[py, px, 0]), int(rgb[py, px, 1]), int(rgb[py, px, 2])
-                        candidates.append({
-                            'id': r * 16 + c + 1,
-                            'row': r,
-                            'col': c,
-                            'x': round(mx_mm, 2),
-                            'y': round(my_mm, 2),
-                            'color': {'r': pr, 'g': pg_c, 'b': pb}
-                        })
-        # Farthest-point sampling for 50 windowed and 25 backlit
-        def fps_select(pool, count):
-            if len(pool) <= count:
-                return list(pool), []
-            chosen = [pool[0]]
-            rem = list(pool[1:])
-            while len(chosen) < count and rem:
-                best_i = 0
-                best_d = -1.0
-                for idx_r, cand in enumerate(rem):
-                    min_d = min((cand['x'] - ch['x'])**2 + (cand['y'] - ch['y'])**2 for ch in chosen)
-                    if min_d > best_d:
-                        best_d = min_d
-                        best_i = idx_r
-                chosen.append(rem.pop(best_i))
-            return chosen, rem
+    # Build lookup of all 256 (16x16) matrix LED positions and which ones sit on colored foreground artwork
+    valid_cell_map = {}
+    candidates = []
+    for r in range(16):
+        for c in range(16):
+            mx_mm = MARGIN_MM + 5.0 + c * 10.0  # 13.0 to 163.0 mm (centered at 88.0mm)
+            my_mm = MARGIN_MM + 5.0 + (15 - r) * 10.0
+            # Map back to image pixel
+            px = int(round(min_x + (mx_mm - offset_x) / scale))
+            py = int(round(max_y - (my_mm - offset_y) / scale))
+            if 0 <= px < img_w and 0 <= py < img_h and fg_mask[py, px]:
+                c_idx = closest_color_idx[py, px]
+                c_key = color_names[c_idx]
+                if c_key != 'black':
+                    pr, pg_c, pb = int(rgb[py, px, 0]), int(rgb[py, px, 1]), int(rgb[py, px, 2])
+                    cell_obj = {
+                        'id': r * 16 + c + 1,
+                        'row': r,
+                        'col': c,
+                        'x': round(mx_mm, 2),
+                        'y': round(my_mm, 2),
+                        'color': {'r': pr, 'g': pg_c, 'b': pb}
+                    }
+                    candidates.append(cell_obj)
+                    valid_cell_map[(r, c)] = cell_obj
 
-        windowed_leds, rem_cands = fps_select(candidates, 50)
-        if not backlight_leds:
-            backlight_leds, _ = fps_select(rem_cands, 25)
+    # Farthest-point sampling for 50 windowed and 25 backlit
+    def fps_select(pool, count, existing=None):
+        chosen = list(existing) if existing else []
+        chosen_rc = {(ch['row'], ch['col']) for ch in chosen}
+        rem = [cand for cand in pool if (cand['row'], cand['col']) not in chosen_rc]
+        if not chosen and rem:
+            chosen.append(rem.pop(0))
+        while len(chosen) < count and rem:
+            best_i = 0
+            best_d = -1.0
+            for idx_r, cand in enumerate(rem):
+                min_d = min((cand['x'] - ch['x'])**2 + (cand['y'] - ch['y'])**2 for ch in chosen)
+                if min_d > best_d:
+                    best_d = min_d
+                    best_i = idx_r
+            chosen.append(rem.pop(best_i))
+        return chosen, rem
 
-    windowed_leds = [dict(l) for l in (windowed_leds or [])]
-    backlight_leds = [dict(l) for l in (backlight_leds or [])]
+    def _snap_and_validate_matrix_leds(raw_leds, target_count, pool, exclude_rc=None):
+        exclude_rc = set(exclude_rc or [])
+        valid_list = []
+        seen_rc = set()
+        for l in (raw_leds or []):
+            if 'row' in l and 'col' in l:
+                r, c = int(l['row']), int(l['col'])
+            else:
+                c = int(round((float(l.get('x', 13.0)) - (MARGIN_MM + 5.0)) / 10.0))
+                r = 15 - int(round((float(l.get('y', 13.0)) - (MARGIN_MM + 5.0)) / 10.0))
+            c = max(0, min(15, c))
+            r = max(0, min(15, r))
+            if (r, c) in seen_rc or (r, c) in exclude_rc:
+                continue
+            if (r, c) in valid_cell_map:
+                cell_copy = dict(valid_cell_map[(r, c)])
+                if 'color' in l and isinstance(l['color'], dict):
+                    cell_copy['color'] = dict(l['color'])
+                valid_list.append(cell_copy)
+                seen_rc.add((r, c))
+        # If any supplied LEDs were off-graphic (or none supplied), top up to target_count on valid foreground cells
+        if len(valid_list) < target_count:
+            avail_pool = [cand for cand in pool if (cand['row'], cand['col']) not in exclude_rc]
+            valid_list, _ = fps_select(avail_pool, target_count, existing=valid_list)
+        return valid_list[:target_count]
+
+    target_win_count = len(windowed_leds) if windowed_leds else 50
+    target_bl_count = len(backlight_leds) if backlight_leds else 25
+    windowed_leds = _snap_and_validate_matrix_leds(windowed_leds, target_win_count, candidates)
+    win_rc_set = {(l['row'], l['col']) for l in windowed_leds}
+    backlight_leds = _snap_and_validate_matrix_leds(backlight_leds, target_bl_count, candidates, exclude_rc=win_rc_set)
 
     # Build 2D aperture cutouts ONLY for windowed_leds: strictly Ø 3.4mm round holes (radius 1.70mm)
     win_polys = []
@@ -479,9 +508,37 @@ def compile_matrix_16x16_plate_variant(variant_name, artwork_path, window_shape=
                 u = u.difference(shirt_holes_union_2d)
             polys_2d[c_name] = u if u.is_valid else u.buffer(0)
 
+    # Build microscopic, non-overlapping perimeter registration anchors at (0.0 .. 176.0mm)
+    # so that EVERY split STL file (chassis, lenses, and each color inlay) has the EXACT same
+    # [0.0, 176.0] x [0.0, 176.0] bounding box and (88.0, 88.0) center in any 3D slicer!
+    def make_bbox_anchor_2d(part_idx):
+        off = 1.0 + part_idx * 0.5  # staggered along the outer 0.25mm edge (well clear of corners & 4.0mm sewing holes)
+        w = 0.25
+        return unary_union([
+            sg.box(0.0, off, w, off + w),
+            sg.box(PLATE_SIZE_MM - w, PLATE_SIZE_MM - off - w, PLATE_SIZE_MM, PLATE_SIZE_MM - off),
+            sg.box(off, 0.0, off + w, w),
+            sg.box(PLATE_SIZE_MM - off - w, PLATE_SIZE_MM - w, PLATE_SIZE_MM - off, PLATE_SIZE_MM)
+        ])
+
+    anchor_idx = 0
+    all_anchors_list = []
+    for c_name in list(polys_2d.keys()):
+        anc = make_bbox_anchor_2d(anchor_idx)
+        anchor_idx += 1
+        polys_2d[c_name] = unary_union([polys_2d[c_name], anc])
+        all_anchors_list.append(anc)
+
+    lens_anchor_2d = make_bbox_anchor_2d(anchor_idx) if (include_lenses and not windows_union_2d.is_empty) else sg.Polygon()
+    if not lens_anchor_2d.is_empty:
+        all_anchors_list.append(lens_anchor_2d)
+    all_anchors_2d = unary_union(all_anchors_list) if all_anchors_list else sg.Polygon()
+
     plate_box_2d = sg.box(0.0, 0.0, PLATE_SIZE_MM, PLATE_SIZE_MM)
     all_inlays_2d = unary_union(list(polys_2d.values())) if polys_2d else sg.Polygon()
     chassis_2d = plate_box_2d.difference(all_inlays_2d)
+    if not all_anchors_2d.is_empty:
+        chassis_2d = chassis_2d.difference(all_anchors_2d)
     if not windows_union_2d.is_empty:
         chassis_2d = chassis_2d.difference(windows_union_2d)
     if not shirt_holes_union_2d.is_empty:
@@ -526,9 +583,6 @@ def compile_matrix_16x16_plate_variant(variant_name, artwork_path, window_shape=
     frame_outer_y1 = round(pocket_y1 + FRAME_WALL_WIDTH, 3) # 170.20 mm
     outer_frame_2d = sg.box(frame_outer_x0, frame_outer_y0, frame_outer_x1, frame_outer_y1)
 
-    # Bottom wire exit notch (16.0mm wide centered at 88.0mm, cutting through bottom frame wall)
-    wire_notch_2d = sg.box(PLATE_SIZE_MM / 2.0 - 8.0, 0.0, PLATE_SIZE_MM / 2.0 + 8.0, pocket_y0 + 0.5)
-
     # Ledge inner aperture: 156.4 x 156.4mm (forms a 2.0mm wide supporting shelf inwards for the 160x160mm PCB)
     LEDGE_WIDTH = 2.0 # mm
     ledge_in_x0 = round(pocket_x0 + LEDGE_WIDTH, 3) # 9.80 mm
@@ -536,6 +590,9 @@ def compile_matrix_16x16_plate_variant(variant_name, artwork_path, window_shape=
     ledge_in_x1 = round(pocket_x1 - LEDGE_WIDTH, 3) # 166.20 mm
     ledge_in_y1 = round(pocket_y1 - LEDGE_WIDTH, 3) # 166.20 mm
     ledge_aperture_2d = sg.box(ledge_in_x0, ledge_in_y0, ledge_in_x1, ledge_in_y1)
+
+    # Bottom wire exit notch (16.0mm wide centered at 88.0mm, cutting cleanly through both the bottom frame wall and internal lip)
+    wire_notch_2d = sg.box(PLATE_SIZE_MM / 2.0 - 8.0, 0.0, PLATE_SIZE_MM / 2.0 + 8.0, ledge_in_y0 + 0.5)
 
     pocket_wall_2d = outer_frame_2d.difference(inner_pocket_2d).difference(shirt_holes_union_2d).difference(wire_notch_2d)
     ledge_wall_2d = outer_frame_2d.difference(ledge_aperture_2d).difference(shirt_holes_union_2d).difference(wire_notch_2d)
@@ -618,7 +675,8 @@ def compile_matrix_16x16_plate_variant(variant_name, artwork_path, window_shape=
     # Optional Translucent Light-Pipe Lens Cylinders bridging from LED seating plane to front surface
     if include_lenses and not windows_union_2d.is_empty:
         lens_h = round(TOTAL_Z - PCB_POCKET_DEPTH, 2)
-        lenses_tm = extrude_shapely(windows_union_2d, lens_h)
+        lenses_2d = unary_union([windows_union_2d, lens_anchor_2d]) if not lens_anchor_2d.is_empty else windows_union_2d
+        lenses_tm = extrude_shapely(lenses_2d, lens_h)
         if lenses_tm is not None and len(lenses_tm.faces) > 0:
             lenses_tm.apply_translation([0.0, 0.0, PCB_POCKET_DEPTH])
             lens_filename = f"tpu_panel_{variant_name}_color_lenses.stl"
@@ -2007,6 +2065,9 @@ specs['matrix_16x16_mode'] = MATRIX_16X16_MODE
 specs['plate_thickness_mm'] = round(PLATE_THICKNESS_MM, 2)
 specs['matrix_gap_mm'] = round(MATRIX_GAP_MM, 1)
 specs['matrix_lenses_mode'] = INCLUDE_LENSES
+if MATRIX_16X16_MODE:
+    specs['matrix_windowed_leds'] = front_result.get('ordered_leds', [])
+    specs['matrix_backlight_leds'] = front_result.get('backlight_leds', [])
 specs['front'] = front_result
 specs['back'] = back_result
 

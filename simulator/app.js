@@ -13999,6 +13999,9 @@ function applyProfileData(profileData) {
                 }
                 if (typeof btfMatrix16x16Active !== 'undefined' && btfMatrix16x16Active) {
                     computeBtfMatrix16x16Layout();
+                    if (typeof restoreSavedMatrix16x16Roles === 'function') {
+                        restoreSavedMatrix16x16Roles(profileData);
+                    }
                 }
                 if (typeof markSingleShirtDirty === 'function') markSingleShirtDirty();
                 if (typeof draw === 'function') draw();
@@ -14190,31 +14193,9 @@ function applyProfileData(profileData) {
             tpuDisplayMode = 'matrix16';
             computeBtfMatrix16x16Layout();
 
-            // If exact windowed/backlit cell assignments were saved in the preset, restore them!
-            const savedWins = Array.isArray(profileData.matrixWindowedLeds) ? profileData.matrixWindowedLeds : null;
-            const savedGlows = Array.isArray(profileData.matrixBacklightLeds) ? profileData.matrixBacklightLeds : null;
-            if ((savedWins && savedWins.length > 0) || (savedGlows && savedGlows.length > 0)) {
-                const winMap = new Map();
-                const glowMap = new Map();
-                if (savedWins) savedWins.forEach(item => { if (item && typeof item.id === 'number') winMap.set(item.id, item); });
-                if (savedGlows) savedGlows.forEach(item => { if (item && typeof item.id === 'number') glowMap.set(item.id, item); });
-
-                btfMatrix16x16Cells.forEach(cell => {
-                    if (winMap.has(cell.matrixIdx)) {
-                        cell.role = 'window';
-                        const item = winMap.get(cell.matrixIdx);
-                        if (item.color && typeof item.color.r === 'number') cell.color = { ...item.color };
-                    } else if (glowMap.has(cell.matrixIdx)) {
-                        cell.role = 'backlight';
-                        const item = glowMap.get(cell.matrixIdx);
-                        if (item.color && typeof item.color.r === 'number') cell.color = { ...item.color };
-                    } else {
-                        cell.role = 'dark';
-                    }
-                });
-                if (typeof updateBtfMatrix16x16TelemetryUI === 'function') {
-                    updateBtfMatrix16x16TelemetryUI();
-                }
+            // If exact windowed/backlit cell assignments were saved in the preset, restore valid on-graphic cells!
+            if (typeof restoreSavedMatrix16x16Roles === 'function') {
+                restoreSavedMatrix16x16Roles(profileData);
             }
         } else {
             if (tpuDisplayMode === 'matrix16') tpuDisplayMode = 'tray';
@@ -16001,28 +15982,34 @@ function computeBtfMatrix16x16Layout() {
             const nx = geom.matrixNormX + ((col + 0.5) / 16.0) * geom.matrixNormW;
             const ny = geom.matrixNormY + ((row + 0.5) / 16.0) * geom.matrixNormH;
 
-            // Sample graphic within a small 3x3 neighborhood around cell center
+            // Sample graphic strictly at the exact LED cell center (so windows/lenses never land in empty background halo)
             const relX = (nx - gb.normX) / gb.normW;
             const relY = (ny - gb.normY) / gb.normH;
             let onGraphic = false;
             let sumR = 0, sumG = 0, sumB = 0, countValid = 0;
 
-            if (relX >= -0.02 && relX <= 1.02 && relY >= -0.02 && relY <= 1.02) {
-                const cxPx = Math.floor(Math.max(0, Math.min(0.999, relX)) * targetW);
-                const cyPx = Math.floor(Math.max(0, Math.min(0.999, relY)) * targetH);
-                const radPx = Math.max(2, Math.round(targetW * 0.018));
-                for (let dy = -radPx; dy <= radPx; dy += Math.max(1, Math.floor(radPx / 2))) {
-                    for (let dx = -radPx; dx <= radPx; dx += Math.max(1, Math.floor(radPx / 2))) {
-                        const px = cxPx + dx;
-                        const py = cyPx + dy;
-                        if (px < 0 || px >= targetW || py < 0 || py >= targetH) continue;
-                        const pIdx = (py * targetW + px) * 4;
-                        const r = imgData[pIdx], g = imgData[pIdx + 1], b = imgData[pIdx + 2], a = imgData[pIdx + 3];
-                        if (a > 40 && !(opaqueBlackBg && r < 28 && g < 28 && b < 28)) {
-                            sumR += r;
-                            sumG += g;
-                            sumB += b;
-                            countValid++;
+            if (relX >= 0.0 && relX <= 1.0 && relY >= 0.0 && relY <= 1.0) {
+                const cxPx = Math.min(targetW - 1, Math.max(0, Math.round(relX * (targetW - 1))));
+                const cyPx = Math.min(targetH - 1, Math.max(0, Math.round(relY * (targetH - 1))));
+                const cIdx = (cyPx * targetW + cxPx) * 4;
+                const cR = imgData[cIdx], cG = imgData[cIdx + 1], cB = imgData[cIdx + 2], cA = imgData[cIdx + 3];
+                const centerValid = (cA > 40) && (Math.max(cR, cG, cB) >= 30);
+
+                if (centerValid) {
+                    const radPx = 2;
+                    for (let dy = -radPx; dy <= radPx; dy++) {
+                        for (let dx = -radPx; dx <= radPx; dx++) {
+                            const px = cxPx + dx;
+                            const py = cyPx + dy;
+                            if (px < 0 || px >= targetW || py < 0 || py >= targetH) continue;
+                            const pIdx = (py * targetW + px) * 4;
+                            const r = imgData[pIdx], g = imgData[pIdx + 1], b = imgData[pIdx + 2], a = imgData[pIdx + 3];
+                            if (a > 40 && Math.max(r, g, b) >= 30) {
+                                sumR += r;
+                                sumG += g;
+                                sumB += b;
+                                countValid++;
+                            }
                         }
                     }
                 }
@@ -16030,15 +16017,16 @@ function computeBtfMatrix16x16Layout() {
 
             let cellColor = { r: 0, g: 255, b: 136 };
             if (countValid > 0) {
-                onGraphic = true;
                 const avgR = Math.round(sumR / countValid);
                 const avgG = Math.round(sumG / countValid);
                 const avgB = Math.round(sumB / countValid);
                 const maxAvg = Math.max(avgR, avgG, avgB);
                 if (maxAvg < 45) {
-                    // True black chassis, wheels, drum face & dark outlines: preserve as dark black
+                    // True black chassis, wheels, drum face & dark outlines: preserve as dark black (no lens cutout)
                     cellColor = { r: 17, g: 22, b: 29 };
+                    onGraphic = false;
                 } else {
+                    onGraphic = true;
                     cellColor = (typeof boostLedVibrancy === 'function')
                         ? boostLedVibrancy(avgR, avgG, avgB, Math.max(0, Math.min(1, relX)), Math.max(0, Math.min(1, relY)))
                         : { r: avgR, g: avgG, b: avgB };
@@ -16163,6 +16151,95 @@ function computeBtfMatrix16x16Layout() {
     updateBtfMatrix16x16TelemetryUI();
 }
 window.computeBtfMatrix16x16Layout = computeBtfMatrix16x16Layout;
+
+function restoreSavedMatrix16x16Roles(profileData) {
+    if (!profileData || !btfMatrix16x16Cells || btfMatrix16x16Cells.length !== 256) return;
+    const savedWins = Array.isArray(profileData.matrixWindowedLeds) ? profileData.matrixWindowedLeds : null;
+    const savedGlows = Array.isArray(profileData.matrixBacklightLeds) ? profileData.matrixBacklightLeds : null;
+    if ((!savedWins || savedWins.length === 0) && (!savedGlows || savedGlows.length === 0)) return;
+
+    const winMap = new Map();
+    const glowMap = new Map();
+    if (savedWins) savedWins.forEach(item => { if (item && typeof item.id === 'number') winMap.set(item.id, item); });
+    if (savedGlows) savedGlows.forEach(item => { if (item && typeof item.id === 'number') glowMap.set(item.id, item); });
+
+    let validSavedWins = 0;
+    btfMatrix16x16Cells.forEach(cell => {
+        if (winMap.has(cell.matrixIdx) && cell.onGraphic) {
+            validSavedWins++;
+        }
+    });
+
+    // Only apply saved cell assignments if they sit on the graphic; if any saved cells fell off-graphic,
+    // keep valid on-graphic ones and top up cleanly from the on-graphic pool.
+    if (validSavedWins === 0) {
+        return; // Keep the freshly computed on-graphic layout from computeBtfMatrix16x16Layout()
+    }
+
+    const targetWin = Math.max(0, Math.min(256, parseInt(btfMatrix16x16WindowCount, 10) || 50));
+    const targetGlow = Math.max(0, Math.min(256 - targetWin, parseInt(btfMatrix16x16GlowCount, 10) || 25));
+
+    const keptWins = [];
+    const keptGlows = [];
+    btfMatrix16x16Cells.forEach((cell, idx) => {
+        if (winMap.has(cell.matrixIdx) && cell.onGraphic) {
+            cell.role = 'window';
+            const item = winMap.get(cell.matrixIdx);
+            if (item.color && typeof item.color.r === 'number') cell.color = { ...item.color };
+            keptWins.push(idx);
+        } else if (glowMap.has(cell.matrixIdx) && cell.onGraphic) {
+            cell.role = 'backlight';
+            const item = glowMap.get(cell.matrixIdx);
+            if (item.color && typeof item.color.r === 'number') cell.color = { ...item.color };
+            keptGlows.push(idx);
+        } else {
+            cell.role = 'dark';
+        }
+    });
+
+    // Top up any missing window or backlight cells from remaining on-graphic cells via farthest-point spread
+    const usedSet = new Set([...keptWins, ...keptGlows]);
+    while (keptWins.length < targetWin) {
+        let bestIdx = -1, bestD = -1;
+        btfMatrix16x16Cells.forEach((cand, idx) => {
+            if (!cand.onGraphic || usedSet.has(idx)) return;
+            let minD = 1e9;
+            keptWins.forEach(wIdx => {
+                const w = btfMatrix16x16Cells[wIdx];
+                const d = Math.hypot(cand.plateX - w.plateX, cand.plateY - w.plateY);
+                if (d < minD) minD = d;
+            });
+            if (minD > bestD) { bestD = minD; bestIdx = idx; }
+        });
+        if (bestIdx === -1) break;
+        btfMatrix16x16Cells[bestIdx].role = 'window';
+        keptWins.push(bestIdx);
+        usedSet.add(bestIdx);
+    }
+
+    while (keptGlows.length < targetGlow) {
+        let bestIdx = -1, bestD = -1;
+        btfMatrix16x16Cells.forEach((cand, idx) => {
+            if (!cand.onGraphic || usedSet.has(idx)) return;
+            let minD = 1e9;
+            keptGlows.forEach(gIdx => {
+                const g = btfMatrix16x16Cells[gIdx];
+                const d = Math.hypot(cand.plateX - g.plateX, cand.plateY - g.plateY);
+                if (d < minD) minD = d;
+            });
+            if (minD > bestD) { bestD = minD; bestIdx = idx; }
+        });
+        if (bestIdx === -1) break;
+        btfMatrix16x16Cells[bestIdx].role = 'backlight';
+        keptGlows.push(bestIdx);
+        usedSet.add(bestIdx);
+    }
+
+    if (typeof updateBtfMatrix16x16TelemetryUI === 'function') {
+        updateBtfMatrix16x16TelemetryUI();
+    }
+}
+window.restoreSavedMatrix16x16Roles = restoreSavedMatrix16x16Roles;
 
 function getBtfMatrix16x16ListsForExport() {
     if (!btfMatrix16x16Cells || btfMatrix16x16Cells.length !== 256) {

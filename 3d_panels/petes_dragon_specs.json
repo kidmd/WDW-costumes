@@ -4,20 +4,18 @@
   "float_index": 5,
   "aspect": 0.8331977217249796,
   "artwork_file": "active_artwork.png",
-  "graphic_type": null,
+  "graphic_type": "custom_image",
   "window_shape": "round_34",
   "well_orientation": "horizontal",
-  "include_led_numbers": false,
+  "include_led_numbers": true,
   "include_clip_grooves": false,
-  "include_top_nubs": false,
+  "include_top_nubs": true,
   "matrix_16x16_mode": true,
-  "plate_thickness_mm": 0.8,
-  "gap_mm": 3.0,
-  "matrix_gap_mm": 3.0,
-  "matrix_lip_mm": 3.0,
+  "plate_thickness_mm": 1.0,
+  "gap_mm": 1.0,
+  "matrix_gap_mm": 1.0,
+  "matrix_lip_mm": 1.0,
   "matrix_lenses_mode": true,
-  "matrix_windowed_leds": [],
-  "matrix_backlight_leds": [],
   "stl_colors": {
     "black": {
       "name": "Chassis Black",
@@ -74,19 +72,19 @@
       "filename": "color_white.stl"
     }
   },
-  "layout_signature": null,
-  "size_preset": "medium",
+  "layout_signature": "custom_image-matrix16-0.80mm-gap3.00mm-round_34-v9-1f16d52e",
+  "size_preset": "large",
   "width_mm": 176.0,
   "front": {
     "variant": "front",
     "matrix_16x16_mode": true,
-    "plate_thickness_mm": 0.8,
-    "gap_mm": 3.0,
-    "matrix_gap_mm": 3.0,
-    "lip_mm": 3.0,
-    "matrix_lip_mm": 3.0,
-    "frame_height_mm": 5.0,
-    "total_thickness_mm": 5.8,
+    "plate_thickness_mm": 1.0,
+    "gap_mm": 1.0,
+    "matrix_gap_mm": 1.0,
+    "lip_mm": 1.0,
+    "matrix_lip_mm": 1.0,
+    "frame_height_mm": 3.0,
+    "total_thickness_mm": 4.0,
     "width_mm": 176.0,
     "height_mm": 176.0,
     "panel_width_mm": 176.0,
@@ -1054,52 +1052,52 @@
     "stl_bounds": [
       176.0,
       176.0,
-      5.8
+      4.0
     ],
     "stl_center": [
       88.0,
       88.0,
-      2.9
+      2.0
     ],
-    "stl_size": 1055084,
-    "chassis_size": 1327884,
+    "stl_size": 1052684,
+    "chassis_size": 1341484,
     "lid_size": 78284,
-    "zip_size": 1308373,
+    "zip_size": 1302091,
     "inlays": [
       {
         "key": "green",
         "name": "Dragon Body",
         "filename": "tpu_panel_front_color_green.stl",
         "hex": "#00e676",
-        "count": 15920
+        "count": 15968
       },
       {
         "key": "magenta",
         "name": "Wings & Crest",
         "filename": "tpu_panel_front_color_magenta.stl",
         "hex": "#ec4899",
-        "count": 8292
+        "count": 8340
       },
       {
         "key": "yellow",
         "name": "Belly & Horns",
         "filename": "tpu_panel_front_color_yellow.stl",
         "hex": "#facc15",
-        "count": 8280
+        "count": 8328
       },
       {
         "key": "white",
         "name": "Eyes & Teeth",
         "filename": "tpu_panel_front_color_white.stl",
         "hex": "#ffffff",
-        "count": 4512
+        "count": 4560
       },
       {
         "key": "lenses",
         "name": "Lenses (Translucent White)",
         "filename": "tpu_panel_front_color_lenses.stl",
         "hex": "#e6f1f8",
-        "count": 19000
+        "count": 19048
       }
     ],
     "stl_url": "/3d_panels/tpu_panel_front.stl",
@@ -1107,20 +1105,20 @@
     "lid_stl_url": "/3d_panels/tpu_panel_front_lid.stl",
     "multicolor_3mf_url": "/3d_panels/tpu_panel_front_multicolor.3mf",
     "multicolor_zip_url": "/3d_panels/tpu_panel_front_multicolor_bundle.zip",
-    "volume_mm3": 24780.8,
+    "volume_mm3": 30976.0,
     "is_watertight": true,
-    "graphic_type": null
+    "graphic_type": "custom_image"
   },
   "back": {
     "variant": "back",
     "matrix_16x16_mode": true,
-    "plate_thickness_mm": 0.8,
-    "gap_mm": 3.0,
-    "matrix_gap_mm": 3.0,
-    "lip_mm": 3.0,
-    "matrix_lip_mm": 3.0,
-    "frame_height_mm": 5.0,
-    "total_thickness_mm": 5.8,
+    "plate_thickness_mm": 1.0,
+    "gap_mm": 1.0,
+    "matrix_gap_mm": 1.0,
+    "lip_mm": 1.0,
+    "matrix_lip_mm": 1.0,
+    "frame_height_mm": 3.0,
+    "total_thickness_mm": 4.0,
     "width_mm": 176.0,
     "height_mm": 176.0,
     "panel_width_mm": 176.0,
@@ -2088,52 +2086,52 @@
     "stl_bounds": [
       176.0,
       176.0,
-      5.8
+      4.0
     ],
     "stl_center": [
       88.0,
       88.0,
-      2.9
+      2.0
     ],
-    "stl_size": 1055084,
-    "chassis_size": 1327884,
+    "stl_size": 1052684,
+    "chassis_size": 1341484,
     "lid_size": 78284,
-    "zip_size": 1308317,
+    "zip_size": 1302014,
     "inlays": [
       {
         "key": "green",
         "name": "Dragon Body",
         "filename": "tpu_panel_back_color_green.stl",
         "hex": "#00e676",
-        "count": 15920
+        "count": 15968
       },
       {
         "key": "magenta",
         "name": "Wings & Crest",
         "filename": "tpu_panel_back_color_magenta.stl",
         "hex": "#ec4899",
-        "count": 8292
+        "count": 8340
       },
       {
         "key": "yellow",
         "name": "Belly & Horns",
         "filename": "tpu_panel_back_color_yellow.stl",
         "hex": "#facc15",
-        "count": 8280
+        "count": 8328
       },
       {
         "key": "white",
         "name": "Eyes & Teeth",
         "filename": "tpu_panel_back_color_white.stl",
         "hex": "#ffffff",
-        "count": 4512
+        "count": 4560
       },
       {
         "key": "lenses",
         "name": "Lenses (Translucent White)",
         "filename": "tpu_panel_back_color_lenses.stl",
         "hex": "#e6f1f8",
-        "count": 19000
+        "count": 19048
       }
     ],
     "stl_url": "/3d_panels/tpu_panel_back.stl",
@@ -2141,9 +2139,9 @@
     "lid_stl_url": "/3d_panels/tpu_panel_back_lid.stl",
     "multicolor_3mf_url": "/3d_panels/tpu_panel_back_multicolor.3mf",
     "multicolor_zip_url": "/3d_panels/tpu_panel_back_multicolor_bundle.zip",
-    "volume_mm3": 24780.8,
+    "volume_mm3": 30976.0,
     "is_watertight": true,
-    "graphic_type": null
+    "graphic_type": "custom_image"
   },
   "height_mm": 176.0,
   "ordered_leds": [
@@ -2750,9 +2748,9 @@
   ],
   "led_count": 50,
   "variant": "front",
-  "lip_mm": 3.0,
-  "frame_height_mm": 5.0,
-  "total_thickness_mm": 5.8,
+  "lip_mm": 1.0,
+  "frame_height_mm": 3.0,
+  "total_thickness_mm": 4.0,
   "panel_width_mm": 176.0,
   "panel_height_mm": 176.0,
   "total_image_width_mm": 176.0,
@@ -3113,52 +3111,52 @@
   "stl_bounds": [
     176.0,
     176.0,
-    5.8
+    4.0
   ],
   "stl_center": [
     88.0,
     88.0,
-    2.9
+    2.0
   ],
-  "stl_size": 1055084,
-  "chassis_size": 1327884,
+  "stl_size": 1052684,
+  "chassis_size": 1341484,
   "lid_size": 78284,
-  "zip_size": 1308373,
+  "zip_size": 1302091,
   "inlays": [
     {
       "key": "green",
       "name": "Dragon Body",
       "filename": "tpu_panel_front_color_green.stl",
       "hex": "#00e676",
-      "count": 15920
+      "count": 15968
     },
     {
       "key": "magenta",
       "name": "Wings & Crest",
       "filename": "tpu_panel_front_color_magenta.stl",
       "hex": "#ec4899",
-      "count": 8292
+      "count": 8340
     },
     {
       "key": "yellow",
       "name": "Belly & Horns",
       "filename": "tpu_panel_front_color_yellow.stl",
       "hex": "#facc15",
-      "count": 8280
+      "count": 8328
     },
     {
       "key": "white",
       "name": "Eyes & Teeth",
       "filename": "tpu_panel_front_color_white.stl",
       "hex": "#ffffff",
-      "count": 4512
+      "count": 4560
     },
     {
       "key": "lenses",
       "name": "Lenses (Translucent White)",
       "filename": "tpu_panel_front_color_lenses.stl",
       "hex": "#e6f1f8",
-      "count": 19000
+      "count": 19048
     }
   ],
   "stl_url": "/3d_panels/tpu_panel_front.stl",
@@ -3166,6 +3164,910 @@
   "lid_stl_url": "/3d_panels/tpu_panel_front_lid.stl",
   "multicolor_3mf_url": "/3d_panels/tpu_panel_front_multicolor.3mf",
   "multicolor_zip_url": "/3d_panels/tpu_panel_front_multicolor_bundle.zip",
-  "volume_mm3": 24780.8,
-  "is_watertight": true
+  "volume_mm3": 30976.0,
+  "is_watertight": true,
+  "matrix_windowed_leds": [
+    {
+      "id": 30,
+      "row": 1,
+      "col": 13,
+      "x": 143.0,
+      "y": 153.0,
+      "color": {
+        "r": 250,
+        "g": 6,
+        "b": 236
+      }
+    },
+    {
+      "id": 209,
+      "row": 13,
+      "col": 0,
+      "x": 13.0,
+      "y": 33.0,
+      "color": {
+        "r": 0,
+        "g": 255,
+        "b": 1
+      }
+    },
+    {
+      "id": 236,
+      "row": 14,
+      "col": 11,
+      "x": 123.0,
+      "y": 23.0,
+      "color": {
+        "r": 3,
+        "g": 254,
+        "b": 2
+      }
+    },
+    {
+      "id": 69,
+      "row": 4,
+      "col": 4,
+      "x": 53.0,
+      "y": 123.0,
+      "color": {
+        "r": 254,
+        "g": 1,
+        "b": 250
+      }
+    },
+    {
+      "id": 123,
+      "row": 7,
+      "col": 10,
+      "x": 113.0,
+      "y": 93.0,
+      "color": {
+        "r": 251,
+        "g": 253,
+        "b": 15
+      }
+    },
+    {
+      "id": 166,
+      "row": 10,
+      "col": 5,
+      "x": 63.0,
+      "y": 63.0,
+      "color": {
+        "r": 0,
+        "g": 255,
+        "b": 0
+      }
+    },
+    {
+      "id": 112,
+      "row": 6,
+      "col": 15,
+      "x": 163.0,
+      "y": 103.0,
+      "color": {
+        "r": 0,
+        "g": 255,
+        "b": 1
+      }
+    },
+    {
+      "id": 247,
+      "row": 15,
+      "col": 6,
+      "x": 73.0,
+      "y": 13.0,
+      "color": {
+        "r": 229,
+        "g": 229,
+        "b": 229
+      }
+    },
+    {
+      "id": 129,
+      "row": 8,
+      "col": 0,
+      "x": 13.0,
+      "y": 83.0,
+      "color": {
+        "r": 241,
+        "g": 240,
+        "b": 46
+      }
+    },
+    {
+      "id": 201,
+      "row": 12,
+      "col": 8,
+      "x": 93.0,
+      "y": 43.0,
+      "color": {
+        "r": 255,
+        "g": 255,
+        "b": 6
+      }
+    },
+    {
+      "id": 74,
+      "row": 4,
+      "col": 9,
+      "x": 103.0,
+      "y": 123.0,
+      "color": {
+        "r": 125,
+        "g": 3,
+        "b": 130
+      }
+    },
+    {
+      "id": 116,
+      "row": 7,
+      "col": 3,
+      "x": 43.0,
+      "y": 93.0,
+      "color": {
+        "r": 0,
+        "g": 255,
+        "b": 0
+      }
+    },
+    {
+      "id": 77,
+      "row": 4,
+      "col": 12,
+      "x": 133.0,
+      "y": 123.0,
+      "color": {
+        "r": 247,
+        "g": 244,
+        "b": 22
+      }
+    },
+    {
+      "id": 119,
+      "row": 7,
+      "col": 6,
+      "x": 73.0,
+      "y": 93.0,
+      "color": {
+        "r": 129,
+        "g": 0,
+        "b": 127
+      }
+    },
+    {
+      "id": 212,
+      "row": 13,
+      "col": 3,
+      "x": 43.0,
+      "y": 33.0,
+      "color": {
+        "r": 0,
+        "g": 255,
+        "b": 1
+      }
+    },
+    {
+      "id": 64,
+      "row": 3,
+      "col": 15,
+      "x": 163.0,
+      "y": 133.0,
+      "color": {
+        "r": 27,
+        "g": 239,
+        "b": 26
+      }
+    },
+    {
+      "id": 153,
+      "row": 9,
+      "col": 8,
+      "x": 93.0,
+      "y": 73.0,
+      "color": {
+        "r": 0,
+        "g": 255,
+        "b": 1
+      }
+    },
+    {
+      "id": 163,
+      "row": 10,
+      "col": 2,
+      "x": 33.0,
+      "y": 63.0,
+      "color": {
+        "r": 3,
+        "g": 253,
+        "b": 5
+      }
+    },
+    {
+      "id": 105,
+      "row": 6,
+      "col": 8,
+      "x": 93.0,
+      "y": 103.0,
+      "color": {
+        "r": 126,
+        "g": 6,
+        "b": 123
+      }
+    },
+    {
+      "id": 171,
+      "row": 10,
+      "col": 10,
+      "x": 113.0,
+      "y": 63.0,
+      "color": {
+        "r": 1,
+        "g": 255,
+        "b": 2
+      }
+    },
+    {
+      "id": 110,
+      "row": 6,
+      "col": 13,
+      "x": 143.0,
+      "y": 103.0,
+      "color": {
+        "r": 0,
+        "g": 255,
+        "b": 0
+      }
+    },
+    {
+      "id": 161,
+      "row": 10,
+      "col": 0,
+      "x": 13.0,
+      "y": 63.0,
+      "color": {
+        "r": 28,
+        "g": 226,
+        "b": 33
+      }
+    },
+    {
+      "id": 198,
+      "row": 12,
+      "col": 5,
+      "x": 63.0,
+      "y": 43.0,
+      "color": {
+        "r": 10,
+        "g": 250,
+        "b": 11
+      }
+    },
+    {
+      "id": 233,
+      "row": 14,
+      "col": 8,
+      "x": 93.0,
+      "y": 23.0,
+      "color": {
+        "r": 228,
+        "g": 227,
+        "b": 66
+      }
+    },
+    {
+      "id": 45,
+      "row": 2,
+      "col": 12,
+      "x": 133.0,
+      "y": 143.0,
+      "color": {
+        "r": 10,
+        "g": 255,
+        "b": 10
+      }
+    },
+    {
+      "id": 47,
+      "row": 2,
+      "col": 14,
+      "x": 153.0,
+      "y": 143.0,
+      "color": {
+        "r": 0,
+        "g": 255,
+        "b": 1
+      }
+    },
+    {
+      "id": 62,
+      "row": 3,
+      "col": 13,
+      "x": 143.0,
+      "y": 133.0,
+      "color": {
+        "r": 0,
+        "g": 255,
+        "b": 0
+      }
+    },
+    {
+      "id": 79,
+      "row": 4,
+      "col": 14,
+      "x": 153.0,
+      "y": 123.0,
+      "color": {
+        "r": 2,
+        "g": 254,
+        "b": 3
+      }
+    },
+    {
+      "id": 86,
+      "row": 5,
+      "col": 5,
+      "x": 63.0,
+      "y": 113.0,
+      "color": {
+        "r": 128,
+        "g": 7,
+        "b": 117
+      }
+    },
+    {
+      "id": 108,
+      "row": 6,
+      "col": 11,
+      "x": 123.0,
+      "y": 103.0,
+      "color": {
+        "r": 255,
+        "g": 253,
+        "b": 0
+      }
+    },
+    {
+      "id": 131,
+      "row": 8,
+      "col": 2,
+      "x": 33.0,
+      "y": 83.0,
+      "color": {
+        "r": 3,
+        "g": 253,
+        "b": 3
+      }
+    },
+    {
+      "id": 133,
+      "row": 8,
+      "col": 4,
+      "x": 53.0,
+      "y": 83.0,
+      "color": {
+        "r": 8,
+        "g": 253,
+        "b": 6
+      }
+    },
+    {
+      "id": 136,
+      "row": 8,
+      "col": 7,
+      "x": 83.0,
+      "y": 83.0,
+      "color": {
+        "r": 0,
+        "g": 255,
+        "b": 1
+      }
+    },
+    {
+      "id": 138,
+      "row": 8,
+      "col": 9,
+      "x": 103.0,
+      "y": 83.0,
+      "color": {
+        "r": 0,
+        "g": 255,
+        "b": 1
+      }
+    },
+    {
+      "id": 148,
+      "row": 9,
+      "col": 3,
+      "x": 43.0,
+      "y": 73.0,
+      "color": {
+        "r": 0,
+        "g": 255,
+        "b": 1
+      }
+    },
+    {
+      "id": 151,
+      "row": 9,
+      "col": 6,
+      "x": 73.0,
+      "y": 73.0,
+      "color": {
+        "r": 0,
+        "g": 255,
+        "b": 1
+      }
+    },
+    {
+      "id": 168,
+      "row": 10,
+      "col": 7,
+      "x": 83.0,
+      "y": 63.0,
+      "color": {
+        "r": 0,
+        "g": 255,
+        "b": 1
+      }
+    },
+    {
+      "id": 178,
+      "row": 11,
+      "col": 1,
+      "x": 23.0,
+      "y": 53.0,
+      "color": {
+        "r": 10,
+        "g": 248,
+        "b": 8
+      }
+    },
+    {
+      "id": 180,
+      "row": 11,
+      "col": 3,
+      "x": 43.0,
+      "y": 53.0,
+      "color": {
+        "r": 1,
+        "g": 255,
+        "b": 0
+      }
+    },
+    {
+      "id": 183,
+      "row": 11,
+      "col": 6,
+      "x": 73.0,
+      "y": 53.0,
+      "color": {
+        "r": 2,
+        "g": 254,
+        "b": 0
+      }
+    },
+    {
+      "id": 195,
+      "row": 12,
+      "col": 2,
+      "x": 33.0,
+      "y": 43.0,
+      "color": {
+        "r": 249,
+        "g": 251,
+        "b": 241
+      }
+    },
+    {
+      "id": 215,
+      "row": 13,
+      "col": 6,
+      "x": 73.0,
+      "y": 33.0,
+      "color": {
+        "r": 252,
+        "g": 250,
+        "b": 24
+      }
+    },
+    {
+      "id": 218,
+      "row": 13,
+      "col": 9,
+      "x": 103.0,
+      "y": 33.0,
+      "color": {
+        "r": 253,
+        "g": 255,
+        "b": 1
+      }
+    },
+    {
+      "id": 229,
+      "row": 14,
+      "col": 4,
+      "x": 53.0,
+      "y": 23.0,
+      "color": {
+        "r": 251,
+        "g": 254,
+        "b": 1
+      }
+    },
+    {
+      "id": 53,
+      "row": 3,
+      "col": 4,
+      "x": 53.0,
+      "y": 133.0,
+      "color": {
+        "r": 128,
+        "g": 1,
+        "b": 135
+      }
+    },
+    {
+      "id": 61,
+      "row": 3,
+      "col": 12,
+      "x": 133.0,
+      "y": 133.0,
+      "color": {
+        "r": 2,
+        "g": 255,
+        "b": 5
+      }
+    },
+    {
+      "id": 63,
+      "row": 3,
+      "col": 14,
+      "x": 153.0,
+      "y": 133.0,
+      "color": {
+        "r": 0,
+        "g": 255,
+        "b": 6
+      }
+    },
+    {
+      "id": 70,
+      "row": 4,
+      "col": 5,
+      "x": 63.0,
+      "y": 123.0,
+      "color": {
+        "r": 127,
+        "g": 2,
+        "b": 124
+      }
+    },
+    {
+      "id": 76,
+      "row": 4,
+      "col": 11,
+      "x": 123.0,
+      "y": 123.0,
+      "color": {
+        "r": 28,
+        "g": 239,
+        "b": 25
+      }
+    },
+    {
+      "id": 78,
+      "row": 4,
+      "col": 13,
+      "x": 143.0,
+      "y": 123.0,
+      "color": {
+        "r": 4,
+        "g": 253,
+        "b": 6
+      }
+    }
+  ],
+  "matrix_backlight_leds": [
+    {
+      "id": 80,
+      "row": 4,
+      "col": 15,
+      "x": 163.0,
+      "y": 123.0,
+      "color": {
+        "r": 0,
+        "g": 255,
+        "b": 0
+      }
+    },
+    {
+      "id": 193,
+      "row": 12,
+      "col": 0,
+      "x": 13.0,
+      "y": 43.0,
+      "color": {
+        "r": 7,
+        "g": 252,
+        "b": 9
+      }
+    },
+    {
+      "id": 235,
+      "row": 14,
+      "col": 10,
+      "x": 113.0,
+      "y": 23.0,
+      "color": {
+        "r": 0,
+        "g": 255,
+        "b": 2
+      }
+    },
+    {
+      "id": 103,
+      "row": 6,
+      "col": 6,
+      "x": 73.0,
+      "y": 103.0,
+      "color": {
+        "r": 126,
+        "g": 1,
+        "b": 127
+      }
+    },
+    {
+      "id": 182,
+      "row": 11,
+      "col": 5,
+      "x": 63.0,
+      "y": 53.0,
+      "color": {
+        "r": 2,
+        "g": 253,
+        "b": 2
+      }
+    },
+    {
+      "id": 155,
+      "row": 9,
+      "col": 10,
+      "x": 113.0,
+      "y": 73.0,
+      "color": {
+        "r": 248,
+        "g": 252,
+        "b": 23
+      }
+    },
+    {
+      "id": 115,
+      "row": 7,
+      "col": 2,
+      "x": 33.0,
+      "y": 93.0,
+      "color": {
+        "r": 249,
+        "g": 7,
+        "b": 245
+      }
+    },
+    {
+      "id": 93,
+      "row": 5,
+      "col": 12,
+      "x": 133.0,
+      "y": 113.0,
+      "color": {
+        "r": 249,
+        "g": 250,
+        "b": 7
+      }
+    },
+    {
+      "id": 231,
+      "row": 14,
+      "col": 6,
+      "x": 73.0,
+      "y": 23.0,
+      "color": {
+        "r": 0,
+        "g": 255,
+        "b": 0
+      }
+    },
+    {
+      "id": 106,
+      "row": 6,
+      "col": 9,
+      "x": 103.0,
+      "y": 103.0,
+      "color": {
+        "r": 127,
+        "g": 0,
+        "b": 129
+      }
+    },
+    {
+      "id": 152,
+      "row": 9,
+      "col": 7,
+      "x": 83.0,
+      "y": 73.0,
+      "color": {
+        "r": 12,
+        "g": 245,
+        "b": 13
+      }
+    },
+    {
+      "id": 85,
+      "row": 5,
+      "col": 4,
+      "x": 53.0,
+      "y": 113.0,
+      "color": {
+        "r": 255,
+        "g": 0,
+        "b": 254
+      }
+    },
+    {
+      "id": 111,
+      "row": 6,
+      "col": 14,
+      "x": 153.0,
+      "y": 103.0,
+      "color": {
+        "r": 0,
+        "g": 255,
+        "b": 1
+      }
+    },
+    {
+      "id": 134,
+      "row": 8,
+      "col": 5,
+      "x": 63.0,
+      "y": 83.0,
+      "color": {
+        "r": 0,
+        "g": 255,
+        "b": 1
+      }
+    },
+    {
+      "id": 164,
+      "row": 10,
+      "col": 3,
+      "x": 43.0,
+      "y": 63.0,
+      "color": {
+        "r": 6,
+        "g": 250,
+        "b": 5
+      }
+    },
+    {
+      "id": 185,
+      "row": 11,
+      "col": 8,
+      "x": 93.0,
+      "y": 53.0,
+      "color": {
+        "r": 255,
+        "g": 253,
+        "b": 8
+      }
+    },
+    {
+      "id": 211,
+      "row": 13,
+      "col": 2,
+      "x": 33.0,
+      "y": 33.0,
+      "color": {
+        "r": 0,
+        "g": 255,
+        "b": 4
+      }
+    },
+    {
+      "id": 187,
+      "row": 11,
+      "col": 10,
+      "x": 113.0,
+      "y": 53.0,
+      "color": {
+        "r": 6,
+        "g": 251,
+        "b": 12
+      }
+    },
+    {
+      "id": 213,
+      "row": 13,
+      "col": 4,
+      "x": 53.0,
+      "y": 33.0,
+      "color": {
+        "r": 0,
+        "g": 255,
+        "b": 2
+      }
+    },
+    {
+      "id": 217,
+      "row": 13,
+      "col": 8,
+      "x": 93.0,
+      "y": 33.0,
+      "color": {
+        "r": 255,
+        "g": 254,
+        "b": 2
+      }
+    },
+    {
+      "id": 89,
+      "row": 5,
+      "col": 8,
+      "x": 93.0,
+      "y": 113.0,
+      "color": {
+        "r": 126,
+        "g": 1,
+        "b": 130
+      }
+    },
+    {
+      "id": 121,
+      "row": 7,
+      "col": 8,
+      "x": 93.0,
+      "y": 93.0,
+      "color": {
+        "r": 126,
+        "g": 5,
+        "b": 125
+      }
+    },
+    {
+      "id": 132,
+      "row": 8,
+      "col": 3,
+      "x": 43.0,
+      "y": 83.0,
+      "color": {
+        "r": 1,
+        "g": 254,
+        "b": 0
+      }
+    },
+    {
+      "id": 147,
+      "row": 9,
+      "col": 2,
+      "x": 33.0,
+      "y": 73.0,
+      "color": {
+        "r": 0,
+        "g": 255,
+        "b": 1
+      }
+    },
+    {
+      "id": 149,
+      "row": 9,
+      "col": 4,
+      "x": 53.0,
+      "y": 73.0,
+      "color": {
+        "r": 3,
+        "g": 253,
+        "b": 0
+      }
+    }
+  ]
 }
