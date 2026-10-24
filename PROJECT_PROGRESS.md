@@ -93,6 +93,20 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### 2026-10-24 13:10 - 🚀 Fix 3D Preview Modal Model Loading, Multithreaded HTTP Server & Parallel STL Fetching
+- **Diagnosis of Blank 3D Preview Modal:**
+  - **Single-Threaded Server Deadlock:** The previous Python `socketserver.TCPServer` handled all requests synchronously on a single thread. When the client auto-compiled STLs via `/api/generate_tpu_stl` (`subprocess.run`), all subsequent concurrent HTTP requests (such as `tpu_panel_specs.json`, textures, or STLs) were blocked at the socket level. Requests queued up until hitting the client-side `timeoutMs = 8000ms`, causing STL downloads to fail or time out.
+  - **`NoneType` Bounds Edge Case in `handle_generate_tpu_stl`:** If `getGraphicChestBounds()` evaluated to `null`, `req_data.get("bounds", {})` returned `None`, triggering an unhandled `AttributeError: 'NoneType' object has no attribute 'get'` and returning HTTP 500.
+  - **Undeclared Variables in `openTpuPreviewModal`:** `compiledGap`, `compiledLip`, `compiledClear`, and `compiledFrame` were assigned inside a try block without declaration, causing potential reference errors.
+  - **Sequential Loop Bottleneck:** The inlays loading loop previously awaited each multi-part STL sequentially one by one.
+- **Engineered Fixes & Verification:**
+  - **Upgraded to `socketserver.ThreadingTCPServer` (`simulator.py`):** Concurrently handles static asset requests, specs queries, and subprocess generation without blocking.
+  - **Safe Attribute Extraction:** Updated `bounds = req_data.get("bounds") or {}` in `simulator.py` to prevent `NoneType` crashes.
+  - **Parallelized Inlay Loading (`Promise.all` in `simulator/app.js`):** All multi-color inlays now fetch concurrently in parallel with a relaxed 25,000ms timeout.
+  - **Clean Overlay Dismissal:** Ensures `#tpuModalLoading` hides cleanly once geometries load.
+  - **Headless Edge CDP Verification:** Tested full load sequence with real WebGL rendering in Edge; verified Pete's Dragon 16×16 plate and multi-color inlays render flawlessly in under 1 second.
+  - **Cache Busted:** Bumped `app.js?v=106` in `simulator/index.html`.
+
 ### 2026-10-24 12:35 - ✨ 160×160mm Clear Backing Layer & Frame/Lip Toggle for 16×16 Matrix Plate
 - **160×160mm Clear Backing Layer (`scripts/compile_clean_tpu_panel.py`, `simulator.py`, `simulator/app.js`, `simulator/index.html`):**
   - **Mechanical & Optical Purpose:** Adds an optional structural translucent diffuser/backing layer spanning the full $160.0 	imes 160.0\text{ mm}$ active graphic zone ($X = 8.0 \dots 168.0\text{ mm}$, $Y = 8.0 \dots 168.0\text{ mm}$ on the $176 	imes 176\text{ mm}$ plate). Sits directly behind and touching the colored front faceplate to diffuse backlighting LEDs and provide rigid backing for flexible TPU/PETG multi-color inlays.

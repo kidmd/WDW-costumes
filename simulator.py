@@ -1348,7 +1348,7 @@ const uint8_t PROGMEM SPATIAL_RADIUS_BYTE[FRONT_LEDS] = {{
             BACK_WIDTH_MM = FRONT_WIDTH_MM
             BACK_HEIGHT_MM = round(BACK_WIDTH_MM / aspect, 2)
 
-            bounds = req_data.get("bounds", {})
+            bounds = req_data.get("bounds") or {}
             normX = bounds.get("normX", (1.0 - 0.40) / 2.0)
             normY = bounds.get("normY", 0.168)
             normW = bounds.get("normW", 0.40)
@@ -1746,8 +1746,8 @@ def run_server(port, open_browser=True):
     actual_port = find_available_port(port)
     server_address = ('', actual_port)
 
-    socketserver.TCPServer.allow_reuse_address = True
-    with socketserver.TCPServer(server_address, SimulatorRequestHandler) as httpd:
+    socketserver.ThreadingTCPServer.allow_reuse_address = True
+    with socketserver.ThreadingTCPServer(server_address, SimulatorRequestHandler) as httpd:
         url = f"http://localhost:{actual_port}"
         print("=" * 65)
         print("  MAIN STREET ELECTRICAL PARADE - LED SIMULATOR & PRESET MANAGER")
@@ -1771,8 +1771,8 @@ def run_server(port, open_browser=True):
 if __name__ == '__main__':
     if '--test' in sys.argv:
         test_port = find_available_port(8060)
-        socketserver.TCPServer.allow_reuse_address = True
-        httpd = socketserver.TCPServer(('', test_port), SimulatorRequestHandler)
+        socketserver.ThreadingTCPServer.allow_reuse_address = True
+        httpd = socketserver.ThreadingTCPServer(('', test_port), SimulatorRequestHandler)
         t = threading.Thread(target=httpd.serve_forever, daemon=True)
         t.start()
         print(f"[TEST] Server started on port {test_port}")

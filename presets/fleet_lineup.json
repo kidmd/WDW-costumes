@@ -9,7 +9,7 @@
     "color": "#e63946",
     "accent": "Red",
     "role": "\ud83d\udc51 Fleet Leader (Broadcast)",
-    "preset": "server:casey_jr_locomotive_100-led_vibrant_preset_2026-10-13_02-58.json",
+    "preset": "server:casey_jr_train.json",
     "defaultGraphic": "casey_jr_train"
   },
   {

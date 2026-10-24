@@ -24076,6 +24076,10 @@ async function openTpuPreviewModal() {
             let compiledOrient = undefined;
             let compiledMatrix16 = false;
             let compiledThick = 0.60;
+            let compiledGap = 3.0;
+            let compiledLip = 3.0;
+            let compiledClear = 0.0;
+            let compiledFrame = true;
             let sp = null;
             try {
                 const r = await fetch('/3d_panels/tpu_panel_specs.json?t=' + Date.now());
@@ -24402,7 +24406,7 @@ function clearTpuSceneModel() {
     tpuBaseColors = [];
 }
 
-function loadStlWithTimeout(stlLoader, url, timeoutMs = 8000) {
+function loadStlWithTimeout(stlLoader, url, timeoutMs = 25000) {
     return new Promise((resolve) => {
         let done = false;
         const timer = setTimeout(() => {
@@ -24748,45 +24752,54 @@ async function loadTpuModalData() {
                     }
                 }
 
-                for (const item of inlaysToLoad) {
+                const loadedInlays = await Promise.all(inlaysToLoad.map(async (item) => {
                     try {
-                        const iGeom = await loadStlWithTimeout(stlLoader, `/3d_panels/${item.file}?t=` + Date.now());
-                        if (iGeom) {
-                            iGeom.computeVertexNormals();
-                            let iMat;
-                            if (item.file && item.file.includes('color_lenses.stl')) {
-                                iMat = new THREE.MeshStandardMaterial({
-                                    color: 0xf0f9ff, // Translucent crystalline white
-                                    roughness: 0.15,
-                                    metalness: 0.05,
-                                    transparent: true,
-                                    opacity: 0.82,
-                                    side: THREE.DoubleSide
-                                });
-                            } else if (item.file && item.file.includes('color_clear_layer.stl')) {
-                                iMat = new THREE.MeshStandardMaterial({
-                                    color: 0xdff6ff, // Crystal clear translucent backing
-                                    roughness: 0.10,
-                                    metalness: 0.05,
-                                    transparent: true,
-                                    opacity: 0.65,
-                                    side: THREE.DoubleSide
-                                });
-                            } else {
-                                iMat = new THREE.MeshStandardMaterial({
-                                    color: item.color,
-                                    roughness: item.roughness,
-                                    metalness: 0.05,
-                                    side: THREE.DoubleSide
-                                });
-                            }
-                            const iMesh = new THREE.Mesh(iGeom, iMat);
-                            iMesh.position.set(-stlCenter.x, -stlCenter.y, -stlCenter.z);
+                        const iGeom = await loadStlWithTimeout(stlLoader, `/3d_panels/${item.file}?t=` + Date.now(), 25000);
+                        return { item, iGeom };
+                    } catch (e) {
+                        console.warn("[TPU Preview] Could not load inlay:", item.file, e);
+                        return { item, iGeom: null };
+                    }
+                }));
+
+                if (reqId !== tpuLoadRequestId) return;
+
+                for (const { item, iGeom } of loadedInlays) {
+                    if (iGeom) {
+                        iGeom.computeVertexNormals();
+                        let iMat;
+                        if (item.file && item.file.includes('color_lenses.stl')) {
+                            iMat = new THREE.MeshStandardMaterial({
+                                color: 0xf0f9ff, // Translucent crystalline white
+                                roughness: 0.15,
+                                metalness: 0.05,
+                                transparent: true,
+                                opacity: 0.82,
+                                side: THREE.DoubleSide
+                            });
+                        } else if (item.file && item.file.includes('color_clear_layer.stl')) {
+                            iMat = new THREE.MeshStandardMaterial({
+                                color: 0xdff6ff, // Crystal clear translucent backing
+                                roughness: 0.10,
+                                metalness: 0.05,
+                                transparent: true,
+                                opacity: 0.65,
+                                side: THREE.DoubleSide
+                            });
+                        } else {
+                            iMat = new THREE.MeshStandardMaterial({
+                                color: item.color,
+                                roughness: item.roughness,
+                                metalness: 0.05,
+                                side: THREE.DoubleSide
+                            });
+                        }
+                        const iMesh = new THREE.Mesh(iGeom, iMat);
+                        iMesh.position.set(-stlCenter.x, -stlCenter.y, -stlCenter.z);
+                        if (tpuScene) {
                             tpuScene.add(iMesh);
                             tpuMultiMeshes.push(iMesh);
                         }
-                    } catch (e) {
-                        console.warn("[TPU Preview] Could not load inlay:", item.file, e);
                     }
                 }
             } else {
@@ -24838,8 +24851,16 @@ async function loadTpuModalData() {
             loaderOverlay.innerHTML = `<div style="color:#ef4444; font-weight:700; text-align:center; padding: 12px;">Error Loading 3D Preview: ${errMsg}</div>`;
         }
     } finally {
-        if (loaderOverlay && reqId === tpuLoadRequestId && !loaderOverlay.innerHTML.includes('Error Loading')) {
-            loaderOverlay.style.display = 'none';
+        if (loaderOverlay && reqId === tpuLoadRequestId) {
+            if (loaderOverlay.innerHTML.includes('Error Loading') || loaderOverlay.innerHTML.includes('color:#ef4444')) {
+                setTimeout(() => {
+                    if (loaderOverlay && reqId === tpuLoadRequestId) {
+                        loaderOverlay.style.display = 'none';
+                    }
+                }, 3000);
+            } else {
+                loaderOverlay.style.display = 'none';
+            }
         }
     }
 }
