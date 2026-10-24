@@ -530,45 +530,32 @@ def compile_matrix_16x16_plate_variant(variant_name, artwork_path, window_shape=
                 u = u.difference(shirt_holes_union_2d)
             polys_2d[c_name] = u if u.is_valid else u.buffer(0)
 
-    # Build microscopic, non-overlapping perimeter registration anchors at (0.0 .. 176.0mm)
-    # so that EVERY split STL file (chassis, lenses, and each color inlay) has the EXACT same
-    # [0.0, 176.0] x [0.0, 176.0] bounding box and (88.0, 88.0) center in any 3D slicer!
-    def make_bbox_anchor_2d(part_idx):
-        off = 1.0 + part_idx * 0.5  # staggered along the outer 0.25mm edge (well clear of corners & 4.0mm sewing holes)
-        w = 0.25
-        return unary_union([
-            sg.box(0.0, off, w, off + w),
-            sg.box(PLATE_SIZE_MM - w, PLATE_SIZE_MM - off - w, PLATE_SIZE_MM, PLATE_SIZE_MM - off),
-            sg.box(off, 0.0, off + w, w),
-            sg.box(PLATE_SIZE_MM - off - w, PLATE_SIZE_MM - w, PLATE_SIZE_MM - off, PLATE_SIZE_MM)
-        ])
+    # Build microscopic 4-corner apex registration triangles at exactly (0,0), (176,0), (0,176), (176,176)
+    # so that EVERY split STL file (chassis, lenses, clear backing, and each color inlay) shares the EXACT same
+    # [0.0, 176.0] x [0.0, 176.0] bounding box and (88.0, 88.0) center in Bambu Studio / PrusaSlicer!
+    # By placing 0.35x0.35mm right triangles precisely in the outer corners:
+    # 1. Area = 0.5 * 0.35 * 0.35 = 0.06125 mm2 (> 0.05 mm2 threshold so they are preserved)
+    # 2. They do NOT stagger along the plate edges, completely eliminating the 'antennae / whiskers' comb teeth!
+    # 3. All parts share the exact same corner anchors, keeping edges 100% smooth and straight.
+    corner_w = 0.35
+    corner_anchors_2d = unary_union([
+        sg.Polygon([(0.0, 0.0), (corner_w, 0.0), (0.0, corner_w)]),
+        sg.Polygon([(PLATE_SIZE_MM, 0.0), (PLATE_SIZE_MM - corner_w, 0.0), (PLATE_SIZE_MM, corner_w)]),
+        sg.Polygon([(0.0, PLATE_SIZE_MM), (corner_w, PLATE_SIZE_MM), (0.0, PLATE_SIZE_MM - corner_w)]),
+        sg.Polygon([(PLATE_SIZE_MM, PLATE_SIZE_MM), (PLATE_SIZE_MM - corner_w, PLATE_SIZE_MM), (PLATE_SIZE_MM, PLATE_SIZE_MM - corner_w)])
+    ])
 
-    anchor_idx = 0
-    all_anchors_list = []
     for c_name in list(polys_2d.keys()):
-        anc = make_bbox_anchor_2d(anchor_idx)
-        anchor_idx += 1
-        polys_2d[c_name] = unary_union([polys_2d[c_name], anc])
-        all_anchors_list.append(anc)
+        polys_2d[c_name] = unary_union([polys_2d[c_name], corner_anchors_2d])
 
-    lens_anchor_2d = sg.Polygon()
-    if include_lenses and not windows_union_2d.is_empty:
-        lens_anchor_2d = make_bbox_anchor_2d(anchor_idx)
-        anchor_idx += 1
-        all_anchors_list.append(lens_anchor_2d)
-
-    clear_anchor_2d = sg.Polygon()
-    if CLEAR_MM > 0:
-        clear_anchor_2d = make_bbox_anchor_2d(anchor_idx)
-        anchor_idx += 1
-
-    all_anchors_2d = unary_union(all_anchors_list) if all_anchors_list else sg.Polygon()
+    lens_anchor_2d = corner_anchors_2d if (include_lenses and not windows_union_2d.is_empty) else sg.Polygon()
+    clear_anchor_2d = corner_anchors_2d if CLEAR_MM > 0 else sg.Polygon()
 
     plate_box_2d = sg.box(0.0, 0.0, PLATE_SIZE_MM, PLATE_SIZE_MM)
     all_inlays_2d = unary_union(list(polys_2d.values())) if polys_2d else sg.Polygon()
     chassis_2d = plate_box_2d.difference(all_inlays_2d)
-    if not all_anchors_2d.is_empty:
-        chassis_2d = chassis_2d.difference(all_anchors_2d)
+    if not corner_anchors_2d.is_empty:
+        chassis_2d = unary_union([chassis_2d, corner_anchors_2d])
     if not windows_union_2d.is_empty:
         chassis_2d = chassis_2d.difference(windows_union_2d)
     if not shirt_holes_union_2d.is_empty:

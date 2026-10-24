@@ -93,6 +93,15 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### 2026-10-24: 3D Plate Slicer Registration Anchors Cleaned Up (Corner Apex Triangles)
+- **Problem Resolved:** In previous builds, multi-part color split STLs used staggered 0.25mm perimeter bounding-box registration tabs along the plate edges. These staggered tabs visually appeared in the 3D preview modal as colored 'antennae / comb teeth / whiskers' along the plate edge and physically created small bumps/notches on the printed perimeter.
+- **Apex Registration Geometry:** Replaced staggered perimeter tabs with shared 0.35x0.35mm right-triangles positioned right at the extreme four apex corners of the plate: (0, 0), (176, 0), (0, 176), and (176, 176).
+  - Triangle area: 0.5 * 0.35 * 0.35 = 0.06125 mm², which is safely above the 0.05 mm² polygon preservation threshold in extrude_shapely.
+  - All color inlays, lenses, clear diffuser backing, and the chassis share the identical corner apex coordinates.
+  - Zero perimeter staggering: plate edges remain 100% straight and smooth.
+  - Guarantees that every exported STL matches the identical [0.0, 176.0] x [0.0, 176.0] mm bounding box and (88.0, 88.0) center in Bambu Studio and PrusaSlicer without needing manual alignment.
+
+
 ### 2026-10-24 13:10 - 🚀 Fix 3D Preview Modal Model Loading, Multithreaded HTTP Server & Parallel STL Fetching
 - **Diagnosis of Blank 3D Preview Modal:**
   - **Single-Threaded Server Deadlock:** The previous Python `socketserver.TCPServer` handled all requests synchronously on a single thread. When the client auto-compiled STLs via `/api/generate_tpu_stl` (`subprocess.run`), all subsequent concurrent HTTP requests (such as `tpu_panel_specs.json`, textures, or STLs) were blocked at the socket level. Requests queued up until hitting the client-side `timeoutMs = 8000ms`, causing STL downloads to fail or time out.
