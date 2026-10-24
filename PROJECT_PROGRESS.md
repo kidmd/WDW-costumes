@@ -93,6 +93,22 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### 2026-10-24 12:35 - ✨ 160×160mm Clear Backing Layer & Frame/Lip Toggle for 16×16 Matrix Plate
+- **160×160mm Clear Backing Layer (`scripts/compile_clean_tpu_panel.py`, `simulator.py`, `simulator/app.js`, `simulator/index.html`):**
+  - **Mechanical & Optical Purpose:** Adds an optional structural translucent diffuser/backing layer spanning the full $160.0 	imes 160.0\text{ mm}$ active graphic zone ($X = 8.0 \dots 168.0\text{ mm}$, $Y = 8.0 \dots 168.0\text{ mm}$ on the $176 	imes 176\text{ mm}$ plate). Sits directly behind and touching the colored front faceplate to diffuse backlighting LEDs and provide rigid backing for flexible TPU/PETG multi-color inlays.
+  - **Selectable Thicknesses:** Selectable across `None` (`0.0mm`), `0.2mm`, `0.4mm`, `0.6mm`, `0.8mm`, and `1.0mm` in both the 3D Preview Modal toolbar (`#tpuModalClearLayerPill`) and Layout tab (`.btf-matrix-clear-btn`). Persisted across browser sessions in `localStorage`.
+  - **Zero-Collision Mesh Aperture Subtraction:** Window apertures ($arnothing 3.4\text{ mm}$) are cut through both the front graphic and the clear layer, allowing the full-height translucent lens cylinders to pass seamlessly from the LED plane to the front face without volumetric slicer overlaps.
+  - **Independent Slicer Part & Bounding Box Lock:** Exported as a distinct 3MF multi-part component (`Clear_Backing_Layer_160x160`) and standalone STL (`tpu_panel_{variant}_color_clear_layer.stl`). Includes symmetric $0.25\text{ mm}$ registration corner anchors locking its bounding box to exactly $[0.0, 176.0] 	imes [0.0, 176.0]\text{ mm}$ with center at $(88.0, 88.0)$, preventing slicer auto-centering offsets.
+  - **3D Preview Modal Shader:** Rendered in Three.js with crystal translucent material (`#dff6ff`, opacity: `0.65`, roughness: `0.10`).
+- **Centering Frame & Lip Mode Toggle (ON ★ / OFF):**
+  - **Frame ON (Default):** Retains the 3-tier stepped rear standoff frame, $2.0\text{ mm}$ deep $160.4 	imes 160.4\text{ mm}$ PCB recess, and $1.0\text{ mm}$ internal supporting ledge ($156.4 	imes 156.4\text{ mm}$) centered at $(88.0, 88.0\text{ mm})$ with bottom wire exit notch.
+  - **Frame OFF:** Completely omits the rear frame walls and internal lip (`frame_solids = []`), generating a flat plate while lenses maintain their chosen full-height standoff length (`GAP_MM + CLEAR_MM + THICK_MM`).
+  - **UI Integration:** Toggleable via the `🖼️ Frame & Lip:` pill button (`ON ★ / OFF`) in the 3D modal toolbar (`#tpuModalFramePill`) and checkbox (`#btfMatrixFrameToggle`) in the Layout tab.
+- **Full CLI & API Parameter Synchronization:**
+  - Added CLI flags `--matrix-clear-layer <float>` and `--matrix-frame <on|off>` to `scripts/compile_clean_tpu_panel.py`.
+  - Updated `/api/generate_tpu_stl` in `simulator.py` to accept `matrixClearLayerMm` and `matrixFrameMode`.
+  - Restarted simulator server background service on `http://localhost:8000`.
+
 ### 2026-10-24 00:12 - 🎯 16x16 Matrix Frame Centering, Slicer Bounding-Box Lock & Coaxial Lens-to-LED Alignment Fix
 - **Root-Cause Diagnosis of PETG Test Print Misalignment (`scripts/compile_clean_tpu_panel.py` & `simulator/app.js`):**
   - **Root Cause 1 — Slicer Auto-Centering Shift on Split STLs (`5.0 mm` Y-Offset):** While `tpu_panel_front_chassis_black.stl` had an exact `[0.0, 176.0] × [0.0, 176.0]` bounding box (`center = 88.00, 88.00 mm`), `tpu_panel_front_color_lenses.stl` only spanned the bounding envelope of its 50 lens cylinders (`[11.3, 164.7] × [11.3, 154.7]`, `center = 88.00, 83.00 mm`) — shifting the lenses by **`5.00 mm` in Y (half an LED row)** whenever a 3D slicer centered imported STL parts! Similarly, each color inlay STL had its own asymmetric centroid.

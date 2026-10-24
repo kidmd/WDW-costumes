@@ -1417,6 +1417,14 @@ const uint8_t PROGMEM SPATIAL_RADIUS_BYTE[FRONT_LEDS] = {{
             matrix_lip_mm = matrix_gap_mm
 
             matrix_lenses_mode = bool(req_data.get("matrixLensesMode", req_data.get("includeLenses", True)))
+            try:
+                matrix_clear_layer_mm = float(req_data.get("matrixClearLayerMm", req_data.get("clearLayerMm", 0.0)))
+            except Exception:
+                matrix_clear_layer_mm = 0.0
+            if matrix_clear_layer_mm not in [0.0, 0.2, 0.4, 0.6, 0.8, 1.0]:
+                matrix_clear_layer_mm = round(max(0.0, min(2.0, matrix_clear_layer_mm)), 2)
+
+            matrix_frame_mode = bool(req_data.get("matrixFrameMode", req_data.get("includeFrame", True)))
             matrix_windowed_leds = req_data.get("matrixWindowedLeds", [])
             matrix_backlight_leds = req_data.get("matrixBacklightLeds", [])
 
@@ -1438,6 +1446,8 @@ const uint8_t PROGMEM SPATIAL_RADIUS_BYTE[FRONT_LEDS] = {{
                 "matrix_gap_mm": matrix_gap_mm,
                 "matrix_lip_mm": matrix_lip_mm,
                 "matrix_lenses_mode": matrix_lenses_mode,
+                "matrix_clear_layer_mm": matrix_clear_layer_mm,
+                "matrix_frame_mode": matrix_frame_mode,
                 "matrix_windowed_leds": matrix_windowed_leds,
                 "matrix_backlight_leds": matrix_backlight_leds,
                 "stl_colors": req_data.get("stlColors"),
@@ -1496,7 +1506,11 @@ const uint8_t PROGMEM SPATIAL_RADIUS_BYTE[FRONT_LEDS] = {{
                 "--matrix-lip",
                 str(matrix_lip_mm),
                 "--matrix-lenses",
-                "on" if matrix_lenses_mode else "off" 
+                "on" if matrix_lenses_mode else "off",
+                "--matrix-clear-layer",
+                str(matrix_clear_layer_mm),
+                "--matrix-frame",
+                "on" if matrix_frame_mode else "off"
             ]
             res = subprocess.run(cmd, cwd=BASE_DIR, capture_output=True, text=True, timeout=90)
             if res.returncode != 0:

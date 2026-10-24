@@ -14180,6 +14180,8 @@ function applyProfileData(profileData) {
         if (typeof syncBtfMatrixThicknessUI === 'function') {
             syncBtfMatrixThicknessUI(btfMatrix16x16Config.thicknessMm);
     syncBtfMatrixLipUI(btfMatrix16x16Config.lipMm !== undefined ? btfMatrix16x16Config.lipMm : 2.0);
+    syncBtfMatrixClearLayerUI(btfMatrix16x16Config.clearLayerMm !== undefined ? btfMatrix16x16Config.clearLayerMm : 0.0);
+    syncBtfMatrixFrameUI(btfMatrix16x16Config.frameActive !== false);
         }
 
         if (btfMatrix16x16Active) {
@@ -15907,7 +15909,9 @@ let btfMatrix16x16Config = {
     thicknessMm: 0.60,
     gapMm: 3.0,
     lipMm: 3.0,
-    lensesActive: true
+    lensesActive: true,
+    clearLayerMm: 0.0,
+    frameActive: true
 };
 try {
     const savedGap = localStorage.getItem('msep_matrix_gap_mm') || localStorage.getItem('msep_matrix_lip_mm');
@@ -15921,6 +15925,17 @@ try {
     const savedLenses = localStorage.getItem('msep_matrix_lenses_mode');
     if (savedLenses !== null) {
         btfMatrix16x16Config.lensesActive = (savedLenses === 'true');
+    }
+    const savedClear = localStorage.getItem('msep_matrix_clear_layer_mm');
+    if (savedClear !== null) {
+        const pClear = parseFloat(savedClear);
+        if (!isNaN(pClear) && [0, 0.2, 0.4, 0.6, 0.8, 1.0].includes(pClear)) {
+            btfMatrix16x16Config.clearLayerMm = pClear;
+        }
+    }
+    const savedFrame = localStorage.getItem('msep_matrix_frame_mode');
+    if (savedFrame !== null) {
+        btfMatrix16x16Config.frameActive = (savedFrame === 'true');
     }
 } catch (e) {}
 let btfMatrix16x16Cells = []; // 256 entries: { row, col, matrixIdx, plateX, plateY, nx, ny, role: 'window'|'backlight'|'dark', color, onGraphic }
@@ -16768,6 +16783,143 @@ function setTpuMatrixLenses(active) {
 }
 window.setTpuMatrixLenses = setTpuMatrixLenses;
 
+function syncBtfMatrixClearLayerUI(clearVal) {
+    const c = parseFloat(clearVal);
+    const validClear = (isNaN(c) || c < 0) ? 0.0 : parseFloat(c.toFixed(1));
+    btfMatrix16x16Config.clearLayerMm = validClear;
+    try { localStorage.setItem('msep_matrix_clear_layer_mm', String(validClear)); } catch (e) {}
+
+    document.querySelectorAll('.btf-matrix-clear-btn').forEach(btn => {
+        const bVal = parseFloat(btn.getAttribute('data-clear'));
+        if (Math.abs(bVal - validClear) < 0.01) {
+            btn.classList.add('active');
+            btn.style.background = 'rgba(56, 189, 248, 0.25)';
+            btn.style.borderColor = '#38bdf8';
+            btn.style.color = '#fff';
+            btn.style.fontWeight = '700';
+        } else {
+            btn.classList.remove('active');
+            btn.style.background = '';
+            btn.style.borderColor = '';
+            btn.style.color = '';
+            btn.style.fontWeight = '';
+        }
+    });
+
+    const modalMap = [
+        { id: 'tpuModalClear0Btn', val: 0.0 },
+        { id: 'tpuModalClear02Btn', val: 0.2 },
+        { id: 'tpuModalClear04Btn', val: 0.4 },
+        { id: 'tpuModalClear06Btn', val: 0.6 },
+        { id: 'tpuModalClear08Btn', val: 0.8 },
+        { id: 'tpuModalClear10Btn', val: 1.0 }
+    ];
+    modalMap.forEach(item => {
+        const el = document.getElementById(item.id);
+        if (!el) return;
+        if (Math.abs(item.val - validClear) < 0.01) {
+            el.style.background = '#38bdf8';
+            el.style.color = '#000';
+            el.style.fontWeight = '700';
+        } else {
+            el.style.background = 'transparent';
+            el.style.color = '#8b949e';
+            el.style.fontWeight = '500';
+        }
+    });
+
+    updateBtfMatrix16x16TelemetryUI();
+}
+window.syncBtfMatrixClearLayerUI = syncBtfMatrixClearLayerUI;
+
+function setTpuMatrixClearLayer(clearVal) {
+    syncBtfMatrixClearLayerUI(clearVal);
+    markSingleShirtDirty();
+
+    const txt = (btfMatrix16x16Config.clearLayerMm > 0)
+        ? `${btfMatrix16x16Config.clearLayerMm.toFixed(1)}mm Clear Backing Layer (160×160mm)`
+        : 'No Clear Backing Layer';
+
+    if (typeof tpuIsOpen !== 'undefined' && tpuIsOpen) {
+        if (tpuDisplayMode !== 'matrix16') {
+            tpuDisplayMode = 'matrix16';
+        }
+        const loaderOverlay = document.getElementById('tpuModalLoading');
+        if (loaderOverlay) {
+            loaderOverlay.style.display = 'flex';
+            loaderOverlay.innerHTML = `
+                <div class="spinner" style="width: 32px; height: 32px; border: 3px solid rgba(56, 189, 248, 0.2); border-top-color: #38bdf8; border-radius: 50%; animation: spin 0.8s linear infinite;"></div>
+                <span>Recompiling 16×16 Matrix with ${txt}...</span>
+            `;
+        }
+        handleRecompileTpuStl({ skipOpen: true }).then(() => {
+            if (tpuIsOpen) loadTpuModalData();
+        });
+    }
+    showToast(`✨ 16×16 Matrix: ${txt}`);
+}
+window.setTpuMatrixClearLayer = setTpuMatrixClearLayer;
+
+function syncBtfMatrixFrameUI(active) {
+    const isAct = (active !== false);
+    btfMatrix16x16Config.frameActive = isAct;
+    try { localStorage.setItem('msep_matrix_frame_mode', isAct ? 'true' : 'false'); } catch (e) {}
+
+    const onBtn = document.getElementById('tpuModalFrameOnBtn');
+    const offBtn = document.getElementById('tpuModalFrameOffBtn');
+    if (onBtn && offBtn) {
+        if (isAct) {
+            onBtn.style.background = '#facc15';
+            onBtn.style.color = '#000';
+            onBtn.style.fontWeight = '700';
+            offBtn.style.background = 'transparent';
+            offBtn.style.color = '#8b949e';
+            offBtn.style.fontWeight = '500';
+        } else {
+            offBtn.style.background = '#facc15';
+            offBtn.style.color = '#000';
+            offBtn.style.fontWeight = '700';
+            onBtn.style.background = 'transparent';
+            onBtn.style.color = '#8b949e';
+            onBtn.style.fontWeight = '500';
+        }
+    }
+
+    const tog = document.getElementById('btfMatrixFrameToggle');
+    if (tog) tog.checked = isAct;
+
+    updateBtfMatrix16x16TelemetryUI();
+}
+window.syncBtfMatrixFrameUI = syncBtfMatrixFrameUI;
+
+function setTpuMatrixFrame(active) {
+    syncBtfMatrixFrameUI(active);
+    markSingleShirtDirty();
+
+    const txt = btfMatrix16x16Config.frameActive
+        ? 'Rear Frame & 2mm Lip ON (Centers 160×160mm LED Panel)'
+        : 'Rear Frame & Lip OFF (Flat Back • Lenses at Chosen Length)';
+
+    if (typeof tpuIsOpen !== 'undefined' && tpuIsOpen) {
+        if (tpuDisplayMode !== 'matrix16') {
+            tpuDisplayMode = 'matrix16';
+        }
+        const loaderOverlay = document.getElementById('tpuModalLoading');
+        if (loaderOverlay) {
+            loaderOverlay.style.display = 'flex';
+            loaderOverlay.innerHTML = `
+                <div class="spinner" style="width: 32px; height: 32px; border: 3px solid rgba(250, 204, 21, 0.2); border-top-color: #facc15; border-radius: 50%; animation: spin 0.8s linear infinite;"></div>
+                <span>Recompiling 16×16 Matrix with ${txt}...</span>
+            `;
+        }
+        handleRecompileTpuStl({ skipOpen: true }).then(() => {
+            if (tpuIsOpen) loadTpuModalData();
+        });
+    }
+    showToast(`🖼️ 16×16 Matrix: ${txt}`);
+}
+window.setTpuMatrixFrame = setTpuMatrixFrame;
+
 function initBtfMatrix16x16Mode() {
     const toggle = document.getElementById('btfMatrix16x16Toggle');
     const card = document.getElementById('btfMatrix16x16OptionsCard');
@@ -16839,6 +16991,22 @@ function initBtfMatrix16x16Mode() {
             if (btfMatrix16x16Active) handleRecompileTpuStl({ skipOpen: true });
         });
     });
+
+    document.querySelectorAll('.btf-matrix-clear-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const val = parseFloat(btn.getAttribute('data-clear')) || 0.0;
+            setTpuMatrixClearLayer(val);
+            if (btfMatrix16x16Active) handleRecompileTpuStl({ skipOpen: true });
+        });
+    });
+
+    const frameToggle = document.getElementById('btfMatrixFrameToggle');
+    if (frameToggle) {
+        frameToggle.checked = (btfMatrix16x16Config.frameActive !== false);
+        frameToggle.addEventListener('change', (e) => {
+            setTpuMatrixFrame(e.target.checked);
+        });
+    }
 
     if (spreadBtn) {
         spreadBtn.addEventListener('click', () => {
@@ -23469,10 +23637,12 @@ function computeTpuLayoutSignature() {
         mix('floatcolors-v1');
         mix(JSON.stringify((typeof getActiveFloatStlColors === 'function') ? getActiveFloatStlColors() : {}));
         if (isMatrix16) {
-            mix('matrix16x16-v2');
+            mix('matrix16x16-v3');
             mix(matThick);
             mix(matLip);
             mix(btfMatrix16x16Config.lensesActive !== false ? 'lenses' : 'nolenses');
+            mix(String(btfMatrix16x16Config.clearLayerMm || 0.0));
+            mix(btfMatrix16x16Config.frameActive !== false ? 'frameOn' : 'frameOff');
             if (typeof btfMatrix16x16Cells !== 'undefined' && Array.isArray(btfMatrix16x16Cells)) {
                 mix(btfMatrix16x16Cells.map(c => c.role[0]).join(''));
             }
@@ -23802,6 +23972,8 @@ async function handleRecompileTpuStl(opts) {
             matrixGapMm: (typeof btfMatrix16x16Config !== 'undefined' && btfMatrix16x16Config.gapMm !== undefined) ? btfMatrix16x16Config.gapMm : 3.0,
             matrixLipMm: (typeof btfMatrix16x16Config !== 'undefined' && btfMatrix16x16Config.gapMm !== undefined) ? btfMatrix16x16Config.gapMm : 3.0,
             matrixLensesMode: (typeof btfMatrix16x16Config !== 'undefined' && btfMatrix16x16Config.lensesActive !== false),
+            matrixClearLayerMm: (typeof btfMatrix16x16Config !== 'undefined' && btfMatrix16x16Config.clearLayerMm !== undefined) ? btfMatrix16x16Config.clearLayerMm : 0.0,
+            matrixFrameMode: (typeof btfMatrix16x16Config !== 'undefined' && btfMatrix16x16Config.frameActive !== false),
             matrixWindowedLeds: matrixLists.windowedLeds,
             matrixBacklightLeds: matrixLists.backlightLeds,
             widthMm: selectedPlateWidthMm,
@@ -23919,6 +24091,8 @@ async function openTpuPreviewModal() {
                     compiledThick = parseFloat(sp.plate_thickness_mm || 0.60);
                     compiledGap = (sp.matrix_gap_mm !== undefined) ? parseFloat(sp.matrix_gap_mm) : ((sp.matrix_lip_mm !== undefined) ? parseFloat(sp.matrix_lip_mm) : 3.0);
                     compiledLip = compiledGap;
+                    compiledClear = (sp.matrix_clear_layer_mm !== undefined) ? parseFloat(sp.matrix_clear_layer_mm) : 0.0;
+                    compiledFrame = (sp.matrix_frame_mode !== undefined) ? Boolean(sp.matrix_frame_mode) : true;
                 }
             } catch (e) {}
 
@@ -23930,7 +24104,14 @@ async function openTpuPreviewModal() {
             const wantMatrix16 = (typeof btfMatrix16x16Active !== 'undefined' && (btfMatrix16x16Active || tpuDisplayMode === 'matrix16'));
             const wantThick = (typeof btfMatrix16x16Config !== 'undefined' && btfMatrix16x16Config.thicknessMm) ? btfMatrix16x16Config.thicknessMm : 0.60;
             const wantLip = (typeof btfMatrix16x16Config !== 'undefined' && btfMatrix16x16Config.gapMm !== undefined) ? btfMatrix16x16Config.gapMm : ((btfMatrix16x16Config && btfMatrix16x16Config.lipMm !== undefined) ? btfMatrix16x16Config.lipMm : 3.0);
-            const matrixModeMismatch = (compiledMatrix16 !== wantMatrix16) || (wantMatrix16 && (Math.abs(compiledThick - wantThick) > 0.01 || Math.abs((typeof compiledLip !== 'undefined' ? compiledLip : 3.0) - wantLip) > 0.05));
+            const wantClear = (typeof btfMatrix16x16Config !== 'undefined' && btfMatrix16x16Config.clearLayerMm !== undefined) ? btfMatrix16x16Config.clearLayerMm : 0.0;
+            const wantFrame = (typeof btfMatrix16x16Config !== 'undefined' && btfMatrix16x16Config.frameActive !== undefined) ? btfMatrix16x16Config.frameActive : true;
+            const matrixModeMismatch = (compiledMatrix16 !== wantMatrix16) || (wantMatrix16 && (
+                Math.abs(compiledThick - wantThick) > 0.01 ||
+                Math.abs((typeof compiledLip !== 'undefined' ? compiledLip : 3.0) - wantLip) > 0.05 ||
+                Math.abs((typeof compiledClear !== 'undefined' ? compiledClear : 0.0) - wantClear) > 0.05 ||
+                (typeof compiledFrame !== 'undefined' && compiledFrame !== wantFrame)
+            ));
 
             let ledsMismatch = false;
             if (!wantMatrix16 && sp && sp.ordered_leds && Array.isArray(sp.ordered_leds)) {
@@ -24103,9 +24284,21 @@ function syncTpuDisplayModePills(mode) {
     if (thickPill) {
         thickPill.style.display = (mode === 'matrix16') ? 'inline-flex' : 'none';
     }
-    const lipPill = document.getElementById('tpuModalLipPill');
-    if (lipPill) {
-        lipPill.style.display = (mode === 'matrix16') ? 'inline-flex' : 'none';
+    const clearPill = document.getElementById('tpuModalClearLayerPill');
+    if (clearPill) {
+        clearPill.style.display = (mode === 'matrix16') ? 'inline-flex' : 'none';
+    }
+    const gapPill = document.getElementById('tpuModalGapPill') || document.getElementById('tpuModalLipPill');
+    if (gapPill) {
+        gapPill.style.display = (mode === 'matrix16') ? 'inline-flex' : 'none';
+    }
+    const lensesPill = document.getElementById('tpuModalLensesPill');
+    if (lensesPill) {
+        lensesPill.style.display = (mode === 'matrix16') ? 'inline-flex' : 'none';
+    }
+    const framePill = document.getElementById('tpuModalFramePill');
+    if (framePill) {
+        framePill.style.display = (mode === 'matrix16') ? 'inline-flex' : 'none';
     }
     const trayOnlyBtnIds = [
         'tpuModalShapeRound34Btn', 'tpuModalShapeRound30Btn', 'tpuModalShapeSquareBtn',
@@ -24309,8 +24502,14 @@ async function loadTpuModalData() {
                 const glowC = (variantData.backlight_leds || []).length;
                 const effectiveLip = (variantData.lip_mm !== undefined) ? parseFloat(variantData.lip_mm) : (btfMatrix16x16Config ? btfMatrix16x16Config.lipMm : 2.0);
                 if (typeof syncBtfMatrixLipUI === 'function') syncBtfMatrixLipUI(effectiveLip);
-                const lipLabel = (effectiveLip > 0) ? ` + ${effectiveLip.toFixed(1)}mm PCB Lip` : ' (Flat Back)';
-                modalSub.textContent = `176×176×${effectiveThick.toFixed(2)}mm Plate${lipLabel} • ${winC} Ø 3.4mm Windows + ${glowC} Backlit Glow • 4 Corner Sewing Holes`;
+                const effectiveClear = (variantData.clear_layer_mm !== undefined) ? parseFloat(variantData.clear_layer_mm) : ((btfMatrix16x16Config && btfMatrix16x16Config.clearLayerMm !== undefined) ? btfMatrix16x16Config.clearLayerMm : 0.0);
+                const effectiveFrame = (variantData.matrix_frame_mode !== undefined) ? Boolean(variantData.matrix_frame_mode) : ((btfMatrix16x16Config && btfMatrix16x16Config.frameActive !== undefined) ? btfMatrix16x16Config.frameActive : true);
+                if (typeof syncBtfMatrixClearLayerUI === 'function') syncBtfMatrixClearLayerUI(effectiveClear);
+                if (typeof syncBtfMatrixFrameUI === 'function') syncBtfMatrixFrameUI(effectiveFrame);
+
+                const clearLabel = (effectiveClear > 0) ? ` + ${effectiveClear.toFixed(1)}mm Clear` : '';
+                const frameLabel = effectiveFrame ? ((effectiveLip > 0) ? ` + ${effectiveLip.toFixed(1)}mm Lip Frame` : ' + Flush Frame') : ' (Frame OFF)';
+                modalSub.textContent = `176×176×${effectiveThick.toFixed(2)}mm Plate${clearLabel}${frameLabel} • ${winC} Ø 3.4mm Windows + ${glowC} Backlit Glow`;
             } else {
                 const shapeText = (effectiveShape === 'round_34') ? 'Ø 3.4mm Round Apertures (Default)' : ((effectiveShape === 'round_30' || effectiveShape === 'round' || effectiveShape === 'circle') ? 'Ø 3.0mm Round Apertures' : '3×3mm Square Apertures');
                 const orientText = (effectiveOrient === 'tangent') ? 'Tangent to Wire' : 'Horizontal Alignment';
@@ -24562,6 +24761,15 @@ async function loadTpuModalData() {
                                     metalness: 0.05,
                                     transparent: true,
                                     opacity: 0.82,
+                                    side: THREE.DoubleSide
+                                });
+                            } else if (item.file && item.file.includes('color_clear_layer.stl')) {
+                                iMat = new THREE.MeshStandardMaterial({
+                                    color: 0xdff6ff, // Crystal clear translucent backing
+                                    roughness: 0.10,
+                                    metalness: 0.05,
+                                    transparent: true,
+                                    opacity: 0.65,
                                     side: THREE.DoubleSide
                                 });
                             } else {

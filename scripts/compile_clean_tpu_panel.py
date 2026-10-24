@@ -198,6 +198,26 @@ elif '--lenses' in sys.argv:
     if _ls + 1 < len(sys.argv):
         INCLUDE_LENSES = sys.argv[_ls + 1].lower() in ('on', '1', 'true', 'yes')
 
+MATRIX_CLEAR_LAYER_MM = float(specs.get('matrix_clear_layer_mm', 0.0))
+if '--matrix-clear-layer' in sys.argv:
+    _mcl = sys.argv.index('--matrix-clear-layer')
+    if _mcl + 1 < len(sys.argv):
+        try:
+            MATRIX_CLEAR_LAYER_MM = float(sys.argv[_mcl + 1])
+        except Exception:
+            pass
+
+INCLUDE_FRAME = True
+if 'matrix_frame_mode' in specs:
+    INCLUDE_FRAME = bool(specs['matrix_frame_mode'])
+elif 'include_frame' in specs:
+    INCLUDE_FRAME = bool(specs['include_frame'])
+
+if '--matrix-frame' in sys.argv:
+    _mfr = sys.argv.index('--matrix-frame')
+    if _mfr + 1 < len(sys.argv):
+        INCLUDE_FRAME = sys.argv[_mfr + 1].lower() in ('on', '1', 'true', 'yes')
+
 def export_assembled_3mf(scene_items, mf3_path, assembly_name="MSEP_MultiColor_Plate"):
     """Exports a multi-part trimesh dictionary as a single 3MF parent assembly with <components> so Bambu Studio / OrcaSlicer / Snapmaker Orca treat all color inlays as parts of ONE object (preventing 'too close to others' collision errors)."""
     import uuid
@@ -255,7 +275,7 @@ def export_assembled_3mf(scene_items, mf3_path, assembly_name="MSEP_MultiColor_P
     except Exception as e:
         print(f"[3MF Assembly Post-Process Warning]: {e}")
 
-def compile_matrix_16x16_plate_variant(variant_name, artwork_path, window_shape='round_34', plate_thickness_mm=0.60, gap_mm=3.0, lip_mm=None, include_lenses=True, windowed_leds=None, backlight_leds=None):
+def compile_matrix_16x16_plate_variant(variant_name, artwork_path, window_shape='round_34', plate_thickness_mm=0.60, gap_mm=3.0, lip_mm=None, include_lenses=True, clear_layer_mm=0.0, include_frame=True, windowed_leds=None, backlight_leds=None):
     PLATE_SIZE_MM = 176.0
     MATRIX_SIZE_MM = 160.0
     MARGIN_MM = 8.0
@@ -265,6 +285,8 @@ def compile_matrix_16x16_plate_variant(variant_name, artwork_path, window_shape=
         gap_mm = lip_mm
     GAP_MM = round(max(0.0, min(10.0, float(gap_mm))), 1)
     LIP_MM = GAP_MM
+    CLEAR_MM = round(max(0.0, min(2.0, float(clear_layer_mm or 0.0))), 2)
+    FRAME_ACTIVE = bool(include_frame)
 
     print(f"\n>>> Compiling {variant_name.upper()} 16x16 Matrix Backlight Plate ({PLATE_SIZE_MM}x{PLATE_SIZE_MM}x{THICK_MM:.2f}mm, Window Shape: {window_shape.upper()})...")
     v_t0 = time.time()
@@ -529,9 +551,17 @@ def compile_matrix_16x16_plate_variant(variant_name, artwork_path, window_shape=
         polys_2d[c_name] = unary_union([polys_2d[c_name], anc])
         all_anchors_list.append(anc)
 
-    lens_anchor_2d = make_bbox_anchor_2d(anchor_idx) if (include_lenses and not windows_union_2d.is_empty) else sg.Polygon()
-    if not lens_anchor_2d.is_empty:
+    lens_anchor_2d = sg.Polygon()
+    if include_lenses and not windows_union_2d.is_empty:
+        lens_anchor_2d = make_bbox_anchor_2d(anchor_idx)
+        anchor_idx += 1
         all_anchors_list.append(lens_anchor_2d)
+
+    clear_anchor_2d = sg.Polygon()
+    if CLEAR_MM > 0:
+        clear_anchor_2d = make_bbox_anchor_2d(anchor_idx)
+        anchor_idx += 1
+
     all_anchors_2d = unary_union(all_anchors_list) if all_anchors_list else sg.Polygon()
 
     plate_box_2d = sg.box(0.0, 0.0, PLATE_SIZE_MM, PLATE_SIZE_MM)
@@ -552,11 +582,17 @@ def compile_matrix_16x16_plate_variant(variant_name, artwork_path, window_shape=
     if not shirt_holes_union_2d.is_empty:
         mono_2d = mono_2d.difference(shirt_holes_union_2d)
 
-    PCB_POCKET_DEPTH = 2.0 # mm (depth from back of frame down to the supporting ledge)
-    LEDGE_THICK = 1.0 if GAP_MM > 0 else 0.0 # mm (supporting shelf thickness)
-    STANDOFF_GAP = max(0.0, GAP_MM - LEDGE_THICK) # mm (open gap between front panel and bottom of ledge)
-    FRAME_HEIGHT = round(STANDOFF_GAP + LEDGE_THICK + PCB_POCKET_DEPTH, 2) if GAP_MM > 0 else 2.0
-    TOTAL_Z = round(THICK_MM + FRAME_HEIGHT, 2)
+    # Additive Z-Stacking:
+    # When Frame & Lip is ON: 2.0mm PCB pocket + GAP_MM standoff (1.0mm ledge + air gap) + CLEAR_MM clear backing + THICK_MM graphic
+    # When Frame & Lip is OFF: Zero wall/lip, LEDs sit at Z=0, lenses still span GAP_MM + CLEAR_MM + THICK_MM to front surface
+    PCB_POCKET_DEPTH = 2.0 if FRAME_ACTIVE else 0.0
+    LEDGE_THICK = (1.0 if (GAP_MM + CLEAR_MM) > 0 else 0.0) if FRAME_ACTIVE else 0.0
+    EFFECTIVE_GAP = GAP_MM if (FRAME_ACTIVE or include_lenses) else 0.0
+    STANDOFF_GAP = max(0.0, round(EFFECTIVE_GAP - LEDGE_THICK + CLEAR_MM, 2)) if FRAME_ACTIVE else 0.0
+    CLEAR_Z0 = round(PCB_POCKET_DEPTH + EFFECTIVE_GAP, 2)
+    FACE_Z0 = round(CLEAR_Z0 + CLEAR_MM, 2)
+    FRAME_HEIGHT = FACE_Z0
+    TOTAL_Z = round(FACE_Z0 + THICK_MM, 2)
 
     # Extrude all front plate parts through full face thickness (0 to THICK_MM)
     final_chassis_tm = extrude_shapely(chassis_2d, THICK_MM)
@@ -564,9 +600,18 @@ def compile_matrix_16x16_plate_variant(variant_name, artwork_path, window_shape=
     final_lid_tm = extrude_shapely(plate_box_2d.difference(shirt_holes_union_2d), THICK_MM)
 
     # Move front faceplate up so its front surface is at Z = TOTAL_Z facing +Z
-    final_chassis_tm.apply_translation([0.0, 0.0, FRAME_HEIGHT])
-    final_monolithic_tm.apply_translation([0.0, 0.0, FRAME_HEIGHT])
-    final_lid_tm.apply_translation([0.0, 0.0, FRAME_HEIGHT])
+    final_chassis_tm.apply_translation([0.0, 0.0, FACE_Z0])
+    final_monolithic_tm.apply_translation([0.0, 0.0, FACE_Z0])
+    final_lid_tm.apply_translation([0.0, 0.0, FACE_Z0])
+
+    # Optional 160x160mm Clear Backing/Diffuser Layer directly behind the graphic faceplate (Z = CLEAR_Z0 to FACE_Z0)
+    clear_box_2d = sg.box(MARGIN_MM, MARGIN_MM, PLATE_SIZE_MM - MARGIN_MM, PLATE_SIZE_MM - MARGIN_MM)
+    clear_layer_2d = clear_box_2d.difference(windows_union_2d) if not windows_union_2d.is_empty else clear_box_2d
+    if CLEAR_MM > 0 and not clear_layer_2d.is_empty:
+        mono_clear_tm = extrude_shapely(clear_layer_2d, CLEAR_MM)
+        if mono_clear_tm is not None:
+            mono_clear_tm.apply_translation([0.0, 0.0, CLEAR_Z0])
+            final_monolithic_tm = trimesh.util.concatenate([final_monolithic_tm, mono_clear_tm])
 
     # Inner pocket: 160.4 x 160.4mm (centered at 88.0, 88.0, provides 0.20mm perimeter clearance so board drops in cleanly)
     pocket_x0 = round((PLATE_SIZE_MM - 160.4) / 2.0, 3) # 7.80 mm
@@ -599,24 +644,26 @@ def compile_matrix_16x16_plate_variant(variant_name, artwork_path, window_shape=
     standoff_wall_2d = outer_frame_2d.difference(inner_pocket_2d).difference(shirt_holes_union_2d).difference(wire_notch_2d)
 
     frame_solids = []
-    # 1. PCB Pocket section (Z = 0.0 to 2.0)
-    tm_pocket = extrude_shapely(pocket_wall_2d, PCB_POCKET_DEPTH)
-    if tm_pocket is not None:
-        frame_solids.append(tm_pocket)
+    if FRAME_ACTIVE:
+        # 1. PCB Pocket section (Z = 0.0 to 2.0)
+        if PCB_POCKET_DEPTH > 0:
+            tm_pocket = extrude_shapely(pocket_wall_2d, PCB_POCKET_DEPTH)
+            if tm_pocket is not None:
+                frame_solids.append(tm_pocket)
 
-    # 2. Ledge shelf section (Z = 2.0 to 2.0 + LEDGE_THICK)
-    if LEDGE_THICK > 0:
-        tm_ledge = extrude_shapely(ledge_wall_2d, LEDGE_THICK)
-        if tm_ledge is not None:
-            tm_ledge.apply_translation([0.0, 0.0, PCB_POCKET_DEPTH])
-            frame_solids.append(tm_ledge)
+        # 2. Ledge shelf section (Z = 2.0 to 2.0 + LEDGE_THICK)
+        if LEDGE_THICK > 0:
+            tm_ledge = extrude_shapely(ledge_wall_2d, LEDGE_THICK)
+            if tm_ledge is not None:
+                tm_ledge.apply_translation([0.0, 0.0, PCB_POCKET_DEPTH])
+                frame_solids.append(tm_ledge)
 
-    # 3. Standoff gap section (Z = 2.0 + LEDGE_THICK to FRAME_HEIGHT)
-    if STANDOFF_GAP > 0:
-        tm_standoff = extrude_shapely(standoff_wall_2d, STANDOFF_GAP)
-        if tm_standoff is not None:
-            tm_standoff.apply_translation([0.0, 0.0, PCB_POCKET_DEPTH + LEDGE_THICK])
-            frame_solids.append(tm_standoff)
+        # 3. Standoff gap section (Z = 2.0 + LEDGE_THICK to FACE_Z0)
+        if STANDOFF_GAP > 0:
+            tm_standoff = extrude_shapely(standoff_wall_2d, STANDOFF_GAP)
+            if tm_standoff is not None:
+                tm_standoff.apply_translation([0.0, 0.0, PCB_POCKET_DEPTH + LEDGE_THICK])
+                frame_solids.append(tm_standoff)
 
     if frame_solids:
         full_frame_tm = trimesh.util.concatenate(frame_solids)
@@ -656,7 +703,7 @@ def compile_matrix_16x16_plate_variant(variant_name, artwork_path, window_shape=
         if c_name in polys_2d and not polys_2d[c_name].is_empty:
             c_tm = extrude_shapely(polys_2d[c_name], THICK_MM)
             if c_tm is not None and len(c_tm.faces) > 0:
-                c_tm.apply_translation([0.0, 0.0, FRAME_HEIGHT])
+                c_tm.apply_translation([0.0, 0.0, FACE_Z0])
                 c_filename = f"tpu_panel_{variant_name}_color_{c_name}.stl"
                 c_path = os.path.join(out_dir, c_filename)
                 c_tm.export(c_path)
@@ -671,6 +718,26 @@ def compile_matrix_16x16_plate_variant(variant_name, artwork_path, window_shape=
                     "hex": c_info.get('hex', '#00ff88'),
                     "count": len(c_tm.faces)
                 })
+
+    # Optional 160x160mm Clear Backing Layer exported as a separate STL and 3MF component
+    if CLEAR_MM > 0 and not clear_layer_2d.is_empty:
+        clear_export_2d = unary_union([clear_layer_2d, clear_anchor_2d]) if not clear_anchor_2d.is_empty else clear_layer_2d
+        clear_tm = extrude_shapely(clear_export_2d, CLEAR_MM)
+        if clear_tm is not None and len(clear_tm.faces) > 0:
+            clear_tm.apply_translation([0.0, 0.0, CLEAR_Z0])
+            clear_filename = f"tpu_panel_{variant_name}_color_clear_layer.stl"
+            clear_path = os.path.join(out_dir, clear_filename)
+            clear_tm.export(clear_path)
+            color_stls['clear_layer'] = clear_path
+            scene_items[f"{slot_idx}_Clear_Backing_Layer_160x160"] = clear_tm
+            slot_idx += 1
+            exported_inlays.append({
+                "key": "clear_layer",
+                "name": f"Clear Backing Layer ({CLEAR_MM:.1f}mm)",
+                "filename": clear_filename,
+                "hex": "#c8f0ff",
+                "count": len(clear_tm.faces)
+            })
 
     # Optional Translucent Light-Pipe Lens Cylinders bridging from LED seating plane to front surface
     if include_lenses and not windows_union_2d.is_empty:
@@ -744,6 +811,10 @@ REMOVED FEATURES: No LED channels, no side walls, no screw holes, no eyelets, no
         "matrix_gap_mm": GAP_MM,
         "lip_mm": GAP_MM,
         "matrix_lip_mm": GAP_MM,
+        "clear_layer_mm": CLEAR_MM,
+        "matrix_clear_layer_mm": CLEAR_MM,
+        "matrix_frame_mode": FRAME_ACTIVE,
+        "matrix_lenses_mode": bool(include_lenses),
         "frame_height_mm": FRAME_HEIGHT,
         "total_thickness_mm": total_z,
         "width_mm": PLATE_SIZE_MM,
@@ -2009,6 +2080,8 @@ if MATRIX_16X16_MODE:
         gap_mm=MATRIX_GAP_MM,
         lip_mm=MATRIX_GAP_MM,
         include_lenses=INCLUDE_LENSES,
+        clear_layer_mm=MATRIX_CLEAR_LAYER_MM,
+        include_frame=INCLUDE_FRAME,
         windowed_leds=windowed_leds_spec,
         backlight_leds=backlight_leds_spec
     )
@@ -2021,6 +2094,8 @@ if MATRIX_16X16_MODE:
         gap_mm=MATRIX_GAP_MM,
         lip_mm=MATRIX_GAP_MM,
         include_lenses=INCLUDE_LENSES,
+        clear_layer_mm=MATRIX_CLEAR_LAYER_MM,
+        include_frame=INCLUDE_FRAME,
         windowed_leds=windowed_leds_spec,
         backlight_leds=backlight_leds_spec
     )
@@ -2065,6 +2140,8 @@ specs['matrix_16x16_mode'] = MATRIX_16X16_MODE
 specs['plate_thickness_mm'] = round(PLATE_THICKNESS_MM, 2)
 specs['matrix_gap_mm'] = round(MATRIX_GAP_MM, 1)
 specs['matrix_lenses_mode'] = INCLUDE_LENSES
+specs['matrix_clear_layer_mm'] = round(MATRIX_CLEAR_LAYER_MM, 2)
+specs['matrix_frame_mode'] = INCLUDE_FRAME
 if MATRIX_16X16_MODE:
     specs['matrix_windowed_leds'] = front_result.get('ordered_leds', [])
     specs['matrix_backlight_leds'] = front_result.get('backlight_leds', [])
