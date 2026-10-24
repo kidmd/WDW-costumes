@@ -93,6 +93,16 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### 2026-10-24: Fix Protruding Light-Pipe Lens Corner Anchor Pole
+- **Root Cause Identified:** When exporting the optional Translucent Light-Pipe Lens cylinders (	pu_panel_color_lenses.stl), the lens 2D polygons (windows_union_2d) and the slicer corner registration anchor (lens_anchor_2d) were extruded together through the full cylinder height lens_h = TOTAL_Z - PCB_POCKET_DEPTH (e.g. 4.4mm). While the 50 lens cylinders legitimately span 4.4mm from the front faceplate down to the LED surface (Z=0), the corner registration anchor was also extruded 4.4mm tall. Because the surrounding chassis faceplate is only 0.8mm thick at the corner, this created a 3.6mm long free-hanging cylinder/pole extending out from the corner of the plate into empty air.
+- **Flush Faceplate Encapsulation Fix:** In scripts/compile_clean_tpu_panel.py:
+  - Separated the lens cylinders extrusion from the corner registration anchor.
+  - The 50 lens cylinders are extruded through the full lens_h (4.4mm) and placed at PCB_POCKET_DEPTH (Z=0.0).
+  - The corner registration anchor (lens_anchor_2d) is extruded **only through THICK_MM (0.80mm)** and translated to FACE_Z0.
+  - The corner anchors now sit 100% flush inside the 0.8mm front faceplate with zero protrusion beyond the plate back surface, completely eliminating the corner pole while maintaining the required [0.0, 176.0] x [0.0, 176.0] mm slicer registration bounding box.
+  - Similarly, removed unnecessary corner anchors from the clear backing layer as its 160x160mm square footprint is already naturally centered at (88.0, 88.0 mm).
+
+
 ### 2026-10-24: 3D Plate Slicer Registration Anchors Cleaned Up (Corner Apex Triangles)
 - **Problem Resolved:** In previous builds, multi-part color split STLs used staggered 0.25mm perimeter bounding-box registration tabs along the plate edges. These staggered tabs visually appeared in the 3D preview modal as colored 'antennae / comb teeth / whiskers' along the plate edge and physically created small bumps/notches on the printed perimeter.
 - **Apex Registration Geometry:** Replaced staggered perimeter tabs with shared 0.35x0.35mm right-triangles positioned right at the extreme four apex corners of the plate: (0, 0), (176, 0), (0, 176), and (176, 176).

@@ -549,7 +549,8 @@ def compile_matrix_16x16_plate_variant(variant_name, artwork_path, window_shape=
         polys_2d[c_name] = unary_union([polys_2d[c_name], corner_anchors_2d])
 
     lens_anchor_2d = corner_anchors_2d if (include_lenses and not windows_union_2d.is_empty) else sg.Polygon()
-    clear_anchor_2d = corner_anchors_2d if CLEAR_MM > 0 else sg.Polygon()
+    # Clear backing layer is a perfect 160x160mm square naturally centered at (88.0, 88.0mm), so no corner tabs are needed
+    clear_anchor_2d = sg.Polygon()
 
     plate_box_2d = sg.box(0.0, 0.0, PLATE_SIZE_MM, PLATE_SIZE_MM)
     all_inlays_2d = unary_union(list(polys_2d.values())) if polys_2d else sg.Polygon()
@@ -729,10 +730,16 @@ def compile_matrix_16x16_plate_variant(variant_name, artwork_path, window_shape=
     # Optional Translucent Light-Pipe Lens Cylinders bridging from LED seating plane to front surface
     if include_lenses and not windows_union_2d.is_empty:
         lens_h = round(TOTAL_Z - PCB_POCKET_DEPTH, 2)
-        lenses_2d = unary_union([windows_union_2d, lens_anchor_2d]) if not lens_anchor_2d.is_empty else windows_union_2d
-        lenses_tm = extrude_shapely(lenses_2d, lens_h)
+        lenses_tm = extrude_shapely(windows_union_2d, lens_h)
         if lenses_tm is not None and len(lenses_tm.faces) > 0:
             lenses_tm.apply_translation([0.0, 0.0, PCB_POCKET_DEPTH])
+            # Bounding box registration anchor: extrude corner anchors ONLY through THICK_MM (0.8mm) at FACE_Z0
+            # so they stay flush inside the front faceplate and NEVER stick down as a 4.4mm pole in the air!
+            if not lens_anchor_2d.is_empty:
+                anc_tm = extrude_shapely(lens_anchor_2d, THICK_MM)
+                if anc_tm is not None and len(anc_tm.faces) > 0:
+                    anc_tm.apply_translation([0.0, 0.0, FACE_Z0])
+                    lenses_tm = trimesh.util.concatenate([lenses_tm, anc_tm])
             lens_filename = f"tpu_panel_{variant_name}_color_lenses.stl"
             lens_path = os.path.join(out_dir, lens_filename)
             lenses_tm.export(lens_path)
