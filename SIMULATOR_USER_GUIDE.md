@@ -1501,6 +1501,16 @@ Instead of attaching a Cricut cut vinyl graphic on top of the printed plate, the
      - When **ON (Default)**: Builds the complete 3-tier stepped rear standoff frame and retaining lip to snugly cradle the $160 \times 160\text{ mm}$ matrix PCB centered and standoff-spaced from the front LEDs.
      - When **OFF**: Omits the rear walls and retaining lip, yielding a flat rear surface while the lens light-pipes maintain their full selected standoff length from $Z = 0$ to the front surface.
 
+14. **🖨️ Precision Fairy Light Wire Fold Management Clips (2-Strand & 3-Strand Snap Clips):**
+   - **External Wire Fold Management:** For fairy light wire folded on itself outside the chest armor panels, four precision PLA/PETG snap-fit clip variants maintain neat, parallel routing without snagging or stress-whitening.
+   - **4 Specialized Clip Geometries (3d_panels/wire_clips/):**
+     - **2-Strand Flat Parallel (clip_2strand_flat.stl):** .55\text{ mm W} \times 8.00\text{ mm L} \times 4.15\text{ mm H}$ (.5\text{ mm}^3$, ~.20\text{g}$). Keeps hairpin return folds completely flat against running shirts.
+     - **3-Strand Flat Parallel (clip_3strand_flat.stl):** .20\text{ mm W} \times 8.00\text{ mm L} \times 4.15\text{ mm H}$ (.0\text{ mm}^3$, ~.28\text{g}$). Flat 3-wire accordion/Z-fold comb.
+     - **2-Strand Stacked Vertical (clip_2strand_stacked.stl):** .90\text{ mm W} \times 8.00\text{ mm L} \times 6.61\text{ mm H}$ (.1\text{ mm}^3$, ~.20\text{g}$). Ultra-slim lateral footprint with internal waist detent isolating upper and lower wires.
+     - **3-Strand Pyramid Bundle (clip_3strand_bundle.stl):** .60\text{ mm W} \times 8.00\text{ mm L} \times 6.27\text{ mm H}$ (.9\text{ mm}^3$, ~.25\text{g}$). Compact triangular cluster where top wire snaps down and locks bottom two strands into their seats.
+   - **Race-Day Multi-Pack Plate (wire_clips_runner_pack.stl):** Arranges 4x of each clip (16 clips total, ~.6\text{g}$ PLA) on a .2 \times 47.0\text{ mm}$ print bed footprint for a single 15-minute quick print.
+   - **Parametric OpenSCAD & Python Generators:** Fully parametric via 3d_panels/wire_clips/wire_clips.scad (with Customizer sliders) and automated via python scripts/generate_wire_clips.py.
+
 
 ### 🖨️ Snapmaker U1 95A TPU Slicing Profile:
 - **Nozzle Temp:** 225°C – 235°C (0.4mm nozzle).

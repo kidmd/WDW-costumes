@@ -93,6 +93,22 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### 2026-10-26: 3D Printable Snap-Fit Fairy Light Wire Fold Management Clips
+- **Objective & Purpose:** Designed, engineered, and exported lightweight (<0.3g), low-profile 3D printable snap-fit clips to manage external fairy light wiring folded over itself outside the chest armor panels on the WDW 10K running shirts.
+- **Architectural & Mechanical Highlights:**
+  - **4 Specialized Configurations:**
+    - `clip_2strand_flat.stl` ($8.55 \times 8.00 \times 4.15\text{ mm}$, $161.5\text{ mm}^3$, ~$0.20\text{g}$): 2-strand flat side-by-side hairpin clip, flush to chest.
+    - `clip_3strand_flat.stl` ($12.20 \times 8.00 \times 4.15\text{ mm}$, $224.0\text{ mm}^3$, ~$0.28\text{g}$): 3-strand flat parallel comb for accordion/Z-folds under bib numbers.
+    - `clip_2strand_stacked.stl` ($4.90 \times 8.00 \times 6.61\text{ mm}$, $158.1\text{ mm}^3$, ~$0.20\text{g}$): 2-strand over-under vertical stack with intermediate waist constriction for minimum lateral footprint.
+    - `clip_3strand_bundle.stl` ($7.60 \times 8.00 \times 6.27\text{ mm}$, $197.9\text{ mm}^3$, ~$0.25\text{g}$): 3-strand triangular pyramid cluster with top-locking strand.
+    - `wire_clips_runner_pack.stl` ($60.20 \times 47.00 \times 6.61\text{ mm}$, $2965.6\text{ mm}^3$, ~$3.6\text{g}$): Single-bed print containing 4x of each design (16 clips total) ready in ~15 minutes.
+  - **Rigid PLA/PETG Snap Engineering:** Tuned cantilever flex walls ($1.25\text{ mm}$ thick, 3 perimeters) with $1.65\text{ mm}$ constricted snap mouths into $2.40\text{ mm}$ round cradles and $45^\circ$ lead-in ramps to prevent wire insulation scuffing.
+  - **Toolchain Assets:**
+    - Updated `scripts/generate_wire_clips.py` using `manifold3d` and `trimesh` with exact planar transformations and watertight validation.
+    - Added parametric `3d_panels/wire_clips/wire_clips.scad` with OpenSCAD Customizer GUI support.
+    - Added user guide `3d_panels/wire_clips/README.md`.
+
+
 ### 2026-10-24: Fix Protruding Light-Pipe Lens Corner Anchor Pole
 - **Root Cause Identified:** When exporting the optional Translucent Light-Pipe Lens cylinders (	pu_panel_color_lenses.stl), the lens 2D polygons (windows_union_2d) and the slicer corner registration anchor (lens_anchor_2d) were extruded together through the full cylinder height lens_h = TOTAL_Z - PCB_POCKET_DEPTH (e.g. 4.4mm). While the 50 lens cylinders legitimately span 4.4mm from the front faceplate down to the LED surface (Z=0), the corner registration anchor was also extruded 4.4mm tall. Because the surrounding chassis faceplate is only 0.8mm thick at the corner, this created a 3.6mm long free-hanging cylinder/pole extending out from the corner of the plate into empty air.
 - **Flush Faceplate Encapsulation Fix:** In scripts/compile_clean_tpu_panel.py:
