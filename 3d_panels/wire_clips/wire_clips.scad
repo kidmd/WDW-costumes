@@ -5,8 +5,8 @@
 // ==============================================================================
 
 /* [Model Selection] */
-// Which clip model to render
-model_select = "all_arranged"; // [all_arranged: All Models Arranged on Bed, 2strand_flat: 2-Strand Flat (3.2mm), 3strand_flat: 3-Strand Flat (3.2mm), 2strand_stacked: 2-Strand Stacked (3.2mm), 3strand_bundle: 3-Strand Pyramid (3.2mm), 2strand_pyramid_cradle: 2-Strand Pyramid Cradle (v1 Fit), corner_90_single: 90° Single Elbow (Floating), corner_90_sewable: 90° Single Elbow (Sewable), test_gauge_comb: Test Gauge Comb]
+// Which clip or cap model to render
+model_select = "all_arranged"; // [all_arranged: All Clips Arranged on Bed, all_caps_arranged: All Caps Arranged on Bed, 2strand_flat: 2-Strand Flat Clip, 3strand_flat: 3-Strand Flat Clip, 2strand_stacked: 2-Strand Stacked Clip, 3strand_bundle: 3-Strand Pyramid Clip, 2strand_pyramid_cradle: 2-Strand Pyramid Cradle, corner_90_single: 90° Single Elbow (Floating), corner_90_sewable: 90° Single Elbow (Sewable), cap_2strand_flat: Cap for 2-Strand Flat, cap_3strand_flat: Cap for 3-Strand Flat, cap_2strand_stacked: Cap for 2-Strand Stacked, cap_3strand_bundle: Cap for 3-Strand Bundle, cap_2strand_pyramid_cradle: Cap for 2-Strand Cradle, cap_corner_90: Cap for 90° Corner Elbow, test_gauge_comb: Test Gauge Comb]
 
 // Print orientation on the build plate
 print_orientation = "flat"; // [flat: Laying Flat on Base (Z=0), upright: Standing Upright (Continuous Perimeter Flex)]
@@ -336,6 +336,92 @@ module test_gauge_comb_2d() {
 
 
 // ==============================================================================
+// 8. SNAP-ON RACE-DAY SECURITY CAPS (ROOFS)
+// Positive-locking armored hoods that snap over clips to lock wires down for 10K
+// ==============================================================================
+module straight_cap_2d(clip_top_w, clip_h, skirt_depth = 2.20) {
+    tolerance = 0.12;
+    roof_t = 1.00;
+    leg_t = 1.10;
+    bead_depth = 0.35;
+    bead_h = 0.60;
+    
+    inner_w = clip_top_w + 2 * tolerance;
+    outer_w = inner_w + 2 * leg_t;
+    y_clip_top = clip_h;
+    y_cap_top = y_clip_top + roof_t;
+    y_leg_bot = y_clip_top - skirt_depth;
+    y_bead = y_clip_top - 1.20;
+    
+    difference() {
+        hull() {
+            translate([-outer_w/2, y_leg_bot]) square([outer_w, y_cap_top - y_leg_bot - 0.5]);
+            translate([-outer_w/2 + 0.5, y_leg_bot]) square([outer_w - 1.0, y_cap_top - y_leg_bot]);
+        }
+        polygon([
+            [-inner_w/2 + bead_depth, y_leg_bot - 0.1],
+            [-inner_w/2 + bead_depth, y_bead - bead_h/2],
+            [-inner_w/2, y_bead],
+            [-inner_w/2, y_clip_top + 0.1],
+            [inner_w/2, y_clip_top + 0.1],
+            [inner_w/2, y_bead],
+            [inner_w/2 - bead_depth, y_bead - bead_h/2],
+            [inner_w/2 - bead_depth, y_leg_bot - 0.1]
+        ]);
+    }
+}
+
+module render_cap_3d(clip_top_w, clip_h, ext_len = clip_length) {
+    // Rotated so flat roof sits flat at Z=0 and legs point UP (+Z)
+    rotate([-90, 0, 0])
+        translate([0, - (clip_h + 1.00), 0])
+            linear_extrude(height = ext_len)
+                straight_cap_2d(clip_top_w, clip_h);
+}
+
+module cap_corner_90_3d() {
+    r_in = 5.00;
+    r_out = 9.45;
+    h_clip = 5.60;
+    tolerance = 0.12;
+    roof_t = 1.00;
+    leg_t = 1.10;
+    bead_depth = 0.35;
+    bead_h = 0.60;
+    
+    r_cap_in = r_in - tolerance - leg_t;
+    r_cap_out = r_out + tolerance + leg_t;
+    y_cap_top = h_clip + roof_t;
+    y_bead = h_clip - 1.20;
+    y_leg_bot = y_bead - bead_h/2.0 - 0.30;
+    
+    r_clip_inner_face = r_in - tolerance;
+    r_clip_outer_face = r_out + tolerance;
+
+    rotate([180, 0, 0])
+        translate([0, 0, -y_cap_top])
+            rotate_extrude(angle = 90) {
+                difference() {
+                    hull() {
+                        translate([r_cap_in, y_leg_bot]) square([r_cap_out - r_cap_in, y_cap_top - y_leg_bot - 0.5]);
+                        translate([r_cap_in + 0.5, y_leg_bot]) square([r_cap_out - r_cap_in - 1.0, y_cap_top - y_leg_bot]);
+                    }
+                    polygon([
+                        [r_clip_inner_face - bead_depth, y_leg_bot - 0.1],
+                        [r_clip_inner_face - bead_depth, y_bead - bead_h/2.0],
+                        [r_clip_inner_face, y_bead],
+                        [r_clip_inner_face, h_clip + 0.1],
+                        [r_clip_outer_face, h_clip + 0.1],
+                        [r_clip_outer_face, y_bead],
+                        [r_clip_outer_face + bead_depth, y_bead - bead_h/2.0],
+                        [r_clip_outer_face + bead_depth, y_leg_bot - 0.1]
+                    ]);
+                }
+            }
+}
+
+
+// ==============================================================================
 // 3D EXTRUSION & ORIENTATION HELPER
 // ==============================================================================
 module render_clip_3d(ext_len = clip_length) {
@@ -367,8 +453,27 @@ if (model_select == "2strand_flat") {
     clip_corner_90_single_3d();
 } else if (model_select == "corner_90_sewable") {
     clip_corner_90_sewable_3d();
+} else if (model_select == "cap_2strand_flat") {
+    render_cap_3d(10.65, 5.01);
+} else if (model_select == "cap_3strand_flat") {
+    render_cap_3d(15.30, 5.01);
+} else if (model_select == "cap_2strand_stacked") {
+    render_cap_3d(6.00, 8.55);
+} else if (model_select == "cap_3strand_bundle") {
+    render_cap_3d(6.00, 7.93);
+} else if (model_select == "cap_2strand_pyramid_cradle") {
+    render_cap_3d(4.90, 6.27);
+} else if (model_select == "cap_corner_90") {
+    cap_corner_90_3d();
 } else if (model_select == "test_gauge_comb") {
     render_clip_3d(ext_len = 6.0) test_gauge_comb_2d();
+} else if (model_select == "all_caps_arranged") {
+    translate([-15, 0, 0])  render_cap_3d(10.65, 5.01);
+    translate([15, 0, 0])   render_cap_3d(15.30, 5.01);
+    translate([-15, 16, 0]) render_cap_3d(6.00, 8.55);
+    translate([15, 16, 0])  render_cap_3d(6.00, 7.93);
+    translate([0, 32, 0])   render_cap_3d(4.90, 6.27);
+    translate([0, 48, 0])   cap_corner_90_3d();
 } else if (model_select == "all_arranged") {
     translate([-15, 0, 0]) render_clip_3d() clip_2strand_flat_2d();
     translate([15, 0, 0])  render_clip_3d() clip_3strand_flat_2d();

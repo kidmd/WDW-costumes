@@ -8,7 +8,7 @@ from manifold3d import Manifold
 os.makedirs("3d_panels/wire_clips", exist_ok=True)
 
 # ==============================================================================
-# PARAMETRIC CONSTANTS FOR RIGID PLA / PETG WIRE CLIPS
+# PARAMETRIC CONSTANTS FOR RIGID PLA / PETG WIRE CLIPS & SNAP-ON CAPS
 # Resized for standard ~3.2mm fairy light wiring (calibrated with test comb)
 # ==============================================================================
 WIRE_DIAMETER = 3.20     # Calibrated wire OD (mm)
@@ -17,6 +17,13 @@ WALL_THICKNESS = 1.35    # Flex cantilever spring wall thickness (~3-4 perimeter
 FLOOR_THICKNESS = 1.20   # Bottom chassis thickness resting flat against shirt/build plate
 NECK_OPENING = 2.35      # Snap constriction mouth width (gives positive snap click without stress-whitening)
 CLIP_LENGTH = 8.00       # Extrusion length along wire path (mm)
+
+# Retention bead parameters for snap-on race-day caps
+BEAD_DEPTH = 0.35        # Outward retention bead protrusion (mm)
+BEAD_HEIGHT = 0.60       # Bead vertical span (mm)
+CAP_ROOF_T = 1.00        # Cap solid top roof thickness (mm)
+CAP_LEG_T = 1.10         # Cap spring retention skirt thickness (mm)
+CAP_TOLERANCE = 0.12     # Clearance gap between clip flank and cap inner wall for smooth snap
 
 
 def to_flat_trimesh(profile: m3d.CrossSection, length: float = CLIP_LENGTH) -> trimesh.Trimesh:
@@ -53,13 +60,20 @@ def create_clip_2strand_flat(wire_d=WIRE_DIAMETER, length=CLIP_LENGTH) -> trimes
     w_total = 2 * (spacing / 2.0 + r_cav + WALL_THICKNESS)
     y_cen = FLOOR_THICKNESS + r_cav
     h_total = y_cen + r_cav + 0.70
+    y_bead = h_total - 1.20
 
     pts_body = [
         [-w_total / 2.0, 0.0],
+        [-w_total / 2.0, y_bead - BEAD_HEIGHT / 2.0],
+        [-w_total / 2.0 - BEAD_DEPTH, y_bead],
+        [-w_total / 2.0, y_bead + BEAD_HEIGHT / 2.0],
         [-w_total / 2.0, h_total - 0.8],
         [-w_total / 2.0 + 0.8, h_total],
         [w_total / 2.0 - 0.8, h_total],
         [w_total / 2.0, h_total - 0.8],
+        [w_total / 2.0, y_bead + BEAD_HEIGHT / 2.0],
+        [w_total / 2.0 + BEAD_DEPTH, y_bead],
+        [w_total / 2.0, y_bead - BEAD_HEIGHT / 2.0],
         [w_total / 2.0, 0.0]
     ]
     body = m3d.CrossSection.hull_points(pts_body)
@@ -95,13 +109,20 @@ def create_clip_3strand_flat(wire_d=WIRE_DIAMETER, length=CLIP_LENGTH) -> trimes
     w_total = 2 * (spacing + r_cav + WALL_THICKNESS)
     y_cen = FLOOR_THICKNESS + r_cav
     h_total = y_cen + r_cav + 0.70
+    y_bead = h_total - 1.20
 
     pts_body = [
         [-w_total / 2.0, 0.0],
+        [-w_total / 2.0, y_bead - BEAD_HEIGHT / 2.0],
+        [-w_total / 2.0 - BEAD_DEPTH, y_bead],
+        [-w_total / 2.0, y_bead + BEAD_HEIGHT / 2.0],
         [-w_total / 2.0, h_total - 0.8],
         [-w_total / 2.0 + 0.8, h_total],
         [w_total / 2.0 - 0.8, h_total],
         [w_total / 2.0, h_total - 0.8],
+        [w_total / 2.0, y_bead + BEAD_HEIGHT / 2.0],
+        [w_total / 2.0 + BEAD_DEPTH, y_bead],
+        [w_total / 2.0, y_bead - BEAD_HEIGHT / 2.0],
         [w_total / 2.0, 0.0]
     ]
     body = m3d.CrossSection.hull_points(pts_body)
@@ -139,13 +160,20 @@ def create_clip_2strand_stacked(wire_d=WIRE_DIAMETER, length=CLIP_LENGTH) -> tri
     y_neck = y2 + 1.05
     h_total = y2 + r_cav + 0.80
     w_total = 2 * (r_cav + WALL_THICKNESS)
+    y_bead = h_total - 1.20
 
     pts_body = [
         [-w_total / 2.0, 0.0],
+        [-w_total / 2.0, y_bead - BEAD_HEIGHT / 2.0],
+        [-w_total / 2.0 - BEAD_DEPTH, y_bead],
+        [-w_total / 2.0, y_bead + BEAD_HEIGHT / 2.0],
         [-w_total / 2.0, h_total - 0.8],
         [-w_total / 2.0 + 0.8, h_total],
         [w_total / 2.0 - 0.8, h_total],
         [w_total / 2.0, h_total - 0.8],
+        [w_total / 2.0, y_bead + BEAD_HEIGHT / 2.0],
+        [w_total / 2.0 + BEAD_DEPTH, y_bead],
+        [w_total / 2.0, y_bead - BEAD_HEIGHT / 2.0],
         [w_total / 2.0, 0.0]
     ]
     body = m3d.CrossSection.hull_points(pts_body)
@@ -182,14 +210,21 @@ def create_clip_3strand_bundle(wire_d=WIRE_DIAMETER, length=CLIP_LENGTH) -> trim
     h_total = y3 + r_cav + 0.90
     w_bot = 2 * (1.85 + r_cav + WALL_THICKNESS)
     w_top = 2 * (r_cav + WALL_THICKNESS)
+    y_bead = h_total - 1.20
 
     pts_body = [
         [-w_bot / 2.0, 0.0],
         [-w_bot / 2.0, y1 + 0.6],
+        [-w_top / 2.0, y_bead - BEAD_HEIGHT / 2.0],
+        [-w_top / 2.0 - BEAD_DEPTH, y_bead],
+        [-w_top / 2.0, y_bead + BEAD_HEIGHT / 2.0],
         [-w_top / 2.0, h_total - 0.8],
         [-w_top / 2.0 + 0.8, h_total],
         [w_top / 2.0 - 0.8, h_total],
         [w_top / 2.0, h_total - 0.8],
+        [w_top / 2.0, y_bead + BEAD_HEIGHT / 2.0],
+        [w_top / 2.0 + BEAD_DEPTH, y_bead],
+        [w_top / 2.0, y_bead - BEAD_HEIGHT / 2.0],
         [w_bot / 2.0, y1 + 0.6],
         [w_bot / 2.0, 0.0]
     ]
@@ -237,14 +272,21 @@ def create_clip_2strand_pyramid_cradle(length=CLIP_LENGTH) -> trimesh.Trimesh:
     h_total = y3 + r_cav + 0.80
     w_bot = 2 * (1.35 + r_cav + wall)
     w_top = 2 * (r_cav + wall)
+    y_bead = h_total - 1.20
 
     pts_body = [
         [-w_bot / 2.0, 0.0],
         [-w_bot / 2.0, y1 + 0.5],
+        [-w_top / 2.0, y_bead - BEAD_HEIGHT / 2.0],
+        [-w_top / 2.0 - BEAD_DEPTH, y_bead],
+        [-w_top / 2.0, y_bead + BEAD_HEIGHT / 2.0],
         [-w_top / 2.0, h_total - 0.6],
         [-w_top / 2.0 + 0.6, h_total],
         [w_top / 2.0 - 0.6, h_total],
         [w_top / 2.0, h_total - 0.6],
+        [w_top / 2.0, y_bead + BEAD_HEIGHT / 2.0],
+        [w_top / 2.0 + BEAD_DEPTH, y_bead],
+        [w_top / 2.0, y_bead - BEAD_HEIGHT / 2.0],
         [w_bot / 2.0, y1 + 0.5],
         [w_bot / 2.0, 0.0]
     ]
@@ -291,22 +333,30 @@ def create_vertical_ribbon_channel_profile(
 ):
     """
     Creates a radial cross-section for a 3-strand flat ribbon wire oriented VERTICALLY on-edge
-    with pronounced cantilever snap-fit lips and an undercut retention shelf.
+    with pronounced cantilever snap-fit lips, undercut retention shelf, and exterior cap snap beads.
     - Inner cavity width: 1.65 mm (smooth glide for ~1.2mm ribbon)
     - Constriction throat: 1.00 mm (positive snap retention lips over top strand)
     - Undercut shelf: 0.325 mm inward cantilever overhang per side (locks wire down)
     - Lead-in funnel: 45° widening to 2.40 mm for easy wire insertion
+    - Exterior retention beads: 0.35 mm bead on inner and outer walls for snap-on cap lock
     """
     r_slot_cen = r_inner + wall_t + slot_w / 2.0   # 7.225 mm
     r_outer = r_inner + 2 * wall_t + slot_w        # 9.45 mm
+    y_bead = h_total - 1.20
 
     pts_body = [
         [r_inner, 0.0],
         [r_outer, 0.0],
+        [r_outer, y_bead - BEAD_HEIGHT / 2.0],
+        [r_outer + BEAD_DEPTH, y_bead],
+        [r_outer, y_bead + BEAD_HEIGHT / 2.0],
         [r_outer, h_total - 0.5],
         [r_outer - 0.5, h_total],
         [r_inner + 0.5, h_total],
-        [r_inner, h_total - 0.5]
+        [r_inner, h_total - 0.5],
+        [r_inner, y_bead + BEAD_HEIGHT / 2.0],
+        [r_inner - BEAD_DEPTH, y_bead],
+        [r_inner, y_bead - BEAD_HEIGHT / 2.0]
     ]
     body = m3d.CrossSection.hull_points(pts_body)
 
@@ -477,6 +527,173 @@ def create_runner_multipack() -> trimesh.Trimesh:
 
 
 # ==============================================================================
+# 9. SNAP-ON RACE-DAY SECURITY CAPS (ROOFS)
+# Positive-locking armored hoods that snap over clips to lock wires down for 10K
+# Pre-oriented flat on roof at Z=0 for support-free printing!
+# ==============================================================================
+def create_cap_for_straight_clip(clip_top_width: float, clip_height: float, length: float = CLIP_LENGTH, skirt_depth: float = 2.20) -> trimesh.Trimesh:
+    """
+    Creates a snap-on cap / hood that clips over the top of a straight clip.
+    - Roof thickness: 1.00 mm
+    - Leg / Skirt thickness: 1.10 mm
+    - Skirt reach: 2.20 mm down from top
+    - Snap undercut bead: 0.35 mm catch bead on the inside of the skirt legs
+    - Print orientation: Flat on roof at Z=0, legs point UP (+Z), zero supports needed!
+    """
+    inner_w = clip_top_width + 2 * CAP_TOLERANCE
+    outer_w = inner_w + 2 * CAP_LEG_T
+
+    y_clip_top = clip_height
+    y_cap_top = y_clip_top + CAP_ROOF_T
+    y_leg_bot = y_clip_top - skirt_depth
+    y_bead = y_clip_top - 1.20
+
+    pts_outer = [
+        [-outer_w / 2.0, y_leg_bot],
+        [-outer_w / 2.0, y_cap_top - 0.5],
+        [-outer_w / 2.0 + 0.5, y_cap_top],
+        [outer_w / 2.0 - 0.5, y_cap_top],
+        [outer_w / 2.0, y_cap_top - 0.5],
+        [outer_w / 2.0, y_leg_bot]
+    ]
+    cap_outer = m3d.CrossSection.hull_points(pts_outer)
+
+    pts_cutout = [
+        [-inner_w / 2.0 + BEAD_DEPTH, y_leg_bot - 0.1],
+        [-inner_w / 2.0 + BEAD_DEPTH, y_bead - BEAD_HEIGHT / 2.0],
+        [-inner_w / 2.0, y_bead],
+        [-inner_w / 2.0, y_clip_top],
+        [inner_w / 2.0, y_clip_top],
+        [inner_w / 2.0, y_bead],
+        [inner_w / 2.0 - BEAD_DEPTH, y_bead - BEAD_HEIGHT / 2.0],
+        [inner_w / 2.0 - BEAD_DEPTH, y_leg_bot - 0.1]
+    ]
+    cap_cutout = m3d.CrossSection([pts_cutout])
+    cap_cs = cap_outer - cap_cutout
+
+    m = cap_cs.extrude(length)
+    raw = m.to_mesh()
+    mesh = trimesh.Trimesh(vertices=raw.vert_properties, faces=raw.tri_verts)
+
+    # Rotate -90 deg around X so roof (max Y) sits flat at Z=0 and legs point UP (+Z)
+    rot = trimesh.transformations.rotation_matrix(np.radians(-90), [1, 0, 0])
+    mesh.apply_transform(rot)
+    bounds = mesh.bounds
+    mesh.apply_translation([
+        -bounds[0][0] - (bounds[1][0] - bounds[0][0]) / 2.0,
+        -bounds[0][1] - (bounds[1][1] - bounds[0][1]) / 2.0,
+        -bounds[0][2]
+    ])
+    return mesh
+
+
+def create_cap_corner_90(r_inner: float = 5.00, r_outer: float = 9.45, h_clip: float = 5.60) -> trimesh.Trimesh:
+    """
+    Creates a 90-degree curved snap-on hood for the 90° corner elbows.
+    Locks over both inner and outer channel walls with dual curved snap skirts.
+    Fits both floating and sewable 90° elbows identically!
+    Pre-oriented flat on roof at Z=0 for support-free printing.
+    """
+    r_cap_in = r_inner - CAP_TOLERANCE - CAP_LEG_T
+    r_cap_out = r_outer + CAP_TOLERANCE + CAP_LEG_T
+    y_cap_top = h_clip + CAP_ROOF_T
+    y_bead = h_clip - 1.20
+    y_leg_bot = y_bead - BEAD_HEIGHT / 2.0 - 0.30
+
+    pts_cap_outer = [
+        [r_cap_in, y_leg_bot],
+        [r_cap_in, y_cap_top - 0.5],
+        [r_cap_in + 0.5, y_cap_top],
+        [r_cap_out - 0.5, y_cap_top],
+        [r_cap_out, y_cap_top - 0.5],
+        [r_cap_out, y_leg_bot]
+    ]
+    cap_outer = m3d.CrossSection.hull_points(pts_cap_outer)
+
+    r_clip_inner_face = r_inner - CAP_TOLERANCE
+    r_clip_outer_face = r_outer + CAP_TOLERANCE
+
+    pts_cap_cutout = [
+        [r_clip_inner_face - BEAD_DEPTH, y_leg_bot - 0.1],
+        [r_clip_inner_face - BEAD_DEPTH, y_bead - BEAD_HEIGHT / 2.0],
+        [r_clip_inner_face, y_bead],
+        [r_clip_inner_face, h_clip],
+        [r_clip_outer_face, h_clip],
+        [r_clip_outer_face, y_bead],
+        [r_clip_outer_face + BEAD_DEPTH, y_bead - BEAD_HEIGHT / 2.0],
+        [r_clip_outer_face + BEAD_DEPTH, y_leg_bot - 0.1]
+    ]
+    cap_cutout = m3d.CrossSection([pts_cap_cutout])
+    cap_cs = cap_outer - cap_cutout
+
+    # Full 360 revolve and quadrant cube crop (Rule 7)
+    rev360 = cap_cs.revolve(64, 360.0)
+    quad_box = m3d.Manifold.cube([20.0, 20.0, 10.0], center=False).translate([0.0, 0.0, -2.0])
+    corner_cap = rev360 ^ quad_box
+
+    raw = corner_cap.to_mesh()
+    mesh = trimesh.Trimesh(vertices=raw.vert_properties, faces=raw.tri_verts)
+
+    # Rotate 180 deg around X so roof (max Y) sits flat at Z=0 and skirts point UP (+Z)
+    rot = trimesh.transformations.rotation_matrix(np.radians(180), [1, 0, 0])
+    mesh.apply_transform(rot)
+    bounds = mesh.bounds
+    mesh.apply_translation([
+        -bounds[0][0] - (bounds[1][0] - bounds[0][0]) / 2.0,
+        -bounds[0][1] - (bounds[1][1] - bounds[0][1]) / 2.0,
+        -bounds[0][2]
+    ])
+    return mesh
+
+
+def create_caps_multipack() -> trimesh.Trimesh:
+    """
+    Comprehensive 24-Piece Race-Day Security Caps Companion Plate:
+    4x of each straight cap (20 straight caps) + 4x 90° corner caps (4 corner caps) = 24 caps!
+    Pre-oriented flat on bed at Z=0, zero supports, ~12 min print time in PLA!
+    """
+    cap_c2_flat = create_cap_for_straight_clip(10.65, 5.01)
+    cap_c3_flat = create_cap_for_straight_clip(15.30, 5.01)
+    cap_c2_stack = create_cap_for_straight_clip(6.00, 8.55)
+    cap_c3_bund = create_cap_for_straight_clip(6.00, 7.93)
+    cap_c2_crad = create_cap_for_straight_clip(4.90, 6.27)
+    cap_c90 = create_cap_corner_90()
+
+    straight_caps = [cap_c2_flat, cap_c3_flat, cap_c2_stack, cap_c3_bund, cap_c2_crad]
+    row_y = [0.0, 13.0, 26.0, 39.0, 52.0]
+    col_x_offsets = [
+        [-27.0, -9.0, 9.0, 27.0],   # c2_flat (13.1mm wide)
+        [-33.0, -11.0, 11.0, 33.0], # c3_flat (17.7mm wide)
+        [-22.5, -7.5, 7.5, 22.5],   # c2_stack (8.4mm wide)
+        [-22.5, -7.5, 7.5, 22.5],   # c3_bundle (8.4mm wide)
+        [-21.0, -7.0, 7.0, 21.0]    # c2_cradle (7.3mm wide)
+    ]
+
+    parts = []
+    for r_idx, (model, y_pos) in enumerate(zip(straight_caps, row_y)):
+        for x_pos in col_x_offsets[r_idx]:
+            inst = model.copy()
+            inst.apply_translation([x_pos, y_pos, 0.0])
+            parts.append(inst)
+
+    # Row 6 (Y=66): 4x 90 corner caps (10.65mm wide)
+    corner_xs = [-24.0, -8.0, 8.0, 24.0]
+    for x in corner_xs:
+        inst = cap_c90.copy()
+        inst.apply_translation([x, 66.0, 0.0])
+        parts.append(inst)
+
+    combined = trimesh.util.concatenate(parts)
+    bounds = combined.bounds
+    combined.apply_translation([
+        -bounds[0][0] - (bounds[1][0] - bounds[0][0]) / 2.0,
+        -bounds[0][1],
+        -bounds[0][2]
+    ])
+    return combined
+
+
+# ==============================================================================
 # LEGACY HARDWARE CLIPS
 # ==============================================================================
 def export_legacy_mesh(m: Manifold, filename: str):
@@ -545,8 +762,19 @@ if __name__ == "__main__":
     # Quick 3-Minute Test Gauge Comb
     export_trimesh(create_test_gauge_comb(), "3d_panels/wire_clips/wire_gauge_test_comb.stl")
 
-    # Comprehensive Runner Multi-Pack (25 pieces total)
+    # Snap-On Race-Day Security Caps (Roofs)
+    export_trimesh(create_cap_for_straight_clip(10.65, 5.01), "3d_panels/wire_clips/cap_2strand_flat.stl")
+    export_trimesh(create_cap_for_straight_clip(15.30, 5.01), "3d_panels/wire_clips/cap_3strand_flat.stl")
+    export_trimesh(create_cap_for_straight_clip(6.00, 8.55), "3d_panels/wire_clips/cap_2strand_stacked.stl")
+    export_trimesh(create_cap_for_straight_clip(6.00, 7.93), "3d_panels/wire_clips/cap_3strand_bundle.stl")
+    export_trimesh(create_cap_for_straight_clip(4.90, 6.27), "3d_panels/wire_clips/cap_2strand_pyramid_cradle.stl")
+    export_trimesh(create_cap_corner_90(), "3d_panels/wire_clips/cap_corner_90.stl")
+
+    # Comprehensive Runner Multi-Pack (25 pieces total: clips + test comb)
     export_trimesh(create_runner_multipack(), "3d_panels/wire_clips/wire_clips_runner_pack.stl")
+
+    # 24-Piece Race-Day Caps Pack (Matching companion plate)
+    export_trimesh(create_caps_multipack(), "3d_panels/wire_clips/wire_clips_caps_pack.stl")
 
     # Legacy Clips
     export_legacy_mesh(create_plate_rim_clip(), "3d_panels/wire_clips/clip_plate_rim.stl")

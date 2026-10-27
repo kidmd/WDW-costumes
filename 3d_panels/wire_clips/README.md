@@ -21,7 +21,23 @@ All STL files are pre-oriented flat on their base at $Z = 0$ for immediate, supp
 | **[`clip_2strand_stacked.stl`](file:///c:/Users/Kiddi/Desktop/WDW%20costumes/3d_panels/wire_clips/clip_2strand_stacked.stl)** | **2-Strand Stacked (3.2mm)** | $6.00 \times 8.00 \times 8.55\text{ mm}$ | $\approx 0.28\text{g}$ | Ultra-narrow lateral footprint ($6.0\text{ mm}$); internal waist detent separates bottom and top strands. |
 | **[`clip_3strand_bundle.stl`](file:///c:/Users/Kiddi/Desktop/WDW%20costumes/3d_panels/wire_clips/clip_3strand_bundle.stl)** | **3-Strand Pyramid (3.2mm)** | $9.70 \times 8.00 \times 7.93\text{ mm}$ | $\approx 0.36\text{g}$ | Compact triangular cluster sized specifically for three 3.2mm strands; top strand clicks in to lock. |
 | **[`wire_gauge_test_comb.stl`](file:///c:/Users/Kiddi/Desktop/WDW%20costumes/3d_panels/wire_clips/wire_gauge_test_comb.stl)** | **Test Gauge Comb** | $36.10 \times 6.00 \times 5.30\text{ mm}$ | $\approx 0.90\text{g}$ | **3-Minute Test Swatch:** 5 stepped slots ($2.6, 2.8, 3.0, 3.2, 3.4\text{ mm}$) to verify physical snap feel. |
-| **[`wire_clips_runner_pack.stl`](file:///c:/Users/Kiddi/Desktop/WDW%20costumes/3d_panels/wire_clips/wire_clips_runner_pack.stl)** | **Full Race Day Plate** | $78.30 \times 94.00 \times 8.55\text{ mm}$ | $\approx 8.1\text{g}$ | **25-Piece Plate:** 4x each straight clip (20 clips) + 2x floating 90° + 2x sewable 90° + test comb! |
+| **[`wire_clips_runner_pack.stl`](file:///c:/Users/Kiddi/Desktop/WDW%20costumes/3d_panels/wire_clips/wire_clips_runner_pack.stl)** | **Full Race Day Plate (Clips)** | $79.00 \times 94.00 \times 8.55\text{ mm}$ | $\approx 8.5\text{g}$ | **25-Piece Plate:** 4x each straight clip (20 clips) + 2x floating 90° + 2x sewable 90° + test comb! |
+
+---
+
+## 🔒 Snap-On Race-Day Security Caps (`3d_panels/wire_clips/`)
+
+Positive-locking armored snap roofs engineered to physically cap the wire bays. Guarantees that wires **cannot pop out or snag** during high-impact running, arm swings, or corral crowds for a full 10K. All caps import pre-oriented flat on their roof at $Z = 0$ for support-free, instant printing!
+
+| Cap File | Description | Dimensions ($W \times L \times H$) | Weight (PLA) | Primary Use Case |
+| :--- | :--- | :--- | :--- | :--- |
+| **[`cap_2strand_flat.stl`](file:///c:/Users/Kiddi/Desktop/WDW%20costumes/3d_panels/wire_clips/cap_2strand_flat.stl)** | **Cap for 2-Strand Flat** | $13.09 \times 8.00 \times 3.20\text{ mm}$ | $\approx 0.35\text{g}$ | Snaps over `clip_2strand_flat` to seal hairpin folds flush against chest. |
+| **[`cap_3strand_flat.stl`](file:///c:/Users/Kiddi/Desktop/WDW%20costumes/3d_panels/wire_clips/cap_3strand_flat.stl)** | **Cap for 3-Strand Flat** | $17.74 \times 8.00 \times 3.20\text{ mm}$ | $\approx 0.45\text{g}$ | Snaps over `clip_3strand_flat` across all 3 parallel wire bays. |
+| **[`cap_2strand_stacked.stl`](file:///c:/Users/Kiddi/Desktop/WDW%20costumes/3d_panels/wire_clips/cap_2strand_stacked.stl)** | **Cap for 2-Strand Stacked** | $8.44 \times 8.00 \times 3.20\text{ mm}$ | $\approx 0.25\text{g}$ | Snaps over `clip_2strand_stacked` with compact lateral span. |
+| **[`cap_3strand_bundle.stl`](file:///c:/Users/Kiddi/Desktop/WDW%20costumes/3d_panels/wire_clips/cap_3strand_bundle.stl)** | **Cap for 3-Strand Pyramid** | $8.44 \times 8.00 \times 3.20\text{ mm}$ | $\approx 0.25\text{g}$ | Snaps over the top crown of `clip_3strand_bundle` locking the top strand down. |
+| **[`cap_2strand_pyramid_cradle.stl`](file:///c:/Users/Kiddi/Desktop/WDW%20costumes/3d_panels/wire_clips/cap_2strand_pyramid_cradle.stl)** | **Cap for 2-Strand Cradle** | $7.34 \times 8.00 \times 3.20\text{ mm}$ | $\approx 0.22\text{g}$ | Snaps over `clip_2strand_pyramid_cradle` (v1 geometry). |
+| **[`cap_corner_90.stl`](file:///c:/Users/Kiddi/Desktop/WDW%20costumes/3d_panels/wire_clips/cap_corner_90.stl)** | **Cap for 90° Corner Elbow** | $10.67 \times 10.67 \times 2.80\text{ mm}$ | $\approx 0.24\text{g}$ | 90° curved roof with dual curved skirts; snaps over floating & sewable elbows. |
+| **[`wire_clips_caps_pack.stl`](file:///c:/Users/Kiddi/Desktop/WDW%20costumes/3d_panels/wire_clips/wire_clips_caps_pack.stl)** | **Full Race Day Plate (Caps)** | $83.74 \times 75.34 \times 3.20\text{ mm}$ | $\approx 6.5\text{g}$ | **24-Piece Companion Plate:** 4x of each straight cap (20 caps) + 4x 90° corner caps in a single ~12-minute print! |
 
 ---
 

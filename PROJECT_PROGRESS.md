@@ -93,6 +93,26 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### 2026-10-26: Engineered Snap-On Race-Day Security Caps (10K High-Impact Locking Vaults)
+- **10K Race-Day Armored Security:**
+  - Designed positive-locking snap-on caps (hoods) for all straight clips and 90° corner elbows to physically cage fairy light wiring for the entire 6.2 miles of high-impact arm swings, stride impacts, corral crowds, and finish line celebrations.
+  - Features $1.0\text{ mm}$ thick solid roof and dual spring retention skirts with $0.35\text{ mm}$ inward locking catch beads.
+  - Added matching $0.35\text{ mm}$ horizontal retention ridges along the flanks of all base clips and 90° elbows for a definitive tactile snap lock.
+- **Support-Free Print Orientation:**
+  - All caps pre-oriented flat on their top roof at $Z = 0$ with retention skirts pointing straight up (+Z). Zero supports or brims required.
+- **Complete Cap Roster (`3d_panels/wire_clips/`):**
+  - `cap_2strand_flat.stl` ($13.09 \times 8.00 \times 3.20\text{ mm}$, ~$0.35\text{g}$).
+  - `cap_3strand_flat.stl` ($17.74 \times 8.00 \times 3.20\text{ mm}$, ~$0.45\text{g}$).
+  - `cap_2strand_stacked.stl` ($8.44 \times 8.00 \times 3.20\text{ mm}$, ~$0.25\text{g}$).
+  - `cap_3strand_bundle.stl` ($8.44 \times 8.00 \times 3.20\text{ mm}$, ~$0.25\text{g}$).
+  - `cap_2strand_pyramid_cradle.stl` ($7.34 \times 8.00 \times 3.20\text{ mm}$, ~$0.22\text{g}$).
+  - `cap_corner_90.stl` ($10.67 \times 10.67 \times 2.80\text{ mm}$, ~$0.24\text{g}$): 90° curved roof with dual concentric skirts.
+- **24-Piece Race-Day Caps Companion Plate (`wire_clips_caps_pack.stl`):**
+  - Single build plate array ($83.74 \times 75.34 \times 3.20\text{ mm}$, ~$6.5\text{g}$ PLA total) printing 4x of each straight cap (20 caps) + 4x 90° corner caps in ~12 minutes.
+- **Synchronized OpenSCAD & Documentation:**
+  - Added parametric cap modules and interactive customizer selectors to `wire_clips.scad`.
+  - Updated `README.md` and `SIMULATOR_USER_GUIDE.md`.
+
 ### 2026-10-26: Re-engineered 90° Elbows with Pronounced Cantilever Snap Lips & Undercut Shelf
 - **Cantilever Snap Overhang & Undercut Shelf:**
   - Resolved issue where the previous vertical slot cutout subsumed the neck constriction, leaving a straight-walled channel without a visible or tactile snap lip.
