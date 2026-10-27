@@ -9,23 +9,23 @@ os.makedirs("3d_panels/wire_clips", exist_ok=True)
 
 # ==============================================================================
 # PARAMETRIC CONSTANTS FOR RIGID PLA / PETG WIRE CLIPS
+# Resized for standard ~2.8mm to 3.05mm jacketed fairy light wiring
 # ==============================================================================
-# Target wire: Standard insulated fairy light wire (~2.0mm to 2.5mm OD)
-WIRE_DIAMETER = 2.30     # Nominal wire OD (mm)
-CAVITY_RADIUS = WIRE_DIAMETER / 2.0 + 0.05  # 1.20mm radius (2.40mm dia for smooth glide without pinching)
-WALL_THICKNESS = 1.25    # Flex cantilever spring wall thickness (~3 perimeters on 0.4mm nozzle)
-FLOOR_THICKNESS = 1.10   # Bottom chassis thickness resting flat against shirt
-NECK_OPENING = 1.65      # Snap constriction mouth width (gives positive snap without stress-whitening)
+WIRE_DIAMETER = 3.00     # Nominal wire OD (mm)
+CAVITY_RADIUS = 1.55     # Inner pocket radius (3.10mm dia for smooth wire glide without pinch)
+WALL_THICKNESS = 1.30    # Flex cantilever spring wall thickness (~3 perimeters on 0.4mm nozzle)
+FLOOR_THICKNESS = 1.20   # Bottom chassis thickness resting flat against shirt/build plate
+NECK_OPENING = 2.20      # Snap constriction mouth width (gives positive snap click without stress-whitening)
 CLIP_LENGTH = 8.00       # Extrusion length along wire path (mm)
 
 
 def to_flat_trimesh(profile: m3d.CrossSection, length: float = CLIP_LENGTH) -> trimesh.Trimesh:
-    """Extrudes a 2D profile along Z and rotates so the flat base sits at Z=0 for printing."""
+    """Extrudes a 2D profile along Z and rotates +90 deg around X so the flat base sits at Z=0 and mouths point UP."""
     m = profile.extrude(length)
     raw = m.to_mesh()
     mesh = trimesh.Trimesh(vertices=raw.vert_properties, faces=raw.tri_verts)
-    # Rotate 90 deg around X so base (Y=0) lies flat on build plate at Z=0
-    rot = trimesh.transformations.rotation_matrix(np.radians(-90), [1, 0, 0])
+    # Rotate +90 deg around X so base (Y=0) lies flat on build plate at Z=0, mouth (Y>0) points UP (+Z)
+    rot = trimesh.transformations.rotation_matrix(np.radians(90), [1, 0, 0])
     mesh.apply_transform(rot)
     # Center bounds in X and align to Y=0, Z=0
     bounds = mesh.bounds
@@ -52,9 +52,8 @@ def create_clip_2strand_flat(wire_d=WIRE_DIAMETER, length=CLIP_LENGTH) -> trimes
     spacing = 2 * r_cav + WALL_THICKNESS
     w_total = 2 * (spacing / 2.0 + r_cav + WALL_THICKNESS)
     y_cen = FLOOR_THICKNESS + r_cav
-    h_total = y_cen + r_cav + 0.65
+    h_total = y_cen + r_cav + 0.70
 
-    # Chamfered outer envelope (flat bottom at Y=0)
     pts_body = [
         [-w_total / 2.0, 0.0],
         [-w_total / 2.0, h_total - 0.8],
@@ -68,7 +67,7 @@ def create_clip_2strand_flat(wire_d=WIRE_DIAMETER, length=CLIP_LENGTH) -> trimes
     cuts = []
     for xc in [-spacing / 2.0, spacing / 2.0]:
         circ = m3d.CrossSection.circle(r_cav, 32).translate([xc, y_cen])
-        y_neck = y_cen + 0.85
+        y_neck = y_cen + 1.00
         hw_neck = NECK_OPENING / 2.0
         hw_top = hw_neck + (h_total - y_neck) * 1.1
         pts_entry = [
@@ -95,7 +94,7 @@ def create_clip_3strand_flat(wire_d=WIRE_DIAMETER, length=CLIP_LENGTH) -> trimes
     spacing = 2 * r_cav + WALL_THICKNESS
     w_total = 2 * (spacing + r_cav + WALL_THICKNESS)
     y_cen = FLOOR_THICKNESS + r_cav
-    h_total = y_cen + r_cav + 0.65
+    h_total = y_cen + r_cav + 0.70
 
     pts_body = [
         [-w_total / 2.0, 0.0],
@@ -110,7 +109,7 @@ def create_clip_3strand_flat(wire_d=WIRE_DIAMETER, length=CLIP_LENGTH) -> trimes
     cuts = []
     for xc in [-spacing, 0.0, spacing]:
         circ = m3d.CrossSection.circle(r_cav, 32).translate([xc, y_cen])
-        y_neck = y_cen + 0.85
+        y_neck = y_cen + 1.00
         hw_neck = NECK_OPENING / 2.0
         hw_top = hw_neck + (h_total - y_neck) * 1.1
         pts_entry = [
@@ -130,15 +129,15 @@ def create_clip_3strand_flat(wire_d=WIRE_DIAMETER, length=CLIP_LENGTH) -> trimes
 
 # ==============================================================================
 # 3. 2-STRAND STACKED VERTICAL CLIP
-# Holds 2 strands stacked vertically over-under. Narrowest lateral footprint (4.9mm)!
+# Holds 2 strands stacked vertically over-under. Narrowest lateral footprint (5.7mm)!
 # ==============================================================================
 def create_clip_2strand_stacked(wire_d=WIRE_DIAMETER, length=CLIP_LENGTH) -> trimesh.Trimesh:
     r_cav = wire_d / 2.0 + 0.05
     y1 = FLOOR_THICKNESS + r_cav
-    y2 = y1 + 2 * r_cav + 0.15
+    y2 = y1 + 2 * r_cav + 0.20
     y_waist = (y1 + y2) / 2.0
-    y_neck = y2 + 0.85
-    h_total = y2 + r_cav + 0.70
+    y_neck = y2 + 1.00
+    h_total = y2 + r_cav + 0.80
     w_total = 2 * (r_cav + WALL_THICKNESS)
 
     pts_body = [
@@ -153,7 +152,7 @@ def create_clip_2strand_stacked(wire_d=WIRE_DIAMETER, length=CLIP_LENGTH) -> tri
 
     c1 = m3d.CrossSection.circle(r_cav, 32).translate([0, y1])
     c2 = m3d.CrossSection.circle(r_cav, 32).translate([0, y2])
-    waist = m3d.CrossSection.square([1.70, y2 - y1], center=True).translate([0, y_waist])
+    waist = m3d.CrossSection.square([2.25, y2 - y1], center=True).translate([0, y_waist])
 
     hw_neck = NECK_OPENING / 2.0
     hw_top = hw_neck + (h_total - y_neck) * 1.1
@@ -177,21 +176,21 @@ def create_clip_2strand_stacked(wire_d=WIRE_DIAMETER, length=CLIP_LENGTH) -> tri
 # ==============================================================================
 def create_clip_3strand_bundle(wire_d=WIRE_DIAMETER, length=CLIP_LENGTH) -> trimesh.Trimesh:
     r_cav = wire_d / 2.0 + 0.05
-    x1, y1 = -1.35, FLOOR_THICKNESS + r_cav
-    x2, y2 = 1.35, FLOOR_THICKNESS + r_cav
-    x3, y3 = 0.0, y1 + 2.05
-    h_total = y3 + r_cav + 0.80
-    w_bot = 2 * (1.35 + r_cav + WALL_THICKNESS)
+    x1, y1 = -1.75, FLOOR_THICKNESS + r_cav
+    x2, y2 = 1.75, FLOOR_THICKNESS + r_cav
+    x3, y3 = 0.0, y1 + 2.68
+    h_total = y3 + r_cav + 0.90
+    w_bot = 2 * (1.75 + r_cav + WALL_THICKNESS)
     w_top = 2 * (r_cav + WALL_THICKNESS)
 
     pts_body = [
         [-w_bot / 2.0, 0.0],
-        [-w_bot / 2.0, y1 + 0.5],
-        [-w_top / 2.0, h_total - 0.6],
-        [-w_top / 2.0 + 0.6, h_total],
-        [w_top / 2.0 - 0.6, h_total],
-        [w_top / 2.0, h_total - 0.6],
-        [w_bot / 2.0, y1 + 0.5],
+        [-w_bot / 2.0, y1 + 0.6],
+        [-w_top / 2.0, h_total - 0.8],
+        [-w_top / 2.0 + 0.8, h_total],
+        [w_top / 2.0 - 0.8, h_total],
+        [w_top / 2.0, h_total - 0.8],
+        [w_bot / 2.0, y1 + 0.6],
         [w_bot / 2.0, 0.0]
     ]
     body = m3d.CrossSection.hull_points(pts_body)
@@ -201,7 +200,7 @@ def create_clip_3strand_bundle(wire_d=WIRE_DIAMETER, length=CLIP_LENGTH) -> trim
     c3 = m3d.CrossSection.circle(r_cav, 32).translate([x3, y3])
     throat = m3d.CrossSection.square([NECK_OPENING, y3 - y1], center=True).translate([0, (y1 + y3) / 2.0])
 
-    y_neck = y3 + 0.85
+    y_neck = y3 + 1.00
     hw_neck = NECK_OPENING / 2.0
     hw_top = hw_neck + (h_total - y_neck) * 1.1
     pts_top = [
@@ -213,7 +212,7 @@ def create_clip_3strand_bundle(wire_d=WIRE_DIAMETER, length=CLIP_LENGTH) -> trim
         [hw_neck, y3]
     ]
     top_slot = m3d.CrossSection.hull_points(pts_top)
-    divider = m3d.CrossSection.circle(0.40, 16).translate([0, FLOOR_THICKNESS + 0.25])
+    divider = m3d.CrossSection.circle(0.45, 16).translate([0, FLOOR_THICKNESS + 0.30])
 
     cutout = (c1 + c2 + c3 + throat + top_slot) - divider
     profile = body - cutout
@@ -221,22 +220,62 @@ def create_clip_3strand_bundle(wire_d=WIRE_DIAMETER, length=CLIP_LENGTH) -> trim
 
 
 # ==============================================================================
-# 5. MULTI-PACK RUNNER PRINT BED (16 CLIPS TOTAL)
-# 4x of each model arranged on a clean ~55x50mm print bed layout
+# 5. TEST GAUGE COMB (3-MINUTE QUICK PRINT)
+# 5 stepped test slots (2.6, 2.8, 3.0, 3.2, 3.4 mm) to find the perfect snap fit
+# ==============================================================================
+def create_test_gauge_comb(length: float = 6.00) -> trimesh.Trimesh:
+    diameters = [2.6, 2.8, 3.0, 3.2, 3.4]
+    slot_spacing = 7.0
+    w_total = (len(diameters) - 1) * slot_spacing + 2 * (1.75 + 1.30) + 2.0
+    h_total = 5.3
+    floor = 1.2
+
+    body = m3d.CrossSection.square([w_total, h_total], center=False).translate([-w_total / 2.0, 0.0])
+
+    cuts = []
+    x_start = - (len(diameters) - 1) * slot_spacing / 2.0
+    for i, d in enumerate(diameters):
+        xc = x_start + i * slot_spacing
+        r_cav = d / 2.0 + 0.05
+        neck_w = d * 0.73
+        y_cen = floor + r_cav
+        c = m3d.CrossSection.circle(r_cav, 32).translate([xc, y_cen])
+        y_neck = y_cen + (d * 0.32)
+        hw_n = neck_w / 2.0
+        hw_t = hw_n + (h_total - y_neck) * 1.1
+        s = m3d.CrossSection.hull_points([
+            [xc - hw_n, y_cen], [xc - hw_n, y_neck], [xc - hw_t, h_total + 0.2],
+            [xc + hw_t, h_total + 0.2], [xc + hw_n, y_neck], [xc + hw_n, y_cen]
+        ])
+        cuts.append(c + s)
+
+    cut_all = cuts[0]
+    for c in cuts[1:]:
+        cut_all = cut_all + c
+
+    profile = body - cut_all
+    mesh = to_flat_trimesh(profile, length)
+    return mesh
+
+
+# ==============================================================================
+# 6. MULTI-PACK RUNNER PRINT BED (16 CLIPS + 1 TEST COMB)
+# 4x of each model + test comb arranged flat on a clean ~75x65mm print bed layout
 # ==============================================================================
 def create_runner_multipack() -> trimesh.Trimesh:
     c2_flat = create_clip_2strand_flat()
     c3_flat = create_clip_3strand_flat()
     c2_stack = create_clip_2strand_stacked()
     c3_bund = create_clip_3strand_bundle()
+    comb = create_test_gauge_comb()
 
     models = [c2_flat, c3_flat, c2_stack, c3_bund]
-    row_y = [0.0, 13.0, 26.0, 39.0]
+    row_y = [0.0, 14.0, 28.0, 42.0]
     col_x_offsets = [
-        [-21.0, -7.0, 7.0, 21.0],  # 2-strand flat (8.5mm wide)
-        [-24.0, -8.0, 8.0, 24.0],  # 3-strand flat (12.2mm wide)
-        [-18.0, -6.0, 6.0, 18.0],  # 2-strand stacked (4.9mm wide)
-        [-21.0, -7.0, 7.0, 21.0]   # 3-strand bundle (7.6mm wide)
+        [-24.0, -8.0, 8.0, 24.0],  # 2-strand flat (10.1mm wide)
+        [-30.0, -10.0, 10.0, 30.0],# 3-strand flat (14.5mm wide)
+        [-21.0, -7.0, 7.0, 21.0],  # 2-strand stacked (5.7mm wide)
+        [-24.0, -8.0, 8.0, 24.0]   # 3-strand bundle (9.2mm wide)
     ]
 
     pack_parts = []
@@ -246,7 +285,19 @@ def create_runner_multipack() -> trimesh.Trimesh:
             inst.apply_translation([x_pos, y_pos, 0.0])
             pack_parts.append(inst)
 
+    # Position test gauge comb at the front/top
+    comb_inst = comb.copy()
+    comb_inst.apply_translation([0.0, 56.0, 0.0])
+    pack_parts.append(comb_inst)
+
     combined = trimesh.util.concatenate(pack_parts)
+    # Ensure entire bed array is centered in XY and resting at Z=0
+    bounds = combined.bounds
+    combined.apply_translation([
+        -bounds[0][0] - (bounds[1][0] - bounds[0][0]) / 2.0,
+        -bounds[0][1],
+        -bounds[0][2]
+    ])
     return combined
 
 
@@ -301,15 +352,18 @@ if __name__ == "__main__":
             sys.stdout.reconfigure(encoding='utf-8')
         except Exception:
             pass
-    print("[Imagineering] Compiling WDW 10K Fairy Light Wire Fold Management Clips...")
+    print("[Imagineering] Compiling Resized (3.0mm) WDW 10K Fairy Light Wire Fold Clips...")
 
-    # 4 New Fold Clips
+    # 4 Resized Fold Clips (flat base at Z=0, mouth pointing UP)
     export_trimesh(create_clip_2strand_flat(), "3d_panels/wire_clips/clip_2strand_flat.stl")
     export_trimesh(create_clip_3strand_flat(), "3d_panels/wire_clips/clip_3strand_flat.stl")
     export_trimesh(create_clip_2strand_stacked(), "3d_panels/wire_clips/clip_2strand_stacked.stl")
     export_trimesh(create_clip_3strand_bundle(), "3d_panels/wire_clips/clip_3strand_bundle.stl")
 
-    # Runner Multi-Pack (16 clips ready for single-plate 3D print)
+    # Quick 3-Minute Test Gauge Comb
+    export_trimesh(create_test_gauge_comb(), "3d_panels/wire_clips/wire_gauge_test_comb.stl")
+
+    # Runner Multi-Pack (16 clips + 1 test comb ready for single-plate 3D print)
     export_trimesh(create_runner_multipack(), "3d_panels/wire_clips/wire_clips_runner_pack.stl")
 
     # Legacy Clips
@@ -318,4 +372,4 @@ if __name__ == "__main__":
     export_legacy_mesh(create_fabric_snap_back(), "3d_panels/wire_clips/clip_fabric_snap_back.stl")
     export_legacy_mesh(create_shoulder_saddle_clip(), "3d_panels/wire_clips/clip_shoulder_saddle.stl")
 
-    print("[Done] All wire management clips compiled and exported successfully!")
+    print("[Done] All resized wire management clips compiled and exported successfully!")

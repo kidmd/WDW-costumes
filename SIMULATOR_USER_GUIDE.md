@@ -1503,12 +1503,14 @@ Instead of attaching a Cricut cut vinyl graphic on top of the printed plate, the
 
 14. **🖨️ Precision Fairy Light Wire Fold Management Clips (2-Strand & 3-Strand Snap Clips):**
    - **External Wire Fold Management:** For fairy light wire folded on itself outside the chest armor panels, four precision PLA/PETG snap-fit clip variants maintain neat, parallel routing without snagging or stress-whitening.
+   - **Sized for ~3.0mm Wires (2.8mm to 3.05mm OD):** Sockets feature 3.10mm inner cradles, 2.20mm snap mouths with 45° lead-in ramps, and 1.30mm spring walls. All models default to flat on the build plate (Z = 0) with mouths pointing up.
    - **4 Specialized Clip Geometries (3d_panels/wire_clips/):**
-     - **2-Strand Flat Parallel (clip_2strand_flat.stl):** .55\text{ mm W} \times 8.00\text{ mm L} \times 4.15\text{ mm H}$ (.5\text{ mm}^3$, ~.20\text{g}$). Keeps hairpin return folds completely flat against running shirts.
-     - **3-Strand Flat Parallel (clip_3strand_flat.stl):** .20\text{ mm W} \times 8.00\text{ mm L} \times 4.15\text{ mm H}$ (.0\text{ mm}^3$, ~.28\text{g}$). Flat 3-wire accordion/Z-fold comb.
-     - **2-Strand Stacked Vertical (clip_2strand_stacked.stl):** .90\text{ mm W} \times 8.00\text{ mm L} \times 6.61\text{ mm H}$ (.1\text{ mm}^3$, ~.20\text{g}$). Ultra-slim lateral footprint with internal waist detent isolating upper and lower wires.
-     - **3-Strand Pyramid Bundle (clip_3strand_bundle.stl):** .60\text{ mm W} \times 8.00\text{ mm L} \times 6.27\text{ mm H}$ (.9\text{ mm}^3$, ~.25\text{g}$). Compact triangular cluster where top wire snaps down and locks bottom two strands into their seats.
-   - **Race-Day Multi-Pack Plate (wire_clips_runner_pack.stl):** Arranges 4x of each clip (16 clips total, ~.6\text{g}$ PLA) on a .2 \times 47.0\text{ mm}$ print bed footprint for a single 15-minute quick print.
+     - **2-Strand Flat Parallel (clip_2strand_flat.stl):** .10\text{ mm W} \times 8.00\text{ mm L} \times 4.80\text{ mm H}$ (.6\text{ mm}^3$, ~.26\text{g}$). Keeps hairpin return folds completely flat against running shirts.
+     - **3-Strand Flat Parallel (clip_3strand_flat.stl):** .50\text{ mm W} \times 8.00\text{ mm L} \times 4.80\text{ mm H}$ (.3\text{ mm}^3$, ~.36\text{g}$). Flat 3-wire accordion/Z-fold comb.
+     - **2-Strand Stacked Vertical (clip_2strand_stacked.stl):** .70\text{ mm W} \times 8.00\text{ mm L} \times 8.14\text{ mm H}$ (.3\text{ mm}^3$, ~.26\text{g}$). Ultra-slim lateral footprint with internal waist detent isolating upper and lower wires.
+     - **3-Strand Pyramid Bundle (clip_3strand_bundle.stl):** .20\text{ mm W} \times 8.00\text{ mm L} \times 7.55\text{ mm H}$ (.4\text{ mm}^3$, ~.34\text{g}$). Compact triangular cluster where top wire snaps down and locks bottom two strands into their seats.
+     - **3-Minute Test Gauge Comb (wire_gauge_test_comb.stl):** .10\text{ mm W} \times 6.00\text{ mm L} \times 5.30\text{ mm H}$ (.6\text{ mm}^3$, ~.9\text{g}$). 5 stepped slots (2.6, 2.8, 3.0, 3.2, 3.4 mm) for instant fit validation.
+   - **Race-Day Multi-Pack Plate (wire_clips_runner_pack.stl):** Arranges 4x of each clip (16 clips) plus the test comb (.5 \times 62.0 \times 8.14\text{ mm}$, ~.8\text{g}$ PLA) on a single build plate for a 20-minute print.
    - **Parametric OpenSCAD & Python Generators:** Fully parametric via 3d_panels/wire_clips/wire_clips.scad (with Customizer sliders) and automated via python scripts/generate_wire_clips.py.
 
 

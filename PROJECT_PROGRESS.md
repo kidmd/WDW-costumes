@@ -93,6 +93,15 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### 2026-10-26: Resized Wire Clips (~3.0mm Wire), Inverted Bed Orientation Fix & Test Gauge Comb
+- **Bed Orientation Fix:** Resolved inverted mesh export where clips defaulted with bases facing upward in slicers (Snapmaker Luban / OrcaSlicer). Fixed rotation transform in `scripts/generate_wire_clips.py` and `wire_clips.scad` (+90° around X axis), guaranteeing that all 34 flat bottom faces sit directly on the textured PEI bed ($Z = 0$) with snap mouths pointing straight up toward the nozzle.
+- **Resized for Standard 2.8mm–3.05mm Fairy Light Wires:**
+  - Scaled nominal wire diameter from $2.30\text{ mm}$ up to **$3.00\text{ mm}$** (inner cavity $\varnothing 3.10\text{ mm}$, snap mouth $2.20\text{ mm}$, reinforced $1.30\text{ mm}$ cantilever walls, $1.20\text{ mm}$ base plate).
+  - Enables clean, effortless snapping for all 2-strand and 3-strand configurations without wire jamming or insulation pinching.
+- **Added 3-Minute Test Gauge Comb (`wire_gauge_test_comb.stl`):**
+  - Compact $36.1 \times 6.0 \times 5.3\text{ mm}$ test swatch featuring 5 stepped snap slots ($2.6, 2.8, 3.0, 3.2, 3.4\text{ mm}$) to verify physical snap feel with actual race-day wire.
+  - Included directly on the front row of the 17-piece **`wire_clips_runner_pack.stl`** ($74.5 \times 62.0 \times 8.14\text{ mm}$, ~$5.8\text{g}$ PLA total).
+
 ### 2026-10-26: 3D Printable Snap-Fit Fairy Light Wire Fold Management Clips
 - **Objective & Purpose:** Designed, engineered, and exported lightweight (<0.3g), low-profile 3D printable snap-fit clips to manage external fairy light wiring folded over itself outside the chest armor panels on the WDW 10K running shirts.
 - **Architectural & Mechanical Highlights:**
