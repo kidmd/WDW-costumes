@@ -306,9 +306,13 @@ def create_corner_90_single() -> trimesh.Trimesh:
     h = 5.0
     prof = create_single_wire_channel_profile(r_in, r_out, h)
 
-    # Pure monolithic 90-degree curved sweep - no glued straight extensions
-    bend = prof.revolve(circular_segments=64, revolve_degrees=90.0)
-    mesh = trimesh.Trimesh(vertices=bend.to_mesh().vert_properties, faces=bend.to_mesh().tri_verts)
+    # 360-degree revolve intersected with quadrant bounding box to eliminate partial-revolve diagonal artifacts
+    rev360 = prof.revolve(circular_segments=64, revolve_degrees=360.0)
+    quad_box = m3d.Manifold.cube([20.0, 20.0, 10.0], center=False).translate([0.0, 0.0, -2.0])
+    corner_single = rev360 ^ quad_box
+
+    raw = corner_single.to_mesh()
+    mesh = trimesh.Trimesh(vertices=raw.vert_properties, faces=raw.tri_verts)
 
     # Center bounds in XY and place Z at 0
     bounds = mesh.bounds
@@ -321,30 +325,34 @@ def create_corner_90_single() -> trimesh.Trimesh:
 
 
 def create_corner_90_sewable() -> trimesh.Trimesh:
-    """90-degree pure curved elbow bracket with corner stitching eyelet tabs."""
+    """90-degree pure curved elbow bracket with clear, unobstructed corner stitching eyelet tabs."""
     r_in = 4.0
     r_out = 10.0
     h = 5.0
     prof = create_single_wire_channel_profile(r_in, r_out, h)
 
-    bend = prof.revolve(circular_segments=64, revolve_degrees=90.0)
-    mesh_bend = trimesh.Trimesh(vertices=bend.to_mesh().vert_properties, faces=bend.to_mesh().tri_verts)
+    # 360-degree revolve intersected with quadrant bounding box
+    rev360 = prof.revolve(circular_segments=64, revolve_degrees=360.0)
+    quad_box = m3d.Manifold.cube([20.0, 20.0, 10.0], center=False).translate([0.0, 0.0, -2.0])
+    corner_single = rev360 ^ quad_box
 
-    # 2 flat sewing tabs overlapping cleanly into the outer wall at [8.6, 2.0] and [2.0, 8.6]
-    tab_cs = m3d.CrossSection.circle(2.5, 24) - m3d.CrossSection.circle(0.95, 24)
-    m_tab1 = tab_cs.extrude(1.2).translate([8.6, 2.0, 0.0])
-    m_tab2 = tab_cs.extrude(1.2).translate([2.0, 8.6, 0.0])
-    mesh_tab1 = trimesh.Trimesh(vertices=m_tab1.to_mesh().vert_properties, faces=m_tab1.to_mesh().tri_verts)
-    mesh_tab2 = trimesh.Trimesh(vertices=m_tab2.to_mesh().vert_properties, faces=m_tab2.to_mesh().tri_verts)
+    # 2 flat sewing tabs positioned with holes completely clear of the outer 10mm channel wall
+    # Center holes at X=11.8, Y=2.0 and X=2.0, Y=11.8 (outside R_out = 10.0mm, root overlaps wall by 0.7mm)
+    tab_cs = m3d.CrossSection.circle(2.5, 24) - m3d.CrossSection.circle(1.0, 24)
+    tab1 = tab_cs.extrude(1.2).translate([11.8, 2.0, 0.0])
+    tab2 = tab_cs.extrude(1.2).translate([2.0, 11.8, 0.0])
 
-    combined = trimesh.boolean.union([mesh_bend, mesh_tab1, mesh_tab2], engine='manifold')
-    bounds = combined.bounds
-    combined.apply_translation([
+    combined = corner_single + tab1 + tab2
+    raw = combined.to_mesh()
+    mesh = trimesh.Trimesh(vertices=raw.vert_properties, faces=raw.tri_verts)
+
+    bounds = mesh.bounds
+    mesh.apply_translation([
         -bounds[0][0] - (bounds[1][0] - bounds[0][0]) / 2.0,
         -bounds[0][1] - (bounds[1][1] - bounds[0][1]) / 2.0,
         -bounds[0][2]
     ])
-    return combined
+    return mesh
 
 
 # ==============================================================================

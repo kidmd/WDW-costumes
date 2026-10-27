@@ -273,14 +273,15 @@ module clip_corner_90_single_3d() {
 
 module clip_corner_90_sewable_3d() {
     clip_corner_90_single_3d();
-    // 2 outer corner sewing eyelet tabs overlapping cleanly into wall
+    // 2 outer corner sewing eyelet tabs placed completely outside the 10mm channel wall
+    // Center at (11.8, 2.0) and (2.0, 11.8) gives 100% clear 2.0mm holes with 0.5mm root overlap into channel base
     difference() {
         union() {
-            translate([9.0, 1.8, 0]) cylinder(h = 1.2, r = 2.5);
-            translate([1.8, 9.0, 0]) cylinder(h = 1.2, r = 2.5);
+            translate([11.8, 2.0, 0]) cylinder(h = 1.2, r = 2.5);
+            translate([2.0, 11.8, 0]) cylinder(h = 1.2, r = 2.5);
         }
-        translate([9.0, 1.8, -0.1]) cylinder(h = 1.4, r = 0.95);
-        translate([1.8, 9.0, -0.1]) cylinder(h = 1.4, r = 0.95);
+        translate([11.8, 2.0, -0.1]) cylinder(h = 1.4, r = 1.0);
+        translate([2.0, 11.8, -0.1]) cylinder(h = 1.4, r = 1.0);
     }
 }
 

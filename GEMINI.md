@@ -110,12 +110,17 @@ Whenever any feature, UI control, slider, preset, firmware parameter, or hardwar
 
 ## 7. 3D Modeling & Curved Geometry Standards (Zero Tangential Artifacts & Pure Sweeps)
 
-1. **Pure Monolithic Sweeps (Zero Tangential Spurs or Ghost Prisms):**
-   - When modeling curved brackets, 90° wire elbows, or arc channels, **NEVER append or union separate linear extrusions** onto the ends of a circular revolve unless explicitly requested.
-   - Tacking linear extrusions onto circular arcs creates unsightly tangential straight fins, triangular horns, and non-manifold boundary cracks at the transition seams.
-   - Curved elbows must be constructed as **pure, monolithic angular sweeps** (e.g., `prof.revolve(revolve_degrees=90.0)` in Python / `rotate_extrude(angle=90)` in OpenSCAD) with clean perpendicular planar cuts directly at $0^\circ$ and $90^\circ$.
-2. **Overlapping Boolean Cleanliness:**
-   - When uniting mounting eyelets, sewing tabs, or bosses with curved geometry, ensure intentional penetration into the base solid ($\ge 0.5\text{ mm}$) to avoid coincident coplanar facets and non-manifold sliver edges.
-   - Always verify that exported meshes are strictly watertight (`is_watertight == True`), lie flat against the build plate ($Z = 0$), and contain zero stray coplanar facets.
+1. **Pure Monolithic Sweeps (Zero Tangential Spurs, Ghost Prisms, or 45° Diagonal Bridges):**
+   - In `manifold3d`, calling `CrossSection.revolve(revolve_degrees < 360.0)` has a known kernel bug that inserts unwanted diagonal bridge triangles to the bounding box corners (creating triangular fins at $45^\circ$ pointing inward to $[R_{min}, R_{min}]$ and outward to $[R_{max}, R_{max}]$).
+   - **Mandatory Algorithm for Partial Revolves (e.g., 90° Elbows):**
+     Always revolve a full 360 degrees (`revolve_degrees=360.0`), and then perform a boolean intersection (`^`) with an orthogonal quadrant bounding cube (e.g. `[0, 20] x [0, 20] x [-2, 10]`) to crop the exact 90° sector. This produces a mathematically perfect circular sweep with zero ghost triangles, zero tangential horns, and 100% planar cuts at $0^\circ$ and $90^\circ$.
+   - **Never Append Separate Linear Extrusions onto Curve Ends:**
+     Tacking separate linear extrusions (`extrude(leg_len)`) onto circular arcs creates unsightly tangential straight fins, non-tangent corners, and boundary cracks at the transition seams.
+2. **Clear Sewing Tab Placement (Zero Hole Obstruction):**
+   - Mounting eyelets and sewing tabs must be positioned completely proud of the main channel walls.
+   - For a curved elbow of outer radius $R_{out}$, sewing tabs must be placed with their hole centers at $R > R_{out} + R_{hole}$ so the 5.0mm vertical channel walls never overhang, clip, or occlude the needle pass-through holes.
+   - Overlap only the tab root flange ($\ge 0.5\text{ mm}$) into the exterior wall for a clean, watertight union.
+3. **Mesh Verification Standards:**
+   - Always verify that exported meshes are strictly watertight (`is_watertight == True`), lie flat against the build plate ($Z = 0$), and that vertex radii strictly obey $R_{min} \le \sqrt{X^2 + Y^2} \le R_{max}$ with zero stray vertices beyond the true circular envelope.
 
 

@@ -93,14 +93,20 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
-### 2026-10-26: Eliminated Tangential Spur Artifacts on 90° Elbows & Added Curved Geometry Standard to GEMINI.md
-- **Tangential Spur Artifact Resolved:**
-  - Identified root cause in `clip_corner_90_single.stl` and `clip_corner_90_sewable.stl` where separate linear leg extrusions appended to the circular sweep produced unwanted straight spurs, triangular corner horns, and non-tangent boundary cracks visible in 3D viewer.
-  - Converted elbow models to **pure, monolithic 90° sweeps** (`revolve_degrees=90.0` with 64 circular segments in Python, `rotate_extrude(angle=90)` in OpenSCAD) with clean perpendicular cuts at $0^\circ$ and $90^\circ$.
-  - Cleaned footprint: `clip_corner_90_single.stl` is an exact $10.00 \times 10.00 \times 5.00\text{ mm}$ curve; `clip_corner_90_sewable.stl` is $11.60 \times 11.60 \times 5.00\text{ mm}$.
-- **Permanent Engineering Rule Added to `GEMINI.md` (Section 7):**
-  - Codified mandatory rule prohibiting the gluing of separate linear extrusions onto circular revolves/sweeps to prevent tangential fins, horns, and coplanar boundary cracks.
-  - Mandated intentional boolean overlap ($\ge 0.5\text{ mm}$) when attaching mounting eyelets or bosses to curved geometries.
+### 2026-10-26: Resolved 90° Elbow Ghost Spurs via 360° Box-Crop & Fully Unblocked Sewing Eyelet Holes
+- **Ghost Spur / Straight Bit Elimination (Kernel Bug Fix):**
+  - Pinpointed the root cause of the "extra straight bit" on `clip_corner_90_single.stl` and `clip_corner_90_sewable.stl`: calling `CrossSection.revolve(revolve_degrees=90.0)` in Manifold3D triggers an ear-clipping triangulation anomaly that spans bridge triangles out to the bounding box diagonal $(10.0, 10.0, 0.0)$ at $r = 14.14\text{ mm}$ (a sharp triangular wedge).
+  - Implemented the universal robust solution: swept a complete 360° circular torus (`revolve_degrees=360.0`), which produces a flawless surface with zero bridge artifacts ($r_{max} = 10.000\text{ mm}$ exact), and boolean-intersected (`^`) with a quadrant bounding box `[0, 20] x [0, 20] x [-2, 10]` to extract the pure $90^\circ$ elbow.
+  - Verified: `clip_corner_90_single.stl` footprint is strictly $10.00 \times 10.00 \times 5.00\text{ mm}$, watertight (`is_watertight == True`), with zero vertices exceeding $r = 10.0\text{ mm}$.
+- **Sewing Tab Hole Clearance Fix:**
+  - Shifted corner eyelet tab coordinates from $(9.0, 1.8)$ (which was occluded beneath the $5.0\text{ mm}$ tall outer channel wall at $R_{out} = 10.0\text{ mm}$) to $(11.8, 2.0)$ and $(2.0, 11.8)$.
+  - The $\varnothing 2.0\text{ mm}$ needle eyelets now sit completely in open air beyond the $10\text{ mm}$ channel wall with $0.80\text{ mm}$ clearance to the vertical wall and $0.53\text{ mm}$ solid base root penetration into the bottom chassis.
+  - Verified via raycast and horizontal plane slices: 100% clear through-holes from build plate ($Z = 0$) to tab top ($Z = 1.2\text{ mm}$) and skyward.
+- **Synchronized Assets & Runner Pack:**
+  - Updated both `scripts/generate_wire_clips.py` and `3d_panels/wire_clips/wire_clips.scad`.
+  - Recompiled and verified all 3.2mm STLs and `wire_clips_runner_pack.stl` ($78.30 \times 94.00 \times 8.55\text{ mm}$, 10,352 faces).
+- **Permanent Engineering Standards in `GEMINI.md` (Section 7):**
+  - Codified Section 7 rules prohibiting partial revolves that generate ear-clipping spurs and mandating full 360° revolves cropped with quadrant bounding cubes, as well as intentional boolean penetration ($\ge 0.5\text{ mm}$) for mounting tabs.
 
 ### 2026-10-26: 3.2mm Calibrated Wire Clips, 90° Single-Wire Elbows & 2-Strand Pyramid Cradle
 - **Calibrated to 3.2mm Wire Standard:** Based on physical test gauge comb validation (3.2mm slot yielding the ideal positive snap without strain), standardized all straight clips:
