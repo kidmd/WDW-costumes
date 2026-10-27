@@ -93,6 +93,20 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### 2026-10-26: Re-engineered 90° Elbows for 3-Strand Ribbon on Edge (Vertical Stack Easy-Bend)
+- **Mechanical Kinematics & Easy-Way Bending:**
+  - Standard WS2812B fairy light strings feature 3 parallel bonded insulated conductors forming a flat ribbon (~3.2mm wide by ~1.2mm thick).
+  - Attempting to bend the ribbon flat in the XY plane forces "the hard way" edgewise bending, which buckles copper and strains outer conductors.
+  - Re-engineered both 90° elbows (`clip_corner_90_single.stl` and `clip_corner_90_sewable.stl`) with a vertical on-edge slot ($1.40\text{ mm}$ wide $\times 3.60\text{ mm}$ deep).
+  - Stacking the 3 strands vertically allows the ribbon to bend smoothly across its thin ~1.2mm axis ("the easy way") with zero copper fatigue, zero conductor pinching, and effortless flex.
+- **Top-Entry Snap Cantilever Detent:**
+  - Implemented top snap lips constricting the slot mouth to $1.05\text{ mm}$ with $45^\circ$ lead-in ramps widening to $2.0\text{ mm}$.
+  - The 3-strand ribbon presses down into the slot on edge and snaps past the detent into the vertical channel.
+- **Compact Geometry & Sewing Clearances:**
+  - `clip_corner_90_single.stl`: $9.10 \times 9.10 \times 5.50\text{ mm}$ (pure monolithic circular sweep, $R_{in} = 5.0\text{ mm}$, $R_{out} = 9.10\text{ mm}$, watertight).
+  - `clip_corner_90_sewable.stl`: $14.00 \times 14.00 \times 5.50\text{ mm}$ with two $\varnothing 2.0\text{ mm}$ sewing eyelets centered at $(11.0, 2.0)$ and $(2.0, 11.0)$, providing $> 1.0\text{ mm}$ clear margin beyond the channel wall.
+  - Updated `wire_clips_runner_pack.stl` ($78.30 \times 94.00 \times 8.55\text{ mm}$) and OpenSCAD (`wire_clips.scad`).
+
 ### 2026-10-26: Resolved 90° Elbow Ghost Spurs via 360° Box-Crop & Fully Unblocked Sewing Eyelet Holes
 - **Ghost Spur / Straight Bit Elimination (Kernel Bug Fix):**
   - Pinpointed the root cause of the "extra straight bit" on `clip_corner_90_single.stl` and `clip_corner_90_sewable.stl`: calling `CrossSection.revolve(revolve_degrees=90.0)` in Manifold3D triggers an ear-clipping triangulation anomaly that spans bridge triangles out to the bounding box diagonal $(10.0, 10.0, 0.0)$ at $r = 14.14\text{ mm}$ (a sharp triangular wedge).

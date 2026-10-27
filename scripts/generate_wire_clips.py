@@ -275,36 +275,52 @@ def create_clip_2strand_pyramid_cradle(length=CLIP_LENGTH) -> trimesh.Trimesh:
 
 
 # ==============================================================================
-# 6. 90-DEGREE SINGLE-WIRE CORNER ELBOW BRACKETS (3.2mm)
-# Holds 1 wire around a gentle 90° bend (5mm inner bend radius)
+# 6. 90-DEGREE CORNER ELBOW BRACKETS FOR 3-STRAND RIBBON ON EDGE
+# Holds 3-strand flat fairy light ribbon oriented vertically on-edge (stacked)
+# Bends across thin ~1.2mm axis (easy way) - zero copper strain or kinking!
 # ==============================================================================
-def create_single_wire_channel_profile(r_inner=4.0, r_outer=10.0, height=5.0):
-    """Creates a radial cross-section for revolving around Y-axis."""
-    sq = m3d.CrossSection.square([r_outer - r_inner, height], center=False).translate([r_inner, 0.0])
-    r_cen = (r_inner + r_outer) / 2.0  # 7.0mm
-    y_cen = FLOOR_THICKNESS + CAVITY_RADIUS
-    c = m3d.CrossSection.circle(CAVITY_RADIUS, 32).translate([r_cen, y_cen])
-    y_neck = y_cen + 1.05
-    hw_neck = NECK_OPENING / 2.0
-    hw_top = hw_neck + (height - y_neck) * 1.1
-    pts_top = [
-        [r_cen - hw_neck, y_cen],
-        [r_cen - hw_neck, y_neck],
-        [r_cen - hw_top, height + 0.2],
-        [r_cen + hw_top, height + 0.2],
-        [r_cen + hw_neck, y_neck],
-        [r_cen + hw_neck, y_cen]
+def create_vertical_ribbon_channel_profile(
+    r_inner=5.0,
+    slot_w=1.40,
+    slot_h=3.60,
+    floor_t=1.20,
+    wall_t=1.35,
+    neck_w=1.05
+):
+    """
+    Creates a radial cross-section for a 3-strand flat ribbon wire oriented VERTICALLY on-edge.
+    When the flat 3-strand fairy light ribbon stands on edge (3 strands stacked vertically),
+    bending around the 90° curve bends across the thin ~1.2mm dimension (the easy way),
+    preventing copper strain, buckling, or kinking.
+    """
+    r_slot_cen = r_inner + wall_t + slot_w / 2.0   # 7.05 mm
+    r_outer = r_inner + 2 * wall_t + slot_w        # 9.10 mm
+    h_total = floor_t + slot_h + 0.70              # 5.50 mm
+
+    sq = m3d.CrossSection.square([r_outer - r_inner, h_total], center=False).translate([r_inner, 0.0])
+    slot_box = m3d.CrossSection.square([slot_w, slot_h], center=False).translate([r_slot_cen - slot_w / 2.0, floor_t])
+
+    y_neck = floor_t + slot_h
+    hw_neck = neck_w / 2.0
+    hw_top = hw_neck + (h_total - y_neck) * 1.1
+
+    pts_entry = [
+        [r_slot_cen - hw_neck, y_neck - 0.4],
+        [r_slot_cen - hw_neck, y_neck],
+        [r_slot_cen - hw_top, h_total + 0.2],
+        [r_slot_cen + hw_top, h_total + 0.2],
+        [r_slot_cen + hw_neck, y_neck],
+        [r_slot_cen + hw_neck, y_neck - 0.4]
     ]
-    slot = m3d.CrossSection.hull_points(pts_top)
-    return sq - (c + slot)
+    entry_funnel = m3d.CrossSection.hull_points(pts_entry)
+    cutout = slot_box + entry_funnel
+    return sq - cutout
 
 
 def create_corner_90_single() -> trimesh.Trimesh:
-    """90-degree pure curved elbow bracket for single wire (floating, zero tangential artifacts)."""
-    r_in = 4.0
-    r_out = 10.0
-    h = 5.0
-    prof = create_single_wire_channel_profile(r_in, r_out, h)
+    """90-degree pure curved elbow bracket for 3-strand ribbon on edge (floating, zero tangential artifacts)."""
+    r_in = 5.0
+    prof = create_vertical_ribbon_channel_profile(r_inner=r_in)
 
     # 360-degree revolve intersected with quadrant bounding box to eliminate partial-revolve diagonal artifacts
     rev360 = prof.revolve(circular_segments=64, revolve_degrees=360.0)
@@ -325,22 +341,20 @@ def create_corner_90_single() -> trimesh.Trimesh:
 
 
 def create_corner_90_sewable() -> trimesh.Trimesh:
-    """90-degree pure curved elbow bracket with clear, unobstructed corner stitching eyelet tabs."""
-    r_in = 4.0
-    r_out = 10.0
-    h = 5.0
-    prof = create_single_wire_channel_profile(r_in, r_out, h)
+    """90-degree pure curved elbow bracket for 3-strand ribbon on edge with clear, unobstructed corner eyelets."""
+    r_in = 5.0
+    prof = create_vertical_ribbon_channel_profile(r_inner=r_in)
 
     # 360-degree revolve intersected with quadrant bounding box
     rev360 = prof.revolve(circular_segments=64, revolve_degrees=360.0)
     quad_box = m3d.Manifold.cube([20.0, 20.0, 10.0], center=False).translate([0.0, 0.0, -2.0])
     corner_single = rev360 ^ quad_box
 
-    # 2 flat sewing tabs positioned with holes completely clear of the outer 10mm channel wall
-    # Center holes at X=11.8, Y=2.0 and X=2.0, Y=11.8 (outside R_out = 10.0mm, root overlaps wall by 0.7mm)
+    # 2 flat sewing tabs positioned with holes completely clear of the outer 9.1mm channel wall
+    # Center holes at X=11.0, Y=2.0 and X=2.0, Y=11.0
     tab_cs = m3d.CrossSection.circle(2.5, 24) - m3d.CrossSection.circle(1.0, 24)
-    tab1 = tab_cs.extrude(1.2).translate([11.8, 2.0, 0.0])
-    tab2 = tab_cs.extrude(1.2).translate([2.0, 11.8, 0.0])
+    tab1 = tab_cs.extrude(1.2).translate([11.0, 2.0, 0.0])
+    tab2 = tab_cs.extrude(1.2).translate([2.0, 11.0, 0.0])
 
     combined = corner_single + tab1 + tab2
     raw = combined.to_mesh()
