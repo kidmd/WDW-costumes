@@ -1501,16 +1501,20 @@ Instead of attaching a Cricut cut vinyl graphic on top of the printed plate, the
      - When **ON (Default)**: Builds the complete 3-tier stepped rear standoff frame and retaining lip to snugly cradle the $160 \times 160\text{ mm}$ matrix PCB centered and standoff-spaced from the front LEDs.
      - When **OFF**: Omits the rear walls and retaining lip, yielding a flat rear surface while the lens light-pipes maintain their full selected standoff length from $Z = 0$ to the front surface.
 
-14. **🖨️ Precision Fairy Light Wire Fold Management Clips (2-Strand & 3-Strand Snap Clips):**
-   - **External Wire Fold Management:** For fairy light wire folded on itself outside the chest armor panels, four precision PLA/PETG snap-fit clip variants maintain neat, parallel routing without snagging or stress-whitening.
-   - **Sized for ~3.0mm Wires (2.8mm to 3.05mm OD):** Sockets feature 3.10mm inner cradles, 2.20mm snap mouths with 45° lead-in ramps, and 1.30mm spring walls. All models default to flat on the build plate (Z = 0) with mouths pointing up.
-   - **4 Specialized Clip Geometries (3d_panels/wire_clips/):**
-     - **2-Strand Flat Parallel (clip_2strand_flat.stl):** .10\text{ mm W} \times 8.00\text{ mm L} \times 4.80\text{ mm H}$ (.6\text{ mm}^3$, ~.26\text{g}$). Keeps hairpin return folds completely flat against running shirts.
-     - **3-Strand Flat Parallel (clip_3strand_flat.stl):** .50\text{ mm W} \times 8.00\text{ mm L} \times 4.80\text{ mm H}$ (.3\text{ mm}^3$, ~.36\text{g}$). Flat 3-wire accordion/Z-fold comb.
-     - **2-Strand Stacked Vertical (clip_2strand_stacked.stl):** .70\text{ mm W} \times 8.00\text{ mm L} \times 8.14\text{ mm H}$ (.3\text{ mm}^3$, ~.26\text{g}$). Ultra-slim lateral footprint with internal waist detent isolating upper and lower wires.
-     - **3-Strand Pyramid Bundle (clip_3strand_bundle.stl):** .20\text{ mm W} \times 8.00\text{ mm L} \times 7.55\text{ mm H}$ (.4\text{ mm}^3$, ~.34\text{g}$). Compact triangular cluster where top wire snaps down and locks bottom two strands into their seats.
-     - **3-Minute Test Gauge Comb (wire_gauge_test_comb.stl):** .10\text{ mm W} \times 6.00\text{ mm L} \times 5.30\text{ mm H}$ (.6\text{ mm}^3$, ~.9\text{g}$). 5 stepped slots (2.6, 2.8, 3.0, 3.2, 3.4 mm) for instant fit validation.
-   - **Race-Day Multi-Pack Plate (wire_clips_runner_pack.stl):** Arranges 4x of each clip (16 clips) plus the test comb (.5 \times 62.0 \times 8.14\text{ mm}$, ~.8\text{g}$ PLA) on a single build plate for a 20-minute print.
+14. **🖨️ Precision Fairy Light Wire Fold Management Clips & 90° Corner Elbows:**
+   - **External Wire Fold & Corner Management:** For fairy light wire routed outside chest armor panels, precision PLA/PETG snap-fit clips and 90° elbow brackets maintain neat, parallel routing without wire kinking or conductor fatigue.
+   - **Calibrated 3.2mm Wire Standard:** Verified via physical test gauge comb (.2\text{ mm}$ test slot). All sockets feature .30\text{ mm}$ inner cradles, .35\text{ mm}$ snap constriction mouths with ^\circ$ lead-in ramps, and .35\text{ mm}$ spring cantilever walls. All STLs default to flat on the build plate ( = 0$) with mouths pointing up.
+   - **Straight Clip Roster (3d_panels/wire_clips/):**
+     - **2-Strand Flat Parallel (clip_2strand_flat.stl):** .65\text{ mm W} \times 8.00\text{ mm L} \times 5.01\text{ mm H}$ (.8\text{ mm}^3$, ~.28\text{g}$). Flush hairpin return fold.
+     - **3-Strand Flat Parallel (clip_3strand_flat.stl):** .30\text{ mm W} \times 8.00\text{ mm L} \times 5.01\text{ mm H}$ (.1\text{ mm}^3$, ~.39\text{g}$). Flat accordion/Z-fold comb.
+     - **2-Strand Stacked Vertical (clip_2strand_stacked.stl):** .00\text{ mm W} \times 8.00\text{ mm L} \times 8.55\text{ mm H}$ (.5\text{ mm}^3$, ~.28\text{g}$). Ultra-narrow lateral footprint with internal waist detent.
+     - **3-Strand Pyramid Bundle (clip_3strand_bundle.stl):** .70\text{ mm W} \times 8.00\text{ mm L} \times 7.93\text{ mm H}$ (.1\text{ mm}^3$, ~.36\text{g}$). Sized for three 3.2mm strands with top locking strand.
+     - **2-Strand Pyramid Cradle (clip_2strand_pyramid_cradle.stl):** .60\text{ mm W} \times 8.00\text{ mm L} \times 6.27\text{ mm H}$ (.9\text{ mm}^3$, ~.25\text{g}$). Verified v1 geometry holding 2 strands snugly in lower lobes.
+   - **Single-Wire 90° Corner Elbow Brackets:**
+     - **Floating Elbow (clip_corner_90_single.stl):** .50 \times 12.50 \times 5.00\text{ mm}$ (.1\text{ mm}^3$, ~.22\text{g}$). Smooth .0\text{ mm}$ inner bend radius protecting internal copper traces.
+     - **Sewable Elbow (clip_corner_90_sewable.stl):** .20 \times 15.20 \times 5.00\text{ mm}$ (.0\text{ mm}^3$, ~.25\text{g}$). Adds two $\varnothing 1.9\text{ mm}$ corner stitching eyelets for tacking to shirts.
+   - **3-Minute Test Gauge Comb (wire_gauge_test_comb.stl):** .10 \times 6.00 \times 5.30\text{ mm}$ (.6\text{ mm}^3$, ~.9\text{g}$). 5 stepped slots (.6, 2.8, 3.0, 3.2, 3.4\text{ mm}$).
+   - **Comprehensive 25-Piece Runner Plate (wire_clips_runner_pack.stl):** .30 \times 94.00 \times 8.55\text{ mm}$ (~.1\text{g}$ PLA). Prints 4x of each straight clip (20 clips) + 2x floating 90° + 2x sewable 90° + test comb on a single build plate in ~25 minutes.
    - **Parametric OpenSCAD & Python Generators:** Fully parametric via 3d_panels/wire_clips/wire_clips.scad (with Customizer sliders) and automated via python scripts/generate_wire_clips.py.
 
 

@@ -93,6 +93,22 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### 2026-10-26: 3.2mm Calibrated Wire Clips, 90° Single-Wire Elbows & 2-Strand Pyramid Cradle
+- **Calibrated to 3.2mm Wire Standard:** Based on physical test gauge comb validation (3.2mm slot yielding the ideal positive snap without strain), standardized all straight clips:
+  - Wire OD: $3.20\text{ mm}$, cavity $\varnothing 3.30\text{ mm}$, snap mouth $2.35\text{ mm}$, spring walls $1.35\text{ mm}$, floor $1.20\text{ mm}$.
+  - `clip_2strand_flat.stl` ($10.65 \times 8.00 \times 5.01\text{ mm}$, ~$0.28\text{g}$).
+  - `clip_3strand_flat.stl` ($15.30 \times 8.00 \times 5.01\text{ mm}$, ~$0.39\text{g}$).
+  - `clip_2strand_stacked.stl` ($6.00 \times 8.00 \times 8.55\text{ mm}$, ~$0.28\text{g}$).
+  - `clip_3strand_bundle.stl` ($9.70 \times 8.00 \times 7.93\text{ mm}$, ~$0.36\text{g}$).
+- **Single-Wire 90-Degree Corner Brackets:**
+  - Designed for routing single fairy light strands around 90° bends with a gentle $5.0\text{ mm}$ inner bend radius to protect internal copper conductors from bending fatigue.
+  - `clip_corner_90_single.stl` ($12.50 \times 12.50 \times 5.00\text{ mm}$, ~$0.22\text{g}$): Floating low-profile snap elbow with two straight channel legs.
+  - `clip_corner_90_sewable.stl` ($15.20 \times 15.20 \times 5.00\text{ mm}$, ~$0.25\text{g}$): Same 90° elbow plus two $\varnothing 1.9\text{ mm}$ corner stitching eyelets for needle/safety-pin tacking to running shirts.
+- **Preserved 2-Strand Pyramid Cradle (`clip_2strand_pyramid_cradle.stl`):**
+  - Formalized the verified v1 geometry ($7.60 \times 8.00 \times 6.27\text{ mm}$, ~$0.25\text{g}$) as a dedicated 2-strand cradle holding 2 wires snugly in the lower lobes.
+- **Updated 25-Piece Runner Plate (`wire_clips_runner_pack.stl`):**
+  - Single print bed array ($78.30 \times 94.00 \times 8.55\text{ mm}$, ~$8.1\text{g}$ PLA) containing 4x of each straight clip (20 clips), 2x floating 90° elbows, 2x sewable 90° elbows, and the 5-slot test gauge comb. Pre-oriented flat on PEI bed ($Z = 0$).
+
 ### 2026-10-26: Resized Wire Clips (~3.0mm Wire), Inverted Bed Orientation Fix & Test Gauge Comb
 - **Bed Orientation Fix:** Resolved inverted mesh export where clips defaulted with bases facing upward in slicers (Snapmaker Luban / OrcaSlicer). Fixed rotation transform in `scripts/generate_wire_clips.py` and `wire_clips.scad` (+90° around X axis), guaranteeing that all 34 flat bottom faces sit directly on the textured PEI bed ($Z = 0$) with snap mouths pointing straight up toward the nozzle.
 - **Resized for Standard 2.8mm–3.05mm Fairy Light Wires:**
