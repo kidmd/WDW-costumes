@@ -281,40 +281,52 @@ def create_clip_2strand_pyramid_cradle(length=CLIP_LENGTH) -> trimesh.Trimesh:
 # ==============================================================================
 def create_vertical_ribbon_channel_profile(
     r_inner=5.0,
-    slot_w=1.40,
+    slot_w=1.65,
     slot_h=3.60,
     floor_t=1.20,
-    wall_t=1.35,
-    neck_w=1.05
+    wall_t=1.40,
+    neck_w=1.00,
+    lead_in_w=2.40,
+    h_total=5.60
 ):
     """
-    Creates a radial cross-section for a 3-strand flat ribbon wire oriented VERTICALLY on-edge.
-    When the flat 3-strand fairy light ribbon stands on edge (3 strands stacked vertically),
-    bending around the 90° curve bends across the thin ~1.2mm dimension (the easy way),
-    preventing copper strain, buckling, or kinking.
+    Creates a radial cross-section for a 3-strand flat ribbon wire oriented VERTICALLY on-edge
+    with pronounced cantilever snap-fit lips and an undercut retention shelf.
+    - Inner cavity width: 1.65 mm (smooth glide for ~1.2mm ribbon)
+    - Constriction throat: 1.00 mm (positive snap retention lips over top strand)
+    - Undercut shelf: 0.325 mm inward cantilever overhang per side (locks wire down)
+    - Lead-in funnel: 45° widening to 2.40 mm for easy wire insertion
     """
-    r_slot_cen = r_inner + wall_t + slot_w / 2.0   # 7.05 mm
-    r_outer = r_inner + 2 * wall_t + slot_w        # 9.10 mm
-    h_total = floor_t + slot_h + 0.70              # 5.50 mm
+    r_slot_cen = r_inner + wall_t + slot_w / 2.0   # 7.225 mm
+    r_outer = r_inner + 2 * wall_t + slot_w        # 9.45 mm
 
-    sq = m3d.CrossSection.square([r_outer - r_inner, h_total], center=False).translate([r_inner, 0.0])
-    slot_box = m3d.CrossSection.square([slot_w, slot_h], center=False).translate([r_slot_cen - slot_w / 2.0, floor_t])
-
-    y_neck = floor_t + slot_h
-    hw_neck = neck_w / 2.0
-    hw_top = hw_neck + (h_total - y_neck) * 1.1
-
-    pts_entry = [
-        [r_slot_cen - hw_neck, y_neck - 0.4],
-        [r_slot_cen - hw_neck, y_neck],
-        [r_slot_cen - hw_top, h_total + 0.2],
-        [r_slot_cen + hw_top, h_total + 0.2],
-        [r_slot_cen + hw_neck, y_neck],
-        [r_slot_cen + hw_neck, y_neck - 0.4]
+    pts_body = [
+        [r_inner, 0.0],
+        [r_outer, 0.0],
+        [r_outer, h_total - 0.5],
+        [r_outer - 0.5, h_total],
+        [r_inner + 0.5, h_total],
+        [r_inner, h_total - 0.5]
     ]
-    entry_funnel = m3d.CrossSection.hull_points(pts_entry)
-    cutout = slot_box + entry_funnel
-    return sq - cutout
+    body = m3d.CrossSection.hull_points(pts_body)
+
+    y_cav_top = floor_t + slot_h          # 4.80 mm
+    y_shelf = y_cav_top - 0.25            # 4.55 mm
+
+    # Monolithic cutout polygon with cantilever overhang lips
+    pts_cutout = [
+        [r_slot_cen - lead_in_w / 2.0, h_total + 0.2],
+        [r_slot_cen - neck_w / 2.0, y_cav_top],
+        [r_slot_cen - slot_w / 2.0, y_shelf],
+        [r_slot_cen - slot_w / 2.0, floor_t],
+        [r_slot_cen + slot_w / 2.0, floor_t],
+        [r_slot_cen + slot_w / 2.0, y_shelf],
+        [r_slot_cen + neck_w / 2.0, y_cav_top],
+        [r_slot_cen + lead_in_w / 2.0, h_total + 0.2]
+    ]
+
+    cs_cutout = m3d.CrossSection([pts_cutout])
+    return body - cs_cutout
 
 
 def create_corner_90_single() -> trimesh.Trimesh:
@@ -350,11 +362,11 @@ def create_corner_90_sewable() -> trimesh.Trimesh:
     quad_box = m3d.Manifold.cube([20.0, 20.0, 10.0], center=False).translate([0.0, 0.0, -2.0])
     corner_single = rev360 ^ quad_box
 
-    # 2 flat sewing tabs positioned with holes completely clear of the outer 9.1mm channel wall
-    # Center holes at X=11.0, Y=2.0 and X=2.0, Y=11.0
+    # 2 flat sewing tabs positioned with holes completely clear of the outer 9.45mm channel wall
+    # Center holes at X=11.2, Y=2.0 and X=2.0, Y=11.2 (clearance > 0.75mm from wall)
     tab_cs = m3d.CrossSection.circle(2.5, 24) - m3d.CrossSection.circle(1.0, 24)
-    tab1 = tab_cs.extrude(1.2).translate([11.0, 2.0, 0.0])
-    tab2 = tab_cs.extrude(1.2).translate([2.0, 11.0, 0.0])
+    tab1 = tab_cs.extrude(1.2).translate([11.2, 2.0, 0.0])
+    tab2 = tab_cs.extrude(1.2).translate([2.0, 11.2, 0.0])
 
     combined = corner_single + tab1 + tab2
     raw = combined.to_mesh()

@@ -245,52 +245,61 @@ module clip_2strand_pyramid_cradle_2d() {
 // ==============================================================================
 module vertical_ribbon_channel_radial_2d() {
     r_in = 5.0;
-    slot_w = 1.40;
+    slot_w = 1.65;
     slot_h = 3.60;
     floor_t = 1.20;
-    wall_t = 1.35;
-    neck_w = 1.05;
+    wall_t = 1.40;
+    neck_w = 1.00;
+    lead_in_w = 2.40;
+    h_total = 5.60;
 
-    r_slot_cen = r_in + wall_t + slot_w / 2.0; // 7.05 mm
-    r_out = r_in + 2 * wall_t + slot_w;        // 9.10 mm
-    h_total = floor_t + slot_h + 0.70;         // 5.50 mm
+    r_slot_cen = r_in + wall_t + slot_w / 2.0; // 7.225 mm
+    r_out = r_in + 2 * wall_t + slot_w;        // 9.45 mm
+
+    y_cav_top = floor_t + slot_h;              // 4.80 mm
+    y_shelf = y_cav_top - 0.25;                // 4.55 mm
 
     difference() {
-        translate([r_in, 0]) square([r_out - r_in, h_total]);
-        // Vertical slot for 3 strands stacked vertically on-edge
-        translate([r_slot_cen - slot_w/2, floor_t]) square([slot_w, slot_h]);
-        // Top snap mouth and lead-in funnel
-        y_neck = floor_t + slot_h;
-        hw_n = neck_w / 2.0;
-        hw_t = hw_n + (h_total - y_neck) * 1.1;
+        // Outer body with chamfered top outer corners
         polygon([
-            [r_slot_cen - hw_n, y_neck - 0.4],
-            [r_slot_cen - hw_n, y_neck],
-            [r_slot_cen - hw_t, h_total + 0.2],
-            [r_slot_cen + hw_t, h_total + 0.2],
-            [r_slot_cen + hw_n, y_neck],
-            [r_slot_cen + hw_n, y_neck - 0.4]
+            [r_in, 0],
+            [r_out, 0],
+            [r_out, h_total - 0.5],
+            [r_out - 0.5, h_total],
+            [r_in + 0.5, h_total],
+            [r_in, h_total - 0.5]
+        ]);
+        // Cutout with distinct cantilever snap overhang lips and undercut retention shelf
+        polygon([
+            [r_slot_cen - lead_in_w / 2.0, h_total + 0.2],
+            [r_slot_cen - neck_w / 2.0, y_cav_top],
+            [r_slot_cen - slot_w / 2.0, y_shelf],
+            [r_slot_cen - slot_w / 2.0, floor_t],
+            [r_slot_cen + slot_w / 2.0, floor_t],
+            [r_slot_cen + slot_w / 2.0, y_shelf],
+            [r_slot_cen + neck_w / 2.0, y_cav_top],
+            [r_slot_cen + lead_in_w / 2.0, h_total + 0.2]
         ]);
     }
 }
 
 module clip_corner_90_single_3d() {
-    // Pure 90-degree curved sweep - 3-strand ribbon on edge
+    // Pure 90-degree curved sweep - 3-strand ribbon on edge with cantilever snap lips
     rotate_extrude(angle = 90)
         vertical_ribbon_channel_radial_2d();
 }
 
 module clip_corner_90_sewable_3d() {
     clip_corner_90_single_3d();
-    // 2 outer corner sewing eyelet tabs placed completely outside the 9.1mm channel wall
-    // Center at (11.0, 2.0) and (2.0, 11.0) gives 100% clear 2.0mm holes with solid base root overlap into channel base
+    // 2 outer corner sewing eyelet tabs placed completely outside the 9.45mm channel wall
+    // Center at (11.2, 2.0) and (2.0, 11.2) gives 100% clear 2.0mm holes with solid base root overlap into channel base
     difference() {
         union() {
-            translate([11.0, 2.0, 0]) cylinder(h = 1.2, r = 2.5);
-            translate([2.0, 11.0, 0]) cylinder(h = 1.2, r = 2.5);
+            translate([11.2, 2.0, 0]) cylinder(h = 1.2, r = 2.5);
+            translate([2.0, 11.2, 0]) cylinder(h = 1.2, r = 2.5);
         }
-        translate([11.0, 2.0, -0.1]) cylinder(h = 1.4, r = 1.0);
-        translate([2.0, 11.0, -0.1]) cylinder(h = 1.4, r = 1.0);
+        translate([11.2, 2.0, -0.1]) cylinder(h = 1.4, r = 1.0);
+        translate([2.0, 11.2, -0.1]) cylinder(h = 1.4, r = 1.0);
     }
 }
 
