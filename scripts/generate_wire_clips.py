@@ -299,69 +299,50 @@ def create_single_wire_channel_profile(r_inner=4.0, r_outer=10.0, height=5.0):
     return sq - (c + slot)
 
 
-def create_corner_90_single(leg_len=2.5) -> trimesh.Trimesh:
-    """90-degree curved elbow bracket for single wire (floating)."""
+def create_corner_90_single() -> trimesh.Trimesh:
+    """90-degree pure curved elbow bracket for single wire (floating, zero tangential artifacts)."""
     r_in = 4.0
     r_out = 10.0
     h = 5.0
     prof = create_single_wire_channel_profile(r_in, r_out, h)
-    
-    # 90-degree curved elbow
-    bend = prof.revolve(circular_segments=48, revolve_degrees=90.0)
+
+    # Pure monolithic 90-degree curved sweep - no glued straight extensions
+    bend = prof.revolve(circular_segments=64, revolve_degrees=90.0)
+    mesh = trimesh.Trimesh(vertices=bend.to_mesh().vert_properties, faces=bend.to_mesh().tri_verts)
+
+    # Center bounds in XY and place Z at 0
+    bounds = mesh.bounds
+    mesh.apply_translation([
+        -bounds[0][0] - (bounds[1][0] - bounds[0][0]) / 2.0,
+        -bounds[0][1] - (bounds[1][1] - bounds[0][1]) / 2.0,
+        -bounds[0][2]
+    ])
+    return mesh
+
+
+def create_corner_90_sewable() -> trimesh.Trimesh:
+    """90-degree pure curved elbow bracket with corner stitching eyelet tabs."""
+    r_in = 4.0
+    r_out = 10.0
+    h = 5.0
+    prof = create_single_wire_channel_profile(r_in, r_out, h)
+
+    bend = prof.revolve(circular_segments=64, revolve_degrees=90.0)
     mesh_bend = trimesh.Trimesh(vertices=bend.to_mesh().vert_properties, faces=bend.to_mesh().tri_verts)
 
-    # Leg 1 extending along -Y
-    raw1 = prof.extrude(leg_len).to_mesh()
-    mesh_leg1 = trimesh.Trimesh(vertices=raw1.vert_properties, faces=raw1.tri_verts)
-    rot1 = trimesh.transformations.rotation_matrix(np.radians(90), [1, 0, 0])
-    mesh_leg1.apply_transform(rot1)
+    # 2 flat sewing tabs overlapping cleanly into the outer wall at [8.6, 2.0] and [2.0, 8.6]
+    tab_cs = m3d.CrossSection.circle(2.5, 24) - m3d.CrossSection.circle(0.95, 24)
+    m_tab1 = tab_cs.extrude(1.2).translate([8.6, 2.0, 0.0])
+    m_tab2 = tab_cs.extrude(1.2).translate([2.0, 8.6, 0.0])
+    mesh_tab1 = trimesh.Trimesh(vertices=m_tab1.to_mesh().vert_properties, faces=m_tab1.to_mesh().tri_verts)
+    mesh_tab2 = trimesh.Trimesh(vertices=m_tab2.to_mesh().vert_properties, faces=m_tab2.to_mesh().tri_verts)
 
-    # Leg 2 extending along -X (swap X and Y, invert faces)
-    mesh_leg2 = mesh_leg1.copy()
-    v = mesh_leg2.vertices.copy()
-    mesh_leg2.vertices[:, 0] = v[:, 1]
-    mesh_leg2.vertices[:, 1] = v[:, 0]
-    mesh_leg2.faces = mesh_leg2.faces[:, [0, 2, 1]]
-
-    full = trimesh.boolean.union([mesh_bend, mesh_leg1, mesh_leg2], engine='manifold')
-    # Center bounds in XY and place Z at 0
-    full.apply_translation([
-        -full.bounds[0][0] - (full.bounds[1][0] - full.bounds[0][0]) / 2.0,
-        -full.bounds[0][1] - (full.bounds[1][1] - full.bounds[0][1]) / 2.0,
-        -full.bounds[0][2]
-    ])
-    return full
-
-
-def create_corner_90_sewable(leg_len=2.5) -> trimesh.Trimesh:
-    """90-degree curved elbow bracket with corner stitching eyelet tabs."""
-    elbow = create_corner_90_single(leg_len)
-    
-    # Add 2 flat sewing tabs on the outer corner flank
-    # Tab 1: near leg 1 outer flank
-    # Tab 2: near leg 2 outer flank
-    bounds = elbow.bounds
-    tab_r_out = 2.6
-    tab_r_in = 0.95  # 1.9mm hole for needle/safety-pin
-    tab_thick = 1.20
-    
-    tab_cs = m3d.CrossSection.circle(tab_r_out, 24) - m3d.CrossSection.circle(tab_r_in, 24)
-    m_tab = tab_cs.extrude(tab_thick)
-    raw_tab = m_tab.to_mesh()
-    mesh_tab1 = trimesh.Trimesh(vertices=raw_tab.vert_properties, faces=raw_tab.tri_verts)
-    
-    # Position tab 1 at outer flank of leg 1
-    mesh_tab1.apply_translation([bounds[1][0] - 0.5, bounds[0][1] + 2.0, 0.0])
-    
-    # Tab 2 at outer flank of leg 2
-    mesh_tab2 = trimesh.Trimesh(vertices=raw_tab.vert_properties, faces=raw_tab.tri_verts)
-    mesh_tab2.apply_translation([bounds[0][0] + 2.0, bounds[1][1] - 0.5, 0.0])
-    
-    combined = trimesh.boolean.union([elbow, mesh_tab1, mesh_tab2], engine='manifold')
+    combined = trimesh.boolean.union([mesh_bend, mesh_tab1, mesh_tab2], engine='manifold')
+    bounds = combined.bounds
     combined.apply_translation([
-        -combined.bounds[0][0] - (combined.bounds[1][0] - combined.bounds[0][0]) / 2.0,
-        -combined.bounds[0][1] - (combined.bounds[1][1] - combined.bounds[0][1]) / 2.0,
-        -combined.bounds[0][2]
+        -bounds[0][0] - (bounds[1][0] - bounds[0][0]) / 2.0,
+        -bounds[0][1] - (bounds[1][1] - bounds[0][1]) / 2.0,
+        -bounds[0][2]
     ])
     return combined
 

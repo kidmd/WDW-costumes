@@ -1510,9 +1510,9 @@ Instead of attaching a Cricut cut vinyl graphic on top of the printed plate, the
      - **2-Strand Stacked Vertical (clip_2strand_stacked.stl):** .00\text{ mm W} \times 8.00\text{ mm L} \times 8.55\text{ mm H}$ (.5\text{ mm}^3$, ~.28\text{g}$). Ultra-narrow lateral footprint with internal waist detent.
      - **3-Strand Pyramid Bundle (clip_3strand_bundle.stl):** .70\text{ mm W} \times 8.00\text{ mm L} \times 7.93\text{ mm H}$ (.1\text{ mm}^3$, ~.36\text{g}$). Sized for three 3.2mm strands with top locking strand.
      - **2-Strand Pyramid Cradle (clip_2strand_pyramid_cradle.stl):** .60\text{ mm W} \times 8.00\text{ mm L} \times 6.27\text{ mm H}$ (.9\text{ mm}^3$, ~.25\text{g}$). Verified v1 geometry holding 2 strands snugly in lower lobes.
-   - **Single-Wire 90° Corner Elbow Brackets:**
-     - **Floating Elbow (clip_corner_90_single.stl):** .50 \times 12.50 \times 5.00\text{ mm}$ (.1\text{ mm}^3$, ~.22\text{g}$). Smooth .0\text{ mm}$ inner bend radius protecting internal copper traces.
-     - **Sewable Elbow (clip_corner_90_sewable.stl):** .20 \times 15.20 \times 5.00\text{ mm}$ (.0\text{ mm}^3$, ~.25\text{g}$). Adds two $\varnothing 1.9\text{ mm}$ corner stitching eyelets for tacking to shirts.
+   - **Single-Wire 90° Corner Elbow Brackets (Pure Monolithic Sweeps):**
+     - **Floating Elbow (clip_corner_90_single.stl):** .00 \times 10.00 \times 5.00\text{ mm}$ (.2\text{ mm}^3$, ~.11\text{g}$). Pure 90° circular sweep with .0\text{ mm}$ inner bend radius, perpendicular end cuts, and zero tangential spur artifacts.
+     - **Sewable Elbow (clip_corner_90_sewable.stl):** .60 \times 11.60 \times 5.00\text{ mm}$ (.3\text{ mm}^3$, ~.14\text{g}$). Adds two overlapping $\varnothing 1.9\text{ mm}$ corner stitching eyelets for needle/safety-pin tacking to shirts.
    - **3-Minute Test Gauge Comb (wire_gauge_test_comb.stl):** .10 \times 6.00 \times 5.30\text{ mm}$ (.6\text{ mm}^3$, ~.9\text{g}$). 5 stepped slots (.6, 2.8, 3.0, 3.2, 3.4\text{ mm}$).
    - **Comprehensive 25-Piece Runner Plate (wire_clips_runner_pack.stl):** .30 \times 94.00 \times 8.55\text{ mm}$ (~.1\text{g}$ PLA). Prints 4x of each straight clip (20 clips) + 2x floating 90° + 2x sewable 90° + test comb on a single build plate in ~25 minutes.
    - **Parametric OpenSCAD & Python Generators:** Fully parametric via 3d_panels/wire_clips/wire_clips.scad (with Customizer sliders) and automated via python scripts/generate_wire_clips.py.

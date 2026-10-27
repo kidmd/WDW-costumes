@@ -266,37 +266,21 @@ module single_wire_channel_radial_2d() {
 }
 
 module clip_corner_90_single_3d() {
-    leg_len = 2.5;
-    rotate([0, 0, 0]) {
-        // Curved bend
-        rotate_extrude(angle = 90)
-            single_wire_channel_radial_2d();
-        
-        // Leg 1 along -Y
-        translate([0, 0, 0])
-            rotate([90, 0, 0])
-                linear_extrude(height = leg_len)
-                    single_wire_channel_radial_2d();
-                    
-        // Leg 2 along -X
-        translate([0, 0, 0])
-            rotate([0, -90, 0])
-                rotate([0, 0, -90])
-                    linear_extrude(height = leg_len)
-                        single_wire_channel_radial_2d();
-    }
+    // Pure 90-degree curved sweep - zero glued straight extensions
+    rotate_extrude(angle = 90)
+        single_wire_channel_radial_2d();
 }
 
 module clip_corner_90_sewable_3d() {
     clip_corner_90_single_3d();
-    // 2 outer corner sewing eyelet tabs
+    // 2 outer corner sewing eyelet tabs overlapping cleanly into wall
     difference() {
         union() {
-            translate([9.5, -0.5, 0]) cylinder(h = 1.2, r = 2.5);
-            translate([-0.5, 9.5, 0]) cylinder(h = 1.2, r = 2.5);
+            translate([9.0, 1.8, 0]) cylinder(h = 1.2, r = 2.5);
+            translate([1.8, 9.0, 0]) cylinder(h = 1.2, r = 2.5);
         }
-        translate([9.5, -0.5, -0.1]) cylinder(h = 1.4, r = 0.95);
-        translate([-0.5, 9.5, -0.1]) cylinder(h = 1.4, r = 0.95);
+        translate([9.0, 1.8, -0.1]) cylinder(h = 1.4, r = 0.95);
+        translate([1.8, 9.0, -0.1]) cylinder(h = 1.4, r = 0.95);
     }
 }
 

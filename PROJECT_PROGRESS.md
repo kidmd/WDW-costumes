@@ -93,6 +93,15 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### 2026-10-26: Eliminated Tangential Spur Artifacts on 90° Elbows & Added Curved Geometry Standard to GEMINI.md
+- **Tangential Spur Artifact Resolved:**
+  - Identified root cause in `clip_corner_90_single.stl` and `clip_corner_90_sewable.stl` where separate linear leg extrusions appended to the circular sweep produced unwanted straight spurs, triangular corner horns, and non-tangent boundary cracks visible in 3D viewer.
+  - Converted elbow models to **pure, monolithic 90° sweeps** (`revolve_degrees=90.0` with 64 circular segments in Python, `rotate_extrude(angle=90)` in OpenSCAD) with clean perpendicular cuts at $0^\circ$ and $90^\circ$.
+  - Cleaned footprint: `clip_corner_90_single.stl` is an exact $10.00 \times 10.00 \times 5.00\text{ mm}$ curve; `clip_corner_90_sewable.stl` is $11.60 \times 11.60 \times 5.00\text{ mm}$.
+- **Permanent Engineering Rule Added to `GEMINI.md` (Section 7):**
+  - Codified mandatory rule prohibiting the gluing of separate linear extrusions onto circular revolves/sweeps to prevent tangential fins, horns, and coplanar boundary cracks.
+  - Mandated intentional boolean overlap ($\ge 0.5\text{ mm}$) when attaching mounting eyelets or bosses to curved geometries.
+
 ### 2026-10-26: 3.2mm Calibrated Wire Clips, 90° Single-Wire Elbows & 2-Strand Pyramid Cradle
 - **Calibrated to 3.2mm Wire Standard:** Based on physical test gauge comb validation (3.2mm slot yielding the ideal positive snap without strain), standardized all straight clips:
   - Wire OD: $3.20\text{ mm}$, cavity $\varnothing 3.30\text{ mm}$, snap mouth $2.35\text{ mm}$, spring walls $1.35\text{ mm}$, floor $1.20\text{ mm}$.

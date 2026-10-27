@@ -106,3 +106,16 @@ Whenever any feature, UI control, slider, preset, firmware parameter, or hardwar
    - Speak directly to the camaraderie of the family team running the WDW 10K together: 7 runners (2 brothers, 1 sister, 1 brother-in-law, and 3 sisters-in-law), supported and engineered by the 3 brothers (2 of whom are running).
    - Celebrate milestones with flair (locomotive whistles, firework bursts, dragon sparkles) while keeping technical instructions crystal-clear, intuitive, and family-proof.
 
+---
+
+## 7. 3D Modeling & Curved Geometry Standards (Zero Tangential Artifacts & Pure Sweeps)
+
+1. **Pure Monolithic Sweeps (Zero Tangential Spurs or Ghost Prisms):**
+   - When modeling curved brackets, 90° wire elbows, or arc channels, **NEVER append or union separate linear extrusions** onto the ends of a circular revolve unless explicitly requested.
+   - Tacking linear extrusions onto circular arcs creates unsightly tangential straight fins, triangular horns, and non-manifold boundary cracks at the transition seams.
+   - Curved elbows must be constructed as **pure, monolithic angular sweeps** (e.g., `prof.revolve(revolve_degrees=90.0)` in Python / `rotate_extrude(angle=90)` in OpenSCAD) with clean perpendicular planar cuts directly at $0^\circ$ and $90^\circ$.
+2. **Overlapping Boolean Cleanliness:**
+   - When uniting mounting eyelets, sewing tabs, or bosses with curved geometry, ensure intentional penetration into the base solid ($\ge 0.5\text{ mm}$) to avoid coincident coplanar facets and non-manifold sliver edges.
+   - Always verify that exported meshes are strictly watertight (`is_watertight == True`), lie flat against the build plate ($Z = 0$), and contain zero stray coplanar facets.
+
+
