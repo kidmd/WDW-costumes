@@ -526,6 +526,19 @@ def create_runner_multipack() -> trimesh.Trimesh:
     return combined
 
 
+def ensure_ccw(pts):
+    """Ensures a 2D polygon has counter-clockwise (positive) winding order for Manifold3D."""
+    area = 0.0
+    n = len(pts)
+    for i in range(n):
+        p1 = pts[i]
+        p2 = pts[(i + 1) % n]
+        area += (p1[0] * p2[1] - p2[0] * p1[1])
+    if area < 0:
+        return pts[::-1]
+    return pts
+
+
 # ==============================================================================
 # 9. SNAP-ON RACE-DAY SECURITY CAPS (ROOFS)
 # Positive-locking armored hoods that snap over clips to lock wires down for 10K
@@ -568,7 +581,7 @@ def create_cap_for_straight_clip(clip_top_width: float, clip_height: float, leng
         [inner_w / 2.0 - BEAD_DEPTH, y_bead - BEAD_HEIGHT / 2.0],
         [inner_w / 2.0 - BEAD_DEPTH, y_leg_bot - 0.1]
     ]
-    cap_cutout = m3d.CrossSection([pts_cutout])
+    cap_cutout = m3d.CrossSection([ensure_ccw(pts_cutout)])
     cap_cs = cap_outer - cap_cutout
 
     m = cap_cs.extrude(length)
@@ -623,7 +636,7 @@ def create_cap_corner_90(r_inner: float = 5.00, r_outer: float = 9.45, h_clip: f
         [r_clip_outer_face + BEAD_DEPTH, y_bead - BEAD_HEIGHT / 2.0],
         [r_clip_outer_face + BEAD_DEPTH, y_leg_bot - 0.1]
     ]
-    cap_cutout = m3d.CrossSection([pts_cap_cutout])
+    cap_cutout = m3d.CrossSection([ensure_ccw(pts_cap_cutout)])
     cap_cs = cap_outer - cap_cutout
 
     # Full 360 revolve and quadrant cube crop (Rule 7)
