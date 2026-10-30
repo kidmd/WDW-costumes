@@ -93,6 +93,18 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### 2026-10-30: Connected 16x16 Matrix Mode to Master Timeline & 90s Solo Show Animation Engine
+- **Master Timeline Playback Synchronization:**
+  - Resolved issue where playing the 90-second solo show or scrubbed sequence cues on the layout screen rendered static artwork colors with hardcoded white center dots on the 16x16 matrix plate.
+  - Linked `drawBtfMatrix16x16Overlay` directly into the MSEP animation engine (`computeLedColor` and `evalGlobalPattern`), synchronizing all active matrix cells to the timeline playhead (`sequenceTime`) and scrubbing head (`hoverScrubTime`).
+- **Dynamic Windowed & Backlit Emitter Rendering:**
+  - **Windowed Cells:** Direct apertures now compute live cue colors and amplitudes, dynamically animating outer radial halos, live aperture cutout rim highlights, and specular hot-die centers that illuminate with brightness and cleanly extinguish when dark (preventing fixed solid `#ffffff` circles).
+  - **Backlit Cells:** Subsurface glow through solid PLA faceplates now dynamically modulates with timeline cues, blending 70% live LED emitter color with 30% physical faceplate filament color for rich, non-clipping translucency.
+- **Engine Safety & Robustness:**
+  - Expanded `sparkles` state array to 512 elements with dynamic bounds guard (`while (sparkles.length <= index) sparkles.push(0);`), preventing out-of-bounds indexing across the 256 matrix cells.
+  - Added `overrideColor` support to `computeLedColor(index, totalLeds, timeMs, overrideColor)` to evaluate individual sampled artwork colors while participating in global sweeps, waves, sparkles, and chases.
+
+
 ### 2026-10-30: Added 6mm Anti-Snag Rounded Corners Option for 16x16 Armor Panels
 - **Soft 6.0mm Corner Fillet Architecture:**
   - Added an ergonomic **Rounded Plate Corners** option (defaulting to **`Rounded (6mm) ★`** with toggleable **`Sharp (90°)`** mode) across the Python compiler (`compile_clean_tpu_panel.py`), backend (`simulator.py`), and frontend UI (`simulator/index.html` & `simulator/app.js`).

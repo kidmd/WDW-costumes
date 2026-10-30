@@ -945,7 +945,7 @@ function canvasToNorm(x, y) {
 }
 
 // Sparkle state per LED
-let sparkles = new Array(100).fill(0);
+let sparkles = new Array(512).fill(0);
 
 // ============================================================================
 // DRAWING ROUTINES: Authentic Athletic T-Shirt with Natural Dimensions
@@ -2889,11 +2889,14 @@ function evalGlobalPattern(pattern, bpm, index, totalLeds, timeMs, c, hasColor, 
         }
     }
 
-    if (sparkles[index] > 0) {
-        sparkles[index] = Math.max(0, sparkles[index] - 0.04);
-    }
-    if ((pattern === 'steady_sparkle' || pattern === 'dragon_sparkle' || pattern === 'color_match') && Math.random() * 1000 < params.sparkleRate) {
-        sparkles[index] = 1.0;
+    if (typeof sparkles !== 'undefined' && Array.isArray(sparkles)) {
+        while (sparkles.length <= index) sparkles.push(0);
+        if (sparkles[index] > 0) {
+            sparkles[index] = Math.max(0, sparkles[index] - 0.04);
+        }
+        if ((pattern === 'steady_sparkle' || pattern === 'dragon_sparkle' || pattern === 'color_match') && Math.random() * 1000 < params.sparkleRate) {
+            sparkles[index] = 1.0;
+        }
     }
 
     return {
@@ -2904,11 +2907,11 @@ function evalGlobalPattern(pattern, bpm, index, totalLeds, timeMs, c, hasColor, 
     };
 }
 
-function computeLedColor(index, totalLeds, timeMs) {
+function computeLedColor(index, totalLeds, timeMs, overrideColor = null) {
     if (isCorralStandbyActive) {
         const floatIdx = (activeSingleShirtRunnerSlot !== undefined && activeSingleShirtRunnerSlot !== null) ? activeSingleShirtRunnerSlot : 5;
         const floatObj = (DEFAULT_FLEET_RADAR && DEFAULT_FLEET_RADAR[floatIdx]) ? DEFAULT_FLEET_RADAR[floatIdx] : (DEFAULT_FLEET_RADAR ? DEFAULT_FLEET_RADAR[0] : null);
-        const baseColor = (floatObj && floatObj.color && typeof hexToRgb === 'function') ? (hexToRgb(floatObj.color) || { r: 56, g: 139, b: 253 }) : { r: 56, g: 139, b: 253 };
+        const baseColor = overrideColor || ((floatObj && floatObj.color && typeof hexToRgb === 'function') ? (hexToRgb(floatObj.color) || { r: 56, g: 139, b: 253 }) : { r: 56, g: 139, b: 253 });
         
         // Visible deep midnight base glow (28% float color) - distinctly visible on black jersey
         const dimR = Math.max(25, Math.round(baseColor.r * 0.28));
@@ -2935,6 +2938,14 @@ function computeLedColor(index, totalLeds, timeMs) {
     }
 
     if (isPhotoModeActive) {
+        if (overrideColor) {
+            return {
+                r: Math.round(overrideColor.r),
+                g: Math.round(overrideColor.g),
+                b: Math.round(overrideColor.b),
+                alpha: 1.0
+            };
+        }
         if (leds[index] && leds[index].color) {
             return {
                 r: Math.round(leds[index].color.r),
@@ -2973,9 +2984,9 @@ function computeLedColor(index, totalLeds, timeMs) {
         }
     }
 
-    const hasColor = (leds[index] && leds[index].color);
-    const c = hasColor ? leds[index].color : null;
-    const grpEntry = ledGroupMap[index];
+    const hasColor = overrideColor ? true : !!(leds[index] && leds[index].color);
+    const c = overrideColor || (hasColor ? leds[index].color : null);
+    const grpEntry = overrideColor ? null : ledGroupMap[index];
 
     // ========================================================================
     // MODE A: SHOW SEQUENCE PLAYBACK (Parade Cue Director)
@@ -16442,21 +16453,28 @@ function drawBtfMatrix16x16Overlay(ctx, s, timeMs) {
         ctx.stroke();
     }
 
-    // PASS 1: Render ~25 Backlit LEDs (Subsurface Diffused Glow through Thin Colored PLA — NO Window Cutout)
-    btfMatrix16x16Cells.forEach((cell, idx) => {
-        if (cell.role !== 'backlight') return;
+    // Partition cells by role for synchronized theatrical animation
+    const winCells = btfMatrix16x16Cells.filter(c => c.role === 'window');
+    const glowCells = btfMatrix16x16Cells.filter(c => c.role === 'backlight');
+    const totalActive = Math.max(1, winCells.length + glowCells.length);
+
+    // PASS 1: Render Backlit LEDs (Subsurface Diffused Glow through Thin Colored PLA — NO Window Cutout)
+    glowCells.forEach((cell, idx) => {
         const pt = normToCanvas({ x: cell.nx, y: cell.ny });
-        let r = cell.color.r, g = cell.color.g, b = cell.color.b;
-        let pulse = 1.0;
-        if (typeof isPlaying !== 'undefined' && isPlaying && timeMs) {
-            pulse = 0.75 + 0.25 * Math.sin(timeMs * 0.004 + idx * 0.35);
-        }
+        const ledIdx = winCells.length + idx;
+        const animCol = computeLedColor(ledIdx, totalActive, timeMs, cell.color);
+
+        // Subsurface blend: 70% dynamic LED light filtered through 30% physical colored faceplate plastic
+        const glowR = Math.min(255, Math.round(animCol.r * 0.70 + cell.color.r * 0.30));
+        const glowG = Math.min(255, Math.round(animCol.g * 0.70 + cell.color.g * 0.30));
+        const glowB = Math.min(255, Math.round(animCol.b * 0.70 + cell.color.b * 0.30));
+        const effAlpha = Math.max(0, Math.min(1.0, transAlpha * animCol.alpha));
 
         const glowRad = cellW * 1.45;
         const grad = ctx.createRadialGradient(pt.x, pt.y, cellW * 0.08, pt.x, pt.y, glowRad);
-        grad.addColorStop(0.0, `rgba(${Math.min(255, r + 45)}, ${Math.min(255, g + 45)}, ${Math.min(255, b + 45)}, ${(transAlpha * pulse).toFixed(3)})`);
-        grad.addColorStop(0.45, `rgba(${r}, ${g}, ${b}, ${(transAlpha * 0.55 * pulse).toFixed(3)})`);
-        grad.addColorStop(1.0, `rgba(${r}, ${g}, ${b}, 0)`);
+        grad.addColorStop(0.0, `rgba(${Math.min(255, glowR + 40)}, ${Math.min(255, glowG + 40)}, ${Math.min(255, glowB + 40)}, ${effAlpha.toFixed(3)})`);
+        grad.addColorStop(0.45, `rgba(${glowR}, ${glowG}, ${glowB}, ${(effAlpha * 0.55).toFixed(3)})`);
+        grad.addColorStop(1.0, `rgba(${glowR}, ${glowG}, ${glowB}, 0)`);
 
         ctx.save();
         ctx.globalCompositeOperation = 'screen';
@@ -16469,14 +16487,14 @@ function drawBtfMatrix16x16Overlay(ctx, s, timeMs) {
         // Subtle dashed ring indicating hidden backlit 5050 pixel beneath solid PLA
         ctx.beginPath();
         ctx.arc(pt.x, pt.y, cellW * 0.30, 0, Math.PI * 2);
-        ctx.strokeStyle = `rgba(56, 189, 248, 0.55)`;
+        ctx.strokeStyle = `rgba(56, 189, 248, ${Math.min(0.65, 0.20 + 0.45 * animCol.alpha).toFixed(2)})`;
         ctx.lineWidth = 1.0;
         ctx.setLineDash([2, 2]);
         ctx.stroke();
         ctx.setLineDash([]);
     });
 
-    // PASS 2: Render ~181 Dark LEDs (Unlit 5050 SMD footprints)
+    // PASS 2: Render Dark LEDs (Unlit 5050 SMD footprints)
     btfMatrix16x16Cells.forEach(cell => {
         if (cell.role !== 'dark') return;
         const pt = normToCanvas({ x: cell.nx, y: cell.ny });
@@ -16486,48 +16504,50 @@ function drawBtfMatrix16x16Overlay(ctx, s, timeMs) {
         ctx.strokeRect(pt.x - smdS / 2, pt.y - smdS / 2, smdS, smdS);
     });
 
-    // PASS 3: Render ~50 Windowed LEDs (Crisp Physical Cutout Aperture + Bright Direct LED Core)
+    // PASS 3: Render Windowed LEDs (Crisp Physical Cutout Aperture + Direct Dynamic LED Emitter)
     const winShape = params.tpuWindowShape || 'round_34';
     const isSquareWin = (winShape === 'square');
     const winRadPx = Math.max(2.6, (1.7 / 160.0) * mw);
 
-    btfMatrix16x16Cells.forEach((cell, idx) => {
-        if (cell.role !== 'window') return;
+    winCells.forEach((cell, idx) => {
         const pt = normToCanvas({ x: cell.nx, y: cell.ny });
-        const r = cell.color.r, g = cell.color.g, b = cell.color.b;
-        let sparkle = 1.0;
-        if (typeof isPlaying !== 'undefined' && isPlaying && timeMs) {
-            sparkle = 0.80 + 0.20 * Math.sin(timeMs * 0.006 + idx * 0.7);
-        }
+        const animCol = computeLedColor(idx, totalActive, timeMs, cell.color);
+        const r = animCol.r;
+        const g = animCol.g;
+        const b = animCol.b;
+        const a = animCol.alpha;
 
         // Outer crisp bloom
         const haloRad = winRadPx * 2.4;
         const halo = ctx.createRadialGradient(pt.x, pt.y, winRadPx * 0.4, pt.x, pt.y, haloRad);
-        halo.addColorStop(0, `rgba(${r}, ${g}, ${b}, ${(0.85 * sparkle).toFixed(2)})`);
+        halo.addColorStop(0, `rgba(${r}, ${g}, ${b}, ${(0.85 * a).toFixed(2)})`);
         halo.addColorStop(1, `rgba(${r}, ${g}, ${b}, 0)`);
         ctx.fillStyle = halo;
         ctx.beginPath();
         ctx.arc(pt.x, pt.y, haloRad, 0, Math.PI * 2);
         ctx.fill();
 
-        // Physical 3D Window Cutout Rim (dark bezel edge)
+        // Physical 3D Window Cutout Rim (dark bezel edge with live aperture color)
         ctx.beginPath();
         if (isSquareWin) {
             ctx.rect(pt.x - winRadPx, pt.y - winRadPx, winRadPx * 2, winRadPx * 2);
         } else {
             ctx.arc(pt.x, pt.y, winRadPx, 0, Math.PI * 2);
         }
-        ctx.fillStyle = `rgb(${Math.min(255, Math.round(r * sparkle))}, ${Math.min(255, Math.round(g * sparkle))}, ${Math.min(255, Math.round(b * sparkle))})`;
+        ctx.fillStyle = `rgb(${r}, ${g}, ${b})`;
         ctx.fill();
         ctx.strokeStyle = '#000000';
         ctx.lineWidth = 1.4;
         ctx.stroke();
 
-        // Specular hot white LED core inside window
-        ctx.beginPath();
-        ctx.arc(pt.x, pt.y, winRadPx * 0.48, 0, Math.PI * 2);
-        ctx.fillStyle = '#ffffff';
-        ctx.fill();
+        // Specular hot white LED die core inside window (illuminates with brightness, dims when off)
+        if (a > 0.20) {
+            const coreAlpha = Math.min(1.0, (a - 0.20) / 0.80);
+            ctx.beginPath();
+            ctx.arc(pt.x, pt.y, winRadPx * 0.48, 0, Math.PI * 2);
+            ctx.fillStyle = `rgba(255, 255, 255, ${(0.92 * coreAlpha).toFixed(2)})`;
+            ctx.fill();
+        }
     });
 
     ctx.restore();

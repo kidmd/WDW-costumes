@@ -12,12 +12,15 @@
   "include_top_nubs": true,
   "matrix_16x16_mode": true,
   "plate_thickness_mm": 0.6,
-  "gap_mm": 3.0,
-  "matrix_gap_mm": 3.0,
-  "matrix_lip_mm": 3.0,
-  "matrix_lenses_mode": true,
+  "gap_mm": 0.0,
+  "matrix_gap_mm": 0.0,
+  "matrix_lip_mm": 0.0,
+  "matrix_lenses_mode": false,
   "matrix_clear_layer_mm": 0.4,
   "matrix_frame_mode": true,
+  "matrix_rounded_corners": true,
+  "matrix_corner_radius_mm": 6.0,
+  "corner_radius_mm": 6.0,
   "matrix_windowed_leds": [
     {
       "id": 30,
@@ -41,18 +44,6 @@
         "r": 0,
         "g": 253,
         "b": 0
-      }
-    },
-    {
-      "id": 47,
-      "row": 2,
-      "col": 14,
-      "x": 153.0,
-      "y": 143.0,
-      "color": {
-        "r": 0,
-        "g": 254,
-        "b": 1
       }
     },
     {
@@ -80,18 +71,6 @@
       }
     },
     {
-      "id": 62,
-      "row": 3,
-      "col": 13,
-      "x": 143.0,
-      "y": 133.0,
-      "color": {
-        "r": 0,
-        "g": 254,
-        "b": 1
-      }
-    },
-    {
       "id": 63,
       "row": 3,
       "col": 14,
@@ -113,18 +92,6 @@
         "r": 0,
         "g": 253,
         "b": 1
-      }
-    },
-    {
-      "id": 69,
-      "row": 4,
-      "col": 4,
-      "x": 53.0,
-      "y": 123.0,
-      "color": {
-        "r": 254,
-        "g": 0,
-        "b": 251
       }
     },
     {
@@ -188,15 +155,15 @@
       }
     },
     {
-      "id": 86,
+      "id": 85,
       "row": 5,
-      "col": 5,
-      "x": 63.0,
+      "col": 4,
+      "x": 53.0,
       "y": 113.0,
       "color": {
-        "r": 248,
+        "r": 254,
         "g": 0,
-        "b": 244
+        "b": 253
       }
     },
     {
@@ -257,6 +224,18 @@
         "r": 250,
         "g": 253,
         "b": 0
+      }
+    },
+    {
+      "id": 129,
+      "row": 8,
+      "col": 0,
+      "x": 13.0,
+      "y": 83.0,
+      "color": {
+        "r": 250,
+        "g": 190,
+        "b": 9
       }
     },
     {
@@ -524,18 +503,6 @@
       }
     },
     {
-      "id": 129,
-      "row": 8,
-      "col": 0,
-      "x": 13.0,
-      "y": 83.0,
-      "color": {
-        "r": 241,
-        "g": 240,
-        "b": 46
-      }
-    },
-    {
       "id": 247,
       "row": 15,
       "col": 6,
@@ -596,6 +563,42 @@
       }
     },
     {
+      "id": 47,
+      "row": 2,
+      "col": 14,
+      "x": 153.0,
+      "y": 143.0,
+      "color": {
+        "r": 0,
+        "g": 255,
+        "b": 1
+      }
+    },
+    {
+      "id": 62,
+      "row": 3,
+      "col": 13,
+      "x": 143.0,
+      "y": 133.0,
+      "color": {
+        "r": 0,
+        "g": 255,
+        "b": 0
+      }
+    },
+    {
+      "id": 69,
+      "row": 4,
+      "col": 4,
+      "x": 53.0,
+      "y": 123.0,
+      "color": {
+        "r": 254,
+        "g": 1,
+        "b": 250
+      }
+    },
+    {
       "id": 79,
       "row": 4,
       "col": 14,
@@ -618,21 +621,21 @@
         "g": 255,
         "b": 0
       }
+    },
+    {
+      "id": 86,
+      "row": 5,
+      "col": 5,
+      "x": 63.0,
+      "y": 113.0,
+      "color": {
+        "r": 128,
+        "g": 7,
+        "b": 117
+      }
     }
   ],
   "matrix_backlight_leds": [
-    {
-      "id": 85,
-      "row": 5,
-      "col": 4,
-      "x": 53.0,
-      "y": 113.0,
-      "color": {
-        "r": 254,
-        "g": 0,
-        "b": 253
-      }
-    },
     {
       "id": 89,
       "row": 5,
@@ -943,6 +946,54 @@
         "r": 3,
         "g": 253,
         "b": 6
+      }
+    },
+    {
+      "id": 210,
+      "row": 13,
+      "col": 1,
+      "x": 23.0,
+      "y": 33.0,
+      "color": {
+        "r": 0,
+        "g": 255,
+        "b": 1
+      }
+    },
+    {
+      "id": 213,
+      "row": 13,
+      "col": 4,
+      "x": 53.0,
+      "y": 33.0,
+      "color": {
+        "r": 0,
+        "g": 255,
+        "b": 2
+      }
+    },
+    {
+      "id": 232,
+      "row": 14,
+      "col": 7,
+      "x": 83.0,
+      "y": 23.0,
+      "color": {
+        "r": 255,
+        "g": 255,
+        "b": 7
+      }
+    },
+    {
+      "id": 94,
+      "row": 5,
+      "col": 13,
+      "x": 143.0,
+      "y": 113.0,
+      "color": {
+        "r": 0,
+        "g": 255,
+        "b": 1
       }
     }
   ],
@@ -1002,26 +1053,26 @@
       "filename": "color_white.stl"
     }
   },
-  "layout_signature": "custom_image-matrix16-0.80mm-gap3.00mm-round_34-v9-d31c6dfe",
+  "layout_signature": "custom_image-matrix16-0.60mm-gap0.00mm-round_34-v9-158ec50a",
   "size_preset": "large",
   "width_mm": 176.0,
   "front": {
     "variant": "front",
     "matrix_16x16_mode": true,
     "plate_thickness_mm": 0.6,
-    "gap_mm": 3.0,
-    "matrix_gap_mm": 3.0,
-    "lip_mm": 3.0,
-    "matrix_lip_mm": 3.0,
+    "gap_mm": 0.0,
+    "matrix_gap_mm": 0.0,
+    "lip_mm": 0.0,
+    "matrix_lip_mm": 0.0,
     "clear_layer_mm": 0.4,
     "matrix_clear_layer_mm": 0.4,
     "matrix_frame_mode": true,
-    "matrix_lenses_mode": true,
+    "matrix_lenses_mode": false,
     "matrix_rounded_corners": true,
     "matrix_corner_radius_mm": 6.0,
     "corner_radius_mm": 6.0,
-    "frame_height_mm": 5.4,
-    "total_thickness_mm": 6.0,
+    "frame_height_mm": 2.4,
+    "total_thickness_mm": 3.0,
     "width_mm": 176.0,
     "height_mm": 176.0,
     "panel_width_mm": 176.0,
@@ -1064,18 +1115,6 @@
         }
       },
       {
-        "id": 47,
-        "row": 2,
-        "col": 14,
-        "x": 153.0,
-        "y": 143.0,
-        "color": {
-          "r": 0,
-          "g": 254,
-          "b": 1
-        }
-      },
-      {
         "id": 53,
         "row": 3,
         "col": 4,
@@ -1100,18 +1139,6 @@
         }
       },
       {
-        "id": 62,
-        "row": 3,
-        "col": 13,
-        "x": 143.0,
-        "y": 133.0,
-        "color": {
-          "r": 0,
-          "g": 254,
-          "b": 1
-        }
-      },
-      {
         "id": 63,
         "row": 3,
         "col": 14,
@@ -1133,18 +1160,6 @@
           "r": 0,
           "g": 253,
           "b": 1
-        }
-      },
-      {
-        "id": 69,
-        "row": 4,
-        "col": 4,
-        "x": 53.0,
-        "y": 123.0,
-        "color": {
-          "r": 254,
-          "g": 0,
-          "b": 251
         }
       },
       {
@@ -1208,15 +1223,15 @@
         }
       },
       {
-        "id": 86,
+        "id": 85,
         "row": 5,
-        "col": 5,
-        "x": 63.0,
+        "col": 4,
+        "x": 53.0,
         "y": 113.0,
         "color": {
-          "r": 248,
+          "r": 254,
           "g": 0,
-          "b": 244
+          "b": 253
         }
       },
       {
@@ -1277,6 +1292,18 @@
           "r": 250,
           "g": 253,
           "b": 0
+        }
+      },
+      {
+        "id": 129,
+        "row": 8,
+        "col": 0,
+        "x": 13.0,
+        "y": 83.0,
+        "color": {
+          "r": 250,
+          "g": 190,
+          "b": 9
         }
       },
       {
@@ -1544,18 +1571,6 @@
         }
       },
       {
-        "id": 129,
-        "row": 8,
-        "col": 0,
-        "x": 13.0,
-        "y": 83.0,
-        "color": {
-          "r": 241,
-          "g": 240,
-          "b": 46
-        }
-      },
-      {
         "id": 247,
         "row": 15,
         "col": 6,
@@ -1616,6 +1631,42 @@
         }
       },
       {
+        "id": 47,
+        "row": 2,
+        "col": 14,
+        "x": 153.0,
+        "y": 143.0,
+        "color": {
+          "r": 0,
+          "g": 255,
+          "b": 1
+        }
+      },
+      {
+        "id": 62,
+        "row": 3,
+        "col": 13,
+        "x": 143.0,
+        "y": 133.0,
+        "color": {
+          "r": 0,
+          "g": 255,
+          "b": 0
+        }
+      },
+      {
+        "id": 69,
+        "row": 4,
+        "col": 4,
+        "x": 53.0,
+        "y": 123.0,
+        "color": {
+          "r": 254,
+          "g": 1,
+          "b": 250
+        }
+      },
+      {
         "id": 79,
         "row": 4,
         "col": 14,
@@ -1638,21 +1689,21 @@
           "g": 255,
           "b": 0
         }
+      },
+      {
+        "id": 86,
+        "row": 5,
+        "col": 5,
+        "x": 63.0,
+        "y": 113.0,
+        "color": {
+          "r": 128,
+          "g": 7,
+          "b": 117
+        }
       }
     ],
     "backlight_leds": [
-      {
-        "id": 85,
-        "row": 5,
-        "col": 4,
-        "x": 53.0,
-        "y": 113.0,
-        "color": {
-          "r": 254,
-          "g": 0,
-          "b": 253
-        }
-      },
       {
         "id": 89,
         "row": 5,
@@ -1964,10 +2015,58 @@
           "g": 253,
           "b": 6
         }
+      },
+      {
+        "id": 210,
+        "row": 13,
+        "col": 1,
+        "x": 23.0,
+        "y": 33.0,
+        "color": {
+          "r": 0,
+          "g": 255,
+          "b": 1
+        }
+      },
+      {
+        "id": 213,
+        "row": 13,
+        "col": 4,
+        "x": 53.0,
+        "y": 33.0,
+        "color": {
+          "r": 0,
+          "g": 255,
+          "b": 2
+        }
+      },
+      {
+        "id": 232,
+        "row": 14,
+        "col": 7,
+        "x": 83.0,
+        "y": 23.0,
+        "color": {
+          "r": 255,
+          "g": 255,
+          "b": 7
+        }
+      },
+      {
+        "id": 94,
+        "row": 5,
+        "col": 13,
+        "x": 143.0,
+        "y": 113.0,
+        "color": {
+          "r": 0,
+          "g": 255,
+          "b": 1
+        }
       }
     ],
-    "led_count": 50,
-    "backlight_led_count": 27,
+    "led_count": 51,
+    "backlight_led_count": 30,
     "fastener_tabs": [
       [
         4.0,
@@ -2525,17 +2624,17 @@
     "stl_bounds": [
       176.0,
       176.0,
-      6.0
+      3.0
     ],
     "stl_center": [
       88.0,
       88.0,
-      3.0
+      1.5
     ],
-    "stl_size": 2051084,
-    "chassis_size": 1370884,
+    "stl_size": 2087684,
+    "chassis_size": 1368684,
     "lid_size": 103884,
-    "zip_size": 1623107,
+    "zip_size": 1381360,
     "inlays": [
       {
         "key": "green",
@@ -2549,7 +2648,7 @@
         "name": "Wings & Crest",
         "filename": "tpu_panel_front_color_magenta.stl",
         "hex": "#ec4899",
-        "count": 8260
+        "count": 8648
       },
       {
         "key": "yellow",
@@ -2570,14 +2669,7 @@
         "name": "Clear Backing Layer (0.4mm - 2x 0.20mm @ 90\u00b0 cross-ply)",
         "filename": "tpu_panel_front_color_clear_layer.stl",
         "hex": "#c8f0ff",
-        "count": 19412
-      },
-      {
-        "key": "lenses",
-        "name": "Lenses (Translucent White)",
-        "filename": "tpu_panel_front_color_lenses.stl",
-        "hex": "#e6f1f8",
-        "count": 19048
+        "count": 19800
       }
     ],
     "stl_url": "/3d_panels/tpu_panel_front.stl",
@@ -2593,19 +2685,19 @@
     "variant": "back",
     "matrix_16x16_mode": true,
     "plate_thickness_mm": 0.6,
-    "gap_mm": 3.0,
-    "matrix_gap_mm": 3.0,
-    "lip_mm": 3.0,
-    "matrix_lip_mm": 3.0,
+    "gap_mm": 0.0,
+    "matrix_gap_mm": 0.0,
+    "lip_mm": 0.0,
+    "matrix_lip_mm": 0.0,
     "clear_layer_mm": 0.4,
     "matrix_clear_layer_mm": 0.4,
     "matrix_frame_mode": true,
-    "matrix_lenses_mode": true,
+    "matrix_lenses_mode": false,
     "matrix_rounded_corners": true,
     "matrix_corner_radius_mm": 6.0,
     "corner_radius_mm": 6.0,
-    "frame_height_mm": 5.4,
-    "total_thickness_mm": 6.0,
+    "frame_height_mm": 2.4,
+    "total_thickness_mm": 3.0,
     "width_mm": 176.0,
     "height_mm": 176.0,
     "panel_width_mm": 176.0,
@@ -2648,18 +2740,6 @@
         }
       },
       {
-        "id": 47,
-        "row": 2,
-        "col": 14,
-        "x": 153.0,
-        "y": 143.0,
-        "color": {
-          "r": 0,
-          "g": 254,
-          "b": 1
-        }
-      },
-      {
         "id": 53,
         "row": 3,
         "col": 4,
@@ -2684,18 +2764,6 @@
         }
       },
       {
-        "id": 62,
-        "row": 3,
-        "col": 13,
-        "x": 143.0,
-        "y": 133.0,
-        "color": {
-          "r": 0,
-          "g": 254,
-          "b": 1
-        }
-      },
-      {
         "id": 63,
         "row": 3,
         "col": 14,
@@ -2717,18 +2785,6 @@
           "r": 0,
           "g": 253,
           "b": 1
-        }
-      },
-      {
-        "id": 69,
-        "row": 4,
-        "col": 4,
-        "x": 53.0,
-        "y": 123.0,
-        "color": {
-          "r": 254,
-          "g": 0,
-          "b": 251
         }
       },
       {
@@ -2792,15 +2848,15 @@
         }
       },
       {
-        "id": 86,
+        "id": 85,
         "row": 5,
-        "col": 5,
-        "x": 63.0,
+        "col": 4,
+        "x": 53.0,
         "y": 113.0,
         "color": {
-          "r": 248,
+          "r": 254,
           "g": 0,
-          "b": 244
+          "b": 253
         }
       },
       {
@@ -2861,6 +2917,18 @@
           "r": 250,
           "g": 253,
           "b": 0
+        }
+      },
+      {
+        "id": 129,
+        "row": 8,
+        "col": 0,
+        "x": 13.0,
+        "y": 83.0,
+        "color": {
+          "r": 250,
+          "g": 190,
+          "b": 9
         }
       },
       {
@@ -3128,18 +3196,6 @@
         }
       },
       {
-        "id": 129,
-        "row": 8,
-        "col": 0,
-        "x": 13.0,
-        "y": 83.0,
-        "color": {
-          "r": 241,
-          "g": 240,
-          "b": 46
-        }
-      },
-      {
         "id": 247,
         "row": 15,
         "col": 6,
@@ -3200,6 +3256,42 @@
         }
       },
       {
+        "id": 47,
+        "row": 2,
+        "col": 14,
+        "x": 153.0,
+        "y": 143.0,
+        "color": {
+          "r": 0,
+          "g": 255,
+          "b": 1
+        }
+      },
+      {
+        "id": 62,
+        "row": 3,
+        "col": 13,
+        "x": 143.0,
+        "y": 133.0,
+        "color": {
+          "r": 0,
+          "g": 255,
+          "b": 0
+        }
+      },
+      {
+        "id": 69,
+        "row": 4,
+        "col": 4,
+        "x": 53.0,
+        "y": 123.0,
+        "color": {
+          "r": 254,
+          "g": 1,
+          "b": 250
+        }
+      },
+      {
         "id": 79,
         "row": 4,
         "col": 14,
@@ -3222,21 +3314,21 @@
           "g": 255,
           "b": 0
         }
+      },
+      {
+        "id": 86,
+        "row": 5,
+        "col": 5,
+        "x": 63.0,
+        "y": 113.0,
+        "color": {
+          "r": 128,
+          "g": 7,
+          "b": 117
+        }
       }
     ],
     "backlight_leds": [
-      {
-        "id": 85,
-        "row": 5,
-        "col": 4,
-        "x": 53.0,
-        "y": 113.0,
-        "color": {
-          "r": 254,
-          "g": 0,
-          "b": 253
-        }
-      },
       {
         "id": 89,
         "row": 5,
@@ -3548,10 +3640,58 @@
           "g": 253,
           "b": 6
         }
+      },
+      {
+        "id": 210,
+        "row": 13,
+        "col": 1,
+        "x": 23.0,
+        "y": 33.0,
+        "color": {
+          "r": 0,
+          "g": 255,
+          "b": 1
+        }
+      },
+      {
+        "id": 213,
+        "row": 13,
+        "col": 4,
+        "x": 53.0,
+        "y": 33.0,
+        "color": {
+          "r": 0,
+          "g": 255,
+          "b": 2
+        }
+      },
+      {
+        "id": 232,
+        "row": 14,
+        "col": 7,
+        "x": 83.0,
+        "y": 23.0,
+        "color": {
+          "r": 255,
+          "g": 255,
+          "b": 7
+        }
+      },
+      {
+        "id": 94,
+        "row": 5,
+        "col": 13,
+        "x": 143.0,
+        "y": 113.0,
+        "color": {
+          "r": 0,
+          "g": 255,
+          "b": 1
+        }
       }
     ],
-    "led_count": 50,
-    "backlight_led_count": 27,
+    "led_count": 51,
+    "backlight_led_count": 30,
     "fastener_tabs": [
       [
         4.0,
@@ -4109,17 +4249,17 @@
     "stl_bounds": [
       176.0,
       176.0,
-      6.0
+      3.0
     ],
     "stl_center": [
       88.0,
       88.0,
-      3.0
+      1.5
     ],
-    "stl_size": 2051084,
-    "chassis_size": 1370884,
+    "stl_size": 2087684,
+    "chassis_size": 1368684,
     "lid_size": 103884,
-    "zip_size": 1623343,
+    "zip_size": 1381372,
     "inlays": [
       {
         "key": "green",
@@ -4133,7 +4273,7 @@
         "name": "Wings & Crest",
         "filename": "tpu_panel_back_color_magenta.stl",
         "hex": "#ec4899",
-        "count": 8260
+        "count": 8648
       },
       {
         "key": "yellow",
@@ -4154,14 +4294,7 @@
         "name": "Clear Backing Layer (0.4mm - 2x 0.20mm @ 90\u00b0 cross-ply)",
         "filename": "tpu_panel_back_color_clear_layer.stl",
         "hex": "#c8f0ff",
-        "count": 19412
-      },
-      {
-        "key": "lenses",
-        "name": "Lenses (Translucent White)",
-        "filename": "tpu_panel_back_color_lenses.stl",
-        "hex": "#e6f1f8",
-        "count": 19048
+        "count": 19800
       }
     ],
     "stl_url": "/3d_panels/tpu_panel_back.stl",
@@ -4200,18 +4333,6 @@
       }
     },
     {
-      "id": 47,
-      "row": 2,
-      "col": 14,
-      "x": 153.0,
-      "y": 143.0,
-      "color": {
-        "r": 0,
-        "g": 254,
-        "b": 1
-      }
-    },
-    {
       "id": 53,
       "row": 3,
       "col": 4,
@@ -4236,18 +4357,6 @@
       }
     },
     {
-      "id": 62,
-      "row": 3,
-      "col": 13,
-      "x": 143.0,
-      "y": 133.0,
-      "color": {
-        "r": 0,
-        "g": 254,
-        "b": 1
-      }
-    },
-    {
       "id": 63,
       "row": 3,
       "col": 14,
@@ -4269,18 +4378,6 @@
         "r": 0,
         "g": 253,
         "b": 1
-      }
-    },
-    {
-      "id": 69,
-      "row": 4,
-      "col": 4,
-      "x": 53.0,
-      "y": 123.0,
-      "color": {
-        "r": 254,
-        "g": 0,
-        "b": 251
       }
     },
     {
@@ -4344,15 +4441,15 @@
       }
     },
     {
-      "id": 86,
+      "id": 85,
       "row": 5,
-      "col": 5,
-      "x": 63.0,
+      "col": 4,
+      "x": 53.0,
       "y": 113.0,
       "color": {
-        "r": 248,
+        "r": 254,
         "g": 0,
-        "b": 244
+        "b": 253
       }
     },
     {
@@ -4413,6 +4510,18 @@
         "r": 250,
         "g": 253,
         "b": 0
+      }
+    },
+    {
+      "id": 129,
+      "row": 8,
+      "col": 0,
+      "x": 13.0,
+      "y": 83.0,
+      "color": {
+        "r": 250,
+        "g": 190,
+        "b": 9
       }
     },
     {
@@ -4680,18 +4789,6 @@
       }
     },
     {
-      "id": 129,
-      "row": 8,
-      "col": 0,
-      "x": 13.0,
-      "y": 83.0,
-      "color": {
-        "r": 241,
-        "g": 240,
-        "b": 46
-      }
-    },
-    {
       "id": 247,
       "row": 15,
       "col": 6,
@@ -4752,6 +4849,42 @@
       }
     },
     {
+      "id": 47,
+      "row": 2,
+      "col": 14,
+      "x": 153.0,
+      "y": 143.0,
+      "color": {
+        "r": 0,
+        "g": 255,
+        "b": 1
+      }
+    },
+    {
+      "id": 62,
+      "row": 3,
+      "col": 13,
+      "x": 143.0,
+      "y": 133.0,
+      "color": {
+        "r": 0,
+        "g": 255,
+        "b": 0
+      }
+    },
+    {
+      "id": 69,
+      "row": 4,
+      "col": 4,
+      "x": 53.0,
+      "y": 123.0,
+      "color": {
+        "r": 254,
+        "g": 1,
+        "b": 250
+      }
+    },
+    {
       "id": 79,
       "row": 4,
       "col": 14,
@@ -4774,14 +4907,26 @@
         "g": 255,
         "b": 0
       }
+    },
+    {
+      "id": 86,
+      "row": 5,
+      "col": 5,
+      "x": 63.0,
+      "y": 113.0,
+      "color": {
+        "r": 128,
+        "g": 7,
+        "b": 117
+      }
     }
   ],
-  "led_count": 50,
+  "led_count": 51,
   "variant": "front",
-  "lip_mm": 3.0,
+  "lip_mm": 0.0,
   "clear_layer_mm": 0.4,
-  "frame_height_mm": 5.4,
-  "total_thickness_mm": 6.0,
+  "frame_height_mm": 2.4,
+  "total_thickness_mm": 3.0,
   "panel_width_mm": 176.0,
   "panel_height_mm": 176.0,
   "total_image_width_mm": 176.0,
@@ -4795,18 +4940,6 @@
     152.181
   ],
   "backlight_leds": [
-    {
-      "id": 85,
-      "row": 5,
-      "col": 4,
-      "x": 53.0,
-      "y": 113.0,
-      "color": {
-        "r": 254,
-        "g": 0,
-        "b": 253
-      }
-    },
     {
       "id": 89,
       "row": 5,
@@ -5118,9 +5251,57 @@
         "g": 253,
         "b": 6
       }
+    },
+    {
+      "id": 210,
+      "row": 13,
+      "col": 1,
+      "x": 23.0,
+      "y": 33.0,
+      "color": {
+        "r": 0,
+        "g": 255,
+        "b": 1
+      }
+    },
+    {
+      "id": 213,
+      "row": 13,
+      "col": 4,
+      "x": 53.0,
+      "y": 33.0,
+      "color": {
+        "r": 0,
+        "g": 255,
+        "b": 2
+      }
+    },
+    {
+      "id": 232,
+      "row": 14,
+      "col": 7,
+      "x": 83.0,
+      "y": 23.0,
+      "color": {
+        "r": 255,
+        "g": 255,
+        "b": 7
+      }
+    },
+    {
+      "id": 94,
+      "row": 5,
+      "col": 13,
+      "x": 143.0,
+      "y": 113.0,
+      "color": {
+        "r": 0,
+        "g": 255,
+        "b": 1
+      }
     }
   ],
-  "backlight_led_count": 27,
+  "backlight_led_count": 30,
   "fastener_tabs": [
     [
       4.0,
@@ -5678,17 +5859,17 @@
   "stl_bounds": [
     176.0,
     176.0,
-    6.0
+    3.0
   ],
   "stl_center": [
     88.0,
     88.0,
-    3.0
+    1.5
   ],
-  "stl_size": 2051084,
-  "chassis_size": 1370884,
+  "stl_size": 2087684,
+  "chassis_size": 1368684,
   "lid_size": 103884,
-  "zip_size": 1623107,
+  "zip_size": 1381360,
   "inlays": [
     {
       "key": "green",
@@ -5702,7 +5883,7 @@
       "name": "Wings & Crest",
       "filename": "tpu_panel_front_color_magenta.stl",
       "hex": "#ec4899",
-      "count": 8260
+      "count": 8648
     },
     {
       "key": "yellow",
@@ -5723,14 +5904,7 @@
       "name": "Clear Backing Layer (0.4mm - 2x 0.20mm @ 90\u00b0 cross-ply)",
       "filename": "tpu_panel_front_color_clear_layer.stl",
       "hex": "#c8f0ff",
-      "count": 19412
-    },
-    {
-      "key": "lenses",
-      "name": "Lenses (Translucent White)",
-      "filename": "tpu_panel_front_color_lenses.stl",
-      "hex": "#e6f1f8",
-      "count": 19048
+      "count": 19800
     }
   ],
   "stl_url": "/3d_panels/tpu_panel_front.stl",
@@ -5739,8 +5913,5 @@
   "multicolor_3mf_url": "/3d_panels/tpu_panel_front_multicolor.3mf",
   "multicolor_zip_url": "/3d_panels/tpu_panel_front_multicolor_bundle.zip",
   "volume_mm3": 18585.6,
-  "is_watertight": true,
-  "matrix_rounded_corners": true,
-  "matrix_corner_radius_mm": 6.0,
-  "corner_radius_mm": 6.0
+  "is_watertight": true
 }
