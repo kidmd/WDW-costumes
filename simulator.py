@@ -1425,6 +1425,15 @@ const uint8_t PROGMEM SPATIAL_RADIUS_BYTE[FRONT_LEDS] = {{
                 matrix_clear_layer_mm = round(max(0.0, min(2.0, matrix_clear_layer_mm)), 2)
 
             matrix_frame_mode = bool(req_data.get("matrixFrameMode", req_data.get("includeFrame", True)))
+            matrix_rounded_corners = bool(req_data.get("matrixRoundedCorners", req_data.get("roundedCorners", True)))
+            try:
+                matrix_corner_radius_mm = float(req_data.get("matrixCornerRadiusMm", req_data.get("cornerRadiusMm", 6.0)))
+            except Exception:
+                matrix_corner_radius_mm = 6.0
+            if not matrix_rounded_corners:
+                matrix_corner_radius_mm = 0.0
+            matrix_corner_radius_mm = round(max(0.0, min(15.0, matrix_corner_radius_mm)), 1)
+
             matrix_windowed_leds = req_data.get("matrixWindowedLeds", [])
             matrix_backlight_leds = req_data.get("matrixBacklightLeds", [])
 
@@ -1448,6 +1457,9 @@ const uint8_t PROGMEM SPATIAL_RADIUS_BYTE[FRONT_LEDS] = {{
                 "matrix_lenses_mode": matrix_lenses_mode,
                 "matrix_clear_layer_mm": matrix_clear_layer_mm,
                 "matrix_frame_mode": matrix_frame_mode,
+                "matrix_rounded_corners": matrix_rounded_corners,
+                "matrix_corner_radius_mm": matrix_corner_radius_mm,
+                "corner_radius_mm": matrix_corner_radius_mm,
                 "matrix_windowed_leds": matrix_windowed_leds,
                 "matrix_backlight_leds": matrix_backlight_leds,
                 "stl_colors": req_data.get("stlColors"),
@@ -1510,7 +1522,11 @@ const uint8_t PROGMEM SPATIAL_RADIUS_BYTE[FRONT_LEDS] = {{
                 "--matrix-clear-layer",
                 str(matrix_clear_layer_mm),
                 "--matrix-frame",
-                "on" if matrix_frame_mode else "off"
+                "on" if matrix_frame_mode else "off",
+                "--matrix-corner-radius",
+                str(matrix_corner_radius_mm),
+                "--matrix-rounded-corners",
+                "on" if matrix_rounded_corners else "off"
             ]
             res = subprocess.run(cmd, cwd=BASE_DIR, capture_output=True, text=True, timeout=90)
             if res.returncode != 0:

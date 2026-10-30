@@ -93,6 +93,18 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### 2026-10-30: Added 6mm Anti-Snag Rounded Corners Option for 16x16 Armor Panels
+- **Soft 6.0mm Corner Fillet Architecture:**
+  - Added an ergonomic **Rounded Plate Corners** option (defaulting to **`Rounded (6mm) ★`** with toggleable **`Sharp (90°)`** mode) across the Python compiler (`compile_clean_tpu_panel.py`), backend (`simulator.py`), and frontend UI (`simulator/index.html` & `simulator/app.js`).
+  - Eliminates sharp corner points that snag running shirt mesh, dig into rib cages during arm swing strides, or catch on safety pins during the 10K race.
+- **Slicer Registration & Bounding Box Zero-Artifact Lock:**
+  - When rounded corners are active ($R = 6.0\text{ mm}$), registration anchors automatically relocate to microscopic $0.50 \times 0.25\text{ mm}$ rectangular tabs flush at the 4 mid-edge straight perimeters ($X = 0$, $X = 176$, $Y = 0$, $Y = 176$).
+  - Strictly preserves the $[0.0, 176.0] \times [0.0, 176.0]\text{ mm}$ auto-centering bounding box in Bambu Studio / OrcaSlicer while preventing any sharp registration spurs or tangential horn artifacts from protruding beyond the rounded fillet envelope (obeying Rule 7).
+- **Sewing Hole Structural Integrity:**
+  - Corner needle eyelets ($\\varnothing 2.8\text{ mm}$) automatically verify corner arc clearance, maintaining a minimum $1.77\text{ mm}$ solid perimeter TPU/PLA wall for high-impact stitch retention.
+- **UI & Telemetry:**
+  - Added `#btfMatrixRoundedToggle` in the Layout tab and `#tpuModalCornersPill` (`Rounded ★` / `Sharp`) in the 3D Print Preview modal toolbar with live WebGL reload and browser `localStorage` persistence.
+
 ### 2026-10-30: Standardized 16x16 Panel Clear Backing Layer to 0.40mm Dual-Layer Cross-Ply (90° Slicing)
 - **0.40mm Clear Diffuser Backing Standard:**
   - Upgraded the default clear backing layer (`color_clear_layer.stl` / `Clear_Backing_Layer_160x160`) for all 16x16 matrix hybrid armor plates from `0.0mm` to **`0.40mm`** across the Python STL compiler (`compile_clean_tpu_panel.py`), backend API (`simulator.py`), frontend config (`simulator/app.js`), and 3D preview UI (`simulator/index.html`).

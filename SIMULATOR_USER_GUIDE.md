@@ -1501,6 +1501,12 @@ Instead of attaching a Cricut cut vinyl graphic on top of the printed plate, the
      - Toggleable via the **`🖼️ Frame & Lip:`** pill (`ON ★` / `OFF`) in the 3D Preview Modal toolbar (`#tpuModalFramePill`) and the **`Centering Frame & Lip`** checkbox (`#btfMatrixFrameToggle`) in the Layout tab.
      - When **ON (Default)**: Builds the complete 3-tier stepped rear standoff frame and retaining lip to snugly cradle the $160 \times 160\text{ mm}$ matrix PCB centered and standoff-spaced from the front LEDs.
      - When **OFF**: Omits the rear walls and retaining lip, yielding a flat rear surface while the lens light-pipes maintain their full selected standoff length from $Z = 0$ to the front surface.
+   - **⭕ Rounded Plate Corners (6mm Soft Fillet — Default: Rounded ★ / Sharp):**
+     - Softens the 4 exterior corners of the $176.0 \times 176.0\text{ mm}$ wearable armor plate with a smooth $6.0\text{ mm}$ fillet radius ($R = 6.0\text{ mm}$).
+     - **Anti-Snag Ergonomics:** Eliminates sharp $90^\circ$ corners that can catch on technical running shirts, rub against runner rib cages during arm swing strides, or fray costume fabric over 6.2 race miles.
+     - **Precision Alignment Preserved:** Registration anchors automatically switch to microscopic midpoint edge tabs flush against $X = 0$, $X = 176$, $Y = 0$, $Y = 176$, preserving the exact $[0, 176] \times [0, 176]\text{ mm}$ bounding box for instant auto-centering in Bambu Studio / OrcaSlicer with zero protruding horn artifacts.
+     - **Sewing Hole Security:** Inset sewing holes ($\\varnothing 2.8\text{ mm}$) maintain a strong $>1.75\text{ mm}$ solid TPU/PLA perimeter wall from the curved fillet.
+     - Controlled via the **`⭕ Corners:`** toolbar pill (`Rounded ★` / `Sharp`) in the 3D preview modal and the **`Rounded Plate Corners`** checkbox in the Layout tab.
 
 14. **🖨️ Precision Fairy Light Wire Fold Management Clips & 90° Corner Elbows:**
    - **External Wire Fold & Corner Management:** For fairy light wire routed outside chest armor panels, precision PLA/PETG snap-fit clips and 90° elbow brackets maintain neat, parallel routing without wire kinking or conductor fatigue.

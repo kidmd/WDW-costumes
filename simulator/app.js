@@ -15911,7 +15911,9 @@ let btfMatrix16x16Config = {
     lipMm: 3.0,
     lensesActive: true,
     clearLayerMm: 0.4,
-    frameActive: true
+    frameActive: true,
+    roundedCorners: true,
+    cornerRadiusMm: 6.0
 };
 try {
     const savedGap = localStorage.getItem('msep_matrix_gap_mm') || localStorage.getItem('msep_matrix_lip_mm');
@@ -15938,6 +15940,11 @@ try {
     const savedFrame = localStorage.getItem('msep_matrix_frame_mode');
     if (savedFrame !== null) {
         btfMatrix16x16Config.frameActive = (savedFrame === 'true');
+    }
+    const savedCorners = localStorage.getItem('msep_matrix_rounded_corners');
+    if (savedCorners !== null) {
+        btfMatrix16x16Config.roundedCorners = (savedCorners === 'true');
+        btfMatrix16x16Config.cornerRadiusMm = (savedCorners === 'true') ? 6.0 : 0.0;
     }
 } catch (e) {}
 let btfMatrix16x16Cells = []; // 256 entries: { row, col, matrixIdx, plateX, plateY, nx, ny, role: 'window'|'backlight'|'dark', color, onGraphic }
@@ -16348,7 +16355,8 @@ function drawBtfMatrix16x16PlateBackdrop(ctx, s) {
     ctx.lineWidth = 2.0;
     if (ctx.roundRect) {
         ctx.beginPath();
-        ctx.roundRect(px, py, pw, ph, 5);
+        const cornerR = (btfMatrix16x16Config.roundedCorners !== false) ? 6 : 0;
+        ctx.roundRect(px, py, pw, ph, cornerR);
         ctx.fill();
         ctx.shadowBlur = 0;
         ctx.stroke();
@@ -16922,6 +16930,67 @@ function setTpuMatrixFrame(active) {
 }
 window.setTpuMatrixFrame = setTpuMatrixFrame;
 
+function syncBtfMatrixCornersUI(rounded) {
+    const isRound = (rounded !== false);
+    btfMatrix16x16Config.roundedCorners = isRound;
+    btfMatrix16x16Config.cornerRadiusMm = isRound ? 6.0 : 0.0;
+    try { localStorage.setItem('msep_matrix_rounded_corners', isRound ? 'true' : 'false'); } catch (e) {}
+
+    const roundBtn = document.getElementById('tpuModalCornersRoundedBtn');
+    const sharpBtn = document.getElementById('tpuModalCornersSharpBtn');
+    if (roundBtn && sharpBtn) {
+        if (isRound) {
+            roundBtn.style.background = '#c084fc';
+            roundBtn.style.color = '#000';
+            roundBtn.style.fontWeight = '700';
+            sharpBtn.style.background = 'transparent';
+            sharpBtn.style.color = '#8b949e';
+            sharpBtn.style.fontWeight = '500';
+        } else {
+            sharpBtn.style.background = '#c084fc';
+            sharpBtn.style.color = '#000';
+            sharpBtn.style.fontWeight = '700';
+            roundBtn.style.background = 'transparent';
+            roundBtn.style.color = '#8b949e';
+            roundBtn.style.fontWeight = '500';
+        }
+    }
+
+    const tog = document.getElementById('btfMatrixRoundedToggle');
+    if (tog) tog.checked = isRound;
+
+    updateBtfMatrix16x16TelemetryUI();
+}
+window.syncBtfMatrixCornersUI = syncBtfMatrixCornersUI;
+
+function setTpuMatrixCorners(rounded) {
+    syncBtfMatrixCornersUI(rounded);
+    markSingleShirtDirty();
+
+    const txt = btfMatrix16x16Config.roundedCorners
+        ? 'Rounded Plate Corners (6mm Soft Fillet)'
+        : 'Sharp Plate Corners (Square 90°)';
+
+    if (typeof tpuIsOpen !== 'undefined' && tpuIsOpen) {
+        if (tpuDisplayMode !== 'matrix16') {
+            tpuDisplayMode = 'matrix16';
+        }
+        const loaderOverlay = document.getElementById('tpuModalLoading');
+        if (loaderOverlay) {
+            loaderOverlay.style.display = 'flex';
+            loaderOverlay.innerHTML = `
+                <div class="spinner" style="width: 32px; height: 32px; border: 3px solid rgba(192, 132, 252, 0.2); border-top-color: #c084fc; border-radius: 50%; animation: spin 0.8s linear infinite;"></div>
+                <span>Recompiling 16×16 Matrix with ${txt}...</span>
+            `;
+        }
+        handleRecompileTpuStl({ skipOpen: true }).then(() => {
+            if (tpuIsOpen) loadTpuModalData();
+        });
+    }
+    showToast(`⭕ 16×16 Matrix: ${txt}`);
+}
+window.setTpuMatrixCorners = setTpuMatrixCorners;
+
 function initBtfMatrix16x16Mode() {
     const toggle = document.getElementById('btfMatrix16x16Toggle');
     const card = document.getElementById('btfMatrix16x16OptionsCard');
@@ -17010,6 +17079,14 @@ function initBtfMatrix16x16Mode() {
         });
     }
 
+    const roundedToggle = document.getElementById('btfMatrixRoundedToggle');
+    if (roundedToggle) {
+        roundedToggle.checked = (btfMatrix16x16Config.roundedCorners !== false);
+        roundedToggle.addEventListener('change', (e) => {
+            setTpuMatrixCorners(e.target.checked);
+        });
+    }
+
     if (spreadBtn) {
         spreadBtn.addEventListener('click', () => {
             computeBtfMatrix16x16Layout();
@@ -17061,6 +17138,7 @@ function initBtfMatrix16x16Mode() {
     syncBtfMatrixThicknessUI(btfMatrix16x16Config.thicknessMm);
     syncBtfMatrixLipUI(btfMatrix16x16Config.lipMm !== undefined ? btfMatrix16x16Config.lipMm : 2.0);
     syncBtfMatrixClearLayerUI(btfMatrix16x16Config.clearLayerMm !== undefined ? btfMatrix16x16Config.clearLayerMm : 0.4);
+    syncBtfMatrixCornersUI(btfMatrix16x16Config.roundedCorners !== false);
 }
 window.initBtfMatrix16x16Mode = initBtfMatrix16x16Mode;
 
@@ -23975,8 +24053,10 @@ async function handleRecompileTpuStl(opts) {
             matrixGapMm: (typeof btfMatrix16x16Config !== 'undefined' && btfMatrix16x16Config.gapMm !== undefined) ? btfMatrix16x16Config.gapMm : 3.0,
             matrixLipMm: (typeof btfMatrix16x16Config !== 'undefined' && btfMatrix16x16Config.gapMm !== undefined) ? btfMatrix16x16Config.gapMm : 3.0,
             matrixLensesMode: (typeof btfMatrix16x16Config !== 'undefined' && btfMatrix16x16Config.lensesActive !== false),
-            matrixClearLayerMm: (typeof btfMatrix16x16Config !== 'undefined' && btfMatrix16x16Config.clearLayerMm !== undefined) ? btfMatrix16x16Config.clearLayerMm : 0.0,
+            matrixClearLayerMm: (typeof btfMatrix16x16Config !== 'undefined' && btfMatrix16x16Config.clearLayerMm !== undefined) ? btfMatrix16x16Config.clearLayerMm : 0.4,
             matrixFrameMode: (typeof btfMatrix16x16Config !== 'undefined' && btfMatrix16x16Config.frameActive !== false),
+            matrixRoundedCorners: (typeof btfMatrix16x16Config !== 'undefined' && btfMatrix16x16Config.roundedCorners !== false),
+            matrixCornerRadiusMm: (typeof btfMatrix16x16Config !== 'undefined' && btfMatrix16x16Config.cornerRadiusMm !== undefined) ? btfMatrix16x16Config.cornerRadiusMm : 6.0,
             matrixWindowedLeds: matrixLists.windowedLeds,
             matrixBacklightLeds: matrixLists.backlightLeds,
             widthMm: selectedPlateWidthMm,
@@ -24511,12 +24591,15 @@ async function loadTpuModalData() {
                 if (typeof syncBtfMatrixLipUI === 'function') syncBtfMatrixLipUI(effectiveLip);
                 const effectiveClear = (variantData.clear_layer_mm !== undefined) ? parseFloat(variantData.clear_layer_mm) : ((btfMatrix16x16Config && btfMatrix16x16Config.clearLayerMm !== undefined) ? btfMatrix16x16Config.clearLayerMm : 0.0);
                 const effectiveFrame = (variantData.matrix_frame_mode !== undefined) ? Boolean(variantData.matrix_frame_mode) : ((btfMatrix16x16Config && btfMatrix16x16Config.frameActive !== undefined) ? btfMatrix16x16Config.frameActive : true);
+                const effectiveCorners = (variantData.matrix_rounded_corners !== undefined) ? Boolean(variantData.matrix_rounded_corners) : ((btfMatrix16x16Config && btfMatrix16x16Config.roundedCorners !== undefined) ? btfMatrix16x16Config.roundedCorners : true);
                 if (typeof syncBtfMatrixClearLayerUI === 'function') syncBtfMatrixClearLayerUI(effectiveClear);
                 if (typeof syncBtfMatrixFrameUI === 'function') syncBtfMatrixFrameUI(effectiveFrame);
+                if (typeof syncBtfMatrixCornersUI === 'function') syncBtfMatrixCornersUI(effectiveCorners);
 
                 const clearLabel = (effectiveClear > 0) ? ` + ${effectiveClear.toFixed(1)}mm Clear` : '';
                 const frameLabel = effectiveFrame ? ((effectiveLip > 0) ? ` + ${effectiveLip.toFixed(1)}mm Lip Frame` : ' + Flush Frame') : ' (Frame OFF)';
-                modalSub.textContent = `176×176×${effectiveThick.toFixed(2)}mm Plate${clearLabel}${frameLabel} • ${winC} Ø 3.4mm Windows + ${glowC} Backlit Glow`;
+                const cornersLabel = effectiveCorners ? ' + 6mm Rounded Corners' : '';
+                modalSub.textContent = `176×176×${effectiveThick.toFixed(2)}mm Plate${cornersLabel}${clearLabel}${frameLabel} • ${winC} Ø 3.4mm Windows + ${glowC} Backlit Glow`;
             } else {
                 const shapeText = (effectiveShape === 'round_34') ? 'Ø 3.4mm Round Apertures (Default)' : ((effectiveShape === 'round_30' || effectiveShape === 'round' || effectiveShape === 'circle') ? 'Ø 3.0mm Round Apertures' : '3×3mm Square Apertures');
                 const orientText = (effectiveOrient === 'tangent') ? 'Tangent to Wire' : 'Horizontal Alignment';

@@ -218,6 +218,37 @@ if '--matrix-frame' in sys.argv:
     if _mfr + 1 < len(sys.argv):
         INCLUDE_FRAME = sys.argv[_mfr + 1].lower() in ('on', '1', 'true', 'yes')
 
+MATRIX_CORNER_RADIUS_MM = 6.0
+if 'matrix_corner_radius_mm' in specs:
+    MATRIX_CORNER_RADIUS_MM = float(specs['matrix_corner_radius_mm'])
+elif 'corner_radius_mm' in specs:
+    MATRIX_CORNER_RADIUS_MM = float(specs['corner_radius_mm'])
+
+if 'matrix_rounded_corners' in specs:
+    if not bool(specs['matrix_rounded_corners']):
+        MATRIX_CORNER_RADIUS_MM = 0.0
+
+if '--matrix-corner-radius' in sys.argv:
+    _mcr = sys.argv.index('--matrix-corner-radius')
+    if _mcr + 1 < len(sys.argv):
+        try:
+            MATRIX_CORNER_RADIUS_MM = float(sys.argv[_mcr + 1])
+        except Exception:
+            pass
+elif '--corner-radius' in sys.argv:
+    _cr = sys.argv.index('--corner-radius')
+    if _cr + 1 < len(sys.argv):
+        try:
+            MATRIX_CORNER_RADIUS_MM = float(sys.argv[_cr + 1])
+        except Exception:
+            pass
+
+if '--matrix-rounded-corners' in sys.argv:
+    _mrc = sys.argv.index('--matrix-rounded-corners')
+    if _mrc + 1 < len(sys.argv):
+        if sys.argv[_mrc + 1].lower() in ('off', '0', 'false', 'no'):
+            MATRIX_CORNER_RADIUS_MM = 0.0
+
 def export_assembled_3mf(scene_items, mf3_path, assembly_name="MSEP_MultiColor_Plate"):
     """Exports a multi-part trimesh dictionary as a single 3MF parent assembly with <components> so Bambu Studio / OrcaSlicer / Snapmaker Orca treat all color inlays as parts of ONE object (preventing 'too close to others' collision errors)."""
     import uuid
@@ -275,7 +306,7 @@ def export_assembled_3mf(scene_items, mf3_path, assembly_name="MSEP_MultiColor_P
     except Exception as e:
         print(f"[3MF Assembly Post-Process Warning]: {e}")
 
-def compile_matrix_16x16_plate_variant(variant_name, artwork_path, window_shape='round_34', plate_thickness_mm=0.60, gap_mm=3.0, lip_mm=None, include_lenses=True, clear_layer_mm=0.4, include_frame=True, windowed_leds=None, backlight_leds=None):
+def compile_matrix_16x16_plate_variant(variant_name, artwork_path, window_shape='round_34', plate_thickness_mm=0.60, gap_mm=3.0, lip_mm=None, include_lenses=True, clear_layer_mm=0.4, include_frame=True, corner_radius_mm=6.0, windowed_leds=None, backlight_leds=None):
     PLATE_SIZE_MM = 176.0
     MATRIX_SIZE_MM = 160.0
     MARGIN_MM = 8.0
@@ -287,6 +318,7 @@ def compile_matrix_16x16_plate_variant(variant_name, artwork_path, window_shape=
     LIP_MM = GAP_MM
     CLEAR_MM = round(max(0.0, min(2.0, float(0.4 if clear_layer_mm is None else clear_layer_mm))), 2)
     FRAME_ACTIVE = bool(include_frame)
+    CORNER_R = round(max(0.0, min(15.0, float(6.0 if corner_radius_mm is None else corner_radius_mm))), 2)
 
     print(f"\n>>> Compiling {variant_name.upper()} 16x16 Matrix Backlight Plate ({PLATE_SIZE_MM}x{PLATE_SIZE_MM}x{THICK_MM:.2f}mm, Window Shape: {window_shape.upper()})...")
     v_t0 = time.time()
@@ -474,12 +506,13 @@ def compile_matrix_16x16_plate_variant(variant_name, artwork_path, window_shape=
         win_polys.append(sg.Point(lx, ly).buffer(1.70, resolution=24))
     windows_union_2d = unary_union(win_polys) if win_polys else sg.Polygon()
 
-    # Build 4 corner sewing holes (Ø 2.8mm, radius 1.40mm) at 4.0mm inset from the 176mm square corners
+    # Build 4 corner sewing holes (Ø 2.8mm, radius 1.40mm) inset from the 176mm plate corners
+    hole_inset = max(4.0, round(CORNER_R * 0.707, 1)) if CORNER_R > 6.0 else 4.0
     shirt_hole_coords = [
-        [4.0, 4.0],                                     # Bottom-Left corner
-        [PLATE_SIZE_MM - 4.0, 4.0],                     # Bottom-Right corner
-        [4.0, PLATE_SIZE_MM - 4.0],                     # Top-Left corner
-        [PLATE_SIZE_MM - 4.0, PLATE_SIZE_MM - 4.0]      # Top-Right corner
+        [hole_inset, hole_inset],                                     # Bottom-Left corner
+        [PLATE_SIZE_MM - hole_inset, hole_inset],                     # Bottom-Right corner
+        [hole_inset, PLATE_SIZE_MM - hole_inset],                     # Top-Left corner
+        [PLATE_SIZE_MM - hole_inset, PLATE_SIZE_MM - hole_inset]      # Top-Right corner
     ]
     shirt_holes_union_2d = unary_union([sg.Point(hx, hy).buffer(1.40, resolution=24) for hx, hy in shirt_hole_coords])
 
@@ -530,29 +563,45 @@ def compile_matrix_16x16_plate_variant(variant_name, artwork_path, window_shape=
                 u = u.difference(shirt_holes_union_2d)
             polys_2d[c_name] = u if u.is_valid else u.buffer(0)
 
-    # Build microscopic 4-corner apex registration triangles at exactly (0,0), (176,0), (0,176), (176,176)
-    # so that EVERY split STL file (chassis, lenses, clear backing, and each color inlay) shares the EXACT same
-    # [0.0, 176.0] x [0.0, 176.0] bounding box and (88.0, 88.0) center in Bambu Studio / PrusaSlicer!
-    # By placing 0.35x0.35mm right triangles precisely in the outer corners:
-    # 1. Area = 0.5 * 0.35 * 0.35 = 0.06125 mm2 (> 0.05 mm2 threshold so they are preserved)
-    # 2. They do NOT stagger along the plate edges, completely eliminating the 'antennae / whiskers' comb teeth!
-    # 3. All parts share the exact same corner anchors, keeping edges 100% smooth and straight.
-    corner_w = 0.35
-    corner_anchors_2d = unary_union([
-        sg.Polygon([(0.0, 0.0), (corner_w, 0.0), (0.0, corner_w)]),
-        sg.Polygon([(PLATE_SIZE_MM, 0.0), (PLATE_SIZE_MM - corner_w, 0.0), (PLATE_SIZE_MM, corner_w)]),
-        sg.Polygon([(0.0, PLATE_SIZE_MM), (corner_w, PLATE_SIZE_MM), (0.0, PLATE_SIZE_MM - corner_w)]),
-        sg.Polygon([(PLATE_SIZE_MM, PLATE_SIZE_MM), (PLATE_SIZE_MM - corner_w, PLATE_SIZE_MM), (PLATE_SIZE_MM, PLATE_SIZE_MM - corner_w)])
-    ])
+    # Build registration anchors so that EVERY split STL file (chassis, lenses, clear backing,
+    # and each color inlay) shares the EXACT same [0.0, 176.0] x [0.0, 176.0] bounding box in Bambu Studio / PrusaSlicer!
+    if CORNER_R > 0:
+        # For rounded plates, place microscopic 0.50x0.25mm anchors at the midpoints of the 4 outer straight edges.
+        # This keeps the overall bounding box at exactly [0, 176] x [0, 176] without any spurs protruding beyond the rounded corners!
+        mid = PLATE_SIZE_MM / 2.0
+        w_anc = 0.50
+        d_anc = 0.25
+        corner_anchors_2d = unary_union([
+            sg.box(0.0, mid - w_anc / 2.0, d_anc, mid + w_anc / 2.0),
+            sg.box(PLATE_SIZE_MM - d_anc, mid - w_anc / 2.0, PLATE_SIZE_MM, mid + w_anc / 2.0),
+            sg.box(mid - w_anc / 2.0, 0.0, mid + w_anc / 2.0, d_anc),
+            sg.box(mid - w_anc / 2.0, PLATE_SIZE_MM - d_anc, mid + w_anc / 2.0, PLATE_SIZE_MM)
+        ])
+    else:
+        corner_w = 0.35
+        corner_anchors_2d = unary_union([
+            sg.Polygon([(0.0, 0.0), (corner_w, 0.0), (0.0, corner_w)]),
+            sg.Polygon([(PLATE_SIZE_MM, 0.0), (PLATE_SIZE_MM - corner_w, 0.0), (PLATE_SIZE_MM, corner_w)]),
+            sg.Polygon([(0.0, PLATE_SIZE_MM), (corner_w, PLATE_SIZE_MM), (0.0, PLATE_SIZE_MM - corner_w)]),
+            sg.Polygon([(PLATE_SIZE_MM, PLATE_SIZE_MM), (PLATE_SIZE_MM - corner_w, PLATE_SIZE_MM), (PLATE_SIZE_MM, PLATE_SIZE_MM - corner_w)])
+        ])
 
     for c_name in list(polys_2d.keys()):
         polys_2d[c_name] = unary_union([polys_2d[c_name], corner_anchors_2d])
 
     lens_anchor_2d = corner_anchors_2d if (include_lenses and not windows_union_2d.is_empty) else sg.Polygon()
-    # Clear backing layer is a perfect 160x160mm square naturally centered at (88.0, 88.0mm), so no corner tabs are needed
     clear_anchor_2d = sg.Polygon()
 
-    plate_box_2d = sg.box(0.0, 0.0, PLATE_SIZE_MM, PLATE_SIZE_MM)
+    if CORNER_R > 0:
+        b1 = sg.box(CORNER_R, 0.0, PLATE_SIZE_MM - CORNER_R, PLATE_SIZE_MM)
+        b2 = sg.box(0.0, CORNER_R, PLATE_SIZE_MM, PLATE_SIZE_MM - CORNER_R)
+        c1 = sg.Point(CORNER_R, CORNER_R).buffer(CORNER_R, resolution=32)
+        c2 = sg.Point(PLATE_SIZE_MM - CORNER_R, CORNER_R).buffer(CORNER_R, resolution=32)
+        c3 = sg.Point(CORNER_R, PLATE_SIZE_MM - CORNER_R).buffer(CORNER_R, resolution=32)
+        c4 = sg.Point(PLATE_SIZE_MM - CORNER_R, PLATE_SIZE_MM - CORNER_R).buffer(CORNER_R, resolution=32)
+        plate_box_2d = unary_union([b1, b2, c1, c2, c3, c4])
+    else:
+        plate_box_2d = sg.box(0.0, 0.0, PLATE_SIZE_MM, PLATE_SIZE_MM)
     all_inlays_2d = unary_union(list(polys_2d.values())) if polys_2d else sg.Polygon()
     chassis_2d = plate_box_2d.difference(all_inlays_2d)
     if not corner_anchors_2d.is_empty:
@@ -793,7 +842,10 @@ REMOVED FEATURES: No LED channels, no side walls, no screw holes, no eyelets, no
     total_z = TOTAL_Z
     stl_bounds = [PLATE_SIZE_MM, PLATE_SIZE_MM, total_z]
     stl_center = [PLATE_SIZE_MM / 2.0, PLATE_SIZE_MM / 2.0, round(total_z / 2.0, 3)]
-    contour_coords = [[0.0, 0.0], [PLATE_SIZE_MM, 0.0], [PLATE_SIZE_MM, PLATE_SIZE_MM], [0.0, PLATE_SIZE_MM], [0.0, 0.0]]
+    if CORNER_R > 0:
+        contour_coords = [[round(pt[0], 2), round(pt[1], 2)] for pt in list(plate_box_2d.exterior.coords)]
+    else:
+        contour_coords = [[0.0, 0.0], [PLATE_SIZE_MM, 0.0], [PLATE_SIZE_MM, PLATE_SIZE_MM], [0.0, PLATE_SIZE_MM], [0.0, 0.0]]
 
     print(f"[{variant_name}] 16x16 Matrix Plate compiled in {time.time()-v_t0:.2f}s! ({len(windowed_leds)} Ø3.4mm windows, {len(backlight_leds)} backlit, 4 corner sewing holes, {THICK_MM:.2f}mm thick)")
 
@@ -809,6 +861,9 @@ REMOVED FEATURES: No LED channels, no side walls, no screw holes, no eyelets, no
         "matrix_clear_layer_mm": CLEAR_MM,
         "matrix_frame_mode": FRAME_ACTIVE,
         "matrix_lenses_mode": bool(include_lenses),
+        "matrix_rounded_corners": bool(CORNER_R > 0),
+        "matrix_corner_radius_mm": CORNER_R,
+        "corner_radius_mm": CORNER_R,
         "frame_height_mm": FRAME_HEIGHT,
         "total_thickness_mm": total_z,
         "width_mm": PLATE_SIZE_MM,
