@@ -322,133 +322,108 @@ const CRGB PROGMEM ARTWORK_PALETTE[NUM_LEDS] = {
 };
 
 // 16x16 Matrix Physical Serpentine Indices (0..255) for Active Windowed + Backlit LEDs
+// 16x16 Matrix Physical Serpentine Indices (0..255) for Active Windowed + Backlit LEDs (3D Printed Physical Match)
 const uint8_t PROGMEM MATRIX_ACTIVE_INDICES[FRONT_LEDS] = {
-    20, // Active LED 0 -> Physical Matrix Index 20
-    35, // Active LED 1 -> Physical Matrix Index 35
-    44, // Active LED 2 -> Physical Matrix Index 44
-    45, // Active LED 3 -> Physical Matrix Index 45
-    46, // Active LED 4 -> Physical Matrix Index 46
-    48, // Active LED 5 -> Physical Matrix Index 48
-    49, // Active LED 6 -> Physical Matrix Index 49
-    50, // Active LED 7 -> Physical Matrix Index 50
-    51, // Active LED 8 -> Physical Matrix Index 51
-    52, // Active LED 9 -> Physical Matrix Index 52
-    56, // Active LED 10 -> Physical Matrix Index 56
-    57, // Active LED 11 -> Physical Matrix Index 57
-    58, // Active LED 12 -> Physical Matrix Index 58
-    59, // Active LED 13 -> Physical Matrix Index 59
-    60, // Active LED 14 -> Physical Matrix Index 60
-    67, // Active LED 15 -> Physical Matrix Index 67
-    68, // Active LED 16 -> Physical Matrix Index 68
-    69, // Active LED 17 -> Physical Matrix Index 69
-    70, // Active LED 18 -> Physical Matrix Index 70
-    71, // Active LED 19 -> Physical Matrix Index 71
-    74, // Active LED 20 -> Physical Matrix Index 74
-    75, // Active LED 21 -> Physical Matrix Index 75
-    76, // Active LED 22 -> Physical Matrix Index 76
-    77, // Active LED 23 -> Physical Matrix Index 77
-    80, // Active LED 24 -> Physical Matrix Index 80
-    81, // Active LED 25 -> Physical Matrix Index 81
-    82, // Active LED 26 -> Physical Matrix Index 82
-    83, // Active LED 27 -> Physical Matrix Index 83
-    84, // Active LED 28 -> Physical Matrix Index 84
-    85, // Active LED 29 -> Physical Matrix Index 85
-    86, // Active LED 30 -> Physical Matrix Index 86
-    87, // Active LED 31 -> Physical Matrix Index 87
-    88, // Active LED 32 -> Physical Matrix Index 88
-    89, // Active LED 33 -> Physical Matrix Index 89
-    90, // Active LED 34 -> Physical Matrix Index 90
-    91, // Active LED 35 -> Physical Matrix Index 91
-    92, // Active LED 36 -> Physical Matrix Index 92
-    99, // Active LED 37 -> Physical Matrix Index 99
-    100, // Active LED 38 -> Physical Matrix Index 100
-    103, // Active LED 39 -> Physical Matrix Index 103
-    105, // Active LED 40 -> Physical Matrix Index 105
-    106, // Active LED 41 -> Physical Matrix Index 106
-    107, // Active LED 42 -> Physical Matrix Index 107
-    108, // Active LED 43 -> Physical Matrix Index 108
-    109, // Active LED 44 -> Physical Matrix Index 109
-    110, // Active LED 45 -> Physical Matrix Index 110
-    111, // Active LED 46 -> Physical Matrix Index 111
-    112, // Active LED 47 -> Physical Matrix Index 112
-    113, // Active LED 48 -> Physical Matrix Index 113
-    114, // Active LED 49 -> Physical Matrix Index 114
-    115, // Active LED 50 -> Physical Matrix Index 115
-    116, // Active LED 51 -> Physical Matrix Index 116
-    117, // Active LED 52 -> Physical Matrix Index 117
-    119, // Active LED 53 -> Physical Matrix Index 119
-    121, // Active LED 54 -> Physical Matrix Index 121
-    124, // Active LED 55 -> Physical Matrix Index 124
-    131, // Active LED 56 -> Physical Matrix Index 131
-    132, // Active LED 57 -> Physical Matrix Index 132
-    135, // Active LED 58 -> Physical Matrix Index 135
-    136, // Active LED 59 -> Physical Matrix Index 136
-    137, // Active LED 60 -> Physical Matrix Index 137
-    139, // Active LED 61 -> Physical Matrix Index 139
-    140, // Active LED 62 -> Physical Matrix Index 140
-    141, // Active LED 63 -> Physical Matrix Index 141
-    142, // Active LED 64 -> Physical Matrix Index 142
-    143, // Active LED 65 -> Physical Matrix Index 143
-    144, // Active LED 66 -> Physical Matrix Index 144
-    145, // Active LED 67 -> Physical Matrix Index 145
-    146, // Active LED 68 -> Physical Matrix Index 146
-    147, // Active LED 69 -> Physical Matrix Index 147
-    148, // Active LED 70 -> Physical Matrix Index 148
-    149, // Active LED 71 -> Physical Matrix Index 149
-    150, // Active LED 72 -> Physical Matrix Index 150
-    151, // Active LED 73 -> Physical Matrix Index 151
-    152, // Active LED 74 -> Physical Matrix Index 152
-    153, // Active LED 75 -> Physical Matrix Index 153
-    154, // Active LED 76 -> Physical Matrix Index 154
-    155, // Active LED 77 -> Physical Matrix Index 155
-    156, // Active LED 78 -> Physical Matrix Index 156
-    160, // Active LED 79 -> Physical Matrix Index 160
-    161, // Active LED 80 -> Physical Matrix Index 161
-    162, // Active LED 81 -> Physical Matrix Index 162
-    163, // Active LED 82 -> Physical Matrix Index 163
-    164, // Active LED 83 -> Physical Matrix Index 164
-    165, // Active LED 84 -> Physical Matrix Index 165
-    166, // Active LED 85 -> Physical Matrix Index 166
-    167, // Active LED 86 -> Physical Matrix Index 167
-    168, // Active LED 87 -> Physical Matrix Index 168
-    169, // Active LED 88 -> Physical Matrix Index 169
-    171, // Active LED 89 -> Physical Matrix Index 171
-    172, // Active LED 90 -> Physical Matrix Index 172
-    173, // Active LED 91 -> Physical Matrix Index 173
-    174, // Active LED 92 -> Physical Matrix Index 174
-    175, // Active LED 93 -> Physical Matrix Index 175
-    176, // Active LED 94 -> Physical Matrix Index 176
-    177, // Active LED 95 -> Physical Matrix Index 177
-    178, // Active LED 96 -> Physical Matrix Index 178
-    179, // Active LED 97 -> Physical Matrix Index 179
-    180, // Active LED 98 -> Physical Matrix Index 180
-    181, // Active LED 99 -> Physical Matrix Index 181
-    184, // Active LED 100 -> Physical Matrix Index 184
-    187, // Active LED 101 -> Physical Matrix Index 187
-    188, // Active LED 102 -> Physical Matrix Index 188
-    189, // Active LED 103 -> Physical Matrix Index 189
-    190, // Active LED 104 -> Physical Matrix Index 190
-    191, // Active LED 105 -> Physical Matrix Index 191
-    192, // Active LED 106 -> Physical Matrix Index 192
-    194, // Active LED 107 -> Physical Matrix Index 194
-    195, // Active LED 108 -> Physical Matrix Index 195
-    196, // Active LED 109 -> Physical Matrix Index 196
-    197, // Active LED 110 -> Physical Matrix Index 197
-    198, // Active LED 111 -> Physical Matrix Index 198
-    199, // Active LED 112 -> Physical Matrix Index 199
-    200, // Active LED 113 -> Physical Matrix Index 200
-    201, // Active LED 114 -> Physical Matrix Index 201
-    202, // Active LED 115 -> Physical Matrix Index 202
-    203, // Active LED 116 -> Physical Matrix Index 203
-    204, // Active LED 117 -> Physical Matrix Index 204
-    205, // Active LED 118 -> Physical Matrix Index 205
-    206, // Active LED 119 -> Physical Matrix Index 206
-    207, // Active LED 120 -> Physical Matrix Index 207
-    208, // Active LED 121 -> Physical Matrix Index 208
-    210, // Active LED 122 -> Physical Matrix Index 210
-    221, // Active LED 123 -> Physical Matrix Index 221
-    223, // Active LED 124 -> Physical Matrix Index 223
-    224 // Active LED 125 -> Physical Matrix Index 224
+    29, // Active LED 0 (Windowed) -> Physical Matrix Index 29
+    35, // Active LED 1 (Windowed) -> Physical Matrix Index 35
+    52, // Active LED 2 (Windowed) -> Physical Matrix Index 52
+    60, // Active LED 3 (Windowed) -> Physical Matrix Index 60
+    62, // Active LED 4 (Windowed) -> Physical Matrix Index 62
+    63, // Active LED 5 (Windowed) -> Physical Matrix Index 63
+    74, // Active LED 6 (Windowed) -> Physical Matrix Index 74
+    70, // Active LED 7 (Windowed) -> Physical Matrix Index 70
+    68, // Active LED 8 (Windowed) -> Physical Matrix Index 68
+    67, // Active LED 9 (Windowed) -> Physical Matrix Index 67
+    66, // Active LED 10 (Windowed) -> Physical Matrix Index 66
+    84, // Active LED 11 (Windowed) -> Physical Matrix Index 84
+    95, // Active LED 12 (Windowed) -> Physical Matrix Index 95
+    105, // Active LED 13 (Windowed) -> Physical Matrix Index 105
+    103, // Active LED 14 (Windowed) -> Physical Matrix Index 103
+    98, // Active LED 15 (Windowed) -> Physical Matrix Index 98
+    122, // Active LED 16 (Windowed) -> Physical Matrix Index 122
+    143, // Active LED 17 (Windowed) -> Physical Matrix Index 143
+    141, // Active LED 18 (Windowed) -> Physical Matrix Index 141
+    136, // Active LED 19 (Windowed) -> Physical Matrix Index 136
+    134, // Active LED 20 (Windowed) -> Physical Matrix Index 134
+    149, // Active LED 21 (Windowed) -> Physical Matrix Index 149
+    152, // Active LED 22 (Windowed) -> Physical Matrix Index 152
+    175, // Active LED 23 (Windowed) -> Physical Matrix Index 175
+    172, // Active LED 24 (Windowed) -> Physical Matrix Index 172
+    169, // Active LED 25 (Windowed) -> Physical Matrix Index 169
+    165, // Active LED 26 (Windowed) -> Physical Matrix Index 165
+    177, // Active LED 27 (Windowed) -> Physical Matrix Index 177
+    181, // Active LED 28 (Windowed) -> Physical Matrix Index 181
+    183, // Active LED 29 (Windowed) -> Physical Matrix Index 183
+    205, // Active LED 30 (Windowed) -> Physical Matrix Index 205
+    203, // Active LED 31 (Windowed) -> Physical Matrix Index 203
+    198, // Active LED 32 (Windowed) -> Physical Matrix Index 198
+    208, // Active LED 33 (Windowed) -> Physical Matrix Index 208
+    211, // Active LED 34 (Windowed) -> Physical Matrix Index 211
+    214, // Active LED 35 (Windowed) -> Physical Matrix Index 214
+    218, // Active LED 36 (Windowed) -> Physical Matrix Index 218
+    235, // Active LED 37 (Windowed) -> Physical Matrix Index 235
+    231, // Active LED 38 (Windowed) -> Physical Matrix Index 231
+    228, // Active LED 39 (Windowed) -> Physical Matrix Index 228
+    246, // Active LED 40 (Windowed) -> Physical Matrix Index 246
+    100, // Active LED 41 (Windowed) -> Physical Matrix Index 100
+    115, // Active LED 42 (Windowed) -> Physical Matrix Index 115
+    117, // Active LED 43 (Windowed) -> Physical Matrix Index 117
+    139, // Active LED 44 (Windowed) -> Physical Matrix Index 139
+    33, // Active LED 45 (Windowed) -> Physical Matrix Index 33
+    61, // Active LED 46 (Windowed) -> Physical Matrix Index 61
+    75, // Active LED 47 (Windowed) -> Physical Matrix Index 75
+    65, // Active LED 48 (Windowed) -> Physical Matrix Index 65
+    64, // Active LED 49 (Windowed) -> Physical Matrix Index 64
+    85, // Active LED 50 (Windowed) -> Physical Matrix Index 85
+    88, // Active LED 51 (Backlit) -> Physical Matrix Index 88
+    92, // Active LED 52 (Backlit) -> Physical Matrix Index 92
+    106, // Active LED 53 (Backlit) -> Physical Matrix Index 106
+    101, // Active LED 54 (Backlit) -> Physical Matrix Index 101
+    96, // Active LED 55 (Backlit) -> Physical Matrix Index 96
+    114, // Active LED 56 (Backlit) -> Physical Matrix Index 114
+    118, // Active LED 57 (Backlit) -> Physical Matrix Index 118
+    120, // Active LED 58 (Backlit) -> Physical Matrix Index 120
+    140, // Active LED 59 (Backlit) -> Physical Matrix Index 140
+    138, // Active LED 60 (Backlit) -> Physical Matrix Index 138
+    133, // Active LED 61 (Backlit) -> Physical Matrix Index 133
+    146, // Active LED 62 (Backlit) -> Physical Matrix Index 146
+    148, // Active LED 63 (Backlit) -> Physical Matrix Index 148
+    151, // Active LED 64 (Backlit) -> Physical Matrix Index 151
+    170, // Active LED 65 (Backlit) -> Physical Matrix Index 170
+    184, // Active LED 66 (Backlit) -> Physical Matrix Index 184
+    186, // Active LED 67 (Backlit) -> Physical Matrix Index 186
+    207, // Active LED 68 (Backlit) -> Physical Matrix Index 207
+    204, // Active LED 69 (Backlit) -> Physical Matrix Index 204
+    201, // Active LED 70 (Backlit) -> Physical Matrix Index 201
+    216, // Active LED 71 (Backlit) -> Physical Matrix Index 216
+    234, // Active LED 72 (Backlit) -> Physical Matrix Index 234
+    229, // Active LED 73 (Backlit) -> Physical Matrix Index 229
+    94, // Active LED 74 (Backlit) -> Physical Matrix Index 94
+    153, // Active LED 75 (Backlit) -> Physical Matrix Index 153
+    178, // Active LED 76 (Backlit) -> Physical Matrix Index 178
+    209, // Active LED 77 (Backlit) -> Physical Matrix Index 209
+    212, // Active LED 78 (Backlit) -> Physical Matrix Index 212
+    232, // Active LED 79 (Backlit) -> Physical Matrix Index 232
+    93, // Active LED 80 (Backlit) -> Physical Matrix Index 93
+    81, // Active LED 81 (Padding fallback)
+    82, // Active LED 82 (Padding fallback)
+    83, // Active LED 83 (Padding fallback)
+    84, // Active LED 84 (Padding fallback)
+    85, // Active LED 85 (Padding fallback)
+    86, // Active LED 86 (Padding fallback)
+    87, // Active LED 87 (Padding fallback)
+    88, // Active LED 88 (Padding fallback)
+    89, // Active LED 89 (Padding fallback)
+    90, // Active LED 90 (Padding fallback)
+    91, // Active LED 91 (Padding fallback)
+    92, // Active LED 92 (Padding fallback)
+    93, // Active LED 93 (Padding fallback)
+    94, // Active LED 94 (Padding fallback)
+    95, // Active LED 95 (Padding fallback)
+    96, // Active LED 96 (Padding fallback)
+    97, // Active LED 97 (Padding fallback)
+    98, // Active LED 98 (Padding fallback)
+    99, // Active LED 99 (Padding fallback)
 };
 
 // 2D Spatial Metrics (PROGMEM Flash Storage)

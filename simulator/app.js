@@ -16193,81 +16193,93 @@ function restoreSavedMatrix16x16Roles(profileData) {
     const savedGlows = Array.isArray(profileData.matrixBacklightLeds) ? profileData.matrixBacklightLeds : null;
     if ((!savedWins || savedWins.length === 0) && (!savedGlows || savedGlows.length === 0)) return;
 
-    const winMap = new Map();
-    const glowMap = new Map();
-    if (savedWins) savedWins.forEach(item => { if (item && typeof item.id === 'number') winMap.set(item.id, item); });
-    if (savedGlows) savedGlows.forEach(item => { if (item && typeof item.id === 'number') glowMap.set(item.id, item); });
+    // Build lookup maps supporting:
+    // 1. Exact grid coordinate key: "${row}_${col}"
+    // 2. Exact physical plate position: "${round(x)}_${round(y)}"
+    // 3. Serpentine physical matrixIdx / id
+    const winByRowCol = new Map();
+    const winByPlateXY = new Map();
+    const winById = new Map();
 
-    let validSavedWins = 0;
-    btfMatrix16x16Cells.forEach(cell => {
-        if (winMap.has(cell.matrixIdx) && cell.onGraphic) {
-            validSavedWins++;
-        }
-    });
+    const glowByRowCol = new Map();
+    const glowByPlateXY = new Map();
+    const glowById = new Map();
 
-    // Only apply saved cell assignments if they sit on the graphic; if any saved cells fell off-graphic,
-    // keep valid on-graphic ones and top up cleanly from the on-graphic pool.
-    if (validSavedWins === 0) {
-        return; // Keep the freshly computed on-graphic layout from computeBtfMatrix16x16Layout()
+    if (savedWins) {
+        savedWins.forEach(item => {
+            if (!item) return;
+            if (typeof item.row === 'number' && typeof item.col === 'number') {
+                winByRowCol.set(`${item.row}_${item.col}`, item);
+            }
+            if (typeof item.x === 'number' && typeof item.y === 'number') {
+                winByPlateXY.set(`${Math.round(item.x)}_${Math.round(item.y)}`, item);
+            }
+            if (typeof item.id === 'number') {
+                winById.set(item.id, item);
+            }
+        });
     }
 
-    const targetWin = Math.max(0, Math.min(256, parseInt(btfMatrix16x16WindowCount, 10) || 50));
-    const targetGlow = Math.max(0, Math.min(256 - targetWin, parseInt(btfMatrix16x16GlowCount, 10) || 25));
+    if (savedGlows) {
+        savedGlows.forEach(item => {
+            if (!item) return;
+            if (typeof item.row === 'number' && typeof item.col === 'number') {
+                glowByRowCol.set(`${item.row}_${item.col}`, item);
+            }
+            if (typeof item.x === 'number' && typeof item.y === 'number') {
+                glowByPlateXY.set(`${Math.round(item.x)}_${Math.round(item.y)}`, item);
+            }
+            if (typeof item.id === 'number') {
+                glowById.set(item.id, item);
+            }
+        });
+    }
 
-    const keptWins = [];
-    const keptGlows = [];
-    btfMatrix16x16Cells.forEach((cell, idx) => {
-        if (winMap.has(cell.matrixIdx) && cell.onGraphic) {
+    let restoredWinCount = 0;
+    let restoredGlowCount = 0;
+
+    btfMatrix16x16Cells.forEach((cell) => {
+        const rcKey = `${cell.row}_${cell.col}`;
+        const xyKey = `${Math.round(cell.plateX)}_${Math.round(cell.plateY)}`;
+
+        // Check if cell is a saved window (matching by (row,col), plate (x,y), or serpentine matrixIdx)
+        const winItem = winByRowCol.get(rcKey) || winByPlateXY.get(xyKey) || winById.get(cell.matrixIdx);
+        if (winItem) {
             cell.role = 'window';
-            const item = winMap.get(cell.matrixIdx);
-            if (item.color && typeof item.color.r === 'number') cell.color = { ...item.color };
-            keptWins.push(idx);
-        } else if (glowMap.has(cell.matrixIdx) && cell.onGraphic) {
-            cell.role = 'backlight';
-            const item = glowMap.get(cell.matrixIdx);
-            if (item.color && typeof item.color.r === 'number') cell.color = { ...item.color };
-            keptGlows.push(idx);
-        } else {
-            cell.role = 'dark';
+            cell.onGraphic = true;
+            if (winItem.color && typeof winItem.color.r === 'number') {
+                cell.color = { ...winItem.color };
+            }
+            restoredWinCount++;
+            return;
         }
+
+        // Check if cell is a saved backlight glow
+        const glowItem = glowByRowCol.get(rcKey) || glowByPlateXY.get(xyKey) || glowById.get(cell.matrixIdx);
+        if (glowItem) {
+            cell.role = 'backlight';
+            cell.onGraphic = true;
+            if (glowItem.color && typeof glowItem.color.r === 'number') {
+                cell.color = { ...glowItem.color };
+            }
+            restoredGlowCount++;
+            return;
+        }
+
+        // Otherwise unlit dark cell
+        cell.role = 'dark';
     });
 
-    // Top up any missing window or backlight cells from remaining on-graphic cells via farthest-point spread
-    const usedSet = new Set([...keptWins, ...keptGlows]);
-    while (keptWins.length < targetWin) {
-        let bestIdx = -1, bestD = -1;
-        btfMatrix16x16Cells.forEach((cand, idx) => {
-            if (!cand.onGraphic || usedSet.has(idx)) return;
-            let minD = 1e9;
-            keptWins.forEach(wIdx => {
-                const w = btfMatrix16x16Cells[wIdx];
-                const d = Math.hypot(cand.plateX - w.plateX, cand.plateY - w.plateY);
-                if (d < minD) minD = d;
-            });
-            if (minD > bestD) { bestD = minD; bestIdx = idx; }
-        });
-        if (bestIdx === -1) break;
-        btfMatrix16x16Cells[bestIdx].role = 'window';
-        keptWins.push(bestIdx);
-        usedSet.add(bestIdx);
+    // Synchronize simulator config counts to the exact physically restored counts
+    if (restoredWinCount > 0) {
+        btfMatrix16x16Config.windowCount = restoredWinCount;
+        const winSlider = document.getElementById('btfMatrixWindowCountSlider');
+        if (winSlider) winSlider.value = restoredWinCount;
     }
-
-    while (keptGlows.length < targetGlow) {
-        let bestIdx = -1, bestD = -1;
-        btfMatrix16x16Cells.forEach((cand, idx) => {
-            if (!cand.onGraphic || usedSet.has(idx)) return;
-            let minD = 1e9;
-            keptGlows.forEach(gIdx => {
-                const g = btfMatrix16x16Cells[gIdx];
-                const d = Math.hypot(cand.plateX - g.plateX, cand.plateY - g.plateY);
-                if (d < minD) minD = d;
-            });
-            if (minD > bestD) { bestD = minD; bestIdx = idx; }
-        });
-        if (bestIdx === -1) break;
-        btfMatrix16x16Cells[bestIdx].role = 'backlight';
-        keptGlows.push(bestIdx);
-        usedSet.add(bestIdx);
+    if (restoredGlowCount > 0) {
+        btfMatrix16x16Config.backlightCount = restoredGlowCount;
+        const glowSlider = document.getElementById('btfMatrixBacklightCountSlider');
+        if (glowSlider) glowSlider.value = restoredGlowCount;
     }
 
     if (typeof updateBtfMatrix16x16TelemetryUI === 'function') {

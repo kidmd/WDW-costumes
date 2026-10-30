@@ -93,6 +93,21 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### 2026-10-30: Synchronized Simulator 16x16 Matrix with Physical 3D-Printed Cutouts (Zero-Drift Hardware Match)
+- **Physical 3D Print Inspection & Alignment:**
+  - Inspected the user's uploaded 3D print bundle (`media_1793392040159_8641935d.zip`), confirming byte-level identity with `tpu_panel_front_chassis_black.stl` (SHA256: `1c5fa0...`).
+  - Extracted the exact physical hardware cutout geometry from `3d_panels/tpu_panel_specs.json`: exactly 51 Windowed apertures (Ø 3.4mm round holes) and 30 Backlit diffuse glow cells (total 81 active LEDs).
+- **Multi-Key Coordinate Restoration Engine:**
+  - Upgraded `restoreSavedMatrix16x16Roles` in `simulator/app.js` with multi-key lookup matching simultaneously by `(row, col)`, plate coordinates `(plateX, plateY)`, and serpentine physical `matrixIdx`.
+  - Removed canvas color-threshold discarding (`onGraphic < 45`) for pre-existing physical cutouts, preventing the simulator from rejecting verified printed holes or substituting them with random fallback FPS cells.
+  - Automatically synchronizes `btfMatrix16x16Config.windowCount` (51) and `backlightCount` (30) with the telemetry UI and sliders.
+- **Preset & Firmware Harmonization:**
+  - Updated all Pete's Dragon presets (`pete_s_dragon_chris_large_81led_2026-10-30_10-57.json`, `10-59.json`, `14-24.json`) with the exact 51 printed windows + 30 backlights.
+  - Created a permanent golden reference preset: `presets/pete_s_dragon_16x16_printed_81led.json`.
+  - Updated `presets/fleet_lineup.json` to lock Float 6 (Pete's Dragon) to the printed 81-LED layout.
+  - Updated `include/costume_config.h` with the exact 81 serpentine matrix indices in `MATRIX_ACTIVE_INDICES`.
+
+
 ### 2026-10-30: Connected 16x16 Matrix Mode to Master Timeline & 90s Solo Show Animation Engine
 - **Master Timeline Playback Synchronization:**
   - Resolved issue where playing the 90-second solo show or scrubbed sequence cues on the layout screen rendered static artwork colors with hardcoded white center dots on the 16x16 matrix plate.
