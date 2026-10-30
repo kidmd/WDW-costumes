@@ -1833,6 +1833,18 @@ function recomputeSpatialMetrics(targetLeds = leds) {
 }
 
 function getSpatialMetrics() {
+    if (typeof btfMatrix16x16Active !== 'undefined' && btfMatrix16x16Active && btfMatrix16x16Cells) {
+        const winCells = btfMatrix16x16Cells.filter(c => c.role === 'window');
+        const glowCells = btfMatrix16x16Cells.filter(c => c.role === 'backlight');
+        const activeCells = [...winCells, ...glowCells];
+        if (cachedSpatialMetrics && spatialMetricsLedsRef === activeCells && cachedSpatialMetrics.count === activeCells.length) {
+            return cachedSpatialMetrics;
+        }
+        const pts = activeCells.map(c => ({ x: c.nx, y: c.ny }));
+        cachedSpatialMetrics = recomputeSpatialMetrics(pts);
+        spatialMetricsLedsRef = activeCells;
+        return cachedSpatialMetrics;
+    }
     if (cachedSpatialMetrics && spatialMetricsLedsRef === leds && cachedSpatialMetrics.count === leds.length) {
         return cachedSpatialMetrics;
     }
@@ -2360,7 +2372,8 @@ function evalGlobalPattern(pattern, bpm, index, totalLeds, timeMs, c, hasColor, 
             break;
         }
         case 'fire_breath': {
-            if (index <= 8) {
+            const isMatrix = (typeof btfMatrix16x16Active !== 'undefined' && btfMatrix16x16Active);
+            if (!isMatrix && index <= 8) {
                 const fire = Math.sin(normTime * 6 + index) * 0.5 + 0.5;
                 r = 255;
                 g = Math.floor(60 + fire * 100);
@@ -2383,9 +2396,15 @@ function evalGlobalPattern(pattern, bpm, index, totalLeds, timeMs, c, hasColor, 
             const dist = Math.abs(ledX - headX);
             if (dist < waveWidth) {
                 const intensity = Math.max(0, 1.0 - (dist / waveWidth));
-                r = 255 * intensity;
-                g = 255 * intensity;
-                b = Math.floor(220 * intensity);
+                if (effHasColor) {
+                    r = Math.min(255, Math.floor(effC.r + (255 - effC.r) * intensity * 0.85));
+                    g = Math.min(255, Math.floor(effC.g + (255 - effC.g) * intensity * 0.85));
+                    b = Math.min(255, Math.floor(effC.b + (255 - effC.b) * intensity * 0.85));
+                } else {
+                    r = 255 * intensity;
+                    g = 255 * intensity;
+                    b = Math.floor(220 * intensity);
+                }
                 brightness = 1.0;
             } else if (effHasColor) {
                 r = Math.floor(effC.r * 0.4);
@@ -2576,15 +2595,35 @@ function evalGlobalPattern(pattern, bpm, index, totalLeds, timeMs, c, hasColor, 
             break;
         }
         case 'rainbow_cycle': {
-            const sm = getSpatialMetrics();
-            const spatialPos = (sm && sm.normX && sm.normX[index] !== undefined)
-                ? (sm.normX[index] * 0.7 + sm.normY[index] * 0.3)
-                : (index / Math.max(1, totalLeds));
-            const hueCycleMs = Math.max(2500, beatMs * 8.0);
-            const hue = (((timeMs / hueCycleMs) * 360 * dir + spatialPos * 360) % 360 + 360) % 360;
-            const rgb = hslToRgb(hue / 360, 0.95, 0.52);
-            r = rgb.r; g = rgb.g; b = rgb.b;
-            brightness = 1.0;
+            if (effHasColor) {
+                const sm = getSpatialMetrics();
+                const spatialPos = (sm && sm.normX && sm.normX[index] !== undefined)
+                    ? (sm.normX[index] * 0.7 + sm.normY[index] * 0.3)
+                    : (index / Math.max(1, totalLeds));
+                const cycleMs = Math.max(2500, beatMs * 8.0);
+                const phase = (((timeMs / cycleMs) * dir + spatialPos) % 1.0 + 1.0) % 1.0;
+                const wave = 0.35 + 0.65 * (Math.sin(phase * Math.PI * 2) * 0.5 + 0.5);
+                r = Math.floor(effC.r * wave);
+                g = Math.floor(effC.g * wave);
+                b = Math.floor(effC.b * wave);
+                if (wave > 0.85) {
+                    const spark = (wave - 0.85) / 0.15;
+                    r = Math.min(255, Math.floor(r + 60 * spark));
+                    g = Math.min(255, Math.floor(g + 60 * spark));
+                    b = Math.min(255, Math.floor(b + 60 * spark));
+                }
+                brightness = 1.0;
+            } else {
+                const sm = getSpatialMetrics();
+                const spatialPos = (sm && sm.normX && sm.normX[index] !== undefined)
+                    ? (sm.normX[index] * 0.7 + sm.normY[index] * 0.3)
+                    : (index / Math.max(1, totalLeds));
+                const hueCycleMs = Math.max(2500, beatMs * 8.0);
+                const hue = (((timeMs / hueCycleMs) * 360 * dir + spatialPos * 360) % 360 + 360) % 360;
+                const rgb = hslToRgb(hue / 360, 0.95, 0.52);
+                r = rgb.r; g = rgb.g; b = rgb.b;
+                brightness = 1.0;
+            }
             break;
         }
         case 'comet': {
@@ -2704,9 +2743,9 @@ function evalGlobalPattern(pattern, bpm, index, totalLeds, timeMs, c, hasColor, 
                               Math.sin(normTime * 6.0 + index * 31.9) * 0.05;
             const eff = 0.80 + warmDrift;
             if (effHasColor) {
-                r = Math.min(255, Math.floor((effC.r * 1.08 + 15) * eff));
-                g = Math.floor((effC.g * 0.94 + 5) * eff);
-                b = Math.floor((effC.b * 0.70) * eff);
+                r = Math.floor(effC.r * eff);
+                g = Math.floor(effC.g * eff);
+                b = Math.floor(effC.b * eff);
             } else {
                 r = Math.floor(255 * eff);
                 g = Math.floor(180 * eff);
@@ -2721,9 +2760,9 @@ function evalGlobalPattern(pattern, bpm, index, totalLeds, timeMs, c, hasColor, 
                                Math.sin(normTime * 9.8 + index * 37.7) * 0.05;
             const eff = Math.max(0.40, Math.min(1.0, 0.78 + slowDraft + flameWaver));
             if (effHasColor) {
-                r = Math.min(255, Math.floor(255 * eff));
-                g = Math.min(255, Math.floor(Math.max(110, effC.g * 0.85 + 40) * eff));
-                b = Math.min(120, Math.floor(effC.b * 0.35 * eff));
+                r = Math.floor(effC.r * eff);
+                g = Math.floor(effC.g * eff);
+                b = Math.floor(effC.b * eff);
             } else {
                 r = Math.floor(255 * eff);
                 g = Math.floor(150 * eff);
@@ -16471,20 +16510,22 @@ function drawBtfMatrix16x16Overlay(ctx, s, timeMs) {
     const totalActive = Math.max(1, winCells.length + glowCells.length);
 
     // PASS 1: Render Backlit LEDs (Subsurface Diffused Glow through Thin Colored PLA — NO Window Cutout)
+    // Rendered at exactly 50% of the brightness of windowed LEDs
+    const bLightMult = 0.50;
     glowCells.forEach((cell, idx) => {
         const pt = normToCanvas({ x: cell.nx, y: cell.ny });
         const ledIdx = winCells.length + idx;
         const animCol = computeLedColor(ledIdx, totalActive, timeMs, cell.color);
 
-        // Subsurface blend: 70% dynamic LED light filtered through 30% physical colored faceplate plastic
-        const glowR = Math.min(255, Math.round(animCol.r * 0.70 + cell.color.r * 0.30));
-        const glowG = Math.min(255, Math.round(animCol.g * 0.70 + cell.color.g * 0.30));
-        const glowB = Math.min(255, Math.round(animCol.b * 0.70 + cell.color.b * 0.30));
-        const effAlpha = Math.max(0, Math.min(1.0, transAlpha * animCol.alpha));
+        // Subsurface blend: 70% dynamic LED light filtered through 30% physical colored faceplate plastic, scaled to 50% brightness
+        const glowR = Math.min(255, Math.round((animCol.r * 0.70 + cell.color.r * 0.30) * bLightMult));
+        const glowG = Math.min(255, Math.round((animCol.g * 0.70 + cell.color.g * 0.30) * bLightMult));
+        const glowB = Math.min(255, Math.round((animCol.b * 0.70 + cell.color.b * 0.30) * bLightMult));
+        const effAlpha = Math.max(0, Math.min(1.0, transAlpha * animCol.alpha * bLightMult));
 
         const glowRad = cellW * 1.45;
         const grad = ctx.createRadialGradient(pt.x, pt.y, cellW * 0.08, pt.x, pt.y, glowRad);
-        grad.addColorStop(0.0, `rgba(${Math.min(255, glowR + 40)}, ${Math.min(255, glowG + 40)}, ${Math.min(255, glowB + 40)}, ${effAlpha.toFixed(3)})`);
+        grad.addColorStop(0.0, `rgba(${Math.min(255, Math.round(glowR * 1.2))}, ${Math.min(255, Math.round(glowG * 1.2))}, ${Math.min(255, Math.round(glowB * 1.2))}, ${effAlpha.toFixed(3)})`);
         grad.addColorStop(0.45, `rgba(${glowR}, ${glowG}, ${glowB}, ${(effAlpha * 0.55).toFixed(3)})`);
         grad.addColorStop(1.0, `rgba(${glowR}, ${glowG}, ${glowB}, 0)`);
 
@@ -16499,7 +16540,7 @@ function drawBtfMatrix16x16Overlay(ctx, s, timeMs) {
         // Subtle dashed ring indicating hidden backlit 5050 pixel beneath solid PLA
         ctx.beginPath();
         ctx.arc(pt.x, pt.y, cellW * 0.30, 0, Math.PI * 2);
-        ctx.strokeStyle = `rgba(56, 189, 248, ${Math.min(0.65, 0.20 + 0.45 * animCol.alpha).toFixed(2)})`;
+        ctx.strokeStyle = `rgba(56, 189, 248, ${(Math.min(0.65, 0.20 + 0.45 * animCol.alpha) * bLightMult).toFixed(2)})`;
         ctx.lineWidth = 1.0;
         ctx.setLineDash([2, 2]);
         ctx.stroke();

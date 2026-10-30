@@ -144,6 +144,10 @@ inline void duplicateFrontToBack() {
         }
         // Clear all 512 pixels so non-windowed / non-backlit dark cells stay strictly off
         fill_solid(leds, MAX_LEDS_CAPACITY, CRGB::Black);
+        uint8_t winCount = 51;
+#if defined(MATRIX_WINDOW_LED_COUNT)
+        winCount = MATRIX_WINDOW_LED_COUNT;
+#endif
         for (int i = 0; i < activeCount; i++) {
             uint8_t physIdx = i;
 #if defined(COSTUME_MATRIX_16X16_MODE) && COSTUME_MATRIX_16X16_MODE
@@ -155,7 +159,11 @@ inline void duplicateFrontToBack() {
             }
 #endif
             CRGB c = tempActive[i];
-            c.nscale8_video(128); // 50% brightness scaling for high-density 16x16 matrix
+            if (i >= winCount) {
+                c.nscale8_video(64); // Backlight LEDs at 50% brightness of windowed LEDs
+            } else {
+                c.nscale8_video(128); // Windowed LEDs
+            }
             leds[physIdx] = c;
             if ((256 + (int)physIdx) < MAX_LEDS_CAPACITY) {
                 leds[256 + (int)physIdx] = c;
@@ -1005,7 +1013,11 @@ void renderAmbientFallback(uint32_t now) {
         uint32_t speedTime = (uint64_t)now * COSTUME_SPEED_BPM / 60;
         uint8_t flick = inoise8(i * 35, speedTime / 18);
         uint8_t bright = map(flick, 0, 255, 110, 255);
+#if defined(HAS_CUSTOM_PALETTE) && HAS_CUSTOM_PALETTE
+        CRGB flame = ARTWORK_PALETTE[i];
+#else
         CRGB flame = CRGB(255, 150, 30);
+#endif
         flame.nscale8_video(bright);
         leds[i] = flame;
 #elif defined(AMBIENT_FALLBACK_PATTERN) && (AMBIENT_FALLBACK_PATTERN == COSTUME_PATTERN_TIDAL_RIPPLE)
@@ -1031,19 +1043,25 @@ void renderAmbientFallback(uint32_t now) {
         uint8_t ledX = pgm_read_byte(&SPATIAL_X_BYTE[i]);
         uint8_t ledY = pgm_read_byte(&SPATIAL_Y_BYTE[i]);
         uint8_t spatialPos = (uint8_t)(((uint16_t)ledX * 180 + (uint16_t)ledY * 76) / 256);
+#else
+        uint8_t spatialPos = (uint8_t)(i * 256 / FRONT_LEDS);
+#endif
         uint8_t hueOffset = (uint8_t)(((now) * 256 / beatMs) % 256);
+#if defined(HAS_CUSTOM_PALETTE) && HAS_CUSTOM_PALETTE
+        uint8_t wave = sin8(hueOffset + spatialPos);
+        uint8_t bright = map(wave, 0, 255, 90, 255);
+        CRGB c = ARTWORK_PALETTE[i];
+        c.nscale8_video(bright);
+        if (wave > 220) {
+            uint8_t spark = (wave - 220) * 4;
+            c += CRGB(spark / 3, spark / 3, spark / 3);
+        }
+        leds[i] = c;
+#else
 #if defined(COSTUME_AMBIENT_DIRECTION) && (COSTUME_AMBIENT_DIRECTION < 0)
         leds[i] = CHSV(hueOffset - spatialPos, 240, 255);
 #else
         leds[i] = CHSV(hueOffset + spatialPos, 240, 255);
-#endif
-#else
-#if defined(COSTUME_AMBIENT_DIRECTION) && (COSTUME_AMBIENT_DIRECTION < 0)
-        uint8_t hueOffset = (uint8_t)(((now) * 256 / beatMs) % 256);
-        leds[i] = CHSV(hueOffset - (i * 256 / FRONT_LEDS), 240, 255);
-#else
-        uint8_t hueOffset = (uint8_t)(((now) * 256 / beatMs) % 256);
-        leds[i] = CHSV(hueOffset + (i * 256 / FRONT_LEDS), 240, 255);
 #endif
 #endif
 #elif defined(AMBIENT_FALLBACK_PATTERN) && (AMBIENT_FALLBACK_PATTERN == COSTUME_PATTERN_MARQUEE)
@@ -1391,7 +1409,11 @@ void runAutonomousShowSequence(uint32_t now) {
                 for (int i = 0; i < FRONT_LEDS && i < MAX_LEDS_CAPACITY; i++) {
                     uint8_t flick = inoise8(i * 60, now / 8);
                     uint8_t bright = map(flick, 0, 255, 60, 255);
+#if defined(HAS_CUSTOM_PALETTE) && HAS_CUSTOM_PALETTE
+                    CRGB flame = ARTWORK_PALETTE[i];
+#else
                     CRGB flame = CRGB(255, 150, 30);
+#endif
                     flame.nscale8_video(bright);
                     leds[i] = flame;
                 }
@@ -1446,9 +1468,21 @@ void runAutonomousShowSequence(uint32_t now) {
                     uint8_t ledX = pgm_read_byte(&SPATIAL_X_BYTE[i]);
                     uint8_t ledY = pgm_read_byte(&SPATIAL_Y_BYTE[i]);
                     uint8_t spatialPos = (uint8_t)(((uint16_t)ledX * 180 + (uint16_t)ledY * 76) / 256);
-                    leds[i] = CHSV(hueOffset + spatialPos, 240, 255);
 #else
-                    leds[i] = CHSV(hueOffset + (i * 256 / FRONT_LEDS), 240, 255);
+                    uint8_t spatialPos = (uint8_t)(i * 256 / FRONT_LEDS);
+#endif
+#if defined(HAS_CUSTOM_PALETTE) && HAS_CUSTOM_PALETTE
+                    uint8_t wave = sin8(hueOffset + spatialPos);
+                    uint8_t bright = map(wave, 0, 255, 90, 255);
+                    CRGB c = ARTWORK_PALETTE[i];
+                    c.nscale8_video(bright);
+                    if (wave > 220) {
+                        uint8_t spark = (wave - 220) * 4;
+                        c += CRGB(spark / 3, spark / 3, spark / 3);
+                    }
+                    leds[i] = c;
+#else
+                    leds[i] = CHSV(hueOffset + spatialPos, 240, 255);
 #endif
                 }
             } else if (eff == 17) { // off / blackout

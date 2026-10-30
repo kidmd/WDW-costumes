@@ -91,7 +91,26 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ---
 
-## Progress Log
+## Progress Log
+
+### 2026-10-30: Pete's Dragon 16x16 Matrix Color Preservation & 50% Backlight Dimming
+- **Artwork Color Preservation Across Animation Cues:**
+  - Diagnosed and resolved character color distortions where Pete's Dragon's green body turned red and wings turned blue during timeline animation cues.
+  - Corrected `evalGlobalPattern` in `simulator/app.js`:
+    - `candle_flicker`: Preserved authentic artwork colors (`effC.r, effC.g, effC.b`) modulated by organic flame draft waver, removing legacy hardcoded `r = 255 * eff` that turned the green dragon body red/orange.
+    - `rainbow_cycle`: Preserved authentic artwork colors with a dynamic traveling wave of brightness and starlight crest shimmer across `effC`, replacing the unconstrained 360° hue override that previously cycled the green body to red and wings to blue.
+    - `traveling_wave`: Enhanced wavefront highlight to flare specular starlight over `effC` while keeping resting LEDs at 40% authentic artwork color.
+    - `fire_breath`: Added matrix mode check so pixel indices 0..8 (hair crest and wing cutouts on matrix panels) are never converted to red/orange snout fire.
+    - `filament_glow`: Preserved artwork colors without red-shifting green scales.
+- **50% Backlight Brightness Standard:**
+  - Implemented 50% brightness scaling for Backlit LEDs (`bLightMult = 0.50`) in `drawBtfMatrix16x16Overlay`:
+    - Softens subsurface diffuse glow through thin colored PLA without washing out or competing with direct window cutouts.
+    - Scaled radial bloom gradient intensity and hidden 5050 footprint indicator ring opacity by 0.50.
+  - Synchronized ESP32 firmware (`src/main.cpp` and `arduino/MSEP_Costume/MSEP_Costume.ino`):
+    - In `duplicateFrontToBack()`, backlight LEDs ($i \ge 51$) are scaled with FastLED `nscale8_video(64)` while windowed LEDs are scaled with `nscale8_video(128)`.
+    - In autonomous sequence cues, `candle_flicker` (Cue 13) and `rainbow_cycle` (Cue 16) now respect `#if defined(HAS_CUSTOM_PALETTE) && HAS_CUSTOM_PALETTE`, preserving `ARTWORK_PALETTE` across both PlatformIO and Arduino IDE builds.
+- **Real-Time 2D Spatial Metrics for 16x16 Panels:**
+  - Upgraded `getSpatialMetrics()` in `simulator/app.js` to dynamically compute centroid, bounds, and normalized `(nx, ny)` coordinates directly from active matrix cells (`winCells` + `glowCells`), ensuring accurate traveling wave and ripple propagation across the physical plate face.
 
 ### 2026-10-30: Synchronized Simulator 16x16 Matrix with Physical 3D-Printed Cutouts (Zero-Drift Hardware Match)
 - **Physical 3D Print Inspection & Alignment:**
