@@ -93,6 +93,21 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### 2026-10-30: BTF 16x16 Matrix GRB Color Byte Order Calibration, Strict Window/Backlight Indexing & USB Soft-Start Protection
+- **Hardware Color Byte Order Calibration (`GRB` vs `RGB`):**
+  - Identified that while the 5V WS2812B "Seed / Pebble" strings use `RGB` byte order, the **BTF-LIGHTING 16x16 WS2812B Flexible Matrix Panel** uses standard 5050 SMD pixels with **`GRB`** (Green-Red-Blue) hardware byte order.
+  - Transmitting `RGB` bytes to the `GRB` matrix had swapped Red and Green on the physical panel, causing Elliott's green body (`R=0, G=255, B=0`) to display as red and magenta wings (`R=248, G=0, B=248`) to display as cyan/blue.
+  - Updated `src/main.cpp`, `arduino/MSEP_Costume/MSEP_Costume.ino`, `include/costume_config.h`, `simulator.py`, and `simulator/app.js` so `COLOR_ORDER` automatically compiles as `GRB` whenever `COSTUME_MATRIX_16X16_MODE` is enabled (with a runtime R/G swap safeguard in `duplicateFrontToBack()` for multi-float builds).
+- **Strict Windowed (`0..50`) vs. Backlight (`51..80`) Array Ordering & 3D Print Verification:**
+  - Verified all 81 active LEDs in `presets/pete_s_dragon_chris_large_81led_2026-10-30_14-24.json` against the 3D-printed STL color plates (`green.stl`, `magenta.stl`, `yellow.stl`, `white.stl`) with 100% geometric agreement (0 mismatches).
+  - Removed serpentine ID sorting (`sort((a,b) => a.id - b.id)`) when concatenating `windowedLeds` and `backlightLeds` in `simulator/app.js` (`triggerUsbFirmwareFlash`) and `build_fleet_binaries.py` (`sync_fleet_palettes`), ensuring indices `0..50` are strictly the 51 windowed LEDs (100% relative brightness) and indices `51..80` are strictly the 30 backlight LEDs (50% brightness in `duplicateFrontToBack()`).
+  - Updated `simulator/app.js` (`restoreSavedMatrix16x16Roles` and `notifyFloatImgLoaded`) so asynchronous image `onload` events never overwrite restored 16x16 preset roles/colors.
+- **USB Port Inrush Protection (`350 mA` Soft-Start & `< 100 mA` Matrix Corral Standby):**
+  - Diagnosed why plugging the ESP32 into a laptop 500mA USB-A port with the 16x16 matrix connected caused `PermissionError(13, 'A device attached to the system is not functioning.', None, 31)`: `renderCorralStandby()` was previously lighting all 256 matrix pixels in warm yellow (~1.5A–2.0A) 350ms after boot.
+  - Updated `renderCorralStandby()` in `src/main.cpp` to illuminate only the 81 active artwork LEDs at `< 100 mA` in 16x16 Matrix mode, and added a 5-second `350 mA` startup cap (`FastLED.setMaxPowerInVoltsAndMilliamps(5, 350)`) before unlocking `2000 mA` (`MAX_MILLIAMPS`).
+  - Flashed to ESP32 (`COM5`) and verified `COM5` remains 100% stable across boot with zero USB port suspension.
+
+
 ### 2026-10-30: ESP32 Hardware Flashing Verification & Port Suspension Recovery
 - **Flashing Issue Root Cause & Resolution:**
   - Resolved PermissionError(13, 'A device attached to the system is not functioning.', None, 31) on COM5 (Silicon Labs CP210x).

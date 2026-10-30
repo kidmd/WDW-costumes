@@ -41,6 +41,7 @@ def sync_fleet_palettes():
     palettes_by_float = {}
     is_matrix_by_float = {}
     active_count_by_float = {}
+    window_count_by_float = {}
     matrix_indices_by_float = {}
 
     for flt in lineup:
@@ -51,6 +52,7 @@ def sync_fleet_palettes():
         colors = []
         is_mat = 0
         act_count = 100
+        win_count = 100
         mat_indices = [i for i in range(100)]
 
         if os.path.exists(preset_path):
@@ -64,8 +66,11 @@ def sync_fleet_palettes():
 
                 if mat_active and (len(win_leds) > 0 or len(glow_leds) > 0):
                     is_mat = 1
-                    combined = sorted(win_leds + glow_leds, key=lambda item: int(item.get("id", 0)))
+                    # Keep Windowed LEDs first (0..win_count-1) and Backlight LEDs second (win_count..act_count-1)
+                    # so duplicateFrontToBack() strictly dims only the backlight LEDs to 50%!
+                    combined = list(win_leds) + list(glow_leds)
                     act_count = min(256, len(combined))
+                    win_count = min(act_count, len(win_leds))
                     mat_indices = []
                     for i in range(100):
                         entry = combined[i % len(combined)]
@@ -83,6 +88,7 @@ def sync_fleet_palettes():
                     leds = p_data.get("leds", [])
                     if leds:
                         act_count = min(100, len(leds))
+                        win_count = act_count
                         for i in range(100):
                             led_entry = leds[i % len(leds)]
                             c = led_entry.get("color", {})
@@ -101,6 +107,7 @@ def sync_fleet_palettes():
         palettes_by_float[float_id] = colors
         is_matrix_by_float[float_id] = is_mat
         active_count_by_float[float_id] = act_count
+        window_count_by_float[float_id] = win_count
         matrix_indices_by_float[float_id] = mat_indices
 
     lines = [
@@ -112,9 +119,10 @@ def sync_fleet_palettes():
         "#define HAS_DEFAULT_FLOAT_PALETTES 1",
         "#define HAS_FLEET_MATRIX_CONFIG 1",
         "",
-        "// 16x16 BTF Matrix Mode flags & active LED counts per float (Floats 1..7 -> indices 0..6)",
+        "// 16x16 BTF Matrix Mode flags, active LED counts, & windowed LED counts per float (Floats 1..7 -> indices 0..6)",
         "const uint8_t PROGMEM FLOAT_IS_MATRIX_16X16[7] = { " + ", ".join(str(is_matrix_by_float.get(fid, 0)) for fid in range(1, 8)) + " };",
         "const uint8_t PROGMEM FLOAT_ACTIVE_LED_COUNT[7] = { " + ", ".join(str(active_count_by_float.get(fid, 100)) for fid in range(1, 8)) + " };",
+        "const uint8_t PROGMEM FLOAT_MATRIX_WINDOW_COUNT[7] = { " + ", ".join(str(window_count_by_float.get(fid, 100)) for fid in range(1, 8)) + " };",
         "",
         "// Physical 16x16 serpentine matrix indices (0..255) for active Windowed + Backlit LEDs",
         "const uint8_t PROGMEM FLOAT_MATRIX_INDICES[7][100] = {"

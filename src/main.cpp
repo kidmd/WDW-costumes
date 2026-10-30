@@ -45,8 +45,15 @@
 // ============================================================================
 #define DATA_PIN            16      // 8th pin down on the right
 #define LED_TYPE            WS2812B
-#ifndef COLOR_ORDER
-#define COLOR_ORDER         RGB     // Calibrated hardware color order
+#if (defined(COSTUME_MATRIX_16X16_MODE) && COSTUME_MATRIX_16X16_MODE) || (defined(COMPILED_FLOAT_ID) && (COMPILED_FLOAT_ID == 6))
+#undef COLOR_ORDER
+#define COLOR_ORDER         GRB     // BTF-LIGHTING 16x16 WS2812B matrix uses GRB byte order
+#define COMPILED_COLOR_ORDER_IS_GRB 1
+#elif !defined(COLOR_ORDER)
+#define COLOR_ORDER         RGB     // Calibrated hardware color order for 5V WS2812B seed/pebble strings
+#define COMPILED_COLOR_ORDER_IS_GRB 0
+#else
+#define COMPILED_COLOR_ORDER_IS_GRB 0
 #endif
 #define STATUS_LED_PIN      2       // Onboard Blue LED
 
@@ -147,6 +154,11 @@ inline void duplicateFrontToBack() {
         uint8_t winCount = 51;
 #if defined(MATRIX_WINDOW_LED_COUNT)
         winCount = MATRIX_WINDOW_LED_COUNT;
+#elif defined(HAS_FLEET_MATRIX_CONFIG) && HAS_FLEET_MATRIX_CONFIG
+        {
+            uint8_t fIdxW = (myFloatNumber >= 1 && myFloatNumber <= 7) ? (myFloatNumber - 1) : 0;
+            winCount = pgm_read_byte(&FLOAT_MATRIX_WINDOW_COUNT[fIdxW]);
+        }
 #endif
         for (int i = 0; i < activeCount; i++) {
             uint8_t physIdx = i;
@@ -164,6 +176,12 @@ inline void duplicateFrontToBack() {
             } else {
                 c.nscale8_video(128); // Windowed LEDs
             }
+#if !COMPILED_COLOR_ORDER_IS_GRB
+            // If compiled with RGB for general pebble strings, swap R & G dynamically for GRB 16x16 matrix
+            uint8_t tmpR = c.r;
+            c.r = c.g;
+            c.g = tmpR;
+#endif
             leds[physIdx] = c;
             if ((256 + (int)physIdx) < MAX_LEDS_CAPACITY) {
                 leds[256 + (int)physIdx] = c;
@@ -306,15 +324,19 @@ void renderCastlePhotoMode() {
 }
 
 void renderCorralStandby(uint32_t t) {
-    // 16x16 Matrix Mode: Light ALL 256 physical LEDs in dim warm yellow
+    // 16x16 Matrix Mode: Ultra-low-power standby on active artwork LEDs only (<120mA USB-safe)
     if (isCurrentFloatMatrix16x16()) {
-        CRGB dimYellow = CRGB(65, 52, 0); // Visible, comfortable dim warm yellow (Front + Back)
-        for (int i = 0; i < 256; i++) {
-            leds[i] = dimYellow;
-            if ((256 + i) < MAX_LEDS_CAPACITY) {
-                leds[256 + i] = dimYellow;
-            }
+        for (int i = 0; i < FRONT_LEDS && i < MAX_LEDS_CAPACITY; i++) {
+#if defined(HAS_CUSTOM_PALETTE) && HAS_CUSTOM_PALETTE
+            CRGB c = ARTWORK_PALETTE[i];
+#else
+            uint8_t floatIdx = (myFloatNumber >= 1 && myFloatNumber <= 7) ? (myFloatNumber - 1) : 0;
+            CRGB c = FLEET_ROSTER_INFO[floatIdx].color;
+#endif
+            c.nscale8_video(35); // Soft midnight artwork glow (<100mA total draw)
+            leds[i] = c;
         }
+        duplicateFrontToBack();
         return;
     }
 
@@ -1006,8 +1028,10 @@ void renderAmbientFallback(uint32_t now) {
         uint8_t drift = inoise8(i * 40, speedTime / 16);
         uint8_t bright = map(drift, 0, 255, 170, 255);
         baseColor.nscale8_video(bright);
+#if !(defined(HAS_CUSTOM_PALETTE) && HAS_CUSTOM_PALETTE)
         baseColor.r = qadd8(baseColor.r, 20);
         baseColor.b = qsub8(baseColor.b, 35);
+#endif
         leds[i] = baseColor;
 #elif defined(AMBIENT_FALLBACK_PATTERN) && (AMBIENT_FALLBACK_PATTERN == COSTUME_PATTERN_CANDLE_FLICKER)
         uint32_t speedTime = (uint64_t)now * COSTUME_SPEED_BPM / 60;
@@ -1220,9 +1244,31 @@ void runAutonomousShowSequence(uint32_t now) {
             } else if (eff == 2) { // fire_breath
                 renderFireworks(now);
             } else if (eff == 3) { // traveling_wave
+#if defined(HAS_CUSTOM_PALETTE) && HAS_CUSTOM_PALETTE
+                uint8_t waveCenter = (uint8_t)(((now / 8) * max((uint16_t)20, bpm) / 120) % 256);
+                for (int i = 0; i < FRONT_LEDS && i < MAX_LEDS_CAPACITY; i++) {
+                    CRGB c = ARTWORK_PALETTE[i];
+#if defined(HAS_SPATIAL_METRICS) && HAS_SPATIAL_METRICS
+                    uint8_t pos = pgm_read_byte(&SPATIAL_X_BYTE[i]);
+#else
+                    uint8_t pos = (uint8_t)(i * 255 / max(1, FRONT_LEDS - 1));
+#endif
+                    uint8_t dist = abs((int)pos - (int)waveCenter);
+                    if (dist < 48) {
+                        uint8_t boost = 255 - (dist * 3);
+                        c.nscale8_video(boost);
+                        if (dist < 10) c += CRGB(65, 65, 65);
+                        leds[i] = c;
+                    } else {
+                        c.nscale8_video(100); // Preserve 40% true artwork color outside wave crest
+                        leds[i] = c;
+                    }
+                }
+#else
                 uint32_t waveTimer = now % 3000;
                 uint8_t waveHeadPos = map(waveTimer, 0, 3000, 0, FRONT_LEDS - 1);
                 renderTravelingWave(myFloatNumber, waveHeadPos);
+#endif
             } else if (eff == 4) { // chase / marquee
                 uint8_t step = (now / 120) % FRONT_LEDS;
                 for (int i = 0; i < FRONT_LEDS && i < MAX_LEDS_CAPACITY; i++) {
@@ -1401,8 +1447,10 @@ void runAutonomousShowSequence(uint32_t now) {
                     CRGB c = FLEET_ROSTER_INFO[floatIdx].color;
 #endif
                     c.nscale8_video(bright);
+#if !(defined(HAS_CUSTOM_PALETTE) && HAS_CUSTOM_PALETTE)
                     c.r = qadd8(c.r, 20);
                     c.b = qsub8(c.b, 35);
+#endif
                     leds[i] = c;
                 }
             } else if (eff == 13) { // candle_flicker
@@ -1988,7 +2036,8 @@ void setup() {
         effectiveBrightness = max((uint8_t)15, (uint8_t)(effectiveBrightness / 2));
     }
     FastLED.setBrightness(effectiveBrightness);
-    FastLED.setMaxPowerInVoltsAndMilliamps(5, MAX_MILLIAMPS);
+    // Start at 350mA for the first 5 seconds after boot so laptop 500mA USB ports never brown out on plug-in
+    FastLED.setMaxPowerInVoltsAndMilliamps(5, 350);
 
     Serial.println("[INFO] Setup complete! Starting default parade loop...\n");
 }
@@ -1998,6 +2047,11 @@ void setup() {
 // ============================================================================
 void loop() {
     uint32_t now = millis();
+    static bool fullPowerUnlocked = false;
+    if (!fullPowerUnlocked && now > 5000) {
+        fullPowerUnlocked = true;
+        FastLED.setMaxPowerInVoltsAndMilliamps(5, MAX_MILLIAMPS);
+    }
 
     // ========================================================================
     // 1. DUAL HARDWARE BUTTON CONTROLLER (Button 1: GPIO 4/0, Button 2: GPIO 33)

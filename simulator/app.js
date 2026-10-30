@@ -135,9 +135,14 @@ async function fetchActiveTpuSpecs() {
 }
 fetchActiveTpuSpecs();
 
+let lastLoadedMatrix16x16Profile = null;
+
 function notifyFloatImgLoaded() {
     if (typeof btfMatrix16x16Active !== 'undefined' && btfMatrix16x16Active) {
         if (typeof computeBtfMatrix16x16Layout === 'function') computeBtfMatrix16x16Layout();
+        if (lastLoadedMatrix16x16Profile && typeof restoreSavedMatrix16x16Roles === 'function') {
+            restoreSavedMatrix16x16Roles(lastLoadedMatrix16x16Profile);
+        }
         if (typeof markSingleShirtDirty === 'function') markSingleShirtDirty();
         if (typeof draw === 'function') draw();
     }
@@ -16231,6 +16236,7 @@ function restoreSavedMatrix16x16Roles(profileData) {
     const savedWins = Array.isArray(profileData.matrixWindowedLeds) ? profileData.matrixWindowedLeds : null;
     const savedGlows = Array.isArray(profileData.matrixBacklightLeds) ? profileData.matrixBacklightLeds : null;
     if ((!savedWins || savedWins.length === 0) && (!savedGlows || savedGlows.length === 0)) return;
+    lastLoadedMatrix16x16Profile = profileData;
 
     // Build lookup maps supporting:
     // 1. Exact grid coordinate key: "${row}_${col}"
@@ -21273,8 +21279,9 @@ async function triggerUsbFirmwareFlash(floatId = 0) {
     let activeMatrixLeds = [];
     if (isMatrix16x16 && typeof getBtfMatrix16x16ListsForExport === 'function') {
         matrixExportLists = getBtfMatrix16x16ListsForExport();
-        activeMatrixLeds = [...matrixExportLists.windowedLeds, ...matrixExportLists.backlightLeds]
-            .sort((a, b) => a.id - b.id);
+        // Keep windowed LEDs first (0..winCount-1) and backlight LEDs second (winCount..total-1)
+        // so firmware duplicateFrontToBack() scales backlight LEDs to 50% of windowed LED brightness
+        activeMatrixLeds = [...matrixExportLists.windowedLeds, ...matrixExportLists.backlightLeds];
     }
 
     const totalActiveFront = (isMatrix16x16 && activeMatrixLeds.length > 0)
@@ -21329,6 +21336,7 @@ async function triggerUsbFirmwareFlash(floatId = 0) {
             numLeds: totalActiveFront,
             floatId: effectiveFloatId,
             matrix16x16Mode: isMatrix16x16,
+            colorOrder: isMatrix16x16 ? 'GRB' : 'RGB',
             matrixActiveIndices: (isMatrix16x16 && activeMatrixLeds.length > 0) ? activeMatrixLeds.map(l => l.id) : [],
             matrixWindowCount: isMatrix16x16 ? matrixExportLists.windowedLeds.length : 0,
             matrixBacklightCount: isMatrix16x16 ? matrixExportLists.backlightLeds.length : 0,
