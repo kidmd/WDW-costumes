@@ -1418,9 +1418,9 @@ const uint8_t PROGMEM SPATIAL_RADIUS_BYTE[FRONT_LEDS] = {{
 
             matrix_lenses_mode = bool(req_data.get("matrixLensesMode", req_data.get("includeLenses", True)))
             try:
-                matrix_clear_layer_mm = float(req_data.get("matrixClearLayerMm", req_data.get("clearLayerMm", 0.0)))
+                matrix_clear_layer_mm = float(req_data.get("matrixClearLayerMm", req_data.get("clearLayerMm", 0.4)))
             except Exception:
-                matrix_clear_layer_mm = 0.0
+                matrix_clear_layer_mm = 0.4
             if matrix_clear_layer_mm not in [0.0, 0.2, 0.4, 0.6, 0.8, 1.0]:
                 matrix_clear_layer_mm = round(max(0.0, min(2.0, matrix_clear_layer_mm)), 2)
 

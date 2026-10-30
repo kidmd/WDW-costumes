@@ -151,6 +151,20 @@ M300 S1000 P500 ; Audible chime
 
 ---
 
+## 5. 16×16 Matrix Clear Backing Layer: 0.40mm Dual-Layer Cross-Ply (90°)
+
+For the commercial $160 \times 160\text{ mm}$ BTF-LIGHTING flexible matrix hybrid armor plates, the optional clear backing layer (`color_clear_layer.stl` / `Clear_Backing_Layer_160x160`) defaults to **$0.40\text{ mm}$ thickness**:
+
+### Mechanical & Optical Architecture
+* **2 Solid Layers @ 0.20mm Layer Height:** Exactly two slices thick ($0.20\text{ mm} \times 2 = 0.40\text{ mm}$).
+* **Alternating 90° Cross-Ply Raster Orientation:**
+  * **Layer 1 ($Z = 0.00 \dots 0.20\text{ mm}$):** Printed with rectilinear/monotonic fill at **$45^\circ$** (or $0^\circ$).
+  * **Layer 2 ($Z = 0.20 \dots 0.40\text{ mm}$):** Printed with rectilinear/monotonic fill at **$135^\circ$** (or $90^\circ$).
+* **Biaxial Strength Advantage:** Aligning the two layers at $90^\circ$ relative to each other forms a composite cross-ply laminate. In flexible TPU (or clear PETG), this eliminates directional grain weakness, virtually multiplying tear, split, and puncture resistance while allowing the armor plate to comfortably flex over runner chest contours.
+* **Optical Diffusion:** Seamlessly blends discrete LED hotspots into a uniform, vibrant backlight glow behind colored artwork inlays while windowed aperture cutouts remain $\varnothing 3.4\text{ mm}$ open for crisp direct light projection.
+
+---
+
 ## 5. Ergonomics & Weight Considerations for 100% PLA
 
 Because PLA is rigid (unlike rubbery TPU), keep these parameters in mind for the race costumes:

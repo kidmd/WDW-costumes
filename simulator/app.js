@@ -14180,7 +14180,7 @@ function applyProfileData(profileData) {
         if (typeof syncBtfMatrixThicknessUI === 'function') {
             syncBtfMatrixThicknessUI(btfMatrix16x16Config.thicknessMm);
     syncBtfMatrixLipUI(btfMatrix16x16Config.lipMm !== undefined ? btfMatrix16x16Config.lipMm : 2.0);
-    syncBtfMatrixClearLayerUI(btfMatrix16x16Config.clearLayerMm !== undefined ? btfMatrix16x16Config.clearLayerMm : 0.0);
+    syncBtfMatrixClearLayerUI(btfMatrix16x16Config.clearLayerMm !== undefined ? btfMatrix16x16Config.clearLayerMm : 0.4);
     syncBtfMatrixFrameUI(btfMatrix16x16Config.frameActive !== false);
         }
 
@@ -15910,7 +15910,7 @@ let btfMatrix16x16Config = {
     gapMm: 3.0,
     lipMm: 3.0,
     lensesActive: true,
-    clearLayerMm: 0.0,
+    clearLayerMm: 0.4,
     frameActive: true
 };
 try {
@@ -15932,6 +15932,8 @@ try {
         if (!isNaN(pClear) && [0, 0.2, 0.4, 0.6, 0.8, 1.0].includes(pClear)) {
             btfMatrix16x16Config.clearLayerMm = pClear;
         }
+    } else {
+        btfMatrix16x16Config.clearLayerMm = 0.4;
     }
     const savedFrame = localStorage.getItem('msep_matrix_frame_mode');
     if (savedFrame !== null) {
@@ -17058,6 +17060,7 @@ function initBtfMatrix16x16Mode() {
 
     syncBtfMatrixThicknessUI(btfMatrix16x16Config.thicknessMm);
     syncBtfMatrixLipUI(btfMatrix16x16Config.lipMm !== undefined ? btfMatrix16x16Config.lipMm : 2.0);
+    syncBtfMatrixClearLayerUI(btfMatrix16x16Config.clearLayerMm !== undefined ? btfMatrix16x16Config.clearLayerMm : 0.4);
 }
 window.initBtfMatrix16x16Mode = initBtfMatrix16x16Mode;
 

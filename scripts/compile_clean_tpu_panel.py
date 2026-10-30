@@ -198,7 +198,7 @@ elif '--lenses' in sys.argv:
     if _ls + 1 < len(sys.argv):
         INCLUDE_LENSES = sys.argv[_ls + 1].lower() in ('on', '1', 'true', 'yes')
 
-MATRIX_CLEAR_LAYER_MM = float(specs.get('matrix_clear_layer_mm', 0.0))
+MATRIX_CLEAR_LAYER_MM = float(specs.get('matrix_clear_layer_mm', specs.get('clear_layer_mm', 0.4)))
 if '--matrix-clear-layer' in sys.argv:
     _mcl = sys.argv.index('--matrix-clear-layer')
     if _mcl + 1 < len(sys.argv):
@@ -275,7 +275,7 @@ def export_assembled_3mf(scene_items, mf3_path, assembly_name="MSEP_MultiColor_P
     except Exception as e:
         print(f"[3MF Assembly Post-Process Warning]: {e}")
 
-def compile_matrix_16x16_plate_variant(variant_name, artwork_path, window_shape='round_34', plate_thickness_mm=0.60, gap_mm=3.0, lip_mm=None, include_lenses=True, clear_layer_mm=0.0, include_frame=True, windowed_leds=None, backlight_leds=None):
+def compile_matrix_16x16_plate_variant(variant_name, artwork_path, window_shape='round_34', plate_thickness_mm=0.60, gap_mm=3.0, lip_mm=None, include_lenses=True, clear_layer_mm=0.4, include_frame=True, windowed_leds=None, backlight_leds=None):
     PLATE_SIZE_MM = 176.0
     MATRIX_SIZE_MM = 160.0
     MARGIN_MM = 8.0
@@ -285,7 +285,7 @@ def compile_matrix_16x16_plate_variant(variant_name, artwork_path, window_shape=
         gap_mm = lip_mm
     GAP_MM = round(max(0.0, min(10.0, float(gap_mm))), 1)
     LIP_MM = GAP_MM
-    CLEAR_MM = round(max(0.0, min(2.0, float(clear_layer_mm or 0.0))), 2)
+    CLEAR_MM = round(max(0.0, min(2.0, float(0.4 if clear_layer_mm is None else clear_layer_mm))), 2)
     FRAME_ACTIVE = bool(include_frame)
 
     print(f"\n>>> Compiling {variant_name.upper()} 16x16 Matrix Backlight Plate ({PLATE_SIZE_MM}x{PLATE_SIZE_MM}x{THICK_MM:.2f}mm, Window Shape: {window_shape.upper()})...")
@@ -721,7 +721,7 @@ def compile_matrix_16x16_plate_variant(variant_name, artwork_path, window_shape=
             slot_idx += 1
             exported_inlays.append({
                 "key": "clear_layer",
-                "name": f"Clear Backing Layer ({CLEAR_MM:.1f}mm)",
+                "name": f"Clear Backing Layer ({CLEAR_MM:.1f}mm - 2x 0.20mm @ 90° cross-ply)" if abs(CLEAR_MM - 0.4) < 0.05 else f"Clear Backing Layer ({CLEAR_MM:.1f}mm)",
                 "filename": clear_filename,
                 "hex": "#c8f0ff",
                 "count": len(clear_tm.faces)

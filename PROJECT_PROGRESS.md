@@ -93,6 +93,19 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### 2026-10-30: Standardized 16x16 Panel Clear Backing Layer to 0.40mm Dual-Layer Cross-Ply (90° Slicing)
+- **0.40mm Clear Diffuser Backing Standard:**
+  - Upgraded the default clear backing layer (`color_clear_layer.stl` / `Clear_Backing_Layer_160x160`) for all 16x16 matrix hybrid armor plates from `0.0mm` to **`0.40mm`** across the Python STL compiler (`compile_clean_tpu_panel.py`), backend API (`simulator.py`), frontend config (`simulator/app.js`), and 3D preview UI (`simulator/index.html`).
+  - Sits directly behind the $160 \times 160\text{ mm}$ colored graphic faceplate, providing an integrated diffuser that evenly distributes rear backlight LED glow without hotspot banding.
+- **2-Layer @ 90° Cross-Ply Slicer Architecture for Maximum Strength:**
+  - Configured specifically for 2 solid layers at $0.20\text{ mm}$ layer height ($0.20\text{ mm} \times 2 = 0.40\text{ mm}$).
+  - Sliced with alternating $90^\circ$ raster orientations (e.g. Layer 1 at $45^\circ$ and Layer 2 at $135^\circ$, or $0^\circ$ and $90^\circ$).
+  - Creates a composite cross-ply grain structure in flexible TPU (or clear PETG) that dramatically improves biaxial tear, puncture, and split resistance during running arm swings and 10K race movement.
+- **UI & Multi-Material 3MF Integration:**
+  - Updated both the Layout Tab sidebar and 3D Print Preview modal pill toolbars with `0.4mm ★` active default styling and informational tooltips.
+  - Multi-material 3MF bundle metadata now explicitly tags `Clear Backing Layer (0.4mm - 2x 0.20mm @ 90° cross-ply)` for one-click assignment in Bambu Studio, OrcaSlicer, and Snapmaker Luban.
+  - Preserves full user adjustability across `None`, `0.2mm`, `0.4mm ★`, `0.6mm`, `0.8mm`, and `1.0mm` with browser `localStorage` persistence.
+
 ### 2026-10-26: Engineered Snap-On Race-Day Security Caps (10K High-Impact Locking Vaults)
 - **10K Race-Day Armored Security:**
   - Designed positive-locking snap-on caps (hoods) for all straight clips and 90° corner elbows to physically cage fairy light wiring for the entire 6.2 miles of high-impact arm swings, stride impacts, corral crowds, and finish line celebrations.
