@@ -137,8 +137,8 @@ The sidebar navigation is organized into a clean **2-row × 3-column grid** that
    - **🎭 Active Parade Float Banner & 7-Shirt Quick Switcher:** Unmistakable banner at the very top of the Layout tab showing exactly which float is being edited: Float number (#01 to #07), character name, parade role (`👑 Fleet Leader (Broadcast)` / `📡 Follower Float`), signature accent color, and lineup tag.
    - **⚡ 7-Button Float Switcher Grid:** Direct 1-click switcher buttons (`[ 1 ]` through `[ 7 ]`) featuring live glowing indicator dots in each float's signature color. Seamlessly switch between Casey Jr., Title Drum, Turtle, Snail, Pirate Ship, Pete's Dragon, and To Honor America with unsaved-change protection!
    - **🏷️ Top Navigation & Canvas Watermark Badge:** The top navigation tab updates dynamically (`👕 Single Shirt (#6 Elliott)`), while a translucent floating watermark badge in the top-left canvas corner keeps the active float number and name clearly visible while positioning LEDs.
-   - **Float / Character Artwork Picker:** Unified dropdown allowing quick selection between the 7 official parade floats (including `assets/Simpletrain.png` for Float 1: The Train, `assets/SimpleSnail.png` for Float 4: The Snail, and `assets/Pirateshipsimple.png` for Float 5: Pirate Ship as default 5-color transparent PNG graphics) or uploading custom graphics (PNG/SVG/JPG), with a one-click `🔄 Restore Preset Defaults` button when custom artwork is active.
-   - **runDisney 10K Race Bib (#1952):** Toggle overlay, height, and scale sliders to verify physical clearance.
+   - **Float / Character Artwork Picker:** Unified dropdown allowing quick selection between the 7 official parade floats (including `assets/Simpletrain.png` for Float 1: The Train, `assets/SimpleSnail.png` for Float 4: The Snail, and `assets/Pirateshipsimple.png` for Float 5: Pirate Ship as default 5-color transparent PNG graphics) or selecting "Upload Custom Artwork..." which launches the **📁 Upload Character Artwork Modal**. The modal is also accessible at any time via the top header `📁 Upload Artwork` button!
+   - **runDisney 10K Race Bib (#1952):** Clean toggle overlay to verify physical clearance with running gear, permanently locked to authentic runDisney specifications (57% torso height, 100% scale).
    - **💾 Save & Export Custom Profiles:** Dedicated section for naming and saving custom design tweaks to browser cache, exporting standalone JSON costume files, or importing existing configurations.
     - **🎛️ LED Count Slider (50–100 LEDs) & Manual Re-distribute Button:**
       - **Target LED Count Slider (`50` to `100` LEDs):** Continuous slider allowing runners to select any target count from 50 to 100 LEDs. Moving the slider updates the target count badge without unexpectedly modifying or scattering placed LEDs.
@@ -240,7 +240,7 @@ The sidebar navigation is organized into a clean **2-row × 3-column grid** that
    - **📡 Real-Time Wi-Fi Live Stream:** Stream live colors & animations directly to physical LEDs over Wi-Fi without flashing ROM. Wi-Fi credentials modal.
    - **Web Serial Flasher:** Quick launch button for zero-install browser-based flashing.
 
-### 💡 Contextual Inspector Dock (Docked at Bottom of Sidebar)
+### 💡 Contextual Inspector & Group Tools (Exclusively Inside Tab 3: Groups)
 Instead of taking up vertical space in the middle of your workflow:
 - **Standby State (No Selection or Draw Mode):** When no bulbs are selected, or while actively drawing a path on the shirt (`✏️ Click-to-Draw`), the Inspector rests as a quiet, compact status chip (`👆 Click an LED or drag on canvas to inspect`). It stays collapsed during drawing so you can place sequential points on the garment without distracting UI jumps or unwanted dock expansions.
 - **Active State (Selected LED or Group):** When 1 or more LEDs are selected (or when editing a saved group), the Inspector automatically expands with an illuminated gold accent border:
@@ -606,8 +606,10 @@ Use the **Costume Graphic** dropdown in the Layout tab (Section 1) to instantly 
 > [!TIP]
 > **Instant Float & Artwork Synchronization:** Whenever you refresh the simulator or switch between runners using the 7-Button Float Switcher Grid (`[ 1 ]` to `[ 7 ]`), the canvas instantly synchronizes both the background artwork and the 100-LED contour layout to that float's authentic geometry on the very first click, completely eliminating any lingering dragon shapes or mismatched startup graphics.
 
-### 🖨️ Assembly & Print Placement Guide Mode (`🖨️ Placement Guide`)
-For physical assembly and workshop workbench printing, the Layout tab features a dedicated **Graphic View Mode** toggle (`[🎨 Full Color]` / `[🖨️ Placement Guide]`), also accessible via the canvas zoom toolbar:
+### 🖨️ Assembly & Print Placement Guide Mode (Legacy Fairy Light Architecture Only)
+For physical assembly and workshop workbench printing of legacy mesh vests and wire channels, the simulator features an **Assembly & Print Placement Guide**.
+> [!NOTE]
+> **Scoped to Legacy Hardware Mode:** Because 16×16 FPCB matrix plates use full-color multi-material PLA/TPU inlays and direct through-hole aperture grids, Placement Guide controls and printing cards are automatically hidden when in **🔲 16×16 Matrix (Default)** mode to keep the interface clean. They remain fully functional and visible whenever switching to **🧵 Fairy Lights (Legacy)** mode.
 - **🪞 Mirrored Back View (Workbench Assembly):** Flips the placement guide canvas and artwork image horizontally (default **Active**) so that when placing LEDs, TPU panels, and wiring from behind the costume on your workbench, left/right on screen matches your physical perspective looking at the back! Includes a toggle button to switch between `🪞 Mirrored Back` and `👕 Normal Front` as needed.
 - **Faint Character Artwork Watermark:** Subdues the float artwork to a faint background opacity (default **22%**, customizable from 10% to 60%) so you can clearly see the float's physical boundaries and features without clashing with the LED indicators.
 - **Exact 3×3 mm Square Windows:** Replaces live lighting glow blooms with crisp, physical **3.0 mm × 3.0 mm square apertures** with high-contrast borders and precision center registration marks matching physical 3D TPU armor panel optical pockets.
@@ -629,16 +631,16 @@ Section 4 features an authentic runDisney race bib overlay (default **8.0" wide 
 - **Center Race Number:** High-contrast athletic number **`1952`** with crisp white outline and dark slate fill.
 - **PhotoPass Barcode:** Lower barcode window with `DIS-1952-10K`.
 - **BibBoards Fasteners:** Accurately renders the snap-and-lock circular pucks at all 4 corners (outer casing, cyan accent ring, center dome button with specular highlight) so you can visually verify clearance before pinning your shirt!
-- **Interactive UI Controls (Section 4):**
-  - **Toggle Checkbox:** Show/Hide the bib overlay at any time.
-  - **Height Slider:** Adjust vertical elevation on the torso (range: 50% to 75%, default **57%**).
-  - **Scale Slider:** Dynamically resize the bib from **60% to 140%** (default **100%**) while preserving all internal artwork, character illustrations, and clamp points.
+- **Interactive UI Controls:**
+  - **Toggle Checkbox (`🏷️ runDisney 10K Bib (#1952)`):** Show/Hide the bib overlay with one click in the Layout tab. Sizing is locked to authentic runDisney race standards (57% torso height, 100% scale) to eliminate redundant slider clutter while guaranteeing physical clearance.
 
-### Custom Artwork Upload
-1. In Section 1, choose **"Upload Custom Artwork Image"**.
-2. Select any high-resolution transparent PNG or JPEG image from your computer.
-3. The simulator immediately renders your artwork in the center of the shirt canvas.
-4. Click **"✨ Scatter 100 Color-Matched LEDs"**:
+### Custom Artwork Upload Modal
+1. Click the **📁 Upload Artwork** button in the top navigation tab bar (or select "Upload Custom Artwork..." in the Layout tab dropdown).
+2. The dedicated **Custom Character Artwork Modal** opens, showing the active float identity (number, icon, and title).
+3. Drag and drop any transparent PNG, SVG, or high-contrast JPG image into the drop zone, or click to browse your files.
+4. The simulator immediately renders your artwork in the center of the shirt canvas and updates the modal's thumbnail preview and pixel dimensions.
+5. A one-click **🔄 Restore Preset** button inside the modal lets you return to the active float's official design at any time!
+6. Click **"✨ Scatter 100 Color-Matched LEDs"**:
    - The simulator uses a multi-pass Poisson disk scatter to distribute 100 LEDs evenly across your graphic.
    - It samples the true RGB pixel color beneath each LED, automatically creating a color-matched palette!
 5. Click **"🔄 Resample Colors from Artwork"** at any time to re-sample pixel values if you change or replace the artwork.

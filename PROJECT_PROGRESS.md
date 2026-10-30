@@ -93,6 +93,27 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### 2026-10-30: Simulator UI Decluttering & Refinement — Top Header Artwork Modal, Scoped Graphic Modes, Fixed Race Bib & Groups Tab Inspector Dock
+- **Top Header Artwork Upload Modal:**
+  - Migrated the custom artwork upload controls from the sidebar Layout tab into a dedicated, elegant modal (`#customArtworkModal`).
+  - Added an illuminated `📁 Upload Artwork` button (`#openUploadArtworkModalBtn`) directly in the top navigation tab bar next to Castle Photo Mode and Web Flasher.
+  - Modal features drag-and-drop or browse file picker, live active float banner (with float icon, number, and title), real-time artwork resolution metadata display, dynamic thumbnail preview, and a one-click `🔄 Restore Preset` button to return to the active float's official artwork.
+  - Selecting "Upload Custom Artwork..." in `#graphicPresetSelect` seamlessly launches the modal.
+- **Hardware Mode Scoping for Graphic Display & Placement Guide:**
+  - Added `.legacy-hardware-only` CSS class scoping to Graphic View Mode (`[ 🎨 Full Color ]` / `[ 🖨️ Placement Guide ]`) and `#assemblyGuideOptionsCard`.
+  - In default 16×16 Matrix mode, the full color / placement guide controls and printing cards are cleanly hidden, preventing UI clutter.
+  - Automatically resets graphic view mode to `standard` (full color) whenever switching to 16×16 Matrix architecture.
+- **Race Bib Torso Sizing Optimization:**
+  - Removed `#bibPositionRow` and `#bibScaleRow` sliders from the Layout tab, permanently locking the runDisney 10K Race Bib (#1952) to the authentic Disney design standard (57% torso height, 100% scale).
+  - Preserved the clean `🏷️ runDisney 10K Bib (#1952)` checkbox for instantaneous visual clearance toggle.
+- **Contextual Inspector Dock Exclusivity in Groups Tab:**
+  - Relocated `#ledInspectorSection` from the permanently docked footer of `.controls-sidebar` directly into `#tabGroups`.
+  - All LED inspection, rotation angles, RGB swatches, Disney palettes, and group transformation suites (rotate, flip, scale, copy/paste) now live exclusively on the Groups tab, freeing up vertical space across Layout, Ambient, Float Show, Fleet, and Deploy tabs.
+- **Verification:**
+  - Verified HTML parse tree validity via `html.parser.HTMLParser`.
+  - Verified complete JavaScript syntax via `node -c simulator/app.js`.
+  - Incremented cache busters to `app.js?v=108` and `style.css?v=38`.
+
 ### 2026-10-30: Simulator UI Modernization — 16×16 LED Matrix Default Hardware Standard & Decluttered Workspace
 - **Global Hardware Architecture Switcher in Top Navigation Bar:**
   - Added a dedicated, segmented header control (`[ 🔲 16×16 Matrix (Default) ]` | `[ 🧵 Fairy Lights (Legacy) ]`) pinned next to the Single / Fleet view buttons and Castle Photo Mode, visible across all tabs.

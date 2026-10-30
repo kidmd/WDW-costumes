@@ -14065,6 +14065,7 @@ function applyProfileData(profileData) {
         }
         if (graphicSelect) graphicSelect.value = 'custom_upload';
         if (uploadContainer) uploadContainer.style.display = 'block';
+                    if (typeof updateCustomArtworkModalState === 'function') updateCustomArtworkModalState();
         if (resetBtn) resetBtn.style.display = 'block';
     } else {
         customArtworkImg = null;
@@ -16004,6 +16005,10 @@ function setHardwareArchitectureMode(mode, savePref = true) {
     tpuDisplayMode = isMatrix ? 'matrix16' : 'tray';
 
     if (isMatrix) {
+        // Automatically ensure full-color graphic display mode (no placement guide)
+        if (typeof setGraphicDisplayVersion === 'function') {
+            setGraphicDisplayVersion('standard');
+        }
         // Suppress strip preview if active
         if (typeof btfStripPreviewActive !== 'undefined' && btfStripPreviewActive) {
             btfStripPreviewActive = false;
@@ -19551,6 +19556,57 @@ function autoOutlineCurrentGraphic(targetCount = 50, markDirty = true) {
     }
 }
 
+// ============================================================================
+// CUSTOM ARTWORK MODAL CONTROLLER
+// ============================================================================
+function updateCustomArtworkModalState() {
+    const slot = (typeof activeSingleShirtRunnerSlot !== 'undefined' && activeSingleShirtRunnerSlot !== null) ? activeSingleShirtRunnerSlot : 0;
+    const floatData = (typeof DEFAULT_FLEET_ROSTER !== 'undefined' && DEFAULT_FLEET_ROSTER[slot]) 
+        ? DEFAULT_FLEET_ROSTER[slot] 
+        : { icon: '🐉', fullName: "Float " + (slot + 1) };
+    
+    const iconEl = document.getElementById('customArtworkFloatIcon');
+    const nameEl = document.getElementById('customArtworkFloatName');
+    const statusEl = document.getElementById('customArtworkFloatStatus');
+    const previewBox = document.getElementById('customArtworkPreviewBox');
+    const previewImg = document.getElementById('customArtworkPreviewImg');
+    const metaText = document.getElementById('customArtworkMetaText');
+    const resetBtn = document.getElementById('resetArtworkBtn');
+
+    if (iconEl) iconEl.textContent = floatData.icon || '🎨';
+    if (nameEl) nameEl.textContent = `Float ${slot + 1}: ${floatData.fullName || floatData.name}`;
+
+    if (customArtworkDataUrl && customArtworkImg) {
+        if (statusEl) statusEl.textContent = `Custom Artwork Uploaded (${customArtworkImg.width}×${customArtworkImg.height})`;
+        if (previewBox) previewBox.style.display = 'block';
+        if (previewImg) previewImg.src = customArtworkDataUrl;
+        if (metaText) metaText.textContent = `Dimensions: ${customArtworkImg.width}px × ${customArtworkImg.height}px | Transparent / High-Contrast`;
+        if (resetBtn) resetBtn.style.display = 'inline-block';
+    } else {
+        if (statusEl) statusEl.textContent = 'Current: Default Preset Artwork';
+        if (previewBox) previewBox.style.display = 'none';
+        if (previewImg) previewImg.src = '';
+        if (metaText) metaText.textContent = '';
+        if (resetBtn) resetBtn.style.display = 'none';
+    }
+}
+window.updateCustomArtworkModalState = updateCustomArtworkModalState;
+
+function openCustomArtworkModal() {
+    const modal = document.getElementById('customArtworkModal');
+    if (!modal) return;
+    updateCustomArtworkModalState();
+    modal.classList.add('open');
+}
+window.openCustomArtworkModal = openCustomArtworkModal;
+
+function closeCustomArtworkModal() {
+    const modal = document.getElementById('customArtworkModal');
+    if (!modal) return;
+    modal.classList.remove('open');
+}
+window.closeCustomArtworkModal = closeCustomArtworkModal;
+
 // Switch costume graphic preset (Pete's Dragon, Casey Jr., Cinderella's Coach, etc.)
 async function loadGraphicPreset(type) {
     const uploadContainer = document.getElementById('customUploadContainer');
@@ -19559,21 +19615,14 @@ async function loadGraphicPreset(type) {
     if (graphicSelect) graphicSelect.value = type;
 
     if (type === 'custom_upload') {
-        if (uploadContainer) uploadContainer.style.display = 'block';
-        if (resetBtn) resetBtn.style.display = customArtworkImg ? 'block' : 'none';
-        if (customArtworkImg) {
-            currentGraphicType = 'custom_image';
-            scatterLedsOnGraphic(100, true);
-        } else {
-            const fileInput = document.getElementById('artworkUpload');
-            if (fileInput) fileInput.click();
-        }
+        openCustomArtworkModal();
         return;
     }
 
     currentGraphicType = type;
     customArtworkImg = null;
     customArtworkDataUrl = null;
+    if (typeof updateCustomArtworkModalState === 'function') updateCustomArtworkModalState();
     if (uploadContainer) uploadContainer.style.display = 'none';
     if (resetBtn) resetBtn.style.display = (type === 'builtin_dragon' || type === 'petes_dragon' || type === 'petes_dragon_transparent') ? 'none' : 'block';
 
@@ -19690,6 +19739,7 @@ if (artworkUploadInput) {
                     if (uploadContainer) uploadContainer.style.display = 'block';
                     // Automatically scatter 100 color-matched LEDs across new artwork!
                     scatterLedsOnGraphic(100, true);
+                    if (typeof updateCustomArtworkModalState === 'function') updateCustomArtworkModalState();
                     if (btfStripPreviewActive) {
                         computeBtfStripMatrix();
                     }
@@ -19780,6 +19830,7 @@ if (resetArtworkBtn) {
         };
         const defaultKey = defaultMap[activeSingleShirtRunnerSlot] || 'builtin_dragon';
         loadGraphicPreset(defaultKey);
+        if (typeof updateCustomArtworkModalState === 'function') updateCustomArtworkModalState();
     });
 }
 
@@ -25619,3 +25670,25 @@ if (document.readyState === 'loading') {
 }
 
 
+
+// Custom Artwork Modal Listeners
+const customArtworkModalEl = document.getElementById('customArtworkModal');
+if (customArtworkModalEl) {
+    customArtworkModalEl.addEventListener('click', (e) => {
+        if (e.target === customArtworkModalEl) {
+            closeCustomArtworkModal();
+        }
+    });
+}
+
+document.getElementById('openUploadArtworkModalBtn')?.addEventListener('click', () => {
+    openCustomArtworkModal();
+});
+
+document.getElementById('closeCustomArtworkModalBtn')?.addEventListener('click', () => {
+    closeCustomArtworkModal();
+});
+
+document.getElementById('closeCustomArtworkModalBottomBtn')?.addEventListener('click', () => {
+    closeCustomArtworkModal();
+});

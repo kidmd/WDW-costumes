@@ -325,6 +325,29 @@ h1 {
     display: none !important;
 }
 
+/* When Inspector is placed inside Groups Tab */
+#tabGroups #ledInspectorSection {
+    margin-top: 10px;
+    margin-bottom: 12px;
+    border: 1px solid #30363d;
+    border-radius: 8px;
+    background: #0d1117;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4);
+    max-height: none;
+    overflow: visible;
+    flex-shrink: 0;
+}
+
+#tabGroups #ledInspectorSection.dock-active {
+    border: 1px solid #ffc107;
+    background: #11151d;
+}
+
+#tabGroups #ledInspectorSection.dock-empty {
+    max-height: none;
+    padding: 10px 12px;
+}
+
 .control-section {
     background: #0d1117;
     border: 1px solid var(--border-color);
