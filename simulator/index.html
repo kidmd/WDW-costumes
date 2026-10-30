@@ -4,9 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MSEP Costume LED Simulator - Pete's Dragon & 7-Shirt Fleet</title>
-    <link rel="stylesheet" href="style.css?v=36">
+    <link rel="stylesheet" href="style.css?v=37">
 </head>
-<body>
+<body class="hw-mode-matrix16">
     <div id="toast" class="toast"></div>
 
     <!-- Header Navigation -->
@@ -15,12 +15,23 @@
             <span class="logo-badge">MSEP 10K</span>
             <h1>Costume LED Visualizer & Simulator</h1>
         </div>
-        <div class="view-tabs">
+        <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+            <div class="view-tabs">
             <button id="singleViewBtn" class="tab-btn active">Single Shirt (Pete's Dragon)</button>
             <button id="fleetViewBtn" class="tab-btn">7-Shirt Fleet Lineup</button>
             <button id="photoModeToggleBtn" class="tab-btn" style="border-color: #f0883e; color: #f0883e; font-weight: 600; display: inline-flex; align-items: center; gap: 4px;" title="Toggle Castle Photo Mode (Solid, flicker-free hero illumination across all 200 LEDs)">📸 Photo Mode: OFF</button>
             <button id="audioToggleBtn" class="tab-btn" style="border-color: #bc8cff; color: #bc8cff; font-weight: 600; display: inline-flex; align-items: center; gap: 4px;" title="Toggle Baroque Hoedown parade synthesizer music">🎵 Music: OFF</button>
             <a href="/web_flasher.html" target="_blank" class="tab-btn" style="text-decoration: none; display: inline-flex; align-items: center; gap: 4px; border-color: #2ea043; color: #3fb950; font-weight: 600;" title="Open zero-install Web Serial ESP32 flasher in new tab">⚡ Web Flasher</a>
+        </div>
+            <!-- Hardware Architecture Switcher -->
+            <div class="hw-mode-switcher" title="Costume Hardware Architecture Mode">
+                <button type="button" id="hwModeMatrix16Btn" onclick="setHardwareArchitectureMode('matrix16')" class="hw-mode-btn active" title="Current Production Standard: BTF 16×16 (256-LED) Flexible FPCB Matrix with 176×176mm 3D Square Backlight Armor Plate">
+                    🔲 16×16 Matrix (Default)
+                </button>
+                <button type="button" id="hwModeLegacyBtn" onclick="setHardwareArchitectureMode('legacy')" class="hw-mode-btn legacy" title="Legacy Prototype: Freeform Fairy Lights, Pocketed TPU Trays, 10cm Slack Routing, and Cricut Cut SVGs">
+                    🧵 Fairy Lights (Legacy)
+                </button>
+            </div>
         </div>
     </header>
 
@@ -316,7 +327,7 @@
                         </div>
                         <div class="btn-row" style="margin-top: 4px; display: flex; gap: 6px;">
                             <button id="downloadProfileBtn" class="action-btn" style="flex: 1; font-size: 11px; padding: 5px 8px;" title="Export and download this full float configuration as JSON">⬇ Export JSON</button>
-                            <button id="exportCricutSvgBtn" class="action-btn" style="flex: 1; font-size: 11px; padding: 5px 8px; background: rgba(255, 183, 3, 0.12); border-color: rgba(255, 183, 3, 0.4); color: #ffb703;" title="Export production-ready Cricut SVG cut files with 6x3mm tangent pill cutouts pre-punched for all 100 LEDs">✂️ Export Cut SVG</button>
+                            <button id="exportCricutSvgBtn" class="action-btn legacy-hardware-only" style="flex: 1; font-size: 11px; padding: 5px 8px; background: rgba(255, 183, 3, 0.12); border-color: rgba(255, 183, 3, 0.4); color: #ffb703;" title="Export production-ready Cricut SVG cut files with 6x3mm tangent pill cutouts pre-punched for all 100 LEDs">✂️ Export Cut SVG</button>
                             <button id="importProfileBtn" class="action-btn" style="flex: 1; font-size: 11px; padding: 5px 8px;" title="Import a previously saved float configuration JSON file">📂 Import JSON</button>
                             <input type="file" id="importProfileFileInput" accept=".json,application/json" style="display: none;">
                         </div>
@@ -328,8 +339,8 @@
                         </div>
                     </div>
 
-                    <!-- 3. LED Placement & Wiring Optimizer -->
-                    <div class="control-section">
+                    <!-- 3. LED Placement & Wiring Optimizer (Legacy Fairy Lights) -->
+                    <div class="control-section legacy-hardware-only">
                         <div class="section-title">
                             <span id="ledCountTitle">LED Layout & Wiring Route</span>
                         </div>
@@ -497,7 +508,7 @@
                     </div>
 
                     <!-- 3c. BTF-LIGHTING WS2812B Strip (60 / 100 / 144 /m) Preview Panel -->
-                    <div class="control-section" style="background: rgba(56, 189, 248, 0.08); border: 1px solid rgba(56, 189, 248, 0.35); border-radius: 8px; padding: 10px; margin-top: 10px;">
+                    <div class="control-section legacy-hardware-only" style="background: rgba(56, 189, 248, 0.08); border: 1px solid rgba(56, 189, 248, 0.35); border-radius: 8px; padding: 10px; margin-top: 10px;">
                         <div class="section-title" style="margin-bottom: 6px; color: #38bdf8; display: flex; align-items: center; justify-content: space-between;">
                             <span>⚡ BTF LED Strip Preview</span>
                             <span id="btfStripDensityBadge" style="font-size: 9.5px; color: #a5f3fc; background: rgba(56, 189, 248, 0.2); padding: 1px 6px; border-radius: 4px; font-weight: 600;">60 / 3.2ft (16.7mm)</span>
@@ -608,22 +619,22 @@
                         </div>
                     </div>
 
-                    <!-- 3d. BTF-LIGHTING 16x16 (256-LED) Flexible FPCB Matrix Hybrid Window + Backlight Mode -->
-                    <div class="control-section" style="background: rgba(16, 185, 129, 0.08); border: 1px solid rgba(16, 185, 129, 0.4); border-radius: 8px; padding: 10px; margin-top: 10px;">
+                    <!-- 3d. BTF-LIGHTING 16x16 (256-LED) Flexible FPCB Matrix Mode (Default Standard) -->
+                    <div class="control-section matrix16-hardware-only" style="background: rgba(16, 185, 129, 0.08); border: 1px solid rgba(16, 185, 129, 0.4); border-radius: 8px; padding: 10px; margin-top: 10px;">
                         <div class="section-title" style="margin-bottom: 6px; color: #34d399; display: flex; align-items: center; justify-content: space-between;">
                             <span>🔲 BTF 16×16 Matrix (256-LED)</span>
                             <span id="btfMatrix16x16Badge" style="font-size: 9.5px; color: #a7f3d0; background: rgba(16, 185, 129, 0.22); padding: 1px 6px; border-radius: 4px; font-weight: 700;">176×176mm Plate</span>
                         </div>
 
-                        <div class="toggle-row" style="margin-bottom: 6px;">
+                        <div class="toggle-row legacy-hardware-only" style="margin-bottom: 6px;">
                             <span style="font-size: 11px; color: #e6edf3; font-weight: 600;">Enable 16×16 Matrix Backlight Mode</span>
                             <label class="switch">
-                                <input type="checkbox" id="btfMatrix16x16Toggle">
+                                <input type="checkbox" id="btfMatrix16x16Toggle" checked>
                                 <span class="slider"></span>
                             </label>
                         </div>
 
-                        <div id="btfMatrix16x16OptionsCard" style="display: none; margin-top: 8px; border-top: 1px solid rgba(16, 185, 129, 0.28); padding-top: 8px;">
+                        <div id="btfMatrix16x16OptionsCard" style="display: block; margin-top: 8px; border-top: 1px solid rgba(16, 185, 129, 0.28); padding-top: 8px;">
                             <p style="font-size: 10px; color: #9ca3af; margin: 0 0 8px 0; line-height: 1.35;">
                                 Places graphic on a <b>160×160mm</b> BTF 16×16 FPCB matrix (10mm pitch) inside a <b>176×176mm</b> black square 3D plate with 16 perimeter shirt-stitching holes. Click any grid cell on the canvas to cycle: <b>Window ➔ Backlight ➔ Dark</b>.
                             </p>
@@ -646,7 +657,17 @@
                                 <input type="range" id="btfMatrixBacklightCountSlider" min="0" max="200" step="1" value="25" style="width: 100%; accent-color: #38bdf8;">
                             </div>
 
-                            <!-- 3D Plate Thickness Selector (Default 0.60mm) -->
+                            <!-- Collapsible 3D Plate & Slicer Parameters Card -->
+                            <div id="btfMatrix3dParamsCard" style="background: rgba(13, 17, 23, 0.85); border: 1px solid rgba(16, 185, 129, 0.35); border-radius: 6px; margin-bottom: 8px; overflow: hidden;">
+                                <div id="btfMatrix3dParamsHeader" onclick="toggleMatrix3dParamsCard()" style="padding: 7px 10px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; user-select: none; background: rgba(16, 185, 129, 0.12);">
+                                    <span style="font-size: 10.5px; font-weight: 700; color: #6ee7b7; display: flex; align-items: center; gap: 5px;">
+                                        ⚙️ 3D Plate &amp; Slicer Parameters <span id="btfMatrix3dParamsSummary" style="font-size: 9.5px; color: #a7f3d0; font-weight: normal;">(0.60mm • 3mm Gap • 0.4mm Clear)</span>
+                                    </span>
+                                    <span id="btfMatrix3dParamsChevron" style="font-size: 10px; color: #6ee7b7;">▼ Expand</span>
+                                </div>
+                                <div id="btfMatrix3dParamsBody" style="display: none; padding: 10px; border-top: 1px solid rgba(16, 185, 129, 0.25);">
+<!-- 3D Plate Thickness Selector (Default 0.60mm) -->
+
                             <div style="margin-bottom: 8px;">
                                 <label style="font-size: 10px; color: var(--text-muted); display: block; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.5px;">3D Square Plate Thickness (Full-Z Color):</label>
                                 <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px;">
@@ -708,6 +729,9 @@
                                 </div>
                             </div>
 
+                                                            </div>
+                            </div>
+
                             <!-- Quick Presets -->
                             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 5px; margin-bottom: 8px;">
                                 <button type="button" id="btfMatrixAutoSpreadBtn" class="action-btn accent" style="font-size: 10px; padding: 5px 4px; font-weight: 700;" title="Click to redistribute Windowed and Backlit LEDs across the graphic">🎯 Spread 50 Win + 25 Glow</button>
@@ -748,8 +772,8 @@
                         </div>
                     </div>
 
-                    <!-- 3b. Bilateral Symmetry & Mirroring Tool -->
-                    <div class="control-section" style="background: rgba(168, 85, 247, 0.08); border: 1px solid rgba(168, 85, 247, 0.35); border-radius: 8px; padding: 10px; margin-top: 10px;">
+                    <!-- 3b. Bilateral Symmetry & Mirroring Tool (Legacy Fairy Lights) -->
+                    <div class="control-section legacy-hardware-only" style="background: rgba(168, 85, 247, 0.08); border: 1px solid rgba(168, 85, 247, 0.35); border-radius: 8px; padding: 10px; margin-top: 10px;">
                         <div class="section-title" style="margin-bottom: 6px; color: #d8b4fe;">
                             <span>🪞 Bilateral Symmetry & Mirror</span>
                         </div>
@@ -1984,8 +2008,62 @@
                         </button>
                     </div>
 
-                    <!-- 3D-Printable Wearable TPU Armor Panels (Front & Back) -->
-                    <div class="control-section" style="border: 1px solid #00ff88; background: rgba(0, 255, 136, 0.06); border-radius: 8px;">
+                    <!-- Dedicated 3D-Printable 16x16 Backlight Armor Plate Section (Production Standard) -->
+                    <div class="control-section matrix16-hardware-only" style="border: 1px solid #10b981; background: rgba(16, 185, 129, 0.06); border-radius: 8px;">
+                        <div class="section-title" style="color: #34d399; display: flex; align-items: center; justify-content: space-between;">
+                            <span>🔲 3D-Printable 16×16 Backlight Armor Plate</span>
+                            <span style="font-size: 10px; background: rgba(16, 185, 129, 0.2); color: #6ee7b7; padding: 2px 6px; border-radius: 10px; font-weight: 600; border: 1px solid rgba(16, 185, 129, 0.4);">176×176mm • SNAPMAKER &amp; BAMBU SAFE</span>
+                        </div>
+                        <p style="font-size: 11px; color: var(--text-muted); line-height: 1.4; margin-top: 4px; margin-bottom: 8px;">
+                            Production 176×176mm square armor plate for the 160×160mm BTF 16×16 FPCB matrix. Features 16 perimeter shirt-stitching eyelets, recessed LED centering ledge, 0.40mm clear cross-ply diffuser layer, and translucent light-pipe lenses.
+                        </p>
+                        <div style="display: flex; flex-direction: column; gap: 4px; margin-bottom: 8px; font-size: 10px;">
+                            <div style="display: flex; gap: 6px;">
+                                <span style="background: #0d1117; border: 1px solid #30363d; padding: 3px 6px; border-radius: 4px; color: #58a6ff; flex: 1;">🔲 Square Plate: 176.0mm W × 176.0mm H</span>
+                                <span style="background: #0d1117; border: 1px solid #30363d; padding: 3px 6px; border-radius: 4px; color: #00ff88; flex: 1;">💡 Active Matrix: 160×160mm (10mm Pitch)</span>
+                            </div>
+                            <div style="display: flex; gap: 6px;">
+                                <span style="background: #0d1117; border: 1px solid #30363d; padding: 3px 6px; border-radius: 4px; color: #38bdf8; flex: 1;">🖨️ Snapmaker U1 (270×270mm): ~47mm margin</span>
+                                <span style="background: #0d1117; border: 1px solid #30363d; padding: 3px 6px; border-radius: 4px; color: #3fb950; flex: 1;">🖨️ Bambu Lab (250×250mm safe): ~37mm margin</span>
+                            </div>
+                        </div>
+                        <div style="display: flex; flex-direction: column; gap: 6px;">
+                            <button type="button" id="openMatrix16PreviewBtn" class="action-btn primary" style="font-weight: 600; font-size: 12px; padding: 9px; background: linear-gradient(135deg, #059669, #10b981); color: #fff;">
+                                ✨ Preview 16×16 Plate in 3D (Interactive Slicer &amp; STLs)
+                            </button>
+                            <button type="button" id="compileMatrix16StlBtn" class="action-btn" style="font-size: 11px; padding: 7px; color: #34d399; border-color: rgba(16, 185, 129, 0.5);">
+                                ⚙️ Recompile 16×16 Plate STLs &amp; 3MF
+                            </button>
+                            <div style="display: flex; gap: 6px;">
+                                <a href="/3d_panels/tpu_panel_front_multicolor.3mf" download="msep_matrix16_plate.3mf" class="action-btn primary" style="flex: 1; text-decoration: none; font-size: 10.5px; padding: 6px; background: linear-gradient(135deg, #1f6feb, #388bfd); color: #fff; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 4px;" title="Download native Bambu Studio / OrcaSlicer project with inlays, lenses & frame">
+                                    🖨️ Bambu .3MF
+                                </a>
+                                <a href="/3d_panels/tpu_panel_front_multicolor_bundle.zip" download="msep_matrix16_stls.zip" class="action-btn" style="flex: 1; text-decoration: none; font-size: 10.5px; padding: 6px; color: #34d399; border-color: #10b981; display: flex; align-items: center; justify-content: center; gap: 4px;" title="Download all split STLs ZIP">
+                                    📦 Multi-STL ZIP
+                                </a>
+                                <a href="/3d_panels/tpu_panel_front.stl" download="msep_matrix16_monolithic.stl" class="action-btn" style="flex: 1; text-decoration: none; font-size: 10.5px; padding: 6px; color: #ffb703; border-color: #d29922; display: flex; align-items: center; justify-content: center; gap: 4px;" title="Download single monolithic plate STL">
+                                    ⬇️ Mono STL
+                                </a>
+                            </div>
+                            <div style="display: flex; gap: 6px;">
+                                <a href="/3d_panels/color_clear_layer.stl" download="matrix16_clear_diffuser.stl" class="action-btn" style="flex: 1; text-decoration: none; font-size: 10px; padding: 4px; color: #38bdf8; border-color: #388bfd; display: flex; align-items: center; justify-content: center; gap: 3px;" title="Download 0.40mm cross-ply clear diffuser layer STL">
+                                    ✨ Diffuser STL
+                                </a>
+                                <a href="/3d_panels/rear_retaining_frame.stl" download="matrix16_rear_frame.stl" class="action-btn" style="flex: 1; text-decoration: none; font-size: 10px; padding: 4px; color: #facc15; border-color: #eab308; display: flex; align-items: center; justify-content: center; gap: 3px;" title="Download rear centering frame & lip STL">
+                                    🖼️ Frame STL
+                                </a>
+                                <a href="/3d_panels/color_lenses.stl" download="matrix16_lenses.stl" class="action-btn" style="flex: 1; text-decoration: none; font-size: 10px; padding: 4px; color: #c084fc; border-color: #a855f7; display: flex; align-items: center; justify-content: center; gap: 3px;" title="Download translucent light pipe lenses STL">
+                                    💎 Lenses STL
+                                </a>
+                            </div>
+                        </div>
+                        <div id="matrix16CompileStatus" style="display: none; margin-top: 6px; font-size: 10.5px; color: #34d399; padding: 4px 8px; background: rgba(16, 185, 129, 0.1); border-radius: 4px;">
+                            <!-- Live status text -->
+                        </div>
+                    </div>
+
+                    <!-- 3D-Printable Wearable TPU Armor Panels (Legacy Prototype Fairy Light Trays) -->
+                    <div class="control-section legacy-hardware-only" style="border: 1px solid #00ff88; background: rgba(0, 255, 136, 0.06); border-radius: 8px;">
                         <div class="section-title" style="color: #00ff88; display: flex; align-items: center; justify-content: space-between;">
                             <span>🎽 3D-Printable TPU Armor Panels</span>
                             <span style="font-size: 10px; background: rgba(0, 255, 136, 0.2); color: #00ff88; padding: 2px 6px; border-radius: 10px; font-weight: 600; border: 1px solid rgba(0, 255, 136, 0.4);">95A TPU • DUAL PANELS</span>
@@ -2956,20 +3034,20 @@
             <div style="padding: 5px 14px; background: #0d1117; border-bottom: 1px solid #21262d; display: flex; align-items: center; justify-content: space-between; gap: 6px; flex-wrap: nowrap; overflow-x: auto; z-index: 9; flex-shrink: 0;">
                 <div style="display: flex; align-items: center; gap: 6px; flex-wrap: nowrap;">
                     <!-- Front / Back Variant Switcher Pill -->
-                    <div style="display: inline-flex; align-items: center; background: #161b22; border: 1px solid #30363d; border-radius: 6px; padding: 2px; gap: 2px;" title="Switch between Front Chest and Back Torso Plate">
+                    <div class="legacy-hardware-only" style="display: inline-flex; align-items: center; background: #161b22; border: 1px solid #30363d; border-radius: 6px; padding: 2px; gap: 2px;" title="Switch between Front Chest and Back Torso Plate">
                         <button type="button" id="tpuModalSelectFrontBtn" onclick="switchTpuModalVariant('front')" style="border: none; border-radius: 4px; padding: 3px 8px; font-size: 11px; font-weight: 700; cursor: pointer; background: #00ff88; color: #000; transition: all 0.15s ease;">🎽 Front</button>
                         <button type="button" id="tpuModalSelectBackBtn" onclick="switchTpuModalVariant('back')" style="border: none; border-radius: 4px; padding: 3px 8px; font-size: 11px; font-weight: 500; cursor: pointer; background: transparent; color: #8b949e; transition: all 0.15s ease;">🎒 Back</button>
                     </div>
 
                     <!-- Tray Basin vs Rear Lid vs 16x16 Matrix Square Plate Switcher Pill -->
-                    <div style="display: inline-flex; align-items: center; background: #161b22; border: 1px solid #30363d; border-radius: 6px; padding: 2px; gap: 2px;" title="Switch between Main Armor Tray, 2.0mm Rear Cover Lid, and 176x176mm 16x16 Matrix Backlight Plate">
+                    <div class="legacy-hardware-only" style="display: inline-flex; align-items: center; background: #161b22; border: 1px solid #30363d; border-radius: 6px; padding: 2px; gap: 2px;" title="Switch between Main Armor Tray, 2.0mm Rear Cover Lid, and 176x176mm 16x16 Matrix Backlight Plate">
                         <button type="button" id="tpuModalDisplayTrayBtn" onclick="switchTpuDisplayMode('tray')" style="border: none; border-radius: 4px; padding: 3px 8px; font-size: 11px; font-weight: 700; cursor: pointer; background: #00ff88; color: #000; transition: all 0.15s ease;">📦 Tray Basin</button>
                         <button type="button" id="tpuModalDisplayLidBtn" onclick="switchTpuDisplayMode('lid')" style="border: none; border-radius: 4px; padding: 3px 8px; font-size: 11px; font-weight: 500; cursor: pointer; background: transparent; color: #8b949e; transition: all 0.15s ease;">🛡️ Rear Lid (2mm)</button>
                         <button type="button" id="tpuModalDisplayMatrix16Btn" onclick="switchTpuDisplayMode('matrix16')" style="border: none; border-radius: 4px; padding: 3px 8px; font-size: 11px; font-weight: 500; cursor: pointer; background: transparent; color: #8b949e; transition: all 0.15s ease;">🔲 16×16 Matrix Plate</button>
                     </div>
 
                     <!-- 16x16 Matrix Square Plate Thickness Pill (Default 0.60mm) -->
-                    <div id="tpuModalThicknessPill" style="display: inline-flex; align-items: center; background: #161b22; border: 1px solid #10b981; border-radius: 6px; padding: 2px; gap: 2px;" title="Select 176x176mm Backlight Plate Thickness (Full-Z Color Inlays) and auto-regenerate STL/3MF">
+                    <div id="tpuModalThicknessPill" class="matrix16-hardware-only" style="display: inline-flex; align-items: center; background: #161b22; border: 1px solid #10b981; border-radius: 6px; padding: 2px; gap: 2px;" title="Select 176x176mm Backlight Plate Thickness (Full-Z Color Inlays) and auto-regenerate STL/3MF">
                         <span style="font-size: 10px; color: #6ee7b7; padding: 0 5px; font-weight: 700;">📏 Z:</span>
                         <button type="button" id="tpuModalThick048Btn" onclick="setTpuMatrixThickness(0.48)" style="border: none; border-radius: 4px; padding: 3px 6px; font-size: 11px; font-weight: 500; cursor: pointer; background: transparent; color: #8b949e; transition: all 0.15s ease;">0.48mm</button>
                         <button type="button" id="tpuModalThick060Btn" onclick="setTpuMatrixThickness(0.60)" style="border: none; border-radius: 4px; padding: 3px 6px; font-size: 11px; font-weight: 700; cursor: pointer; background: #10b981; color: #000; transition: all 0.15s ease;">0.60mm ★</button>
@@ -2978,7 +3056,7 @@
                     </div>
 
                     <!-- 16x16 Matrix LED Standoff Gap & Ledge Frame Pill (Default 3mm) -->
-                    <div id="tpuModalGapPill" style="display: inline-flex; align-items: center; background: #161b22; border: 1px solid #10b981; border-radius: 6px; padding: 2px; gap: 2px;" title="Select LED Standoff Gap from Front Panel (2mm wide, 1mm thick internal ledge): 0, 1, 2, 3mm ★ Default, 4, 5mm">
+                    <div id="tpuModalGapPill" class="matrix16-hardware-only" style="display: inline-flex; align-items: center; background: #161b22; border: 1px solid #10b981; border-radius: 6px; padding: 2px; gap: 2px;" title="Select LED Standoff Gap from Front Panel (2mm wide, 1mm thick internal ledge): 0, 1, 2, 3mm ★ Default, 4, 5mm">
                         <span style="font-size: 10px; color: #6ee7b7; padding: 0 5px; font-weight: 700;">📏 Gap:</span>
                         <button type="button" id="tpuModalGap0Btn" onclick="setTpuMatrixGap(0)" style="border: none; border-radius: 4px; padding: 3px 6px; font-size: 11px; font-weight: 500; cursor: pointer; background: transparent; color: #8b949e; transition: all 0.15s ease;">0mm</button>
                         <button type="button" id="tpuModalGap1Btn" onclick="setTpuMatrixGap(1)" style="border: none; border-radius: 4px; padding: 3px 6px; font-size: 11px; font-weight: 500; cursor: pointer; background: transparent; color: #8b949e; transition: all 0.15s ease;">1mm</button>
@@ -2989,7 +3067,7 @@
                     </div>
 
                     <!-- 16x16 Matrix 160x160mm Clear Backing Layer Pill -->
-                    <div id="tpuModalClearLayerPill" style="display: inline-flex; align-items: center; background: #161b22; border: 1px solid #38bdf8; border-radius: 6px; padding: 2px; gap: 2px;" title="Select 160x160mm Clear Backing/Diffuser Layer directly behind the graphic (exported as color_clear_layer.stl)">
+                    <div id="tpuModalClearLayerPill" class="matrix16-hardware-only" style="display: inline-flex; align-items: center; background: #161b22; border: 1px solid #38bdf8; border-radius: 6px; padding: 2px; gap: 2px;" title="Select 160x160mm Clear Backing/Diffuser Layer directly behind the graphic (exported as color_clear_layer.stl)">
                         <span style="font-size: 10px; color: #7dd3fc; padding: 0 5px; font-weight: 700;">✨ Clear:</span>
                         <button type="button" id="tpuModalClear0Btn" onclick="setTpuMatrixClearLayer(0)" style="border: none; border-radius: 4px; padding: 3px 6px; font-size: 11px; font-weight: 500; cursor: pointer; background: transparent; color: #8b949e; transition: all 0.15s ease;">None</button>
                         <button type="button" id="tpuModalClear02Btn" onclick="setTpuMatrixClearLayer(0.2)" style="border: none; border-radius: 4px; padding: 3px 6px; font-size: 11px; font-weight: 500; cursor: pointer; background: transparent; color: #8b949e; transition: all 0.15s ease;">0.2mm</button>
@@ -3000,21 +3078,21 @@
                     </div>
 
                     <!-- 16x16 Matrix Translucent Light-Pipe Lenses Pill -->
-                    <div id="tpuModalLensesPill" style="display: inline-flex; align-items: center; background: #161b22; border: 1px solid #38bdf8; border-radius: 6px; padding: 2px; gap: 2px;" title="Toggle Translucent White Lens Cylinders / Light Pipes bridging the air gap from LEDs to front panel surface">
+                    <div id="tpuModalLensesPill" class="matrix16-hardware-only" style="display: inline-flex; align-items: center; background: #161b22; border: 1px solid #38bdf8; border-radius: 6px; padding: 2px; gap: 2px;" title="Toggle Translucent White Lens Cylinders / Light Pipes bridging the air gap from LEDs to front panel surface">
                         <span style="font-size: 10px; color: #7dd3fc; padding: 0 5px; font-weight: 700;">💎 Lenses:</span>
                         <button type="button" id="tpuModalLensesOnBtn" onclick="setTpuMatrixLenses(true)" style="border: none; border-radius: 4px; padding: 3px 6px; font-size: 11px; font-weight: 700; cursor: pointer; background: #38bdf8; color: #000; transition: all 0.15s ease;">ON ★</button>
                         <button type="button" id="tpuModalLensesOffBtn" onclick="setTpuMatrixLenses(false)" style="border: none; border-radius: 4px; padding: 3px 6px; font-size: 11px; font-weight: 500; cursor: pointer; background: transparent; color: #8b949e; transition: all 0.15s ease;">OFF</button>
                     </div>
 
                     <!-- 16x16 Matrix Rear Frame & Lip Pill -->
-                    <div id="tpuModalFramePill" style="display: inline-flex; align-items: center; background: #161b22; border: 1px solid #facc15; border-radius: 6px; padding: 2px; gap: 2px;" title="Toggle Rear Retaining Frame & 2mm Internal Supporting Lip (ON holds 160x160mm LED panel centered and away from LEDs; OFF produces zero wall/lip while keeping lenses at chosen length)">
+                    <div id="tpuModalFramePill" class="matrix16-hardware-only" style="display: inline-flex; align-items: center; background: #161b22; border: 1px solid #facc15; border-radius: 6px; padding: 2px; gap: 2px;" title="Toggle Rear Retaining Frame & 2mm Internal Supporting Lip (ON holds 160x160mm LED panel centered and away from LEDs; OFF produces zero wall/lip while keeping lenses at chosen length)">
                         <span style="font-size: 10px; color: #fde047; padding: 0 5px; font-weight: 700;">🖼️ Frame &amp; Lip:</span>
                         <button type="button" id="tpuModalFrameOnBtn" onclick="setTpuMatrixFrame(true)" style="border: none; border-radius: 4px; padding: 3px 6px; font-size: 11px; font-weight: 700; cursor: pointer; background: #facc15; color: #000; transition: all 0.15s ease;">ON ★</button>
                         <button type="button" id="tpuModalFrameOffBtn" onclick="setTpuMatrixFrame(false)" style="border: none; border-radius: 4px; padding: 3px 6px; font-size: 11px; font-weight: 500; cursor: pointer; background: transparent; color: #8b949e; transition: all 0.15s ease;">OFF</button>
                     </div>
 
                     <!-- 16x16 Matrix Rounded Plate Corners Pill -->
-                    <div id="tpuModalCornersPill" style="display: inline-flex; align-items: center; background: #161b22; border: 1px solid #c084fc; border-radius: 6px; padding: 2px; gap: 2px;" title="Toggle 6mm Soft Rounded Corners on the 176x176mm Armor Plate">
+                    <div id="tpuModalCornersPill" class="matrix16-hardware-only" style="display: inline-flex; align-items: center; background: #161b22; border: 1px solid #c084fc; border-radius: 6px; padding: 2px; gap: 2px;" title="Toggle 6mm Soft Rounded Corners on the 176x176mm Armor Plate">
                         <span style="font-size: 10px; color: #c084fc; padding: 0 5px; font-weight: 700;">⭕ Corners:</span>
                         <button type="button" id="tpuModalCornersRoundedBtn" onclick="setTpuMatrixCorners(true)" style="border: none; border-radius: 4px; padding: 3px 6px; font-size: 11px; font-weight: 700; cursor: pointer; background: #c084fc; color: #000; transition: all 0.15s ease;" title="6mm Soft Anti-Snag Fillet">Rounded ★</button>
                         <button type="button" id="tpuModalCornersSharpBtn" onclick="setTpuMatrixCorners(false)" style="border: none; border-radius: 4px; padding: 3px 6px; font-size: 11px; font-weight: 500; cursor: pointer; background: transparent; color: #8b949e; transition: all 0.15s ease;" title="Sharp 90° Square Corners">Sharp</button>
@@ -3030,25 +3108,25 @@
                     </div>
 
                     <!-- Alignment / Orientation Switcher Pill -->
-                    <div style="display: inline-flex; align-items: center; background: #161b22; border: 1px solid #30363d; border-radius: 6px; padding: 2px; gap: 2px;" title="Align LED wells horizontally or tangent to the wiring path">
+                    <div class="legacy-hardware-only" style="display: inline-flex; align-items: center; background: #161b22; border: 1px solid #30363d; border-radius: 6px; padding: 2px; gap: 2px;" title="Align LED wells horizontally or tangent to the wiring path">
                         <button type="button" id="tpuModalOrientHorizBtn" onclick="setTpuWellOrientation('horizontal')" style="border: none; border-radius: 4px; padding: 3px 7px; font-size: 11px; font-weight: 700; cursor: pointer; background: #00ff88; color: #000; transition: all 0.15s ease;">↔️ Horiz</button>
                         <button type="button" id="tpuModalOrientTangentBtn" onclick="setTpuWellOrientation('tangent')" style="border: none; border-radius: 4px; padding: 3px 7px; font-size: 11px; font-weight: 500; cursor: pointer; background: transparent; color: #8b949e; transition: all 0.15s ease;">〰️ Tangent</button>
                     </div>
 
                     <!-- LED Numbers Switcher -->
-                    <div style="display: inline-flex; align-items: center; background: #161b22; border: 1px solid #30363d; border-radius: 6px; padding: 2px; gap: 2px;" title="Deboss LED numbers into the underside of the STL (regenerates STL)">
+                    <div class="legacy-hardware-only" style="display: inline-flex; align-items: center; background: #161b22; border: 1px solid #30363d; border-radius: 6px; padding: 2px; gap: 2px;" title="Deboss LED numbers into the underside of the STL (regenerates STL)">
                         <button type="button" id="tpuModalNumbersOnBtn" onclick="setTpuLedNumbers(true)" style="border: none; border-radius: 4px; padding: 3px 7px; font-size: 11px; font-weight: 500; cursor: pointer; background: transparent; color: #8b949e; transition: all 0.15s ease;">🔢 #</button>
                         <button type="button" id="tpuModalNumbersOffBtn" onclick="setTpuLedNumbers(false)" style="border: none; border-radius: 4px; padding: 3px 7px; font-size: 11px; font-weight: 700; cursor: pointer; background: #00ff88; color: #000; transition: all 0.15s ease;">🚫 No #</button>
                     </div>
 
                     <!-- Top-Nub Detents & Wire Retention Roofs for PLA Snap Clips -->
-                    <div style="display: inline-flex; align-items: center; background: #161b22; border: 1px solid #30363d; border-radius: 6px; padding: 2px; gap: 2px;" title="0.70mm nubs on collar + 2mm wire retention roof overhangs">
+                    <div class="legacy-hardware-only" style="display: inline-flex; align-items: center; background: #161b22; border: 1px solid #30363d; border-radius: 6px; padding: 2px; gap: 2px;" title="0.70mm nubs on collar + 2mm wire retention roof overhangs">
                         <button type="button" id="tpuModalTopNubsOnBtn" onclick="setTpuTopNubs(true)" style="border: none; border-radius: 4px; padding: 3px 7px; font-size: 11px; font-weight: 500; cursor: pointer; background: transparent; color: #8b949e; transition: all 0.15s ease;">🔘 Nubs &amp; Roofs</button>
                         <button type="button" id="tpuModalTopNubsOffBtn" onclick="setTpuTopNubs(false)" style="border: none; border-radius: 4px; padding: 3px 7px; font-size: 11px; font-weight: 700; cursor: pointer; background: #00ff88; color: #000; transition: all 0.15s ease;">🚫 No Nubs</button>
                     </div>
 
                     <!-- LED Well Base Clip Groove Toggle -->
-                    <div style="display: inline-flex; align-items: center; background: #161b22; border: 1px solid #30363d; border-radius: 6px; padding: 2px; gap: 2px;" title="0.7mm undercut retention groove at collar base (Warning: weakens rigid PLA walls)">
+                    <div class="legacy-hardware-only" style="display: inline-flex; align-items: center; background: #161b22; border: 1px solid #30363d; border-radius: 6px; padding: 2px; gap: 2px;" title="0.7mm undercut retention groove at collar base (Warning: weakens rigid PLA walls)">
                         <button type="button" id="tpuModalGroovesOnBtn" onclick="setTpuClipGrooves(true)" style="border: none; border-radius: 4px; padding: 3px 7px; font-size: 11px; font-weight: 500; cursor: pointer; background: transparent; color: #8b949e; transition: all 0.15s ease;">🗜️ Grooves</button>
                         <button type="button" id="tpuModalGroovesOffBtn" onclick="setTpuClipGrooves(false)" style="border: none; border-radius: 4px; padding: 3px 7px; font-size: 11px; font-weight: 700; cursor: pointer; background: #00ff88; color: #000; transition: all 0.15s ease;">🧱 Solid Walls</button>
                     </div>
@@ -3144,6 +3222,6 @@
     </div>
 
     <script src="led_clearance.js?v=2"></script>
-    <script src="app.js?v=106"></script>
+    <script src="app.js?v=107"></script>
 </body>
 </html>

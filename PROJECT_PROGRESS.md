@@ -93,6 +93,24 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### 2026-10-30: Simulator UI Modernization — 16×16 LED Matrix Default Hardware Standard & Decluttered Workspace
+- **Global Hardware Architecture Switcher in Top Navigation Bar:**
+  - Added a dedicated, segmented header control (`[ 🔲 16×16 Matrix (Default) ]` | `[ 🧵 Fairy Lights (Legacy) ]`) pinned next to the Single / Fleet view buttons and Castle Photo Mode, visible across all tabs.
+  - Persists runner preference across browser sessions via `localStorage.getItem('msep_hardware_architecture')`.
+  - Automatically updates `<body>` CSS classes (`.hw-mode-matrix16` vs `.hw-mode-legacy`), cleanly toggling scoped DOM elements without code deletion.
+- **Layout Tab Decluttering & 16×16 Matrix Elevation:**
+  - When in 16×16 Matrix Mode (Default), completely hides legacy fairy light controls: target LED count slider (50–100), re-distribute button, wiring sequence selector, 10cm slack wiring route optimizer, wire tension heatmap, vinyl pill cutouts, and bilateral symmetry.
+  - Hides prototype Cricut HTV cut SVG exporter button (`exportCricutSvgBtn`).
+  - Elevates the 16×16 Matrix Configuration section to first-class primary status, displaying active counts for Windowed through-hole LEDs (0–200) and Backlit diffused LEDs (0–200).
+  - Designed a handsome, collapsible **⚙️ 3D Plate & Slicer Parameters Card** (`#btfMatrix3dParamsCard`) displaying live summary chips (`(0.60mm • 3mm Gap • 0.4mm Clear)`) and providing instant tuning for plate thickness, standoff gap, clear cross-ply diffuser layer, translucent light pipes, rear centering frame, and soft 6mm anti-snag rounded corners.
+- **Deploy Tab Restructuring & Dedicated 16×16 Fabrication Section:**
+  - Replaced legacy 10mm flexible TPU armor panel download cards (185mm front / 240mm back) with a dedicated **🔲 3D-Printable 16×16 Backlight Armor Plate** section (`.matrix16-hardware-only`).
+  - Added direct 1-click download actions for native Bambu/OrcaSlicer `.3MF` projects, 5-color split STLs ZIP, monolithic square plate STL, clear cross-ply diffuser backing STL, and rear centering frame STL.
+  - Connected 3D preview button to load the Three.js 3D modal directly in `matrix16` mode.
+- **3D Preview Modal Clean-up:**
+  - In 16×16 Matrix Mode, hides legacy pocket pills (underside debossed numbers, collar clip grooves, top-nub retention roofs, and alignment angles).
+  - Customizes modal footer download select dropdown to offer the clear diffuser layer, rear frame, and translucent lens STLs.
+
 ### 2026-10-30: BTF 16x16 Matrix GRB Color Byte Order Calibration, Strict Window/Backlight Indexing & USB Soft-Start Protection
 - **Hardware Color Byte Order Calibration (`GRB` vs `RGB`):**
   - Identified that while the 5V WS2812B "Seed / Pebble" strings use `RGB` byte order, the **BTF-LIGHTING 16x16 WS2812B Flexible Matrix Panel** uses standard 5050 SMD pixels with **`GRB`** (Green-Red-Blue) hardware byte order.

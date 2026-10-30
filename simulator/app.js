@@ -15952,12 +15952,101 @@ window.initBtfStripPreview = initBtfStripPreview;
 window.computeBtfStripMatrix = computeBtfStripMatrix;
 
 // ============================================================================
-// 🔲 BTF-LIGHTING WS2812B ECO 16×16 (256-PIXEL) FLEXIBLE FPCB MATRIX
+// 🔲 BTF-LIGHTING WS2812B ECO 16×16 (256-PIXEL) FLEXIBLE FPCB MATRIX (DEFAULT)
 // HYBRID WINDOW (~50 LEDs) + THIN-PLA BACKLIGHT (~25 LEDs) + DARK (~181 LEDs)
 // Physical Matrix: 160.0 × 160.0mm (10.0mm pitch)
 // 3D Square Cover Plate: 176.0 × 176.0mm (8.0mm border with 16 Ø2.8mm shirt holes)
 // ============================================================================
-let btfMatrix16x16Active = false;
+let currentHardwareMode = 'matrix16';
+try {
+    const savedHwMode = localStorage.getItem('msep_hardware_architecture');
+    if (savedHwMode === 'legacy') {
+        currentHardwareMode = 'legacy';
+    } else {
+        currentHardwareMode = 'matrix16';
+    }
+} catch (e) {
+    currentHardwareMode = 'matrix16';
+}
+let btfMatrix16x16Active = (currentHardwareMode === 'matrix16');
+
+function setHardwareArchitectureMode(mode, savePref = true) {
+    if (mode !== 'matrix16' && mode !== 'legacy') mode = 'matrix16';
+    currentHardwareMode = mode;
+    if (savePref) {
+        try {
+            localStorage.setItem('msep_hardware_architecture', mode);
+        } catch (e) {}
+    }
+
+    const isMatrix = (mode === 'matrix16');
+    btfMatrix16x16Active = isMatrix;
+
+    // Update body CSS class
+    if (document.body) {
+        document.body.classList.remove('hw-mode-matrix16', 'hw-mode-legacy');
+        document.body.classList.add(isMatrix ? 'hw-mode-matrix16' : 'hw-mode-legacy');
+    }
+
+    // Update header switcher buttons
+    const matrixBtn = document.getElementById('hwModeMatrix16Btn');
+    const legacyBtn = document.getElementById('hwModeLegacyBtn');
+    if (matrixBtn) matrixBtn.classList.toggle('active', isMatrix);
+    if (legacyBtn) legacyBtn.classList.toggle('active', !isMatrix);
+
+    // Keep internal toggle element in sync
+    const matToggle = document.getElementById('btfMatrix16x16Toggle');
+    const matCard = document.getElementById('btfMatrix16x16OptionsCard');
+    if (matToggle) matToggle.checked = isMatrix;
+    if (matCard) matCard.style.display = isMatrix ? 'block' : 'none';
+
+    // Set 3D modal display mode
+    tpuDisplayMode = isMatrix ? 'matrix16' : 'tray';
+
+    if (isMatrix) {
+        // Suppress strip preview if active
+        if (typeof btfStripPreviewActive !== 'undefined' && btfStripPreviewActive) {
+            btfStripPreviewActive = false;
+            const stripTog = document.getElementById('btfStripPreviewToggle');
+            const stripCard = document.getElementById('btfStripOptionsCard');
+            if (stripTog) stripTog.checked = false;
+            if (stripCard) stripCard.style.display = 'none';
+        }
+        computeBtfMatrix16x16Layout();
+    }
+
+    if (typeof markSingleShirtDirty === 'function') markSingleShirtDirty();
+    if (typeof draw === 'function') draw();
+    if (typeof updateBtfMatrix16x16TelemetryUI === 'function') updateBtfMatrix16x16TelemetryUI();
+
+    showToast(isMatrix 
+        ? "🔲 Switched to 16×16 Matrix Architecture (256 LEDs • 176×176mm Plate)"
+        : "🧵 Switched to Legacy Fairy Light & Pocket Architecture");
+}
+window.setHardwareArchitectureMode = setHardwareArchitectureMode;
+
+function toggleMatrix3dParamsCard() {
+    const body = document.getElementById('btfMatrix3dParamsBody');
+    const chevron = document.getElementById('btfMatrix3dParamsChevron');
+    if (!body) return;
+    const isClosed = (body.style.display === 'none' || body.style.display === '');
+    body.style.display = isClosed ? 'block' : 'none';
+    if (chevron) {
+        chevron.textContent = isClosed ? '▲ Collapse' : '▼ Expand';
+    }
+}
+window.toggleMatrix3dParamsCard = toggleMatrix3dParamsCard;
+
+function updateMatrix3dParamsSummary() {
+    const summary = document.getElementById('btfMatrix3dParamsSummary');
+    if (summary && typeof btfMatrix16x16Config !== 'undefined') {
+        const t = (btfMatrix16x16Config.thicknessMm || 0.60).toFixed(2);
+        const g = (btfMatrix16x16Config.gapMm !== undefined ? btfMatrix16x16Config.gapMm : 3.0).toFixed(0);
+        const c = (btfMatrix16x16Config.clearLayerMm !== undefined ? btfMatrix16x16Config.clearLayerMm : 0.4).toFixed(1);
+        summary.textContent = `(${t}mm • ${g}mm Gap • ${c}mm Clear)`;
+    }
+}
+window.updateMatrix3dParamsSummary = updateMatrix3dParamsSummary;
 let btfMatrix16x16Config = {
     windowCount: 50,
     backlightCount: 25,
@@ -17071,6 +17160,24 @@ function setTpuMatrixCorners(rounded) {
 window.setTpuMatrixCorners = setTpuMatrixCorners;
 
 function initBtfMatrix16x16Mode() {
+    // Sync active hardware architecture state on load
+    setHardwareArchitectureMode(currentHardwareMode, false);
+    updateMatrix3dParamsSummary();
+
+    const openMat16Btn = document.getElementById('openMatrix16PreviewBtn');
+    if (openMat16Btn) {
+        openMat16Btn.addEventListener('click', () => {
+            tpuDisplayMode = 'matrix16';
+            openTpuPreviewModal();
+        });
+    }
+
+    const compMat16Btn = document.getElementById('compileMatrix16StlBtn');
+    if (compMat16Btn) {
+        compMat16Btn.addEventListener('click', () => {
+            handleRecompileTpuStl({ skipOpen: false });
+        });
+    }
     const toggle = document.getElementById('btfMatrix16x16Toggle');
     const card = document.getElementById('btfMatrix16x16OptionsCard');
     const winSlider = document.getElementById('btfMatrixWindowCountSlider');
@@ -23630,7 +23737,14 @@ function updateTpuDownloadButtons() {
             const customDlName = `${baseName}_${inl.key}.stl`;
             individualOptions += `<option value="/3d_panels/${serverPath}" data-download="${customDlName}">${idx + 2}. ${inl.name} STL</option>`;
         });
-        individualOptions += `<option value="/3d_panels/tpu_panel_${v}_lid.stl" data-download="${lidFilename}">🛡️ Rear Cover Lid (2.0mm Plate)</option>`;
+        const isMat16Multi = (tpuDisplayMode === 'matrix16' || (typeof btfMatrix16x16Active !== 'undefined' && btfMatrix16x16Active));
+        if (isMat16Multi) {
+            individualOptions += `<option value="/3d_panels/color_clear_layer.stl" data-download="${baseName}_diffuser_0.4mm.stl">✨ Clear Diffuser Layer (0.4mm)</option>`;
+            individualOptions += `<option value="/3d_panels/rear_retaining_frame.stl" data-download="${baseName}_rear_frame.stl">🖼️ Rear Centering Frame &amp; Lip</option>`;
+            individualOptions += `<option value="/3d_panels/color_lenses.stl" data-download="${baseName}_lenses.stl">💎 Translucent Lens Light Pipes</option>`;
+        } else {
+            individualOptions += `<option value="/3d_panels/tpu_panel_${v}_lid.stl" data-download="${lidFilename}">🛡️ Rear Cover Lid (2.0mm Plate)</option>`;
+        }
 
         container.innerHTML = `
             <a href="/3d_panels/tpu_panel_${v}_multicolor_bundle.zip?t=${ts}" download="${bundleFilename}" class="action-btn primary" style="padding: 6px 12px; font-size: 11px; background: linear-gradient(135deg, #1f6feb, #388bfd); color: #fff; font-weight: 600; text-decoration: none; display: inline-flex; align-items: center; gap: 4px;" title="Download all STLs (including 2mm Rear Lid), 3MF project, and slicer instructions">
@@ -24078,6 +24192,12 @@ async function handleRecompileTpuStl(opts) {
     const statusEl = document.getElementById('tpuCompileStatus');
     const compileBtn = document.getElementById('compileTpuStlBtn');
     const isMatrix16 = (typeof btfMatrix16x16Active !== 'undefined' && (btfMatrix16x16Active || tpuDisplayMode === 'matrix16'));
+    const mat16StatusEl = document.getElementById('matrix16CompileStatus');
+    if (mat16StatusEl && isMatrix16) {
+        mat16StatusEl.style.display = 'block';
+        mat16StatusEl.style.color = '#58a6ff';
+        mat16StatusEl.textContent = `⚙️ Compiling 176×176×${(btfMatrix16x16Config.thicknessMm || 0.60).toFixed(2)}mm 16×16 Matrix Plate...`;
+    }
     if (statusEl) {
         statusEl.style.display = 'block';
         statusEl.style.color = '#58a6ff';
@@ -24161,6 +24281,12 @@ async function handleRecompileTpuStl(opts) {
             if (statusEl) {
                 statusEl.style.color = '#00ff88';
                 statusEl.textContent = `✅ Compiled ${data.float_name || floatName} STL (${(data.stl_size / 1024 / 1024).toFixed(2)} MB)!`;
+            }
+            const m16El = document.getElementById('matrix16CompileStatus');
+            if (m16El && isMatrix16) {
+                m16El.style.display = 'block';
+                m16El.style.color = '#34d399';
+                m16El.textContent = `✓ ${data.float_name || floatName} 176×176×${payload.plateThicknessMm.toFixed(2)}mm Plate compiled!`;
             }
             showToast(isMatrix16
                 ? `✨ ${data.float_name || floatName} 176×176×${payload.plateThicknessMm.toFixed(2)}mm Square Backlight Plate compiled!`

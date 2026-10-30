@@ -111,12 +111,29 @@ The central workspace renders an interactive, hardware-accelerated preview of yo
 
 The simulator features a streamlined, modern workspace inspired by creative suites (After Effects, Figma, Blender), replacing long vertical scrolling with **6 task-oriented tabs** and an **intelligent contextual inspector dock**:
 
+### 🔲 Global Hardware Architecture Switcher (Top Header Bar)
+Located in the global header next to the Single / Fleet view buttons and Castle Photo Mode, this switcher establishes the hardware target for the entire simulator:
+- **`🔲 16×16 Matrix (Default)`**: Sets the production-standard **BTF-LIGHTING 16×16 Flexible FPCB Matrix** as active. Streamlines both the Layout and Deploy tabs by hiding prototype-phase fairy-light controls (wire tension routing, scatter sliders, Cricut SVG pill cutters, flexible TPU trays) and elevating the 16×16 matrix configuration and 176×176mm square backlight plate directly to the forefront.
+- **`🧵 Fairy Lights (Legacy)`**: Restores full access to the legacy prototype workflow (100 freeform LEDs, 10cm slack wiring route optimizer, wire tension heatmap, 6×3mm vinyl weave pill cutouts, Cricut HTV cut SVG exporter, and flexible dual TPU armor trays).
+
 ### The 6 Sidebar Tabs (2-Row Grid Layout)
 The sidebar navigation is organized into a clean **2-row × 3-column grid** that guarantees all 6 task buttons fit comfortably inside the 410px sidebar without any button clipping or horizontal scrolling:
 - **Row 1:** `🎨 Layout` | `✨ Ambient` | `👥 Groups`
 - **Row 2:** `🎬 Float Show` | `🏃 Fleet` | `⚡ Deploy`
 
 1. **🎨 Tab 1: Layout ("The Canvas Studio"):**
+   - **🔲 16×16 Matrix Configuration (Primary in Default Mode):**
+     - **Hybrid 256-LED Allocation (Windowed / Backlit / Dark):** Interactive count sliders (`0–200`) for 🔆 **Windowed LEDs** (through-hole apertures for crisp point-source sparkles) and ✨ **Backlit LEDs** (diffused subsurface glow shining through thin colored PLA at 50% brightness), with remaining pixels kept dark.
+     - **Quick Allocation Presets:** Direct 1-click actions: `🎯 Spread 50 Win + 25 Glow`, `💡 Auto-Backlight Colored Areas (Keep Windows & Black Dark)`, and `🔄 Reset Counts`.
+     - **⚙️ Collapsible 3D Plate & Slicer Parameters Card:** Expandable settings card tucked neatly above presets allowing instant fine-tuning of 3D print specs:
+       - **Plate Thickness (Full-Z Inlays):** `0.48mm`, `0.60mm ★` (Default), `0.80mm`, `1.00mm`.
+       - **LED Standoff Gap (Internal Ledge):** `0mm`, `1mm`, `2mm`, `3mm ★` (Default), `4mm`, `5mm`.
+       - **160×160mm Clear Diffuser Layer:** `None`, `0.2mm`, `0.4mm ★` (Default cross-ply), `0.6mm`, `0.8mm`, `1.0mm`.
+       - **Translucent Light Pipes / Lenses:** Toggle `ON ★` / `OFF`.
+       - **Rear Retaining Frame & Lip:** Toggle `ON ★` / `OFF`.
+       - **Soft Rounded Corners (6mm Fillet):** Toggle `Rounded ★` / `Sharp 90°`.
+     - **Live 256-Pixel Telemetry Card:** Real-time feedback showing Windowed, Backlit, and Dark LED counts, plate geometry (`176×176×0.60mm`), and peak current consumption (`~1.35A max @ 5V` safe for 2.0A battery limit).
+     - **Direct 3D Preview Button:** `🧊 Open 3D Square Plate Preview` launches the Three.js 3D modal directly in 176×176mm square plate mode.
    - **🎭 Active Parade Float Banner & 7-Shirt Quick Switcher:** Unmistakable banner at the very top of the Layout tab showing exactly which float is being edited: Float number (#01 to #07), character name, parade role (`👑 Fleet Leader (Broadcast)` / `📡 Follower Float`), signature accent color, and lineup tag.
    - **⚡ 7-Button Float Switcher Grid:** Direct 1-click switcher buttons (`[ 1 ]` through `[ 7 ]`) featuring live glowing indicator dots in each float's signature color. Seamlessly switch between Casey Jr., Title Drum, Turtle, Snail, Pirate Ship, Pete's Dragon, and To Honor America with unsaved-change protection!
    - **🏷️ Top Navigation & Canvas Watermark Badge:** The top navigation tab updates dynamically (`👕 Single Shirt (#6 Elliott)`), while a translucent floating watermark badge in the top-left canvas corner keeps the active float number and name clearly visible while positioning LEDs.
@@ -208,6 +225,17 @@ The sidebar navigation is organized into a clean **2-row × 3-column grid** that
    - **1-Click Bidirectional Editing:** Jump any runner's preset directly into the Single Shirt editor (`✏️ Edit in Single View`), or copy the active single-shirt editor design to any runner or all 7 runners (`📥 Assign Editor`).
 
 6. **⚡ Tab 6: Deploy ("The Workshop & Hardware Hub"):**
+   - **🔲 3D-Printable 16×16 Backlight Armor Plate (Production Standard):**
+     - Direct download links for Snapmaker U1 (270×270mm) & Bambu Lab (250×250mm) fabrication:
+       - `🖨️ Bambu .3MF`: Native multi-material project file with pre-assigned filament slots for chassis, color inlays, diffuser, lenses, and rear centering frame.
+       - `📦 Multi-STL ZIP`: Standalone binary STLs split by color component.
+       - `⬇️ Monolithic Plate STL`: Single-extruder solid black plate STL.
+       - `✨ Clear Diffuser Backing STL`: 0.40mm dual-layer cross-ply diffuser sheet.
+       - `🖼️ Rear Centering Frame STL`: 5.0mm rear perimeter frame with 2mm internal supporting lip.
+       - `💎 Translucent Lenses STL`: Light-pipe cylinders spanning from matrix to front panel.
+     - `✨ Preview 16×16 Plate in 3D`: 1-Click launcher opening the interactive Three.js 3D inspection modal.
+     - `⚙️ Recompile 16×16 Plate STLs & 3MF`: Live background compilation trigger.
+   - **🎽 Legacy 3D TPU Armor Panels (Visible in Legacy Mode):** Dual 10.0mm flexible TPU armor panels (185mm Front / 240mm Back) with snap clips, wire channels, and debossed bulb pockets.
    - **USB Standalone Flashing (with Auto-Save Protection):** Auto-detected COM port, connection status badge, 1-Click Flash firmware, View/Copy C++ code modal. Automatically saves any unsaved float layout or 16×16 matrix changes to disk and updates `presets/fleet_lineup.json` before flashing or rebuilding ROMs so no work is ever lost.
    - **📡 Real-Time Wi-Fi Live Stream:** Stream live colors & animations directly to physical LEDs over Wi-Fi without flashing ROM. Wi-Fi credentials modal.
    - **Web Serial Flasher:** Quick launch button for zero-install browser-based flashing.
