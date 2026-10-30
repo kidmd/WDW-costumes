@@ -91,8 +91,21 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ---
 
-## Progress Log
-
+## Progress Log
+
+### 2026-10-30: ESP32 Hardware Flashing Verification & Port Suspension Recovery
+- **Flashing Issue Root Cause & Resolution:**
+  - Resolved PermissionError(13, 'A device attached to the system is not functioning.', None, 31) on COM5 (Silicon Labs CP210x).
+  - Identified root causes: Windows 11 ARM64 Qualcomm USB host selective suspend state (DeviceSelectiveSuspended: 1), serial port contention from background 3D slicer polling (snapmaker-orca), and BOOT pin state during cold plug-in.
+  - Terminated background zombie processes and performed a clean USB bus reset (power-up insertion without holding BOOT button; BOOT button pressed during active upload connection).
+- **Firmware Upload Success:**
+  - Board flashed via PlatformIO / esptool.py v4.11.0 to Board 1 (ESP32-D0WD-V3, MAC B0:CB:D8:C8:49:84) on COM5 at 460800 baud.
+  - Successfully written: Bootloader (17.5 KB), Partition Table (3.1 KB), Default Cert/OTADATA (8.2 KB), and Main Firmware (807.5 KB / 517.6 KB compressed).
+  - Hard reset executed via RTS pin; ESP32 booted with authentic color palette and 50% backlight scaling.
+
+
+
+
 ### 2026-10-30: Pete's Dragon 16x16 Matrix Color Preservation & 50% Backlight Dimming
 - **Artwork Color Preservation Across Animation Cues:**
   - Diagnosed and resolved character color distortions where Pete's Dragon's green body turned red and wings turned blue during timeline animation cues.
