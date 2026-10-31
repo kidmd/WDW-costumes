@@ -93,6 +93,28 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### 2026-10-30: Robust Float Saving & Loading Pipeline — Dedicated Load Button, Categorized Optgroups, Safe Deep-Clone Cache & 16×16 Hardware Mode Persistence
+- **Dedicated `[ 📂 Load ]` Button & Active Preset Confirmation:**
+  - Added an illuminated `[ 📂 Load ]` button (`#loadPresetBtn`) adjacent to `#presetSelect` on the Layout tab (Section 2: Save & Export Floats).
+  - Users can now reload the currently selected float file on demand (to discard exploratory tweaks or revert changes) without relying on dropdown change events.
+  - Added `#presetLoadedBadge` above the selector displaying `✓ <Preset Name>` with tooltip showing the active disk filename.
+- **Categorized Float Preset Selector (`refreshPresetDropdown`):**
+  - Re-architected `#presetSelect` with clear `<optgroup>` organization:
+    - `⭐ Official Float Presets (Defaults)`: Factory defaults for all 7 floats (The Train, Title Drum, Turtle, Snail, Pirate Ship, Pete's Dragon, Flag & Eagle).
+    - `💾 Custom Saved Floats (Disk)`: All user-saved float configurations on disk with active LED counts.
+    - `🌐 Browser Cache Presets (LocalStorage)`: Client-side local backups.
+- **Deep-Cloning Cache Isolation Standard (`getPresetDataForRunner` & `applyProfileData`):**
+  - Eliminated in-memory object reference mutations by deeply cloning all array and cue structures (`JSON.parse(JSON.stringify(...))`) when returning from `getPresetDataForRunner` and applying within `applyProfileData`.
+  - Moving LEDs or editing cues in the editor can no longer corrupt cached default presets.
+- **16×16 Matrix Hardware Mode Persistence:**
+  - Resolved an issue in `applyProfileData` where loading baseline presets (without matrix tags) turned off matrix mode. When in 16×16 mode (`currentHardwareMode === 'matrix16'`), `btfMatrix16x16Active` remains strictly enabled, automatically re-computes matrix layout for the new float graphic, and restores any custom saved windowed/backlit cell roles via `restoreSavedMatrix16x16Roles`.
+  - Guarded `scatterLedsOnGraphic` calls in `editRunnerInSingleView`, startup routines, and graphic preset fallbacks so fairy light scattering never executes when in 16×16 matrix mode.
+- **Active Runner Slot & Fleet Lineup Synchronization:**
+  - `loadProfile` now dynamically inspects `profileData.floatId` or matches official float roster presets to synchronize `activeSingleShirtRunnerSlot`, update the top float selector buttons (`updateActiveFloatUI`), and prevent cross-float lineup corruption.
+- **Microsecond Cache-Busting & Dirty State Cleansing:**
+  - Added `?t=${Date.now()}` to all preset API fetches to bypass HTTP 304 browser cache artifacts when saving and reloading presets.
+  - Removed false dirty flag calls on load (`isSingleShirtDirty = false`), cleared undo/redo stacks (`clearHistoryStacks()`), ensuring clean baseline states upon loading.
+
 ### 2026-10-30: Simulator UI Decluttering & Refinement — Top Header Artwork Modal, Scoped Graphic Modes, Fixed Race Bib & Groups Tab Inspector Dock
 - **Top Header Artwork Upload Modal:**
   - Migrated the custom artwork upload controls from the sidebar Layout tab into a dedicated, elegant modal (`#customArtworkModal`).

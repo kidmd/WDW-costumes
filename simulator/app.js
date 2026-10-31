@@ -4735,19 +4735,24 @@ const fleetPresetCache = {};
 
 const fleetPresetPromises = {};
 
-// Asynchronously load and cache preset data for a runner
+// Asynchronously load and cache preset data for a runner (isolated deep clones prevent cache tainting)
 async function getPresetDataForRunner(runner) {
     if (!runner) return null;
     const key = runner.preset;
     if (!key) return null;
-    if (fleetPresetCache[key]) return fleetPresetCache[key];
-    if (fleetPresetPromises[key]) return await fleetPresetPromises[key];
+    if (fleetPresetCache[key]) {
+        return JSON.parse(JSON.stringify(fleetPresetCache[key]));
+    }
+    if (fleetPresetPromises[key]) {
+        const d = await fleetPresetPromises[key];
+        return d ? JSON.parse(JSON.stringify(d)) : null;
+    }
 
     fleetPresetPromises[key] = (async () => {
         if (key.startsWith('server:')) {
             const filename = key.replace('server:', '');
             try {
-                const res = await fetch(`/api/preset/${encodeURIComponent(filename)}`);
+                const res = await fetch(`/api/preset/${encodeURIComponent(filename)}?t=${Date.now()}`);
                 if (res.ok) {
                     const data = await res.json();
                     fleetPresetCache[key] = data;
@@ -4766,16 +4771,18 @@ async function getPresetDataForRunner(runner) {
                 }
             } catch (e) {}
         } else if (key === 'current_editor') {
-            return {
-                name: "Current Editor Preset",
-                ledCount: leds.length,
-                leds: leds,
-                graphicType: currentGraphicType,
-                customArtworkDataUrl: customArtworkDataUrl,
-                animationGroups: animationGroups,
-                settings: { ...params, pattern: activePattern },
-                sequence: { loopDuration: sequenceLoopDuration, cues: sequenceCues }
-            };
+            return (typeof buildCompletePresetData === 'function')
+                ? buildCompletePresetData("Current Editor Preset")
+                : {
+                    name: "Current Editor Preset",
+                    ledCount: leds.length,
+                    leds: JSON.parse(JSON.stringify(leds)),
+                    graphicType: currentGraphicType,
+                    customArtworkDataUrl: customArtworkDataUrl,
+                    animationGroups: JSON.parse(JSON.stringify(animationGroups)),
+                    settings: { ...params, pattern: activePattern },
+                    sequence: { loopDuration: sequenceLoopDuration, cues: JSON.parse(JSON.stringify(sequenceCues)) }
+                };
         }
 
         // Fallback: Check if DEFAULT_FLEET_ROSTER has a valid server preset for this slot
@@ -4785,7 +4792,7 @@ async function getPresetDataForRunner(runner) {
         if (fallbackKey && fallbackKey !== key && fallbackKey.startsWith('server:')) {
             const fname = fallbackKey.replace('server:', '');
             try {
-                const res = await fetch(`/api/preset/${encodeURIComponent(fname)}`);
+                const res = await fetch(`/api/preset/${encodeURIComponent(fname)}?t=${Date.now()}`);
                 if (res.ok) {
                     const data = await res.json();
                     fleetPresetCache[key] = data;
@@ -4796,7 +4803,9 @@ async function getPresetDataForRunner(runner) {
         return null;
     })();
 
-    return await fleetPresetPromises[key];
+    const result = await fleetPresetPromises[key];
+    delete fleetPresetPromises[key];
+    return result ? JSON.parse(JSON.stringify(result)) : null;
 }
 
 // Standard Disney palette colors for the 20-second parade routine wave
@@ -6785,28 +6794,44 @@ async function editRunnerInSingleView(slot) {
 
         // Apply preset to main editor (now runs with currentView === 'single' so individual timeline loads)
         applyProfileData(pData);
+        isSingleShirtDirty = false;
         clearHistoryStacks();
 
-        // If preset has no leds or fewer than 20 leds, generate 100 on the new graphic outline immediately!
-        if (!leds || leds.length < 20) {
-            const activeImg = getActiveGraphicImg();
-            if (activeImg && !activeImg.complete) {
-                await new Promise((resolve) => {
-                    const to = setTimeout(resolve, 800);
-                    activeImg.addEventListener('load', () => { clearTimeout(to); resolve(); }, { once: true });
-                    activeImg.addEventListener('error', () => { clearTimeout(to); resolve(); }, { once: true });
-                });
+        // If in matrix mode, ensure 16x16 grid layout is computed; if legacy fairy lights, scatter on outline if empty
+        if (currentHardwareMode !== 'matrix16' && !btfMatrix16x16Active) {
+            if (!leds || leds.length < 20) {
+                const activeImg = getActiveGraphicImg();
+                if (activeImg && !activeImg.complete) {
+                    await new Promise((resolve) => {
+                        const to = setTimeout(resolve, 800);
+                        activeImg.addEventListener('load', () => { clearTimeout(to); resolve(); }, { once: true });
+                        activeImg.addEventListener('error', () => { clearTimeout(to); resolve(); }, { once: true });
+                    });
+                }
+                scatterLedsOnGraphic(100, true);
             }
-            scatterLedsOnGraphic(100, true);
+        } else {
+            if (typeof computeBtfMatrix16x16Layout === 'function') {
+                computeBtfMatrix16x16Layout();
+            }
+            if (typeof restoreSavedMatrix16x16Roles === 'function' && pData && Array.isArray(pData.matrixWindowedLeds) && pData.matrixWindowedLeds.length > 0) {
+                restoreSavedMatrix16x16Roles(pData);
+            }
         }
 
         // Switch sidebar back to last used single-shirt tab
         switchSidebarTab(lastSingleShirtTab || 'tabLayout');
 
-        // Synchronize Quick-Load Profile dropdown in tabLayout
+        // Synchronize Quick-Load Profile dropdown in tabLayout & loaded badge
         const pSel = document.getElementById('presetSelect');
         if (pSel && runner.preset) {
             pSel.value = runner.preset;
+        }
+        const badge = document.getElementById('presetLoadedBadge');
+        if (badge && runner.preset) {
+            const displayLabel = pData.name || runner.name;
+            badge.textContent = `✓ ${displayLabel}`;
+            badge.title = `Currently loaded: ${runner.preset}`;
         }
 
         updateActiveFloatUI(slot);
@@ -13639,35 +13664,74 @@ requestAnimationFrame(animate);
 // PRESET & PROFILE MANAGEMENT (Save Coordinates + Graphic for Quick Loading)
 // ============================================================================
 
-// Load preset list from API & localStorage
+// Load preset list from API & localStorage into categorized optgroups (Defaults, Disk, Browser)
 async function refreshPresetDropdown() {
     const select = document.getElementById('presetSelect');
-    select.innerHTML = '<option value="">-- Select Saved Profile --</option>';
+    if (!select) return;
+    const previousVal = select.value;
+    select.innerHTML = '<option value="">-- Select Saved Float --</option>';
 
-    // 1. Fetch from Python backend
+    // 1. Official Float Presets (Defaults)
+    const officialGroup = document.createElement('optgroup');
+    officialGroup.label = '⭐ Official Float Presets (Defaults)';
+    DEFAULT_FLEET_ROSTER.forEach(r => {
+        const opt = document.createElement('option');
+        opt.value = r.preset;
+        opt.textContent = `${r.icon} Float ${r.slot + 1} - ${r.name}`;
+        officialGroup.appendChild(opt);
+    });
+    select.appendChild(officialGroup);
+
+    // 2. Custom Saved Floats from Python backend disk
+    const officialFilenames = new Set(DEFAULT_FLEET_ROSTER.map(r => r.preset.replace('server:', '')));
     try {
-        const res = await fetch('/api/presets');
+        const res = await fetch(`/api/presets?t=${Date.now()}`);
         if (res.ok) {
             const serverPresets = await res.json();
-            serverPresets.forEach(p => {
-                const opt = document.createElement('option');
-                opt.value = 'server:' + p.filename;
-                opt.textContent = `📁 ${p.name}`;
-                select.appendChild(opt);
-            });
+            const customPresets = serverPresets.filter(p => !officialFilenames.has(p.filename));
+            if (customPresets.length > 0) {
+                const diskGroup = document.createElement('optgroup');
+                diskGroup.label = '💾 Custom Saved Floats (Disk)';
+                customPresets.forEach(p => {
+                    const opt = document.createElement('option');
+                    opt.value = 'server:' + p.filename;
+                    const ledStr = p.ledCount ? ` (${p.ledCount} LEDs)` : '';
+                    opt.textContent = `📁 ${p.name || p.filename}${ledStr}`;
+                    diskGroup.appendChild(opt);
+                });
+                select.appendChild(diskGroup);
+            }
         }
     } catch (err) {
-        console.log("Offline mode, checking local storage...");
+        console.log("Could not fetch server presets:", err);
     }
 
-    // 2. Fetch from localStorage
-    const localProfiles = JSON.parse(localStorage.getItem('msep_custom_presets') || '{}');
-    Object.keys(localProfiles).forEach(name => {
-        const opt = document.createElement('option');
-        opt.value = 'local:' + name;
-        opt.textContent = `💾 ${name} (Browser)`;
-        select.appendChild(opt);
-    });
+    // 3. Fetch from localStorage
+    try {
+        const localProfiles = JSON.parse(localStorage.getItem('msep_custom_presets') || '{}');
+        const localKeys = Object.keys(localProfiles);
+        if (localKeys.length > 0) {
+            const localGroup = document.createElement('optgroup');
+            localGroup.label = '🌐 Browser Cache Presets (LocalStorage)';
+            localKeys.forEach(name => {
+                const opt = document.createElement('option');
+                opt.value = 'local:' + name;
+                opt.textContent = `💾 ${name} (Browser)`;
+                localGroup.appendChild(opt);
+            });
+            select.appendChild(localGroup);
+        }
+    } catch (e) {}
+
+    // Restore selected value if still valid
+    if (previousVal && select.querySelector(`option[value="${previousVal}"]`)) {
+        select.value = previousVal;
+    } else if (activeSingleShirtRunnerSlot !== null && activeSingleShirtRunnerSlot >= 0 && fleetRunners[activeSingleShirtRunnerSlot]) {
+        const currentPreset = fleetRunners[activeSingleShirtRunnerSlot].preset;
+        if (currentPreset && select.querySelector(`option[value="${currentPreset}"]`)) {
+            select.value = currentPreset;
+        }
+    }
 }
 
 // Build complete preset data object containing all LEDs, coordinates, count, colors, groups, shows, and float metadata
@@ -13951,13 +14015,14 @@ async function saveCurrentProfile(name, overwrite = false) {
         console.warn("Could not save to localStorage cache:", e);
     }
 
-    // Cache local profile data and assign to active runner card slot
-    fleetPresetCache['local:' + cleanName] = profileData;
+    // Cache local profile data and assign to active runner card slot (isolated deep clone)
+    fleetPresetCache['local:' + cleanName] = JSON.parse(JSON.stringify(profileData));
     if (activeSingleShirtRunnerSlot !== null && activeSingleShirtRunnerSlot >= 0 && fleetRunners[activeSingleShirtRunnerSlot]) {
         fleetRunners[activeSingleShirtRunnerSlot].preset = 'local:' + cleanName;
         saveFleetLineupToStorage();
     }
     isSingleShirtDirty = false;
+    clearHistoryStacks();
 
     // 2. Save to Python backend (with duplicate conflict detection)
     try {
@@ -13974,30 +14039,41 @@ async function saveCurrentProfile(name, overwrite = false) {
 
         if (res.ok) {
             const result = await res.json();
-            if (result && result.filename) {
-                fleetPresetCache['server:' + result.filename] = profileData;
-                if (activeSingleShirtRunnerSlot !== null && activeSingleShirtRunnerSlot >= 0 && fleetRunners[activeSingleShirtRunnerSlot]) {
-                    fleetRunners[activeSingleShirtRunnerSlot].preset = 'server:' + result.filename;
-                    saveFleetLineupToStorage();
-                }
+            const savedFilename = result?.filename || `${cleanName}.json`;
+            const serverKey = 'server:' + savedFilename;
+            fleetPresetCache[serverKey] = JSON.parse(JSON.stringify(profileData));
+            if (activeSingleShirtRunnerSlot !== null && activeSingleShirtRunnerSlot >= 0 && fleetRunners[activeSingleShirtRunnerSlot]) {
+                fleetRunners[activeSingleShirtRunnerSlot].preset = serverKey;
+                saveFleetLineupToStorage();
             }
+            isSingleShirtDirty = false;
+            clearHistoryStacks();
+
             showToast(`💾 Float "${cleanName}" (${leds.length} LEDs, ${animationGroups.length} groups) saved to disk!`);
             await refreshPresetDropdown();
             renderFleetCards();
 
             const select = document.getElementById('presetSelect');
             if (select) {
-                for (let i = 0; i < select.options.length; i++) {
-                    if (select.options[i].text.includes(cleanName)) {
-                        select.selectedIndex = i;
-                        break;
+                select.value = serverKey;
+                if (!select.value) {
+                    for (let i = 0; i < select.options.length; i++) {
+                        if (select.options[i].value === serverKey || select.options[i].text.includes(cleanName) || select.options[i].value.includes(savedFilename)) {
+                            select.selectedIndex = i;
+                            break;
+                        }
                     }
                 }
+            }
+            const badge = document.getElementById('presetLoadedBadge');
+            if (badge) {
+                badge.textContent = `✓ ${cleanName}`;
+                badge.title = `Currently loaded: ${savedFilename}`;
             }
             const nameInput = document.getElementById('profileNameInput');
             if (nameInput) nameInput.value = cleanName;
 
-            return { success: true, filename: result?.filename || `${cleanName}.json` };
+            return { success: true, filename: savedFilename };
         }
     } catch (e) {
         showToast(`💾 Preset "${cleanName}" saved to browser cache.`);
@@ -14008,7 +14084,7 @@ async function saveCurrentProfile(name, overwrite = false) {
     return { success: true };
 }
 
-// Apply Profile Data object to simulator
+// Apply Profile Data object to simulator (deep clones all collections and enforces hardware architecture)
 function applyProfileData(profileData) {
     if (!profileData) return;
     currentLoadedStlColors = profileData.stlColors || null;
@@ -14023,9 +14099,9 @@ function applyProfileData(profileData) {
         selectLedCountOption(targetLedCount, false);
     }
 
-    // 1. Restore LEDs
+    // 1. Restore LEDs (isolated deep clone)
     if (Array.isArray(profileData.leds) && profileData.leds.length > 0) {
-        leds = profileData.leds;
+        leds = JSON.parse(JSON.stringify(profileData.leds));
         while (sparkles.length < leds.length) sparkles.push(0);
         updateLedCountUI();
     } else {
@@ -14054,18 +14130,18 @@ function applyProfileData(profileData) {
                 }
                 if (typeof btfMatrix16x16Active !== 'undefined' && btfMatrix16x16Active) {
                     computeBtfMatrix16x16Layout();
-                    if (typeof restoreSavedMatrix16x16Roles === 'function') {
+                    if (typeof restoreSavedMatrix16x16Roles === 'function' && Array.isArray(profileData.matrixWindowedLeds) && profileData.matrixWindowedLeds.length > 0) {
                         restoreSavedMatrix16x16Roles(profileData);
                     }
                 }
-                if (typeof markSingleShirtDirty === 'function') markSingleShirtDirty();
+                isSingleShirtDirty = false;
                 if (typeof draw === 'function') draw();
             };
             img.src = customArtworkDataUrl;
         }
         if (graphicSelect) graphicSelect.value = 'custom_upload';
         if (uploadContainer) uploadContainer.style.display = 'block';
-                    if (typeof updateCustomArtworkModalState === 'function') updateCustomArtworkModalState();
+        if (typeof updateCustomArtworkModalState === 'function') updateCustomArtworkModalState();
         if (resetBtn) resetBtn.style.display = 'block';
     } else {
         customArtworkImg = null;
@@ -14155,10 +14231,10 @@ function applyProfileData(profileData) {
         }
     }
 
-    // 4. Restore Animation Groups
+    // 4. Restore Animation Groups (deep clone)
     if (Array.isArray(profileData.animationGroups)) {
         animationGroups = profileData.animationGroups.map(g => {
-            const arr = Array.isArray(g.ledIndices) ? g.ledIndices : (Array.isArray(g.indices) ? g.indices : []);
+            const arr = Array.isArray(g.ledIndices) ? [...g.ledIndices] : (Array.isArray(g.indices) ? [...g.indices] : []);
             return {
                 ...g,
                 ledIndices: arr,
@@ -14180,10 +14256,10 @@ function applyProfileData(profileData) {
         updateActiveFwDropdown();
     }
 
-    // 5. Restore Sequence Cues (Parade Cue Director)
+    // 5. Restore Sequence Cues (Parade Cue Director) (deep clone)
     if (profileData.sequence && typeof profileData.sequence === 'object') {
         sequenceLoopDuration = Math.max(10, parseFloat(profileData.sequence.loopDuration) || 90.0);
-        sequenceCues = Array.isArray(profileData.sequence.cues) ? profileData.sequence.cues : [];
+        sequenceCues = Array.isArray(profileData.sequence.cues) ? JSON.parse(JSON.stringify(profileData.sequence.cues)) : [];
         const loopInput = document.getElementById('sequenceLoopInput');
         if (loopInput) loopInput.value = sequenceLoopDuration;
         const scrubber = document.getElementById('timelineScrubber');
@@ -14205,7 +14281,9 @@ function applyProfileData(profileData) {
 
     // 7. Restore BTF Strip / 16x16 Matrix Preview & Saved Cell Distribution
     if (typeof btfMatrix16x16Active !== 'undefined') {
-        const hasMatrixMode = (profileData.btfMatrix16x16Active === true) ||
+        // Enforce matrix mode if either current hardware architecture is matrix16 OR preset explicitly requests it
+        const hasMatrixMode = (currentHardwareMode === 'matrix16') ||
+            (profileData.btfMatrix16x16Active === true) ||
             (profileData.matrix_16x16_mode === true) ||
             (Array.isArray(profileData.matrixWindowedLeds) && profileData.matrixWindowedLeds.length > 0);
         btfMatrix16x16Active = hasMatrixMode;
@@ -14221,8 +14299,12 @@ function applyProfileData(profileData) {
                 btfMatrix16x16Config.thicknessMm = profileData.btfMatrix16x16Config.thicknessMm;
             }
         } else if (hasMatrixMode) {
-            if (Array.isArray(profileData.matrixWindowedLeds)) btfMatrix16x16Config.windowCount = profileData.matrixWindowedLeds.length;
-            if (Array.isArray(profileData.matrixBacklightLeds)) btfMatrix16x16Config.backlightCount = profileData.matrixBacklightLeds.length;
+            if (Array.isArray(profileData.matrixWindowedLeds) && profileData.matrixWindowedLeds.length > 0) {
+                btfMatrix16x16Config.windowCount = profileData.matrixWindowedLeds.length;
+            }
+            if (Array.isArray(profileData.matrixBacklightLeds) && profileData.matrixBacklightLeds.length > 0) {
+                btfMatrix16x16Config.backlightCount = profileData.matrixBacklightLeds.length;
+            }
         }
 
         const matToggle = document.getElementById('btfMatrix16x16Toggle');
@@ -14235,9 +14317,9 @@ function applyProfileData(profileData) {
         if (glowSlider) glowSlider.value = btfMatrix16x16Config.backlightCount;
         if (typeof syncBtfMatrixThicknessUI === 'function') {
             syncBtfMatrixThicknessUI(btfMatrix16x16Config.thicknessMm);
-    syncBtfMatrixLipUI(btfMatrix16x16Config.lipMm !== undefined ? btfMatrix16x16Config.lipMm : 2.0);
-    syncBtfMatrixClearLayerUI(btfMatrix16x16Config.clearLayerMm !== undefined ? btfMatrix16x16Config.clearLayerMm : 0.4);
-    syncBtfMatrixFrameUI(btfMatrix16x16Config.frameActive !== false);
+            syncBtfMatrixLipUI(btfMatrix16x16Config.lipMm !== undefined ? btfMatrix16x16Config.lipMm : 2.0);
+            syncBtfMatrixClearLayerUI(btfMatrix16x16Config.clearLayerMm !== undefined ? btfMatrix16x16Config.clearLayerMm : 0.4);
+            syncBtfMatrixFrameUI(btfMatrix16x16Config.frameActive !== false);
         }
 
         if (btfMatrix16x16Active) {
@@ -14252,7 +14334,7 @@ function applyProfileData(profileData) {
             computeBtfMatrix16x16Layout();
 
             // If exact windowed/backlit cell assignments were saved in the preset, restore valid on-graphic cells!
-            if (typeof restoreSavedMatrix16x16Roles === 'function') {
+            if (typeof restoreSavedMatrix16x16Roles === 'function' && Array.isArray(profileData.matrixWindowedLeds) && profileData.matrixWindowedLeds.length > 0) {
                 restoreSavedMatrix16x16Roles(profileData);
             }
         } else {
@@ -14285,7 +14367,7 @@ function applyProfileData(profileData) {
         if (typeof setTpuTopNubs === 'function') setTpuTopNubs(!!nubVal);
     }
 
-    if (typeof markSingleShirtDirty === 'function') markSingleShirtDirty();
+    isSingleShirtDirty = false;
     if (typeof draw === 'function') draw();
 }
 
@@ -14298,7 +14380,7 @@ async function loadProfile(sourceValue) {
     if (sourceValue.startsWith('server:')) {
         const filename = sourceValue.replace('server:', '');
         try {
-            const res = await fetch(`/api/preset/${encodeURIComponent(filename)}`);
+            const res = await fetch(`/api/preset/${encodeURIComponent(filename)}?t=${Date.now()}`);
             if (res.ok) {
                 profileData = await res.json();
             }
@@ -14319,7 +14401,7 @@ async function loadProfile(sourceValue) {
         if (fallbackRunner && fallbackRunner.preset && fallbackRunner.preset !== sourceValue && fallbackRunner.preset.startsWith('server:')) {
             const fbFile = fallbackRunner.preset.replace('server:', '');
             try {
-                const res = await fetch(`/api/preset/${encodeURIComponent(fbFile)}`);
+                const res = await fetch(`/api/preset/${encodeURIComponent(fbFile)}?t=${Date.now()}`);
                 if (res.ok) {
                     profileData = await res.json();
                 }
@@ -14342,13 +14424,47 @@ async function loadProfile(sourceValue) {
         };
     }
 
-    applyProfileData(profileData);
+    // Cache pristine copy in memory
+    fleetPresetCache[sourceValue] = JSON.parse(JSON.stringify(profileData));
+
+    // Synchronize activeSingleShirtRunnerSlot to floatId if provided or matched to official float
+    let targetSlot = null;
+    if (typeof profileData.floatId === 'number' && profileData.floatId >= 1 && profileData.floatId <= 7) {
+        targetSlot = profileData.floatId - 1;
+    } else {
+        const matchIdx = DEFAULT_FLEET_ROSTER.findIndex(r => r.preset === sourceValue);
+        if (matchIdx !== -1) {
+            targetSlot = matchIdx;
+        }
+    }
+    if (targetSlot !== null && targetSlot !== activeSingleShirtRunnerSlot) {
+        activeSingleShirtRunnerSlot = targetSlot;
+        try {
+            localStorage.setItem('msep_active_single_shirt_slot', targetSlot.toString());
+        } catch (e) {}
+    }
+
+    applyProfileData(JSON.parse(JSON.stringify(profileData)));
     isSingleShirtDirty = false;
+    clearHistoryStacks();
+
     if (activeSingleShirtRunnerSlot !== null && activeSingleShirtRunnerSlot >= 0 && fleetRunners[activeSingleShirtRunnerSlot]) {
         fleetRunners[activeSingleShirtRunnerSlot].preset = sourceValue;
         saveFleetLineupToStorage();
         renderFleetCards();
     }
+    updateActiveFloatUI(activeSingleShirtRunnerSlot);
+
+    // Update presetSelect value and badge
+    const pSel = document.getElementById('presetSelect');
+    if (pSel) pSel.value = sourceValue;
+    const badge = document.getElementById('presetLoadedBadge');
+    if (badge) {
+        const displayLabel = profileData.name || sourceValue.replace(/^(server:|local:)/, '');
+        badge.textContent = `✓ ${displayLabel}`;
+        badge.title = `Currently loaded: ${displayLabel}`;
+    }
+
     showToast(`📂 Loaded "${profileData.name || 'Profile'}"`);
 }
 
@@ -14361,26 +14477,12 @@ refreshPresetDropdown().then(() => {
 
     loadProfile(targetPreset).then(async () => {
         isSingleShirtDirty = false;
+        clearHistoryStacks();
         const pSel = document.getElementById('presetSelect');
         if (pSel) pSel.value = targetPreset;
         updateActiveFloatUI(activeSingleShirtRunnerSlot);
-        if (!leds || leds.length < 20) {
-            const activeImg = getActiveGraphicImg();
-            if (activeImg && !activeImg.complete) {
-                await new Promise((resolve) => {
-                    const to = setTimeout(resolve, 800);
-                    activeImg.addEventListener('load', () => { clearTimeout(to); resolve(); }, { once: true });
-                    activeImg.addEventListener('error', () => { clearTimeout(to); resolve(); }, { once: true });
-                });
-            }
-            scatterLedsOnGraphic(100, true, false);
-        }
-        if (typeof draw === 'function') draw();
-    }).catch(async () => {
-        if (!leds || leds.length < 20) {
-            if (startupRunner.defaultGraphic === 'builtin_dragon' || startupRunner.defaultGraphic === 'petes_dragon') {
-                initDefaultDragonLeds();
-            } else {
+        if (currentHardwareMode !== 'matrix16' && !btfMatrix16x16Active) {
+            if (!leds || leds.length < 20) {
                 const activeImg = getActiveGraphicImg();
                 if (activeImg && !activeImg.complete) {
                     await new Promise((resolve) => {
@@ -14392,7 +14494,27 @@ refreshPresetDropdown().then(() => {
                 scatterLedsOnGraphic(100, true, false);
             }
         }
+        if (typeof draw === 'function') draw();
+    }).catch(async () => {
+        if (currentHardwareMode !== 'matrix16' && !btfMatrix16x16Active) {
+            if (!leds || leds.length < 20) {
+                if (startupRunner.defaultGraphic === 'builtin_dragon' || startupRunner.defaultGraphic === 'petes_dragon') {
+                    initDefaultDragonLeds();
+                } else {
+                    const activeImg = getActiveGraphicImg();
+                    if (activeImg && !activeImg.complete) {
+                        await new Promise((resolve) => {
+                            const to = setTimeout(resolve, 800);
+                            activeImg.addEventListener('load', () => { clearTimeout(to); resolve(); }, { once: true });
+                            activeImg.addEventListener('error', () => { clearTimeout(to); resolve(); }, { once: true });
+                        });
+                    }
+                    scatterLedsOnGraphic(100, true, false);
+                }
+            }
+        }
         isSingleShirtDirty = false;
+        clearHistoryStacks();
         updateActiveFloatUI(activeSingleShirtRunnerSlot);
         if (typeof draw === 'function') draw();
     });
@@ -19671,7 +19793,9 @@ async function loadGraphicPreset(type) {
     animationGroups = [];
     rebuildLedGroupMap();
     renderActiveGroupsList();
-    scatterLedsOnGraphic(100, true);
+    if (currentHardwareMode !== 'matrix16' && !btfMatrix16x16Active) {
+        scatterLedsOnGraphic(100, true);
+    }
     if (btfStripPreviewActive) {
         computeBtfStripMatrix();
     }
@@ -21007,16 +21131,22 @@ if (clickCanvasBtn) {
     });
 }
 
-// Preset Buttons
-document.getElementById('presetSelect').addEventListener('change', async (e) => {
-    const nextVal = e.target.value;
+// Preset Load & Selection Handlers (Dropdown and Dedicated Load Button)
+async function handleUserLoadPreset(presetKey) {
+    if (!presetKey) {
+        showToast("⚠️ Please select a float file from the dropdown to load!");
+        return;
+    }
     if (isSingleShirtDirty && activeSingleShirtRunnerSlot !== null && activeSingleShirtRunnerSlot >= 0 && fleetRunners[activeSingleShirtRunnerSlot]) {
         const prevRunner = fleetRunners[activeSingleShirtRunnerSlot];
-        const selectedOptText = e.target.options[e.target.selectedIndex]?.text?.trim() || nextVal;
+        const pSel = document.getElementById('presetSelect');
+        const selectedOptText = pSel?.options[pSel.selectedIndex]?.text?.trim() || presetKey;
         const modalResult = await confirmUnsavedEditsModal(prevRunner, { name: selectedOptText });
 
         if (modalResult.action === 'cancel') {
-            e.target.value = fleetRunners[activeSingleShirtRunnerSlot].preset || '';
+            if (pSel && fleetRunners[activeSingleShirtRunnerSlot].preset) {
+                pSel.value = fleetRunners[activeSingleShirtRunnerSlot].preset;
+            }
             return;
         } else if (modalResult.action === 'save') {
             await saveCurrentProfile(modalResult.name);
@@ -21025,7 +21155,20 @@ document.getElementById('presetSelect').addEventListener('change', async (e) => 
             isSingleShirtDirty = false;
         }
     }
-    await loadProfile(nextVal);
+    await loadProfile(presetKey);
+}
+
+document.getElementById('presetSelect')?.addEventListener('change', async (e) => {
+    if (e.target.value) {
+        await handleUserLoadPreset(e.target.value);
+    }
+});
+
+document.getElementById('loadPresetBtn')?.addEventListener('click', async (e) => {
+    e.preventDefault();
+    const pSel = document.getElementById('presetSelect');
+    const val = pSel ? pSel.value : '';
+    await handleUserLoadPreset(val);
 });
 
 // Export complete profile configuration JSON
@@ -21115,6 +21258,13 @@ if (importProfileBtn && importProfileFileInput) {
                     const parsed = JSON.parse(evt.target.result);
                     const profile = Array.isArray(parsed) ? { leds: parsed, name: file.name.replace('.json', '') } : parsed;
                     applyProfileData(profile);
+                    isSingleShirtDirty = false;
+                    clearHistoryStacks();
+                    const badge = document.getElementById('presetLoadedBadge');
+                    if (badge) {
+                        badge.textContent = `✓ ${profile.name || file.name}`;
+                        badge.title = `Imported file: ${file.name}`;
+                    }
                     showToast(`📂 Imported "${profile.name || file.name}" (${leds.length} LEDs)!`);
                 } catch (err) {
                     showToast("⚠️ Failed to parse profile JSON: " + err.message);

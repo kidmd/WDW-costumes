@@ -920,6 +920,24 @@ Beyond saving single float configurations, the simulator lets you export and imp
    - Floats are saved to the server's `presets/` directory and backed up to browser `localStorage`.
    - Automatically links the saved float file to the active runner card slot in the 7-Shirt Fleet Lineup and refreshes the float selector dropdowns across the simulator.
 
+### Loading Floats & Category-Organized Preset Dropdown (Layout Tab - Section 2)
+1. **Dedicated `[ 📂 Load ]` Button & Categorized Dropdown:**
+   - Section 2 features a prominent **`[ 📂 Load ]` button** (`#loadPresetBtn`) alongside the float selector dropdown (`#presetSelect`).
+   - The dropdown categorizes files into clean, organized `<optgroup>` sections:
+     - `⭐ Official Float Presets (Defaults)`: Fast access to pristine factory presets for all 7 floats (Float 1 Casey Jr., Float 2 Title Drum, Float 3 Turtle, Float 4 Snail, Float 5 Pirate Ship, Float 6 Pete's Dragon, Float 7 Honor America Eagle).
+     - `💾 Custom Saved Floats (Disk)`: All user-created and timestamped float profiles stored in `presets/` with filename and LED count badges.
+     - `🌐 Browser Cache Presets (LocalStorage)`: Client-side browser backups.
+2. **Active Float Badge Confirmation (`#presetLoadedBadge`):**
+   - Displays a clean status badge above the dropdown (e.g. `✓ Float 6 - Pete's Dragon` or `✓ my_dragon_large_81led_2026-10-30`) confirming exactly which file is currently active in the editor.
+3. **Pristine Cache Isolation (Deep Clone Standard):**
+   - All loaded data (LED coordinates, animation groups, timeline cues, and matrix cells) is deep-cloned upon loading. Editing LEDs or changing groups in the editor will never taint the in-memory cache or corrupt default presets.
+4. **Hardware Mode Preservation (16×16 Matrix vs. Legacy):**
+   - Loading any official preset in 16×16 Matrix mode (`currentHardwareMode === 'matrix16'`) guarantees matrix mode remains active, computes the 16×16 cell layout on the float's graphic, and seamlessly restores any saved custom windowed/backlit cell roles without falling back to legacy fairy light scattering.
+5. **Cache-Busted Disk Loading:**
+   - Server requests incorporate microsecond cache-busting queries (`?t=${Date.now()}`), guaranteeing that recently saved or overwritten presets are retrieved fresh from disk without stale HTTP 304 browser cache artifacts.
+6. **Clean State Reset:**
+   - Successfully loading a profile automatically clears the unsaved dirty flag (`isSingleShirtDirty = false`), resets the undo/redo stacks, updates the top float selector banner, and synchronizes the active runner slot.
+
 ### Exporting & Importing Configuration JSON
 - **⬇ Download / Export Configuration JSON:**
   Click **"Export JSON"** (Section 2) or **"⬇ Export JSON"** (Section 3) to download a `.json` file containing the complete float configuration.

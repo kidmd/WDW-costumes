@@ -315,10 +315,16 @@
                             <input type="file" id="importProfileFileInput" accept=".json,application/json" style="display: none;">
                         </div>
                         <div class="control-group" style="margin-top: 6px;">
-                            <label style="font-size: 11px; color: var(--text-muted);">Load Saved Float File:</label>
-                            <select id="presetSelect" style="background: #21262d; color: #fff; border: 1px solid #30363d; padding: 6px 10px; border-radius: 6px; outline: none; font-size: 11px; width: 100%;">
-                                <option value="">-- Select Saved Float --</option>
-                            </select>
+                            <label style="font-size: 11px; color: var(--text-muted); display: flex; justify-content: space-between; align-items: center; margin-bottom: 3px;">
+                                <span>Load Saved Float File:</span>
+                                <span id="presetLoadedBadge" style="font-size: 9.5px; color: #58a6ff; font-family: monospace;"></span>
+                            </label>
+                            <div style="display: flex; gap: 6px;">
+                                <select id="presetSelect" style="flex: 1; background: #21262d; color: #fff; border: 1px solid #30363d; padding: 6px 10px; border-radius: 6px; outline: none; font-size: 11px;">
+                                    <option value="">-- Select Saved Float --</option>
+                                </select>
+                                <button type="button" id="loadPresetBtn" class="action-btn primary" style="flex: none; padding: 6px 14px; font-size: 12px; background: linear-gradient(135deg, #1f6feb, #388bfd); border-color: #388bfd; font-weight: 600;" title="Load selected float configuration into editor">📂 Load</button>
+                            </div>
                         </div>
                     </div>
 
@@ -3242,6 +3248,6 @@
     </div>
 
     <script src="led_clearance.js?v=2"></script>
-    <script src="app.js?v=108"></script>
+    <script src="app.js?v=109"></script>
 </body>
 </html>
