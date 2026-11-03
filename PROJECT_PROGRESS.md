@@ -93,6 +93,29 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### 2026-11-03: Float 3 (The Spinning Turtle) Asset Redesign - Blue Glasses with Thin Black Outline, Full Yellow Dress Shirt Unification, and 5-Color Discrete Quantization for Multi-Material 3D Printing
+- **Blue Glasses with Thin Black Outline:**
+  - Segmented the glasses frames, bridge, and temple arm away from grey/brown shading (`#6b6b6b`) and recolored them to vibrant Disney Parade Blue (`#294062` / `[41, 64, 98]`).
+  - Generated a clean, uniform 3px crisp black outline (`#11161d`) bordering all interior and exterior rims, the nasal bridge arch, and the horizontal temple arm for sharp layer boundaries in slicers.
+  - Maintained 100% transparent opening (`alpha = 0`) inside the viewer's left frame, while the right eye retains a solid blue pupil with yellow eyelid highlight.
+- **Full Yellow Dress Shirt Unification (Front Torso Cleaned & Tucked):**
+  - Per Imagineering direction, transformed the entire front of the turtle into a handsome, continuous yellow dress shirt (`#eccb2e` / `[236, 203, 46]`).
+  - Resolved the untucked shirt flap on the left side of the red tie: merged the previously fragmented yellow flap, blue notches, and green belly plate into a single contiguous yellow shirt panel.
+  - Smoothed the outer left contour of the chest to form a continuous silhouette down to the front foot.
+  - Preserved the bold Disney Red necktie (`#d81d17` / `[216, 29, 23]`) and mouth, ensuring zero yellow halo artifacts along the 6px black tie outline.
+- **Strict 5-Color Quantization for Multi-Material 3D Printing:**
+  - Quantized 100% of foreground pixels into strictly **5 discrete colors** (0 anti-aliased edge gradients or alpha blends) for instant color separation in Bambu Studio / PrusaSlicer and Cricut vinyl cutting:
+    1. **Black (`#11161d` / `[17, 22, 29, 255]`):** Outlines, chassis linework, and eye creases (343,276 px / 19.6%).
+    2. **Green (`#21652e` / `[33, 101, 46, 255]`):** Shell plates and bottom feet/pads (590,484 px / 33.6%).
+    3. **Blue (`#294062` / `[41, 64, 98, 255]`):** Shell grid/ribs, eyeglass frames, and eye pupil (435,215 px / 24.8%).
+    4. **Yellow (`#eccb2e` / `[236, 203, 46, 255]`):** Head, neck, and full yellow dress shirt (322,548 px / 18.4%).
+    5. **Red (`#d81d17` / `[216, 29, 23, 255]`):** Necktie and mouth/lips (63,340 px / 3.6%).
+- **Asset Deployment & Simulator Synchronization:**
+  - Deployed production PNG to `assets/Turtle_clean.png`, `assets/spinning_turtle.png`, `assets/Turtle.png`, `simulator/assets/Turtle_clean.png`, `simulator/assets/spinning_turtle.png`, and `simulator/assets/Turtle.png`.
+  - Updated `simulator/app.js` cache-buster query parameter (`assets/Turtle_clean.png?v=20261103_turtle`).
+  - Synchronized `MULTI_COLOR_STL_PROFILES['spinning_turtle']` in `simulator/app.js` with the 5 discrete color definitions.
+  - Generated review artifact: `turtle_asset_review.md`.
+
 ### 2026-11-03: Float 1 (Casey Jr. Train) Asset Redraw - Background Removal, Front Wheel & Cowcatcher Repair, 4-Color Discrete Quantization for Multi-Material 3D Printing
 - **Background Removal & Canvas Framing:**
   - Ingested new user-provided high-definition graphic for Float #1: The Train (Casey Jr. Locomotive).

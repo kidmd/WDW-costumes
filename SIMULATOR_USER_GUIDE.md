@@ -1351,12 +1351,12 @@ Instead of attaching a Cricut cut vinyl graphic on top of the printed plate, the
     3. **Slot 3 (Magenta `#ec4899`):** Wings and spinal crest.
     4. **Slot 4 (Sunny Yellow `#facc15`):** Belly scales and facial accents.
     5. **Slot 5 (Bright White `#ffffff`):** Eyes, teeth, and highlights.
-  - **The Spinning Turtle Palette:**
-    1. **Slot 1 (Chassis Black `#11161d`):** Chassis tray, 7.0mm perimeter rim (9.0mm total thickness), 16 mounting tabs, LED collars, and all black linework/outlines.
-    2. **Slot 2 (Shell Plates & Glasses `#00cc66`):** Turtle hexagonal shell plates and glasses frame.
-    3. **Slot 3 (Shell & Eyes `#2563eb`):** Rest of the outer shell and iris accents.
-    4. **Slot 4 (Body & Head `#facc15`):** Turtle skin, head, neck, and limbs.
-    5. **Slot 5 (Tie & Lips `#ef4444`):** Red bow tie and cheerful lips.
+  - **The Spinning Turtle Palette (Production 5-Color Multi-Material Edition):**
+    1. **Slot 1 (Chassis Black `#11161d`):** Chassis tray, 7.0mm perimeter rim (9.0mm total thickness), 16 mounting tabs, LED collars, and all crisp cartoon linework/outlines (including 3px glasses perimeter outline).
+    2. **Slot 2 (Shell Plates & Feet `#21652e`):** Turtle hexagonal shell plates and walking feet/pads.
+    3. **Slot 3 (Shell Grid, Glasses & Pupil `#294062`):** Structural shell grid/ribs, circular eyeglass frames, nasal bridge, temple arm, and eye pupil.
+    4. **Slot 4 (Body, Head & Shirt `#eccb2e`):** Turtle head, neck, and unified full front dress shirt (clean, fully tucked front torso).
+    5. **Slot 5 (Tie & Lips `#d81d17`):** Classic Disney red necktie and cheerful lips.
   - **The Spinning Snail Palette (Simplified 3D Print Edition):**
     1. **Slot 1 (Chassis Black `#11161d`):** Chassis tray, 7.0mm perimeter rim (9.0mm total thickness), 16 mounting tabs, LED collars, and neck contour linework.
     2. **Slot 2 (Body, Face & Lips `#ec4899`):** Uniform vibrant pink for the head, face, lips, antennae, and waving foot.

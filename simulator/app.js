@@ -191,7 +191,7 @@ spinningTurtleImg.onload = () => {
     spinningTurtleLoaded = true;
     notifyFloatImgLoaded();
 };
-spinningTurtleImg.src = 'assets/Turtle_clean.png';
+spinningTurtleImg.src = 'assets/Turtle_clean.png?v=20261103_turtle';
 
 // Spinning Snail Artwork (Default transparent PNG graphic from SimpleSnail.png)
 const spinningSnailImg = new Image();
@@ -264,7 +264,7 @@ const floatArtworkImgs = {
 floatArtworkImgs['casey_jr_train'].src = 'assets/Simpletrain.png?v=20261103';
 floatArtworkImgs['title_drum'].src = 'assets/title_drum.png';
 floatArtworkImgs['drumcleanedup'].src = 'assets/Drumcleanedup.png';
-floatArtworkImgs['spinning_turtle'].src = 'assets/Turtle_clean.png';
+floatArtworkImgs['spinning_turtle'].src = 'assets/Turtle_clean.png?v=20261103_turtle';
 floatArtworkImgs['spinning_snail'].src = 'assets/SimpleSnail.png';
 floatArtworkImgs['spinning_snail_original'].src = 'assets/SimpleSnail.png';
 floatArtworkImgs['spinning_snail_simplified'].src = 'assets/spinning_snail_simplified.png';
@@ -3382,11 +3382,11 @@ const FLOAT_STL_COLOR_CONFIG = {
         'white': { name: "Eyes & Teeth", hex: "#ffffff", targetRgb: [247, 248, 247], role: "inlay", filename: "color_white.stl" }
     },
     'spinning_turtle': {
-        'black': { name: "Chassis Black", hex: "#11161d", targetRgb: [34, 43, 51], role: "chassis" },
-        'green': { name: "Shell Plates & Glasses", hex: "#00cc66", targetRgb: [43, 109, 49], role: "inlay", filename: "color_green.stl" },
-        'blue': { name: "Shell & Eyes", hex: "#2563eb", targetRgb: [41, 63, 96], role: "inlay", filename: "color_blue.stl" },
-        'yellow': { name: "Body & Head", hex: "#facc15", targetRgb: [231, 199, 49], role: "inlay", filename: "color_yellow.stl" },
-        'red': { name: "Tie & Lips", hex: "#ef4444", targetRgb: [217, 29, 22], role: "inlay", filename: "color_red.stl" }
+        'black': { name: "Chassis & Outlines", hex: "#11161d", targetRgb: [17, 22, 29], role: "chassis" },
+        'green': { name: "Shell Plates & Feet", hex: "#21652e", targetRgb: [33, 101, 46], role: "inlay", filename: "color_green.stl" },
+        'blue': { name: "Shell Grid, Glasses & Pupil", hex: "#294062", targetRgb: [41, 64, 98], role: "inlay", filename: "color_blue.stl" },
+        'yellow': { name: "Body, Head & Shirt", hex: "#eccb2e", targetRgb: [236, 203, 46], role: "inlay", filename: "color_yellow.stl" },
+        'red': { name: "Tie & Lips", hex: "#d81d17", targetRgb: [216, 29, 23], role: "inlay", filename: "color_red.stl" }
     },
     'spinning_snail': {
         'black': { name: "Chassis & Shell Background", hex: "#11161d", targetRgb: [1, 2, 1], role: "chassis" },
