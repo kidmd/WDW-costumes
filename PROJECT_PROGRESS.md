@@ -93,6 +93,22 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### 2026-11-03: Float 3 (The Spinning Turtle) Asset Refinement - Removed Extra Internal Shirt Lines
+- **Removed Extra Internal Shirt Dividers:**
+  - Removed the internal black partition branch and horizontal cross-strut (1,799 pixels) from the left side of the red tie where the old untucked flap and belly plate had been unified.
+  - The left shirt panel is now a single continuous, smooth yellow fabric area bounded cleanly by the uniform 7px outer contour on the left and the tie's black outline on the right.
+- **Strict 5-Color Multi-Material Slicing Verification:**
+  - 100% discrete 5-color quantization across all 1,754,880 foreground pixels:
+    1. **Black (`#11161d` / `[17, 22, 29, 255]`):** Outlines, chassis, and eye loop (341,477 px / 19.46%).
+    2. **Green (`#21652e` / `[33, 101, 46, 255]`):** Shell plates and bottom feet (590,484 px / 33.65%).
+    3. **Blue (`#294062` / `[41, 64, 98, 255]`):** Shell grid, eyeglass frames, and restored arched eye pupil (440,196 px / 25.08%).
+    4. **Yellow (`#eccb2e` / `[236, 203, 46, 255]`):** Head, eye highlight, neck, and completely unified clean dress shirt (319,383 px / 18.20%).
+    5. **Red (`#d81d17` / `[216, 29, 23, 255]`):** Red necktie and mouth/lips (63,340 px / 3.61%).
+- **Asset Deployment & Simulator Synchronization:**
+  - Deployed updated PNG to all 6 production and simulator asset paths (`assets/` and `simulator/assets/`).
+  - Updated simulator cache-buster query strings in `simulator/app.js` to `?v=20261103_turtle_shirt_clean`.
+  - Updated `turtle_asset_review.md` artifact with updated shirt detail render and palette counts.
+
 ### 2026-11-03: Float 3 (The Spinning Turtle) Asset Refinement - Restored Blue Eye Pupil & 5-Color Compliance
 - **Restored Blue Eye Pupil:**
   - Restored the authentic blue arched pupil inside the black teardrop eye loop under the yellow brow highlight (`#294062` / `[41, 64, 98]`, exactly 4,966 pixels), matching the original parade asset aesthetic and character expression.
