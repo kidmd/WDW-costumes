@@ -47,7 +47,9 @@ def sync_fleet_palettes():
     for flt in lineup:
         slot = flt.get("slot", 0)
         float_id = slot + 1
-        preset_rel = flt.get("preset", "").replace("server:", "")
+        preset_rel = flt.get("preset", "").replace("server:", "").replace("local:", "")
+        if preset_rel and not preset_rel.endswith(".json"):
+            preset_rel += ".json"
         preset_path = os.path.join(BASE_DIR, "presets", preset_rel)
         colors = []
         is_mat = 0

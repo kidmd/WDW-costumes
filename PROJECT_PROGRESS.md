@@ -93,6 +93,28 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### 2026-11-03: Float 1 (Casey Jr. Train) Asset Redraw - Background Removal, Front Wheel & Cowcatcher Repair, 4-Color Discrete Quantization for Multi-Material 3D Printing
+- **Background Removal & Canvas Framing:**
+  - Ingested new user-provided high-definition graphic for Float #1: The Train (Casey Jr. Locomotive).
+  - Cleaned and removed 100% of white/off-white background via multi-seed flood-fill and high-brightness mask with zero haloing or edge fringing, exporting to transparent alpha (`A = 0`).
+  - Added balanced canvas padding (15px top/bottom, 20px left/right; total 1064x814 px) ensuring zero boundary clipping across all outer contours.
+- **Front Wheel & Cowcatcher Bottom Restoration:**
+  - **Front Wheel Curvature:** Repaired the bottom cut off where the front wheel was chopped flat at y = 763 across 57 horizontal pixels (x = 432..488). Completed the bottom elliptical arc (x_c = 460.0, semi-axis 28.0 px) curving smoothly down to y = 770.0, seamlessly connecting the outer black outline (thickness 4.5 px) and golden bronze flange with C0 and C1 geometric tangency.
+  - **Cowcatcher Bottom Wedge & Corner:** Repaired the truncated cowcatcher bottom edge (x = 821..937). Extended the bottom line (y = 763.0 + 0.18 * (x - 821)) to meet the right slanted face (x = 940 - (y - 756)/3) at the true bottom corner (x = 931.0, y = 782.8), restoring the 4px black outline, 9px golden bronze flange, and red body wedge.
+- **Strict 4-Color Quantization for Multi-Material 3D Printing:**
+  - Quantized 100% of foreground pixels into strictly 4 discrete colors (0 anti-aliased intermediate shades) to allow single-click color-fill separation in Bambu Studio / PrusaSlicer and SVG vinyl cutting:
+    1. **Black (`#11161d` / `[17, 22, 29, 255]`):** Chassis, outer outlines, cab window silhouettes, undercarriage shadows, and eye pupils.
+    2. **Red (`#e63946` / `[230, 57, 70, 255]`):** Locomotive boiler body, cab inset, cowcatcher wedge, wheel outer tires, smokestack facets, and nose ring.
+    3. **Yellow (`#ffcc15` / `[255, 204, 21, 255]`):** Headlight lens/beam, eyes (sclera/iris), steam dome / brass whistle, and center wheel hubs.
+    4. **Golden Bronze (`#a0732d` / `[160, 115, 45, 255]`):** Cab roof & pillars, tender frame, cowcatcher perimeter flange, drive rod & connecting linkages, and smokebox face disc.
+- **Default Asset Deployment & Simulator Synchronization:**
+  - Saved production PNGs to `assets/Simpletrain.png`, `simulator/assets/Simpletrain.png`, `assets/train.png`, and `simulator/assets/train.png`.
+  - Updated `simulator/app.js` cache-buster query parameter (`assets/Simpletrain.png?v=20261103`) to ensure immediate browser reload.
+  - Updated `MULTI_COLOR_STL_PROFILES['casey_jr_train']`, `CRICUT_FLOAT_CONFIG['casey_jr_train']`, and `drawSingleShirtCanvas` color-sampling logic for Float 1 to match the 4-color palette.
+  - Synchronized `presets/casey_jr_train.json`, `presets/casey_jr_locomotive_100-led_vibrant_preset_2026-10-13_02-58.json`, and `presets/casey_jr_locomotive_100-led_vibrant_preset_2026-10-13_02-04.json`.
+  - Verified `build_fleet_binaries.py` palette synchronization for both firmware targets (`include/fleet_palettes.h` and `arduino/MSEP_Costume/fleet_palettes.h`).
+
+
 ### 2026-10-30: Robust Float Saving & Loading Pipeline — Dedicated Load Button, Categorized Optgroups, Safe Deep-Clone Cache & 16×16 Hardware Mode Persistence
 - **Dedicated `[ 📂 Load ]` Button & Active Preset Confirmation:**
   - Added an illuminated `[ 📂 Load ]` button (`#loadPresetBtn`) adjacent to `#presetSelect` on the Layout tab (Section 2: Save & Export Floats).

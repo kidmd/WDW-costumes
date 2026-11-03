@@ -743,58 +743,47 @@
   ],
   "stlColors": {
     "black": {
-      "name": "Chassis, Roof & Cab Windows",
-      "hex": "#141414",
+      "name": "Black Chassis, Outlines & Cab Windows",
+      "hex": "#11161d",
       "targetRgb": [
-        20,
-        20,
-        20
+        17,
+        22,
+        29
       ],
       "role": "chassis"
     },
     "red": {
-      "name": "Locomotive Body, Smokestack & Cowcatcher",
-      "hex": "#a3231e",
+      "name": "Locomotive Body, Cab Inset, Cowcatcher & Tires",
+      "hex": "#e63946",
       "targetRgb": [
-        163,
-        35,
-        30
+        230,
+        57,
+        70
       ],
       "role": "inlay",
       "filename": "color_red.stl"
     },
-    "gold": {
-      "name": "Bright Gold Trim, Steam & Wheels",
-      "hex": "#d99e48",
+    "yellow": {
+      "name": "Headlight Beam, Eyes, Steam Dome & Wheel Hubs",
+      "hex": "#ffcc15",
       "targetRgb": [
-        217,
-        158,
-        72
+        255,
+        204,
+        21
       ],
       "role": "inlay",
-      "filename": "color_gold.stl"
+      "filename": "color_yellow.stl"
     },
-    "dark_gold": {
-      "name": "Shaded Gold / Bronze Steam & Details",
-      "hex": "#a1702c",
+    "golden_bronze": {
+      "name": "Cab Roof & Frame, Tender, Cowcatcher Flange, Drive Rod & Face",
+      "hex": "#a0732d",
       "targetRgb": [
-        161,
-        112,
-        44
+        160,
+        115,
+        45
       ],
       "role": "inlay",
-      "filename": "color_dark_gold.stl"
-    },
-    "grey": {
-      "name": "Drive Rod, Wheel Rims & Undercarriage",
-      "hex": "#716f6f",
-      "targetRgb": [
-        113,
-        111,
-        111
-      ],
-      "role": "inlay",
-      "filename": "color_grey.stl"
+      "filename": "color_golden_bronze.stl"
     }
   },
   "plateSize": "medium",

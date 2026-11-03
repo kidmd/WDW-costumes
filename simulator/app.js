@@ -217,7 +217,7 @@ caseyJrTrainImg.onload = () => {
     caseyJrTrainLoaded = true;
     notifyFloatImgLoaded();
 };
-caseyJrTrainImg.src = 'assets/Simpletrain.png';
+caseyJrTrainImg.src = 'assets/Simpletrain.png?v=20261103';
 
 // Title Drum Artwork (5-color transparent PNG)
 const titleDrumImg = new Image();
@@ -261,7 +261,7 @@ const floatArtworkImgs = {
     'petes_dragon_transparent': defaultDragonImg,
     'honor_america_eagle': new Image()
 };
-floatArtworkImgs['casey_jr_train'].src = 'assets/Simpletrain.png';
+floatArtworkImgs['casey_jr_train'].src = 'assets/Simpletrain.png?v=20261103';
 floatArtworkImgs['title_drum'].src = 'assets/title_drum.png';
 floatArtworkImgs['drumcleanedup'].src = 'assets/Drumcleanedup.png';
 floatArtworkImgs['spinning_turtle'].src = 'assets/Turtle_clean.png';
@@ -3236,10 +3236,10 @@ const CRICUT_FLOAT_CONFIG = {
         tag: "PARADE ENGINE",
         svgFile: "casey_jr_train.svg",
         layers: [
-            { id: "Layer_1_Red_Vinyl", name: "Crimson Boiler & Cab", hex: "#e63946", r: 230, g: 57, b: 70 },
-            { id: "Layer_2_Cyan_Vinyl", name: "Cyan Roof & Trim", hex: "#48cae4", r: 72, g: 202, b: 228 },
-            { id: "Layer_3_Gold_Vinyl", name: "Gold Cowcatcher & Wheels", hex: "#ffb703", r: 255, g: 183, b: 3 },
-            { id: "Layer_4_White_Vinyl", name: "White Headlight & Steam", hex: "#ffffff", r: 255, g: 255, b: 255 }
+            { id: "Layer_1_Red_Vinyl", name: "Crimson Boiler, Cab Inset, Cowcatcher & Tires", hex: "#e63946", r: 230, g: 57, b: 70 },
+            { id: "Layer_2_Yellow_Vinyl", name: "Sunshine Yellow Eyes, Headlight & Hubs", hex: "#ffcc15", r: 255, g: 204, b: 21 },
+            { id: "Layer_3_Bronze_Vinyl", name: "Golden Bronze Roof, Tender, Flange & Face", hex: "#a0732d", r: 160, g: 115, b: 45 },
+            { id: "Layer_4_Black_Vinyl", name: "Black Outlines & Cab Windows", hex: "#11161d", r: 17, g: 22, b: 29 }
         ]
     },
     'title_drum': {
@@ -3403,11 +3403,10 @@ const FLOAT_STL_COLOR_CONFIG = {
         'blue': { name: "Blue Radial Stripes", hex: "#295374", targetRgb: [41, 83, 116], role: "inlay", filename: "color_blue.stl" }
     },
     'casey_jr_train': {
-        'black': { name: "Chassis, Roof & Cab Windows", hex: "#141414", targetRgb: [20, 20, 20], role: "chassis" },
-        'red': { name: "Locomotive Body, Smokestack & Cowcatcher", hex: "#a3231e", targetRgb: [163, 35, 30], role: "inlay", filename: "color_red.stl" },
-        'gold': { name: "Bright Gold Trim, Steam & Wheels", hex: "#d99e48", targetRgb: [217, 158, 72], role: "inlay", filename: "color_gold.stl" },
-        'dark_gold': { name: "Shaded Gold / Bronze Steam & Details", hex: "#a1702c", targetRgb: [161, 112, 44], role: "inlay", filename: "color_dark_gold.stl" },
-        'grey': { name: "Drive Rod, Wheel Rims & Undercarriage", hex: "#716f6f", targetRgb: [113, 111, 111], role: "inlay", filename: "color_grey.stl" }
+        'black': { name: "Black Chassis, Outlines & Cab Windows", hex: "#11161d", targetRgb: [17, 22, 29], role: "chassis" },
+        'red': { name: "Locomotive Body, Cab Inset, Cowcatcher & Tires", hex: "#e63946", targetRgb: [230, 57, 70], role: "inlay", filename: "color_red.stl" },
+        'yellow': { name: "Headlight Beam, Eyes, Steam Dome & Wheel Hubs", hex: "#ffcc15", targetRgb: [255, 204, 21], role: "inlay", filename: "color_yellow.stl" },
+        'golden_bronze': { name: "Cab Roof & Frame, Tender, Cowcatcher Flange, Drive Rod & Face", hex: "#a0732d", targetRgb: [160, 115, 45], role: "inlay", filename: "color_golden_bronze.stl" }
     },
     'pirate_ship': {
         'black': { name: "Chassis, Hull & Rigging Accents", hex: "#141414", targetRgb: [20, 20, 20], role: "chassis" },
@@ -18587,25 +18586,21 @@ function boostLedVibrancy(r, g, b, relX, relY) {
             return boostCustomImageColor(r, g, b);
         }
 
-        // Special 5-Color Palette for Float #1: Casey Jr. Train (Simpletrain.png)
+        // Special 4-Color Palette for Float #1: Casey Jr. Train (Simpletrain.png)
         if (currentGraphicType === 'casey_jr_train') {
-            // 1. Gold (Piping Trim, Steam, Spokes & Wheels): [212, 150, 58]
-            if (r > 180 && g > 120 && b < 90) {
+            // 1. Yellow (Headlight, Eyes, Steam Dome & Wheel Hubs): [255, 204, 21]
+            if (r > 200 && g > 160 && b < 80) {
                 return { r: 255, g: 204, b: 21 };
             }
-            // 2. Red (Locomotive Body, Smokestack & Cowcatcher): [163, 35, 30]
-            if (r > 120 && r > g * 2.0 && r > b * 2.0) {
-                return { r: 239, g: 52, b: 42 };
+            // 2. Red (Locomotive Boiler Body, Cab Inset, Cowcatcher & Tires): [230, 57, 70]
+            if (r > 160 && r > g * 1.5 && r > b * 1.5) {
+                return { r: 230, g: 57, b: 70 };
             }
-            // 3. Green (Foliage & Collar Accent): [48, 112, 56]
-            if (g > 80 && g > r * 1.4 && g > b * 1.3) {
-                return { r: 16, g: 215, b: 105 };
+            // 3. Golden Bronze (Cab Roof, Tender, Flange, Drive Rod & Face): [160, 115, 45]
+            if (r > 110 && g > 80 && b < 80) {
+                return { r: 160, g: 115, b: 45 };
             }
-            // 4. Grey (Drive Rod, Wheel Rims & Undercarriage): [113, 111, 111]
-            if (Math.abs(r - g) < 15 && Math.abs(g - b) < 15 && r >= 70) {
-                return { r: 215, g: 225, b: 245 };
-            }
-            // 5. Black (Roof, Cab Windows & Smokebox Ring) -> Warm Incandescent Starlight
+            // 4. Black (Chassis, Outlines & Cab Windows) -> Warm Incandescent Starlight
             if (Math.max(r, g, b) < 40) {
                 return { r: 255, g: 245, b: 220 };
             }

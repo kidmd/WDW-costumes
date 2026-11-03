@@ -1096,5 +1096,50 @@
   "sequence": {
     "loopDuration": 90.0,
     "cues": []
+  },
+  "stlColors": {
+    "black": {
+      "name": "Black Chassis, Outlines & Cab Windows",
+      "hex": "#11161d",
+      "targetRgb": [
+        17,
+        22,
+        29
+      ],
+      "role": "chassis"
+    },
+    "red": {
+      "name": "Locomotive Body, Cab Inset, Cowcatcher & Tires",
+      "hex": "#e63946",
+      "targetRgb": [
+        230,
+        57,
+        70
+      ],
+      "role": "inlay",
+      "filename": "color_red.stl"
+    },
+    "yellow": {
+      "name": "Headlight Beam, Eyes, Steam Dome & Wheel Hubs",
+      "hex": "#ffcc15",
+      "targetRgb": [
+        255,
+        204,
+        21
+      ],
+      "role": "inlay",
+      "filename": "color_yellow.stl"
+    },
+    "golden_bronze": {
+      "name": "Cab Roof & Frame, Tender, Cowcatcher Flange, Drive Rod & Face",
+      "hex": "#a0732d",
+      "targetRgb": [
+        160,
+        115,
+        45
+      ],
+      "role": "inlay",
+      "filename": "color_golden_bronze.stl"
+    }
   }
 }
