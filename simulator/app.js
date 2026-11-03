@@ -275,7 +275,8 @@ floatArtworkImgs['cinderellas_coach'].src = 'assets/Pirateshipsimple.png';
 floatArtworkImgs['petes_dragon'].src = 'assets/petes_dragon_transparent.png';
 floatArtworkImgs['builtin_dragon'].src = 'assets/petes_dragon_transparent.png';
 floatArtworkImgs['petes_dragon_transparent'].src = 'assets/petes_dragon_transparent.png';
-floatArtworkImgs['honor_america_eagle'].src = 'assets/cricut_svg/honor_america_eagle.svg';
+floatArtworkImgs['honor_america_eagle'].onload = () => { notifyFloatImgLoaded(); };
+floatArtworkImgs['honor_america_eagle'].src = 'assets/honor_america_eagle.png?v=20261103_honor_america';
 
 function getGraphicImgForType(gType) {
     if (!gType) return defaultDragonImg;
@@ -3354,12 +3355,12 @@ const CRICUT_FLOAT_CONFIG = {
         name: "To Honor America",
         role: "FOLLOWER",
         tag: "FINALE",
-        svgFile: "honor_america_eagle.svg",
+        svgFile: "honor_america_eagle.png",
         layers: [
-            { id: "Layer_1_Blue_Vinyl", name: "Navy Starfield & Wings", hex: "#1d3557", r: 29, g: 53, b: 87 },
-            { id: "Layer_2_Red_Vinyl", name: "Crimson Flag Stripes", hex: "#e63946", r: 230, g: 57, b: 70 },
-            { id: "Layer_3_Gold_Vinyl", name: "Gold Eagle Beak & Trim", hex: "#ffb703", r: 255, g: 183, b: 3 },
-            { id: "Layer_4_White_Vinyl", name: "Crisp White Stars & Head", hex: "#ffffff", r: 255, g: 255, b: 255 }
+            { id: "Layer_1_Black_Chassis", name: "Chassis, Outlines & Firework Struts", hex: "#11161d", r: 17, g: 22, b: 29 },
+            { id: "Layer_2_Blue_Vinyl", name: "Starfield Canton, Eagle Wings & Trim", hex: "#1f4a7d", r: 31, g: 74, b: 125 },
+            { id: "Layer_3_Red_Vinyl", name: "Flag Stripes, Fireworks & Eagle Beak", hex: "#d81d17", r: 216, g: 29, b: 23 },
+            { id: "Layer_4_White_Vinyl", name: "Marquee Banner, Stars, Stripes & Eagle Head", hex: "#ffffff", r: 255, g: 255, b: 255 }
         ]
     }
 };
@@ -3435,6 +3436,12 @@ const FLOAT_STL_COLOR_CONFIG = {
         'red': { name: "Cab Body Panels, Arches & Streamer", hex: "#ef4444", targetRgb: [239, 68, 68], role: "inlay", filename: "color_red.stl" },
         'blue': { name: "Streamer Pennant Tip", hex: "#2563eb", targetRgb: [37, 99, 235], role: "inlay", filename: "color_blue.stl" },
         'green': { name: "Lead Flag", hex: "#10b981", targetRgb: [16, 185, 129], role: "inlay", filename: "color_green.stl" }
+    },
+    'honor_america_eagle': {
+        'black': { name: "Chassis, Outlines & Firework Struts", hex: "#11161d", targetRgb: [17, 22, 29], role: "chassis" },
+        'blue': { name: "Starfield Canton, Eagle Wings & Trim", hex: "#1f4a7d", targetRgb: [31, 74, 125], role: "inlay", filename: "color_blue.stl" },
+        'red': { name: "Flag Stripes, Fireworks & Eagle Beak", hex: "#d81d17", targetRgb: [216, 29, 23], role: "inlay", filename: "color_red.stl" },
+        'white': { name: "Marquee Banner, Stars, Stripes & Eagle Head", hex: "#ffffff", targetRgb: [255, 255, 255], role: "inlay", filename: "color_white.stl" }
     }
 };
 
