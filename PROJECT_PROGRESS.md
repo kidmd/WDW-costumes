@@ -93,6 +93,22 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### 2026-11-03: Float 3 (The Spinning Turtle) Asset Refinement - Restored Blue Eye Pupil & 5-Color Compliance
+- **Restored Blue Eye Pupil:**
+  - Restored the authentic blue arched pupil inside the black teardrop eye loop under the yellow brow highlight (`#294062` / `[41, 64, 98]`, exactly 4,966 pixels), matching the original parade asset aesthetic and character expression.
+  - Resolved the color classification threshold edge-case where the pupil had temporarily merged with the yellow head background.
+- **Strict 5-Color Multi-Material Slicing Verification:**
+  - Re-verified 100% discrete 5-color quantization across all 1,754,880 foreground pixels:
+    1. **Black (`#11161d` / `[17, 22, 29, 255]`):** Outlines, chassis, and eye loop (343,276 px / 19.56%).
+    2. **Green (`#21652e` / `[33, 101, 46, 255]`):** Shell plates and bottom feet (590,484 px / 33.65%).
+    3. **Blue (`#294062` / `[41, 64, 98, 255]`):** Shell grid, eyeglass frames, and restored arched eye pupil (440,196 px / 25.08%).
+    4. **Yellow (`#eccb2e` / `[236, 203, 46, 255]`):** Head, upper eye highlight, neck, and full tucked dress shirt (317,584 px / 18.10%).
+    5. **Red (`#d81d17` / `[216, 29, 23, 255]`):** Red necktie and mouth/lips (63,340 px / 3.61%).
+- **Asset Deployment & Simulator Synchronization:**
+  - Deployed updated PNG to all 6 production and simulator asset paths (`assets/` and `simulator/assets/`).
+  - Updated simulator cache-buster query strings in `simulator/app.js` to `?v=20261103_turtle_eye`.
+  - Updated `turtle_asset_review.md` artifact with eye detail render and verified palette statistics.
+
 ### 2026-11-03: Float 3 (The Spinning Turtle) Asset Redesign - Blue Glasses with Thin Black Outline, Full Yellow Dress Shirt Unification, and 5-Color Discrete Quantization for Multi-Material 3D Printing
 - **Blue Glasses with Thin Black Outline:**
   - Segmented the glasses frames, bridge, and temple arm away from grey/brown shading (`#6b6b6b`) and recolored them to vibrant Disney Parade Blue (`#294062` / `[41, 64, 98]`).

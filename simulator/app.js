@@ -191,7 +191,7 @@ spinningTurtleImg.onload = () => {
     spinningTurtleLoaded = true;
     notifyFloatImgLoaded();
 };
-spinningTurtleImg.src = 'assets/Turtle_clean.png?v=20261103_turtle';
+spinningTurtleImg.src = 'assets/Turtle_clean.png?v=20261103_turtle_eye';
 
 // Spinning Snail Artwork (Default transparent PNG graphic from SimpleSnail.png)
 const spinningSnailImg = new Image();
@@ -264,7 +264,7 @@ const floatArtworkImgs = {
 floatArtworkImgs['casey_jr_train'].src = 'assets/Simpletrain.png?v=20261103';
 floatArtworkImgs['title_drum'].src = 'assets/title_drum.png';
 floatArtworkImgs['drumcleanedup'].src = 'assets/Drumcleanedup.png';
-floatArtworkImgs['spinning_turtle'].src = 'assets/Turtle_clean.png?v=20261103_turtle';
+floatArtworkImgs['spinning_turtle'].src = 'assets/Turtle_clean.png?v=20261103_turtle_eye';
 floatArtworkImgs['spinning_snail'].src = 'assets/SimpleSnail.png';
 floatArtworkImgs['spinning_snail_original'].src = 'assets/SimpleSnail.png';
 floatArtworkImgs['spinning_snail_simplified'].src = 'assets/spinning_snail_simplified.png';
