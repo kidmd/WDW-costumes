@@ -93,6 +93,20 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### 2026-11-03: Float 7 (To Honor America) 16×16 Grid Firework Spacing & Unclipped Eagle Left Wing Restoration
+- **16×16 LED Grid Firework Distribution:**
+  - Reconstructed complete 360° unclipped starburst sprites and spread the three Red, White, and Blue firework bursts across the upper-left sky (`(190, 335)`, `(390, 145)`, and `(580, 255)`) above the cascading flag to balance the overall silhouette for a 16×16 LED matrix with zero overlap between fireworks.
+- **Unclipped Eagle Left Wing Restoration:**
+  - Restored the lower-left edge of the Bald Eagle's left cathedral-arch wing (previously clipped where the old right firework overlapped the wing) using mirror symmetry (`x_sym = 926.5`) from the unclipped right wing so every white feather, blue outline, and the outer black wing contour extends cleanly down to the top edge of the flag.
+- **Strict 4-Color Multi-Material Slicing Verification:**
+  - Verified 100% discrete 4-color quantization across all 572,691 foreground pixels (`alpha = 255`) with a 100% transparent background (`alpha = 0`):
+    1. **Black (`#11161d` / `[17, 22, 29, 255]`):** Outer contour, banner interior, wheeled chassis, and firework outlines (227,957 px / 39.80%).
+    2. **White (`#ffffff` / `[255, 255, 255, 255]`):** `"TO HONOR AMERICA"` text, stars, flag stripes, eagle head, and all wing feathers (153,345 px / 26.78%).
+    3. **Red (`#d81d17` / `[216, 29, 23, 255]`):** Continuous front/middle flag folds, firework rays, shield stripes, and eagle beak (101,658 px / 17.75%).
+    4. **Blue (`#1f4a7d` / `[31, 74, 125, 255]`):** Rear starfield canton, swallowtail ribbon border, wing feather outlines, and shield top (89,731 px / 15.67%).
+- **Asset Deployment & Simulator Synchronization:**
+  - Updated `assets/honor_america_eagle.png`, `assets/to_honor_america.png`, `simulator/assets/honor_america_eagle.png`, and `simulator/assets/to_honor_america.png`, and bumped cache-buster in `simulator/app.js` to `?v=20261103_honor_america_v7`.
+
 ### 2026-11-03: Float 7 (To Honor America) Continuous Red & White Front/Middle Flag Folds & Rear Blue Starfield
 - **Authentic Flag Fold Progression:**
   - Updated the cascading American flag to match the archival *Main Street Electrical Parade* float structure: the front and middle undulating folds flowing backward from the `"TO HONOR AMERICA"` swallowtail banner are now continuous **Red (`#d81d17`)** and **White (`#ffffff`)** stripes, while the **Blue (`#1f4a7d`)** union field with crisp 5-pointed **White (`#ffffff`)** stars sits on the rear flag fold directly in front of the Bald Eagle's chest shield.

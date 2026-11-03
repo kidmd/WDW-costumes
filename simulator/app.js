@@ -276,7 +276,7 @@ floatArtworkImgs['petes_dragon'].src = 'assets/petes_dragon_transparent.png';
 floatArtworkImgs['builtin_dragon'].src = 'assets/petes_dragon_transparent.png';
 floatArtworkImgs['petes_dragon_transparent'].src = 'assets/petes_dragon_transparent.png';
 floatArtworkImgs['honor_america_eagle'].onload = () => { notifyFloatImgLoaded(); };
-floatArtworkImgs['honor_america_eagle'].src = 'assets/honor_america_eagle.png?v=20261103_honor_america_v6';
+floatArtworkImgs['honor_america_eagle'].src = 'assets/honor_america_eagle.png?v=20261103_honor_america_v7';
 
 function getGraphicImgForType(gType) {
     if (!gType) return defaultDragonImg;
