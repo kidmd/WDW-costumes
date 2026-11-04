@@ -93,13 +93,13 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
-### 2026-11-03: Float 4 (The Spinning Snail) Cheerful Orange Smile & Black Neck Lines Touch-Up
-- **Orange Smile & Cartoon Accordion Neck Folds:**
-  - Added a cheerful upturned **Orange (`#ffaa00` / `RGB: 255, 170, 0`)** smile along the cheek indent below the eye and snout, mapped with sub-pixel precision from user markup via SIFT homography into a smooth cubic spline with rounded end caps.
+### 2026-11-03: Float 4 (The Spinning Snail) Gold Smile (Matching Eyes) & Black Accordion Neck Lines
+- **Gold Smile & Cartoon Accordion Neck Folds (Strict 5-Color Snail Palette):**
+  - Updated the cheerful upturned smile to the exact **Gold (`#ca9927` / `rgb(202, 153, 39)`)** color used for the eyes, antennae, and shell spiral, strictly preserving the float's canonical 5-color vinyl and 3D printing layer specification (`Layer_1_Yellow_Vinyl` / `color_gold.stl`).
   - Added **4 solid Black (`#11161d`)** cartoon neck lines flowing parallel along the neck contours, capturing the whimsical accordion skin folds of the classic parade float while eliminating freehand stroke jitter.
 - **Asset Deployment & Simulator Synchronization:**
   - Updated [`assets/SimpleSnail.png`](file:///c:/Users/Kiddi/Desktop/WDW%20costumes/assets/SimpleSnail.png) and [`simulator/assets/SimpleSnail.png`](file:///c:/Users/Kiddi/Desktop/WDW%20costumes/simulator/assets/SimpleSnail.png).
-  - Updated cache-buster in [`simulator/app.js`](file:///c:/Users/Kiddi/Desktop/WDW%20costumes/simulator/app.js) to `?v=20261103_snail_smile_neck`.
+  - Updated cache-buster in [`simulator/app.js`](file:///c:/Users/Kiddi/Desktop/WDW%20costumes/simulator/app.js) to `?v=20261103_snail_gold_smile`.
   - Created visual inspection artifact [`snail_asset_review.md`](file:///C:/Users/Kiddi/.gemini/antigravity/brain/ba8699af-4574-4f1e-9678-f6f40a0f19fe/snail_asset_review.md).
 
 ### 2026-11-03: Float 5 (Pirate Ship) Stern Lanterns, Golden Crow's Nests, Larger Billowing Sails & Vertical Sail Seams
