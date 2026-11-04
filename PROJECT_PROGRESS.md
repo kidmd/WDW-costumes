@@ -93,6 +93,17 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### 2026-11-04 16:35: 100% User Layout Window Preservation Guarantee & Windows Export Hardening
+- **Eliminated Black Color-Key Filtering in Matrix Aperture Snapping (`scripts/compile_clean_tpu_panel.py`):**
+  - **The Bug:** Previously, `_snap_and_validate_matrix_leds` restricted valid cells to non-black colors (`c_key != 'black'`). On float graphics with dark or black elements (such as the patriotic fireworks in Float 7 "To Honor America", night skies, or chassis borders), user-configured windowed apertures falling on dark pixels (such as cells `(10, 3)`, `(10, 6)`, `(11, 5)`) were discarded as invalid, and replaced with unwanted Farthest-Point Sampling (FPS) auto-fill on the eagle's body.
+  - **The Fix:** Re-architected `compile_matrix_16x16_plate_variant` with a comprehensive 256-cell matrix map (`all_cells_map`). Any cell toggled to `window` by the user in the Layout tab is treated as an absolute instruction:
+    - 100% preserved in the 3D printed chassis, color inlays, and clear backing layer regardless of underlying pixel color.
+    - FPS auto-spread now runs strictly as an uninitialized fallback when the caller passes no list, never dropping or overriding user-configured windows.
+  - **Windows File System Hardening (`export_assembled_3mf`, `.zip` exports):**
+    - Updated 3MF assembly post-processing and bundle ZIP creation to write to atomic `.tmp` files before moving into place, eliminating Windows file-locking `OSError: [Errno 22] Invalid argument`.
+  - **Verification on Float 7 ("To Honor America"):**
+    - Verified all 42 user-configured windowed apertures (including all fireworks LEDs on rows 10, 11, and 12) are 100% present in both the 3D print STLs/3MF and the 3D Preview Modal with Ø 3.4mm cylindrical through-holes (minimum vertex radius 1.699mm).
+
 ## Progress Log
 
 ### 2026-11-04 16:15: Face-Down 16x16 3D Print Chirality Correction (Bed X-Mirroring & Right-Reading Front View)

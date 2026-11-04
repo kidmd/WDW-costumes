@@ -367,9 +367,16 @@ def export_assembled_3mf(scene_items, mf3_path, assembly_name="MSEP_MultiColor_P
                             ct_xml = ct_xml.replace('</Types>', ct_insert)
                             files_data['[Content_Types].xml'] = ct_xml.encode('utf-8')
 
-                    with zipfile.ZipFile(mf3_path, 'w', zipfile.ZIP_DEFLATED) as zout:
+                    tmp_3mf = mf3_path + '.tmp'
+                    with zipfile.ZipFile(tmp_3mf, 'w', zipfile.ZIP_DEFLATED) as zout:
                         for name, content in files_data.items():
                             zout.writestr(name, content)
+                    if os.path.exists(mf3_path):
+                        try:
+                            os.remove(mf3_path)
+                        except Exception:
+                            pass
+                    shutil.move(tmp_3mf, mf3_path)
     except Exception as e:
         print(f"[3MF Assembly Post-Process Warning]: {e}")
 
@@ -490,36 +497,41 @@ def compile_matrix_16x16_plate_variant(variant_name, artwork_path, window_shape=
     color_diffs = np.stack([np.sum((rgb - targets[k])**2, axis=2) for k in color_names], axis=2)
     closest_color_idx = np.argmin(color_diffs, axis=2)
 
-    # Build lookup of all 256 (16x16) matrix LED positions and which ones sit on colored foreground artwork
-    valid_cell_map = {}
-    candidates = []
+    # Build comprehensive lookup of all 256 physical 16x16 matrix cell locations
+    all_cells_map = {}
+    colored_candidates = []
     for r in range(16):
         for c in range(16):
-            mx_front = MARGIN_MM + 5.0 + c * 10.0  # 13.0 to 163.0 mm (front view coordinate)
-            my_mm = MARGIN_MM + 5.0 + (15 - r) * 10.0
-            # Map back to image pixel based on front view
+            mx_front = round(MARGIN_MM + 5.0 + c * 10.0, 2)  # 13.0 to 163.0 mm (front view coordinate)
+            my_mm = round(MARGIN_MM + 5.0 + (15 - r) * 10.0, 2)
+            # Mirrored X for face-down printing bed coordinate:
+            mx_bed = round(PLATE_SIZE_MM - mx_front, 2)
+
             px = int(round(min_x + (mx_front - offset_x) / scale))
             py = int(round(max_y - (my_mm - offset_y) / scale))
+            pr, pg_c, pb = 20, 20, 20
+            is_colored = False
             if 0 <= px < img_w and 0 <= py < img_h and fg_mask[py, px]:
                 c_idx = closest_color_idx[py, px]
                 c_key = color_names[c_idx]
+                pr, pg_c, pb = int(rgb[py, px, 0]), int(rgb[py, px, 1]), int(rgb[py, px, 2])
                 if c_key != 'black':
-                    pr, pg_c, pb = int(rgb[py, px, 0]), int(rgb[py, px, 1]), int(rgb[py, px, 2])
-                    # Mirrored X for face-down printing bed coordinate:
-                    mx_bed = round(PLATE_SIZE_MM - mx_front, 2)
-                    cell_obj = {
-                        'id': r * 16 + c + 1,
-                        'row': r,
-                        'col': c,
-                        'x': mx_bed,
-                        'y': round(my_mm, 2),
-                        'x_front': round(mx_front, 2),
-                        'color': {'r': pr, 'g': pg_c, 'b': pb}
-                    }
-                    candidates.append(cell_obj)
-                    valid_cell_map[(r, c)] = cell_obj
+                    is_colored = True
 
-    # Farthest-point sampling for 50 windowed and 25 backlit
+            cell_obj = {
+                'id': r * 16 + c + 1,
+                'row': r,
+                'col': c,
+                'x': mx_bed,
+                'y': my_mm,
+                'x_front': mx_front,
+                'color': {'r': pr, 'g': pg_c, 'b': pb}
+            }
+            all_cells_map[(r, c)] = cell_obj
+            if is_colored:
+                colored_candidates.append(cell_obj)
+
+    # Farthest-point sampling fallback for auto-layout generation ONLY
     def fps_select(pool, count, existing=None):
         chosen = list(existing) if existing else []
         chosen_rc = {(ch['row'], ch['col']) for ch in chosen}
@@ -537,11 +549,14 @@ def compile_matrix_16x16_plate_variant(variant_name, artwork_path, window_shape=
             chosen.append(rem.pop(best_i))
         return chosen, rem
 
-    def _snap_and_validate_matrix_leds(raw_leds, target_count, pool, exclude_rc=None):
-        exclude_rc = set(exclude_rc or [])
-        valid_list = []
-        seen_rc = set()
-        for l in (raw_leds or []):
+    # 1. Resolve Windowed LEDs:
+    # PRESERVE EVERY SINGLE LED specified by the user in the layout (including fireworks and dark accents)!
+    # Never discard an explicit user-configured window cutout.
+    valid_windowed = []
+    seen_win_rc = set()
+
+    if windowed_leds and len(windowed_leds) > 0:
+        for l in windowed_leds:
             if 'row' in l and 'col' in l:
                 r, c = int(l['row']), int(l['col'])
             else:
@@ -552,25 +567,51 @@ def compile_matrix_16x16_plate_variant(variant_name, artwork_path, window_shape=
                 r = 15 - int(round((float(l.get('y', 13.0)) - (MARGIN_MM + 5.0)) / 10.0))
             c = max(0, min(15, c))
             r = max(0, min(15, r))
-            if (r, c) in seen_rc or (r, c) in exclude_rc:
+            if (r, c) in seen_win_rc:
                 continue
-            if (r, c) in valid_cell_map:
-                cell_copy = dict(valid_cell_map[(r, c)])
-                if 'color' in l and isinstance(l['color'], dict):
-                    cell_copy['color'] = dict(l['color'])
-                valid_list.append(cell_copy)
-                seen_rc.add((r, c))
-        # If any supplied LEDs were off-graphic (or none supplied), top up to target_count on valid foreground cells
-        if len(valid_list) < target_count:
-            avail_pool = [cand for cand in pool if (cand['row'], cand['col']) not in exclude_rc]
-            valid_list, _ = fps_select(avail_pool, target_count, existing=valid_list)
-        return valid_list[:target_count]
+            seen_win_rc.add((r, c))
+            cell_copy = dict(all_cells_map[(r, c)])
+            if 'color' in l and isinstance(l['color'], dict):
+                cell_copy['color'] = dict(l['color'])
+            valid_windowed.append(cell_copy)
+    else:
+        # Default auto-sampling ONLY if no windowed LEDs were supplied
+        target_win = 50
+        pool = colored_candidates if len(colored_candidates) >= target_win else list(all_cells_map.values())
+        valid_windowed, _ = fps_select(pool, target_win)
+        seen_win_rc = {(l['row'], l['col']) for l in valid_windowed}
 
-    target_win_count = len(windowed_leds) if windowed_leds else 50
-    target_bl_count = len(backlight_leds) if backlight_leds else 25
-    windowed_leds = _snap_and_validate_matrix_leds(windowed_leds, target_win_count, candidates)
-    win_rc_set = {(l['row'], l['col']) for l in windowed_leds}
-    backlight_leds = _snap_and_validate_matrix_leds(backlight_leds, target_bl_count, candidates, exclude_rc=win_rc_set)
+    # 2. Resolve Backlight LEDs:
+    valid_backlight = []
+    seen_bl_rc = set()
+
+    if backlight_leds and len(backlight_leds) > 0:
+        for l in backlight_leds:
+            if 'row' in l and 'col' in l:
+                r, c = int(l['row']), int(l['col'])
+            else:
+                raw_x = float(l.get('x', 13.0))
+                c_front = int(round((raw_x - (MARGIN_MM + 5.0)) / 10.0))
+                c_bed = int(round((PLATE_SIZE_MM - raw_x - (MARGIN_MM + 5.0)) / 10.0))
+                c = c_front if (0 <= c_front <= 15) else c_bed
+                r = 15 - int(round((float(l.get('y', 13.0)) - (MARGIN_MM + 5.0)) / 10.0))
+            c = max(0, min(15, c))
+            r = max(0, min(15, r))
+            if (r, c) in seen_win_rc or (r, c) in seen_bl_rc:
+                continue
+            seen_bl_rc.add((r, c))
+            cell_copy = dict(all_cells_map[(r, c)])
+            if 'color' in l and isinstance(l['color'], dict):
+                cell_copy['color'] = dict(l['color'])
+            valid_backlight.append(cell_copy)
+    else:
+        # Default auto-sampling ONLY if no backlight LEDs were supplied
+        target_bl = 25
+        rem_pool = [cand for cand in (colored_candidates if len(colored_candidates) >= (len(seen_win_rc) + target_bl) else list(all_cells_map.values())) if (cand['row'], cand['col']) not in seen_win_rc]
+        valid_backlight, _ = fps_select(rem_pool, target_bl)
+
+    windowed_leds = valid_windowed
+    backlight_leds = valid_backlight
 
     # Build 2D aperture cutouts ONLY for windowed_leds: strictly Ø 3.4mm round holes (radius 1.70mm)
     win_polys = []
@@ -916,16 +957,29 @@ BACKLIT LEDS: {len(backlight_leds)} Solid Diffused Glow Positions (Zero Holes)
 SEWING HOLES: {len(shirt_hole_coords)} Corner Sewing Holes (Ø 2.8mm at 4 Corners)
 REMOVED FEATURES: No LED channels, no side walls, no screw holes, no eyelets, no zip-tie tunnels.
 """
-    with zipfile.ZipFile(zip_path, 'w', zipfile.ZIP_DEFLATED) as zf:
+    tmp_zip = zip_path + '.tmp'
+    with zipfile.ZipFile(tmp_zip, 'w', zipfile.ZIP_DEFLATED) as zf:
         zf.writestr('README_16X16_MATRIX_PLATE.txt', readme_txt)
         zf.write(chassis_path, chassis_filename)
         for c_n, c_p in color_stls.items():
             zf.write(c_p, os.path.basename(c_p))
         if os.path.exists(mf3_path):
             zf.write(mf3_path, mf3_filename)
+    if os.path.exists(zip_path):
+        try:
+            os.remove(zip_path)
+        except Exception:
+            pass
+    shutil.move(tmp_zip, zip_path)
 
     if variant_name == 'front':
-        shutil.copyfile(mono_path, os.path.join(out_dir, 'tpu_panel.stl'))
+        dst_tpu = os.path.join(out_dir, 'tpu_panel.stl')
+        try:
+            if os.path.exists(dst_tpu):
+                os.remove(dst_tpu)
+            shutil.copyfile(mono_path, dst_tpu)
+        except Exception as copy_err:
+            print('Warning: Failed copying tpu_panel.stl:', copy_err)
 
     stl_size = os.path.getsize(mono_path)
     chassis_size = os.path.getsize(chassis_path)
@@ -1974,7 +2028,13 @@ def compile_plate_variant(variant_name, width_mm, height_mm, raw_leds, artwork_p
     specs['stl_colors'] = stl_colors
 
     if variant_name == 'front':
-        shutil.copyfile(mono_path, os.path.join(out_dir, 'tpu_panel.stl'))
+        dst_tpu = os.path.join(out_dir, 'tpu_panel.stl')
+        try:
+            if os.path.exists(dst_tpu):
+                os.remove(dst_tpu)
+            shutil.copyfile(mono_path, dst_tpu)
+        except Exception as copy_err:
+            print('Warning: Failed copying tpu_panel.stl:', copy_err)
         if 'dragon' in str(specs.get('graphic_type', '')).lower():
             shutil.copyfile(mono_path, os.path.join(out_dir, 'petes_dragon_tpu_panel.stl'))
             shutil.copyfile(lid_path, os.path.join(out_dir, 'petes_dragon_tpu_panel_lid.stl'))
@@ -2209,7 +2269,7 @@ if '--orientation' in sys.argv:
         pass
 
 if MATRIX_16X16_MODE:
-    windowed_leds_spec = specs.get('matrix_windowed_leds', None)
+    windowed_leds_spec = specs.get('matrix_windowed_leds', specs.get('ordered_leds', None))
     backlight_leds_spec = specs.get('matrix_backlight_leds', None)
     # 1. Compile Front 16x16 Matrix Backlight Plate
     front_result = compile_matrix_16x16_plate_variant(
