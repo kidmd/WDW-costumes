@@ -93,6 +93,15 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### 2026-11-04: Lightning Bug Antenna Stalk Color Correction & Red Cap Edge Smoothing
+- **Visual Feedback & Geometry Refinements:**
+  - **Comment 0 (Antenna Stalk Yellow & Smooth Cap Outer Edge):** Reassigned the 316-pixel diagonal stalk (`lab == 4`, `y < 65`, `x > 310`) that previously protruded from the front/right of the red cap into the antenna base from Hat (Part 3) to Antenna (Part 2, solid Yellow `#facc15` / `[250, 204, 21]`). Cleaned the right panel of the red cap to `(lab == 4) & (~stalk)`, allowing the red cap dome boundary to terminate in a clean, smooth, rounded cartoon curve along `x ~ 309..314` with a crisp 4px black outline, eliminating all red horns/prongs in the antenna.
+- **Palette & Transparency Verification:**
+  - Strict 100.00% 5-color palette compliance (`#141414`, `#22c55e`, `#2563eb`, `#e61919`, `#facc15`) across all 119,456 foreground pixels on pure transparent background.
+- **Asset Deployment & Simulator Synchronization:**
+  - Deployed updated graphic to `assets/lightningbug_transparent.png`, `assets/lightning_bug.png`, `simulator/assets/lightningbug_transparent.png`, and `simulator/assets/lightning_bug.png`.
+  - Bumped simulator asset cache-busters in `simulator/app.js` to `?v=20261104_antenna_yellow_smooth_cap`.
+
 ### 2026-11-04: Lightning Bug Wing Edge Notch Fill & Symmetrical Red Cap Sector Lines
 - **Visual Feedback & Geometry Refinements:**
   - **Comment 0 (Wing Edge Smoothing & Notch Fill):** Completely removed the 89-pixel transparent/white notch located between the yellow tail tip dome and blue wing (`y=168..181, x=72..84`). Divided the filled region along the smooth monotonic cartoon boundary curve (`x(y) = 1.006e-3 * y^2 - 0.186 * y + 85.94`), making the bulk (~80%) solid Yellow (`#facc15`) tail dome and the outer right portion (~20%) solid Blue (`#2563eb`) wing. Rendered a continuous, uniform 4px black outline with zero holes or artifacts.

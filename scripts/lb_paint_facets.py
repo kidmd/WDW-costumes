@@ -46,11 +46,14 @@ body_facets = [6, 7, 29, 30, 31, 33, 43]
 part_map[np.isin(lab, body_facets)] = 17
 
 # 3. Antennae (Yellow, Part ID 2)
-part_map[np.isin(lab, [1, 9, 42])] = 2
+# Stalk on right side of cap protruding into antenna base is assigned to Antenna (Yellow)
+m4 = (lab == 4)
+stalk = m4 & (np.arange(h)[:, None] < 65) & (np.arange(w)[None, :] > 310)
+part_map[np.isin(lab, [1, 9, 42]) | stalk] = 2
 
 # 4. Hat (Red): 3 symmetrical panels separated by black seam lines
-# Right panel: lab == 4 (Part 3)
-part_map[lab == 4] = 3
+# Right panel: lab == 4 excluding antenna stalk (Part 3)
+part_map[m4 & (~stalk)] = 3
 # Center panel: lab == 8 (Part 4)
 part_map[lab == 8] = 4
 # Left panel: lab == 11 (Part 18) -> symmetrical seam line with center panel!
