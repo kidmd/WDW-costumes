@@ -93,6 +93,19 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+## Progress Log
+
+### 2026-11-04 16:15: Face-Down 16x16 3D Print Chirality Correction (Bed X-Mirroring & Right-Reading Front View)
+- **Face-Down Printing Chirality Elimination:**
+  - Resolved physical print and 3D preview horizontal inversion issue on Float 7 (To Honor America) and all 16x16 matrix plates.
+  - **Bed X-Mirroring ({bed} = \text{PLATE\_SIZE\_MM} - X_{front}$):** When printing face-down at  = 0.00\text{ mm}$, 2D artwork contours and matrix apertures are mathematically mirrored across the build plate ({bed} = 176.0 - X_{front}$, matrix column {bed} = 15 - c_{front}$). When the finished print is peeled off the textured PEI sheet and turned around to face viewers on race day, the front face is **100% right-reading, un-mirrored, and authentic**.
+  - **3D Preview Modal Camera Alignment (simulator/app.js):**
+    - **Front View (#tpuModalViewFrontBtn):** For 16x16 matrix mode, camera positions at 0 0 -390$ looking directly at the front face ( = -stlCenter.z = -1.5\text{ mm}$) with up = (0, 1, 0). The mirrored bed mesh projects with positive screen right ({screen} = +X_{front}$), rendering the front artwork right-side up, right-reading, and completely un-mirrored.
+    - **Back View (#tpuModalViewBackBtn):** Camera positions at 0 0 390$ looking directly into the open .4 \times 160.4\text{ mm}$ rear frame pocket ( = +stlCenter.z = +1.5\text{ mm}$) where the flexible BTF matrix PCB inserts.
+    - **Isometric View (#tpuModalViewIsoBtn):** Camera positions at -170 -150 -260$ for an angled front-quarter inspection showing artwork relief, clear backing layer, and 2mm perimeter frame depth.
+    - **Simulated LED Positioning:** Through-hole optical pixels and diffused backlit glow sprites positioned cleanly at  = -stlCenter.z - 0.20\text{ mm}$ and $-stlCenter.z - 0.12\text{ mm}$ directly on the front face.
+  - **Recompiled Float 7 3D Suite:** Recompiled 	pu_panel_front_chassis_black.stl, inlays (color_blue.stl, color_red.stl, color_white.stl), color_clear_layer.stl, and 	pu_panel_front_multicolor.3mf with 100% watertight verification across all meshes.
+
 ### 2026-11-04: 16x16 Matrix 3D Plate Face-Down Architecture (0.4mm Clear Backing, 2mm Frame, 0.0mm Lip, Snapmaker U1 Nozzle 3 Pause Mapping)
 - **Face-Down 3D Print Stacking Standard:**
   - Re-architected 16x16 Matrix plate fabrication pipeline (`scripts/compile_clean_tpu_panel.py`) to compile strictly **Face-Down** on the build plate (Z = 0.00mm) so the front float graphic artwork contacts the textured PEI sheet directly for a flawless matte, anti-glare finish.

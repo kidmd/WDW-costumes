@@ -495,22 +495,25 @@ def compile_matrix_16x16_plate_variant(variant_name, artwork_path, window_shape=
     candidates = []
     for r in range(16):
         for c in range(16):
-            mx_mm = MARGIN_MM + 5.0 + c * 10.0  # 13.0 to 163.0 mm (centered at 88.0mm)
+            mx_front = MARGIN_MM + 5.0 + c * 10.0  # 13.0 to 163.0 mm (front view coordinate)
             my_mm = MARGIN_MM + 5.0 + (15 - r) * 10.0
-            # Map back to image pixel
-            px = int(round(min_x + (mx_mm - offset_x) / scale))
+            # Map back to image pixel based on front view
+            px = int(round(min_x + (mx_front - offset_x) / scale))
             py = int(round(max_y - (my_mm - offset_y) / scale))
             if 0 <= px < img_w and 0 <= py < img_h and fg_mask[py, px]:
                 c_idx = closest_color_idx[py, px]
                 c_key = color_names[c_idx]
                 if c_key != 'black':
                     pr, pg_c, pb = int(rgb[py, px, 0]), int(rgb[py, px, 1]), int(rgb[py, px, 2])
+                    # Mirrored X for face-down printing bed coordinate:
+                    mx_bed = round(PLATE_SIZE_MM - mx_front, 2)
                     cell_obj = {
                         'id': r * 16 + c + 1,
                         'row': r,
                         'col': c,
-                        'x': round(mx_mm, 2),
+                        'x': mx_bed,
                         'y': round(my_mm, 2),
+                        'x_front': round(mx_front, 2),
                         'color': {'r': pr, 'g': pg_c, 'b': pb}
                     }
                     candidates.append(cell_obj)
@@ -542,7 +545,10 @@ def compile_matrix_16x16_plate_variant(variant_name, artwork_path, window_shape=
             if 'row' in l and 'col' in l:
                 r, c = int(l['row']), int(l['col'])
             else:
-                c = int(round((float(l.get('x', 13.0)) - (MARGIN_MM + 5.0)) / 10.0))
+                raw_x = float(l.get('x', 13.0))
+                c_front = int(round((raw_x - (MARGIN_MM + 5.0)) / 10.0))
+                c_bed = int(round((PLATE_SIZE_MM - raw_x - (MARGIN_MM + 5.0)) / 10.0))
+                c = c_front if (0 <= c_front <= 15) else c_bed
                 r = 15 - int(round((float(l.get('y', 13.0)) - (MARGIN_MM + 5.0)) / 10.0))
             c = max(0, min(15, c))
             r = max(0, min(15, r))
@@ -600,7 +606,10 @@ def compile_matrix_16x16_plate_variant(variant_name, artwork_path, window_shape=
             approx = cv2.approxPolyDP(c, eps, True)
             if len(approx) < 3:
                 return None
-            pts = [(round(offset_x + (pt[0][0] - min_x) * scale, 3),
+            # Face-down printing on the bed: mirror X across the plate width (X_bed = PLATE_SIZE_MM - X_front)
+            # so that when the print is lifted off the bed and turned over to face the viewer, the front face
+            # and artwork are 100% un-mirrored and right-reading!
+            pts = [(round(PLATE_SIZE_MM - (offset_x + (pt[0][0] - min_x) * scale), 3),
                     round(offset_y + (max_y - pt[0][1]) * scale, 3)) for pt in approx]
             pg = sg.Polygon(pts)
             return pg.buffer(0) if not pg.is_valid else pg

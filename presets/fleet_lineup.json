@@ -74,7 +74,7 @@
     "color": "#00ff88",
     "accent": "Green",
     "role": "\ud83d\udce1 Follower Float",
-    "preset": "server:pete_s_dragon_chris_large_81led_2026-10-30_18-45.json",
+    "preset": "local:pete_s_dragon_chris_large_81led_2026-11-03_10-33",
     "defaultGraphic": "builtin_dragon"
   },
   {
@@ -87,7 +87,7 @@
     "color": "#3a86ff",
     "accent": "Patriotic",
     "role": "\ud83d\udce1 Follower Float",
-    "preset": "server:honor_america_eagle.json",
+    "preset": "server:to_honor_america_100_led_patriotic_preset_medium_100led_2026-11-04_15-57.json",
     "defaultGraphic": "honor_america_eagle"
   }
 ]

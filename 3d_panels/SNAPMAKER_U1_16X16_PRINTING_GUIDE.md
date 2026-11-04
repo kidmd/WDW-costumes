@@ -17,6 +17,7 @@ Pocket Cavity Depth:   2.00 mm full depth (Z = 1.00 to 3.00 mm)
 LED Separation Lip:    0.0 mm (Strictly ZERO lip / zero shelf ledge; flat, open 160.4 x 160.4mm cavity)
 Clear Backing Extent:  160.4 x 160.4 mm (Spans all the way flush to the inside walls of the 2mm frame)
 Print Orientation:     FACE-DOWN on build plate (front graphic artwork against PEI textured sheet)
+Chirality Standard:    Bed X-Mirroring (X_bed = 176.0 - X_front) ensures 100% un-mirrored front view when worn
 ```
 
 ---

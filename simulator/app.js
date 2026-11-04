@@ -25362,6 +25362,10 @@ async function loadTpuModalData() {
             }
         }
 
+        if (isMatrixPlate) {
+            setTpuModalView('front');
+        }
+
         startTpuAnimateLoop();
     } catch (err) {
         console.error("TPU Modal loading error:", err);
@@ -25652,10 +25656,11 @@ function createTpuLedPixels(specs, stlCenter) {
         // Optical aperture pixel positioned cleanly in the optical window
         const pixelMesh = new THREE.Mesh(pixelGeom, mat);
         pixelMesh.renderOrder = 4;
+        const isMatrixPixel = (tpuDisplayMode === 'matrix16' || (specs && specs.matrix_16x16_mode === true));
         pixelMesh.position.set(
             l.x - stlCenter.x,
             l.y - stlCenter.y,
-            stlCenter.z + 0.20 // Positioned cleanly inside the front optical window
+            isMatrixPixel ? (-stlCenter.z - 0.20) : (stlCenter.z + 0.20) // Positioned cleanly inside the front optical window
         );
 
         let rotDeg = 0;
@@ -25718,10 +25723,11 @@ function createTpuLedPixels(specs, stlCenter) {
 
             const glowMesh = new THREE.Mesh(glowDiskGeom, glowMat);
             glowMesh.renderOrder = 5;
+            const isMatrixGlow = (tpuDisplayMode === 'matrix16' || (specs && specs.matrix_16x16_mode === true));
             glowMesh.position.set(
                 bl.x - stlCenter.x,
                 bl.y - stlCenter.y,
-                stlCenter.z + 0.12 // Diffused subsurface PLA glow on front face
+                isMatrixGlow ? (-stlCenter.z - 0.12) : (stlCenter.z + 0.12) // Diffused subsurface PLA glow on front face
             );
             tpuLedsGroup.add(glowMesh);
         });
@@ -25768,20 +25774,36 @@ function setTpuModalView(view) {
         b.style.color = 'var(--text-main)';
     });
 
+    const isMatrix = (tpuDisplayMode === 'matrix16' || (typeof lastLoadedTpuSpecs !== 'undefined' && lastLoadedTpuSpecs && lastLoadedTpuSpecs.matrix_16x16_mode === true));
+
     if (view === 'front') {
         const btn = document.getElementById('tpuModalViewFrontBtn');
         if (btn) { btn.style.borderColor = '#00ff88'; btn.style.color = '#00ff88'; }
-        tpuCamera.position.set(0, 0, 390);
+        if (isMatrix) {
+            // For face-down 16x16 plate: front face touches bed at -Z (-stlCenter.z). Camera at -Z views un-mirrored face!
+            tpuCamera.position.set(0, 0, -390);
+        } else {
+            tpuCamera.position.set(0, 0, 390);
+        }
         tpuControls.target.set(0, 0, 0);
     } else if (view === 'back') {
         const btn = document.getElementById('tpuModalViewBackBtn');
         if (btn) { btn.style.borderColor = '#00ff88'; btn.style.color = '#00ff88'; }
-        tpuCamera.position.set(0, 0, -390);
+        if (isMatrix) {
+            // Looking at the rear frame pocket at +Z (+stlCenter.z)
+            tpuCamera.position.set(0, 0, 390);
+        } else {
+            tpuCamera.position.set(0, 0, -390);
+        }
         tpuControls.target.set(0, 0, 0);
     } else if (view === 'iso') {
         const btn = document.getElementById('tpuModalViewIsoBtn');
         if (btn) { btn.style.borderColor = '#00ff88'; btn.style.color = '#00ff88'; }
-        tpuCamera.position.set(190, -160, 260);
+        if (isMatrix) {
+            tpuCamera.position.set(-170, -150, -260);
+        } else {
+            tpuCamera.position.set(190, -160, 260);
+        }
         tpuControls.target.set(0, 0, 0);
     }
 }
