@@ -93,6 +93,21 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### 2026-11-03: Float 5 (Pirate Ship) 4-Color Cartoon Cleanup & Bold Black Outline Separation
+- **Unified Golden Bronze Palette & Black Outline Separation:**
+  - Consolidated the Pirate Ship float graphic (`2128 × 1557` RGBA) from 5 foreground colors down to a strict **4-color cartoon style** (**Black**, **Red**, **Golden Bronze**, and **Green**), unifying all lighter yellow regions (`#ebb941`) with the antique bronze regions into a single warm **Golden Bronze (`#af7819`)** while drawing bold `7px` **Black (`#141414`)** outlines along every former yellow-to-bronze boundary (masts, rigging stays, bowsprit figurehead, lower sail pennants, and quarterdeck doorway/bulkhead) to keep every structural element cleanly separated.
+- **Contour Smoothing, De-Speckling & 3D Sail/Roof Facet Outlines:**
+  - Applied periodic 1D Gaussian contour smoothing (`sigma = 15.0`) to eliminate `25 × 25 px` JPEG checkerboard stair-stepping along the rigging ropes, bowsprit, and lower sails.
+  - Eliminated the 208-island green/black quantization speckle cloud on the stern cabin roof, reconstructing a solid **Green (`#147332`)** roof with a crisp **Black** ridge line separating the left and right roof slopes, and added internal **Black** facet lines inside the **Red (`#e61919`)** crow's nests and billowing battle sails.
+- **Strict 4-Color Multi-Material Slicing Verification:**
+  - Verified 100% discrete 4-color quantization across all 1,531,351 foreground pixels (`alpha = 255`) with a 100% transparent background (`alpha = 0`):
+    1. **Black (`#141414` / `[20, 20, 20, 255]`):** Hull stripes, chassis, cannon portholes, and continuous cartoon outlines (585,243 px / 38.22% of foreground).
+    2. **Golden Bronze (`#af7819` / `[175, 120, 25, 255]`):** Masts, rigging, decks, bowsprit, windows, and gunports (425,401 px / 27.78% of foreground).
+    3. **Red (`#e61919` / `[230, 25, 25, 255]`):** Battle sails, crow's nests, stern cabin, and trim (400,866 px / 26.18% of foreground).
+    4. **Green (`#147332` / `[20, 115, 50, 255]`):** Emerald hull planking, stern cabin roof, and pennants (119,841 px / 7.83% of foreground).
+- **Asset Deployment & Simulator Synchronization:**
+  - Updated `assets/Pirateshipsimple.png`, `assets/pirate_ship.png`, `simulator/assets/Pirateshipsimple.png`, and `simulator/assets/pirate_ship.png`, updated 4-color layer metadata in `simulator/app.js`, and bumped cache-buster to `?v=20261103_pirate_4color`.
+
 ### 2026-11-03: Float 7 (To Honor America) Fanning White-Feathered Eagle Shoulders from Top of Shielded Chest
 - **Fanning Eagle Shoulder Geometry:**
   - Updated the Bald Eagle on the *To Honor America* finale float so **shoulders with white feathers (outlined in blue)** emerge from **both sides of the top of the Eagle's shielded chest**, starting narrow right at the upper corners of the shield (`y = 244..284`) and fanning out radially in three overlapping tiers into the two large cathedral-arch wings.

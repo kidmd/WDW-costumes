@@ -157,14 +157,14 @@ defaultDragonImg.onload = () => {
 };
 defaultDragonImg.src = 'assets/petes_dragon_transparent.png';
 
-// Pirate Ship Artwork (Float 5 Default - 5-Color Transparent PNG from Pirateshipsimple.png)
+// Pirate Ship Artwork (Float 5 Default - 4-Color Transparent PNG from Pirateshipsimple.png)
 const pirateShipImg = new Image();
 let pirateShipLoaded = false;
 pirateShipImg.onload = () => {
     pirateShipLoaded = true;
     notifyFloatImgLoaded();
 };
-pirateShipImg.src = 'assets/Pirateshipsimple.png';
+pirateShipImg.src = 'assets/Pirateshipsimple.png?v=20261103_pirate_4color';
 
 // Cinderella's Coach Artwork (Legacy)
 const cinderellasCoachImg = new Image();
@@ -268,10 +268,10 @@ floatArtworkImgs['spinning_turtle'].src = 'assets/Turtle_clean.png?v=20261103_tu
 floatArtworkImgs['spinning_snail'].src = 'assets/SimpleSnail.png';
 floatArtworkImgs['spinning_snail_original'].src = 'assets/SimpleSnail.png';
 floatArtworkImgs['spinning_snail_simplified'].src = 'assets/spinning_snail_simplified.png';
-floatArtworkImgs['pirate_ship'].src = 'assets/Pirateshipsimple.png';
-floatArtworkImgs['pirateshipsimple'].src = 'assets/Pirateshipsimple.png';
-floatArtworkImgs['cinderella_coach'].src = 'assets/Pirateshipsimple.png';
-floatArtworkImgs['cinderellas_coach'].src = 'assets/Pirateshipsimple.png';
+floatArtworkImgs['pirate_ship'].src = 'assets/Pirateshipsimple.png?v=20261103_pirate_4color';
+floatArtworkImgs['pirateshipsimple'].src = 'assets/Pirateshipsimple.png?v=20261103_pirate_4color';
+floatArtworkImgs['cinderella_coach'].src = 'assets/Pirateshipsimple.png?v=20261103_pirate_4color';
+floatArtworkImgs['cinderellas_coach'].src = 'assets/Pirateshipsimple.png?v=20261103_pirate_4color';
 floatArtworkImgs['petes_dragon'].src = 'assets/petes_dragon_transparent.png';
 floatArtworkImgs['builtin_dragon'].src = 'assets/petes_dragon_transparent.png';
 floatArtworkImgs['petes_dragon_transparent'].src = 'assets/petes_dragon_transparent.png';
@@ -3289,11 +3289,10 @@ const CRICUT_FLOAT_CONFIG = {
         tag: "PIRATE",
         svgFile: "pirate_ship.svg",
         layers: [
-            { id: "Layer_red", name: "Red Sails & Flag", hex: "#e61919", r: 230, g: 25, b: 25 },
-            { id: "Layer_gold", name: "Bright Gold Masts & Trim", hex: "#ebb941", r: 235, g: 185, b: 65 },
-            { id: "Layer_dark_gold", name: "Bronze Decks & Rigging", hex: "#9b6914", r: 155, g: 105, b: 20 },
-            { id: "Layer_green", name: "Ocean Waves", hex: "#147332", r: 20, g: 115, b: 50 },
-            { id: "Layer_black", name: "Hull & Chassis", hex: "#141414", r: 20, g: 20, b: 20 }
+            { id: "Layer_black", name: "Hull Stripes, Chassis & Cartoon Outlines", hex: "#141414", r: 20, g: 20, b: 20 },
+            { id: "Layer_red", name: "Battle Sails, Crow's Nests & Stern Cabin", hex: "#e61919", r: 230, g: 25, b: 25 },
+            { id: "Layer_golden_bronze", name: "Golden Bronze Masts, Rigging, Decks & Windows", hex: "#af7819", r: 175, g: 120, b: 25 },
+            { id: "Layer_green", name: "Emerald Hull Planking, Cabin Roof & Pennants", hex: "#147332", r: 20, g: 115, b: 50 }
         ]
     },
     'pirateshipsimple': {
@@ -3303,11 +3302,10 @@ const CRICUT_FLOAT_CONFIG = {
         tag: "PIRATE",
         svgFile: "pirate_ship.svg",
         layers: [
-            { id: "Layer_red", name: "Red Sails & Flag", hex: "#e61919", r: 230, g: 25, b: 25 },
-            { id: "Layer_gold", name: "Bright Gold Masts & Trim", hex: "#ebb941", r: 235, g: 185, b: 65 },
-            { id: "Layer_dark_gold", name: "Bronze Decks & Rigging", hex: "#9b6914", r: 155, g: 105, b: 20 },
-            { id: "Layer_green", name: "Ocean Waves", hex: "#147332", r: 20, g: 115, b: 50 },
-            { id: "Layer_black", name: "Hull & Chassis", hex: "#141414", r: 20, g: 20, b: 20 }
+            { id: "Layer_black", name: "Hull Stripes, Chassis & Cartoon Outlines", hex: "#141414", r: 20, g: 20, b: 20 },
+            { id: "Layer_red", name: "Battle Sails, Crow's Nests & Stern Cabin", hex: "#e61919", r: 230, g: 25, b: 25 },
+            { id: "Layer_golden_bronze", name: "Golden Bronze Masts, Rigging, Decks & Windows", hex: "#af7819", r: 175, g: 120, b: 25 },
+            { id: "Layer_green", name: "Emerald Hull Planking, Cabin Roof & Pennants", hex: "#147332", r: 20, g: 115, b: 50 }
         ]
     },
     'cinderella_coach': {
@@ -3317,11 +3315,10 @@ const CRICUT_FLOAT_CONFIG = {
         tag: "PIRATE",
         svgFile: "pirate_ship.svg",
         layers: [
-            { id: "Layer_red", name: "Red Sails & Flag", hex: "#e61919", r: 230, g: 25, b: 25 },
-            { id: "Layer_gold", name: "Bright Gold Masts & Trim", hex: "#ebb941", r: 235, g: 185, b: 65 },
-            { id: "Layer_dark_gold", name: "Bronze Decks & Rigging", hex: "#9b6914", r: 155, g: 105, b: 20 },
-            { id: "Layer_green", name: "Ocean Waves", hex: "#147332", r: 20, g: 115, b: 50 },
-            { id: "Layer_black", name: "Hull & Chassis", hex: "#141414", r: 20, g: 20, b: 20 }
+            { id: "Layer_black", name: "Hull Stripes, Chassis & Cartoon Outlines", hex: "#141414", r: 20, g: 20, b: 20 },
+            { id: "Layer_red", name: "Battle Sails, Crow's Nests & Stern Cabin", hex: "#e61919", r: 230, g: 25, b: 25 },
+            { id: "Layer_golden_bronze", name: "Golden Bronze Masts, Rigging, Decks & Windows", hex: "#af7819", r: 175, g: 120, b: 25 },
+            { id: "Layer_green", name: "Emerald Hull Planking, Cabin Roof & Pennants", hex: "#147332", r: 20, g: 115, b: 50 }
         ]
     },
     'cinderellas_coach': {
@@ -3331,11 +3328,10 @@ const CRICUT_FLOAT_CONFIG = {
         tag: "PIRATE",
         svgFile: "pirate_ship.svg",
         layers: [
-            { id: "Layer_red", name: "Red Sails & Flag", hex: "#e61919", r: 230, g: 25, b: 25 },
-            { id: "Layer_gold", name: "Bright Gold Masts & Trim", hex: "#ebb941", r: 235, g: 185, b: 65 },
-            { id: "Layer_dark_gold", name: "Bronze Decks & Rigging", hex: "#9b6914", r: 155, g: 105, b: 20 },
-            { id: "Layer_green", name: "Ocean Waves", hex: "#147332", r: 20, g: 115, b: 50 },
-            { id: "Layer_black", name: "Hull & Chassis", hex: "#141414", r: 20, g: 20, b: 20 }
+            { id: "Layer_black", name: "Hull Stripes, Chassis & Cartoon Outlines", hex: "#141414", r: 20, g: 20, b: 20 },
+            { id: "Layer_red", name: "Battle Sails, Crow's Nests & Stern Cabin", hex: "#e61919", r: 230, g: 25, b: 25 },
+            { id: "Layer_golden_bronze", name: "Golden Bronze Masts, Rigging, Decks & Windows", hex: "#af7819", r: 175, g: 120, b: 25 },
+            { id: "Layer_green", name: "Emerald Hull Planking, Cabin Roof & Pennants", hex: "#147332", r: 20, g: 115, b: 50 }
         ]
     },
     'carriage_nohorses': {
@@ -3410,18 +3406,16 @@ const FLOAT_STL_COLOR_CONFIG = {
         'golden_bronze': { name: "Cab Roof & Frame, Tender, Cowcatcher Flange, Drive Rod & Face", hex: "#a0732d", targetRgb: [160, 115, 45], role: "inlay", filename: "color_golden_bronze.stl" }
     },
     'pirate_ship': {
-        'black': { name: "Chassis, Hull & Rigging Accents", hex: "#141414", targetRgb: [20, 20, 20], role: "chassis" },
-        'red': { name: "Sails & Masthead Flag", hex: "#e61919", targetRgb: [230, 25, 25], role: "inlay", filename: "color_red.stl" },
-        'gold': { name: "Bright Gold Masts & Trim", hex: "#ebb941", targetRgb: [235, 185, 65], role: "inlay", filename: "color_gold.stl" },
-        'dark_gold': { name: "Antique Bronze Decks & Shading", hex: "#9b6914", targetRgb: [155, 105, 20], role: "inlay", filename: "color_dark_gold.stl" },
-        'green': { name: "Ocean Waves & Sea Keel", hex: "#147332", targetRgb: [20, 115, 50], role: "inlay", filename: "color_green.stl" }
+        'black': { name: "Chassis, Hull Stripes & Cartoon Outlines", hex: "#141414", targetRgb: [20, 20, 20], role: "chassis" },
+        'red': { name: "Battle Sails, Crow's Nests & Stern Cabin", hex: "#e61919", targetRgb: [230, 25, 25], role: "inlay", filename: "color_red.stl" },
+        'golden_bronze': { name: "Golden Bronze Masts, Rigging, Decks & Windows", hex: "#af7819", targetRgb: [175, 120, 25], role: "inlay", filename: "color_golden_bronze.stl" },
+        'green': { name: "Emerald Hull Planking, Cabin Roof & Pennants", hex: "#147332", targetRgb: [20, 115, 50], role: "inlay", filename: "color_green.stl" }
     },
     'pirateshipsimple': {
-        'black': { name: "Chassis, Hull & Rigging Accents", hex: "#141414", targetRgb: [20, 20, 20], role: "chassis" },
-        'red': { name: "Sails & Masthead Flag", hex: "#e61919", targetRgb: [230, 25, 25], role: "inlay", filename: "color_red.stl" },
-        'gold': { name: "Bright Gold Masts & Trim", hex: "#ebb941", targetRgb: [235, 185, 65], role: "inlay", filename: "color_gold.stl" },
-        'dark_gold': { name: "Antique Bronze Decks & Shading", hex: "#9b6914", targetRgb: [155, 105, 20], role: "inlay", filename: "color_dark_gold.stl" },
-        'green': { name: "Ocean Waves & Sea Keel", hex: "#147332", targetRgb: [20, 115, 50], role: "inlay", filename: "color_green.stl" }
+        'black': { name: "Chassis, Hull Stripes & Cartoon Outlines", hex: "#141414", targetRgb: [20, 20, 20], role: "chassis" },
+        'red': { name: "Battle Sails, Crow's Nests & Stern Cabin", hex: "#e61919", targetRgb: [230, 25, 25], role: "inlay", filename: "color_red.stl" },
+        'golden_bronze': { name: "Golden Bronze Masts, Rigging, Decks & Windows", hex: "#af7819", targetRgb: [175, 120, 25], role: "inlay", filename: "color_golden_bronze.stl" },
+        'green': { name: "Emerald Hull Planking, Cabin Roof & Pennants", hex: "#147332", targetRgb: [20, 115, 50], role: "inlay", filename: "color_green.stl" }
     },
     'title_drum': {
         'black': { name: "Chassis, Drum Face & Wheels", hex: "#11161d", targetRgb: [17, 22, 29], role: "chassis" },
