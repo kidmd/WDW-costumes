@@ -93,6 +93,16 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### 2026-11-04: Lightning Bug Wing Edge Notch Fill & Symmetrical Red Cap Sector Lines
+- **Visual Feedback & Geometry Refinements:**
+  - **Comment 0 (Wing Edge Smoothing & Notch Fill):** Completely removed the 89-pixel transparent/white notch located between the yellow tail tip dome and blue wing (`y=168..181, x=72..84`). Divided the filled region along the smooth monotonic cartoon boundary curve (`x(y) = 1.006e-3 * y^2 - 0.186 * y + 85.94`), making the bulk (~80%) solid Yellow (`#facc15`) tail dome and the outer right portion (~20%) solid Blue (`#2563eb`) wing. Rendered a continuous, uniform 4px black outline with zero holes or artifacts.
+  - **Comment 1 (Symmetrical Red Cap Seam Line):** Separated the red cap into three distinct anatomical panels (Right Panel 3, Center Panel 4, and Left Panel 18). Generated a left dividing seam line symmetrical to the right seam line, giving the cap a rounded 3D dome / beanie shape.
+- **Palette & Transparency Verification:**
+  - Strict 100.00% 5-color palette compliance (`#141414`, `#22c55e`, `#2563eb`, `#e61919`, `#facc15`) across all 119,456 foreground pixels on pure transparent background.
+- **Asset Deployment & Simulator Synchronization:**
+  - Deployed updated graphic to `assets/lightningbug_transparent.png`, `assets/lightning_bug.png`, `simulator/assets/lightningbug_transparent.png`, and `simulator/assets/lightning_bug.png`.
+  - Bumped simulator asset cache-busters in `simulator/app.js` to `?v=20261104_cap_lines_wing_smooth`.
+
 ### 2026-11-04: Lightning Bug Wing-Tail Boundary Smoothing & 4x Accordion Divider Line
 - **Visual Feedback & Geometry Refinements:**
   - **Comment 0 (Smooth Wing / Tail Dome Boundary):** Modeled the contact edge between the Blue wing (`part_map == 9`) and the Yellow tail tip dome (`part_map == 10`) as a smooth, continuous monotonic cartoon curve (`x(y) = 1.006e-3 * y^2 - 0.186 * y + 85.94` across `y=130..184`), completely eliminating the polygonal S-curve dip, waist indentation, and any red sliver artifact.

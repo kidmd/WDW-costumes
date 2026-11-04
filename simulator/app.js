@@ -235,7 +235,7 @@ lightningBugImg.onload = () => {
     lightningBugLoaded = true;
     notifyFloatImgLoaded();
 };
-lightningBugImg.src = 'assets/lightning_bug.png?v=20261104_smooth_wing_4x_divider';
+lightningBugImg.src = 'assets/lightning_bug.png?v=20261104_cap_lines_wing_smooth';
 
 const lightningBugTransparentImg = new Image();
 let lightningBugTransparentLoaded = false;
@@ -243,7 +243,7 @@ lightningBugTransparentImg.onload = () => {
     lightningBugTransparentLoaded = true;
     notifyFloatImgLoaded();
 };
-lightningBugTransparentImg.src = 'assets/lightningbug_transparent.png?v=20261104_smooth_wing_4x_divider';
+lightningBugTransparentImg.src = 'assets/lightningbug_transparent.png?v=20261104_cap_lines_wing_smooth';
 
 // Custom artwork image (if user uploads one or loads one from preset)
 let customArtworkImg = null;

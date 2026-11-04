@@ -5,9 +5,10 @@ Style & Geometry Standards:
 - Neck Line: Bold, curved black line separating the spherical head/cheek from the body/torso
 - Legs: Solid Green (#22c55e / [34, 197, 94])
 - Wing: Solid Blue (#2563eb / [37, 99, 235])
-- Hat, Tail Accordion Folds, Mouth: Solid Red (#e61919 / [230, 25, 25])
+- Hat: Solid Red (#e61919 / [230, 25, 25]) with symmetrical sector seam lines giving it a 3D rounded dome shape
+- Tail Accordion Folds, Mouth: Solid Red (#e61919 / [230, 25, 25])
   * Tail folds: Exactly TWO red sections separated by a SINGLE, extra-bold black dividing line (4x standard thickness)
-- Tail Tip Lantern Dome: Solid Yellow (#facc15 / [250, 204, 21]) with zero internal lines and a smooth, elegant cartoon curved boundary meeting the blue wing
+- Tail Tip Lantern Dome: Solid Yellow (#facc15 / [250, 204, 21]) with zero internal lines, zero holes/notches, and a smooth, elegant cartoon curved boundary meeting the blue wing
 - Antennae: Solid Yellow (#facc15 / [250, 204, 21])
 - Eye Sclera: Smooth, rounded cartoon oval in Solid Yellow (#facc15 / [250, 204, 21])
 - Eye Iris: Smooth, rounded cartoon oval in Solid Blue (#2563eb / [37, 99, 235])
@@ -47,23 +48,29 @@ part_map[np.isin(lab, body_facets)] = 17
 # 3. Antennae (Yellow, Part ID 2)
 part_map[np.isin(lab, [1, 9, 42])] = 2
 
-# 4. Hat (Red): dome and visor
-part_map[lab == 4] = 3              # Hat dome
-part_map[np.isin(lab, [8, 11])] = 4 # Hat visor/band
+# 4. Hat (Red): 3 symmetrical panels separated by black seam lines
+# Right panel: lab == 4 (Part 3)
+part_map[lab == 4] = 3
+# Center panel: lab == 8 (Part 4)
+part_map[lab == 8] = 4
+# Left panel: lab == 11 (Part 18) -> symmetrical seam line with center panel!
+part_map[lab == 11] = 18
 
 # 5. Tail Tip Lantern Dome (Yellow, Part ID 10)
 # Clean, unified yellow dome with zero internal dividing lines and zero red/white patches.
 # Bounded by a smooth, monotonic cartoon curve along the blue wing edge.
-ys_curve = np.arange(130, 185)
+ys_curve = np.arange(128, 186)
 poly = [1.00611302e-03, -1.86267239e-01, 8.59393060e+01]
 xs_curve = np.polyval(poly, ys_curve).round().astype(int)
 
 tail_dome = np.isin(lab, [20, 21])
 tail_dome |= ((lab == 10) & (np.arange(h)[:, None] >= 135))
 tail_dome |= ((lab == 23) & (np.arange(h)[:, None] < 182) & (np.arange(w)[None, :] <= 95))
-tail_dome |= ((lab == 0) & (np.arange(h)[:, None] >= 155) & (np.arange(h)[:, None] <= 185) & (np.arange(w)[None, :] >= 60) & (np.arange(w)[None, :] <= 95))
+# Include former white gap/notch:
+hole = (np.arange(h)[:, None] >= 165) & (np.arange(h)[:, None] <= 185) & (np.arange(w)[None, :] >= 65) & (np.arange(w)[None, :] <= 95)
+tail_dome |= hole
 
-# Smooth curve boundary with wing:
+# Enforce smooth curve boundary with wing:
 for y, xc in zip(ys_curve, xs_curve):
     tail_dome[y, 50:xc] = True
     tail_dome[y, xc:95] = False
@@ -138,6 +145,8 @@ leg_spurs = (
 )
 is_fg[leg_spurs] = False
 is_fg |= (mask_eye_round == 1)
+# Fill former hole between tail dome and wing into foreground:
+is_fg |= hole
 part_map[~is_fg] = 0
 
 # Fill any small gaps inside foreground:
@@ -147,7 +156,7 @@ if unl.any():
     part_map[unl] = part_map[r_idx[unl], c_idx[unl]]
 
 # Smooth parts for organic cartoon contours:
-part_ids = [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 14, 15, 16, 17]
+part_ids = [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 14, 15, 16, 17, 18]
 smoothed_parts = {}
 for pid in part_ids:
     mask = (part_map == pid).astype(np.uint8)
@@ -178,7 +187,7 @@ PART_COLOR = {
     2: YELLOW, 5: YELLOW, 6: YELLOW, 10: YELLOW, 17: YELLOW,
     14: GREEN, 15: GREEN, 16: GREEN,
     7: BLUE, 9: BLUE,
-    3: RED, 4: RED, 8: RED, 11: RED, 12: RED
+    3: RED, 4: RED, 8: RED, 11: RED, 12: RED, 18: RED
 }
 
 # Outlines:
