@@ -217,7 +217,7 @@ caseyJrTrainImg.onload = () => {
     caseyJrTrainLoaded = true;
     notifyFloatImgLoaded();
 };
-caseyJrTrainImg.src = 'assets/Simpletrain.png?v=20261103';
+caseyJrTrainImg.src = 'assets/Simpletrain.png?v=20261103_solid_lines';
 
 // Title Drum Artwork (5-color transparent PNG)
 const titleDrumImg = new Image();
@@ -261,7 +261,7 @@ const floatArtworkImgs = {
     'petes_dragon_transparent': defaultDragonImg,
     'honor_america_eagle': new Image()
 };
-floatArtworkImgs['casey_jr_train'].src = 'assets/Simpletrain.png?v=20261103';
+floatArtworkImgs['casey_jr_train'].src = 'assets/Simpletrain.png?v=20261103_solid_lines';
 floatArtworkImgs['title_drum'].src = 'assets/title_drum.png';
 floatArtworkImgs['drumcleanedup'].src = 'assets/Drumcleanedup.png';
 floatArtworkImgs['spinning_turtle'].src = 'assets/Turtle_clean.png?v=20261103_turtle_neck_blue';

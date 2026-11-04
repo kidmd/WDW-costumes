@@ -93,6 +93,21 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### 2026-11-03: Float 1 (Casey Jr. Train / Simpletrain) Solid Unbroken Black Outline Restoration
+- **Root-Cause Analysis of Dashed Outlines:**
+  - The original source illustration featured two shades of Golden Bronze (`Darker Bronze` panels at `lum ≈ 78` and `Lighter Bronze` structural trim/spokes at `lum ≈ 96`) separated by thin 1–2px black linework. During initial quantization into a single Golden Bronze (`#a0732d`), anti-aliased pixels along those 1–2px black lines (`lum ≈ 65..88`) were absorbed into Bronze, turning the interior linework into dashed lines.
+- **Topological Panel-Boundary & Seam Reconstruction:**
+  - Extracted the exact topological boundaries between the original dark-bronze panels and light-bronze structural frames/spokes, combined with inter-color seams (Yellow/Bronze, Red/Bronze, outer silhouette border) and morphological valley detection (`val_l` and `val_r`) from the source artwork (`media_1793733438799_5f6ce56f.jpg`).
+  - Restored **100% solid, continuous black outlines** across all boiler face spokes, eye rings, nose ring, cab roof/window/wall frames, cab heart emblem, tender box, wheel rims, piston rod, cowcatcher, and diamond smokestack while preserving the reconstructed lower wheel and cowcatcher tip.
+- **Strict 4-Color Multi-Material Slicing Verification:**
+  - Verified 100% discrete 4-color quantization across all 389,107 foreground pixels (`alpha = 255`) with a 100% transparent background (`alpha = 0`):
+    1. **Black (`#11161d` / `[17, 22, 29, 255]`):** Solid unbroken outlines, smokestack, cab windows, and boiler shadow (154,001 px / 39.58%).
+    2. **Red (`#e63946` / `[230, 57, 70, 255]`):** Boiler body, cab panels, cowcatcher, and wheel centers (122,154 px / 31.39%).
+    3. **Golden Bronze (`#a0732d` / `[160, 115, 45, 255]`):** Boiler face, spokes, cab trim, tender frame, and piston rod (94,755 px / 24.35%).
+    4. **Yellow (`#ffcc15` / `[255, 204, 21, 255]`):** Steam dome, headlight, eyes, and inner wheels (18,197 px / 4.68%).
+- **Asset Deployment & Simulator Synchronization:**
+  - Updated `assets/Simpletrain.png`, `assets/train.png`, `simulator/assets/Simpletrain.png`, and `simulator/assets/train.png`, and bumped cache-buster in `simulator/app.js` to `?v=20261103_solid_lines`.
+
 ### 2026-11-03: Float 7 (To Honor America) 16×16 Grid Firework Spacing & Unclipped Eagle Left Wing Restoration
 - **16×16 LED Grid Firework Distribution:**
   - Reconstructed complete 360° unclipped starburst sprites and spread the three Red, White, and Blue firework bursts across the upper-left sky (`(190, 335)`, `(390, 145)`, and `(580, 255)`) above the cascading flag to balance the overall silhouette for a 16×16 LED matrix with zero overlap between fireworks.
