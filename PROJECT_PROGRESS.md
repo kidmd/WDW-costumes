@@ -93,6 +93,20 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### 2026-11-04: Lightning Bug Contour Smoothing Batch 2 (Tail Silhouette, Lower Tail Curve, Foot Bottom, Ground Baseline, Wing-Body Seam, Beanie Headband)
+- **Visual Feedback & Geometry Refinements:**
+  - **Comment 0 (Tail Outer Silhouette Smoothing):** Smoothed the outer left silhouette ($x_{\text{min}}(y)$) of the red tail accordion along $y = 190 \dots 270$ using 1D Gaussian filtering ($\sigma = 3.0$), eliminating the flat vertical segment and jagged staircase pixel steps.
+  - **Comment 1 (Lower Tail Curve Smoothing):** Smoothed the lower-left curved boundary of the tail ($y = 270 \dots 355$) with Gaussian contour filtering ($\sigma = 3.0$), replacing 4-pixel jagged staircase leaps with an organic, continuous circular/elliptical sweep.
+  - **Comment 2 (Back Foot Bottom Smoothing):** Smoothed the bottom sole line of the back green foot (`Part 14`) across $x = 65 \dots 110$ using 1D Gaussian smoothing ($\sigma = 2.5$), eliminating jagged stepped cutoffs and gaps.
+  - **Comment 3 (Entire Bottom Baseline / Skirt Smoothing):** Smoothed the ground baseline ($y_{\text{bot}}(x)$) across the entire bottom silhouette of the bug ($x = 95 \dots 385$) using Gaussian filtering ($\sigma = 4.5$), producing a gentle, continuous cartoon crescent baseline without jagged facet corners between legs and belly.
+  - **Comment 4 (Wing-Body Vertical Seam Straightening):** Straightened the vertical boundary between Blue Wing (`Part 9`) and Yellow Head/Body (`Part 5 / 17`) along $y = 135 \dots 215$ into a clean vertical seam at $x = 166$, completely eliminating the 3-pixel left kink at $y = 180$.
+  - **Comment 5 (Red Beanie Headband Curve Smoothing):** Fitted a smooth quadratic curve ($y_{\text{cap\_bot}}(x) = \text{poly}(x)$ across $x = 160 \dots 240$) along the bottom contour of the red beanie cap, eliminating stepped jaggedness and creating a smooth, sweeping headband arch meeting the wing junction at $(166, 119)$.
+- **Palette & Transparency Verification:**
+  - Strict 100.00% 5-color palette compliance (`#141414`, `#22c55e`, `#2563eb`, `#e61919`, `#facc15`) across all 119,453 foreground pixels on pure transparent background.
+- **Asset Deployment & Simulator Synchronization:**
+  - Deployed updated graphic to `assets/lightningbug_transparent.png`, `assets/lightning_bug.png`, `simulator/assets/lightningbug_transparent.png`, and `simulator/assets/lightning_bug.png`.
+  - Bumped simulator asset cache-busters in `simulator/app.js` to `?v=20261104_smooth_lines_batch2`.
+
 ### 2026-11-04: Lightning Bug Green Leg Top Corner Rounding (Back, Middle, and Front-Mid Feet)
 - **Visual Feedback & Geometry Refinements:**
   - **Comment 0 (Middle Leg 35 Dome Rounding):** Replaced the 23-pixel flat horizontal facet ceiling at $y=302$ and its sharp 90° corners with a smooth cartoon dome ($y_{\text{top}}(x) = 302 + 0.038(x-162)^2$ across $x=138 \dots 186$), eliminating all boxy polygonal corners.

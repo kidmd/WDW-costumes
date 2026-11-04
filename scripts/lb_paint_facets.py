@@ -20,14 +20,26 @@ YELLOW = np.array([21, 204, 250, 255], dtype=np.uint8)
 part_map = np.zeros((h, w), dtype=np.uint8)
 
 # 1. Antennae (Yellow, Part ID 2)
-m4 = (lab == 4)
+m4 = (lab == 4).copy()
 stalk = m4 & (np.arange(h)[:, None] < 65) & (np.arange(w)[None, :] > 310)
 part_map[np.isin(lab, [1, 9, 42]) | stalk] = 2
 
-# 2. Hat (Red): 3 symmetrical panels separated by black seam lines
-part_map[m4 & (~stalk)] = 3
-part_map[lab == 8] = 4
-part_map[lab == 11] = 18
+# 2. Fix 5: Bottom Contour of Red Cap (Red: 3, 4, 18)
+# Fit smooth curve to bottom of cap from x=166 (y=119) up to x=235 (y=85)
+xs_cap_fit = np.array([166, 185, 205, 225, 235])
+ys_cap_fit = np.array([119, 108, 97, 88, 85])
+p_cap_bot = np.polyfit(xs_cap_fit, ys_cap_fit, 2)
+
+cap_mask = np.isin(lab, [4, 8, 11]) & (~stalk)
+# Enforce smooth bottom edge on cap:
+for x in range(160, 240):
+    y_bot = int(np.round(np.polyval(p_cap_bot, x)))
+    cap_mask[y_bot+1:, x] = False
+
+# Reassign 3 panels:
+part_map[cap_mask & (lab == 4)] = 3
+part_map[cap_mask & (lab == 8)] = 4
+part_map[cap_mask & (lab == 11)] = 18
 
 # 3. Smiling Mouth (Red, 8) with smooth upper crescent edge
 pts_m = np.argwhere(lab == 27)
@@ -44,7 +56,7 @@ for x in xs_m:
     mouth_mask[yt:yb+1, x] = True
 part_map[mouth_mask] = 8
 
-# 4. Legs (Green) with ROUNDED CORNERS on tops of all 3 feet/legs:
+# 4. Legs (Green) with rounded tops and Fix 2 (back foot bottom smoothing):
 m34 = (lab == 34).copy()
 m39 = (lab == 39).copy()
 m35 = (lab == 35).copy()
@@ -59,13 +71,23 @@ for x in xs_34:
     yt = int(np.round(np.polyval(p_34, x)))
     m34[:yt, x] = False
 
-# Leg 35 top dome rounding (eliminates flat top and sharp square corners):
+# Fix 2: Back foot bottom smoothing across x in [65..110]:
+# Smooth bottom sole of back foot:
+pts_34 = np.argwhere(m34 | m39)
+xs_sole = np.unique(pts_34[:, 1])
+y_soles = np.array([pts_34[pts_34[:, 1] == x, 0].max() for x in xs_sole], dtype=float)
+y_soles_smooth = gaussian_filter1d(y_soles, sigma=2.5)
+back_foot = m34 | m39
+for x, y_s in zip(xs_sole, y_soles_smooth):
+    back_foot[int(np.round(y_s))+1:, x] = False
+
+# Leg 35 top dome rounding:
 xs_35 = np.arange(138, 187)
 for x in xs_35:
     yt = int(np.round(302 + 0.038 * (x - 162.0)**2))
     m35[:yt, x] = False
 
-# Leg 36 top apex rounding (eliminates sharp triangular spike):
+# Leg 36 top apex rounding:
 xs_36 = np.arange(275, 306)
 p_36 = np.polyfit([275, 290, 305], [311, 303, 328], 2)
 for x in xs_36:
@@ -86,16 +108,21 @@ for y, xs in zip(ys_leg, xs_leg_smooth):
     xs_int = int(np.round(xs))
     front_leg_smooth[y, xs_int+1:] = False
 
-all_legs = m34 | m39 | m35 | m36 | m40 | front_leg_smooth
+all_legs = back_foot | m35 | m36 | m40 | front_leg_smooth
 
-part_map[m34 | m39] = 14
+part_map[back_foot] = 14
 part_map[m35 | m36 | m40] = 15
 part_map[front_leg_smooth] = 16
 
-# 5. Head & Body base masks (strictly excludes mouth and legs)
+# 5. Head & Body base masks (strictly excludes mouth, cap, and legs)
 head_facets = [12, 13, 14, 15, 16, 17, 19, 22, 25, 26]
 body_facets = [6, 7, 29, 30, 31, 33, 43]
-head_or_body = np.isin(lab, head_facets + body_facets + [18]) & (~mouth_mask) & (~all_legs)
+head_or_body = np.isin(lab, head_facets + body_facets + [18]) & (~mouth_mask) & (~all_legs) & (~cap_mask)
+
+# Add any pixels below smoothed cap to head:
+for x in range(160, 240):
+    y_bot = int(np.round(np.polyval(p_cap_bot, x)))
+    head_or_body[y_bot+1:y_bot+10, x] = True
 
 # Smooth curved neck boundary separating Head (5) and Body (17)
 ys_neck = np.array([215, 235, 255, 270, 280, 286])
@@ -114,7 +141,7 @@ for y in range(h):
     else:
         part_map[y, head_or_body[y]] = 17
 
-# 6. Wing (Blue, 9) and Tail Tip Dome (Yellow, 10)
+# 6. Fix 4: Wing (Blue, 9) with smooth left AND smooth right boundary (x=166 straight vertical seam)
 ys_wcurve = np.array([50, 75, 100, 120, 135, 155, 175, 195, 215])
 xs_wcurve = np.array([81, 66, 61, 62, 65, 74, 84, 92, 97])
 p_wcurve = np.polyfit(ys_wcurve, xs_wcurve, 3)
@@ -124,8 +151,10 @@ for y in range(45, 225):
     xc = int(np.round(np.polyval(p_wcurve, y)))
     wing_mask[y, :xc] = False
     if y <= 215:
-        max_x = min(168, np.max(np.where(np.isin(lab[y], [5, 10]))[0], initial=xc)+1)
+        # Fix 4: Perfectly smooth vertical right seam at x=166 from y=135 to 215!
+        max_x = 166 if y >= 135 else min(168, np.max(np.where(np.isin(lab[y], [5, 10]))[0], initial=xc)+1)
         wing_mask[y, xc:max_x] = True
+        wing_mask[y, max_x:] = False
 
 wing_mask &= ~((lab == 23) & (np.arange(h)[:, None] >= 182))
 part_map[wing_mask] = 9
@@ -151,6 +180,24 @@ upper_fold = (lab == 23) & (np.arange(h)[:, None] >= 182) & (~tail_dome) & (~win
 lower_fold = np.isin(lab, [24, 28])
 lower_fold &= ~((np.arange(h)[:, None] >= 200) & (np.arange(h)[:, None] < 228) & (np.arange(w)[None, :] > 75))
 upper_fold |= ((lab == 23) & (np.arange(h)[:, None] >= 200) & (np.arange(h)[:, None] < 228) & (np.arange(w)[None, :] > 75))
+
+# Fix 0 & 1: Smooth the outer left and bottom-left silhouette of the tail:
+# Extract tail left boundary from y=190 to y=355:
+tail_all = upper_fold | lower_fold
+ys_tail = np.arange(190, 356)
+xs_tail_min = []
+for y in ys_tail:
+    pts_row = np.where(tail_all[y])[0]
+    xs_tail_min.append(pts_row.min() if len(pts_row) > 0 else 50)
+xs_tail_min = np.array(xs_tail_min, dtype=float)
+# Smooth with Gaussian filter:
+xs_tail_smooth = gaussian_filter1d(xs_tail_min, sigma=3.0)
+
+for y, xs in zip(ys_tail, xs_tail_smooth):
+    xs_int = int(np.round(xs))
+    upper_fold[y, :xs_int] = False
+    lower_fold[y, :xs_int] = False
+
 part_map[upper_fold] = 11
 part_map[lower_fold] = 12
 
@@ -179,7 +226,7 @@ if cnts_iris:
     mask_iris_round &= (mask_eye_round == 1)
     part_map[mask_iris_round == 1] = 7
 
-# Foreground bounds & Face outer silhouette smoothing
+# Foreground bounds & Silhouette smoothing
 is_fg = (lab != 0) & (lab != 41)
 is_fg |= (mask_eye_round == 1)
 is_fg |= hole
@@ -187,11 +234,31 @@ is_fg |= all_legs
 is_fg |= mouth_mask
 is_fg |= wing_mask
 is_fg |= tail_dome
+is_fg |= upper_fold
+is_fg |= lower_fold
+is_fg |= cap_mask
+
+# Tail left bound (Fix 0 & 1):
+for y, xs in zip(ys_tail, xs_tail_smooth):
+    xs_int = int(np.round(xs))
+    is_fg[y, :xs_int] = False
 
 # Leg outer bound:
 for y, xs in zip(ys_leg, xs_leg_smooth):
     xs_int = int(np.round(xs))
     is_fg[y, xs_int+1:] = False
+
+# Fix 3: Smooth the entire bottom baseline across x in [95..385]
+xs_base = np.arange(95, 385)
+ys_bot = []
+for x in xs_base:
+    pts_col = np.where(is_fg[:, x])[0]
+    ys_bot.append(pts_col.max() if len(pts_col) > 0 else 380)
+ys_bot = np.array(ys_bot, dtype=float)
+ys_bot_smooth = gaussian_filter1d(ys_bot, sigma=4.5)
+for x, yb in zip(xs_base, ys_bot_smooth):
+    yb_int = int(np.round(yb))
+    is_fg[yb_int+1:, x] = False
 
 # Face/cheek outer silhouette along y in [80..205]
 ys_face = np.array([80, 95, 110, 130, 150, 170, 190, 205])
