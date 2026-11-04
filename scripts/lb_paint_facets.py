@@ -1,8 +1,15 @@
-"""Paint each lightning bug facet a flat palette color without changing any outline or facet shape.
+"""Generate clean, cartoony 5-color vector-style Lightning Bug graphic.
 
-Inputs:
-  assets/lightningbug_dots_removed_backup.png  (reference; never modified)
-  scripts/lb_labels_v3.npy                     (facet labels from lb_facet_segment3.py)
+Style & Geometry Standards:
+- Head & Body: Solid Yellow (#facc15 / [250, 204, 21])
+- Legs: Solid Green (#22c55e / [34, 197, 94])
+- Wing: Solid Blue (#2563eb / [37, 99, 235])
+- Hat, Tail Accordion Folds, Mouth: Solid Red (#e61919 / [230, 25, 25])
+- Tail Tip Lantern Dome, Antennae, Eye Sclera: Solid Yellow (#facc15 / [250, 204, 21])
+- Eye Iris: Solid Blue (#2563eb / [37, 99, 235])
+- Outlines: Bold, consistent solid black lines (#141414 / [20, 20, 20])
+  separating all color regions, anatomical features, and surrounding the whole character.
+- Gentle edge rounding eliminating jagged pixel staircases while preserving character anatomy.
 """
 import cv2
 import numpy as np
@@ -11,55 +18,61 @@ from scipy.ndimage import distance_transform_edt
 REF = 'assets/lightningbug_dots_removed_backup.png'
 img = cv2.imread(REF, cv2.IMREAD_UNCHANGED)
 h, w = img.shape[:2]
-alpha = img[:, :, 3].copy()
 bgr = img[:, :, :3].astype(int)
+alpha = img[:, :, 3].copy()
 fg = alpha > 100
-anyfg = alpha > 0
-line = fg & (bgr.max(axis=2) < 80)          # identical outline definition used for segmentation
+line = fg & (bgr.max(axis=2) < 80)
 lab = np.load('scripts/lb_labels_v3.npy').copy()
 
-# BGR palette
-BLACK = (20, 20, 20)
-GREEN = (94, 197, 34)
-RED = (25, 25, 230)
-YELLOW = (21, 204, 250)
-BLUE = (235, 99, 37)
+# Palette in BGR
+BLACK = np.array([20, 20, 20, 255], dtype=np.uint8)
+GREEN = np.array([94, 197, 34, 255], dtype=np.uint8)
+BLUE = np.array([235, 99, 37, 255], dtype=np.uint8)
+RED = np.array([25, 25, 230, 255], dtype=np.uint8)
+YELLOW = np.array([21, 204, 250, 255], dtype=np.uint8)
 
-# Region 10 = wing left-edge strip (entirely part of the BLUE wing)
-COLOR = {}
-for i in [12, 13, 14, 15, 16, 17, 19, 22, 25, 26,      # head / face / neck / jaw / brow (12: above eye)
-          6, 7, 29, 30, 31, 33, 43]:                   # body (7: area between legs)
-    COLOR[i] = GREEN
-for i in [2, 3, 5, 10,                                 # wing (Facet 10 is 100% BLUE)
-          32, 34, 35, 36, 37, 38, 39, 40]:            # legs
-    COLOR[i] = BLUE
-for i in [4, 8, 11,                                    # hat
-          23, 24, 28,                                  # tail
-          27]:                                         # mouth
-    COLOR[i] = RED
-for i in [1, 9, 42,                                    # antennae (41 is transparent gap)
-          20, 21,                                      # tail tip lantern
-          18]:                                         # eye sclera
-    COLOR[i] = YELLOW
+# Semantic part map:
+part_map = np.zeros((h, w), dtype=np.uint8)
 
-ids = set(np.unique(lab)) - {0, 41}
-missing = ids - set(COLOR)
-assert not missing, f'unassigned facets: {sorted(missing)}'
+# Head & Body (Yellow)
+head_body_facets = [12, 13, 14, 15, 16, 17, 19, 22, 25, 26, 6, 7, 29, 30, 31, 33, 43]
+part_map[np.isin(lab, head_body_facets)] = 5
 
-# Fill any unlabeled foreground pixel with nearest labeled pixel
-unl = anyfg & (lab == 0)
-if unl.any():
-    _, (r_idx, c_idx) = distance_transform_edt(lab == 0, return_indices=True)
-    lab[unl] = lab[r_idx[unl], c_idx[unl]]
+# Antennae (Yellow)
+part_map[np.isin(lab, [1, 9, 42])] = 2
 
-out = np.zeros((h, w, 3), np.uint8)
-for i, c in COLOR.items():
-    out[lab == i] = c
+# Hat (Red): dome and visor
+part_map[lab == 4] = 3   # Hat dome
+part_map[np.isin(lab, [8, 11])] = 4 # Hat visor/band
 
-# Iris: blue blob inside the eye facet (no outline) -> keep its exact shape, paint blue
+# Tail folds (Red)
+part_map[lab == 28] = 11 # Fold 1
+part_map[lab == 24] = 12 # Fold 2
+part_map[lab == 23] = 13 # Fold 3
+
+# Tail tip lantern dome (Yellow)
+att1_prev = cv2.imread(r'C:\Users\Kiddi\.gemini\antigravity\brain\73963054-0e68-43d0-9a1f-4e7be7ecffb2\.system_generated\logs\media\step_984_media_1.png', cv2.IMREAD_UNCHANGED)
+if att1_prev is not None:
+    tri_in_att1 = ((att1_prev[:, :, 3] == 0) | ((att1_prev[:, :, 2] > 180) & (att1_prev[:, :, 0] < 50))) & (att1_prev[:, :, 1] < 100)
+    part_map[161:184, 61:96][tri_in_att1] = 10
+part_map[np.isin(lab, [20, 21])] = 10
+part_map[130:152, 45:65][(lab[130:152, 45:65] == 10) | (lab[130:152, 45:65] == 0)] = 10
+
+# Wing (Blue)
+part_map[np.isin(lab, [2, 3, 5, 10])] = 9
+
+# Legs (Green)
+part_map[np.isin(lab, [34, 39])] = 14       # back leg
+part_map[np.isin(lab, [35, 36, 40])] = 15   # middle leg
+part_map[np.isin(lab, [32, 37, 38])] = 16   # front leg
+
+# Eye sclera (Yellow)
+part_map[lab == 18] = 6
+
+# Eye iris (Blue)
 eye = lab == 18
-b, g, r = bgr[:, :, 0], bgr[:, :, 1], bgr[:, :, 2]
-iris = eye & (b > r + 15) & (b > 90)
+b_ch, g_ch, r_ch = bgr[:, :, 0], bgr[:, :, 1], bgr[:, :, 2]
+iris = eye & (b_ch > r_ch + 15) & (b_ch > 90)
 iris = cv2.morphologyEx(iris.astype(np.uint8), cv2.MORPH_OPEN, np.ones((3, 3), np.uint8))
 n, l2, st, _ = cv2.connectedComponentsWithStats(iris)
 if n > 1:
@@ -69,58 +82,14 @@ if n > 1:
     filled = np.zeros_like(iris)
     cv2.drawContours(filled, cnts, -1, 1, -1)
     iris = filled.astype(bool) & eye
-    out[iris] = BLUE
-    print('iris px:', int(iris.sum()))
+part_map[iris] = 7
 
-# Recolor the yellow spur above the eye socket to Green (user request)
-is_yellow = (out[:, :, 0] == YELLOW[0]) & (out[:, :, 1] == YELLOW[1]) & (out[:, :, 2] == YELLOW[2])
-eye_spur = is_yellow & (
-    ((np.arange(h)[:, None] >= 84) & (np.arange(h)[:, None] <= 90) & (np.arange(w)[None, :] >= 274) & (np.arange(w)[None, :] <= 281)) |
-    ((np.arange(h)[:, None] == 91) & (np.arange(w)[None, :] >= 274) & (np.arange(w)[None, :] <= 276))
-)
-out[eye_spur] = GREEN
-print('eye spur px recolored to green:', int(eye_spur.sum()))
+# Smiling Mouth (Red)
+part_map[lab == 27] = 8
 
-# Recolor the red triangle in the tail (with the white splotch) to Yellow (user request)
-# Bounded by: [161:184, 61:96]
-att1 = cv2.imread(r'C:\Users\Kiddi\.gemini\antigravity\brain\73963054-0e68-43d0-9a1f-4e7be7ecffb2\.system_generated\logs\media\step_984_media_1.png', cv2.IMREAD_UNCHANGED)
-tri_in_att1 = ((att1[:, :, 3] == 0) | ((att1[:, :, 2] > 180) & (att1[:, :, 0] < 50))) & (att1[:, :, 1] < 100)
-tri_full = np.zeros((h, w), dtype=bool)
-tri_full[161:184, 61:96] = tri_in_att1
-tri_full &= (~line)
-out[tri_full] = YELLOW
-print('tail triangle px recolored to yellow:', int(tri_full.sum()))
-
-# Recolor the tip of the tail lantern dome to Yellow (user request)
-# Bounded by: [130:152, 45:65]
-tip_blue = (out[:, :, 0] == BLUE[0]) & (out[:, :, 1] == BLUE[1]) & (out[:, :, 2] == BLUE[2]) & (
-    (np.arange(h)[:, None] >= 130) & (np.arange(h)[:, None] <= 152) &
-    (np.arange(w)[None, :] >= 45) & (np.arange(w)[None, :] <= 65)
-)
-out[tip_blue] = YELLOW
-print('tail tip px recolored to yellow:', int(tip_blue.sum()))
-
-# Antenna 9 top border line against the transparent gap (facet 41):
-f9 = lab == 9
-f41 = lab == 41
-dil41 = cv2.dilate(f41.astype(np.uint8), np.ones((3, 3), np.uint8))
-border_9 = dil41.astype(bool) & f9
-cnts, _ = cv2.findContours(f9.astype(np.uint8), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
-vis_c = np.zeros_like(f9, dtype=np.uint8)
-cv2.drawContours(vis_c, cnts, -1, 1, 1)
-line_extra = vis_c.astype(bool) & border_9
-
-# Draw solid, black, easy to see outlines around the whole bug and between colors (2x thick):
-# Map each pixel to its primary color (Green=2, Blue=3, Red=4, Yellow=5)
-color_field = np.zeros((h, w), dtype=np.uint8)
-color_field[(out[:, :, 0] == GREEN[0]) & (out[:, :, 1] == GREEN[1]) & (out[:, :, 2] == GREEN[2])] = 2
-color_field[(out[:, :, 0] == BLUE[0]) & (out[:, :, 1] == BLUE[1]) & (out[:, :, 2] == BLUE[2])] = 3
-color_field[(out[:, :, 0] == RED[0]) & (out[:, :, 1] == RED[1]) & (out[:, :, 2] == RED[2])] = 4
-color_field[(out[:, :, 0] == YELLOW[0]) & (out[:, :, 1] == YELLOW[1]) & (out[:, :, 2] == YELLOW[2])] = 5
-
-is_fg = ((lab != 0) & (lab != 41)) | tri_full | line | line_extra
-
-# Clean up the blue bits and outer double line that sit outside the main line of the leg:
+# Foreground bounds:
+is_fg = (lab != 0) & (lab != 41)
+# Clean leg spur:
 leg_spurs = (
     ((np.arange(h)[:, None] == 335) & (np.arange(w)[None, :] >= 392)) |
     ((np.arange(h)[:, None] == 336) & (np.arange(w)[None, :] >= 392)) |
@@ -129,68 +98,74 @@ leg_spurs = (
     ((np.arange(h)[:, None] == 339) & (np.arange(w)[None, :] >= 390))
 )
 is_fg[leg_spurs] = False
+part_map[~is_fg] = 0
 
-bg = ~is_fg
+# Fill any small gaps inside foreground:
+unl = is_fg & (part_map == 0)
+if unl.any():
+    _, (r_idx, c_idx) = distance_transform_edt(~(part_map > 0), return_indices=True)
+    part_map[unl] = part_map[r_idx[unl], c_idx[unl]]
 
-# Outer boundary around the whole bug (2x thick):
-outer_edge = cv2.dilate(bg.astype(np.uint8), cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (5, 5))).astype(bool) & is_fg
+# Smooth each part mask slightly to round sharp edges and remove jagged staircases:
+smoothed_parts = {}
+for pid in range(2, 17):
+    mask = (part_map == pid).astype(np.uint8)
+    blur = cv2.GaussianBlur(mask.astype(float), (5, 5), 1.2)
+    smoothed = (blur > 0.45).astype(np.uint8)
+    smoothed_parts[pid] = smoothed
 
-# Color-to-color boundaries:
-has_color = color_field > 0
-_, (r_idx, c_idx) = distance_transform_edt(~has_color, return_indices=True)
-full_color = color_field[r_idx, c_idx]
+stack = np.zeros((h, w, 17), dtype=float)
+for pid, sm in smoothed_parts.items():
+    dist = cv2.distanceTransform(sm, cv2.DIST_L2, 5)
+    stack[:, :, pid] = dist
 
-color_boundary_1x = np.zeros((h, w), dtype=bool)
-for c in [2, 3, 4, 5]:
-    c_mask = (full_color == c) & is_fg
-    dil = cv2.dilate(c_mask.astype(np.uint8), np.ones((3, 3), np.uint8)).astype(bool)
-    other = (full_color != c) & is_fg
-    color_boundary_1x |= (dil & other)
+clean_part_map = np.argmax(stack, axis=2).astype(np.uint8)
 
-# 2x thickness for color boundaries:
-color_boundary = cv2.dilate(color_boundary_1x.astype(np.uint8), cv2.getStructuringElement(cv2.MORPH_CROSS, (3, 3))).astype(bool) & is_fg
+# Smooth outer foreground contour slightly:
+fg_blur = cv2.GaussianBlur(is_fg.astype(float), (5, 5), 1.0)
+clean_fg = fg_blur > 0.45
+clean_part_map[~clean_fg] = 0
 
-# Regions where internal lines are cleared (user request: remove extra lines inside yellow part, wing, and green brow):
-mask_yellow_tip = is_fg & (full_color == 5) & (np.arange(h)[:, None] >= 130) & (np.arange(h)[:, None] <= 190) & (np.arange(w)[None, :] <= 95)
-mask_wing = is_fg & (full_color == 3) & ((np.isin(lab, [2, 3, 5, 10])) | ((np.arange(h)[:, None] >= 30) & (np.arange(h)[:, None] <= 250) & (np.arange(w)[None, :] >= 45) & (np.arange(w)[None, :] <= 170)))
-mask_green_brow = is_fg & (full_color == 2) & (np.arange(h)[:, None] >= 55) & (np.arange(h)[:, None] <= 110) & (np.arange(w)[None, :] >= 260) & (np.arange(w)[None, :] <= 330)
+bg = ~clean_fg
 
-internal_lines_to_clear = line & (mask_yellow_tip | mask_wing | mask_green_brow) & (~color_boundary) & (~outer_edge)
+# Color mapping:
+PART_COLOR = {
+    2: YELLOW, 5: YELLOW, 6: YELLOW, 10: YELLOW,
+    14: GREEN, 15: GREEN, 16: GREEN,
+    7: BLUE, 9: BLUE,
+    3: RED, 4: RED, 8: RED, 11: RED, 12: RED, 13: RED
+}
 
-# Full line set: all existing lines + 2x outer silhouette outline + 2x color boundaries - cleared internal lines
-full_line = (line | line_extra | outer_edge | color_boundary) & (~internal_lines_to_clear)
+# Outlines: consistent 2x thick black lines
+# 1) Outer silhouette outline
+outer_edge = cv2.dilate(bg.astype(np.uint8), cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (5, 5))).astype(bool) & clean_fg
 
-# Leg main outline reinforcement at knee notch:
-leg_outline_fill = (
-    ((np.arange(h)[:, None] == 335) & (np.arange(w)[None, :] >= 390) & (np.arange(w)[None, :] <= 391)) |
-    ((np.arange(h)[:, None] == 336) & (np.arange(w)[None, :] >= 389) & (np.arange(w)[None, :] <= 391)) |
-    ((np.arange(h)[:, None] == 337) & (np.arange(w)[None, :] >= 389) & (np.arange(w)[None, :] <= 390)) |
-    ((np.arange(h)[:, None] == 338) & (np.arange(w)[None, :] >= 388) & (np.arange(w)[None, :] <= 390)) |
-    ((np.arange(h)[:, None] == 339) & (np.arange(w)[None, :] >= 387) & (np.arange(w)[None, :] <= 389))
-)
-full_line |= leg_outline_fill
+# 2) Part boundaries
+part_boundary_1x = np.zeros((h, w), dtype=bool)
+for pid in range(2, 17):
+    p_mask = (clean_part_map == pid)
+    dil = cv2.dilate(p_mask.astype(np.uint8), np.ones((3, 3), np.uint8)).astype(bool)
+    other = (clean_part_map != pid) & clean_fg
+    part_boundary_1x |= (dil & other)
 
-# Paint solid colors on foreground:
-out[is_fg & (full_color == 2)] = GREEN
-out[is_fg & (full_color == 3)] = BLUE
-out[is_fg & (full_color == 4)] = RED
-out[is_fg & (full_color == 5)] = YELLOW
-out[iris] = BLUE
-out[full_line] = BLACK
+part_boundary_2x = cv2.dilate(part_boundary_1x.astype(np.uint8), cv2.getStructuringElement(cv2.MORPH_CROSS, (3, 3))).astype(bool) & clean_fg
 
-# Alpha channel:
-final_alpha = np.zeros((h, w), np.uint8)
-foreground = is_fg
-final_alpha[foreground] = 255
+all_lines = outer_edge | part_boundary_2x
 
-res = cv2.merge([out[:, :, 0], out[:, :, 1], out[:, :, 2], final_alpha])
-cv2.imwrite('scripts/lb_painted.png', res)
+# Paint image:
+out = np.zeros((h, w, 4), dtype=np.uint8)
+for pid, col in PART_COLOR.items():
+    out[clean_part_map == pid] = col
 
-# Verification against reference
-pal = np.array([BLACK, GREEN, RED, YELLOW, BLUE])
-fgpix = res[foreground][:, :3].astype(int)
-ok = (np.abs(fgpix[:, None, :] - pal[None]).sum(axis=2) == 0).any(axis=1)
-print('palette compliance: %.4f%%' % (100 * ok.mean()))
-print('facets painted:', len(ids))
-print('Total foreground pixels:', int(foreground.sum()))
-print('Transparent pixels in facet 41:', int((lab == 41).sum()))
+out[all_lines] = BLACK
+out[bg] = [0, 0, 0, 0]
+
+cv2.imwrite('scripts/lb_painted.png', out)
+
+# Verification against reference palette:
+pal = np.array([BLACK[:3], GREEN[:3], BLUE[:3], RED[:3], YELLOW[:3]])
+fg_pixels = out[clean_fg][:, :3].astype(int)
+ok = (np.abs(fg_pixels[:, None, :] - pal[None]).sum(axis=2) == 0).any(axis=1)
+print('Palette compliance: %.4f%%' % (100 * ok.mean()))
+print('Total foreground pixels:', int(clean_fg.sum()))
+print('Total black line pixels:', int(all_lines.sum()))
