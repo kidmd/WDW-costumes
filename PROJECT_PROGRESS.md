@@ -93,6 +93,18 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### 2026-11-04: Lightning Bug Visual Polish (Rounded Eye, Clean Tail Tip, Single Tail Fold Line & Curved Neck Line)
+- **Visual Feedback & Geometry Refinements:**
+  - **Comment 0 (Eye Rounding):** Fitted a smooth cartoon oval contour to the eye socket (`lab == 18`) and iris, completely eliminating the angular flat corner at the top-left brow boundary and rendering a classic Disney cartoon oval eye with an expressive blue pupil.
+  - **Comment 1 (Tail Lantern Tip Clean-up):** Unified the entire tail tip lantern dome into a single solid Yellow (`#facc15` / `[250, 204, 21]`) region (`part_map == 10`). Absorbed the stray red wedge and white gap, and removed all internal facet dividing lines so the dome is 100% solid yellow with only outer border outlines.
+  - **Comment 2 (Single Tail Fold Divider Line):** Merged facet 28 into the lower tail fold (`lab == 24`) and cleaned upward spurs, dividing the red tail into exactly TWO accordion sections (Upper Fold 11 and Lower Fold 12) separated by a single, solid, bold 2x black dividing curve.
+  - **Comment 3 (Curved Head/Body Neck Line):** Separated Head (`part_map == 5`) from Body (`part_map == 17`, both yellow), rendering a smooth, sweeping cartoon neck curve from the wing base `(165, 220)` down around the cheek `(265, 284)` and connecting seamlessly into the bottom of the mouth outline `(330, 275)`, accurately reflecting the spherical head geometry of the real MSEP parade float photo.
+- **Palette & Transparency Verification:**
+  - Strict 100.00% 5-color palette compliance (`#141414`, `#22c55e`, `#2563eb`, `#e61919`, `#facc15`) across all 119,367 foreground pixels on pure transparent background.
+- **Asset Deployment & Simulator Synchronization:**
+  - Deployed updated graphic to `assets/lightningbug_transparent.png`, `assets/lightning_bug.png`, `simulator/assets/lightningbug_transparent.png`, and `simulator/assets/lightning_bug.png`.
+  - Bumped simulator asset cache-busters in `simulator/app.js` to `?v=20261104_neck_eye_tail_clean`.
+
 ### 2026-11-04: Clean Cartoon Vectorization & Color Updates on Lightning Bug Graphic
 - **Safety Backup:**
   - Backed up previous faceted version to `assets/lightningbug_transparent_backup_faceted.png` and `simulator/assets/lightningbug_transparent_backup_faceted.png`.
