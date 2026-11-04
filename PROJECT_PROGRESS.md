@@ -93,6 +93,24 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### 2026-11-03: Lightning Bug (Firefly) Parade Float Graphic Asset Creation (Strict 5-Color Cartoon Vector)
+- **New Float Graphic Artwork (Strictly 5 Flat Colors, No Shading, 100% Transparent Background):**
+  - **Left-Facing Dynamic Profile:** Rendered the iconic Main Street Electrical Parade firefly in a friendly left-facing orientation matching the Disney collectible figurine and archival float geometry, freestanding off the parade chassis.
+  - **Strict 5-Color Quantized Vector Palette:**
+    - **Lime Green (`#22c55e`):** Caterpillar head, segmented torso segments, leg stems, tail bulb collar.
+    - **Outline Black (`#141414`):** Bold, continuous exterior silhouette outlines (`>= 8px`), segment creases, pupil, and beanie stalk.
+    - **Parade Blue (`#2563eb`):** Upright electrical wings, 3 pairs of ground boots, and eye iris.
+    - **Vibrant Red (`#e61919`):** Propeller beanie cap, alternating tail bands, and smiling open mouth.
+    - **Electric Yellow (`#facc15`):** Solid glowing tail bulb ("light up butt"), dual beanie propeller blades & hub, glowing eye sclera, and pupil specular catchlight.
+  - **Clean Details & Anatomy:**
+    - Tail bulb filled with 100% solid electric yellow with zero specular artifacts, bordered by a crisp circular black contour.
+    - Eye given a glowing yellow sclera, vibrant blue iris, black pupil, and yellow catchlight for expressive Disney Imagineering charm.
+    - Solid black mechanical antenna stalk connecting the red beanie to the yellow spinner propeller.
+- **Asset Deployment & Verification:**
+  - High-resolution `2400 × 1792` PNG deployed to [`assets/lightning_bug.png`](file:///c:/Users/Kiddi/Desktop/WDW%20costumes/assets/lightning_bug.png) and [`simulator/assets/lightning_bug.png`](file:///c:/Users/Kiddi/Desktop/WDW%20costumes/simulator/assets/lightning_bug.png).
+  - Programmatically verified 100% discrete 5-color palette compliance (6 unique BGRA values including transparent background).
+  - Created review artifact [`lightning_bug_asset_review.md`](file:///C:/Users/Kiddi/.gemini/antigravity/brain/ba8699af-4574-4f1e-9678-f6f40a0f19fe/lightning_bug_asset_review.md).
+
 ### 2026-11-03: Float 4 (The Spinning Snail) Gold Smile (Matching Eyes) & Black Accordion Neck Lines
 - **Gold Smile & Cartoon Accordion Neck Folds (Strict 5-Color Snail Palette):**
   - Updated the cheerful upturned smile to the exact **Gold (`#ca9927` / `rgb(202, 153, 39)`)** color used for the eyes, antennae, and shell spiral, strictly preserving the float's canonical 5-color vinyl and 3D printing layer specification (`Layer_1_Yellow_Vinyl` / `color_gold.stl`).
