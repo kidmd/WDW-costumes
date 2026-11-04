@@ -93,6 +93,57 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### 2026-11-03: 5-Color Cartoon Vectorization & Organic Edge Smoothing of Lightning Bug Float
+- **5-Color Palette & Discrete Color Zone Quantization (`assets/lightning_bug.png`):**
+  - **Strict 5-Color Enforcement:** Successfully converted the polygonal parade float trace and photo into a clean 5-flat-color cartoon asset conforming 100.00% to the project's standard palette:
+    - **Black (`#141414` / `[20, 20, 20]`):** 12.1% (bold character outlines, cartoon eye contours, pupil, tail accordion rings, and wing swirl).
+    - **Green (`#22c55e` / `[34, 197, 94]`):** 46.0% (head, cheeks, neck, mid-body ribs, and base skirt/feet).
+    - **Yellow (`#facc15` / `[250, 204, 21]`):** 20.8% (tail lantern light dome, antennae rays, snout highlight, alternating belly segments, and wing outer bulb rim).
+    - **Red (`#e61919` / `[230, 25, 25]`):** 9.5% (curled accordion tail, crown cap, and open smiling mouth).
+    - **Blue (`#2563eb` / `[37, 99, 235]`):** 11.7% (translucent wing interior and cartoon eye iris).
+  - **Light Bulb & Wire Mesh Elimination:** Completely eliminated all photographic wire mesh, light bulb silhouettes, and compression artifacts, replacing them with solid, uniform multi-material fill regions.
+  - **4x Organic Levelset Smoothing:** Upsampled 4x with Gaussian probability fields and levelset `argmax` classification to round low-poly facet corners into natural, flowing cartoon curves without gaps or overlaps.
+  - **Float Anatomy Preservation:**
+    - Centered Disney cartoon eye accurately inside the float's eye socket (`x=328, y=124` in 1x coords) with yellow sclera, blue iris, black pupil, yellow catchlight dot, and upper eyelid arch.
+    - Added red crown cap accent lines, mouth dimple, and 3 curved accordion rings along the red tail.
+    - Integrated wing cartoon swirl loop inside the solid blue wing.
+  - **Zero-Speckle Verification:** Cleaned up orphan slivers (<150 px in 4x), resulting in 43 clean major zones and zero speckles across 1,935,987 foreground pixels.
+- **Simulator & Asset Deployment:**
+  - Deployed master high-res graphic to `assets/lightning_bug.png`, `simulator/assets/lightning_bug.png`, and `assets/lightningbug_5color_production.png`.
+  - Registered `lightning_bug` in `simulator/index.html` dropdown and `simulator/app.js` graphic loader.
+
+### 2026-11-03: Lightning Bug Wing Foreground Layering & Cart/Wheel Removal (Freestanding Float)
+- **Wing Foreground Layering & Yellow Tip Alignment (`lightningbug_transparent.png`):**
+  - **Authentic Parade Float Occlusion (`lightningbugphoto.png`):** Adjusted 3D depth layering so the blue wing's illuminated outer frame cleanly passes **in front of** the red curled tail, extending continuously down to the green body with 6 incandescent light bulbs and dual black contour outlines.
+  - **Yellow Tip Juxtaposition:** Positioned the 3-facet yellow lantern dome directly **next to** the wing's outer frame while remaining firmly rooted on the red tail's top crest, matching the live parade float geometry.
+  - **Red Tail Background Emergence:** Tucked the red tail behind the wing's outer contour, eliminating the previous unnatural overlap.
+- **Cart & Wheel Removal (Freestanding Character Float):**
+  - **Chassis & Wheel Removal:** Removed the brown wooden cart plank on the rear left and all three caster wheels beneath the skirt.
+  - **Continuous Skirt Contour:** Preserved and stroked the authentic faceted lower perimeter contour lines across the pink tail, green lower facets, yellow belly, and front feet.
+  - **Re-Cropped Geometry:** Cropped tightly around the freestanding character (`436 × 460` RGBA) with an even 25px border margin.
+- **Asset Deployment:**
+  - Deployed updated graphic to [`assets/lightningbug_transparent.png`](file:///c:/Users/Kiddi/Desktop/WDW%20costumes/assets/lightningbug_transparent.png) and mirrored to [`simulator/assets/lightningbug_transparent.png`](file:///c:/Users/Kiddi/Desktop/WDW%20costumes/simulator/assets/lightningbug_transparent.png).
+
+### 2026-11-03: Lightning Bug Tail Light Polygon Dome Addition (Reference Photo Matching)
+- **Authentic Yellow Lantern Dome Addition (`lightningbug_transparent.png`):**
+  - **Reference Analysis from Parade Float (`lightningbugphoto.png`):** The original 3D polygonal render had omitted the firefly's iconic glowing yellow tail light dome, leaving the pink curled tail flat at the top crest.
+  - **Low-Poly 3D Facet Geometry:** Constructed a 3-facet low-poly dome cap matching the exact perspective angle and facet style of the head crown:
+    - **Left Rim Facet:** Warm amber-orange (`#f59e0b` / `#d97706`) side face.
+    - **Front Facet:** Radiant electric gold (`#facc15` / `#fbbf24`) forward face.
+    - **Top Cap Facet:** Bright highlight apex (`#fef08a`) bridging the dome crest.
+  - **Electrical Parade Light Bulb Lattice:** Synthesized 3 horizontal tiers of incandescent light bulbs (white glowing cores with warm electric-yellow halos), styled directly after the parade float bulb lattice.
+  - **Incandescent Glow & Outline Integration:** Rendered crisp 2.2px anti-aliased black contour strokes (`#141414`) and added a soft 3.5px golden warm bloom, seamlessly seating the lantern dome atop the pink tail crest and overlapping the wing base.
+- **Asset Deployment:**
+  - Deployed updated graphic to [`assets/lightningbug_transparent.png`](file:///c:/Users/Kiddi/Desktop/WDW%20costumes/assets/lightningbug_transparent.png) and mirrored to [`simulator/assets/lightningbug_transparent.png`](file:///c:/Users/Kiddi/Desktop/WDW%20costumes/simulator/assets/lightningbug_transparent.png).
+
+### 2026-11-03: Lightning Bug Faceted Polygon Graphic Transparency & Bounding Crop
+- **Transparency Extraction & Clean Boundary Isolation (`lightningbugbasicpolygons.png`):**
+  - **Connected Background Removal:** Applied multi-seed border connected-component flood filling across the white backdrop, fully preserving all internal white light-bulb sparkles, eye whites, and translucent wing specular highlights.
+  - **Ground Shadow Subtraction:** Programmatically isolated and eliminated the 9,768-pixel neutral grey floor drop-shadow trapezoid (`[140, 140, 140]` to `[195, 195, 195]`) beneath the float base and wheels to prevent muddy grey artifacts on dark running shirts.
+  - **Tight Bounding Box & 25px Padding:** Cropped the subject tightly to foreground geometry (`X: [355, 789]`, `Y: [235, 640]`) with an even 25px safety margin on all sides (`485 × 456` RGBA).
+- **Asset Deployment:**
+  - Deployed transparent high-res output to [`assets/lightningbug_transparent.png`](file:///c:/Users/Kiddi/Desktop/WDW%20costumes/assets/lightningbug_transparent.png) and mirrored to [`simulator/assets/lightningbug_transparent.png`](file:///c:/Users/Kiddi/Desktop/WDW%20costumes/simulator/assets/lightningbug_transparent.png).
+
 ### 2026-11-03: Lightning Bug (Firefly) Parade Float Graphic Overhaul (True Disney Reference Proportions)
 - **Authentic Character Proportions Overhaul (Strict 5 Flat Colors, 100% Transparent Background):**
   - **Short, Chubby & Stubby Body:** Replaced the elongated multi-segment body with the compact, plump, stubby geometry true to the Disney collectible figurine and archival parade float.

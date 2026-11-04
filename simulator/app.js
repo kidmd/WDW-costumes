@@ -228,6 +228,15 @@ titleDrumImg.onload = () => {
 };
 titleDrumImg.src = 'assets/title_drum.png';
 
+// Lightning Bug Artwork (5-color transparent PNG)
+const lightningBugImg = new Image();
+let lightningBugLoaded = false;
+lightningBugImg.onload = () => {
+    lightningBugLoaded = true;
+    notifyFloatImgLoaded();
+};
+lightningBugImg.src = 'assets/lightning_bug.png?v=20261103_5color_clean';
+
 // Custom artwork image (if user uploads one or loads one from preset)
 let customArtworkImg = null;
 const defaultFloatGraphicMap = {
@@ -259,7 +268,9 @@ const floatArtworkImgs = {
     'petes_dragon': defaultDragonImg,
     'builtin_dragon': defaultDragonImg,
     'petes_dragon_transparent': defaultDragonImg,
-    'honor_america_eagle': new Image()
+    'honor_america_eagle': new Image(),
+    'lightning_bug': lightningBugImg,
+    'lightningbug': lightningBugImg
 };
 floatArtworkImgs['casey_jr_train'].src = 'assets/Simpletrain.png?v=20261103_solid_lines';
 floatArtworkImgs['title_drum'].src = 'assets/title_drum.png';
@@ -306,6 +317,10 @@ function getGraphicImgForType(gType) {
     if (gType === 'pirate_ship' || gType === 'pirateshipsimple' || gType === 'cinderellas_coach' || gType === 'cinderella_coach') {
         if (pirateShipImg && pirateShipImg.naturalWidth > 0) return pirateShipImg;
         return floatArtworkImgs['pirate_ship'];
+    }
+    if (gType === 'lightning_bug' || gType === 'lightningbug') {
+        if (lightningBugImg && lightningBugImg.naturalWidth > 0) return lightningBugImg;
+        return floatArtworkImgs['lightning_bug'];
     }
     if (gType === 'carriage_nohorses') {
         if (carriageNoHorsesImg && carriageNoHorsesImg.naturalWidth > 0) return carriageNoHorsesImg;
