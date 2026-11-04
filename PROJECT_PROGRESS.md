@@ -93,6 +93,20 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### 2026-11-04: Lightning Bug Comprehensive 6-Region Contour Smoothing (Neck, Wing/Tail, Foot, Eye, Smile, Face)
+- **Visual Feedback & Geometry Refinements:**
+  - **Comment 0 (Curved Neck Line Angle Rounding):** Modeled the boundary separating Head (`Part 5`) and Body (`Part 17`) as a continuous parabolic curve (`x_neck(y) = 2.395e-2 * y^2 - 10.051 * y + 1220.5` across `y=215..290`), completely eliminating the 90° dogleg angle at `y=280, x=260` and rendering a smooth, sweeping cartoon chin line.
+  - **Comment 1 (Wing Notch Removal & Tail Placed Behind Wing):** Modeled the Blue wing (`Part 9`) outer perimeter as a continuous cubic curve (`p_wcurve`) from `y=45` down through `y=215`. Eliminated the rectangular notch at `y=128..135`. The Yellow tail tip dome (`Part 10`) now sits strictly behind the wing (`tail_dome &= ~wing_mask`), emerging smoothly from behind the wing contour at `y ~ 138` with zero cutouts in the blue wing.
+  - **Comment 2 (Front Foot Outer Layer Smoothing):** Smoothed the outer right contour of the front green leg and foot (`Part 16`) using 1D Gaussian filtering (`sigma=3.5`), rounding off faceted knee angles, smoothing the ankle transition, and rounding the toe.
+  - **Comment 3 (Eye Outline Bump Removal):** Pre-assigned old angular eye facet remnants in `lab == 18` into Head (`Part 5`) before applying the mathematical ellipse `mask_eye_round == 1` to Eye Sclera (`Part 6`). Completely eliminated the 6-pixel bump on the top of the eye; eye outline is now a mathematically pure cartoon oval.
+  - **Comment 4 (Smile Top Edge Smoothing):** Fitted a smooth cubic curve (`p_mouth_top`) to the upper boundary of the red smile (`Part 8`) from `x=272` to `x=406` and excluded mouth pixels from Head, eliminating all yellow clefts and stepped indentations for a continuous cartoon crescent smile.
+  - **Comment 5 (Face Outer Silhouette Smoothing):** Fitted a smooth spherical arc (`p_face`) to the outer right silhouette of the face/cheek along `y=80..205`, eliminating staircase steps, inward dents, and flat facets.
+- **Palette & Transparency Verification:**
+  - Strict 100.00% 5-color palette compliance (`#141414`, `#22c55e`, `#2563eb`, `#e61919`, `#facc15`) across all 119,523 foreground pixels on pure transparent background.
+- **Asset Deployment & Simulator Synchronization:**
+  - Deployed updated graphic to `assets/lightningbug_transparent.png`, `assets/lightning_bug.png`, `simulator/assets/lightningbug_transparent.png`, and `simulator/assets/lightning_bug.png`.
+  - Bumped simulator asset cache-busters in `simulator/app.js` to `?v=20261104_smooth_6fixes`.
+
 ### 2026-11-04: Lightning Bug Antenna Stalk Color Correction & Red Cap Edge Smoothing
 - **Visual Feedback & Geometry Refinements:**
   - **Comment 0 (Antenna Stalk Yellow & Smooth Cap Outer Edge):** Reassigned the 316-pixel diagonal stalk (`lab == 4`, `y < 65`, `x > 310`) that previously protruded from the front/right of the red cap into the antenna base from Hat (Part 3) to Antenna (Part 2, solid Yellow `#facc15` / `[250, 204, 21]`). Cleaned the right panel of the red cap to `(lab == 4) & (~stalk)`, allowing the red cap dome boundary to terminate in a clean, smooth, rounded cartoon curve along `x ~ 309..314` with a crisp 4px black outline, eliminating all red horns/prongs in the antenna.

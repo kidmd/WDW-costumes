@@ -1,23 +1,17 @@
-"""Generate clean, cartoony 5-color vector-style Lightning Bug graphic.
+"""Generate clean, cartoony 5-color vector-style Lightning Bug graphic with all 6 visual polish refinements.
 
-Style & Geometry Standards:
-- Head & Body: Solid Yellow (#facc15 / [250, 204, 21])
-- Neck Line: Bold, curved black line separating the spherical head/cheek from the body/torso
-- Legs: Solid Green (#22c55e / [34, 197, 94])
-- Wing: Solid Blue (#2563eb / [37, 99, 235])
-- Hat: Solid Red (#e61919 / [230, 25, 25]) with symmetrical sector seam lines giving it a 3D rounded dome shape
-- Tail Accordion Folds, Mouth: Solid Red (#e61919 / [230, 25, 25])
-  * Tail folds: Exactly TWO red sections separated by a SINGLE, extra-bold black dividing line (4x standard thickness)
-- Tail Tip Lantern Dome: Solid Yellow (#facc15 / [250, 204, 21]) with zero internal lines, zero holes/notches, and a smooth, elegant cartoon curved boundary meeting the blue wing
-- Antennae: Solid Yellow (#facc15 / [250, 204, 21])
-- Eye Sclera: Smooth, rounded cartoon oval in Solid Yellow (#facc15 / [250, 204, 21])
-- Eye Iris: Smooth, rounded cartoon oval in Solid Blue (#2563eb / [37, 99, 235])
-- Outlines: Bold, consistent solid black lines (#141414 / [20, 20, 20])
-  separating all color regions, anatomical features, and surrounding the whole character.
+Refinements:
+1. Neck Line: Smooth, rounded parabolic curve separating Head (5) and Body (17), eliminating the 90° jog/angle.
+2. Wing & Tail: Wing (9) has a continuous, smooth outer cartoon boundary with zero rectangular notch.
+   Tail tip dome (10) sits cleanly BEHIND the wing, emerging smoothly from behind the wing contour.
+3. Front Foot: Outer right contour of front leg (16) smoothed with Gaussian filter, rounding knee, ankle, and toe.
+4. Eye Outline: Clean ellipse geometry with remnants of old polygonal facet absorbed into Head, eliminating the top-left bump.
+5. Smile Top Edge: Smooth sweeping cartoon crescent curve with zero yellow clefts or jagged steps.
+6. Face Silhouette: Smooth spherical cartoon arc along outer right perimeter of the face/cheek.
 """
 import cv2
 import numpy as np
-from scipy.ndimage import distance_transform_edt
+from scipy.ndimage import distance_transform_edt, gaussian_filter1d
 
 REF = 'assets/lightningbug_dots_removed_backup.png'
 img = cv2.imread(REF, cv2.IMREAD_UNCHANGED)
@@ -36,79 +30,114 @@ YELLOW = np.array([21, 204, 250, 255], dtype=np.uint8)
 # Semantic part map:
 part_map = np.zeros((h, w), dtype=np.uint8)
 
-# 1. Head (Yellow, Part ID 5)
-head_facets = [12, 13, 14, 15, 16, 17, 19, 22, 25, 26]
-part_map[np.isin(lab, head_facets)] = 5
-
-# 2. Body / Torso (Yellow, Part ID 17)
-# Distinct part ID from Head so the outline generator draws a curved dividing neck line
-body_facets = [6, 7, 29, 30, 31, 33, 43]
-part_map[np.isin(lab, body_facets)] = 17
-
-# 3. Antennae (Yellow, Part ID 2)
-# Stalk on right side of cap protruding into antenna base is assigned to Antenna (Yellow)
+# 1. Antennae (Yellow, Part ID 2)
 m4 = (lab == 4)
 stalk = m4 & (np.arange(h)[:, None] < 65) & (np.arange(w)[None, :] > 310)
 part_map[np.isin(lab, [1, 9, 42]) | stalk] = 2
 
-# 4. Hat (Red): 3 symmetrical panels separated by black seam lines
-# Right panel: lab == 4 excluding antenna stalk (Part 3)
+# 2. Hat (Red): 3 symmetrical panels separated by black seam lines
 part_map[m4 & (~stalk)] = 3
-# Center panel: lab == 8 (Part 4)
 part_map[lab == 8] = 4
-# Left panel: lab == 11 (Part 18) -> symmetrical seam line with center panel!
 part_map[lab == 11] = 18
 
-# 5. Tail Tip Lantern Dome (Yellow, Part ID 10)
-# Clean, unified yellow dome with zero internal dividing lines and zero red/white patches.
-# Bounded by a smooth, monotonic cartoon curve along the blue wing edge.
-ys_curve = np.arange(128, 186)
-poly = [1.00611302e-03, -1.86267239e-01, 8.59393060e+01]
-xs_curve = np.polyval(poly, ys_curve).round().astype(int)
+# 3. Fix 4: Smiling Mouth (Red, 8) with smooth upper crescent edge
+pts_m = np.argwhere(lab == 27)
+xs_m = np.arange(272, 407)
+xs_fit = np.array([272, 290, 315, 340, 360, 385, 406])
+ys_fit = np.array([185, 198, 218, 232, 238, 234, 222])
+p_mouth_top = np.polyfit(xs_fit, ys_fit, 3)
 
+ymax_dict = {x: pts_m[pts_m[:, 1] == x, 0].max() for x in np.unique(pts_m[:, 1])}
+mouth_mask = np.zeros((h, w), dtype=bool)
+for x in xs_m:
+    yt = int(np.round(np.polyval(p_mouth_top, x)))
+    yb = ymax_dict.get(x, yt + 20)
+    mouth_mask[yt:yb+1, x] = True
+part_map[mouth_mask] = 8
+
+# 4. Head & Body base masks
+head_facets = [12, 13, 14, 15, 16, 17, 19, 22, 25, 26]
+body_facets = [6, 7, 29, 30, 31, 33, 43]
+head_or_body = np.isin(lab, head_facets + body_facets + [18]) & (~mouth_mask)
+
+# Fix 0: Smooth curved neck boundary separating Head (5) and Body (17)
+ys_neck = np.array([215, 235, 255, 270, 280, 286])
+xs_neck = np.array([158, 189, 220, 252, 280, 305])
+p_neck = np.polyfit(ys_neck, xs_neck, 2)
+
+for y in range(h):
+    if y < 215:
+        part_map[y, head_or_body[y]] = 5
+    elif y <= 290:
+        xc = int(np.round(np.polyval(p_neck, y)))
+        cols_body = head_or_body[y] & (np.arange(w) < xc)
+        cols_head = head_or_body[y] & (np.arange(w) >= xc)
+        part_map[y, cols_body] = 17
+        part_map[y, cols_head] = 5
+    else:
+        part_map[y, head_or_body[y]] = 17
+
+# 5. Fix 1: Wing (Blue, 9) and Tail Tip Dome (Yellow, 10)
+# Wing has continuous smooth cartoon boundary with zero notch. Tail sits behind wing.
+ys_wcurve = np.array([50, 75, 100, 120, 135, 155, 175, 195, 215])
+xs_wcurve = np.array([81, 66, 61, 62, 65, 74, 84, 92, 97])
+p_wcurve = np.polyfit(ys_wcurve, xs_wcurve, 3)
+
+wing_mask = np.isin(lab, [2, 3, 5, 10]) & (np.arange(w)[None, :] < 170)
+for y in range(45, 225):
+    xc = int(np.round(np.polyval(p_wcurve, y)))
+    wing_mask[y, :xc] = False
+    if y <= 215:
+        max_x = min(168, np.max(np.where(np.isin(lab[y], [5, 10]))[0], initial=xc)+1)
+        wing_mask[y, xc:max_x] = True
+
+wing_mask &= ~((lab == 23) & (np.arange(h)[:, None] >= 182))
+part_map[wing_mask] = 9
+
+# Tail Tip Dome (Yellow, 10): emerges strictly BEHIND the wing
 tail_dome = np.isin(lab, [20, 21])
-tail_dome |= ((lab == 10) & (np.arange(h)[:, None] >= 135))
+tail_dome |= ((lab == 10) & (np.arange(h)[:, None] >= 140))
 tail_dome |= ((lab == 23) & (np.arange(h)[:, None] < 182) & (np.arange(w)[None, :] <= 95))
-# Include former white gap/notch:
 hole = (np.arange(h)[:, None] >= 165) & (np.arange(h)[:, None] <= 185) & (np.arange(w)[None, :] >= 65) & (np.arange(w)[None, :] <= 95)
 tail_dome |= hole
-
-# Enforce smooth curve boundary with wing:
-for y, xc in zip(ys_curve, xs_curve):
-    tail_dome[y, 50:xc] = True
-    tail_dome[y, xc:95] = False
+tail_dome &= (~wing_mask)
 
 cnts_tip, _ = cv2.findContours(tail_dome.astype(np.uint8), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
 if cnts_tip:
     c_tip = max(cnts_tip, key=cv2.contourArea)
     filled_tip = np.zeros_like(tail_dome, dtype=np.uint8)
     cv2.drawContours(filled_tip, [c_tip], -1, 1, -1)
-    tail_dome = filled_tip.astype(bool)
+    tail_dome = filled_tip.astype(bool) & (~wing_mask)
 part_map[tail_dome] = 10
 
-# 6. Wing (Blue, Part ID 9)
-wing_mask = np.isin(lab, [2, 3, 5]) | ((lab == 10) & (np.arange(h)[:, None] < 135))
-wing_mask &= (~tail_dome)
-for y, xc in zip(ys_curve, xs_curve):
-    wing_mask[y, xc:110] = True
-wing_mask &= ~((lab == 23) & (np.arange(h)[:, None] >= 182))
-part_map[wing_mask] = 9
-
-# 7. Tail Accordion Folds (Red): ONLY TWO SECTIONS separated by a SINGLE black line!
-# Upper Tail Fold: facet 23 starting at y >= 182 (below the lantern dome and wing)
-part_map[(lab == 23) & (np.arange(h)[:, None] >= 182) & (~tail_dome) & (~wing_mask)] = 11
-# Lower Tail Fold: facets 24 and 28 merged into a single section
+# 6. Tail Accordion Folds (Red): TWO sections separated by single divider
+upper_fold = (lab == 23) & (np.arange(h)[:, None] >= 182) & (~tail_dome) & (~wing_mask)
 lower_fold = np.isin(lab, [24, 28])
 lower_fold &= ~((np.arange(h)[:, None] >= 200) & (np.arange(h)[:, None] < 228) & (np.arange(w)[None, :] > 75))
-part_map[(lab == 23) & (np.arange(h)[:, None] >= 200) & (np.arange(h)[:, None] < 228) & (np.arange(w)[None, :] > 75)] = 11
+upper_fold |= ((lab == 23) & (np.arange(h)[:, None] >= 200) & (np.arange(h)[:, None] < 228) & (np.arange(w)[None, :] > 75))
+part_map[upper_fold] = 11
 part_map[lower_fold] = 12
 
-# 8. Legs (Green)
+# 7. Fix 2: Legs (Green) with smooth outer contour on front leg/foot (Part 16)
 part_map[np.isin(lab, [34, 39])] = 14       # back leg
 part_map[np.isin(lab, [35, 36, 40])] = 15   # middle leg
-part_map[np.isin(lab, [32, 37, 38])] = 16   # front leg
 
-# 9. Eye Sclera (Yellow, Part ID 6) - Smooth, rounded cartoon oval
+front_leg = np.isin(lab, [32, 37, 38])
+ys_leg = np.arange(280, 385)
+xs_outer = []
+for y in ys_leg:
+    row_pts = np.where(front_leg[y])[0]
+    xs_outer.append(row_pts.max() if len(row_pts) > 0 else 380)
+xs_outer = np.array(xs_outer, dtype=float)
+xs_leg_smooth = gaussian_filter1d(xs_outer, sigma=3.5)
+
+front_leg_smooth = front_leg.copy()
+for y, xs in zip(ys_leg, xs_leg_smooth):
+    xs_int = int(np.round(xs))
+    front_leg_smooth[y, xs_int+1:] = False
+part_map[front_leg_smooth] = 16
+
+# 8. Fix 3: Eye Sclera (Yellow, 6) & Eye Iris (Blue, 7)
 eye_raw = (lab == 18).astype(np.uint8)
 cnts_eye, _ = cv2.findContours(eye_raw, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
 c_eye = max(cnts_eye, key=cv2.contourArea)
@@ -117,7 +146,6 @@ mask_eye_round = np.zeros_like(eye_raw)
 cv2.ellipse(mask_eye_round, ellipse_eye, 1, -1)
 part_map[mask_eye_round == 1] = 6
 
-# 10. Eye Iris (Blue, Part ID 7) - Smooth, rounded cartoon oval
 b_ch, g_ch, r_ch = bgr[:, :, 0], bgr[:, :, 1], bgr[:, :, 2]
 iris_raw = (eye_raw == 1) & (b_ch > r_ch + 15) & (b_ch > 90)
 iris_raw = cv2.morphologyEx(iris_raw.astype(np.uint8), cv2.MORPH_OPEN, np.ones((3, 3), np.uint8))
@@ -134,22 +162,29 @@ if cnts_iris:
     mask_iris_round &= (mask_eye_round == 1)
     part_map[mask_iris_round == 1] = 7
 
-# 11. Smiling Mouth (Red, Part ID 8)
-part_map[lab == 27] = 8
-
-# Foreground bounds:
+# Foreground bounds & Fix 5: Face outer silhouette smoothing
 is_fg = (lab != 0) & (lab != 41)
-leg_spurs = (
-    ((np.arange(h)[:, None] == 335) & (np.arange(w)[None, :] >= 392)) |
-    ((np.arange(h)[:, None] == 336) & (np.arange(w)[None, :] >= 392)) |
-    ((np.arange(h)[:, None] == 337) & (np.arange(w)[None, :] >= 391)) |
-    ((np.arange(h)[:, None] == 338) & (np.arange(w)[None, :] >= 391)) |
-    ((np.arange(h)[:, None] == 339) & (np.arange(w)[None, :] >= 390))
-)
-is_fg[leg_spurs] = False
 is_fg |= (mask_eye_round == 1)
-# Fill former hole between tail dome and wing into foreground:
 is_fg |= hole
+is_fg |= front_leg_smooth
+is_fg |= mouth_mask
+is_fg |= wing_mask
+is_fg |= tail_dome
+
+# Leg outer bound:
+for y, xs in zip(ys_leg, xs_leg_smooth):
+    xs_int = int(np.round(xs))
+    is_fg[y, xs_int+1:] = False
+
+# Fix 5: Smooth face/cheek outer silhouette along y in [80..205]
+ys_face = np.array([80, 95, 110, 130, 150, 170, 190, 205])
+xs_face = np.array([359, 363, 378, 391, 400, 406, 407, 406])
+p_face = np.polyfit(ys_face, xs_face, 2)
+for y in range(80, 206):
+    xf = int(np.round(np.polyval(p_face, y)))
+    is_fg[y, 340:xf+1] = True
+    is_fg[y, xf+1:] = False
+
 part_map[~is_fg] = 0
 
 # Fill any small gaps inside foreground:
@@ -163,7 +198,7 @@ part_ids = [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 14, 15, 16, 17, 18]
 smoothed_parts = {}
 for pid in part_ids:
     mask = (part_map == pid).astype(np.uint8)
-    if pid in [6, 7]:
+    if pid in [6, 7, 8]:
         smoothed_parts[pid] = mask
     else:
         blur = cv2.GaussianBlur(mask.astype(float), (5, 5), 1.2)
@@ -173,7 +208,7 @@ for pid in part_ids:
 stack = np.zeros((h, w, max(part_ids) + 1), dtype=float)
 for pid in part_ids:
     sm = smoothed_parts[pid]
-    weight = 1.5 if pid in [6, 7] else 1.0
+    weight = 1.5 if pid in [6, 7, 8] else 1.0
     dist = cv2.distanceTransform(sm, cv2.DIST_L2, 5) * weight
     stack[:, :, pid] = dist
 
