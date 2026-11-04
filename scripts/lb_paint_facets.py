@@ -19,10 +19,23 @@ YELLOW = np.array([21, 204, 250, 255], dtype=np.uint8)
 # Semantic part map:
 part_map = np.zeros((h, w), dtype=np.uint8)
 
-# 1. Antennae (Yellow, Part ID 2)
+# 1. Antennae (Yellow, Part ID 2) & Fix 0 (Smooth antenna base divider)
 m4 = (lab == 4).copy()
 stalk = m4 & (np.arange(h)[:, None] < 65) & (np.arange(w)[None, :] > 310)
-part_map[np.isin(lab, [1, 9, 42]) | stalk] = 2
+
+# Fix 0: Smooth curve along base of antennae separating Antenna (2) from Forehead/Head (5)
+# Smoothly connects from x=325 (y=69) across x=340 (y=74) to x=365 (y=79)
+xs_ant_fit = np.array([325, 335, 345, 355, 365])
+ys_ant_fit = np.array([69.0, 72.5, 75.5, 77.5, 79.0])
+p_ant_base = np.polyfit(xs_ant_fit, ys_ant_fit, 2)
+
+antenna_mask = np.isin(lab, [1, 9, 42]) | stalk
+# Any pixels of antenna below p_ant_base become forehead/head (5):
+for x in range(325, 368):
+    y_base = int(np.round(np.polyval(p_ant_base, x)))
+    antenna_mask[y_base:, x] = False
+
+part_map[antenna_mask] = 2
 
 # 2. Smooth cubic curve along bottom rim of cap from x=171 (left silhouette) to x=315 (antenna/brow)
 xs_cap_fit = np.array([171, 190, 215, 245, 275, 295, 315])
@@ -54,7 +67,7 @@ for x in xs_m:
     mouth_mask[yt:yb+1, x] = True
 part_map[mouth_mask] = 8
 
-# 4. Legs (Green) with rounded tops and Fix 2 (back foot bottom smoothing):
+# 4. Legs (Green) with rounded tops and back foot bottom smoothing:
 m34 = (lab == 34).copy()
 m39 = (lab == 39).copy()
 m35 = (lab == 35).copy()
@@ -69,7 +82,7 @@ for x in xs_34:
     yt = int(np.round(np.polyval(p_34, x)))
     m34[:yt, x] = False
 
-# Fix 2: Back foot bottom smoothing across x in [65..110]:
+# Back foot bottom smoothing across x in [65..110]:
 pts_34 = np.argwhere(m34 | m39)
 xs_sole = np.unique(pts_34[:, 1])
 y_soles = np.array([pts_34[pts_34[:, 1] == x, 0].max() for x in xs_sole], dtype=float)
@@ -111,15 +124,20 @@ part_map[back_foot] = 14
 part_map[m35 | m36 | m40] = 15
 part_map[front_leg_smooth] = 16
 
-# 5. Head & Body base masks (strictly excludes mouth, cap, and legs)
+# 5. Head & Body base masks (strictly excludes mouth, cap, legs, and antennae)
 head_facets = [12, 13, 14, 15, 16, 17, 19, 22, 25, 26]
 body_facets = [6, 7, 29, 30, 31, 33, 43]
-head_or_body = np.isin(lab, head_facets + body_facets + [18]) & (~mouth_mask) & (~all_legs) & (~cap_mask)
+head_or_body = np.isin(lab, head_facets + body_facets + [18]) & (~mouth_mask) & (~all_legs) & (~cap_mask) & (~antenna_mask)
 
 # Add any pixels below smoothed cap to head:
 for x in range(165, 332):
     y_bot = int(np.round(np.polyval(p_cap_bot, x)))
     head_or_body[y_bot+1:y_bot+15, x] = True
+
+# Add any pixels below antenna base to forehead/head:
+for x in range(325, 368):
+    y_base = int(np.round(np.polyval(p_ant_base, x)))
+    head_or_body[y_base:y_base+15, x] = True
 
 # Smooth curved neck boundary separating Head (5) and Body (17)
 ys_neck = np.array([215, 235, 255, 270, 280, 286])
@@ -155,13 +173,30 @@ for y in range(45, 225):
 wing_mask &= ~((lab == 23) & (np.arange(h)[:, None] >= 182))
 part_map[wing_mask] = 9
 
+# Fix 2: Smooth dividing curve between Yellow Tail Tip (10) and Red Upper Fold (11)
+# Across x in [40..92], gentle gradual curve from (40, 181) to (90, 187)
+p_tail_div = np.polyfit([40, 65, 90], [181.0, 184.0, 187.0], 2)
+
 # Tail Tip Dome (Yellow, 10): emerges strictly BEHIND the wing
 tail_dome = np.isin(lab, [20, 21])
 tail_dome |= ((lab == 10) & (np.arange(h)[:, None] >= 140))
-tail_dome |= ((lab == 23) & (np.arange(h)[:, None] < 182) & (np.arange(w)[None, :] <= 95))
-hole = (np.arange(h)[:, None] >= 165) & (np.arange(h)[:, None] <= 185) & (np.arange(w)[None, :] >= 65) & (np.arange(w)[None, :] <= 95)
+tail_dome |= (lab == 23)
+hole = (np.arange(h)[:, None] >= 165) & (np.arange(h)[:, None] <= 190) & (np.arange(w)[None, :] >= 65) & (np.arange(w)[None, :] <= 95)
 tail_dome |= hole
 tail_dome &= (~wing_mask)
+
+# Enforce Fix 2 on tail_dome: strictly above p_tail_div
+for x in range(35, 95):
+    yd = int(np.round(np.polyval(p_tail_div, x)))
+    tail_dome[yd:, x] = False
+
+# Fix 3: Smooth outer left edge of yellow tail tip along y in [138..176]
+ys_tip_fit = np.array([138, 145, 152, 160, 168, 175])
+xs_tip_fit = np.array([56.0, 47.0, 44.0, 41.5, 40.5, 41.0])
+p_tip_edge = np.polyfit(ys_tip_fit, xs_tip_fit, 2)
+for y in range(138, 177):
+    xt = int(np.round(np.polyval(p_tip_edge, y)))
+    tail_dome[y, :xt] = False
 
 cnts_tip, _ = cv2.findContours(tail_dome.astype(np.uint8), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
 if cnts_tip:
@@ -169,27 +204,51 @@ if cnts_tip:
     filled_tip = np.zeros_like(tail_dome, dtype=np.uint8)
     cv2.drawContours(filled_tip, [c_tip], -1, 1, -1)
     tail_dome = filled_tip.astype(bool) & (~wing_mask)
+    # Re-apply Fix 2 cutoff
+    for x in range(35, 95):
+        yd = int(np.round(np.polyval(p_tail_div, x)))
+        tail_dome[yd:, x] = False
+
 part_map[tail_dome] = 10
 
 # 7. Tail Accordion Folds (Red): TWO sections separated by single divider
-upper_fold = (lab == 23) & (np.arange(h)[:, None] >= 182) & (~tail_dome) & (~wing_mask)
+upper_fold = (lab == 23) & (~tail_dome) & (~wing_mask)
+# Add pixels down from p_tail_div to upper_fold
+for x in range(40, 92):
+    yd = int(np.round(np.polyval(p_tail_div, x)))
+    upper_fold[yd:yd+15, x] = True
+upper_fold &= (~wing_mask)
+
 lower_fold = np.isin(lab, [24, 28])
 lower_fold &= ~((np.arange(h)[:, None] >= 200) & (np.arange(h)[:, None] < 228) & (np.arange(w)[None, :] > 75))
 upper_fold |= ((lab == 23) & (np.arange(h)[:, None] >= 200) & (np.arange(h)[:, None] < 228) & (np.arange(w)[None, :] > 75))
 
+# Fix 1: Smooth out the edge of the red part of the tail (y in [195..270]) into a nice round gradual curve
+ys_r_fit = np.array([195, 205, 215, 230, 245, 260, 270])
+xs_r_fit = np.array([39.0, 32.5, 28.0, 25.0, 25.5, 28.5, 32.5])
+p_tail_red = np.polyfit(ys_r_fit, xs_r_fit, 2)
+
+# Full tail silhouette smoothing below y=270:
 tail_all = upper_fold | lower_fold
 ys_tail = np.arange(190, 356)
 xs_tail_min = []
 for y in ys_tail:
-    pts_row = np.where(tail_all[y])[0]
-    xs_tail_min.append(pts_row.min() if len(pts_row) > 0 else 50)
+    if 195 <= y <= 270:
+        xs_tail_min.append(np.polyval(p_tail_red, y))
+    else:
+        pts_row = np.where(tail_all[y])[0]
+        xs_tail_min.append(pts_row.min() if len(pts_row) > 0 else 50)
 xs_tail_min = np.array(xs_tail_min, dtype=float)
-xs_tail_smooth = gaussian_filter1d(xs_tail_min, sigma=3.0)
+# Smooth lower tail (y > 270)
+xs_tail_smooth = xs_tail_min.copy()
+xs_tail_smooth[ys_tail > 270] = gaussian_filter1d(xs_tail_min[ys_tail > 270], sigma=3.0)
 
 for y, xs in zip(ys_tail, xs_tail_smooth):
     xs_int = int(np.round(xs))
     upper_fold[y, :xs_int] = False
     lower_fold[y, :xs_int] = False
+    if 195 <= y <= 270:
+        upper_fold[y, xs_int:xs_int+15] = True
 
 part_map[upper_fold] = 11
 part_map[lower_fold] = 12
@@ -231,11 +290,19 @@ is_fg |= upper_fold
 is_fg |= lower_fold
 is_fg |= cap_mask
 is_fg |= head_or_body
+is_fg |= antenna_mask
 
 # Tail left bound:
 for y, xs in zip(ys_tail, xs_tail_smooth):
     xs_int = int(np.round(xs))
     is_fg[y, :xs_int] = False
+    if 195 <= y <= 270:
+        is_fg[y, xs_int:xs_int+15] = True
+
+# Yellow tail tip outer edge bound:
+for y in range(138, 177):
+    xt = int(np.round(np.polyval(p_tip_edge, y)))
+    is_fg[y, :xt] = False
 
 # Leg outer bound:
 for y, xs in zip(ys_leg, xs_leg_smooth):
@@ -312,6 +379,30 @@ for x in range(171, 316):
             elif x < 284: clean_part_map[y, x] = 4
             else: clean_part_map[y, x] = 3
 
+# --- STRICT ANTENNA BASE & FOREHEAD DIVISION (Fix 0) ---
+for x in range(325, 368):
+    yb = int(np.round(np.polyval(p_ant_base, x)))
+    # Below yb: must be head (part 5)
+    for y in range(yb, min(h, yb + 20)):
+        if clean_fg[y, x] and clean_part_map[y, x] == 2:
+            clean_part_map[y, x] = 5
+    # Above yb: must be antenna (part 2)
+    for y in range(max(0, yb - 25), yb):
+        if clean_fg[y, x] and clean_part_map[y, x] == 5:
+            clean_part_map[y, x] = 2
+
+# --- STRICT TAIL TIP (10) & UPPER TAIL FOLD (11) DIVISION (Fix 2) ---
+for x in range(40, 92):
+    yd = int(np.round(np.polyval(p_tail_div, x)))
+    # Below yd: must be upper fold (part 11)
+    for y in range(yd, min(h, yd + 20)):
+        if clean_fg[y, x] and clean_part_map[y, x] == 10:
+            clean_part_map[y, x] = 11
+    # Above yd: must be tail tip (part 10)
+    for y in range(max(0, yd - 20), yd):
+        if clean_fg[y, x] and clean_part_map[y, x] == 11:
+            clean_part_map[y, x] = 10
+
 # Outlines:
 # 1) Outer silhouette outline
 outer_edge = cv2.dilate(bg.astype(np.uint8), cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (5, 5))).astype(bool) & clean_fg
@@ -324,7 +415,13 @@ for pid in part_ids:
     if pid in [3, 4, 18]:
         other = (clean_part_map != pid) & (clean_part_map != 5) & clean_fg
     elif pid == 5:
-        other = (clean_part_map != pid) & (~np.isin(clean_part_map, [3, 4, 18])) & clean_fg
+        other = (clean_part_map != pid) & (~np.isin(clean_part_map, [3, 4, 18])) & (clean_part_map != 2) & clean_fg
+    elif pid == 2:
+        other = (clean_part_map != pid) & (clean_part_map != 5) & clean_fg
+    elif pid == 10:
+        other = (clean_part_map != pid) & (clean_part_map != 11) & clean_fg
+    elif pid == 11:
+        other = (clean_part_map != pid) & (clean_part_map != 10) & clean_fg
     else:
         other = (clean_part_map != pid) & clean_fg
     part_boundary_1x |= (dil & other)
@@ -336,16 +433,30 @@ cap_rim_line = np.zeros((h, w), dtype=bool)
 for x in range(171, 316):
     yc = int(np.round(np.polyval(p_cap_bot, x)))
     cap_rim_line[yc-1:yc+3, x] = True
-    # Clean up part_boundary_2x around the rim line so there is NO extra blobbing or notched staircases:
     part_boundary_2x[yc-2:yc+4, x] = False
-
 cap_rim_line &= clean_fg
+
+# Fix 0: Dedicated 3px smooth black line along antenna base:
+ant_base_line = np.zeros((h, w), dtype=bool)
+for x in range(326, 366):
+    yb = int(np.round(np.polyval(p_ant_base, x)))
+    ant_base_line[yb-1:yb+2, x] = True
+    part_boundary_2x[yb-2:yb+3, x] = False
+ant_base_line &= clean_fg
+
+# Fix 2: Dedicated 3-4px smooth black line along tail tip / fold divider:
+tail_div_line = np.zeros((h, w), dtype=bool)
+for x in range(40, 90):
+    yd = int(np.round(np.polyval(p_tail_div, x)))
+    tail_div_line[yd-1:yd+3, x] = True
+    part_boundary_2x[yd-2:yd+4, x] = False
+tail_div_line &= clean_fg
 
 # 4) Special 4x thicker divider line separating the two red tail sections (part 11 and part 12)
 fold_boundary_1x = cv2.dilate((clean_part_map == 11).astype(np.uint8), np.ones((3, 3), np.uint8)).astype(bool) & (clean_part_map == 12)
 fold_boundary_4x = cv2.dilate(fold_boundary_1x.astype(np.uint8), cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (15, 15))).astype(bool) & clean_fg
 
-all_lines = outer_edge | part_boundary_2x | cap_rim_line | fold_boundary_4x
+all_lines = outer_edge | part_boundary_2x | cap_rim_line | ant_base_line | tail_div_line | fold_boundary_4x
 
 # Color mapping:
 PART_COLOR = {

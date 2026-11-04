@@ -235,7 +235,7 @@ lightningBugImg.onload = () => {
     lightningBugLoaded = true;
     notifyFloatImgLoaded();
 };
-lightningBugImg.src = 'assets/lightning_bug.png?v=20261104_smooth_cap_gradual_curve';
+lightningBugImg.src = 'assets/lightning_bug.png?v=20261104_smooth_4fixes';
 
 const lightningBugTransparentImg = new Image();
 let lightningBugTransparentLoaded = false;
@@ -243,7 +243,7 @@ lightningBugTransparentImg.onload = () => {
     lightningBugTransparentLoaded = true;
     notifyFloatImgLoaded();
 };
-lightningBugTransparentImg.src = 'assets/lightningbug_transparent.png?v=20261104_smooth_cap_gradual_curve';
+lightningBugTransparentImg.src = 'assets/lightningbug_transparent.png?v=20261104_smooth_4fixes';
 
 // Custom artwork image (if user uploads one or loads one from preset)
 let customArtworkImg = null;

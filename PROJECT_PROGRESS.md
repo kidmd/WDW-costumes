@@ -93,6 +93,18 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### 2026-11-04: Lightning Bug Contour Smoothing Batch 3 (Antenna Base Divider, Tail Left Silhouette, Tail Tip Divider, Yellow Tip Edge)
+- **Visual Feedback & Geometry Refinements:**
+  - **Comment 0 (Antenna Base / Forehead Dividing Line Smoothing):** Replaced the squiggly S-shaped dip at the base of the antennae ($x \in [325 \dots 368], y \in [69 \dots 87]$) with a smooth, continuous quadratic arch ($y_{\text{ant\_base}}(x) = \text{poly}(x)$ from $y=69$ at $x=325$ to $y=79$ at $x=365$). Absorbed the jagged downward lobe of facet 42 into the yellow forehead and rendered a clean 3-pixel black divider separating antennae from head.
+  - **Comment 1 (Red Tail Outer Silhouette Smoothing):** Replaced the flat vertical wall at $x=27$ and abrupt downward bulge ($y \in [195 \dots 270]$) with a graceful, continuous quadratic curve ($x_{\text{target}}(y)$ from $x=39$ down to $x=25$ at the apex and back out to $x=33$), creating a round, gradual cartoon silhouette.
+  - **Comment 2 (Yellow Tail Tip to Red Tail Accordion Border Smoothing):** Replaced the 5-pixel stair-step drop and 26-pixel black block between the yellow tail tip dome (`Part 10`) and red upper accordion fold (`Part 11`) across $x \in [40 \dots 90]$ with a gentle, continuous quadratic dividing curve ($y_{\text{tail\_div}}(x) = 181 \to 187$). Formed a uniform 4-pixel solid black dividing line with 100% yellow above and 100% red below.
+  - **Comment 3 (Yellow Tail Tip Outer Left Silhouette Smoothing):** Smoothed the outer left contour of the yellow tail tip dome across $y \in [138 \dots 176]$ using a quadratic profile ($p_{\text{tip\_edge}}(y)$ from $x=56$ tapering smoothly to $x=40$ at $y=166$), eliminating the sharp 1-pixel tooth at $y=163$ and flat vertical facets.
+- **Palette & Transparency Verification:**
+  - Strict 100.00% 5-color palette compliance (`#141414`, `#22c55e`, `#2563eb`, `#e61919`, `#facc15`) across all 119,491 foreground pixels on pure transparent background.
+- **Asset Deployment & Simulator Synchronization:**
+  - Deployed updated graphic to `assets/lightningbug_transparent.png`, `assets/lightning_bug.png`, `simulator/assets/lightningbug_transparent.png`, and `simulator/assets/lightning_bug.png`.
+  - Bumped simulator asset cache-busters in `simulator/app.js` to `?v=20261104_smooth_4fixes`.
+
 ### 2026-11-04: Lightning Bug Smooth Beanie Cap Bottom Rim & Gradual Dividing Curve
 - **Visual Feedback & Geometry Refinements:**
   - **Comment 0 (Gradual Curved Black Line & Notch-Free Cap Bottom):** Replaced jagged distance-transform seam clefts along the bottom of the red cap with a continuous, gradual cubic dividing curve ($y_{\text{cap\_bot}}(x)$) spanning $x = 171 \dots 315$ ($y = 115 \to 92 \to 78 \to 65 \to 66$).
