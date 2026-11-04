@@ -93,6 +93,16 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### 2026-11-04: Recolor of Yellow Spur Above Eye to Green on Lightning Bug Graphic
+- **Targeted Facet Clean-Up:**
+  - Recolor the 39-pixel yellow spur jutting into the forehead above the eye socket (x: 274..281, y: 84..91) to Green (#22c55e).
+  - Restored clean termination of the yellow eye facet against the black diagonal eyelid crease line, matching the green forehead and brow tones of the original float photo.
+  - 100% bit-exact outline and boundary preservation with zero alteration to black line pixels.
+  - 100.00% 5-color palette compliance maintained across all 120,904 foreground pixels.
+- **Asset Deployment & Cache Invalidation:**
+  - Synchronized ssets/lightningbug_transparent.png, ssets/lightning_bug.png, simulator/assets/lightningbug_transparent.png, and simulator/assets/lightning_bug.png.
+  - Updated simulator cache-buster to ?v=20261104_eye_spur_green in simulator/app.js.
+
 ### 2026-11-04: Recolor Brow Area Above Eye to Green on Lightning Bug Graphic
 - **User Annotation Correction:**
   - Recolor facet 12 (brow facet between the red hat and eye socket) from Yellow (`#facc15`) to Green (`#22c55e` / `[34, 197, 94]`).

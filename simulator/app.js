@@ -235,7 +235,7 @@ lightningBugImg.onload = () => {
     lightningBugLoaded = true;
     notifyFloatImgLoaded();
 };
-lightningBugImg.src = 'assets/lightning_bug.png?v=20261104_brow_green';
+lightningBugImg.src = 'assets/lightning_bug.png?v=20261104_eye_spur_green';
 
 const lightningBugTransparentImg = new Image();
 let lightningBugTransparentLoaded = false;
@@ -243,7 +243,7 @@ lightningBugTransparentImg.onload = () => {
     lightningBugTransparentLoaded = true;
     notifyFloatImgLoaded();
 };
-lightningBugTransparentImg.src = 'assets/lightningbug_transparent.png?v=20261104_brow_green';
+lightningBugTransparentImg.src = 'assets/lightningbug_transparent.png?v=20261104_eye_spur_green';
 
 // Custom artwork image (if user uploads one or loads one from preset)
 let customArtworkImg = null;
