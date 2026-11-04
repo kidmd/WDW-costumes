@@ -93,6 +93,15 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### 2026-11-04: Recolor Area Between Legs to Green on Lightning Bug Graphic
+- **User Annotation Correction:**
+  - Recolor facet 7 (area between back-left leg and mid-left leg) from Blue (`#2563eb`) to Green (`#22c55e` / `[34, 197, 94]`), cleanly distinguishing the insect body from the blue legs.
+  - Distinct blue legs (34 back-left, 35 mid-left, 36/40 mid-right, 32/37/38 front-right, 39 back-left foot tip) remain cleanly separated by the original black wireframe outlines.
+  - 100.00% strict 5-color palette compliance across all 120,904 foreground pixels on a 100% transparent background.
+- **Deployment:**
+  - Deployed to `assets/lightning_bug.png`, `simulator/assets/lightning_bug.png`, `assets/lightningbug_transparent.png`, and `simulator/assets/lightningbug_transparent.png`.
+  - Updated simulator cache-buster to `?v=20261104_between_legs_green`.
+
 ### 2026-11-04: 5-Color Facet-by-Facet Flat Painting of Transparent Lightning Bug Graphic
 - **100% Geometry & Outline Preservation:**
   - Kept all black facet boundaries, wireframe segment lines, and silhouette contours strictly identical (zero curve-smoothing, warping, or melted edges).
