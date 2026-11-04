@@ -164,7 +164,7 @@ pirateShipImg.onload = () => {
     pirateShipLoaded = true;
     notifyFloatImgLoaded();
 };
-pirateShipImg.src = 'assets/Pirateshipsimple.png?v=20261103_pirate_4color';
+pirateShipImg.src = 'assets/Pirateshipsimple.png?v=20261103_pirate_v8';
 
 // Cinderella's Coach Artwork (Legacy)
 const cinderellasCoachImg = new Image();
@@ -268,10 +268,10 @@ floatArtworkImgs['spinning_turtle'].src = 'assets/Turtle_clean.png?v=20261103_tu
 floatArtworkImgs['spinning_snail'].src = 'assets/SimpleSnail.png';
 floatArtworkImgs['spinning_snail_original'].src = 'assets/SimpleSnail.png';
 floatArtworkImgs['spinning_snail_simplified'].src = 'assets/spinning_snail_simplified.png';
-floatArtworkImgs['pirate_ship'].src = 'assets/Pirateshipsimple.png?v=20261103_pirate_4color';
-floatArtworkImgs['pirateshipsimple'].src = 'assets/Pirateshipsimple.png?v=20261103_pirate_4color';
-floatArtworkImgs['cinderella_coach'].src = 'assets/Pirateshipsimple.png?v=20261103_pirate_4color';
-floatArtworkImgs['cinderellas_coach'].src = 'assets/Pirateshipsimple.png?v=20261103_pirate_4color';
+floatArtworkImgs['pirate_ship'].src = 'assets/Pirateshipsimple.png?v=20261103_pirate_v8';
+floatArtworkImgs['pirateshipsimple'].src = 'assets/Pirateshipsimple.png?v=20261103_pirate_v8';
+floatArtworkImgs['cinderella_coach'].src = 'assets/Pirateshipsimple.png?v=20261103_pirate_v8';
+floatArtworkImgs['cinderellas_coach'].src = 'assets/Pirateshipsimple.png?v=20261103_pirate_v8';
 floatArtworkImgs['petes_dragon'].src = 'assets/petes_dragon_transparent.png';
 floatArtworkImgs['builtin_dragon'].src = 'assets/petes_dragon_transparent.png';
 floatArtworkImgs['petes_dragon_transparent'].src = 'assets/petes_dragon_transparent.png';

@@ -93,6 +93,15 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### 2026-11-03: Float 5 (Pirate Ship) Stern Lanterns, Golden Crow's Nests, Larger Billowing Sails & Vertical Sail Seams
+- **Reference-Photo Nautical Enhancements (Strictly 4 Flat Colors):**
+  - **Stern Lanterns Above Captain's Quarters:** Replaced the abstract stern shape with two ornate **Golden Bronze (`#af7819`)** galleon stern lanterns mounted on posts above the Captain's Quarters—complete with **Black (`#141414`)** vertical and horizontal glass pane mullions, **Red (`#e61919`)** base collars, and **Emerald Green (`#147332`)** lantern caps with golden finials.
+  - **Golden Bronze Crow's Nests with Black Outlines:** Converted all three crow's nests (Foremast, Mainmast, and Mizzenmast) into flared **Golden Bronze** baskets with bold **Black** outer outlines, vertical stave lines, and **Emerald Green** top rims matching the archival *Main Street Electrical Parade* float.
+  - **Larger Front & Rear Sails + Vertical Sail Seam Lines:** Enlarged the **Front Sail (Foresail)** and **Rear Sail (Mizzen Sail)** to billow out below their crow's nests, connected the upper-left peak of the **Center Main Sail** cleanly across the upper yardarm, and added curved, mostly-vertical **Black** seam lines across all three **Red** sails.
+  - **Additional Galleon Details:** Added **Black** window-pane crossbars to the 3 **Golden Bronze** Captain's Quarters windows, converted the two foredeck boxes into **Golden Bronze** wooden deck barrels with curved horizontal hoops and vertical staves, and sharpened the **Golden Bronze** bow anchor.
+- **Strict 4-Color Verification & Simulator Sync:**
+  - Verified 100% discrete 4-color compliance across all `1,639,981` foreground pixels (`Black`: `647,950 px`, `Golden Bronze`: `495,320 px`, `Red`: `360,588 px`, `Green`: `136,163 px`) on a 100% transparent background (`alpha = 0`), updated all 4 asset paths, and bumped cache-buster in `simulator/app.js` to `?v=20261103_pirate_v8`.
+
 ### 2026-11-03: Float 5 (Pirate Ship) 4-Color Cartoon Cleanup & Bold Black Outline Separation
 - **Unified Golden Bronze Palette & Black Outline Separation:**
   - Consolidated the Pirate Ship float graphic (`2128 × 1557` RGBA) from 5 foreground colors down to a strict **4-color cartoon style** (**Black**, **Red**, **Golden Bronze**, and **Green**), unifying all lighter yellow regions (`#ebb941`) with the antique bronze regions into a single warm **Golden Bronze (`#af7819`)** while drawing bold `7px` **Black (`#141414`)** outlines along every former yellow-to-bronze boundary (masts, rigging stays, bowsprit figurehead, lower sail pennants, and quarterdeck doorway/bulkhead) to keep every structural element cleanly separated.
