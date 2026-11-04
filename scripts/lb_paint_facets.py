@@ -24,15 +24,13 @@ m4 = (lab == 4).copy()
 stalk = m4 & (np.arange(h)[:, None] < 65) & (np.arange(w)[None, :] > 310)
 part_map[np.isin(lab, [1, 9, 42]) | stalk] = 2
 
-# 2. Fix 5: Bottom Contour of Red Cap (Red: 3, 4, 18)
-# Fit smooth, continuous cubic curve along bottom rim of cap from x=166 (wing junction) to x=330 (antenna/brow)
-xs_cap_fit = np.array([166, 200, 235, 265, 285, 305, 318, 328])
-ys_cap_fit = np.array([119, 101,  86,  74,  68,  65,  67,  72])
+# 2. Smooth cubic curve along bottom rim of cap from x=171 (left silhouette) to x=315 (antenna/brow)
+xs_cap_fit = np.array([171, 190, 215, 245, 275, 295, 315])
+ys_cap_fit = np.array([115, 105,  92,  78,  68,  65,  66])
 p_cap_bot = np.polyfit(xs_cap_fit, ys_cap_fit, 3)
 
 cap_mask = np.isin(lab, [4, 8, 11]) & (~stalk)
-# Enforce smooth, even rounded bottom edge on cap:
-for x in range(160, 332):
+for x in range(165, 332):
     y_bot = int(np.round(np.polyval(p_cap_bot, x)))
     cap_mask[y_bot+1:, x] = False
 
@@ -72,7 +70,6 @@ for x in xs_34:
     m34[:yt, x] = False
 
 # Fix 2: Back foot bottom smoothing across x in [65..110]:
-# Smooth bottom sole of back foot:
 pts_34 = np.argwhere(m34 | m39)
 xs_sole = np.unique(pts_34[:, 1])
 y_soles = np.array([pts_34[pts_34[:, 1] == x, 0].max() for x in xs_sole], dtype=float)
@@ -120,7 +117,7 @@ body_facets = [6, 7, 29, 30, 31, 33, 43]
 head_or_body = np.isin(lab, head_facets + body_facets + [18]) & (~mouth_mask) & (~all_legs) & (~cap_mask)
 
 # Add any pixels below smoothed cap to head:
-for x in range(160, 332):
+for x in range(165, 332):
     y_bot = int(np.round(np.polyval(p_cap_bot, x)))
     head_or_body[y_bot+1:y_bot+15, x] = True
 
@@ -141,7 +138,7 @@ for y in range(h):
     else:
         part_map[y, head_or_body[y]] = 17
 
-# 6. Fix 4: Wing (Blue, 9) with smooth left AND smooth right boundary (x=166 straight vertical seam)
+# 6. Wing (Blue, 9) with smooth left AND smooth right boundary (x=166 straight vertical seam)
 ys_wcurve = np.array([50, 75, 100, 120, 135, 155, 175, 195, 215])
 xs_wcurve = np.array([81, 66, 61, 62, 65, 74, 84, 92, 97])
 p_wcurve = np.polyfit(ys_wcurve, xs_wcurve, 3)
@@ -151,7 +148,6 @@ for y in range(45, 225):
     xc = int(np.round(np.polyval(p_wcurve, y)))
     wing_mask[y, :xc] = False
     if y <= 215:
-        # Fix 4: Perfectly smooth vertical right seam at x=166 from y=135 to 215!
         max_x = 166 if y >= 135 else min(168, np.max(np.where(np.isin(lab[y], [5, 10]))[0], initial=xc)+1)
         wing_mask[y, xc:max_x] = True
         wing_mask[y, max_x:] = False
@@ -181,8 +177,6 @@ lower_fold = np.isin(lab, [24, 28])
 lower_fold &= ~((np.arange(h)[:, None] >= 200) & (np.arange(h)[:, None] < 228) & (np.arange(w)[None, :] > 75))
 upper_fold |= ((lab == 23) & (np.arange(h)[:, None] >= 200) & (np.arange(h)[:, None] < 228) & (np.arange(w)[None, :] > 75))
 
-# Fix 0 & 1: Smooth the outer left and bottom-left silhouette of the tail:
-# Extract tail left boundary from y=190 to y=355:
 tail_all = upper_fold | lower_fold
 ys_tail = np.arange(190, 356)
 xs_tail_min = []
@@ -190,7 +184,6 @@ for y in ys_tail:
     pts_row = np.where(tail_all[y])[0]
     xs_tail_min.append(pts_row.min() if len(pts_row) > 0 else 50)
 xs_tail_min = np.array(xs_tail_min, dtype=float)
-# Smooth with Gaussian filter:
 xs_tail_smooth = gaussian_filter1d(xs_tail_min, sigma=3.0)
 
 for y, xs in zip(ys_tail, xs_tail_smooth):
@@ -237,8 +230,9 @@ is_fg |= tail_dome
 is_fg |= upper_fold
 is_fg |= lower_fold
 is_fg |= cap_mask
+is_fg |= head_or_body
 
-# Tail left bound (Fix 0 & 1):
+# Tail left bound:
 for y, xs in zip(ys_tail, xs_tail_smooth):
     xs_int = int(np.round(xs))
     is_fg[y, :xs_int] = False
@@ -248,7 +242,7 @@ for y, xs in zip(ys_leg, xs_leg_smooth):
     xs_int = int(np.round(xs))
     is_fg[y, xs_int+1:] = False
 
-# Fix 3: Smooth the entire bottom baseline across x in [95..385]
+# Bottom baseline smoothing:
 xs_base = np.arange(95, 385)
 ys_bot = []
 for x in xs_base:
@@ -304,6 +298,55 @@ clean_fg = fg_blur > 0.45
 clean_part_map[~clean_fg] = 0
 bg = ~clean_fg
 
+# --- STRICT CAP & HEAD DIVISION ---
+for x in range(171, 316):
+    yc = int(np.round(np.polyval(p_cap_bot, x)))
+    # Below yc: must be head (part 5)
+    for y in range(yc, min(h, yc + 30)):
+        if clean_fg[y, x] and clean_part_map[y, x] in [3, 4, 18]:
+            clean_part_map[y, x] = 5
+    # Above yc: must be cap (parts 18, 4, 3)
+    for y in range(max(0, yc - 45), yc):
+        if clean_fg[y, x] and clean_part_map[y, x] == 5:
+            if x < 218: clean_part_map[y, x] = 18
+            elif x < 284: clean_part_map[y, x] = 4
+            else: clean_part_map[y, x] = 3
+
+# Outlines:
+# 1) Outer silhouette outline
+outer_edge = cv2.dilate(bg.astype(np.uint8), cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (5, 5))).astype(bool) & clean_fg
+
+# 2) Standard part boundaries
+part_boundary_1x = np.zeros((h, w), dtype=bool)
+for pid in part_ids:
+    p_mask = (clean_part_map == pid)
+    dil = cv2.dilate(p_mask.astype(np.uint8), np.ones((3, 3), np.uint8)).astype(bool)
+    if pid in [3, 4, 18]:
+        other = (clean_part_map != pid) & (clean_part_map != 5) & clean_fg
+    elif pid == 5:
+        other = (clean_part_map != pid) & (~np.isin(clean_part_map, [3, 4, 18])) & clean_fg
+    else:
+        other = (clean_part_map != pid) & clean_fg
+    part_boundary_1x |= (dil & other)
+
+part_boundary_2x = cv2.dilate(part_boundary_1x.astype(np.uint8), cv2.getStructuringElement(cv2.MORPH_CROSS, (3, 3))).astype(bool) & clean_fg
+
+# 3) Dedicated 4px smooth black line along the cap bottom rim:
+cap_rim_line = np.zeros((h, w), dtype=bool)
+for x in range(171, 316):
+    yc = int(np.round(np.polyval(p_cap_bot, x)))
+    cap_rim_line[yc-1:yc+3, x] = True
+    # Clean up part_boundary_2x around the rim line so there is NO extra blobbing or notched staircases:
+    part_boundary_2x[yc-2:yc+4, x] = False
+
+cap_rim_line &= clean_fg
+
+# 4) Special 4x thicker divider line separating the two red tail sections (part 11 and part 12)
+fold_boundary_1x = cv2.dilate((clean_part_map == 11).astype(np.uint8), np.ones((3, 3), np.uint8)).astype(bool) & (clean_part_map == 12)
+fold_boundary_4x = cv2.dilate(fold_boundary_1x.astype(np.uint8), cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (15, 15))).astype(bool) & clean_fg
+
+all_lines = outer_edge | part_boundary_2x | cap_rim_line | fold_boundary_4x
+
 # Color mapping:
 PART_COLOR = {
     2: YELLOW, 5: YELLOW, 6: YELLOW, 10: YELLOW, 17: YELLOW,
@@ -311,26 +354,6 @@ PART_COLOR = {
     7: BLUE, 9: BLUE,
     3: RED, 4: RED, 8: RED, 11: RED, 12: RED, 18: RED
 }
-
-# Outlines:
-# 1) Outer silhouette outline
-outer_edge = cv2.dilate(bg.astype(np.uint8), cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (5, 5))).astype(bool) & clean_fg
-
-# 2) Standard part boundaries (2x thick)
-part_boundary_1x = np.zeros((h, w), dtype=bool)
-for pid in part_ids:
-    p_mask = (clean_part_map == pid)
-    dil = cv2.dilate(p_mask.astype(np.uint8), np.ones((3, 3), np.uint8)).astype(bool)
-    other = (clean_part_map != pid) & clean_fg
-    part_boundary_1x |= (dil & other)
-
-part_boundary_2x = cv2.dilate(part_boundary_1x.astype(np.uint8), cv2.getStructuringElement(cv2.MORPH_CROSS, (3, 3))).astype(bool) & clean_fg
-
-# 3) Special 4x thicker divider line separating the two red tail sections (part 11 and part 12)
-fold_boundary_1x = cv2.dilate((clean_part_map == 11).astype(np.uint8), np.ones((3, 3), np.uint8)).astype(bool) & (clean_part_map == 12)
-fold_boundary_4x = cv2.dilate(fold_boundary_1x.astype(np.uint8), cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (15, 15))).astype(bool) & clean_fg
-
-all_lines = outer_edge | part_boundary_2x | fold_boundary_4x
 
 # Paint final image:
 out = np.zeros((h, w, 4), dtype=np.uint8)

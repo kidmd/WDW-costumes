@@ -93,6 +93,18 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### 2026-11-04: Lightning Bug Smooth Beanie Cap Bottom Rim & Gradual Dividing Curve
+- **Visual Feedback & Geometry Refinements:**
+  - **Comment 0 (Gradual Curved Black Line & Notch-Free Cap Bottom):** Replaced jagged distance-transform seam clefts along the bottom of the red cap with a continuous, gradual cubic dividing curve ($y_{\text{cap\_bot}}(x)$) spanning $x = 171 \dots 315$ ($y = 115 \to 92 \to 78 \to 65 \to 66$).
+  - Eliminated the 9-pixel cleft notch at seam 1 ($x \sim 216$) and the 5-pixel cleft notch at seam 2 ($x \sim 284$) where internal cap seams met the bottom rim, terminating vertical panel seams cleanly at the top of the divider line without bleeding into the yellow head.
+  - Implemented a dedicated, uniform 4-pixel thick solid black cartoon divider line separating the red cap dome (`Parts 3, 4, 18`) from the yellow head (`Part 5`) with zero staircases, zero notches, and 100% mathematical continuity.
+  - Cleaned up the left cap-to-silhouette junction at $(171, 115)$ and the right antenna/forehead transition at $(315, 66)$, producing a flawless, gradual cartoon curve.
+- **Palette & Transparency Verification:**
+  - Strict 100.00% 5-color palette compliance (`#141414`, `#22c55e`, `#2563eb`, `#e61919`, `#facc15`) across all 119,461 foreground pixels on pure transparent background.
+- **Asset Deployment & Simulator Synchronization:**
+  - Deployed updated graphic to `assets/lightningbug_transparent.png`, `assets/lightning_bug.png`, `simulator/assets/lightningbug_transparent.png`, and `simulator/assets/lightning_bug.png`.
+  - Bumped simulator asset cache-busters in `simulator/app.js` to `?v=20261104_smooth_cap_gradual_curve`.
+
 ### 2026-11-04: Lightning Bug Even Rounded Beanie Cap Rim Across Entire Brow
 - **Visual Feedback & Geometry Refinements:**
   - **Comment 0 (Even Rounded Cap Bottom Rim):** Replaced the flat horizontal segment at $y=67$ and sharp angular turn at $x=310$ across the user's indicated rectangle ($x = 265 \dots 365$) with a continuous, mathematically smooth cubic arch ($y_{\text{cap\_bot}}(x) = 1.953\times 10^{-5}x^3 - 1.222\times 10^{-2}x^2 + 2.035x + 27.85$) spanning the entire head from $x = 160$ to $x = 332$.
