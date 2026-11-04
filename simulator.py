@@ -1409,14 +1409,14 @@ const uint8_t PROGMEM SPATIAL_RADIUS_BYTE[FRONT_LEDS] = {{
                 plate_thickness_mm = round(max(0.20, min(2.00, plate_thickness_mm)), 2)
 
             try:
-                matrix_gap_mm = float(req_data.get("matrixGapMm", req_data.get("matrixLipMm", 3.0)))
+                matrix_gap_mm = float(req_data.get("matrixGapMm", req_data.get("matrixLipMm", 0.0)))
             except Exception:
-                matrix_gap_mm = 3.0
+                matrix_gap_mm = 0.0
             if matrix_gap_mm not in [0.0, 1.0, 2.0, 3.0, 4.0, 5.0]:
                 matrix_gap_mm = round(max(0.0, min(10.0, matrix_gap_mm)), 1)
             matrix_lip_mm = matrix_gap_mm
 
-            matrix_lenses_mode = bool(req_data.get("matrixLensesMode", req_data.get("includeLenses", True)))
+            matrix_lenses_mode = bool(req_data.get("matrixLensesMode", req_data.get("includeLenses", False)))
             try:
                 matrix_clear_layer_mm = float(req_data.get("matrixClearLayerMm", req_data.get("clearLayerMm", 0.4)))
             except Exception:

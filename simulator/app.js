@@ -14346,7 +14346,7 @@ function applyProfileData(profileData) {
         if (glowSlider) glowSlider.value = btfMatrix16x16Config.backlightCount;
         if (typeof syncBtfMatrixThicknessUI === 'function') {
             syncBtfMatrixThicknessUI(btfMatrix16x16Config.thicknessMm);
-            syncBtfMatrixLipUI(btfMatrix16x16Config.lipMm !== undefined ? btfMatrix16x16Config.lipMm : 2.0);
+            syncBtfMatrixLipUI(btfMatrix16x16Config.lipMm !== undefined ? btfMatrix16x16Config.lipMm : 0.0);
             syncBtfMatrixClearLayerUI(btfMatrix16x16Config.clearLayerMm !== undefined ? btfMatrix16x16Config.clearLayerMm : 0.4);
             syncBtfMatrixFrameUI(btfMatrix16x16Config.frameActive !== false);
         }
@@ -16207,8 +16207,8 @@ let btfMatrix16x16Config = {
     windowCount: 50,
     backlightCount: 25,
     thicknessMm: 0.60,
-    gapMm: 3.0,
-    lipMm: 3.0,
+    gapMm: 0.0,
+    lipMm: 0.0,
     lensesActive: true,
     clearLayerMm: 0.4,
     frameActive: true,
@@ -17458,11 +17458,11 @@ function initBtfMatrix16x16Mode() {
             btfMatrix16x16Config.windowCount = 50;
             btfMatrix16x16Config.backlightCount = 25;
             btfMatrix16x16Config.thicknessMm = 0.60;
-            btfMatrix16x16Config.lipMm = 2.0;
+            btfMatrix16x16Config.lipMm = 0.0;
             if (winSlider) winSlider.value = 50;
             if (glowSlider) glowSlider.value = 25;
             syncBtfMatrixThicknessUI(0.60);
-            syncBtfMatrixLipUI(2.0);
+            syncBtfMatrixLipUI(0.0);
             computeBtfMatrix16x16Layout();
             markSingleShirtDirty();
             showToast('🔄 Reset to 50 Windowed + 25 Backlighting + 181 Dark LEDs (0.60mm plate)');
@@ -17478,7 +17478,7 @@ function initBtfMatrix16x16Mode() {
     }
 
     syncBtfMatrixThicknessUI(btfMatrix16x16Config.thicknessMm);
-    syncBtfMatrixLipUI(btfMatrix16x16Config.lipMm !== undefined ? btfMatrix16x16Config.lipMm : 2.0);
+    syncBtfMatrixLipUI(btfMatrix16x16Config.lipMm !== undefined ? btfMatrix16x16Config.lipMm : 0.0);
     syncBtfMatrixClearLayerUI(btfMatrix16x16Config.clearLayerMm !== undefined ? btfMatrix16x16Config.clearLayerMm : 0.4);
     syncBtfMatrixCornersUI(btfMatrix16x16Config.roundedCorners !== false);
 }
@@ -24477,8 +24477,8 @@ async function handleRecompileTpuStl(opts) {
             includeTopNubs: params.tpuIncludeTopNubs === true,
             matrix16x16Mode: isMatrix16,
             plateThicknessMm: (typeof btfMatrix16x16Config !== 'undefined' && btfMatrix16x16Config.thicknessMm) ? btfMatrix16x16Config.thicknessMm : 0.60,
-            matrixGapMm: (typeof btfMatrix16x16Config !== 'undefined' && btfMatrix16x16Config.gapMm !== undefined) ? btfMatrix16x16Config.gapMm : 3.0,
-            matrixLipMm: (typeof btfMatrix16x16Config !== 'undefined' && btfMatrix16x16Config.gapMm !== undefined) ? btfMatrix16x16Config.gapMm : 3.0,
+            matrixGapMm: (typeof btfMatrix16x16Config !== 'undefined' && btfMatrix16x16Config.gapMm !== undefined) ? btfMatrix16x16Config.gapMm : 0.0,
+            matrixLipMm: (typeof btfMatrix16x16Config !== 'undefined' && btfMatrix16x16Config.gapMm !== undefined) ? btfMatrix16x16Config.gapMm : 0.0,
             matrixLensesMode: (typeof btfMatrix16x16Config !== 'undefined' && btfMatrix16x16Config.lensesActive !== false),
             matrixClearLayerMm: (typeof btfMatrix16x16Config !== 'undefined' && btfMatrix16x16Config.clearLayerMm !== undefined) ? btfMatrix16x16Config.clearLayerMm : 0.4,
             matrixFrameMode: (typeof btfMatrix16x16Config !== 'undefined' && btfMatrix16x16Config.frameActive !== false),

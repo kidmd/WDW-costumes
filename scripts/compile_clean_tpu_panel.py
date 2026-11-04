@@ -155,7 +155,7 @@ if '--plate-thickness' in sys.argv:
         except Exception:
             pass
 
-MATRIX_GAP_MM = 3.0
+MATRIX_GAP_MM = 0.0
 if 'matrix_gap_mm' in specs:
     try:
         MATRIX_GAP_MM = float(specs['matrix_gap_mm'])
@@ -183,7 +183,7 @@ elif '--matrix-lip' in sys.argv:
             pass
 MATRIX_LIP_MM = MATRIX_GAP_MM
 
-INCLUDE_LENSES = True
+INCLUDE_LENSES = False
 if 'matrix_lenses_mode' in specs:
     INCLUDE_LENSES = bool(specs['matrix_lenses_mode'])
 elif 'include_lenses' in specs:
@@ -249,8 +249,17 @@ if '--matrix-rounded-corners' in sys.argv:
         if sys.argv[_mrc + 1].lower() in ('off', '0', 'false', 'no'):
             MATRIX_CORNER_RADIUS_MM = 0.0
 
-def export_assembled_3mf(scene_items, mf3_path, assembly_name="MSEP_MultiColor_Plate"):
-    """Exports a multi-part trimesh dictionary as a single 3MF parent assembly with <components> so Bambu Studio / OrcaSlicer / Snapmaker Orca treat all color inlays as parts of ONE object (preventing 'too close to others' collision errors)."""
+def export_assembled_3mf(scene_items, mf3_path, assembly_name="MSEP_MultiColor_Plate", pause_layer=4, pause_z=0.60):
+    """Exports a multi-part trimesh dictionary as a single 3MF parent assembly with components and slicer metadata
+    for Bambu Studio / OrcaSlicer / Snapmaker Orca so that:
+    1. All parts belong to ONE unified parent assembly (preventing collision/spacing errors).
+    2. Parts are pre-mapped to extruders:
+       - Chassis / Frame -> Extruder 1 (T0 / Black)
+       - Color Inlays -> Extruders 2, 3, 4
+       - Clear Backing Layer -> Extruder 3 (Nozzle 3 / Toolhead 3)
+    3. Slicer layer pause metadata is injected at pause_z (Z = 0.60mm, Layer 4 @ 0.20mm layer height)
+       for the user to change out color filament on Nozzle 3 to Clear filament!
+    """
     import uuid
     import xml.etree.ElementTree as ET
     scene = trimesh.Scene(scene_items)
@@ -268,6 +277,7 @@ def export_assembled_3mf(scene_items, mf3_path, assembly_name="MSEP_MultiColor_P
             ET.register_namespace('sc', "http://schemas.microsoft.com/3dmanufacturing/securecontent/2019/04")
             ns = "http://schemas.microsoft.com/3dmanufacturing/core/2015/02"
             p_ns = "http://schemas.microsoft.com/3dmanufacturing/production/2015/06"
+            s_ns = "http://schemas.microsoft.com/3dmanufacturing/slice/2015/07"
             root = ET.fromstring(files_data['3D/3dmodel.model'])
             resources = root.find(f"{{{ns}}}resources")
             build = root.find(f"{{{ns}}}build")
@@ -283,12 +293,29 @@ def export_assembled_3mf(scene_items, mf3_path, assembly_name="MSEP_MultiColor_P
                         f"{{{p_ns}}}UUID": str(uuid.uuid4())
                     })
                     comps = ET.SubElement(parent_obj, f"{{{ns}}}components")
+                    part_mappings = []
                     for o in objs:
                         oid = o.attrib.get('id')
+                        oname = o.attrib.get('name', '')
+                        ext_id = "1"
+                        oname_lower = oname.lower()
+                        if 'clear' in oname_lower or 'nozzle3' in oname_lower:
+                            ext_id = "3" # Snapmaker U1 Nozzle 3 / Toolhead 3
+                        elif 'chassis' in oname_lower or 'black' in oname_lower:
+                            ext_id = "1" # Toolhead 1 (T0 / Black)
+                        else:
+                            prefix = oname.split('_')[0]
+                            if prefix.isdigit():
+                                slot_num = int(prefix)
+                                ext_id = str(((slot_num - 1) % 4) + 1)
+                            else:
+                                ext_id = "2"
+                        part_mappings.append((oid, oname, ext_id))
                         ET.SubElement(comps, f"{{{ns}}}component", {
                             'objectid': oid,
                             'transform': '1.0 0.0 0.0 0.0 1.0 0.0 0.0 0.0 1.0 0.0 0.0 0.0',
-                            f"{{{p_ns}}}UUID": str(uuid.uuid4())
+                            f"{{{p_ns}}}UUID": str(uuid.uuid4()),
+                            f"{{{s_ns}}}extruder": ext_id
                         })
                     resources.append(parent_obj)
                     for item in list(build):
@@ -300,6 +327,46 @@ def export_assembled_3mf(scene_items, mf3_path, assembly_name="MSEP_MultiColor_P
                         'partnumber': assembly_name
                     })
                     files_data['3D/3dmodel.model'] = ET.tostring(root, encoding='utf-8', xml_declaration=True)
+
+                    model_cfg = [
+                        '<?xml version="1.0" encoding="UTF-8"?>',
+                        '<config>',
+                        f'  <object id="{parent_id}">',
+                        f'    <metadata key="name" value="{assembly_name}"/>'
+                    ]
+                    for oid, oname, ext_id in part_mappings:
+                        model_cfg.append(f'    <part id="{oid}" subtype="normal_part">')
+                        model_cfg.append(f'      <metadata key="name" value="{oname}"/>')
+                        model_cfg.append(f'      <metadata key="extruder" value="{ext_id}"/>')
+                        model_cfg.append('    </part>')
+                    model_cfg.append('  </object>')
+                    model_cfg.append('</config>')
+                    files_data['Metadata/model_settings.config'] = '\n'.join(model_cfg).encode('utf-8')
+
+                    slice_cfg = [
+                        '<?xml version="1.0" encoding="UTF-8"?>',
+                        '<config>',
+                        '  <header>',
+                        '    <slice_info_version>1.0</slice_info_version>',
+                        '  </header>',
+                        '  <plate>',
+                        '    <metadata key="index" value="1"/>',
+                        f'    <metadata key="pause_layers" value="{pause_layer}"/>',
+                        f'    <metadata key="pause_z" value="{pause_z:.2f}"/>',
+                        f'    <metadata key="custom_gcode_at_layer" value="{pause_layer}:M400\nM0 Pause: Change Nozzle 3 to Clear Filament"/>',
+                        '  </plate>',
+                        '</config>'
+                    ]
+                    files_data['Metadata/slice_info.config'] = '\n'.join(slice_cfg).encode('utf-8')
+
+                    if '[Content_Types].xml' in files_data:
+                        ct_xml = files_data['[Content_Types].xml'].decode('utf-8')
+                        if 'Metadata/model_settings.config' not in ct_xml:
+                            ct_insert = ('  <Override PartName="/Metadata/model_settings.config" ContentType="application/vnd.ms-package.config+xml"/>\n'
+                                         '  <Override PartName="/Metadata/slice_info.config" ContentType="application/vnd.ms-package.config+xml"/>\n</Types>')
+                            ct_xml = ct_xml.replace('</Types>', ct_insert)
+                            files_data['[Content_Types].xml'] = ct_xml.encode('utf-8')
+
                     with zipfile.ZipFile(mf3_path, 'w', zipfile.ZIP_DEFLATED) as zout:
                         for name, content in files_data.items():
                             zout.writestr(name, content)
@@ -619,45 +686,28 @@ def compile_matrix_16x16_plate_variant(variant_name, artwork_path, window_shape=
     if not shirt_holes_union_2d.is_empty:
         mono_2d = mono_2d.difference(shirt_holes_union_2d)
 
-    # Additive Z-Stacking:
-    # When Frame & Lip is ON: 2.0mm PCB pocket + GAP_MM standoff (1.0mm ledge + air gap) + CLEAR_MM clear backing + THICK_MM graphic
-    # When Frame & Lip is OFF: Zero wall/lip, LEDs sit at Z=0, lenses still span GAP_MM + CLEAR_MM + THICK_MM to front surface
-    PCB_POCKET_DEPTH = 2.0 if FRAME_ACTIVE else 0.0
-    LEDGE_THICK = (1.0 if (GAP_MM + CLEAR_MM) > 0 else 0.0) if FRAME_ACTIVE else 0.0
-    EFFECTIVE_GAP = GAP_MM if (FRAME_ACTIVE or include_lenses) else 0.0
-    STANDOFF_GAP = max(0.0, round(EFFECTIVE_GAP - LEDGE_THICK + CLEAR_MM, 2)) if FRAME_ACTIVE else 0.0
-    CLEAR_Z0 = round(PCB_POCKET_DEPTH + EFFECTIVE_GAP, 2)
-    FACE_Z0 = round(CLEAR_Z0 + CLEAR_MM, 2)
-    FRAME_HEIGHT = FACE_Z0
-    TOTAL_Z = round(FACE_Z0 + THICK_MM, 2)
+    # -----------------------------------------------------------------------
+    # FACE-DOWN Z-STACKING (OPTIMIZED FOR BUILD PLATE TEXTURE & U1 TOOLCHANGER):
+    # -----------------------------------------------------------------------
+    # 1. Front Graphic Artwork & Chassis Floor: Z = 0.00 to THICK_MM (0.60mm default)
+    #    Prints flat on PEI bed for rich, glass-smooth front artwork.
+    # 2. Clear Backing Layer: Z = THICK_MM to THICK_MM + CLEAR_MM (0.60 to 1.00mm)
+    #    Covers full 160.4 x 160.4mm cavity flush to the inner walls of the 2mm frame.
+    #    Cutouts maintain Ø 3.4mm window apertures for through-hole LEDs.
+    # 3. Slicer Pause: Triggered at Z = THICK_MM (0.60mm, Layer 4 @ 0.20mm layer height)
+    #    Allows user to swap accent color on Nozzle 3 (T2 / Slot 3) to Clear filament!
+    # 4. 2mm Perimeter Frame: Rises from Z = THICK_MM + CLEAR_MM to TOTAL_Z (1.00 to 3.00mm)
+    #    Provides exactly 2.0mm of open depth for the 160x160mm PCB to sit inside.
+    #    If LIP_MM <= 0.0, absolutely NO shelf ledge (100% open flat 160.4 x 160.4mm cavity).
+    # -----------------------------------------------------------------------
 
-    # Extrude all front plate parts through full face thickness (0 to THICK_MM)
-    final_chassis_tm = extrude_shapely(chassis_2d, THICK_MM)
-    final_monolithic_tm = extrude_shapely(mono_2d, THICK_MM)
-    final_lid_tm = extrude_shapely(plate_box_2d.difference(shirt_holes_union_2d), THICK_MM)
-
-    # Move front faceplate up so its front surface is at Z = TOTAL_Z facing +Z
-    final_chassis_tm.apply_translation([0.0, 0.0, FACE_Z0])
-    final_monolithic_tm.apply_translation([0.0, 0.0, FACE_Z0])
-    final_lid_tm.apply_translation([0.0, 0.0, FACE_Z0])
-
-    # Optional 160x160mm Clear Backing/Diffuser Layer directly behind the graphic faceplate (Z = CLEAR_Z0 to FACE_Z0)
-    clear_box_2d = sg.box(MARGIN_MM, MARGIN_MM, PLATE_SIZE_MM - MARGIN_MM, PLATE_SIZE_MM - MARGIN_MM)
-    clear_layer_2d = clear_box_2d.difference(windows_union_2d) if not windows_union_2d.is_empty else clear_box_2d
-    if CLEAR_MM > 0 and not clear_layer_2d.is_empty:
-        mono_clear_tm = extrude_shapely(clear_layer_2d, CLEAR_MM)
-        if mono_clear_tm is not None:
-            mono_clear_tm.apply_translation([0.0, 0.0, CLEAR_Z0])
-            final_monolithic_tm = trimesh.util.concatenate([final_monolithic_tm, mono_clear_tm])
-
-    # Inner pocket: 160.4 x 160.4mm (centered at 88.0, 88.0, provides 0.20mm perimeter clearance so board drops in cleanly)
+    # Pocket & Frame Dimensions:
     pocket_x0 = round((PLATE_SIZE_MM - 160.4) / 2.0, 3) # 7.80 mm
     pocket_y0 = pocket_x0                               # 7.80 mm
     pocket_x1 = round(pocket_x0 + 160.4, 3)             # 168.20 mm
     pocket_y1 = round(pocket_y0 + 160.4, 3)             # 168.20 mm
     inner_pocket_2d = sg.box(pocket_x0, pocket_y0, pocket_x1, pocket_y1)
 
-    # Frame outer wall width: 2.0mm wide (outer envelope 164.4 x 164.4mm, leaving a 5.8mm flange around plate)
     FRAME_WALL_WIDTH = 2.0 # mm
     frame_outer_x0 = round(pocket_x0 - FRAME_WALL_WIDTH, 3) # 5.80 mm
     frame_outer_y0 = round(pocket_y0 - FRAME_WALL_WIDTH, 3) # 5.80 mm
@@ -665,7 +715,6 @@ def compile_matrix_16x16_plate_variant(variant_name, artwork_path, window_shape=
     frame_outer_y1 = round(pocket_y1 + FRAME_WALL_WIDTH, 3) # 170.20 mm
     outer_frame_2d = sg.box(frame_outer_x0, frame_outer_y0, frame_outer_x1, frame_outer_y1)
 
-    # Ledge inner aperture: 156.4 x 156.4mm (forms a 2.0mm wide supporting shelf inwards for the 160x160mm PCB)
     LEDGE_WIDTH = 2.0 # mm
     ledge_in_x0 = round(pocket_x0 + LEDGE_WIDTH, 3) # 9.80 mm
     ledge_in_y0 = round(pocket_y0 + LEDGE_WIDTH, 3) # 9.80 mm
@@ -673,34 +722,64 @@ def compile_matrix_16x16_plate_variant(variant_name, artwork_path, window_shape=
     ledge_in_y1 = round(pocket_y1 - LEDGE_WIDTH, 3) # 166.20 mm
     ledge_aperture_2d = sg.box(ledge_in_x0, ledge_in_y0, ledge_in_x1, ledge_in_y1)
 
-    # Bottom wire exit notch (16.0mm wide centered at 88.0mm, cutting cleanly through both the bottom frame wall and internal lip)
-    wire_notch_2d = sg.box(PLATE_SIZE_MM / 2.0 - 8.0, 0.0, PLATE_SIZE_MM / 2.0 + 8.0, ledge_in_y0 + 0.5)
+    wire_notch_2d = sg.box(PLATE_SIZE_MM / 2.0 - 8.0, 0.0, PLATE_SIZE_MM / 2.0 + 8.0, pocket_y0 + 0.5)
 
     pocket_wall_2d = outer_frame_2d.difference(inner_pocket_2d).difference(shirt_holes_union_2d).difference(wire_notch_2d)
     ledge_wall_2d = outer_frame_2d.difference(ledge_aperture_2d).difference(shirt_holes_union_2d).difference(wire_notch_2d)
-    standoff_wall_2d = outer_frame_2d.difference(inner_pocket_2d).difference(shirt_holes_union_2d).difference(wire_notch_2d)
+
+    # Faceplate Z coordinates (Face-Down: starts on bed at Z = 0.0):
+    FACE_Z0 = 0.00
+    FACE_Z1 = THICK_MM
+
+    # Extrude all front plate parts through full face thickness (0.0 to THICK_MM)
+    final_chassis_tm = extrude_shapely(chassis_2d, THICK_MM)
+    final_monolithic_tm = extrude_shapely(mono_2d, THICK_MM)
+    final_lid_tm = extrude_shapely(plate_box_2d.difference(shirt_holes_union_2d), THICK_MM)
+
+    # Clear Backing Layer: Z = FACE_Z1 to FACE_Z1 + CLEAR_MM (0.60 to 1.00mm)
+    CLEAR_Z0 = FACE_Z1
+    CLEAR_Z1 = round(CLEAR_Z0 + CLEAR_MM, 2)
+
+    # Clear backing covers the ENTIRE 160.4 x 160.4mm inner pocket all the way to the 2mm frame!
+    clear_box_2d = inner_pocket_2d
+    clear_layer_2d = clear_box_2d.difference(windows_union_2d) if not windows_union_2d.is_empty else clear_box_2d
+
+    if CLEAR_MM > 0 and not clear_layer_2d.is_empty:
+        mono_clear_tm = extrude_shapely(clear_layer_2d, CLEAR_MM)
+        if mono_clear_tm is not None:
+            mono_clear_tm.apply_translation([0.0, 0.0, CLEAR_Z0])
+            final_monolithic_tm = trimesh.util.concatenate([final_monolithic_tm, mono_clear_tm])
+
+    # 2mm Perimeter Frame & Cavity Depth:
+    # Frame starts on top of the clear backing at Z = CLEAR_Z1 (1.00mm)
+    FRAME_Z0 = CLEAR_Z1
+    PCB_POCKET_DEPTH = 2.0 if FRAME_ACTIVE else 0.0 # Full 2mm of depth for the LED panel!
 
     frame_solids = []
     if FRAME_ACTIVE:
-        # 1. PCB Pocket section (Z = 0.0 to 2.0)
-        if PCB_POCKET_DEPTH > 0:
+        if LIP_MM <= 0.0:
+            # STRICTLY NO LIP: 100% open 160.4 x 160.4mm pocket, zero shelf ledge!
+            # Pocket walls rise a full 2.0mm above the clear backing:
             tm_pocket = extrude_shapely(pocket_wall_2d, PCB_POCKET_DEPTH)
             if tm_pocket is not None:
+                tm_pocket.apply_translation([0.0, 0.0, FRAME_Z0])
                 frame_solids.append(tm_pocket)
-
-        # 2. Ledge shelf section (Z = 2.0 to 2.0 + LEDGE_THICK)
-        if LEDGE_THICK > 0:
-            tm_ledge = extrude_shapely(ledge_wall_2d, LEDGE_THICK)
+            TOTAL_Z = round(FRAME_Z0 + PCB_POCKET_DEPTH, 2)
+        else:
+            # Standoff lip requested:
+            tm_ledge = extrude_shapely(ledge_wall_2d, LIP_MM)
             if tm_ledge is not None:
-                tm_ledge.apply_translation([0.0, 0.0, PCB_POCKET_DEPTH])
+                tm_ledge.apply_translation([0.0, 0.0, FRAME_Z0])
                 frame_solids.append(tm_ledge)
-
-        # 3. Standoff gap section (Z = 2.0 + LEDGE_THICK to FACE_Z0)
-        if STANDOFF_GAP > 0:
-            tm_standoff = extrude_shapely(standoff_wall_2d, STANDOFF_GAP)
-            if tm_standoff is not None:
-                tm_standoff.apply_translation([0.0, 0.0, PCB_POCKET_DEPTH + LEDGE_THICK])
-                frame_solids.append(tm_standoff)
+            tm_pocket = extrude_shapely(pocket_wall_2d, PCB_POCKET_DEPTH)
+            if tm_pocket is not None:
+                tm_pocket.apply_translation([0.0, 0.0, FRAME_Z0 + LIP_MM])
+                frame_solids.append(tm_pocket)
+            TOTAL_Z = round(FRAME_Z0 + LIP_MM + PCB_POCKET_DEPTH, 2)
+    else:
+        TOTAL_Z = CLEAR_Z1
+    FRAME_HEIGHT = round(TOTAL_Z - CLEAR_Z1, 2) if FRAME_ACTIVE else 0.0
+    STANDOFF_GAP = LIP_MM
 
     if frame_solids:
         full_frame_tm = trimesh.util.concatenate(frame_solids)
@@ -756,7 +835,7 @@ def compile_matrix_16x16_plate_variant(variant_name, artwork_path, window_shape=
                     "count": len(c_tm.faces)
                 })
 
-    # Optional 160x160mm Clear Backing Layer exported as a separate STL and 3MF component
+    # Optional Clear Backing Layer (Nozzle 3 / Toolhead 3) exported as a separate STL and 3MF component
     if CLEAR_MM > 0 and not clear_layer_2d.is_empty:
         clear_export_2d = unary_union([clear_layer_2d, clear_anchor_2d]) if not clear_anchor_2d.is_empty else clear_layer_2d
         clear_tm = extrude_shapely(clear_export_2d, CLEAR_MM)
@@ -766,14 +845,15 @@ def compile_matrix_16x16_plate_variant(variant_name, artwork_path, window_shape=
             clear_path = os.path.join(out_dir, clear_filename)
             clear_tm.export(clear_path)
             color_stls['clear_layer'] = clear_path
-            scene_items[f"{slot_idx}_Clear_Backing_Layer_160x160"] = clear_tm
+            scene_items["Nozzle3_Clear_Backing_Layer_160x160"] = clear_tm
             slot_idx += 1
             exported_inlays.append({
                 "key": "clear_layer",
-                "name": f"Clear Backing Layer ({CLEAR_MM:.1f}mm - 2x 0.20mm @ 90° cross-ply)" if abs(CLEAR_MM - 0.4) < 0.05 else f"Clear Backing Layer ({CLEAR_MM:.1f}mm)",
+                "name": f"Clear Backing Layer ({CLEAR_MM:.1f}mm - Nozzle 3 / T2)",
                 "filename": clear_filename,
                 "hex": "#c8f0ff",
-                "count": len(clear_tm.faces)
+                "count": len(clear_tm.faces),
+                "extruder": 3
             })
 
     # Optional Translucent Light-Pipe Lens Cylinders bridging from LED seating plane to front surface
@@ -807,7 +887,9 @@ def compile_matrix_16x16_plate_variant(variant_name, artwork_path, window_shape=
     mf3_path = os.path.join(out_dir, mf3_filename)
     try:
         clean_float_asm = str(specs.get('float_name', 'MSEP_Float')).replace(' ', '_').replace("'", "")
-        export_assembled_3mf(scene_items, mf3_path, assembly_name=f"{clean_float_asm}_{variant_name}_16x16_Plate")
+        pause_z_val = round(THICK_MM, 2)
+        pause_layer_val = int(round(THICK_MM / 0.20)) + 1
+        export_assembled_3mf(scene_items, mf3_path, assembly_name=f"{clean_float_asm}_{variant_name}_16x16_Plate", pause_layer=pause_layer_val, pause_z=pause_z_val)
     except Exception as e:
         print(f"[{variant_name}] 3MF export warning: {e}")
 
@@ -2131,6 +2213,7 @@ if MATRIX_16X16_MODE:
         include_lenses=INCLUDE_LENSES,
         clear_layer_mm=MATRIX_CLEAR_LAYER_MM,
         include_frame=INCLUDE_FRAME,
+        corner_radius_mm=MATRIX_CORNER_RADIUS_MM,
         windowed_leds=windowed_leds_spec,
         backlight_leds=backlight_leds_spec
     )
@@ -2145,6 +2228,7 @@ if MATRIX_16X16_MODE:
         include_lenses=INCLUDE_LENSES,
         clear_layer_mm=MATRIX_CLEAR_LAYER_MM,
         include_frame=INCLUDE_FRAME,
+        corner_radius_mm=MATRIX_CORNER_RADIUS_MM,
         windowed_leds=windowed_leds_spec,
         backlight_leds=backlight_leds_spec
     )

@@ -93,6 +93,26 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### 2026-11-04: 16x16 Matrix 3D Plate Face-Down Architecture (0.4mm Clear Backing, 2mm Frame, 0.0mm Lip, Snapmaker U1 Nozzle 3 Pause Mapping)
+- **Face-Down 3D Print Stacking Standard:**
+  - Re-architected 16x16 Matrix plate fabrication pipeline (`scripts/compile_clean_tpu_panel.py`) to compile strictly **Face-Down** on the build plate (Z = 0.00mm) so the front float graphic artwork contacts the textured PEI sheet directly for a flawless matte, anti-glare finish.
+  - **Z-Stack Breakdown:**
+    - **Layers 1–3 ($Z = 0.00$ to $0.60\text{ mm}$):** $0.60\text{ mm}$ Front Graphic Faceplate (Black chassis floor + character color inlays).
+    - **Layer 4 Pause ($Z = 0.60\text{ mm}$):** Automatic slicer pause (`M400` / `M0`) injected right before clear backing starts, prompting the user on touchscreen to swap accent color on Nozzle 3 / Toolhead 3 (`T2` / Slicer Slot 3) to **Clear filament**.
+    - **Layers 4–5 ($Z = 0.60$ to $1.00\text{ mm}$):** $0.40\text{ mm}$ Clear Diffuser Backing Layer (2 solid layers @ $0.20\text{ mm}$) spanning the entire $160.4 \times 160.4\text{ mm}$ cavity flush against the inner walls of the 2mm frame, preserving $\varnothing 3.4\text{ mm}$ through-hole apertures for windowed LEDs.
+    - **Layers 6–15 ($Z = 1.00$ to $3.00\text{ mm}$):** $2.0\text{ mm}$ Perimeter Frame Walls ($2.0\text{ mm}$ wall width, $164.4 \times 164.4\text{ mm}$ outer boundary) rising $2.00\text{ mm}$ above the clear backing to provide an exact **full $2.00\text{ mm}$ of open pocket depth** for the $160 \times 160\text{ mm}$ BTF-LIGHTING matrix PCB to drop in flat.
+  - **Zero Lip Guarantee:** When lip is set to `0.0mm` (new default), strictly eliminates any internal shelf ledge overhang (`LEDGE_THICK = 0.0`, `STANDOFF_GAP = 0.0`), leaving a 100% open, flat $160.4 \times 160.4\text{ mm}$ cavity floor with zero obstruction.
+- **Snapmaker U1 4-Toolhead 3MF Integration:**
+  - Automated component extruder mapping inside native multi-part `.3mf` assembly:
+    - Chassis / Frame (`1_Chassis_Black`) ➔ Extruder 1 (Toolhead 1 / `T0`)
+    - Float Inlay Colors ➔ Extruders 2, 3, 4
+    - Clear Backing Layer (`Nozzle3_Clear_Backing_Layer_160x160`) ➔ Extruder 3 (Toolhead 3 / `T2` / Nozzle 3)
+  - Injected native OrcaSlicer / Bambu Studio metadata (`Metadata/model_settings.config` and `Metadata/slice_info.config`) with automatic layer pause at Layer 4 ($Z = 0.60\text{ mm}$).
+  - Authored comprehensive dedicated printing guide: [`3d_panels/SNAPMAKER_U1_16X16_PRINTING_GUIDE.md`](file:///c:/Users/Kiddi/Desktop/WDW%20costumes/3d_panels/SNAPMAKER_U1_16X16_PRINTING_GUIDE.md).
+- **Simulator UI & API Synchronization:**
+  - Updated default LED standoff gap in `simulator.py`, `simulator/app.js`, and `simulator/index.html` to `0.0mm ★ (No Lip)` with active button styling.
+  - Preserved default $0.60\text{ mm}$ panel thickness and $0.40\text{ mm}$ clear backing layer across browser cache and compiler parameters.
+
 ### 2026-11-04: Lightning Bug Unified Forehead & Cap Rim Connected Curve Line
 - **Visual Feedback & Geometry Refinements:**
   - **Comment 0 (Connect Two Curved Ends of Head / Forehead Smoothing):** Eliminated the disconnected, isolated horizontal line segment (\nt_base_line\, previously drawn across  \in [326 \dots 366]$ at  \approx 76-79$ with an 11-pixel gap at  = 316 \dots 325$).

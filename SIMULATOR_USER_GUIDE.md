@@ -127,7 +127,7 @@ The sidebar navigation is organized into a clean **2-row × 3-column grid** that
      - **Quick Allocation Presets:** Direct 1-click actions: `🎯 Spread 50 Win + 25 Glow`, `💡 Auto-Backlight Colored Areas (Keep Windows & Black Dark)`, and `🔄 Reset Counts`.
      - **⚙️ Collapsible 3D Plate & Slicer Parameters Card:** Expandable settings card tucked neatly above presets allowing instant fine-tuning of 3D print specs:
        - **Plate Thickness (Full-Z Inlays):** `0.48mm`, `0.60mm ★` (Default), `0.80mm`, `1.00mm`.
-       - **LED Standoff Gap (Internal Ledge):** `0mm`, `1mm`, `2mm`, `3mm ★` (Default), `4mm`, `5mm`.
+       - **LED Standoff Gap (Internal Ledge):** `0mm ★` (Default - No Lip, 2mm Frame Only), `1mm`, `2mm`, `3mm`, `4mm`, `5mm`.
        - **160×160mm Clear Diffuser Layer:** `None`, `0.2mm`, `0.4mm ★` (Default cross-ply), `0.6mm`, `0.8mm`, `1.0mm`.
        - **Translucent Light Pipes / Lenses:** Toggle `ON ★` / `OFF`.
        - **Rear Retaining Frame & Lip:** Toggle `ON ★` / `OFF`.
