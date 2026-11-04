@@ -91,6 +91,15 @@ tri_full &= (~line)
 out[tri_full] = YELLOW
 print('tail triangle px recolored to yellow:', int(tri_full.sum()))
 
+# Recolor the tip of the tail lantern dome to Yellow (user request)
+# Bounded by: [130:152, 45:65]
+tip_blue = (out[:, :, 0] == BLUE[0]) & (out[:, :, 1] == BLUE[1]) & (out[:, :, 2] == BLUE[2]) & (
+    (np.arange(h)[:, None] >= 130) & (np.arange(h)[:, None] <= 152) &
+    (np.arange(w)[None, :] >= 45) & (np.arange(w)[None, :] <= 65)
+)
+out[tip_blue] = YELLOW
+print('tail tip px recolored to yellow:', int(tip_blue.sum()))
+
 # Antenna 9 top border line against the transparent gap (facet 41):
 f9 = lab == 9
 f41 = lab == 41
@@ -101,16 +110,41 @@ vis_c = np.zeros_like(f9, dtype=np.uint8)
 cv2.drawContours(vis_c, cnts, -1, 1, 1)
 line_extra = vis_c.astype(bool) & border_9
 
-full_line = line | line_extra
+# Draw solid, black, easy to see outlines around the whole bug and between colors:
+# Map each pixel to its primary color (Green=2, Blue=3, Red=4, Yellow=5)
+color_field = np.zeros((h, w), dtype=np.uint8)
+color_field[(out[:, :, 0] == GREEN[0]) & (out[:, :, 1] == GREEN[1]) & (out[:, :, 2] == GREEN[2])] = 2
+color_field[(out[:, :, 0] == BLUE[0]) & (out[:, :, 1] == BLUE[1]) & (out[:, :, 2] == BLUE[2])] = 3
+color_field[(out[:, :, 0] == RED[0]) & (out[:, :, 1] == RED[1]) & (out[:, :, 2] == RED[2])] = 4
+color_field[(out[:, :, 0] == YELLOW[0]) & (out[:, :, 1] == YELLOW[1]) & (out[:, :, 2] == YELLOW[2])] = 5
+
+is_fg = ((lab != 0) & (lab != 41)) | tri_full | line | line_extra
+bg = ~is_fg
+
+# Outer boundary around the whole bug:
+outer_edge = cv2.dilate(bg.astype(np.uint8), np.ones((3, 3), np.uint8)).astype(bool) & is_fg
+
+# Color-to-color boundaries:
+has_color = color_field > 0
+_, (r_idx, c_idx) = distance_transform_edt(~has_color, return_indices=True)
+full_color = color_field[r_idx, c_idx]
+
+color_boundary = np.zeros((h, w), dtype=bool)
+for c in [2, 3, 4, 5]:
+    c_mask = (full_color == c) & is_fg
+    dil = cv2.dilate(c_mask.astype(np.uint8), np.ones((3, 3), np.uint8)).astype(bool)
+    other = (full_color != c) & is_fg
+    color_boundary |= (dil & other)
+
+# Full line set: all existing lines + outer silhouette outline + color boundaries
+full_line = line | line_extra | outer_edge | color_boundary
 
 # Outlines: pure black
 out[full_line] = BLACK
 
 # Alpha channel:
-# All painted facets and lines are opaque (255)
-# Except Facet 41 (gap between antennae) and outside character which are transparent (0)
 final_alpha = np.zeros((h, w), np.uint8)
-foreground = ((lab != 0) & (lab != 41)) | tri_full | full_line
+foreground = is_fg
 final_alpha[foreground] = 255
 
 res = cv2.merge([out[:, :, 0], out[:, :, 1], out[:, :, 2], final_alpha])
