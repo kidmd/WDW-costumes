@@ -119,6 +119,17 @@ color_field[(out[:, :, 0] == RED[0]) & (out[:, :, 1] == RED[1]) & (out[:, :, 2] 
 color_field[(out[:, :, 0] == YELLOW[0]) & (out[:, :, 1] == YELLOW[1]) & (out[:, :, 2] == YELLOW[2])] = 5
 
 is_fg = ((lab != 0) & (lab != 41)) | tri_full | line | line_extra
+
+# Clean up the blue bits and outer double line that sit outside the main line of the leg:
+leg_spurs = (
+    ((np.arange(h)[:, None] == 335) & (np.arange(w)[None, :] >= 392)) |
+    ((np.arange(h)[:, None] == 336) & (np.arange(w)[None, :] >= 392)) |
+    ((np.arange(h)[:, None] == 337) & (np.arange(w)[None, :] >= 391)) |
+    ((np.arange(h)[:, None] == 338) & (np.arange(w)[None, :] >= 391)) |
+    ((np.arange(h)[:, None] == 339) & (np.arange(w)[None, :] >= 390))
+)
+is_fg[leg_spurs] = False
+
 bg = ~is_fg
 
 # Outer boundary around the whole bug (2x thick):
@@ -139,10 +150,32 @@ for c in [2, 3, 4, 5]:
 # 2x thickness for color boundaries:
 color_boundary = cv2.dilate(color_boundary_1x.astype(np.uint8), cv2.getStructuringElement(cv2.MORPH_CROSS, (3, 3))).astype(bool) & is_fg
 
-# Full line set: all existing lines + 2x outer silhouette outline + 2x color boundaries
-full_line = line | line_extra | outer_edge | color_boundary
+# Regions where internal lines are cleared (user request: remove extra lines inside yellow part, wing, and green brow):
+mask_yellow_tip = is_fg & (full_color == 5) & (np.arange(h)[:, None] >= 130) & (np.arange(h)[:, None] <= 190) & (np.arange(w)[None, :] <= 95)
+mask_wing = is_fg & (full_color == 3) & ((np.isin(lab, [2, 3, 5, 10])) | ((np.arange(h)[:, None] >= 30) & (np.arange(h)[:, None] <= 250) & (np.arange(w)[None, :] >= 45) & (np.arange(w)[None, :] <= 170)))
+mask_green_brow = is_fg & (full_color == 2) & (np.arange(h)[:, None] >= 55) & (np.arange(h)[:, None] <= 110) & (np.arange(w)[None, :] >= 260) & (np.arange(w)[None, :] <= 330)
 
-# Outlines: pure black
+internal_lines_to_clear = line & (mask_yellow_tip | mask_wing | mask_green_brow) & (~color_boundary) & (~outer_edge)
+
+# Full line set: all existing lines + 2x outer silhouette outline + 2x color boundaries - cleared internal lines
+full_line = (line | line_extra | outer_edge | color_boundary) & (~internal_lines_to_clear)
+
+# Leg main outline reinforcement at knee notch:
+leg_outline_fill = (
+    ((np.arange(h)[:, None] == 335) & (np.arange(w)[None, :] >= 390) & (np.arange(w)[None, :] <= 391)) |
+    ((np.arange(h)[:, None] == 336) & (np.arange(w)[None, :] >= 389) & (np.arange(w)[None, :] <= 391)) |
+    ((np.arange(h)[:, None] == 337) & (np.arange(w)[None, :] >= 389) & (np.arange(w)[None, :] <= 390)) |
+    ((np.arange(h)[:, None] == 338) & (np.arange(w)[None, :] >= 388) & (np.arange(w)[None, :] <= 390)) |
+    ((np.arange(h)[:, None] == 339) & (np.arange(w)[None, :] >= 387) & (np.arange(w)[None, :] <= 389))
+)
+full_line |= leg_outline_fill
+
+# Paint solid colors on foreground:
+out[is_fg & (full_color == 2)] = GREEN
+out[is_fg & (full_color == 3)] = BLUE
+out[is_fg & (full_color == 4)] = RED
+out[is_fg & (full_color == 5)] = YELLOW
+out[iris] = BLUE
 out[full_line] = BLACK
 
 # Alpha channel:
