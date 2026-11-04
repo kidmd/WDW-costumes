@@ -1637,3 +1637,15 @@ Instead of attaching a Cricut cut vinyl graphic on top of the printed plate, the
 
 *Disney, Main Street Electrical Parade, Pete's Dragon, and Cinderella are registered trademarks of The Walt Disney Company. This open-source project is an unofficial tribute created for the Walt Disney World 10K runDisney event.*
 
+
+### Slicer Compatibility & 3MF Multi-Material Imports (Snapmaker Orca / Bambu Studio / OrcaSlicer)
+When importing `tpu_panel_front_multicolor.3mf` or `tpu_panel_back_multicolor.3mf`:
+- **Single Unified Multi-Part Assembly:** The plate imports as a single root object with pre-aligned sub-components (chassis, color inlays, clear backing layer). No manual alignment or part-grouping dialog is needed.
+- **Automatic Extruder / Nozzle Pre-Mapping:**
+  - **Nozzle 1 (Extruder 1):** Main Black Chassis / Perimeter Frame (`1_Chassis_Black`).
+  - **Nozzles 2 & 4:** Primary Artwork Color Inlays (`2_Starfield_Canton...`, `4_Marquee_Banner...`).
+  - **Nozzle 3 (Extruder 3):** Clear Backing Layer (`Nozzle3_Clear_Backing_Layer_160x160`) and primary color inlays sharing slot 3.
+- **Adding the Pause for Clear Filament Swap:**
+  - In Snapmaker Orca, slice the plate at `0.20mm` layer height (`0.25mm` first layer).
+  - Navigate to the **Preview** tab and drag the vertical layer slider to **Layer 4** (`Z = 0.60mm`), which is the exact layer where the color artwork ends and the 0.4mm clear backing layer begins.
+  - Right-click the layer slider handle and select **Add Pause** (or insert `M0 Pause: Swap Nozzle 3 to Clear Filament`).

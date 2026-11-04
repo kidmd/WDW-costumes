@@ -1,4 +1,4 @@
-import json, math, time, os, shutil, sys, zipfile
+import json, math, time, os, shutil, sys, zipfile, re
 import numpy as np
 import shapely.geometry as sg
 from shapely.ops import unary_union
@@ -257,11 +257,14 @@ def export_assembled_3mf(scene_items, mf3_path, assembly_name="MSEP_MultiColor_P
        - Chassis / Frame -> Extruder 1 (T0 / Black)
        - Color Inlays -> Extruders 2, 3, 4
        - Clear Backing Layer -> Extruder 3 (Nozzle 3 / Toolhead 3)
-    3. Slicer layer pause metadata is injected at pause_z (Z = 0.60mm, Layer 4 @ 0.20mm layer height)
-       for the user to change out color filament on Nozzle 3 to Clear filament!
+    3. Fully compliant with standard 3MF and OrcaSlicer XML schemas (no illegal characters, no unescaped ampersands).
     """
     import uuid
     import xml.etree.ElementTree as ET
+    import re
+
+    clean_assembly_name = re.sub(r'[^A-Za-z0-9_]', '_', str(assembly_name).replace('&', 'and')).strip('_')
+
     scene = trimesh.Scene(scene_items)
     scene.export(mf3_path)
     try:
@@ -269,15 +272,11 @@ def export_assembled_3mf(scene_items, mf3_path, assembly_name="MSEP_MultiColor_P
             namelist = zin.namelist()
             files_data = {name: zin.read(name) for name in namelist}
         if '3D/3dmodel.model' in files_data:
-            ET.register_namespace('', "http://schemas.microsoft.com/3dmanufacturing/core/2015/02")
-            ET.register_namespace('m', "http://schemas.microsoft.com/3dmanufacturing/material/2015/02")
-            ET.register_namespace('p', "http://schemas.microsoft.com/3dmanufacturing/production/2015/06")
-            ET.register_namespace('b', "http://schemas.microsoft.com/3dmanufacturing/beamlattice/2017/02")
-            ET.register_namespace('s', "http://schemas.microsoft.com/3dmanufacturing/slice/2015/07")
-            ET.register_namespace('sc', "http://schemas.microsoft.com/3dmanufacturing/securecontent/2019/04")
             ns = "http://schemas.microsoft.com/3dmanufacturing/core/2015/02"
             p_ns = "http://schemas.microsoft.com/3dmanufacturing/production/2015/06"
-            s_ns = "http://schemas.microsoft.com/3dmanufacturing/slice/2015/07"
+            ET.register_namespace('', ns)
+            ET.register_namespace('p', p_ns)
+
             root = ET.fromstring(files_data['3D/3dmodel.model'])
             resources = root.find(f"{{{ns}}}resources")
             build = root.find(f"{{{ns}}}build")
@@ -288,7 +287,7 @@ def export_assembled_3mf(scene_items, mf3_path, assembly_name="MSEP_MultiColor_P
                     parent_id = str(max_id + 1)
                     parent_obj = ET.Element(f"{{{ns}}}object", {
                         'id': parent_id,
-                        'name': assembly_name,
+                        'name': clean_assembly_name,
                         'type': 'model',
                         f"{{{p_ns}}}UUID": str(uuid.uuid4())
                     })
@@ -296,26 +295,28 @@ def export_assembled_3mf(scene_items, mf3_path, assembly_name="MSEP_MultiColor_P
                     part_mappings = []
                     for o in objs:
                         oid = o.attrib.get('id')
-                        oname = o.attrib.get('name', '')
-                        ext_id = "1"
-                        oname_lower = oname.lower()
+                        raw_oname = o.attrib.get('name', '')
+                        clean_oname = re.sub(r'[^A-Za-z0-9_]', '_', raw_oname.replace('&', 'and')).strip('_')
+                        o.attrib['name'] = clean_oname
+
+                        oname_lower = clean_oname.lower()
                         if 'clear' in oname_lower or 'nozzle3' in oname_lower:
-                            ext_id = "3" # Snapmaker U1 Nozzle 3 / Toolhead 3
+                            ext_id = "3"  # Snapmaker U1 Nozzle 3 / Toolhead 3
                         elif 'chassis' in oname_lower or 'black' in oname_lower:
-                            ext_id = "1" # Toolhead 1 (T0 / Black)
+                            ext_id = "1"  # Toolhead 1 (T0 / Black)
                         else:
-                            prefix = oname.split('_')[0]
+                            prefix = clean_oname.split('_')[0]
                             if prefix.isdigit():
                                 slot_num = int(prefix)
                                 ext_id = str(((slot_num - 1) % 4) + 1)
                             else:
                                 ext_id = "2"
-                        part_mappings.append((oid, oname, ext_id))
+                        part_mappings.append((oid, clean_oname, ext_id))
+                        # Pure standard 3MF component: objectid, transform, UUID
                         ET.SubElement(comps, f"{{{ns}}}component", {
                             'objectid': oid,
                             'transform': '1.0 0.0 0.0 0.0 1.0 0.0 0.0 0.0 1.0 0.0 0.0 0.0',
-                            f"{{{p_ns}}}UUID": str(uuid.uuid4()),
-                            f"{{{s_ns}}}extruder": ext_id
+                            f"{{{p_ns}}}UUID": str(uuid.uuid4())
                         })
                     resources.append(parent_obj)
                     for item in list(build):
@@ -324,48 +325,36 @@ def export_assembled_3mf(scene_items, mf3_path, assembly_name="MSEP_MultiColor_P
                         'objectid': parent_id,
                         'transform': '1.0 0.0 0.0 0.0 1.0 0.0 0.0 0.0 1.0 0.0 0.0 0.0',
                         f"{{{p_ns}}}UUID": str(uuid.uuid4()),
-                        'partnumber': assembly_name
+                        'partnumber': clean_assembly_name
                     })
                     files_data['3D/3dmodel.model'] = ET.tostring(root, encoding='utf-8', xml_declaration=True)
 
-                    model_cfg = [
-                        '<?xml version="1.0" encoding="UTF-8"?>',
-                        '<config>',
-                        f'  <object id="{parent_id}">',
-                        f'    <metadata key="name" value="{assembly_name}"/>'
-                    ]
-                    for oid, oname, ext_id in part_mappings:
-                        model_cfg.append(f'    <part id="{oid}" subtype="normal_part">')
-                        model_cfg.append(f'      <metadata key="name" value="{oname}"/>')
-                        model_cfg.append(f'      <metadata key="extruder" value="{ext_id}"/>')
-                        model_cfg.append('    </part>')
-                    model_cfg.append('  </object>')
-                    model_cfg.append('</config>')
-                    files_data['Metadata/model_settings.config'] = '\n'.join(model_cfg).encode('utf-8')
+                    # Build 100% compliant model_settings.config with plate definition and extruder mappings
+                    cfg_root = ET.Element('config')
+                    plate_elem = ET.SubElement(cfg_root, 'plate')
+                    ET.SubElement(plate_elem, 'metadata', {'key': 'plater_id', 'value': '1'})
+                    ET.SubElement(plate_elem, 'metadata', {'key': 'plater_name', 'value': ''})
 
-                    slice_cfg = [
-                        '<?xml version="1.0" encoding="UTF-8"?>',
-                        '<config>',
-                        '  <header>',
-                        '    <slice_info_version>1.0</slice_info_version>',
-                        '  </header>',
-                        '  <plate>',
-                        '    <metadata key="index" value="1"/>',
-                        f'    <metadata key="pause_layers" value="{pause_layer}"/>',
-                        f'    <metadata key="pause_z" value="{pause_z:.2f}"/>',
-                        f'    <metadata key="custom_gcode_at_layer" value="{pause_layer}:M400\nM0 Pause: Change Nozzle 3 to Clear Filament"/>',
-                        '  </plate>',
-                        '</config>'
-                    ]
-                    files_data['Metadata/slice_info.config'] = '\n'.join(slice_cfg).encode('utf-8')
+                    obj_elem = ET.SubElement(cfg_root, 'object', {'id': parent_id})
+                    ET.SubElement(obj_elem, 'metadata', {'key': 'name', 'value': clean_assembly_name})
+                    for oid, oname, ext_id in part_mappings:
+                        part_elem = ET.SubElement(obj_elem, 'part', {'id': oid, 'subtype': 'normal_part'})
+                        ET.SubElement(part_elem, 'metadata', {'key': 'name', 'value': oname})
+                        ET.SubElement(part_elem, 'metadata', {'key': 'extruder', 'value': ext_id})
+
+                    files_data['Metadata/model_settings.config'] = ET.tostring(cfg_root, encoding='utf-8', xml_declaration=True)
+
+                    # Remove slice_info.config if present (OrcaSlicer only expects slice_info in pre-sliced .gcode.3mf packages)
+                    if 'Metadata/slice_info.config' in files_data:
+                        del files_data['Metadata/slice_info.config']
 
                     if '[Content_Types].xml' in files_data:
                         ct_xml = files_data['[Content_Types].xml'].decode('utf-8')
+                        ct_xml = re.sub(r'<Override PartName="/Metadata/slice_info\.config"[^>]*/>\s*', '', ct_xml)
                         if 'Metadata/model_settings.config' not in ct_xml:
-                            ct_insert = ('  <Override PartName="/Metadata/model_settings.config" ContentType="application/vnd.ms-package.config+xml"/>\n'
-                                         '  <Override PartName="/Metadata/slice_info.config" ContentType="application/vnd.ms-package.config+xml"/>\n</Types>')
+                            ct_insert = '  <Override PartName="/Metadata/model_settings.config" ContentType="application/vnd.ms-package.config+xml"/>\n</Types>'
                             ct_xml = ct_xml.replace('</Types>', ct_insert)
-                            files_data['[Content_Types].xml'] = ct_xml.encode('utf-8')
+                        files_data['[Content_Types].xml'] = ct_xml.encode('utf-8')
 
                     tmp_3mf = mf3_path + '.tmp'
                     with zipfile.ZipFile(tmp_3mf, 'w', zipfile.ZIP_DEFLATED) as zout:
@@ -936,7 +925,7 @@ def compile_matrix_16x16_plate_variant(variant_name, artwork_path, window_shape=
     mf3_filename = f"tpu_panel_{variant_name}_multicolor.3mf"
     mf3_path = os.path.join(out_dir, mf3_filename)
     try:
-        clean_float_asm = str(specs.get('float_name', 'MSEP_Float')).replace(' ', '_').replace("'", "")
+        clean_float_asm = re.sub(r'[^A-Za-z0-9_]', '_', str(specs.get('float_name', 'MSEP_Float')).replace('&', 'and')).strip('_')
         pause_z_val = round(THICK_MM, 2)
         pause_layer_val = int(round(THICK_MM / 0.20)) + 1
         export_assembled_3mf(scene_items, mf3_path, assembly_name=f"{clean_float_asm}_{variant_name}_16x16_Plate", pause_layer=pause_layer_val, pause_z=pause_z_val)
@@ -2044,7 +2033,7 @@ def compile_plate_variant(variant_name, width_mm, height_mm, raw_leds, artwork_p
     mf3_path = os.path.join(out_dir, mf3_filename)
 
     try:
-        clean_float_asm = str(specs.get('float_name', 'MSEP_Float')).replace(' ', '_').replace("'", "")
+        clean_float_asm = re.sub(r'[^A-Za-z0-9_]', '_', str(specs.get('float_name', 'MSEP_Float')).replace('&', 'and')).strip('_')
         export_assembled_3mf(scene_items, mf3_path, assembly_name=f"{clean_float_asm}_{variant_name}_Armor_Panel")
         print(f"[{variant_name}] Exported native 3MF assembly with {len(scene_items)} parts: {mf3_filename}")
     except Exception as e:

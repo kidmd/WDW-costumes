@@ -93,6 +93,19 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### 2026-11-04 17:00: Snapmaker Orca / OrcaSlicer 3MF XML Compliance & Project Compatibility Fix
+- **Diagnosed Snapmaker Orca Import Error ("Loading of model file failed"):**
+  - **The Bug:** When loading `tpu_panel_front_multicolor.3mf` into Snapmaker Orca (OrcaSlicer), the slicer threw `Loading of model file failed`. While standard WebGL viewers like 3dviewer.net only inspect raw mesh XML (`3D/3dmodel.model`), OrcaSlicer parses project manifest files under `Metadata/`.
+  - **Root Cause 1 (XML Syntax Error on Unescaped Ampersand):** Float 7 is titled `"Flag & Eagle"`. The internal object and plate assembly was named `Flag_&_Eagle_front_16x16_Plate`. In `Metadata/model_settings.config`, manual string generation inserted this raw string (`value="Flag_&_Eagle_front_16x16_Plate"`), which contains a bare unescaped `&`. OrcaSlicer's pugixml parser halted on this illegal token (`not well-formed (invalid token)`), aborting import.
+  - **Root Cause 2 (Non-Standard Slice Extruder Attributes):** `<component>` elements inside `3D/3dmodel.model` had custom `s:extruder` attributes in the slice extension namespace, which violates standard 3MF specification.
+  - **Root Cause 3 (Premature `Metadata/slice_info.config`):** An incomplete `slice_info.config` was embedded in the pre-sliced model archive. Slicers expect `slice_info.config` only inside post-sliced print packages containing `.gcode` assets.
+- **The Imagineering Fix (`scripts/compile_clean_tpu_panel.py`):**
+  - **Universal String Sanitization:** All assembly, object, and part names now pass through `re.sub(r'[^A-Za-z0-9_]', '_', name.replace('&', 'and')).strip('_')`. `"Flag & Eagle"` becomes `"Flag_and_Eagle"`.
+  - **XML Tree Serialization:** `Metadata/model_settings.config` is now constructed using Python's `xml.etree.ElementTree` with standard `<plate>` definitions and `<part>` extruder mappings, guaranteeing 100% well-formed, schema-compliant XML.
+  - **Spec-Compliant 3MF Core Geometry:** Stripped invalid slice-namespace extruder attributes from `<component>` tags in `3D/3dmodel.model`. Extruder assignments (Chassis -> Extruder 1, Inlays -> Extruders 2/3/4, Clear Backing -> Extruder 3) are tracked cleanly in `Metadata/model_settings.config`.
+  - **Removed Pseudo `slice_info.config`:** Allows Snapmaker Orca to import the model as a fresh project without G-code collision warnings.
+- **Verification:** Both `tpu_panel_front_multicolor.3mf` and `tpu_panel_back_multicolor.3mf` recompiled and verified; XML validation passes with zero errors and loads smoothly in Snapmaker Orca / OrcaSlicer.
+
 ### 2026-11-04 16:35: 100% User Layout Window Preservation Guarantee & Windows Export Hardening
 - **Eliminated Black Color-Key Filtering in Matrix Aperture Snapping (`scripts/compile_clean_tpu_panel.py`):**
   - **The Bug:** Previously, `_snap_and_validate_matrix_leds` restricted valid cells to non-black colors (`c_key != 'black'`). On float graphics with dark or black elements (such as the patriotic fireworks in Float 7 "To Honor America", night skies, or chassis borders), user-configured windowed apertures falling on dark pixels (such as cells `(10, 3)`, `(10, 6)`, `(11, 5)`) were discarded as invalid, and replaced with unwanted Farthest-Point Sampling (FPS) auto-fill on the eagle's body.
