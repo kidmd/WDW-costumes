@@ -1,14 +1,3 @@
-"""Generate clean, cartoony 5-color vector-style Lightning Bug graphic with all 6 visual polish refinements.
-
-Refinements:
-1. Neck Line: Smooth, rounded parabolic curve separating Head (5) and Body (17), eliminating the 90° jog/angle.
-2. Wing & Tail: Wing (9) has a continuous, smooth outer cartoon boundary with zero rectangular notch.
-   Tail tip dome (10) sits cleanly BEHIND the wing, emerging smoothly from behind the wing contour.
-3. Front Foot: Outer right contour of front leg (16) smoothed with Gaussian filter, rounding knee, ankle, and toe.
-4. Eye Outline: Clean ellipse geometry with remnants of old polygonal facet absorbed into Head, eliminating the top-left bump.
-5. Smile Top Edge: Smooth sweeping cartoon crescent curve with zero yellow clefts or jagged steps.
-6. Face Silhouette: Smooth spherical cartoon arc along outer right perimeter of the face/cheek.
-"""
 import cv2
 import numpy as np
 from scipy.ndimage import distance_transform_edt, gaussian_filter1d
@@ -40,7 +29,7 @@ part_map[m4 & (~stalk)] = 3
 part_map[lab == 8] = 4
 part_map[lab == 11] = 18
 
-# 3. Fix 4: Smiling Mouth (Red, 8) with smooth upper crescent edge
+# 3. Smiling Mouth (Red, 8) with smooth upper crescent edge
 pts_m = np.argwhere(lab == 27)
 xs_m = np.arange(272, 407)
 xs_fit = np.array([272, 290, 315, 340, 360, 385, 406])
@@ -55,12 +44,60 @@ for x in xs_m:
     mouth_mask[yt:yb+1, x] = True
 part_map[mouth_mask] = 8
 
-# 4. Head & Body base masks
+# 4. Legs (Green) with ROUNDED CORNERS on tops of all 3 feet/legs:
+m34 = (lab == 34).copy()
+m39 = (lab == 39).copy()
+m35 = (lab == 35).copy()
+m36 = (lab == 36).copy()
+m40 = (lab == 40).copy()
+front_leg = np.isin(lab, [32, 37, 38]).copy()
+
+# Leg 34 top-right shoulder rounding:
+xs_34 = np.arange(80, 110)
+p_34 = np.polyfit([80, 95, 108], [292, 293, 308], 2)
+for x in xs_34:
+    yt = int(np.round(np.polyval(p_34, x)))
+    m34[:yt, x] = False
+
+# Leg 35 top dome rounding (eliminates flat top and sharp square corners):
+xs_35 = np.arange(138, 187)
+for x in xs_35:
+    yt = int(np.round(302 + 0.038 * (x - 162.0)**2))
+    m35[:yt, x] = False
+
+# Leg 36 top apex rounding (eliminates sharp triangular spike):
+xs_36 = np.arange(275, 306)
+p_36 = np.polyfit([275, 290, 305], [311, 303, 328], 2)
+for x in xs_36:
+    yt = int(np.round(np.polyval(p_36, x)))
+    m36[:yt, x] = False
+
+# Front leg outer silhouette smoothing:
+ys_leg = np.arange(280, 385)
+xs_outer = []
+for y in ys_leg:
+    row_pts = np.where(front_leg[y])[0]
+    xs_outer.append(row_pts.max() if len(row_pts) > 0 else 380)
+xs_outer = np.array(xs_outer, dtype=float)
+xs_leg_smooth = gaussian_filter1d(xs_outer, sigma=3.5)
+
+front_leg_smooth = front_leg.copy()
+for y, xs in zip(ys_leg, xs_leg_smooth):
+    xs_int = int(np.round(xs))
+    front_leg_smooth[y, xs_int+1:] = False
+
+all_legs = m34 | m39 | m35 | m36 | m40 | front_leg_smooth
+
+part_map[m34 | m39] = 14
+part_map[m35 | m36 | m40] = 15
+part_map[front_leg_smooth] = 16
+
+# 5. Head & Body base masks (strictly excludes mouth and legs)
 head_facets = [12, 13, 14, 15, 16, 17, 19, 22, 25, 26]
 body_facets = [6, 7, 29, 30, 31, 33, 43]
-head_or_body = np.isin(lab, head_facets + body_facets + [18]) & (~mouth_mask)
+head_or_body = np.isin(lab, head_facets + body_facets + [18]) & (~mouth_mask) & (~all_legs)
 
-# Fix 0: Smooth curved neck boundary separating Head (5) and Body (17)
+# Smooth curved neck boundary separating Head (5) and Body (17)
 ys_neck = np.array([215, 235, 255, 270, 280, 286])
 xs_neck = np.array([158, 189, 220, 252, 280, 305])
 p_neck = np.polyfit(ys_neck, xs_neck, 2)
@@ -77,8 +114,7 @@ for y in range(h):
     else:
         part_map[y, head_or_body[y]] = 17
 
-# 5. Fix 1: Wing (Blue, 9) and Tail Tip Dome (Yellow, 10)
-# Wing has continuous smooth cartoon boundary with zero notch. Tail sits behind wing.
+# 6. Wing (Blue, 9) and Tail Tip Dome (Yellow, 10)
 ys_wcurve = np.array([50, 75, 100, 120, 135, 155, 175, 195, 215])
 xs_wcurve = np.array([81, 66, 61, 62, 65, 74, 84, 92, 97])
 p_wcurve = np.polyfit(ys_wcurve, xs_wcurve, 3)
@@ -110,7 +146,7 @@ if cnts_tip:
     tail_dome = filled_tip.astype(bool) & (~wing_mask)
 part_map[tail_dome] = 10
 
-# 6. Tail Accordion Folds (Red): TWO sections separated by single divider
+# 7. Tail Accordion Folds (Red): TWO sections separated by single divider
 upper_fold = (lab == 23) & (np.arange(h)[:, None] >= 182) & (~tail_dome) & (~wing_mask)
 lower_fold = np.isin(lab, [24, 28])
 lower_fold &= ~((np.arange(h)[:, None] >= 200) & (np.arange(h)[:, None] < 228) & (np.arange(w)[None, :] > 75))
@@ -118,26 +154,7 @@ upper_fold |= ((lab == 23) & (np.arange(h)[:, None] >= 200) & (np.arange(h)[:, N
 part_map[upper_fold] = 11
 part_map[lower_fold] = 12
 
-# 7. Fix 2: Legs (Green) with smooth outer contour on front leg/foot (Part 16)
-part_map[np.isin(lab, [34, 39])] = 14       # back leg
-part_map[np.isin(lab, [35, 36, 40])] = 15   # middle leg
-
-front_leg = np.isin(lab, [32, 37, 38])
-ys_leg = np.arange(280, 385)
-xs_outer = []
-for y in ys_leg:
-    row_pts = np.where(front_leg[y])[0]
-    xs_outer.append(row_pts.max() if len(row_pts) > 0 else 380)
-xs_outer = np.array(xs_outer, dtype=float)
-xs_leg_smooth = gaussian_filter1d(xs_outer, sigma=3.5)
-
-front_leg_smooth = front_leg.copy()
-for y, xs in zip(ys_leg, xs_leg_smooth):
-    xs_int = int(np.round(xs))
-    front_leg_smooth[y, xs_int+1:] = False
-part_map[front_leg_smooth] = 16
-
-# 8. Fix 3: Eye Sclera (Yellow, 6) & Eye Iris (Blue, 7)
+# 8. Eye Sclera (Yellow, 6) & Eye Iris (Blue, 7)
 eye_raw = (lab == 18).astype(np.uint8)
 cnts_eye, _ = cv2.findContours(eye_raw, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
 c_eye = max(cnts_eye, key=cv2.contourArea)
@@ -162,11 +179,11 @@ if cnts_iris:
     mask_iris_round &= (mask_eye_round == 1)
     part_map[mask_iris_round == 1] = 7
 
-# Foreground bounds & Fix 5: Face outer silhouette smoothing
+# Foreground bounds & Face outer silhouette smoothing
 is_fg = (lab != 0) & (lab != 41)
 is_fg |= (mask_eye_round == 1)
 is_fg |= hole
-is_fg |= front_leg_smooth
+is_fg |= all_legs
 is_fg |= mouth_mask
 is_fg |= wing_mask
 is_fg |= tail_dome
@@ -176,7 +193,7 @@ for y, xs in zip(ys_leg, xs_leg_smooth):
     xs_int = int(np.round(xs))
     is_fg[y, xs_int+1:] = False
 
-# Fix 5: Smooth face/cheek outer silhouette along y in [80..205]
+# Face/cheek outer silhouette along y in [80..205]
 ys_face = np.array([80, 95, 110, 130, 150, 170, 190, 205])
 xs_face = np.array([359, 363, 378, 391, 400, 406, 407, 406])
 p_face = np.polyfit(ys_face, xs_face, 2)

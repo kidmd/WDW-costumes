@@ -93,6 +93,17 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### 2026-11-04: Lightning Bug Green Leg Top Corner Rounding (Back, Middle, and Front-Mid Feet)
+- **Visual Feedback & Geometry Refinements:**
+  - **Comment 0 (Middle Leg 35 Dome Rounding):** Replaced the 23-pixel flat horizontal facet ceiling at $y=302$ and its sharp 90° corners with a smooth cartoon dome ($y_{\text{top}}(x) = 302 + 0.038(x-162)^2$ across $x=138 \dots 186$), eliminating all boxy polygonal corners.
+  - **Comment 1 (Front-Mid Leg 36 Apex Rounding):** Replaced the sharp triangular needle peak pointing up at $(292, 299)$ with a smooth, gentle parabolic curve ($p_{36}$ across $x=275 \dots 305$), rounding off the top corner into a clean cartoon knee arch.
+  - **Comment 2 (Back Leg 34 Shoulder Rounding):** Replaced the flat horizontal ceiling and sharp right shoulder corner at $(98, 292)$ with a rounded parabolic contour ($p_{34}$ across $x=80 \dots 108$), seamlessly curving down to the leg column.
+- **Palette & Transparency Verification:**
+  - Strict 100.00% 5-color palette compliance (`#141414`, `#22c55e`, `#2563eb`, `#e61919`, `#facc15`) across all 119,523 foreground pixels on pure transparent background.
+- **Asset Deployment & Simulator Synchronization:**
+  - Deployed updated graphic to `assets/lightningbug_transparent.png`, `assets/lightning_bug.png`, `simulator/assets/lightningbug_transparent.png`, and `simulator/assets/lightning_bug.png`.
+  - Bumped simulator asset cache-busters in `simulator/app.js` to `?v=20261104_rounded_leg_corners`.
+
 ### 2026-11-04: Lightning Bug Comprehensive 6-Region Contour Smoothing (Neck, Wing/Tail, Foot, Eye, Smile, Face)
 - **Visual Feedback & Geometry Refinements:**
   - **Comment 0 (Curved Neck Line Angle Rounding):** Modeled the boundary separating Head (`Part 5`) and Body (`Part 17`) as a continuous parabolic curve (`x_neck(y) = 2.395e-2 * y^2 - 10.051 * y + 1220.5` across `y=215..290`), completely eliminating the 90° dogleg angle at `y=280, x=260` and rendering a smooth, sweeping cartoon chin line.
