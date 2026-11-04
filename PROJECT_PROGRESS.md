@@ -93,6 +93,16 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### 2026-11-04: Lightning Bug Even Rounded Beanie Cap Rim Across Entire Brow
+- **Visual Feedback & Geometry Refinements:**
+  - **Comment 0 (Even Rounded Cap Bottom Rim):** Replaced the flat horizontal segment at $y=67$ and sharp angular turn at $x=310$ across the user's indicated rectangle ($x = 265 \dots 365$) with a continuous, mathematically smooth cubic arch ($y_{\text{cap\_bot}}(x) = 1.953\times 10^{-5}x^3 - 1.222\times 10^{-2}x^2 + 2.035x + 27.85$) spanning the entire head from $x = 160$ to $x = 332$.
+  - Generates a nice, even, rounded surface curving gracefully from $y=73$ at $x=265$ up to its apex $y=66.5$ at $x=300$ and smoothly down to $y=71$ at $x=330$ where it meets the antenna base, eliminating all flat facets and angular corners.
+- **Palette & Transparency Verification:**
+  - Strict 100.00% 5-color palette compliance (`#141414`, `#22c55e`, `#2563eb`, `#e61919`, `#facc15`) across all 119,453 foreground pixels on pure transparent background.
+- **Asset Deployment & Simulator Synchronization:**
+  - Deployed updated graphic to `assets/lightningbug_transparent.png`, `assets/lightning_bug.png`, `simulator/assets/lightningbug_transparent.png`, and `simulator/assets/lightning_bug.png`.
+  - Bumped simulator asset cache-busters in `simulator/app.js` to `?v=20261104_even_rounded_cap_rim`.
+
 ### 2026-11-04: Lightning Bug Contour Smoothing Batch 2 (Tail Silhouette, Lower Tail Curve, Foot Bottom, Ground Baseline, Wing-Body Seam, Beanie Headband)
 - **Visual Feedback & Geometry Refinements:**
   - **Comment 0 (Tail Outer Silhouette Smoothing):** Smoothed the outer left silhouette ($x_{\text{min}}(y)$) of the red tail accordion along $y = 190 \dots 270$ using 1D Gaussian filtering ($\sigma = 3.0$), eliminating the flat vertical segment and jagged staircase pixel steps.

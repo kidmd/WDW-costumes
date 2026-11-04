@@ -25,14 +25,14 @@ stalk = m4 & (np.arange(h)[:, None] < 65) & (np.arange(w)[None, :] > 310)
 part_map[np.isin(lab, [1, 9, 42]) | stalk] = 2
 
 # 2. Fix 5: Bottom Contour of Red Cap (Red: 3, 4, 18)
-# Fit smooth curve to bottom of cap from x=166 (y=119) up to x=235 (y=85)
-xs_cap_fit = np.array([166, 185, 205, 225, 235])
-ys_cap_fit = np.array([119, 108, 97, 88, 85])
-p_cap_bot = np.polyfit(xs_cap_fit, ys_cap_fit, 2)
+# Fit smooth, continuous cubic curve along bottom rim of cap from x=166 (wing junction) to x=330 (antenna/brow)
+xs_cap_fit = np.array([166, 200, 235, 265, 285, 305, 318, 328])
+ys_cap_fit = np.array([119, 101,  86,  74,  68,  65,  67,  72])
+p_cap_bot = np.polyfit(xs_cap_fit, ys_cap_fit, 3)
 
 cap_mask = np.isin(lab, [4, 8, 11]) & (~stalk)
-# Enforce smooth bottom edge on cap:
-for x in range(160, 240):
+# Enforce smooth, even rounded bottom edge on cap:
+for x in range(160, 332):
     y_bot = int(np.round(np.polyval(p_cap_bot, x)))
     cap_mask[y_bot+1:, x] = False
 
@@ -120,9 +120,9 @@ body_facets = [6, 7, 29, 30, 31, 33, 43]
 head_or_body = np.isin(lab, head_facets + body_facets + [18]) & (~mouth_mask) & (~all_legs) & (~cap_mask)
 
 # Add any pixels below smoothed cap to head:
-for x in range(160, 240):
+for x in range(160, 332):
     y_bot = int(np.round(np.polyval(p_cap_bot, x)))
-    head_or_body[y_bot+1:y_bot+10, x] = True
+    head_or_body[y_bot+1:y_bot+15, x] = True
 
 # Smooth curved neck boundary separating Head (5) and Body (17)
 ys_neck = np.array([215, 235, 255, 270, 280, 286])
