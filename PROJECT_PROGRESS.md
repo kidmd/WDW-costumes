@@ -93,6 +93,19 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### 2026-11-03: Float 7 (To Honor America) Fanning White-Feathered Eagle Shoulders from Top of Shielded Chest
+- **Fanning Eagle Shoulder Geometry:**
+  - Updated the Bald Eagle on the *To Honor America* finale float so **shoulders with white feathers (outlined in blue)** emerge from **both sides of the top of the Eagle's shielded chest**, starting narrow right at the upper corners of the shield (`y = 244..284`) and fanning out radially in three overlapping tiers into the two large cathedral-arch wings.
+  - Opened the inner wing cleft alongside the Eagle's head down to the top of the shielded chest with a uniform `10.5px` Black outer contour and `4.0px` Blue inner contour so the shoulders visibly bridge from the top of the shielded chest into the large wings while keeping the Eagle's head, shield, flag, banner, and 3 fireworks 100% unchanged.
+- **Strict 4-Color Multi-Material Slicing Verification:**
+  - Verified 100% discrete 4-color quantization across all 560,256 foreground pixels (`alpha = 255`) with a 100% transparent background (`alpha = 0`):
+    1. **Black (`#11161d` / `[17, 22, 29, 255]`):** Outer contour, banner interior, wheeled chassis, and firework outlines (226,592 px / 40.44%).
+    2. **White (`#ffffff` / `[255, 255, 255, 255]`):** `"TO HONOR AMERICA"` text, stars, flag stripes, eagle head, fanning shoulder feathers, and wing feathers (148,446 px / 26.50%).
+    3. **Red (`#d81d17` / `[216, 29, 23, 255]`):** Continuous front/middle flag folds, firework rays, shield stripes, and eagle beak (101,658 px / 18.14%).
+    4. **Blue (`#1f4a7d` / `[31, 74, 125, 255]`):** Rear starfield canton, swallowtail ribbon border, shoulder/wing feather outlines, and shield top (83,560 px / 14.91%).
+- **Asset Deployment & Simulator Synchronization:**
+  - Updated `assets/honor_america_eagle.png`, `assets/to_honor_america.png`, `simulator/assets/honor_america_eagle.png`, and `simulator/assets/to_honor_america.png`, and bumped cache-buster in `simulator/app.js` to `?v=20261103_honor_america_v8`.
+
 ### 2026-11-03: Float 1 (Casey Jr. Train / Simpletrain) Solid Unbroken Black Outline Restoration
 - **Root-Cause Analysis of Dashed Outlines:**
   - The original source illustration featured two shades of Golden Bronze (`Darker Bronze` panels at `lum ≈ 78` and `Lighter Bronze` structural trim/spokes at `lum ≈ 96`) separated by thin 1–2px black linework. During initial quantization into a single Golden Bronze (`#a0732d`), anti-aliased pixels along those 1–2px black lines (`lum ≈ 65..88`) were absorbed into Bronze, turning the interior linework into dashed lines.
