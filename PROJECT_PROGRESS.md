@@ -93,23 +93,18 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
-### 2026-11-03: Lightning Bug (Firefly) Parade Float Graphic Asset Creation (Strict 5-Color Cartoon Vector)
-- **New Float Graphic Artwork (Strictly 5 Flat Colors, No Shading, 100% Transparent Background):**
-  - **Left-Facing Dynamic Profile:** Rendered the iconic Main Street Electrical Parade firefly in a friendly left-facing orientation matching the Disney collectible figurine and archival float geometry, freestanding off the parade chassis.
-  - **Strict 5-Color Quantized Vector Palette:**
-    - **Lime Green (`#22c55e`):** Caterpillar head, segmented torso segments, leg stems, tail bulb collar.
-    - **Outline Black (`#141414`):** Bold, continuous exterior silhouette outlines (`>= 8px`), segment creases, pupil, and beanie stalk.
-    - **Parade Blue (`#2563eb`):** Upright electrical wings, 3 pairs of ground boots, and eye iris.
-    - **Vibrant Red (`#e61919`):** Propeller beanie cap, alternating tail bands, and smiling open mouth.
-    - **Electric Yellow (`#facc15`):** Solid glowing tail bulb ("light up butt"), dual beanie propeller blades & hub, glowing eye sclera, and pupil specular catchlight.
-  - **Clean Details & Anatomy:**
-    - Tail bulb filled with 100% solid electric yellow with zero specular artifacts, bordered by a crisp circular black contour.
-    - Eye given a glowing yellow sclera, vibrant blue iris, black pupil, and yellow catchlight for expressive Disney Imagineering charm.
-    - Solid black mechanical antenna stalk connecting the red beanie to the yellow spinner propeller.
+### 2026-11-03: Lightning Bug (Firefly) Parade Float Graphic Overhaul (True Disney Reference Proportions)
+- **Authentic Character Proportions Overhaul (Strict 5 Flat Colors, 100% Transparent Background):**
+  - **Short, Chubby & Stubby Body:** Replaced the elongated multi-segment body with the compact, plump, stubby geometry true to the Disney collectible figurine and archival parade float.
+  - **Giant Head:** Enlarged head to be as big as the body, tilted proudly upright with a cheerful open Disney smile.
+  - **No Boots / 3 Rounded Blue Bug Legs:** Eliminated boots/shoes entirely, replacing them with 3 simple, smooth, rounded blue insect legs extending straight down from the body to the ground line.
+  - **Short, Fat Red Tail with Subtle Curve:** Replaced the tight looping scorpion tail with a short, thick, cone-shaped red tail sweeping up at a gentle ~35–40° angle with curved black stripes.
+  - **Yellow Light Bulb at Tail Tip:** Mounted a clean, radiant solid flat Electric Yellow (`#facc15`) light bulb directly at the tip of the short red tail with a bold black circular contour.
+  - **Animated Eye Expression:** Formed an expressive Disney eye with glowing yellow sclera, vibrant blue iris, black pupil, and a yellow specular catchlight.
+  - **Strict 5-Color Vector Palette:** Programmatically verified 100% discrete color compliance across all pixels: Lime Green (`#22c55e`), Outline Black (`#141414`), Parade Blue (`#2563eb`), Vibrant Red (`#e61919`), and Electric Yellow (`#facc15`) on 100% transparent background (`alpha = 0`).
 - **Asset Deployment & Verification:**
   - High-resolution `2400 × 1792` PNG deployed to [`assets/lightning_bug.png`](file:///c:/Users/Kiddi/Desktop/WDW%20costumes/assets/lightning_bug.png) and [`simulator/assets/lightning_bug.png`](file:///c:/Users/Kiddi/Desktop/WDW%20costumes/simulator/assets/lightning_bug.png).
-  - Programmatically verified 100% discrete 5-color palette compliance (6 unique BGRA values including transparent background).
-  - Created review artifact [`lightning_bug_asset_review.md`](file:///C:/Users/Kiddi/.gemini/antigravity/brain/ba8699af-4574-4f1e-9678-f6f40a0f19fe/lightning_bug_asset_review.md).
+  - Updated review artifact [`lightning_bug_asset_review.md`](file:///C:/Users/Kiddi/.gemini/antigravity/brain/ba8699af-4574-4f1e-9678-f6f40a0f19fe/lightning_bug_asset_review.md).
 
 ### 2026-11-03: Float 4 (The Spinning Snail) Gold Smile (Matching Eyes) & Black Accordion Neck Lines
 - **Gold Smile & Cartoon Accordion Neck Folds (Strict 5-Color Snail Palette):**
