@@ -93,6 +93,11 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### 2026-11-04: Deployment of Transparent Lightning Bug Float Graphic (`assets/lightningbug_transparent.png`)
+- **Master Asset Synchronization:**
+  - Deployed `assets/lightningbug_transparent.png` (436×460 RGBA freestanding polygon trace bug with added yellow tail lantern dome, wing layered in front of red tail, and removed cart/wheels) directly to `assets/lightning_bug.png` and `simulator/assets/lightning_bug.png`.
+  - Updated simulator loaders with cache-buster `?v=20261104_transparent` across `simulator/app.js` and `simulator/index.html` to guarantee immediate rendering.
+
 ### 2026-11-03: Rollback of Lightning Bug Vectorization to Previous Version
 - **Reversion of Experimental Vectorization:**
   - Reverted `assets/lightning_bug.png` and `simulator/assets/lightning_bug.png` to the previous version (`commit 285c1c8`), removing the aggressive levelset organic curve smoothing and cartoon facial feature alterations.
