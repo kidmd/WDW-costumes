@@ -6,14 +6,13 @@ Style & Geometry Standards:
 - Legs: Solid Green (#22c55e / [34, 197, 94])
 - Wing: Solid Blue (#2563eb / [37, 99, 235])
 - Hat, Tail Accordion Folds, Mouth: Solid Red (#e61919 / [230, 25, 25])
-  * Tail folds: Exactly TWO red sections separated by a SINGLE, bold black dividing line
-- Tail Tip Lantern Dome: Solid Yellow (#facc15 / [250, 204, 21]) with zero internal lines
+  * Tail folds: Exactly TWO red sections separated by a SINGLE, extra-bold black dividing line (4x standard thickness)
+- Tail Tip Lantern Dome: Solid Yellow (#facc15 / [250, 204, 21]) with zero internal lines and a smooth, elegant cartoon curved boundary meeting the blue wing
 - Antennae: Solid Yellow (#facc15 / [250, 204, 21])
 - Eye Sclera: Smooth, rounded cartoon oval in Solid Yellow (#facc15 / [250, 204, 21])
 - Eye Iris: Smooth, rounded cartoon oval in Solid Blue (#2563eb / [37, 99, 235])
 - Outlines: Bold, consistent solid black lines (#141414 / [20, 20, 20])
   separating all color regions, anatomical features, and surrounding the whole character.
-- Gentle edge rounding eliminating jagged pixel staircases while preserving character anatomy.
 """
 import cv2
 import numpy as np
@@ -53,13 +52,22 @@ part_map[lab == 4] = 3              # Hat dome
 part_map[np.isin(lab, [8, 11])] = 4 # Hat visor/band
 
 # 5. Tail Tip Lantern Dome (Yellow, Part ID 10)
-# Clean, unified yellow dome with zero internal dividing lines and zero red/white patches
+# Clean, unified yellow dome with zero internal dividing lines and zero red/white patches.
+# Bounded by a smooth, monotonic cartoon curve along the blue wing edge.
+ys_curve = np.arange(130, 185)
+poly = [1.00611302e-03, -1.86267239e-01, 8.59393060e+01]
+xs_curve = np.polyval(poly, ys_curve).round().astype(int)
+
 tail_dome = np.isin(lab, [20, 21])
-tail_dome |= ((lab == 10) & (np.arange(h)[:, None] >= 138))
-wedge = (lab == 23) & (np.arange(h)[:, None] < 182) & (np.arange(w)[None, :] <= 90)
-tail_dome |= wedge
-gap = (lab == 0) & (np.arange(h)[:, None] >= 155) & (np.arange(h)[:, None] <= 185) & (np.arange(w)[None, :] >= 60) & (np.arange(w)[None, :] <= 90)
-tail_dome |= gap
+tail_dome |= ((lab == 10) & (np.arange(h)[:, None] >= 135))
+tail_dome |= ((lab == 23) & (np.arange(h)[:, None] < 182) & (np.arange(w)[None, :] <= 95))
+tail_dome |= ((lab == 0) & (np.arange(h)[:, None] >= 155) & (np.arange(h)[:, None] <= 185) & (np.arange(w)[None, :] >= 60) & (np.arange(w)[None, :] <= 95))
+
+# Smooth curve boundary with wing:
+for y, xc in zip(ys_curve, xs_curve):
+    tail_dome[y, 50:xc] = True
+    tail_dome[y, xc:95] = False
+
 cnts_tip, _ = cv2.findContours(tail_dome.astype(np.uint8), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
 if cnts_tip:
     c_tip = max(cnts_tip, key=cv2.contourArea)
@@ -69,18 +77,20 @@ if cnts_tip:
 part_map[tail_dome] = 10
 
 # 6. Wing (Blue, Part ID 9)
-wing_mask = np.isin(lab, [2, 3, 5]) | ((lab == 10) & (np.arange(h)[:, None] < 138))
+wing_mask = np.isin(lab, [2, 3, 5]) | ((lab == 10) & (np.arange(h)[:, None] < 135))
 wing_mask &= (~tail_dome)
+for y, xc in zip(ys_curve, xs_curve):
+    wing_mask[y, xc:110] = True
+wing_mask &= ~((lab == 23) & (np.arange(h)[:, None] >= 182))
 part_map[wing_mask] = 9
 
 # 7. Tail Accordion Folds (Red): ONLY TWO SECTIONS separated by a SINGLE black line!
-# Upper Tail Fold: facet 23 (excluding dome absorption)
-part_map[(lab == 23) & (~tail_dome)] = 11
+# Upper Tail Fold: facet 23 starting at y >= 182 (below the lantern dome and wing)
+part_map[(lab == 23) & (np.arange(h)[:, None] >= 182) & (~tail_dome) & (~wing_mask)] = 11
 # Lower Tail Fold: facets 24 and 28 merged into a single section
 lower_fold = np.isin(lab, [24, 28])
-# Clean any small upward spur of lower fold into upper fold
-lower_fold &= ~((np.arange(h)[:, None] < 228) & (np.arange(w)[None, :] > 75))
-part_map[(lab == 23) & ((np.arange(h)[:, None] < 228) & (np.arange(w)[None, :] > 75))] = 11
+lower_fold &= ~((np.arange(h)[:, None] >= 200) & (np.arange(h)[:, None] < 228) & (np.arange(w)[None, :] > 75))
+part_map[(lab == 23) & (np.arange(h)[:, None] >= 200) & (np.arange(h)[:, None] < 228) & (np.arange(w)[None, :] > 75)] = 11
 part_map[lower_fold] = 12
 
 # 8. Legs (Green)
@@ -171,11 +181,11 @@ PART_COLOR = {
     3: RED, 4: RED, 8: RED, 11: RED, 12: RED
 }
 
-# Outlines: consistent 2x thick black lines
+# Outlines:
 # 1) Outer silhouette outline
 outer_edge = cv2.dilate(bg.astype(np.uint8), cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (5, 5))).astype(bool) & clean_fg
 
-# 2) Part boundaries
+# 2) Standard part boundaries (2x thick)
 part_boundary_1x = np.zeros((h, w), dtype=bool)
 for pid in part_ids:
     p_mask = (clean_part_map == pid)
@@ -184,7 +194,12 @@ for pid in part_ids:
     part_boundary_1x |= (dil & other)
 
 part_boundary_2x = cv2.dilate(part_boundary_1x.astype(np.uint8), cv2.getStructuringElement(cv2.MORPH_CROSS, (3, 3))).astype(bool) & clean_fg
-all_lines = outer_edge | part_boundary_2x
+
+# 3) Special 4x thicker divider line separating the two red tail sections (part 11 and part 12)
+fold_boundary_1x = cv2.dilate((clean_part_map == 11).astype(np.uint8), np.ones((3, 3), np.uint8)).astype(bool) & (clean_part_map == 12)
+fold_boundary_4x = cv2.dilate(fold_boundary_1x.astype(np.uint8), cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (15, 15))).astype(bool) & clean_fg
+
+all_lines = outer_edge | part_boundary_2x | fold_boundary_4x
 
 # Paint final image:
 out = np.zeros((h, w, 4), dtype=np.uint8)

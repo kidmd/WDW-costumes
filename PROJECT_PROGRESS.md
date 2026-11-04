@@ -93,6 +93,16 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### 2026-11-04: Lightning Bug Wing-Tail Boundary Smoothing & 4x Accordion Divider Line
+- **Visual Feedback & Geometry Refinements:**
+  - **Comment 0 (Smooth Wing / Tail Dome Boundary):** Modeled the contact edge between the Blue wing (`part_map == 9`) and the Yellow tail tip dome (`part_map == 10`) as a smooth, continuous monotonic cartoon curve (`x(y) = 1.006e-3 * y^2 - 0.186 * y + 85.94` across `y=130..184`), completely eliminating the polygonal S-curve dip, waist indentation, and any red sliver artifact.
+  - **Comment 1 (4x Thicker Tail Accordion Divider Line):** Scaled the single solid black dividing line separating the two red accordion sections (Upper Fold 11 and Lower Fold 12) to **15–16 pixels thick** (approx. 4× the standard 4px outline thickness), rendering a bold, pronounced cartoon accordion shadow band matching the classic Disney float aesthetic.
+- **Palette & Transparency Verification:**
+  - Strict 100.00% 5-color palette compliance (`#141414`, `#22c55e`, `#2563eb`, `#e61919`, `#facc15`) across all 119,367 foreground pixels on pure transparent background.
+- **Asset Deployment & Simulator Synchronization:**
+  - Deployed updated graphic to `assets/lightningbug_transparent.png`, `assets/lightning_bug.png`, `simulator/assets/lightningbug_transparent.png`, and `simulator/assets/lightning_bug.png`.
+  - Bumped simulator asset cache-busters in `simulator/app.js` to `?v=20261104_smooth_wing_4x_divider`.
+
 ### 2026-11-04: Lightning Bug Visual Polish (Rounded Eye, Clean Tail Tip, Single Tail Fold Line & Curved Neck Line)
 - **Visual Feedback & Geometry Refinements:**
   - **Comment 0 (Eye Rounding):** Fitted a smooth cartoon oval contour to the eye socket (`lab == 18`) and iris, completely eliminating the angular flat corner at the top-left brow boundary and rendering a classic Disney cartoon oval eye with an expressive blue pupil.
