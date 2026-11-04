@@ -93,6 +93,15 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### 2026-11-03: Rollback of Lightning Bug Vectorization to Previous Version
+- **Reversion of Experimental Vectorization:**
+  - Reverted `assets/lightning_bug.png` and `simulator/assets/lightning_bug.png` to the previous version (`commit 285c1c8`), removing the aggressive levelset organic curve smoothing and cartoon facial feature alterations.
+  - Preserved the user's authentic polygonal trace asset (`assets/lightningbug_transparent.png` and `simulator/assets/lightningbug_transparent.png`, 436×460 RGBA) containing the added yellow tail lantern dome, foreground-layered blue wing, and removed chassis/wheels.
+- **Simulator Registration Updates:**
+  - Updated `simulator/app.js` and `simulator/index.html` to register both options with updated cache-busters:
+    - **`lightning_bug`:** Restored graphic asset (`assets/lightning_bug.png`).
+    - **`lightningbug_transparent`:** Authentic transparent polygon float trace (`assets/lightningbug_transparent.png`).
+
 ### 2026-11-03: 5-Color Cartoon Vectorization & Organic Edge Smoothing of Lightning Bug Float
 - **5-Color Palette & Discrete Color Zone Quantization (`assets/lightning_bug.png`):**
   - **Strict 5-Color Enforcement:** Successfully converted the polygonal parade float trace and photo into a clean 5-flat-color cartoon asset conforming 100.00% to the project's standard palette:

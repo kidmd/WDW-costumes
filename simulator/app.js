@@ -228,14 +228,22 @@ titleDrumImg.onload = () => {
 };
 titleDrumImg.src = 'assets/title_drum.png';
 
-// Lightning Bug Artwork (5-color transparent PNG)
+// Lightning Bug Artwork
 const lightningBugImg = new Image();
 let lightningBugLoaded = false;
 lightningBugImg.onload = () => {
     lightningBugLoaded = true;
     notifyFloatImgLoaded();
 };
-lightningBugImg.src = 'assets/lightning_bug.png?v=20261103_5color_clean';
+lightningBugImg.src = 'assets/lightning_bug.png?v=20261103_restored_v1';
+
+const lightningBugTransparentImg = new Image();
+let lightningBugTransparentLoaded = false;
+lightningBugTransparentImg.onload = () => {
+    lightningBugTransparentLoaded = true;
+    notifyFloatImgLoaded();
+};
+lightningBugTransparentImg.src = 'assets/lightningbug_transparent.png?v=20261103_trans_v1';
 
 // Custom artwork image (if user uploads one or loads one from preset)
 let customArtworkImg = null;
@@ -270,7 +278,9 @@ const floatArtworkImgs = {
     'petes_dragon_transparent': defaultDragonImg,
     'honor_america_eagle': new Image(),
     'lightning_bug': lightningBugImg,
-    'lightningbug': lightningBugImg
+    'lightningbug': lightningBugImg,
+    'lightning_bug_transparent': lightningBugTransparentImg,
+    'lightningbug_transparent': lightningBugTransparentImg
 };
 floatArtworkImgs['casey_jr_train'].src = 'assets/Simpletrain.png?v=20261103_solid_lines';
 floatArtworkImgs['title_drum'].src = 'assets/title_drum.png';
@@ -321,6 +331,10 @@ function getGraphicImgForType(gType) {
     if (gType === 'lightning_bug' || gType === 'lightningbug') {
         if (lightningBugImg && lightningBugImg.naturalWidth > 0) return lightningBugImg;
         return floatArtworkImgs['lightning_bug'];
+    }
+    if (gType === 'lightning_bug_transparent' || gType === 'lightningbug_transparent') {
+        if (lightningBugTransparentImg && lightningBugTransparentImg.naturalWidth > 0) return lightningBugTransparentImg;
+        return floatArtworkImgs['lightning_bug_transparent'];
     }
     if (gType === 'carriage_nohorses') {
         if (carriageNoHorsesImg && carriageNoHorsesImg.naturalWidth > 0) return carriageNoHorsesImg;
