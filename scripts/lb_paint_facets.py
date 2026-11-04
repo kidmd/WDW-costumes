@@ -23,28 +23,25 @@ part_map = np.zeros((h, w), dtype=np.uint8)
 m4 = (lab == 4).copy()
 stalk = m4 & (np.arange(h)[:, None] < 65) & (np.arange(w)[None, :] > 310)
 
-# Fix 0: Smooth curve along base of antennae separating Antenna (2) from Forehead/Head (5)
-# Smoothly connects from x=325 (y=69) across x=340 (y=74) to x=365 (y=79)
-xs_ant_fit = np.array([325, 335, 345, 355, 365])
-ys_ant_fit = np.array([69.0, 72.5, 75.5, 77.5, 79.0])
-p_ant_base = np.polyfit(xs_ant_fit, ys_ant_fit, 2)
+# Unified smooth cubic curve along bottom rim of cap and forehead/brow
+# Connects smoothly from x=171 (left cap silhouette) across x=315 (cap/brow junction)
+# under antennae to x=362 (right cheek/face outer silhouette) as one continuous curve:
+xs_head_fit = np.array([171, 190, 215, 245, 275, 295, 315, 330, 345, 358])
+ys_head_fit = np.array([115.0, 105.0,  92.0,  78.0,  68.0,  65.0,  65.8,  68.5,  73.5,  79.0])
+p_head_top = np.polyfit(xs_head_fit, ys_head_fit, 3)
 
 antenna_mask = np.isin(lab, [1, 9, 42]) | stalk
-# Any pixels of antenna below p_ant_base become forehead/head (5):
-for x in range(325, 368):
-    y_base = int(np.round(np.polyval(p_ant_base, x)))
+# Any pixels of antenna below p_head_top become forehead/head (5):
+for x in range(315, 368):
+    y_base = int(np.round(np.polyval(p_head_top, x)))
     antenna_mask[y_base:, x] = False
 
 part_map[antenna_mask] = 2
 
-# 2. Smooth cubic curve along bottom rim of cap from x=171 (left silhouette) to x=315 (antenna/brow)
-xs_cap_fit = np.array([171, 190, 215, 245, 275, 295, 315])
-ys_cap_fit = np.array([115, 105,  92,  78,  68,  65,  66])
-p_cap_bot = np.polyfit(xs_cap_fit, ys_cap_fit, 3)
-
+# Cap mask: strictly above p_head_top for x <= 316
 cap_mask = np.isin(lab, [4, 8, 11]) & (~stalk)
-for x in range(165, 332):
-    y_bot = int(np.round(np.polyval(p_cap_bot, x)))
+for x in range(165, 320):
+    y_bot = int(np.round(np.polyval(p_head_top, x)))
     cap_mask[y_bot+1:, x] = False
 
 # Reassign 3 panels:
@@ -129,15 +126,10 @@ head_facets = [12, 13, 14, 15, 16, 17, 19, 22, 25, 26]
 body_facets = [6, 7, 29, 30, 31, 33, 43]
 head_or_body = np.isin(lab, head_facets + body_facets + [18]) & (~mouth_mask) & (~all_legs) & (~cap_mask) & (~antenna_mask)
 
-# Add any pixels below smoothed cap to head:
-for x in range(165, 332):
-    y_bot = int(np.round(np.polyval(p_cap_bot, x)))
-    head_or_body[y_bot+1:y_bot+15, x] = True
-
-# Add any pixels below antenna base to forehead/head:
-for x in range(325, 368):
-    y_base = int(np.round(np.polyval(p_ant_base, x)))
-    head_or_body[y_base:y_base+15, x] = True
+# Add any pixels below smoothed cap / brow curve to head:
+for x in range(165, 368):
+    y_top = int(np.round(np.polyval(p_head_top, x)))
+    head_or_body[y_top+1:y_top+15, x] = True
 
 # Smooth curved neck boundary separating Head (5) and Body (17)
 ys_neck = np.array([215, 235, 255, 270, 280, 286])
@@ -367,7 +359,7 @@ bg = ~clean_fg
 
 # --- STRICT CAP & HEAD DIVISION ---
 for x in range(171, 316):
-    yc = int(np.round(np.polyval(p_cap_bot, x)))
+    yc = int(np.round(np.polyval(p_head_top, x)))
     # Below yc: must be head (part 5)
     for y in range(yc, min(h, yc + 30)):
         if clean_fg[y, x] and clean_part_map[y, x] in [3, 4, 18]:
@@ -379,9 +371,9 @@ for x in range(171, 316):
             elif x < 284: clean_part_map[y, x] = 4
             else: clean_part_map[y, x] = 3
 
-# --- STRICT ANTENNA BASE & FOREHEAD DIVISION (Fix 0) ---
-for x in range(325, 368):
-    yb = int(np.round(np.polyval(p_ant_base, x)))
+# --- STRICT ANTENNA BASE & FOREHEAD DIVISION ---
+for x in range(316, 368):
+    yb = int(np.round(np.polyval(p_head_top, x)))
     # Below yb: must be head (part 5)
     for y in range(yb, min(h, yb + 20)):
         if clean_fg[y, x] and clean_part_map[y, x] == 2:
@@ -428,21 +420,13 @@ for pid in part_ids:
 
 part_boundary_2x = cv2.dilate(part_boundary_1x.astype(np.uint8), cv2.getStructuringElement(cv2.MORPH_CROSS, (3, 3))).astype(bool) & clean_fg
 
-# 3) Dedicated 4px smooth black line along the cap bottom rim:
-cap_rim_line = np.zeros((h, w), dtype=bool)
-for x in range(171, 316):
-    yc = int(np.round(np.polyval(p_cap_bot, x)))
-    cap_rim_line[yc-1:yc+3, x] = True
+# 3) Dedicated continuous 3-4px smooth connected black curve line along cap bottom rim and across forehead:
+head_top_line = np.zeros((h, w), dtype=bool)
+for x in range(171, 363):
+    yc = int(np.round(np.polyval(p_head_top, x)))
+    head_top_line[yc-1:yc+3, x] = True
     part_boundary_2x[yc-2:yc+4, x] = False
-cap_rim_line &= clean_fg
-
-# Fix 0: Dedicated 3px smooth black line along antenna base:
-ant_base_line = np.zeros((h, w), dtype=bool)
-for x in range(326, 366):
-    yb = int(np.round(np.polyval(p_ant_base, x)))
-    ant_base_line[yb-1:yb+2, x] = True
-    part_boundary_2x[yb-2:yb+3, x] = False
-ant_base_line &= clean_fg
+head_top_line &= clean_fg
 
 # Fix 2: Dedicated 3-4px smooth black line along tail tip / fold divider:
 tail_div_line = np.zeros((h, w), dtype=bool)
@@ -456,7 +440,7 @@ tail_div_line &= clean_fg
 fold_boundary_1x = cv2.dilate((clean_part_map == 11).astype(np.uint8), np.ones((3, 3), np.uint8)).astype(bool) & (clean_part_map == 12)
 fold_boundary_4x = cv2.dilate(fold_boundary_1x.astype(np.uint8), cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (15, 15))).astype(bool) & clean_fg
 
-all_lines = outer_edge | part_boundary_2x | cap_rim_line | ant_base_line | tail_div_line | fold_boundary_4x
+all_lines = outer_edge | part_boundary_2x | head_top_line | tail_div_line | fold_boundary_4x
 
 # Color mapping:
 PART_COLOR = {

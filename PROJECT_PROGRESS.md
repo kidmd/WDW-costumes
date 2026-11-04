@@ -93,6 +93,18 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### 2026-11-04: Lightning Bug Unified Forehead & Cap Rim Connected Curve Line
+- **Visual Feedback & Geometry Refinements:**
+  - **Comment 0 (Connect Two Curved Ends of Head / Forehead Smoothing):** Eliminated the disconnected, isolated horizontal line segment (\nt_base_line\, previously drawn across  \in [326 \dots 366]$ at  \approx 76-79$ with an 11-pixel gap at  = 316 \dots 325$).
+  - Replaced separate cap rim ( \le 315$) and antenna base ( \ge 326$) polynomial fits with a single, continuous, mathematically smooth convex cubic curve ({\text{head\_top}}(x)$) spanning  = 171 \dots 362$ ( = 115 \to 92 \to 65 \to 66 \to 74 \to 81$).
+  - The unified line begins at the left beanie cap silhouette (=171, y=115$), sweeps under the red cap dome across the brow apex (=305, y=65$), continues uninterrupted under both antenna stalks across the forehead, and connects directly into the outer curved cheek/face silhouette at 360 80$.
+  - Renders a continuous, uniform 3–4 pixel black dividing curve with zero gaps, zero straight horizontal stick artifacts, and 100% geometric continuity.
+- **Palette & Transparency Verification:**
+  - Strict 100.00% 5-color palette compliance (\#141414\, \#22c55e\, \#2563eb\, \#e61919\, \#facc15\) across all 119,493 foreground pixels on pure transparent background.
+- **Asset Deployment & Simulator Synchronization:**
+  - Deployed updated graphic to \ssets/lightningbug_transparent.png\, \ssets/lightning_bug.png\, \simulator/assets/lightningbug_transparent.png\, and \simulator/assets/lightning_bug.png\.
+  - Bumped simulator asset cache-busters in \simulator/app.js\ to \?v=20261104_unified_head_curve\.
+
 ### 2026-11-04: Lightning Bug Contour Smoothing Batch 3 (Antenna Base Divider, Tail Left Silhouette, Tail Tip Divider, Yellow Tip Edge)
 - **Visual Feedback & Geometry Refinements:**
   - **Comment 0 (Antenna Base / Forehead Dividing Line Smoothing):** Replaced the squiggly S-shaped dip at the base of the antennae ($x \in [325 \dots 368], y \in [69 \dots 87]$) with a smooth, continuous quadratic arch ($y_{\text{ant\_base}}(x) = \text{poly}(x)$ from $y=69$ at $x=325$ to $y=79$ at $x=365$). Absorbed the jagged downward lobe of facet 42 into the yellow forehead and rendered a clean 3-pixel black divider separating antennae from head.
