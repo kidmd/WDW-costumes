@@ -93,6 +93,15 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### 2026-11-03: Float 4 (The Spinning Snail) Cheerful Orange Smile & Black Neck Lines Touch-Up
+- **Orange Smile & Cartoon Accordion Neck Folds:**
+  - Added a cheerful upturned **Orange (`#ffaa00` / `RGB: 255, 170, 0`)** smile along the cheek indent below the eye and snout, mapped with sub-pixel precision from user markup via SIFT homography into a smooth cubic spline with rounded end caps.
+  - Added **4 solid Black (`#11161d`)** cartoon neck lines flowing parallel along the neck contours, capturing the whimsical accordion skin folds of the classic parade float while eliminating freehand stroke jitter.
+- **Asset Deployment & Simulator Synchronization:**
+  - Updated [`assets/SimpleSnail.png`](file:///c:/Users/Kiddi/Desktop/WDW%20costumes/assets/SimpleSnail.png) and [`simulator/assets/SimpleSnail.png`](file:///c:/Users/Kiddi/Desktop/WDW%20costumes/simulator/assets/SimpleSnail.png).
+  - Updated cache-buster in [`simulator/app.js`](file:///c:/Users/Kiddi/Desktop/WDW%20costumes/simulator/app.js) to `?v=20261103_snail_smile_neck`.
+  - Created visual inspection artifact [`snail_asset_review.md`](file:///C:/Users/Kiddi/.gemini/antigravity/brain/ba8699af-4574-4f1e-9678-f6f40a0f19fe/snail_asset_review.md).
+
 ### 2026-11-03: Float 5 (Pirate Ship) Stern Lanterns, Golden Crow's Nests, Larger Billowing Sails & Vertical Sail Seams
 - **Reference-Photo Nautical Enhancements (Strictly 4 Flat Colors):**
   - **Stern Lanterns Above Captain's Quarters:** Replaced the abstract stern shape with two ornate **Golden Bronze (`#af7819`)** galleon stern lanterns mounted on posts above the Captain's Quarters—complete with **Black (`#141414`)** vertical and horizontal glass pane mullions, **Red (`#e61919`)** base collars, and **Emerald Green (`#147332`)** lantern caps with golden finials.

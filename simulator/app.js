@@ -200,7 +200,7 @@ spinningSnailImg.onload = () => {
     spinningSnailLoaded = true;
     notifyFloatImgLoaded();
 };
-spinningSnailImg.src = 'assets/SimpleSnail.png';
+spinningSnailImg.src = 'assets/SimpleSnail.png?v=20261103_snail_smile_neck';
 
 const spinningSnailSimplifiedImg = new Image();
 let spinningSnailSimplifiedLoaded = false;
@@ -265,8 +265,8 @@ floatArtworkImgs['casey_jr_train'].src = 'assets/Simpletrain.png?v=20261103_soli
 floatArtworkImgs['title_drum'].src = 'assets/title_drum.png';
 floatArtworkImgs['drumcleanedup'].src = 'assets/Drumcleanedup.png';
 floatArtworkImgs['spinning_turtle'].src = 'assets/Turtle_clean.png?v=20261103_turtle_neck_blue';
-floatArtworkImgs['spinning_snail'].src = 'assets/SimpleSnail.png';
-floatArtworkImgs['spinning_snail_original'].src = 'assets/SimpleSnail.png';
+floatArtworkImgs['spinning_snail'].src = 'assets/SimpleSnail.png?v=20261103_snail_smile_neck';
+floatArtworkImgs['spinning_snail_original'].src = 'assets/SimpleSnail.png?v=20261103_snail_smile_neck';
 floatArtworkImgs['spinning_snail_simplified'].src = 'assets/spinning_snail_simplified.png';
 floatArtworkImgs['pirate_ship'].src = 'assets/Pirateshipsimple.png?v=20261103_pirate_v8';
 floatArtworkImgs['pirateshipsimple'].src = 'assets/Pirateshipsimple.png?v=20261103_pirate_v8';
