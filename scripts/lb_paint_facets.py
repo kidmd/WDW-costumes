@@ -607,6 +607,94 @@ for pid, col in PART_COLOR.items():
 out[all_lines] = BLACK
 out[bg] = [0, 0, 0, 0]
 
+# --- 1. CAP EXTENSION TO TOUCH FOREHEAD CONTOUR PAST EYELASH 1 ---
+xs_dome = np.array([244, 265, 285, 305, 320, 330])
+ys_dome = np.array([43.0, 44.5, 47.5, 53.5, 61.0, 68.5])
+p_cap_dome = np.polyfit(xs_dome, ys_dome, 2)
+
+cap_ext = np.zeros((h, w), dtype=bool)
+for x in range(305, 331):
+    yt = int(np.round(np.polyval(p_cap_dome, x)))
+    yb = int(np.round(np.polyval(p_head_top, x)))
+    if yb >= yt:
+        cap_ext[yt:yb+1, x] = True
+
+# Paint cap extension Red
+out[cap_ext] = RED
+
+# Draw smooth black top dome outline across x in [244..330]
+cap_dome_line = np.zeros((h, w), dtype=bool)
+for x in range(244, 331):
+    yt = int(np.round(np.polyval(p_cap_dome, x)))
+    cap_dome_line[yt-1:yt+3, x] = True
+
+# Draw smooth black cap bottom rim outline across x in [171..330]
+cap_rim_line = np.zeros((h, w), dtype=bool)
+for x in range(171, 331):
+    yb = int(np.round(np.polyval(p_head_top, x)))
+    cap_rim_line[yb-1:yb+3, x] = True
+
+out[cap_dome_line] = BLACK
+out[cap_rim_line] = BLACK
+
+# Redraw eyelashes cleanly over hat front/forehead
+out[eyelash_mask] = BLACK
+
+# --- 2. CUTE CARTOON SPINNING PROPELLER ATOP RED BEANIE ---
+pts_l_blade = np.array([[244, 24], [232, 18], [210, 15], [202, 19], [203, 23], [214, 25], [234, 26]], dtype=np.int32)
+pts_r_blade = np.array([[244, 24], [256, 22], [274, 25], [286, 29], [285, 33], [272, 33], [254, 28]], dtype=np.int32)
+
+prop_color = np.zeros((h, w, 4), dtype=np.uint8)
+prop_lines = np.zeros((h, w), dtype=np.uint8)
+
+cv2.fillPoly(prop_color, [pts_l_blade, pts_r_blade], YELLOW.tolist())
+cv2.circle(prop_color, (244, 24), 4, YELLOW.tolist(), -1)
+
+# Spindle post from cap apex (244, 43) to hub (244, 24)
+cv2.line(prop_lines, (244, 43), (244, 24), 255, 3, cv2.LINE_AA)
+cv2.polylines(prop_lines, [pts_l_blade, pts_r_blade], True, 255, 3, cv2.LINE_AA)
+cv2.circle(prop_lines, (244, 24), 4, 255, 2, cv2.LINE_AA)
+
+# Cartoon spinning motion arcs
+pts_arc1 = np.array([[208, 11], [199, 14], [194, 21], [196, 28]], dtype=np.int32)
+pts_arc2 = np.array([[280, 37], [289, 34], [294, 27], [292, 20]], dtype=np.int32)
+cv2.polylines(prop_lines, [pts_arc1, pts_arc2], False, 255, 2, cv2.LINE_AA)
+cv2.ellipse(prop_lines, (244, 24), (32, 7), 6, 200, 270, 255, 2, cv2.LINE_AA)
+cv2.ellipse(prop_lines, (244, 24), (32, 7), 6, 20, 90, 255, 2, cv2.LINE_AA)
+
+out[prop_color[:, :, 3] > 0] = YELLOW
+out[prop_lines > 70] = BLACK
+
+# --- 3. SEGMENTED TAIL (LOWER RED -> MIDDLE BLACK -> UPPER RED -> YELLOW TIP) ---
+red_tail = (out[:, :, 0] == 25) & (out[:, :, 1] == 25) & (out[:, :, 2] == 230) & (np.arange(w)[None, :] < 120) & (np.arange(h)[:, None] > 180)
+p_mid_top = np.polyfit([28, 55, 80], [228.0, 233.0, 240.0], 2)
+p_mid_bot = np.polyfit([28, 55, 85], [266.0, 272.0, 282.0], 2)
+
+mid_black_mask = np.zeros((h, w), dtype=bool)
+for x in range(25, 95):
+    yt = int(np.round(np.polyval(p_mid_top, x)))
+    yb = int(np.round(np.polyval(p_mid_bot, x)))
+    mid_black_mask[yt:yb+1, x] = True
+
+mid_black_segment = red_tail & mid_black_mask
+out[mid_black_segment] = BLACK
+
+# Outline curves across accordion folds
+div_top_line = np.zeros((h, w), dtype=bool)
+div_bot_line = np.zeros((h, w), dtype=bool)
+for x in range(25, 90):
+    yt = int(np.round(np.polyval(p_mid_top, x)))
+    yb = int(np.round(np.polyval(p_mid_bot, x)))
+    div_top_line[yt-1:yt+3, x] = True
+    div_bot_line[yb-1:yb+3, x] = True
+
+is_tail_fg = (out[:, :, 3] > 0) & (np.arange(w)[None, :] < 120) & (np.arange(h)[:, None] > 180)
+out[div_top_line & is_tail_fg] = BLACK
+out[div_bot_line & is_tail_fg] = BLACK
+
+# Update clean_fg to include new propeller and cap elements
+clean_fg = out[:, :, 3] > 0
+
 cv2.imwrite('scripts/lb_painted.png', out)
 
 # Synchronize across all project locations

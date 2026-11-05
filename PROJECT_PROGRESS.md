@@ -93,6 +93,30 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### 2026-11-05: Lightning Bug Spinning Beanie Propeller, Extended Cap, and Segmented Tail
+- **Iconic MSEP Parade Float Enhancements:**
+  - **Whimsical Spinning Beanie Propeller:**
+    - Faithfully added the lightning bug's signature spinning propeller on top of its red beanie cap, matching the illuminated wireframe propeller from the Main Street Electrical Parade float photo.
+    - Mounted on a 3px black spindle post extending from the cap apex at $(244, 43)$ up to $(244, 24)$.
+    - Features a 4px yellow center hub (`#facc15`), two angled yellow cartoon paddle blades (left blade spanning $x \in [202 \dots 244]$ at 8° incline; right blade spanning $x \in [244 \dots 286]$ at -8° incline), bold black perimeter borders, and curved cartoon motion spin arcs flanking both blade tips to communicate energetic rotation.
+  - **Beanie Cap Extension Past Eyelash 1:**
+    - Extended the front edge of the red beanie hat forward along quadratic dome curve $p_{\text{cap\_dome}}(x)$ from $x = 308$ to $x = 330$, past the first eyelash ($x \approx 298 \dots 312$).
+    - Seamlessly converges with the forehead/brow contour $p_{\text{head\_top}}$ at $x = 330$ ($y = 68.5$), eliminating the previous awkward vertical truncation and allowing the beanie cap to naturally rest on the bug's head while the three cartoon eyelashes curl out cleanly over the cap rim and brow.
+  - **Segmented Accordion Tail (Lower Red $\to$ Middle Black $\to$ Upper Red $\to$ Yellow Tip):**
+    - Upgraded the tail from a solid red block with a single dividing line into distinct color-blocked accordion segments matching the real parade float:
+      - *Tail Tip Lantern:* Amber/Yellow glowing dome (`#facc15`, $y \le \text{p\_tail\_div}$).
+      - *Upper Accordion Segment:* Vibrant red panel (`#e61919`, $y \in [185 \dots 228]$).
+      - *Middle Accordion Segment:* Solid black contrast band (`#141414`, $y \in [228 \dots 272]$).
+      - *Lower Accordion Segment:* Base red panel (`#e61919`, $y \in [272 \dots 350]$).
+    - Accented with smooth, continuous 3px black divider arcs ($p_{\text{mid\_top}}$ and $p_{\text{mid\_bot}}$) tracing the natural accordion bellows folds.
+- **Strict Palette & Pixel Integrity Verification:**
+  - **100.0000% 5-Color Palette Compliance:** Fully verified that 100.0000% of all 117,899 foreground pixels strictly adhere to the project palette (`#141414`, `#22c55e`, `#2563eb`, `#e61919`, `#facc15`).
+  - **Untouched Regions Bitwise Identical:** Verified that exactly 0 pixels in the wing filigree curls, face, mouth, eye, and legs were modified.
+- **Asset Deployment & Simulator Synchronization:**
+  - Synchronized graphic across all 4 production paths: `assets/lightning_bug.png`, `assets/lightningbug_transparent.png`, `simulator/assets/lightning_bug.png`, and `simulator/assets/lightningbug_transparent.png`.
+  - Bumped simulator asset cache-busters in `simulator/app.js` to `?v=20261105_propeller_and_tail`.
+  - Updated single-source generator script `scripts/lb_paint_facets.py` for 100% deterministic reproducibility.
+
 ### 2026-11-05: Lightning Bug Repositioned Fine Cartoon Eyelashes Directly Above Eye
 - **Eyelash Architecture & Geometry Refinements:**
   - **Repositioned Eyelashes Above Eye:** Removed the legacy clunky, webbed 3-pronged yellow cluster from the top of the forehead/cap ($x \in [311 \dots 433], y \in [25 \dots 79]$), which was an artifact of early polygon tracing mistaking the float's eye lashes for head horns.
