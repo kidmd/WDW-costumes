@@ -14,6 +14,10 @@ print("=" * 70)
 t0 = time.time()
 
 specs_path = '3d_panels/tpu_panel_specs.json'
+for arg in sys.argv[1:]:
+    if arg.endswith('.json') and os.path.exists(arg):
+        specs_path = arg
+        break
 if not os.path.exists(specs_path):
     specs_path = '3d_panels/petes_dragon_specs.json'
 
@@ -582,27 +586,32 @@ def compile_matrix_16x16_plate_variant(variant_name, artwork_path, window_shape=
     valid_windowed = []
     seen_win_rc = set()
 
-    if windowed_leds and len(windowed_leds) > 0:
-        for l in windowed_leds:
-            if 'row' in l and 'col' in l:
-                r, c = int(l['row']), int(l['col'])
-            else:
-                raw_x = float(l.get('x', 13.0))
-                c_front = int(round((raw_x - (MARGIN_MM + 5.0)) / 10.0))
-                c_bed = int(round((PLATE_SIZE_MM - raw_x - (MARGIN_MM + 5.0)) / 10.0))
-                c = c_front if (0 <= c_front <= 15) else c_bed
-                r = 15 - int(round((float(l.get('y', 13.0)) - (MARGIN_MM + 5.0)) / 10.0))
-            c = max(0, min(15, c))
-            r = max(0, min(15, r))
-            if (r, c) in seen_win_rc:
-                continue
-            seen_win_rc.add((r, c))
-            cell_copy = dict(all_cells_map[(r, c)])
-            if 'color' in l and isinstance(l['color'], dict):
-                cell_copy['color'] = dict(l['color'])
-            valid_windowed.append(cell_copy)
+    if windowed_leds is not None:
+        if len(windowed_leds) > 0:
+            for l in windowed_leds:
+                if 'row' in l and 'col' in l:
+                    r, c = int(l['row']), int(l['col'])
+                else:
+                    raw_x = float(l.get('x', 13.0))
+                    c_front = int(round((raw_x - (MARGIN_MM + 5.0)) / 10.0))
+                    c_bed = int(round((PLATE_SIZE_MM - raw_x - (MARGIN_MM + 5.0)) / 10.0))
+                    c = c_front if (0 <= c_front <= 15) else c_bed
+                    r = 15 - int(round((float(l.get('y', 13.0)) - (MARGIN_MM + 5.0)) / 10.0))
+                c = max(0, min(15, c))
+                r = max(0, min(15, r))
+                if (r, c) in seen_win_rc:
+                    continue
+                seen_win_rc.add((r, c))
+                cell_copy = dict(all_cells_map[(r, c)])
+                if 'color' in l and isinstance(l['color'], dict):
+                    cell_copy['color'] = dict(l['color'])
+                valid_windowed.append(cell_copy)
+        else:
+            # Explicit 0 windowed LEDs requested (100% All-Backlight Mode • Zero Cutouts)
+            valid_windowed = []
+            seen_win_rc = set()
     else:
-        # Default auto-sampling ONLY if no windowed LEDs were supplied
+        # Default auto-sampling ONLY if no windowed LEDs parameter was supplied (None)
         target_win = 50
         pool = colored_candidates if len(colored_candidates) >= target_win else list(all_cells_map.values())
         valid_windowed, _ = fps_select(pool, target_win)

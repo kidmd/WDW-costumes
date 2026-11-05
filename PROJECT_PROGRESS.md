@@ -93,6 +93,24 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### 2026-11-05 01:15: 100% All-Backlight Plate Preset (Zero Cutouts) & Default Lenses OFF
+- **100% All-Backlight Mode Preset Button (`#btfMatrixAllBacklightNoWindowsBtn`):**
+  - Added a dedicated 1-click action to the 16×16 Matrix Options Card under Quick Presets: `🌟 100% All-Backlight Mode (0 Windows • No Cutouts)`.
+  - Analyzes the full 10.0×10.0mm Voronoi neighbor catchment area around every matrix cell. If any colored artwork is present, the LED is assigned to **Backlight** in the predominant vibrancy-boosted color.
+  - Windowed LEDs are set strictly to **0** (`btfMatrix16x16Config.windowCount = 0`). The window slider is visually locked to 0 with informative tooltip.
+  - Clicking the button again seamlessly toggles back and restores previous manual window and backlight counts.
+- **3D Plate Compiler Zero-Cutout Verification:**
+  - Updated `scripts/compile_clean_tpu_panel.py` so that when `windowed_leds` is explicitly provided as `[]` (0 length), the compiler bypasses auto-sampling fallbacks and generates a 100% continuous, planar, watertight multi-material front faceplate with 0 aperture holes.
+  - Verified with Pete's Dragon / To Honor America: compiled in 10.33s with 0 Ø3.4mm windows and 151 backlit LEDs.
+- **Default Lenses Setting Transitioned to OFF:**
+  - Changed default configuration in `simulator/app.js` and `simulator/index.html` so translucent light-pipe lenses default to **OFF** (`tpuModalLensesOffBtn` active with `OFF ★`).
+  - Updated modal loading logic to synchronize `syncBtfMatrixLensesUI()` when opening 3D Preview Modal.
+  - Added automatic localStorage migration (`msep_matrix_lenses_defaulted_off_v2`) to ensure returning users immediately receive the clean OFF default.
+- **Verification & Documentation:**
+  - Verified JavaScript syntax with `node -c simulator/app.js` (0 errors).
+  - Bumped simulator script cache buster to `app.js?v=111` in `simulator/index.html`.
+  - Synchronized `SIMULATOR_USER_GUIDE.md` (Sections 1, 6, and 13).
+
 ### 2026-11-05 00:50: Tuned Starlight Color Temperature to Vintage Edison Candle Warmth
 - **Optical Color Tuning & Perceptual Correction:**
   - *Observation:* The initial color `CRGB(255, 220, 160)` appeared as a cool or pale white on physical WS2812B LEDs rather than a cozy warm filament glow.

@@ -4605,7 +4605,7 @@
     "stl_size": 1425884,
     "chassis_size": 3626284,
     "lid_size": 103884,
-    "zip_size": 2547105,
+    "zip_size": 2546572,
     "inlays": [
       {
         "key": "blue",
@@ -7215,7 +7215,7 @@
     "stl_size": 1425884,
     "chassis_size": 3626284,
     "lid_size": 103884,
-    "zip_size": 2546577,
+    "zip_size": 2547096,
     "inlays": [
       {
         "key": "blue",
@@ -9810,7 +9810,7 @@
   "stl_size": 1425884,
   "chassis_size": 3626284,
   "lid_size": 103884,
-  "zip_size": 2547105,
+  "zip_size": 2546572,
   "inlays": [
     {
       "key": "blue",

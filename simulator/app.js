@@ -16209,7 +16209,7 @@ let btfMatrix16x16Config = {
     thicknessMm: 0.60,
     gapMm: 0.0,
     lipMm: 0.0,
-    lensesActive: true,
+    lensesActive: false,
     clearLayerMm: 0.4,
     frameActive: true,
     roundedCorners: true,
@@ -16227,6 +16227,14 @@ try {
     const savedLenses = localStorage.getItem('msep_matrix_lenses_mode');
     if (savedLenses !== null) {
         btfMatrix16x16Config.lensesActive = (savedLenses === 'true');
+    } else {
+        btfMatrix16x16Config.lensesActive = false;
+    }
+    // Migration: ensure lenses default to OFF on initial launch/modal open as requested
+    if (!localStorage.getItem('msep_matrix_lenses_defaulted_off_v2')) {
+        localStorage.setItem('msep_matrix_lenses_defaulted_off_v2', 'true');
+        localStorage.setItem('msep_matrix_lenses_mode', 'false');
+        btfMatrix16x16Config.lensesActive = false;
     }
     const savedClear = localStorage.getItem('msep_matrix_clear_layer_mm');
     if (savedClear !== null) {
@@ -17502,6 +17510,9 @@ function initBtfMatrix16x16Mode() {
     if (winSlider) {
         winSlider.addEventListener('input', (e) => {
             btfMatrix16x16Config.windowCount = parseInt(e.target.value, 10) || 0;
+            if (typeof setAllBacklightNoWindowsUIState === 'function') {
+                setAllBacklightNoWindowsUIState(false);
+            }
             computeBtfMatrix16x16Layout();
             markSingleShirtDirty();
         });
@@ -17514,6 +17525,9 @@ function initBtfMatrix16x16Mode() {
             previousBacklightSliderCount = count;
             if (typeof setAutoBacklightUIState === 'function') {
                 setAutoBacklightUIState(false);
+            }
+            if (typeof setAllBacklightNoWindowsUIState === 'function') {
+                setAllBacklightNoWindowsUIState(false);
             }
             computeBtfMatrix16x16Layout();
             markSingleShirtDirty();
@@ -17565,6 +17579,12 @@ function initBtfMatrix16x16Mode() {
 
     if (spreadBtn) {
         spreadBtn.addEventListener('click', () => {
+            if (typeof setAllBacklightNoWindowsUIState === 'function') {
+                setAllBacklightNoWindowsUIState(false);
+            }
+            if (typeof setAutoBacklightUIState === 'function') {
+                setAutoBacklightUIState(false);
+            }
             computeBtfMatrix16x16Layout();
             markSingleShirtDirty();
             showToast(`🎯 Evenly spread ${btfMatrix16x16Config.windowCount} Windowed + ${btfMatrix16x16Config.backlightCount} Backlit LEDs across graphic!`);
@@ -17589,6 +17609,12 @@ function initBtfMatrix16x16Mode() {
 
     if (resetBtn) {
         resetBtn.addEventListener('click', () => {
+            if (typeof setAllBacklightNoWindowsUIState === 'function') {
+                setAllBacklightNoWindowsUIState(false);
+            }
+            if (typeof setAutoBacklightUIState === 'function') {
+                setAutoBacklightUIState(false);
+            }
             btfMatrix16x16Config.windowCount = 50;
             btfMatrix16x16Config.backlightCount = 25;
             btfMatrix16x16Config.thicknessMm = 0.60;
@@ -17615,8 +17641,152 @@ function initBtfMatrix16x16Mode() {
     syncBtfMatrixLipUI(btfMatrix16x16Config.lipMm !== undefined ? btfMatrix16x16Config.lipMm : 0.0);
     syncBtfMatrixClearLayerUI(btfMatrix16x16Config.clearLayerMm !== undefined ? btfMatrix16x16Config.clearLayerMm : 0.4);
     syncBtfMatrixCornersUI(btfMatrix16x16Config.roundedCorners !== false);
+    syncBtfMatrixLensesUI(btfMatrix16x16Config.lensesActive !== false);
+
+    const allBacklightNoWinBtn = document.getElementById('btfMatrixAllBacklightNoWindowsBtn');
+    if (allBacklightNoWinBtn) {
+        allBacklightNoWinBtn.addEventListener('click', () => {
+            setAllGraphicLedsToBacklight();
+        });
+    }
 }
 window.initBtfMatrix16x16Mode = initBtfMatrix16x16Mode;
+
+let isAllBacklightNoWindowsActive = false;
+let previousWindowCountBeforeAllBacklight = 50;
+let previousBacklightCountBeforeAllBacklight = 25;
+
+function setAllBacklightNoWindowsUIState(isActive) {
+    isAllBacklightNoWindowsActive = isActive;
+    const winSlider = document.getElementById('btfMatrixWindowCountSlider');
+    const allBacklightNoWinBtn = document.getElementById('btfMatrixAllBacklightNoWindowsBtn');
+
+    if (winSlider) {
+        winSlider.disabled = isActive;
+        winSlider.style.opacity = isActive ? '0.45' : '1.0';
+        winSlider.style.cursor = isActive ? 'not-allowed' : 'pointer';
+        winSlider.title = isActive ? '100% All-Backlight mode is active (0 window cutouts). Click the button again to restore window cutouts.' : '';
+    }
+
+    if (allBacklightNoWinBtn) {
+        if (isActive) {
+            allBacklightNoWinBtn.style.background = 'rgba(251, 146, 60, 0.35)';
+            allBacklightNoWinBtn.style.borderColor = '#fb923c';
+            allBacklightNoWinBtn.style.color = '#fff';
+            allBacklightNoWinBtn.style.boxShadow = '0 0 10px rgba(251, 146, 60, 0.4)';
+        } else {
+            allBacklightNoWinBtn.style.background = 'rgba(251, 146, 60, 0.16)';
+            allBacklightNoWinBtn.style.borderColor = '#fb923c';
+            allBacklightNoWinBtn.style.color = '#fb923c';
+            allBacklightNoWinBtn.style.boxShadow = 'none';
+        }
+    }
+}
+
+function setAllGraphicLedsToBacklight() {
+    if (!btfMatrix16x16Cells || btfMatrix16x16Cells.length !== 256) {
+        computeBtfMatrix16x16Layout();
+    }
+
+    const winSlider = document.getElementById('btfMatrixWindowCountSlider');
+    const glowSlider = document.getElementById('btfMatrixBacklightCountSlider');
+
+    if (isAllBacklightNoWindowsActive) {
+        // TOGGLE OFF -> Restore previous window and backlight counts
+        setAllBacklightNoWindowsUIState(false);
+        const restoreWin = (typeof previousWindowCountBeforeAllBacklight === 'number' && previousWindowCountBeforeAllBacklight >= 0)
+            ? previousWindowCountBeforeAllBacklight
+            : 50;
+        const restoreGlow = (typeof previousBacklightCountBeforeAllBacklight === 'number' && previousBacklightCountBeforeAllBacklight >= 0)
+            ? previousBacklightCountBeforeAllBacklight
+            : 25;
+        btfMatrix16x16Config.windowCount = restoreWin;
+        btfMatrix16x16Config.backlightCount = restoreGlow;
+        if (winSlider) winSlider.value = restoreWin;
+        if (glowSlider) glowSlider.value = restoreGlow;
+        computeBtfMatrix16x16Layout();
+        markSingleShirtDirty();
+        if (typeof draw === 'function') draw();
+        if (btfMatrix16x16Active) handleRecompileTpuStl({ skipOpen: true });
+        showToast(`🎚️ Restored windowed layout (${restoreWin} Windows, ${restoreGlow} Backlit) — Sliders re-activated!`);
+        return;
+    }
+
+    // Deactivate the partial auto-backlight button if it was on
+    if (typeof setAutoBacklightUIState === 'function') {
+        setAutoBacklightUIState(false);
+    }
+
+    // TOGGLE ON -> Save current counts, lock window slider to 0, backlight ALL colored areas
+    const currentWin = winSlider ? parseInt(winSlider.value, 10) : btfMatrix16x16Config.windowCount;
+    const currentGlow = glowSlider ? parseInt(glowSlider.value, 10) : btfMatrix16x16Config.backlightCount;
+    previousWindowCountBeforeAllBacklight = (!isNaN(currentWin) && currentWin >= 0) ? currentWin : 50;
+    previousBacklightCountBeforeAllBacklight = (!isNaN(currentGlow) && currentGlow >= 0) ? currentGlow : 25;
+
+    let backlitCount = 0;
+    let darkCount = 0;
+
+    const geom = getBtfMatrix16x16GeometryNorm();
+    const gb = getGraphicChestBounds();
+    const activeImg = getActiveGraphicImg();
+    const cellNormW = geom.matrixNormW / 16.0;
+    const cellNormH = geom.matrixNormH / 16.0;
+    const stlColors = (typeof getActiveFloatStlColors === 'function') ? getActiveFloatStlColors() : null;
+
+    const targetW = 320;
+    const targetH = (activeImg && activeImg.naturalWidth > 0)
+        ? Math.max(120, Math.round(targetW * (activeImg.naturalHeight / activeImg.naturalWidth)))
+        : 320;
+    const offCanvas = document.createElement('canvas');
+    offCanvas.width = targetW;
+    offCanvas.height = targetH;
+    const offCtx = offCanvas.getContext('2d');
+    if (activeImg && activeImg.naturalWidth > 0) {
+        offCtx.drawImage(activeImg, 0, 0, targetW, targetH);
+    } else {
+        drawPetesDragon(offCtx, { x: 0, y: 0, width: targetW, height: targetH });
+    }
+    const imgData = offCtx.getImageData(0, 0, targetW, targetH).data;
+
+    btfMatrix16x16Cells.forEach(cell => {
+        // Look in the whole area of not just the LED but the area between the LED and its neighbors for any color
+        const sample = sampleMatrixCellPredominantColor(
+            imgData, targetW, targetH,
+            cell.nx, cell.ny,
+            cellNormW, cellNormH,
+            gb, stlColors
+        );
+
+        cell.onGraphic = sample.onGraphic;
+        cell.hasColor = sample.hasColor;
+
+        // In 100% All-Backlight Mode: ZERO windows! Every colored cell is a backlight!
+        if (sample.hasColor) {
+            cell.role = 'backlight';
+            cell.color = sample.color;
+            backlitCount++;
+        } else {
+            cell.role = 'dark';
+            cell.color = sample.color;
+            darkCount++;
+        }
+    });
+
+    btfMatrix16x16Config.windowCount = 0;
+    btfMatrix16x16Config.backlightCount = backlitCount;
+
+    if (winSlider) winSlider.value = 0;
+    if (glowSlider) glowSlider.value = backlitCount;
+    setAllBacklightNoWindowsUIState(true);
+
+    updateBtfMatrix16x16TelemetryUI();
+    markSingleShirtDirty();
+    if (typeof draw === 'function') draw();
+    if (btfMatrix16x16Active) handleRecompileTpuStl({ skipOpen: true });
+
+    showToast(`🌟 100% All-Backlight Mode: ${backlitCount} Backlit LEDs (0 Windows • No Cutouts • Solid Plate Surface)`);
+}
+window.setAllGraphicLedsToBacklight = setAllGraphicLedsToBacklight;
 
 let isAutoBacklightActive = false;
 let previousBacklightSliderCount = 25;
@@ -17649,6 +17819,9 @@ function setAutoBacklightUIState(isActive) {
 }
 
 function autoBacklightAllColoredAreas() {
+    if (typeof setAllBacklightNoWindowsUIState === 'function') {
+        setAllBacklightNoWindowsUIState(false);
+    }
     if (!btfMatrix16x16Cells || btfMatrix16x16Cells.length !== 256) {
         computeBtfMatrix16x16Layout();
     }
@@ -25189,9 +25362,11 @@ async function loadTpuModalData() {
                 const effectiveClear = (variantData.clear_layer_mm !== undefined) ? parseFloat(variantData.clear_layer_mm) : ((btfMatrix16x16Config && btfMatrix16x16Config.clearLayerMm !== undefined) ? btfMatrix16x16Config.clearLayerMm : 0.0);
                 const effectiveFrame = (variantData.matrix_frame_mode !== undefined) ? Boolean(variantData.matrix_frame_mode) : ((btfMatrix16x16Config && btfMatrix16x16Config.frameActive !== undefined) ? btfMatrix16x16Config.frameActive : true);
                 const effectiveCorners = (variantData.matrix_rounded_corners !== undefined) ? Boolean(variantData.matrix_rounded_corners) : ((btfMatrix16x16Config && btfMatrix16x16Config.roundedCorners !== undefined) ? btfMatrix16x16Config.roundedCorners : true);
+                const effectiveLenses = (variantData.matrix_lenses_mode !== undefined) ? Boolean(variantData.matrix_lenses_mode) : ((btfMatrix16x16Config && btfMatrix16x16Config.lensesActive !== undefined) ? btfMatrix16x16Config.lensesActive : false);
                 if (typeof syncBtfMatrixClearLayerUI === 'function') syncBtfMatrixClearLayerUI(effectiveClear);
                 if (typeof syncBtfMatrixFrameUI === 'function') syncBtfMatrixFrameUI(effectiveFrame);
                 if (typeof syncBtfMatrixCornersUI === 'function') syncBtfMatrixCornersUI(effectiveCorners);
+                if (typeof syncBtfMatrixLensesUI === 'function') syncBtfMatrixLensesUI(effectiveLenses);
 
                 const clearLabel = (effectiveClear > 0) ? ` + ${effectiveClear.toFixed(1)}mm Clear` : '';
                 const frameLabel = effectiveFrame ? ((effectiveLip > 0) ? ` + ${effectiveLip.toFixed(1)}mm Lip Frame` : ' + Flush Frame') : ' (Frame OFF)';
