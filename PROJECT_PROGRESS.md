@@ -93,6 +93,25 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### 2026-11-05 00:40: Calibration of 3% Warm White Starlight Mode & Enhanced Double-Pulse Timing
+- **Root Cause Analysis (Triple Scaling & Integer Truncation):**
+  - *Symptom:* After engaging Warm White Mode via Button 2 double-tap, the LEDs flickered twice extremely fast and then only sparkles were visible while all non-sparkling LEDs remained completely pitch black.
+  - *Root Cause:* In the initial implementation, `baseCol` in `renderWarmWhiteSparkle()` was pre-scaled to ~3% (`nscale8_video(8)` -> `CRGB(8, 7, 5)`). Then `duplicateFrontToBack()` scaled it again by `96` (8 * 96 / 256 = 3), and finally FastLED's global matrix master brightness (~30 / 255 = 11.8%) scaled it a third time (3 * 30 / 256 = 0.35 -> 0 in integer arithmetic!). This completely zeroed out the PWM duty cycle for all non-sparkling LEDs.
+  - In reality, normal colored backlights receive full un-attenuated RGB palette values (e.g. 255), are scaled by 64 in `duplicateFrontToBack()` (25%), and then scaled by master brightness (~30 / 255 = 11.8%), yielding:
+    255 * (64 / 256) * (30 / 255) ≈ 8 / 255 ≈ 3.1% of raw LED power!
+- **Firmware Calibration & Starlight Pop:**
+  - `renderWarmWhiteSparkle()` now supplies full un-attenuated warm incandescent white (`CRGB(255, 220, 160)` ~2700K Edison glow) and pure starlight white (`CRGB(255, 255, 255)`).
+  - In `duplicateFrontToBack()`, non-sparkle LEDs are scaled by `c.nscale8_video(64)` - identically matching the physical emission level of normal colored backlights (~3.1% duty cycle, outputting `CRGB(8, 7, 5)` at the hardware level).
+  - Sparkle LEDs (`c.r > 240 && c.g > 240 && c.b > 240`) are scaled by `c.nscale8_video(192)`, producing a crisp, bright 3x contrast pop (`CRGB(22, 22, 22)`) against the warm amber background.
+  - Non-matrix standard pebble strings now also apply this exact scaling logic in `duplicateFrontToBack()`.
+- **Refined Double-Pulse Visual Confirmation:**
+  - Increased Button 2 double-tap confirmation pulse timing from `delay(60)` / `delay(40)` to `delay(150)` ON / `delay(100)` OFF.
+  - The confirmation pulses now flash at full windowed brightness (~6% duty cycle) before latching into the calm 3% starlight mode, providing a clearly visible, graceful double-blink feedback for the runner.
+  - Mirrored this synchronized double-pulse to followers upon receiving ESP-NOW command `0x48`.
+- **Verification:**
+  - Verified compilation via PlatformIO (`pio run` succeeded in 9.66s; 14.6% RAM, 60.8% Flash).
+  - Synchronized both `src/main.cpp` and `arduino/MSEP_Costume/MSEP_Costume.ino` identically.
+
 ### 2026-11-05 00:25: 3% Warm White Starlight Mode (Button 2 Double-Tap)
 - **New Feature Request & Conceptual Architecture:**
   - Added a dedicated display mode where **all LEDs in the character graphic (both windowed through-holes and backlit subsurface cells)** illuminate uniformly in a cozy, dim vintage incandescent warm white (~2700K Edison filament, `CRGB(255, 220, 160)` scaled to ~3% duty cycle, outputting `CRGB(8, 7, 5)`), with occasional starlight sparkles dancing across the graphic.

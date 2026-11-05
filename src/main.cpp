@@ -184,7 +184,12 @@ inline void duplicateFrontToBack() {
 #endif
             CRGB c = tempActive[i];
             if (currentStandaloneMode == SHOW_MODE_WARM_WHITE_SPARKLE) {
-                c.nscale8_video(96); // Uniform 3% scale across all active matrix cells (both windowed and backlit)
+                bool isSparkle = (c.r > 240 && c.g > 240 && c.b > 240);
+                if (isSparkle) {
+                    c.nscale8_video(192); // Bright starlight pop (~3x brighter than warm white base)
+                } else {
+                    c.nscale8_video(64);  // Identical physical level to normal colored backlights (~3.1% duty cycle)
+                }
             } else if (i >= winCount) {
                 c.nscale8_video(64); // Backlight LEDs at 50% brightness of windowed LEDs
             } else {
@@ -205,7 +210,17 @@ inline void duplicateFrontToBack() {
     }
 
     for (int i = 0; i < FRONT_LEDS && (FRONT_LEDS + i) < NUM_LEDS && (FRONT_LEDS + i) < MAX_LEDS_CAPACITY; i++) {
-        leds[FRONT_LEDS + i] = leds[i];
+        CRGB c = leds[i];
+        if (currentStandaloneMode == SHOW_MODE_WARM_WHITE_SPARKLE) {
+            bool isSparkle = (c.r > 240 && c.g > 240 && c.b > 240);
+            if (isSparkle) {
+                c.nscale8_video(192);
+            } else {
+                c.nscale8_video(64);
+            }
+            leds[i] = c;
+        }
+        leds[FRONT_LEDS + i] = c;
     }
     for (int i = NUM_LEDS; i < MAX_LEDS_CAPACITY; i++) {
         leds[i] = CRGB::Black;
@@ -341,13 +356,12 @@ void broadcastWarmWhitePacket(uint8_t mode) {
 }
 
 void renderWarmWhiteSparkle(uint32_t now) {
-    // 3% Warm Incandescent Filament Base Color (~2700K Edison glow)
+    // Warm Incandescent Filament Base Color (~2700K Edison glow)
+    // Full unscaled RGB palette - physical 3% duty cycle is governed by 64-scaling in duplicateFrontToBack()
     CRGB baseCol = CRGB(255, 220, 160);
-    baseCol.nscale8_video(8); // ~3% duty cycle
 
-    // Starlight sparkle color: bright warm glint that twinkles across the field
-    CRGB sparkleCol = CRGB(255, 245, 210);
-    sparkleCol.nscale8_video(36); // ~14% starlight glint
+    // Starlight sparkle color: bright pure starlight white
+    CRGB sparkleCol = CRGB(255, 255, 255);
 
     for (int i = 0; i < FRONT_LEDS && i < MAX_LEDS_CAPACITY; i++) {
         leds[i] = baseCol;
@@ -549,6 +563,15 @@ void onDataReceive(const uint8_t *mac_addr, const uint8_t *incomingData, int len
                 // 3% Warm White Starlight Mode ON commanded by Leader/Peer
                 if (currentStandaloneMode != SHOW_MODE_WARM_WHITE_SPARKLE) {
                     previousStandaloneMode = currentStandaloneMode;
+                    // Synchronized fleet confirmation: 2 distinct warm white pulses (150ms ON, 100ms OFF)
+                    for (int f = 0; f < 2; f++) {
+                        fillActiveCostumeSolid(CRGB(255, 220, 160));
+                        FastLED.show();
+                        delay(150);
+                        fillActiveCostumeSolid(CRGB::Black);
+                        FastLED.show();
+                        delay(100);
+                    }
                     currentStandaloneMode = SHOW_MODE_WARM_WHITE_SPARKLE;
                     Serial.printf("[ESP-NOW] ✨ Warm White Starlight Mode engaged across fleet by Float %d\n", packet.activeFloat);
                 }
@@ -2385,23 +2408,22 @@ void loop() {
                 } else {
                     // Turn ON Warm White Mode!
                     previousStandaloneMode = currentStandaloneMode;
-                    currentStandaloneMode = SHOW_MODE_WARM_WHITE_SPARKLE;
                     if (isLeader) {
                         broadcastWarmWhitePacket(0x48);
                         Serial.println("[LEADER] ✨ Button 2 Double-Tap -> 3% Warm White Starlight Mode engaged for ENTIRE FLEET!");
                     } else {
                         Serial.printf("[FOLLOWER] Float %d Button 2 Double-Tap -> 3% Warm White Starlight Mode engaged (local only).\n", myFloatNumber);
                     }
+                    // Visible confirmation: 2 distinct warm white pulses (150ms ON, 100ms OFF)
                     for (int f = 0; f < 2; f++) {
                         fillActiveCostumeSolid(CRGB(255, 220, 160));
-                        duplicateFrontToBack();
                         FastLED.show();
-                        delay(60);
+                        delay(150);
                         fillActiveCostumeSolid(CRGB::Black);
-                        duplicateFrontToBack();
                         FastLED.show();
-                        delay(40);
+                        delay(100);
                     }
+                    currentStandaloneMode = SHOW_MODE_WARM_WHITE_SPARKLE;
                 }
             } else {
                 b2PendingTaps = 1;
