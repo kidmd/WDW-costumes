@@ -779,6 +779,19 @@
       }
     },
     {
+      "id": 91,
+      "row": 5,
+      "col": 10,
+      "x": 63.0,
+      "y": 113.0,
+      "x_front": 113.0,
+      "color": {
+        "r": 255,
+        "g": 250,
+        "b": 242
+      }
+    },
+    {
       "id": 93,
       "row": 5,
       "col": 12,
@@ -1000,6 +1013,19 @@
       }
     },
     {
+      "id": 166,
+      "row": 10,
+      "col": 5,
+      "x": 113.0,
+      "y": 63.0,
+      "x_front": 63.0,
+      "color": {
+        "r": 255,
+        "g": 250,
+        "b": 242
+      }
+    },
+    {
       "id": 169,
       "row": 10,
       "col": 8,
@@ -1104,6 +1130,19 @@
       }
     },
     {
+      "id": 198,
+      "row": 12,
+      "col": 5,
+      "x": 113.0,
+      "y": 43.0,
+      "x_front": 63.0,
+      "color": {
+        "r": 255,
+        "g": 250,
+        "b": 242
+      }
+    },
+    {
       "id": 199,
       "row": 12,
       "col": 6,
@@ -1188,7 +1227,7 @@
       "filename": "color_white.stl"
     }
   },
-  "layout_signature": "honor_america_eagle-matrix16-0.60mm-gap0.00mm-round_34-v9-502c87b6",
+  "layout_signature": "honor_america_eagle-matrix16-0.60mm-gap0.00mm-round_34-v9-e88a6f73",
   "size_preset": "medium",
   "width_mm": 176.0,
   "front": {
@@ -1982,6 +2021,19 @@
         }
       },
       {
+        "id": 91,
+        "row": 5,
+        "col": 10,
+        "x": 63.0,
+        "y": 113.0,
+        "x_front": 113.0,
+        "color": {
+          "r": 255,
+          "g": 250,
+          "b": 242
+        }
+      },
+      {
         "id": 93,
         "row": 5,
         "col": 12,
@@ -2203,6 +2255,19 @@
         }
       },
       {
+        "id": 166,
+        "row": 10,
+        "col": 5,
+        "x": 113.0,
+        "y": 63.0,
+        "x_front": 63.0,
+        "color": {
+          "r": 255,
+          "g": 250,
+          "b": 242
+        }
+      },
+      {
         "id": 169,
         "row": 10,
         "col": 8,
@@ -2307,6 +2372,19 @@
         }
       },
       {
+        "id": 198,
+        "row": 12,
+        "col": 5,
+        "x": 113.0,
+        "y": 43.0,
+        "x_front": 63.0,
+        "color": {
+          "r": 255,
+          "g": 250,
+          "b": 242
+        }
+      },
+      {
         "id": 199,
         "row": 12,
         "col": 6,
@@ -2347,7 +2425,7 @@
       }
     ],
     "led_count": 48,
-    "backlight_led_count": 38,
+    "backlight_led_count": 41,
     "fastener_tabs": [
       [
         4.0,
@@ -2913,9 +2991,9 @@
       1.5
     ],
     "stl_size": 1969084,
-    "chassis_size": 3751484,
+    "chassis_size": 3749684,
     "lid_size": 103884,
-    "zip_size": 2702200,
+    "zip_size": 2696235,
     "inlays": [
       {
         "key": "blue",
@@ -2929,14 +3007,14 @@
         "name": "Flag Stripes, Fireworks & Eagle Beak",
         "filename": "tpu_panel_front_color_red.stl",
         "hex": "#d81d17",
-        "count": 17420
+        "count": 16608
       },
       {
         "key": "white",
         "name": "Marquee Banner, Stars, Stripes & Eagle Head",
         "filename": "tpu_panel_front_color_white.stl",
         "hex": "#ffffff",
-        "count": 34408
+        "count": 34672
       },
       {
         "key": "clear_layer",
@@ -3747,6 +3825,19 @@
         }
       },
       {
+        "id": 91,
+        "row": 5,
+        "col": 10,
+        "x": 63.0,
+        "y": 113.0,
+        "x_front": 113.0,
+        "color": {
+          "r": 255,
+          "g": 250,
+          "b": 242
+        }
+      },
+      {
         "id": 93,
         "row": 5,
         "col": 12,
@@ -3968,6 +4059,19 @@
         }
       },
       {
+        "id": 166,
+        "row": 10,
+        "col": 5,
+        "x": 113.0,
+        "y": 63.0,
+        "x_front": 63.0,
+        "color": {
+          "r": 255,
+          "g": 250,
+          "b": 242
+        }
+      },
+      {
         "id": 169,
         "row": 10,
         "col": 8,
@@ -4072,6 +4176,19 @@
         }
       },
       {
+        "id": 198,
+        "row": 12,
+        "col": 5,
+        "x": 113.0,
+        "y": 43.0,
+        "x_front": 63.0,
+        "color": {
+          "r": 255,
+          "g": 250,
+          "b": 242
+        }
+      },
+      {
         "id": 199,
         "row": 12,
         "col": 6,
@@ -4112,7 +4229,7 @@
       }
     ],
     "led_count": 48,
-    "backlight_led_count": 38,
+    "backlight_led_count": 41,
     "fastener_tabs": [
       [
         4.0,
@@ -4678,9 +4795,9 @@
       1.5
     ],
     "stl_size": 1969084,
-    "chassis_size": 3751484,
+    "chassis_size": 3749684,
     "lid_size": 103884,
-    "zip_size": 2701980,
+    "zip_size": 2696345,
     "inlays": [
       {
         "key": "blue",
@@ -4694,14 +4811,14 @@
         "name": "Flag Stripes, Fireworks & Eagle Beak",
         "filename": "tpu_panel_back_color_red.stl",
         "hex": "#d81d17",
-        "count": 17420
+        "count": 16608
       },
       {
         "key": "white",
         "name": "Marquee Banner, Stars, Stripes & Eagle Head",
         "filename": "tpu_panel_back_color_white.stl",
         "hex": "#ffffff",
-        "count": 34408
+        "count": 34672
       },
       {
         "key": "clear_layer",
@@ -5498,6 +5615,19 @@
       }
     },
     {
+      "id": 91,
+      "row": 5,
+      "col": 10,
+      "x": 63.0,
+      "y": 113.0,
+      "x_front": 113.0,
+      "color": {
+        "r": 255,
+        "g": 250,
+        "b": 242
+      }
+    },
+    {
       "id": 93,
       "row": 5,
       "col": 12,
@@ -5719,6 +5849,19 @@
       }
     },
     {
+      "id": 166,
+      "row": 10,
+      "col": 5,
+      "x": 113.0,
+      "y": 63.0,
+      "x_front": 63.0,
+      "color": {
+        "r": 255,
+        "g": 250,
+        "b": 242
+      }
+    },
+    {
       "id": 169,
       "row": 10,
       "col": 8,
@@ -5823,6 +5966,19 @@
       }
     },
     {
+      "id": 198,
+      "row": 12,
+      "col": 5,
+      "x": 113.0,
+      "y": 43.0,
+      "x_front": 63.0,
+      "color": {
+        "r": 255,
+        "g": 250,
+        "b": 242
+      }
+    },
+    {
       "id": 199,
       "row": 12,
       "col": 6,
@@ -5862,7 +6018,7 @@
       }
     }
   ],
-  "backlight_led_count": 38,
+  "backlight_led_count": 41,
   "fastener_tabs": [
     [
       4.0,
@@ -6428,9 +6584,9 @@
     1.5
   ],
   "stl_size": 1969084,
-  "chassis_size": 3751484,
+  "chassis_size": 3749684,
   "lid_size": 103884,
-  "zip_size": 2702200,
+  "zip_size": 2696235,
   "inlays": [
     {
       "key": "blue",
@@ -6444,14 +6600,14 @@
       "name": "Flag Stripes, Fireworks & Eagle Beak",
       "filename": "tpu_panel_front_color_red.stl",
       "hex": "#d81d17",
-      "count": 17420
+      "count": 16608
     },
     {
       "key": "white",
       "name": "Marquee Banner, Stars, Stripes & Eagle Head",
       "filename": "tpu_panel_front_color_white.stl",
       "hex": "#ffffff",
-      "count": 34408
+      "count": 34672
     },
     {
       "key": "clear_layer",
@@ -6468,6 +6624,5 @@
   "multicolor_3mf_url": "/3d_panels/tpu_panel_front_multicolor.3mf",
   "multicolor_zip_url": "/3d_panels/tpu_panel_front_multicolor_bundle.zip",
   "volume_mm3": 18585.6,
-  "is_watertight": true,
-  "active_preset_name": "to_honor_america_100_led_patriotic_preset_medium_100led_2026-11-04_16-24"
+  "is_watertight": true
 }

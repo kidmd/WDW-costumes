@@ -16269,6 +16269,162 @@ function getBtfMatrix16x16GeometryNorm() {
     };
 }
 
+/**
+ * Samples the full catchment area of a 16x16 matrix cell (spanning halfway to neighboring LEDs in all directions,
+ * i.e. 10.0mm x 10.0mm physical area: +/-0.5 matrix pitch around cell center).
+ * If a black line or contour crosses over the LED center but colored pixels exist nearby within the cell area,
+ * the predominant color is selected and vibrancy-boosted for WS2812B backlighting.
+ */
+function sampleMatrixCellPredominantColor(imgData, targetW, targetH, nx, ny, cellNormW, cellNormH, gb, stlColors) {
+    // Full catchment area spanning halfway to neighboring LEDs in all directions (10x10mm physical area)
+    const minRelX = (nx - cellNormW * 0.5 - gb.normX) / gb.normW;
+    const maxRelX = (nx + cellNormW * 0.5 - gb.normX) / gb.normW;
+    const minRelY = (ny - cellNormH * 0.5 - gb.normY) / gb.normH;
+    const maxRelY = (ny + cellNormH * 0.5 - gb.normY) / gb.normH;
+
+    const minPx = Math.max(0, Math.floor(minRelX * (targetW - 1)));
+    const maxPx = Math.min(targetW - 1, Math.ceil(maxRelX * (targetW - 1)));
+    const minPy = Math.max(0, Math.floor(minRelY * (targetH - 1)));
+    const maxPy = Math.min(targetH - 1, Math.ceil(maxRelY * (targetH - 1)));
+
+    if (minPx > maxPx || minPy > maxPy) {
+        return {
+            hasColor: false,
+            onGraphic: false,
+            color: { r: 17, g: 22, b: 29 },
+            totalColoredPixels: 0,
+            totalBlackPixels: 0
+        };
+    }
+
+    // Build palette of active float inlay colors (excluding chassis/black)
+    const palette = [];
+    if (stlColors && typeof stlColors === 'object') {
+        for (const [key, val] of Object.entries(stlColors)) {
+            if (!val) continue;
+            const role = val.role || 'inlay';
+            if (role !== 'chassis' && key !== 'black') {
+                const tr = val.targetRgb || [128, 128, 128];
+                if (Math.max(tr[0], tr[1], tr[2]) >= 45) {
+                    palette.push({
+                        key,
+                        name: val.name || key,
+                        rgb: tr,
+                        hex: val.hex || '#ffffff'
+                    });
+                }
+            }
+        }
+    }
+
+    // Voting buckets: key -> { count, sumR, sumG, sumB }
+    const buckets = new Map();
+    let totalGraphicPixels = 0;
+    let totalBlackPixels = 0;
+    let totalColoredPixels = 0;
+
+    for (let py = minPy; py <= maxPy; py++) {
+        for (let px = minPx; px <= maxPx; px++) {
+            const idx = (py * targetW + px) * 4;
+            const a = imgData[idx + 3];
+            if (a <= 40) continue; // transparent background
+
+            totalGraphicPixels++;
+            const r = imgData[idx];
+            const g = imgData[idx + 1];
+            const b = imgData[idx + 2];
+
+            const maxCh = Math.max(r, g, b);
+            const lum = 0.299 * r + 0.587 * g + 0.114 * b;
+
+            // Black outline, dark contour, or black chassis check
+            const isBlack = (maxCh < 45) || (r < 45 && g < 45 && b < 45) || (lum < 35 && maxCh < 55);
+            if (isBlack) {
+                totalBlackPixels++;
+                continue;
+            }
+
+            totalColoredPixels++;
+
+            let bucketKey;
+            if (palette.length > 0) {
+                let bestKey = palette[0].key;
+                let bestDistSq = 1e9;
+                for (let pi = 0; pi < palette.length; pi++) {
+                    const pal = palette[pi];
+                    const dr = r - pal.rgb[0];
+                    const dg = g - pal.rgb[1];
+                    const db = b - pal.rgb[2];
+                    const dSq = dr * dr + dg * dg + db * db;
+                    if (dSq < bestDistSq) {
+                        bestDistSq = dSq;
+                        bestKey = pal.key;
+                    }
+                }
+                bucketKey = bestKey;
+            } else {
+                // Quantized 32-step RGB bin for custom/unmapped graphics
+                const qR = Math.min(7, Math.floor(r / 32));
+                const qG = Math.min(7, Math.floor(g / 32));
+                const qB = Math.min(7, Math.floor(b / 32));
+                bucketKey = (qR << 6) | (qG << 3) | qB;
+            }
+
+            let bkt = buckets.get(bucketKey);
+            if (!bkt) {
+                bkt = { count: 0, sumR: 0, sumG: 0, sumB: 0 };
+                buckets.set(bucketKey, bkt);
+            }
+            bkt.count++;
+            bkt.sumR += r;
+            bkt.sumG += g;
+            bkt.sumB += b;
+        }
+    }
+
+    if (totalColoredPixels === 0) {
+        return {
+            hasColor: false,
+            onGraphic: totalGraphicPixels > 0,
+            color: { r: 17, g: 22, b: 29 },
+            totalColoredPixels: 0,
+            totalBlackPixels
+        };
+    }
+
+    // Predominant color is the bucket with the highest count (mode)
+    let winner = null;
+    let maxCount = -1;
+    for (const [key, bkt] of buckets.entries()) {
+        if (bkt.count > maxCount) {
+            maxCount = bkt.count;
+            winner = bkt;
+        }
+    }
+
+    const avgR = Math.round(winner.sumR / winner.count);
+    const avgG = Math.round(winner.sumG / winner.count);
+    const avgB = Math.round(winner.sumB / winner.count);
+
+    const centerRelX = (nx - gb.normX) / gb.normW;
+    const centerRelY = (ny - gb.normY) / gb.normH;
+    const clampedRelX = Math.max(0, Math.min(1, centerRelX));
+    const clampedRelY = Math.max(0, Math.min(1, centerRelY));
+
+    const finalColor = (typeof boostLedVibrancy === 'function')
+        ? boostLedVibrancy(avgR, avgG, avgB, clampedRelX, clampedRelY)
+        : { r: avgR, g: avgG, b: avgB };
+
+    return {
+        hasColor: true,
+        onGraphic: true,
+        color: finalColor,
+        totalColoredPixels,
+        totalBlackPixels
+    };
+}
+window.sampleMatrixCellPredominantColor = sampleMatrixCellPredominantColor;
+
 function computeBtfMatrix16x16Layout() {
     const geom = getBtfMatrix16x16GeometryNorm();
     const gb = getGraphicChestBounds();
@@ -16296,6 +16452,10 @@ function computeBtfMatrix16x16Layout() {
 
     btfMatrix16x16Cells = [];
 
+    const cellNormW = geom.matrixNormW / 16.0;
+    const cellNormH = geom.matrixNormH / 16.0;
+    const stlColors = (typeof getActiveFloatStlColors === 'function') ? getActiveFloatStlColors() : null;
+
     for (let row = 0; row < 16; row++) {
         for (let col = 0; col < 16; col++) {
             // Physical 176x176mm plate coordinates (X: left-to-right 0..176, Y: bottom-to-top 0..176)
@@ -16306,56 +16466,13 @@ function computeBtfMatrix16x16Layout() {
             const nx = geom.matrixNormX + ((col + 0.5) / 16.0) * geom.matrixNormW;
             const ny = geom.matrixNormY + ((row + 0.5) / 16.0) * geom.matrixNormH;
 
-            // Sample graphic strictly at the exact LED cell center (so windows/lenses never land in empty background halo)
-            const relX = (nx - gb.normX) / gb.normW;
-            const relY = (ny - gb.normY) / gb.normH;
-            let onGraphic = false;
-            let sumR = 0, sumG = 0, sumB = 0, countValid = 0;
-
-            if (relX >= 0.0 && relX <= 1.0 && relY >= 0.0 && relY <= 1.0) {
-                const cxPx = Math.min(targetW - 1, Math.max(0, Math.round(relX * (targetW - 1))));
-                const cyPx = Math.min(targetH - 1, Math.max(0, Math.round(relY * (targetH - 1))));
-                const cIdx = (cyPx * targetW + cxPx) * 4;
-                const cR = imgData[cIdx], cG = imgData[cIdx + 1], cB = imgData[cIdx + 2], cA = imgData[cIdx + 3];
-                const centerValid = (cA > 40) && (Math.max(cR, cG, cB) >= 30);
-
-                if (centerValid) {
-                    const radPx = 2;
-                    for (let dy = -radPx; dy <= radPx; dy++) {
-                        for (let dx = -radPx; dx <= radPx; dx++) {
-                            const px = cxPx + dx;
-                            const py = cyPx + dy;
-                            if (px < 0 || px >= targetW || py < 0 || py >= targetH) continue;
-                            const pIdx = (py * targetW + px) * 4;
-                            const r = imgData[pIdx], g = imgData[pIdx + 1], b = imgData[pIdx + 2], a = imgData[pIdx + 3];
-                            if (a > 40 && Math.max(r, g, b) >= 30) {
-                                sumR += r;
-                                sumG += g;
-                                sumB += b;
-                                countValid++;
-                            }
-                        }
-                    }
-                }
-            }
-
-            let cellColor = { r: 0, g: 255, b: 136 };
-            if (countValid > 0) {
-                const avgR = Math.round(sumR / countValid);
-                const avgG = Math.round(sumG / countValid);
-                const avgB = Math.round(sumB / countValid);
-                const maxAvg = Math.max(avgR, avgG, avgB);
-                if (maxAvg < 45) {
-                    // True black chassis, wheels, drum face & dark outlines: preserve as dark black (no lens cutout)
-                    cellColor = { r: 17, g: 22, b: 29 };
-                    onGraphic = false;
-                } else {
-                    onGraphic = true;
-                    cellColor = (typeof boostLedVibrancy === 'function')
-                        ? boostLedVibrancy(avgR, avgG, avgB, Math.max(0, Math.min(1, relX)), Math.max(0, Math.min(1, relY)))
-                        : { r: avgR, g: avgG, b: avgB };
-                }
-            }
+            // Sample cell catchment area extending halfway to neighbors in all directions:
+            const sample = sampleMatrixCellPredominantColor(
+                imgData, targetW, targetH,
+                nx, ny,
+                cellNormW, cellNormH,
+                gb, stlColors
+            );
 
             // Serpentine 16x16 matrix: Starts upper-right (row 0, col 15 -> index 0)
             // Even rows (0, 2, 4...) run Right-to-Left (col 15 -> 0, col 0 -> 15)
@@ -16371,17 +16488,18 @@ function computeBtfMatrix16x16Layout() {
                 nx,
                 ny,
                 role: 'dark',
-                color: cellColor,
-                onGraphic
+                color: sample.color,
+                onGraphic: sample.onGraphic,
+                hasColor: sample.hasColor
             });
         }
     }
 
-    // Candidate pool: prefer cells on the graphic; if user asks for more than graphic cells, include nearest margin cells
+    // Candidate pool: prefer cells with colored artwork; if user asks for more than graphic cells, include nearest margin cells
     const graphicIndices = [];
     const nonGraphicIndices = [];
     btfMatrix16x16Cells.forEach((cell, i) => {
-        if (cell.onGraphic) graphicIndices.push(i);
+        if (cell.hasColor) graphicIndices.push(i);
         else nonGraphicIndices.push(i);
     });
 
@@ -16467,10 +16585,26 @@ function computeBtfMatrix16x16Layout() {
     const winSet = new Set(winSelected);
     winSelected.forEach(idx => { btfMatrix16x16Cells[idx].role = 'window'; });
 
-    // 2. Spread ~25 Backlighting LEDs evenly across the remaining graphic cells
-    const remainingPool = primaryPool.filter(idx => !winSet.has(idx));
-    const glowSelected = selectEvenlySpread(remainingPool, targetGlow, winSelected);
-    glowSelected.forEach(idx => { btfMatrix16x16Cells[idx].role = 'backlight'; });
+    // 2. Backlighting LEDs: If auto-backlight toggle is active, backlight ALL colored cells; otherwise spread slider count
+    if (typeof isAutoBacklightActive !== 'undefined' && isAutoBacklightActive) {
+        let backlitCount = 0;
+        btfMatrix16x16Cells.forEach((cell, idx) => {
+            if (winSet.has(idx)) return;
+            if (cell.hasColor) {
+                cell.role = 'backlight';
+                backlitCount++;
+            } else {
+                cell.role = 'dark';
+            }
+        });
+        btfMatrix16x16Config.backlightCount = backlitCount;
+        const glowSlider = document.getElementById('btfMatrixBacklightCountSlider');
+        if (glowSlider) glowSlider.value = backlitCount;
+    } else {
+        const remainingPool = primaryPool.filter(idx => !winSet.has(idx));
+        const glowSelected = selectEvenlySpread(remainingPool, targetGlow, winSelected);
+        glowSelected.forEach(idx => { btfMatrix16x16Cells[idx].role = 'backlight'; });
+    }
 
     updateBtfMatrix16x16TelemetryUI();
 }
@@ -17545,6 +17679,28 @@ function autoBacklightAllColoredAreas() {
     let backlitCount = 0;
     let darkCount = 0;
 
+    const geom = getBtfMatrix16x16GeometryNorm();
+    const gb = getGraphicChestBounds();
+    const activeImg = getActiveGraphicImg();
+    const cellNormW = geom.matrixNormW / 16.0;
+    const cellNormH = geom.matrixNormH / 16.0;
+    const stlColors = (typeof getActiveFloatStlColors === 'function') ? getActiveFloatStlColors() : null;
+
+    const targetW = 320;
+    const targetH = (activeImg && activeImg.naturalWidth > 0)
+        ? Math.max(120, Math.round(targetW * (activeImg.naturalHeight / activeImg.naturalWidth)))
+        : 320;
+    const offCanvas = document.createElement('canvas');
+    offCanvas.width = targetW;
+    offCanvas.height = targetH;
+    const offCtx = offCanvas.getContext('2d');
+    if (activeImg && activeImg.naturalWidth > 0) {
+        offCtx.drawImage(activeImg, 0, 0, targetW, targetH);
+    } else {
+        drawPetesDragon(offCtx, { x: 0, y: 0, width: targetW, height: targetH });
+    }
+    const imgData = offCtx.getImageData(0, 0, targetW, targetH).data;
+
     btfMatrix16x16Cells.forEach(cell => {
         // Keep all existing windowed LEDs strictly intact (do not overwrite windowed through-holes)
         if (cell.role === 'window') {
@@ -17552,16 +17708,24 @@ function autoBacklightAllColoredAreas() {
             return;
         }
 
-        const c = cell.color || { r: 0, g: 0, b: 0 };
-        const lum = 0.299 * c.r + 0.587 * c.g + 0.114 * c.b;
-        const maxCh = Math.max(c.r, c.g, c.b);
-        // Colored area check: on the graphic, distinct color (not dark black drum face or chassis)
-        const isColored = cell.onGraphic && (maxCh >= 50 && lum >= 40) && !(c.r < 45 && c.g < 45 && c.b < 45);
-        if (isColored) {
+        // Look in the whole area of not just the LED but the area between the LED and its neighbors for any color
+        const sample = sampleMatrixCellPredominantColor(
+            imgData, targetW, targetH,
+            cell.nx, cell.ny,
+            cellNormW, cellNormH,
+            gb, stlColors
+        );
+
+        cell.onGraphic = sample.onGraphic;
+        cell.hasColor = sample.hasColor;
+
+        if (sample.hasColor) {
             cell.role = 'backlight';
+            cell.color = sample.color;
             backlitCount++;
         } else {
             cell.role = 'dark';
+            cell.color = sample.color;
             darkCount++;
         }
     });

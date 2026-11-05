@@ -487,8 +487,14 @@ def compile_matrix_16x16_plate_variant(variant_name, artwork_path, window_shape=
     closest_color_idx = np.argmin(color_diffs, axis=2)
 
     # Build comprehensive lookup of all 256 physical 16x16 matrix cell locations
+    # Sampling scans the entire cell catchment area (halfway to neighboring LEDs in all directions,
+    # i.e. 10.0mm x 10.0mm physical area: +/-5.0mm around cell center).
+    # If a black outline/line crosses the center but colored pixels exist in the catchment area,
+    # the predominant non-black color is chosen.
     all_cells_map = {}
     colored_candidates = []
+    half_pitch_mm = 5.0
+
     for r in range(16):
         for c in range(16):
             mx_front = round(MARGIN_MM + 5.0 + c * 10.0, 2)  # 13.0 to 163.0 mm (front view coordinate)
@@ -496,16 +502,48 @@ def compile_matrix_16x16_plate_variant(variant_name, artwork_path, window_shape=
             # Mirrored X for face-down printing bed coordinate:
             mx_bed = round(PLATE_SIZE_MM - mx_front, 2)
 
-            px = int(round(min_x + (mx_front - offset_x) / scale))
-            py = int(round(max_y - (my_mm - offset_y) / scale))
+            # Full catchment bounding box spanning halfway to neighboring LEDs (+/-5.0mm):
+            x_min_mm = mx_front - half_pitch_mm
+            x_max_mm = mx_front + half_pitch_mm
+            y_min_mm = my_mm - half_pitch_mm
+            y_max_mm = my_mm + half_pitch_mm
+
+            px0 = int(np.floor(min_x + (x_min_mm - offset_x) / scale))
+            px1 = int(np.ceil(min_x + (x_max_mm - offset_x) / scale))
+            py0 = int(np.floor(max_y - (y_max_mm - offset_y) / scale))
+            py1 = int(np.ceil(max_y - (y_min_mm - offset_y) / scale))
+
+            c_x0 = max(0, min(img_w - 1, px0))
+            c_x1 = min(img_w, max(0, px1) + 1)
+            c_y0 = max(0, min(img_h - 1, py0))
+            c_y1 = min(img_h, max(0, py1) + 1)
+
             pr, pg_c, pb = 20, 20, 20
             is_colored = False
-            if 0 <= px < img_w and 0 <= py < img_h and fg_mask[py, px]:
-                c_idx = closest_color_idx[py, px]
-                c_key = color_names[c_idx]
-                pr, pg_c, pb = int(rgb[py, px, 0]), int(rgb[py, px, 1]), int(rgb[py, px, 2])
-                if c_key != 'black':
+
+            if c_x1 > c_x0 and c_y1 > c_y0:
+                cell_fg = fg_mask[c_y0:c_y1, c_x0:c_x1]
+                cell_closest = closest_color_idx[c_y0:c_y1, c_x0:c_x1]
+                cell_rgb = rgb[c_y0:c_y1, c_x0:c_x1]
+
+                votes = {}
+                rgb_sums = {}
+
+                for c_i, c_name in enumerate(color_names):
+                    if c_name == 'black' or stl_colors.get(c_name, {}).get('role') == 'chassis':
+                        continue
+                    m = (cell_closest == c_i) & cell_fg
+                    cnt = int(np.sum(m))
+                    if cnt > 0:
+                        votes[c_name] = cnt
+                        rgb_sums[c_name] = np.sum(cell_rgb[m], axis=0)
+
+                if votes:
                     is_colored = True
+                    # Predominant color is the color with the most pixels in this neighbor catchment area
+                    best_name = max(votes, key=votes.get)
+                    mean_rgb = rgb_sums[best_name] / votes[best_name]
+                    pr, pg_c, pb = int(round(mean_rgb[0])), int(round(mean_rgb[1])), int(round(mean_rgb[2]))
 
             cell_obj = {
                 'id': r * 16 + c + 1,

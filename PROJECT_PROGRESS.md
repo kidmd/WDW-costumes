@@ -93,6 +93,24 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### 2026-11-04 21:05: Neighbor-Area Predominant Color Sampling for Matrix Auto-Backlight
+- **Problem Statement & Physical Analysis:**
+  - When users activated the **Auto-Backlight Colored Areas** feature on the 16×16 matrix plate, certain LEDs under colored character artwork remained unlit (Dark).
+  - *Root Cause:* Previous sampling only checked the single center pixel or a microscopic 5×5 pixel radius (`radPx = 2`). If a black stained-glass leading line, shadow contour, or interior stroke crossed directly over the center of the LED, the algorithm treated the entire LED as non-graphic or dark black, completely ignoring the rich character colors lying just a millimeter away within the cell.
+- **Neighbor-Spanning Catchment Area Algorithm:**
+  - Implemented `sampleMatrixCellPredominantColor()` in `simulator/app.js` and updated cell evaluation in `scripts/compile_clean_tpu_panel.py`.
+  - Expanded sampling to the full physical catchment footprint of the cell spanning halfway to neighboring LEDs in all directions ($10.0\text{ mm} \times 10.0\text{ mm}$ square; $\pm 5.0\text{ mm}$ / $\pm 0.5$ matrix grid pitch around cell center).
+  - Filters out transparent shirt canvas background (`alpha <= 40`) and black outlines/chassis (`(maxCh < 45) || (r, g, b < 45) || (lum < 35 && maxCh < 55)`).
+  - If any colored pixels exist within the neighbor catchment area, the algorithm bins the colored pixels against the float's inlay palette (or 32-step quantized RGB bins for custom graphics) and determines the **predominant color** (the majority color mode).
+  - The LED color is assigned to the average RGB of that predominant color cluster and vibrancy-boosted via `boostLedVibrancy()` for punchy WS2812B output.
+  - If no colored pixels exist (pure black chassis, wheels, or empty background), the LED stays cleanly **Dark (Off)**.
+  - Existing **Windowed** through-holes are strictly preserved without overwrite.
+- **Verification & Empirical Gain:**
+  - Evaluated on *To Honor America* (Float 7): colored candidate pool increased from 66 to 142 cells (+76 cells previously blocked by black flag stripe borders and eagle leading).
+  - Evaluated on *Pete's Dragon* (Float 6): colored candidate pool increased from 100 to 154 cells (+54 cells previously blocked by scales and dark outlines).
+  - Validated clean 16×16 TPU 3D panel compilation (`compile_clean_tpu_panel.py` compiled front/back watertight panels in 11.64s).
+  - Validated syntax with `node -c simulator/app.js` and bumped index cache buster to `v=110`.
+
 ### 2026-11-04 20:45: Float 7 (To Honor America) Reverted to Authentic 4-Stripe Front Drape
 - **Reversion to 4-Stripe Front Drape:**
   - Per user direction, cleanly rolled back the front banner drape of *To Honor America* (Float 7) from the 6-stripe test back to the authentic 4-red-stripe / 3-white-stripe layout (`assets/backup_honor_america_4stripes/`).
