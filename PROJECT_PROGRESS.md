@@ -93,6 +93,26 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### 2026-11-05: Lightning Bug Bold Black Wing Curly Filigree Scrollwork Decorations
+- **MSEP Float Authentic Wing Scrollwork Integration:**
+  - Added the iconic whimsical curly decorations to the blue wing surface of the Lightning Bug float (`lightning_bug`), faithfully reproducing the purple light scrollwork wireframe patterns from the real Main Street Electrical Parade float photo.
+  - Implemented via continuous parametric cubic B-spline curves (`scipy.interpolate.splprep` / `splev`) rendered with bold, clean 3.5–4.0px black line art (`#141414` / BGR `[20, 20, 20, 255]`), perfectly matching the cartoon line weight of the bug's cap rim, facial features, and body dividers.
+- **Filigree Architecture & Geometry:**
+  - **Midline Spine:** A smooth, gentle curved trunk tracking the natural ergonomic midline of the blue wing from $y = 60$ down to $y = 214$.
+  - **Top Apical Crest Curl:** A whimsical upward loop at the wing apex ($y \in [51 \dots 60], x \in [97 \dots 104]$) giving a playful crown finial flourish.
+  - **Tier 1 (Upper Curls, $y \approx 85-92$):** Balanced outward-arching scroll pair coiling gracefully inward into open, readable cartoon spirals.
+  - **Tier 2 (Middle Curls, $y \approx 130-140$):** Wide, sweeping lateral filigree flourishes extending into the broadest section of the wing ($x = 72$ to $154$).
+  - **Tier 3 (Lower Curls, $y \approx 170-180$):** Downward-sweeping scroll pair harmonizing with the contour of the bug's back.
+  - **Tier 4 (Base Root Curls, $y \approx 208-216$):** Twin grounding scrolls flanking the wing root.
+  - **Safe Boundary Clearance:** Enforced strict distance-transform isolation (`dist_wing_blue >= 3.0px`), ensuring all curly cues float with a comfortable $\ge 3.28\text{px}$ blue border margin without touching or clipping into the outer black wing contour.
+- **Strict Palette & Pixel Integrity Verification:**
+  - **100.0000% 5-Color Palette Compliance:** Every single pixel strictly adheres to the canonical palette (`#141414`, `#22c55e`, `#2563eb`, `#e61919`, `#facc15`).
+  - **Zero Unintended Alterations:** Total foreground pixel count remains exactly 119,493. Verified that exactly 0 pixels outside the blue wing were altered; head, cap, antennae, smile, eyes, accordion tail, lantern dome, and legs remain 100% bitwise identical.
+- **Asset Deployment & Simulator Synchronization:**
+  - Synchronized graphic across all 4 production paths: `assets/lightning_bug.png`, `assets/lightningbug_transparent.png`, `simulator/assets/lightning_bug.png`, and `simulator/assets/lightningbug_transparent.png`.
+  - Bumped simulator asset cache-busters in `simulator/app.js` to `?v=20261105_wing_curls`.
+  - Updated single-source generator script `scripts/lb_paint_facets.py` for 100% deterministic reproducibility.
+
 ### 2026-11-05 10:20: Restored 2mm Black Perimeter Shelf & Solid Continuous Foundation Under 2mm Frame Wall
 - **Physical Root Cause Analysis (Frame Delamination on PETG Prints):**
   - *Observation:* On recent PETG test prints, the 2mm rear retaining frame separated from the plate with minimal handling.

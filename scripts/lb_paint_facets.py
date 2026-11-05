@@ -1,6 +1,7 @@
 import cv2
 import numpy as np
 from scipy.ndimage import distance_transform_edt, gaussian_filter1d
+from scipy.interpolate import splprep, splev
 
 REF = 'assets/lightningbug_dots_removed_backup.png'
 img = cv2.imread(REF, cv2.IMREAD_UNCHANGED)
@@ -440,7 +441,150 @@ tail_div_line &= clean_fg
 fold_boundary_1x = cv2.dilate((clean_part_map == 11).astype(np.uint8), np.ones((3, 3), np.uint8)).astype(bool) & (clean_part_map == 12)
 fold_boundary_4x = cv2.dilate(fold_boundary_1x.astype(np.uint8), cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (15, 15))).astype(bool) & clean_fg
 
-all_lines = outer_edge | part_boundary_2x | head_top_line | tail_div_line | fold_boundary_4x
+# 5) Dedicated bold black curly decorations on blue wing (authentic MSEP parade wireframe filigree scrollwork):
+def generate_smooth_path(pts, num_pts=150):
+    pts = np.array(pts, dtype=float)
+    tck, u = splprep([pts[:, 0], pts[:, 1]], s=0, k=min(3, len(pts)-1))
+    u_new = np.linspace(0, 1, num_pts)
+    x_new, y_new = splev(u_new, tck)
+    return np.column_stack([x_new, y_new])
+
+curl_curves = []
+
+# Central spine down the wing midline (y: 60 to 214)
+spine_pts = [
+    [104.0, 60.0],
+    [105.0, 78.0],
+    [107.5, 98.0],
+    [111.0, 118.0],
+    [115.0, 140.0],
+    [119.0, 162.0],
+    [122.0, 182.0],
+    [124.5, 200.0],
+    [125.5, 214.0]
+]
+curl_curves.append(generate_smooth_path(spine_pts, 250))
+
+# Top apex crest curl
+top_pts = [
+    [104.0, 60.0],
+    [103.5, 54.0],
+    [100.5, 51.0],
+    [97.0, 52.5],
+    [97.0, 56.0],
+    [100.0, 58.5],
+    [102.5, 57.0]
+]
+curl_curves.append(generate_smooth_path(top_pts, 100))
+
+# Tier 1 (Upper Curls, y ~ 85-92)
+c1_l_pts = [
+    [106.0, 92.0],
+    [99.0, 84.0],
+    [90.0, 79.0],
+    [82.0, 82.0],
+    [79.0, 88.0],
+    [82.0, 94.0],
+    [89.0, 93.0],
+    [91.5, 87.5]
+]
+curl_curves.append(generate_smooth_path(c1_l_pts, 120))
+
+c1_r_pts = [
+    [106.0, 92.0],
+    [113.0, 84.0],
+    [122.0, 79.0],
+    [130.0, 82.0],
+    [133.0, 88.0],
+    [130.0, 94.0],
+    [123.0, 93.0],
+    [120.5, 87.5]
+]
+curl_curves.append(generate_smooth_path(c1_r_pts, 120))
+
+# Tier 2 (Middle Curls, wide & graceful, y ~ 130-140)
+c2_l_pts = [
+    [113.0, 136.0],
+    [101.0, 129.0],
+    [87.0, 122.0],
+    [76.0, 125.0],
+    [72.0, 132.0],
+    [75.0, 140.0],
+    [84.0, 140.0],
+    [88.0, 134.0],
+    [84.5, 129.0]
+]
+curl_curves.append(generate_smooth_path(c2_l_pts, 150))
+
+c2_r_pts = [
+    [113.0, 136.0],
+    [125.0, 129.0],
+    [139.0, 122.0],
+    [150.0, 125.0],
+    [154.0, 132.0],
+    [151.0, 140.0],
+    [142.0, 140.0],
+    [138.0, 134.0],
+    [141.5, 129.0]
+]
+curl_curves.append(generate_smooth_path(c2_r_pts, 150))
+
+# Tier 3 (Lower Curls, y ~ 170-180)
+c3_l_pts = [
+    [120.0, 178.0],
+    [112.0, 172.0],
+    [101.0, 168.0],
+    [93.0, 172.0],
+    [90.0, 179.0],
+    [94.0, 185.0],
+    [100.0, 183.0],
+    [102.0, 177.5]
+]
+curl_curves.append(generate_smooth_path(c3_l_pts, 120))
+
+c3_r_pts = [
+    [120.0, 178.0],
+    [128.0, 172.0],
+    [139.0, 168.0],
+    [147.0, 172.0],
+    [150.0, 179.0],
+    [146.0, 185.0],
+    [140.0, 183.0],
+    [138.0, 177.5]
+]
+curl_curves.append(generate_smooth_path(c3_r_pts, 120))
+
+# Tier 4 (Base Root Curls, y ~ 208-216)
+c4_l_pts = [
+    [125.5, 212.0],
+    [120.0, 211.0],
+    [113.0, 210.0],
+    [110.0, 214.0],
+    [112.0, 218.0],
+    [117.0, 218.0]
+]
+curl_curves.append(generate_smooth_path(c4_l_pts, 90))
+
+c4_r_pts = [
+    [125.5, 212.0],
+    [131.0, 211.0],
+    [138.0, 210.0],
+    [141.0, 214.0],
+    [139.0, 218.0],
+    [134.0, 218.0]
+]
+curl_curves.append(generate_smooth_path(c4_r_pts, 90))
+
+# Render bold curves (thickness=3 with AA) strictly contained within blue wing surface
+wing_blue_mask = (clean_part_map == 9)
+curls_canvas = np.zeros((h, w), dtype=np.uint8)
+for crv in curl_curves:
+    cv2.polylines(curls_canvas, [crv.astype(np.int32)], False, 255, 3, cv2.LINE_AA)
+
+dist_wing_blue = cv2.distanceTransform(wing_blue_mask.astype(np.uint8), cv2.DIST_L2, 3)
+wing_curls_mask = (curls_canvas > 70) & (dist_wing_blue >= 3.0)
+
+all_lines = outer_edge | part_boundary_2x | head_top_line | tail_div_line | fold_boundary_4x | wing_curls_mask
 
 # Color mapping:
 PART_COLOR = {
@@ -459,6 +603,13 @@ out[all_lines] = BLACK
 out[bg] = [0, 0, 0, 0]
 
 cv2.imwrite('scripts/lb_painted.png', out)
+
+# Synchronize across all project locations
+cv2.imwrite('assets/lightning_bug.png', out)
+cv2.imwrite('assets/lightningbug_transparent.png', out)
+cv2.imwrite('simulator/assets/lightning_bug.png', out)
+cv2.imwrite('simulator/assets/lightningbug_transparent.png', out)
+print('Synchronized to assets/ and simulator/assets/')
 
 # Verification against reference palette:
 pal = np.array([BLACK[:3], GREEN[:3], BLUE[:3], RED[:3], YELLOW[:3]])
