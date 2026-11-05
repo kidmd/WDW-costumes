@@ -402,8 +402,8 @@ for pid in part_ids:
         other = (clean_part_map != pid) & (~np.isin(clean_part_map, [3, 4, 18])) & clean_fg
     elif pid == 10:
         other = (clean_part_map != pid) & (clean_part_map != 11) & clean_fg
-    elif pid == 11:
-        other = (clean_part_map != pid) & (clean_part_map != 10) & clean_fg
+    elif pid in [11, 12]:
+        other = (clean_part_map != pid) & (~np.isin(clean_part_map, [10, 11, 12])) & clean_fg
     else:
         other = (clean_part_map != pid) & clean_fg
     part_boundary_1x |= (dil & other)
@@ -426,9 +426,8 @@ for x in range(40, 90):
     part_boundary_2x[yd-2:yd+4, x] = False
 tail_div_line &= clean_fg
 
-# 4) Special 4x thicker divider line separating the two red tail sections (part 11 and part 12)
-fold_boundary_1x = cv2.dilate((clean_part_map == 11).astype(np.uint8), np.ones((3, 3), np.uint8)).astype(bool) & (clean_part_map == 12)
-fold_boundary_4x = cv2.dilate(fold_boundary_1x.astype(np.uint8), cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (15, 15))).astype(bool) & clean_fg
+# 4) Legacy tail divider removed - segmented tail handled cleanly with smooth accordion geometry below
+fold_boundary_4x = np.zeros((h, w), dtype=bool)
 
 # 5) Dedicated bold black curly decorations on blue wing (authentic MSEP parade wireframe filigree scrollwork):
 def generate_smooth_path(pts, num_pts=150):
@@ -640,57 +639,68 @@ out[cap_rim_line] = BLACK
 # Redraw eyelashes cleanly over hat front/forehead
 out[eyelash_mask] = BLACK
 
-# --- 2. CUTE CARTOON SPINNING PROPELLER ATOP RED BEANIE ---
+# --- 2. CUTE CARTOON ALL-YELLOW SPINNING PROPELLER ATOP RED BEANIE ---
+# All elements rendered in pure solid yellow (#facc15) so they pop against the black chassis/shirt
 pts_l_blade = np.array([[244, 24], [232, 18], [210, 15], [202, 19], [203, 23], [214, 25], [234, 26]], dtype=np.int32)
 pts_r_blade = np.array([[244, 24], [256, 22], [274, 25], [286, 29], [285, 33], [272, 33], [254, 28]], dtype=np.int32)
 
-prop_color = np.zeros((h, w, 4), dtype=np.uint8)
-prop_lines = np.zeros((h, w), dtype=np.uint8)
+prop_canvas = np.zeros((h, w, 4), dtype=np.uint8)
 
-cv2.fillPoly(prop_color, [pts_l_blade, pts_r_blade], YELLOW.tolist())
-cv2.circle(prop_color, (244, 24), 4, YELLOW.tolist(), -1)
+# Spindle post from cap apex (244, 43) to hub (244, 24) in solid yellow:
+cv2.line(prop_canvas, (244, 43), (244, 24), YELLOW.tolist(), 3, cv2.LINE_AA)
 
-# Spindle post from cap apex (244, 43) to hub (244, 24)
-cv2.line(prop_lines, (244, 43), (244, 24), 255, 3, cv2.LINE_AA)
-cv2.polylines(prop_lines, [pts_l_blade, pts_r_blade], True, 255, 3, cv2.LINE_AA)
-cv2.circle(prop_lines, (244, 24), 4, 255, 2, cv2.LINE_AA)
+# Twin paddle blades in solid yellow:
+cv2.fillPoly(prop_canvas, [pts_l_blade, pts_r_blade], YELLOW.tolist())
+cv2.polylines(prop_canvas, [pts_l_blade, pts_r_blade], True, YELLOW.tolist(), 2, cv2.LINE_AA)
 
-# Cartoon spinning motion arcs
+# Center hub in solid yellow:
+cv2.circle(prop_canvas, (244, 24), 5, YELLOW.tolist(), -1)
+
+# Cartoon spinning motion arcs in solid yellow:
 pts_arc1 = np.array([[208, 11], [199, 14], [194, 21], [196, 28]], dtype=np.int32)
 pts_arc2 = np.array([[280, 37], [289, 34], [294, 27], [292, 20]], dtype=np.int32)
-cv2.polylines(prop_lines, [pts_arc1, pts_arc2], False, 255, 2, cv2.LINE_AA)
-cv2.ellipse(prop_lines, (244, 24), (32, 7), 6, 200, 270, 255, 2, cv2.LINE_AA)
-cv2.ellipse(prop_lines, (244, 24), (32, 7), 6, 20, 90, 255, 2, cv2.LINE_AA)
+cv2.polylines(prop_canvas, [pts_arc1, pts_arc2], False, YELLOW.tolist(), 2, cv2.LINE_AA)
+cv2.ellipse(prop_canvas, (244, 24), (32, 7), 6, 200, 270, YELLOW.tolist(), 2, cv2.LINE_AA)
+cv2.ellipse(prop_canvas, (244, 24), (32, 7), 6, 20, 90, YELLOW.tolist(), 2, cv2.LINE_AA)
 
-out[prop_color[:, :, 3] > 0] = YELLOW
-out[prop_lines > 70] = BLACK
+# Paint entire propeller in solid yellow:
+out[prop_canvas[:, :, 3] > 60] = YELLOW
 
 # --- 3. SEGMENTED TAIL (LOWER RED -> MIDDLE BLACK -> UPPER RED -> YELLOW TIP) ---
-red_tail = (out[:, :, 0] == 25) & (out[:, :, 1] == 25) & (out[:, :, 2] == 230) & (np.arange(w)[None, :] < 120) & (np.arange(h)[:, None] > 180)
-p_mid_top = np.polyfit([28, 55, 80], [228.0, 233.0, 240.0], 2)
-p_mid_bot = np.polyfit([28, 55, 85], [266.0, 272.0, 282.0], 2)
+# Tail bellows mask below yellow tip divider:
+tail_mask = (np.arange(w)[None, :] < 120) & (np.arange(h)[:, None] >= 180) & (out[:, :, 3] > 0)
+p_mid_top = np.polyfit([26, 65, 106], [222.0, 233.0, 246.0], 2)
+p_mid_bot = np.polyfit([28, 65, 108], [262.0, 273.0, 287.0], 2)
 
-mid_black_mask = np.zeros((h, w), dtype=bool)
-for x in range(25, 95):
+# Reset tail bellows below p_tail_div cleanly into 3 segments:
+# Black segment spans across the full width of the tail all the way to the body!
+for x in range(25, 115):
+    yd = int(np.round(np.polyval(p_tail_div, x)))
     yt = int(np.round(np.polyval(p_mid_top, x)))
     yb = int(np.round(np.polyval(p_mid_bot, x)))
-    mid_black_mask[yt:yb+1, x] = True
+    rows = np.where(tail_mask[:, x])[0]
+    for y in rows:
+        if y < yd:
+            continue # Yellow tip dome
+        elif y < yt:
+            out[y, x] = RED # Upper Red segment
+        elif y <= yb:
+            out[y, x] = BLACK # Middle Black segment
+        else:
+            out[y, x] = RED # Lower Red segment
 
-mid_black_segment = red_tail & mid_black_mask
-out[mid_black_segment] = BLACK
+# Bold Red Outline (4px) along the outer left edge of the Middle Black segment:
+# Frames the black segment with a bold, vibrant, continuous red border against the black chassis!
+for y in range(215, 295):
+    xs = np.where((out[y, :, 0] == 20) & (out[y, :, 3] > 0) & (np.arange(w) < 120))[0]
+    if len(xs) > 0:
+        xmin = xs.min()
+        out[y, xmin:xmin+4] = RED
 
-# Outline curves across accordion folds
-div_top_line = np.zeros((h, w), dtype=bool)
-div_bot_line = np.zeros((h, w), dtype=bool)
-for x in range(25, 90):
-    yt = int(np.round(np.polyval(p_mid_top, x)))
-    yb = int(np.round(np.polyval(p_mid_bot, x)))
-    div_top_line[yt-1:yt+3, x] = True
-    div_bot_line[yb-1:yb+3, x] = True
-
-is_tail_fg = (out[:, :, 3] > 0) & (np.arange(w)[None, :] < 120) & (np.arange(h)[:, None] > 180)
-out[div_top_line & is_tail_fg] = BLACK
-out[div_bot_line & is_tail_fg] = BLACK
+# Dedicated crisp black line separating Yellow Tip from Upper Red segment
+for x in range(40, 90):
+    yd = int(np.round(np.polyval(p_tail_div, x)))
+    out[yd-1:yd+3, x] = BLACK
 
 # Update clean_fg to include new propeller and cap elements
 clean_fg = out[:, :, 3] > 0
