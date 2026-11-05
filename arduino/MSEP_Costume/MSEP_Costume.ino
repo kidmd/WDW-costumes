@@ -356,9 +356,10 @@ void broadcastWarmWhitePacket(uint8_t mode) {
 }
 
 void renderWarmWhiteSparkle(uint32_t now) {
-    // Warm Incandescent Filament Base Color (~2700K Edison glow)
+    // Rich Warm Incandescent / Edison Filament Base Color (~2200K-2400K golden candle warmth)
+    // WS2812B LEDs have dominant blue dies; lowering blue (40) and green (147) brings out true cozy warmth
     // Full unscaled RGB palette - physical 3% duty cycle is governed by 64-scaling in duplicateFrontToBack()
-    CRGB baseCol = CRGB(255, 220, 160);
+    CRGB baseCol = CRGB(255, 147, 41);
 
     // Starlight sparkle color: bright pure starlight white
     CRGB sparkleCol = CRGB(255, 255, 255);
@@ -565,7 +566,7 @@ void onDataReceive(const uint8_t *mac_addr, const uint8_t *incomingData, int len
                     previousStandaloneMode = currentStandaloneMode;
                     // Synchronized fleet confirmation: 2 distinct warm white pulses (150ms ON, 100ms OFF)
                     for (int f = 0; f < 2; f++) {
-                        fillActiveCostumeSolid(CRGB(255, 220, 160));
+                        fillActiveCostumeSolid(CRGB(255, 147, 41));
                         FastLED.show();
                         delay(150);
                         fillActiveCostumeSolid(CRGB::Black);
@@ -2416,7 +2417,7 @@ void loop() {
                     }
                     // Visible confirmation: 2 distinct warm white pulses (150ms ON, 100ms OFF)
                     for (int f = 0; f < 2; f++) {
-                        fillActiveCostumeSolid(CRGB(255, 220, 160));
+                        fillActiveCostumeSolid(CRGB(255, 147, 41));
                         FastLED.show();
                         delay(150);
                         fillActiveCostumeSolid(CRGB::Black);

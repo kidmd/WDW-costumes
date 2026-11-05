@@ -93,6 +93,16 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### 2026-11-05 00:50: Tuned Starlight Color Temperature to Vintage Edison Candle Warmth
+- **Optical Color Tuning & Perceptual Correction:**
+  - *Observation:* The initial color `CRGB(255, 220, 160)` appeared as a cool or pale white on physical WS2812B LEDs rather than a cozy warm filament glow.
+  - *Diode Spectral Analysis:* WS2812B RGB LEDs have disproportionately dominant blue and green semiconductor dies to human eye perception. With Blue set to 160 (63% blue) and Green set to 220, the emission registered in the 5000K–6000K daylight range.
+  - *Edison Filament Warmth:* Shifted the base color to `CRGB(255, 147, 41)` (FastLED's official `Candle` / ~2200K vintage tungsten temperature). Lowering Blue to 41 (16%) and Green to 147 yields a physical hardware diode ratio of ~8 Red : 4 Green : 1 Blue at 3% duty cycle. This delivers a rich, cozy amber-gold filament glow across all graphic plate LEDs while preserving pure white (`CRGB(255, 255, 255)`) for the sparkling stars.
+  - Updated Button 2 double-tap confirmation pulses to also flash in matching warm candle gold.
+- **Verification:**
+  - Built and verified via PlatformIO (`pio run` succeeded in 9.71s; 14.6% RAM, 60.8% Flash).
+  - Synchronized identically across `src/main.cpp` and `arduino/MSEP_Costume/MSEP_Costume.ino`.
+
 ### 2026-11-05 00:40: Calibration of 3% Warm White Starlight Mode & Enhanced Double-Pulse Timing
 - **Root Cause Analysis (Triple Scaling & Integer Truncation):**
   - *Symptom:* After engaging Warm White Mode via Button 2 double-tap, the LEDs flickered twice extremely fast and then only sparkles were visible while all non-sparkling LEDs remained completely pitch black.
