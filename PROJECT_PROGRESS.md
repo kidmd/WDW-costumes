@@ -93,6 +93,23 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### 2026-11-05: Lightning Bug Repositioned Fine Cartoon Eyelashes Directly Above Eye
+- **Eyelash Architecture & Geometry Refinements:**
+  - **Repositioned Eyelashes Above Eye:** Removed the legacy clunky, webbed 3-pronged yellow cluster from the top of the forehead/cap ($x \in [311 \dots 433], y \in [25 \dots 79]$), which was an artifact of early polygon tracing mistaking the float's eye lashes for head horns.
+  - **Created 3 Finer Cartoon Eyelashes:** Added exactly 3 clean, slender, cartoony black eyelashes (`#141414`, stroke width 3.0–3.5 px) positioned directly above the cartoon eye along the upper eyelid rim ($x \approx 298 \dots 354, y \approx 56 \dots 107$).
+  - **Natural Radiation & Fan Spacing:**
+    - *Lash 1 (Inner / Top):* Curves upward and slightly forward from $(298, 85)$ to $(312, 56)$ (length ~ 32 px, angle ~ 75°).
+    - *Lash 2 (Middle):* Radiates at 45° from $(315, 93)$ to $(334, 62)$ (length ~ 36 px).
+    - *Lash 3 (Outer / Lateral):* Sweeps outward to the right at 20° from $(329, 107)$ to $(354, 86)$ (length ~ 34 px).
+  - **Clean Forehead / Brow Silhouette:** The upper brow and beanie cap junction now follows a clean, continuous, mathematically smooth cubic curve ($p_{\text{head\_top}}$) from $x = 171$ across $x = 315$ to $x = 363$, seamlessly connecting into the cheek contour with zero awkward webbing or phantom horizontal sticks.
+- **Strict Palette & Pixel Integrity Verification:**
+  - **100.0000% 5-Color Palette Compliance:** Every pixel strictly conforms to the canonical palette (`#141414`, `#22c55e`, `#2563eb`, `#e61919`, `#facc15`).
+  - **Zero Unintended Alterations:** Verified that exactly 0 pixels outside the eyelashes and forehead top area ($x < 200$, body, wing, tail, legs, mouth) were altered. All wing curly decorations from the previous update remain 100% intact.
+- **Asset Deployment & Simulator Synchronization:**
+  - Synchronized graphic across all 4 production paths: `assets/lightning_bug.png`, `assets/lightningbug_transparent.png`, `simulator/assets/lightning_bug.png`, and `simulator/assets/lightningbug_transparent.png`.
+  - Bumped simulator asset cache-busters in `simulator/app.js` to `?v=20261105_eyelashes`.
+  - Updated single-source generator script `scripts/lb_paint_facets.py` for 100% deterministic reproducibility.
+
 ### 2026-11-05: Lightning Bug Bold Black Wing Curly Filigree Scrollwork Decorations
 - **MSEP Float Authentic Wing Scrollwork Integration:**
   - Added the iconic whimsical curly decorations to the blue wing surface of the Lightning Bug float (`lightning_bug`), faithfully reproducing the purple light scrollwork wireframe patterns from the real Main Street Electrical Parade float photo.

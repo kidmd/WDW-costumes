@@ -20,24 +20,15 @@ YELLOW = np.array([21, 204, 250, 255], dtype=np.uint8)
 # Semantic part map:
 part_map = np.zeros((h, w), dtype=np.uint8)
 
-# 1. Antennae (Yellow, Part ID 2) & Fix 0 (Smooth antenna base divider)
-m4 = (lab == 4).copy()
-stalk = m4 & (np.arange(h)[:, None] < 65) & (np.arange(w)[None, :] > 310)
-
 # Unified smooth cubic curve along bottom rim of cap and forehead/brow
 # Connects smoothly from x=171 (left cap silhouette) across x=315 (cap/brow junction)
-# under antennae to x=362 (right cheek/face outer silhouette) as one continuous curve:
+# across forehead to x=362 (right cheek/face outer silhouette) as one continuous curve:
 xs_head_fit = np.array([171, 190, 215, 245, 275, 295, 315, 330, 345, 358])
 ys_head_fit = np.array([115.0, 105.0,  92.0,  78.0,  68.0,  65.0,  65.8,  68.5,  73.5,  79.0])
 p_head_top = np.polyfit(xs_head_fit, ys_head_fit, 3)
 
-antenna_mask = np.isin(lab, [1, 9, 42]) | stalk
-# Any pixels of antenna below p_head_top become forehead/head (5):
-for x in range(315, 368):
-    y_base = int(np.round(np.polyval(p_head_top, x)))
-    antenna_mask[y_base:, x] = False
-
-part_map[antenna_mask] = 2
+m4 = (lab == 4).copy()
+stalk = m4 & (np.arange(h)[:, None] < 65) & (np.arange(w)[None, :] > 310)
 
 # Cap mask: strictly above p_head_top for x <= 316
 cap_mask = np.isin(lab, [4, 8, 11]) & (~stalk)
@@ -122,10 +113,10 @@ part_map[back_foot] = 14
 part_map[m35 | m36 | m40] = 15
 part_map[front_leg_smooth] = 16
 
-# 5. Head & Body base masks (strictly excludes mouth, cap, legs, and antennae)
+# 5. Head & Body base masks (strictly excludes mouth, cap, and legs)
 head_facets = [12, 13, 14, 15, 16, 17, 19, 22, 25, 26]
 body_facets = [6, 7, 29, 30, 31, 33, 43]
-head_or_body = np.isin(lab, head_facets + body_facets + [18]) & (~mouth_mask) & (~all_legs) & (~cap_mask) & (~antenna_mask)
+head_or_body = np.isin(lab, head_facets + body_facets + [18]) & (~mouth_mask) & (~all_legs) & (~cap_mask) & (~np.isin(lab, [1, 9, 42])) & (~stalk)
 
 # Add any pixels below smoothed cap / brow curve to head:
 for x in range(165, 368):
@@ -273,6 +264,8 @@ if cnts_iris:
 
 # Foreground bounds & Silhouette smoothing
 is_fg = (lab != 0) & (lab != 41)
+is_fg &= ~np.isin(lab, [1, 9, 42])
+is_fg &= ~stalk
 is_fg |= (mask_eye_round == 1)
 is_fg |= hole
 is_fg |= all_legs
@@ -283,7 +276,11 @@ is_fg |= upper_fold
 is_fg |= lower_fold
 is_fg |= cap_mask
 is_fg |= head_or_body
-is_fg |= antenna_mask
+
+# Clear anything above cap / forehead top curve
+for x in range(315, 450):
+    yt = int(np.round(np.polyval(p_head_top, x)))
+    is_fg[:yt, x] = False
 
 # Tail left bound:
 for y, xs in zip(ys_tail, xs_tail_smooth):
@@ -332,7 +329,7 @@ if unl.any():
     part_map[unl] = part_map[r_idx[unl], c_idx[unl]]
 
 # Smooth parts for organic cartoon contours:
-part_ids = [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 14, 15, 16, 17, 18]
+part_ids = [3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 14, 15, 16, 17, 18]
 smoothed_parts = {}
 for pid in part_ids:
     mask = (part_map == pid).astype(np.uint8)
@@ -372,17 +369,11 @@ for x in range(171, 316):
             elif x < 284: clean_part_map[y, x] = 4
             else: clean_part_map[y, x] = 3
 
-# --- STRICT ANTENNA BASE & FOREHEAD DIVISION ---
-for x in range(316, 368):
+# Forehead top silhouette constraint (x >= 316):
+for x in range(316, 450):
     yb = int(np.round(np.polyval(p_head_top, x)))
-    # Below yb: must be head (part 5)
-    for y in range(yb, min(h, yb + 20)):
-        if clean_fg[y, x] and clean_part_map[y, x] == 2:
-            clean_part_map[y, x] = 5
-    # Above yb: must be antenna (part 2)
-    for y in range(max(0, yb - 25), yb):
-        if clean_fg[y, x] and clean_part_map[y, x] == 5:
-            clean_part_map[y, x] = 2
+    clean_fg[:yb, x] = False
+    clean_part_map[:yb, x] = 0
 
 # --- STRICT TAIL TIP (10) & UPPER TAIL FOLD (11) DIVISION (Fix 2) ---
 for x in range(40, 92):
@@ -408,9 +399,7 @@ for pid in part_ids:
     if pid in [3, 4, 18]:
         other = (clean_part_map != pid) & (clean_part_map != 5) & clean_fg
     elif pid == 5:
-        other = (clean_part_map != pid) & (~np.isin(clean_part_map, [3, 4, 18])) & (clean_part_map != 2) & clean_fg
-    elif pid == 2:
-        other = (clean_part_map != pid) & (clean_part_map != 5) & clean_fg
+        other = (clean_part_map != pid) & (~np.isin(clean_part_map, [3, 4, 18])) & clean_fg
     elif pid == 10:
         other = (clean_part_map != pid) & (clean_part_map != 11) & clean_fg
     elif pid == 11:
@@ -584,7 +573,23 @@ for crv in curl_curves:
 dist_wing_blue = cv2.distanceTransform(wing_blue_mask.astype(np.uint8), cv2.DIST_L2, 3)
 wing_curls_mask = (curls_canvas > 70) & (dist_wing_blue >= 3.0)
 
-all_lines = outer_edge | part_boundary_2x | head_top_line | tail_div_line | fold_boundary_4x | wing_curls_mask
+# 6) Three simple, cartoony, finer eyelashes positioned directly above the eye:
+def bezier(p0, p1, p2, n=60):
+    t = np.linspace(0, 1, n)[:, None]
+    return (1 - t)**2 * p0 + 2 * (1 - t) * t * p1 + t**2 * p2
+
+l1_lash = bezier(np.array([298.0, 85.0]), np.array([301.0, 68.0]), np.array([312.0, 56.0])).astype(np.int32)
+l2_lash = bezier(np.array([315.0, 93.0]), np.array([322.0, 76.0]), np.array([334.0, 62.0])).astype(np.int32)
+l3_lash = bezier(np.array([329.0, 107.0]), np.array([340.0, 96.0]), np.array([354.0, 86.0])).astype(np.int32)
+
+eyelash_canvas = np.zeros((h, w), dtype=np.uint8)
+cv2.polylines(eyelash_canvas, [l1_lash, l2_lash, l3_lash], False, 255, 3, cv2.LINE_AA)
+eyelash_mask = eyelash_canvas > 70
+
+clean_fg |= eyelash_mask
+bg = ~clean_fg
+
+all_lines = outer_edge | part_boundary_2x | head_top_line | tail_div_line | fold_boundary_4x | wing_curls_mask | eyelash_mask
 
 # Color mapping:
 PART_COLOR = {
