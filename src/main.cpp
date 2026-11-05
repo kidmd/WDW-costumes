@@ -137,6 +137,18 @@ inline bool isCurrentFloatMatrix16x16() {
 }
 
 // Duplicate front LEDs to back LEDs (or scatter active LEDs across 16x16 matrix indices 0..255 + 256..511)
+enum StandaloneShowMode {
+    SHOW_MODE_AUTONOMOUS_SEQUENCE = 0,
+    SHOW_MODE_FLEET_SYNC          = 1,
+    SHOW_MODE_FLEET_30S_ROUTINE   = 2,
+    SHOW_MODE_RAPID_ROLL_CALL     = 3,
+    SHOW_MODE_CORRAL_STANDBY      = 4,
+    SHOW_MODE_PHOTO_STATIC        = 5,  // 📸 Castle Photo Mode: solid steady hero illumination
+    SHOW_MODE_WARM_WHITE_SPARKLE  = 6   // ✨ 3% Incandescent Warm White with starlight sparkles
+};
+
+extern StandaloneShowMode currentStandaloneMode;
+
 inline void duplicateFrontToBack() {
     if (isCurrentFloatMatrix16x16()) {
         CRGB tempActive[256];
@@ -171,7 +183,9 @@ inline void duplicateFrontToBack() {
             }
 #endif
             CRGB c = tempActive[i];
-            if (i >= winCount) {
+            if (currentStandaloneMode == SHOW_MODE_WARM_WHITE_SPARKLE) {
+                c.nscale8_video(96); // Uniform 3% scale across all active matrix cells (both windowed and backlit)
+            } else if (i >= winCount) {
                 c.nscale8_video(64); // Backlight LEDs at 50% brightness of windowed LEDs
             } else {
                 c.nscale8_video(128); // Windowed LEDs
@@ -219,14 +233,7 @@ uint8_t broadcastMac[] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
 #define FLEET_ROUTINE_TOTAL_MS 30000 // Auto-updated for 💥 The Supernova Spectacular (30s) (30.0s)
 #define RAPID_ROLL_CALL_TOTAL_MS 4000 // 4.0-second Rapid Attendance Roll Call (500ms x 7 floats + 500ms unison finale)
 
-enum StandaloneShowMode {
-    SHOW_MODE_AUTONOMOUS_SEQUENCE = 0,
-    SHOW_MODE_FLEET_SYNC          = 1,
-    SHOW_MODE_FLEET_30S_ROUTINE   = 2,
-    SHOW_MODE_RAPID_ROLL_CALL     = 3,
-    SHOW_MODE_CORRAL_STANDBY      = 4,
-    SHOW_MODE_PHOTO_STATIC        = 5   // 📸 Castle Photo Mode: solid steady hero illumination
-};
+
 
 inline bool isButton1Down() {
     return (digitalRead(BUTTON_1_PIN) == LOW) || (digitalRead(BUTTON_BOOT_PIN) == LOW);
@@ -320,6 +327,34 @@ void renderCastlePhotoMode() {
     fill_solid(leds, FRONT_LEDS, heroColor);
 #endif
 
+    duplicateFrontToBack();
+}
+
+void broadcastWarmWhitePacket(uint8_t mode) {
+    ParadeSyncPacket packet;
+    packet.magic = 0xEE;
+    packet.mode = mode; // 0x48 = Warm White ON, 0x49 = Warm White OFF
+    packet.masterMillis = millis();
+    packet.activeFloat = myFloatNumber;
+    packet.waveHead = 0;
+    sendEspNowBurst(packet, 5, false);
+}
+
+void renderWarmWhiteSparkle(uint32_t now) {
+    // 3% Warm Incandescent Filament Base Color (~2700K Edison glow)
+    CRGB baseCol = CRGB(255, 220, 160);
+    baseCol.nscale8_video(8); // ~3% duty cycle
+
+    // Starlight sparkle color: bright warm glint that twinkles across the field
+    CRGB sparkleCol = CRGB(255, 245, 210);
+    sparkleCol.nscale8_video(36); // ~14% starlight glint
+
+    for (int i = 0; i < FRONT_LEDS && i < MAX_LEDS_CAPACITY; i++) {
+        leds[i] = baseCol;
+        if (COSTUME_SPARKLE_RATE > 0 && random16(10000) < (uint16_t)(COSTUME_SPARKLE_RATE * 100)) {
+            leds[i] = sparkleCol;
+        }
+    }
     duplicateFrontToBack();
 }
 
@@ -510,6 +545,19 @@ void onDataReceive(const uint8_t *mac_addr, const uint8_t *incomingData, int len
                     currentStandaloneMode = previousStandaloneMode;
                     Serial.printf("[ESP-NOW] 📸 Photo Mode disengaged by Float %d -> returned to parade mode\n", packet.activeFloat);
                 }
+            } else if (packet.mode == 0x48) {
+                // 3% Warm White Starlight Mode ON commanded by Leader/Peer
+                if (currentStandaloneMode != SHOW_MODE_WARM_WHITE_SPARKLE) {
+                    previousStandaloneMode = currentStandaloneMode;
+                    currentStandaloneMode = SHOW_MODE_WARM_WHITE_SPARKLE;
+                    Serial.printf("[ESP-NOW] ✨ Warm White Starlight Mode engaged across fleet by Float %d\n", packet.activeFloat);
+                }
+            } else if (packet.mode == 0x49) {
+                // 3% Warm White Starlight Mode OFF commanded by Leader/Peer
+                if (currentStandaloneMode == SHOW_MODE_WARM_WHITE_SPARKLE) {
+                    currentStandaloneMode = previousStandaloneMode;
+                    Serial.printf("[ESP-NOW] ☀️ Exited Warm White Mode into Solo Show by Float %d\n", packet.activeFloat);
+                }
             } else if (packet.mode == 0x50) {
                 // Corral Standby Mode commanded by Leader/Peer
                 if (currentStandaloneMode != SHOW_MODE_CORRAL_STANDBY) {
@@ -517,8 +565,8 @@ void onDataReceive(const uint8_t *mac_addr, const uint8_t *incomingData, int len
                     Serial.printf("[ESP-NOW] 🌙 Switched to Corral Standby Mode by Float %d\n", packet.activeFloat);
                 }
             } else if (packet.mode == 0x51) {
-                // Wake from Corral Standby or Photo Mode commanded by Leader/Peer into Solo Show Mode
-                if (currentStandaloneMode == SHOW_MODE_CORRAL_STANDBY || currentStandaloneMode == SHOW_MODE_PHOTO_STATIC) {
+                // Wake from Corral Standby, Photo Mode, or Warm White Mode commanded by Leader/Peer into Solo Show Mode
+                if (currentStandaloneMode == SHOW_MODE_CORRAL_STANDBY || currentStandaloneMode == SHOW_MODE_PHOTO_STATIC || currentStandaloneMode == SHOW_MODE_WARM_WHITE_SPARKLE) {
                     currentStandaloneMode = SHOW_MODE_AUTONOMOUS_SEQUENCE;
                     previousStandaloneMode = SHOW_MODE_AUTONOMOUS_SEQUENCE;
                     autonomousShowStartTime = millis();
@@ -2160,14 +2208,19 @@ void loop() {
     if (b1PendingTaps > 0 && !b1Pressed && (now - b1FirstTapReleaseTime > 400)) {
         b1PendingTaps = 0;
 
-        if (currentStandaloneMode == SHOW_MODE_CORRAL_STANDBY || currentStandaloneMode == SHOW_MODE_PHOTO_STATIC) {
+        if (currentStandaloneMode == SHOW_MODE_CORRAL_STANDBY || currentStandaloneMode == SHOW_MODE_PHOTO_STATIC || currentStandaloneMode == SHOW_MODE_WARM_WHITE_SPARKLE) {
             if (isLeader) {
                 // Leader: Wake ENTIRE FLEET into Solo Show Mode (parade baseline, does NOT start 30s fleet routine)
+                if (currentStandaloneMode == SHOW_MODE_WARM_WHITE_SPARKLE) {
+                    broadcastWarmWhitePacket(0x49);
+                } else if (currentStandaloneMode == SHOW_MODE_PHOTO_STATIC) {
+                    broadcastPhotoModePacket(0x47);
+                } else {
+                    broadcastStandbyPacket(0x51);   // Wake entire fleet into solo show mode
+                }
                 previousStandaloneMode = SHOW_MODE_AUTONOMOUS_SEQUENCE;
                 currentStandaloneMode = SHOW_MODE_AUTONOMOUS_SEQUENCE;
                 autonomousShowStartTime = now;
-
-                broadcastStandbyPacket(0x51);   // Wake entire fleet into solo show mode (from Standby or Photo Mode)
 
                 uint8_t wakeFloatIdx = (myFloatNumber >= 1 && myFloatNumber <= 7) ? (myFloatNumber - 1) : 0;
                 CRGB wakeColor = FLEET_ROSTER_INFO[wakeFloatIdx].color;
@@ -2239,6 +2292,8 @@ void loop() {
     static bool b2WasPressed = false;
     static uint32_t b2DownTime = 0;
     static bool b2HoldHandled = false;
+    static uint8_t b2PendingTaps = 0;
+    static uint32_t b2FirstTapReleaseTime = 0;
 
     bool b2Pressed = b2Armed && b2Raw;
 
@@ -2308,30 +2363,91 @@ void loop() {
             return;
         }
 
-        // Tap handling: immediate trigger on release since multi-taps are disabled
-        if (pressDuration >= 50 && pressDuration < 600) {
-            if (isLeader) {
-                // Leader: Toggle Castle Photo Mode across ENTIRE FLEET
-                if (currentStandaloneMode == SHOW_MODE_PHOTO_STATIC) {
+        // Button 2 Tap & Double-Tap detection (< 400ms double-tap window)
+        if (!b2HoldHandled && pressDuration >= 50 && pressDuration < 600) {
+            if (b2PendingTaps == 1 && (now - b2FirstTapReleaseTime <= 400)) {
+                // DOUBLE TAP DETECTED on Button 2: Toggle 3% Warm White Starlight Mode!
+                b2PendingTaps = 0;
+                if (currentStandaloneMode == SHOW_MODE_WARM_WHITE_SPARKLE) {
+                    // Turn OFF Warm White Mode -> return to Solo Show
                     currentStandaloneMode = previousStandaloneMode;
-                    broadcastPhotoModePacket(0x47);
-                    Serial.println("[LEADER] 📸 Button 2 Tap -> Castle Photo Mode turned OFF for ENTIRE FLEET!");
+                    if (isLeader) {
+                        broadcastWarmWhitePacket(0x49);
+                        Serial.println("[LEADER] ✨ Button 2 Double-Tap -> Warm White Mode turned OFF for ENTIRE FLEET!");
+                    } else {
+                        Serial.printf("[FOLLOWER] Float %d Button 2 Double-Tap -> Warm White Mode turned OFF (local only).\n", myFloatNumber);
+                    }
+                    uint8_t wakeFloatIdx = (myFloatNumber >= 1 && myFloatNumber <= 7) ? (myFloatNumber - 1) : 0;
+                    fillActiveCostumeSolid(FLEET_ROSTER_INFO[wakeFloatIdx].color);
+                    duplicateFrontToBack();
+                    FastLED.show();
+                    delay(100);
                 } else {
+                    // Turn ON Warm White Mode!
                     previousStandaloneMode = currentStandaloneMode;
-                    currentStandaloneMode = SHOW_MODE_PHOTO_STATIC;
-                    broadcastPhotoModePacket(0x46);
-                    Serial.println("[LEADER] 📸 Button 2 Tap -> Castle Photo Mode turned ON for ENTIRE FLEET!");
+                    currentStandaloneMode = SHOW_MODE_WARM_WHITE_SPARKLE;
+                    if (isLeader) {
+                        broadcastWarmWhitePacket(0x48);
+                        Serial.println("[LEADER] ✨ Button 2 Double-Tap -> 3% Warm White Starlight Mode engaged for ENTIRE FLEET!");
+                    } else {
+                        Serial.printf("[FOLLOWER] Float %d Button 2 Double-Tap -> 3% Warm White Starlight Mode engaged (local only).\n", myFloatNumber);
+                    }
+                    for (int f = 0; f < 2; f++) {
+                        fillActiveCostumeSolid(CRGB(255, 220, 160));
+                        duplicateFrontToBack();
+                        FastLED.show();
+                        delay(60);
+                        fillActiveCostumeSolid(CRGB::Black);
+                        duplicateFrontToBack();
+                        FastLED.show();
+                        delay(40);
+                    }
                 }
             } else {
-                // Follower: Toggle Castle Photo Mode LOCALLY only
-                if (currentStandaloneMode == SHOW_MODE_PHOTO_STATIC) {
-                    currentStandaloneMode = previousStandaloneMode;
-                    Serial.printf("[FOLLOWER] Float %d Button 2 Tap -> Castle Photo Mode turned OFF (local only).\n", myFloatNumber);
-                } else {
-                    previousStandaloneMode = currentStandaloneMode;
-                    currentStandaloneMode = SHOW_MODE_PHOTO_STATIC;
-                    Serial.printf("[FOLLOWER] Float %d Button 2 Tap -> Castle Photo Mode turned ON (local only).\n", myFloatNumber);
-                }
+                b2PendingTaps = 1;
+                b2FirstTapReleaseTime = now;
+            }
+        }
+    }
+
+    // Evaluate Button 2 single tap once double-tap window expires (400ms)
+    if (b2PendingTaps > 0 && !b2Pressed && (now - b2FirstTapReleaseTime > 400)) {
+        b2PendingTaps = 0;
+        if (currentStandaloneMode == SHOW_MODE_WARM_WHITE_SPARKLE) {
+            // Single tap while in Warm White Mode exits back to Solo Show
+            currentStandaloneMode = previousStandaloneMode;
+            if (isLeader) {
+                broadcastWarmWhitePacket(0x49);
+                Serial.println("[LEADER] ☀️ Button 2 Tap -> Exited Warm White Mode for ENTIRE FLEET into Solo Show!");
+            } else {
+                Serial.printf("[FOLLOWER] Float %d Button 2 Tap -> Exited Warm White Mode locally into Solo Show.\n", myFloatNumber);
+            }
+            uint8_t wakeFloatIdx = (myFloatNumber >= 1 && myFloatNumber <= 7) ? (myFloatNumber - 1) : 0;
+            fillActiveCostumeSolid(FLEET_ROSTER_INFO[wakeFloatIdx].color);
+            duplicateFrontToBack();
+            FastLED.show();
+            delay(100);
+        } else if (isLeader) {
+            // Leader: Toggle Castle Photo Mode across ENTIRE FLEET
+            if (currentStandaloneMode == SHOW_MODE_PHOTO_STATIC) {
+                currentStandaloneMode = previousStandaloneMode;
+                broadcastPhotoModePacket(0x47);
+                Serial.println("[LEADER] 📸 Button 2 Tap -> Castle Photo Mode turned OFF for ENTIRE FLEET!");
+            } else {
+                previousStandaloneMode = currentStandaloneMode;
+                currentStandaloneMode = SHOW_MODE_PHOTO_STATIC;
+                broadcastPhotoModePacket(0x46);
+                Serial.println("[LEADER] 📸 Button 2 Tap -> Castle Photo Mode turned ON for ENTIRE FLEET!");
+            }
+        } else {
+            // Follower: Toggle Castle Photo Mode LOCALLY only
+            if (currentStandaloneMode == SHOW_MODE_PHOTO_STATIC) {
+                currentStandaloneMode = previousStandaloneMode;
+                Serial.printf("[FOLLOWER] Float %d Button 2 Tap -> Castle Photo Mode turned OFF (local only).\n", myFloatNumber);
+            } else {
+                previousStandaloneMode = currentStandaloneMode;
+                currentStandaloneMode = SHOW_MODE_PHOTO_STATIC;
+                Serial.printf("[FOLLOWER] Float %d Button 2 Tap -> Castle Photo Mode turned ON (local only).\n", myFloatNumber);
             }
         }
     }
@@ -2407,6 +2523,11 @@ void loop() {
     if (!isLiveStreaming) {
         if (currentStandaloneMode == SHOW_MODE_PHOTO_STATIC) {
             renderCastlePhotoMode();
+            FastLED.show();
+            digitalWrite(STATUS_LED_PIN, HIGH);
+            delay(20);
+        } else if (currentStandaloneMode == SHOW_MODE_WARM_WHITE_SPARKLE) {
+            renderWarmWhiteSparkle(now);
             FastLED.show();
             digitalWrite(STATUS_LED_PIN, HIGH);
             delay(20);

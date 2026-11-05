@@ -93,6 +93,22 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### 2026-11-05 00:25: 3% Warm White Starlight Mode (Button 2 Double-Tap)
+- **New Feature Request & Conceptual Architecture:**
+  - Added a dedicated display mode where **all LEDs in the character graphic (both windowed through-holes and backlit subsurface cells)** illuminate uniformly in a cozy, dim vintage incandescent warm white (~2700K Edison filament, `CRGB(255, 220, 160)` scaled to ~3% duty cycle, outputting `CRGB(8, 7, 5)`), with occasional starlight sparkles dancing across the graphic.
+  - Ensures 100% equal brightness across both windowed through-hole cutouts and backlit PLA glow regions (`duplicateFrontToBack()` uniform scaling `nscale8_video(96)` in this mode), eliminating any 2:1 discrepancy between windowed and backlit cells.
+- **Hardware Button Gesture & Wireless Synchronization:**
+  - **Activation Gesture:** **Button 2 Double-Tap (< 400ms)**.
+    - *Leader (Float 1 & Float 7):* Double-tapping Button 2 broadcasts ESP-NOW packet `0x48` across the ENTIRE FLEET with a 2-pulse warm white visual confirmation, putting all 7 costumes into Warm White Starlight Mode simultaneously.
+    - *Follower (Floats 2–6):* Double-tapping Button 2 engages Warm White Starlight Mode LOCALLY on their own costume only.
+  - **Exit Transitions:**
+    - Tapping Button 2 (single tap or double tap) or Button 1 while in Warm White Mode cleanly returns to the baseline **Solo Show Mode** (with signature float hero color flash).
+    - If the Leader taps Button 1 or Button 2, it broadcasts exit packet `0x49` or `0x51`, smoothly returning all 7 costumes to the synchronized parade routine.
+- **Firmware Verification & Dual-Core Compatibility:**
+  - Integrated into `src/main.cpp` and mirrored 1:1 into `arduino/MSEP_Costume/MSEP_Costume.ino`.
+  - Built and verified with PlatformIO (`pio run`: 0 errors, 47,708 bytes RAM [14.6%], 797,313 bytes Flash [60.8%]).
+  - Synchronized [RACE_DAY_BUTTON_GUIDE.md](file:///c:/Users/Kiddi/Desktop/WDW%20costumes/RACE_DAY_BUTTON_GUIDE.md) with updated Leader and Follower gesture tables and Mermaid state flow diagram.
+
 ### 2026-11-04 21:05: Neighbor-Area Predominant Color Sampling for Matrix Auto-Backlight
 - **Problem Statement & Physical Analysis:**
   - When users activated the **Auto-Backlight Colored Areas** feature on the 16×16 matrix plate, certain LEDs under colored character artwork remained unlit (Dark).

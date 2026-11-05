@@ -51,6 +51,7 @@ This pocket-friendly field manual explains the complete dual-button control sche
 | **Button 2 — Single Tap** (< 600ms) | 🌙 In Sleep (Standby) | 📸 **Lights up ENTIRE FLEET in Castle Photo Mode** (full graphic colors). Tap again to return to sleep. | 100% steady, solid multi-color illumination. |
 | **Button 2 — Single Tap** (< 600ms) | 📸 In Castle Photo Mode | 🌙 **Toggles back to previous state** (returns to Sleep if from Sleep; returns to Parade if from Show). | Returns to previous mode with zero fuss. |
 | **Button 2 — Single Tap** (< 600ms) | 🏃 Running in Solo Show | 📸 **Locks ENTIRE FLEET into Castle Photo Mode** for high-shutter group photos. Tap again to resume parade. | 100% steady, solid multi-color illumination. |
+| **Button 2 — Double Tap** (< 400ms) | Any State | ✨ **Lights up ENTIRE FLEET in 3% Warm White Starlight Mode** (all graphic LEDs in cozy incandescent filament glow with occasional starlight sparkles). Tap or double-tap again to resume parade. | 2 soft warm white pulses on all shirts. |
 | **Button 2 — Hold 3s** *(Blue meter)* | Any State | 🌙 **Drops ENTIRE FLEET into Corral Standby Mode** (<120mA). Holding $>3\text{s}$ stays locked in sleep! | 1s–2s blue meter $\rightarrow$ 🔵 3 soft indigo pulses. |
 
 ---
@@ -67,6 +68,7 @@ This pocket-friendly field manual explains the complete dual-button control sche
 | **Button 2 — Single Tap** (< 600ms) | 🌙 In Sleep (Standby) | 📸 **Lights up THIS COSTUME in Castle Photo Mode** (full graphic colors). Tap again to return to sleep. | 100% steady, solid multi-color illumination. |
 | **Button 2 — Single Tap** (< 600ms) | 📸 In Castle Photo Mode | 🌙 **Toggles back to previous state** (returns to Sleep if from Sleep; returns to Parade if from Show). | Returns to previous mode with zero fuss. |
 | **Button 2 — Single Tap** (< 600ms) | 🏃 Running in Solo Show | 📸 **Locks THIS COSTUME into Castle Photo Mode** for individual character photos. | 100% steady, solid multi-color illumination. |
+| **Button 2 — Double Tap** (< 400ms) | Any State | ✨ **Lights up THIS COSTUME in 3% Warm White Starlight Mode** (all graphic LEDs in cozy incandescent filament glow with occasional starlight sparkles). Tap or double-tap again to resume parade. | 2 soft warm white pulses on your shirt. |
 | **Button 2 — Hold 3s** *(Blue meter)* | Any State | 🌙 **Drops THIS COSTUME ONLY into Corral Standby Mode** (<120mA). Holding $>3\text{s}$ stays locked in sleep! | 1s–2s blue meter $\rightarrow$ 🔵 3 soft indigo pulses. |
 
 ---
@@ -97,6 +99,10 @@ stateDiagram-v2
         config: Tap Button 1 to cycle 1-7, 4s auto-save
     }
 
+    state "✨ 3% Warm White Starlight Mode" as WarmWhite {
+        warm: Uniform 3% Incandescent Filament Glow + Starlight Sparkles
+    }
+
     Standby --> Photo: Button 2 Tap (Quick photo in corral)
     Photo --> Standby: Button 2 Tap (Returns to sleep!)
     Photo --> Solo: Button 1 Tap (Wakes into parade show!)
@@ -104,9 +110,13 @@ stateDiagram-v2
     Standby --> Solo: Button 1 Tap (Wake to parade)
     Solo --> Standby: Button 2 Hold 3s (Lock into sleep)
     Photo --> Standby: Button 2 Hold 3s (Lock into sleep)
+    WarmWhite --> Standby: Button 2 Hold 3s (Lock into sleep)
     
     Solo --> Photo: Button 2 Tap (Photo stop along course)
     Photo --> Solo: Button 2 Tap (Resumes parade!)
+    
+    Solo --> WarmWhite: Button 2 Double-Tap (Edison Starlight)
+    WarmWhite --> Solo: Button 2 Tap / Double-Tap or Button 1 Tap
     
     Solo --> Fleet: Leader Button 1 Tap
     Fleet --> Solo: 30s Timeout or Leader Button 1 Tap
