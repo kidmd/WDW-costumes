@@ -17313,7 +17313,7 @@ function setTpuMatrixClearLayer(clearVal) {
     markSingleShirtDirty();
 
     const txt = (btfMatrix16x16Config.clearLayerMm > 0)
-        ? `${btfMatrix16x16Config.clearLayerMm.toFixed(1)}mm Clear Backing Layer (160×160mm)`
+        ? `${btfMatrix16x16Config.clearLayerMm.toFixed(1)}mm Clear Backing Layer (156.4×156.4mm • 2mm Shelf Gap×160mm)`
         : 'No Clear Backing Layer';
 
     if (typeof tpuIsOpen !== 'undefined' && tpuIsOpen) {

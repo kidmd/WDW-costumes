@@ -128,7 +128,7 @@ The sidebar navigation is organized into a clean **2-row × 3-column grid** that
      - **⚙️ Collapsible 3D Plate & Slicer Parameters Card:** Expandable settings card tucked neatly above presets allowing instant fine-tuning of 3D print specs:
        - **Plate Thickness (Full-Z Inlays):** `0.48mm`, `0.60mm ★` (Default), `0.80mm`, `1.00mm`.
        - **LED Standoff Gap (Internal Ledge):** `0mm ★` (Default - No Lip, 2mm Frame Only), `1mm`, `2mm`, `3mm`, `4mm`, `5mm`.
-       - **160×160mm Clear Diffuser Layer:** `None`, `0.2mm`, `0.4mm ★` (Default cross-ply), `0.6mm`, `0.8mm`, `1.0mm`.
+       - **156.4×156.4mm Clear Diffuser Layer (2mm Shelf Gap):** `None`, `0.2mm`, `0.4mm ★` (Default cross-ply), `0.6mm`, `0.8mm`, `1.0mm`.
        - **Translucent Light Pipes / Lenses:** Toggle `ON` / `OFF ★` (Default OFF).
        - **Rear Retaining Frame & Lip:** Toggle `ON ★` / `OFF`.
        - **Soft Rounded Corners (6mm Fillet):** Toggle `Rounded ★` / `Sharp 90°`.
@@ -1544,7 +1544,7 @@ Instead of attaching a Cricut cut vinyl graphic on top of the printed plate, the
      - **Lens Height & Alignment:** Total lens height is exactly $\text{TOTAL\_Z} - 2.0 = \text{THICK\_MM} + \text{GAP\_MM} = 3.8\text{ mm}$ (for default 3mm gap), perfectly aligned with every active window aperture ($\varnothing 3.4\text{ mm}$ round, $\varnothing 3.0\text{ mm}$ round, or $3.2 \times 3.2\text{ mm}$ square).
      - **Multi-Part Slicer Separation (`Lenses_Translucent_White`) & Slicer Auto-Centering Lock (`[0, 176] × [0, 176] mm` Bounding Box):** Unified into a single multi-body part inside `tpu_panel_front_multicolor.3mf` and exported as `tpu_panel_front_color_lenses.stl` in the split ZIP bundle. Users can select the lenses object in Bambu Studio / OrcaSlicer with one click and assign it to translucent/clear filament (PETG, PLA, or TPU) while the chassis prints in black and the character inlays print in their respective colors.
      - **UI Controls:** Toggleable via the **`Lenses`** pill button (`ON / OFF ★`) in the 3D Print Preview Modal toolbar (`#tpuModalLensesPill`) and the **`Translucent Lenses`** checkbox in the Layout Tab 16x16 Matrix Mode section (`#btfMatrixLensesToggle`). Default is set to **OFF**, keeping 3D print file generation lightweight unless translucent light-pipe cylinders are explicitly desired.
-   - **✨ 160×160mm Clear Backing Layer (0.40mm Default ★ — Selectable: None, 0.2mm, 0.4mm ★, 0.6mm, 0.8mm, 1.0mm):**
+   - **✨ 156.4×156.4mm Clear Backing Layer with 2mm Black Perimeter Shelf (0.40mm Default ★ — Selectable: None, 0.2mm, 0.4mm ★, 0.6mm, 0.8mm, 1.0mm):**
      - Sits directly behind and touching the colored graphic faceplate, spanning the full $160.0 \times 160.0\text{ mm}$ active graphic envelope ($X = 8.0 \dots 168.0\text{ mm}$, $Y = 8.0 \dots 168.0\text{ mm}$).
      - **0.40mm Dual-Layer Cross-Ply (Default):** Standardized at 2 solid layers @ $0.20\text{ mm}$ layer height with alternating $90^\circ$ cross-ply raster orientation ($45^\circ$ and $135^\circ$, or $0^\circ$ and $90^\circ$) for maximum biaxial tear and puncture strength across flexible TPU or clear PETG.
      - Acts as an integrated translucent diffuser and mechanical backing plate behind the colored inlays, diffusing rear backlight LED glow evenly across graphic sections while protecting delicate artwork lines.

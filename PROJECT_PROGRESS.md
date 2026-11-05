@@ -93,6 +93,21 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### 2026-11-05 10:20: Restored 2mm Black Perimeter Shelf & Solid Continuous Foundation Under 2mm Frame Wall
+- **Physical Root Cause Analysis (Frame Delamination on PETG Prints):**
+  - *Observation:* On recent PETG test prints, the 2mm rear retaining frame separated from the plate with minimal handling.
+  - *Root Cause 1 (0.40mm Air Gap Void):* In the initial face-down stacking, `FRAME_Z0` was set to `CLEAR_Z1` (Z = 1.00mm) while the front chassis stopped at Z = 0.60mm. Because the clear backing layer only spanned the inner cavity (X = 7.80 to 168.20), the 2mm frame wall footprint (X = 5.80 to 7.80) had NO plastic extruded between Z = 0.60 and Z = 1.00! The slicer was attempting to print the 2mm frame wall in mid-air over a 0.40mm empty air gap.
+  - *Root Cause 2 (Clear-to-Wall Boundary Contiguity):* When clear PETG extended all the way to the inner edge of the 2mm wall (X = 7.80), the vertical seam between dissimilar filaments at the wall boundary created a mechanical fault line under flexing.
+- **Architectural Solution & Geometry Restoration:**
+  - **156.4 × 156.4mm Clear Backing Footprint (X = 9.80 to 166.20mm):** Restored the 2.0mm setback between the clear backing window and the 2mm outer frame wall (`clear_box_2d = ledge_aperture_2d`). Completely covers all active LEDs with generous optical margin.
+  - **Solid 4.0mm-Wide Black Foundation & Perimeter Shelf (Z = 0.60 to 1.00mm):** Extruded `black_shelf_base_2d` (outer frame X = 5.80 to clear backing X = 9.80) in solid Black Chassis PETG (Toolhead 1). This provides a 2.0mm solid black foundation directly under the frame wall PLUS a 2.0mm black shelf floor around the perimeter of the pocket.
+  - **100% Monolithic Black Layer Fusion:** The 2mm frame wall (Z = 1.00 to 3.00mm) now prints directly on top of the black foundation. The entire black structure (chassis + foundation + 2mm wall) is exported as ONE unified mesh (`1_Chassis_Black`), eliminating all mid-air extrusion and layer separation.
+  - **Exact 2.0mm Pocket Depth:** The pocket walls rise a full 2.0mm above the shelf/clear floor (Total Z = 3.00mm), snugly cradling the 160×160mm flexible FPCB.
+- **Verification:**
+  - Recompiled front and back plates via `scripts/compile_clean_tpu_panel.py` in 10.54s.
+  - Verified trimesh STL bounds: Clear backing layer strictly at Z = [0.60, 1.00], X = [9.80, 166.20] (watertight = True); Black chassis strictly continuous from Z = [0.00, 3.00] (0 air gaps).
+  - Bumped simulator script cache buster to `app.js?v=112`.
+
 ### 2026-11-05 01:15: 100% All-Backlight Plate Preset (Zero Cutouts) & Default Lenses OFF
 - **100% All-Backlight Mode Preset Button (`#btfMatrixAllBacklightNoWindowsBtn`):**
   - Added a dedicated 1-click action to the 16×16 Matrix Options Card under Quick Presets: `🌟 100% All-Backlight Mode (0 Windows • No Cutouts)`.

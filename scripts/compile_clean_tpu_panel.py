@@ -826,8 +826,10 @@ def compile_matrix_16x16_plate_variant(variant_name, artwork_path, window_shape=
     CLEAR_Z0 = FACE_Z1
     CLEAR_Z1 = round(CLEAR_Z0 + CLEAR_MM, 2)
 
-    # Clear backing covers the ENTIRE 160.4 x 160.4mm inner pocket all the way to the 2mm frame!
-    clear_box_2d = inner_pocket_2d
+    # 1. Clear backing layer has a 2.0mm perimeter setback from the 2mm frame wall:
+    # Footprint matches ledge_aperture_2d (156.4 x 156.4mm; X = 9.80 to 166.20, Y = 9.80 to 166.20).
+    # Perfectly covers all active matrix LEDs while leaving a solid 2.0mm black shelf gap to the outer wall.
+    clear_box_2d = ledge_aperture_2d
     clear_layer_2d = clear_box_2d.difference(windows_union_2d) if not windows_union_2d.is_empty else clear_box_2d
 
     if CLEAR_MM > 0 and not clear_layer_2d.is_empty:
@@ -836,16 +838,29 @@ def compile_matrix_16x16_plate_variant(variant_name, artwork_path, window_shape=
             mono_clear_tm.apply_translation([0.0, 0.0, CLEAR_Z0])
             final_monolithic_tm = trimesh.util.concatenate([final_monolithic_tm, mono_clear_tm])
 
-    # 2mm Perimeter Frame & Cavity Depth:
-    # Frame starts on top of the clear backing at Z = CLEAR_Z1 (1.00mm)
+    # 2. Solid Black Perimeter Foundation & Shelf (Z = CLEAR_Z0 to CLEAR_Z1, i.e. 0.60 to 1.00mm):
+    # Spans from outer frame edge (X = 5.80) to the clear backing edge (X = 9.80).
+    # This 4.0mm wide solid black PETG ring provides:
+    #  - 2.0mm solid black foundation directly under the 2mm frame wall (X = 5.80 to 7.80)
+    #  - 2.0mm solid black perimeter shelf between the frame wall and the clear backing (X = 7.80 to 9.80)
+    # Printed in Black Chassis PETG directly on top of the black chassis floor (ZERO floating air gap!).
+    black_shelf_base_2d = outer_frame_2d.difference(clear_box_2d).difference(shirt_holes_union_2d).difference(wire_notch_2d)
+    if CLEAR_MM > 0 and not black_shelf_base_2d.is_empty:
+        tm_shelf_base = extrude_shapely(black_shelf_base_2d, CLEAR_MM)
+        if tm_shelf_base is not None:
+            tm_shelf_base.apply_translation([0.0, 0.0, CLEAR_Z0])
+            final_chassis_tm = trimesh.util.concatenate([final_chassis_tm, tm_shelf_base])
+            final_monolithic_tm = trimesh.util.concatenate([final_monolithic_tm, tm_shelf_base])
+
+    # 3. 2mm Perimeter Frame Wall (Z = CLEAR_Z1 to TOTAL_Z, i.e. 1.00 to 3.00mm):
+    # Sits directly on top of the black foundation at Z = 1.00mm with 100% black-on-black layer adhesion.
     FRAME_Z0 = CLEAR_Z1
-    PCB_POCKET_DEPTH = 2.0 if FRAME_ACTIVE else 0.0 # Full 2mm of depth for the LED panel!
+    PCB_POCKET_DEPTH = 2.0 if FRAME_ACTIVE else 0.0 # Full 2.0mm of depth for the 160x160mm FPCB!
 
     frame_solids = []
     if FRAME_ACTIVE:
         if LIP_MM <= 0.0:
-            # STRICTLY NO LIP: 100% open 160.4 x 160.4mm pocket, zero shelf ledge!
-            # Pocket walls rise a full 2.0mm above the clear backing:
+            # Pocket walls rise a full 2.0mm above the shelf/clear floor:
             tm_pocket = extrude_shapely(pocket_wall_2d, PCB_POCKET_DEPTH)
             if tm_pocket is not None:
                 tm_pocket.apply_translation([0.0, 0.0, FRAME_Z0])
@@ -931,7 +946,7 @@ def compile_matrix_16x16_plate_variant(variant_name, artwork_path, window_shape=
             clear_path = os.path.join(out_dir, clear_filename)
             clear_tm.export(clear_path)
             color_stls['clear_layer'] = clear_path
-            scene_items["Nozzle3_Clear_Backing_Layer_160x160"] = clear_tm
+            scene_items["Nozzle3_Clear_Backing_Layer_156x156"] = clear_tm
             slot_idx += 1
             exported_inlays.append({
                 "key": "clear_layer",
