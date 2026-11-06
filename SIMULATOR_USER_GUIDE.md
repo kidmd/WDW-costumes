@@ -1359,8 +1359,8 @@ Instead of attaching a Cricut cut vinyl graphic on top of the printed plate, the
     3. **Slot 3 (Shell Grid, Glasses & Pupil `#294062`):** Structural shell grid/ribs, circular eyeglass frames, nasal bridge, temple arm, and eye pupil.
     4. **Slot 4 (Body, Head & Shirt `#eccb2e`):** Turtle head, neck, and unified full front dress shirt (clean, fully tucked front torso).
     5. **Slot 5 (Tie & Lips `#d81d17`):** Classic Disney red necktie and cheerful lips.
-  - **The Lightning Bug Palette (Photoshop 4 + Left Dimple Tick Edition):**
-    1. **Slot 1 (Chassis Black `#11161d`):** Chassis tray, 7.0mm perimeter rim, and unified ~5.6–6.0 px cartoon linework (authentic user-refined Photoshop 4 master linework, cheerful Disney smile with delicate right-side/frame-left dimple tick, delicate 2.5–3.5 px eyelashes, and bold 8.0 px outer chassis).
+  - **The Lightning Bug Palette (Photoshop 4 Master Edition):**
+    1. **Slot 1 (Chassis Black `#11161d`):** Chassis tray, 7.0mm perimeter rim, and unified ~5.6–6.0 px cartoon linework (authentic user-refined Photoshop 4 master linework across the wings, body, face, hat, and tail, with delicate 2.5–3.5 px eyelashes and bold 8.0 px outer chassis).
     2. **Slot 2 (Body, Head & Propeller `#facc15`):** Yellow body segments, head, tail lantern dome, and spinning beanie propeller blades.
     3. **Slot 3 (Belly & Head Accents `#22c55e`):** Vibrant green lower body segments and lower head contours.
     4. **Slot 4 (Wings & Hat Band `#2563eb`):** Classic electric blue wings with internal curl spirals and beanie hat ribbon.

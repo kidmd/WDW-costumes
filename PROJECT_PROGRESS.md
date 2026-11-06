@@ -93,6 +93,14 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### 2026-11-05: Revert to Photoshop 4 Master Artwork (Canceled Dimple Experiment)
+- **User Instruction & Art Direction Alignment:**
+  - **Reverted Smile Dimple:** Canceled the dimple experiment per user feedback ("The dimple thing isn't working. Revert back to the version before I asked you to try to put this dimple in, meaning the Photoshop 4 master version").
+  - **100% Photoshop 4 Master Restored:** Restored the untouched `lightningbug_transparent4.png` directly across all asset and simulator paths.
+- **Verification, Synchronization & Cache-Busting:**
+  - Deployed `assets/lightningbug_transparent4.png` to `assets/lightning_bug.png`, `assets/lightningbug_transparent.png`, `simulator/assets/lightning_bug.png`, and `simulator/assets/lightningbug_transparent.png`.
+  - Bumped simulator cache buster in `simulator/app.js` to `?v=20261105_ps4_master_restored`.
+
 ### 2026-11-05: Lightning Bug Right-Side Smile Dimple (Frame Left) Exploration & Deployment
 - **User Request & 3/4 Profile Smile Design:**
   - **Dimple on Far Corner of Smile:** Developed and compared 3 cartoon styling approaches for adding a dimple to the bug's anatomical right corner of his smile (left side of the frame in 3/4 perspective):
