@@ -93,6 +93,15 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### 2026-11-05: Lightning Bug Photoshop 4 (`lightningbug_transparent4`) Adopted as Master Asset
+- **User Artwork Update & Integration:**
+  - **New Photoshop Master (`lightningbug_transparent4.png`):** Adopted user's latest Photoshop refinements across the wings, hat, face, and tail as the default production asset.
+  - **Strict 5-Color Multi-Material Palette:** Verified 100% color consistency (Black chassis `#11161d`, Sunny Yellow `#facc15`, Emerald Green `#22c55e`, Electric Blue `#2563eb`, Red `#e61919`).
+- **Verification, Synchronization & Cache-Busting:**
+  - Synchronized `lightningbug_transparent4.png` across all 4 production paths: `assets/lightning_bug.png`, `assets/lightningbug_transparent.png`, `simulator/assets/lightning_bug.png`, and `simulator/assets/lightningbug_transparent.png`.
+  - Bumped simulator cache buster in `simulator/app.js` to `?v=20261105_ps4_default_bug`.
+  - Generated visual comparison artifacts: `comp_ps3_vs_ps4_full.png` and `diff_ps3_vs_ps4.png` documented in `lightning_bug_ps4_review.md`.
+
 ### 2026-11-05: Lightning Bug V9 Bottom of Wing Restoration (100% Faithful to Photoshop 3)
 - **User Feedback & Surgical Linework Fix:**
   - **Eliminated Bottom-of-Wing Wonkiness:** Pinpointed that an artificial black reinforcement stroke drawn across $y \in [244 \dots 251]$ had inadvertently painted into the yellow belly and distorted the gentle, rounded tip of the blue wing.
