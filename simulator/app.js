@@ -22153,11 +22153,20 @@ async function triggerPanelTestFirmwareFlash() {
     }, 400);
 
     try {
-        const response = await fetch('/api/flash_panel_test', {
+        let response = await fetch('/api/flash_panel_test', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({})
+            body: JSON.stringify({ isPanelTest: true })
         });
+
+        // Graceful fallback to /api/flash_firmware if /api/flash_panel_test is not available
+        if (response.status === 404) {
+            response = await fetch('/api/flash_firmware', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ isPanelTest: true, floatId: 99 })
+            });
+        }
 
         clearInterval(progressTimer);
 

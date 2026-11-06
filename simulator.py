@@ -609,6 +609,9 @@ class SimulatorRequestHandler(http.server.SimpleHTTPRequestHandler):
             content_length = int(self.headers.get("Content-Length", 0))
             post_data = self.rfile.read(content_length)
             payload = json.loads(post_data.decode("utf-8"))
+            if payload.get("isPanelTest") or payload.get("floatId") == 99:
+                self.handle_flash_panel_test()
+                return
             
             num_front = int(payload.get("numLeds", 100))
             num_back = num_front
@@ -1281,7 +1284,7 @@ const uint8_t PROGMEM SPATIAL_RADIUS_BYTE[FRONT_LEDS] = {{
                 "--chip", "esp32",
                 "--port", port,
                 "--baud", "460800",
-                "write_flash", "-z",
+                "write-flash",
                 "0x1000", bootloader,
                 "0x8000", partitions,
                 "0x10000", test_fw
@@ -1290,6 +1293,15 @@ const uint8_t PROGMEM SPATIAL_RADIUS_BYTE[FRONT_LEDS] = {{
             stdout, _ = proc.communicate(timeout=60)
             success = (proc.returncode == 0)
             user_error = None
+            if not success:
+                # Fallback to PlatformIO upload
+                cmd_pio = [sys.executable, "-m", "platformio", "run", "-e", "panel_test", "-t", "upload", "--upload-port", port]
+                proc_pio = subprocess.Popen(cmd_pio, cwd=BASE_DIR, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
+                stdout_pio, _ = proc_pio.communicate(timeout=120)
+                if proc_pio.returncode == 0:
+                    success = True
+                    stdout = (stdout or "") + "\n[FALLBACK SUCCESS via PlatformIO upload]\n" + (stdout_pio or "")
+                    user_error = None
             if not success:
                 if "not functioning" in stdout or "Error 31" in stdout or "PermissionError(13" in stdout:
                     user_error = f"USB Port {port} is unresponsive (Windows Error 31). Please UNPLUG the USB cable from the ESP32, wait 2 seconds, and plug it back in. Then click Flash again."
