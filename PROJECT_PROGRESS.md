@@ -93,6 +93,22 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### 2026-11-05: Lightning Bug All-Yellow Beanie Propeller with Untouched Tail & Body
+- **High-Contrast Chassis Print Optimization:**
+  - Converted the spinning beanie propeller to 100% solid yellow (#facc15 / BGR [21, 204, 250, 255]) across all components:
+    - 3px vertical spindle post from cap apex at 244 43$ to hub at 244 24$.
+    - Twin cartoon paddle blades and 5px center hub.
+    - Curved cartoon motion spin arcs flanking both blade tips.
+  - Eliminated all black line work from the propeller assembly so it pops brilliantly against black chassis and dark shirts without disappearing into the background.
+- **Zero Alterations to Tail, Head & Body:**
+  - Strictly preserved the segmented accordion tail, cap extension, eyelashes, wing filigree curls, and all other character anatomy bitwise identical to commit 7b51ed.
+  - Exactly 0 pixels altered outside the propeller bounds ( \in [10 \dots 45], x \in [192 \dots 296]$).
+- **Verification & Synchronization:**
+  - Verified 100.0000% 5-color palette compliance across all 117,770 foreground pixels.
+  - Synchronized across ssets/lightning_bug.png, ssets/lightningbug_transparent.png, simulator/assets/lightning_bug.png, and simulator/assets/lightningbug_transparent.png.
+  - Bumped simulator cache buster in simulator/app.js to ?v=20261105_propeller_all_yellow.
+  - Updated generator scripts/lb_paint_facets.py.
+
 ### 2026-11-05: Reverted Lightning Bug to Prior Version (Commit a7b51ed)
 - **Rollback of Experimental Print Modifications:**
   - Per user request, reverted the lightning bug character graphic back to the prior stable version ([`commit a7b51ed`](https://github.com/kidmd/WDW-costumes/commit/a7b51ed)).

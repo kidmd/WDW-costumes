@@ -640,30 +640,32 @@ out[cap_rim_line] = BLACK
 # Redraw eyelashes cleanly over hat front/forehead
 out[eyelash_mask] = BLACK
 
-# --- 2. CUTE CARTOON SPINNING PROPELLER ATOP RED BEANIE ---
+# --- 2. CUTE CARTOON ALL-YELLOW SPINNING PROPELLER ATOP RED BEANIE ---
+# All elements rendered in pure solid yellow (#facc15) so they pop against the black chassis/shirt
 pts_l_blade = np.array([[244, 24], [232, 18], [210, 15], [202, 19], [203, 23], [214, 25], [234, 26]], dtype=np.int32)
 pts_r_blade = np.array([[244, 24], [256, 22], [274, 25], [286, 29], [285, 33], [272, 33], [254, 28]], dtype=np.int32)
 
-prop_color = np.zeros((h, w, 4), dtype=np.uint8)
-prop_lines = np.zeros((h, w), dtype=np.uint8)
+prop_canvas = np.zeros((h, w, 4), dtype=np.uint8)
 
-cv2.fillPoly(prop_color, [pts_l_blade, pts_r_blade], YELLOW.tolist())
-cv2.circle(prop_color, (244, 24), 4, YELLOW.tolist(), -1)
+# Spindle post from cap apex (244, 43) to hub (244, 24) in solid yellow:
+cv2.line(prop_canvas, (244, 43), (244, 24), YELLOW.tolist(), 3, cv2.LINE_AA)
 
-# Spindle post from cap apex (244, 43) to hub (244, 24)
-cv2.line(prop_lines, (244, 43), (244, 24), 255, 3, cv2.LINE_AA)
-cv2.polylines(prop_lines, [pts_l_blade, pts_r_blade], True, 255, 3, cv2.LINE_AA)
-cv2.circle(prop_lines, (244, 24), 4, 255, 2, cv2.LINE_AA)
+# Twin paddle blades in solid yellow:
+cv2.fillPoly(prop_canvas, [pts_l_blade, pts_r_blade], YELLOW.tolist())
+cv2.polylines(prop_canvas, [pts_l_blade, pts_r_blade], True, YELLOW.tolist(), 2, cv2.LINE_AA)
 
-# Cartoon spinning motion arcs
+# Center hub in solid yellow:
+cv2.circle(prop_canvas, (244, 24), 5, YELLOW.tolist(), -1)
+
+# Cartoon spinning motion arcs in solid yellow:
 pts_arc1 = np.array([[208, 11], [199, 14], [194, 21], [196, 28]], dtype=np.int32)
 pts_arc2 = np.array([[280, 37], [289, 34], [294, 27], [292, 20]], dtype=np.int32)
-cv2.polylines(prop_lines, [pts_arc1, pts_arc2], False, 255, 2, cv2.LINE_AA)
-cv2.ellipse(prop_lines, (244, 24), (32, 7), 6, 200, 270, 255, 2, cv2.LINE_AA)
-cv2.ellipse(prop_lines, (244, 24), (32, 7), 6, 20, 90, 255, 2, cv2.LINE_AA)
+cv2.polylines(prop_canvas, [pts_arc1, pts_arc2], False, YELLOW.tolist(), 2, cv2.LINE_AA)
+cv2.ellipse(prop_canvas, (244, 24), (32, 7), 6, 200, 270, YELLOW.tolist(), 2, cv2.LINE_AA)
+cv2.ellipse(prop_canvas, (244, 24), (32, 7), 6, 20, 90, YELLOW.tolist(), 2, cv2.LINE_AA)
 
-out[prop_color[:, :, 3] > 0] = YELLOW
-out[prop_lines > 70] = BLACK
+# Paint entire propeller in solid yellow (no black):
+out[prop_canvas[:, :, 3] > 60] = YELLOW
 
 # --- 3. SEGMENTED TAIL (LOWER RED -> MIDDLE BLACK -> UPPER RED -> YELLOW TIP) ---
 red_tail = (out[:, :, 0] == 25) & (out[:, :, 1] == 25) & (out[:, :, 2] == 230) & (np.arange(w)[None, :] < 120) & (np.arange(h)[:, None] > 180)
