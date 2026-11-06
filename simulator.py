@@ -1264,8 +1264,39 @@ const uint8_t PROGMEM SPATIAL_RADIUS_BYTE[FRONT_LEDS] = {{
             req_data = json.loads(post_data.decode("utf-8")) if post_data else {}
 
             incoming_leds = req_data.get("leds", [])
-            float_name = req_data.get("floatName", "Pete's Dragon")
-            float_index = req_data.get("floatIndex", 5)
+            graphic_type = req_data.get("graphicType", "")
+            float_name = req_data.get("floatName", "Parade Float")
+            float_index = req_data.get("floatIndex", 1)
+
+            CANONICAL_FLOAT_NAMES = {
+                'casey_jr_train': ("Casey Jr. Circus Train", "casey_jr_train", 0),
+                'title_drum': ("Title Drum", "title_drum", 1),
+                'spinning_turtle': ("The Spinning Turtle", "the_turtle", 2),
+                'spinning_snail': ("The Spinning Snail", "the_snail", 3),
+                'spinning_snail_simplified': ("The Spinning Snail", "the_snail", 3),
+                'spinning_snail_original': ("The Spinning Snail", "the_snail", 3),
+                'pirate_ship': ("The Pirate Ship", "pirate_ship", 4),
+                'pirateshipsimple': ("The Pirate Ship", "pirate_ship", 4),
+                'cinderellas_coach': ("Cinderella's Coach", "cinderellas_coach", 4),
+                'cinderella_coach': ("Cinderella's Coach", "cinderellas_coach", 4),
+                'carriage_nohorses': ("Cinderella's Coach", "cinderellas_coach", 4),
+                'builtin_dragon': ("Pete's Dragon", "petes_dragon", 5),
+                'petes_dragon': ("Pete's Dragon", "petes_dragon", 5),
+                'petes_dragon_transparent': ("Pete's Dragon", "petes_dragon", 5),
+                'honor_america_eagle': ("Honor America Eagle", "honor_america_eagle", 6),
+                'lightning_bug': ("Lightning Bug", "lightning_bug", 1),
+                'lightningbug_transparent': ("Lightning Bug", "lightning_bug", 1)
+            }
+            import re
+            if graphic_type in CANONICAL_FLOAT_NAMES:
+                c_name, c_slug, c_slot = CANONICAL_FLOAT_NAMES[graphic_type]
+                if float_name in ["Pete's Dragon", "Parade Float", ""] and "dragon" not in str(graphic_type).lower():
+                    float_name = c_name
+                    float_index = c_slot
+                float_slug = c_slug
+            else:
+                float_slug = re.sub(r'[^a-z0-9_]', '', str(float_name).lower().replace(' ', '_')).strip('_') or 'msep_plate'
+
             artwork_data_url = req_data.get("artworkDataUrl")
 
             artwork_png = os.path.join(BASE_DIR, "3d_panels", "active_artwork.png")
@@ -1390,11 +1421,16 @@ const uint8_t PROGMEM SPATIAL_RADIUS_BYTE[FRONT_LEDS] = {{
                     "color": l.get("color", {"r": 0, "g": 255, "b": 0})
                 })
 
-            window_shape = req_data.get("windowShape", "round_34")
-            if str(window_shape).lower() in ["round", "circle"]:
-                window_shape = "round_34"
-            elif str(window_shape).lower() not in ["round_34", "round_30", "square"]:
-                window_shape = "round_34"
+            without_windows = bool(
+                req_data.get("withoutWindows", False) or
+                str(req_data.get("windowShape", "")).lower() == "none"
+            )
+            window_shape = "none" if without_windows else req_data.get("windowShape", "round_34")
+            if not without_windows:
+                if str(window_shape).lower() in ["round", "circle"]:
+                    window_shape = "round_34"
+                elif str(window_shape).lower() not in ["round_34", "round_30", "square", "none"]:
+                    window_shape = "round_34"
 
             well_orientation = req_data.get("wellOrientation", "horizontal")
             if str(well_orientation).lower() not in ["horizontal", "tangent"]:
@@ -1438,12 +1474,14 @@ const uint8_t PROGMEM SPATIAL_RADIUS_BYTE[FRONT_LEDS] = {{
             matrix_backlight_leds = req_data.get("matrixBacklightLeds", [])
 
             specs = {
-                "character": f"{float_name} 3D Wearable TPU Armor Panels",
+                "character": f"{float_name} 3D Wearable Plate",
                 "float_name": float_name,
+                "float_slug": float_slug,
                 "float_index": float_index,
                 "aspect": aspect,
                 "artwork_file": "active_artwork.png",
                 "graphic_type": req_data.get("graphicType"),
+                "without_windows": without_windows,
                 "window_shape": window_shape,
                 "well_orientation": well_orientation,
                 "include_led_numbers": bool(req_data.get("includeLedNumbers", False)),
@@ -1499,6 +1537,8 @@ const uint8_t PROGMEM SPATIAL_RADIUS_BYTE[FRONT_LEDS] = {{
                 os.path.join(BASE_DIR, "scripts", "compile_clean_tpu_panel.py"),
                 "--window-shape",
                 window_shape,
+                "--without-windows",
+                "on" if without_windows else "off",
                 "--orientation",
                 well_orientation,
                 "--width-mm",

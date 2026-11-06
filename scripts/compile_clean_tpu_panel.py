@@ -19,9 +19,14 @@ for arg in sys.argv[1:]:
         specs_path = arg
         break
 if not os.path.exists(specs_path):
-    specs_path = '3d_panels/petes_dragon_specs.json'
+    for alt in ['3d_panels/tpu_panel_specs.json', '3d_panels/specs.json']:
+        if os.path.exists(alt):
+            specs_path = alt
+            break
+    if not os.path.exists(specs_path):
+        raise FileNotFoundError(f"Specs file not found: {specs_path}")
 
-with open(specs_path) as f:
+with open(specs_path, 'r', encoding='utf-8') as f:
     specs = json.load(f)
 
 # ---------------------------------------------------------------------------
@@ -586,7 +591,17 @@ def compile_matrix_16x16_plate_variant(variant_name, artwork_path, window_shape=
     valid_windowed = []
     seen_win_rc = set()
 
-    if windowed_leds is not None:
+    is_no_windows_requested = bool(
+        window_shape == 'none' or
+        (windowed_leds is not None and len(windowed_leds) == 0) or
+        specs.get('without_windows', False)
+    )
+
+    if is_no_windows_requested:
+        # Explicit 0 windowed LEDs requested (100% All-Backlight Mode • Zero Cutouts • Solid Plate Surface)
+        valid_windowed = []
+        seen_win_rc = set()
+    elif windowed_leds is not None:
         if len(windowed_leds) > 0:
             for l in windowed_leds:
                 if 'row' in l and 'col' in l:
@@ -607,7 +622,6 @@ def compile_matrix_16x16_plate_variant(variant_name, artwork_path, window_shape=
                     cell_copy['color'] = dict(l['color'])
                 valid_windowed.append(cell_copy)
         else:
-            # Explicit 0 windowed LEDs requested (100% All-Backlight Mode • Zero Cutouts)
             valid_windowed = []
             seen_win_rc = set()
     else:
@@ -651,9 +665,10 @@ def compile_matrix_16x16_plate_variant(variant_name, artwork_path, window_shape=
 
     # Build 2D aperture cutouts ONLY for windowed_leds: strictly Ø 3.4mm round holes (radius 1.70mm)
     win_polys = []
-    for l in windowed_leds:
-        lx, ly = float(l['x']), float(l['y'])
-        win_polys.append(sg.Point(lx, ly).buffer(1.70, resolution=24))
+    if not is_no_windows_requested and window_shape != 'none':
+        for l in windowed_leds:
+            lx, ly = float(l['x']), float(l['y'])
+            win_polys.append(sg.Point(lx, ly).buffer(1.70, resolution=24))
     windows_union_2d = unary_union(win_polys) if win_polys else sg.Polygon()
 
     # Build 4 corner sewing holes (Ø 2.8mm, radius 1.40mm) inset from the 176mm plate corners
@@ -984,6 +999,13 @@ def compile_matrix_16x16_plate_variant(variant_name, artwork_path, window_shape=
                 "count": len(lenses_tm.faces)
             })
 
+    raw_slug = str(specs.get('graphic_type') or specs.get('float_slug') or specs.get('float_name') or 'plate')
+    float_slug = re.sub(r'[^a-z0-9_]', '', raw_slug.lower().replace(' ', '_')).strip('_')
+    if not float_slug or float_slug in ['parade_float', 'plate']:
+        clean_name = re.sub(r'[^a-z0-9_]', '', str(specs.get('float_name', 'msep')).lower().replace(' ', '_')).strip('_')
+        float_slug = clean_name if clean_name else 'msep_plate'
+    prefix = f"{float_slug}_{variant_name}"
+
     mf3_filename = f"tpu_panel_{variant_name}_multicolor.3mf"
     mf3_path = os.path.join(out_dir, mf3_filename)
     try:
@@ -997,11 +1019,13 @@ def compile_matrix_16x16_plate_variant(variant_name, artwork_path, window_shape=
     zip_filename = f"tpu_panel_{variant_name}_multicolor_bundle.zip"
     zip_path = os.path.join(out_dir, zip_filename)
     readme_txt = f"""🏰 MAIN STREET ELECTRICAL PARADE - 16x16 MATRIX HYBRID BACKLIGHT PLATE
-VARIANT: {variant_name.upper()} ({specs.get('float_name', 'MSEP Float')})
+FLOAT: {specs.get('float_name', 'MSEP Float')} ({variant_name.upper()})
+MATERIAL: PLA / PETG (Rigid Backlight Plate) or 95A TPU
 ======================================================================
 PLATE SIZE: {PLATE_SIZE_MM:.1f} mm x {PLATE_SIZE_MM:.1f} mm Square (Covers 160x160mm BTF 16x16 FPCB)
 FACE THICKNESS: {THICK_MM:.2f} mm (100% Full Z-Thickness Color Inlays, Top to Bottom)
-LED STANDOFF GAP: {GAP_MM:.1f} mm\nFRAME HEIGHT: {FRAME_HEIGHT:.1f} mm (2.0mm Pocket + 1.0mm Ledge + {STANDOFF_GAP:.1f}mm Gap)
+LED STANDOFF GAP: {GAP_MM:.1f} mm
+FRAME HEIGHT: {FRAME_HEIGHT:.1f} mm (2.0mm Pocket + 1.0mm Ledge + {STANDOFF_GAP:.1f}mm Gap)
 TOTAL HEIGHT: {TOTAL_Z:.2f} mm
 WINDOWED LEDS: {len(windowed_leds)} Open Apertures (Ø 3.4mm Round Through-Holes)
 BACKLIT LEDS: {len(backlight_leds)} Solid Diffused Glow Positions (Zero Holes)
@@ -1010,12 +1034,17 @@ REMOVED FEATURES: No LED channels, no side walls, no screw holes, no eyelets, no
 """
     tmp_zip = zip_path + '.tmp'
     with zipfile.ZipFile(tmp_zip, 'w', zipfile.ZIP_DEFLATED) as zf:
-        zf.writestr('README_16X16_MATRIX_PLATE.txt', readme_txt)
-        zf.write(chassis_path, chassis_filename)
+        zf.writestr(f'README_{float_slug.upper()}_16X16_PLATE.txt', readme_txt)
+        zf.write(chassis_path, f"{prefix}_chassis_black.stl")
         for c_n, c_p in color_stls.items():
-            zf.write(c_p, os.path.basename(c_p))
+            if c_n == 'clear_layer':
+                zf.write(c_p, f"{prefix}_diffuser_0.4mm.stl")
+            elif c_n == 'lenses':
+                zf.write(c_p, f"{prefix}_color_lenses.stl")
+            else:
+                zf.write(c_p, f"{prefix}_color_{c_n}.stl")
         if os.path.exists(mf3_path):
-            zf.write(mf3_path, mf3_filename)
+            zf.write(mf3_path, f"{prefix}_Plate.3mf")
     if os.path.exists(zip_path):
         try:
             os.remove(zip_path)
@@ -1096,11 +1125,12 @@ REMOVED FEATURES: No LED channels, no side walls, no screw holes, no eyelets, no
         "is_watertight": True
     }
 
-def compile_plate_variant(variant_name, width_mm, height_mm, raw_leds, artwork_path, window_shape='round_34', clip_grooves=False, top_nubs=False, well_orientation='horizontal'):
-    print(f"\n>>> Compiling {variant_name.upper()} Plate ({width_mm}mm x {height_mm}mm, {len(raw_leds)} LEDs, Window Shape: {window_shape.upper()}, Orientation: {well_orientation.upper()}, Clip Grooves: {'ON' if clip_grooves else 'OFF'}, Top Nubs: {'ON' if top_nubs else 'OFF'})...")
+def compile_plate_variant(variant_name, width_mm, height_mm, raw_leds, artwork_path, window_shape='round_34', clip_grooves=False, top_nubs=False, well_orientation='horizontal', without_windows=False):
+    is_no_win = bool(without_windows or window_shape == 'none' or len(raw_leds) == 0)
+    print(f"\n>>> Compiling {variant_name.upper()} Plate ({width_mm}mm x {height_mm}mm, {len(raw_leds)} LEDs, Window Shape: {'NONE (Solid Plate)' if is_no_win else window_shape.upper()}, Orientation: {well_orientation.upper()}, Clip Grooves: {'ON' if clip_grooves else 'OFF'}, Top Nubs: {'ON' if top_nubs else 'OFF'})...")
     v_t0 = time.time()
-    num_leds = len(raw_leds)
-    leds = [dict(l) for l in raw_leds]
+    num_leds = 0 if is_no_win else len(raw_leds)
+    leds = [] if is_no_win else [dict(l) for l in raw_leds]
 
     # 1. Extract Active Silhouette Boundary & Safe Artwork Containment Zone
     active_img = Image.open(artwork_path).convert('RGBA')
@@ -1597,30 +1627,31 @@ def compile_plate_variant(variant_name, width_mm, height_mm, raw_leds, artwork_p
         # Optical Window Aperture:
         # Default: Ø 3.4mm Round (win_radius = 1.7mm)
         # Selectable: round_34 (Ø 3.4mm), round_30 (Ø 3.0mm), square (3x3mm)
-        w_shape_str = str(window_shape).lower()
-        if '30' in w_shape_str or '3.0' in w_shape_str:
-            win_radius = 1.5  # Ø 3.0mm round
-            is_circle_win = True
-        elif 'square' in w_shape_str:
-            win_radius = 1.5  # 3.0mm square half-width
-            is_circle_win = False
-        else:
-            win_radius = 1.7  # Ø 3.4mm round (default: round_34, round, circle)
-            is_circle_win = True
+        if not is_no_win:
+            w_shape_str = str(window_shape).lower()
+            if '30' in w_shape_str or '3.0' in w_shape_str:
+                win_radius = 1.5  # Ø 3.0mm round
+                is_circle_win = True
+            elif 'square' in w_shape_str:
+                win_radius = 1.5  # 3.0mm square half-width
+                is_circle_win = False
+            else:
+                win_radius = 1.7  # Ø 3.4mm round (default: round_34, round, circle)
+                is_circle_win = True
 
-        # Use generous cutter height (4.0mm) to guarantee clean punch-through across full tray skin
-        cutter_h = FRONT_THICK_GENERAL + 2.0
-        if is_circle_win:
-            sq_win = trimesh.creation.cylinder(radius=win_radius, height=cutter_h, sections=28)
-            win_2d = sg.Point(cx, cy).buffer(win_radius, resolution=16)
-        else:
-            sq_win = trimesh.creation.box(extents=[WINDOW_SQ, WINDOW_SQ, cutter_h])
-            sq_win.apply_transform(rot)
-            win_2d = sg.box(cx - WINDOW_SQ / 2.0, cy - WINDOW_SQ / 2.0, cx + WINDOW_SQ / 2.0, cy + WINDOW_SQ / 2.0)
+            # Use generous cutter height (4.0mm) to guarantee clean punch-through across full tray skin
+            cutter_h = FRONT_THICK_GENERAL + 2.0
+            if is_circle_win:
+                sq_win = trimesh.creation.cylinder(radius=win_radius, height=cutter_h, sections=28)
+                win_2d = sg.Point(cx, cy).buffer(win_radius, resolution=16)
+            else:
+                sq_win = trimesh.creation.box(extents=[WINDOW_SQ, WINDOW_SQ, cutter_h])
+                sq_win.apply_transform(rot)
+                win_2d = sg.box(cx - WINDOW_SQ / 2.0, cy - WINDOW_SQ / 2.0, cx + WINDOW_SQ / 2.0, cy + WINDOW_SQ / 2.0)
 
-        sq_win.apply_translation([cx, cy, FRONT_THICK_LED / 2.0])
-        square_window_cutters.append(sq_win)
-        led_windows_2d_list.append(win_2d)
+            sq_win.apply_translation([cx, cy, FRONT_THICK_LED / 2.0])
+            square_window_cutters.append(sq_win)
+            led_windows_2d_list.append(win_2d)
 
     led_windows_union_2d = unary_union(led_windows_2d_list) if led_windows_2d_list else sg.Polygon()
 
@@ -1628,12 +1659,13 @@ def compile_plate_variant(variant_name, width_mm, height_mm, raw_leds, artwork_p
     number_positions = []
     number_cutters = []
 
-    for i, l in enumerate(leds):
-        if not INCLUDE_LED_NUMBERS:
-            break
-        num_str = str(i + 1)
-        p = np.array([l['x'], l['y']])
-        best_cand = None
+    if not is_no_win:
+        for i, l in enumerate(leds):
+            if not INCLUDE_LED_NUMBERS:
+                break
+            num_str = str(i + 1)
+            p = np.array([l['x'], l['y']])
+            best_cand = None
         max_d = -1
         candidates = [
             p + np.array([0.0, 5.5]),   p + np.array([0.0, -5.5]),
@@ -2086,11 +2118,15 @@ def compile_plate_variant(variant_name, width_mm, height_mm, raw_leds, artwork_p
             shutil.copyfile(mono_path, dst_tpu)
         except Exception as copy_err:
             print('Warning: Failed copying tpu_panel.stl:', copy_err)
-        if 'dragon' in str(specs.get('graphic_type', '')).lower():
-            shutil.copyfile(mono_path, os.path.join(out_dir, 'petes_dragon_tpu_panel.stl'))
-            shutil.copyfile(lid_path, os.path.join(out_dir, 'petes_dragon_tpu_panel_lid.stl'))
 
     # 10. EXPORT NATIVE MULTI-BODY .3MF PROJECT
+    raw_slug = str(specs.get('graphic_type') or specs.get('float_slug') or specs.get('float_name') or 'armor')
+    float_slug = re.sub(r'[^a-z0-9_]', '', raw_slug.lower().replace(' ', '_')).strip('_')
+    if not float_slug or float_slug in ['parade_float', 'armor']:
+        clean_name = re.sub(r'[^a-z0-9_]', '', str(specs.get('float_name', 'msep')).lower().replace(' ', '_')).strip('_')
+        float_slug = clean_name if clean_name else 'msep_armor'
+    prefix = f"{float_slug}_{variant_name}"
+
     mf3_filename = f"tpu_panel_{variant_name}_multicolor.3mf"
     mf3_path = os.path.join(out_dir, mf3_filename)
 
@@ -2105,17 +2141,19 @@ def compile_plate_variant(variant_name, width_mm, height_mm, raw_leds, artwork_p
     zip_filename = f"tpu_panel_{variant_name}_multicolor_bundle.zip"
     zip_path = os.path.join(out_dir, zip_filename)
     
-    stl_list_lines = [f"   - {chassis_filename}", f"   - {lid_filename}"]
+    stl_list_lines = [f"   - {prefix}_chassis_black.stl", f"   - {prefix}_lid.stl"]
     slot_mapping_lines = [f"Slot 1 (Black 95A TPU):   Chassis Tray, 7mm Perimeter Rim, 16 Tabs, {num_leds} Collars, Outlines",
                           f"Rear Lid (TPU or PLA):    2.0mm Rear Cover Plate with Alignment Ridge & M2 Screw Holes"]
     for s_idx, inl in enumerate(exported_inlays, 2):
-        stl_list_lines.append(f"   - {inl['filename']}")
+        stl_list_lines.append(f"   - {prefix}_color_{inl['key']}.stl")
         slot_mapping_lines.append(f"Slot {s_idx} ({inl['name']}):  {inl['name']}")
     stl_list_str = "\n".join(stl_list_lines)
     slot_mapping_str = "\n".join(slot_mapping_lines)
 
     w_shape_str = str(window_shape).lower()
-    if '30' in w_shape_str or '3.0' in w_shape_str:
+    if is_no_win:
+        aperture_desc = "Zero optical apertures (Solid Front Plate • Subsurface Backlight Glow)"
+    elif '30' in w_shape_str or '3.0' in w_shape_str:
         aperture_desc = "Ø 3.0mm round optical apertures"
     elif 'square' in w_shape_str:
         aperture_desc = "3x3mm square optical apertures"
@@ -2135,7 +2173,7 @@ HOW TO IMPORT INTO BAMBU STUDIO / ORCASLICER:
 ======================================================================
 METHOD 1: NATIVE .3MF PROJECT (RECOMMENDED)
 1. Open Bambu Studio.
-2. Drag and drop '{mf3_filename}' onto the build plate.
+2. Drag and drop '{prefix}_Armor_Panel.3mf' onto the build plate.
 3. In the left panel (Process -> Objects), verify the parts are listed.
 4. Assign your AMS filament slots (Slot 1 to {len(exported_inlays) + 1}) to the parts.
 
@@ -2165,14 +2203,21 @@ RECOMMENDED 95A TPU PRINT SETTINGS:
 - Wipe Tower: Enabled (Prime volume ~25-35 mm3)
 ======================================================================
 """
-    with zipfile.ZipFile(zip_path, 'w', zipfile.ZIP_DEFLATED) as zf:
+    tmp_zip = zip_path + '.tmp'
+    with zipfile.ZipFile(tmp_zip, 'w', zipfile.ZIP_DEFLATED) as zf:
         zf.writestr('README_BAMBU_STUDIO.txt', readme_content)
-        zf.write(chassis_path, chassis_filename)
-        zf.write(lid_path, lid_filename)
+        zf.write(chassis_path, f"{prefix}_chassis_black.stl")
+        zf.write(lid_path, f"{prefix}_lid.stl")
         for c_n, c_p in color_stls.items():
-            zf.write(c_p, os.path.basename(c_p))
+            zf.write(c_p, f"{prefix}_color_{c_n}.stl")
         if os.path.exists(mf3_path):
-            zf.write(mf3_path, mf3_filename)
+            zf.write(mf3_path, f"{prefix}_Armor_Panel.3mf")
+    if os.path.exists(zip_path):
+        try:
+            os.remove(zip_path)
+        except Exception:
+            pass
+    shutil.move(tmp_zip, zip_path)
 
     # 12. Parametric OpenSCAD Export
     scad_code = f'''// ============================================================================
@@ -2194,8 +2239,6 @@ linear_extrude(front_thickness) polygon(contour_pts);
     scad_path = os.path.join(out_dir, scad_filename)
     with open(scad_path, 'w', encoding='utf-8') as f_scad:
         f_scad.write(scad_code)
-    if variant_name == 'front':
-        shutil.copyfile(scad_path, os.path.join(out_dir, 'petes_dragon_tpu_panel.scad'))
 
     stl_size = os.path.getsize(mono_path)
     chassis_size = os.path.getsize(chassis_path)
@@ -2248,7 +2291,16 @@ linear_extrude(front_thickness) polygon(contour_pts);
 artwork_file = specs.get('artwork_file', 'active_artwork.png')
 artwork_path = os.path.join('3d_panels', artwork_file)
 if not os.path.exists(artwork_path):
-    artwork_path = 'assets/petes_dragon_transparent.png'
+    g_type = str(specs.get('graphic_type', '')).lower()
+    candidate_asset = os.path.join('assets', f"{g_type}.png")
+    if os.path.exists(candidate_asset):
+        artwork_path = candidate_asset
+    elif os.path.exists(os.path.join('assets', f"{g_type}_transparent.png")):
+        artwork_path = os.path.join('assets', f"{g_type}_transparent.png")
+    elif os.path.exists('assets/msep_title_drum.png'):
+        artwork_path = 'assets/msep_title_drum.png'
+    else:
+        artwork_path = 'assets/petes_dragon_transparent.png'
 
 print(f"Using artwork: {artwork_path}")
 
@@ -2306,9 +2358,20 @@ if '--window-shape' in sys.argv:
     try:
         w_idx = sys.argv.index('--window-shape')
         if w_idx + 1 < len(sys.argv):
-            window_shape = sys.argv[w_idx + 1]
+            window_shape = sys.argv[w_idx + 1].lower()
     except Exception:
         pass
+
+WITHOUT_WINDOWS = bool(specs.get('without_windows', False) or window_shape == 'none')
+if '--without-windows' in sys.argv:
+    try:
+        _wwi = sys.argv.index('--without-windows')
+        if _wwi + 1 < len(sys.argv):
+            WITHOUT_WINDOWS = sys.argv[_wwi + 1].lower() in ('on', '1', 'true', 'yes')
+    except Exception:
+        pass
+if WITHOUT_WINDOWS:
+    window_shape = 'none'
 
 well_orientation = specs.get('well_orientation', 'horizontal')
 if '--orientation' in sys.argv:
@@ -2320,7 +2383,12 @@ if '--orientation' in sys.argv:
         pass
 
 if MATRIX_16X16_MODE:
-    windowed_leds_spec = specs.get('matrix_windowed_leds', specs.get('ordered_leds', None))
+    if WITHOUT_WINDOWS:
+        windowed_leds_spec = []
+    elif 'matrix_windowed_leds' in specs and specs['matrix_windowed_leds'] is not None:
+        windowed_leds_spec = specs['matrix_windowed_leds']
+    else:
+        windowed_leds_spec = None
     backlight_leds_spec = specs.get('matrix_backlight_leds', None)
     # 1. Compile Front 16x16 Matrix Backlight Plate
     front_result = compile_matrix_16x16_plate_variant(
@@ -2330,7 +2398,7 @@ if MATRIX_16X16_MODE:
         plate_thickness_mm=PLATE_THICKNESS_MM,
         gap_mm=MATRIX_GAP_MM,
         lip_mm=MATRIX_GAP_MM,
-        include_lenses=INCLUDE_LENSES,
+        include_lenses=INCLUDE_LENSES and not WITHOUT_WINDOWS,
         clear_layer_mm=MATRIX_CLEAR_LAYER_MM,
         include_frame=INCLUDE_FRAME,
         corner_radius_mm=MATRIX_CORNER_RADIUS_MM,
@@ -2345,7 +2413,7 @@ if MATRIX_16X16_MODE:
         plate_thickness_mm=PLATE_THICKNESS_MM,
         gap_mm=MATRIX_GAP_MM,
         lip_mm=MATRIX_GAP_MM,
-        include_lenses=INCLUDE_LENSES,
+        include_lenses=INCLUDE_LENSES and not WITHOUT_WINDOWS,
         clear_layer_mm=MATRIX_CLEAR_LAYER_MM,
         include_frame=INCLUDE_FRAME,
         corner_radius_mm=MATRIX_CORNER_RADIUS_MM,
@@ -2358,12 +2426,13 @@ else:
         'front',
         front_specs['width_mm'],
         front_specs['height_mm'],
-        front_specs['ordered_leds'],
+        [] if WITHOUT_WINDOWS else front_specs['ordered_leds'],
         artwork_path,
         window_shape=window_shape,
         clip_grooves=INCLUDE_CLIP_GROOVES,
         top_nubs=INCLUDE_TOP_NUBS,
-        well_orientation=well_orientation
+        well_orientation=well_orientation,
+        without_windows=WITHOUT_WINDOWS
     )
 
     # 2. Compile Back Plate
@@ -2371,12 +2440,13 @@ else:
         'back',
         back_specs['width_mm'],
         back_specs['height_mm'],
-        back_specs['ordered_leds'],
+        [] if WITHOUT_WINDOWS else back_specs['ordered_leds'],
         artwork_path,
         window_shape=window_shape,
         clip_grooves=INCLUDE_CLIP_GROOVES,
         top_nubs=INCLUDE_TOP_NUBS,
-        well_orientation=well_orientation
+        well_orientation=well_orientation,
+        without_windows=WITHOUT_WINDOWS
     )
 
 # Update full JSON specifications
@@ -2384,15 +2454,16 @@ active_graphic_type = specs.get('graphic_type', '')
 front_result['graphic_type'] = active_graphic_type
 back_result['graphic_type'] = active_graphic_type
 specs['graphic_type'] = active_graphic_type
+specs['without_windows'] = WITHOUT_WINDOWS
 specs['window_shape'] = window_shape
 specs['well_orientation'] = well_orientation
-specs['include_led_numbers'] = INCLUDE_LED_NUMBERS
+specs['include_led_numbers'] = INCLUDE_LED_NUMBERS and not WITHOUT_WINDOWS
 specs['include_clip_grooves'] = INCLUDE_CLIP_GROOVES
 specs['include_top_nubs'] = INCLUDE_TOP_NUBS
 specs['matrix_16x16_mode'] = MATRIX_16X16_MODE
 specs['plate_thickness_mm'] = round(PLATE_THICKNESS_MM, 2)
 specs['matrix_gap_mm'] = round(MATRIX_GAP_MM, 1)
-specs['matrix_lenses_mode'] = INCLUDE_LENSES
+specs['matrix_lenses_mode'] = INCLUDE_LENSES and not WITHOUT_WINDOWS
 specs['matrix_clear_layer_mm'] = round(MATRIX_CLEAR_LAYER_MM, 2)
 specs['matrix_frame_mode'] = INCLUDE_FRAME
 if MATRIX_16X16_MODE:
@@ -2407,9 +2478,6 @@ for k, v in front_result.items():
 
 with open(specs_path, 'w', encoding='utf-8') as f:
     json.dump(specs, f, indent=2)
-
-if specs_path != '3d_panels/petes_dragon_specs.json':
-    shutil.copyfile(specs_path, '3d_panels/petes_dragon_specs.json')
 
 print("\n" + "=" * 70)
 print(f"ALL PANELS COMPILED IN {time.time()-t0:.2f}s TOTAL!")

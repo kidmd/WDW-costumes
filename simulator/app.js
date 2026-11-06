@@ -235,7 +235,7 @@ lightningBugImg.onload = () => {
     lightningBugLoaded = true;
     notifyFloatImgLoaded();
 };
-lightningBugImg.src = 'assets/lightning_bug.png?v=20261105_propeller_all_yellow';
+lightningBugImg.src = 'assets/lightning_bug.png?v=20261105_smoothed_harmonized_v1';
 
 const lightningBugTransparentImg = new Image();
 let lightningBugTransparentLoaded = false;
@@ -243,7 +243,7 @@ lightningBugTransparentImg.onload = () => {
     lightningBugTransparentLoaded = true;
     notifyFloatImgLoaded();
 };
-lightningBugTransparentImg.src = 'assets/lightningbug_transparent.png?v=20261105_propeller_all_yellow';
+lightningBugTransparentImg.src = 'assets/lightningbug_transparent.png?v=20261105_smoothed_harmonized_v1';
 
 // Custom artwork image (if user uploads one or loads one from preset)
 let customArtworkImg = null;
@@ -13837,26 +13837,31 @@ window.getFormattedTimestamp = getFormattedTimestamp;
 // <float_name>_<size>_<leds>_<date>_<time> (strictly omitting front/back)
 // Example: the_turtle_large_100led_2026-10-15_09-25
 function getStandardFloatFileBaseName(options = {}) {
-    let floatSlug = '';
-    if (activeSingleShirtRunnerSlot !== null && activeSingleShirtRunnerSlot >= 0 && fleetRunners[activeSingleShirtRunnerSlot]) {
-        const rName = fleetRunners[activeSingleShirtRunnerSlot].name || '';
-        floatSlug = rName.toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '');
-    }
-    if (!floatSlug && currentGraphicType) {
-        floatSlug = currentGraphicType.toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '');
-    }
-    if (!floatSlug) floatSlug = 'float';
+    const floatSlug = (typeof getStandardFloatSlug === 'function')
+        ? getStandardFloatSlug()
+        : ((currentGraphicType || 'float').toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, ''));
 
     let size = (options.size || selectedPlateSize || 'medium').toString().toLowerCase();
     if (size !== 'small' && size !== 'medium' && size !== 'large') {
         size = 'medium';
     }
 
-    const count = (options.ledCount !== undefined) ? options.ledCount : (Array.isArray(leds) ? leds.length : 75);
-    const ledStr = `${count}led`;
+    const isMatrix16 = (typeof btfMatrix16x16Active !== 'undefined' && (btfMatrix16x16Active || (typeof tpuDisplayMode !== 'undefined' && tpuDisplayMode === 'matrix16')));
+    let ledStr = '';
+    if (isMatrix16) {
+        const winCount = (typeof btfMatrix16x16Config !== 'undefined' && typeof btfMatrix16x16Config.windowCount === 'number')
+            ? btfMatrix16x16Config.windowCount
+            : 0;
+        const glowCount = (typeof btfMatrix16x16Config !== 'undefined' && typeof btfMatrix16x16Config.backlightCount === 'number')
+            ? btfMatrix16x16Config.backlightCount
+            : 0;
+        ledStr = (winCount === 0) ? `solid_plate_${glowCount}glow` : `${winCount}win_${glowCount}glow`;
+    } else {
+        const count = (options.ledCount !== undefined) ? options.ledCount : (Array.isArray(leds) ? leds.length : 75);
+        ledStr = `${count}led`;
+    }
 
     const timeTag = options.timeTag || getFormattedTimestamp(true);
-
     return `${floatSlug}_${size}_${ledStr}_${timeTag}`;
 }
 window.getStandardFloatFileBaseName = getStandardFloatFileBaseName;
@@ -24417,10 +24422,41 @@ window.openTpuPreviewModal = openTpuPreviewModal;
 window.closeTpuPreviewModal = closeTpuPreviewModal;
 window.handleRecompileTpuStl = handleRecompileTpuStl;
 
-function getActiveFloatName() {
-    if (typeof activeSingleShirtRunnerSlot !== 'undefined' && activeSingleShirtRunnerSlot !== null && typeof fleetRunners !== 'undefined' && fleetRunners[activeSingleShirtRunnerSlot]) {
-        return fleetRunners[activeSingleShirtRunnerSlot].name || fleetRunners[activeSingleShirtRunnerSlot].fullName || "Parade Float";
+function getStandardFloatSlug() {
+    const slugMap = {
+        'casey_jr_train': 'casey_jr_train',
+        'title_drum': 'title_drum',
+        'spinning_turtle': 'the_turtle',
+        'spinning_snail': 'the_snail',
+        'spinning_snail_simplified': 'the_snail',
+        'spinning_snail_original': 'the_snail',
+        'pirate_ship': 'pirate_ship',
+        'pirateshipsimple': 'pirate_ship',
+        'cinderellas_coach': 'cinderellas_coach',
+        'cinderella_coach': 'cinderellas_coach',
+        'carriage_nohorses': 'cinderellas_coach',
+        'builtin_dragon': 'petes_dragon',
+        'petes_dragon': 'petes_dragon',
+        'petes_dragon_transparent': 'petes_dragon',
+        'honor_america_eagle': 'honor_america_eagle',
+        'lightning_bug': 'lightning_bug',
+        'lightningbug_transparent': 'lightning_bug',
+        'custom_image': 'custom_artwork',
+        'custom_upload': 'custom_artwork'
+    };
+    if (typeof currentGraphicType !== 'undefined' && currentGraphicType && slugMap[currentGraphicType]) {
+        return slugMap[currentGraphicType];
     }
+    if (typeof activeSingleShirtRunnerSlot !== 'undefined' && activeSingleShirtRunnerSlot !== null && typeof fleetRunners !== 'undefined' && fleetRunners[activeSingleShirtRunnerSlot]) {
+        const rName = fleetRunners[activeSingleShirtRunnerSlot].name || '';
+        const slug = rName.toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '');
+        if (slug) return slug;
+    }
+    return 'msep_plate';
+}
+window.getStandardFloatSlug = getStandardFloatSlug;
+
+function getActiveFloatName() {
     const nameMap = {
         'casey_jr_train': "Casey Jr. Circus Train",
         'title_drum': "MSEP Title Drum",
@@ -24430,15 +24466,25 @@ function getActiveFloatName() {
         'spinning_snail_original': "The Spinning Snail",
         'pirate_ship': "The Pirate Ship",
         'pirateshipsimple': "The Pirate Ship",
-        'cinderellas_coach': "The Pirate Ship",
-        'cinderella_coach': "The Pirate Ship",
-        'carriage_nohorses': "The Pirate Ship",
+        'cinderellas_coach': "Cinderella's Coach",
+        'cinderella_coach': "Cinderella's Coach",
+        'carriage_nohorses': "Cinderella's Coach",
         'builtin_dragon': "Pete's Dragon",
         'petes_dragon': "Pete's Dragon",
+        'petes_dragon_transparent': "Pete's Dragon",
         'honor_america_eagle': "Honor America Eagle",
-        'custom_image': "Custom Artwork"
+        'lightning_bug': "Lightning Bug",
+        'lightningbug_transparent': "Lightning Bug",
+        'custom_image': "Custom Artwork",
+        'custom_upload': "Custom Artwork"
     };
-    return nameMap[currentGraphicType] || "Parade Float";
+    if (typeof currentGraphicType !== 'undefined' && currentGraphicType && nameMap[currentGraphicType]) {
+        return nameMap[currentGraphicType];
+    }
+    if (typeof activeSingleShirtRunnerSlot !== 'undefined' && activeSingleShirtRunnerSlot !== null && typeof fleetRunners !== 'undefined' && fleetRunners[activeSingleShirtRunnerSlot]) {
+        return fleetRunners[activeSingleShirtRunnerSlot].name || fleetRunners[activeSingleShirtRunnerSlot].fullName || "Parade Float";
+    }
+    return "Parade Float";
 }
 window.getActiveFloatName = getActiveFloatName;
 
@@ -24798,30 +24844,37 @@ async function handleRecompileTpuStl(opts) {
                 : 0.0
         }));
 
+        const isWithoutWindows = (
+            (typeof isAllBacklightNoWindowsActive !== 'undefined' && isAllBacklightNoWindowsActive) ||
+            (typeof btfMatrix16x16Config !== 'undefined' && btfMatrix16x16Config.windowCount === 0) ||
+            params.tpuWindowShape === 'none'
+        );
+
         const matrixLists = isMatrix16 && typeof getBtfMatrix16x16ListsForExport === 'function'
             ? getBtfMatrix16x16ListsForExport()
             : { windowedLeds: [], backlightLeds: [] };
 
         const payload = {
-            leds: ledsWithRotations,
+            leds: isWithoutWindows ? [] : ledsWithRotations,
             floatIndex: slot,
             floatName: floatName,
             graphicType: currentGraphicType,
-            windowShape: params.tpuWindowShape || 'round_34',
+            withoutWindows: isWithoutWindows,
+            windowShape: isWithoutWindows ? 'none' : (params.tpuWindowShape || 'round_34'),
             wellOrientation: params.tpuWellOrientation || 'horizontal',
-            includeLedNumbers: params.tpuIncludeLedNumbers === true,
+            includeLedNumbers: !isWithoutWindows && (params.tpuIncludeLedNumbers === true),
             includeClipGrooves: params.tpuIncludeClipGrooves === true,
             includeTopNubs: params.tpuIncludeTopNubs === true,
             matrix16x16Mode: isMatrix16,
             plateThicknessMm: (typeof btfMatrix16x16Config !== 'undefined' && btfMatrix16x16Config.thicknessMm) ? btfMatrix16x16Config.thicknessMm : 0.60,
             matrixGapMm: (typeof btfMatrix16x16Config !== 'undefined' && btfMatrix16x16Config.gapMm !== undefined) ? btfMatrix16x16Config.gapMm : 0.0,
             matrixLipMm: (typeof btfMatrix16x16Config !== 'undefined' && btfMatrix16x16Config.gapMm !== undefined) ? btfMatrix16x16Config.gapMm : 0.0,
-            matrixLensesMode: (typeof btfMatrix16x16Config !== 'undefined' && btfMatrix16x16Config.lensesActive !== false),
+            matrixLensesMode: !isWithoutWindows && (typeof btfMatrix16x16Config !== 'undefined' && btfMatrix16x16Config.lensesActive !== false),
             matrixClearLayerMm: (typeof btfMatrix16x16Config !== 'undefined' && btfMatrix16x16Config.clearLayerMm !== undefined) ? btfMatrix16x16Config.clearLayerMm : 0.4,
             matrixFrameMode: (typeof btfMatrix16x16Config !== 'undefined' && btfMatrix16x16Config.frameActive !== false),
             matrixRoundedCorners: (typeof btfMatrix16x16Config !== 'undefined' && btfMatrix16x16Config.roundedCorners !== false),
             matrixCornerRadiusMm: (typeof btfMatrix16x16Config !== 'undefined' && btfMatrix16x16Config.cornerRadiusMm !== undefined) ? btfMatrix16x16Config.cornerRadiusMm : 6.0,
-            matrixWindowedLeds: matrixLists.windowedLeds,
+            matrixWindowedLeds: isWithoutWindows ? [] : matrixLists.windowedLeds,
             matrixBacklightLeds: matrixLists.backlightLeds,
             widthMm: selectedPlateWidthMm,
             sizePreset: selectedPlateSize,

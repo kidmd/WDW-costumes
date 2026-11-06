@@ -74,7 +74,7 @@
     "color": "#00ff88",
     "accent": "Green",
     "role": "\ud83d\udce1 Follower Float",
-    "preset": "local:pete_s_dragon_chris_large_81led_2026-11-03_10-33",
+    "preset": "server:pete_s_dragon_chris_large_81led_2026-11-03_10-33.json",
     "defaultGraphic": "builtin_dragon"
   },
   {

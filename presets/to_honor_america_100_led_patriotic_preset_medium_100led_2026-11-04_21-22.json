@@ -6,7 +6,7 @@
   "role": "\ud83d\udce1 Follower Float",
   "tag": "HONOR AMERICA",
   "accentColor": "#3a86ff",
-  "savedAt": "2026-11-05T03:22:40.656Z",
+  "savedAt": "2026-11-05T06:50:18.878Z",
   "ledCount": 100,
   "leds": [
     {
@@ -2885,7 +2885,7 @@
     "pattern": "steady_sparkle",
     "direction": 1,
     "speedBpm": 120,
-    "sparkleRate": 1.5,
+    "sparkleRate": 0.5,
     "sparkleStyle": "incandescent",
     "ambientColorMode": "artwork",
     "ambientCustomColor": "#ffb703",

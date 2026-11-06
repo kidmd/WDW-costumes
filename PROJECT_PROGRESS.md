@@ -93,6 +93,19 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### 2026-11-05: Lightning Bug Character Linework Harmonization & 3D Plate Dynamic Naming Fix
+- **Subpixel Signed Distance Field (SDF) Line Smoothing & Harmonization:**
+  - **Model Line Calibration (~5.6–6.0 px):** Harmonized all interior structural linework (body divider ribs, curved head ribs, beanie hat ribbing, internal wing curl spirals, and tail accordion divider bands) to match the head-to-body model collar line (~5.6–6.0 px stroke width, median 6.00 px across all features).
+  - **Delicate Facial Accent Preservation:** Kept cartoon eyelashes, eye outline, pupil, and cheerful smile delicate (~2.5–3.5 px, min 2.83 px), preventing any clumping or fattening of facial expressions per `/grill-me` alignment.
+  - **Tiered Wing Chassis Hierarchy:** Preserved bold outer wing perimeter chassis (~7.0–8.0 px, median 8.00 px) while smoothing interior spiral curls to ~5.8–6.0 px.
+  - **Edge-Preserving Anti-Aliased Subpixel Morphological Smoothing:** Upscaled line masks to 4x subpixel resolution ($1840 \times 1744$), evaluated exact Euclidean signed distance fields ($SDF$), and applied Gaussian curvature flow ($\sigma = 3.2$ subpixels) to eliminate 1-pixel stair-stepping jaggies while strictly preserving the user's hand-drawn paths and proportions.
+  - **Color-Trap Under-Line Bleed:** Propagated color flats (Yellow, Green, Blue, Red) under the black linework using nearest-neighbor Euclidean distance transforms, guaranteeing 100% solid color fills with zero transparent gaps, cracks, or jagged seams behind the smooth anti-aliased black strokes.
+  - **Asset Synchronization & Simulator Cache-Busting:** Synchronized the smoothed production graphic across all 4 production asset paths (`assets/lightning_bug.png`, `assets/lightningbug_transparent.png`, `simulator/assets/lightning_bug.png`, `simulator/assets/lightningbug_transparent.png`) and updated simulator cache buster in `simulator/app.js` to `?v=20261105_smoothed_harmonized_v1`.
+- **Dynamic Float Naming & Zero-Aperture Solid Plate Pipeline (`scripts/compile_clean_tpu_panel.py` & `simulator.py`):**
+  - **Dynamic Float Slug & Filename Generation:** Eliminated hardcoded Pete's Dragon fallbacks and misleading "TPU" prefixes on rigid matrix plates. STL and 3MF bundle files now dynamically adopt the active float slug (e.g. `title_drum_front_chassis_black.stl`, `title_drum_front_color_gold.stl`, `title_drum_front_Plate.3mf`, `README_TITLE_DRUM_16X16_PLATE.txt`).
+  - **100% Solid All-Backlight Plate Surface:** Implemented `--without-windows on` CLI and API handling. When "without windows" (or window shape "none") is selected, the compiler strictly enforces 0 apertures (`windows_union_2d = sg.Polygon()`, 0 through-holes drilled, 0 debossed numbers), producing a 100% solid, smooth plate surface with zero ghost aperture bleed-through from other floats.
+
+
 ### 2026-11-05: Lightning Bug All-Yellow Beanie Propeller with Untouched Tail & Body
 - **High-Contrast Chassis Print Optimization:**
   - Converted the spinning beanie propeller to 100% solid yellow (#facc15 / BGR [21, 204, 250, 255]) across all components:
