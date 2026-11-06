@@ -93,6 +93,18 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### 2026-11-05: Lightning Bug V6 Cuteness Enhancements (Organic Wing Curve & Disney Eye Catchlight) + Float Wireframe Eyelash Clarification
+- **User Feedback & Character Design Enhancements (Items 1 & 2B):**
+  - **Organic Curved Wing Divider (Item 1 & User Comment):** Replaced the rigid vertical line ($x \approx 166.5$) separating the blue wing from the yellow chest with an organic quadratic curve sweeping from $x \approx 169.5$ under the collar down to $x \approx 163.0$ at the lower body rung ($y \in [118 \dots 221]$). This echoes the graceful inward taper of the outer wing edge ($x \approx 62 \to 100$) while maintaining a uniform $5.8\text{--}6.0\text{ px}$ stroke width matching the model collar line.
+  - **Disney-Style Eye Catchlight / Twinkle (Item 2B):** Added a cheerful dual-sparkle Disney catchlight inside the royal blue eye iris/pupil: a primary circular sparkle at $(x=314, y=128)$ ($r=2.8\text{ px}$) and secondary micro-sparkle at $(x=320, y=137)$ ($r=1.4\text{ px}$) rendered in **Sunny Yellow** (`#facc15`).
+  - **Strict 5-Color Multi-Material Palette Compliance:** Because Sunny Yellow is already utilized on the chest, belly stripes, and propeller, this adds high-contrast complementary pop against the deep royal blue iris with **zero** additional filament slots, zero Bambu AMS swaps, and zero print time penalty.
+  - **Eyelash Float Geometry Clarification (Option 4 Discarded):** Confirmed via user analysis of parade video references that the 3 radiating wireframe extensions above the eye are the float's iconic illuminated eyelashes rather than head antennae. Option 4 (adding separate antennae atop the head) is permanently discarded, preserving authentic float accuracy and keeping the red beanie cap, yellow propeller, and forehead profile clean and uncluttered.
+- **Verification, Synchronization & Cache-Busting:**
+  - Exported `lightningbug_smoothed_v6.png` with 4x subpixel signed distance field (SDF) smoothing, verified stroke widths ($5.8\text{--}6.0\text{ px}$), and 100% 5-color palette purity.
+  - Synchronized across all 4 production paths: `assets/lightning_bug.png`, `assets/lightningbug_transparent.png`, `simulator/assets/lightning_bug.png`, and `simulator/assets/lightningbug_transparent.png`.
+  - Bumped simulator cache buster in `simulator/app.js` to `?v=20261105_v6_curved_wing_eye_sparkle`.
+  - Generated visual comparison artifacts: `comp_wing_curve_v6.png`, `comp_eye_twinkle_v6.png`, and `lightningbug_v6_full_side_by_side.png` documented in `lightning_bug_v6_cuteness_review.md`.
+
 ### 2026-11-05: Lightning Bug Precision Linework Refinements (Hat Border, Wing Seam & Vertical Divider)
 - **User Comment Refinements & Surgical Linework Enhancements:**
   - **Hat Dome Border Cleanup & Smoothing (Comment 0):** Completely removed the stray red bit and outer black spur outside the hat dome at $x \in [308 \dots 328], y \in [50 \dots 65]$. Reconstructed the hat border into a single, continuous, elegant ~6.3px black curved arc framing the red beanie dome and meeting the brim cleanly with zero exterior artifacts.
