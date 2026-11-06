@@ -93,6 +93,20 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### 2026-11-05: Lightning Bug Thinner Black Tail Segment & Linework Re-Harmonization (PS3 Master)
+- **User Photoshop Master Integration (`assets/lightningbug_transparent3.png`):**
+  - Integrated the user's updated master artwork with a re-proportioned, thinner black accordion tail segment (~32px vertical span vs legacy ~48px), expanding the lower red accordion fold for a balanced, authentic parade float appearance.
+- **Full Subpixel SDF Line Smoothing & Thickness Harmonization:**
+  - **Model Line Calibration (~5.6–6.0 px):** Re-harmonized all interior dividing strokes (body ribs, head ribs, beanie hat ribbing, wing curl spirals, and tail divider bands) to match the model neck collar line (~5.6–6.0 px stroke width, median 6.00 px).
+  - **Delicate Facial Accent Preservation:** Kept cartoon eyelashes, eye outline, pupil, and cheerful smile delicate (~2.5–3.5 px, min 2.83 px), with zero distortion or clumping.
+  - **Tiered Wing Chassis Hierarchy:** Kept outer wing perimeter bold (~7.0–8.0 px, median 8.00 px) while smoothing interior spiral curls.
+  - **Zero Staircase Artifacts & Clean Trapped Color Flts:** 4x subpixel Euclidean signed distance field ($SDF$) filtering with Gaussian curvature flow ($\sigma = 3.2$ subpixels) removed all 1-pixel staircase jaggies. Nearest-neighbor color-trap propagation under black linework eliminated transparent cracks, white seams, or jagged boundaries.
+- **Asset Synchronization & Cache-Busting:**
+  - Synchronized across `assets/lightning_bug.png`, `assets/lightningbug_transparent.png`, `simulator/assets/lightning_bug.png`, and `simulator/assets/lightningbug_transparent.png`.
+  - Bumped simulator cache buster in `simulator/app.js` to `?v=20261105_thinner_tail_smoothed_v3`.
+  - Preserved raw user master as `assets/lightningbug_transparent3.png`.
+
+
 ### 2026-11-05: Lightning Bug Character Linework Harmonization & 3D Plate Dynamic Naming Fix
 - **Subpixel Signed Distance Field (SDF) Line Smoothing & Harmonization:**
   - **Model Line Calibration (~5.6–6.0 px):** Harmonized all interior structural linework (body divider ribs, curved head ribs, beanie hat ribbing, internal wing curl spirals, and tail accordion divider bands) to match the head-to-body model collar line (~5.6–6.0 px stroke width, median 6.00 px across all features).

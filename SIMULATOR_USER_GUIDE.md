@@ -1364,7 +1364,7 @@ Instead of attaching a Cricut cut vinyl graphic on top of the printed plate, the
     2. **Slot 2 (Body, Head & Propeller `#facc15`):** Yellow body segments, head, tail lantern dome, and spinning beanie propeller blades.
     3. **Slot 3 (Belly & Head Accents `#22c55e`):** Vibrant green lower body segments and lower head contours.
     4. **Slot 4 (Wings & Hat Band `#2563eb`):** Classic electric blue wings with internal curl spirals and beanie hat ribbon.
-    5. **Slot 5 (Beanie Cap & Tail Bands `#e61919`):** Bright red beanie cap dome (extending past eyelash 1 to touch the head) and accordion tail segments.
+    5. **Slot 5 (Beanie Cap & Tail Bands `#e61919`):** Bright red beanie cap dome (extending past eyelash 1 to touch the head) and re-proportioned accordion tail segments (thinner black segment with expanded red folds).
   - **The Spinning Snail Palette (Simplified 3D Print Edition):**
     1. **Slot 1 (Chassis Black `#11161d`):** Chassis tray, 7.0mm perimeter rim (9.0mm total thickness), 16 mounting tabs, LED collars, and neck contour linework.
     2. **Slot 2 (Body, Face & Lips `#ec4899`):** Uniform vibrant pink for the head, face, lips, antennae, and waving foot.
