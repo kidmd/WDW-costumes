@@ -93,6 +93,25 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### 2026-11-05: 3D-Printable "Dopey Photographer - runDisney 2026" Finisher Medal Engineered
+- **Brother's runDisney Finisher Medal Modeled & Ready for 3D Printing:**
+  - *Context:* Created a high-resolution 3D bas-relief finisher medal from the custom "DOPEY PHOTOGRAPHER runDisney 2026" official commemorative artwork, celebrating the 3rd brother supporting and photographing the family team at the Walt Disney World 10K.
+  - *Physical Geometry & Dimensions:*
+    - Standard runDisney finisher medal diameter: **90.0 mm** (3.54") width x **105.0 mm** total height with integrated top ribbon loop.
+    - Total thickness: **6.0 mm** (3.40 mm solid structural backing + 2.60 mm high-relief sculpted surface).
+    - Top neck-ribbon slot: **38.6 mm x 4.2 mm** with reinforced 1.4 mm outer bevel rim, precision-sized for standard 1.5" (38mm) runDisney medal lanyards.
+    - Flat back at $Z = 0.00\text{ mm}$ for 100% bed adhesion without print supports. Strictly watertight manifold mesh (1,048,602 triangles).
+  - *Dual Manufacturing Options Exported (`3d_panels/dopey_medal/`):*
+    1. **Monolithic 3D Bas-Relief (`dopey_photographer_medal_relief.stl`):** Single-piece solid relief optimized for Antique Bronze/Gold Silk PLA or SLA resin casting.
+    2. **Snapmaker U1 4-Color Project (`dopey_photographer_medal_multicolor.3mf`):** Pre-assembled multi-material project mapped to the 4 toolheads:
+       - `T0` (Extruder 1): Antique Bronze / Gold main medal chassis & sculpted bas-relief ($Z = 0.00\text{ mm}$ to $6.00\text{ mm}$, with layers $0\text{--}3.2\text{ mm}$ printing 100% on T0 with zero tool changes!).
+       - `T1` (Extruder 2): Dopey Green Enamel Hat ($Z = 3.20\text{ mm}$ to sculpted relief top).
+       - `T2` (Extruder 3): Dopey Purple Enamel Robe ($Z = 3.20\text{ mm}$ to sculpted relief top).
+       - `T3` (Extruder 4): Dark Crevice Outlines & Lettering Shadows ($Z = 3.20\text{ mm}$ to sculpted relief top).
+    3. **Complete Archive Bundle (`dopey_photographer_medal_bundle.zip`):** Contains all individual multi-material STLs, monolithic STL, 3MF project, and slicer guide.
+    4. **Interactive 3D Web Viewer (`preview_medal.html`):** Three.js OrbitControls viewer with metallic shaders, real-time lighting, and 1-click toggle between Antique Bronze and 4-Color modes.
+
+
 ### 2026-11-05: Warm White Mode Re-Calibrated to True ~2500K Golden Incandescent Midpoint
 - **Optical Spectrum Re-Balancing:**
   - *Observation:* While `CRGB(255, 147, 41)` (~2200K) was too yellowish/amber, the previous shift to `CRGB(255, 214, 170)` (~2850K) overcorrected slightly, appearing a bit cool/stark for vintage parade filament ambiance.
