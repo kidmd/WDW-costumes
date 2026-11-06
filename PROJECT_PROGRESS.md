@@ -93,6 +93,15 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### 2026-11-05: Lightning Bug Photoshop 5 (`lightningbug_transparent5`) Adopted as Master Asset
+- **User Artwork Update & Integration:**
+  - **New Photoshop Master (`lightningbug_transparent5.png`):** Adopted user's latest Photoshop artwork featuring hand-crafted cheek dimple as the default production asset.
+  - **Strict 5-Color Multi-Material Palette:** Verified 100% color consistency (Black chassis `#11161d`, Sunny Yellow `#facc15`, Emerald Green `#22c55e`, Electric Blue `#2563eb`, Red `#e61919`).
+- **Verification, Synchronization & Cache-Busting:**
+  - Synchronized `lightningbug_transparent5.png` across all 4 production paths: `assets/lightning_bug.png`, `assets/lightningbug_transparent.png`, `simulator/assets/lightning_bug.png`, and `simulator/assets/lightningbug_transparent.png`.
+  - Bumped simulator cache buster in `simulator/app.js` to `?v=20261105_ps5_master_dimple`.
+  - Generated visual comparison artifacts: `comp_ps5_dimple_zoom.png` and `comp_ps5_full_side_by_side.png` documented in `lightning_bug_ps5_review.md`.
+
 ### 2026-11-05: Revert to Photoshop 4 Master Artwork (Canceled Dimple Experiment)
 - **User Instruction & Art Direction Alignment:**
   - **Reverted Smile Dimple:** Canceled the dimple experiment per user feedback ("The dimple thing isn't working. Revert back to the version before I asked you to try to put this dimple in, meaning the Photoshop 4 master version").
