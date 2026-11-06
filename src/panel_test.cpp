@@ -3,18 +3,19 @@
  * 
  * Purpose:
  * Immediately sets all connected LEDs (up to 512 LEDs / full 16x16 matrices / 200-LED pebble strands)
- * into the authentic 3% Incandescent Warm White (~2500K vintage filament glow) with starlight sparkles
+ * into the authentic 3% Incandescent Warm White (~2500K vintage filament glow) with calm starlight sparkles
  * on boot — with ZERO button clicking, zero pairing, and zero graphic masking required!
  * 
  * Hardware Specs:
  * - Microcontroller: ESP32 DevKit (GPIO 16 Data Out, GPIO 4 Button 1, GPIO 33 Button 2, GPIO 0 BOOT)
  * - LED Standard: WS2812B / WS2811 (5V, 2.0A FastLED power limit enforced)
  * - Capacity: 512 LEDs (covers 256-LED 16x16 BTF matrix panels and 200-LED costume shirts)
- * - Default Mode: 2500K Warm White Base (~3.1% physical duty cycle) + 0.5% Starlight Sparkles (~3x pop)
+ * - Default Mode: 2500K Warm White Base (~3.1% duty cycle) + Calm Starlight Bloom & Fade (~200ms decay)
  * 
  * Interactive Controls (Optional Bench Testing):
- * - BOOT (GPIO 0) / Button 1 (GPIO 4): Tap to toggle Color Order (GRB for 16x16 BTF matrix <-> RGB for pebble strings)
- * - Button 2 (GPIO 33): Tap to cycle (Warm White + Sparkle -> Solid Warm White -> RGB Subpixel Inspection)
+ * - BOOT (GPIO 0) / Button 1 (GPIO 4): Tap to cycle Sparkle Rate (Calm -> Ultra-Subtle -> Parade -> Solid Warm)
+ * - Button 2 (GPIO 33): Tap to toggle Color Order (GRB for 16x16 BTF matrix <-> RGB for pebble strings)
+ * - Button 2 (GPIO 33): Hold (>1s) for Subpixel RGB Inspection Cycle (Red -> Green -> Blue -> White)
  */
 
 #include <Arduino.h>
@@ -31,23 +32,27 @@
 #define MAX_BRIGHTNESS      60      // Bench-safe brightness matching MSEP costume baseline
 #define MAX_POWER_MILLIAMPS 2000    // 5V, 2.0A safety limit for USB power banks and bench supplies
 
-#define SPARKLE_RATE        0.5     // 0.5% probability per LED per frame (calm, subtle starlight twinkle)
-
 CRGB leds[NUM_LEDS];
+static uint8_t sparkleLevel[NUM_LEDS] = {0}; // Per-LED sparkle intensity (0 = base, 255 = peak sparkle)
 
-// Operational Test Modes
-enum PanelTestMode {
-    TEST_MODE_WARM_WHITE_SPARKLE = 0, // Default: 3% Warm White + Starlight Sparkles
-    TEST_MODE_WARM_WHITE_SOLID   = 1, // Solid Warm White (no sparkles, 100% steady for photo inspection)
-    TEST_MODE_SUBPIXEL_RGB       = 2  // RGB Subpixel Cycle (Red -> Green -> Blue -> White check)
+// Sparkle Rate Presets (calibrated for 256-LED 16x16 panels & 50 FPS)
+// With 200ms smooth bloom & decay, lower thresholds yield calm, authentic starlight rather than rapid strobes
+static const uint16_t SPARKLE_THRESHOLDS[4] = { 5, 2, 15, 0 }; // 0.05% (Calm), 0.02% (Ultra-Subtle), 0.15% (Parade), 0.0% (Solid)
+static const char* SPARKLE_NAMES[4] = {
+    "1: Calm Starlight (0.05% / ~4-6 twinkles/sec, soft 200ms fade)",
+    "2: Ultra-Subtle (0.02% / ~1-2 twinkles/sec, gentle starlight)",
+    "3: Parade Sparkle (0.15% / ~12-15 twinkles/sec)",
+    "4: Solid Warm White (0% sparkles / Steady Photo Mode)"
 };
+static uint8_t currentSparklePreset = 0; // Starts at Preset 0: Calm Starlight
 
-static PanelTestMode currentTestMode = TEST_MODE_WARM_WHITE_SPARKLE;
-static bool isGrbOrder = true; // True = GRB (16x16 BTF matrix default), False = RGB (pebble strings)
+static bool isGrbOrder = true;          // True = GRB (16x16 BTF matrix default), False = RGB (pebble strings)
+static bool isRgbInspectionMode = false; // True when running Red/Green/Blue/White subpixel check
 
-// Button Debounce State
+// Button Debounce & Timing State
 static uint32_t lastB1PressTime = 0;
 static uint32_t lastB2PressTime = 0;
+static uint32_t b2PressStartTime = 0;
 static bool b1PrevDown = false;
 static bool b2PrevDown = false;
 
@@ -67,14 +72,16 @@ void setup() {
     Serial.println("================================================================");
     Serial.println(" 🏰 MSEP UNIVERSAL PANEL & BENCH TEST FIRMWARE");
     Serial.println("================================================================");
-    Serial.println(" * Mode: 2500K Incandescent Warm White + 0.5% Starlight Sparkles");
+    Serial.println(" * Mode: 2500K Incandescent Warm White + Calm Starlight Twinkle");
+    Serial.println(" * Sparkle Decay: Smooth 200ms bloom & fade (zero strobe noise)");
     Serial.println(" * Target: GPIO 16 driving up to 512 LEDs (16x16 Panels & Strands)");
     Serial.println(" * FastLED Safety: 5V 2000mA Max Current Limit Active");
     Serial.println(" * Default Color Order: GRB (BTF-LIGHTING 16x16 Matrix Standard)");
     Serial.println("----------------------------------------------------------------");
     Serial.println(" Controls:");
-    Serial.println("  - BOOT / Button 1 (GPIO 4/0): Toggle Color Order (GRB <-> RGB)");
-    Serial.println("  - Button 2 (GPIO 33): Cycle (Sparkle -> Solid Warm -> RGB Test)");
+    Serial.println("  - BOOT / Button 1 (GPIO 4/0): Tap to cycle Sparkle Rate (Calm -> Subtle -> Parade -> Solid)");
+    Serial.println("  - Button 2 (GPIO 33): Tap to toggle Color Order (GRB <-> RGB)");
+    Serial.println("  - Button 2 (GPIO 33): Hold (>1s) for Subpixel RGB Inspection Cycle");
     Serial.println("================================================================");
 
     pinMode(STATUS_LED_PIN, OUTPUT);
@@ -98,26 +105,35 @@ void setup() {
 void renderWarmWhiteSparkles() {
     // Balanced Warm Incandescent / ~2500K Vintage Filament Glow
     // Base color: CRGB(255, 185, 110) scaled by 64 (~3.1% duty cycle)
-    CRGB baseCol = CRGB(255, 185, 110);
-    baseCol.nscale8_video(64);
-
+    const CRGB baseCol = CRGB(64, 46, 28);
     // Starlight sparkle color: pure bright starlight pop scaled by 192 (~3x pop over base)
-    CRGB sparkleCol = CRGB(255, 255, 255);
-    sparkleCol.nscale8_video(192);
+    const CRGB sparklePeak = CRGB(192, 192, 192);
+
+    uint16_t threshold = SPARKLE_THRESHOLDS[currentSparklePreset];
 
     for (int i = 0; i < NUM_LEDS; i++) {
-        if (random16(10000) < (uint16_t)(SPARKLE_RATE * 100)) {
-            leds[i] = sparkleCol;
-        } else {
+        // 1. Decay active sparkle smoothly over ~200ms (10 frames at 20ms per frame)
+        if (sparkleLevel[i] > 0) {
+            sparkleLevel[i] = qsub8(sparkleLevel[i], 24);
+        }
+
+        // 2. Trigger new sparkle at calm rate
+        if (threshold > 0 && random16(10000) < threshold) {
+            sparkleLevel[i] = 255;
+        }
+
+        // 3. Smooth linear interpolation between warm base and starlight white
+        if (sparkleLevel[i] == 0) {
             leds[i] = baseCol;
+        } else {
+            uint8_t sp = sparkleLevel[i];
+            leds[i] = CRGB(
+                lerp8by8(baseCol.r, sparklePeak.r, sp),
+                lerp8by8(baseCol.g, sparklePeak.g, sp),
+                lerp8by8(baseCol.b, sparklePeak.b, sp)
+            );
         }
     }
-}
-
-void renderSolidWarmWhite() {
-    CRGB baseCol = CRGB(255, 185, 110);
-    baseCol.nscale8_video(64);
-    fill_solid(leds, NUM_LEDS, baseCol);
 }
 
 void renderSubpixelRgbTest(uint32_t now) {
@@ -136,46 +152,55 @@ void renderSubpixelRgbTest(uint32_t now) {
 void loop() {
     uint32_t now = millis();
 
-    // 1. Button 1 / BOOT button: Toggle Color Order (GRB <-> RGB)
+    // 1. Button 1 / BOOT button: Cycle Sparkle Presets (Calm -> Ultra-Subtle -> Parade -> Solid Warm)
     bool b1Down = isButton1Down();
     if (b1Down && !b1PrevDown && (now - lastB1PressTime > 300)) {
         lastB1PressTime = now;
-        isGrbOrder = !isGrbOrder;
-        Serial.printf("[COLOR ORDER] Toggled to: %s\n", isGrbOrder ? "GRB (16x16 Matrix)" : "RGB (Pebble String)");
+        currentSparklePreset = (currentSparklePreset + 1) % 4;
+        isRgbInspectionMode = false; // Return to sparkle mode
+        Serial.printf("[SPARKLE PRESET] %s\n", SPARKLE_NAMES[currentSparklePreset]);
 
-        // 2 Quick blinks of onboard status LED to confirm toggle
-        for (int k = 0; k < 2; k++) {
+        // Blink status LED (1 to 4 blinks corresponding to preset)
+        for (int k = 0; k <= currentSparklePreset; k++) {
             digitalWrite(STATUS_LED_PIN, LOW);
-            delay(60);
+            delay(50);
             digitalWrite(STATUS_LED_PIN, HIGH);
-            delay(60);
+            delay(50);
         }
     }
     b1PrevDown = b1Down;
 
-    // 2. Button 2: Cycle Test Mode
+    // 2. Button 2: Tap toggles Color Order (GRB <-> RGB), Hold (>1s) toggles Subpixel RGB Test
     bool b2Down = isButton2Down();
-    if (b2Down && !b2PrevDown && (now - lastB2PressTime > 300)) {
+    if (b2Down && !b2PrevDown) {
+        b2PressStartTime = now;
+    }
+    if (!b2Down && b2PrevDown && (now - lastB2PressTime > 300)) {
         lastB2PressTime = now;
-        currentTestMode = (PanelTestMode)(((int)currentTestMode + 1) % 3);
-        const char* modeName = "Warm White + Sparkles";
-        if (currentTestMode == TEST_MODE_WARM_WHITE_SOLID) modeName = "Solid Warm White (No Sparkles)";
-        else if (currentTestMode == TEST_MODE_SUBPIXEL_RGB) modeName = "Subpixel RGB Inspection";
-        Serial.printf("[TEST MODE] Switched to: %s\n", modeName);
+        uint32_t holdDuration = now - b2PressStartTime;
+        if (holdDuration >= 1000) {
+            // Long Hold: Toggle Subpixel RGB Test
+            isRgbInspectionMode = !isRgbInspectionMode;
+            Serial.printf("[RGB INSPECTION] %s\n", isRgbInspectionMode ? "ACTIVE (Red->Green->Blue->White)" : "OFF (Warm White)");
+        } else {
+            // Short Tap: Toggle Color Order
+            isGrbOrder = !isGrbOrder;
+            Serial.printf("[COLOR ORDER] Toggled to: %s\n", isGrbOrder ? "GRB (16x16 Matrix)" : "RGB (Pebble String)");
+            for (int k = 0; k < 2; k++) {
+                digitalWrite(STATUS_LED_PIN, LOW);
+                delay(60);
+                digitalWrite(STATUS_LED_PIN, HIGH);
+                delay(60);
+            }
+        }
     }
     b2PrevDown = b2Down;
 
     // 3. Render Active Pattern
-    switch (currentTestMode) {
-        case TEST_MODE_WARM_WHITE_SPARKLE:
-            renderWarmWhiteSparkles();
-            break;
-        case TEST_MODE_WARM_WHITE_SOLID:
-            renderSolidWarmWhite();
-            break;
-        case TEST_MODE_SUBPIXEL_RGB:
-            renderSubpixelRgbTest(now);
-            break;
+    if (isRgbInspectionMode) {
+        renderSubpixelRgbTest(now);
+    } else {
+        renderWarmWhiteSparkles();
     }
 
     // 4. Dynamic Color Order Correction if RGB mode selected
