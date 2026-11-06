@@ -235,7 +235,7 @@ lightningBugImg.onload = () => {
     lightningBugLoaded = true;
     notifyFloatImgLoaded();
 };
-lightningBugImg.src = 'assets/lightning_bug.png?v=20261105_ps4_default_bug';
+lightningBugImg.src = 'assets/lightning_bug.png?v=20261105_ps4_with_left_dimple';
 
 const lightningBugTransparentImg = new Image();
 let lightningBugTransparentLoaded = false;
@@ -243,7 +243,7 @@ lightningBugTransparentImg.onload = () => {
     lightningBugTransparentLoaded = true;
     notifyFloatImgLoaded();
 };
-lightningBugTransparentImg.src = 'assets/lightningbug_transparent.png?v=20261105_ps4_default_bug';
+lightningBugTransparentImg.src = 'assets/lightningbug_transparent.png?v=20261105_ps4_with_left_dimple';
 
 // Custom artwork image (if user uploads one or loads one from preset)
 let customArtworkImg = null;

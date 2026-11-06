@@ -93,6 +93,19 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### 2026-11-05: Lightning Bug Right-Side Smile Dimple (Frame Left) Exploration & Deployment
+- **User Request & 3/4 Profile Smile Design:**
+  - **Dimple on Far Corner of Smile:** Developed and compared 3 cartoon styling approaches for adding a dimple to the bug's anatomical right corner of his smile (left side of the frame in 3/4 perspective):
+    - *Option 1 (Curved Dimple Tick - Deployed):* Natural upward-curving smile crease ($x \approx 330, y \approx 225 \to 327, 221 \to 324, 217$) flowing organically out of the upper lip line into the yellow cheek.
+    - *Option 2 (Upturned Hook):* Playful curling mouth corner.
+    - *Option 3 (Parenthetical Arc):* Standalone `(` crescent cheek accent at $(x=324, y=220)$.
+  - **Strict Multi-Material Palette Compliance:** 100% compliant with the 5-color palette (Black, Yellow, Green, Blue, Red).
+- **Verification, Synchronization & Cache-Busting:**
+  - Exported `lightningbug_ps4_with_dimple_smoothed.png` with 4x subpixel signed distance field (SDF) smoothing.
+  - Deployed across all 4 production paths: `assets/lightning_bug.png`, `assets/lightningbug_transparent.png`, `simulator/assets/lightning_bug.png`, and `simulator/assets/lightningbug_transparent.png`.
+  - Bumped simulator cache buster in `simulator/app.js` to `?v=20261105_ps4_with_left_dimple`.
+  - Generated visual comparison artifacts: `comp_dimple_options_left_side.png`, `comp_dimple_options_full_face.png`, and `comp_dimple_left_full_side_by_side.png` documented in `lightning_bug_dimple_options_review.md`.
+
 ### 2026-11-05: Lightning Bug Photoshop 4 (`lightningbug_transparent4`) Adopted as Master Asset
 - **User Artwork Update & Integration:**
   - **New Photoshop Master (`lightningbug_transparent4.png`):** Adopted user's latest Photoshop refinements across the wings, hat, face, and tail as the default production asset.
