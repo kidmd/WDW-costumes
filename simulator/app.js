@@ -2337,7 +2337,7 @@ function evalGlobalPattern(pattern, bpm, index, totalLeds, timeMs, c, hasColor, 
             effC = (floatObj && floatObj.color && typeof hexToRgb === 'function') ? (hexToRgb(floatObj.color) || { r: 56, g: 139, b: 253 }) : { r: 56, g: 139, b: 253 };
             effHasColor = true;
         } else if (params.ambientColorMode === 'vintage_warm') {
-            effC = { r: 255, g: 214, b: 170 };
+            effC = { r: 255, g: 185, b: 110 };
             effHasColor = true;
         } else if (params.ambientColorMode === 'custom') {
             effC = (typeof hexToRgb === 'function') ? (hexToRgb(params.ambientCustomColor || '#ffb703') || { r: 255, g: 183, b: 3 }) : { r: 255, g: 183, b: 3 };

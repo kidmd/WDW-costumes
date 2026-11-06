@@ -356,10 +356,10 @@ void broadcastWarmWhitePacket(uint8_t mode) {
 }
 
 void renderWarmWhiteSparkle(uint32_t now) {
-    // Soft Incandescent / 2850K Warm White Base Color (FastLED Tungsten100W profile)
-    // WS2812B LEDs: lifting blue to 170 and green to 214 eliminates the heavy yellow/amber candle cast while preserving cozy warmth
+    // Balanced Warm Incandescent / ~2500K Vintage Filament Glow
+    // Perfectly centered between 2200K candle (too yellow) and 2850K tungsten (too cool)
     // Full unscaled RGB palette - physical 3% duty cycle is governed by 64-scaling in duplicateFrontToBack()
-    CRGB baseCol = CRGB(255, 214, 170);
+    CRGB baseCol = CRGB(255, 185, 110);
 
     // Starlight sparkle color: bright pure starlight white
     CRGB sparkleCol = CRGB(255, 255, 255);
@@ -566,7 +566,7 @@ void onDataReceive(const uint8_t *mac_addr, const uint8_t *incomingData, int len
                     previousStandaloneMode = currentStandaloneMode;
                     // Synchronized fleet confirmation: 2 distinct warm white pulses (150ms ON, 100ms OFF)
                     for (int f = 0; f < 2; f++) {
-                        fillActiveCostumeSolid(CRGB(255, 214, 170));
+                        fillActiveCostumeSolid(CRGB(255, 185, 110));
                         FastLED.show();
                         delay(150);
                         fillActiveCostumeSolid(CRGB::Black);
@@ -2417,7 +2417,7 @@ void loop() {
                     }
                     // Visible confirmation: 2 distinct warm white pulses (150ms ON, 100ms OFF)
                     for (int f = 0; f < 2; f++) {
-                        fillActiveCostumeSolid(CRGB(255, 214, 170));
+                        fillActiveCostumeSolid(CRGB(255, 185, 110));
                         FastLED.show();
                         delay(150);
                         fillActiveCostumeSolid(CRGB::Black);

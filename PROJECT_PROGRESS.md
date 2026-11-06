@@ -93,6 +93,19 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### 2026-11-05: Warm White Mode Re-Calibrated to True ~2500K Golden Incandescent Midpoint
+- **Optical Spectrum Re-Balancing:**
+  - *Observation:* While `CRGB(255, 147, 41)` (~2200K) was too yellowish/amber, the previous shift to `CRGB(255, 214, 170)` (~2850K) overcorrected slightly, appearing a bit cool/stark for vintage parade filament ambiance.
+  - *Golden Midpoint Calibration:* Re-tuned the base color to the exact halfway point between the two extremes: `CRGB(255, 185, 110)` (~2500K golden incandescent warmth).
+  - *Hardware Output Ratio (3% Duty Cycle):* Scales to `(R: 64, G: 46, B: 27)`. The Blue channel (27) provides sufficient spectrum to prevent the sickly greenish-yellow amber of 2200K candle light, while keeping the warmth rich, golden, and distinctly incandescent compared to standard household white.
+  - *Threshold Protection:* Green (185) and Blue (110) remain well beneath the sparkle pop threshold (> 240), preserving pure diamond white starlight sparkles (`CRGB(255, 255, 255)`) at 3x contrast pop.
+  - *Synchronized Confirmation Pulses:* Updated Button 2 double-tap confirmation blinks (lines 569 & 2420) to pulse in `CRGB(255, 185, 110)`.
+  - *Simulator Synchronization:* Updated `simulator/app.js` (`vintage_warm`) to `{ r: 255, g: 185, b: 110 }`.
+- **Firmware & Documentation Synchronization:**
+  - Synchronized across `src/main.cpp` and `arduino/MSEP_Costume/MSEP_Costume.ino`.
+  - Built and verified via PlatformIO (`pio run` succeeded: 14.6% RAM, 60.8% Flash).
+  - Synchronized `README.md`, `SIMULATOR_USER_GUIDE.md`, and `FLASHING_INSTRUCTIONS.md`.
+
 ### 2026-11-05: Warm White Starlight Mode (Button 2 Double-Tap) Tuned to Soft 2850K Incandescent White
 - **Color Calibration & Yellow/Amber Reduction:**
   - *Observation:* Double-tapping Button 2 engaged an amber/candle glow (`CRGB(255, 147, 41)` / ~2200K) that appeared noticeably too warm and yellowish on physical WS2812B LEDs due to a heavily suppressed blue diode (Blue = 41).

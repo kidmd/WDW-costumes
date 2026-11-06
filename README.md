@@ -70,7 +70,7 @@ An **ESP32** microcontroller on each runner coordinates lighting patterns wirele
     * 👑 *Leader:* Toggles **📸 Castle Photo Mode** (solid, steady, non-flickering full graphic background colors) across the **ENTIRE FLEET**.
     * 👥 *Follower:* Toggles **📸 Castle Photo Mode** **LOCALLY** (solid full graphic background colors) for that runner.
   * **Button 2 — Double Tap (< 400ms):**
-    * 👑 *Leader:* Toggles **✨ 3% Warm White Starlight Mode** (soft 2850K incandescent filament glow with pure diamond sparkles) across the **ENTIRE FLEET** (with 2-pulse warm white confirmation). Tap or double-tap again resumes parade show.
+    * 👑 *Leader:* Toggles **✨ 3% Warm White Starlight Mode** (~2500K golden incandescent filament glow with pure diamond sparkles) across the **ENTIRE FLEET** (with 2-pulse warm white confirmation). Tap or double-tap again resumes parade show.
     * 👥 *Follower:* Toggles **✨ 3% Warm White Starlight Mode** **LOCALLY** for that runner.
   * **Button 2 — Long Hold (3s):**
     * 👑 *Leader:* Drops **ENTIRE FLEET into Corral Standby (Sleep) Mode**. Stays locked in Standby even if held >3s—requiring an explicit click to enter Photo Mode.
