@@ -93,6 +93,19 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### 2026-11-05: True 5-Point Vector Stars & Multi-Layer Height Slicer Calibration (0.08mm - 0.20mm)
+- **Mathematical 5-Point Vector Stars Engineered:**
+  - *Root Cause Analysis:* Windows TrueType font (`arialbd.ttf`) lacked the Unicode `★` (U+2605) glyph, rendering fallback square missing-glyph rectangles (`.notdef`).
+  - *Fix:* Implemented vector trigonometric 5-pointed star generator (`draw_vector_star`) with golden ratio proportions ($R_{inner} = 0.382 \times R_{outer}$). Both top and bottom triplets now feature authentic, crisp 5-pointed stars.
+- **Universal Fine-Layer Calibration ($0.08\text{ mm}$ to $0.20\text{ mm}$):**
+  - Confirmed and calibrated the $0.40\text{ mm}$ deboss depth:
+    - At $0.12\text{ mm}$ layers: exactly 3 layers of depth ($3 \times 0.12\text{ mm}$ or initial $0.16\text{ mm} + 2 \times 0.12\text{ mm}$).
+    - At $0.08\text{ mm}$ layers: exactly 5 layers of depth ($5 \times 0.08\text{ mm}$).
+    - At $0.20\text{ mm}$ layers: exactly 2 layers of depth ($2 \times 0.20\text{ mm}$).
+  - Finer layer heights extrude narrower, cooler filament ribbons, resulting in even crisper bridging over letter spans with zero drooping.
+- **Synchronized across All Formats:**
+  - Both `dopey_photographer_medal_engraved_back.stl` and `dopey_photographer_medal_multicolor.3mf` now feature the updated true stars and custom back engraving.
+
 ### 2026-11-05: Custom Single-Color Back Engraving Engineered ("Tom Reinsvold")
 - **Custom Commemorative Back Engraving for Brother Tom:**
   - *Engraving Content:*

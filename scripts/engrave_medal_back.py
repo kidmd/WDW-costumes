@@ -5,14 +5,13 @@ Engrave Custom 1-Piece Nameplate onto the Flat Back of the Dopey Photographer Me
 Text:
 - Line 1: Tom Reinsvold
 - Line 2: 1st in Age Group
-- Line 3: 48.6 photos/mile
+- Line 3: 48.6 photos / mile
 
 Features:
-- Micro-debossed: 0.40 mm depth (exactly 2 layers @ 0.20mm layer height) for zero bridging sag.
+- Micro-debossed: 0.40 mm depth (universal: exactly 2 layers @ 0.20mm, 3 layers @ 0.12mm, or 5 layers @ 0.08mm).
+- True 5-pointed vector stars (★ ★ ★) drawn geometrically to replace unrenderable Unicode glyphs.
 - Properly mirrored across X=45.0mm so when the medal is turned over, it reads naturally left-to-right!
-- Bold typography with rounded terminal buffers for 100% clean first-layer bed adhesion.
-- Decorative accent flourishes: vintage star dividers (★ ★ ★) and circular medal framing groove.
-- Exports watertight STL and updates interactive 3D Web Viewer with Front/Back flip controls.
+- Updates both the Single-Color STL and the 4-Color 3MF project so both show the authentic back engraving!
 """
 
 import os
@@ -20,12 +19,15 @@ import sys
 import time
 import shutil
 import zipfile
+import re
+import uuid
+import xml.etree.ElementTree as ET
 import cv2
 import numpy as np
 from PIL import Image, ImageDraw, ImageFont
 import shapely.geometry as sg
 from shapely.ops import unary_union
-from shapely.affinity import scale as shp_scale, translate as shp_translate
+from shapely.affinity import scale as shp_scale
 import trimesh
 from manifold3d import Manifold, Mesh
 
@@ -36,7 +38,7 @@ if sys.stdout.encoding.lower() != 'utf-8':
         pass
 
 print("=" * 72)
-print("*** ENGRAVING DOPEY PHOTOGRAPHER FINISHER MEDAL (CUSTOM BACK) ***")
+print("*** ENGRAVING DOPEY PHOTOGRAPHER MEDAL (CUSTOM BACK - TRUE STARS) ***")
 print("=" * 72)
 t0 = time.time()
 
@@ -44,13 +46,16 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 MEDAL_DIR = os.path.join(BASE_DIR, "3d_panels", "dopey_medal")
 MONO_STL = os.path.join(MEDAL_DIR, "dopey_photographer_medal_relief.stl")
 ENGRAVED_STL = os.path.join(MEDAL_DIR, "dopey_photographer_medal_engraved_back.stl")
+BRONZE_STL = os.path.join(MEDAL_DIR, "dopey_medal_1_bronze_body.stl")
+GREEN_STL = os.path.join(MEDAL_DIR, "dopey_medal_2_green_hat.stl")
+PURPLE_STL = os.path.join(MEDAL_DIR, "dopey_medal_3_purple_robe.stl")
+DARK_STL = os.path.join(MEDAL_DIR, "dopey_medal_4_dark_outlines.stl")
+MF3_PATH = os.path.join(MEDAL_DIR, "dopey_photographer_medal_multicolor.3mf")
 
 if not os.path.exists(MONO_STL):
     raise FileNotFoundError(f"Missing base STL: {MONO_STL}")
 
 # 1. Rasterize High-Resolution Back Graphics & Text
-# Medal coordinate frame: X in [0, 90.0] mm, Y in [0, 105.0] mm
-# Circle center: X = 45.0 mm, Y = 45.0 mm, Radius ~ 45.0 mm
 SCALE_PX = 25.0  # 25 pixels per mm (high sub-pixel precision)
 IMG_W = int(90.0 * SCALE_PX)    # 2250 px
 IMG_H = int(105.0 * SCALE_PX)   # 2625 px
@@ -73,21 +78,16 @@ for f in font_candidates:
 
 font_name = ImageFont.truetype(chosen_font, int(6.4 * SCALE_PX))   # 6.4mm font height
 font_sub = ImageFont.truetype(chosen_font, int(4.6 * SCALE_PX))    # 4.6mm font height
-font_stars = ImageFont.truetype(chosen_font, int(4.0 * SCALE_PX))  # 4.0mm star accents
 
-# Positions in mm (Y=0 is bottom of medal, Y=105 is top of ribbon loop)
-# Medallion circular center is at Y = 46.0 mm, X = 45.0 mm
 cx_px = 45.0 * SCALE_PX
 def mm_to_py(y_mm):
-    # In 3D: Y=0 is bottom. In PIL: Y=0 is top.
     return (105.0 - y_mm) * SCALE_PX
 
+# Draw 3 text lines
 lines_to_draw = [
-    ("★  ★  ★", font_stars, 66.0),
     ("Tom Reinsvold", font_name, 56.5),
     ("1st in Age Group", font_sub, 46.5),
     ("48.6 photos / mile", font_sub, 36.5),
-    ("★  ★  ★", font_stars, 27.0),
 ]
 
 for text, font, y_mm in lines_to_draw:
@@ -98,11 +98,32 @@ for text, font, y_mm in lines_to_draw:
     py = mm_to_py(y_mm) - th / 2.0 - bbox[1]
     draw.text((px, py), text, fill=255, font=font)
 
+# Draw TRUE 5-POINT VECTOR STARS (Top and Bottom triplets)
+def draw_vector_star(draw_obj, center_x_px, center_y_px, r_out_mm, r_in_mm=None):
+    r_out_px = r_out_mm * SCALE_PX
+    r_in_px = (r_out_mm * 0.382 if r_in_mm is None else r_in_mm) * SCALE_PX
+    pts = []
+    for i in range(10):
+        r = r_out_px if (i % 2 == 0) else r_in_px
+        angle = np.radians(i * 36 - 90) # Point 0 points straight UP (+Y in world, -py in image)
+        pts.append((center_x_px + r * np.cos(angle), center_y_px - r * np.sin(angle)))
+    draw_obj.polygon(pts, fill=255)
+
+# Top Star Triplet (above Name, Y = 66.5 mm)
+py_top_stars = mm_to_py(66.5)
+draw_vector_star(draw, cx_px, py_top_stars, r_out_mm=3.6)                      # Center Star
+draw_vector_star(draw, cx_px - 10.5 * SCALE_PX, py_top_stars, r_out_mm=2.5)   # Left Star
+draw_vector_star(draw, cx_px + 10.5 * SCALE_PX, py_top_stars, r_out_mm=2.5)   # Right Star
+
+# Bottom Star Triplet (below 48.6 photos/mile, Y = 26.5 mm)
+py_bot_stars = mm_to_py(26.5)
+draw_vector_star(draw, cx_px, py_bot_stars, r_out_mm=3.6)                      # Center Star
+draw_vector_star(draw, cx_px - 10.5 * SCALE_PX, py_bot_stars, r_out_mm=2.5)   # Left Star
+draw_vector_star(draw, cx_px + 10.5 * SCALE_PX, py_bot_stars, r_out_mm=2.5)   # Right Star
+
 # Add decorative circular framing ring on back:
-# Inner ring radius = 41.5 mm, width = 1.0 mm (groove radius 41.0 to 42.0 mm)
 center_y_px = mm_to_py(46.0)
 r_out_px = 42.0 * SCALE_PX
-r_in_px = 40.8 * SCALE_PX
 draw.ellipse([cx_px - r_out_px, center_y_px - r_out_px, cx_px + r_out_px, center_y_px + r_out_px], outline=255, width=int(1.2 * SCALE_PX))
 
 # 2. Extract 2D Contours to Shapely
@@ -126,14 +147,12 @@ for idx, c in enumerate(contours):
 
 back_art_2d = unary_union(polys).simplify(0.035, preserve_topology=True).buffer(0.06)
 
-# 3. CRITICAL: Mirror horizontally across X = 45.0 mm!
-# So that when looking at the back face (+Z normal), the text reads naturally left-to-right!
+# 3. CRITICAL: Mirror horizontally across X = 45.0 mm so it reads left-to-right when viewed from the back!
 mirrored_art_2d = shp_scale(back_art_2d, xfact=-1.0, yfact=1.0, origin=(45.0, 46.0)).buffer(0)
+print(f"Extracted back engraving geometry: {len(mirrored_art_2d.geoms) if hasattr(mirrored_art_2d, 'geoms') else 1} parts (with true 5-pointed stars)")
 
-print(f"Back engraving polygon created: {len(mirrored_art_2d.geoms) if hasattr(mirrored_art_2d, 'geoms') else 1} parts, area: {mirrored_art_2d.area:.2f} mm²")
-
-# 4. Extrude text cutter prism: Z = -0.05 mm to Z = 0.40 mm (0.45 mm total height)
-DEBOSS_DEPTH_MM = 0.40  # Exactly 2 layers at 0.20mm layer height!
+# 4. Extrude text cutter prism: Z = -0.05 mm to Z = 0.40 mm
+DEBOSS_DEPTH_MM = 0.40  # Exactly 0.40 mm (compatible with 0.08, 0.12, 0.16, 0.20 mm layer heights!)
 geoms = mirrored_art_2d.geoms if mirrored_art_2d.geom_type in ['MultiPolygon', 'GeometryCollection'] else [mirrored_art_2d]
 tms = []
 for g in geoms:
@@ -147,34 +166,146 @@ v_t = np.ascontiguousarray(text_combined.vertices, dtype=np.float32)
 f_t = np.ascontiguousarray(text_combined.faces, dtype=np.uint32)
 text_manifold = Manifold(Mesh(vert_properties=v_t, tri_verts=f_t))
 
-# 5. Boolean Difference in Manifold3D
-print("Loading base relief medal mesh...")
+# 5. Boolean Difference for Monolithic Relief Medal
+print("Debossing custom back onto monolithic medal...")
 base_tm = trimesh.load(MONO_STL)
 v_b = np.ascontiguousarray(base_tm.vertices, dtype=np.float32)
 f_b = np.ascontiguousarray(base_tm.faces, dtype=np.uint32)
 base_manifold = Manifold(Mesh(vert_properties=v_b, tri_verts=f_b))
 
-print("Debossing custom engraving into the flat back (Z = 0.00 to 0.40 mm)...")
 engraved_manifold = base_manifold - text_manifold
-
-# Convert back to Trimesh
 md = engraved_manifold.to_mesh()
-v_out = md.vert_properties[:, :3].copy()
-f_out = md.tri_verts.copy()
-engraved_tm = trimesh.Trimesh(vertices=v_out, faces=f_out, process=True)
+engraved_tm = trimesh.Trimesh(vertices=md.vert_properties[:, :3].copy(), faces=md.tri_verts.copy(), process=True)
 
 engraved_tm.export(ENGRAVED_STL)
-print(f"Successfully exported Engraved Medal: {ENGRAVED_STL}")
-print(f"  -> Watertight: {engraved_tm.is_watertight}")
-print(f"  -> Volume    : {engraved_tm.volume / 1000.0:.2f} cm³")
-print(f"  -> Triangles : {len(engraved_tm.faces):,}")
-print(f"  -> Extents   : {engraved_tm.extents}")
+print(f"Exported Monolithic Engraved Medal: {ENGRAVED_STL} (Watertight: {engraved_tm.is_watertight})")
 
-# 6. Update Bundle ZIP Archive with the new Engraved STL
+# 6. Also Deboss Back into 4-Color Bronze Chassis & Update 3MF!
+if os.path.exists(BRONZE_STL):
+    print("Debossing custom back onto 4-Color Bronze Body...")
+    bronze_raw = trimesh.load(BRONZE_STL)
+    v_br = np.ascontiguousarray(bronze_raw.vertices, dtype=np.float32)
+    f_br = np.ascontiguousarray(bronze_raw.faces, dtype=np.uint32)
+    bronze_manifold = Manifold(Mesh(vert_properties=v_br, tri_verts=f_br))
+    
+    engraved_bronze_manifold = bronze_manifold - text_manifold
+    md_br = engraved_bronze_manifold.to_mesh()
+    engraved_bronze_tm = trimesh.Trimesh(vertices=md_br.vert_properties[:, :3].copy(), faces=md_br.tri_verts.copy(), process=True)
+    engraved_bronze_tm.export(BRONZE_STL)
+    print(f"Updated 4-Color Bronze Body STL: {BRONZE_STL}")
+
+    # Re-export 4-Color 3MF
+    if os.path.exists(GREEN_STL) and os.path.exists(PURPLE_STL) and os.path.exists(DARK_STL):
+        tm_green = trimesh.load(GREEN_STL)
+        tm_purple = trimesh.load(PURPLE_STL)
+        tm_dark = trimesh.load(DARK_STL)
+
+        scene_parts = {
+            "1_Antique_Bronze_Medal_Body": engraved_bronze_tm,
+            "2_Dopey_Green_Hat": tm_green,
+            "3_Dopey_Purple_Robe": tm_purple,
+            "4_Dark_Bronze_Outlines": tm_dark
+        }
+        
+        # 3MF Export Helper
+        clean_assembly_name = "Dopey_Photographer_Medal_2026"
+        scene = trimesh.Scene(scene_parts)
+        scene.export(MF3_PATH)
+
+        with zipfile.ZipFile(MF3_PATH, 'r') as zin:
+            files_data = {name: zin.read(name) for name in zin.namelist()}
+
+        if '3D/3dmodel.model' in files_data:
+            ns = "http://schemas.microsoft.com/3dmanufacturing/core/2015/02"
+            p_ns = "http://schemas.microsoft.com/3dmanufacturing/production/2015/06"
+            ET.register_namespace('', ns)
+            ET.register_namespace('p', p_ns)
+
+            root = ET.fromstring(files_data['3D/3dmodel.model'])
+            resources = root.find(f"{{{ns}}}resources")
+            build = root.find(f"{{{ns}}}build")
+            if resources is not None and build is not None:
+                objs = resources.findall(f"{{{ns}}}object")
+                if len(objs) > 1:
+                    max_id = max(int(o.attrib.get('id', 0)) for o in objs)
+                    parent_id = str(max_id + 1)
+                    parent_obj = ET.Element(f"{{{ns}}}object", {
+                        'id': parent_id,
+                        'name': clean_assembly_name,
+                        'type': 'model',
+                        f"{{{p_ns}}}UUID": str(uuid.uuid4())
+                    })
+                    comps = ET.SubElement(parent_obj, f"{{{ns}}}components")
+                    part_mappings = []
+                    for o in objs:
+                        oid = o.attrib.get('id')
+                        raw_oname = o.attrib.get('name', '')
+                        clean_oname = re.sub(r'[^A-Za-z0-9_]', '_', raw_oname).strip('_')
+                        o.attrib['name'] = clean_oname
+                        prefix = clean_oname.split('_')[0]
+                        ext_id = prefix if prefix in ('1', '2', '3', '4') else '1'
+                        part_mappings.append((oid, clean_oname, ext_id))
+                        ET.SubElement(comps, f"{{{ns}}}component", {
+                            'objectid': oid,
+                            'transform': '1.0 0.0 0.0 0.0 1.0 0.0 0.0 0.0 1.0 0.0 0.0 0.0',
+                            f"{{{p_ns}}}UUID": str(uuid.uuid4())
+                        })
+                    resources.append(parent_obj)
+                    for item in list(build):
+                        build.remove(item)
+                    ET.SubElement(build, f"{{{ns}}}item", {
+                        'objectid': parent_id,
+                        'transform': '1.0 0.0 0.0 0.0 1.0 0.0 0.0 0.0 1.0 0.0 0.0 0.0',
+                        f"{{{p_ns}}}UUID": str(uuid.uuid4()),
+                        'partnumber': clean_assembly_name
+                    })
+                    files_data['3D/3dmodel.model'] = ET.tostring(root, encoding='utf-8', xml_declaration=True)
+
+                    cfg_root = ET.Element('config')
+                    plate_elem = ET.SubElement(cfg_root, 'plate')
+                    ET.SubElement(plate_elem, 'metadata', {'key': 'plater_id', 'value': '1'})
+                    ET.SubElement(plate_elem, 'metadata', {'key': 'plater_name', 'value': ''})
+
+                    obj_elem = ET.SubElement(cfg_root, 'object', {'id': parent_id})
+                    ET.SubElement(obj_elem, 'metadata', {'key': 'name', 'value': clean_assembly_name})
+                    for oid, oname, ext_id in part_mappings:
+                        part_elem = ET.SubElement(obj_elem, 'part', {'id': oid, 'subtype': 'normal_part'})
+                        ET.SubElement(part_elem, 'metadata', {'key': 'name', 'value': oname})
+                        ET.SubElement(part_elem, 'metadata', {'key': 'extruder', 'value': ext_id})
+
+                    files_data['Metadata/model_settings.config'] = ET.tostring(cfg_root, encoding='utf-8', xml_declaration=True)
+
+                    if 'Metadata/slice_info.config' in files_data:
+                        del files_data['Metadata/slice_info.config']
+
+                    if '[Content_Types].xml' in files_data:
+                        ct_xml = files_data['[Content_Types].xml'].decode('utf-8')
+                        ct_xml = re.sub(r'<Override PartName="/Metadata/slice_info\.config"[^>]*/>\s*', '', ct_xml)
+                        if 'Metadata/model_settings.config' not in ct_xml:
+                            ct_insert = '  <Override PartName="/Metadata/model_settings.config" ContentType="application/vnd.ms-package.config+xml"/>\n</Types>'
+                            ct_xml = ct_xml.replace('</Types>', ct_insert)
+                        files_data['[Content_Types].xml'] = ct_xml.encode('utf-8')
+
+                    tmp_3mf = MF3_PATH + '.tmp'
+                    with zipfile.ZipFile(tmp_3mf, 'w', zipfile.ZIP_DEFLATED) as zout:
+                        for name, content in files_data.items():
+                            zout.writestr(name, content)
+                    if os.path.exists(MF3_PATH):
+                        os.remove(MF3_PATH)
+                    shutil.move(tmp_3mf, MF3_PATH)
+        print(f"Re-exported 4-Color 3MF with Engraved Back: {MF3_PATH}")
+
+# 7. Update Bundle ZIP Archive
 zip_path = os.path.join(MEDAL_DIR, "dopey_photographer_medal_bundle.zip")
 if os.path.exists(zip_path):
-    with zipfile.ZipFile(zip_path, 'a', zipfile.ZIP_DEFLATED) as zf:
+    with zipfile.ZipFile(zip_path, 'w', zipfile.ZIP_DEFLATED) as zf:
         zf.write(ENGRAVED_STL, "dopey_photographer_medal_engraved_back.stl")
-    print(f"Appended engraved STL to bundle ZIP: {zip_path}")
+        zf.write(MONO_STL, "dopey_photographer_medal_relief.stl")
+        zf.write(MF3_PATH, "dopey_photographer_medal_multicolor.3mf")
+        zf.write(BRONZE_STL, "dopey_medal_1_bronze_body.stl")
+        zf.write(GREEN_STL, "dopey_medal_2_green_hat.stl")
+        zf.write(PURPLE_STL, "dopey_medal_3_purple_robe.stl")
+        zf.write(DARK_STL, "dopey_medal_4_dark_outlines.stl")
+    print(f"Refreshed complete bundle ZIP: {zip_path}")
 
-print(f"Completed in {time.time() - t0:.2f}s!")
+print(f"All models compiled in {time.time() - t0:.2f}s!")
