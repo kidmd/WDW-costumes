@@ -93,6 +93,12 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### 2026-11-06: Universal Panel Test Firmware Sparkle Frequency Calibration (0.5% Subtle Twinkle)
+- **Sparkle Rate Tuned from 1.5% to 0.5% (`src/panel_test.cpp` & `arduino/MSEP_Panel_Test/`):**
+  - Updated `#define SPARKLE_RATE 0.5` in both PlatformIO and Arduino IDE panel test sources.
+  - Generates a calm, gentle starlight twinkle that allows prolonged bench inspection of 3D-printed armor plates and diffuser layers without visual fatigue.
+  - Recompiled binary `firmware/firmware_panel_test.bin`, deployed to `assets/firmware_warm_white_sparkle_test.bin`, and synchronized across simulator Deploy flasher and Web Flasher.
+
 ### 2026-11-06: Universal Panel & Bench Test Firmware (Warm White + Sparkle Across All LEDs)
 - **Universal Panel & Bench Test Firmware (`src/panel_test.cpp` & `arduino/MSEP_Panel_Test/`):**
   - *Context:* Fabricating and testing various 3D backlight armor plates (Float 3 Turtle, Float 7 To Honor America, Title Drum, Pete's Dragon) and pebble LED strings requires a dedicated, hassle-free firmware that immediately tests all connected pixels without needing float pairing, NVS state management, or button combinations.

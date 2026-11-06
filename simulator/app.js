@@ -22133,7 +22133,7 @@ async function triggerPanelTestFirmwareFlash() {
 
     flashTerminal.textContent = `[SIMULATOR] Connecting to ESP32 for Universal Panel Test Firmware...\n` +
         `[SIMULATOR] Target: All connected LEDs (up to 512 pixels / 16×16 matrices)\n` +
-        `[SIMULATOR] Output Mode: 3% Incandescent Warm White (~2500K) + 1.5% Starlight Sparkles\n` +
+        `[SIMULATOR] Output Mode: 3% Incandescent Warm White (~2500K) + 0.5% Starlight Sparkles\n` +
         `[SIMULATOR] Hardware Pinout: GPIO 16 Data Out, 5V 2.0A FastLED Power Limiter\n` +
         `--------------------------------------------------\n`;
 

@@ -1216,7 +1216,7 @@ The project provides two complementary flashing methods to suit both developers 
 - **Immediate Power-On Visuals:**
   - **All LEDs Illuminated:** Unlike parade firmware which only illuminates active graphic/windowed LEDs, this test firmware drives **all connected LEDs** (up to 512 pixels / full 16×16 BTF matrices / 200-LED strands).
   - **Authentic Warm Incandescent Base:** Centered at ~2500K vintage filament glow (`CRGB(255, 185, 110)` scaled to 64, identical ~3.1% duty cycle to Button 2 double-tap mode).
-  - **Starlight Sparkles:** 1.5% random starlight pops (`CRGB(255, 255, 255)` scaled to 192, ~3x brighter pop).
+  - **Starlight Sparkles:** 0.5% subtle random starlight pops (`CRGB(255, 255, 255)` scaled to 192, ~3x brighter pop).
   - **Zero Setup Required:** Powers directly into this mode on boot with zero button presses or ESP-NOW synchronization needed.
 - **Hardware Bench Controls (Optional):**
   - **BOOT / Button 1 (GPIO 4 or GPIO 0):** Tap to toggle color order dynamically between `GRB` (default for 16×16 BTF-LIGHTING panels) and `RGB` (for standard seed/pebble strands). Two quick flashes on onboard blue LED confirm toggle.

@@ -11,7 +11,7 @@
  * - Microcontroller: ESP32 DevKit (GPIO 16 Data Out, GPIO 4 Button 1, GPIO 33 Button 2, GPIO 0 BOOT)
  * - LED Standard: WS2812B / WS2811 (5V, 2.0A FastLED power limit enforced)
  * - Capacity: 512 LEDs (covers 256-LED 16x16 BTF matrix panels and 200-LED costume shirts)
- * - Default Mode: 2500K Warm White Base (~3.1% physical duty cycle) + 1.5% Starlight Sparkles (~3x pop)
+ * - Default Mode: 2500K Warm White Base (~3.1% physical duty cycle) + 0.5% Starlight Sparkles (~3x pop)
  * 
  * Interactive Controls (Optional Bench Testing):
  * - BOOT (GPIO 0) / Button 1 (GPIO 4): Tap to toggle Color Order (GRB for 16x16 BTF matrix <-> RGB for pebble strings)
@@ -32,7 +32,7 @@
 #define MAX_BRIGHTNESS      60      // Bench-safe brightness matching MSEP costume baseline
 #define MAX_POWER_MILLIAMPS 2000    // 5V, 2.0A safety limit for USB power banks and bench supplies
 
-#define SPARKLE_RATE        1.5     // 1.5% probability per LED per frame (authentic parade starlight rate)
+#define SPARKLE_RATE        0.5     // 0.5% probability per LED per frame (calm, subtle starlight twinkle)
 
 CRGB leds[NUM_LEDS];
 
@@ -68,7 +68,7 @@ void setup() {
     Serial.println("================================================================");
     Serial.println(" 🏰 MSEP UNIVERSAL PANEL & BENCH TEST FIRMWARE");
     Serial.println("================================================================");
-    Serial.println(" * Mode: 2500K Incandescent Warm White + 1.5% Starlight Sparkles");
+    Serial.println(" * Mode: 2500K Incandescent Warm White + 0.5% Starlight Sparkles");
     Serial.println(" * Target: GPIO 16 driving up to 512 LEDs (16x16 Panels & Strands)");
     Serial.println(" * FastLED Safety: 5V 2000mA Max Current Limit Active");
     Serial.println(" * Default Color Order: GRB (BTF-LIGHTING 16x16 Matrix Standard)");
