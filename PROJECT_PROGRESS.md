@@ -93,6 +93,17 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### 2026-11-05: Lightning Bug Precision Linework Refinements (Hat Border, Wing Seam & Vertical Divider)
+- **User Comment Refinements & Surgical Linework Enhancements:**
+  - **Hat Dome Border Cleanup & Smoothing (Comment 0):** Completely removed the stray red bit and outer black spur outside the hat dome at $x \in [308 \dots 328], y \in [50 \dots 65]$. Reconstructed the hat border into a single, continuous, elegant ~6.3px black curved arc framing the red beanie dome and meeting the brim cleanly with zero exterior artifacts.
+  - **Wing-to-Body Divider Continuity (Comment 1):** Eliminated the line pinch-off at $y \in [244 \dots 251]$ where the line between the blue wing and yellow body had pinched down to 0–1 px, restoring a solid, consistent ~5.6–6.0 px stroke connecting seamlessly into the body chassis.
+  - **Vertical Wing-to-Chest Divider Harmonization (Comment 2):** Smoothed and widened the vertical stroke ($y \in [118 \dots 221]$) from a stepped 4px line into a uniform, mathematically straight 6.00px stroke matching the head-to-body model collar line.
+- **Verification, Synchronization & Cache-Busting:**
+  - Re-ran subpixel Signed Distance Field (SDF) smoothing with nearest-neighbor color-trap bleed.
+  - Synchronized across all 4 production paths: `assets/lightning_bug.png`, `assets/lightningbug_transparent.png`, `simulator/assets/lightning_bug.png`, and `simulator/assets/lightningbug_transparent.png`.
+  - Bumped simulator cache buster in `simulator/app.js` to `?v=20261105_comment_fixes_v5`.
+
+
 ### 2026-11-05: Lightning Bug Thinner Black Tail Segment & Linework Re-Harmonization (PS3 Master)
 - **User Photoshop Master Integration (`assets/lightningbug_transparent3.png`):**
   - Integrated the user's updated master artwork with a re-proportioned, thinner black accordion tail segment (~32px vertical span vs legacy ~48px), expanding the lower red accordion fold for a balanced, authentic parade float appearance.
