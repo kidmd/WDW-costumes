@@ -93,6 +93,21 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### 2026-11-05: Lightning Bug V8 Restoration (Revert Artificial Wing Modifications & Dimple Smile; Restore Authentic Wing)
+- **User Instruction & Art Direction Alignment:**
+  - **Reverted Artificial Wing Alterations:** Completely removed synthetic straight line and bowed curve modifications. Restored the authentic wing divider linework directly from the user's Photoshop 3 (`lightningbug_transparent3.png`) artwork and smoothed it organically via subpixel signed distance field (SDF) anti-aliasing without artificial geometric overrides.
+  - **Reverted Smile Dimple & Upturn:** Canceled the dimple tick and smile upturn experiments per user preference ("Forget these last 2 changes. Lets use the one on the left, current version 6"). The classic, cheerful Disney smile is fully restored.
+  - **Retained & Verified Production Assets:**
+    - **Item 2B Eye Sparkle:** Retained the Sunny Yellow (`#facc15`) dual-twinkle catchlight in the royal blue eye iris/pupil ($2.8\text{ px}$ primary, $1.4\text{ px}$ secondary).
+    - **Hat Dome Cleanup (Comment 0):** Clean, elegant 6.3px black arc framing the red beanie dome with zero exterior red spill or spurs.
+    - **Wing-to-Body Continuity (Comment 1):** Solid 6.0px connection at $y \in [244 \dots 251]$ (no pinch-offs).
+    - **Photoshop 3 Tail:** Thinner black accordion segment with expanded red folds.
+    - **Strict 5-Color Multi-Material Palette:** 100% compliant with Black, Yellow, Green, Blue, and Red filaments.
+- **Verification, Synchronization & Cache-Busting:**
+  - Exported `lightningbug_smoothed_v8_restored.png` and deployed to all 4 production paths: `assets/lightning_bug.png`, `assets/lightningbug_transparent.png`, `simulator/assets/lightning_bug.png`, and `simulator/assets/lightningbug_transparent.png`.
+  - Updated simulator cache-buster in `simulator/app.js` to `?v=20261105_v8_restored_wing_eye_sparkle`.
+  - Generated visual verification artifacts: `comp_restored_v8_wing.png`, `comp_restored_v8_face.png`, and `comp_restored_v8_full.png` documented in `lightning_bug_v8_restoration_review.md`.
+
 ### 2026-11-05: Lightning Bug V7 Character Enhancements (Organic Bowed Wing Curve & Cheerful Dimple Smile)
 - **User Feedback & Cuteness Enhancements:**
   - **Organic Bowed Inner Wing Curve (User Boxed Region):** Identified that the initial V6 wing curve had only a $\approx 1.5\text{ px}$ shift in the upper section ($y \in [118 \dots 170]$), appearing nearly ruler-straight to the naked eye. In V7, developed a noticeable organic bowed convex curve ($x \approx 169.5 \to 178 \to 164$), where the inner boundary bows convexly into the yellow chest, echoing the outer wing's outward bow on the opposite side ($x \approx 62 \to 103$) and giving the folded wing an authentic rounded teardrop contour.
