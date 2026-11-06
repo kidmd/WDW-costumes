@@ -93,6 +93,15 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### 2026-11-06: 5-Color on 4-Toolhead Printing Methodology & G-Code Post-Processor
+- **Float 3 (The Spinning Turtle) 16x16 Backlight Plate Fabrication:**
+  - *Context:* Fabricating the 176x176mm rigid backlight plate for Float 3 (The Spinning Turtle) featuring 5 distinct first-layer colors (`1_Chassis_Black`, `2_Shell_Plates_and_Glasses`, `3_Shell_and_Eyes`, `4_Body_and_Head`, `5_Tie_and_Lips`) on the Snapmaker U1 4-toolhead toolchanger running Klipper.
+  - *Toolpath Disentanglement:* OrcaSlicer groups shared-extruder parts by feature type (`Inner wall` -> `Outer wall` -> `Bottom surface`), interleaving two parts assigned to Nozzle 4. Implemented spatial coordinate boundary partitioning at $X = 142.0\text{ mm}$ (leveraging the $9.1\text{ mm}$ physical gap between Tie & Lips and Shell & Glasses) to isolate each part's complete wall and infill paths into independent, continuous sequences.
+  - *Ping-Pong Order Optimization:* Converted sequential swapping into an alternating layer order (Layer 1: Tie -> Shell; Layer 2: Shell -> Tie; Layer 3: Tie -> Shell), slashing required manual spool swaps from 5 down to 3.
+  - *Thermal Safety Locking:* Identified and eliminated an OrcaSlicer trailing cooldown leak (`M104 S105 T3`) that previously caused an extruder minimum temperature halt ($178^\circ\text{C}$). Enforced `M104 S255` and `M109 S255` immediately post-pause to guarantee full temperature before resuming.
+  - *Diffuser Layer Swap:* Integrated an automated pause prior to Layer 4 on Toolhead 2 (Nozzle 3) to swap Blue filament to Clear Backing PETG for the $156 \times 156\text{ mm}$ internal optical diffuser.
+  - *Documentation:* Created comprehensive standalone guide `SNAPMAKER_5_COLOR_4_TOOLHEAD_PRINTING_GUIDE.md` including reusable Python post-processing engine.
+
 ### 2026-11-05: Picket-Fence & Jagged Edge Elimination (Sub-Pixel Spline & 20° Draft Angle)
 - **Eliminated Outer Perimeter & Inner Relief "Picket-Fence" Facets:**
   - *Root Cause 1 (Outer Perimeter):* Previous silhouette boundary traced raw 1024x1024 image pixels (`cv2.CHAIN_APPROX_NONE`), producing 2,363 stair-step right angles that extruded into vertical rectangular fluting along curved and diagonal edges.

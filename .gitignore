@@ -36,3 +36,5 @@ presets/wifi_settings.json
 
 # Scratch scripts
 scratch/
+
+*.gcode
