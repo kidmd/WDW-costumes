@@ -2289,6 +2289,33 @@
                                 📋 View / Copy C++ Code
                             </button>
                         </div>
+
+                        <!-- Universal Panel & Bench Test Flasher Card -->
+                        <div style="margin-top: 14px; padding: 12px; background: rgba(241, 224, 90, 0.06); border: 1.5px solid rgba(241, 224, 90, 0.35); border-radius: 8px;">
+                            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px;">
+                                <div style="display: flex; align-items: center; gap: 6px;">
+                                    <span style="font-size: 16px;">✨</span>
+                                    <strong style="font-size: 12px; color: #f1e05a;">Universal Panel Test Firmware</strong>
+                                </div>
+                                <span style="font-size: 9px; padding: 2px 6px; border-radius: 4px; background: rgba(241, 224, 90, 0.2); color: #f1e05a; border: 1px solid rgba(241, 224, 90, 0.4); font-weight: 700;">ALL LEDS ON</span>
+                            </div>
+                            <p style="font-size: 11px; color: var(--text-muted); line-height: 1.4; margin-bottom: 10px;">
+                                Bench test firmware for 3D plates and LED panels. Boots directly into <strong>3% Incandescent Warm White (~2500K) + Starlight Sparkles</strong> across <strong>all connected LEDs</strong> (up to 512 pixels / 16×16 matrices). Zero button clicking, graphic masking, or float pairing required!
+                            </p>
+                            <div style="display: flex; flex-direction: column; gap: 6px;">
+                                <button id="flashPanelTestBtn" type="button" class="action-btn" style="font-weight: 700; font-size: 12.5px; padding: 10px; background: linear-gradient(135deg, #d29922, #f1e05a); color: #0d1117; border: 1px solid #d29922; display: flex; align-items: center; justify-content: center; gap: 6px; cursor: pointer;" title="Flash universal warm white starlight test firmware to connected ESP32 via USB">
+                                    <span id="flashPanelTestBtnText">⚡ Flash Panel Test: Warm White + Sparkles</span>
+                                </button>
+                                <div style="display: flex; gap: 6px;">
+                                    <a href="/assets/firmware_warm_white_sparkle_test.bin" download="firmware_warm_white_sparkle_test.bin" class="action-btn" style="flex: 1; text-decoration: none; font-size: 11px; padding: 6px; color: #f1e05a; border-color: rgba(241, 224, 90, 0.4); display: flex; align-items: center; justify-content: center; gap: 4px;" title="Download standalone precompiled .bin from assets folder">
+                                        ⬇️ Download .BIN (Assets)
+                                    </a>
+                                    <a href="/web_flasher.html" target="_blank" class="action-btn" style="flex: 1; text-decoration: none; font-size: 11px; padding: 6px; color: #3fb950; border-color: #2ea043; display: flex; align-items: center; justify-content: center; gap: 4px;" title="Open Web Serial Flasher in browser">
+                                        🌐 Web Flasher
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
                     </div>
 
                     <!-- Real-Time Wi-Fi Live Stream -->

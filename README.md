@@ -101,6 +101,7 @@ You don't need Git, Google Antigravity, or any programming tools:
 * [`PROJECT_PROGRESS.md`](PROJECT_PROGRESS.md): Live project milestones, wiring specifications, and development changelog.
 * `start_simulator.bat`: One-click Windows desktop simulator launcher.
 * `flash_firmware.bat`: One-click Windows desktop firmware flasher script.
+* `flash_panel_test.bat`: One-click Windows desktop flasher for the Universal Panel Test Firmware (Warm White + Sparkles across all LEDs).
 * `flash_firmware.command`: One-click Mac / Linux desktop firmware flasher script.
 * `arduino/MSEP_Costume/`: Ready-to-open native Arduino IDE sketch.
 * `firmware/`: Pre-compiled ROM binary files (`firmware_float1.bin` through `firmware_float7.bin`, `firmware.bin`, `bootloader.bin`, `partitions.bin`) and Web Serial manifests.

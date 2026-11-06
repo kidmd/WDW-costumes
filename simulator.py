@@ -208,6 +208,8 @@ class SimulatorRequestHandler(http.server.SimpleHTTPRequestHandler):
             self.handle_save_wifi()
         elif parsed.path == "/api/flash_wifi_receiver":
             self.handle_flash_wifi_receiver()
+        elif parsed.path == "/api/flash_panel_test":
+            self.handle_flash_panel_test()
         elif parsed.path == "/api/export_fleet_routine":
             self.handle_export_fleet_routine()
         elif parsed.path == "/api/build_fleet_binaries":
@@ -1217,6 +1219,85 @@ const uint8_t PROGMEM SPATIAL_RADIUS_BYTE[FRONT_LEDS] = {{
                     user_error = f"Serial port {port} is busy or locked by another program. Close other apps using this COM port and try again."
                 else:
                     user_error = f"PlatformIO upload failed with exit code {proc.returncode}"
+
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json")
+            self.end_headers()
+            self.wfile.write(json.dumps({
+                "success": success,
+                "port": port,
+                "log": stdout,
+                "error": user_error
+            }).encode("utf-8"))
+        except Exception as e:
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json")
+            self.end_headers()
+            self.wfile.write(json.dumps({
+                "success": False,
+                "error": str(e)
+            }).encode("utf-8"))
+
+    def handle_flash_panel_test(self):
+        try:
+            port = get_connected_esp32_port()
+            if not port:
+                self.send_response(200)
+                self.send_header("Content-Type", "application/json")
+                self.end_headers()
+                self.wfile.write(json.dumps({
+                    "success": False,
+                    "error": "No ESP32 detected on USB serial ports. Please connect your ESP32 with a USB cable and try again."
+                }).encode("utf-8"))
+                return
+
+            firmware_dir = os.path.join(BASE_DIR, "firmware")
+            test_fw = os.path.join(firmware_dir, "firmware_panel_test.bin")
+            bootloader = os.path.join(firmware_dir, "bootloader.bin")
+            partitions = os.path.join(firmware_dir, "partitions.bin")
+
+            # If precompiled binary doesn't exist, build it via platformio
+            if not (os.path.exists(test_fw) and os.path.exists(bootloader) and os.path.exists(partitions)):
+                import subprocess
+                cmd_build = [sys.executable, "-m", "platformio", "run", "-e", "panel_test"]
+                proc_b = subprocess.Popen(cmd_build, cwd=BASE_DIR, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
+                stdout_b, _ = proc_b.communicate(timeout=180)
+                if proc_b.returncode != 0:
+                    self.send_response(200)
+                    self.send_header("Content-Type", "application/json")
+                    self.end_headers()
+                    self.wfile.write(json.dumps({
+                        "success": False,
+                        "error": "Failed to compile panel test firmware.",
+                        "log": stdout_b
+                    }).encode("utf-8"))
+                    return
+
+            # Direct fast flash via esptool
+            import subprocess
+            cmd_flash = [
+                sys.executable, "-m", "esptool",
+                "--chip", "esp32",
+                "--port", port,
+                "--baud", "460800",
+                "write_flash", "-z",
+                "0x1000", bootloader,
+                "0x8000", partitions,
+                "0x10000", test_fw
+            ]
+            proc = subprocess.Popen(cmd_flash, cwd=BASE_DIR, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
+            stdout, _ = proc.communicate(timeout=60)
+            success = (proc.returncode == 0)
+            user_error = None
+            if not success:
+                if "not functioning" in stdout or "Error 31" in stdout or "PermissionError(13" in stdout:
+                    user_error = f"USB Port {port} is unresponsive (Windows Error 31). Please UNPLUG the USB cable from the ESP32, wait 2 seconds, and plug it back in. Then click Flash again."
+                elif "Wrong boot mode detected" in stdout or "needs to be in download mode" in stdout:
+                    user_error = "ESP32 did not enter bootloader mode automatically. Hold down the BOOT button on your ESP32 board, click Flash again, and release BOOT once writing begins."
+                elif "could not open port" in stdout or "PermissionError" in stdout or "Access is denied" in stdout:
+                    user_error = f"Serial port {port} is busy or locked by another program. Close other apps using this COM port and try again."
+                else:
+                    user_error = f"Flashing failed with exit code {proc.returncode}"
 
             self.send_response(200)
             self.send_header("Content-Type", "application/json")

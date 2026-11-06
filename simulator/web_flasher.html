@@ -535,6 +535,15 @@
             icon: "🎲",
             color: "#bc8cff",
             desc: "Universal costume firmware. Remembers previous float ID or defaults to Float 2."
+        },
+        {
+            id: 99,
+            name: "Panel & Bench Test",
+            role: "TEST",
+            tag: "WARM WHITE + SPARKLE",
+            icon: "✨",
+            color: "#f1e05a",
+            desc: "Bench test firmware for 3D armor plates & LED panels. Illuminates ALL connected LEDs (up to 512 pixels / 16×16 matrices) in authentic 2500K Warm White with starlight sparkles on boot — zero button clicks or pairing required."
         }
     ];
 
@@ -554,12 +563,13 @@
 
             const isLeader = f.role === 'LEADER';
             const isGeneric = f.role === 'GENERIC';
+            const isTest = f.role === 'TEST';
             const roleClass = isLeader ? 'leader' : 'follower';
-            const roleText = isLeader ? '👑 Leader' : (isGeneric ? '🎲 Auto' : '📡 Follower');
+            const roleText = isLeader ? '👑 Leader' : (isTest ? '✨ Test' : (isGeneric ? '🎲 Auto' : '📡 Follower'));
 
             card.innerHTML = `
                 <div class="float-header">
-                    <span class="float-num" style="color: ${f.color};">${f.id > 0 ? '#' + f.id : 'GEN'}</span>
+                    <span class="float-num" style="color: ${f.color};">${f.id === 99 ? 'TEST' : (f.id > 0 ? '#' + f.id : 'GEN')}</span>
                     <span class="role-pill ${roleClass}">${roleText}</span>
                 </div>
                 <div class="float-name">
@@ -591,28 +601,50 @@
         const armedDesc = document.getElementById('armedDesc');
 
         armedIcon.textContent = flt.icon;
-        armedName.textContent = flt.id > 0 ? `Float ${flt.id}: ${flt.name}` : flt.name;
+        armedName.textContent = flt.id === 99 ? flt.name : (flt.id > 0 ? `Float ${flt.id}: ${flt.name}` : flt.name);
         armedDesc.textContent = flt.desc;
 
         if (flt.role === 'LEADER') {
             armedRolePill.className = 'role-pill leader';
+            armedRolePill.style.background = '';
+            armedRolePill.style.color = '';
+            armedRolePill.style.borderColor = '';
             armedRolePill.textContent = '👑 Master Leader';
+        } else if (flt.role === 'TEST') {
+            armedRolePill.className = 'role-pill follower';
+            armedRolePill.style.background = 'rgba(241, 224, 90, 0.2)';
+            armedRolePill.style.color = '#f1e05a';
+            armedRolePill.style.borderColor = 'rgba(241, 224, 90, 0.4)';
+            armedRolePill.textContent = '✨ Panel Bench Test';
         } else if (flt.role === 'GENERIC') {
             armedRolePill.className = 'role-pill follower';
+            armedRolePill.style.background = '';
+            armedRolePill.style.color = '';
+            armedRolePill.style.borderColor = '';
             armedRolePill.textContent = '🎲 Generic Board';
         } else {
             armedRolePill.className = 'role-pill follower';
+            armedRolePill.style.background = '';
+            armedRolePill.style.color = '';
+            armedRolePill.style.borderColor = '';
             armedRolePill.textContent = '📡 Fleet Follower';
         }
 
         // Re-inject esp-web-install-button with targeted manifest (relative path works on both localhost & GitHub Pages)
         const host = document.getElementById('installButtonHost');
-        const manifestUrl = flt.id > 0 ? `../firmware/manifest_float${flt.id}.json` : `../firmware/manifest.json`;
+        let manifestUrl = '../firmware/manifest.json';
+        if (flt.id === 99) {
+            manifestUrl = '../firmware/manifest_panel_test.json';
+        } else if (flt.id > 0) {
+            manifestUrl = `../firmware/manifest_float${flt.id}.json`;
+        }
+
+        const buttonLabel = flt.id === 99 ? 'Panel Test Firmware' : (flt.id > 0 ? 'Float ' + flt.id : 'ESP32');
 
         host.innerHTML = `
             <esp-web-install-button manifest="${manifestUrl}">
                 <button slot="activate" style="background: linear-gradient(135deg, #238636, #2ea043); color: #fff; border: 1px solid #2ea043; border-radius: 8px; padding: 14px 32px; font-size: 15px; font-weight: 700; cursor: pointer; box-shadow: 0 4px 14px rgba(46, 160, 67, 0.4); display: inline-flex; align-items: center; gap: 8px;">
-                    ⚡ Connect & Flash ${flt.id > 0 ? 'Float ' + flt.id : 'ESP32'}
+                    ⚡ Connect & Flash ${buttonLabel}
                 </button>
                 <span slot="unsupported">
                     ⚠️ Web Serial is not supported in this browser. Please open this page in <strong>Google Chrome</strong> or <strong>Microsoft Edge</strong>!

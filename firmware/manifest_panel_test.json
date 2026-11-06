@@ -1,0 +1,24 @@
+{
+  "name": "MSEP Costume - Universal Panel Test (Warm White + Sparkles)",
+  "version": "1.0.0",
+  "new_install_prompt_erase": false,
+  "builds": [
+    {
+      "chipFamily": "ESP32",
+      "parts": [
+        {
+          "path": "bootloader.bin",
+          "offset": 4096
+        },
+        {
+          "path": "partitions.bin",
+          "offset": 32768
+        },
+        {
+          "path": "firmware_panel_test.bin",
+          "offset": 65536
+        }
+      ]
+    }
+  ]
+}

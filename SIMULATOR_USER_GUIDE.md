@@ -1210,6 +1210,23 @@ The project provides two complementary flashing methods to suit both developers 
 - **How It Works:** Compiles your active custom colors, sampled palette, and timeline cue triggers on the fly using **PlatformIO** installed on the development PC.
 - **Note:** `start_simulator.bat` launches Python for the browser visualizer. If PlatformIO is not installed on a secondary computer, use **Method 1 (Web Flasher)** instead.
 
+#### Method 2B: Universal Panel & Bench Test Flasher (Warm White + Sparkles Across All LEDs)
+- **Location:** **Tab 6: Deploy & Hardware** ➔ **`⚡ Flash Panel Test: Warm White + Sparkles`** (Gold Card).
+- **Purpose:** Bench-test 3D armor plates, diffuser layers, matrix solder joints, and pebble LED strands without worrying about assigned float configurations, graphic masks, or choreography loops.
+- **Immediate Power-On Visuals:**
+  - **All LEDs Illuminated:** Unlike parade firmware which only illuminates active graphic/windowed LEDs, this test firmware drives **all connected LEDs** (up to 512 pixels / full 16×16 BTF matrices / 200-LED strands).
+  - **Authentic Warm Incandescent Base:** Centered at ~2500K vintage filament glow (`CRGB(255, 185, 110)` scaled to 64, identical ~3.1% duty cycle to Button 2 double-tap mode).
+  - **Starlight Sparkles:** 1.5% random starlight pops (`CRGB(255, 255, 255)` scaled to 192, ~3x brighter pop).
+  - **Zero Setup Required:** Powers directly into this mode on boot with zero button presses or ESP-NOW synchronization needed.
+- **Hardware Bench Controls (Optional):**
+  - **BOOT / Button 1 (GPIO 4 or GPIO 0):** Tap to toggle color order dynamically between `GRB` (default for 16×16 BTF-LIGHTING panels) and `RGB` (for standard seed/pebble strands). Two quick flashes on onboard blue LED confirm toggle.
+  - **Button 2 (GPIO 33):** Tap to cycle test modes: `Warm White + Sparkles` ➔ `Solid Warm White (No Sparkles / Photo Inspection)` ➔ `Subpixel RGB Inspection (Red ➔ Green ➔ Blue ➔ White)`.
+- **Precompiled Binaries & Zero-Install Web Flashing:**
+  - Standalone `.bin` available in `assets/firmware_warm_white_sparkle_test.bin` and `firmware/firmware_panel_test.bin`.
+  - Also selectable in **Web Flasher** (`/web_flasher.html`) under the `✨ Panel & Bench Test` card for Chrome/Edge Web Serial flashing.
+  - Windows one-click batch flasher: run `flash_panel_test.bat`.
+  - Arduino IDE sketch: available at `arduino/MSEP_Panel_Test/MSEP_Panel_Test.ino`.
+
 ---
 
 ### One-Click Standalone USB Firmware Flashing (200 LEDs: 100 Front + 100 Back)

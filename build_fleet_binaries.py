@@ -247,6 +247,51 @@ def build_binary(float_id=0):
     print(f"[OK] Successfully built Float {float_id} -> {bin_name} & {manifest_name}")
     return True
 
+def build_panel_test():
+    print("[*] Building Universal Panel Test Firmware (Warm White + Sparkle)...")
+    cmd = [sys.executable, "-m", "platformio", "run", "-e", "panel_test"]
+    res = subprocess.run(cmd, cwd=BASE_DIR, capture_output=True, text=True)
+    if res.returncode != 0:
+        print(f"[ERROR] Panel test build failed:\n{res.stderr or res.stdout}")
+        return False
+
+    os.makedirs(FIRMWARE_DIR, exist_ok=True)
+    assets_dir = os.path.join(BASE_DIR, "assets")
+    os.makedirs(assets_dir, exist_ok=True)
+
+    test_build_dir = os.path.join(BASE_DIR, ".pio", "build", "panel_test")
+    src_fw = os.path.join(test_build_dir, "firmware.bin")
+    if not os.path.exists(src_fw):
+        print(f"[ERROR] Compiled binary not found at {src_fw}")
+        return False
+
+    # Copy to firmware/ and assets/
+    shutil.copy2(src_fw, os.path.join(FIRMWARE_DIR, "firmware_panel_test.bin"))
+    shutil.copy2(src_fw, os.path.join(assets_dir, "firmware_warm_white_sparkle_test.bin"))
+    shutil.copy2(src_fw, os.path.join(assets_dir, "panel_test_warm_white.bin"))
+
+    manifest = {
+        "name": "MSEP Costume - Universal Panel Test (Warm White + Sparkles)",
+        "version": "1.0.0",
+        "new_install_prompt_erase": False,
+        "builds": [
+            {
+                "chipFamily": "ESP32",
+                "parts": [
+                    {"path": "bootloader.bin", "offset": 4096},
+                    {"path": "partitions.bin", "offset": 32768},
+                    {"path": "firmware_panel_test.bin", "offset": 65536}
+                ]
+            }
+        ]
+    }
+    manifest_path = os.path.join(FIRMWARE_DIR, "manifest_panel_test.json")
+    with open(manifest_path, "w", encoding="utf-8") as f:
+        json.dump(manifest, f, indent=2)
+
+    print("[OK] Successfully built Panel Test Firmware -> firmware_panel_test.bin, assets/firmware_warm_white_sparkle_test.bin & manifest_panel_test.json")
+    return True
+
 def build_all():
     print("==================================================")
     print(" Building MSEP Costume ROM Binaries for All Floats")
@@ -263,17 +308,24 @@ def build_all():
     # Reset float_config.h back to 0 (generic/NVS mode) after dedicated builds complete
     write_float_config(0, fleet_build=False)
 
+    # 3. Build Universal Panel Test Firmware
+    build_panel_test()
+
     print("==================================================")
-    print(" Finished building all 7 float ROM binaries!")
+    print(" Finished building all 7 float ROM binaries & panel test firmware!")
     print("==================================================")
 
 if __name__ == "__main__":
-    if len(sys.argv) > 1 and sys.argv[1].isdigit():
-        fid = int(sys.argv[1])
-        if fid == 0 or any(f["id"] == fid for f in FLOATS):
-            sync_fleet_palettes()
-            build_binary(fid)
-            write_float_config(0, fleet_build=False)
+    if len(sys.argv) > 1:
+        arg = sys.argv[1].lower()
+        if arg in ["test", "panel_test", "warm_white"]:
+            build_panel_test()
+        elif arg.isdigit():
+            fid = int(arg)
+            if fid == 0 or any(f["id"] == fid for f in FLOATS):
+                sync_fleet_palettes()
+                build_binary(fid)
+                write_float_config(0, fleet_build=False)
     else:
         build_all()
 

@@ -22101,6 +22101,125 @@ if (flashEsp32Btn) {
     });
 }
 
+// Universal Panel & Bench Test Flasher (Warm White + Sparkle across ALL LEDs)
+async function triggerPanelTestFirmwareFlash() {
+    if (isFlashingFirmware) return;
+
+    if (!isSerialPortReady && detectedSerialPort) {
+        flashModal.classList.add('open');
+        flashStatusText.textContent = `⚠️ USB Port ${detectedSerialPort} Wedged (Windows Error 31)`;
+        flashStatusText.style.color = '#f85149';
+        flashProgressBar.style.width = '100%';
+        flashProgressBar.style.background = '#da3633';
+        flashTipText.textContent = 'Please unplug the USB cable, wait 2 seconds, and plug it back in!';
+        flashTerminal.textContent = `[PORT ERROR] Windows driver locked ${detectedSerialPort}: "A device attached to the system is not functioning" (Error 31).\n\n` +
+            `TO FIX THIS NOW:\n` +
+            `1. Unplug the ESP32 USB cable from your computer.\n` +
+            `2. Wait 2 seconds.\n` +
+            `3. Plug it back into your USB port.\n` +
+            `4. Watch the top indicator turn green: "● ESP32 on ${detectedSerialPort} (Ready)".\n` +
+            `5. Click Flash again!\n`;
+        flashDoneBtn.style.display = 'inline-block';
+        return;
+    }
+
+    flashModal.classList.add('open');
+    flashStatusText.textContent = `Flashing Panel Test Firmware (Warm White + Sparkles)...`;
+    flashStatusText.style.color = 'var(--text-main)';
+    flashProgressBar.style.width = '20%';
+    flashProgressBar.style.background = '#d29922';
+    flashDoneBtn.style.display = 'none';
+    flashTipText.textContent = `Flashing universal 2500K warm white incandescent starlight firmware to ESP32...`;
+
+    flashTerminal.textContent = `[SIMULATOR] Connecting to ESP32 for Universal Panel Test Firmware...\n` +
+        `[SIMULATOR] Target: All connected LEDs (up to 512 pixels / 16×16 matrices)\n` +
+        `[SIMULATOR] Output Mode: 3% Incandescent Warm White (~2500K) + 1.5% Starlight Sparkles\n` +
+        `[SIMULATOR] Hardware Pinout: GPIO 16 Data Out, 5V 2.0A FastLED Power Limiter\n` +
+        `--------------------------------------------------\n`;
+
+    isFlashingFirmware = true;
+    const testBtn = document.getElementById('flashPanelTestBtn');
+    if (testBtn) {
+        testBtn.disabled = true;
+        testBtn.style.opacity = '0.6';
+    }
+
+    let progress = 20;
+    const progressTimer = setInterval(() => {
+        if (progress < 85) {
+            progress += 10;
+            flashProgressBar.style.width = `${progress}%`;
+        }
+    }, 400);
+
+    try {
+        const response = await fetch('/api/flash_panel_test', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({})
+        });
+
+        clearInterval(progressTimer);
+
+        if (!response.ok) {
+            throw new Error(`Server returned HTTP ${response.status}`);
+        }
+
+        const data = await response.json();
+
+        if (data.success) {
+            flashProgressBar.style.width = '100%';
+            flashProgressBar.style.background = '#238636';
+            flashStatusText.textContent = `🎉 Flash Complete! Panel Test Firmware Running on ${data.port || 'ESP32'}`;
+            flashStatusText.style.color = '#3fb950';
+            flashTipText.textContent = `ESP32 rebooted and running all LEDs warm white with starlight sparkles!`;
+            flashTerminal.textContent += (data.log || '') + '\n\n' +
+                `==================================================\n` +
+                `[SUCCESS] Flashed Universal Panel Test Firmware to ESP32 on ${data.port}!\n` +
+                `The ESP32 is now driving all LEDs in 2500K Warm White with Starlight Sparkles.\n` +
+                `Bench Test Controls:\n` +
+                `- BOOT / Button 1 (GPIO 4/0): Tap to toggle Color Order (GRB <-> RGB)\n` +
+                `- Button 2 (GPIO 33): Tap to cycle (Sparkle -> Solid Warm -> RGB Test)\n` +
+                `==================================================`;
+            showToast(`⚡ Flashed Panel Test Firmware to ${data.port}!`);
+        } else {
+            flashProgressBar.style.width = '100%';
+            flashProgressBar.style.background = '#da3633';
+            flashStatusText.textContent = `⚠️ Flash Failed: ${data.error || 'Check log'}`;
+            flashStatusText.style.color = '#f85149';
+            flashTipText.textContent = 'Ensure ESP32 is plugged in and hold BOOT button if needed.';
+            flashTerminal.textContent += (data.log || '') + '\n\n' +
+                `--------------------------------------------------\n` +
+                `[ERROR] ${data.error || 'Upload failed'}\n` +
+                `Tip: Check USB cable or hold BOOT button on the ESP32 while connecting.`;
+        }
+    } catch (err) {
+        clearInterval(progressTimer);
+        flashProgressBar.style.width = '100%';
+        flashProgressBar.style.background = '#da3633';
+        flashStatusText.textContent = `⚠️ Error: ${err.message}`;
+        flashStatusText.style.color = '#f85149';
+        flashTerminal.textContent += `\n[CLIENT ERROR] ${err.message}\nMake sure simulator.py is running.`;
+    } finally {
+        isFlashingFirmware = false;
+        if (testBtn) {
+            testBtn.disabled = false;
+            testBtn.style.opacity = '1';
+        }
+        flashDoneBtn.style.display = 'block';
+        flashTerminal.scrollTop = flashTerminal.scrollHeight;
+        checkSerialPortStatus();
+    }
+}
+window.triggerPanelTestFirmwareFlash = triggerPanelTestFirmwareFlash;
+
+const flashPanelTestBtn = document.getElementById('flashPanelTestBtn');
+if (flashPanelTestBtn) {
+    flashPanelTestBtn.addEventListener('click', () => {
+        triggerPanelTestFirmwareFlash();
+    });
+}
+
 const rebuildFleetBinariesBtn = document.getElementById('rebuildFleetBinariesBtn');
 if (rebuildFleetBinariesBtn) {
     rebuildFleetBinariesBtn.addEventListener('click', async () => {

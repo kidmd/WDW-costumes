@@ -54,6 +54,20 @@ You can flash the ESP32 directly from your web browser using HTML5 Web Serial �
 
 ---
 
+## 🧪 Universal Panel & Bench Test Flasher (Warm White + Sparkles)
+
+For bench testing 3D backlight armor plates, diffuser layers, matrix solder joints, or pebble strands without worrying about float IDs or parade choreography:
+
+- **What It Does:** Powers immediately on boot into **3% Incandescent Warm White (~2500K)** with **1.5% Starlight Sparkles** across **all connected LEDs** (up to 512 pixels / full 16×16 matrices). Zero button presses or float pairing required!
+- **How to Flash:**
+  1. **In Simulator (Deploy Tab):** Open **Tab 6: Deploy** and click **"⚡ Flash Panel Test: Warm White + Sparkles"**.
+  2. **Zero-Install Web Flasher:** Go to `http://localhost:8000/web_flasher.html`, click the gold **`✨ Panel & Bench Test`** card, and click **Connect & Flash**.
+  3. **Windows Batch Script:** Double-click **`flash_panel_test.bat`** in the project root.
+  4. **Direct Binary Download:** Grabbable directly from **`assets/firmware_warm_white_sparkle_test.bin`**.
+  5. **Arduino IDE:** Open `arduino/MSEP_Panel_Test/MSEP_Panel_Test.ino` and upload to your ESP32 Dev Module.
+
+---
+
 ## 🛠️ Method 3: Arduino IDE (If You Want to Edit the Code)
 
 If you're already familiar with the Arduino IDE and want to inspect or modify the code:

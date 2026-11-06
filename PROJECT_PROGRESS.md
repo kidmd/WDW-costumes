@@ -93,6 +93,22 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### 2026-11-06: Universal Panel & Bench Test Firmware (Warm White + Sparkle Across All LEDs)
+- **Universal Panel & Bench Test Firmware (`src/panel_test.cpp` & `arduino/MSEP_Panel_Test/`):**
+  - *Context:* Fabricating and testing various 3D backlight armor plates (Float 3 Turtle, Float 7 To Honor America, Title Drum, Pete's Dragon) and pebble LED strings requires a dedicated, hassle-free firmware that immediately tests all connected pixels without needing float pairing, NVS state management, or button combinations.
+  - *Immediate Boot Visuals:* Automatically powers on into the authentic 3% Incandescent Warm White (~2500K vintage filament glow, `CRGB(255, 185, 110)` scaled to 64) with 1.5% Starlight Sparkles (`CRGB(255, 255, 255)` scaled to 192, ~3x brighter pop). Zero button clicking required.
+  - *Full Array Illumination (Up to 512 LEDs):* Unlike parade firmware which masks unwindowed background pixels, drives **100% of connected LEDs** (full 256-pixel 16x16 BTF matrices, dual matrices, or 200-LED costume shirts).
+  - *Hardware Safety:* Strictly enforces FastLED 5V 2000mA hardware power limit on GPIO 16.
+  - *Interactive Bench Controls:*
+    - **BOOT / Button 1 (GPIO 4 / GPIO 0):** Tap toggles color order dynamically between `GRB` (default for 16x16 BTF matrix) and `RGB` (for seed pebble strings) with status LED blink confirmation.
+    - **Button 2 (GPIO 33):** Tap cycles test modes (`Warm White + Sparkle` -> `Solid Warm White (Photo Mode)` -> `Subpixel RGB Inspection Cycle`).
+- **Asset Deployment & One-Click Simulator Integration:**
+  - *Asset Deployment:* Exported compiled binary directly to `assets/firmware_warm_white_sparkle_test.bin` and `assets/panel_test_warm_white.bin`.
+  - *Deploy Tab USB Flasher (`simulator/index.html` & `simulator/app.js`):* Added dedicated gold card in Tab 6: Deploy with one-click `⚡ Flash Panel Test: Warm White + Sparkles` button, live COM port detection, progress modal, and direct .bin download link.
+  - *Web Serial Flasher Integration (`simulator/web_flasher.html`):* Added `#TEST` card (`✨ Panel & Bench Test`) with `firmware/manifest_panel_test.json` for zero-install Chrome/Edge browser flashing.
+  - *One-Click Desktop Batch Flasher:* Created `flash_panel_test.bat` in root directory.
+  - *Build Pipeline:* Integrated `build_panel_test()` into `build_fleet_binaries.py` and added `[env:panel_test]` in `platformio.ini`.
+
 ### 2026-11-06: 5-Color on 4-Toolhead Printing Methodology & G-Code Post-Processor
 - **Float 3 (The Spinning Turtle) 16x16 Backlight Plate Fabrication:**
   - *Context:* Fabricating the 176x176mm rigid backlight plate for Float 3 (The Spinning Turtle) featuring 5 distinct first-layer colors (`1_Chassis_Black`, `2_Shell_Plates_and_Glasses`, `3_Shell_and_Eyes`, `4_Body_and_Head`, `5_Tie_and_Lips`) on the Snapmaker U1 4-toolhead toolchanger running Klipper.
