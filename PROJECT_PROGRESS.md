@@ -100,6 +100,7 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
   - *Ping-Pong Order Optimization:* Converted sequential swapping into an alternating layer order (Layer 1: Tie -> Shell; Layer 2: Shell -> Tie; Layer 3: Tie -> Shell), slashing required manual spool swaps from 5 down to 3.
   - *Thermal Safety Locking:* Identified and eliminated an OrcaSlicer trailing cooldown leak (`M104 S105 T3`) that previously caused an extruder minimum temperature halt ($178^\circ\text{C}$). Enforced `M104 S255` and `M109 S255` immediately post-pause to guarantee full temperature before resuming.
   - *Diffuser Layer Swap:* Integrated an automated pause prior to Layer 4 on Toolhead 2 (Nozzle 3) to swap Blue filament to Clear Backing PETG for the $156 \times 156\text{ mm}$ internal optical diffuser.
+  - *V2 Prime Tower Re-Priming Routine:* Injected an automated 22mm sacrificial prime line onto the Prime Tower ($X \in [220, 242]\text{ mm}$) immediately post-pause before traveling to the model. Eliminates first-millimeter depressurization starvation and startup ooze. Verified 100% extrusion temperature safety across all 206,350 lines in `The_Spinning_Turtle_front_16x16_Plate_PETG_5COLOR_PRIME_TOWER_V2.gcode`.
   - *Documentation:* Created comprehensive standalone guide `SNAPMAKER_5_COLOR_4_TOOLHEAD_PRINTING_GUIDE.md` including reusable Python post-processing engine.
 
 ### 2026-11-05: Picket-Fence & Jagged Edge Elimination (Sub-Pixel Spline & 20° Draft Angle)

@@ -22,7 +22,10 @@ When a model has 5 distinct colors across its first layers, but the printer phys
    * **Layer 2:** *Already loaded with Color B!* Print Color B first $\rightarrow$ **Pause #2** $\rightarrow$ Print Color A (Ends layer with Color A in nozzle).
    * **Layer 3:** *Already loaded with Color A!* Print Color A first $\rightarrow$ **Pause #3** $\rightarrow$ Print Color B (Ends layer with Color B in nozzle).
    * Toolhead 3 is now 100% finished for the rest of the print!
-3. **Hardware Pause & Thermal Protection:** Inject `M400` (buffer clear), `M117` (on-screen LCD message), `PAUSE` (Klipper parking macro), followed by `M104 S[temp]` and `M109 S[temp]` (wait for target temperature) upon resume.
+3. **Hardware Pause, Thermal Protection & Prime Tower Visit:**
+   * Inject `M400` (buffer clear), `M117` (on-screen LCD message), `PAUSE` (Klipper parking macro).
+   * Upon resume: enforce `M104 S[temp]` and `M109 S[temp]` (wait for target temperature).
+   * Immediately detour to the **Prime Tower** ($X \in [220, 242]\text{ mm}$) to extrude a $22\text{ mm}$ sacrificial priming bead before traveling to the cosmetic part. This restores melt-chamber pressure and prevents first-millimeter under-extrusion or travel ooze.
 4. **Mid-Print Tool Re-purposing (e.g., Clear Backing Diffuser):** Before higher layers start (e.g., Layer 4), pause a retired toolhead (e.g., Toolhead 2 / Nozzle 3) to swap from its first-layer color to Clear PETG.
 
 ---
