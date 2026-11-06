@@ -1,53 +1,57 @@
-import json
-import re
+import os
 
-with open('3d_panels/petes_dragon_specs.json', 'r', encoding='utf-8') as f:
-    specs = json.load(f)
+html_path = '3d_panels/dopey_medal/preview_medal.html'
+with open(html_path, 'r', encoding='utf-8') as f:
+    c = f.read()
 
-with open('3d_panels/tpu_panel_preview.html', 'r', encoding='utf-8') as f:
-    html = f.read()
+# Load the engraved STL as the default monolithic medal
+c = c.replace('dopey_photographer_medal_relief.stl', 'dopey_photographer_medal_engraved_back.stl')
 
-# Replace SPECS = {...};
-specs_json_str = json.dumps(specs)
-html = re.sub(r'const SPECS = \{.*?\};', f'const SPECS = {specs_json_str};', html)
+# Add lights for the back
+back_lights = """  const backLight = new THREE.DirectionalLight(0xffeedd, 2.2);
+  backLight.position.set(0, 0, -160);
+  scene.add(backLight);
 
-# Replace description in card
-html = re.sub(
-    r'<strong style="color:#10b981;">• 16.*?Eyelets.*?</strong>.*?(?=<br>|</div>)',
-    '<strong style="color:#10b981;">• 16 Pure Round Outside Eyelets:</strong> 16 smooth, 100% circular mounting ears with 2.0mm thick walls (ID 2.5mm, OD 6.5mm) sitting flush with the shirt-touching back rim (Z = 6.0mm) with zero points, zero sharp corners, and zero overhang ledges.',
-    html
-)
+  const backSideLight = new THREE.DirectionalLight(0xffddaa, 1.4);
+  backSideLight.position.set(-80, 80, -120);
+  scene.add(backSideLight);
+"""
+if 'backLight' not in c:
+    c = c.replace('const rimLight = new THREE.DirectionalLight(0xffdf88, 1.3);', back_lights + '\n  const rimLight = new THREE.DirectionalLight(0xffdf88, 1.3);')
 
-# Replace section 5 of build3DModel in preview HTML
-new_tabs_block = """  // 5. 16 Pure Round Outside Perimeter Fastener Eyelets (Flush with Backside Z = 4.0mm)
-  tabsGroup = new THREE.Group();
-  const tabShape = new THREE.Shape();
-  tabShape.absarc(0, 0, 3.25, 0, Math.PI * 2, false);
-  const tabHole = new THREE.Path();
-  tabHole.absarc(0, 0, 1.25, 0, Math.PI * 2, true);
-  tabShape.holes.push(tabHole);
+# Add view side buttons
+old_btn = '<button class="mode-btn active" id="btn-bronze"'
+new_btn = """<div style="font-size: 13px; font-weight: 600; color: var(--gold); text-transform: uppercase; letter-spacing: 0.5px;">View Side</div>
+  <div class="btn-row">
+    <button class="mode-btn active" id="btn-side-front" onclick="setSide('front')">Front (Dopey)</button>
+    <button class="mode-btn" id="btn-side-back" onclick="setSide('back')">Back (Engraved)</button>
+  </div>
+  <div style="font-size: 13px; font-weight: 600; color: var(--gold); text-transform: uppercase; letter-spacing: 0.5px; margin-top: 4px;">Display Style</div>
+  <div class="btn-row">
+    <button class="mode-btn active" id="btn-bronze" """
 
-  // 2.0mm tall pure circular cylinder (Z = 2.0 to 4.0mm, top flush with back rim)
-  const tabGeom = new THREE.ExtrudeGeometry(tabShape, { depth: 2.0, bevelEnabled: false });
-  const tabMat = new THREE.MeshStandardMaterial({ color: 0x059669, roughness: 0.5 });
+if 'btn-side-back' not in c:
+    c = c.replace('<div class="btn-row">\n    <button class="mode-btn active" id="btn-bronze"', new_btn)
 
-  if (SPECS.fastener_tabs) {
-    SPECS.fastener_tabs.forEach(t => {
-      const tabMesh = new THREE.Mesh(tabGeom, tabMat);
-      tabMesh.position.set(t[0] - cx, t[1] - cy, 2.0); // Z = 2.0 to 4.0mm (flush with back edge)
-      tabsGroup.add(tabMesh);
-    });
+# Add setSide JS function
+side_func = """
+  function setSide(side) {
+    document.getElementById('btn-side-front').classList.toggle('active', side === 'front');
+    document.getElementById('btn-side-back').classList.toggle('active', side === 'back');
+    if (side === 'front') {
+      camera.position.set(0, -90, 150);
+      controls.target.set(0, 0, 3);
+    } else {
+      camera.position.set(0, 0, -170);
+      controls.target.set(0, 0, -1);
+    }
+    controls.update();
   }
-  scene.add(tabsGroup);"""
+"""
+if 'function setSide' not in c:
+    c = c.replace('function resetCamera() {', side_func + '\n  function resetCamera() {')
 
-html = re.sub(
-    r'  // 5\. 16.*?\n  scene\.add\(tabsGroup\);',
-    new_tabs_block,
-    html,
-    flags=re.DOTALL
-)
+with open(html_path, 'w', encoding='utf-8') as f:
+    f.write(c)
 
-with open('3d_panels/tpu_panel_preview.html', 'w', encoding='utf-8') as f:
-    f.write(html)
-
-print("Updated 3d_panels/tpu_panel_preview.html successfully!")
+print('Updated preview_medal.html successfully!')

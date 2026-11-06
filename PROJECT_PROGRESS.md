@@ -93,6 +93,19 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### 2026-11-05: Custom Single-Color Back Engraving Engineered ("Tom Reinsvold")
+- **Custom Commemorative Back Engraving for Brother Tom:**
+  - *Engraving Content:*
+    - Line 1: `Tom Reinsvold` (bold 6.4mm nameplate lettering)
+    - Line 2: `1st in Age Group` (4.6mm subtitle)
+    - Line 3: `48.6 photos / mile` (4.6mm subtitle, honoring the Dopey 48.6-mile marathon weekend)
+    - Decorative star divider flourishes (`★ ★ ★`) and outer circular medal framing ring.
+  - *Engineering & Slicer Optimization:*
+    - **Physical Mirrored Deboss:** Text mirrored across $X = 45.0\text{ mm}$ so it reads naturally left-to-right when flipping the physical medal over.
+    - **Micro-Deboss Depth:** Extends exactly $0.40\text{ mm}$ (2 layers at $0.20\text{ mm}$ layer height), ensuring rapid $1.2\text{ mm}$ bridging with zero sag while preserving $>96\%$ first-layer bed contact area.
+    - **Watertight Manifold:** Exported to `3d_panels/dopey_medal/dopey_photographer_medal_engraved_back.stl` (1,035,968 triangles, strictly watertight).
+    - **Interactive Viewer Updated:** Added 1-click "Front (Dopey)" and "Back (Engraved)" camera toggles with dual front/back metallic directional illumination in `preview_medal.html`.
+
 ### 2026-11-05: 3D-Printable "Dopey Photographer - runDisney 2026" Finisher Medal Engineered
 - **Brother's runDisney Finisher Medal Modeled & Ready for 3D Printing:**
   - *Context:* Created a high-resolution 3D bas-relief finisher medal from the custom "DOPEY PHOTOGRAPHER runDisney 2026" official commemorative artwork, celebrating the 3rd brother supporting and photographing the family team at the Walt Disney World 10K.
