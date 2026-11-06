@@ -93,6 +93,12 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### 2026-11-05: Corrected Star Point-Up Orientation in 3D Millimeter CAD Space
+- **All 6 Stars Calibrated to Point Strictly UP (+Y):**
+  - *Root Cause:* 2D PIL image coordinates invert Y (increasing downward), which inverted the star angles ($+90^\circ \to -90^\circ$) in the earlier raster pass.
+  - *Fix:* Bypassed rasterization for star geometries; constructed all 6 stars directly in 3D vector space (`make_clean_upright_star`) with vertex 0 at $+90.0^\circ$ ($+Y$), perfectly upright and symmetric across $X = 45.0\text{ mm}$.
+  - Re-exported strictly watertight STL and updated 4-Color 3MF assembly.
+
 ### 2026-11-05: True 5-Point Vector Stars & Multi-Layer Height Slicer Calibration (0.08mm - 0.20mm)
 - **Mathematical 5-Point Vector Stars Engineered:**
   - *Root Cause Analysis:* Windows TrueType font (`arialbd.ttf`) lacked the Unicode `★` (U+2605) glyph, rendering fallback square missing-glyph rectangles (`.notdef`).

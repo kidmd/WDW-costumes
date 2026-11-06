@@ -55,7 +55,7 @@ MF3_PATH = os.path.join(MEDAL_DIR, "dopey_photographer_medal_multicolor.3mf")
 if not os.path.exists(MONO_STL):
     raise FileNotFoundError(f"Missing base STL: {MONO_STL}")
 
-# 1. Rasterize High-Resolution Back Graphics & Text
+# 1. Rasterize High-Resolution Back Text
 SCALE_PX = 25.0  # 25 pixels per mm (high sub-pixel precision)
 IMG_W = int(90.0 * SCALE_PX)    # 2250 px
 IMG_H = int(105.0 * SCALE_PX)   # 2625 px
@@ -98,35 +98,12 @@ for text, font, y_mm in lines_to_draw:
     py = mm_to_py(y_mm) - th / 2.0 - bbox[1]
     draw.text((px, py), text, fill=255, font=font)
 
-# Draw TRUE 5-POINT VECTOR STARS (Top and Bottom triplets)
-def draw_vector_star(draw_obj, center_x_px, center_y_px, r_out_mm, r_in_mm=None):
-    r_out_px = r_out_mm * SCALE_PX
-    r_in_px = (r_out_mm * 0.382 if r_in_mm is None else r_in_mm) * SCALE_PX
-    pts = []
-    for i in range(10):
-        r = r_out_px if (i % 2 == 0) else r_in_px
-        angle = np.radians(i * 36 - 90) # Point 0 points straight UP (+Y in world, -py in image)
-        pts.append((center_x_px + r * np.cos(angle), center_y_px - r * np.sin(angle)))
-    draw_obj.polygon(pts, fill=255)
-
-# Top Star Triplet (above Name, Y = 66.5 mm)
-py_top_stars = mm_to_py(66.5)
-draw_vector_star(draw, cx_px, py_top_stars, r_out_mm=3.6)                      # Center Star
-draw_vector_star(draw, cx_px - 10.5 * SCALE_PX, py_top_stars, r_out_mm=2.5)   # Left Star
-draw_vector_star(draw, cx_px + 10.5 * SCALE_PX, py_top_stars, r_out_mm=2.5)   # Right Star
-
-# Bottom Star Triplet (below 48.6 photos/mile, Y = 26.5 mm)
-py_bot_stars = mm_to_py(26.5)
-draw_vector_star(draw, cx_px, py_bot_stars, r_out_mm=3.6)                      # Center Star
-draw_vector_star(draw, cx_px - 10.5 * SCALE_PX, py_bot_stars, r_out_mm=2.5)   # Left Star
-draw_vector_star(draw, cx_px + 10.5 * SCALE_PX, py_bot_stars, r_out_mm=2.5)   # Right Star
-
 # Add decorative circular framing ring on back:
 center_y_px = mm_to_py(46.0)
 r_out_px = 42.0 * SCALE_PX
 draw.ellipse([cx_px - r_out_px, center_y_px - r_out_px, cx_px + r_out_px, center_y_px + r_out_px], outline=255, width=int(1.2 * SCALE_PX))
 
-# 2. Extract 2D Contours to Shapely
+# 2. Extract 2D Text & Ring Contours to Shapely
 arr = np.array(canvas)
 contours, hierarchy = cv2.findContours(arr, cv2.RETR_CCOMP, cv2.CHAIN_APPROX_NONE)
 hierarchy = hierarchy[0]
@@ -145,7 +122,32 @@ for idx, c in enumerate(contours):
         if not p.is_empty and p.area > 0.04:
             polys.append(p)
 
-back_art_2d = unary_union(polys).simplify(0.035, preserve_topology=True).buffer(0.06)
+text_and_ring_2d = unary_union(polys).simplify(0.035, preserve_topology=True).buffer(0.06)
+
+# Generate True Geometric 5-Point Vector Stars in 3D Millimeter Space
+# (Every star has its top point pointing strictly straight UP (+Y) with zero tilt!)
+def make_clean_upright_star(center_x, center_y, r_out, r_in=None):
+    if r_in is None:
+        r_in = r_out * 0.382
+    pts = []
+    for i in range(10):
+        r = r_out if (i % 2 == 0) else r_in
+        angle = np.radians(90.0 - i * 36.0) # i=0 is angle +90 deg (strictly pointing straight UP!)
+        pts.append((round(center_x + r * np.cos(angle), 4), round(center_y + r * np.sin(angle), 4)))
+    return sg.Polygon(pts)
+
+clean_stars = [
+    # Top Star Triplet (above Name, Y = 66.5 mm)
+    make_clean_upright_star(45.0, 66.5, 3.6),  # Center star
+    make_clean_upright_star(34.0, 66.5, 2.6),  # Left star
+    make_clean_upright_star(56.0, 66.5, 2.6),  # Right star
+    # Bottom Star Triplet (below 48.6 photos/mile, Y = 26.5 mm)
+    make_clean_upright_star(45.0, 26.5, 3.6),  # Center star
+    make_clean_upright_star(34.0, 26.5, 2.6),  # Left star
+    make_clean_upright_star(56.0, 26.5, 2.6),  # Right star
+]
+
+back_art_2d = unary_union([text_and_ring_2d] + clean_stars).buffer(0)
 
 # 3. CRITICAL: Mirror horizontally across X = 45.0 mm so it reads left-to-right when viewed from the back!
 mirrored_art_2d = shp_scale(back_art_2d, xfact=-1.0, yfact=1.0, origin=(45.0, 46.0)).buffer(0)
