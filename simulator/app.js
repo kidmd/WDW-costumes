@@ -235,7 +235,7 @@ lightningBugImg.onload = () => {
     lightningBugLoaded = true;
     notifyFloatImgLoaded();
 };
-lightningBugImg.src = 'assets/lightning_bug.png?v=20261105_v6_curved_wing_eye_sparkle';
+lightningBugImg.src = 'assets/lightning_bug.png?v=20261105_v7_bowed_wing_dimple_smile';
 
 const lightningBugTransparentImg = new Image();
 let lightningBugTransparentLoaded = false;
@@ -243,7 +243,7 @@ lightningBugTransparentImg.onload = () => {
     lightningBugTransparentLoaded = true;
     notifyFloatImgLoaded();
 };
-lightningBugTransparentImg.src = 'assets/lightningbug_transparent.png?v=20261105_v6_curved_wing_eye_sparkle';
+lightningBugTransparentImg.src = 'assets/lightningbug_transparent.png?v=20261105_v7_bowed_wing_dimple_smile';
 
 // Custom artwork image (if user uploads one or loads one from preset)
 let customArtworkImg = null;

@@ -1359,8 +1359,8 @@ Instead of attaching a Cricut cut vinyl graphic on top of the printed plate, the
     3. **Slot 3 (Shell Grid, Glasses & Pupil `#294062`):** Structural shell grid/ribs, circular eyeglass frames, nasal bridge, temple arm, and eye pupil.
     4. **Slot 4 (Body, Head & Shirt `#eccb2e`):** Turtle head, neck, and unified full front dress shirt (clean, fully tucked front torso).
     5. **Slot 5 (Tie & Lips `#d81d17`):** Classic Disney red necktie and cheerful lips.
-  - **The Lightning Bug Palette (Curved Wing & Disney Catchlight V6 Edition):**
-    1. **Slot 1 (Chassis Black `#11161d`):** Chassis tray, 7.0mm perimeter rim, and unified ~5.6–6.0 px cartoon linework (organic curved wing divider line sweeping from $x \approx 169.5$ to $163.0$, harmonized body ribs, curved head ribs, hat ribbing, wing spirals, and tail bands matching the model collar line, with delicate 2.5–3.5 px eyelashes and bold 8.0 px outer chassis).
+  - **The Lightning Bug Palette (Bowed Wing & Dimple Smile V7 Edition):**
+    1. **Slot 1 (Chassis Black `#11161d`):** Chassis tray, 7.0mm perimeter rim, and unified ~5.6–6.0 px cartoon linework (organic convex bowed wing divider line $x \approx 169.5 \to 178 \to 164$ echoing the outer wing curve, cheerful upturned smile corner with subtle $3.5\text{ px}$ Disney dimple tick, harmonized body ribs, curved head ribs, hat ribbing, wing spirals, and tail bands matching the model collar line, with delicate 2.5–3.5 px eyelashes and bold 8.0 px outer chassis).
     2. **Slot 2 (Body, Head, Catchlight & Propeller `#facc15`):** Yellow body segments, head, tail lantern dome, spinning beanie propeller blades, and dual-sparkle Disney eye catchlight ($2.8\text{ px}$ primary and $1.4\text{ px}$ secondary twinkle).
     3. **Slot 3 (Belly & Head Accents `#22c55e`):** Vibrant green lower body segments and lower head contours.
     4. **Slot 4 (Wings & Hat Band `#2563eb`):** Classic electric blue wings with internal curl spirals and beanie hat ribbon.

@@ -93,6 +93,17 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### 2026-11-05: Lightning Bug V7 Character Enhancements (Organic Bowed Wing Curve & Cheerful Dimple Smile)
+- **User Feedback & Cuteness Enhancements:**
+  - **Organic Bowed Inner Wing Curve (User Boxed Region):** Identified that the initial V6 wing curve had only a $\approx 1.5\text{ px}$ shift in the upper section ($y \in [118 \dots 170]$), appearing nearly ruler-straight to the naked eye. In V7, developed a noticeable organic bowed convex curve ($x \approx 169.5 \to 178 \to 164$), where the inner boundary bows convexly into the yellow chest, echoing the outer wing's outward bow on the opposite side ($x \approx 62 \to 103$) and giving the folded wing an authentic rounded teardrop contour.
+  - **Cheerful Upturned Smile Corner & Disney Dimple Tick:** Enhanced the mouth corner ($x \approx 398 \dots 405, y \approx 224 \dots 218$) to sweep naturally upward, accented by a delicate $3.5\text{ px}$ parenthetical dimple tick at $(x=405, y=218)$ framing the cheek corner, imparting an unmistakably friendly, warm, classic Disney expression.
+  - **Strict 5-Color Multi-Material Palette Compliance:** Retains 100% color purity (Chassis Black, Sunny Yellow, Emerald Green, Royal Blue, Red) with zero extra filament slots or tool changes.
+- **Verification, Synchronization & Cache-Busting:**
+  - Exported `lightningbug_cand_A_bowed.png` via 4x subpixel signed distance field (SDF) smoothing with uniform $5.8\text{--}6.0\text{ px}$ stroke width.
+  - Synchronized across all 4 production paths: `assets/lightning_bug.png`, `assets/lightningbug_transparent.png`, `simulator/assets/lightning_bug.png`, and `simulator/assets/lightningbug_transparent.png`.
+  - Bumped simulator cache buster in `simulator/app.js` to `?v=20261105_v7_bowed_wing_dimple_smile`.
+  - Generated visual comparison artifacts: `comp_user_boxed_region_options.png`, `comp_smile_dimple_zoom.png`, and `lightningbug_v7_candidates_side_by_side.png` documented in `lightning_bug_v7_curved_wing_dimple_review.md`.
+
 ### 2026-11-05: Lightning Bug V6 Cuteness Enhancements (Organic Wing Curve & Disney Eye Catchlight) + Float Wireframe Eyelash Clarification
 - **User Feedback & Character Design Enhancements (Items 1 & 2B):**
   - **Organic Curved Wing Divider (Item 1 & User Comment):** Replaced the rigid vertical line ($x \approx 166.5$) separating the blue wing from the yellow chest with an organic quadratic curve sweeping from $x \approx 169.5$ under the collar down to $x \approx 163.0$ at the lower body rung ($y \in [118 \dots 221]$). This echoes the graceful inward taper of the outer wing edge ($x \approx 62 \to 100$) while maintaining a uniform $5.8\text{--}6.0\text{ px}$ stroke width matching the model collar line.
