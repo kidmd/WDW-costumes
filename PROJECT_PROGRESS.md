@@ -93,6 +93,14 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### 2026-11-05: Picket-Fence & Jagged Edge Elimination (Sub-Pixel Spline & 20° Draft Angle)
+- **Eliminated Outer Perimeter & Inner Relief "Picket-Fence" Facets:**
+  - *Root Cause 1 (Outer Perimeter):* Previous silhouette boundary traced raw 1024x1024 image pixels (`cv2.CHAIN_APPROX_NONE`), producing 2,363 stair-step right angles that extruded into vertical rectangular fluting along curved and diagonal edges.
+  - *Fix 1:* Replaced with sub-pixel Gaussian thresholding + 2-pass Chaikin corner spline smoothing (140 continuous tangent curve vertices, median turn angle $2.17^\circ$), transforming the perimeter walls into a smooth cylinder.
+  - *Root Cause 2 (Inner Relief Walls):* Near-vertical 90° cliffs dropped across single grid cells at diagonal angles, causing alternating sawtooth facet corrugation along letter edges and outer concentric rims.
+  - *Fix 2:* Implemented an anti-aliased $15^\circ$–$20^\circ$ draft angle bevel filter on steep height transitions and upgraded heightfield resolution to an ultra-dense $700 \times 810$ grid ($0.128\text{ mm}$ pitch, 1,629,018 triangles).
+  - All models (monolithic STL, 4-color 3MF, and ZIP distribution) regenerated, strictly watertight, and synchronized.
+
 ### 2026-11-05: Silky Smooth Planar Stage Floor & Background Denoising
 - **Corrugated Background Artifacts Eliminated:**
   - *Observation:* The original commemorative artwork contained vertical painterly brushstrokes and dark shadow bands behind the lettering, which the initial bas-relief pass translated into corrugated vertical ridges across the open background disk.

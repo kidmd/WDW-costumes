@@ -171,8 +171,9 @@ if len(p_vals) > 0:
     p_dome = np.clip(p_dist / max(1.0, p_dist.max()), 0.0, 1.0) ** 0.5
     relief_01[clean_purple] = np.clip(0.54 + 0.26 * p_norm + 0.14 * p_dome[clean_purple], 0.50, 0.94)
 
-# Final subtle bilateral polish for mirror-smooth surfaces
-relief_smooth = cv2.bilateralFilter(relief_01.astype(np.float32), d=5, sigmaColor=0.06, sigmaSpace=2.0)
+# Final subtle bilateral polish and anti-aliased draft-angle smoothing for molded, minted contours
+relief_polished = cv2.bilateralFilter(relief_01.astype(np.float32), d=5, sigmaColor=0.06, sigmaSpace=2.0)
+relief_smooth = cv2.GaussianBlur(relief_polished, (5, 5), 1.1)
 
 # Map relief_smooth [0, 1] to physical Z height (mm):
 # Base solid medal backing: Z = 0.00 to 3.40 mm (3.40 mm solid structural base)
@@ -182,7 +183,7 @@ RELIEF_DEPTH_MM = 2.60
 TOTAL_Z_MM = BASE_Z_MM + RELIEF_DEPTH_MM  # 6.00 mm
 
 # ---------------------------------------------------------------------------
-# 4. CONSTRUCT 2D SHAPELY GEOMETRY (SILHOUETTE + INTEGRATED 38MM RIBBON LOOP)
+# 4. CONSTRUCT 2D SHAPELY GEOMETRY (SUB-PIXEL SMOOTH SILHOUETTE + RIBBON LOOP)
 # ---------------------------------------------------------------------------
 def mask_to_shapely(mask_img, simplify_tol=0.06, min_area=0.20):
     contours, hierarchy = cv2.findContours(mask_img.astype(np.uint8), cv2.RETR_CCOMP, cv2.CHAIN_APPROX_NONE)
@@ -205,31 +206,47 @@ def mask_to_shapely(mask_img, simplify_tol=0.06, min_area=0.20):
                 polys.append(p.simplify(simplify_tol, preserve_topology=True).buffer(0))
     return unary_union(polys) if polys else sg.Polygon()
 
-medal_poly = mask_to_shapely(fg_mask, simplify_tol=0.06, min_area=10.0)
+# Eradicate pixel stair-steps along outer perimeter with sub-pixel anti-aliasing & Chaikin spline smoothing:
+blur_mask = cv2.GaussianBlur(fg_mask.astype(np.float32), (15, 15), 3.5)
+smooth_binary = (blur_mask >= 0.5).astype(np.uint8)
+contours, _ = cv2.findContours(smooth_binary, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_TC89_KCOS)
+c_main = max(contours, key=cv2.contourArea)
+eps = 0.0006 * cv2.arcLength(c_main, True)
+approx_pts = cv2.approxPolyDP(c_main, eps, True)[:, 0, :].astype(np.float32)
+
+# 2-pass Chaikin corner smoothing for continuous tangent curvature (zero picket-fence facets!)
+for _ in range(2):
+    n_p = len(approx_pts)
+    new_p = []
+    for i in range(n_p):
+        p0 = approx_pts[i]
+        p1 = approx_pts[(i + 1) % n_p]
+        new_p.extend([0.75 * p0 + 0.25 * p1, 0.25 * p0 + 0.75 * p1])
+    approx_pts = np.array(new_p, dtype=np.float32)
+
+pts_mm = [((p[0] - min_x) * scale, (max_y - p[1]) * scale) for p in approx_pts]
+medal_poly = sg.Polygon(pts_mm).buffer(0)
 
 # Design Integrated Top Neck-Ribbon Slot (for standard 38mm / 1.5" runDisney ribbon)
 cx_mm = MEDAL_WIDTH_MM / 2.0  # 45.0 mm
 top_y = MEDAL_ART_HEIGHT_MM   # ~96.45 mm
 
 # Outer collar lug smoothly merges into the top "DOPEY" scroll banner
-# Width = 46.0 mm (X from 22.0 to 68.0 mm), extending up to Y = top_y + 8.5 mm (Total height ~105.0 mm)
 loop_outer = sg.box(cx_mm - 19.5, top_y - 8.0, cx_mm + 19.5, top_y + 5.0).buffer(3.5, resolution=32)
 # Inner ribbon slot: 38.6 mm wide x 4.2 mm tall stadium slot centered at Y = top_y + 3.4 mm
 slot_inner = sg.box(cx_mm - 17.2, top_y + 3.3, cx_mm + 17.2, top_y + 3.5).buffer(2.0, resolution=32)
-# Recessed decorative bevel surround around the slot
-loop_bevel_ring = loop_outer.buffer(-1.4).difference(slot_inner.buffer(1.4))
 
 full_medal_2d = unary_union([medal_poly, loop_outer]).difference(slot_inner).simplify(0.04, preserve_topology=True).buffer(0)
 loop_only_2d = loop_outer.difference(medal_poly).difference(slot_inner)
 
-print(f"2D Silhouette + Ribbon Loop ready: {full_medal_2d.bounds[2]-full_medal_2d.bounds[0]:.2f} mm W x {full_medal_2d.bounds[3]-full_medal_2d.bounds[1]:.2f} mm H")
+print(f"2D Silhouette + Ribbon Loop ready: {full_medal_2d.bounds[2]-full_medal_2d.bounds[0]:.2f} mm W x {full_medal_2d.bounds[3]-full_medal_2d.bounds[1]:.2f} mm H ({len(list(full_medal_2d.exterior.coords))} smooth curve vertices)")
 
 # ---------------------------------------------------------------------------
 # 5. BUILD CLOSED WATERTIGHT HEIGHTFIELD MANIFOLD & BOOLEAN INTERSECT
 # ---------------------------------------------------------------------------
-# Grid covering X in [-1.5, 91.5] mm, Y in [-1.5, 106.5] mm
-grid_w = 560
-grid_h = 650
+# High-density micro-triangle grid covering X in [-1.5, 91.5] mm, Y in [-1.5, 106.5] mm
+grid_w = 700
+grid_h = 810
 xs = np.linspace(-1.5, 91.5, grid_w, dtype=np.float32)
 ys = np.linspace(-1.5, 106.5, grid_h, dtype=np.float32)
 XX, YY = np.meshgrid(xs, ys)
