@@ -93,6 +93,15 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### 2026-11-05: Silky Smooth Planar Stage Floor & Background Denoising
+- **Corrugated Background Artifacts Eliminated:**
+  - *Observation:* The original commemorative artwork contained vertical painterly brushstrokes and dark shadow bands behind the lettering, which the initial bas-relief pass translated into corrugated vertical ridges across the open background disk.
+  - *Advanced Denoising & Stage Floor Flattening:*
+    - Integrated OpenCV Non-Local Means color denoising (`fastNlMeansDenoisingColored`) and bilateral edge-preserving filtering (`d=13, sigmaColor=0.12`).
+    - Automated background floor masking: isolated the flat stage floor inside the inner circular perimeter away from feature contours.
+    - Blended the pure background to a silky smooth planar baseline ($Z = \text{const}$) while preserving 100% of the sculpted relief details on Dopey, the vintage tripod camera and bellows, the running crowd, the "runDisney" logo, and the scroll banner lettering.
+  - Both monolithic STL and 4-Color 3MF project regenerated and synchronized.
+
 ### 2026-11-05: Corrected Star Point-Up Orientation in 3D Millimeter CAD Space
 - **All 6 Stars Calibrated to Point Strictly UP (+Y):**
   - *Root Cause:* 2D PIL image coordinates invert Y (increasing downward), which inverted the star angles ($+90^\circ \to -90^\circ$) in the earlier raster pass.

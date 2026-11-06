@@ -122,37 +122,57 @@ for i in range(1, num_d):
         clean_dark |= (d_labels == i)
 
 # ---------------------------------------------------------------------------
-# 3. BUILD SCULPTED 3D BAS-RELIEF HEIGHTMAP
+# 3. BUILD SCULPTED 3D BAS-RELIEF HEIGHTMAP (CLEAN SILKY BACKGROUND)
 # ---------------------------------------------------------------------------
-# Normalize luminance in [0, 1]
-lum_norm = np.clip(lum / 255.0, 0.0, 1.0)
+# Fast NL-means denoising to eradicate sensor grain, JPEG artifacts, and brush streaks
+print("Applying high-fidelity edge-preserving denoising...")
+denoised_rgb = cv2.fastNlMeansDenoisingColored(arr, None, h=10, hColor=10, templateWindowSize=7, searchWindowSize=21)
+d_gray = cv2.cvtColor(denoised_rgb, cv2.COLOR_RGB2GRAY).astype(np.float32) / 255.0
 
-# Enhance local relief contrast (unsharp mask / local detail boost) so lettering, faces,
-# runners, camera bellows, and tripod legs pop with crisp 3D depth
-blur_broad = cv2.GaussianBlur(lum_norm, (31, 31), 8.0)
-detail_high = lum_norm - blur_broad
+# Edge-preserving bilateral filter: preserves sharp silhouettes of Dopey, camera, runners & letters
+smooth_lum = cv2.bilateralFilter(d_gray, d=13, sigmaColor=0.12, sigmaSpace=9)
 
-relief_01 = np.clip(0.75 * lum_norm + 0.45 * detail_high, 0.0, 1.0)
+# Circular medallion field: center (508.66, 593.47), radius ~ 332
+Y_grid, X_grid = np.ogrid[:h, :w]
+dist_center = np.sqrt((X_grid - 508.66)**2 + (Y_grid - 593.47)**2)
+inner_disk = (dist_center < 332) & (Y_grid > 260) & (Y_grid < 890)
+
+# Feature detection inside the inner disk:
+gx = cv2.Sobel(smooth_lum, cv2.CV_32F, 1, 0, ksize=3)
+gy = cv2.Sobel(smooth_lum, cv2.CV_32F, 0, 1, ksize=3)
+mag = np.hypot(gx, gy)
+feature_mask = cv2.dilate((mag > 0.05).astype(np.uint8), cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (13, 13))) > 0
+
+# Include Dopey, camera, green hat, purple robe, and outer borders
+is_dopey = (H >= 10) & (H <= 28) & (S >= 45) & (V >= 90) & (X_grid > 400)
+is_camera = (R < 90) & (G < 80) & (B < 70) & (X_grid < 550) & (Y_grid > 400)
+all_features = feature_mask | is_dopey | is_camera | clean_green | clean_purple | (~inner_disk)
+pure_bg_disk = inner_disk & (~all_features)
+
+# Smooth background floor level
+bg_floor_val = float(np.median(smooth_lum[pure_bg_disk])) if pure_bg_disk.sum() > 0 else 0.65
+bg_blend = cv2.GaussianBlur(pure_bg_disk.astype(np.float32), (31, 31), 9.0)
+
+# Blend pure background to silky smooth planar floor while keeping 100% feature geometry
+relief_01 = (1.0 - bg_blend) * smooth_lum + bg_blend * bg_floor_val
 
 # Boost Green Hat and Purple Robe so they sit proudly as rounded 3D enamel domes
-g_vals = lum_norm[clean_green]
+g_vals = relief_01[clean_green]
 if len(g_vals) > 0:
     g_norm = (g_vals - g_vals.min()) / max(0.05, g_vals.max() - g_vals.min())
-    # Distance transform from edge of hat for smooth dome pillowing
     g_dist = cv2.distanceTransform(clean_green.astype(np.uint8), cv2.DIST_L2, 5)
     g_dome = np.clip(g_dist / max(1.0, g_dist.max()), 0.0, 1.0) ** 0.5
     relief_01[clean_green] = np.clip(0.58 + 0.25 * g_norm + 0.14 * g_dome[clean_green], 0.55, 0.96)
 
-p_vals = lum_norm[clean_purple]
+p_vals = relief_01[clean_purple]
 if len(p_vals) > 0:
     p_norm = (p_vals - p_vals.min()) / max(0.05, p_vals.max() - p_vals.min())
     p_dist = cv2.distanceTransform(clean_purple.astype(np.uint8), cv2.DIST_L2, 5)
     p_dome = np.clip(p_dist / max(1.0, p_dist.max()), 0.0, 1.0) ** 0.5
     relief_01[clean_purple] = np.clip(0.54 + 0.26 * p_norm + 0.14 * p_dome[clean_purple], 0.50, 0.94)
 
-# Smooth slightly with bilateral filter to eliminate JPEG compression artifacts while keeping edges razor-sharp
-relief_smooth = cv2.bilateralFilter(relief_01.astype(np.float32), d=5, sigmaColor=0.08, sigmaSpace=2.5)
-relief_smooth = cv2.GaussianBlur(relief_smooth, (3, 3), 0.5)
+# Final subtle bilateral polish for mirror-smooth surfaces
+relief_smooth = cv2.bilateralFilter(relief_01.astype(np.float32), d=5, sigmaColor=0.06, sigmaSpace=2.0)
 
 # Map relief_smooth [0, 1] to physical Z height (mm):
 # Base solid medal backing: Z = 0.00 to 3.40 mm (3.40 mm solid structural base)

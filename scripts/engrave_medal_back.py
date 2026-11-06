@@ -185,7 +185,8 @@ print(f"Exported Monolithic Engraved Medal: {ENGRAVED_STL} (Watertight: {engrave
 # 6. Also Deboss Back into 4-Color Bronze Chassis & Update 3MF!
 if os.path.exists(BRONZE_STL):
     print("Debossing custom back onto 4-Color Bronze Body...")
-    bronze_raw = trimesh.load(BRONZE_STL)
+    with open(BRONZE_STL, 'rb') as f_in:
+        bronze_raw = trimesh.load(f_in, file_type='stl')
     v_br = np.ascontiguousarray(bronze_raw.vertices, dtype=np.float32)
     f_br = np.ascontiguousarray(bronze_raw.faces, dtype=np.uint32)
     bronze_manifold = Manifold(Mesh(vert_properties=v_br, tri_verts=f_br))
@@ -193,7 +194,15 @@ if os.path.exists(BRONZE_STL):
     engraved_bronze_manifold = bronze_manifold - text_manifold
     md_br = engraved_bronze_manifold.to_mesh()
     engraved_bronze_tm = trimesh.Trimesh(vertices=md_br.vert_properties[:, :3].copy(), faces=md_br.tri_verts.copy(), process=True)
-    engraved_bronze_tm.export(BRONZE_STL)
+    
+    tmp_br = BRONZE_STL + ".tmp.stl"
+    engraved_bronze_tm.export(tmp_br)
+    if os.path.exists(BRONZE_STL):
+        try:
+            os.remove(BRONZE_STL)
+        except Exception:
+            pass
+    shutil.move(tmp_br, BRONZE_STL)
     print(f"Updated 4-Color Bronze Body STL: {BRONZE_STL}")
 
     # Re-export 4-Color 3MF
