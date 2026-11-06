@@ -93,6 +93,19 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### 2026-11-05: Warm White Starlight Mode (Button 2 Double-Tap) Tuned to Soft 2850K Incandescent White
+- **Color Calibration & Yellow/Amber Reduction:**
+  - *Observation:* Double-tapping Button 2 engaged an amber/candle glow (`CRGB(255, 147, 41)` / ~2200K) that appeared noticeably too warm and yellowish on physical WS2812B LEDs due to a heavily suppressed blue diode (Blue = 41).
+  - *Diode Spectrum Tuning:* Shifted the base color from `CRGB(255, 147, 41)` to FastLED's official `Tungsten100W` standard `CRGB(255, 214, 170)` (~2850K soft warm incandescent white).
+  - *Physical Output Ratio:* Boosting Blue from 41 to 170 (4.1x boost) and Green from 147 to 214 adjusts the 3% duty cycle hardware output to R: 64, G: 53, B: 42. This removes the muddy yellow/amber cast and delivers a crisp, cozy soft warm incandescent wash across all LEDs.
+  - *Starlight Pop & Threshold Integrity:* Because `baseCol.g` (214) and `baseCol.b` (170) remain comfortably below the sparkle threshold (`> 240`), the pure white diamond starlight sparkles (`CRGB(255, 255, 255)`) popping at 192 scaling remain 100% distinct with zero false trigger artifacts.
+  - *Synchronized Confirmation Pulses:* Updated Button 2 double-tap visual confirmation blinks (`fillActiveCostumeSolid`) in both the local handler and the ESP-NOW fleet packet receiver (`0x48`) to pulse in the matching `CRGB(255, 214, 170)` soft warm white.
+  - *Simulator Synchronization:* Updated `simulator/app.js`'s `vintage_warm` ambient palette mode to `{ r: 255, g: 214, b: 170 }`.
+- **Firmware & Documentation Synchronization:**
+  - Synchronized identically across `src/main.cpp` and `arduino/MSEP_Costume/MSEP_Costume.ino`.
+  - Built and verified with PlatformIO (`pio run` succeeded; 14.6% RAM, 61.3% Flash).
+  - Synchronized `README.md`, `SIMULATOR_USER_GUIDE.md`, and `FLASHING_INSTRUCTIONS.md`.
+
 ### 2026-11-05: Lightning Bug Photoshop 5 (`lightningbug_transparent5`) Adopted as Master Asset
 - **User Artwork Update & Integration:**
   - **New Photoshop Master (`lightningbug_transparent5.png`):** Adopted user's latest Photoshop artwork featuring hand-crafted cheek dimple as the default production asset.

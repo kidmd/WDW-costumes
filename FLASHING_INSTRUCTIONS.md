@@ -124,7 +124,7 @@ Once your board is flashed:
 | **Button 1 — Double Tap** (< 400ms) | ⚡ Triggers **4-Second Rapid Attendance Roll Call Wave** across entire fleet. | 💡 Ignored (Roll call wave broadcast reserved for Leader). |
 | **Button 1 — Long Hold (5s)**<br>*(1s–4s white charging meter)* | ⚪ Enters **Float ID Configuration Mode** (⚪ 3 white flashes, tap to cycle Floats 1–7, 🟢 4 green auto-save flashes on 4s timeout). | ⚪ Enters **Float ID Configuration Mode** (⚪ 3 white flashes, tap to cycle Floats 1–7, 🟢 4 green auto-save flashes on 4s timeout). |
 | **Button 2 — Single Tap** (< 600ms) | 📸 Puts **ENTIRE FLEET** into **Castle Photo Mode** (solid, 100% steady, zero-flicker glow). Tap again to resume parade. | 📸 Puts **LOCAL COSTUME** into **Castle Photo Mode** (solid steady glow). Tap again to resume parade. |
-| **Button 2 — Double & Triple Tap** | ❌ **Disabled** (No action). | ❌ **Disabled** (No action). |
+| **Button 2 — Double Tap** (< 400ms) | ✨ Toggles **3% Warm White Starlight Mode** (soft 2850K incandescent filament glow with diamond starlight sparkles) across **ENTIRE FLEET** (broadcasts `0x48`/`0x49`). Tap or double-tap again resumes parade show. | ✨ Toggles **3% Warm White Starlight Mode** **LOCALLY** on this costume. |
 | **Button 2 — Long Hold (3s)**<br>*(1s–2s soft blue meter)* | 🌙 Puts **ENTIRE FLEET** into **Corral Standby / Sleep Mode** (broadcasts `0x50` standby packet). | 🌙 Puts **LOCAL COSTUME** into **Corral Standby / Sleep Mode**. |
 
 ---
