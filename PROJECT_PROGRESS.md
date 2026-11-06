@@ -93,25 +93,15 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
-### 2026-11-05: Lightning Bug All-Yellow Propeller & Cleaned-Up Tail with Bold Red Outline
-- **Chassis Print Optimization & Tail Refinements:**
-  - **All-Yellow Spinning Propeller (Optimized for Black Chassis):**
-    - Converted all components of the spinning beanie propeller to solid incandescent yellow (`#facc15` / BGR `[21, 204, 250, 255]`) with zero black lines.
-    - Spindle post ($x=244$, $y=43 \to 24$), twin paddle blades, center hub, and curved motion spin arcs now render in solid yellow, guaranteeing 100% pop and high-contrast visibility against the black running shirt and 3D-printed chassis.
-  - **Removed Legacy Tail Divider Smear:**
-    - Completely removed the legacy 15px `fold_boundary_4x` divider line that was awkwardly slicing across the tail at an mismatched angle.
-    - Suppressed inter-segment boundaries between parts 11 and 12 in `part_boundary_1x` to eliminate internal seam artifacts.
-  - **Full-Span Oriented Black Accordion Segment:**
-    - Re-architected the middle black accordion segment to span continuously from the outer left curve ($x \approx 26 \dots 28$) all the way across to the inner body/wing seam ($x \approx 106 \dots 108$).
-    - Aligned with smooth quadratic accordion transverse curves ($p_{\text{mid\_top}}$ at $y = 222 \to 246$, $p_{\text{mid\_bot}}$ at $y = 262 \to 287$, slope ~ +0.29), matching the natural radial bellows orientation of the curved tail tube.
-  - **Bold Red Outer Contour Outline:**
-    - Applied a bold 4px red outline (`#e61919`) along the outer left silhouette of the black segment ($x_{\min} \dots x_{\min}+4$).
-    - Frames the black segment so that against the black chassis, the tail's outer curved boundary remains continuous, distinct, and boldly defined without vanishing into the black background.
-- **Strict Palette & Asset Synchronization:**
-  - **100.0000% 5-Color Palette Compliance:** Confirmed across all 117,771 foreground pixels.
-  - **Synchronized Deployment:** Updated across `assets/lightning_bug.png`, `assets/lightningbug_transparent.png`, `simulator/assets/lightning_bug.png`, and `simulator/assets/lightningbug_transparent.png`.
-  - Bumped simulator cache buster in `simulator/app.js` to `?v=20261105_yellow_prop_and_clean_tail`.
-  - Updated generator `scripts/lb_paint_facets.py`.
+### 2026-11-05: Reverted Lightning Bug to Prior Version (Commit a7b51ed)
+- **Rollback of Experimental Print Modifications:**
+  - Per user request, reverted the lightning bug character graphic back to the prior stable version ([`commit a7b51ed`](https://github.com/kidmd/WDW-costumes/commit/a7b51ed)).
+  - Restored the balanced yellow-and-black cartoon spinning beanie propeller with black outlines and motion arcs.
+  - Restored the segmented accordion tail and cap extension past eyelash 1 touching the head contour.
+- **Verification & Synchronization:**
+  - Verified 100.0000% 5-color palette compliance across all 117,899 foreground pixels.
+  - Synchronized across all 4 production paths: `assets/lightning_bug.png`, `assets/lightningbug_transparent.png`, `simulator/assets/lightning_bug.png`, and `simulator/assets/lightningbug_transparent.png`.
+  - Restored simulator cache buster in `simulator/app.js` to `?v=20261105_propeller_and_tail`.
 
 ### 2026-11-05: Lightning Bug Spinning Beanie Propeller, Extended Cap, and Segmented Tail
 - **Iconic MSEP Parade Float Enhancements:**
