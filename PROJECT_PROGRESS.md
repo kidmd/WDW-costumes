@@ -93,6 +93,21 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### 2026-11-05: Lightning Bug V9 Bottom of Wing Restoration (100% Faithful to Photoshop 3)
+- **User Feedback & Surgical Linework Fix:**
+  - **Eliminated Bottom-of-Wing Wonkiness:** Pinpointed that an artificial black reinforcement stroke drawn across $y \in [244 \dots 251]$ had inadvertently painted into the yellow belly and distorted the gentle, rounded tip of the blue wing.
+  - **100% Authentic Photoshop 3 Wing Geometry:** Completely restored the entire wing boundary and wing tip directly from the user's master Photoshop 3 (`lightningbug_transparent3.png`) artwork. Subpixel signed distance field (SDF) smoothing now operates naturally across the original contours without any manual overrides, bridges, or geometric synthetic patches.
+  - **Retained Verified Character Enhancements:**
+    - **Item 2B Eye Catchlight:** Sunny Yellow (`#facc15`) dual sparkle inside the royal blue eye ($2.8\text{ px}$ primary, $1.4\text{ px}$ secondary).
+    - **Classic Disney Smile:** Authentic cheerful yellow cheek and mouth geometry.
+    - **Hat Dome Cleanup:** Pure 6.3px black arc framing the red beanie dome with zero exterior red spill or spurs.
+    - **Photoshop 3 Tail:** Thinner black accordion segment with expanded red folds.
+    - **Strict 5-Color Multi-Material Palette:** 100% compliant (Black, Yellow, Green, Blue, Red).
+- **Verification, Synchronization & Cache-Busting:**
+  - Exported `lightningbug_smoothed_v9_perfect_ps3.png` and deployed to all 4 production paths: `assets/lightning_bug.png`, `assets/lightningbug_transparent.png`, `simulator/assets/lightning_bug.png`, and `simulator/assets/lightningbug_transparent.png`.
+  - Bumped simulator cache buster in `simulator/app.js` to `?v=20261105_v9_ps3_wing_restored`.
+  - Generated visual verification artifacts: `comp_v9_bottom_wing_restoration.png` and `comp_v9_full_side_by_side.png` documented in `lightning_bug_v9_wing_bottom_restoration.md`.
+
 ### 2026-11-05: Lightning Bug V8 Restoration (Revert Artificial Wing Modifications & Dimple Smile; Restore Authentic Wing)
 - **User Instruction & Art Direction Alignment:**
   - **Reverted Artificial Wing Alterations:** Completely removed synthetic straight line and bowed curve modifications. Restored the authentic wing divider linework directly from the user's Photoshop 3 (`lightningbug_transparent3.png`) artwork and smoothed it organically via subpixel signed distance field (SDF) anti-aliasing without artificial geometric overrides.
