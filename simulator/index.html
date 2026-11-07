@@ -26,11 +26,14 @@
         </div>
             <!-- Hardware Architecture Switcher -->
             <div class="hw-mode-switcher" title="Costume Hardware Architecture Mode">
-                <button type="button" id="hwModeMatrix16Btn" onclick="setHardwareArchitectureMode('matrix16')" class="hw-mode-btn active" title="Current Production Standard: BTF 16×16 (256-LED) Flexible FPCB Matrix with 176×176mm 3D Square Backlight Armor Plate">
-                    🔲 16×16 Matrix (Default)
+                <button type="button" id="hwModeFullCostumeBtn" onclick="setHardwareArchitectureMode('full_costume')" class="hw-mode-btn active" style="border-color: #a855f7; color: #d8b4fe; font-weight: 700;" title="Full Production Standard: 562 LEDs (Front 16×16 + Right Fairy Loop + Back 16×16 + Left Fairy Loop)">
+                    ✨ Full Costume (562 LEDs)
                 </button>
-                <button type="button" id="hwModeLegacyBtn" onclick="setHardwareArchitectureMode('legacy')" class="hw-mode-btn legacy" title="Legacy Prototype: Freeform Fairy Lights, Pocketed TPU Trays, 10cm Slack Routing, and Cricut Cut SVGs">
-                    🧵 Fairy Lights (Legacy)
+                <button type="button" id="hwModeMatrix16Btn" onclick="setHardwareArchitectureMode('matrix16')" class="hw-mode-btn" title="Single 16×16 (256-LED) Flexible FPCB Matrix Plate">
+                    🔲 16×16 Matrix
+                </button>
+                <button type="button" id="hwModeLegacyBtn" onclick="setHardwareArchitectureMode('legacy')" class="hw-mode-btn legacy" title="Legacy Prototype: Freeform Fairy Lights (200 LEDs)">
+                    🧵 200 LEDs (Legacy)
                 </button>
             </div>
         </div>
@@ -51,6 +54,8 @@
                 <button id="zoomOutBtn" class="zoom-btn" title="Zoom Out (- or Scroll Down)">➖</button>
                 <button id="zoomResetBtn" class="zoom-btn" title="Reset View (0 key)">⟲ 100%</button>
                 <span id="zoomLevelText" class="zoom-badge">100%</span>
+                <span style="display: inline-block; width: 1px; height: 16px; background: var(--border-color); margin: 0 2px;"></span>
+                <button id="viewFlipBtn" class="zoom-btn" onclick="toggleFrontBackShirtView()" title="Flip between Front and Back Shirt View (F key)" style="font-weight: 700; color: #38bdf8; border-color: rgba(56, 189, 248, 0.4);">🔄 Front View</button>
                 <span style="display: inline-block; width: 1px; height: 16px; background: var(--border-color); margin: 0 2px;"></span>
                 <button id="boxSelectBtn" class="zoom-btn" title="Toggle Marquee Box Select (or hold Shift + drag on canvas)">⬚ Box Select</button>
                 <button id="drawGroupBtn" class="zoom-btn" title="Click-to-Draw Path: Click points on shirt to place LEDs in sequence">✏️ Draw Group</button>

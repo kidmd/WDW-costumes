@@ -57,6 +57,15 @@
 #endif
 #define STATUS_LED_PIN      2       // Onboard Blue LED
 
+#if defined(COSTUME_FULL_562_MODE) && COSTUME_FULL_562_MODE
+#undef FRONT_LEDS
+#define FRONT_LEDS          256     // 16x16 front matrix panel
+#undef BACK_LEDS
+#define BACK_LEDS           256     // 16x16 back matrix panel
+#undef NUM_LEDS
+#define NUM_LEDS            562     // 562 total LEDs (256 front + 25 right fairy + 256 back + 25 left fairy)
+#define FAIRY_STRAND_LEDS   25      // 25 fairy LEDs on wearer's right + 25 on wearer's left
+#else
 #ifndef FRONT_LEDS
 #define FRONT_LEDS          100     // 100 LEDs on front of costume shirt
 #endif
@@ -68,7 +77,8 @@
 #ifndef NUM_LEDS
 #define NUM_LEDS            200     // 200 total LEDs (100 front + 100 back)
 #endif
-#define MAX_LEDS_CAPACITY   512     // Buffer capacity supporting 200 pebble LEDs or 512 (2x256) 16x16 matrix LEDs
+#endif
+#define MAX_LEDS_CAPACITY   600     // Buffer capacity supporting up to 562 LEDs in full closed-loop costume architecture
 #ifndef MAX_BRIGHTNESS
 #define MAX_BRIGHTNESS      60      // Bench/wearable safe brightness
 #endif

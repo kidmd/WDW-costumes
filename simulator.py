@@ -613,10 +613,16 @@ class SimulatorRequestHandler(http.server.SimpleHTTPRequestHandler):
                 self.handle_flash_panel_test()
                 return
             
-            num_front = int(payload.get("numLeds", 100))
-            num_back = num_front
-            total_leds = num_front + num_back  # 200 LEDs (100 front + 100 back duplicated)
-            matrix_16x16_mode = 1 if payload.get("matrix16x16Mode", False) else 0
+            full_costume_mode = 1 if payload.get("fullCostumeMode", False) else 0
+            matrix_16x16_mode = 1 if (payload.get("matrix16x16Mode", False) or full_costume_mode) else 0
+            if full_costume_mode:
+                num_front = 256
+                num_back = 256
+                total_leds = 562  # 562 total LEDs: Front 256 + Right Fairy 25 + Back 256 + Left Fairy 25
+            else:
+                num_front = int(payload.get("numLeds", 100))
+                num_back = num_front
+                total_leds = num_front + num_back  # 200 LEDs (100 front + 100 back duplicated)
             matrix_active_indices = payload.get("matrixActiveIndices", [])
             matrix_win_count = int(payload.get("matrixWindowCount", 0))
             matrix_glow_count = int(payload.get("matrixBacklightCount", 0))
@@ -843,6 +849,7 @@ class SimulatorRequestHandler(http.server.SimpleHTTPRequestHandler):
 #define BACK_LEDS {num_back}
 #define DUPLICATE_FRONT_TO_BACK 1
 #define COSTUME_MATRIX_16X16_MODE {matrix_16x16_mode}
+#define COSTUME_FULL_562_MODE {full_costume_mode}
 #define MATRIX_ACTIVE_LED_COUNT {num_front}
 #define MATRIX_WINDOW_LED_COUNT {matrix_win_count}
 #define MATRIX_BACKLIGHT_LED_COUNT {matrix_glow_count}

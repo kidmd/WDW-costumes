@@ -1,3 +1,4 @@
+let isBackShirtView = false;
 // Main Street Electrical Parade - LED Costume Simulator
 // Interactive HTML5 Canvas Engine with Preset Management & Realistic Fleet Proportions
 
@@ -2983,8 +2984,71 @@ function evalGlobalPattern(pattern, bpm, index, totalLeds, timeMs, c, hasColor, 
     };
 }
 
+
+// Helper to determine if an LED index belongs to the continuous fairy light ribs/shoulder strands
+function isFairyLedIndex(idx) {
+    return (idx >= 256 && idx <= 280) || (idx >= 537 && idx <= 561);
+}
+window.isFairyLedIndex = isFairyLedIndex;
+
+// Evaluates the independent resting baseline animation for the fairy light loops (2700K starlight twinkle + golden breathing glow)
+function evalFairyBaselineColor(index, timeMs, speedBpm) {
+    const bpm = Math.max(30, speedBpm || (params && params.speedBpm) || 120);
+    const rate = (bpm / 60.0) * 1.25;
+    
+    // Warm incandescent 2700K baseline
+    const baseR = 255;
+    const baseG = 214;
+    const baseB = 110;
+    
+    // Multi-frequency organic breathing across the 50 fairy LEDs
+    const phase1 = (timeMs * 0.001 * rate * Math.PI) + (index * 2.13);
+    const phase2 = (timeMs * 0.0016 * rate * Math.PI) + (index * 3.77);
+    const swell = 0.5 + 0.32 * Math.sin(phase1) + 0.18 * Math.sin(phase2);
+    
+    // Occasional golden starlight sparkle
+    const spkPhase = Math.sin((timeMs * 0.006 * (rate / 2.0)) + (index * 4.91));
+    if (spkPhase > 0.93) {
+        const spkFactor = (spkPhase - 0.93) / 0.07;
+        return {
+            r: 255,
+            g: Math.round(245 + 10 * spkFactor),
+            b: Math.round(200 + 40 * spkFactor),
+            alpha: 1.0
+        };
+    }
+    
+    const br = 0.50 + 0.50 * swell;
+    return {
+        r: Math.round(baseR * br),
+        g: Math.round(baseG * br),
+        b: Math.round(baseB * br),
+        alpha: Math.max(0.45, Math.min(1.0, 0.55 + 0.45 * swell))
+    };
+}
+window.evalFairyBaselineColor = evalFairyBaselineColor;
+
 function computeLedColor(index, totalLeds, timeMs, overrideColor = null) {
+    const isFairy = (typeof isFairyLedIndex === 'function') && isFairyLedIndex(index);
+    const isFullCostume = (typeof currentHardwareMode !== 'undefined' && currentHardwareMode === 'full_costume');
+
     if (isCorralStandbyActive) {
+        if (isFullCostume && isFairy) {
+            // Fairy lights in standby: gentle, ultra-low-current starlight twinkle
+            const wave = Math.sin((timeMs * 0.0012) + (index * 1.9));
+            const dimR = 45, dimG = 35, dimB = 18;
+            let alpha = 0.35;
+            let r = dimR, g = dimG, b = dimB;
+            if (wave > 0.88) {
+                const bf = (wave - 0.88) / 0.12;
+                r = Math.min(255, Math.round(dimR + 35 * bf));
+                g = Math.min(255, Math.round(dimG + 30 * bf));
+                b = Math.min(255, Math.round(dimB + 15 * bf));
+                alpha = 0.35 + 0.30 * bf;
+            }
+            return { r, g, b, alpha };
+        }
+
         const floatIdx = (activeSingleShirtRunnerSlot !== undefined && activeSingleShirtRunnerSlot !== null) ? activeSingleShirtRunnerSlot : 5;
         const floatObj = (DEFAULT_FLEET_RADAR && DEFAULT_FLEET_RADAR[floatIdx]) ? DEFAULT_FLEET_RADAR[floatIdx] : (DEFAULT_FLEET_RADAR ? DEFAULT_FLEET_RADAR[0] : null);
         const baseColor = overrideColor || ((floatObj && floatObj.color && typeof hexToRgb === 'function') ? (hexToRgb(floatObj.color) || { r: 56, g: 139, b: 253 }) : { r: 56, g: 139, b: 253 });
@@ -3014,6 +3078,10 @@ function computeLedColor(index, totalLeds, timeMs, overrideColor = null) {
     }
 
     if (isPhotoModeActive) {
+        if (isFullCostume && isFairy) {
+            // Steady 100% warm white/amber parade lighting for photo
+            return { r: 255, g: 220, b: 130, alpha: 1.0 };
+        }
         if (overrideColor) {
             return {
                 r: Math.round(overrideColor.r),
@@ -3071,29 +3139,132 @@ function computeLedColor(index, totalLeds, timeMs, overrideColor = null) {
         const t = (isHoverScrubbing && !sequencePlaying) ? hoverScrubTime : sequenceTime;
         const effectiveTimeMs = (isHoverScrubbing && !sequencePlaying) ? (hoverScrubTime * 1000) : timeMs;
 
-        // 1. Evaluate Active Global Cues
+        // 1. Evaluate Active Global Cues (Overrides ALL LEDs: Panels + Fairy Strands)
         const activeGlobalCues = sequenceCues.filter(q => q.targetType === 'global' && t >= q.startTime && t < (q.startTime + q.duration));
 
-        let baseColor = null;
-        if (activeGlobalCues.length === 0) {
-            baseColor = evalGlobalPattern(activePattern, params.speedBpm, index, totalLeds, effectiveTimeMs, c, hasColor);
-        } else if (activeGlobalCues.length === 1) {
+        // 2. Multi-Track Element Evaluation (Panels vs Fairy Strands vs Groups)
+        let elementBaselineCol;
+        if (isFullCostume && isFairy) {
+            elementBaselineCol = evalFairyBaselineColor(index, effectiveTimeMs, params.speedBpm);
+        } else {
+            elementBaselineCol = evalGlobalPattern(activePattern, params.speedBpm, index, totalLeds, effectiveTimeMs, c, hasColor);
+        }
+
+        let trackCol = elementBaselineCol;
+
+        if (isFullCostume) {
+            const activeTrackCue = isFairy
+                ? sequenceCues.find(q => (q.targetType === 'fairy' || q.targetType === 'fairy_strands') && t >= q.startTime && t < (q.startTime + q.duration))
+                : sequenceCues.find(q => (q.targetType === 'panels' || q.targetType === 'matrix') && t >= q.startTime && t < (q.startTime + q.duration));
+
+            if (activeTrackCue) {
+                const cueTimeMs = Math.max(0, (t - activeTrackCue.startTime) * 1000);
+                const cueDir = (activeTrackCue.direction !== undefined) ? activeTrackCue.direction : 1;
+                const cueCol = evalGlobalPattern(
+                    activeTrackCue.effect,
+                    activeTrackCue.speedBpm || params.speedBpm,
+                    index,
+                    totalLeds,
+                    cueTimeMs,
+                    isFairy ? { r: 255, g: 214, b: 110 } : c,
+                    isFairy ? true : hasColor,
+                    false,
+                    cueDir
+                );
+                const w = getCueWeight(activeTrackCue, t);
+                trackCol = {
+                    r: Math.round(elementBaselineCol.r * (1 - w) + cueCol.r * w),
+                    g: Math.round(elementBaselineCol.g * (1 - w) + cueCol.g * w),
+                    b: Math.round(elementBaselineCol.b * (1 - w) + cueCol.b * w),
+                    alpha: elementBaselineCol.alpha * (1 - w) + cueCol.alpha * w
+                };
+            } else if (grpEntry && grpEntry.group) {
+                // Group override on panel LEDs
+                const grp = grpEntry.group;
+                const grpId = grp.id;
+                const isFirework = grp.effect === 'fireworks' || (grp.id && grp.id.includes('fireworks'));
+                const activeGrpCue = sequenceCues.find(q => q.targetType === 'group' && (q.groupId === grpId || q.groupName === grp.name) && t >= q.startTime && t < (q.startTime + q.duration));
+                const groupBaseline = grp.baselineEffect || (isFirework ? 'off' : 'inherit');
+
+                let grpBaselineCol;
+                if (groupBaseline === 'off') {
+                    grpBaselineCol = { r: 0, g: 0, b: 0, alpha: 0 };
+                } else if (groupBaseline === 'inherit' || !groupBaseline) {
+                    grpBaselineCol = (grp.colorMode === 'custom' && grp.customColor)
+                        ? evalGlobalPattern(activePattern, params.speedBpm, index, totalLeds, timeMs, grp.customColor, true, true)
+                        : elementBaselineCol;
+                } else {
+                    grpBaselineCol = evalGroupEffect(grp, groupBaseline, grp.speedBpm || params.speedBpm, grp.direction || 1, grpEntry.indexInGroup, grpEntry.groupSize, timeMs, c);
+                }
+
+                if (activeGrpCue) {
+                    const cueTimeMs = Math.max(0, (t - activeGrpCue.startTime) * 1000);
+                    const cueDir = (activeGrpCue.direction !== undefined) ? activeGrpCue.direction : (grp.direction || 1);
+                    const grpCol = evalGroupEffect(grp, activeGrpCue.effect, activeGrpCue.speedBpm, cueDir, grpEntry.indexInGroup, grpEntry.groupSize, cueTimeMs, c);
+                    const w = getCueWeight(activeGrpCue, t);
+                    trackCol = {
+                        r: Math.round(grpBaselineCol.r * (1 - w) + grpCol.r * w),
+                        g: Math.round(grpBaselineCol.g * (1 - w) + grpCol.g * w),
+                        b: Math.round(grpBaselineCol.b * (1 - w) + grpCol.b * w),
+                        alpha: grpBaselineCol.alpha * (1 - w) + grpCol.alpha * w
+                    };
+                } else {
+                    trackCol = grpBaselineCol;
+                }
+            }
+        } else {
+            // Legacy / Single-Matrix Cue Evaluation
+            if (grpEntry && grpEntry.group) {
+                const grp = grpEntry.group;
+                const grpId = grp.id;
+                const isFirework = grp.effect === 'fireworks' || (grp.id && grp.id.includes('fireworks'));
+                const activeGrpCue = sequenceCues.find(q => q.targetType === 'group' && (q.groupId === grpId || q.groupName === grp.name) && t >= q.startTime && t < (q.startTime + q.duration));
+                const groupBaseline = grp.baselineEffect || (isFirework ? 'off' : 'inherit');
+
+                let grpBaselineCol;
+                if (groupBaseline === 'off') {
+                    grpBaselineCol = { r: 0, g: 0, b: 0, alpha: 0 };
+                } else if (groupBaseline === 'inherit' || !groupBaseline) {
+                    grpBaselineCol = (grp.colorMode === 'custom' && grp.customColor)
+                        ? evalGlobalPattern(activePattern, params.speedBpm, index, totalLeds, timeMs, grp.customColor, true, true)
+                        : elementBaselineCol;
+                } else {
+                    grpBaselineCol = evalGroupEffect(grp, groupBaseline, grp.speedBpm || params.speedBpm, grp.direction || 1, grpEntry.indexInGroup, grpEntry.groupSize, timeMs, c);
+                }
+
+                if (activeGrpCue) {
+                    const cueTimeMs = Math.max(0, (t - activeGrpCue.startTime) * 1000);
+                    const cueDir = (activeGrpCue.direction !== undefined) ? activeGrpCue.direction : (grp.direction || 1);
+                    const grpCol = evalGroupEffect(grp, activeGrpCue.effect, activeGrpCue.speedBpm, cueDir, grpEntry.indexInGroup, grpEntry.groupSize, cueTimeMs, c);
+                    const w = getCueWeight(activeGrpCue, t);
+                    trackCol = {
+                        r: Math.round(grpBaselineCol.r * (1 - w) + grpCol.r * w),
+                        g: Math.round(grpBaselineCol.g * (1 - w) + grpCol.g * w),
+                        b: Math.round(grpBaselineCol.b * (1 - w) + grpCol.b * w),
+                        alpha: grpBaselineCol.alpha * (1 - w) + grpCol.alpha * w
+                    };
+                } else {
+                    trackCol = grpBaselineCol;
+                }
+            }
+        }
+
+        // 3. Apply Global Overrides (e.g. 360° Traveling Wave across All 562 LEDs)
+        if (activeGlobalCues.length === 1) {
             const q = activeGlobalCues[0];
             const col = evalGlobalPattern(q.effect, q.speedBpm, index, totalLeds, effectiveTimeMs, c, hasColor, false, q.direction);
             const w = getCueWeight(q, t);
             if (w < 1.0) {
-                const restCol = evalGlobalPattern('steady_sparkle', 120, index, totalLeds, effectiveTimeMs, c, hasColor);
-                baseColor = {
-                    r: Math.round(restCol.r * (1 - w) + col.r * w),
-                    g: Math.round(restCol.g * (1 - w) + col.g * w),
-                    b: Math.round(restCol.b * (1 - w) + col.b * w),
-                    alpha: restCol.alpha * (1 - w) + col.alpha * w
+                return {
+                    r: Math.round(trackCol.r * (1 - w) + col.r * w),
+                    g: Math.round(trackCol.g * (1 - w) + col.g * w),
+                    b: Math.round(trackCol.b * (1 - w) + col.b * w),
+                    alpha: trackCol.alpha * (1 - w) + col.alpha * w
                 };
             } else {
-                baseColor = col;
+                return col;
             }
-        } else {
-            // Crossfade between overlapping active global cues
+        } else if (activeGlobalCues.length > 1) {
             let totalW = 0;
             const weights = activeGlobalCues.map(q => {
                 const w = getCueWeight(q, t);
@@ -3110,60 +3281,31 @@ function computeLedColor(index, totalLeds, timeMs, overrideColor = null) {
                 blB += col.b * normW;
                 blA += col.alpha * normW;
             }
-            baseColor = { r: Math.round(blR), g: Math.round(blG), b: Math.round(blB), alpha: blA };
+            const avgW = Math.min(1.0, totalW / activeGlobalCues.length);
+            return {
+                r: Math.round(trackCol.r * (1 - avgW) + blR * avgW),
+                g: Math.round(trackCol.g * (1 - avgW) + blG * avgW),
+                b: Math.round(trackCol.b * (1 - avgW) + blB * avgW),
+                alpha: trackCol.alpha * (1 - avgW) + blA * avgW
+            };
         }
 
-        // 2. Evaluate Active Group Cue Overrides (Scenario B: Multi-Layer)
-        if (grpEntry && grpEntry.group) {
-            const grp = grpEntry.group;
-            const grpId = grp.id;
-            const isFirework = grp.effect === 'fireworks' || (grp.id && grp.id.includes('fireworks'));
-            const activeGrpCue = sequenceCues.find(q => q.targetType === 'group' && (q.groupId === grpId || q.groupName === grp.name) && t >= q.startTime && t < (q.startTime + q.duration));
-
-            // Determine this group's resting baseline effect
-            // Default: 'inherit' (follows overall global baseline) for standard groups; 'off' for fireworks
-            const groupBaseline = grp.baselineEffect || (isFirework ? 'off' : 'inherit');
-
-            // Evaluate the group's resting baseline color (when idle / outside active cues)
-            let grpBaselineCol;
-            if (groupBaseline === 'off') {
-                grpBaselineCol = { r: 0, g: 0, b: 0, alpha: 0 };
-            } else if (groupBaseline === 'inherit' || !groupBaseline) {
-                if (grp.colorMode === 'custom' && grp.customColor) {
-                    grpBaselineCol = evalGlobalPattern(activePattern, params.speedBpm, index, totalLeds, timeMs, grp.customColor, true, true);
-                } else {
-                    grpBaselineCol = baseColor;
-                }
-            } else {
-                grpBaselineCol = evalGroupEffect(grp, groupBaseline, grp.speedBpm || params.speedBpm, grp.direction || 1, grpEntry.indexInGroup, grpEntry.groupSize, timeMs, c);
-            }
-
-            if (activeGrpCue) {
-                // Synchronize animation phase to cue onset time so cue effects explode/trigger precisely on cue!
-                const cueTimeMs = Math.max(0, (t - activeGrpCue.startTime) * 1000);
-                const cueDir = (activeGrpCue.direction !== undefined) ? activeGrpCue.direction : (grp.direction || 1);
-                const grpCol = evalGroupEffect(grp, activeGrpCue.effect, activeGrpCue.speedBpm, cueDir, grpEntry.indexInGroup, grpEntry.groupSize, cueTimeMs, c);
-                const w = getCueWeight(activeGrpCue, t);
-
-                // Blend smoothly from group resting baseline into active cue animation
-                return {
-                    r: Math.round(grpBaselineCol.r * (1 - w) + grpCol.r * w),
-                    g: Math.round(grpBaselineCol.g * (1 - w) + grpCol.g * w),
-                    b: Math.round(grpBaselineCol.b * (1 - w) + grpCol.b * w),
-                    alpha: grpBaselineCol.alpha * (1 - w) + grpCol.alpha * w
-                };
-            } else {
-                // Return configured resting baseline effect when group is idle!
-                return grpBaselineCol;
-            }
-        }
-
-        return baseColor;
+        return trackCol;
     }
 
     // ========================================================================
     // MODE B: FREE-RUN PARADE PATTERN
     // ========================================================================
+    if (isFullCostume && isFairy) {
+        // Whole-body sweep animations circulate through both panels and fairy strands
+        const wholeBodySweeps = ['traveling_wave', 'chase', 'rainbow_cycle', 'scanner', 'comet', 'marquee', 'color_wipe', 'sparkle_storm'];
+        if (wholeBodySweeps.includes(activePattern)) {
+            return evalGlobalPattern(activePattern, params.speedBpm, index, totalLeds, timeMs, { r: 255, g: 214, b: 110 }, true, !!overrideColor);
+        }
+        // Independent fairy baseline: warm golden starlight twinkle with gentle breathing glow
+        return evalFairyBaselineColor(index, timeMs, params.speedBpm);
+    }
+
     if (grpEntry && grpEntry.group) {
         const grp = grpEntry.group;
         const baseline = grp.baselineEffect || grp.baseline || 'inherit';
@@ -3183,8 +3325,6 @@ function computeLedColor(index, totalLeds, timeMs, overrideColor = null) {
     return evalGlobalPattern(activePattern, params.speedBpm, index, totalLeds, timeMs, c, hasColor, !!overrideColor);
 }
 
-
-// Calculate tangent angle of the continuous wiring path at LED index i
 function getLedTangentAngle(index, ledsList) {
     const list = ledsList || leds;
     if (!list || list.length === 0) return 0;
@@ -4448,13 +4588,15 @@ function renderSingleShirtView(timeMs) {
         'honor_america_eagle': "FLOAT #7: TO HONOR AMERICA (EAGLE)",
         'custom_image': "CUSTOM RUNNER DESIGN"
     };
-    let shirtTitle = FLOAT_TITLES[currentGraphicType] || "MAIN STREET ELECTRICAL PARADE";
+    let shirtTitle = (FLOAT_TITLES[currentGraphicType] || "MAIN STREET ELECTRICAL PARADE") + (isBackShirtView ? " [BACK]" : " [FRONT]");
     drawRunningShirt(ctx, s.x, s.y, s.width, s.height, shirtTitle);
     if (typeof btfMatrix16x16Active !== 'undefined' && btfMatrix16x16Active) {
         drawBtfMatrix16x16PlateBackdrop(ctx, s);
     }
     drawPetesDragon(ctx, s);
-    drawRaceBib(ctx, s);
+    if (!isBackShirtView) {
+        drawRaceBib(ctx, s);
+    }
 
     // Bilateral Symmetry Centerline Guide (x = 50%)
     if (params.showSymmetryAxis) {
@@ -4671,6 +4813,9 @@ function renderSingleShirtView(timeMs) {
 
     if (btfMatrix16x16Active) {
         drawBtfMatrix16x16Overlay(ctx, s, timeMs);
+        if (currentHardwareMode === 'full_costume') {
+            drawFullCostumeFairyOverlay(ctx, s, timeMs, isBackShirtView);
+        }
     } else if (btfStripPreviewActive) {
         drawBtfStripOverlay(ctx, timeMs);
     } else {
@@ -9000,24 +9145,35 @@ function updateLedInspectorUI() {
         if (btnGlow) btnGlow.classList.toggle('active', role === 'backlight');
         if (btnDark) btnDark.classList.toggle('active', role === 'dark');
 
+        const isFull = (typeof currentHardwareMode !== 'undefined' && currentHardwareMode === 'full_costume');
+        const absOffset = (isFull && typeof isBackShirtView !== 'undefined' && isBackShirtView) ? 281 : 0;
+        const absIdx = selectedMatrixCell.matrixIdx + 1 + absOffset;
+        const viewLabel = (typeof isBackShirtView !== 'undefined' && isBackShirtView) ? 'Back' : 'Front';
+
         if (badge) {
             const roleEmoji = role === 'window' ? '🔆' : (role === 'backlight' ? '✨' : '⬛');
-            badge.textContent = `${roleEmoji} Matrix [R${selectedMatrixCell.row + 1}, C${selectedMatrixCell.col + 1}] (#${selectedMatrixCell.matrixIdx + 1})`;
+            badge.textContent = isFull
+                ? `${roleEmoji} Matrix [R${selectedMatrixCell.row + 1}, C${selectedMatrixCell.col + 1}] (#${absIdx} on ${viewLabel})`
+                : `${roleEmoji} Matrix [R${selectedMatrixCell.row + 1}, C${selectedMatrixCell.col + 1}] (#${selectedMatrixCell.matrixIdx + 1})`;
             badge.style.background = role === 'window' ? '#ffc107' : (role === 'backlight' ? '#38bdf8' : '#30363d');
             badge.style.color = role === 'dark' ? '#f0f6fc' : '#000000';
         }
 
-        if (groupBadge) groupBadge.textContent = '1 Matrix Cell Selected';
+        if (groupBadge) {
+            groupBadge.textContent = isFull ? `1 Matrix Cell Selected (${viewLabel} Badge)` : '1 Matrix Cell Selected';
+        }
 
         if (numInput) {
-            numInput.value = selectedMatrixCell.matrixIdx + 1;
+            numInput.value = isFull ? absIdx : (selectedMatrixCell.matrixIdx + 1);
             numInput.min = 1;
-            numInput.max = 256;
+            numInput.max = isFull ? 562 : 256;
         }
 
         const coordsEl = document.getElementById('inspectorCoordsText');
         if (coordsEl) {
-            coordsEl.textContent = `Row: ${selectedMatrixCell.row + 1} | Col: ${selectedMatrixCell.col + 1} • Plate: (${selectedMatrixCell.plateX.toFixed(1)}mm, ${selectedMatrixCell.plateY.toFixed(1)}mm)`;
+            coordsEl.textContent = isFull
+                ? `Costume LED #${absIdx} (${viewLabel} Panel) • Matrix Cell [R${selectedMatrixCell.row + 1}, C${selectedMatrixCell.col + 1}] (#${selectedMatrixCell.matrixIdx + 1})`
+                : `Row: ${selectedMatrixCell.row + 1} | Col: ${selectedMatrixCell.col + 1} • Plate: (${selectedMatrixCell.plateX.toFixed(1)}mm, ${selectedMatrixCell.plateY.toFixed(1)}mm)`;
         }
 
         const col = selectedMatrixCell.color || { r: 0, g: 255, b: 136 };
@@ -10886,14 +11042,42 @@ function renderTimelineLayers() {
     // 2. Identify Distinct Target Layers
     const layerMap = new Map();
 
-    const globalCues = sequenceCues.filter(q => q.targetType === 'global');
-    if (globalCues.length > 0 || animationGroups.length === 0) {
+    if (currentHardwareMode === 'full_costume') {
+        const globalCues = sequenceCues.filter(q => q.targetType === 'global');
         layerMap.set('global', {
             id: 'global',
-            name: '🌐 Global Float',
+            name: '🌐 360° Overrides (562 LEDs)',
             isGlobal: true,
             cues: globalCues
         });
+
+        const panelCues = sequenceCues.filter(q => q.targetType === 'panels' || q.targetType === 'matrix');
+        layerMap.set('panels', {
+            id: 'panels',
+            name: '🔲 16×16 Panels (512 LEDs)',
+            isGlobal: false,
+            layerClass: 'panels-layer',
+            cues: panelCues
+        });
+
+        const fairyCues = sequenceCues.filter(q => q.targetType === 'fairy' || q.targetType === 'fairy_strands');
+        layerMap.set('fairy', {
+            id: 'fairy',
+            name: '✨ Fairy Loops (50 LEDs)',
+            isGlobal: false,
+            layerClass: 'fairy-layer',
+            cues: fairyCues
+        });
+    } else {
+        const globalCues = sequenceCues.filter(q => q.targetType === 'global');
+        if (globalCues.length > 0 || animationGroups.length === 0) {
+            layerMap.set('global', {
+                id: 'global',
+                name: '🌐 Global Float',
+                isGlobal: true,
+                cues: globalCues
+            });
+        }
     }
 
     // Groups present in cues or active animation groups
@@ -10964,7 +11148,9 @@ function renderTimelineLayers() {
             const block = document.createElement('div');
             const colorClass = layer.isGlobal 
                 ? 'global-layer' 
-                : (layerIndex % 3 === 0 ? 'group-layer' : (layerIndex % 3 === 1 ? 'group-layer-alt' : 'group-layer-green'));
+                : (layer.layerClass 
+                    ? layer.layerClass 
+                    : (layerIndex % 3 === 0 ? 'group-layer' : (layerIndex % 3 === 1 ? 'group-layer-alt' : 'group-layer-green')));
             block.className = `cue-block ${colorClass}`;
             block.dataset.cueId = cue.id;
 
@@ -11296,7 +11482,9 @@ function renderCuesList() {
                 <div style="flex: 1;">
                     <label style="font-size: 10px; color: var(--text-muted); display: block;">Target Layer:</label>
                     <select class="cue-target-select" style="width: 100%; background: #0d1117; color: #fff; border: 1px solid #30363d; border-radius: 4px; padding: 4px; font-size: 11px;">
-                        <option value="global" ${cue.targetType === 'global' ? 'selected' : ''}>🌐 Global Float</option>
+                        <option value="global" ${cue.targetType === 'global' ? 'selected' : ''}>🌐 Global 360° Overrides (All 562 LEDs)</option>
+                        <option value="panels" ${cue.targetType === 'panels' || cue.targetType === 'matrix' ? 'selected' : ''}>🔲 16×16 Panels (Front & Back)</option>
+                        <option value="fairy" ${cue.targetType === 'fairy' || cue.targetType === 'fairy_strands' ? 'selected' : ''}>✨ Fairy Strands (Left & Right)</option>
                         ${animationGroups.map(g => `<option value="group:${g.id}" ${cue.targetType === 'group' && cue.groupId === g.id ? 'selected' : ''}>🎡 Group: ${g.name}</option>`).join('')}
                     </select>
                 </div>
@@ -11395,12 +11583,36 @@ function renderCuesList() {
                         if (nameInput) nameInput.value = cue.name;
                     }
                 }
+            } else if (val === 'panels') {
+                cue.targetType = 'panels';
+                cue.groupId = '';
+                cue.groupName = '';
+                if (cue.name.startsWith('Cue #') || cue.name.endsWith(' Routine')) {
+                    cue.name = 'Panels Routine';
+                    const nameInput = card.querySelector('.cue-name-input');
+                    if (nameInput) nameInput.value = cue.name;
+                }
+            } else if (val === 'fairy') {
+                cue.targetType = 'fairy';
+                cue.groupId = '';
+                cue.groupName = '';
+                if (cue.name.startsWith('Cue #') || cue.name.endsWith(' Routine')) {
+                    cue.name = 'Fairy Strands Routine';
+                    const nameInput = card.querySelector('.cue-name-input');
+                    if (nameInput) nameInput.value = cue.name;
+                }
             } else {
                 cue.targetType = 'global';
                 cue.groupId = '';
                 cue.groupName = '';
+                if (cue.name.startsWith('Cue #') || cue.name.endsWith(' Routine')) {
+                    cue.name = '360° Global Sweep';
+                    const nameInput = card.querySelector('.cue-name-input');
+                    if (nameInput) nameInput.value = cue.name;
+                }
             }
             renderTimelineCueStrip();
+            if (typeof renderTimelineLayers === 'function') renderTimelineLayers();
         });
 
         card.querySelector('.cue-effect-select').addEventListener('change', (e) => {
@@ -12247,6 +12459,14 @@ window.addEventListener('keydown', (e) => {
         }
     }
 
+    if (e.key === 'f' || e.key === 'F') {
+        if (!e.ctrlKey && !e.metaKey && !e.altKey) {
+            e.preventDefault();
+            toggleFrontBackShirtView();
+            return;
+        }
+    }
+
     if (e.code === 'Space') {
         if (!isSpacePressed) {
             isSpacePressed = true;
@@ -12391,7 +12611,22 @@ canvas.addEventListener('mousedown', (e) => {
 
     // Left-click: Screen space hit test
     let clickedIdx = -1;
-    for (let i = 0; i < leds.length; i++) {
+    if (currentHardwareMode === 'full_costume' && fullCostumeFairyNodes) {
+        const curView = isBackShirtView ? 'back' : 'front';
+        const hitRadius = Math.max(14, Math.min(28, 14 * zoomScale));
+        for (const node of fullCostumeFairyNodes) {
+            if (node.view !== curView) continue;
+            const pt = normToCanvas(node);
+            const screenX = pt.x * zoomScale + panX;
+            const screenY = pt.y * zoomScale + panY;
+            if (Math.hypot(mx - screenX, my - screenY) <= hitRadius) {
+                clickedIdx = node.index;
+                break;
+            }
+        }
+    }
+    if (clickedIdx === -1) {
+        for (let i = 0; i < leds.length; i++) {
         const pt = normToCanvas(leds[i]);
         const screenX = pt.x * zoomScale + panX;
         const screenY = pt.y * zoomScale + panY;
@@ -12401,6 +12636,7 @@ canvas.addEventListener('mousedown', (e) => {
             clickedIdx = i;
             break;
         }
+    }
     }
 
     if (clickedIdx !== -1) {
@@ -13732,7 +13968,22 @@ canvas.addEventListener('mousemove', (e) => {
 
     // Hover detection
     let found = null;
-    for (let i = 0; i < leds.length; i++) {
+    if (currentHardwareMode === 'full_costume' && fullCostumeFairyNodes) {
+        const curView = isBackShirtView ? 'back' : 'front';
+        const hitRadius = Math.max(12, Math.min(24, 12 * zoomScale));
+        for (const node of fullCostumeFairyNodes) {
+            if (node.view !== curView) continue;
+            const pt = normToCanvas(node);
+            const screenX = pt.x * zoomScale + panX;
+            const screenY = pt.y * zoomScale + panY;
+            if (Math.hypot(mx - screenX, my - screenY) <= hitRadius) {
+                found = node.index;
+                break;
+            }
+        }
+    }
+    if (found === null) {
+        for (let i = 0; i < leds.length; i++) {
         const pt = normToCanvas(leds[i]);
         const screenX = pt.x * zoomScale + panX;
         const screenY = pt.y * zoomScale + panY;
@@ -13742,6 +13993,7 @@ canvas.addEventListener('mousemove', (e) => {
             found = i;
             break;
         }
+    }
     }
     hoveredLed = found;
 
@@ -16303,7 +16555,7 @@ try {
 let btfMatrix16x16Active = (currentHardwareMode === 'matrix16');
 
 function setHardwareArchitectureMode(mode, savePref = true) {
-    if (mode !== 'matrix16' && mode !== 'legacy') mode = 'matrix16';
+    if (mode !== 'matrix16' && mode !== 'legacy' && mode !== 'full_costume') mode = 'full_costume';
     currentHardwareMode = mode;
     if (savePref) {
         try {
@@ -16311,20 +16563,29 @@ function setHardwareArchitectureMode(mode, savePref = true) {
         } catch (e) {}
     }
 
-    const isMatrix = (mode === 'matrix16');
+    const isMatrix = (mode === 'matrix16' || mode === 'full_costume');
+    const isFullCostume = (mode === 'full_costume');
     btfMatrix16x16Active = isMatrix;
 
     // Update body CSS class
     if (document.body) {
-        document.body.classList.remove('hw-mode-matrix16', 'hw-mode-legacy');
-        document.body.classList.add(isMatrix ? 'hw-mode-matrix16' : 'hw-mode-legacy');
+        document.body.classList.remove('hw-mode-matrix16', 'hw-mode-legacy', 'hw-mode-full-costume');
+        if (isFullCostume) {
+            document.body.classList.add('hw-mode-full-costume', 'hw-mode-matrix16');
+        } else if (isMatrix) {
+            document.body.classList.add('hw-mode-matrix16');
+        } else {
+            document.body.classList.add('hw-mode-legacy');
+        }
     }
 
     // Update header switcher buttons
+    const fullCostumeBtn = document.getElementById('hwModeFullCostumeBtn');
     const matrixBtn = document.getElementById('hwModeMatrix16Btn');
     const legacyBtn = document.getElementById('hwModeLegacyBtn');
-    if (matrixBtn) matrixBtn.classList.toggle('active', isMatrix);
-    if (legacyBtn) legacyBtn.classList.toggle('active', !isMatrix);
+    if (fullCostumeBtn) fullCostumeBtn.classList.toggle('active', isFullCostume);
+    if (matrixBtn) matrixBtn.classList.toggle('active', mode === 'matrix16');
+    if (legacyBtn) legacyBtn.classList.toggle('active', mode === 'legacy');
 
     // Keep internal toggle element in sync
     const matToggle = document.getElementById('btfMatrix16x16Toggle');
@@ -16336,11 +16597,9 @@ function setHardwareArchitectureMode(mode, savePref = true) {
     tpuDisplayMode = isMatrix ? 'matrix16' : 'tray';
 
     if (isMatrix) {
-        // Automatically ensure full-color graphic display mode (no placement guide)
         if (typeof setGraphicDisplayVersion === 'function') {
             setGraphicDisplayVersion('standard');
         }
-        // Suppress strip preview if active
         if (typeof btfStripPreviewActive !== 'undefined' && btfStripPreviewActive) {
             btfStripPreviewActive = false;
             const stripTog = document.getElementById('btfStripPreviewToggle');
@@ -16350,14 +16609,19 @@ function setHardwareArchitectureMode(mode, savePref = true) {
         }
         computeBtfMatrix16x16Layout();
     }
+    if (isFullCostume) {
+        computeFullCostumeFairyLayout();
+    }
 
     if (typeof markSingleShirtDirty === 'function') markSingleShirtDirty();
     if (typeof draw === 'function') draw();
     if (typeof updateBtfMatrix16x16TelemetryUI === 'function') updateBtfMatrix16x16TelemetryUI();
 
-    showToast(isMatrix 
-        ? "🔲 Switched to 16×16 Matrix Architecture (256 LEDs • 176×176mm Plate)"
-        : "🧵 Switched to Legacy Fairy Light & Pocket Architecture");
+    showToast(isFullCostume 
+        ? "✨ Switched to Full Costume Architecture (562 LEDs: Dual 16×16 Panels + 50 Fairy Lights Loop)"
+        : (isMatrix 
+            ? "🔲 Switched to 16×16 Matrix Architecture (256 LEDs • 176×176mm Plate)"
+            : "🧵 Switched to Legacy Fairy Light & Pocket Architecture"));
 }
 window.setHardwareArchitectureMode = setHardwareArchitectureMode;
 
@@ -17087,8 +17351,11 @@ function drawBtfMatrix16x16Overlay(ctx, s, timeMs) {
     const bLightMult = 0.50;
     glowCells.forEach((cell, idx) => {
         const pt = normToCanvas({ x: cell.nx, y: cell.ny });
-        const ledIdx = winCells.length + idx;
-        const animCol = computeLedColor(ledIdx, totalActive, timeMs, cell.color);
+        const actualLedIdx = (currentHardwareMode === 'full_costume')
+            ? ((isBackShirtView ? 281 : 0) + cell.matrixIdx)
+            : (winCells.length + idx);
+        const totalLedsCount = (currentHardwareMode === 'full_costume') ? 562 : totalActive;
+        const animCol = computeLedColor(actualLedIdx, totalLedsCount, timeMs, cell.color);
 
         // Subsurface blend: 70% dynamic LED light filtered through 30% physical colored faceplate plastic, scaled to 50% brightness
         const glowR = Math.min(255, Math.round((animCol.r * 0.70 + cell.color.r * 0.30) * bLightMult));
@@ -17137,7 +17404,11 @@ function drawBtfMatrix16x16Overlay(ctx, s, timeMs) {
 
     winCells.forEach((cell, idx) => {
         const pt = normToCanvas({ x: cell.nx, y: cell.ny });
-        const animCol = computeLedColor(idx, totalActive, timeMs, cell.color);
+        const actualLedIdx = (currentHardwareMode === 'full_costume')
+            ? ((isBackShirtView ? 281 : 0) + cell.matrixIdx)
+            : idx;
+        const totalLedsCount = (currentHardwareMode === 'full_costume') ? 562 : totalActive;
+        const animCol = computeLedColor(actualLedIdx, totalLedsCount, timeMs, cell.color);
         const r = animCol.r;
         const g = animCol.g;
         const b = animCol.b;
@@ -22402,7 +22673,8 @@ async function triggerUsbFirmwareFlash(floatId = 0) {
         const payload = {
             numLeds: totalActiveFront,
             floatId: effectiveFloatId,
-            matrix16x16Mode: isMatrix16x16,
+            fullCostumeMode: (currentHardwareMode === 'full_costume'),
+            matrix16x16Mode: isMatrix16x16 || (currentHardwareMode === 'full_costume'),
             colorOrder: isMatrix16x16 ? 'GRB' : 'RGB',
             matrixActiveIndices: (isMatrix16x16 && activeMatrixLeds.length > 0) ? activeMatrixLeds.map(l => l.id) : [],
             matrixWindowCount: isMatrix16x16 ? matrixExportLists.windowedLeds.length : 0,
@@ -25411,7 +25683,8 @@ async function handleRecompileTpuStl(opts) {
             includeLedNumbers: !isWithoutWindows && (params.tpuIncludeLedNumbers === true),
             includeClipGrooves: params.tpuIncludeClipGrooves === true,
             includeTopNubs: params.tpuIncludeTopNubs === true,
-            matrix16x16Mode: isMatrix16,
+            fullCostumeMode: (currentHardwareMode === 'full_costume'),
+            matrix16x16Mode: isMatrix16 || (currentHardwareMode === 'full_costume'),
             plateThicknessMm: (typeof btfMatrix16x16Config !== 'undefined' && btfMatrix16x16Config.thicknessMm) ? btfMatrix16x16Config.thicknessMm : 0.60,
             matrixGapMm: (typeof btfMatrix16x16Config !== 'undefined' && btfMatrix16x16Config.gapMm !== undefined) ? btfMatrix16x16Config.gapMm : 0.0,
             matrixLipMm: (typeof btfMatrix16x16Config !== 'undefined' && btfMatrix16x16Config.gapMm !== undefined) ? btfMatrix16x16Config.gapMm : 0.0,
@@ -26894,3 +27167,278 @@ function initMatrix16InspectorControls() {
     }
 }
 initMatrix16InspectorControls();
+
+
+// ============================================================================
+// 🏰 562-LED FULL COSTUME MODULE: DUAL 16×16 PANELS + 50 FAIRY LIGHTS LOOP
+// Architecture:
+//  - LEDs 0..255:   Front 16×16 Matrix Panel (Chest Badge)
+//  - LEDs 256..280: Wearer's Right Fairy Strand (12 Front + 13 Back)
+//  - LEDs 281..536: Back 16×16 Matrix Panel (Back Badge)
+//  - LEDs 537..561: Wearer's Left Fairy Strand (13 Back + 12 Front)
+// Total = 562 Addressable LEDs in a continuous closed 360° electrical loop!
+// ============================================================================
+
+let fullCostumeFairyNodes = null;
+
+function getBezierPoint(p0, p1, p2, p3, t) {
+    const omt = 1.0 - t;
+    const x = omt * omt * omt * p0.x + 3 * omt * omt * t * p1.x + 3 * omt * t * t * p2.x + t * t * t * p3.x;
+    const y = omt * omt * omt * p0.y + 3 * omt * omt * t * p1.y + 3 * omt * t * t * p2.y + t * t * t * p3.y;
+    return { x: Math.round(x * 10000) / 10000, y: Math.round(y * 10000) / 10000 };
+}
+
+function computeFullCostumeFairyLayout() {
+    const nodes = [];
+    
+    // Smooth Anatomical Guide Curves (Normalized Shirt Coordinates 0..1)
+    // 1. Lower sweeping curve from bottom center of panel to lower ribs:
+    const pCurve0 = { x: 0.50, y: 0.530 };
+    const pCurve1 = { x: 0.36, y: 0.575 };
+    const pCurve2 = { x: 0.23, y: 0.565 };
+    const pCurve3 = { x: 0.21, y: 0.490 };
+
+    // 2. Ribcage ascent curve to upper chest:
+    const pRib0 = { x: 0.21, y: 0.490 };
+    const pRib1 = { x: 0.20, y: 0.420 };
+    const pRib2 = { x: 0.20, y: 0.350 };
+    const pRib3 = { x: 0.21, y: 0.280 };
+
+    // --- STRAND 1: WEARER'S RIGHT SIDE (LEDs 256 to 280, 25 LEDs) ---
+    // A. Front Right Ribs (11 Zig-Zag LEDs: 256..266)
+    const laneCycle = [-0.018, 0.0, 0.018, 0.0];
+    for (let i = 0; i < 11; i++) {
+        const t = i / 10.0;
+        let basePt = (t <= 0.4) 
+            ? getBezierPoint(pCurve0, pCurve1, pCurve2, pCurve3, t / 0.4)
+            : getBezierPoint(pRib0, pRib1, pRib2, pRib3, (t - 0.4) / 0.6);
+        const offset = laneCycle[i % 4];
+        nodes.push({
+            index: 256 + i,
+            x: Math.round((basePt.x + offset) * 10000) / 10000,
+            y: basePt.y,
+            view: 'front',
+            side: 'right',
+            label: `Right Ribs Front #${256 + i}`,
+            isZigzag: true
+        });
+    }
+
+    // B. Front Right Shoulder (Single LED 267 with 10cm wire gap)
+    nodes.push({
+        index: 267,
+        x: 0.195,
+        y: 0.175,
+        view: 'front',
+        side: 'right',
+        label: `Right Shoulder Front #267`,
+        isZigzag: false
+    });
+
+    // C. Back Right Shoulder (Single LED 268 with 10cm bridge over shoulder apex)
+    nodes.push({
+        index: 268,
+        x: 0.805, // Mirrored X on back view
+        y: 0.175,
+        view: 'back',
+        side: 'right',
+        label: `Right Shoulder Back #268`,
+        isZigzag: false
+    });
+
+    // D. Back Right Ribs (12 Zig-Zag LEDs: 269..280 descending to back panel)
+    for (let i = 0; i < 12; i++) {
+        const t = 1.0 - (i / 11.0);
+        let basePt = (t >= 0.6)
+            ? getBezierPoint(pRib0, pRib1, pRib2, pRib3, (t - 0.6) / 0.4)
+            : getBezierPoint(pCurve0, pCurve1, pCurve2, pCurve3, t / 0.6);
+        const offset = laneCycle[i % 4];
+        nodes.push({
+            index: 269 + i,
+            x: Math.round(((1.0 - basePt.x) - offset) * 10000) / 10000,
+            y: basePt.y,
+            view: 'back',
+            side: 'right',
+            label: `Right Ribs Back #${269 + i}`,
+            isZigzag: true
+        });
+    }
+
+    // --- STRAND 2: WEARER'S LEFT SIDE (LEDs 537 to 561, 25 LEDs) ---
+    // A. Back Left Ribs (12 Zig-Zag LEDs: 537..548 ascending from back panel)
+    for (let i = 0; i < 12; i++) {
+        const t = i / 11.0;
+        let basePt = (t <= 0.4)
+            ? getBezierPoint(pCurve0, pCurve1, pCurve2, pCurve3, t / 0.4)
+            : getBezierPoint(pRib0, pRib1, pRib2, pRib3, (t - 0.4) / 0.6);
+        const offset = laneCycle[i % 4];
+        nodes.push({
+            index: 537 + i,
+            x: Math.round((basePt.x + offset) * 10000) / 10000,
+            y: basePt.y,
+            view: 'back',
+            side: 'left',
+            label: `Left Ribs Back #${537 + i}`,
+            isZigzag: true
+        });
+    }
+
+    // B. Back Left Shoulder (Single LED 549 with 10cm wire gap)
+    nodes.push({
+        index: 549,
+        x: 0.195,
+        y: 0.175,
+        view: 'back',
+        side: 'left',
+        label: `Left Shoulder Back #549`,
+        isZigzag: false
+    });
+
+    // C. Front Left Shoulder (Single LED 550 over apex)
+    nodes.push({
+        index: 550,
+        x: 0.805,
+        y: 0.175,
+        view: 'front',
+        side: 'left',
+        label: `Left Shoulder Front #550`,
+        isZigzag: false
+    });
+
+    // D. Front Left Ribs (11 Zig-Zag LEDs: 551..561 descending to front panel)
+    for (let i = 0; i < 11; i++) {
+        const t = 1.0 - (i / 10.0);
+        let basePt = (t >= 0.6)
+            ? getBezierPoint(pRib0, pRib1, pRib2, pRib3, (t - 0.6) / 0.4)
+            : getBezierPoint(pCurve0, pCurve1, pCurve2, pCurve3, t / 0.6);
+        const offset = laneCycle[i % 4];
+        nodes.push({
+            index: 551 + i,
+            x: Math.round(((1.0 - basePt.x) - offset) * 10000) / 10000,
+            y: basePt.y,
+            view: 'front',
+            side: 'left',
+            label: `Left Ribs Front #${551 + i}`,
+            isZigzag: true
+        });
+    }
+
+    fullCostumeFairyNodes = nodes;
+    return nodes;
+}
+
+function toggleFrontBackShirtView() {
+    isBackShirtView = !isBackShirtView;
+    const btn = document.getElementById('viewFlipBtn');
+    if (btn) {
+        btn.textContent = isBackShirtView ? "🔄 Back View" : "🔄 Front View";
+        btn.style.color = isBackShirtView ? "#a855f7" : "#38bdf8";
+        btn.style.borderColor = isBackShirtView ? "rgba(168, 85, 247, 0.6)" : "rgba(56, 189, 248, 0.4)";
+    }
+    
+    // Update watermark text
+    const watermark = document.getElementById('canvasWatermarkText');
+    if (watermark) {
+        const currentTitle = watermark.textContent.replace(/ \[FRONT\]| \[BACK\]/g, '');
+        watermark.textContent = `${currentTitle} [${isBackShirtView ? 'BACK' : 'FRONT'}]`;
+    }
+
+    if (typeof markSingleShirtDirty === 'function') markSingleShirtDirty();
+    if (typeof draw === 'function') draw();
+    showToast(isBackShirtView ? "🔄 Flipped to Back Shirt View" : "🔄 Flipped to Front Shirt View");
+}
+window.toggleFrontBackShirtView = toggleFrontBackShirtView;
+
+function drawFullCostumeFairyOverlay(ctx, s, timeMs, isBack) {
+    if (!fullCostumeFairyNodes) computeFullCostumeFairyLayout();
+    const currentViewKey = isBack ? 'back' : 'front';
+    const activeNodes = fullCostumeFairyNodes.filter(n => n.view === currentViewKey);
+    
+    ctx.save();
+
+    // 1. Draw Physical Wire Traces (Accordion Zig-Zag and Sweeping Bridges)
+    ctx.beginPath();
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.22)';
+    ctx.lineWidth = 1.6;
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+
+    // Group into continuous strand paths
+    const rightStrand = activeNodes.filter(n => n.side === 'right');
+    const leftStrand = activeNodes.filter(n => n.side === 'left');
+
+    function drawWirePath(strand, isRight) {
+        if (!strand || strand.length === 0) return;
+        ctx.beginPath();
+        // Start from bottom center junction under panel
+        const bottomJunction = normToCanvas({ x: 0.50, y: 0.535 });
+        ctx.moveTo(bottomJunction.x, bottomJunction.y);
+        
+        for (let i = 0; i < strand.length; i++) {
+            const pt = normToCanvas(strand[i]);
+            ctx.lineTo(pt.x, pt.y);
+        }
+        
+        // Lead wire curving over the shoulder apex
+        const apexX = isRight ? (isBack ? 0.82 : 0.18) : (isBack ? 0.18 : 0.82);
+        const apexPt = normToCanvas({ x: apexX, y: 0.14 });
+        ctx.lineTo(apexPt.x, apexPt.y);
+        ctx.stroke();
+    }
+
+    drawWirePath(rightStrand, true);
+    drawWirePath(leftStrand, false);
+
+    // 2. Render Fairy Light Pixels with Live Animated Lighting & Hover
+    activeNodes.forEach(node => {
+        const pt = normToCanvas(node);
+        const idx = node.index;
+        
+        // Compute animation color (Supports 360° Traveling Wave & Independent Accents)
+        let col = { r: 255, g: 214, b: 110 }; // Warm white parade baseline default
+        
+        // Timeline or Global Wave Evaluation
+        if (typeof computeLedColor === 'function') {
+            col = computeLedColor(idx, 562, timeMs);
+        }
+
+        const isHover = (hoveredLed === idx);
+        const isSel = (selectedLed === idx || (selectedLeds && selectedLeds.has(idx)));
+
+        // Halo bloom glow
+        const glowRadius = isHover ? 12 : 7;
+        const grad = ctx.createRadialGradient(pt.x, pt.y, 1.5, pt.x, pt.y, glowRadius);
+        grad.addColorStop(0, `rgba(${col.r}, ${col.g}, ${col.b}, 0.95)`);
+        grad.addColorStop(0.5, `rgba(${col.r}, ${col.g}, ${col.b}, 0.35)`);
+        grad.addColorStop(1, `rgba(${col.r}, ${col.g}, ${col.b}, 0.0)`);
+        
+        ctx.beginPath();
+        ctx.arc(pt.x, pt.y, glowRadius, 0, Math.PI * 2);
+        ctx.fillStyle = grad;
+        ctx.fill();
+
+        // Pebble fairy bulb core
+        ctx.beginPath();
+        ctx.arc(pt.x, pt.y, isHover ? 4.0 : 2.8, 0, Math.PI * 2);
+        ctx.fillStyle = `rgb(${col.r}, ${col.g}, ${col.b})`;
+        ctx.shadowColor = `rgba(${col.r}, ${col.g}, ${col.b}, 0.9)`;
+        ctx.shadowBlur = 6;
+        ctx.fill();
+        ctx.shadowBlur = 0;
+
+        ctx.strokeStyle = isSel ? '#00ffff' : (isHover ? '#ffffff' : 'rgba(0, 0, 0, 0.7)');
+        ctx.lineWidth = isSel ? 2.0 : 1.0;
+        ctx.stroke();
+
+        // Index tag when zoomed or selected
+        if (isSel || isHover || (typeof zoomScale !== 'undefined' && zoomScale >= 1.6)) {
+            ctx.font = 'bold 8px monospace';
+            ctx.fillStyle = isSel ? '#00ffff' : '#ffffff';
+            ctx.textAlign = 'center';
+            ctx.fillText(`#${idx + 1}`, pt.x, pt.y - 7);
+        }
+    });
+
+    ctx.restore();
+}
+window.drawFullCostumeFairyOverlay = drawFullCostumeFairyOverlay;

@@ -911,6 +911,16 @@ input:checked + .slider:before {
 .cue-block.group-layer-green {
     background: linear-gradient(90deg, #238636 0%, #2ea043 100%);
 }
+.cue-block.panels-layer {
+    background: linear-gradient(90deg, #0284c7 0%, #38bdf8 100%);
+    border-color: rgba(56, 189, 248, 0.6);
+}
+
+.cue-block.fairy-layer {
+    background: linear-gradient(90deg, #d97706 0%, #f59e0b 100%);
+    border-color: rgba(245, 158, 11, 0.6);
+}
+
 
 .cue-block-title {
     font-size: 9.5px;

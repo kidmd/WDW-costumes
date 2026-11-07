@@ -93,6 +93,31 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### November 7, 2026 - 562-LED Full Closed-Loop Costume Architecture & Multi-Track Parade Timeline
+- **Hardware Architecture & Topology:**
+  - Designed and implemented the complete 562-LED continuous closed-loop wearable costume topology:
+    - **Front 16×16 FPCB Matrix Badge:** LEDs 0..255 (Chest Badge above bib).
+    - **Wearer's Right Fairy Strand:** LEDs 256..280 (25 LEDs: 11 front ribcage accordion zig-zag, 1 front shoulder, 1 back shoulder, 12 back ribcage accordion zig-zag).
+    - **Back 16×16 FPCB Matrix Badge:** LEDs 281..536 (Back Badge).
+    - **Wearer's Left Fairy Strand:** LEDs 537..561 (25 LEDs: 12 back ribcage accordion zig-zag, 1 back shoulder, 1 front shoulder, 11 front ribcage accordion zig-zag).
+  - Both strands curve down the ribs in gentle anatomical sweeps and terminate at `(x=0.50, y=0.530)` under the front panel where the continuous loop begins.
+  - Ribcage accordion zig-zag compresses physical 10cm seed LED spacing to ~3.3cm vertical pitch; shoulder apex features 30cm single strand with two 10cm spaced LEDs.
+- **Simulator & Visualizer Engine (`simulator/app.js`, `simulator/index.html`, `simulator/style.css`):**
+  - Added **Hardware Architecture Switcher** option: `✨ Full Costume (562 LEDs)`.
+  - Added **Front ⇄ Back Flip View** (`F` key and toolbar button `🔄 Front View` / `🔄 Back View`) with seamless bib hiding on back view and matrix coordinate translation.
+  - Implemented multi-track timeline layering in `renderTimelineLayers()`:
+    - Track 1: `🌐 Global 360° Overrides (562 LEDs)` - traveling waves, rainbow sweeps, and chases that travel around the runner's entire body in a 360-degree loop.
+    - Track 2: `🔲 16×16 Panels Track (512 LEDs)` - Front & Back panels sharing choreography.
+    - Track 3: `✨ Fairy Strands Track (50 LEDs)` - Left & Right fairy loops sharing choreography.
+  - Implemented independent resting baselines: Panels display float-theme shimmer and matrix colors; fairy lights display an organic 2700K warm incandescent starlight twinkle and breathing amber/gold rib glow (`evalFairyBaselineColor`).
+  - Integrated hit-testing and inspector updates for both matrix cells and fairy light bulbs across Front and Back views.
+- **ESP32 Firmware & Safety Standards (`src/main.cpp`, `arduino/MSEP_Costume/MSEP_Costume.ino`, `simulator.py`):**
+  - Increased `MAX_LEDS_CAPACITY` from 512 to 600 LEDs in both C++ firmware files to safely allocate buffers for all 562 LEDs.
+  - Enforced strict 5V 2.0A power limiting via `FastLED.setMaxPowerInVoltsAndMilliamps(5, 2000);` (Rule 2).
+  - Maintained 100% dual-core compatibility for ESP32 Arduino Core 2.x and Core 3.x+ with ESP-NOW callbacks (Rule 5).
+  - Updated `simulator.py` export routine to generate `#define COSTUME_FULL_562_MODE 1` and `#define NUM_LEDS 562`.
+
+
 ### 2026-11-07: Recessed Back (Felt-Side) 16x16 Panel & Corner Coupon (6.2mm Prong Optimization)
 - **Recessed Back Counterbore Architecture (`3d_panels/test_all_black_16x16_panel_recessed_back.stl` / `.3mf`):**
   - Engineered specifically for 6.2mm KAM snap prongs while preserving a 100% flat front face for face-down PEI printing with zero bridging or supports.

@@ -33,6 +33,9 @@ This guide walks you through every feature of the simulator, from placing and wi
 ## 1. Introduction & System Architecture
 
 The simulator acts as a virtual workbench and lighting console for your WS2812B addressable LED costumes:
+- **Full Costume Architecture (562 LEDs):** Full 360° closed-loop wearable simulation featuring Front 16×16 Badge (0..255), Right Fairy Strand (256..280), Back 16×16 Badge (281..536), and Left Fairy Strand (537..561).
+- **Front ⇄ Back Flip View:** Toggle dynamically with the `F` key or the `🔄 Front View` / `🔄 Back View` canvas button to inspect and wire both front and back chest badges and ribcage light loops.
+- **Multi-Track Master Timeline:** Dedicated tracks for 16×16 Panels (Front & Back) and Fairy Strands (Left & Right), plus a Global 360° Overrides track that sweeps traveling waves around the runner's entire body.
 - **Design in the Browser:** Visually position up to 100 LEDs on any costume shirt graphic, match colors from the artwork pixels, organize LEDs into zone animation groups (e.g. carriage wheels, lanterns, dragon crest), and sequence rich multi-layered theatrical cues along a 90-second timeline.
 - **Preview with 60 FPS Fidelity:** The canvas simulates the optical diffusion, bloom, and incandescent decay of vintage parade light bulbs.
 - **Direct Hardware Link (Zero-Latency Wi-Fi UDP):** Stream the exact animation frames from the browser directly to an ESP32 over local Wi-Fi at 30 FPS.
