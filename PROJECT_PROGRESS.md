@@ -93,21 +93,20 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
-### 2026-11-07: All-Black 16x16 Test Panel & Rapid Corner Snap Test Coupon (Single-Extruder Rapid Validation)
-- **Monolithic All-Black 16x16 Test Panel (`3d_panels/test_all_black_16x16_panel.stl` / `.3mf`):**
-  - Designed specifically for rapid, single-filament black PETG printing with zero toolhead swaps or mid-print filament pauses.
-  - Combines the 0.6mm front face and 0.4mm backing layer into a single solid 1.0mm floor ($Z = 0.0$ to $1.0\text{ mm}$).
-  - Full $160.4 \times 160.4\text{ mm}$ open cavity with $2.0\text{ mm}$ tall frame walls ($Z = 1.0$ to $3.0\text{ mm}$) to drop in the BTF-LIGHTING 16×16 flexible matrix with zero lip obstruction.
-  - Added a $16\text{ mm}$ bottom wire notch for clean routing of the 3-wire power/data connector harness.
-- **Engineered Integrated Snap Ears (100% Collision-Free for Size 20 / T5 KAM Snaps):**
-  - Solved the physical interference between the $2.0\text{ mm}$ frame wall and the $12.2\text{ mm}$ diameter snap cap / $14\text{ mm}$ plier die.
-  - Stepped the hole centers outward along the corner diagonals to $(X = \pm 87.86, Y = \pm 87.86\text{ mm})$, providing an exact **$8.0\text{ mm}$ diagonal clearance** from the outer frame wall corner ($1.9\text{ mm}$ of flat air around the snap cap).
-  - Extended $16\text{ mm}$ circular rounded lobes ($R = 8.0\text{ mm}$ around hole center) with zero edge overhang.
-  - Thickened the corner tabs to **$2.0\text{ mm}$ solid PETG** ($Z = 0.0$ to $2.0\text{ mm}$) with $\varnothing 3.0\text{ mm}$ holes, ensuring immense structural clamp strength without cracking under pliers or pulling stress.
+### 2026-11-07: All-Black 16x16 Test Panel with 176mm Extended Flange & Integrated Snap Ears
+- **Unified 176mm Extended Perimeter Flange Architecture (`3d_panels/test_all_black_16x16_panel.stl` / `.3mf`):**
+  - Designed for single-extruder black PETG printing with zero mid-print pauses or filament swaps.
+  - Spans the full **$176.0 \times 176.0\text{ mm}$ straight-sided footprint**, creating a **$5.8\text{ mm}$ flat perimeter flange** around all 4 sides of the $2.0\text{ mm}$ vertical frame wall ($Z = 0.0$ to $1.0\text{ mm}$).
+  - Fully conceals raw cut edges of the thick felt pad, softens outer boundary against arm swings during the 10K, and provides a continuous bezel frame.
+  - Open $160.4 \times 160.4\text{ mm}$ cavity ($2.0\text{ mm}$ deep, $Z = 1.0$ to $3.0\text{ mm}$) with a centered $16\text{ mm}$ wire exit notch.
+- **Integrated Corner Snap Ears (Collision-Free for Size 20 / T5 KAM Snaps):**
+  - Integrated directly into the 176mm flange with gentle convex corner wings blending from $13\text{ mm}$ along each straight edge.
+  - Hole centers positioned at $X = \pm 87.50\text{ mm}, Y = \pm 87.50\text{ mm}$, providing an exact **$7.5\text{ mm}$ diagonal clearance** from the $2.0\text{ mm}$ frame wall corner ($1.4\text{ mm}$ of clear flat air around the $12.2\text{ mm}$ snap cap).
+  - Thickened to **$2.0\text{ mm}$ solid PETG** with $\varnothing 3.0\text{ mm}$ holes for immense mechanical clamp and tear strength.
 - **12-Minute Quick Corner Snap Test Coupon (`3d_panels/test_corner_snap_coupon.stl` / `.3mf`):**
-  - Generated a $45.9 \times 45.9 \times 3.0\text{ mm}$ isolated corner coupon featuring 1 snap ear, adjacent 2mm frame walls, and a section of the cavity floor.
-  - Prints in ~12–15 minutes, allowing immediate verification of the KAM snap press, pliers clearance, felt sandwich, and shirt snap fit before committing to the full plate print.
-  - Both meshes strictly validated as watertight manifold geometry (`is_watertight == True`).
+  - $45.0 \times 45.0 \times 3.0\text{ mm}$ single-corner test coupon matching the new 176mm flange and snap ear geometry.
+  - Slices and prints in ~12–15 minutes for immediate validation of the snap press, pliers clearance, felt sandwich, and shirt fit.
+  - Both meshes 100% watertight (`is_watertight == True`).
 
 
 ### 2026-11-07: Tri-Tab LED Inspector (Layout, Groups, Deploy), Real-Time Sliders & Color Revert

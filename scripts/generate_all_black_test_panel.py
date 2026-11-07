@@ -6,7 +6,8 @@ import trimesh
 
 # ==============================================================================
 # 🏰 MAIN STREET ELECTRICAL PARADE (WDW 10K)
-# ALL-BLACK 16x16 MATRIX TEST PANEL GENERATOR (SOLID CORNER WINGS v2)
+# ALL-BLACK 16x16 MATRIX TEST PANEL GENERATOR
+# Architecture: 176mm Extended Perimeter Flange + Integrated Snap Ears
 # ==============================================================================
 
 def extrude_shapely(shape, height):
@@ -34,87 +35,90 @@ def build_test_panels():
     os.makedirs(out_dir, exist_ok=True)
     
     # -------------------------------------------------------------------------
-    # Geometric Parameters:
+    # Geometric Specifications:
     # -------------------------------------------------------------------------
-    CAVITY_SIZE = 160.4        # mm (fits 160x160mm BTF-Lighting matrix with 0.2mm side tolerance)
+    CAVITY_SIZE = 160.4        # mm (fits 160x160mm BTF-Lighting matrix with 0.2mm perimeter tolerance)
     FRAME_WALL_WIDTH = 2.0     # mm
     FLOOR_THICKNESS = 1.0      # mm (solid black floor from Z = 0.0 to 1.0mm)
     POCKET_DEPTH = 2.0         # mm (frame wall height above floor, Z = 1.0 to 3.0mm)
     TOTAL_HEIGHT = FLOOR_THICKNESS + POCKET_DEPTH # 3.0 mm
     
+    PLATE_BASE_WIDTH = 176.0   # mm (outer straight edge width, provides 5.8mm perimeter flange)
     SNAP_HOLE_DIA = 3.0        # mm (Ø 3.0mm loose clearance for KAM size 20 pin)
     SNAP_HOLE_RADIUS = SNAP_HOLE_DIA / 2.0 # 1.5 mm
     SNAP_EAR_THICKNESS = 2.0   # mm (solid PETG corner tab from Z = 0.0 to 2.0mm)
     
-    # Inner cavity bounds (centered at 0, 0):
-    half_cav = CAVITY_SIZE / 2.0 # 80.2 mm
-    cavity_box = sg.box(-half_cav, -half_cav, half_cav, half_cav)
-    
-    # Outer frame wall bounds:
+    # Coordinates centered at (0, 0):
+    half_cav = CAVITY_SIZE / 2.0         # 80.2 mm
     half_frame = half_cav + FRAME_WALL_WIDTH # 82.2 mm
+    half_plate = PLATE_BASE_WIDTH / 2.0  # 88.0 mm
+    
+    cavity_box = sg.box(-half_cav, -half_cav, half_cav, half_cav)
     frame_outer_box = sg.box(-half_frame, -half_frame, half_frame, half_frame)
+    plate_box = sg.box(-half_plate, -half_plate, half_plate, half_plate)
     
     # Wire exit notch: 16mm wide, cuts through bottom frame wall
     wire_notch = sg.box(-8.0, -half_frame - 1.0, 8.0, -half_cav + 0.1)
     
-    # Frame wall polygon (Z = 1.0 to 3.0mm):
+    # 2.0mm Vertical Frame Wall Polygon (Z = 1.0 to 3.0mm):
     frame_wall_2d = frame_outer_box.difference(cavity_box).difference(wire_notch)
     
     # -------------------------------------------------------------------------
-    # Solid Corner Snap Wings Design (Wide Tangent Gusset):
+    # 176mm Extended Flange + Integrated Snap Ears:
     # -------------------------------------------------------------------------
-    # Outer frame wall corner is at (±82.2, ±82.2).
-    # To clear a 12.2mm snap cap (radius 6.1mm) and 14mm plier die (radius 7.0mm),
-    # the hole center is stepped outward along the diagonal by 8.0mm.
-    diag_step = 8.0
-    hole_offset = half_frame + diag_step * math.cos(math.radians(45)) # 82.2 + 5.657 = 87.857 mm
+    # Frame wall corner is at (±82.2, ±82.2).
+    # Hole center requires 7.5mm diagonal clearance from frame wall corner:
+    diag_clearance = 7.5 # mm
+    diag_offset = diag_clearance * math.cos(math.radians(45)) # 5.303 mm
+    hole_pos = half_frame + diag_offset # 87.503 mm
     
     corner_signs = [(-1, -1), (1, -1), (-1, 1), (1, 1)]
-    ear_hulls = []
+    hole_pts = []
     hole_cutouts = []
+    ear_hulls = []
+    ear_reinforce_polys = []
     
-    # We bridge the corner lobes into the straight edges starting from 14mm back (X, Y = 68.0mm)
-    # using a convex hull. This creates a solid 20mm+ wide tangent wing at every corner!
     for sx, sy in corner_signs:
-        hx, hy = sx * hole_offset, sy * hole_offset
+        hx, hy = sx * hole_pos, sy * hole_pos
         pt = sg.Point(hx, hy)
+        hole_pts.append(pt)
         hole_cutouts.append(pt.buffer(SNAP_HOLE_RADIUS, resolution=32))
         
-        # 16mm circular ear around the hole
-        circle = pt.buffer(8.0, resolution=32)
+        # 15mm diameter ear lobe around the hole (radius 7.5mm):
+        circle = pt.buffer(7.5, resolution=32)
+        ear_reinforce_polys.append(circle)
         
-        # Sub-box of the plate corner extending 14mm along each straight edge
-        c_box = sg.box(min(sx * 68.0, sx * half_frame), min(sy * 68.0, sy * half_frame),
-                       max(sx * 68.0, sx * half_frame), max(sy * 68.0, sy * half_frame))
-        
-        # Convex hull blends the straight wall seamlessly into the ear circle:
-        wing_hull = unary_union([circle, c_box]).convex_hull
-        ear_hulls.append(wing_hull)
+        # Blend smoothly into the straight 176mm flange edges starting 13mm back:
+        c_box = sg.box(min(sx * 75.0, sx * half_plate), min(sy * 75.0, sy * half_plate),
+                       max(sx * 75.0, sx * half_plate), max(sy * 75.0, sy * half_plate))
+        ear_wing = unary_union([circle, c_box]).convex_hull
+        ear_hulls.append(ear_wing)
     
     all_ears_union = unary_union(ear_hulls)
     hole_cutouts_union = unary_union(hole_cutouts)
     
-    # Monolithic base plate perimeter:
-    base_plate_2d = unary_union([frame_outer_box, all_ears_union])
+    # Monolithic base plate (176mm straight sides + smooth corner wings):
+    base_plate_2d = unary_union([plate_box, all_ears_union])
     
-    # Floor polygon (Z = 0.0 to 1.0mm): spans full base plate with snap holes subtracted
+    # Floor polygon (Z = 0.0 to 1.0mm): spans full 176mm base plate with snap holes subtracted
     floor_2d = base_plate_2d.difference(hole_cutouts_union)
     
     # Snap ears solid flange (Z = 1.0 to 2.0mm):
-    # Thickens the entire corner wing outside the 2.0mm frame wall to 2.0mm total thickness!
-    ear_flange_2d = all_ears_union.difference(frame_outer_box).difference(hole_cutouts_union)
+    # Thickens the corner snap region outside the 2mm frame wall to 2.0mm total thickness!
+    all_reinforce = unary_union(ear_reinforce_polys + ear_hulls)
+    ear_flange_2d = all_reinforce.difference(frame_outer_box).difference(hole_cutouts_union)
     
     # -------------------------------------------------------------------------
     # 3D Extrusion & Assembly (Full Panel):
     # -------------------------------------------------------------------------
-    # 1. Floor: 0.0 to 1.0mm
+    # 1. Floor: 0.0 to 1.0mm (spans entire 176mm footprint including 5.8mm perimeter flange)
     m_floor = extrude_shapely(floor_2d, FLOOR_THICKNESS)
     
-    # 2. Frame Walls: 1.0 to 3.0mm (height 2.0mm)
+    # 2. 2.0mm Perimeter Frame Walls: 1.0 to 3.0mm (height 2.0mm)
     m_walls = extrude_shapely(frame_wall_2d, POCKET_DEPTH)
     m_walls.apply_translation([0.0, 0.0, FLOOR_THICKNESS])
     
-    # 3. Snap Wings Solid Flange: 1.0 to 2.0mm (height 1.0mm)
+    # 3. Snap Ears Solid Flange: 1.0 to 2.0mm (height 1.0mm)
     m_ears = extrude_shapely(ear_flange_2d, SNAP_EAR_THICKNESS - FLOOR_THICKNESS)
     m_ears.apply_translation([0.0, 0.0, FLOOR_THICKNESS])
     
