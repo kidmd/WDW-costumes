@@ -93,6 +93,23 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### 2026-11-07: All-Black 16x16 Test Panel & Rapid Corner Snap Test Coupon (Single-Extruder Rapid Validation)
+- **Monolithic All-Black 16x16 Test Panel (`3d_panels/test_all_black_16x16_panel.stl` / `.3mf`):**
+  - Designed specifically for rapid, single-filament black PETG printing with zero toolhead swaps or mid-print filament pauses.
+  - Combines the 0.6mm front face and 0.4mm backing layer into a single solid 1.0mm floor ($Z = 0.0$ to $1.0\text{ mm}$).
+  - Full $160.4 \times 160.4\text{ mm}$ open cavity with $2.0\text{ mm}$ tall frame walls ($Z = 1.0$ to $3.0\text{ mm}$) to drop in the BTF-LIGHTING 16×16 flexible matrix with zero lip obstruction.
+  - Added a $16\text{ mm}$ bottom wire notch for clean routing of the 3-wire power/data connector harness.
+- **Engineered Integrated Snap Ears (100% Collision-Free for Size 20 / T5 KAM Snaps):**
+  - Solved the physical interference between the $2.0\text{ mm}$ frame wall and the $12.2\text{ mm}$ diameter snap cap / $14\text{ mm}$ plier die.
+  - Stepped the hole centers outward along the corner diagonals to $(X = \pm 87.86, Y = \pm 87.86\text{ mm})$, providing an exact **$8.0\text{ mm}$ diagonal clearance** from the outer frame wall corner ($1.9\text{ mm}$ of flat air around the snap cap).
+  - Extended $16\text{ mm}$ circular rounded lobes ($R = 8.0\text{ mm}$ around hole center) with zero edge overhang.
+  - Thickened the corner tabs to **$2.0\text{ mm}$ solid PETG** ($Z = 0.0$ to $2.0\text{ mm}$) with $\varnothing 3.0\text{ mm}$ holes, ensuring immense structural clamp strength without cracking under pliers or pulling stress.
+- **12-Minute Quick Corner Snap Test Coupon (`3d_panels/test_corner_snap_coupon.stl` / `.3mf`):**
+  - Generated a $45.9 \times 45.9 \times 3.0\text{ mm}$ isolated corner coupon featuring 1 snap ear, adjacent 2mm frame walls, and a section of the cavity floor.
+  - Prints in ~12–15 minutes, allowing immediate verification of the KAM snap press, pliers clearance, felt sandwich, and shirt snap fit before committing to the full plate print.
+  - Both meshes strictly validated as watertight manifold geometry (`is_watertight == True`).
+
+
 ### 2026-11-07: Tri-Tab LED Inspector (Layout, Groups, Deploy), Real-Time Sliders & Color Revert
 - **LED Inspector Dynamic Mounting Across 3 Main Tabs (`tabLayout`, `tabGroups`, `tabHardware`):**
   - Added `#inspectorHostLayout` so the full contextual LED Inspector dock lives directly on the Layout tab alongside the 7-shirt lineup and artwork selector, as well as on the Groups and Deploy tabs.
