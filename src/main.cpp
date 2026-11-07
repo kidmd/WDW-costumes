@@ -159,6 +159,24 @@ enum StandaloneShowMode {
 
 extern StandaloneShowMode currentStandaloneMode;
 
+// Physical closed-loop pacing for 562-LED costume:
+// Front Panel (0..255): 30% of wave (0..299)
+// Right Fairy Strand (256..280, 25 LEDs): 20% of wave (300..499) -> ~6.8x slower per LED!
+// Back Panel (281..536, 256 LEDs): 30% of wave (500..799)
+// Left Fairy Strand (537..561, 25 LEDs): 20% of wave (800..999) -> ~6.8x slower per LED!
+inline uint16_t getCostumePacedLoopPosition(uint16_t index) {
+    if (index < 256) {
+        return (uint16_t)(((uint32_t)index * 300) / 256);
+    } else if (index <= 280) {
+        return (uint16_t)(300 + (((uint32_t)(index - 256) * 200) / 25));
+    } else if (index <= 536) {
+        return (uint16_t)(500 + (((uint32_t)(index - 281) * 300) / 256));
+    } else if (index <= 561) {
+        return (uint16_t)(800 + (((uint32_t)(index - 537) * 200) / 25));
+    }
+    return (uint16_t)(((uint32_t)(index % 562) * 1000) / 562);
+}
+
 inline void duplicateFrontToBack() {
     if (isCurrentFloatMatrix16x16()) {
         CRGB tempActive[256];
@@ -1326,7 +1344,21 @@ void runAutonomousShowSequence(uint32_t now) {
             } else if (eff == 2) { // fire_breath
                 renderFireworks(now);
             } else if (eff == 3) { // traveling_wave
-#if defined(HAS_CUSTOM_PALETTE) && HAS_CUSTOM_PALETTE
+#if defined(COSTUME_FULL_562_MODE) && COSTUME_FULL_562_MODE
+                uint16_t waveCycleMs = max((uint16_t)1400, (uint16_t)((60000 / max((uint16_t)20, bpm)) * 3));
+                uint16_t waveHead = (uint16_t)(((now % waveCycleMs) * 1000) / waveCycleMs);
+                for (int i = 0; i < NUM_LEDS && i < MAX_LEDS_CAPACITY; i++) {
+                    uint16_t pos = getCostumePacedLoopPosition(i);
+                    int16_t diff = abs((int16_t)pos - (int16_t)waveHead);
+                    int16_t circDist = min(diff, (int16_t)(1000 - diff));
+                    if (circDist < 85) { // 8.5% wave width (~4 fairy LEDs, ~45 panel pixels)
+                        uint8_t intensity = map(circDist, 0, 85, 255, 60);
+                        leds[i] = CRGB(intensity, (uint8_t)(intensity * 0.86), (uint8_t)(intensity * 0.45));
+                    } else {
+                        leds[i] = CRGB(15, 10, 4);
+                    }
+                }
+#elif defined(HAS_CUSTOM_PALETTE) && HAS_CUSTOM_PALETTE
                 uint8_t waveCenter = (uint8_t)(((now / 8) * max((uint16_t)20, bpm) / 120) % 256);
                 for (int i = 0; i < FRONT_LEDS && i < MAX_LEDS_CAPACITY; i++) {
                     CRGB c = ARTWORK_PALETTE[i];

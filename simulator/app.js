@@ -2323,6 +2323,36 @@ function getSparkleRgb(style) {
     return { r: 255, g: 240, b: 200 }; // default: warm 2700K incandescent filament
 }
 
+// Reparameterizes the 562-LED closed loop into a physically balanced progress space [0.0, 1.0)
+// Gives generous, graceful pacing to the fairy lights (20% of cycle for each 25-LED strand),
+// so waves and sweeps deliberately slow down along the ribcage and shoulders instead of flashing by.
+function getCostumeNormalizedLoopCoord(index) {
+    if (typeof currentHardwareMode === 'undefined' || currentHardwareMode !== 'full_costume') {
+        return index / Math.max(1, (typeof leds !== 'undefined' ? leds.length : 200));
+    }
+
+    // Segment 0: Front 16x16 Panel (0..255) -> 30% of wave duration (0.00 to 0.30)
+    if (index >= 0 && index <= 255) {
+        return (index / 256.0) * 0.30;
+    }
+    // Segment 1: Right Fairy Loop (256..280, 25 LEDs) -> 20% of wave duration (0.30 to 0.50)
+    // Slower speed: ~6.8x more time per LED than panel pixels!
+    else if (index >= 256 && index <= 280) {
+        return 0.30 + ((index - 256) / 25.0) * 0.20;
+    }
+    // Segment 2: Back 16x16 Panel (281..536) -> 30% of wave duration (0.50 to 0.80)
+    else if (index >= 281 && index <= 536) {
+        return 0.50 + ((index - 281) / 256.0) * 0.30;
+    }
+    // Segment 3: Left Fairy Loop (537..561, 25 LEDs) -> 20% of wave duration (0.80 to 1.00)
+    // Slower speed: ~6.8x more time per LED than panel pixels!
+    else if (index >= 537 && index <= 561) {
+        return 0.80 + ((index - 537) / 25.0) * 0.20;
+    }
+    return (index % 562) / 562.0;
+}
+window.getCostumeNormalizedLoopCoord = getCostumeNormalizedLoopCoord;
+
 function evalGlobalPattern(pattern, bpm, index, totalLeds, timeMs, c, hasColor, isGroupOverride = false, directionOverride = null) {
     const beatMs = 60000 / Math.max(20, bpm || params.speedBpm || 120);
     const normTime = timeMs / beatMs;
@@ -2425,13 +2455,25 @@ function evalGlobalPattern(pattern, bpm, index, totalLeds, timeMs, c, hasColor, 
             break;
         }
         case 'traveling_wave': {
-            const sm = getSpatialMetrics();
             const wavePeriodMs = Math.max(1200, beatMs * 3.0);
             const waveCycle = (timeMs % wavePeriodMs) / wavePeriodMs;
-            const headX = (dir === -1) ? (1.0 - waveCycle) : waveCycle;
-            const ledX = (sm && sm.normX && sm.normX[index] !== undefined) ? sm.normX[index] : (index / Math.max(1, totalLeds));
-            const waveWidth = 0.14;
-            const dist = Math.abs(ledX - headX);
+            
+            let dist;
+            let waveWidth;
+            if (typeof currentHardwareMode !== 'undefined' && currentHardwareMode === 'full_costume') {
+                const head = (dir === -1) ? (1.0 - waveCycle) : waveCycle;
+                const ledCoord = getCostumeNormalizedLoopCoord(index);
+                const directDist = Math.abs(ledCoord - head);
+                dist = Math.min(directDist, 1.0 - directDist); // Modular circular distance on continuous closed loop
+                waveWidth = 0.085; // Natural ~8.5% body envelope (~4 LEDs on fairy strand, ~45 pixels on panel)
+            } else {
+                const sm = getSpatialMetrics();
+                const headX = (dir === -1) ? (1.0 - waveCycle) : waveCycle;
+                const ledX = (sm && sm.normX && sm.normX[index] !== undefined) ? sm.normX[index] : (index / Math.max(1, totalLeds));
+                dist = Math.abs(ledX - headX);
+                waveWidth = 0.14;
+            }
+
             if (dist < waveWidth) {
                 const intensity = Math.max(0, 1.0 - (dist / waveWidth));
                 if (effHasColor) {
@@ -2501,21 +2543,41 @@ function evalGlobalPattern(pattern, bpm, index, totalLeds, timeMs, c, hasColor, 
             break;
         }
         case 'chase': {
-            const sm = getSpatialMetrics();
-            const effRank = (sm && sm.rankYBottomUp && sm.rankYBottomUp[index] !== undefined)
-                ? (dir === -1 ? sm.rankYTopDown[index] : sm.rankYBottomUp[index])
-                : ((dir === -1) ? (totalLeds - 1 - index) : index);
-            const head = (normTime * 0.6) % totalLeds;
-            const dist = Math.abs(effRank - head);
-            const fade = Math.max(0, 1 - (dist / 8));
-            const intensity = 0.15 + 0.85 * fade;
-            if (effHasColor) {
-                r = Math.floor(effC.r * intensity);
-                g = Math.floor(effC.g * intensity);
-                b = Math.floor(effC.b * intensity);
+            if (typeof currentHardwareMode !== 'undefined' && currentHardwareMode === 'full_costume') {
+                const cycleMs = Math.max(1200, beatMs * 2.5);
+                const progress = (timeMs % cycleMs) / cycleMs;
+                const head = (dir === -1) ? (1.0 - progress) : progress;
+                const ledCoord = getCostumeNormalizedLoopCoord(index);
+                const directDist = Math.abs(ledCoord - head);
+                const circDist = Math.min(directDist, 1.0 - directDist);
+                const chaseWidth = 0.07;
+                const fade = Math.max(0, 1.0 - (circDist / chaseWidth));
+                const intensity = 0.15 + 0.85 * fade;
+                if (effHasColor) {
+                    r = Math.floor(effC.r * intensity);
+                    g = Math.floor(effC.g * intensity);
+                    b = Math.floor(effC.b * intensity);
+                } else {
+                    const rgb = hslToRgb(baseH / 360, 0.95, 0.50 * intensity);
+                    r = rgb.r; g = rgb.g; b = rgb.b;
+                }
             } else {
-                const rgb = hslToRgb(baseH / 360, 0.95, 0.50 * intensity);
-                r = rgb.r; g = rgb.g; b = rgb.b;
+                const sm = getSpatialMetrics();
+                const effRank = (sm && sm.rankYBottomUp && sm.rankYBottomUp[index] !== undefined)
+                    ? (dir === -1 ? sm.rankYTopDown[index] : sm.rankYBottomUp[index])
+                    : ((dir === -1) ? (totalLeds - 1 - index) : index);
+                const head = (normTime * 0.6) % totalLeds;
+                const dist = Math.abs(effRank - head);
+                const fade = Math.max(0, 1 - (dist / 8));
+                const intensity = 0.15 + 0.85 * fade;
+                if (effHasColor) {
+                    r = Math.floor(effC.r * intensity);
+                    g = Math.floor(effC.g * intensity);
+                    b = Math.floor(effC.b * intensity);
+                } else {
+                    const rgb = hslToRgb(baseH / 360, 0.95, 0.50 * intensity);
+                    r = rgb.r; g = rgb.g; b = rgb.b;
+                }
             }
             break;
         }
@@ -2595,9 +2657,11 @@ function evalGlobalPattern(pattern, bpm, index, totalLeds, timeMs, c, hasColor, 
             const totalCycleMs = beatMs * 4;
             const progress = (timeMs % totalCycleMs) / totalCycleMs;
             const sm = getSpatialMetrics();
-            const effRank = (sm && sm.rankYBottomUp && sm.rankYBottomUp[index] !== undefined)
-                ? (dir === -1 ? sm.rankYTopDown[index] : sm.rankYBottomUp[index])
-                : ((dir === -1) ? (totalLeds - 1 - index) : index);
+            const effRank = (typeof currentHardwareMode !== 'undefined' && currentHardwareMode === 'full_costume')
+                ? (getCostumeNormalizedLoopCoord(index) * totalLeds)
+                : ((sm && sm.rankYBottomUp && sm.rankYBottomUp[index] !== undefined)
+                    ? (dir === -1 ? sm.rankYTopDown[index] : sm.rankYBottomUp[index])
+                    : ((dir === -1) ? (totalLeds - 1 - index) : index));
             if (hasColor) {
                 r = c.r; g = c.g; b = c.b;
             } else {
@@ -2635,9 +2699,11 @@ function evalGlobalPattern(pattern, bpm, index, totalLeds, timeMs, c, hasColor, 
         case 'rainbow_cycle': {
             if (effHasColor) {
                 const sm = getSpatialMetrics();
-                const spatialPos = (sm && sm.normX && sm.normX[index] !== undefined)
-                    ? (sm.normX[index] * 0.7 + sm.normY[index] * 0.3)
-                    : (index / Math.max(1, totalLeds));
+                const spatialPos = (typeof currentHardwareMode !== 'undefined' && currentHardwareMode === 'full_costume')
+                    ? getCostumeNormalizedLoopCoord(index)
+                    : ((sm && sm.normX && sm.normX[index] !== undefined)
+                        ? (sm.normX[index] * 0.7 + sm.normY[index] * 0.3)
+                        : (index / Math.max(1, totalLeds)));
                 const cycleMs = Math.max(2500, beatMs * 8.0);
                 const phase = (((timeMs / cycleMs) * dir + spatialPos) % 1.0 + 1.0) % 1.0;
                 const wave = 0.35 + 0.65 * (Math.sin(phase * Math.PI * 2) * 0.5 + 0.5);
@@ -2653,9 +2719,11 @@ function evalGlobalPattern(pattern, bpm, index, totalLeds, timeMs, c, hasColor, 
                 brightness = 1.0;
             } else {
                 const sm = getSpatialMetrics();
-                const spatialPos = (sm && sm.normX && sm.normX[index] !== undefined)
-                    ? (sm.normX[index] * 0.7 + sm.normY[index] * 0.3)
-                    : (index / Math.max(1, totalLeds));
+                const spatialPos = (typeof currentHardwareMode !== 'undefined' && currentHardwareMode === 'full_costume')
+                    ? getCostumeNormalizedLoopCoord(index)
+                    : ((sm && sm.normX && sm.normX[index] !== undefined)
+                        ? (sm.normX[index] * 0.7 + sm.normY[index] * 0.3)
+                        : (index / Math.max(1, totalLeds)));
                 const hueCycleMs = Math.max(2500, beatMs * 8.0);
                 const hue = (((timeMs / hueCycleMs) * 360 * dir + spatialPos * 360) % 360 + 360) % 360;
                 const rgb = hslToRgb(hue / 360, 0.95, 0.52);
@@ -2665,18 +2733,87 @@ function evalGlobalPattern(pattern, bpm, index, totalLeds, timeMs, c, hasColor, 
             break;
         }
         case 'comet': {
-            const sm = getSpatialMetrics();
-            const effRank = (sm && sm.rankYBottomUp && sm.rankYBottomUp[index] !== undefined)
-                ? (dir === -1 ? sm.rankYTopDown[index] : sm.rankYBottomUp[index])
-                : ((dir === -1) ? (totalLeds - 1 - index) : index);
-            const cometPassMs = Math.max(900, beatMs * 1.5);
-            const head = (((timeMs / cometPassMs) * totalLeds) % totalLeds + totalLeds) % totalLeds;
-            const tailLen = Math.max(12, totalLeds * 0.22);
-            let dist = head - effRank;
-            if (dist < 0) dist += totalLeds;
-            if (dist < tailLen) {
-                const fade = Math.exp(-dist * (2.8 / tailLen));
-                const effIntensity = 0.08 + 0.92 * fade;
+            if (typeof currentHardwareMode !== 'undefined' && currentHardwareMode === 'full_costume') {
+                const cometPassMs = Math.max(1400, beatMs * 2.5);
+                const progress = (timeMs % cometPassMs) / cometPassMs;
+                const head = (dir === -1) ? (1.0 - progress) : progress;
+                const ledCoord = getCostumeNormalizedLoopCoord(index);
+                let diff = (dir === -1) ? (ledCoord - head) : (head - ledCoord);
+                if (diff < 0) diff += 1.0;
+                const tailSpan = 0.22; // 22% of loop duration tail
+                if (diff < tailSpan) {
+                    const fade = Math.exp(-diff * (3.0 / tailSpan));
+                    const effIntensity = 0.08 + 0.92 * fade;
+                    if (effHasColor) {
+                        r = Math.floor(effC.r * effIntensity);
+                        g = Math.floor(effC.g * effIntensity);
+                        b = Math.floor(effC.b * effIntensity);
+                    } else {
+                        const rgb = hslToRgb(baseH / 360, 0.95, 0.50 * effIntensity);
+                        r = rgb.r; g = rgb.g; b = rgb.b;
+                    }
+                    if (diff < 0.02) {
+                        r = Math.min(255, r + 110);
+                        g = Math.min(255, g + 110);
+                        b = Math.min(255, b + 110);
+                    }
+                    brightness = 1.0;
+                } else {
+                    if (effHasColor) {
+                        r = Math.floor(effC.r * 0.08); g = Math.floor(effC.g * 0.08); b = Math.floor(effC.b * 0.08);
+                    } else {
+                        r = 15; g = 15; b = 15;
+                    }
+                    brightness = 0.2;
+                }
+            } else {
+                const sm = getSpatialMetrics();
+                const effRank = (sm && sm.rankYBottomUp && sm.rankYBottomUp[index] !== undefined)
+                    ? (dir === -1 ? sm.rankYTopDown[index] : sm.rankYBottomUp[index])
+                    : ((dir === -1) ? (totalLeds - 1 - index) : index);
+                const cometPassMs = Math.max(900, beatMs * 1.5);
+                const head = (((timeMs / cometPassMs) * totalLeds) % totalLeds + totalLeds) % totalLeds;
+                const tailLen = Math.max(12, totalLeds * 0.22);
+                let dist = head - effRank;
+                if (dist < 0) dist += totalLeds;
+                if (dist < tailLen) {
+                    const fade = Math.exp(-dist * (2.8 / tailLen));
+                    const effIntensity = 0.08 + 0.92 * fade;
+                    if (effHasColor) {
+                        r = Math.floor(effC.r * effIntensity);
+                        g = Math.floor(effC.g * effIntensity);
+                        b = Math.floor(effC.b * effIntensity);
+                    } else {
+                        const rgb = hslToRgb(baseH / 360, 0.95, 0.50 * effIntensity);
+                        r = rgb.r; g = rgb.g; b = rgb.b;
+                    }
+                    if (dist < 1.2) {
+                        r = Math.min(255, r + 110);
+                        g = Math.min(255, g + 110);
+                        b = Math.min(255, b + 110);
+                    }
+                    brightness = 1.0;
+                } else {
+                    if (effHasColor) {
+                        r = Math.floor(effC.r * 0.08); g = Math.floor(effC.g * 0.08); b = Math.floor(effC.b * 0.08);
+                    } else {
+                        r = 15; g = 15; b = 15;
+                    }
+                    brightness = 0.2;
+                }
+            }
+            break;
+        }
+        case 'scanner': {
+            if (typeof currentHardwareMode !== 'undefined' && currentHardwareMode === 'full_costume') {
+                const cycle = (normTime / 2.0) % 2.0;
+                let head = cycle <= 1.0 ? cycle : (2.0 - cycle);
+                if (dir === -1) head = 1.0 - head;
+                const ledCoord = getCostumeNormalizedLoopCoord(index);
+                const dist = Math.abs(ledCoord - head);
+                const sigma = 0.055;
+                const wake = Math.exp(-(dist * dist) / (2 * sigma * sigma));
+                const effIntensity = 0.10 + 0.90 * wake;
                 if (effHasColor) {
                     r = Math.floor(effC.r * effIntensity);
                     g = Math.floor(effC.g * effIntensity);
@@ -2685,57 +2822,54 @@ function evalGlobalPattern(pattern, bpm, index, totalLeds, timeMs, c, hasColor, 
                     const rgb = hslToRgb(baseH / 360, 0.95, 0.50 * effIntensity);
                     r = rgb.r; g = rgb.g; b = rgb.b;
                 }
-                if (dist < 1.2) {
-                    r = Math.min(255, r + 110);
-                    g = Math.min(255, g + 110);
-                    b = Math.min(255, b + 110);
+                if (dist < 0.025) {
+                    r = Math.min(255, r + 80);
+                    g = Math.min(255, g + 80);
+                    b = Math.min(255, b + 80);
                 }
                 brightness = 1.0;
             } else {
+                const sm = getSpatialMetrics();
+                const cycle = (normTime / 2.0) % 2.0;
+                let headX = cycle <= 1.0 ? cycle : (2.0 - cycle);
+                if (dir === -1) headX = 1.0 - headX;
+                const ledX = (sm && sm.normX && sm.normX[index] !== undefined)
+                    ? sm.normX[index]
+                    : (index / Math.max(1, totalLeds - 1));
+                const dist = Math.abs(ledX - headX);
+                const sigma = 0.09;
+                const wake = Math.exp(-(dist * dist) / (2 * sigma * sigma));
+                const effIntensity = 0.10 + 0.90 * wake;
                 if (effHasColor) {
-                    r = Math.floor(effC.r * 0.08); g = Math.floor(effC.g * 0.08); b = Math.floor(effC.b * 0.08);
+                    r = Math.floor(effC.r * effIntensity);
+                    g = Math.floor(effC.g * effIntensity);
+                    b = Math.floor(effC.b * effIntensity);
                 } else {
-                    r = 15; g = 15; b = 15;
+                    const rgb = hslToRgb(baseH / 360, 0.95, 0.50 * effIntensity);
+                    r = rgb.r; g = rgb.g; b = rgb.b;
                 }
-                brightness = 0.2;
+                if (dist < 0.05) {
+                    r = Math.min(255, r + 80);
+                    g = Math.min(255, g + 80);
+                    b = Math.min(255, b + 80);
+                }
+                brightness = 1.0;
             }
-            break;
-        }
-        case 'scanner': {
-            const sm = getSpatialMetrics();
-            const cycle = (normTime / 2.0) % 2.0;
-            let headX = cycle <= 1.0 ? cycle : (2.0 - cycle);
-            if (dir === -1) headX = 1.0 - headX;
-            const ledX = (sm && sm.normX && sm.normX[index] !== undefined)
-                ? sm.normX[index]
-                : (index / Math.max(1, totalLeds - 1));
-            const dist = Math.abs(ledX - headX);
-            const sigma = 0.09;
-            const wake = Math.exp(-(dist * dist) / (2 * sigma * sigma));
-            const effIntensity = 0.10 + 0.90 * wake;
-            if (effHasColor) {
-                r = Math.floor(effC.r * effIntensity);
-                g = Math.floor(effC.g * effIntensity);
-                b = Math.floor(effC.b * effIntensity);
-            } else {
-                const rgb = hslToRgb(baseH / 360, 0.95, 0.50 * effIntensity);
-                r = rgb.r; g = rgb.g; b = rgb.b;
-            }
-            if (dist < 0.05) {
-                r = Math.min(255, r + 80);
-                g = Math.min(255, g + 80);
-                b = Math.min(255, b + 80);
-            }
-            brightness = 1.0;
             break;
         }
         case 'color_wipe': {
             const totalCycleMs = beatMs * 4;
             const progress = (timeMs % totalCycleMs) / totalCycleMs;
-            const sm = getSpatialMetrics();
-            const effRank = (sm && sm.rankYBottomUp && sm.rankYBottomUp[index] !== undefined)
-                ? (dir === -1 ? sm.rankYTopDown[index] : sm.rankYBottomUp[index])
-                : ((dir === -1) ? (totalLeds - 1 - index) : index);
+            let effRank;
+            if (typeof currentHardwareMode !== 'undefined' && currentHardwareMode === 'full_costume') {
+                effRank = getCostumeNormalizedLoopCoord(index) * totalLeds;
+                if (dir === -1) effRank = totalLeds - effRank;
+            } else {
+                const sm = getSpatialMetrics();
+                effRank = (sm && sm.rankYBottomUp && sm.rankYBottomUp[index] !== undefined)
+                    ? (dir === -1 ? sm.rankYTopDown[index] : sm.rankYBottomUp[index])
+                    : ((dir === -1) ? (totalLeds - 1 - index) : index);
+            }
             let lit = false;
             if (progress < 0.40) {
                 lit = effRank <= (progress / 0.40) * totalLeds;

@@ -93,6 +93,21 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### November 7, 2026 - Physically Paced Closed-Loop Wave Dynamics (Slower Wave Speed on Fairy Lights)
+- **Visual Perception & Pacing Calibration (`simulator/app.js`, `src/main.cpp`, `arduino/MSEP_Costume/MSEP_Costume.ino`):**
+  - Resolved the spatial speed imbalance between high-density matrix panels (256 pixels) and low-density ribcage fairy strands (25 LEDs).
+  - Implemented `getCostumeNormalizedLoopCoord(index)` in JS and `getCostumePacedLoopPosition(index)` in C++ firmware, reparameterizing progress across 4 anatomically balanced time intervals:
+    - **Front 16×16 Panel (0..255):** 30% of total wave cycle ($0.00$ to $0.30$).
+    - **Wearer's Right Fairy Strand (256..280, 25 LEDs):** 20% of total wave cycle ($0.30$ to $0.50$).
+    - **Back 16×16 Panel (281..536):** 30% of total wave cycle ($0.50$ to $0.80$).
+    - **Wearer's Left Fairy Strand (537..561, 25 LEDs):** 20% of total wave cycle ($0.80$ to $1.00$).
+  - **Dynamic Results:**
+    - Per-LED travel time on fairy strands is now $pprox 6.83	imes$ longer than panel pixels ($0.80\%$ of cycle per fairy bulb vs. $0.117\%$ per panel pixel).
+    - Waves spend a full 40% of the entire routine traveling gracefully along the runner's ribs and shoulders (20% right side + 20% left side), eliminating the visual "flash-by" glitch.
+    - Closed-loop modular distance $\Delta = \min(|s - 	ext{head}|, 1.0 - |s - 	ext{head}|)$ ensures seamless, wraparound circulation from LED 561 back to LED 0 with zero seams.
+  - Applied this pacing logic across all continuous loop effects: `traveling_wave`, `chase`, `comet`, `scanner`, `rainbow_cycle`, `color_wipe`, and `write_on_off`.
+  - Mirrored identical integer math pacing in ESP32 C++ firmware for autonomous and live modes.
+
 ### November 7, 2026 - 562-LED Full Closed-Loop Costume Architecture & Multi-Track Parade Timeline
 - **Hardware Architecture & Topology:**
   - Designed and implemented the complete 562-LED continuous closed-loop wearable costume topology:
