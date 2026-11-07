@@ -240,13 +240,18 @@ The sidebar navigation is organized into a clean **2-row × 3-column grid** that
    - **📡 Real-Time Wi-Fi Live Stream:** Stream live colors & animations directly to physical LEDs over Wi-Fi without flashing ROM. Wi-Fi credentials modal.
    - **Web Serial Flasher:** Quick launch button for zero-install browser-based flashing.
 
-### 💡 Contextual Inspector & Group Tools (Exclusively Inside Tab 3: Groups)
-Instead of taking up vertical space in the middle of your workflow:
+### 💡 Contextual Inspector (Available in Tab 3: Groups and Tab 6: Deploy)
+Instead of taking up vertical space in the middle of your workflow, the Contextual Inspector lives as a versatile, dockable inspector hosted seamlessly across both **Tab 3 (`👥 Groups`)** and **Tab 6 (`⚡ Deploy`)**:
+- **Dual-Tab Dynamic Mounting:** Switching between the Groups tab and Deploy tab automatically moves the inspector dock (`#ledInspectorSection`) into the active tab without destroying state, values, or canvas selection.
 - **Standby State (No Selection or Draw Mode):** When no bulbs are selected, or while actively drawing a path on the shirt (`✏️ Click-to-Draw`), the Inspector rests as a quiet, compact status chip (`👆 Click an LED or drag on canvas to inspect`). It stays collapsed during drawing so you can place sequential points on the garment without distracting UI jumps or unwanted dock expansions.
-- **Active State (Selected LED or Group):** When 1 or more LEDs are selected (or when editing a saved group), the Inspector automatically expands with an illuminated gold accent border:
-  - LED number stepper (`◀ Prev`, `Next ▶`, `⌖ Focus`).
-  - Color preview swatch, Hex & RGB badges, and RGB sliders.
-  - **🔄 LED Well & Channel Rotation Card:**
+- **Active State (Selected LED, Group, or 16×16 Matrix Cell):** When 1 or more LEDs or a 16×16 matrix cell are selected (or when editing a saved group), the Inspector automatically expands with an illuminated gold accent border:
+  - LED / Cell number stepper (`◀ Prev`, `Next ▶`, `⌖ Focus`).
+  - Color preview swatch, Hex & RGB badges, and live RGB sliders/number inputs.
+  - **🔲 16×16 Matrix Cell Mode Card (Active in 16×16 Matrix Architecture):**
+    - **Interactive Role Switcher:** One-click segmented buttons to set the cell's hardware role: `🔆 Window` (Ø 3.4mm front aperture), `✨ Backlit` (diffused thin PLA glow), or `⬛ Dark` (unlit SMD footprint).
+    - **Default Resting Color Tuning:** Adjusting the color picker, RGB sliders, or palette swatches directly sets the cell's default resting color (`selectedMatrixCell.color`), which is saved to preset JSONs and baked into firmware.
+    - **Bulk Role Color Application:** One-click `✨ Apply to Backlit` and `🔆 Apply to Windows` buttons let you instantly propagate the current color as the default across all cells of that role.
+  - **🔄 LED Well & Channel Rotation Card (Active in Legacy Fairy Light Mode):**
     - **Live Angle & Mode Badge:** Displays exact rotation in degrees (e.g. `45.0°`) and badge status (`[ 〰️ Tangent ]` or `[ 🔒 Custom XX° ]`).
     - **Continuous Rotation Slider ($0^\circ$ to $360^\circ$):** Smoothly scrub to rotate the selected LED(s) in real time on the canvas.
     - **`[ 〰️ Auto ]` Reset Button:** Clears manual angle override and restores the natural wire path tangent.
@@ -255,6 +260,14 @@ Instead of taking up vertical space in the middle of your workflow:
   - Quick Disney Palette Swatches (12 signature theme park colors).
   - Group Animation Effect creator (Zone Name, Effect Pattern, Speed BPM, Direction, Resting Baseline, and Firework Burst Radius slider).
   - One-click deselect button (`✖`).
+
+#### 🔲 16×16 Matrix Canvas Mouse Interaction Standards
+- **Left-Click:** Selects the matrix cell on the canvas and focuses it in the LED Inspector dock (showing pulsing gold/cyan brackets on the canvas). No longer rotates roles on left-click.
+- **Right-Click:** Opens the popover role context menu (`#matrix16ContextMenu`) directly under the mouse pointer with one-click choices for:
+  - `🔆 Windowed Cutout` (Ø 3.4mm front lens aperture)
+  - `✨ Backlit Glow` (subsurface thin PLA diffused glow)
+  - `⬛ Dark (Off)` (unlit SMD footprint)
+- **Right-Click Drag (on empty canvas):** Seamlessly pans the canvas as usual.
 
 ### ⤢ Collapsible Master Timeline
 - Click **`⤢ Minimize`** in the transport bar to collapse the multi-layer cue tracks into a slim transport bar, giving the canvas full vertical workspace.

@@ -93,6 +93,23 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### 2026-11-06: Dual-Tab LED Inspector (Deploy & Groups) & 16x16 Matrix Interactive Role Context Menu
+- **Contextual LED Inspector Ported to Deploy Tab (`#tabHardware`):**
+  - Seamlessly mounted in both Tab 3 (Groups) and Tab 6 (Deploy). When switching sidebar tabs, `syncInspectorMount()` smoothly moves the inspector dock `#ledInspectorSection` into `#inspectorHostDeploy` or `#inspectorHostGroups` without rebuilding the DOM or losing active selection state, slider positions, or event bindings.
+  - Allows full LED inspection, color testing, and role management while actively bench-testing USB firmware flashing or live Wi-Fi streaming.
+- **16x16 Matrix Left-Click Selection vs. Direct Role Cycling:**
+  - Replaced the legacy behavior where left-clicking in 16x16 mode automatically cycled between windowed, backlit, and dark.
+  - Left-click on any 16x16 matrix cell on the canvas now cleanly selects that cell, highlights it with pulsing gold/cyan corner brackets on the canvas, and displays all physical properties (row, column, serpentine index 0..255, plate coordinates in mm, current role, and resting color) in the LED Inspector dock.
+- **Right-Click Role Context Menu:**
+  - Right-clicking any 16x16 matrix cell on canvas brings up an authentic Disney Imagineering popover context menu right at the cursor position (`#matrix16ContextMenu`).
+  - Provides instant selection of `🔆 Windowed Cutout (Ø 3.4mm Front Lens Aperture)`, `✨ Backlit Glow (Subsurface Thin PLA Diffused)`, and `⬛ Dark (Off, Unlit 5050 Footprint)` with live checkmark indicators.
+  - Right-click canvas panning remains fully functional on empty canvas background.
+- **In-Inspector Role & Default Color Controls:**
+  - Added `#inspectorMatrixRoleCard` inside the LED Inspector, presenting one-click segmented role buttons (`🔆 Window`, `✨ Backlit`, `⬛ Dark`).
+  - Connected RGB sliders, RGB numeric inputs, native color picker, and 12 Disney palette swatches to update the cell's default color (`selectedMatrixCell.color`), preserving it in preset exports and ESP32 firmware bakes.
+  - Added bulk application buttons `✨ Apply to Backlit` and `🔆 Apply to Windows` to immediately set all LEDs of a given role to the selected resting color.
+
+
 ### 2026-11-06: Universal Panel Test Firmware Sparkle Frequency Calibration (0.5% Subtle Twinkle)
 - **Sparkle Rate Tuned from 1.5% to 0.5% (`src/panel_test.cpp` & `arduino/MSEP_Panel_Test/`):**
   - Updated `#define SPARKLE_RATE 0.5` in both PlatformIO and Arduino IDE panel test sources.

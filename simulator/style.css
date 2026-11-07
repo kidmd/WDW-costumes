@@ -325,8 +325,9 @@ h1 {
     display: none !important;
 }
 
-/* When Inspector is placed inside Groups Tab */
-#tabGroups #ledInspectorSection {
+/* When Inspector is placed inside Groups or Deploy Tab */
+#tabGroups #ledInspectorSection,
+#tabHardware #ledInspectorSection {
     margin-top: 10px;
     margin-bottom: 12px;
     border: 1px solid #30363d;
@@ -338,12 +339,14 @@ h1 {
     flex-shrink: 0;
 }
 
-#tabGroups #ledInspectorSection.dock-active {
+#tabGroups #ledInspectorSection.dock-active,
+#tabHardware #ledInspectorSection.dock-active {
     border: 1px solid #ffc107;
     background: #11151d;
 }
 
-#tabGroups #ledInspectorSection.dock-empty {
+#tabGroups #ledInspectorSection.dock-empty,
+#tabHardware #ledInspectorSection.dock-empty {
     max-height: none;
     padding: 10px 12px;
 }
@@ -1774,3 +1777,150 @@ body.hw-mode-legacy .matrix16-hardware-only {
     display: none !important;
 }
 
+
+/* ========================================================================== */
+/* 16x16 Matrix LED Inspector & Right-Click Context Menu                      */
+/* ========================================================================== */
+.matrix-context-menu {
+    position: fixed;
+    z-index: 10000;
+    min-width: 205px;
+    background: #161b22;
+    border: 1.5px solid #388bfd;
+    border-radius: 8px;
+    box-shadow: 0 8px 28px rgba(0, 0, 0, 0.8), 0 0 14px rgba(56, 139, 253, 0.3);
+    padding: 6px;
+    display: none;
+    flex-direction: column;
+    gap: 4px;
+    user-select: none;
+    font-family: inherit;
+    backdrop-filter: blur(10px);
+    animation: ctxFadeIn 0.12s cubic-bezier(0.2, 0, 0, 1);
+}
+
+@keyframes ctxFadeIn {
+    from { opacity: 0; transform: scale(0.94); }
+    to { opacity: 1; transform: scale(1); }
+}
+
+.matrix-ctx-header {
+    padding: 6px 8px 6px 8px;
+    border-bottom: 1px solid #30363d;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 11px;
+}
+
+.matrix-ctx-title {
+    font-weight: 700;
+    color: #f0f6fc;
+    font-family: monospace;
+}
+
+.matrix-ctx-badge {
+    font-size: 9.5px;
+    font-weight: 600;
+    padding: 1px 6px;
+    border-radius: 4px;
+    background: #21262d;
+}
+
+.matrix-ctx-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 8px;
+    border-radius: 6px;
+    border: 1px solid transparent;
+    background: transparent;
+    color: #c9d1d9;
+    cursor: pointer;
+    text-align: left;
+    transition: background 0.15s, border-color 0.15s;
+    width: 100%;
+}
+
+.matrix-ctx-item:hover {
+    background: rgba(56, 139, 253, 0.18);
+    border-color: rgba(56, 139, 253, 0.4);
+    color: #fff;
+}
+
+.matrix-ctx-item.active {
+    background: rgba(56, 189, 248, 0.14);
+    border-color: #38bdf8;
+    color: #fff;
+}
+
+.matrix-ctx-icon {
+    font-size: 15px;
+    line-height: 1;
+}
+
+.matrix-ctx-text {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.matrix-ctx-name {
+    font-size: 11px;
+    font-weight: 600;
+    line-height: 1.2;
+}
+
+.matrix-ctx-desc {
+    font-size: 9.5px;
+    color: #8b949e;
+    line-height: 1.2;
+    margin-top: 1px;
+}
+
+.matrix-ctx-check {
+    font-size: 12px;
+    color: #38bdf8;
+    font-weight: bold;
+    visibility: hidden;
+}
+
+.matrix-ctx-item.active .matrix-ctx-check {
+    visibility: visible;
+}
+
+/* Inspector Matrix Role Buttons */
+.matrix-role-btn {
+    border: 1px solid #30363d;
+    background: #161b22;
+    color: #c9d1d9;
+    transition: all 0.15s ease;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+.matrix-role-btn:hover {
+    background: #21262d;
+    border-color: #58a6ff;
+    color: #fff;
+}
+
+.matrix-role-btn.active[data-role="window"] {
+    background: rgba(255, 193, 7, 0.22);
+    border-color: #ffc107;
+    color: #ffc107;
+    box-shadow: 0 0 8px rgba(255, 193, 7, 0.3);
+}
+
+.matrix-role-btn.active[data-role="backlight"] {
+    background: rgba(56, 189, 248, 0.22);
+    border-color: #38bdf8;
+    color: #38bdf8;
+    box-shadow: 0 0 8px rgba(56, 189, 248, 0.3);
+}
+
+.matrix-role-btn.active[data-role="dark"] {
+    background: rgba(139, 148, 158, 0.18);
+    border-color: #8b949e;
+    color: #f0f6fc;
+}

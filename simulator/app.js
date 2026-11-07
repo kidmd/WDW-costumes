@@ -573,7 +573,8 @@ let mouseStartY = 0;
 let hasMovedSignificantly = false;
 
 // Selection & Dragging state
-let selectedLed = null; // Primary / last selected LED index
+let selectedLed = null;
+let selectedMatrixCell = null; // Currently selected 16x16 matrix cell // Primary / last selected LED index
 let selectedLeds = new Set(); // Multi-selection set of LED indices
 let isBoxSelectMode = false; // Toggleable box-select mode
 let isBoxSelecting = false;
@@ -8449,11 +8450,19 @@ function deselectLed() {
     selectedLed = null;
     selectedLeds.clear();
     selectedGroupId = null;
+    selectedMatrixCell = null;
     resetGroupFormToDefaults();
     updateLedInspectorUI();
+    if (typeof draw === 'function') draw();
 }
 
 function selectNextLed() {
+    if (selectedMatrixCell && btfMatrix16x16Cells && btfMatrix16x16Cells.length === 256) {
+        const nextIdx = (selectedMatrixCell.matrixIdx + 1) % 256;
+        const targetCell = btfMatrix16x16Cells.find(c => c.matrixIdx === nextIdx) || btfMatrix16x16Cells[nextIdx];
+        if (targetCell) selectMatrixCell(targetCell);
+        return;
+    }
     if (!leds || leds.length === 0) return;
     if (selectedLed === null) {
         selectLed(0);
@@ -8463,6 +8472,12 @@ function selectNextLed() {
 }
 
 function selectPrevLed() {
+    if (selectedMatrixCell && btfMatrix16x16Cells && btfMatrix16x16Cells.length === 256) {
+        const prevIdx = (selectedMatrixCell.matrixIdx - 1 + 256) % 256;
+        const targetCell = btfMatrix16x16Cells.find(c => c.matrixIdx === prevIdx) || btfMatrix16x16Cells[prevIdx];
+        if (targetCell) selectMatrixCell(targetCell);
+        return;
+    }
     if (!leds || leds.length === 0) return;
     if (selectedLed === null) {
         selectLed(leds.length - 1);
@@ -8612,10 +8627,23 @@ function nudgeSelectedLedRotation(deltaDeg) {
 }
 
 function setSelectedLedColor(r, g, b) {
-    if (selectedLeds.size === 0 && (selectedLed === null || !leds[selectedLed])) return;
     const clampedR = Math.max(0, Math.min(255, Math.round(r)));
     const clampedG = Math.max(0, Math.min(255, Math.round(g)));
     const clampedB = Math.max(0, Math.min(255, Math.round(b)));
+
+    if (selectedMatrixCell) {
+        selectedMatrixCell.color = { r: clampedR, g: clampedG, b: clampedB };
+        updateLedInspectorColorInputs(clampedR, clampedG, clampedB);
+        updateLedInspectorUI();
+        markSingleShirtDirty();
+        if (typeof draw === 'function') draw();
+        if (isWifiStreaming) {
+            sendLivePixelFrame(performance.now());
+        }
+        return;
+    }
+
+    if (selectedLeds.size === 0 && (selectedLed === null || !leds[selectedLed])) return;
 
     if (selectedLeds.size > 0) {
         for (const idx of selectedLeds) {
@@ -8865,6 +8893,9 @@ function updateLedInspectorUI() {
     const multiRow = document.getElementById('inspectorMultiSelectRow');
     const groupBadge = document.getElementById('groupEffectLedCountBadge');
     const inspectorSection = document.getElementById('ledInspectorSection');
+    const matrixRoleCard = document.getElementById('inspectorMatrixRoleCard');
+    const matrixRoleBadge = document.getElementById('inspectorMatrixRoleBadge');
+    const rotationCard = document.getElementById('inspectorRotationCard');
 
     // While drawing a sequential path on shirt, keep the docked inspector completely collapsed/standby
     if (isDrawGroupMode) {
@@ -8880,8 +8911,66 @@ function updateLedInspectorUI() {
         if (groupFwRow) groupFwRow.style.display = 'none';
         const quickPrompt = document.getElementById('inspectorQuickGroupsPrompt');
         if (quickPrompt) quickPrompt.style.display = 'none';
+        if (matrixRoleCard) matrixRoleCard.style.display = 'none';
         return;
     }
+
+    // 16x16 Matrix Cell Inspection Mode
+    if (selectedMatrixCell !== null) {
+        if (inspectorSection) {
+            inspectorSection.classList.remove('dock-empty');
+            inspectorSection.classList.add('dock-active');
+        }
+        if (emptyPrompt) emptyPrompt.style.display = 'none';
+        const quickPrompt = document.getElementById('inspectorQuickGroupsPrompt');
+        if (quickPrompt) quickPrompt.style.display = 'none';
+        if (colorControls) colorControls.style.display = 'flex';
+        if (stepperRow) stepperRow.style.display = 'flex';
+        if (multiRow) multiRow.style.display = 'none';
+
+        if (rotationCard) rotationCard.style.display = 'none';
+        if (matrixRoleCard) matrixRoleCard.style.display = 'flex';
+
+        const role = selectedMatrixCell.role || 'dark';
+        if (matrixRoleBadge) {
+            matrixRoleBadge.textContent = role === 'window' ? 'WINDOWED' : (role === 'backlight' ? 'BACKLIT' : 'DARK');
+            matrixRoleBadge.style.color = role === 'window' ? '#ffc107' : (role === 'backlight' ? '#38bdf8' : '#8b949e');
+        }
+
+        const btnWin = document.getElementById('btnRoleWindow');
+        const btnGlow = document.getElementById('btnRoleBacklight');
+        const btnDark = document.getElementById('btnRoleDark');
+        if (btnWin) btnWin.classList.toggle('active', role === 'window');
+        if (btnGlow) btnGlow.classList.toggle('active', role === 'backlight');
+        if (btnDark) btnDark.classList.toggle('active', role === 'dark');
+
+        if (badge) {
+            const roleEmoji = role === 'window' ? '🔆' : (role === 'backlight' ? '✨' : '⬛');
+            badge.textContent = `${roleEmoji} Matrix [R${selectedMatrixCell.row + 1}, C${selectedMatrixCell.col + 1}] (#${selectedMatrixCell.matrixIdx + 1})`;
+            badge.style.background = role === 'window' ? '#ffc107' : (role === 'backlight' ? '#38bdf8' : '#30363d');
+            badge.style.color = role === 'dark' ? '#f0f6fc' : '#000000';
+        }
+
+        if (groupBadge) groupBadge.textContent = '1 Matrix Cell Selected';
+
+        if (numInput) {
+            numInput.value = selectedMatrixCell.matrixIdx + 1;
+            numInput.min = 1;
+            numInput.max = 256;
+        }
+
+        const coordsEl = document.getElementById('inspectorCoordsText');
+        if (coordsEl) {
+            coordsEl.textContent = `Row: ${selectedMatrixCell.row + 1} | Col: ${selectedMatrixCell.col + 1} • Plate: (${selectedMatrixCell.plateX.toFixed(1)}mm, ${selectedMatrixCell.plateY.toFixed(1)}mm)`;
+        }
+
+        const col = selectedMatrixCell.color || { r: 0, g: 255, b: 136 };
+        updateLedInspectorColorInputs(col.r, col.g, col.b);
+        return;
+    }
+
+    if (matrixRoleCard) matrixRoleCard.style.display = 'none';
+    if (rotationCard) rotationCard.style.display = 'flex';
 
     const totalSelected = selectedLeds.size;
 
@@ -12051,7 +12140,27 @@ if (sequenceTemplateSelect) {
 // ============================================================================
 
 canvas.addEventListener('contextmenu', (e) => {
-    e.preventDefault(); // Prevent context menu so right-drag pans seamlessly
+    e.preventDefault(); // Prevent browser default context menu
+    if (typeof btfMatrix16x16Active !== 'undefined' && btfMatrix16x16Active) {
+        const rect = canvas.getBoundingClientRect();
+        const scaleX = canvas.width / rect.width;
+        const scaleY = canvas.height / rect.height;
+        const mx = (e.clientX - rect.left) * scaleX;
+        const my = (e.clientY - rect.top) * scaleY;
+        const worldX = (mx - panX) / zoomScale;
+        const worldY = (my - panY) / zoomScale;
+        const norm = canvasToNorm(worldX, worldY);
+        const cell = typeof getBtfMatrix16x16CellAtNorm === 'function' ? getBtfMatrix16x16CellAtNorm(norm.x, norm.y) : null;
+        if (cell) {
+            if (typeof openMatrix16ContextMenu === 'function') {
+                openMatrix16ContextMenu(e.clientX, e.clientY, cell);
+            }
+            return;
+        }
+    }
+    if (typeof closeMatrix16ContextMenu === 'function') {
+        closeMatrix16ContextMenu();
+    }
 });
 
 canvas.addEventListener('wheel', (e) => {
@@ -12168,6 +12277,16 @@ canvas.addEventListener('mousedown', (e) => {
 
     // Right-click (2), Middle-click (1), or Space+click -> Pan Canvas
     if (e.button === 2 || e.button === 1 || (e.button === 0 && isSpacePressed)) {
+        if (e.button === 2 && typeof btfMatrix16x16Active !== 'undefined' && btfMatrix16x16Active) {
+            const worldX = (mx - panX) / zoomScale;
+            const worldY = (my - panY) / zoomScale;
+            const norm = canvasToNorm(worldX, worldY);
+            const cell = typeof getBtfMatrix16x16CellAtNorm === 'function' ? getBtfMatrix16x16CellAtNorm(norm.x, norm.y) : null;
+            if (cell) {
+                // User is right-clicking a matrix cell to trigger role context menu: do not pan
+                return;
+            }
+        }
         isPanning = true;
         panStartX = mx - panX;
         panStartY = my - panY;
@@ -17001,28 +17120,91 @@ function drawBtfMatrix16x16Overlay(ctx, s, timeMs) {
         }
     });
 
+    // PASS 4: Render Selection Highlight for Selected Matrix Cell
+    if (selectedMatrixCell) {
+        const pt = normToCanvas({ x: selectedMatrixCell.nx, y: selectedMatrixCell.ny });
+        const pulse = 0.5 + 0.5 * Math.sin((timeMs || performance.now()) * 0.008);
+        const boxS = cellW * 1.05;
+        const half = boxS / 2;
+
+        ctx.save();
+        // Pulsing glow border
+        ctx.strokeStyle = `rgba(255, 193, 7, ${(0.65 + 0.35 * pulse).toFixed(3)})`;
+        ctx.lineWidth = 1.8;
+        ctx.strokeRect(pt.x - half, pt.y - half, boxS, boxS);
+
+        // Vibrant cyan corner accent brackets
+        ctx.strokeStyle = '#00f0ff';
+        ctx.lineWidth = 2.4;
+        const bLen = Math.max(3.0, boxS * 0.32);
+        // Top-Left
+        ctx.beginPath();
+        ctx.moveTo(pt.x - half, pt.y - half + bLen);
+        ctx.lineTo(pt.x - half, pt.y - half);
+        ctx.lineTo(pt.x - half + bLen, pt.y - half);
+        // Top-Right
+        ctx.moveTo(pt.x + half - bLen, pt.y - half);
+        ctx.lineTo(pt.x + half, pt.y - half);
+        ctx.lineTo(pt.x + half, pt.y - half + bLen);
+        // Bottom-Left
+        ctx.moveTo(pt.x - half, pt.y + half - bLen);
+        ctx.lineTo(pt.x - half, pt.y + half);
+        ctx.lineTo(pt.x - half + bLen, pt.y + half);
+        // Bottom-Right
+        ctx.moveTo(pt.x + half - bLen, pt.y + half);
+        ctx.lineTo(pt.x + half, pt.y + half);
+        ctx.lineTo(pt.x + half, pt.y + half - bLen);
+        ctx.stroke();
+
+        ctx.restore();
+    }
+
     ctx.restore();
 }
 
-function handleBtfMatrix16x16CanvasClick(worldX, worldY) {
-    if (!btfMatrix16x16Active) return false;
-    const norm = canvasToNorm(worldX, worldY);
+function getBtfMatrix16x16CellAtNorm(normX, normY) {
+    if (!btfMatrix16x16Active || !btfMatrix16x16Cells || btfMatrix16x16Cells.length !== 256) return null;
     const geom = getBtfMatrix16x16GeometryNorm();
-
-    if (norm.x < geom.matrixNormX || norm.x > geom.matrixNormX + geom.matrixNormW ||
-        norm.y < geom.matrixNormY || norm.y > geom.matrixNormY + geom.matrixNormH) {
-        return false;
+    if (normX < geom.matrixNormX || normX > geom.matrixNormX + geom.matrixNormW ||
+        normY < geom.matrixNormY || normY > geom.matrixNormY + geom.matrixNormH) {
+        return null;
     }
+    const col = Math.min(15, Math.max(0, Math.floor(((normX - geom.matrixNormX) / geom.matrixNormW) * 16)));
+    const row = Math.min(15, Math.max(0, Math.floor(((normY - geom.matrixNormY) / geom.matrixNormH) * 16)));
+    return btfMatrix16x16Cells.find(c => c.row === row && c.col === col) || null;
+}
+window.getBtfMatrix16x16CellAtNorm = getBtfMatrix16x16CellAtNorm;
 
-    const col = Math.min(15, Math.max(0, Math.floor(((norm.x - geom.matrixNormX) / geom.matrixNormW) * 16)));
-    const row = Math.min(15, Math.max(0, Math.floor(((norm.y - geom.matrixNormY) / geom.matrixNormH) * 16)));
-    const cell = btfMatrix16x16Cells.find(c => c.row === row && c.col === col);
-    if (!cell) return false;
+function selectMatrixCell(cell) {
+    if (!cell) {
+        deselectMatrixCell();
+        return;
+    }
+    selectedMatrixCell = cell;
+    selectedLed = null;
+    selectedLeds.clear();
+    selectedGroupId = null;
 
-    // Cycle: window -> backlight -> dark -> window
-    if (cell.role === 'window') cell.role = 'backlight';
-    else if (cell.role === 'backlight') cell.role = 'dark';
-    else cell.role = 'window';
+    updateLedInspectorUI();
+    markSingleShirtDirty();
+    if (typeof draw === 'function') draw();
+
+    const roleLabel = cell.role === 'window' ? '🔆 Windowed' : (cell.role === 'backlight' ? '✨ Backlit' : '⬛ Dark');
+    showToast(`Selected Matrix [R${cell.row + 1}, C${cell.col + 1}] (#${cell.matrixIdx + 1}) • ${roleLabel}`);
+}
+window.selectMatrixCell = selectMatrixCell;
+
+function deselectMatrixCell() {
+    selectedMatrixCell = null;
+    updateLedInspectorUI();
+    markSingleShirtDirty();
+    if (typeof draw === 'function') draw();
+}
+window.deselectMatrixCell = deselectMatrixCell;
+
+function setMatrixCellRole(cell, newRole) {
+    if (!cell || (newRole !== 'window' && newRole !== 'backlight' && newRole !== 'dark')) return;
+    cell.role = newRole;
 
     // Sync sliders to actual counts
     let winCount = 0, glowCount = 0;
@@ -17039,9 +17221,92 @@ function handleBtfMatrix16x16CanvasClick(worldX, worldY) {
     if (glowSlider) glowSlider.value = glowCount;
 
     updateBtfMatrix16x16TelemetryUI();
+    updateLedInspectorUI();
     markSingleShirtDirty();
-    const roleLabel = cell.role === 'window' ? '🔆 Windowed Cutout' : (cell.role === 'backlight' ? '✨ Backlit PLA Glow' : '⬛ Dark (Off)');
-    showToast(`Matrix [${row + 1}, ${col + 1}] (#${cell.matrixIdx}) ➔ ${roleLabel}`);
+    if (typeof draw === 'function') draw();
+
+    const roleLabel = newRole === 'window' ? '🔆 Windowed Cutout' : (newRole === 'backlight' ? '✨ Backlit PLA Glow' : '⬛ Dark (Off)');
+    showToast(`Matrix [R${cell.row + 1}, C${cell.col + 1}] (#${cell.matrixIdx + 1}) ➔ ${roleLabel}`);
+}
+window.setMatrixCellRole = setMatrixCellRole;
+
+function applyColorToAllMatrixRole(role, color) {
+    if (!btfMatrix16x16Cells || btfMatrix16x16Cells.length !== 256 || !color) return;
+    let count = 0;
+    btfMatrix16x16Cells.forEach(cell => {
+        if (cell.role === role) {
+            cell.color = { r: color.r, g: color.g, b: color.b };
+            count++;
+        }
+    });
+    markSingleShirtDirty();
+    if (typeof draw === 'function') draw();
+    if (isWifiStreaming) {
+        sendLivePixelFrame(performance.now());
+    }
+    const roleName = role === 'window' ? 'Windowed' : (role === 'backlight' ? 'Backlit' : 'Dark');
+    const toHex = (n) => n.toString(16).padStart(2, '0').toUpperCase();
+    const hex = `#${toHex(color.r)}${toHex(color.g)}${toHex(color.b)}`;
+    showToast(`🎨 Set ${count} ${roleName} LEDs to default color ${hex}!`);
+}
+window.applyColorToAllMatrixRole = applyColorToAllMatrixRole;
+
+function focusOnMatrixCell(cell) {
+    if (!cell) return;
+    const pt = normToCanvas({ x: cell.nx, y: cell.ny });
+    zoomScale = Math.max(zoomScale, 2.6);
+    panX = (canvas.width / 2) - pt.x * zoomScale;
+    panY = (canvas.height / 2) - pt.y * zoomScale;
+    updateZoomUI();
+}
+window.focusOnMatrixCell = focusOnMatrixCell;
+
+function openMatrix16ContextMenu(clientX, clientY, cell) {
+    if (!cell) return;
+    selectMatrixCell(cell);
+
+    const menu = document.getElementById('matrix16ContextMenu');
+    if (!menu) return;
+
+    const titleEl = menu.querySelector('.matrix-ctx-title');
+    const badgeEl = menu.querySelector('.matrix-ctx-badge');
+    if (titleEl) titleEl.textContent = `Matrix [R${cell.row + 1}, C${cell.col + 1}] (#${cell.matrixIdx + 1})`;
+    if (badgeEl) {
+        badgeEl.textContent = cell.role === 'window' ? '🔆 Windowed' : (cell.role === 'backlight' ? '✨ Backlit' : '⬛ Dark');
+        badgeEl.style.color = cell.role === 'window' ? '#ffc107' : (cell.role === 'backlight' ? '#38bdf8' : '#8b949e');
+    }
+
+    menu.querySelectorAll('.matrix-ctx-item').forEach(btn => {
+        const role = btn.getAttribute('data-role');
+        const isActive = (role === cell.role);
+        btn.classList.toggle('active', isActive);
+        const check = btn.querySelector('.matrix-ctx-check');
+        if (check) check.style.visibility = isActive ? 'visible' : 'hidden';
+    });
+
+    menu.style.display = 'flex';
+    const menuWidth = 210;
+    const menuHeight = 155;
+    const left = Math.min(window.innerWidth - menuWidth - 10, Math.max(10, clientX));
+    const top = Math.min(window.innerHeight - menuHeight - 10, Math.max(10, clientY));
+    menu.style.left = `${left}px`;
+    menu.style.top = `${top}px`;
+}
+window.openMatrix16ContextMenu = openMatrix16ContextMenu;
+
+function closeMatrix16ContextMenu() {
+    const menu = document.getElementById('matrix16ContextMenu');
+    if (menu) menu.style.display = 'none';
+}
+window.closeMatrix16ContextMenu = closeMatrix16ContextMenu;
+
+function handleBtfMatrix16x16CanvasClick(worldX, worldY) {
+    if (!btfMatrix16x16Active) return false;
+    const norm = canvasToNorm(worldX, worldY);
+    const cell = getBtfMatrix16x16CellAtNorm(norm.x, norm.y);
+    if (!cell) return false;
+
+    selectMatrixCell(cell);
     return true;
 }
 window.handleBtfMatrix16x16CanvasClick = handleBtfMatrix16x16CanvasClick;
@@ -18241,14 +18506,27 @@ document.getElementById('zoomResetBtn')?.addEventListener('click', () => resetZo
 document.getElementById('prevLedBtn')?.addEventListener('click', () => selectPrevLed());
 document.getElementById('nextLedBtn')?.addEventListener('click', () => selectNextLed());
 document.getElementById('focusLedBtn')?.addEventListener('click', () => {
-    if (selectedLed !== null) focusOnLed(selectedLed);
-    else if (leds.length > 0) { selectLed(0); focusOnLed(0); }
+    if (selectedMatrixCell) {
+        focusOnMatrixCell(selectedMatrixCell);
+    } else if (selectedLed !== null) {
+        focusOnLed(selectedLed);
+    } else if (leds.length > 0) {
+        selectLed(0);
+        focusOnLed(0);
+    }
 });
 
 const inspectorLedNumInput = document.getElementById('inspectorLedNumInput');
 if (inspectorLedNumInput) {
     inspectorLedNumInput.addEventListener('change', (e) => {
         const val = parseInt(e.target.value, 10);
+        if (selectedMatrixCell && btfMatrix16x16Cells && btfMatrix16x16Cells.length === 256) {
+            if (!isNaN(val) && val >= 1 && val <= 256) {
+                const targetCell = btfMatrix16x16Cells.find(c => c.matrixIdx === (val - 1));
+                if (targetCell) selectMatrixCell(targetCell);
+            }
+            return;
+        }
         if (!isNaN(val) && val >= 1 && val <= leds.length) {
             selectLed(val - 1);
         }
@@ -18336,7 +18614,7 @@ document.getElementById('inspectorRotateNudgePosBtn')?.addEventListener('click',
 
 document.querySelectorAll('.palette-swatch-btn').forEach(btn => {
     btn.addEventListener('click', () => {
-        if (selectedLeds.size === 0 && selectedLed === null) {
+        if (selectedLeds.size === 0 && selectedLed === null && !selectedMatrixCell) {
             if (leds.length > 0) selectLed(0);
             else return;
         }
@@ -18480,6 +18758,16 @@ document.querySelectorAll('.grp-tempo-chip-inspector').forEach(btn => {
 });
 
 document.getElementById('inspectorSampleBtn')?.addEventListener('click', () => {
+    if (selectedMatrixCell) {
+        const col = typeof sampleColorAtNorm === 'function' ? sampleColorAtNorm(selectedMatrixCell.nx, selectedMatrixCell.ny) : null;
+        if (col) {
+            setSelectedLedColor(col.r, col.g, col.b);
+            showToast(`🎨 Sampled artwork color for Matrix [R${selectedMatrixCell.row + 1}, C${selectedMatrixCell.col + 1}]!`);
+        } else {
+            showToast(`⚠️ No graphic pixel found directly under cell`);
+        }
+        return;
+    }
     if (selectedLed === null || !leds[selectedLed]) return;
     const col = sampleColorAtNorm(leds[selectedLed].x, leds[selectedLed].y);
     if (col) {
@@ -18491,6 +18779,24 @@ document.getElementById('inspectorSampleBtn')?.addEventListener('click', () => {
 });
 
 document.getElementById('inspectorCopyNextBtn')?.addEventListener('click', () => {
+    if (selectedMatrixCell && selectedMatrixCell.color) {
+        const srcCol = { ...selectedMatrixCell.color };
+        let count = 0;
+        for (let i = selectedMatrixCell.matrixIdx + 1; i <= Math.min(255, selectedMatrixCell.matrixIdx + 5); i++) {
+            const c = btfMatrix16x16Cells.find(cell => cell.matrixIdx === i);
+            if (c) {
+                c.color = { ...srcCol };
+                count++;
+            }
+        }
+        if (count > 0) {
+            showToast(`⏩ Copied color to next ${count} matrix cells along serpentine wire!`);
+            markSingleShirtDirty();
+            if (typeof draw === 'function') draw();
+            if (isWifiStreaming) sendLivePixelFrame(performance.now());
+        }
+        return;
+    }
     if (selectedLed === null || !leds[selectedLed] || !leds[selectedLed].color) return;
     const srcCol = { ...leds[selectedLed].color };
     let count = 0;
@@ -23574,6 +23880,24 @@ if (flashReceiverBtn) {
 // ============================================================================
 // SIDEBAR TASK TABS & TIMELINE COLLAPSE (THOROUGHBRED UI)
 // ============================================================================
+function syncInspectorMount(targetTabId) {
+    const inspector = document.getElementById('ledInspectorSection');
+    if (!inspector) return;
+    const hostDeploy = document.getElementById('inspectorHostDeploy');
+    const hostGroups = document.getElementById('inspectorHostGroups');
+
+    if (targetTabId === 'tabHardware' && hostDeploy) {
+        if (inspector.parentElement !== hostDeploy) {
+            hostDeploy.appendChild(inspector);
+        }
+    } else if (targetTabId === 'tabGroups' && hostGroups) {
+        if (inspector.parentElement !== hostGroups) {
+            hostGroups.appendChild(inspector);
+        }
+    }
+}
+window.syncInspectorMount = syncInspectorMount;
+
 function switchSidebarTab(targetTabId) {
     if (targetTabId !== 'tabFleet') {
         lastSingleShirtTab = targetTabId;
@@ -23591,6 +23915,9 @@ function switchSidebarTab(targetTabId) {
     try {
         localStorage.setItem('msep_active_sidebar_tab', targetTabId);
     } catch (e) {}
+
+    // Contextually mount LED inspector to active tab (Deploy or Groups)
+    syncInspectorMount(targetTabId);
 
     // Auto-synchronize Canvas View
     if (targetTabId === 'tabFleet') {
@@ -26409,3 +26736,70 @@ document.getElementById('closeCustomArtworkModalBtn')?.addEventListener('click',
 document.getElementById('closeCustomArtworkModalBottomBtn')?.addEventListener('click', () => {
     closeCustomArtworkModal();
 });
+
+// ============================================================================
+// 16x16 MATRIX INSPECTOR & CONTEXT MENU CONTROLS
+// ============================================================================
+function initMatrix16InspectorControls() {
+    // 1. Role Buttons in LED Inspector
+    document.getElementById('btnRoleWindow')?.addEventListener('click', () => {
+        if (selectedMatrixCell) setMatrixCellRole(selectedMatrixCell, 'window');
+    });
+    document.getElementById('btnRoleBacklight')?.addEventListener('click', () => {
+        if (selectedMatrixCell) setMatrixCellRole(selectedMatrixCell, 'backlight');
+    });
+    document.getElementById('btnRoleDark')?.addEventListener('click', () => {
+        if (selectedMatrixCell) setMatrixCellRole(selectedMatrixCell, 'dark');
+    });
+
+    // 2. Default Color Bulk Utility Buttons
+    document.getElementById('btnApplyColorToAllBacklight')?.addEventListener('click', () => {
+        if (selectedMatrixCell && selectedMatrixCell.color) {
+            applyColorToAllMatrixRole('backlight', selectedMatrixCell.color);
+        } else {
+            const r = parseInt(document.getElementById('ledRSlider')?.value, 10) || 0;
+            const g = parseInt(document.getElementById('ledGSlider')?.value, 10) || 255;
+            const b = parseInt(document.getElementById('ledBSlider')?.value, 10) || 136;
+            applyColorToAllMatrixRole('backlight', { r, g, b });
+        }
+    });
+
+    document.getElementById('btnApplyColorToAllWindow')?.addEventListener('click', () => {
+        if (selectedMatrixCell && selectedMatrixCell.color) {
+            applyColorToAllMatrixRole('window', selectedMatrixCell.color);
+        } else {
+            const r = parseInt(document.getElementById('ledRSlider')?.value, 10) || 0;
+            const g = parseInt(document.getElementById('ledGSlider')?.value, 10) || 255;
+            const b = parseInt(document.getElementById('ledBSlider')?.value, 10) || 136;
+            applyColorToAllMatrixRole('window', { r, g, b });
+        }
+    });
+
+    // 3. Right-Click Context Menu Items
+    const menu = document.getElementById('matrix16ContextMenu');
+    if (menu) {
+        menu.querySelectorAll('.matrix-ctx-item').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const role = btn.getAttribute('data-role');
+                if (selectedMatrixCell && role) {
+                    setMatrixCellRole(selectedMatrixCell, role);
+                }
+                closeMatrix16ContextMenu();
+            });
+        });
+
+        window.addEventListener('mousedown', (e) => {
+            if (menu.style.display !== 'none' && !menu.contains(e.target)) {
+                closeMatrix16ContextMenu();
+            }
+        });
+
+        window.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                closeMatrix16ContextMenu();
+            }
+        });
+    }
+}
+initMatrix16InspectorControls();
