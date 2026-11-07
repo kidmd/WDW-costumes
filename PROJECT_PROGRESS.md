@@ -93,6 +93,17 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### 2026-11-07: Tri-Tab LED Inspector (Layout, Groups, Deploy), Real-Time Sliders & Color Revert
+- **LED Inspector Dynamic Mounting Across 3 Main Tabs (`tabLayout`, `tabGroups`, `tabHardware`):**
+  - Added `#inspectorHostLayout` so the full contextual LED Inspector dock lives directly on the Layout tab alongside the 7-shirt lineup and artwork selector, as well as on the Groups and Deploy tabs.
+  - Switching between Layout, Groups, and Deploy automatically moves `#ledInspectorSection` seamlessly into the active tab without resetting selection or destroying state.
+- **Real-Time RGB Sliders for 16×16 Matrix Cells & Multi-Selections:**
+  - Updated `bindRgbControl` with dynamic `getActiveColor()` fallback resolving `selectedMatrixCell.color`, `selectedLed`, and `selectedLeds` multi-selections. Scrubbing the Red, Green, or Blue sliders or editing numeric inputs now immediately updates the pixel color in real time on the canvas.
+  - Guarded `evalGlobalPattern` and `computeLedColor` so per-cell custom colors and matrix overrides are preserved and never masked by ambient global presets.
+- **Dedicated `⟲ Revert` Color Button:**
+  - Added snapshot tracking (`initialColorBeforeEdit`) captured when any LED or 16×16 cell is selected.
+  - Added an interactive **`⟲ Revert`** button to `#inspectorSingleUtils` in the LED Inspector dock. Automatically lights up gold whenever the color has been modified, allowing one-click rollback to the exact resting color before changes started.
+
 ### 2026-11-06: Dual-Tab LED Inspector (Deploy & Groups) & 16x16 Matrix Interactive Role Context Menu
 - **Contextual LED Inspector Ported to Deploy Tab (`#tabHardware`):**
   - Seamlessly mounted in both Tab 3 (Groups) and Tab 6 (Deploy). When switching sidebar tabs, `syncInspectorMount()` smoothly moves the inspector dock `#ledInspectorSection` into `#inspectorHostDeploy` or `#inspectorHostGroups` without rebuilding the DOM or losing active selection state, slider positions, or event bindings.

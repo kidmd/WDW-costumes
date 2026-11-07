@@ -240,9 +240,11 @@ The sidebar navigation is organized into a clean **2-row × 3-column grid** that
    - **📡 Real-Time Wi-Fi Live Stream:** Stream live colors & animations directly to physical LEDs over Wi-Fi without flashing ROM. Wi-Fi credentials modal.
    - **Web Serial Flasher:** Quick launch button for zero-install browser-based flashing.
 
-### 💡 Contextual Inspector (Available in Tab 3: Groups and Tab 6: Deploy)
-Instead of taking up vertical space in the middle of your workflow, the Contextual Inspector lives as a versatile, dockable inspector hosted seamlessly across both **Tab 3 (`👥 Groups`)** and **Tab 6 (`⚡ Deploy`)**:
-- **Dual-Tab Dynamic Mounting:** Switching between the Groups tab and Deploy tab automatically moves the inspector dock (`#ledInspectorSection`) into the active tab without destroying state, values, or canvas selection.
+### 💡 Contextual Inspector (Available in Tab 1: Layout, Tab 3: Groups, and Tab 6: Deploy)
+Instead of taking up vertical space in the middle of your workflow, the Contextual Inspector lives as a versatile, dockable inspector hosted seamlessly across **Tab 1 (`🎨 Layout`)**, **Tab 3 (`👥 Groups`)**, and **Tab 6 (`⚡ Deploy`)**:
+- **Tri-Tab Dynamic Mounting:** Switching between the Layout tab, Groups tab, and Deploy tab automatically moves the inspector dock (`#ledInspectorSection`) into the active tab without destroying state, values, or canvas selection.
+- **⟲ Color Revert Button:** The inspector tracks the initial resting color when any LED or 16×16 matrix cell is selected. If you scrub the RGB sliders, test swatches, or pick a color in the native color picker, the **`⟲ Revert`** button illuminates in amber. Clicking it instantly rolls back the color to what it was before you started making changes.
+- **Real-Time Scrubbing:** Scrubbing the Red, Green, or Blue sliders updates the selected LED or 16×16 matrix cell on the canvas instantly in real time.
 - **Standby State (No Selection or Draw Mode):** When no bulbs are selected, or while actively drawing a path on the shirt (`✏️ Click-to-Draw`), the Inspector rests as a quiet, compact status chip (`👆 Click an LED or drag on canvas to inspect`). It stays collapsed during drawing so you can place sequential points on the garment without distracting UI jumps or unwanted dock expansions.
 - **Active State (Selected LED, Group, or 16×16 Matrix Cell):** When 1 or more LEDs or a 16×16 matrix cell are selected (or when editing a saved group), the Inspector automatically expands with an illuminated gold accent border:
   - LED / Cell number stepper (`◀ Prev`, `Next ▶`, `⌖ Focus`).

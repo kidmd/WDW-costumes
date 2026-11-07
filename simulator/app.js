@@ -574,7 +574,8 @@ let hasMovedSignificantly = false;
 
 // Selection & Dragging state
 let selectedLed = null;
-let selectedMatrixCell = null; // Currently selected 16x16 matrix cell // Primary / last selected LED index
+let selectedMatrixCell = null; // Currently selected 16x16 matrix cell
+let initialColorBeforeEdit = null; // Snapshot of color before edits started (for Revert)
 let selectedLeds = new Set(); // Multi-selection set of LED indices
 let isBoxSelectMode = false; // Toggleable box-select mode
 let isBoxSelecting = false;
@@ -2331,7 +2332,7 @@ function evalGlobalPattern(pattern, bpm, index, totalLeds, timeMs, c, hasColor, 
 
     let effC = c;
     let effHasColor = hasColor;
-    if (!isGroupOverride && params.ambientColorMode && params.ambientColorMode !== 'artwork') {
+    if (!isGroupOverride && (!c || !hasColor) && params.ambientColorMode && params.ambientColorMode !== 'artwork') {
         if (params.ambientColorMode === 'float_theme') {
             const floatIdx = (typeof activeSingleShirtRunnerSlot === 'number' && activeSingleShirtRunnerSlot >= 0) ? activeSingleShirtRunnerSlot : 0;
             const floatObj = (DEFAULT_FLEET_RADAR && DEFAULT_FLEET_RADAR[floatIdx]) ? DEFAULT_FLEET_RADAR[floatIdx] : null;
@@ -3179,7 +3180,7 @@ function computeLedColor(index, totalLeds, timeMs, overrideColor = null) {
         return evalGlobalPattern(activePattern, params.speedBpm, index, totalLeds, timeMs, effectiveColor, hasColor || (grp.colorMode === 'custom'), grp.colorMode === 'custom');
     }
 
-    return evalGlobalPattern(activePattern, params.speedBpm, index, totalLeds, timeMs, c, hasColor);
+    return evalGlobalPattern(activePattern, params.speedBpm, index, totalLeds, timeMs, c, hasColor, !!overrideColor);
 }
 
 
@@ -8420,10 +8421,60 @@ function focusOnLed(index) {
 // ============================================================================
 // LED SELECTION & RGB COLOR INSPECTOR
 // ============================================================================
+
+function updateRevertButtonState() {
+    const btn = document.getElementById('inspectorRevertColorBtn');
+    if (!btn) return;
+    if (!initialColorBeforeEdit) {
+        btn.disabled = true;
+        btn.style.opacity = '0.35';
+        btn.style.cursor = 'default';
+        btn.title = 'No edits made to revert';
+        btn.style.borderColor = '#30363d';
+        btn.style.color = '#8b949e';
+        return;
+    }
+    let cur = null;
+    if (selectedMatrixCell) {
+        cur = selectedMatrixCell.color;
+    } else if (selectedLed !== null && leds[selectedLed]) {
+        cur = leds[selectedLed].color;
+    }
+    if (!cur) {
+        btn.disabled = true;
+        btn.style.opacity = '0.35';
+        btn.style.cursor = 'default';
+        btn.style.borderColor = '#30363d';
+        btn.style.color = '#8b949e';
+        return;
+    }
+    const hasChanged = (cur.r !== initialColorBeforeEdit.r || cur.g !== initialColorBeforeEdit.g || cur.b !== initialColorBeforeEdit.b);
+    btn.disabled = !hasChanged;
+    btn.style.opacity = hasChanged ? '1.0' : '0.35';
+    btn.style.cursor = hasChanged ? 'pointer' : 'default';
+    if (hasChanged) {
+        const toHex = (n) => n.toString(16).padStart(2, '0').toUpperCase();
+        const origHex = `#${toHex(initialColorBeforeEdit.r)}${toHex(initialColorBeforeEdit.g)}${toHex(initialColorBeforeEdit.b)}`;
+        btn.title = `Revert color to initial ${origHex}`;
+        btn.style.borderColor = 'rgba(255, 193, 7, 0.7)';
+        btn.style.color = '#ffc107';
+        btn.style.fontWeight = '600';
+    } else {
+        btn.title = 'Color unchanged';
+        btn.style.borderColor = '#30363d';
+        btn.style.color = '#8b949e';
+        btn.style.fontWeight = 'normal';
+    }
+}
+window.updateRevertButtonState = updateRevertButtonState;
 function selectLed(index, isMulti = false) {
     if (index === null || index < 0 || index >= leds.length) {
         deselectLed();
         return;
+    }
+
+    if (!isMulti && leds[index] && leds[index].color) {
+        initialColorBeforeEdit = { ...leds[index].color };
     }
 
     if (isMulti) {
@@ -8451,8 +8502,10 @@ function deselectLed() {
     selectedLeds.clear();
     selectedGroupId = null;
     selectedMatrixCell = null;
+    initialColorBeforeEdit = null;
     resetGroupFormToDefaults();
     updateLedInspectorUI();
+    updateRevertButtonState();
     if (typeof draw === 'function') draw();
 }
 
@@ -8633,8 +8686,10 @@ function setSelectedLedColor(r, g, b) {
 
     if (selectedMatrixCell) {
         selectedMatrixCell.color = { r: clampedR, g: clampedG, b: clampedB };
+        selectedMatrixCell.hasColor = true;
         updateLedInspectorColorInputs(clampedR, clampedG, clampedB);
         updateLedInspectorUI();
+        updateRevertButtonState();
         markSingleShirtDirty();
         if (typeof draw === 'function') draw();
         if (isWifiStreaming) {
@@ -8681,6 +8736,7 @@ function setSelectedLedColor(r, g, b) {
 
     updateLedInspectorColorInputs(clampedR, clampedG, clampedB);
     updateLedInspectorUI();
+    updateRevertButtonState();
     markSingleShirtDirty();
 
     if (isWifiStreaming) {
@@ -17181,6 +17237,7 @@ function selectMatrixCell(cell) {
         return;
     }
     selectedMatrixCell = cell;
+    initialColorBeforeEdit = cell.color ? { ...cell.color } : null;
     selectedLed = null;
     selectedLeds.clear();
     selectedGroupId = null;
@@ -17196,7 +17253,9 @@ window.selectMatrixCell = selectMatrixCell;
 
 function deselectMatrixCell() {
     selectedMatrixCell = null;
+    initialColorBeforeEdit = null;
     updateLedInspectorUI();
+    updateRevertButtonState();
     markSingleShirtDirty();
     if (typeof draw === 'function') draw();
 }
@@ -18546,13 +18605,29 @@ const bindRgbControl = (sliderId, numId, channel) => {
     const num = document.getElementById(numId);
     if (!slider || !num) return;
 
+    const getActiveColor = () => {
+        if (selectedMatrixCell) {
+            return selectedMatrixCell.color || { r: 0, g: 255, b: 136 };
+        }
+        if (selectedLed !== null && leds[selectedLed]) {
+            return leds[selectedLed].color || { r: 0, g: 255, b: 100 };
+        }
+        if (selectedLeds.size > 0) {
+            const firstIdx = Array.from(selectedLeds)[0];
+            return leds[firstIdx]?.color || { r: 0, g: 255, b: 100 };
+        }
+        return null;
+    };
+
     slider.addEventListener('input', (e) => {
         const val = parseInt(e.target.value, 10);
         num.value = val;
-        if (selectedLed !== null && leds[selectedLed]) {
-            const cur = leds[selectedLed].color || { r: 0, g: 255, b: 100 };
-            cur[channel] = val;
-            setSelectedLedColor(cur.r, cur.g, cur.b);
+        const cur = getActiveColor();
+        if (cur) {
+            const r = channel === 'r' ? val : (cur.r ?? 0);
+            const g = channel === 'g' ? val : (cur.g ?? 0);
+            const b = channel === 'b' ? val : (cur.b ?? 0);
+            setSelectedLedColor(r, g, b);
         }
     });
 
@@ -18561,10 +18636,12 @@ const bindRgbControl = (sliderId, numId, channel) => {
         if (isNaN(val)) val = 0;
         val = Math.max(0, Math.min(255, val));
         slider.value = val;
-        if (selectedLed !== null && leds[selectedLed]) {
-            const cur = leds[selectedLed].color || { r: 0, g: 255, b: 100 };
-            cur[channel] = val;
-            setSelectedLedColor(cur.r, cur.g, cur.b);
+        const cur = getActiveColor();
+        if (cur) {
+            const r = channel === 'r' ? val : (cur.r ?? 0);
+            const g = channel === 'g' ? val : (cur.g ?? 0);
+            const b = channel === 'b' ? val : (cur.b ?? 0);
+            setSelectedLedColor(r, g, b);
         }
     });
 };
@@ -18755,6 +18832,15 @@ document.querySelectorAll('.grp-tempo-chip-inspector').forEach(btn => {
         markSingleShirtDirty();
         showToast(`⚡ Set group tempo to ${bpm} BPM`);
     });
+});
+
+document.getElementById('inspectorRevertColorBtn')?.addEventListener('click', () => {
+    if (!initialColorBeforeEdit) return;
+    setSelectedLedColor(initialColorBeforeEdit.r, initialColorBeforeEdit.g, initialColorBeforeEdit.b);
+    const toHex = (n) => n.toString(16).padStart(2, '0').toUpperCase();
+    const hex = `#${toHex(initialColorBeforeEdit.r)}${toHex(initialColorBeforeEdit.g)}${toHex(initialColorBeforeEdit.b)}`;
+    showToast(`⟲ Reverted color back to initial ${hex}!`);
+    updateRevertButtonState();
 });
 
 document.getElementById('inspectorSampleBtn')?.addEventListener('click', () => {
@@ -23883,10 +23969,15 @@ if (flashReceiverBtn) {
 function syncInspectorMount(targetTabId) {
     const inspector = document.getElementById('ledInspectorSection');
     if (!inspector) return;
-    const hostDeploy = document.getElementById('inspectorHostDeploy');
+    const hostLayout = document.getElementById('inspectorHostLayout');
     const hostGroups = document.getElementById('inspectorHostGroups');
+    const hostDeploy = document.getElementById('inspectorHostDeploy');
 
-    if (targetTabId === 'tabHardware' && hostDeploy) {
+    if (targetTabId === 'tabLayout' && hostLayout) {
+        if (inspector.parentElement !== hostLayout) {
+            hostLayout.appendChild(inspector);
+        }
+    } else if (targetTabId === 'tabHardware' && hostDeploy) {
         if (inspector.parentElement !== hostDeploy) {
             hostDeploy.appendChild(inspector);
         }

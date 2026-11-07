@@ -791,6 +791,8 @@
                         </div>
                     </div>
 
+                    <!-- Contextual LED Inspector Host (Layout Tab) -->
+                    <div id="inspectorHostLayout"></div>
 
                 </div>
 
@@ -1710,6 +1712,7 @@
                     <!-- Single LED Utility Buttons -->
                     <div id="inspectorSingleUtils" style="display: flex; gap: 6px; margin-top: 2px;">
                         <button type="button" id="inspectorSampleBtn" class="action-btn" style="flex: 1; font-size: 11px; padding: 5px;" title="Sample artwork pixel color directly under this LED">🎨 Sample Art</button>
+                        <button type="button" id="inspectorRevertColorBtn" class="action-btn" style="flex: 1; font-size: 11px; padding: 5px; opacity: 0.4;" title="Revert to initial color before changes were made" disabled>⟲ Revert</button>
                         <button type="button" id="inspectorCopyNextBtn" class="action-btn" style="flex: 1; font-size: 11px; padding: 5px;" title="Copy this color to the next 5 LEDs along the wire">⏩ Copy Next 5</button>
                         <button type="button" id="inspectorDeselectBtn" class="action-btn" style="padding: 5px 8px; font-size: 11px;" title="Deselect LED">✖</button>
                     </div>
@@ -3348,6 +3351,6 @@
     </div>
 
     <script src="led_clearance.js?v=2"></script>
-    <script src="app.js?v=113"></script>
+    <script src="app.js?v=114"></script>
 </body>
 </html>

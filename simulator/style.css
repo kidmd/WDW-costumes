@@ -325,7 +325,8 @@ h1 {
     display: none !important;
 }
 
-/* When Inspector is placed inside Groups or Deploy Tab */
+/* When Inspector is placed inside Layout, Groups or Deploy Tab */
+#tabLayout #ledInspectorSection,
 #tabGroups #ledInspectorSection,
 #tabHardware #ledInspectorSection {
     margin-top: 10px;
@@ -339,12 +340,14 @@ h1 {
     flex-shrink: 0;
 }
 
+#tabLayout #ledInspectorSection.dock-active,
 #tabGroups #ledInspectorSection.dock-active,
 #tabHardware #ledInspectorSection.dock-active {
     border: 1px solid #ffc107;
     background: #11151d;
 }
 
+#tabLayout #ledInspectorSection.dock-empty,
 #tabGroups #ledInspectorSection.dock-empty,
 #tabHardware #ledInspectorSection.dock-empty {
     max-height: none;
