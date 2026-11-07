@@ -30,6 +30,57 @@ def extrude_shapely(shape, height):
         return meshes[0]
     return trimesh.util.concatenate(meshes)
 
+def export_3mf_with_100_infill(mesh, mf3_path, obj_name="MSEP_Solid_Panel"):
+    """Exports trimesh as 3MF and injects slicer metadata for 100% solid infill and 5 wall loops
+    in Bambu Studio, OrcaSlicer, and Snapmaker Orca so users don't need to manually configure it."""
+    import zipfile, xml.etree.ElementTree as ET
+    
+    mesh.export(mf3_path)
+    try:
+        with zipfile.ZipFile(mf3_path, 'r') as zin:
+            files_data = {name: zin.read(name) for name in zin.namelist()}
+        
+        ns = "http://schemas.microsoft.com/3dmanufacturing/core/2015/02"
+        root = ET.fromstring(files_data['3D/3dmodel.model'])
+        resources = root.find(f"{{{ns}}}resources")
+        objs = resources.findall(f"{{{ns}}}object") if resources is not None else []
+        obj_id = objs[0].attrib.get('id', '1') if objs else '1'
+        
+        cfg_root = ET.Element('config')
+        plate_elem = ET.SubElement(cfg_root, 'plate')
+        ET.SubElement(plate_elem, 'metadata', {'key': 'plater_id', 'value': '1'})
+        
+        obj_elem = ET.SubElement(cfg_root, 'object', {'id': obj_id})
+        ET.SubElement(obj_elem, 'metadata', {'key': 'name', 'value': obj_name})
+        ET.SubElement(obj_elem, 'metadata', {'key': 'sparse_infill_density', 'value': '100%'})
+        ET.SubElement(obj_elem, 'metadata', {'key': 'wall_loops', 'value': '5'})
+        ET.SubElement(obj_elem, 'metadata', {'key': 'bottom_shell_layers', 'value': '15'})
+        ET.SubElement(obj_elem, 'metadata', {'key': 'top_shell_layers', 'value': '15'})
+        
+        part_elem = ET.SubElement(obj_elem, 'part', {'id': obj_id, 'subtype': 'normal_part'})
+        ET.SubElement(part_elem, 'metadata', {'key': 'name', 'value': obj_name})
+        ET.SubElement(part_elem, 'metadata', {'key': 'sparse_infill_density', 'value': '100%'})
+        ET.SubElement(part_elem, 'metadata', {'key': 'wall_loops', 'value': '5'})
+        ET.SubElement(part_elem, 'metadata', {'key': 'bottom_shell_layers', 'value': '15'})
+        ET.SubElement(part_elem, 'metadata', {'key': 'top_shell_layers', 'value': '15'})
+        
+        files_data['Metadata/model_settings.config'] = ET.tostring(cfg_root, encoding='utf-8', xml_declaration=True)
+        
+        if '[Content_Types].xml' in files_data:
+            ct_xml = files_data['[Content_Types].xml'].decode('utf-8')
+            if 'Metadata/model_settings.config' not in ct_xml:
+                ct_insert = '<Override PartName="/Metadata/model_settings.config" ContentType="application/vnd.ms-package.config+xml"/>\n</Types>'
+                ct_xml = ct_xml.replace('</Types>', ct_insert)
+                files_data['[Content_Types].xml'] = ct_xml.encode('utf-8')
+                
+        tmp_path = mf3_path + '.tmp'
+        with zipfile.ZipFile(tmp_path, 'w', zipfile.ZIP_DEFLATED) as zout:
+            for name, content in files_data.items():
+                zout.writestr(name, content)
+        os.replace(tmp_path, mf3_path)
+    except Exception as e:
+        print(f"Metadata injection warning on {mf3_path}: {e}")
+
 def build_test_panels():
     out_dir = '3d_panels'
     os.makedirs(out_dir, exist_ok=True)
@@ -130,7 +181,7 @@ def build_test_panels():
     full_stl_path = os.path.join(out_dir, "test_all_black_16x16_panel.stl")
     full_3mf_path = os.path.join(out_dir, "test_all_black_16x16_panel.3mf")
     full_panel.export(full_stl_path)
-    full_panel.export(full_3mf_path)
+    export_3mf_with_100_infill(full_panel, full_3mf_path, "MSEP_16x16_Test_Panel")
     print(f"Exported: {full_stl_path} | Verts: {len(full_panel.vertices)}, Faces: {len(full_panel.faces)}")
     print(f"  Dimensions: X={full_panel.extents[0]:.1f}mm, Y={full_panel.extents[1]:.1f}mm, Z={full_panel.extents[2]:.1f}mm")
     print(f"  Is watertight: {full_panel.is_watertight}")
@@ -157,7 +208,7 @@ def build_test_panels():
     coupon_stl_path = os.path.join(out_dir, "test_corner_snap_coupon.stl")
     coupon_3mf_path = os.path.join(out_dir, "test_corner_snap_coupon.3mf")
     coupon_mesh.export(coupon_stl_path)
-    coupon_mesh.export(coupon_3mf_path)
+    export_3mf_with_100_infill(coupon_mesh, coupon_3mf_path, "MSEP_Corner_Coupon")
     print(f"Exported: {coupon_stl_path} | Verts: {len(coupon_mesh.vertices)}, Faces: {len(coupon_mesh.faces)}")
     print(f"  Dimensions: X={coupon_mesh.extents[0]:.1f}mm, Y={coupon_mesh.extents[1]:.1f}mm, Z={coupon_mesh.extents[2]:.1f}mm")
     print(f"  Is watertight: {coupon_mesh.is_watertight}")
