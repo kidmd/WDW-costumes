@@ -93,6 +93,18 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### 2026-11-07: Recessed Back (Felt-Side) 16x16 Panel & Corner Coupon (6.2mm Prong Optimization)
+- **Recessed Back Counterbore Architecture (`3d_panels/test_all_black_16x16_panel_recessed_back.stl` / `.3mf`):**
+  - Engineered specifically for 6.2mm KAM snap prongs while preserving a 100% flat front face for face-down PEI printing with zero bridging or supports.
+  - Spans full $176.0 \times 176.0\text{ mm}$ straight-sided footprint with $5.8\text{ mm}$ perimeter flange and $160.4 \times 160.4\text{ mm}$ open cavity ($2.0\text{ mm}$ deep).
+  - Corner tabs and 2mm frame walls rise to full **$Z = 3.00\text{ mm}$** on the back, creating a 100% planar support rim across the entire panel so the felt pad never bends or flexes.
+  - Each corner tab features a **$\varnothing 13.0\text{ mm} \times 1.2\text{ mm}$ deep recessed well** on the back (felt side) with a centered $\varnothing 3.0\text{ mm}$ through-hole.
+  - Leaves **$1.8\text{ mm}$ of solid PETG floor** under the snap cap. Combined with compressed felt, the 6.2mm prong easily leaves $1.5\text{ mm}$ to $1.8\text{ mm}$ of clean plastic pin protruding into the socket for the pliers to form a permanent mushroom rivet.
+- **12-Minute Recessed Back Corner Coupon (`3d_panels/test_corner_snap_coupon_recessed_back.stl` / `.3mf`):**
+  - $45.0 \times 45.0 \times 3.0\text{ mm}$ isolated corner coupon with the back-side counterbore for rapid 12–15 minute slicing and bench verification.
+  - Both meshes validated strictly as watertight manifold geometry (`is_watertight == True`).
+  - Preserved existing flat-tab models alongside the new recessed-back models.
+
 ### 2026-11-07: All-Black 16x16 Test Panel with 176mm Extended Flange & Integrated Snap Ears
 - **Unified 176mm Extended Perimeter Flange Architecture (`3d_panels/test_all_black_16x16_panel.stl` / `.3mf`):**
   - Designed for single-extruder black PETG printing with zero mid-print pauses or filament swaps.
