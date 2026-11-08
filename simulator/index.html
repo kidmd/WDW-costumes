@@ -885,15 +885,15 @@
                             </select>
                         </div>
                         <div class="control-group" id="ambientProgressionGroup" style="margin-top: 8px; display: flex; gap: 8px; align-items: center;">
-                            <label style="font-size: 11px; color: var(--text-muted); flex: 1;">Wave Progression:</label>
-                            <select id="ambientProgressionSelect" style="background: #0d1117; color: #fff; border: 1px solid #30363d; border-radius: 5px; padding: 5px 8px; font-size: 11px; flex: 1.5; outline: none;" title="Theatrical path of traveling waves around the 562-LED costume">
-                                <option value="waterfall" selected>🌊 Waterfall / Fountain (Default)</option>
-                                <option value="orbit">🪐 360° Torso Orbit (Planetary Ring)</option>
-                                <option value="radial_burst">💥 Heartbeat Radial Shockwave</option>
-                                <option value="horizon_lift">🌅 Ground-to-Sky Horizon</option>
-                                <option value="dragon_wings">🐉 Dragon Wings (Shoulders Dive)</option>
-                                <option value="lateral_roll">↔️ Lateral Barrel Roll</option>
-                                <option value="dual_collision">⚡ Dual-Collision Shockwave</option>
+                            <label style="font-size: 11px; color: var(--text-muted); flex: 1;" title="WaveProgressionMode strictly determines the physical spatial path and flow direction across the 562-LED costume">🌊 Flow Path / Direction:</label>
+                            <select id="ambientProgressionSelect" style="background: #0d1117; color: #fff; border: 1px solid #30363d; border-radius: 5px; padding: 5px 8px; font-size: 11px; flex: 1.5; outline: none;" title="Determines the physical spatial direction that lights flow across the body">
+                                <option value="waterfall" selected>🌊 Waterfall (Down front → Up ribs → Down back → Up back)</option>
+                                <option value="orbit">🪐 360° Torso Orbit (Front → Right side → Back → Left side → Front)</option>
+                                <option value="radial_burst">💥 Radial Shockwave (Chest center → Expanding to ribs & back)</option>
+                                <option value="horizon_lift">🌅 Horizon Lift (Waist hem & ground → Rising up to shoulders)</option>
+                                <option value="dragon_wings">🐉 Dragon Wings (Top shoulders → Diving down ribs & panels)</option>
+                                <option value="lateral_roll">↔️ Lateral Barrel Roll (Left ribs → Across panels → Right ribs)</option>
+                                <option value="dual_collision">⚡ Dual Collision (Front & back clash at shoulders + rebound)</option>
                             </select>
                         </div>
                     </div>

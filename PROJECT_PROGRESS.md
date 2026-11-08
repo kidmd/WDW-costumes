@@ -93,6 +93,25 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### November 8, 2026 - Separation of Concerns: Spatial Flow Direction vs. Lighting Effect Dynamics
+- **Architectural Separation of Concerns (`simulator/app.js`, `simulator/index.html`):**
+  - Formally decoupled the **spatial path / direction** of light propagation from the **lighting dynamics, shape, count, and color behavior**:
+    - **`WaveProgressionMode` (Spatial Flow Direction):** Strictly governs the physical geometric trajectory across the 562-LED costume (`waterfall`, `orbit`, `radial_burst`, `horizon_lift`, `dragon_wings`, `lateral_roll`, `dual_collision`).
+    - **`Pattern / Effect` (Lighting Dynamics, Shape & Color):** Exclusively controls the form, count of lit pixels, fill density, and color behavior along that path:
+      - `traveling_wave`: Focused traveling wave pulse with calibrated front/fairy relative velocity and palette blending.
+      - `chase`: Sharp moving dot / beam traveling across the progression coordinates.
+      - `comet`: High-speed meteor head with an exponential fading tail following the progression trajectory.
+      - `scanner`: Larson back-and-forth bounce or wide oscillating pool across the trajectory.
+      - `color_wipe` / `write_on_off`: Cumulative progressive fill of LEDs along the trajectory up to the wavefront percentage.
+      - `rainbow_cycle`: Full 360° chromatic spectrum phase distribution mapped to the spatial progression coordinates.
+      - `marquee`: 3-phase incandescent theater chase steps progressing along the trajectory.
+      - `tidal_ripple`: Harmonic undulating ripples smoothly propagating through the trajectory.
+- **Cue Editor Dropdown Integration (`simulator/app.js`):**
+  - Updated `.cue-progression-select` dropdown in all cue cards with descriptive directional labels (`🌊 Waterfall: Down front → Up ribs → Down back → Up back`, `🪐 360° Torso Orbit`, `💥 Radial Shockwave`, `🌅 Horizon Lift`, `🐉 Dragon Wings`, `↔️ Lateral Barrel Roll`, `⚡ Dual Collision`).
+  - Added full coordinate safety clamping `[0.0, 0.999]` preventing out-of-bounds array reads and modulo wrap glitches.
+- **Microcontroller Firmware Parity (`src/main.cpp`, `arduino/MSEP_Costume/MSEP_Costume.ino`):**
+  - Synchronized `WaveProgressionMode` enum and `FAIRY_STRAND1_LOOP_POS` / `FAIRY_STRAND2_LOOP_POS` lookup tables for ESP32 Arduino Core 2.x and 3.x+ compatibility.
+
 ### November 8, 2026 - Selectable 7-Mode Wave Progression Suite in Cue Director & Ambient Controls
 - **7-Mode Theatrical Wave Trajectories (`simulator/app.js`, `simulator/index.html`, `src/main.cpp`, `arduino/MSEP_Costume/MSEP_Costume.ino`):**
   - Implemented the full suite of 7 specialized kinetic wave trajectories mapping all 562 LEDs into continuous phase bounds $[0.0, 1.0)$:

@@ -2512,6 +2512,15 @@ const COSTUME_562_PROGRESSIONS = (function() {
         progs.dual_collision[idx] = 0.25 + ((idx - 537) / 12.0) * 0.25;
     }
 
+    // Safety clamp: strictly enforce [0.0, 0.999] so normalized coordinates never overflow [0.0, 1.0)
+    for (const k of Object.keys(progs)) {
+        const arr = progs[k];
+        for (let i = 0; i < 562; i++) {
+            if (arr[i] >= 1.0) arr[i] = 0.999;
+            else if (arr[i] < 0.0) arr[i] = 0.0;
+        }
+    }
+
     return progs;
 })();
 window.COSTUME_562_PROGRESSIONS = COSTUME_562_PROGRESSIONS;
@@ -2677,8 +2686,13 @@ function evalGlobalPattern(pattern, bpm, index, totalLeds, timeMs, c, hasColor, 
             break;
         }
         case 'marquee': {
-            const sm = getSpatialMetrics();
-            const effRank = (sm && sm.rankYBottomUp && sm.rankYBottomUp[index] !== undefined) ? sm.rankYBottomUp[index] : index;
+            let effRank;
+            if (typeof currentHardwareMode !== 'undefined' && currentHardwareMode === 'full_costume') {
+                effRank = Math.floor(getCostumeNormalizedLoopCoord(index, activeProgression) * totalLeds);
+            } else {
+                const sm = getSpatialMetrics();
+                effRank = (sm && sm.rankYBottomUp && sm.rankYBottomUp[index] !== undefined) ? sm.rankYBottomUp[index] : index;
+            }
             const step = Math.floor(normTime * 3) % 3;
             const effStep = (dir === -1) ? (3 - step) % 3 : step;
             if ((effRank + effStep) % 3 === 0) {
@@ -3122,11 +3136,17 @@ function evalGlobalPattern(pattern, bpm, index, totalLeds, timeMs, c, hasColor, 
             break;
         }
         case 'tidal_ripple': {
-            const sm = getSpatialMetrics();
-            const normDist = (sm && sm.normRadius && sm.normRadius[index] !== undefined)
-                ? sm.normRadius[index]
-                : (Math.abs(index - (totalLeds - 1) / 2) / Math.max(1, (totalLeds - 1) / 2));
-            const wavePhase = (normTime * 0.75 * dir) - (normDist * 2.2);
+            let wavePhase;
+            if (typeof currentHardwareMode !== 'undefined' && currentHardwareMode === 'full_costume') {
+                const coord = getCostumeNormalizedLoopCoord(index, activeProgression);
+                wavePhase = (normTime * 0.75 * dir) - (coord * 3.0);
+            } else {
+                const sm = getSpatialMetrics();
+                const normDist = (sm && sm.normRadius && sm.normRadius[index] !== undefined)
+                    ? sm.normRadius[index]
+                    : (Math.abs(index - (totalLeds - 1) / 2) / Math.max(1, (totalLeds - 1) / 2));
+                wavePhase = (normTime * 0.75 * dir) - (normDist * 2.2);
+            }
             const wave = Math.sin(wavePhase * Math.PI) * 0.5 + 0.5;
             const eff = 0.15 + 0.85 * Math.pow(wave, 1.8);
             if (effHasColor) {
@@ -11817,21 +11837,21 @@ function renderCuesList() {
                 </div>
             </div>
 
-            <!-- Wave Progression (Trajectory) Selector -->
+            <!-- Wave Progression (Spatial Flow Direction & Trajectory) Selector -->
             <div class="cue-card-row cue-progression-row" style="margin-top: 4px;">
                 <div style="flex: 1;">
-                    <label style="font-size: 10px; color: var(--text-muted); display: flex; justify-content: space-between;">
-                        <span>🌊 Wave Progression:</span>
-                        <span style="color: #58a6ff; font-size: 9px;">Trajectory</span>
+                    <label style="font-size: 10px; color: var(--text-muted); display: flex; justify-content: space-between;" title="WaveProgressionMode determines the physical spatial path and flow direction that the lights travel across the 562-LED costume">
+                        <span>🌊 Flow Path / Progression:</span>
+                        <span style="color: #58a6ff; font-size: 9px; font-weight: 600;">Spatial Direction</span>
                     </label>
-                    <select class="cue-progression-select" style="width: 100%; background: #0d1117; color: #fff; border: 1px solid #30363d; border-radius: 4px; padding: 4px; font-size: 11px;">
-                        <option value="waterfall" ${(cue.progression === 'waterfall' || !cue.progression) ? 'selected' : ''}>🌊 Waterfall / Fountain (Default)</option>
-                        <option value="orbit" ${cue.progression === 'orbit' ? 'selected' : ''}>🪐 360° Torso Orbit (Planetary Ring)</option>
-                        <option value="radial_burst" ${cue.progression === 'radial_burst' ? 'selected' : ''}>💥 Heartbeat Radial Shockwave</option>
-                        <option value="horizon_lift" ${cue.progression === 'horizon_lift' ? 'selected' : ''}>🌅 Ground-to-Sky Horizon</option>
-                        <option value="dragon_wings" ${cue.progression === 'dragon_wings' ? 'selected' : ''}>🐉 Dragon Wings (Shoulders Dive)</option>
-                        <option value="lateral_roll" ${cue.progression === 'lateral_roll' ? 'selected' : ''}>↔️ Lateral Barrel Roll</option>
-                        <option value="dual_collision" ${cue.progression === 'dual_collision' ? 'selected' : ''}>⚡ Dual-Collision Shockwave</option>
+                    <select class="cue-progression-select" style="width: 100%; background: #0d1117; color: #fff; border: 1px solid #30363d; border-radius: 4px; padding: 4px; font-size: 11px;" title="Determines the direction that lights flow across the body">
+                        <option value="waterfall" ${(cue.progression === 'waterfall' || !cue.progression) ? 'selected' : ''}>🌊 Waterfall (Down front → Up ribs → Down back → Up back)</option>
+                        <option value="orbit" ${cue.progression === 'orbit' ? 'selected' : ''}>🪐 360° Torso Orbit (Front → Right side → Back → Left side → Front)</option>
+                        <option value="radial_burst" ${cue.progression === 'radial_burst' ? 'selected' : ''}>💥 Radial Shockwave (Chest center → Expanding to ribs & back)</option>
+                        <option value="horizon_lift" ${cue.progression === 'horizon_lift' ? 'selected' : ''}>🌅 Horizon Lift (Waist hem & ground → Rising up to shoulders)</option>
+                        <option value="dragon_wings" ${cue.progression === 'dragon_wings' ? 'selected' : ''}>🐉 Dragon Wings (Top shoulders → Diving down ribs & panels)</option>
+                        <option value="lateral_roll" ${cue.progression === 'lateral_roll' ? 'selected' : ''}>↔️ Lateral Barrel Roll (Left ribs → Across panels → Right ribs)</option>
+                        <option value="dual_collision" ${cue.progression === 'dual_collision' ? 'selected' : ''}>⚡ Dual Collision (Front & back clash at shoulders + rebound)</option>
                     </select>
                 </div>
             </div>

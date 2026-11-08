@@ -803,8 +803,16 @@ Click **➕ Add Cue** to create a new cue card with the following settings:
 - **Cue Name:** A custom theatrical label (e.g., `Billowing Sails Chase`, `Snout Fire Breath`, or automatic `[Group Name] Routine`).
 - **Target Layer:** Select either `🌐 Global Float` or any active animation group (e.g. `🎡 Group: Front Wheel`).
   - **Group Preset Inheritance:** When an animation group is selected in the Target Layer dropdown (or when clicking **`➕ Add Cue`** while a group is active), the cue automatically inherits the **Pattern / Effect**, **Direction**, and **BPM (Tempo)** configured when the group was created, saving setup time while still allowing you to freely change the effect in the dropdown!
-- **Pattern / Effect:** Select from the unified library of 16+ built-in lighting effects (see Section 10).
-- **Direction:** Select `➡️ Forward` or `⬅️ Reverse` for traveling animations (comet sweeps, marquee chases, waves, Larson scans).
+- **Pattern / Effect (Lighting Dynamics & Color):** Select from the unified library of 16+ built-in lighting effects (e.g. `Traveling Wave`, `Chasing Beam`, `Comet`, `Larson Scanner`, `Color Wipe`, `Rainbow Cycle`, `Theater Marquee`, `Tidal Ripple`). Controls **light quantity, shape, fill dynamics, sparkle density, and color behavior** across active pixels.
+- **Direction:** Select `➡️ Forward` or `⬅️ Reverse` for traveling animations.
+- **Flow Path / Progression (Spatial Trajectory):** Governs the **physical spatial direction and path** along which light flows across the 562-LED costume:
+  - `🌊 Waterfall (Default)`: Down the chest badge $\rightarrow$ out from bottom center and ascending both front ribs in mirror image $\rightarrow$ cascading down back ribs $\rightarrow$ ascending the back badge.
+  - `🪐 360° Torso Orbit`: Closed-loop unbroken planetary ring orbiting continuously around front chest $\rightarrow$ right ribs $\rightarrow$ back badge $\rightarrow$ left ribs.
+  - `💥 Radial Shockwave`: Concentric expansion radiating outward from chest center across ribs and shoulders to the back.
+  - `🌅 Horizon Lift`: Ground-to-sky altitude scan moving strictly upward from waist hem to shoulder epaulets.
+  - `🐉 Dragon Wings`: High-altitude dive originating at shoulder crests and plunging downward across both ribs and panels.
+  - `↔️ Lateral Barrel Roll`: Transverse horizontal roll sweeping from left ribs across chest/back badges to right ribs.
+  - `⚡ Dual Collision`: Opposing wavefronts ascending simultaneously up front and back, clashing at shoulder apexes with harmonic rebound.
 - **Start Time (s):** Time offset in seconds from the beginning of the show loop (0.5s resolution).
 - **Duration (s):** How long the cue runs before fading out (with instant quick chips: `5s`, `10s`, `15s`, `30s`).
 - **BPM (Tempo):** The speed of the animation during this specific cue (with instant quick chips: `90`, `120`, `144`, `180 BPM`).
