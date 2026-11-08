@@ -2328,49 +2328,60 @@ function getSparkleRgb(style) {
 // 2. Out & Up along Front Fairy Lights at the same time (Left & Right mirrored): 22% of cycle (0.28 to 0.50)
 // 3. Down & Over Back Fairy Lights at the same time (Left & Right mirrored): 22% of cycle (0.50 to 0.72)
 // 4. Up the Back 16x16 Panel (281..536, Row 15 -> Row 0): 28% of cycle (0.72 to 1.00)
+// Accurately models the physical Z-fold accordion bulb sequence of the 50 fairy lights:
+// Strand 1 (Wearer's Right, chain 256..280, bulbs 1..25):
+//   Front Ribs (13 steps, u: 0.28 -> 0.50): Bulbs [8, 1, 9, 7, 2, 10, 6, 3, 11, 5, 4, 12, 13]
+//     -> Chain indices: [263, 256, 264, 262, 257, 265, 261, 258, 266, 260, 259, 267, 268]
+//   Back Ribs  (12 steps, u: 0.50 -> 0.72): Bulbs [14, 15, 22, 21, 16, 23, 20, 17, 24, 19, 18, 25]
+//     -> Chain indices: [269, 270, 277, 276, 271, 278, 275, 272, 279, 274, 273, 280]
+// Strand 2 (Wearer's Left, chain 537..561, bulbs 1..25):
+//   Front Ribs (12 steps, u: 0.28 -> 0.50): Bulbs [25, 18, 19, 24, 17, 20, 23, 16, 21, 22, 15, 14]
+//     -> Chain indices: [561, 554, 555, 560, 553, 556, 559, 552, 557, 558, 551, 550]
+//   Back Ribs  (13 steps, u: 0.50 -> 0.72): Bulbs [13, 12, 4, 5, 11, 3, 6, 10, 2, 7, 9, 1, 8]
+//     -> Chain indices: [549, 548, 540, 541, 547, 539, 542, 546, 538, 543, 545, 537, 544]
+const COSTUME_562_LOOP_COORDS = (function() {
+    const coords = new Float32Array(562);
+    // Stage 1: Down the Front Panel (0..255) -> Row 0..15 (0.00 to 0.28)
+    for (let idx = 0; idx < 256; idx++) {
+        const row = Math.floor(idx / 16);
+        coords[idx] = 0.00 + ((row + 0.5) / 16.0) * 0.28;
+    }
+    // Stage 2: Out & Up Along Front Fairy Lights (Left & Right mirrored) -> 0.28 to 0.50
+    const s1Front = [263, 256, 264, 262, 257, 265, 261, 258, 266, 260, 259, 267, 268];
+    for (let step = 0; step < s1Front.length; step++) {
+        coords[s1Front[step]] = 0.28 + (step / (s1Front.length - 1)) * 0.22;
+    }
+    const s2Front = [561, 554, 555, 560, 553, 556, 559, 552, 557, 558, 551, 550];
+    for (let step = 0; step < s2Front.length; step++) {
+        coords[s2Front[step]] = 0.28 + (step / (s2Front.length - 1)) * 0.22;
+    }
+    // Stage 3: Down & Over Back Fairy Lights (Left & Right mirrored) -> 0.50 to 0.72
+    const s1Back = [269, 270, 277, 276, 271, 278, 275, 272, 279, 274, 273, 280];
+    for (let step = 0; step < s1Back.length; step++) {
+        coords[s1Back[step]] = 0.50 + (step / (s1Back.length - 1)) * 0.22;
+    }
+    const s2Back = [549, 548, 540, 541, 547, 539, 542, 546, 538, 543, 545, 537, 544];
+    for (let step = 0; step < s2Back.length; step++) {
+        coords[s2Back[step]] = 0.50 + (step / (s2Back.length - 1)) * 0.22;
+    }
+    // Stage 4: Up the Back Panel (281..536) -> Row 15..0 (0.72 to 1.00)
+    for (let idx = 281; idx <= 536; idx++) {
+        const mIdx = idx - 281;
+        const row = Math.floor(mIdx / 16);
+        const upRow = 15 - row;
+        coords[idx] = 0.72 + ((upRow + 0.5) / 16.0) * 0.28;
+    }
+    return coords;
+})();
+window.COSTUME_562_LOOP_COORDS = COSTUME_562_LOOP_COORDS;
+
 function getCostumeNormalizedLoopCoord(index) {
     if (typeof currentHardwareMode === 'undefined' || currentHardwareMode !== 'full_costume') {
         return index / Math.max(1, (typeof leds !== 'undefined' ? leds.length : 200));
     }
-
-    // Stage 1: Down the Front Panel (Row 0 -> Row 15)
-    if (index >= 0 && index <= 255) {
-        const row = Math.floor(index / 16.0); // 0 (top) to 15 (bottom)
-        return 0.00 + ((row + 0.5) / 16.0) * 0.28;
+    if (index >= 0 && index < 562) {
+        return COSTUME_562_LOOP_COORDS[index];
     }
-
-    // Stage 2: Out and Up Along Front Fairy Lights (Left & Right mirrored)
-    // Right Front: 256..266 (ribs i=0..10), 267 (shoulder i=11)
-    else if (index >= 256 && index <= 267) {
-        const i = index - 256;
-        return 0.28 + (i / 11.0) * 0.22;
-    }
-    // Left Front: 561..551 (ribs i=0..10), 550 (shoulder i=11)
-    else if (index >= 550 && index <= 561) {
-        const i = 561 - index;
-        return 0.28 + (i / 11.0) * 0.22;
-    }
-
-    // Stage 3: Down and Over Back Fairy Lights (Left & Right mirrored)
-    // Right Back: 268 (shoulder j=0), 269..280 (ribs j=1..12)
-    else if (index >= 268 && index <= 280) {
-        const j = index - 268;
-        return 0.50 + (j / 12.0) * 0.22;
-    }
-    // Left Back: 549 (shoulder j=0), 548..537 (ribs j=1..12)
-    else if (index >= 537 && index <= 549) {
-        const j = 549 - index;
-        return 0.50 + (j / 12.0) * 0.22;
-    }
-
-    // Stage 4: Up the Back Panel (Row 15 -> Row 0)
-    else if (index >= 281 && index <= 536) {
-        const mIdx = index - 281;
-        const row = Math.floor(mIdx / 16.0); // 0 (top) to 15 (bottom)
-        const upFrac = ((15 - row) + 0.5) / 16.0;
-        return 0.72 + upFrac * 0.28;
-    }
-
     return (index % 562) / 562.0;
 }
 window.getCostumeNormalizedLoopCoord = getCostumeNormalizedLoopCoord;

@@ -22,12 +22,16 @@ This guide walks you through every feature of the simulator, from placing and wi
 10. [Parade Cue Director (90-Second Theatrical Sequences)](#10-parade-cue-director-90-second-theatrical-sequences)
 11. [Lighting Patterns & Effects Library](#11-lighting-patterns--effects-library)
 
-> 🌊 **Full Costume Wave Pacing (Slower on Fairy Strands):** In Full Costume Mode (562 LEDs), wave and sweep effects (`traveling_wave`, `chase`, `comet`, `scanner`, `rainbow_cycle`, `color_wipe`, and `write_on_off`) utilize anatomically calibrated loop pacing (`getCostumeNormalizedLoopCoord`). The wave progression follows a bilaterally symmetrical theatrical choreography:
-1. **Down the Front Panel:** Row 0 to Row 15 (28% of cycle).
-2. **Out & Up Along Front Fairy Strands (Mirrored):** Left and right ribcage strands ascend simultaneously as exact mirror images up to both shoulders (22% of cycle).
-3. **Down & Over Back Fairy Strands (Mirrored):** Both sides cascade over the shoulder apex and down the back ribs simultaneously in mirror symmetry (22% of cycle).
-4. **Up the Back Panel:** Row 15 to Row 0 up the back matrix (28% of cycle).
-This provides ~6.8× more dwell time per fairy bulb while maintaining perfect visual bilateral symmetry on race day.
+> 🌊 **Full Costume Wave Pacing & Physical Z-Fold Mapping:** In Full Costume Mode (562 LEDs), wave and sweep effects (`traveling_wave`, `chase`, `comet`, `scanner`, `rainbow_cycle`, `color_wipe`, and `write_on_off`) utilize anatomically calibrated loop pacing (`getCostumeNormalizedLoopCoord`). The wave progression follows a bilaterally symmetrical theatrical choreography that accurately models the physical accordion Z-fold bulb sequence:
+1. **Down the Front Panel:** Row 0 to Row 15 (28% of cycle, `u` 0.00 to 0.28).
+2. **Out & Up Along Front Fairy Strands (Mirrored):** Left and right ribcage strands ascend simultaneously as exact mirror images up to both shoulders (22% of cycle, `u` 0.28 to 0.50), traversing the physical folded triplets from bottom hem to shoulder apex:
+   - **Right Front:** Bulbs `[8, 1, 9, 7, 2, 10, 6, 3, 11, 5, 4, 12, 13]` (Chain `[263, 256, 264, 262, 257, 265, 261, 258, 266, 260, 259, 267, 268]`).
+   - **Left Front:** Bulbs `[25, 18, 19, 24, 17, 20, 23, 16, 21, 22, 15, 14]` (Chain `[561, 554, 555, 560, 553, 556, 559, 552, 557, 558, 551, 550]`).
+3. **Down & Over Back Fairy Strands (Mirrored):** Both sides cascade over the shoulder apex and down the back ribs simultaneously in mirror symmetry (22% of cycle, `u` 0.50 to 0.72) down to the back badge:
+   - **Right Back:** Bulbs `[14, 15, 22, 21, 16, 23, 20, 17, 24, 19, 18, 25]` (Chain `[269, 270, 277, 276, 271, 278, 275, 272, 279, 274, 273, 280]`).
+   - **Left Back:** Bulbs `[13, 12, 4, 5, 11, 3, 6, 10, 2, 7, 9, 1, 8]` (Chain `[549, 548, 540, 541, 547, 539, 542, 546, 538, 543, 545, 537, 544]`).
+4. **Up the Back Panel:** Row 15 to Row 0 up the back matrix (28% of cycle, `u` 0.72 to 1.00).
+This provides ~6.8× more dwell time per fairy bulb while maintaining perfect visual bilateral symmetry and respecting the true physical folded bulb numbers.
 
 12. [Profile Management, Saving & JSON Import/Export](#12-profile-management-saving--json-importexport)
 13. [7-Shirt Fleet Show Creator, Preset Manager & Corral Radar](#13-7-shirt-fleet-show-creator--preset-manager)

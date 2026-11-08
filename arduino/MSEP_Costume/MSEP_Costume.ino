@@ -161,35 +161,43 @@ extern StandaloneShowMode currentStandaloneMode;
 
 // Symmetrical theatrical wave progression for 562-LED costume:
 // 1. Down Front Panel (0..255): 28% (0..279)
-// 2. Out & Up along Front Fairy Lights mirrored (256..267 & 550..561): 22% (280..499)
-// 3. Down & Over Back Fairy Lights mirrored (268..280 & 537..549): 22% (500..719)
+// 2. Out & Up along Front Fairy Lights mirrored (Left & Right): 22% (280..499)
+// 3. Down & Over Back Fairy Lights mirrored (Left & Right): 22% (500..719)
 // 4. Up Back Panel (281..536): 28% (720..999)
+// Accurately models the physical Z-fold accordion bulb sequence of the 50 fairy lights:
+// Strand 1 (Wearer's Right, chain 256..280, bulbs 1..25):
+//   Front Ribs (13 steps, pos: 280 -> 500): Bulbs [8, 1, 9, 7, 2, 10, 6, 3, 11, 5, 4, 12, 13]
+//   Back Ribs  (12 steps, pos: 500 -> 720): Bulbs [14, 15, 22, 21, 16, 23, 20, 17, 24, 19, 18, 25]
+// Strand 2 (Wearer's Left, chain 537..561, bulbs 1..25):
+//   Front Ribs (12 steps, pos: 280 -> 500): Bulbs [25, 18, 19, 24, 17, 20, 23, 16, 21, 22, 15, 14]
+//   Back Ribs  (13 steps, pos: 500 -> 720): Bulbs [13, 12, 4, 5, 11, 3, 6, 10, 2, 7, 9, 1, 8]
+static const uint16_t FAIRY_STRAND1_LOOP_POS[25] PROGMEM = {
+    298, 353, 408, 463, 445, 390, 335, 280, 317, 372, 427, 482, 500, // Bulbs 1..13 (indices 256..268)
+    500, 520, 580, 640, 700, 680, 620, 560, 540, 600, 660, 720        // Bulbs 14..25 (indices 269..280)
+};
+
+static const uint16_t FAIRY_STRAND2_LOOP_POS[25] PROGMEM = {
+    702, 647, 592, 537, 555, 610, 665, 720, 683, 628, 573, 518, 500, // Bulbs 1..13 (indices 537..549)
+    500, 480, 420, 360, 300, 320, 380, 440, 460, 400, 340, 280        // Bulbs 14..25 (indices 550..561)
+};
+
 inline uint16_t getCostumePacedLoopPosition(uint16_t index) {
     if (index < 256) {
-        uint8_t row = index / 16; // 0 (top) to 15 (bottom)
+        // Stage 1: Down the Front Panel (0..255) -> 0..279 (top to bottom)
+        uint8_t row = index / 16;
         return (uint16_t)(((uint32_t)row * 280) / 16 + 8);
-    } else if (index <= 267) {
-        // Right Front: 256..267 (0..11)
-        uint8_t i = index - 256;
-        return (uint16_t)(280 + (((uint32_t)i * 220) / 11));
-    } else if (index >= 550 && index <= 561) {
-        // Left Front: 561..550 (0..11)
-        uint8_t i = 561 - index;
-        return (uint16_t)(280 + (((uint32_t)i * 220) / 11));
-    } else if (index <= 280) {
-        // Right Back: 268..280 (0..12)
-        uint8_t j = index - 268;
-        return (uint16_t)(500 + (((uint32_t)j * 220) / 12));
-    } else if (index >= 537 && index <= 549) {
-        // Left Back: 549..537 (0..12)
-        uint8_t j = 549 - index;
-        return (uint16_t)(500 + (((uint32_t)j * 220) / 12));
-    } else if (index <= 536) {
-        // Back Panel (281..536): Row 15 (bottom) to Row 0 (top)
+    } else if (index >= 256 && index <= 280) {
+        // Strand 1 Fairy Lights (Wearer's Right, Z-folded 25 bulbs):
+        return pgm_read_word(&FAIRY_STRAND1_LOOP_POS[index - 256]);
+    } else if (index >= 281 && index <= 536) {
+        // Stage 4: Up the Back Panel (281..536) -> 720..999 (bottom to top)
         uint16_t mIdx = index - 281;
-        uint8_t row = mIdx / 16; // 0 (top) to 15 (bottom)
+        uint8_t row = mIdx / 16;
         uint8_t upRow = 15 - row;
         return (uint16_t)(720 + (((uint32_t)upRow * 280) / 16 + 8));
+    } else if (index >= 537 && index <= 561) {
+        // Strand 2 Fairy Lights (Wearer's Left, Z-folded 25 bulbs):
+        return pgm_read_word(&FAIRY_STRAND2_LOOP_POS[index - 537]);
     }
     return (uint16_t)(((uint32_t)(index % 562) * 1000) / 562);
 }
