@@ -2539,7 +2539,8 @@ function getCostumeNormalizedLoopCoord(index, progression = 'waterfall') {
 }
 window.getCostumeNormalizedLoopCoord = getCostumeNormalizedLoopCoord;
 
-function evalGlobalPattern(pattern, bpm, index, totalLeds, timeMs, c, hasColor, isGroupOverride = false, directionOverride = null, progressionOverride = null) {
+function evalGlobalPattern(pattern, bpm, index, totalLeds, timeMs, c, hasColor, isGroupOverride = false, directionOverride = null, progressionOverride = null, palette = null) {
+    const activePalette = (Array.isArray(palette) && palette.length > 0) ? palette : (c ? [c] : null);
     const activeProgression = progressionOverride || (params && params.waveProgression) || 'waterfall';
     const beatMs = 60000 / Math.max(20, bpm || params.speedBpm || 120);
     const normTime = timeMs / beatMs;
@@ -2645,6 +2646,12 @@ function evalGlobalPattern(pattern, bpm, index, totalLeds, timeMs, c, hasColor, 
             const wavePeriodMs = Math.max(1200, beatMs * 3.0);
             const waveCycle = (timeMs % wavePeriodMs) / wavePeriodMs;
             
+            let waveColor = effC;
+            if (activePalette && activePalette.length > 1) {
+                const waveCycleCount = Math.floor(timeMs / wavePeriodMs);
+                waveColor = activePalette[((waveCycleCount % activePalette.length) + activePalette.length) % activePalette.length];
+            }
+
             let dist;
             let waveWidth;
             if (typeof currentHardwareMode !== 'undefined' && currentHardwareMode === 'full_costume') {
@@ -2664,9 +2671,9 @@ function evalGlobalPattern(pattern, bpm, index, totalLeds, timeMs, c, hasColor, 
             if (dist < waveWidth) {
                 const intensity = Math.max(0, 1.0 - (dist / waveWidth));
                 if (effHasColor) {
-                    r = Math.min(255, Math.floor(effC.r + (255 - effC.r) * intensity * 0.85));
-                    g = Math.min(255, Math.floor(effC.g + (255 - effC.g) * intensity * 0.85));
-                    b = Math.min(255, Math.floor(effC.b + (255 - effC.b) * intensity * 0.85));
+                    r = Math.min(255, Math.floor(waveColor.r + (255 - waveColor.r) * intensity * 0.85));
+                    g = Math.min(255, Math.floor(waveColor.g + (255 - waveColor.g) * intensity * 0.85));
+                    b = Math.min(255, Math.floor(waveColor.b + (255 - waveColor.b) * intensity * 0.85));
                 } else {
                     r = 255 * intensity;
                     g = 255 * intensity;
@@ -2674,9 +2681,9 @@ function evalGlobalPattern(pattern, bpm, index, totalLeds, timeMs, c, hasColor, 
                 }
                 brightness = 1.0;
             } else if (effHasColor) {
-                r = Math.floor(effC.r * 0.4);
-                g = Math.floor(effC.g * 0.4);
-                b = Math.floor(effC.b * 0.4);
+                r = Math.floor(waveColor.r * 0.4);
+                g = Math.floor(waveColor.g * 0.4);
+                b = Math.floor(waveColor.b * 0.4);
                 brightness = 0.35;
             } else {
                 const rgb = hslToRgb(baseH / 360, 0.9, 0.25);
@@ -2693,13 +2700,17 @@ function evalGlobalPattern(pattern, bpm, index, totalLeds, timeMs, c, hasColor, 
                 const sm = getSpatialMetrics();
                 effRank = (sm && sm.rankYBottomUp && sm.rankYBottomUp[index] !== undefined) ? sm.rankYBottomUp[index] : index;
             }
+            let marqueeColor = effC;
+            if (activePalette && activePalette.length > 1) {
+                marqueeColor = activePalette[effRank % activePalette.length];
+            }
             const step = Math.floor(normTime * 3) % 3;
             const effStep = (dir === -1) ? (3 - step) % 3 : step;
             if ((effRank + effStep) % 3 === 0) {
                 if (effHasColor) {
-                    r = Math.min(255, effC.r + 50);
-                    g = Math.min(255, effC.g + 50);
-                    b = Math.min(255, effC.b + 50);
+                    r = Math.min(255, marqueeColor.r + 50);
+                    g = Math.min(255, marqueeColor.g + 50);
+                    b = Math.min(255, marqueeColor.b + 50);
                 } else {
                     r = 255; g = 150; b = 30;
                 }
@@ -2723,11 +2734,16 @@ function evalGlobalPattern(pattern, bpm, index, totalLeds, timeMs, c, hasColor, 
             break;
         }
         case 'pulse': {
+            let pulseColor = effC;
+            if (activePalette && activePalette.length > 1) {
+                const pulseCycle = Math.floor(normTime / 2.0);
+                pulseColor = activePalette[((pulseCycle % activePalette.length) + activePalette.length) % activePalette.length];
+            }
             const breath = 0.35 + 0.65 * (Math.sin(normTime * Math.PI) * 0.5 + 0.5);
             if (effHasColor) {
-                r = Math.floor(effC.r * breath);
-                g = Math.floor(effC.g * breath);
-                b = Math.floor(effC.b * breath);
+                r = Math.floor(pulseColor.r * breath);
+                g = Math.floor(pulseColor.g * breath);
+                b = Math.floor(pulseColor.b * breath);
             } else {
                 const rgb = hslToRgb(baseH / 360, 0.95, 0.50 * breath);
                 r = rgb.r; g = rgb.g; b = rgb.b;
@@ -2738,6 +2754,11 @@ function evalGlobalPattern(pattern, bpm, index, totalLeds, timeMs, c, hasColor, 
             if (typeof currentHardwareMode !== 'undefined' && currentHardwareMode === 'full_costume') {
                 const cycleMs = Math.max(1200, beatMs * 2.5);
                 const progress = (timeMs % cycleMs) / cycleMs;
+                let chaseColor = effC;
+                if (activePalette && activePalette.length > 1) {
+                    const chaseCycleCount = Math.floor(timeMs / cycleMs);
+                    chaseColor = activePalette[((chaseCycleCount % activePalette.length) + activePalette.length) % activePalette.length];
+                }
                 const head = (dir === -1) ? (1.0 - progress) : progress;
                 const ledCoord = getCostumeNormalizedLoopCoord(index, activeProgression);
                 const directDist = Math.abs(ledCoord - head);
@@ -2746,9 +2767,9 @@ function evalGlobalPattern(pattern, bpm, index, totalLeds, timeMs, c, hasColor, 
                 const fade = Math.max(0, 1.0 - (circDist / chaseWidth));
                 const intensity = 0.15 + 0.85 * fade;
                 if (effHasColor) {
-                    r = Math.floor(effC.r * intensity);
-                    g = Math.floor(effC.g * intensity);
-                    b = Math.floor(effC.b * intensity);
+                    r = Math.floor(chaseColor.r * intensity);
+                    g = Math.floor(chaseColor.g * intensity);
+                    b = Math.floor(chaseColor.b * intensity);
                 } else {
                     const rgb = hslToRgb(baseH / 360, 0.95, 0.50 * intensity);
                     r = rgb.r; g = rgb.g; b = rgb.b;
@@ -2928,6 +2949,11 @@ function evalGlobalPattern(pattern, bpm, index, totalLeds, timeMs, c, hasColor, 
             if (typeof currentHardwareMode !== 'undefined' && currentHardwareMode === 'full_costume') {
                 const cometPassMs = Math.max(1400, beatMs * 2.5);
                 const progress = (timeMs % cometPassMs) / cometPassMs;
+                let cometColor = effC;
+                if (activePalette && activePalette.length > 1) {
+                    const cometCycleCount = Math.floor(timeMs / cometPassMs);
+                    cometColor = activePalette[((cometCycleCount % activePalette.length) + activePalette.length) % activePalette.length];
+                }
                 const head = (dir === -1) ? (1.0 - progress) : progress;
                 const ledCoord = getCostumeNormalizedLoopCoord(index, activeProgression);
                 let diff = (dir === -1) ? (ledCoord - head) : (head - ledCoord);
@@ -2937,9 +2963,9 @@ function evalGlobalPattern(pattern, bpm, index, totalLeds, timeMs, c, hasColor, 
                     const fade = Math.exp(-diff * (3.0 / tailSpan));
                     const effIntensity = 0.08 + 0.92 * fade;
                     if (effHasColor) {
-                        r = Math.floor(effC.r * effIntensity);
-                        g = Math.floor(effC.g * effIntensity);
-                        b = Math.floor(effC.b * effIntensity);
+                        r = Math.floor(cometColor.r * effIntensity);
+                        g = Math.floor(cometColor.g * effIntensity);
+                        b = Math.floor(cometColor.b * effIntensity);
                     } else {
                         const rgb = hslToRgb(baseH / 360, 0.95, 0.50 * effIntensity);
                         r = rgb.r; g = rgb.g; b = rgb.b;
@@ -3328,28 +3354,17 @@ window.rgbToHex = rgbToHex;
 // 🌟 FLOAT STANDARD FAIRY LIGHT COLORS & COLOR RESOLUTION HELPERS
 // ============================================================================
 const FLOAT_DEFAULT_FAIRY_COLORS = {
-    1: '#e63946', // Float 1 (Casey Jr.): Red
-    2: '#ffb703', // Float 2 (Title Drum): Gold
-    3: '#0088ff', // Float 3 (The Turtle): Blue
-    4: '#00cc44', // Float 4 (The Snail): Green
-    5: '#e63946', // Float 5 (The Pirate Ship): Red
-    6: '#00ff88', // Float 6 (Pete's Dragon): Green
-    7: '#3a86ff'  // Float 7 (To Honor America): Blue
+    1: ['#e63946', '#ffb703'],             // Float 1 (Casey Jr.): Red and Gold
+    2: ['#e63946', '#ffb703'],             // Float 2 (Title Drum): Red and Gold
+    3: ['#ffd700', '#0088ff', '#00cc44'],  // Float 3 (The Turtle): Yellow, Blue, Green
+    4: ['#e63946', '#0088ff', '#00cc44'],  // Float 4 (The Snail): Red, Blue, Green
+    5: ['#e63946', '#ffb703'],             // Float 5 (The Pirate Ship): Red and Gold
+    6: ['#00ff88', '#ffd700'],             // Float 6 (Pete's Dragon): Green and Yellow
+    7: ['#e63946', '#ffffff', '#3a86ff']   // Float 7 (To Honor America): Red, White, Blue
 };
 window.FLOAT_DEFAULT_FAIRY_COLORS = FLOAT_DEFAULT_FAIRY_COLORS;
 
-const FLOAT_DEFAULT_FAIRY_NAMES = {
-    1: 'Casey Jr. Red (#E63946)',
-    2: 'Title Drum Gold (#FFB703)',
-    3: 'Turtle Blue (#0088FF)',
-    4: 'Snail Green (#00CC44)',
-    5: 'Pirate Ship Red (#E63946)',
-    6: 'Dragon Green (#00FF88)',
-    7: 'America Blue (#3A86FF)'
-};
-window.FLOAT_DEFAULT_FAIRY_NAMES = FLOAT_DEFAULT_FAIRY_NAMES;
-
-function getFloatDefaultFairyColor(floatNumOrSlot) {
+function getFloatDefaultFairyColors(floatNumOrSlot) {
     let slot = 0;
     if (typeof floatNumOrSlot === 'number') {
         slot = (floatNumOrSlot >= 1 && floatNumOrSlot <= 7) ? (floatNumOrSlot - 1) : floatNumOrSlot;
@@ -3357,11 +3372,19 @@ function getFloatDefaultFairyColor(floatNumOrSlot) {
         slot = activeSingleShirtRunnerSlot;
     }
     const floatId = slot + 1;
-    return FLOAT_DEFAULT_FAIRY_COLORS[floatId] || '#ffb703';
+    return FLOAT_DEFAULT_FAIRY_COLORS[floatId] || ['#ffb703', '#e63946'];
+}
+window.getFloatDefaultFairyColors = getFloatDefaultFairyColors;
+
+function getFloatDefaultFairyColor(floatNumOrSlot, bulbIndex = 0) {
+    const palette = getFloatDefaultFairyColors(floatNumOrSlot);
+    if (!palette || palette.length === 0) return '#ffb703';
+    const group = Math.floor(bulbIndex / 3);
+    return palette[group % palette.length];
 }
 window.getFloatDefaultFairyColor = getFloatDefaultFairyColor;
 
-function getFloatDefaultFairyName(floatNumOrSlot) {
+function getFloatBaselineSummary(floatNumOrSlot) {
     let slot = 0;
     if (typeof floatNumOrSlot === 'number') {
         slot = (floatNumOrSlot >= 1 && floatNumOrSlot <= 7) ? (floatNumOrSlot - 1) : floatNumOrSlot;
@@ -3369,31 +3392,75 @@ function getFloatDefaultFairyName(floatNumOrSlot) {
         slot = activeSingleShirtRunnerSlot;
     }
     const floatId = slot + 1;
-    return FLOAT_DEFAULT_FAIRY_NAMES[floatId] || 'Float Standard';
+    const summaries = {
+        1: 'Casey Jr. (Red & Gold)',
+        2: 'Title Drum (Red & Gold)',
+        3: 'Turtle (Yellow, Blue, Green)',
+        4: 'Snail (Red, Blue, Green)',
+        5: 'Pirate Ship (Red & Gold)',
+        6: "Pete's Dragon (Green & Yellow)",
+        7: 'America (Red, White, Blue)'
+    };
+    return summaries[floatId] || 'Float Baseline';
+}
+window.getFloatBaselineSummary = getFloatBaselineSummary;
+
+function getFloatDefaultFairyName(floatNumOrSlot) {
+    return getFloatBaselineSummary(floatNumOrSlot);
 }
 window.getFloatDefaultFairyName = getFloatDefaultFairyName;
 
-// Helper to resolve the color for any LED under an active cue (Panels vs Fairy Lights)
-function getCueLedColor(cue, index, isFairy, sampledArtworkColor, hasSampledColor) {
-    if (!cue) return { color: sampledArtworkColor, hasColor: hasSampledColor, isCustom: false };
+// Helper to resolve the active color palette for a cue (1 to 3 colors)
+function getCuePalette(cue, isFairy) {
+    if (!cue) {
+        return isFairy ? getFloatDefaultFairyColors().map(h => hexToRgb(h)) : null;
+    }
     if (isFairy) {
-        if (cue.fairyColorMode === 'custom' && cue.fairyCustomColor) {
-            const rgb = hexToRgb(cue.fairyCustomColor);
-            return { color: rgb || { r: 255, g: 214, b: 110 }, hasColor: true, isCustom: true };
+        if (cue.fairyColorMode === 'custom') {
+            if (Array.isArray(cue.fairyColors) && cue.fairyColors.length > 0) {
+                return cue.fairyColors.map(h => hexToRgb(h) || { r: 255, g: 214, b: 110 });
+            }
+            if (cue.fairyCustomColor) {
+                return [hexToRgb(cue.fairyCustomColor) || { r: 255, g: 214, b: 110 }];
+            }
         }
-        // Default: Float Standard Color
-        const defHex = getFloatDefaultFairyColor();
-        const rgb = hexToRgb(defHex);
-        return { color: rgb || { r: 255, g: 214, b: 110 }, hasColor: true, isCustom: false };
+        // Default: Float Baseline colors
+        return getFloatDefaultFairyColors().map(h => hexToRgb(h) || { r: 255, g: 214, b: 110 });
     } else {
-        // Panel LEDs
-        if (cue.panelColorMode === 'custom' && cue.panelCustomColor) {
-            const rgb = hexToRgb(cue.panelCustomColor);
-            return { color: rgb || { r: 255, g: 255, b: 255 }, hasColor: true, isCustom: true };
+        // Panels
+        if (cue.panelColorMode === 'custom') {
+            if (Array.isArray(cue.panelColors) && cue.panelColors.length > 0) {
+                return cue.panelColors.map(h => hexToRgb(h) || { r: 255, g: 255, b: 255 });
+            }
+            if (cue.panelCustomColor) {
+                return [hexToRgb(cue.panelCustomColor) || { r: 255, g: 255, b: 255 }];
+            }
+        }
+        if (cue.panelColorMode === 'float_baseline') {
+            return getFloatDefaultFairyColors().map(h => hexToRgb(h) || { r: 255, g: 255, b: 255 });
         }
         // Default: Graphic Artwork sampled color
-        return { color: sampledArtworkColor, hasColor: hasSampledColor, isCustom: false };
+        return null;
     }
+}
+window.getCuePalette = getCuePalette;
+
+// Helper to resolve the color for any LED under an active cue (Panels vs Fairy Lights)
+function getCueLedColor(cue, index, isFairy, sampledArtworkColor, hasSampledColor) {
+    if (!cue) return { color: sampledArtworkColor, hasColor: hasSampledColor, isCustom: false, palette: null };
+    const palette = getCuePalette(cue, isFairy);
+    if (!palette || palette.length === 0) {
+        return { color: sampledArtworkColor, hasColor: hasSampledColor, isCustom: false, palette: null };
+    }
+    let col;
+    if (isFairy) {
+        const bOffset = (index >= 537) ? (index - 537) : (index >= 256 ? (index - 256) : index);
+        const group = Math.floor(bOffset / 3);
+        col = palette[group % palette.length];
+    } else {
+        col = palette[index % palette.length];
+    }
+    return { color: col, hasColor: true, isCustom: true, palette: palette };
 }
 window.getCueLedColor = getCueLedColor;
 
@@ -3408,33 +3475,35 @@ function evalFairyBaselineColor(index, timeMs, speedBpm) {
     const bpm = Math.max(30, speedBpm || (params && params.speedBpm) || 120);
     const rate = (bpm / 60.0) * 1.25;
     
-    // Warm incandescent 2700K baseline
-    const baseR = 255;
-    const baseG = 214;
-    const baseB = 110;
+    // Float multi-color baseline mapped in alternating triplets (groups of 3 bulbs)
+    const floatPalette = getFloatDefaultFairyColors();
+    const bulbOffset = (index >= 537) ? (index - 537) : (index >= 256 ? (index - 256) : index);
+    const group = Math.floor(bulbOffset / 3);
+    const hex = floatPalette[group % floatPalette.length];
+    const rgb = hexToRgb(hex) || { r: 255, g: 214, b: 110 };
     
     // Multi-frequency organic breathing across the 50 fairy LEDs
     const phase1 = (timeMs * 0.001 * rate * Math.PI) + (index * 2.13);
     const phase2 = (timeMs * 0.0016 * rate * Math.PI) + (index * 3.77);
     const swell = 0.5 + 0.32 * Math.sin(phase1) + 0.18 * Math.sin(phase2);
     
-    // Occasional golden starlight sparkle
+    // Occasional starlight sparkle
     const spkPhase = Math.sin((timeMs * 0.006 * (rate / 2.0)) + (index * 4.91));
     if (spkPhase > 0.93) {
         const spkFactor = (spkPhase - 0.93) / 0.07;
         return {
             r: 255,
-            g: Math.round(245 + 10 * spkFactor),
-            b: Math.round(200 + 40 * spkFactor),
+            g: Math.round(Math.min(255, rgb.g + 40 * spkFactor)),
+            b: Math.round(Math.min(255, rgb.b + 50 * spkFactor)),
             alpha: 1.0
         };
     }
     
     const br = 0.50 + 0.50 * swell;
     return {
-        r: Math.round(baseR * br),
-        g: Math.round(baseG * br),
-        b: Math.round(baseB * br),
+        r: Math.round(rgb.r * br),
+        g: Math.round(rgb.g * br),
+        b: Math.round(rgb.b * br),
         alpha: Math.max(0.45, Math.min(1.0, 0.55 + 0.45 * swell))
     };
 }
@@ -3573,7 +3642,7 @@ function computeLedColor(index, totalLeds, timeMs, overrideColor = null) {
                 const cueTimeMs = Math.max(0, (t - activeTrackCue.startTime) * 1000);
                 const cueDir = (activeTrackCue.direction !== undefined) ? activeTrackCue.direction : 1;
                 const cueProg = activeTrackCue.progression || 'waterfall';
-                const { color: cueColResolved, hasColor: cueHasCol, isCustom: cueIsCustom } = getCueLedColor(activeTrackCue, index, isFairy, c, hasColor);
+                const { color: cueColResolved, hasColor: cueHasCol, isCustom: cueIsCustom, palette: cuePalette } = getCueLedColor(activeTrackCue, index, isFairy, c, hasColor);
                 const cueCol = evalGlobalPattern(
                     activeTrackCue.effect,
                     activeTrackCue.speedBpm || params.speedBpm,
@@ -3584,7 +3653,8 @@ function computeLedColor(index, totalLeds, timeMs, overrideColor = null) {
                     cueHasCol,
                     cueIsCustom,
                     cueDir,
-                    cueProg
+                    cueProg,
+                    cuePalette
                 );
                 const w = getCueWeight(activeTrackCue, t);
                 trackCol = {
@@ -3667,8 +3737,8 @@ function computeLedColor(index, totalLeds, timeMs, overrideColor = null) {
         // 3. Apply Global Overrides (e.g. 360° Traveling Wave across All 562 LEDs)
         if (activeGlobalCues.length === 1) {
             const q = activeGlobalCues[0];
-            const { color: cueColResolved, hasColor: cueHasCol, isCustom: cueIsCustom } = getCueLedColor(q, index, isFairy, c, hasColor);
-            const col = evalGlobalPattern(q.effect, q.speedBpm, index, totalLeds, effectiveTimeMs, cueColResolved, cueHasCol, cueIsCustom, q.direction, q.progression || 'waterfall');
+            const { color: cueColResolved, hasColor: cueHasCol, isCustom: cueIsCustom, palette: cuePalette } = getCueLedColor(q, index, isFairy, c, hasColor);
+            const col = evalGlobalPattern(q.effect, q.speedBpm, index, totalLeds, effectiveTimeMs, cueColResolved, cueHasCol, cueIsCustom, q.direction, q.progression || 'waterfall', cuePalette);
             const w = getCueWeight(q, t);
             if (w < 1.0) {
                 return {
@@ -3690,8 +3760,8 @@ function computeLedColor(index, totalLeds, timeMs, overrideColor = null) {
             let blR = 0, blG = 0, blB = 0, blA = 0;
             for (let i = 0; i < activeGlobalCues.length; i++) {
                 const q = activeGlobalCues[i];
-                const { color: cueColResolved, hasColor: cueHasCol, isCustom: cueIsCustom } = getCueLedColor(q, index, isFairy, c, hasColor);
-                const col = evalGlobalPattern(q.effect, q.speedBpm, index, totalLeds, effectiveTimeMs, cueColResolved, cueHasCol, cueIsCustom, q.direction, q.progression || 'waterfall');
+                const { color: cueColResolved, hasColor: cueHasCol, isCustom: cueIsCustom, palette: cuePalette } = getCueLedColor(q, index, isFairy, c, hasColor);
+                const col = evalGlobalPattern(q.effect, q.speedBpm, index, totalLeds, effectiveTimeMs, cueColResolved, cueHasCol, cueIsCustom, q.direction, q.progression || 'waterfall', cuePalette);
                 const normW = totalW > 0 ? (weights[i] / totalW) : (1 / activeGlobalCues.length);
                 blR += col.r * normW;
                 blG += col.g * normW;
@@ -11881,6 +11951,15 @@ function renderCuesList() {
         card.dataset.cueId = cue.id;
 
         const endTime = (cue.startTime + cue.duration).toFixed(1);
+        const defFairyColors = getFloatDefaultFairyColors();
+        const fColors = (Array.isArray(cue.fairyColors) && cue.fairyColors.length > 0)
+            ? cue.fairyColors
+            : (cue.fairyCustomColor ? [cue.fairyCustomColor] : [...defFairyColors]);
+        const pColors = (Array.isArray(cue.panelColors) && cue.panelColors.length > 0)
+            ? cue.panelColors
+            : (cue.panelCustomColor ? [cue.panelCustomColor] : ['#ffffff']);
+        const fCount = Math.min(3, Math.max(1, fColors.length));
+        const pCount = Math.min(3, Math.max(1, pColors.length));
 
         card.innerHTML = `
             <div class="cue-card-header">
@@ -11940,38 +12019,55 @@ function renderCuesList() {
             </div>
 
             <!-- Panels Color Selector (Adaptive: Global or Panels) -->
-            <div class="cue-card-row cue-panel-color-row" style="margin-top: 4px; display: ${(cue.targetType === 'global' || cue.targetType === 'panels' || cue.targetType === 'matrix' || !cue.targetType) ? 'flex' : 'none'}; flex-direction: column; gap: 3px; background: rgba(56, 189, 248, 0.05); border: 1px solid rgba(56, 189, 248, 0.2); border-radius: 4px; padding: 5px;">
+            <div class="cue-card-row cue-panel-color-row" style="margin-top: 4px; display: ${(cue.targetType === 'global' || cue.targetType === 'panels' || cue.targetType === 'matrix' || !cue.targetType) ? 'flex' : 'none'}; flex-direction: column; gap: 4px; background: rgba(56, 189, 248, 0.05); border: 1px solid rgba(56, 189, 248, 0.2); border-radius: 4px; padding: 5px;">
                 <div style="display: flex; justify-content: space-between; align-items: center;">
                     <label style="font-size: 10px; color: #58a6ff; font-weight: 600;" title="Panels matrix colors during this cue. Default is colors obtained from the graphic artwork.">🔲 Panels Color:</label>
-                    <span style="font-size: 9px; color: var(--text-muted);">Front & Back 16×16</span>
+                    <div class="cue-panel-swatches" style="display: flex; gap: 4px; align-items: center;">
+                        ${(cue.panelColorMode === 'float_baseline' ? defFairyColors : (cue.panelColorMode === 'custom' ? pColors : [])).map(hex => `<span style="display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: ${hex}; border: 1px solid rgba(255,255,255,0.4);"></span>`).join('')}
+                    </div>
                 </div>
-                <div style="display: flex; gap: 6px; align-items: center;">
-                    <select class="cue-panel-color-mode-select" style="flex: 1.2; background: #0d1117; color: #fff; border: 1px solid #30363d; border-radius: 4px; padding: 3px 5px; font-size: 11px;" title="Choose graphic artwork colors or override with custom solid color">
-                        <option value="graphic" ${cue.panelColorMode !== 'custom' ? 'selected' : ''}>🖼️ Graphic Colors (Default)</option>
-                        <option value="custom" ${cue.panelColorMode === 'custom' ? 'selected' : ''}>🎨 Custom Solid Color</option>
+                <div style="display: flex; gap: 6px; align-items: center; flex-wrap: wrap;">
+                    <select class="cue-panel-color-mode-select" style="flex: 1.2; background: #0d1117; color: #fff; border: 1px solid #30363d; border-radius: 4px; padding: 3px 5px; font-size: 11px;" title="Choose graphic artwork colors, float baseline palette, or custom colors">
+                        <option value="graphic" ${cue.panelColorMode === 'graphic' || !cue.panelColorMode ? 'selected' : ''}>🖼️ Graphic Colors (Default)</option>
+                        <option value="float_baseline" ${cue.panelColorMode === 'float_baseline' ? 'selected' : ''}>🌟 Float Baseline (${getFloatBaselineSummary()})</option>
+                        <option value="custom" ${cue.panelColorMode === 'custom' ? 'selected' : ''}>🎨 Custom Colors (1-3 Colors)</option>
                     </select>
-                    <div class="cue-panel-color-picker-wrap" style="display: ${cue.panelColorMode === 'custom' ? 'flex' : 'none'}; align-items: center; gap: 4px; flex: 1;">
-                        <input type="color" class="cue-panel-color-picker" value="${cue.panelCustomColor || '#ffffff'}" style="width: 28px; height: 24px; padding: 0; border: 1px solid #30363d; border-radius: 4px; background: none; cursor: pointer;">
-                        <span class="cue-panel-color-hex" style="font-family: monospace; font-size: 10px; color: #e6edf3;">${(cue.panelCustomColor || '#ffffff').toUpperCase()}</span>
+                    <div class="cue-panel-custom-wrap" style="display: ${cue.panelColorMode === 'custom' ? 'flex' : 'none'}; align-items: center; gap: 4px;">
+                        <select class="cue-panel-color-count" style="background: #0d1117; color: #fff; border: 1px solid #30363d; border-radius: 4px; padding: 2px 4px; font-size: 10px;" title="Number of custom colors (1 to 3)">
+                            <option value="1" ${pCount === 1 ? 'selected' : ''}>1 Col</option>
+                            <option value="2" ${pCount === 2 ? 'selected' : ''}>2 Cols</option>
+                            <option value="3" ${pCount === 3 ? 'selected' : ''}>3 Cols</option>
+                        </select>
+                        <input type="color" class="cue-panel-color-picker-1" value="${pColors[0] || '#ffffff'}" title="Panel Color 1" style="width: 22px; height: 20px; padding: 0; border: 1px solid #30363d; border-radius: 3px; background: none; cursor: pointer;">
+                        <input type="color" class="cue-panel-color-picker-2" value="${pColors[1] || '#ffb703'}" title="Panel Color 2" style="width: 22px; height: 20px; padding: 0; border: 1px solid #30363d; border-radius: 3px; background: none; cursor: pointer; display: ${pCount >= 2 ? 'inline-block' : 'none'};">
+                        <input type="color" class="cue-panel-color-picker-3" value="${pColors[2] || '#00cc44'}" title="Panel Color 3" style="width: 22px; height: 20px; padding: 0; border: 1px solid #30363d; border-radius: 3px; background: none; cursor: pointer; display: ${pCount >= 3 ? 'inline-block' : 'none'};">
                     </div>
                 </div>
             </div>
 
             <!-- Fairy Lights Color Selector (Adaptive: Global or Fairy) -->
-            <div class="cue-card-row cue-fairy-color-row" style="margin-top: 4px; display: ${(cue.targetType === 'global' || cue.targetType === 'fairy' || cue.targetType === 'fairy_strands' || !cue.targetType) ? 'flex' : 'none'}; flex-direction: column; gap: 3px; background: rgba(255, 183, 3, 0.05); border: 1px solid rgba(255, 183, 3, 0.2); border-radius: 4px; padding: 5px;">
+            <div class="cue-card-row cue-fairy-color-row" style="margin-top: 4px; display: ${(cue.targetType === 'global' || cue.targetType === 'fairy' || cue.targetType === 'fairy_strands' || !cue.targetType) ? 'flex' : 'none'}; flex-direction: column; gap: 4px; background: rgba(255, 183, 3, 0.05); border: 1px solid rgba(255, 183, 3, 0.2); border-radius: 4px; padding: 5px;">
                 <div style="display: flex; justify-content: space-between; align-items: center;">
-                    <label style="font-size: 10px; color: #ffb703; font-weight: 600;" title="Fairy light side ribs and shoulder strands color during this cue. Default is the standard theme color for this float.">✨ Fairy Lights Color:</label>
-                    <span style="font-size: 9px; color: var(--text-muted);">50 Rib/Shoulder Bulbs</span>
+                    <label style="font-size: 10px; color: #ffb703; font-weight: 600;" title="Fairy light side ribs and shoulder strands color during this cue. Default is the baseline colors for this float in groups of 3 bulbs.">✨ Fairy Lights Color:</label>
+                    <div class="cue-fairy-swatches" style="display: flex; gap: 4px; align-items: center;">
+                        ${(cue.fairyColorMode === 'custom' ? fColors : defFairyColors).map(hex => `<span style="display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: ${hex}; border: 1px solid rgba(255,255,255,0.4);"></span>`).join('')}
+                    </div>
                 </div>
-                <div style="display: flex; gap: 6px; align-items: center;">
-                    <select class="cue-fairy-color-mode-select" style="flex: 1.2; background: #0d1117; color: #fff; border: 1px solid #30363d; border-radius: 4px; padding: 3px 5px; font-size: 11px;" title="Choose standard float color or pick any custom color">
-                        <option value="float_default" ${cue.fairyColorMode !== 'custom' ? 'selected' : ''}>🌟 Float Standard (${getFloatDefaultFairyName()})</option>
-                        <option value="custom" ${cue.fairyColorMode === 'custom' ? 'selected' : ''}>🎨 Custom Color</option>
+                <div style="display: flex; gap: 6px; align-items: center; flex-wrap: wrap;">
+                    <select class="cue-fairy-color-mode-select" style="flex: 1.2; background: #0d1117; color: #fff; border: 1px solid #30363d; border-radius: 4px; padding: 3px 5px; font-size: 11px;" title="Choose standard float baseline colors or pick 1-3 custom colors">
+                        <option value="float_baseline" ${cue.fairyColorMode !== 'custom' ? 'selected' : ''}>🌟 Float Baseline (${getFloatBaselineSummary()})</option>
+                        <option value="custom" ${cue.fairyColorMode === 'custom' ? 'selected' : ''}>🎨 Custom Colors (1-3 Colors)</option>
                     </select>
-                    <div class="cue-fairy-color-picker-wrap" style="display: ${cue.fairyColorMode === 'custom' ? 'flex' : 'none'}; align-items: center; gap: 4px; flex: 1;">
-                        <input type="color" class="cue-fairy-color-picker" value="${cue.fairyCustomColor || getFloatDefaultFairyColor()}" style="width: 28px; height: 24px; padding: 0; border: 1px solid #30363d; border-radius: 4px; background: none; cursor: pointer;">
-                        <span class="cue-fairy-color-hex" style="font-family: monospace; font-size: 10px; color: #e6edf3;">${(cue.fairyCustomColor || getFloatDefaultFairyColor()).toUpperCase()}</span>
-                        <button type="button" class="action-btn cue-fairy-reset-btn" style="font-size: 8px; padding: 1px 4px;" title="Reset to standard float color">Reset</button>
+                    <div class="cue-fairy-custom-wrap" style="display: ${cue.fairyColorMode === 'custom' ? 'flex' : 'none'}; align-items: center; gap: 4px;">
+                        <select class="cue-fairy-color-count" style="background: #0d1117; color: #fff; border: 1px solid #30363d; border-radius: 4px; padding: 2px 4px; font-size: 10px;" title="Number of custom colors (1 to 3)">
+                            <option value="1" ${fCount === 1 ? 'selected' : ''}>1 Col</option>
+                            <option value="2" ${fCount === 2 ? 'selected' : ''}>2 Cols</option>
+                            <option value="3" ${fCount === 3 ? 'selected' : ''}>3 Cols</option>
+                        </select>
+                        <input type="color" class="cue-fairy-color-picker-1" value="${fColors[0] || defFairyColors[0]}" title="Fairy Color 1" style="width: 22px; height: 20px; padding: 0; border: 1px solid #30363d; border-radius: 3px; background: none; cursor: pointer;">
+                        <input type="color" class="cue-fairy-color-picker-2" value="${fColors[1] || (defFairyColors[1] || '#ffb703')}" title="Fairy Color 2" style="width: 22px; height: 20px; padding: 0; border: 1px solid #30363d; border-radius: 3px; background: none; cursor: pointer; display: ${fCount >= 2 ? 'inline-block' : 'none'};">
+                        <input type="color" class="cue-fairy-color-picker-3" value="${fColors[2] || (defFairyColors[2] || '#00cc44')}" title="Fairy Color 3" style="width: 22px; height: 20px; padding: 0; border: 1px solid #30363d; border-radius: 3px; background: none; cursor: pointer; display: ${fCount >= 3 ? 'inline-block' : 'none'};">
+                        <button type="button" class="action-btn cue-fairy-reset-btn" style="font-size: 8px; padding: 1px 4px;" title="Reset to standard float baseline colors">Reset</button>
                     </div>
                 </div>
             </div>
@@ -12098,60 +12194,151 @@ function renderCuesList() {
             if (typeof renderTimelineLayers === 'function') renderTimelineLayers();
         });
 
-        // Panels color mode and custom picker listeners
-        const panelRow = card.querySelector('.cue-panel-color-row');
+        // Panels multi-color listeners
         const panelModeSelect = card.querySelector('.cue-panel-color-mode-select');
-        const panelPickerWrap = card.querySelector('.cue-panel-color-picker-wrap');
-        const panelColorPicker = card.querySelector('.cue-panel-color-picker');
-        const panelHexLabel = card.querySelector('.cue-panel-color-hex');
+        const panelCustomWrap = card.querySelector('.cue-panel-custom-wrap');
+        const panelCountSelect = card.querySelector('.cue-panel-color-count');
+        const panelPicker1 = card.querySelector('.cue-panel-color-picker-1');
+        const panelPicker2 = card.querySelector('.cue-panel-color-picker-2');
+        const panelPicker3 = card.querySelector('.cue-panel-color-picker-3');
+        const panelSwatches = card.querySelector('.cue-panel-swatches');
+
+        const updatePanelSwatches = () => {
+            if (!panelSwatches) return;
+            const colors = (cue.panelColorMode === 'float_baseline')
+                ? defFairyColors
+                : (cue.panelColorMode === 'custom' ? (cue.panelColors || pColors) : []);
+            panelSwatches.innerHTML = colors.map(h => `<span style="display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: ${h}; border: 1px solid rgba(255,255,255,0.4);"></span>`).join('');
+        };
 
         panelModeSelect?.addEventListener('change', (e) => {
             cue.panelColorMode = e.target.value;
             if (cue.panelColorMode === 'custom') {
-                if (!cue.panelCustomColor) cue.panelCustomColor = '#ffffff';
-                if (panelPickerWrap) panelPickerWrap.style.display = 'flex';
+                if (!Array.isArray(cue.panelColors) || cue.panelColors.length === 0) {
+                    cue.panelColors = ['#ffffff'];
+                }
+                if (panelCustomWrap) panelCustomWrap.style.display = 'flex';
             } else {
-                if (panelPickerWrap) panelPickerWrap.style.display = 'none';
+                if (panelCustomWrap) panelCustomWrap.style.display = 'none';
             }
+            updatePanelSwatches();
             markSingleShirtDirty();
         });
 
-        panelColorPicker?.addEventListener('input', (e) => {
+        panelCountSelect?.addEventListener('change', (e) => {
+            const count = parseInt(e.target.value, 10) || 1;
+            if (!Array.isArray(cue.panelColors)) cue.panelColors = ['#ffffff'];
+            if (count === 1) cue.panelColors = [cue.panelColors[0] || '#ffffff'];
+            else if (count === 2) cue.panelColors = [cue.panelColors[0] || '#ffffff', cue.panelColors[1] || '#ffb703'];
+            else cue.panelColors = [cue.panelColors[0] || '#ffffff', cue.panelColors[1] || '#ffb703', cue.panelColors[2] || '#00cc44'];
+            if (panelPicker2) panelPicker2.style.display = count >= 2 ? 'inline-block' : 'none';
+            if (panelPicker3) panelPicker3.style.display = count >= 3 ? 'inline-block' : 'none';
+            updatePanelSwatches();
+            markSingleShirtDirty();
+        });
+
+        panelPicker1?.addEventListener('input', (e) => {
+            if (!Array.isArray(cue.panelColors)) cue.panelColors = ['#ffffff'];
+            cue.panelColors[0] = e.target.value;
             cue.panelCustomColor = e.target.value;
-            if (panelHexLabel) panelHexLabel.textContent = e.target.value.toUpperCase();
+            updatePanelSwatches();
             markSingleShirtDirty();
         });
 
-        // Fairy lights color mode and custom picker listeners
-        const fairyRow = card.querySelector('.cue-fairy-color-row');
+        panelPicker2?.addEventListener('input', (e) => {
+            if (!Array.isArray(cue.panelColors)) cue.panelColors = ['#ffffff', '#ffb703'];
+            cue.panelColors[1] = e.target.value;
+            updatePanelSwatches();
+            markSingleShirtDirty();
+        });
+
+        panelPicker3?.addEventListener('input', (e) => {
+            if (!Array.isArray(cue.panelColors)) cue.panelColors = ['#ffffff', '#ffb703', '#00cc44'];
+            cue.panelColors[2] = e.target.value;
+            updatePanelSwatches();
+            markSingleShirtDirty();
+        });
+
+        // Fairy lights multi-color listeners
         const fairyModeSelect = card.querySelector('.cue-fairy-color-mode-select');
-        const fairyPickerWrap = card.querySelector('.cue-fairy-color-picker-wrap');
-        const fairyColorPicker = card.querySelector('.cue-fairy-color-picker');
-        const fairyHexLabel = card.querySelector('.cue-fairy-color-hex');
+        const fairyCustomWrap = card.querySelector('.cue-fairy-custom-wrap');
+        const fairyCountSelect = card.querySelector('.cue-fairy-color-count');
+        const fairyPicker1 = card.querySelector('.cue-fairy-color-picker-1');
+        const fairyPicker2 = card.querySelector('.cue-fairy-color-picker-2');
+        const fairyPicker3 = card.querySelector('.cue-fairy-color-picker-3');
         const fairyResetBtn = card.querySelector('.cue-fairy-reset-btn');
+        const fairySwatches = card.querySelector('.cue-fairy-swatches');
+
+        const updateFairySwatches = () => {
+            if (!fairySwatches) return;
+            const colors = (cue.fairyColorMode === 'custom' && Array.isArray(cue.fairyColors))
+                ? cue.fairyColors
+                : defFairyColors;
+            fairySwatches.innerHTML = colors.map(h => `<span style="display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: ${h}; border: 1px solid rgba(255,255,255,0.4);"></span>`).join('');
+        };
 
         fairyModeSelect?.addEventListener('change', (e) => {
             cue.fairyColorMode = e.target.value;
             if (cue.fairyColorMode === 'custom') {
-                if (!cue.fairyCustomColor) cue.fairyCustomColor = getFloatDefaultFairyColor();
-                if (fairyPickerWrap) fairyPickerWrap.style.display = 'flex';
+                if (!Array.isArray(cue.fairyColors) || cue.fairyColors.length === 0) {
+                    cue.fairyColors = [...defFairyColors];
+                }
+                if (fairyCustomWrap) fairyCustomWrap.style.display = 'flex';
             } else {
-                if (fairyPickerWrap) fairyPickerWrap.style.display = 'none';
+                if (fairyCustomWrap) fairyCustomWrap.style.display = 'none';
             }
+            updateFairySwatches();
             markSingleShirtDirty();
         });
 
-        fairyColorPicker?.addEventListener('input', (e) => {
+        fairyCountSelect?.addEventListener('change', (e) => {
+            const count = parseInt(e.target.value, 10) || 1;
+            if (!Array.isArray(cue.fairyColors)) cue.fairyColors = [...defFairyColors];
+            if (count === 1) cue.fairyColors = [cue.fairyColors[0] || defFairyColors[0]];
+            else if (count === 2) cue.fairyColors = [cue.fairyColors[0] || defFairyColors[0], cue.fairyColors[1] || (defFairyColors[1] || '#ffb703')];
+            else cue.fairyColors = [cue.fairyColors[0] || defFairyColors[0], cue.fairyColors[1] || (defFairyColors[1] || '#ffb703'), cue.fairyColors[2] || (defFairyColors[2] || '#00cc44')];
+            if (fairyPicker2) fairyPicker2.style.display = count >= 2 ? 'inline-block' : 'none';
+            if (fairyPicker3) fairyPicker3.style.display = count >= 3 ? 'inline-block' : 'none';
+            updateFairySwatches();
+            markSingleShirtDirty();
+        });
+
+        fairyPicker1?.addEventListener('input', (e) => {
+            if (!Array.isArray(cue.fairyColors)) cue.fairyColors = [...defFairyColors];
+            cue.fairyColors[0] = e.target.value;
             cue.fairyCustomColor = e.target.value;
-            if (fairyHexLabel) fairyHexLabel.textContent = e.target.value.toUpperCase();
+            updateFairySwatches();
+            markSingleShirtDirty();
+        });
+
+        fairyPicker2?.addEventListener('input', (e) => {
+            if (!Array.isArray(cue.fairyColors)) cue.fairyColors = [...defFairyColors];
+            cue.fairyColors[1] = e.target.value;
+            updateFairySwatches();
+            markSingleShirtDirty();
+        });
+
+        fairyPicker3?.addEventListener('input', (e) => {
+            if (!Array.isArray(cue.fairyColors)) cue.fairyColors = [...defFairyColors];
+            cue.fairyColors[2] = e.target.value;
+            updateFairySwatches();
             markSingleShirtDirty();
         });
 
         fairyResetBtn?.addEventListener('click', () => {
-            const defCol = getFloatDefaultFairyColor();
-            cue.fairyCustomColor = defCol;
-            if (fairyColorPicker) fairyColorPicker.value = defCol;
-            if (fairyHexLabel) fairyHexLabel.textContent = defCol.toUpperCase();
+            const defs = getFloatDefaultFairyColors();
+            cue.fairyColors = [...defs];
+            if (fairyCountSelect) fairyCountSelect.value = defs.length.toString();
+            if (fairyPicker1) fairyPicker1.value = defs[0] || '#e63946';
+            if (fairyPicker2) {
+                fairyPicker2.value = defs[1] || '#ffb703';
+                fairyPicker2.style.display = defs.length >= 2 ? 'inline-block' : 'none';
+            }
+            if (fairyPicker3) {
+                fairyPicker3.value = defs[2] || '#00cc44';
+                fairyPicker3.style.display = defs.length >= 3 ? 'inline-block' : 'none';
+            }
+            updateFairySwatches();
             markSingleShirtDirty();
         });
 
@@ -12282,9 +12469,9 @@ function addCue(options = {}) {
         speedBpm: speedBpm,
         progression: options.progression || 'waterfall',
         panelColorMode: options.panelColorMode || 'graphic',
-        panelCustomColor: options.panelCustomColor || '#ffffff',
-        fairyColorMode: options.fairyColorMode || 'float_default',
-        fairyCustomColor: options.fairyCustomColor || getFloatDefaultFairyColor(),
+        panelColors: options.panelColors || [options.panelCustomColor || '#ffffff'],
+        fairyColorMode: options.fairyColorMode || 'float_baseline',
+        fairyColors: options.fairyColors || [...getFloatDefaultFairyColors()],
         fadeIn: options.fadeIn !== undefined ? options.fadeIn : 1.5,
         fadeOut: options.fadeOut !== undefined ? options.fadeOut : 1.5
     };

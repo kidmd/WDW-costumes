@@ -184,24 +184,38 @@ enum WaveProgressionMode : uint8_t {
 // Strand 2 (Wearer's Left, chain 537..561, bulbs 1..25):
 //   Front Ribs (12 steps, pos: 280 -> 500): Bulbs [25, 18, 19, 24, 17, 20, 23, 16, 21, 22, 15, 14]
 //   Back Ribs  (13 steps, pos: 500 -> 720): Bulbs [13, 12, 4, 5, 11, 3, 6, 10, 2, 7, 9, 1, 8]
-// 🌟 Standard fairy light colors for Floats 1..7 (Casey: Red, Drum: Gold, Turtle: Blue, Snail: Green, Pirate: Red, Dragon: Green, America: Blue)
-static const CRGB FLOAT_DEFAULT_FAIRY_COLORS[7] PROGMEM = {
-    CRGB(0xE6, 0x39, 0x46), // Float 1 (Casey Jr.): Red
-    CRGB(0xFF, 0xB7, 0x03), // Float 2 (Title Drum): Gold
-    CRGB(0x00, 0x88, 0xFF), // Float 3 (The Turtle): Blue
-    CRGB(0x00, 0xCC, 0x44), // Float 4 (The Snail): Green
-    CRGB(0xE6, 0x39, 0x46), // Float 5 (The Pirate Ship): Red
-    CRGB(0x00, 0xFF, 0x88), // Float 6 (Pete's Dragon): Green
-    CRGB(0x3A, 0x86, 0xFF)  // Float 7 (To Honor America): Blue
+// 🌟 Multi-color baseline palettes for Floats 1..7 (Casey: Red/Gold, Drum: Red/Gold, Turtle: Yellow/Blue/Green, Snail: Red/Blue/Green, Pirate: Red/Gold, Dragon: Green/Yellow, America: Red/White/Blue)
+static const uint8_t FLOAT_PALETTE_COUNTS[7] PROGMEM = { 2, 2, 3, 3, 2, 2, 3 };
+
+static const CRGB FLOAT_PALETTES[7][3] PROGMEM = {
+    { CRGB(0xE6, 0x39, 0x46), CRGB(0xFF, 0xB7, 0x03), CRGB(0x00, 0x00, 0x00) }, // Float 1 (Casey Jr.): Red, Gold
+    { CRGB(0xE6, 0x39, 0x46), CRGB(0xFF, 0xB7, 0x03), CRGB(0x00, 0x00, 0x00) }, // Float 2 (Title Drum): Red, Gold
+    { CRGB(0xFF, 0xD7, 0x00), CRGB(0x00, 0x88, 0xFF), CRGB(0x00, 0xCC, 0x44) }, // Float 3 (The Turtle): Yellow, Blue, Green
+    { CRGB(0xE6, 0x39, 0x46), CRGB(0x00, 0x88, 0xFF), CRGB(0x00, 0xCC, 0x44) }, // Float 4 (The Snail): Red, Blue, Green
+    { CRGB(0xE6, 0x39, 0x46), CRGB(0xFF, 0xB7, 0x03), CRGB(0x00, 0x00, 0x00) }, // Float 5 (The Pirate Ship): Red, Gold
+    { CRGB(0x00, 0xFF, 0x88), CRGB(0xFF, 0xD7, 0x00), CRGB(0x00, 0x00, 0x00) }, // Float 6 (Pete's Dragon): Green, Yellow
+    { CRGB(0xE6, 0x39, 0x46), CRGB(0xFF, 0xFF, 0xFF), CRGB(0x3A, 0x86, 0xFF) }  // Float 7 (To Honor America): Red, White, Blue
 };
 
-inline CRGB getFloatDefaultFairyColor(uint8_t floatNum = 1) {
-    uint8_t idx = (floatNum >= 1 && floatNum <= 7) ? (floatNum - 1) : 0;
+inline CRGB getFloatPaletteColor(uint8_t floatNum, uint8_t colorIdx = 0) {
+    uint8_t fIdx = (floatNum >= 1 && floatNum <= 7) ? (floatNum - 1) : 0;
+    uint8_t count = pgm_read_byte(&FLOAT_PALETTE_COUNTS[fIdx]);
+    uint8_t cIdx = colorIdx % count;
     return CRGB(
-        pgm_read_byte(&FLOAT_DEFAULT_FAIRY_COLORS[idx].r),
-        pgm_read_byte(&FLOAT_DEFAULT_FAIRY_COLORS[idx].g),
-        pgm_read_byte(&FLOAT_DEFAULT_FAIRY_COLORS[idx].b)
+        pgm_read_byte(&FLOAT_PALETTES[fIdx][cIdx].r),
+        pgm_read_byte(&FLOAT_PALETTES[fIdx][cIdx].g),
+        pgm_read_byte(&FLOAT_PALETTES[fIdx][cIdx].b)
     );
+}
+
+// Helper to get fairy bulb color in triplets (groups of 3 bulbs)
+inline CRGB getFloatFairyBulbColor(uint8_t floatNum, uint8_t bulbIndex) {
+    uint8_t group = bulbIndex / 3;
+    return getFloatPaletteColor(floatNum, group);
+}
+
+inline CRGB getFloatDefaultFairyColor(uint8_t floatNum = 1) {
+    return getFloatPaletteColor(floatNum, 0);
 }
 
 static const uint16_t FAIRY_STRAND1_LOOP_POS[25] PROGMEM = {

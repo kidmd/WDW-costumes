@@ -93,6 +93,28 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### November 8, 2026 - Multi-Color Float Baselines (2-3 Colors) & Up to 3 Colors in Cue Editor
+- **2-3 Color Float Baselines (`simulator/app.js`, `src/main.cpp`, `arduino/MSEP_Costume/MSEP_Costume.ino`):**
+  - Configured authentic 2-3 color signature baseline palettes for all 7 floats:
+    - **Float 1 (Casey Jr.):** Red and Gold (`#e63946`, `#ffb703`)
+    - **Float 2 (Title Drum):** Red and Gold (`#e63946`, `#ffb703`)
+    - **Float 3 (The Turtle):** Yellow, Blue, Green (`#ffd700`, `#0088ff`, `#00cc44`)
+    - **Float 4 (The Snail):** Red, Blue, Green (`#e63946`, `#0088ff`, `#00cc44`)
+    - **Float 5 (The Pirate Ship):** Red and Gold (`#e63946`, `#ffb703`)
+    - **Float 6 (Pete's Dragon):** Green and Yellow (`#00ff88`, `#ffd700`)
+    - **Float 7 (To Honor America):** Red, White, Blue (`#e63946`, `#ffffff`, `#3a86ff`)
+- **Triplets Physical Mapping (Groups of 3 Bulbs):**
+  - Mapped fairy light bulb palettes in alternating groups of 3 bulbs (`Math.floor(bulbOffset / 3) % palette.length`), perfectly matching the physical folded-strand triplet architecture.
+  - Resting baseline fairy lights now gently breathe and sparkle in the float's authentic multi-color palette.
+- **Dynamic Multi-Color Effects:**
+  - `traveling_wave` & `chase`: Successive wave pulses cycle through the 2 or 3 colors.
+  - `marquee`: Alternates individual bulbs across the 2 or 3 colors.
+  - `pulse` & `comet`: Successive breath / pass cycles advance through Color 1 $ightarrow$ Color 2 $ightarrow$ Color 3.
+- **Cue Editor Up to 3 Colors Selector:**
+  - Both Panels and Fairy Lights color rows allow selecting 1, 2, or 3 custom colors with live swatch previews and instant Reset to Float Baseline.
+- **ESP32 Firmware Parity (`src/main.cpp`, `arduino/MSEP_Costume/MSEP_Costume.ino`):**
+  - Added `FLOAT_PALETTES` and `FLOAT_PALETTE_COUNTS` in PROGMEM with `getFloatPaletteColor` and `getFloatFairyBulbColor` for dual-core ESP32 compatibility.
+
 ### November 8, 2026 - Per-Cue Color Selectors for Fairy Lights & Panels in Cue Editor
 - **Panels & Fairy Lights Color Selectors (`simulator/app.js`):**
   - Added dedicated color selector controls inside every cue card in the Parade Cue Director:

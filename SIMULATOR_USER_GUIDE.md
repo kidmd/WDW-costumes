@@ -814,18 +814,22 @@ Click **➕ Add Cue** to create a new cue card with the following settings:
   - `↔️ Lateral Barrel Roll`: Transverse horizontal roll sweeping from left ribs across chest/back badges to right ribs.
   - `⚡ Dual Collision`: Opposing wavefronts ascending simultaneously up front and back, clashing at shoulder apexes with harmonic rebound.
 - **🔲 Panels Color (Adaptive by Target Layer):**
-  - **`🖼️ Graphic Colors (Default)`:** Panel LEDs shine with their authentic sampled colors obtained directly from the float's chest graphic artwork.
-  - **`🎨 Custom Solid Color`:** Overrides the graphic, illuminating all matrix panel pixels with a selected single solid custom color during the cue.
+  - **`🖼️ Graphic Colors (Default)`:** Panel LEDs shine with authentic sampled colors obtained directly from the float's chest graphic artwork.
+  - **`🌟 Float Baseline Colors`:** Illuminates matrix panels with the float's 2 or 3 signature baseline colors.
+  - **`🎨 Custom Colors (1 to 3 Colors)`:** Allows selecting 1, 2, or 3 custom colors for the matrix panels during this cue.
 - **✨ Fairy Lights Color (Adaptive by Target Layer):**
-  - **`🌟 Float Standard (Default)`:** Automatically assigns the official single theme color for that specific float:
-    - **Float 1 (Casey Jr.):** Red (`#E63946`)
-    - **Float 2 (Title Drum):** Gold (`#FFB703`)
-    - **Float 3 (The Turtle):** Blue (`#0088FF`)
-    - **Float 4 (The Snail):** Green (`#00CC44`)
-    - **Float 5 (The Pirate Ship):** Red (`#E63946`)
-    - **Float 6 (Pete's Dragon):** Green (`#00FF88`)
-    - **Float 7 (To Honor America):** Blue (`#3A86FF`)
-  - **`🎨 Custom Color`:** Opens a color picker to choose any custom hex color for the 50 rib and shoulder fairy light bulbs, with a 1-click **Reset** button to restore the float standard.
+  - **`🌟 Float Baseline (Default)`:** Assigns the official 2 or 3 baseline colors for that specific float, physically distributed in alternating triplets (groups of 3 bulbs):
+    - **Float 1 (Casey Jr.):** Red & Gold (`#E63946`, `#FFB703`)
+    - **Float 2 (Title Drum):** Red & Gold (`#E63946`, `#FFB703`)
+    - **Float 3 (The Turtle):** Yellow, Blue, Green (`#FFD700`, `#0088FF`, `#00CC44`)
+    - **Float 4 (The Snail):** Red, Blue, Green (`#E63946`, `#0088FF`, `#00CC44`)
+    - **Float 5 (The Pirate Ship):** Red & Gold (`#E63946`, `#FFB703`)
+    - **Float 6 (Pete's Dragon):** Green & Yellow (`#00FF88`, `#FFD700`)
+    - **Float 7 (To Honor America):** Red, White, Blue (`#E63946`, `#FFFFFF`, `#3A86FF`)
+  - **`🎨 Custom Colors (1 to 3 Colors)`:** Enables selecting 1, 2, or 3 custom hex colors with individual color pickers and an instant **Reset Float Baseline** button.
+  - **Dynamic Multi-Color Effects:**
+    - **Alternating Bulbs (Marquee & Static):** The 2 or 3 colors alternate across bulbs (in groups of 3 bulbs on fairy lights, reflecting the folded triplet strand structure).
+    - **Wave Pulse Cycling (Waves, Chases, Comets, Pulses):** Successive wave and beam passes cycle sequentially through Color 1 $\rightarrow$ Color 2 $\rightarrow$ Color 3.
   - **Adaptive Card Visibility:** Global 360° cues display both Panels and Fairy Lights color selectors; Panel cues display only the Panels color selector; Fairy cues display only the Fairy Lights color selector.
 - **Start Time (s):** Time offset in seconds from the beginning of the show loop (0.5s resolution).
 - **Duration (s):** How long the cue runs before fading out (with instant quick chips: `5s`, `10s`, `15s`, `30s`).
