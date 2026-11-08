@@ -2339,35 +2339,48 @@ function getSparkleRgb(style) {
 //     -> Chain indices: [561, 554, 555, 560, 553, 556, 559, 552, 557, 558, 551, 550]
 //   Back Ribs  (13 steps, u: 0.50 -> 0.72): Bulbs [13, 12, 4, 5, 11, 3, 6, 10, 2, 7, 9, 1, 8]
 //     -> Chain indices: [549, 548, 540, 541, 547, 539, 542, 546, 538, 543, 545, 537, 544]
+// Symmetrical theatrical wave progression for 562-LED costume [0.0, 1.0):
+// 1. Down the Front 16x16 Panel (0..255, Row 0 -> Row 15): 28% of cycle (0.00 to 0.28)
+// 2. Out & Up along Front Fairy Lights at the same time (Left & Right mirrored): 22% of cycle (0.28 to 0.50)
+//    - Right Front: linear along canvas nodes 256..267 (bottom center -> shoulder apex)
+//    - Left Front:  linear along canvas nodes 561..550 (bottom center -> shoulder apex)
+// 3. Down & Over Back Fairy Lights at the same time (Left & Right mirrored): 22% of cycle (0.50 to 0.72)
+//    - Right Back:  linear along canvas nodes 268..280 (shoulder apex -> back panel middle)
+//    - Left Back:   linear along canvas nodes 549..537 (shoulder apex -> back panel middle)
+// 4. Up the Back 16x16 Panel (281..536, Row 15 -> Row 0): 28% of cycle (0.72 to 1.00)
 const COSTUME_562_LOOP_COORDS = (function() {
     const coords = new Float32Array(562);
     // Stage 1: Down the Front Panel (0..255) -> Row 0..15 (0.00 to 0.28)
     for (let idx = 0; idx < 256; idx++) {
-        const row = Math.floor(idx / 16);
+        const row = Math.floor(idx / 16.0);
         coords[idx] = 0.00 + ((row + 0.5) / 16.0) * 0.28;
     }
     // Stage 2: Out & Up Along Front Fairy Lights (Left & Right mirrored) -> 0.28 to 0.50
-    const s1Front = [263, 256, 264, 262, 257, 265, 261, 258, 266, 260, 259, 267, 268];
-    for (let step = 0; step < s1Front.length; step++) {
-        coords[s1Front[step]] = 0.28 + (step / (s1Front.length - 1)) * 0.22;
+    // Right Front: 256..267 (i = 0..11, bottom -> shoulder)
+    for (let idx = 256; idx <= 267; idx++) {
+        const i = idx - 256;
+        coords[idx] = 0.28 + (i / 11.0) * 0.22;
     }
-    const s2Front = [561, 554, 555, 560, 553, 556, 559, 552, 557, 558, 551, 550];
-    for (let step = 0; step < s2Front.length; step++) {
-        coords[s2Front[step]] = 0.28 + (step / (s2Front.length - 1)) * 0.22;
+    // Left Front: 561..550 (i = 0..11, bottom -> shoulder)
+    for (let idx = 550; idx <= 561; idx++) {
+        const i = 561 - idx;
+        coords[idx] = 0.28 + (i / 11.0) * 0.22;
     }
     // Stage 3: Down & Over Back Fairy Lights (Left & Right mirrored) -> 0.50 to 0.72
-    const s1Back = [269, 270, 277, 276, 271, 278, 275, 272, 279, 274, 273, 280];
-    for (let step = 0; step < s1Back.length; step++) {
-        coords[s1Back[step]] = 0.50 + (step / (s1Back.length - 1)) * 0.22;
+    // Right Back: 268..280 (j = 0..12, shoulder -> bottom)
+    for (let idx = 268; idx <= 280; idx++) {
+        const j = idx - 268;
+        coords[idx] = 0.50 + (j / 12.0) * 0.22;
     }
-    const s2Back = [549, 548, 540, 541, 547, 539, 542, 546, 538, 543, 545, 537, 544];
-    for (let step = 0; step < s2Back.length; step++) {
-        coords[s2Back[step]] = 0.50 + (step / (s2Back.length - 1)) * 0.22;
+    // Left Back: 549..537 (j = 0..12, shoulder -> bottom)
+    for (let idx = 537; idx <= 549; idx++) {
+        const j = 549 - idx;
+        coords[idx] = 0.50 + (j / 12.0) * 0.22;
     }
     // Stage 4: Up the Back Panel (281..536) -> Row 15..0 (0.72 to 1.00)
     for (let idx = 281; idx <= 536; idx++) {
         const mIdx = idx - 281;
-        const row = Math.floor(mIdx / 16);
+        const row = Math.floor(mIdx / 16.0);
         const upRow = 15 - row;
         coords[idx] = 0.72 + ((upRow + 0.5) / 16.0) * 0.28;
     }

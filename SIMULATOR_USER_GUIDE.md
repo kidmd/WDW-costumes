@@ -22,16 +22,16 @@ This guide walks you through every feature of the simulator, from placing and wi
 10. [Parade Cue Director (90-Second Theatrical Sequences)](#10-parade-cue-director-90-second-theatrical-sequences)
 11. [Lighting Patterns & Effects Library](#11-lighting-patterns--effects-library)
 
-> 🌊 **Full Costume Wave Pacing & Physical Z-Fold Mapping:** In Full Costume Mode (562 LEDs), wave and sweep effects (`traveling_wave`, `chase`, `comet`, `scanner`, `rainbow_cycle`, `color_wipe`, and `write_on_off`) utilize anatomically calibrated loop pacing (`getCostumeNormalizedLoopCoord`). The wave progression follows a bilaterally symmetrical theatrical choreography that accurately models the physical accordion Z-fold bulb sequence:
-1. **Down the Front Panel:** Row 0 to Row 15 (28% of cycle, `u` 0.00 to 0.28).
-2. **Out & Up Along Front Fairy Strands (Mirrored):** Left and right ribcage strands ascend simultaneously as exact mirror images up to both shoulders (22% of cycle, `u` 0.28 to 0.50), traversing the physical folded triplets from bottom hem to shoulder apex:
-   - **Right Front:** Bulbs `[8, 1, 9, 7, 2, 10, 6, 3, 11, 5, 4, 12, 13]` (Chain `[263, 256, 264, 262, 257, 265, 261, 258, 266, 260, 259, 267, 268]`).
-   - **Left Front:** Bulbs `[25, 18, 19, 24, 17, 20, 23, 16, 21, 22, 15, 14]` (Chain `[561, 554, 555, 560, 553, 556, 559, 552, 557, 558, 551, 550]`).
-3. **Down & Over Back Fairy Strands (Mirrored):** Both sides cascade over the shoulder apex and down the back ribs simultaneously in mirror symmetry (22% of cycle, `u` 0.50 to 0.72) down to the back badge:
-   - **Right Back:** Bulbs `[14, 15, 22, 21, 16, 23, 20, 17, 24, 19, 18, 25]` (Chain `[269, 270, 277, 276, 271, 278, 275, 272, 279, 274, 273, 280]`).
-   - **Left Back:** Bulbs `[13, 12, 4, 5, 11, 3, 6, 10, 2, 7, 9, 1, 8]` (Chain `[549, 548, 540, 541, 547, 539, 542, 546, 538, 543, 545, 537, 544]`).
-4. **Up the Back Panel:** Row 15 to Row 0 up the back matrix (28% of cycle, `u` 0.72 to 1.00).
-This provides ~6.8× more dwell time per fairy bulb while maintaining perfect visual bilateral symmetry and respecting the true physical folded bulb numbers.
+> 🌊 **Full Costume Wave Choreography & Dual-Domain Mapping:** In Full Costume Mode (562 LEDs), wave and sweep effects (`traveling_wave`, `chase`, `comet`, `scanner`, `rainbow_cycle`, `color_wipe`, and `write_on_off`) utilize anatomically calibrated loop pacing (`getCostumeNormalizedLoopCoord`). The visual animation on the simulator canvas and the physical wearable firmware operate in unified harmony:
+1. **Down the Front Panel:** Row 0 to Row 15 down the chest matrix badge (28% of cycle, `u` 0.00 to 0.28).
+2. **Out & Up Along Front Fairy Strands (Mirrored):** Starts at the bottom center and ascends smoothly along both sides of the ribcage simultaneously to the shoulders (22% of cycle, `u` 0.28 to 0.50):
+   - **Simulator Canvas Display:** Pure linear visual progression along canvas nodes (Right Front: `#256..267`; Left Front: `#561..550`), creating a completely smooth, continuous, non-jumping climb.
+   - **Wearer Hardware Firmware:** Maps this progression via `FAIRY_STRAND1_LOOP_POS` and `FAIRY_STRAND2_LOOP_POS` to the physical folded wire numbers (`[8, 1, 9, 7, 2, 10, 6, 3, 11, 5, 4, 12, 13]`), ensuring real physical lights illuminate in the identical spatial order.
+3. **Down & Over Back Fairy Strands (Mirrored):** Cascades over both shoulders and descends smoothly down the back ribs in mirror symmetry (22% of cycle, `u` 0.50 to 0.72):
+   - **Simulator Canvas Display:** Pure linear visual progression along canvas nodes (Right Back: `#268..280`; Left Back: `#549..537`).
+   - **Wearer Hardware Firmware:** Maps to the physical back folded wire sequence (`[14, 15, 22, 21, 16, 23, 20, 17, 24, 19, 18, 25]`).
+4. **Up the Back Panel:** Row 15 to Row 0 ascending up the back matrix badge (28% of cycle, `u` 0.72 to 1.00), smoothly wrapping back to the top of the chest panel.
+This provides ~6.8× more dwell time per fairy bulb, guarantees a visually pure, continuous progression on screen, and keeps the physical hardware completely synchronized.
 
 12. [Profile Management, Saving & JSON Import/Export](#12-profile-management-saving--json-importexport)
 13. [7-Shirt Fleet Show Creator, Preset Manager & Corral Radar](#13-7-shirt-fleet-show-creator--preset-manager)

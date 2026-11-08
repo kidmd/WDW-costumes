@@ -93,18 +93,17 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
-### November 8, 2026 - Physical Fairy Light Accordion Z-Fold Wave Trajectory (Bulbs 1..25 Non-Linear Progression)
-- **Physical Accordion / Z-Fold Bulb Mapping (`simulator/app.js`, `src/main.cpp`, `arduino/MSEP_Costume/MSEP_Costume.ino`):**
-  - Clarified and mapped the true physical routing of the 50 fairy lights connecting the front and back 16x16 matrix badges.
-  - Due to the triple-strand wire fold along the ribcage (triplets every ~3.3 cm instead of standard 10 cm spacing), bulbs are arranged in physical vertical tiers rather than linear sequential runs:
-    - **Strand 1 (Wearer's Right, chain 256..280, bulbs 1..25):**
-      - Front Ribs (Ascending from front badge to shoulder, 13 steps): Bulbs `[8, 1, 9, 7, 2, 10, 6, 3, 11, 5, 4, 12, 13]` $\implies$ Chain indices `[263, 256, 264, 262, 257, 265, 261, 258, 266, 260, 259, 267, 268]`
-      - Back Ribs (Descending from shoulder to back badge, 12 steps): Bulbs `[14, 15, 22, 21, 16, 23, 20, 17, 24, 19, 18, 25]` $\implies$ Chain indices `[269, 270, 277, 276, 271, 278, 275, 272, 279, 274, 273, 280]`
-    - **Strand 2 (Wearer's Left, chain 537..561, bulbs 1..25):**
-      - Front Ribs (Ascending from front badge to shoulder, 12 steps): Bulbs `[25, 18, 19, 24, 17, 20, 23, 16, 21, 22, 15, 14]` $\implies$ Chain indices `[561, 554, 555, 560, 553, 556, 559, 552, 557, 558, 551, 550]`
-      - Back Ribs (Descending from shoulder to back badge, 13 steps): Bulbs `[13, 12, 4, 5, 11, 3, 6, 10, 2, 7, 9, 1, 8]` $\implies$ Chain indices `[549, 548, 540, 541, 547, 539, 542, 546, 538, 543, 545, 537, 544]`
-  - **Spatial Micro-Sweeping Pacing:** Wave progression (`getCostumeNormalizedLoopCoord` and `getCostumePacedLoopPosition`) follows the exact physical folded bulb numbers through each tier, ensuring waves climb each triple-rib accordion smoothly without jumping or unnatural phase jitter.
-  - **Optimized C++ Implementation:** Precomputed flash `PROGMEM` lookup tables (`FAIRY_STRAND1_LOOP_POS` and `FAIRY_STRAND2_LOOP_POS`) for the 50 fairy lights allow sub-microsecond integer lookups on the ESP32.
+### November 8, 2026 - Linear Canvas Animation vs. Physical Hardware Bulb Mapping
+- **Linear Visual Trajectory in Simulator (`simulator/app.js`):**
+  - Restored clean, continuous linear progression for the simulator canvas:
+    - Down the front panel (Row 0 -> Row 15, `u` 0.00 to 0.28).
+    - Out from bottom middle and ascending smoothly up both sides of the front ribcage (Right: `#256..267`, Left: `#561..550`, `u` 0.28 to 0.50).
+    - Over the shoulders and cascading down both sides of the back ribcage (Right: `#268..280`, Left: `#549..537`, `u` 0.50 to 0.72).
+    - Ascending up the back panel (Row 15 -> Row 0, `u` 0.72 to 1.00).
+  - Eliminates visual coordinate scrambling on the canvas display, rendering a 100% fluid, continuous theatrical wave.
+- **Hardware-Accurate ESP32 Firmware Mapping (`src/main.cpp`, `arduino/MSEP_Costume/MSEP_Costume.ino`):**
+  - Physical wearable firmware uses precomputed flash `PROGMEM` lookup tables (`FAIRY_STRAND1_LOOP_POS` and `FAIRY_STRAND2_LOOP_POS`) mapping the 25 folded wire bulbs (`[8, 1, 9, 7, 2, ...]` etc.) to their physical vertical positions.
+  - Ensures the physical costume worn by runners in the park illuminates in the exact identical spatial waterfall sequence seen on the simulator screen.
 
 ### November 7, 2026 - Bilateral Mirror Wave Progression (Down Front -> Out & Up Front Ribs -> Down Back Ribs -> Up Back Badge)
 - **Theatrical Wave Path & Bilateral Mirroring (`simulator/app.js`, `src/main.cpp`, `arduino/MSEP_Costume/MSEP_Costume.ino`):**
