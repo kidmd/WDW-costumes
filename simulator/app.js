@@ -2339,67 +2339,199 @@ function getSparkleRgb(style) {
 //     -> Chain indices: [561, 554, 555, 560, 553, 556, 559, 552, 557, 558, 551, 550]
 //   Back Ribs  (13 steps, u: 0.50 -> 0.72): Bulbs [13, 12, 4, 5, 11, 3, 6, 10, 2, 7, 9, 1, 8]
 //     -> Chain indices: [549, 548, 540, 541, 547, 539, 542, 546, 538, 543, 545, 537, 544]
-// Symmetrical theatrical wave progression for 562-LED costume [0.0, 1.0):
-// 1. Down the Front 16x16 Panel (0..255, Row 0 -> Row 15): 28% of cycle (0.00 to 0.28)
-// 2. Out & Up along Front Fairy Lights at the same time (Left & Right mirrored): 22% of cycle (0.28 to 0.50)
-//    - Right Front: linear along canvas nodes 256..267 (bottom center -> shoulder apex)
-//    - Left Front:  linear along canvas nodes 561..550 (bottom center -> shoulder apex)
-// 3. Down & Over Back Fairy Lights at the same time (Left & Right mirrored): 22% of cycle (0.50 to 0.72)
-//    - Right Back:  linear along canvas nodes 268..280 (shoulder apex -> back panel middle)
-//    - Left Back:   linear along canvas nodes 549..537 (shoulder apex -> back panel middle)
-// 4. Up the Back 16x16 Panel (281..536, Row 15 -> Row 0): 28% of cycle (0.72 to 1.00)
-const COSTUME_562_LOOP_COORDS = (function() {
-    const coords = new Float32Array(562);
-    // Stage 1: Down the Front Panel (0..255) -> Row 0..15 (0.00 to 0.28)
+// ============================================================================
+// 🌊 THEATRICAL WAVE PROGRESSION SUITE (562-LED FULL COSTUME)
+// Seven selectable kinetic trajectories around the runner's body:
+// 1. waterfall (Default): Down front panel -> out & up front ribs -> down back ribs -> up back panel
+// 2. orbit: 360° closed-loop continuous circular torso orbit (planetary ring)
+// 3. radial_burst: Heartbeat radial shockwave expanding outward from chest center
+// 4. horizon_lift: Pure upward altitude scan from ground/waist to shoulders
+// 5. dragon_wings: Top-down cascade dive originating from both shoulders
+// 6. lateral_roll: Transverse left-to-right lateral scan across the body
+// 7. dual_collision: Dual front & back wave clash at shoulder apexes with rebound
+// ============================================================================
+const COSTUME_562_PROGRESSIONS = (function() {
+    const progs = {
+        waterfall: new Float32Array(562),
+        orbit: new Float32Array(562),
+        radial_burst: new Float32Array(562),
+        horizon_lift: new Float32Array(562),
+        dragon_wings: new Float32Array(562),
+        lateral_roll: new Float32Array(562),
+        dual_collision: new Float32Array(562)
+    };
+
+    // 1. WATERFALL (Default Symmetrical Fountain & Cascade)
     for (let idx = 0; idx < 256; idx++) {
         const row = Math.floor(idx / 16.0);
-        coords[idx] = 0.00 + ((row + 0.5) / 16.0) * 0.28;
+        progs.waterfall[idx] = 0.00 + ((row + 0.5) / 16.0) * 0.28;
     }
-    // Stage 2: Out & Up Along Front Fairy Lights (Left & Right mirrored) -> 0.28 to 0.50
-    // Right Front: 256..267 (i = 0..11, bottom -> shoulder)
     for (let idx = 256; idx <= 267; idx++) {
-        const i = idx - 256;
-        coords[idx] = 0.28 + (i / 11.0) * 0.22;
+        progs.waterfall[idx] = 0.28 + ((idx - 256) / 11.0) * 0.22;
     }
-    // Left Front: 561..550 (i = 0..11, bottom -> shoulder)
     for (let idx = 550; idx <= 561; idx++) {
-        const i = 561 - idx;
-        coords[idx] = 0.28 + (i / 11.0) * 0.22;
+        progs.waterfall[idx] = 0.28 + ((561 - idx) / 11.0) * 0.22;
     }
-    // Stage 3: Down & Over Back Fairy Lights (Left & Right mirrored) -> 0.50 to 0.72
-    // Right Back: 268..280 (j = 0..12, shoulder -> bottom)
     for (let idx = 268; idx <= 280; idx++) {
-        const j = idx - 268;
-        coords[idx] = 0.50 + (j / 12.0) * 0.22;
+        progs.waterfall[idx] = 0.50 + ((idx - 268) / 12.0) * 0.22;
     }
-    // Left Back: 549..537 (j = 0..12, shoulder -> bottom)
     for (let idx = 537; idx <= 549; idx++) {
-        const j = 549 - idx;
-        coords[idx] = 0.50 + (j / 12.0) * 0.22;
+        progs.waterfall[idx] = 0.50 + ((549 - idx) / 12.0) * 0.22;
     }
-    // Stage 4: Up the Back Panel (281..536) -> Row 15..0 (0.72 to 1.00)
+    for (let idx = 281; idx <= 536; idx++) {
+        const row = Math.floor((idx - 281) / 16.0);
+        progs.waterfall[idx] = 0.72 + (((15 - row) + 0.5) / 16.0) * 0.28;
+    }
+
+    // 2. ORBIT (360° Continuous Torso Wrap)
+    for (let idx = 0; idx < 256; idx++) {
+        const row = Math.floor(idx / 16.0);
+        progs.orbit[idx] = 0.00 + ((row + 0.5) / 16.0) * 0.25;
+    }
+    for (let idx = 256; idx <= 280; idx++) {
+        progs.orbit[idx] = 0.25 + ((idx - 256) / 24.0) * 0.25;
+    }
+    for (let idx = 281; idx <= 536; idx++) {
+        const row = Math.floor((idx - 281) / 16.0);
+        progs.orbit[idx] = 0.50 + ((row + 0.5) / 16.0) * 0.25;
+    }
+    for (let idx = 537; idx <= 561; idx++) {
+        progs.orbit[idx] = 0.75 + ((idx - 537) / 24.0) * 0.25;
+    }
+
+    // 3. RADIAL BURST (Heartbeat Center-Out Expansion)
+    for (let idx = 0; idx < 256; idx++) {
+        const row = Math.floor(idx / 16.0), col = idx % 16;
+        const dist = Math.hypot(col - 7.5, row - 7.5) / 10.606;
+        progs.radial_burst[idx] = Math.min(0.25, dist * 0.25);
+    }
+    for (let idx = 256; idx <= 267; idx++) {
+        progs.radial_burst[idx] = 0.25 + ((idx - 256) / 11.0) * 0.25;
+    }
+    for (let idx = 550; idx <= 561; idx++) {
+        progs.radial_burst[idx] = 0.25 + ((561 - idx) / 11.0) * 0.25;
+    }
+    for (let idx = 268; idx <= 280; idx++) {
+        progs.radial_burst[idx] = 0.50 + ((idx - 268) / 12.0) * 0.25;
+    }
+    for (let idx = 537; idx <= 549; idx++) {
+        progs.radial_burst[idx] = 0.50 + ((549 - idx) / 12.0) * 0.25;
+    }
     for (let idx = 281; idx <= 536; idx++) {
         const mIdx = idx - 281;
-        const row = Math.floor(mIdx / 16.0);
-        const upRow = 15 - row;
-        coords[idx] = 0.72 + ((upRow + 0.5) / 16.0) * 0.28;
+        const row = Math.floor(mIdx / 16.0), col = mIdx % 16;
+        const dist = Math.hypot(col - 7.5, row - 7.5) / 10.606;
+        progs.radial_burst[idx] = 0.75 + (1.0 - Math.min(1.0, dist)) * 0.25;
     }
-    return coords;
-})();
-window.COSTUME_562_LOOP_COORDS = COSTUME_562_LOOP_COORDS;
 
-function getCostumeNormalizedLoopCoord(index) {
+    // 4. HORIZON LIFT (Ground-to-Sky Upward Altitude)
+    for (let idx = 0; idx < 256; idx++) {
+        const row = Math.floor(idx / 16.0);
+        progs.horizon_lift[idx] = ((15 - row) / 15.0) * 0.85;
+    }
+    for (let idx = 281; idx <= 536; idx++) {
+        const row = Math.floor((idx - 281) / 16.0);
+        progs.horizon_lift[idx] = ((15 - row) / 15.0) * 0.85;
+    }
+    for (let idx = 256; idx <= 267; idx++) {
+        progs.horizon_lift[idx] = (idx - 256) / 11.0;
+    }
+    for (let idx = 550; idx <= 561; idx++) {
+        progs.horizon_lift[idx] = (561 - idx) / 11.0;
+    }
+    for (let idx = 268; idx <= 280; idx++) {
+        progs.horizon_lift[idx] = (280 - idx) / 12.0;
+    }
+    for (let idx = 537; idx <= 549; idx++) {
+        progs.horizon_lift[idx] = (idx - 537) / 12.0;
+    }
+
+    // 5. DRAGON WINGS (Shoulders-Down Cascading Dive)
+    for (let idx = 0; idx < 256; idx++) {
+        const row = Math.floor(idx / 16.0);
+        progs.dragon_wings[idx] = row / 15.0;
+    }
+    for (let idx = 281; idx <= 536; idx++) {
+        const row = Math.floor((idx - 281) / 16.0);
+        progs.dragon_wings[idx] = row / 15.0;
+    }
+    for (let idx = 256; idx <= 267; idx++) {
+        progs.dragon_wings[idx] = (267 - idx) / 11.0;
+    }
+    for (let idx = 550; idx <= 561; idx++) {
+        progs.dragon_wings[idx] = (idx - 550) / 11.0;
+    }
+    for (let idx = 268; idx <= 280; idx++) {
+        progs.dragon_wings[idx] = (idx - 268) / 12.0;
+    }
+    for (let idx = 537; idx <= 549; idx++) {
+        progs.dragon_wings[idx] = (549 - idx) / 12.0;
+    }
+
+    // 6. LATERAL ROLL (Transverse Left-to-Right Scan)
+    for (let idx = 550; idx <= 561; idx++) {
+        progs.lateral_roll[idx] = ((561 - idx) / 11.0) * 0.25;
+    }
+    for (let idx = 537; idx <= 549; idx++) {
+        progs.lateral_roll[idx] = ((idx - 537) / 12.0) * 0.25;
+    }
+    for (let idx = 0; idx < 256; idx++) {
+        const col = idx % 16;
+        progs.lateral_roll[idx] = 0.25 + (col / 15.0) * 0.50;
+    }
+    for (let idx = 281; idx <= 536; idx++) {
+        const col = (idx - 281) % 16;
+        progs.lateral_roll[idx] = 0.25 + (col / 15.0) * 0.50;
+    }
+    for (let idx = 256; idx <= 267; idx++) {
+        progs.lateral_roll[idx] = 0.75 + ((idx - 256) / 11.0) * 0.25;
+    }
+    for (let idx = 268; idx <= 280; idx++) {
+        progs.lateral_roll[idx] = 0.75 + ((280 - idx) / 12.0) * 0.25;
+    }
+
+    // 7. DUAL COLLISION (Clash at Shoulders with Harmonic Rebound)
+    for (let idx = 0; idx < 256; idx++) {
+        const row = Math.floor(idx / 16.0);
+        progs.dual_collision[idx] = ((15 - row) / 15.0) * 0.25;
+    }
+    for (let idx = 281; idx <= 536; idx++) {
+        const row = Math.floor((idx - 281) / 16.0);
+        progs.dual_collision[idx] = ((15 - row) / 15.0) * 0.25;
+    }
+    for (let idx = 256; idx <= 267; idx++) {
+        progs.dual_collision[idx] = 0.25 + ((idx - 256) / 11.0) * 0.25;
+    }
+    for (let idx = 550; idx <= 561; idx++) {
+        progs.dual_collision[idx] = 0.25 + ((561 - idx) / 11.0) * 0.25;
+    }
+    for (let idx = 268; idx <= 280; idx++) {
+        progs.dual_collision[idx] = 0.25 + ((280 - idx) / 12.0) * 0.25;
+    }
+    for (let idx = 537; idx <= 549; idx++) {
+        progs.dual_collision[idx] = 0.25 + ((idx - 537) / 12.0) * 0.25;
+    }
+
+    return progs;
+})();
+window.COSTUME_562_PROGRESSIONS = COSTUME_562_PROGRESSIONS;
+window.COSTUME_562_LOOP_COORDS = COSTUME_562_PROGRESSIONS.waterfall;
+
+function getCostumeNormalizedLoopCoord(index, progression = 'waterfall') {
     if (typeof currentHardwareMode === 'undefined' || currentHardwareMode !== 'full_costume') {
         return index / Math.max(1, (typeof leds !== 'undefined' ? leds.length : 200));
     }
+    const pKey = (progression && COSTUME_562_PROGRESSIONS[progression]) ? progression : 'waterfall';
+    const table = COSTUME_562_PROGRESSIONS[pKey];
     if (index >= 0 && index < 562) {
-        return COSTUME_562_LOOP_COORDS[index];
+        return table[index];
     }
     return (index % 562) / 562.0;
 }
 window.getCostumeNormalizedLoopCoord = getCostumeNormalizedLoopCoord;
 
-function evalGlobalPattern(pattern, bpm, index, totalLeds, timeMs, c, hasColor, isGroupOverride = false, directionOverride = null) {
+function evalGlobalPattern(pattern, bpm, index, totalLeds, timeMs, c, hasColor, isGroupOverride = false, directionOverride = null, progressionOverride = null) {
+    const activeProgression = progressionOverride || (params && params.waveProgression) || 'waterfall';
     const beatMs = 60000 / Math.max(20, bpm || params.speedBpm || 120);
     const normTime = timeMs / beatMs;
     const baseH = params.greenHue || 140;
@@ -2508,7 +2640,7 @@ function evalGlobalPattern(pattern, bpm, index, totalLeds, timeMs, c, hasColor, 
             let waveWidth;
             if (typeof currentHardwareMode !== 'undefined' && currentHardwareMode === 'full_costume') {
                 const head = (dir === -1) ? (1.0 - waveCycle) : waveCycle;
-                const ledCoord = getCostumeNormalizedLoopCoord(index);
+                const ledCoord = getCostumeNormalizedLoopCoord(index, activeProgression);
                 const directDist = Math.abs(ledCoord - head);
                 dist = Math.min(directDist, 1.0 - directDist); // Modular circular distance on continuous closed loop
                 waveWidth = 0.085; // Natural ~8.5% body envelope (~4 LEDs on fairy strand, ~45 pixels on panel)
@@ -2593,7 +2725,7 @@ function evalGlobalPattern(pattern, bpm, index, totalLeds, timeMs, c, hasColor, 
                 const cycleMs = Math.max(1200, beatMs * 2.5);
                 const progress = (timeMs % cycleMs) / cycleMs;
                 const head = (dir === -1) ? (1.0 - progress) : progress;
-                const ledCoord = getCostumeNormalizedLoopCoord(index);
+                const ledCoord = getCostumeNormalizedLoopCoord(index, activeProgression);
                 const directDist = Math.abs(ledCoord - head);
                 const circDist = Math.min(directDist, 1.0 - directDist);
                 const chaseWidth = 0.07;
@@ -2704,7 +2836,7 @@ function evalGlobalPattern(pattern, bpm, index, totalLeds, timeMs, c, hasColor, 
             const progress = (timeMs % totalCycleMs) / totalCycleMs;
             const sm = getSpatialMetrics();
             const effRank = (typeof currentHardwareMode !== 'undefined' && currentHardwareMode === 'full_costume')
-                ? (getCostumeNormalizedLoopCoord(index) * totalLeds)
+                ? (getCostumeNormalizedLoopCoord(index, activeProgression) * totalLeds)
                 : ((sm && sm.rankYBottomUp && sm.rankYBottomUp[index] !== undefined)
                     ? (dir === -1 ? sm.rankYTopDown[index] : sm.rankYBottomUp[index])
                     : ((dir === -1) ? (totalLeds - 1 - index) : index));
@@ -2746,7 +2878,7 @@ function evalGlobalPattern(pattern, bpm, index, totalLeds, timeMs, c, hasColor, 
             if (effHasColor) {
                 const sm = getSpatialMetrics();
                 const spatialPos = (typeof currentHardwareMode !== 'undefined' && currentHardwareMode === 'full_costume')
-                    ? getCostumeNormalizedLoopCoord(index)
+                    ? getCostumeNormalizedLoopCoord(index, activeProgression)
                     : ((sm && sm.normX && sm.normX[index] !== undefined)
                         ? (sm.normX[index] * 0.7 + sm.normY[index] * 0.3)
                         : (index / Math.max(1, totalLeds)));
@@ -2766,7 +2898,7 @@ function evalGlobalPattern(pattern, bpm, index, totalLeds, timeMs, c, hasColor, 
             } else {
                 const sm = getSpatialMetrics();
                 const spatialPos = (typeof currentHardwareMode !== 'undefined' && currentHardwareMode === 'full_costume')
-                    ? getCostumeNormalizedLoopCoord(index)
+                    ? getCostumeNormalizedLoopCoord(index, activeProgression)
                     : ((sm && sm.normX && sm.normX[index] !== undefined)
                         ? (sm.normX[index] * 0.7 + sm.normY[index] * 0.3)
                         : (index / Math.max(1, totalLeds)));
@@ -2783,7 +2915,7 @@ function evalGlobalPattern(pattern, bpm, index, totalLeds, timeMs, c, hasColor, 
                 const cometPassMs = Math.max(1400, beatMs * 2.5);
                 const progress = (timeMs % cometPassMs) / cometPassMs;
                 const head = (dir === -1) ? (1.0 - progress) : progress;
-                const ledCoord = getCostumeNormalizedLoopCoord(index);
+                const ledCoord = getCostumeNormalizedLoopCoord(index, activeProgression);
                 let diff = (dir === -1) ? (ledCoord - head) : (head - ledCoord);
                 if (diff < 0) diff += 1.0;
                 const tailSpan = 0.22; // 22% of loop duration tail
@@ -2855,7 +2987,7 @@ function evalGlobalPattern(pattern, bpm, index, totalLeds, timeMs, c, hasColor, 
                 const cycle = (normTime / 2.0) % 2.0;
                 let head = cycle <= 1.0 ? cycle : (2.0 - cycle);
                 if (dir === -1) head = 1.0 - head;
-                const ledCoord = getCostumeNormalizedLoopCoord(index);
+                const ledCoord = getCostumeNormalizedLoopCoord(index, activeProgression);
                 const dist = Math.abs(ledCoord - head);
                 const sigma = 0.055;
                 const wake = Math.exp(-(dist * dist) / (2 * sigma * sigma));
@@ -2908,7 +3040,7 @@ function evalGlobalPattern(pattern, bpm, index, totalLeds, timeMs, c, hasColor, 
             const progress = (timeMs % totalCycleMs) / totalCycleMs;
             let effRank;
             if (typeof currentHardwareMode !== 'undefined' && currentHardwareMode === 'full_costume') {
-                effRank = getCostumeNormalizedLoopCoord(index) * totalLeds;
+                effRank = getCostumeNormalizedLoopCoord(index, activeProgression) * totalLeds;
                 if (dir === -1) effRank = totalLeds - effRank;
             } else {
                 const sm = getSpatialMetrics();
@@ -3340,6 +3472,7 @@ function computeLedColor(index, totalLeds, timeMs, overrideColor = null) {
             if (activeTrackCue) {
                 const cueTimeMs = Math.max(0, (t - activeTrackCue.startTime) * 1000);
                 const cueDir = (activeTrackCue.direction !== undefined) ? activeTrackCue.direction : 1;
+                const cueProg = activeTrackCue.progression || 'waterfall';
                 const cueCol = evalGlobalPattern(
                     activeTrackCue.effect,
                     activeTrackCue.speedBpm || params.speedBpm,
@@ -3349,7 +3482,8 @@ function computeLedColor(index, totalLeds, timeMs, overrideColor = null) {
                     isFairy ? { r: 255, g: 214, b: 110 } : c,
                     isFairy ? true : hasColor,
                     false,
-                    cueDir
+                    cueDir,
+                    cueProg
                 );
                 const w = getCueWeight(activeTrackCue, t);
                 trackCol = {
@@ -3432,7 +3566,7 @@ function computeLedColor(index, totalLeds, timeMs, overrideColor = null) {
         // 3. Apply Global Overrides (e.g. 360° Traveling Wave across All 562 LEDs)
         if (activeGlobalCues.length === 1) {
             const q = activeGlobalCues[0];
-            const col = evalGlobalPattern(q.effect, q.speedBpm, index, totalLeds, effectiveTimeMs, c, hasColor, false, q.direction);
+            const col = evalGlobalPattern(q.effect, q.speedBpm, index, totalLeds, effectiveTimeMs, c, hasColor, false, q.direction, q.progression || 'waterfall');
             const w = getCueWeight(q, t);
             if (w < 1.0) {
                 return {
@@ -3454,7 +3588,7 @@ function computeLedColor(index, totalLeds, timeMs, overrideColor = null) {
             let blR = 0, blG = 0, blB = 0, blA = 0;
             for (let i = 0; i < activeGlobalCues.length; i++) {
                 const q = activeGlobalCues[i];
-                const col = evalGlobalPattern(q.effect, q.speedBpm, index, totalLeds, effectiveTimeMs, c, hasColor, false, q.direction);
+                const col = evalGlobalPattern(q.effect, q.speedBpm, index, totalLeds, effectiveTimeMs, c, hasColor, false, q.direction, q.progression || 'waterfall');
                 const normW = totalW > 0 ? (weights[i] / totalW) : (1 / activeGlobalCues.length);
                 blR += col.r * normW;
                 blG += col.g * normW;
@@ -11683,6 +11817,25 @@ function renderCuesList() {
                 </div>
             </div>
 
+            <!-- Wave Progression (Trajectory) Selector -->
+            <div class="cue-card-row cue-progression-row" style="margin-top: 4px;">
+                <div style="flex: 1;">
+                    <label style="font-size: 10px; color: var(--text-muted); display: flex; justify-content: space-between;">
+                        <span>🌊 Wave Progression:</span>
+                        <span style="color: #58a6ff; font-size: 9px;">Trajectory</span>
+                    </label>
+                    <select class="cue-progression-select" style="width: 100%; background: #0d1117; color: #fff; border: 1px solid #30363d; border-radius: 4px; padding: 4px; font-size: 11px;">
+                        <option value="waterfall" ${(cue.progression === 'waterfall' || !cue.progression) ? 'selected' : ''}>🌊 Waterfall / Fountain (Default)</option>
+                        <option value="orbit" ${cue.progression === 'orbit' ? 'selected' : ''}>🪐 360° Torso Orbit (Planetary Ring)</option>
+                        <option value="radial_burst" ${cue.progression === 'radial_burst' ? 'selected' : ''}>💥 Heartbeat Radial Shockwave</option>
+                        <option value="horizon_lift" ${cue.progression === 'horizon_lift' ? 'selected' : ''}>🌅 Ground-to-Sky Horizon</option>
+                        <option value="dragon_wings" ${cue.progression === 'dragon_wings' ? 'selected' : ''}>🐉 Dragon Wings (Shoulders Dive)</option>
+                        <option value="lateral_roll" ${cue.progression === 'lateral_roll' ? 'selected' : ''}>↔️ Lateral Barrel Roll</option>
+                        <option value="dual_collision" ${cue.progression === 'dual_collision' ? 'selected' : ''}>⚡ Dual-Collision Shockwave</option>
+                    </select>
+                </div>
+            </div>
+
             <!-- Start Time, Duration & BPM with Quick Chips -->
             <div class="cue-card-row">
                 <div style="flex: 0.9;">
@@ -11805,6 +11958,11 @@ function renderCuesList() {
             markSingleShirtDirty();
         });
 
+        card.querySelector('.cue-progression-select')?.addEventListener('change', (e) => {
+            cue.progression = e.target.value;
+            markSingleShirtDirty();
+        });
+
         card.querySelector('.cue-start-input').addEventListener('change', (e) => {
             cue.startTime = Math.max(0, parseFloat(e.target.value) || 0);
             renderTimelineCueStrip();
@@ -11915,6 +12073,7 @@ function addCue(options = {}) {
         effect: effect,
         direction: direction,
         speedBpm: speedBpm,
+        progression: options.progression || 'waterfall',
         fadeIn: options.fadeIn !== undefined ? options.fadeIn : 1.5,
         fadeOut: options.fadeOut !== undefined ? options.fadeOut : 1.5
     };
@@ -14832,6 +14991,11 @@ function applyProfileData(profileData) {
             const dirSel = document.getElementById('ambientDirectionSelect');
             if (dirSel) dirSel.value = params.direction.toString();
         }
+        if (s.waveProgression !== undefined) {
+            params.waveProgression = s.waveProgression;
+            const progSel = document.getElementById('ambientProgressionSelect');
+            if (progSel) progSel.value = s.waveProgression;
+        }
         if (s.sparkleStyle !== undefined) {
             params.sparkleStyle = s.sparkleStyle;
             const spkStyleSel = document.getElementById('sparkleStyleSelect');
@@ -15173,6 +15337,11 @@ document.getElementById('patternSelect').addEventListener('change', (e) => {
 
 document.getElementById('ambientDirectionSelect')?.addEventListener('change', (e) => {
     params.direction = parseInt(e.target.value) || 1;
+    markSingleShirtDirty();
+});
+
+document.getElementById('ambientProgressionSelect')?.addEventListener('change', (e) => {
+    params.waveProgression = e.target.value;
     markSingleShirtDirty();
 });
 

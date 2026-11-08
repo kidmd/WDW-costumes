@@ -893,6 +893,21 @@ To prevent animations from jumping erratically across wire branches, the simulat
 - **Centroid-Based Radial Waves (`tidal_ripple`):** Ripples expand outwardly from the true 2D physical centroid $(\bar{x}, \bar{y})$ of the float or group.
 - **Zero-Overhead Microcontroller Optimization:** When flashing firmware or exporting C++, the spatial ranks and normalized coordinates are pre-computed into compact 8-bit PROGMEM flash lookup tables (`SPATIAL_RANK_Y`, `SPATIAL_X_BYTE`, `SPATIAL_Y_BYTE`, `SPATIAL_RADIUS_BYTE`). The ESP32 executes smooth 60 FPS spatial lighting sweeps with zero floating-point math overhead or memory allocation.
 
+### 🌊 Selectable 7-Mode Theatrical Wave Progression Suite
+In Full Costume Mode (562 LEDs), wave and sweep effects (`traveling_wave`, `chase`, `comet`, `scanner`, `rainbow_cycle`, `color_wipe`, and `write_on_off`) can be directed along **7 distinct kinetic trajectories** around the runner's body. Each cue in the **Parade Cue Director** features a dedicated **Wave Progression** dropdown selector (with `🌊 Waterfall / Fountain` set as the default):
+
+| Progression Mode | Icon | Kinetic Trajectory & Choreography | Best Theatrical Pairing |
+|---|:---:|---|---|
+| `waterfall` **(Default)** | 🌊 | **Bilateral Fountain & Waterfall:** Cascades down chest panel (0..28%), bursts outward & ascends front ribs simultaneously to shoulders (28..50%), rolls over shoulders & cascades down back ribs (50..72%), and ascends up back panel (72..100%). | Majestic parade processional, liquid flourishes |
+| `orbit` | 🪐 | **360° Closed Torso Orbit (Planetary Ring):** Continuous 3D spiral wrapping unbroken around the entire body: Front panel (0..25%) $\rightarrow$ Right ribs & shoulder (25..50%) $\rightarrow$ Back panel (50..75%) $\rightarrow$ Left shoulder & ribs (75..100%). | Casey Jr. locomotive wheels, fast-tempo batons (144+ BPM) |
+| `radial_burst` | 💥 | **Heartbeat Radial Shockwave:** Ignites at center of chest badge, expands outwardly as concentric ring, shoots up front ribs to shoulders, cascades down back ribs, and implodes into back badge center. | Fanfare hits, firework launches, bass drops |
+| `horizon_lift` | 🌅 | **Ground-to-Sky Horizon (Altitude Scan):** Pure geodesic altitude scan strictly by physical height off the ground ($Y$). Waist hem & lower panels light first ($u=0.0$), rising like water to illuminate chest center, peaking at top rows & shoulders ($u=1.0$). | To Honor America, patriotic starbursts, laser scans |
+| `dragon_wings` | 🐉 | **Dragon Wings (Shoulders-Down Dive):** Ignites simultaneously at both shoulder apexes ($u=0.0$), then dives downward in 4 parallel streams (front ribs, back ribs, front panel, back panel) splashing into the waist hem ($u=1.0$). | Pete's Dragon Elliott, dramatic drops, majestic bow |
+| `lateral_roll` | ↔️ | **Lateral Barrel Roll (Left-to-Right):** Vertical light bar sweeps sideways across the runner from viewer's left ribs ($u=0.0$), through center badges ($u=0.5$), to right ribs ($u=1.0$). | Passing spectator crowds along Main Street |
+| `dual_collision` | ⚡ | **Dual-Collision Shockwave (Shoulder Clash):** Waves launch simultaneously from front and back badges, race up both ribcages, smash into each other in a blinding white flash at the shoulder apexes ($u=0.50$), and rebound back to the panels. | Pirate Ship cannon battles, high-voltage clashes |
+
+*Selector Locations:* Available individually inside every cue card in **Tab 4 (Float Show Cue Director)**, as well as globally in **Tab 2 (Whole-Shirt Ambient Lighting)** for baseline sweeps.
+
 ---
 
 ## 11. Decimal Sparkle Frequency & Starlight Twinkle

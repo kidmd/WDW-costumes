@@ -93,7 +93,23 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
-### November 8, 2026 - Linear Canvas Animation vs. Physical Hardware Bulb Mapping
+### November 8, 2026 - Selectable 7-Mode Wave Progression Suite in Cue Director & Ambient Controls
+- **7-Mode Theatrical Wave Trajectories (`simulator/app.js`, `simulator/index.html`, `src/main.cpp`, `arduino/MSEP_Costume/MSEP_Costume.ino`):**
+  - Implemented the full suite of 7 specialized kinetic wave trajectories mapping all 562 LEDs into continuous phase bounds $[0.0, 1.0)$:
+    1. `waterfall` (Default): Bilateral Fountain & Waterfall (Down chest $\rightarrow$ up front ribs $\rightarrow$ down back ribs $\rightarrow$ up back panel).
+    2. `orbit`: 360° Closed Torso Orbit (Unbroken planetary spiral around chest, right side, back, left side).
+    3. `radial_burst`: Heartbeat Radial Shockwave (Concentric expansion from chest center, up ribs to shoulders, implosion into back center).
+    4. `horizon_lift`: Ground-to-Sky Horizon (Strict upward altitude scan by physical $Y$ height from waist hem to shoulders).
+    5. `dragon_wings`: Dragon Wings Dive (Top-down cascade dive originating at both shoulders and plunging down ribs and panels).
+    6. `lateral_roll`: Lateral Barrel Roll (Transverse left-to-right lateral scan across side ribs and center badges).
+    7. `dual_collision`: Dual-Collision Shockwave (Front and back waves clash at shoulder apexes with harmonic rebound).
+- **Per-Cue Trajectory Selector in Parade Cue Director (`simulator/app.js`):**
+  - Added a dedicated **🌊 Wave Progression (Trajectory)** dropdown selector to every cue editing card in `cuesListContainer`.
+  - Initialized with `waterfall` as default; seamlessly serializes and deserializes in float show presets and fleet show bundles.
+- **Ambient Baseline Trajectory Selector (`simulator/index.html`):**
+  - Added `#ambientProgressionSelect` in Tab 2 below Pattern Direction so designers can preview all 7 trajectories directly on baseline sweeps.
+- **Firmware Synchronization:**
+  - Added `WaveProgressionMode` enum to `src/main.cpp` and `arduino/MSEP_Costume/MSEP_Costume.ino` maintaining dual-core ESP32 compatibility.
 - **Linear Visual Trajectory in Simulator (`simulator/app.js`):**
   - Restored clean, continuous linear progression for the simulator canvas:
     - Down the front panel (Row 0 -> Row 15, `u` 0.00 to 0.28).

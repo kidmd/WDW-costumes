@@ -159,6 +159,19 @@ enum StandaloneShowMode {
 
 extern StandaloneShowMode currentStandaloneMode;
 
+// ============================================================================
+// 🌊 THEATRICAL WAVE PROGRESSION SUITE (562-LED FULL COSTUME)
+// ============================================================================
+enum WaveProgressionMode : uint8_t {
+    WAVE_PROG_WATERFALL       = 0, // Default: Down Front -> Out & Up Front Ribs -> Down Back Ribs -> Up Back Badge
+    WAVE_PROG_ORBIT          = 1, // 360° Closed-Loop Continuous Torso Spiral
+    WAVE_PROG_RADIAL_BURST   = 2, // Heartbeat Radial Shockwave (Center-Out)
+    WAVE_PROG_HORIZON_LIFT   = 3, // Ground-to-Sky Horizon (Upward Altitude)
+    WAVE_PROG_DRAGON_WINGS   = 4, // Dragon Wings (Shoulders-Down Cascading Dive)
+    WAVE_PROG_LATERAL_ROLL   = 5, // Lateral Barrel Roll (Left-to-Right Scan)
+    WAVE_PROG_DUAL_COLLISION = 6  // Dual-Collision Shockwave (Shoulder Clash & Rebound)
+};
+
 // Symmetrical theatrical wave progression for 562-LED costume:
 // 1. Down Front Panel (0..255): 28% (0..279)
 // 2. Out & Up along Front Fairy Lights mirrored (Left & Right): 22% (280..499)
@@ -181,7 +194,7 @@ static const uint16_t FAIRY_STRAND2_LOOP_POS[25] PROGMEM = {
     500, 480, 420, 360, 300, 320, 380, 440, 460, 400, 340, 280        // Bulbs 14..25 (indices 550..561)
 };
 
-inline uint16_t getCostumePacedLoopPosition(uint16_t index) {
+inline uint16_t getCostumePacedLoopPosition(uint16_t index, uint8_t prog = WAVE_PROG_WATERFALL) {
     if (index < 256) {
         // Stage 1: Down the Front Panel (0..255) -> 0..279 (top to bottom)
         uint8_t row = index / 16;
