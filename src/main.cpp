@@ -184,6 +184,26 @@ enum WaveProgressionMode : uint8_t {
 // Strand 2 (Wearer's Left, chain 537..561, bulbs 1..25):
 //   Front Ribs (12 steps, pos: 280 -> 500): Bulbs [25, 18, 19, 24, 17, 20, 23, 16, 21, 22, 15, 14]
 //   Back Ribs  (13 steps, pos: 500 -> 720): Bulbs [13, 12, 4, 5, 11, 3, 6, 10, 2, 7, 9, 1, 8]
+// 🌟 Standard fairy light colors for Floats 1..7 (Casey: Red, Drum: Gold, Turtle: Blue, Snail: Green, Pirate: Red, Dragon: Green, America: Blue)
+static const CRGB FLOAT_DEFAULT_FAIRY_COLORS[7] PROGMEM = {
+    CRGB(0xE6, 0x39, 0x46), // Float 1 (Casey Jr.): Red
+    CRGB(0xFF, 0xB7, 0x03), // Float 2 (Title Drum): Gold
+    CRGB(0x00, 0x88, 0xFF), // Float 3 (The Turtle): Blue
+    CRGB(0x00, 0xCC, 0x44), // Float 4 (The Snail): Green
+    CRGB(0xE6, 0x39, 0x46), // Float 5 (The Pirate Ship): Red
+    CRGB(0x00, 0xFF, 0x88), // Float 6 (Pete's Dragon): Green
+    CRGB(0x3A, 0x86, 0xFF)  // Float 7 (To Honor America): Blue
+};
+
+inline CRGB getFloatDefaultFairyColor(uint8_t floatNum = 1) {
+    uint8_t idx = (floatNum >= 1 && floatNum <= 7) ? (floatNum - 1) : 0;
+    return CRGB(
+        pgm_read_byte(&FLOAT_DEFAULT_FAIRY_COLORS[idx].r),
+        pgm_read_byte(&FLOAT_DEFAULT_FAIRY_COLORS[idx].g),
+        pgm_read_byte(&FLOAT_DEFAULT_FAIRY_COLORS[idx].b)
+    );
+}
+
 static const uint16_t FAIRY_STRAND1_LOOP_POS[25] PROGMEM = {
     298, 353, 408, 463, 445, 390, 335, 280, 317, 372, 427, 482, 500, // Bulbs 1..13 (indices 256..268)
     500, 520, 580, 640, 700, 680, 620, 560, 540, 600, 660, 720        // Bulbs 14..25 (indices 269..280)

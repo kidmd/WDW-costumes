@@ -3317,6 +3317,86 @@ function evalGlobalPattern(pattern, bpm, index, totalLeds, timeMs, c, hasColor, 
 }
 
 
+// Helper to convert rgb components to hex
+function rgbToHex(r, g, b) {
+    const toHex = c => Math.max(0, Math.min(255, Math.round(c || 0))).toString(16).padStart(2, '0');
+    return '#' + toHex(r) + toHex(g) + toHex(b);
+}
+window.rgbToHex = rgbToHex;
+
+// ============================================================================
+// 🌟 FLOAT STANDARD FAIRY LIGHT COLORS & COLOR RESOLUTION HELPERS
+// ============================================================================
+const FLOAT_DEFAULT_FAIRY_COLORS = {
+    1: '#e63946', // Float 1 (Casey Jr.): Red
+    2: '#ffb703', // Float 2 (Title Drum): Gold
+    3: '#0088ff', // Float 3 (The Turtle): Blue
+    4: '#00cc44', // Float 4 (The Snail): Green
+    5: '#e63946', // Float 5 (The Pirate Ship): Red
+    6: '#00ff88', // Float 6 (Pete's Dragon): Green
+    7: '#3a86ff'  // Float 7 (To Honor America): Blue
+};
+window.FLOAT_DEFAULT_FAIRY_COLORS = FLOAT_DEFAULT_FAIRY_COLORS;
+
+const FLOAT_DEFAULT_FAIRY_NAMES = {
+    1: 'Casey Jr. Red (#E63946)',
+    2: 'Title Drum Gold (#FFB703)',
+    3: 'Turtle Blue (#0088FF)',
+    4: 'Snail Green (#00CC44)',
+    5: 'Pirate Ship Red (#E63946)',
+    6: 'Dragon Green (#00FF88)',
+    7: 'America Blue (#3A86FF)'
+};
+window.FLOAT_DEFAULT_FAIRY_NAMES = FLOAT_DEFAULT_FAIRY_NAMES;
+
+function getFloatDefaultFairyColor(floatNumOrSlot) {
+    let slot = 0;
+    if (typeof floatNumOrSlot === 'number') {
+        slot = (floatNumOrSlot >= 1 && floatNumOrSlot <= 7) ? (floatNumOrSlot - 1) : floatNumOrSlot;
+    } else if (typeof activeSingleShirtRunnerSlot === 'number' && activeSingleShirtRunnerSlot >= 0 && activeSingleShirtRunnerSlot < 7) {
+        slot = activeSingleShirtRunnerSlot;
+    }
+    const floatId = slot + 1;
+    return FLOAT_DEFAULT_FAIRY_COLORS[floatId] || '#ffb703';
+}
+window.getFloatDefaultFairyColor = getFloatDefaultFairyColor;
+
+function getFloatDefaultFairyName(floatNumOrSlot) {
+    let slot = 0;
+    if (typeof floatNumOrSlot === 'number') {
+        slot = (floatNumOrSlot >= 1 && floatNumOrSlot <= 7) ? (floatNumOrSlot - 1) : floatNumOrSlot;
+    } else if (typeof activeSingleShirtRunnerSlot === 'number' && activeSingleShirtRunnerSlot >= 0 && activeSingleShirtRunnerSlot < 7) {
+        slot = activeSingleShirtRunnerSlot;
+    }
+    const floatId = slot + 1;
+    return FLOAT_DEFAULT_FAIRY_NAMES[floatId] || 'Float Standard';
+}
+window.getFloatDefaultFairyName = getFloatDefaultFairyName;
+
+// Helper to resolve the color for any LED under an active cue (Panels vs Fairy Lights)
+function getCueLedColor(cue, index, isFairy, sampledArtworkColor, hasSampledColor) {
+    if (!cue) return { color: sampledArtworkColor, hasColor: hasSampledColor, isCustom: false };
+    if (isFairy) {
+        if (cue.fairyColorMode === 'custom' && cue.fairyCustomColor) {
+            const rgb = hexToRgb(cue.fairyCustomColor);
+            return { color: rgb || { r: 255, g: 214, b: 110 }, hasColor: true, isCustom: true };
+        }
+        // Default: Float Standard Color
+        const defHex = getFloatDefaultFairyColor();
+        const rgb = hexToRgb(defHex);
+        return { color: rgb || { r: 255, g: 214, b: 110 }, hasColor: true, isCustom: false };
+    } else {
+        // Panel LEDs
+        if (cue.panelColorMode === 'custom' && cue.panelCustomColor) {
+            const rgb = hexToRgb(cue.panelCustomColor);
+            return { color: rgb || { r: 255, g: 255, b: 255 }, hasColor: true, isCustom: true };
+        }
+        // Default: Graphic Artwork sampled color
+        return { color: sampledArtworkColor, hasColor: hasSampledColor, isCustom: false };
+    }
+}
+window.getCueLedColor = getCueLedColor;
+
 // Helper to determine if an LED index belongs to the continuous fairy light ribs/shoulder strands
 function isFairyLedIndex(idx) {
     return (idx >= 256 && idx <= 280) || (idx >= 537 && idx <= 561);
@@ -3493,15 +3573,16 @@ function computeLedColor(index, totalLeds, timeMs, overrideColor = null) {
                 const cueTimeMs = Math.max(0, (t - activeTrackCue.startTime) * 1000);
                 const cueDir = (activeTrackCue.direction !== undefined) ? activeTrackCue.direction : 1;
                 const cueProg = activeTrackCue.progression || 'waterfall';
+                const { color: cueColResolved, hasColor: cueHasCol, isCustom: cueIsCustom } = getCueLedColor(activeTrackCue, index, isFairy, c, hasColor);
                 const cueCol = evalGlobalPattern(
                     activeTrackCue.effect,
                     activeTrackCue.speedBpm || params.speedBpm,
                     index,
                     totalLeds,
                     cueTimeMs,
-                    isFairy ? { r: 255, g: 214, b: 110 } : c,
-                    isFairy ? true : hasColor,
-                    false,
+                    cueColResolved,
+                    cueHasCol,
+                    cueIsCustom,
                     cueDir,
                     cueProg
                 );
@@ -3586,7 +3667,8 @@ function computeLedColor(index, totalLeds, timeMs, overrideColor = null) {
         // 3. Apply Global Overrides (e.g. 360° Traveling Wave across All 562 LEDs)
         if (activeGlobalCues.length === 1) {
             const q = activeGlobalCues[0];
-            const col = evalGlobalPattern(q.effect, q.speedBpm, index, totalLeds, effectiveTimeMs, c, hasColor, false, q.direction, q.progression || 'waterfall');
+            const { color: cueColResolved, hasColor: cueHasCol, isCustom: cueIsCustom } = getCueLedColor(q, index, isFairy, c, hasColor);
+            const col = evalGlobalPattern(q.effect, q.speedBpm, index, totalLeds, effectiveTimeMs, cueColResolved, cueHasCol, cueIsCustom, q.direction, q.progression || 'waterfall');
             const w = getCueWeight(q, t);
             if (w < 1.0) {
                 return {
@@ -3608,7 +3690,8 @@ function computeLedColor(index, totalLeds, timeMs, overrideColor = null) {
             let blR = 0, blG = 0, blB = 0, blA = 0;
             for (let i = 0; i < activeGlobalCues.length; i++) {
                 const q = activeGlobalCues[i];
-                const col = evalGlobalPattern(q.effect, q.speedBpm, index, totalLeds, effectiveTimeMs, c, hasColor, false, q.direction, q.progression || 'waterfall');
+                const { color: cueColResolved, hasColor: cueHasCol, isCustom: cueIsCustom } = getCueLedColor(q, index, isFairy, c, hasColor);
+                const col = evalGlobalPattern(q.effect, q.speedBpm, index, totalLeds, effectiveTimeMs, cueColResolved, cueHasCol, cueIsCustom, q.direction, q.progression || 'waterfall');
                 const normW = totalW > 0 ? (weights[i] / totalW) : (1 / activeGlobalCues.length);
                 blR += col.r * normW;
                 blG += col.g * normW;
@@ -11856,6 +11939,43 @@ function renderCuesList() {
                 </div>
             </div>
 
+            <!-- Panels Color Selector (Adaptive: Global or Panels) -->
+            <div class="cue-card-row cue-panel-color-row" style="margin-top: 4px; display: ${(cue.targetType === 'global' || cue.targetType === 'panels' || cue.targetType === 'matrix' || !cue.targetType) ? 'flex' : 'none'}; flex-direction: column; gap: 3px; background: rgba(56, 189, 248, 0.05); border: 1px solid rgba(56, 189, 248, 0.2); border-radius: 4px; padding: 5px;">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <label style="font-size: 10px; color: #58a6ff; font-weight: 600;" title="Panels matrix colors during this cue. Default is colors obtained from the graphic artwork.">🔲 Panels Color:</label>
+                    <span style="font-size: 9px; color: var(--text-muted);">Front & Back 16×16</span>
+                </div>
+                <div style="display: flex; gap: 6px; align-items: center;">
+                    <select class="cue-panel-color-mode-select" style="flex: 1.2; background: #0d1117; color: #fff; border: 1px solid #30363d; border-radius: 4px; padding: 3px 5px; font-size: 11px;" title="Choose graphic artwork colors or override with custom solid color">
+                        <option value="graphic" ${cue.panelColorMode !== 'custom' ? 'selected' : ''}>🖼️ Graphic Colors (Default)</option>
+                        <option value="custom" ${cue.panelColorMode === 'custom' ? 'selected' : ''}>🎨 Custom Solid Color</option>
+                    </select>
+                    <div class="cue-panel-color-picker-wrap" style="display: ${cue.panelColorMode === 'custom' ? 'flex' : 'none'}; align-items: center; gap: 4px; flex: 1;">
+                        <input type="color" class="cue-panel-color-picker" value="${cue.panelCustomColor || '#ffffff'}" style="width: 28px; height: 24px; padding: 0; border: 1px solid #30363d; border-radius: 4px; background: none; cursor: pointer;">
+                        <span class="cue-panel-color-hex" style="font-family: monospace; font-size: 10px; color: #e6edf3;">${(cue.panelCustomColor || '#ffffff').toUpperCase()}</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Fairy Lights Color Selector (Adaptive: Global or Fairy) -->
+            <div class="cue-card-row cue-fairy-color-row" style="margin-top: 4px; display: ${(cue.targetType === 'global' || cue.targetType === 'fairy' || cue.targetType === 'fairy_strands' || !cue.targetType) ? 'flex' : 'none'}; flex-direction: column; gap: 3px; background: rgba(255, 183, 3, 0.05); border: 1px solid rgba(255, 183, 3, 0.2); border-radius: 4px; padding: 5px;">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <label style="font-size: 10px; color: #ffb703; font-weight: 600;" title="Fairy light side ribs and shoulder strands color during this cue. Default is the standard theme color for this float.">✨ Fairy Lights Color:</label>
+                    <span style="font-size: 9px; color: var(--text-muted);">50 Rib/Shoulder Bulbs</span>
+                </div>
+                <div style="display: flex; gap: 6px; align-items: center;">
+                    <select class="cue-fairy-color-mode-select" style="flex: 1.2; background: #0d1117; color: #fff; border: 1px solid #30363d; border-radius: 4px; padding: 3px 5px; font-size: 11px;" title="Choose standard float color or pick any custom color">
+                        <option value="float_default" ${cue.fairyColorMode !== 'custom' ? 'selected' : ''}>🌟 Float Standard (${getFloatDefaultFairyName()})</option>
+                        <option value="custom" ${cue.fairyColorMode === 'custom' ? 'selected' : ''}>🎨 Custom Color</option>
+                    </select>
+                    <div class="cue-fairy-color-picker-wrap" style="display: ${cue.fairyColorMode === 'custom' ? 'flex' : 'none'}; align-items: center; gap: 4px; flex: 1;">
+                        <input type="color" class="cue-fairy-color-picker" value="${cue.fairyCustomColor || getFloatDefaultFairyColor()}" style="width: 28px; height: 24px; padding: 0; border: 1px solid #30363d; border-radius: 4px; background: none; cursor: pointer;">
+                        <span class="cue-fairy-color-hex" style="font-family: monospace; font-size: 10px; color: #e6edf3;">${(cue.fairyCustomColor || getFloatDefaultFairyColor()).toUpperCase()}</span>
+                        <button type="button" class="action-btn cue-fairy-reset-btn" style="font-size: 8px; padding: 1px 4px;" title="Reset to standard float color">Reset</button>
+                    </div>
+                </div>
+            </div>
+
             <!-- Start Time, Duration & BPM with Quick Chips -->
             <div class="cue-card-row">
                 <div style="flex: 0.9;">
@@ -11964,8 +12084,75 @@ function renderCuesList() {
                     if (nameInput) nameInput.value = cue.name;
                 }
             }
+            // Adaptively toggle visibility of Panels and Fairy Lights color selectors
+            const panelRow = card.querySelector('.cue-panel-color-row');
+            const fairyRow = card.querySelector('.cue-fairy-color-row');
+            if (panelRow) {
+                panelRow.style.display = (cue.targetType === 'global' || cue.targetType === 'panels' || cue.targetType === 'matrix') ? 'flex' : 'none';
+            }
+            if (fairyRow) {
+                fairyRow.style.display = (cue.targetType === 'global' || cue.targetType === 'fairy' || cue.targetType === 'fairy_strands') ? 'flex' : 'none';
+            }
+
             renderTimelineCueStrip();
             if (typeof renderTimelineLayers === 'function') renderTimelineLayers();
+        });
+
+        // Panels color mode and custom picker listeners
+        const panelRow = card.querySelector('.cue-panel-color-row');
+        const panelModeSelect = card.querySelector('.cue-panel-color-mode-select');
+        const panelPickerWrap = card.querySelector('.cue-panel-color-picker-wrap');
+        const panelColorPicker = card.querySelector('.cue-panel-color-picker');
+        const panelHexLabel = card.querySelector('.cue-panel-color-hex');
+
+        panelModeSelect?.addEventListener('change', (e) => {
+            cue.panelColorMode = e.target.value;
+            if (cue.panelColorMode === 'custom') {
+                if (!cue.panelCustomColor) cue.panelCustomColor = '#ffffff';
+                if (panelPickerWrap) panelPickerWrap.style.display = 'flex';
+            } else {
+                if (panelPickerWrap) panelPickerWrap.style.display = 'none';
+            }
+            markSingleShirtDirty();
+        });
+
+        panelColorPicker?.addEventListener('input', (e) => {
+            cue.panelCustomColor = e.target.value;
+            if (panelHexLabel) panelHexLabel.textContent = e.target.value.toUpperCase();
+            markSingleShirtDirty();
+        });
+
+        // Fairy lights color mode and custom picker listeners
+        const fairyRow = card.querySelector('.cue-fairy-color-row');
+        const fairyModeSelect = card.querySelector('.cue-fairy-color-mode-select');
+        const fairyPickerWrap = card.querySelector('.cue-fairy-color-picker-wrap');
+        const fairyColorPicker = card.querySelector('.cue-fairy-color-picker');
+        const fairyHexLabel = card.querySelector('.cue-fairy-color-hex');
+        const fairyResetBtn = card.querySelector('.cue-fairy-reset-btn');
+
+        fairyModeSelect?.addEventListener('change', (e) => {
+            cue.fairyColorMode = e.target.value;
+            if (cue.fairyColorMode === 'custom') {
+                if (!cue.fairyCustomColor) cue.fairyCustomColor = getFloatDefaultFairyColor();
+                if (fairyPickerWrap) fairyPickerWrap.style.display = 'flex';
+            } else {
+                if (fairyPickerWrap) fairyPickerWrap.style.display = 'none';
+            }
+            markSingleShirtDirty();
+        });
+
+        fairyColorPicker?.addEventListener('input', (e) => {
+            cue.fairyCustomColor = e.target.value;
+            if (fairyHexLabel) fairyHexLabel.textContent = e.target.value.toUpperCase();
+            markSingleShirtDirty();
+        });
+
+        fairyResetBtn?.addEventListener('click', () => {
+            const defCol = getFloatDefaultFairyColor();
+            cue.fairyCustomColor = defCol;
+            if (fairyColorPicker) fairyColorPicker.value = defCol;
+            if (fairyHexLabel) fairyHexLabel.textContent = defCol.toUpperCase();
+            markSingleShirtDirty();
         });
 
         card.querySelector('.cue-effect-select').addEventListener('change', (e) => {
@@ -12094,6 +12281,10 @@ function addCue(options = {}) {
         direction: direction,
         speedBpm: speedBpm,
         progression: options.progression || 'waterfall',
+        panelColorMode: options.panelColorMode || 'graphic',
+        panelCustomColor: options.panelCustomColor || '#ffffff',
+        fairyColorMode: options.fairyColorMode || 'float_default',
+        fairyCustomColor: options.fairyCustomColor || getFloatDefaultFairyColor(),
         fadeIn: options.fadeIn !== undefined ? options.fadeIn : 1.5,
         fadeOut: options.fadeOut !== undefined ? options.fadeOut : 1.5
     };

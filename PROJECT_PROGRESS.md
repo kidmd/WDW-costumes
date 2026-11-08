@@ -93,6 +93,29 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### November 8, 2026 - Per-Cue Color Selectors for Fairy Lights & Panels in Cue Editor
+- **Panels & Fairy Lights Color Selectors (`simulator/app.js`):**
+  - Added dedicated color selector controls inside every cue card in the Parade Cue Director:
+    - **🔲 Panels Color:** Defaults to `🖼️ Graphic Colors` (sampled directly from the chest artwork pixels), with an override option for `🎨 Custom Solid Color` replacing all matrix pixels during that cue.
+    - **✨ Fairy Lights Color:** Defaults to `🌟 Float Standard Color`, with an override option for `🎨 Custom Color` (HTML color input + hex label + instant Reset button).
+  - **Official Float Standard Fairy Colors:**
+    - Float 1 (Casey Jr.): Red (`#e63946`)
+    - Float 2 (Title Drum): Gold (`#ffb703`)
+    - Float 3 (The Turtle): Blue (`#0088ff`)
+    - Float 4 (The Snail): Green (`#00cc44`)
+    - Float 5 (The Pirate Ship): Red (`#e63946`)
+    - Float 6 (Pete's Dragon): Green (`#00ff88`)
+    - Float 7 (To Honor America): Blue (`#3a86ff`)
+- **Adaptive Target Layer Visibility (`simulator/app.js`):**
+  - Cues targeting `🌐 Global 360° Overrides` display both Panels and Fairy Lights color rows.
+  - Cues targeting `🔲 16×16 Panels` display only the Panels Color row.
+  - Cues targeting `✨ Fairy Strands` display only the Fairy Lights Color row.
+- **Rendering & Blending Engine Integration (`simulator/app.js`):**
+  - Added `getCueLedColor(cue, index, isFairy, sampledColor, hasSampled)` resolving exact colors across track cues (`activeTrackCue`) and global cues (`activeGlobalCues`).
+  - Added `FLOAT_DEFAULT_FAIRY_COLORS`, `getFloatDefaultFairyColor()`, and `getFloatDefaultFairyName()` helpers.
+- **Microcontroller Firmware Parity (`src/main.cpp`, `arduino/MSEP_Costume/MSEP_Costume.ino`):**
+  - Added `FLOAT_DEFAULT_FAIRY_COLORS` PROGMEM array and `getFloatDefaultFairyColor(uint8_t floatNum)` helper function for ESP32 Arduino Core 2.x and 3.x+ compatibility.
+
 ### November 8, 2026 - Separation of Concerns: Spatial Flow Direction vs. Lighting Effect Dynamics
 - **Architectural Separation of Concerns (`simulator/app.js`, `simulator/index.html`):**
   - Formally decoupled the **spatial path / direction** of light propagation from the **lighting dynamics, shape, count, and color behavior**:

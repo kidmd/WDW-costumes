@@ -813,6 +813,20 @@ Click **➕ Add Cue** to create a new cue card with the following settings:
   - `🐉 Dragon Wings`: High-altitude dive originating at shoulder crests and plunging downward across both ribs and panels.
   - `↔️ Lateral Barrel Roll`: Transverse horizontal roll sweeping from left ribs across chest/back badges to right ribs.
   - `⚡ Dual Collision`: Opposing wavefronts ascending simultaneously up front and back, clashing at shoulder apexes with harmonic rebound.
+- **🔲 Panels Color (Adaptive by Target Layer):**
+  - **`🖼️ Graphic Colors (Default)`:** Panel LEDs shine with their authentic sampled colors obtained directly from the float's chest graphic artwork.
+  - **`🎨 Custom Solid Color`:** Overrides the graphic, illuminating all matrix panel pixels with a selected single solid custom color during the cue.
+- **✨ Fairy Lights Color (Adaptive by Target Layer):**
+  - **`🌟 Float Standard (Default)`:** Automatically assigns the official single theme color for that specific float:
+    - **Float 1 (Casey Jr.):** Red (`#E63946`)
+    - **Float 2 (Title Drum):** Gold (`#FFB703`)
+    - **Float 3 (The Turtle):** Blue (`#0088FF`)
+    - **Float 4 (The Snail):** Green (`#00CC44`)
+    - **Float 5 (The Pirate Ship):** Red (`#E63946`)
+    - **Float 6 (Pete's Dragon):** Green (`#00FF88`)
+    - **Float 7 (To Honor America):** Blue (`#3A86FF`)
+  - **`🎨 Custom Color`:** Opens a color picker to choose any custom hex color for the 50 rib and shoulder fairy light bulbs, with a 1-click **Reset** button to restore the float standard.
+  - **Adaptive Card Visibility:** Global 360° cues display both Panels and Fairy Lights color selectors; Panel cues display only the Panels color selector; Fairy cues display only the Fairy Lights color selector.
 - **Start Time (s):** Time offset in seconds from the beginning of the show loop (0.5s resolution).
 - **Duration (s):** How long the cue runs before fading out (with instant quick chips: `5s`, `10s`, `15s`, `30s`).
 - **BPM (Tempo):** The speed of the animation during this specific cue (with instant quick chips: `90`, `120`, `144`, `180 BPM`).
