@@ -159,20 +159,37 @@ enum StandaloneShowMode {
 
 extern StandaloneShowMode currentStandaloneMode;
 
-// Physical closed-loop pacing for 562-LED costume:
-// Front Panel (0..255): 30% of wave (0..299)
-// Right Fairy Strand (256..280, 25 LEDs): 20% of wave (300..499) -> ~6.8x slower per LED!
-// Back Panel (281..536, 256 LEDs): 30% of wave (500..799)
-// Left Fairy Strand (537..561, 25 LEDs): 20% of wave (800..999) -> ~6.8x slower per LED!
+// Symmetrical theatrical wave progression for 562-LED costume:
+// 1. Down Front Panel (0..255): 28% (0..279)
+// 2. Out & Up along Front Fairy Lights mirrored (256..267 & 550..561): 22% (280..499)
+// 3. Down & Over Back Fairy Lights mirrored (268..280 & 537..549): 22% (500..719)
+// 4. Up Back Panel (281..536): 28% (720..999)
 inline uint16_t getCostumePacedLoopPosition(uint16_t index) {
     if (index < 256) {
-        return (uint16_t)(((uint32_t)index * 300) / 256);
+        uint8_t row = index / 16; // 0 (top) to 15 (bottom)
+        return (uint16_t)(((uint32_t)row * 280) / 16 + 8);
+    } else if (index <= 267) {
+        // Right Front: 256..267 (0..11)
+        uint8_t i = index - 256;
+        return (uint16_t)(280 + (((uint32_t)i * 220) / 11));
+    } else if (index >= 550 && index <= 561) {
+        // Left Front: 561..550 (0..11)
+        uint8_t i = 561 - index;
+        return (uint16_t)(280 + (((uint32_t)i * 220) / 11));
     } else if (index <= 280) {
-        return (uint16_t)(300 + (((uint32_t)(index - 256) * 200) / 25));
+        // Right Back: 268..280 (0..12)
+        uint8_t j = index - 268;
+        return (uint16_t)(500 + (((uint32_t)j * 220) / 12));
+    } else if (index >= 537 && index <= 549) {
+        // Left Back: 549..537 (0..12)
+        uint8_t j = 549 - index;
+        return (uint16_t)(500 + (((uint32_t)j * 220) / 12));
     } else if (index <= 536) {
-        return (uint16_t)(500 + (((uint32_t)(index - 281) * 300) / 256));
-    } else if (index <= 561) {
-        return (uint16_t)(800 + (((uint32_t)(index - 537) * 200) / 25));
+        // Back Panel (281..536): Row 15 (bottom) to Row 0 (top)
+        uint16_t mIdx = index - 281;
+        uint8_t row = mIdx / 16; // 0 (top) to 15 (bottom)
+        uint8_t upRow = 15 - row;
+        return (uint16_t)(720 + (((uint32_t)upRow * 280) / 16 + 8));
     }
     return (uint16_t)(((uint32_t)(index % 562) * 1000) / 562);
 }

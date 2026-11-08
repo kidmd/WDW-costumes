@@ -22,7 +22,12 @@ This guide walks you through every feature of the simulator, from placing and wi
 10. [Parade Cue Director (90-Second Theatrical Sequences)](#10-parade-cue-director-90-second-theatrical-sequences)
 11. [Lighting Patterns & Effects Library](#11-lighting-patterns--effects-library)
 
-> 🌊 **Full Costume Wave Pacing (Slower on Fairy Strands):** In Full Costume Mode (562 LEDs), wave and sweep effects (`traveling_wave`, `chase`, `comet`, `scanner`, `rainbow_cycle`, `color_wipe`, and `write_on_off`) utilize anatomically calibrated loop pacing (`getCostumeNormalizedLoopCoord`). The 25-LED fairy light strands are allocated 20% of the wave cycle each (spending ~6.8× more time per LED than 16×16 panel pixels). This allows traveling waves to glide gracefully up the ribs, linger across the shoulder, and descend into the back panel, perfectly matching physical torso travel distance.
+> 🌊 **Full Costume Wave Pacing (Slower on Fairy Strands):** In Full Costume Mode (562 LEDs), wave and sweep effects (`traveling_wave`, `chase`, `comet`, `scanner`, `rainbow_cycle`, `color_wipe`, and `write_on_off`) utilize anatomically calibrated loop pacing (`getCostumeNormalizedLoopCoord`). The wave progression follows a bilaterally symmetrical theatrical choreography:
+1. **Down the Front Panel:** Row 0 to Row 15 (28% of cycle).
+2. **Out & Up Along Front Fairy Strands (Mirrored):** Left and right ribcage strands ascend simultaneously as exact mirror images up to both shoulders (22% of cycle).
+3. **Down & Over Back Fairy Strands (Mirrored):** Both sides cascade over the shoulder apex and down the back ribs simultaneously in mirror symmetry (22% of cycle).
+4. **Up the Back Panel:** Row 15 to Row 0 up the back matrix (28% of cycle).
+This provides ~6.8× more dwell time per fairy bulb while maintaining perfect visual bilateral symmetry on race day.
 
 12. [Profile Management, Saving & JSON Import/Export](#12-profile-management-saving--json-importexport)
 13. [7-Shirt Fleet Show Creator, Preset Manager & Corral Radar](#13-7-shirt-fleet-show-creator--preset-manager)

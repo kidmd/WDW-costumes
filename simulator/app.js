@@ -2323,32 +2323,54 @@ function getSparkleRgb(style) {
     return { r: 255, g: 240, b: 200 }; // default: warm 2700K incandescent filament
 }
 
-// Reparameterizes the 562-LED closed loop into a physically balanced progress space [0.0, 1.0)
-// Gives generous, graceful pacing to the fairy lights (20% of cycle for each 25-LED strand),
-// so waves and sweeps deliberately slow down along the ribcage and shoulders instead of flashing by.
+// Symmetrical theatrical wave progression for 562-LED costume [0.0, 1.0):
+// 1. Down the Front 16x16 Panel (0..255, Row 0 -> Row 15): 28% of cycle (0.00 to 0.28)
+// 2. Out & Up along Front Fairy Lights at the same time (Left & Right mirrored): 22% of cycle (0.28 to 0.50)
+// 3. Down & Over Back Fairy Lights at the same time (Left & Right mirrored): 22% of cycle (0.50 to 0.72)
+// 4. Up the Back 16x16 Panel (281..536, Row 15 -> Row 0): 28% of cycle (0.72 to 1.00)
 function getCostumeNormalizedLoopCoord(index) {
     if (typeof currentHardwareMode === 'undefined' || currentHardwareMode !== 'full_costume') {
         return index / Math.max(1, (typeof leds !== 'undefined' ? leds.length : 200));
     }
 
-    // Segment 0: Front 16x16 Panel (0..255) -> 30% of wave duration (0.00 to 0.30)
+    // Stage 1: Down the Front Panel (Row 0 -> Row 15)
     if (index >= 0 && index <= 255) {
-        return (index / 256.0) * 0.30;
+        const row = Math.floor(index / 16.0); // 0 (top) to 15 (bottom)
+        return 0.00 + ((row + 0.5) / 16.0) * 0.28;
     }
-    // Segment 1: Right Fairy Loop (256..280, 25 LEDs) -> 20% of wave duration (0.30 to 0.50)
-    // Slower speed: ~6.8x more time per LED than panel pixels!
-    else if (index >= 256 && index <= 280) {
-        return 0.30 + ((index - 256) / 25.0) * 0.20;
+
+    // Stage 2: Out and Up Along Front Fairy Lights (Left & Right mirrored)
+    // Right Front: 256..266 (ribs i=0..10), 267 (shoulder i=11)
+    else if (index >= 256 && index <= 267) {
+        const i = index - 256;
+        return 0.28 + (i / 11.0) * 0.22;
     }
-    // Segment 2: Back 16x16 Panel (281..536) -> 30% of wave duration (0.50 to 0.80)
+    // Left Front: 561..551 (ribs i=0..10), 550 (shoulder i=11)
+    else if (index >= 550 && index <= 561) {
+        const i = 561 - index;
+        return 0.28 + (i / 11.0) * 0.22;
+    }
+
+    // Stage 3: Down and Over Back Fairy Lights (Left & Right mirrored)
+    // Right Back: 268 (shoulder j=0), 269..280 (ribs j=1..12)
+    else if (index >= 268 && index <= 280) {
+        const j = index - 268;
+        return 0.50 + (j / 12.0) * 0.22;
+    }
+    // Left Back: 549 (shoulder j=0), 548..537 (ribs j=1..12)
+    else if (index >= 537 && index <= 549) {
+        const j = 549 - index;
+        return 0.50 + (j / 12.0) * 0.22;
+    }
+
+    // Stage 4: Up the Back Panel (Row 15 -> Row 0)
     else if (index >= 281 && index <= 536) {
-        return 0.50 + ((index - 281) / 256.0) * 0.30;
+        const mIdx = index - 281;
+        const row = Math.floor(mIdx / 16.0); // 0 (top) to 15 (bottom)
+        const upFrac = ((15 - row) + 0.5) / 16.0;
+        return 0.72 + upFrac * 0.28;
     }
-    // Segment 3: Left Fairy Loop (537..561, 25 LEDs) -> 20% of wave duration (0.80 to 1.00)
-    // Slower speed: ~6.8x more time per LED than panel pixels!
-    else if (index >= 537 && index <= 561) {
-        return 0.80 + ((index - 537) / 25.0) * 0.20;
-    }
+
     return (index % 562) / 562.0;
 }
 window.getCostumeNormalizedLoopCoord = getCostumeNormalizedLoopCoord;

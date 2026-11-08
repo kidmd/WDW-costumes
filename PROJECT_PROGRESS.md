@@ -93,6 +93,16 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### November 7, 2026 - Bilateral Mirror Wave Progression (Down Front -> Out & Up Front Ribs -> Down Back Ribs -> Up Back Badge)
+- **Theatrical Wave Path & Bilateral Mirroring (`simulator/app.js`, `src/main.cpp`, `arduino/MSEP_Costume/MSEP_Costume.ino`):**
+  - Redesigned the 562-LED continuous wave progression from a serial circle into a theatrical, bilaterally symmetrical 4-stage waterfall cycle:
+    1. **Stage 1: Down the Front Panel (`u` 0.00 to 0.28):** Wave crest moves row-by-row (Row 0 -> Row 15) down the chest badge.
+    2. **Stage 2: Out & Up Along Front Fairy Strands (`u` 0.28 to 0.50):** Splits at bottom center and ascends both sides of the front ribcage simultaneously in exact mirror image up to the shoulders (Right #256..267 matches Left #561..550 step-for-step).
+    3. **Stage 3: Down & Over Back Fairy Strands (`u` 0.50 to 0.72):** Cascades over the shoulder apex and down both sides of the back ribcage simultaneously in exact mirror image to the base of the back badge (Right #268..280 matches Left #549..537 step-for-step).
+    4. **Stage 4: Up the Back Panel (`u` 0.72 to 1.00):** Ascends row-by-row (Row 15 -> Row 0) up the back matrix badge, smoothly wrapping back to Row 0 of the chest badge.
+  - Generous pacing preserved: fairy light strands receive 44% of the total cycle time (22% ascending front ribs, 22% descending back ribs), so the wave gracefully glides across the runner's ribs and shoulders.
+  - Implemented identical progression in ESP32 C++ firmware (`getCostumePacedLoopPosition`) with integer arithmetic for zero runtime overhead.
+
 ### November 7, 2026 - Physically Paced Closed-Loop Wave Dynamics (Slower Wave Speed on Fairy Lights)
 - **Visual Perception & Pacing Calibration (`simulator/app.js`, `src/main.cpp`, `arduino/MSEP_Costume/MSEP_Costume.ino`):**
   - Resolved the spatial speed imbalance between high-density matrix panels (256 pixels) and low-density ribcage fairy strands (25 LEDs).
