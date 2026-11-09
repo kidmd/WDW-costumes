@@ -93,6 +93,17 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### November 9, 2026 - 0.8mm Recessed Snap Floor Calibration (Goldilocks Standard)
+- **Bench Tuning & Separation Equilibrium:**
+  - After breaking in the male and female snaps, separation force stabilized into a smoother release profile. To achieve the perfect "Goldilocks" balance between tab structural rigidity and rivet mushroom thickness, calibrated the tab floor to **$0.80\text{ mm}$** (exactly 4 solid PETG layers @ $0.20\text{ mm}$ layer height).
+  - Recess depth is **$2.20\text{ mm}$** ($Z = 0.80$ to $3.00\text{ mm}$), providing an additional **$+0.20\text{ mm}$ of free pin protrusion** over the 1.0mm baseline without being overly thin.
+- **New 0.8mm 3D Models (`3d_panels/`):**
+  - **`test_coupon_0.8mm_recessed_tab.stl` / `.3mf`:**
+    - Corner test piece with $0.80\text{ mm}$ floor under $\varnothing 3.2\text{ mm}$ hole inside $\varnothing 14.0\text{ mm} \times 2.20\text{ mm}$ deep counterbore well.
+  - **`test_all_black_16x16_panel_recessed_0.8mm.stl` / `.3mf` & `test_all_black_16x16_panel_recessed_back.stl` / `.3mf`:**
+    - Full $190.01 \times 190.01 \times 3.00\text{ mm}$ all-black 16×16 panel with calibrated $0.80\text{ mm}$ floors and $2.20\text{ mm}$ deep pockets across all 4 corner tabs.
+  - Pre-configured with 100% solid infill and 5 perimeter loops. Rendered 3D preview: `3d_panels/test_coupon_0.8mm_preview.png`.
+
 ### November 9, 2026 - Deeper Recessed Snap Tabs (0.6mm & 0.4mm Floors) for High-Tension Snaps
 - **Root Cause & Mechanical Optimization:**
   - Physical testing of brand-new KAM size 20 snaps revealed that the factory split-ring spring jaws exert very high retention force ("death grip"), which occasionally caused the mushroomed rivet head on the female socket to give way upon aggressive separation.

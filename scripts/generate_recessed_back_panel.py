@@ -6,13 +6,13 @@ import trimesh
 
 # ==============================================================================
 # 🏰 MAIN STREET ELECTRICAL PARADE (WDW 10K)
-# 16x16 MATRIX TEST PANEL - ALL-BLACK 0.6mm DEEP RECESSED TAB STANDARD
+# 16x16 MATRIX TEST PANEL - ALL-BLACK 0.8mm RECESSED TAB STANDARD
 # Features:
 #  - 100% Flat Front Face against PEI Bed (Zero Bridging / Zero Supports)
 #  - 176mm Extended Perimeter Flange (5.8mm horizontal border)
 #  - 3.0mm Flush Back Rim (Corner tabs flush with 2mm frame wall)
-#  - Ø 14.0mm x 2.4mm Deep Recessed Pocket on the BACK (Felt Side)
-#  - 0.6mm Solid PETG Floor under Snap Cap (Gives +0.4mm More Pin Protrusion)
+#  - Ø 14.0mm x 2.2mm Deep Recessed Pocket on the BACK (Felt Side)
+#  - 0.8mm Solid PETG Floor under Snap Cap (4 Solid Layers @ 0.20mm)
 #  - Ø 3.2mm Through-Holes for Snag-Free Pin Insertion
 #  - 16mm Bottom Wire Exit Notch for JST Matrix Power / Data Harness
 # ==============================================================================
@@ -87,7 +87,7 @@ def export_3mf_with_100_infill(mesh, mf3_path, obj_name="MSEP_Solid_Panel"):
     except Exception as e:
         print(f"Metadata injection warning on {mf3_path}: {e}")
 
-def build_recessed_back_panels(floor_thick=0.60):
+def build_recessed_back_panels(floor_thick=0.80):
     out_dir = '3d_panels'
     os.makedirs(out_dir, exist_ok=True)
     
@@ -98,9 +98,9 @@ def build_recessed_back_panels(floor_thick=0.60):
     FRAME_WALL_WIDTH = 2.0       # mm
     PLATE_BASE_WIDTH = 176.0     # mm (5.8mm perimeter flange around frame walls)
     
-    FLOOR_THICKNESS = floor_thick # mm (0.60mm solid black floor, 3 layers @ 0.20mm)
+    FLOOR_THICKNESS = floor_thick # mm (0.80mm solid black floor, 4 layers @ 0.20mm)
     TOTAL_HEIGHT = 3.00          # mm (top rim flush)
-    WALL_HEIGHT = TOTAL_HEIGHT - FLOOR_THICKNESS # 2.40 mm
+    WALL_HEIGHT = TOTAL_HEIGHT - FLOOR_THICKNESS # 2.20 mm
     
     SNAP_THROUGH_HOLE_DIA = 3.2  # mm (Ø 3.2mm snag-free clearance for KAM size 20 pin)
     SNAP_HOLE_RADIUS = SNAP_THROUGH_HOLE_DIA / 2.0 # 1.6 mm
@@ -166,7 +166,7 @@ def build_recessed_back_panels(floor_thick=0.60):
     full_panel.apply_translation([0.0, 0.0, -full_panel.bounds[0][2]])
     
     targets = [
-        ("test_all_black_16x16_panel_recessed_0.6mm", "MSEP_16x16_Panel_0.6mm_Recessed"),
+        ("test_all_black_16x16_panel_recessed_0.8mm", "MSEP_16x16_Panel_0.8mm_Recessed"),
         ("test_all_black_16x16_panel_recessed_back", "MSEP_16x16_Panel_Recessed_Back")
     ]
     
@@ -180,4 +180,4 @@ def build_recessed_back_panels(floor_thick=0.60):
         print(f"  Floor: {FLOOR_THICKNESS:.2f}mm | Recess Depth: {WALL_HEIGHT:.2f}mm")
 
 if __name__ == '__main__':
-    build_recessed_back_panels(floor_thick=0.60)
+    build_recessed_back_panels(floor_thick=0.80)

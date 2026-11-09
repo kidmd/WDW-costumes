@@ -6,8 +6,7 @@ import trimesh
 
 # ==============================================================================
 # 🏰 MAIN STREET ELECTRICAL PARADE (WDW 10K)
-# DEEPER RECESSED SNAP TAB TEST COUPON GENERATOR (0.6mm & 0.4mm FLOORS)
-# Solves: Gives +0.4mm to +0.6mm more pin protrusion for massive mushroom heads
+# DEEPER RECESSED SNAP TAB TEST COUPON GENERATOR (0.8mm, 0.6mm & 0.4mm FLOORS)
 # ==============================================================================
 
 def extrude_shapely(shape, height):
@@ -135,7 +134,15 @@ def main():
     out_dir = '3d_panels'
     os.makedirs(out_dir, exist_ok=True)
     
-    # 1. 0.6mm floor (recess depth 2.4mm, 3 layers @ 0.2mm) - +0.4mm extra pin length!
+    # 1. 0.8mm floor (recess depth 2.2mm, 4 solid layers @ 0.20mm) - +0.20mm extra pin length!
+    c_08 = make_coupon(0.80)
+    stl_08 = os.path.join(out_dir, "test_coupon_0.8mm_recessed_tab.stl")
+    mf3_08 = os.path.join(out_dir, "test_coupon_0.8mm_recessed_tab.3mf")
+    c_08.export(stl_08)
+    export_3mf_with_100_infill(c_08, mf3_08, "MSEP_Coupon_0.8mm_Recessed")
+    print(f"Exported: {stl_08} | Watertight: {c_08.is_watertight}")
+    
+    # 2. 0.6mm floor (recess depth 2.4mm, 3 solid layers @ 0.20mm) - +0.40mm extra pin length!
     c_06 = make_coupon(0.60)
     stl_06 = os.path.join(out_dir, "test_coupon_0.6mm_recessed_tab.stl")
     mf3_06 = os.path.join(out_dir, "test_coupon_0.6mm_recessed_tab.3mf")
@@ -143,7 +150,7 @@ def main():
     export_3mf_with_100_infill(c_06, mf3_06, "MSEP_Coupon_0.6mm_Recessed")
     print(f"Exported: {stl_06} | Watertight: {c_06.is_watertight}")
     
-    # 2. 0.4mm floor (recess depth 2.6mm, 2 layers @ 0.2mm) - +0.6mm extra pin length!
+    # 3. 0.4mm floor (recess depth 2.6mm, 2 solid layers @ 0.20mm) - +0.60mm extra pin length!
     c_04 = make_coupon(0.40)
     stl_04 = os.path.join(out_dir, "test_coupon_0.4mm_recessed_tab.stl")
     mf3_04 = os.path.join(out_dir, "test_coupon_0.4mm_recessed_tab.3mf")
@@ -151,13 +158,13 @@ def main():
     export_3mf_with_100_infill(c_04, mf3_04, "MSEP_Coupon_0.4mm_Recessed")
     print(f"Exported: {stl_04} | Watertight: {c_04.is_watertight}")
     
-    # 3. Combo Plate: Both side-by-side with 15mm gap (single ~12 min print)
+    # 4. Combo Plate: 0.8mm and 0.6mm side-by-side with 15mm gap (single ~12 min print)
+    c_08_copy = c_08.copy()
     c_06_copy = c_06.copy()
-    c_04_copy = c_04.copy()
-    shift_x = c_06_copy.extents[0] + 15.0
-    c_04_copy.apply_translation([shift_x, 0.0, 0.0])
+    shift_x = c_08_copy.extents[0] + 15.0
+    c_06_copy.apply_translation([shift_x, 0.0, 0.0])
     
-    combo = trimesh.util.concatenate([c_06_copy, c_04_copy])
+    combo = trimesh.util.concatenate([c_08_copy, c_06_copy])
     combo.apply_translation([-combo.bounds[0][0], -combo.bounds[0][1], -combo.bounds[0][2]])
     stl_combo = os.path.join(out_dir, "test_coupon_deep_recess_combo.stl")
     mf3_combo = os.path.join(out_dir, "test_coupon_deep_recess_combo.3mf")
