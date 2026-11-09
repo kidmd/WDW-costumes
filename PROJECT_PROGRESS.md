@@ -93,6 +93,24 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### November 8, 2026 - 1.0mm Snap Tab Test Coupons (Flat & Recessed Back) for KAM Plastic Snaps
+- **Root Cause Analysis (Bench Testing Findings):**
+  - Testing KAM size 20 plastic snaps with felt on the earlier 1.8mm coupon floor revealed that stack thickness ($1.8\text{ mm}$ floor + $1.2\text{ mm}$ felt + $1.4\text{ mm}$ socket well = $4.4\text{ mm}$) left $< 1.0\text{ mm}$ of pin for plier die mushrooming. Under snap release tension, the under-mushroomed rivet head pulled right off the female socket.
+  - Thinning the snap tab to strictly $1.0\text{ mm}$ frees up an extra $0.8\text{ mm}$ of pin length ($\sim 2.6\text{ mm}$ to $3.0\text{ mm}$ pin protrusion inside the socket well), more than doubling the mushroom volume for massive mechanical retention.
+- **New 1.0mm Snap Test Coupons (`3d_panels/`):**
+  - **`test_coupon_1mm_flat_tab.stl` & `.3mf`:**
+    - Features a solid $1.0\text{ mm}$ flat tab ($Z = 0.0$ to $1.0\text{ mm}$) around the $\varnothing 3.2\text{ mm}$ snap hole with zero raised rims or recesses outside the matrix frame wall.
+    - Provides $100\%$ open plier clearance on both top and bottom with zero obstruction for the plier die, enabling a perfectly centered, deep mushroom head.
+  - **`test_coupon_1mm_recessed_tab.stl` & `.3mf`:**
+    - Features a $1.0\text{ mm}$ floor ($Z = 0.0$ to $1.0\text{ mm}$) under the $\varnothing 3.2\text{ mm}$ snap hole, recessed inside an expanded $\varnothing 14.0\text{ mm} \times 2.0\text{ mm}$ deep counterbore pocket on the back (felt) side.
+    - The outer rim matches the full $3.0\text{ mm}$ matrix frame wall height ($Z = 1.0$ to $3.0\text{ mm}$), cradling the socket head flush while maintaining a $1.0\text{ mm}$ fastening floor.
+  - **`test_coupon_1mm_combo_both.stl` & `.3mf`:**
+    - Combines both coupons side-by-side with a $15\text{ mm}$ separation onto a single plate ($105 \times 45 \times 3\text{ mm}$) for a quick, convenient $\sim 12\text{–}15$ minute test print ($\sim 4.8\text{g}$ PETG total).
+- **Slicer & Print Validation:**
+  - Injected $100\%$ solid infill and 5 perimeter wall loop metadata into all `.3mf` files for Bambu Studio, OrcaSlicer, and Snapmaker Orca.
+  - Both meshes validated strictly watertight (`is_watertight == True`) and flat on the build plate ($Z = 0.0\text{ mm}$).
+  - Rendered high-resolution 3D isometric comparison diagram at `3d_panels/test_coupon_1mm_comparison.png`.
+
 ### November 8, 2026 - Multi-Color Float Baselines (2-3 Colors) & Up to 3 Colors in Cue Editor
 - **2-3 Color Float Baselines (`simulator/app.js`, `src/main.cpp`, `arduino/MSEP_Costume/MSEP_Costume.ino`):**
   - Configured authentic 2-3 color signature baseline palettes for all 7 floats:

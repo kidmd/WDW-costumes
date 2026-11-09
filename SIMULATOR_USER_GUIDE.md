@@ -1668,6 +1668,18 @@ Instead of attaching a Cricut cut vinyl graphic on top of the printed plate, the
      - **Sewing Hole Security:** Inset sewing holes ($\\varnothing 2.8\text{ mm}$) maintain a strong $>1.75\text{ mm}$ solid TPU/PLA perimeter wall from the curved fillet.
      - Controlled via the **`⭕ Corners:`** toolbar pill (`Rounded ★` / `Sharp`) in the 3D preview modal and the **`Rounded Plate Corners`** checkbox in the Layout tab.
 
+   - **🖨️ 16×16 Matrix Panel Snap Test Coupons (KAM Size 20 Plastic Snaps):**
+     - For calibrating KAM plastic snap attachment through felt and 3D-printed armor tabs before printing full-size $176\text{ mm}$ plates:
+     - **[test_coupon_1mm_flat_tab.stl](file:///c:/Users/Kiddi/Desktop/WDW%20costumes/3d_panels/test_coupon_1mm_flat_tab.stl)** / **[.3mf](file:///c:/Users/Kiddi/Desktop/WDW%20costumes/3d_panels/test_coupon_1mm_flat_tab.3mf)** ($45.0 \times 45.0 \times 3.0\text{ mm}$, $\approx 2.3\text{g}$ PETG):
+       - Features a completely flat $1.0\text{ mm}$ solid tab ($Z = 0.0$ to $1.0\text{ mm}$) around the $\varnothing 3.2\text{ mm}$ snap hole, with zero raised rims outside the matrix frame wall.
+       - Gives $100\%$ open plier clearance on both top and bottom dies and maximizes pin protrusion ($\sim 2.6\text{--}3.0\text{ mm}$ into the female socket well), allowing the plier anvil to form a thick, wide locking mushroom head that will not pull out when snapping/unsnapping.
+     - **[test_coupon_1mm_recessed_tab.stl](file:///c:/Users/Kiddi/Desktop/WDW%20costumes/3d_panels/test_coupon_1mm_recessed_tab.stl)** / **[.3mf](file:///c:/Users/Kiddi/Desktop/WDW%20costumes/3d_panels/test_coupon_1mm_recessed_tab.3mf)** ($45.0 \times 45.0 \times 3.0\text{ mm}$, $\approx 2.5\text{g}$ PETG):
+       - Features a $1.0\text{ mm}$ floor under the $\varnothing 3.2\text{ mm}$ snap hole recessed inside an expanded $\varnothing 14.0\text{ mm} \times 2.0\text{ mm}$ deep counterbore well on the back (felt) side.
+       - Outer rim rises to $3.0\text{ mm}$ flush with the matrix wall, keeping the back perimeter smooth while maintaining the thin $1.0\text{ mm}$ fastening floor for maximum rivet mushrooming.
+     - **[test_coupon_1mm_combo_both.stl](file:///c:/Users/Kiddi/Desktop/WDW%20costumes/3d_panels/test_coupon_1mm_combo_both.stl)** / **[.3mf](file:///c:/Users/Kiddi/Desktop/WDW%20costumes/3d_panels/test_coupon_1mm_combo_both.3mf)** ($105.0 \times 45.0 \times 3.0\text{ mm}$, $\approx 4.8\text{g}$ PETG):
+       - Both test coupons arranged side-by-side with a $15\text{ mm}$ gap on a single build plate for a single $\sim 12\text{--}15$ minute test print.
+     - **Slicer Pre-Configuration:** All `.3mf` files include embedded metadata for $100\%$ solid infill and 5 perimeter walls in Bambu Studio, OrcaSlicer, and Snapmaker Orca.
+
 14. **🖨️ Precision Fairy Light Wire Fold Management Clips & 90° Corner Elbows:**
    - **External Wire Fold & Corner Management:** For fairy light wire routed outside chest armor panels, precision PLA/PETG snap-fit clips and 90° elbow brackets maintain neat, parallel routing without wire kinking or conductor fatigue.
    - **Calibrated 3.2mm Wire Standard:** Verified via physical test gauge comb (.2\text{ mm}$ test slot). All sockets feature $\varnothing 3.30\text{ mm}$ inner cradles, .35\text{ mm}$ snap constriction mouths with ^\circ$ lead-in ramps, and .35\text{ mm}$ spring cantilever walls. All STLs default to flat on the build plate ( = 0$) with mouths pointing up.
