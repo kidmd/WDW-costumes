@@ -93,6 +93,25 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### November 8, 2026 - Full All-Black 16×16 Test Panel with 1.0mm Recessed Snap Tabs
+- **Bench Test Success & Production Standard:**
+  - Physical testing of the 1.0mm recessed coupon confirmed that the $1.0\text{ mm}$ floor under the snap hole provides ideal pin length ($\sim 2.6\text{–}3.0\text{ mm}$ into the socket well) to form a robust, permanent mushroom head with zero pull-off under release tension, while the expanded $\varnothing 14.0\text{ mm}$ counterbore pocket cleanly accommodates the plier anvil and female socket.
+- **Full Test Panel Architecture (`test_all_black_16x16_panel_recessed_1mm.stl` / `.3mf` & `test_all_black_16x16_panel_recessed_back.stl` / `.3mf`):**
+  - **Overall Dimensions:** $190.01 \times 190.01 \times 3.00\text{ mm}$ ($176\text{ mm}$ square base + 4 diagonal ear lobes).
+  - **Base Floor:** $1.0\text{ mm}$ solid black PETG ($Z = 0.0$ to $1.0\text{ mm}$) spanning the full $176\text{ mm}$ footprint, 100% flat against the textured PEI bed (zero supports required).
+  - **Matrix Cavity:** $160.4 \times 160.4 \times 2.0\text{ mm}$ deep internal pocket perfectly cradling standard flexible 16×16 FPCB matrices with $0.2\text{ mm}$ perimeter tolerance.
+  - **Wire Exit Notch:** $16.0\text{ mm}$ wide notch centered on the bottom frame wall for snag-free routing of 3-pin JST power/data cables.
+  - **4× Corner Snap Tabs:**
+    - Floor under each hole is strictly $1.0\text{ mm}$ thick ($Z = 0.0$ to $1.0\text{ mm}$).
+    - Pocket well expanded to $\varnothing 14.0\text{ mm} \times 2.0\text{ mm}$ depth on the back (felt) side.
+    - Outer ear rims rise to $3.0\text{ mm}$ flush with the matrix frame wall.
+    - Through-holes calibrated to $\varnothing 3.2\text{ mm}$ for smooth, friction-free pin insertion.
+- **Quality & Slicer Validation:**
+  - Watertightness verified (`is_watertight == True`, 12,040 faces, 6,016 vertices).
+  - Net volume: $34.95\text{ cm}^3$ ($\approx 43.7\text{g}$ PETG, $\approx 1\text{ hr } 45\text{ min}$ print time @ $0.20\text{ mm}$ layer height).
+  - Injected 100% solid infill and 5 perimeter walls into both `.3mf` files.
+  - Rendered 3D preview: `3d_panels/test_all_black_16x16_panel_recessed_1mm_preview.png`.
+
 ### November 8, 2026 - 1.0mm Snap Tab Test Coupons (Flat & Recessed Back) for KAM Plastic Snaps
 - **Root Cause Analysis (Bench Testing Findings):**
   - Testing KAM size 20 plastic snaps with felt on the earlier 1.8mm coupon floor revealed that stack thickness ($1.8\text{ mm}$ floor + $1.2\text{ mm}$ felt + $1.4\text{ mm}$ socket well = $4.4\text{ mm}$) left $< 1.0\text{ mm}$ of pin for plier die mushrooming. Under snap release tension, the under-mushroomed rivet head pulled right off the female socket.

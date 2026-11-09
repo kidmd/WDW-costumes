@@ -1678,6 +1678,11 @@ Instead of attaching a Cricut cut vinyl graphic on top of the printed plate, the
        - Outer rim rises to $3.0\text{ mm}$ flush with the matrix wall, keeping the back perimeter smooth while maintaining the thin $1.0\text{ mm}$ fastening floor for maximum rivet mushrooming.
      - **[test_coupon_1mm_combo_both.stl](file:///c:/Users/Kiddi/Desktop/WDW%20costumes/3d_panels/test_coupon_1mm_combo_both.stl)** / **[.3mf](file:///c:/Users/Kiddi/Desktop/WDW%20costumes/3d_panels/test_coupon_1mm_combo_both.3mf)** ($105.0 \times 45.0 \times 3.0\text{ mm}$, $\approx 4.8\text{g}$ PETG):
        - Both test coupons arranged side-by-side with a $15\text{ mm}$ gap on a single build plate for a single $\sim 12\text{--}15$ minute test print.
+     - **Full All-Black 16×16 Test Panel ([test_all_black_16x16_panel_recessed_1mm.stl](file:///c:/Users/Kiddi/Desktop/WDW%20costumes/3d_panels/test_all_black_16x16_panel_recessed_1mm.stl) / [.3mf](file:///c:/Users/Kiddi/Desktop/WDW%20costumes/3d_panels/test_all_black_16x16_panel_recessed_1mm.3mf)):**
+       - $190.01 \times 190.01 \times 3.00\text{ mm}$ overall ($176\text{ mm}$ square base + 4 diagonal corner wings, $\approx 43.7\text{g}$ PETG, $\sim 1\text{ hr } 45\text{ min}$ print).
+       - $160.4 \times 160.4 \times 2.0\text{ mm}$ matrix cavity cradles the flexible 16×16 FPCB with $0.2\text{ mm}$ perimeter tolerance.
+       - $16\text{ mm}$ bottom wire notch provides snag-free exit for 3-pin JST power/data cables.
+       - 4 corner snap tabs incorporate the bench-verified $1.0\text{ mm}$ floor under $\varnothing 3.2\text{ mm}$ holes inside $\varnothing 14.0\text{ mm} \times 2.0\text{ mm}$ counterbore wells, flush with the $3.0\text{ mm}$ matrix frame walls.
      - **Slicer Pre-Configuration:** All `.3mf` files include embedded metadata for $100\%$ solid infill and 5 perimeter walls in Bambu Studio, OrcaSlicer, and Snapmaker Orca.
 
 14. **🖨️ Precision Fairy Light Wire Fold Management Clips & 90° Corner Elbows:**
