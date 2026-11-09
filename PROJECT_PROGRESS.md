@@ -93,6 +93,24 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### November 9, 2026 - Deeper Recessed Snap Tabs (0.6mm & 0.4mm Floors) for High-Tension Snaps
+- **Root Cause & Mechanical Optimization:**
+  - Physical testing of brand-new KAM size 20 snaps revealed that the factory split-ring spring jaws exert very high retention force ("death grip"), which occasionally caused the mushroomed rivet head on the female socket to give way upon aggressive separation.
+  - Making the recess deeper by thinning the floor under the hole from $1.0\text{ mm}$ down to **$0.6\text{ mm}$** ($2.4\text{ mm}$ deep recess) or **$0.4\text{ mm}$** ($2.6\text{ mm}$ deep recess) exposes an additional **$+0.40\text{ mm}$ to $+0.60\text{ mm}$ of free pin length**. This feeds an extra $\sim 2.5\text{ mm}^3$ to $3.7\text{ mm}^3$ of plastic directly into the mushroom disc, forming a significantly wider and thicker locking flange that will not pull out under extreme pull forces.
+- **New Deep Recess 3D Models (`3d_panels/`):**
+  - **`test_coupon_0.6mm_recessed_tab.stl` / `.3mf`:**
+    - Standardized at 3 solid layers ($0.60\text{ mm}$) @ $0.20\text{ mm}$ layer height with $\varnothing 14.0\text{ mm} \times 2.40\text{ mm}$ deep pocket.
+    - Yields $+0.40\text{ mm}$ additional pin protrusion while preserving $>40\text{ MPa}$ solid PETG tensile strength.
+  - **`test_coupon_0.4mm_recessed_tab.stl` / `.3mf`:**
+    - Standardized at 2 solid layers ($0.40\text{ mm}$) @ $0.20\text{ mm}$ layer height with $\varnothing 14.0\text{ mm} \times 2.60\text{ mm}$ deep pocket.
+    - Maximizes pin protrusion ($+0.60\text{ mm}$) for thick felt stacks or stubborn snaps.
+  - **`test_coupon_deep_recess_combo.stl` / `.3mf`:**
+    - Both coupons side-by-side ($105 \times 45 \times 3\text{ mm}$) for a quick 12-minute dual test print.
+  - **Full Panel Updated (`test_all_black_16x16_panel_recessed_0.6mm.stl` / `.3mf` & `test_all_black_16x16_panel_recessed_back.stl` / `.3mf`):**
+    - $190.01 \times 190.01 \times 3.00\text{ mm}$ full armor panel with $0.60\text{ mm}$ floor and $2.40\text{ mm}$ deep pocket across all 4 corner tabs.
+- **Bench Best Practices:**
+  - Added documentation on the costumer "awl / needle-nose spread trick" to gently ease brand new KAM split-ring spring tension, and the recommendation to punch a $\varnothing 12\text{ mm}$ clearance hole in the felt so the snap clamps directly to 100% solid PETG plastic with zero squish or wobble.
+
 ### November 8, 2026 - Full All-Black 16×16 Test Panel with 1.0mm Recessed Snap Tabs
 - **Bench Test Success & Production Standard:**
   - Physical testing of the 1.0mm recessed coupon confirmed that the $1.0\text{ mm}$ floor under the snap hole provides ideal pin length ($\sim 2.6\text{–}3.0\text{ mm}$ into the socket well) to form a robust, permanent mushroom head with zero pull-off under release tension, while the expanded $\varnothing 14.0\text{ mm}$ counterbore pocket cleanly accommodates the plier anvil and female socket.

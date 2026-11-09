@@ -6,19 +6,19 @@ import trimesh
 
 # ==============================================================================
 # 🏰 MAIN STREET ELECTRICAL PARADE (WDW 10K)
-# 16x16 MATRIX TEST PANEL - ALL-BLACK 1.0mm RECESSED TAB STANDARD
+# 16x16 MATRIX TEST PANEL - ALL-BLACK 0.6mm DEEP RECESSED TAB STANDARD
 # Features:
 #  - 100% Flat Front Face against PEI Bed (Zero Bridging / Zero Supports)
 #  - 176mm Extended Perimeter Flange (5.8mm horizontal border)
 #  - 3.0mm Flush Back Rim (Corner tabs flush with 2mm frame wall)
-#  - Ø 14.0mm x 2.0mm Deep Recessed Pocket on the BACK (Felt Side)
-#  - 1.0mm Solid PETG Floor under Snap Cap (Bench-Verified for KAM Size 20 Snaps)
+#  - Ø 14.0mm x 2.4mm Deep Recessed Pocket on the BACK (Felt Side)
+#  - 0.6mm Solid PETG Floor under Snap Cap (Gives +0.4mm More Pin Protrusion)
 #  - Ø 3.2mm Through-Holes for Snag-Free Pin Insertion
 #  - 16mm Bottom Wire Exit Notch for JST Matrix Power / Data Harness
 # ==============================================================================
 
 def extrude_shapely(shape, height):
-    """Extrude any 2D shapely geometry (Polygon or MultiPolygon) into a watertight Trimesh."""
+    """Extrude any 2D shapely geometry into a watertight Trimesh."""
     if shape is None or shape.is_empty:
         return None
     geoms = shape.geoms if shape.geom_type in ['MultiPolygon', 'GeometryCollection'] else [shape]
@@ -38,8 +38,7 @@ def extrude_shapely(shape, height):
     return trimesh.util.concatenate(meshes)
 
 def export_3mf_with_100_infill(mesh, mf3_path, obj_name="MSEP_Solid_Panel"):
-    """Exports trimesh as 3MF and injects slicer metadata for 100% solid infill and 5 wall loops
-    in Bambu Studio, OrcaSlicer, and Snapmaker Orca so users don't need to manually configure it."""
+    """Exports trimesh as 3MF and injects slicer metadata for 100% solid infill and 5 wall loops."""
     import zipfile, xml.etree.ElementTree as ET
     
     mesh.export(mf3_path)
@@ -88,7 +87,7 @@ def export_3mf_with_100_infill(mesh, mf3_path, obj_name="MSEP_Solid_Panel"):
     except Exception as e:
         print(f"Metadata injection warning on {mf3_path}: {e}")
 
-def build_recessed_back_panels():
+def build_recessed_back_panels(floor_thick=0.60):
     out_dir = '3d_panels'
     os.makedirs(out_dir, exist_ok=True)
     
@@ -99,17 +98,16 @@ def build_recessed_back_panels():
     FRAME_WALL_WIDTH = 2.0       # mm
     PLATE_BASE_WIDTH = 176.0     # mm (5.8mm perimeter flange around frame walls)
     
-    FLOOR_THICKNESS = 1.0        # mm (solid black floor Z = 0.0 to 1.0mm)
-    WALL_HEIGHT = 2.0            # mm (frame wall & ear rim height above floor, Z = 1.0 to 3.0mm)
-    TOTAL_HEIGHT = FLOOR_THICKNESS + WALL_HEIGHT # 3.0 mm
+    FLOOR_THICKNESS = floor_thick # mm (0.60mm solid black floor, 3 layers @ 0.20mm)
+    TOTAL_HEIGHT = 3.00          # mm (top rim flush)
+    WALL_HEIGHT = TOTAL_HEIGHT - FLOOR_THICKNESS # 2.40 mm
     
     SNAP_THROUGH_HOLE_DIA = 3.2  # mm (Ø 3.2mm snag-free clearance for KAM size 20 pin)
     SNAP_HOLE_RADIUS = SNAP_THROUGH_HOLE_DIA / 2.0 # 1.6 mm
     
-    RECESSED_POCKET_DIA = 14.0   # mm (Ø 14.0mm bench-verified well for KAM snap socket & plier die)
+    RECESSED_POCKET_DIA = 14.0   # mm (Ø 14.0mm well for KAM snap socket & plier die)
     RECESSED_POCKET_RADIUS = RECESSED_POCKET_DIA / 2.0 # 7.0 mm
     
-    # Coordinates centered at (0, 0):
     half_cav = CAVITY_SIZE / 2.0             # 80.2 mm
     half_frame = half_cav + FRAME_WALL_WIDTH # 82.2 mm
     half_plate = PLATE_BASE_WIDTH / 2.0      # 88.0 mm
@@ -121,13 +119,11 @@ def build_recessed_back_panels():
     # Wire notch: 16mm wide, cuts bottom frame wall
     wire_notch = sg.box(-8.0, -half_frame - 1.0, 8.0, -half_cav + 0.1)
     
-    # Frame wall polygon (Z = 1.0 to 3.0mm):
+    # Frame wall polygon (Z = FLOOR_THICKNESS to 3.0mm):
     frame_wall_2d = frame_outer_box.difference(cavity_box).difference(wire_notch)
     
-    # -------------------------------------------------------------------------
-    # Integrated Corner Snap Wings (4 Corners):
-    # -------------------------------------------------------------------------
-    diag_clearance = 7.5 # mm diagonal clearance from frame wall corner (82.2, 82.2)
+    # Corner Snap Wings (4 Corners):
+    diag_clearance = 7.5
     diag_offset = diag_clearance * math.cos(math.radians(45)) # 5.303 mm
     hole_pos = half_frame + diag_offset # 87.503 mm
     
@@ -142,10 +138,7 @@ def build_recessed_back_panels():
         hole_cutouts.append(pt.buffer(SNAP_HOLE_RADIUS, resolution=64))
         pocket_cutouts.append(pt.buffer(RECESSED_POCKET_RADIUS, resolution=64))
         
-        # 15mm diameter ear lobe around the hole (radius 7.5mm)
         circle = pt.buffer(7.5, resolution=64)
-        
-        # Blend smoothly into the straight 176mm flange edges starting 13mm back:
         c_box = sg.box(min(sx * 75.0, sx * half_plate), min(sy * 75.0, sy * half_plate),
                        max(sx * 75.0, sx * half_plate), max(sy * 75.0, sy * half_plate))
         ear_wing = unary_union([circle, c_box]).convex_hull
@@ -155,43 +148,25 @@ def build_recessed_back_panels():
     hole_cutouts_union = unary_union(hole_cutouts)
     pocket_cutouts_union = unary_union(pocket_cutouts)
     
-    # Base plate perimeter (176mm square + 4 smooth corner wings):
     base_plate_2d = unary_union([plate_box, all_ears_union])
     
-    # -------------------------------------------------------------------------
-    # Layer Slicing Geometry (Face-Down: Z=0 is Bed, Z=3 is Back/Felt Side):
-    # -------------------------------------------------------------------------
-    # 1. Base Floor (Z = 0.0 to 1.0mm, thickness 1.0mm):
-    #    Spans full 176mm plate with 3.2mm through-holes. 100% FLAT against PEI bed!
+    # Floor polygon (Z = 0.0 to FLOOR_THICKNESS):
     floor_2d = base_plate_2d.difference(hole_cutouts_union)
     
-    # 2. Upper Ear Rim (Z = 1.0 to 3.0mm, thickness 2.0mm):
-    #    Forms the 3.0mm flush outer rim of the corner tab, leaving the Ø14mm pocket
-    #    open with 1.0mm floor at the bottom!
+    # Upper Ear Rim (Z = FLOOR_THICKNESS to 3.0mm):
     ear_rim_2d = all_ears_union.difference(frame_outer_box).difference(pocket_cutouts_union)
     
-    # -------------------------------------------------------------------------
-    # 3D Extrusion (Full Panel):
-    # -------------------------------------------------------------------------
-    # Floor: 0.0 to 1.0mm
     m_floor = extrude_shapely(floor_2d, FLOOR_THICKNESS)
-    
-    # Frame Wall: 1.0 to 3.0mm (height 2.0mm)
     m_walls = extrude_shapely(frame_wall_2d, WALL_HEIGHT)
     m_walls.apply_translation([0.0, 0.0, FLOOR_THICKNESS])
-    
-    # Ear Upper Rim: 1.0 to 3.0mm (height 2.0mm)
     m_ear_rim = extrude_shapely(ear_rim_2d, WALL_HEIGHT)
     m_ear_rim.apply_translation([0.0, 0.0, FLOOR_THICKNESS])
     
     full_panel = trimesh.util.concatenate([m_floor, m_walls, m_ear_rim])
     full_panel.apply_translation([0.0, 0.0, -full_panel.bounds[0][2]])
     
-    # -------------------------------------------------------------------------
-    # Export Full Panel Files:
-    # -------------------------------------------------------------------------
     targets = [
-        ("test_all_black_16x16_panel_recessed_1mm", "MSEP_16x16_Panel_1mm_Recessed"),
+        ("test_all_black_16x16_panel_recessed_0.6mm", "MSEP_16x16_Panel_0.6mm_Recessed"),
         ("test_all_black_16x16_panel_recessed_back", "MSEP_16x16_Panel_Recessed_Back")
     ]
     
@@ -200,31 +175,9 @@ def build_recessed_back_panels():
         mf3_path = os.path.join(out_dir, f"{base_name}.3mf")
         full_panel.export(stl_path)
         export_3mf_with_100_infill(full_panel, mf3_path, label)
-        print(f"Exported: {stl_path}")
-        print(f"  Dimensions: X={full_panel.extents[0]:.2f}mm, Y={full_panel.extents[1]:.2f}mm, Z={full_panel.extents[2]:.2f}mm")
-        print(f"  Is watertight: {full_panel.is_watertight}")
-        print(f"  Faces: {len(full_panel.faces)}, Verts: {len(full_panel.vertices)}")
-        print(f"  Volume: {full_panel.volume / 1000.0:.2f} cm3 (~{full_panel.volume / 1000.0 * 1.25:.1f}g PETG)")
-
-    # -------------------------------------------------------------------------
-    # Also update the 12-Minute Corner Snap Coupon with matching 1.0mm specs:
-    # -------------------------------------------------------------------------
-    coupon_box = sg.box(50.0, 50.0, 100.0, 100.0)
-    
-    c_floor = extrude_shapely(floor_2d.intersection(coupon_box), FLOOR_THICKNESS)
-    c_walls = extrude_shapely(frame_wall_2d.intersection(coupon_box), WALL_HEIGHT)
-    c_walls.apply_translation([0.0, 0.0, FLOOR_THICKNESS])
-    c_ear_rim = extrude_shapely(ear_rim_2d.intersection(coupon_box), WALL_HEIGHT)
-    c_ear_rim.apply_translation([0.0, 0.0, FLOOR_THICKNESS])
-    
-    coupon_mesh = trimesh.util.concatenate([c_floor, c_walls, c_ear_rim])
-    coupon_mesh.apply_translation([-coupon_mesh.bounds[0][0], -coupon_mesh.bounds[0][1], -coupon_mesh.bounds[0][2]])
-    
-    coupon_stl = os.path.join(out_dir, "test_corner_snap_coupon_recessed_back.stl")
-    coupon_3mf = os.path.join(out_dir, "test_corner_snap_coupon_recessed_back.3mf")
-    coupon_mesh.export(coupon_stl)
-    export_3mf_with_100_infill(coupon_mesh, coupon_3mf, "MSEP_Corner_Coupon_Recessed_Back")
-    print(f"Exported: {coupon_stl} | Watertight: {coupon_mesh.is_watertight}")
+        print(f"Exported: {stl_path} | Watertight: {full_panel.is_watertight}")
+        print(f"  Bounds: X={full_panel.extents[0]:.2f}mm, Y={full_panel.extents[1]:.2f}mm, Z={full_panel.extents[2]:.2f}mm")
+        print(f"  Floor: {FLOOR_THICKNESS:.2f}mm | Recess Depth: {WALL_HEIGHT:.2f}mm")
 
 if __name__ == '__main__':
-    build_recessed_back_panels()
+    build_recessed_back_panels(floor_thick=0.60)
