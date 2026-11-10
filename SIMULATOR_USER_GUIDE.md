@@ -1688,6 +1688,11 @@ Instead of attaching a Cricut cut vinyl graphic on top of the printed plate, the
        - $160.4 \times 160.4 \times 2.2\text{ mm}$ matrix cavity cradles the flexible 16×16 FPCB with $0.2\text{ mm}$ perimeter tolerance.
        - $16\text{ mm}$ bottom wire notch provides snag-free exit for 3-pin JST power/data cables.
        - 4 corner snap tabs feature the calibrated $2.20\text{ mm}$ pocket with $0.80\text{ mm}$ floor under $\varnothing 3.2\text{ mm}$ holes, optimizing rivet mushroom retention and separation equilibrium.
+     - **Interactive KAM Snap Tabs & Recessed Floor Thickness Selector (Simulator UI & 3D Compiler):**
+       - **Layout Tab & 3D Preview Modal Controls:** Select between **`None`** (flush corners with $\varnothing 2.8\text{ mm}$ sewing holes), **`0.6mm`** (maximum rivet mushroom clearance • $2.4\text{ mm}$ recess), **`0.8mm ★`** (optimal clamp strength & pin retention • $2.2\text{ mm}$ recess • default standard), and **`1.0mm`** (rigid floor • $2.0\text{ mm}$ recess).
+       - **3D Preview Modal Toolbar Pill (`🔘 KAM Snaps:`):** Instant one-click toggle across `None`, `0.6mm`, `0.8mm ★`, and `1.0mm` with live Three.js 3D inspection and automatic background compiler regeneration.
+       - **Watertight Face-Down Monolithic & Multi-Material 3MF Generation:** Automatically generates seamless $190.01 \times 190.01 \times 3.00\text{ mm}$ geometry with 4 extended ear wings ($R = 7.5\text{ mm}$ at $88.0 \pm 87.503\text{ mm}$), $\varnothing 3.2\text{ mm}$ pin through-holes, and $\varnothing 14.0\text{ mm}$ back counterbore wells without any non-manifold edges (`mesh.is_watertight == True`).
+       - **2D Canvas Backdrop Visualization:** When active, the simulator's shirt workbench canvas renders the 4 protruding corner ear lobes, $\varnothing 14.0\text{ mm}$ dashed pocket boundaries, and $\varnothing 3.2\text{ mm}$ through-holes in real time.
      - **Slicer Pre-Configuration:** All `.3mf` files include embedded metadata for $100\%$ solid infill and 5 perimeter walls in Bambu Studio, OrcaSlicer, and Snapmaker Orca.
 
 14. **🖨️ Precision Fairy Light Wire Fold Management Clips & 90° Corner Elbows:**

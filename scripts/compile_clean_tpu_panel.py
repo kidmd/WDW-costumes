@@ -258,6 +258,32 @@ if '--matrix-rounded-corners' in sys.argv:
         if sys.argv[_mrc + 1].lower() in ('off', '0', 'false', 'no'):
             MATRIX_CORNER_RADIUS_MM = 0.0
 
+MATRIX_SNAP_TABS = True
+if 'matrix_snap_tabs_mode' in specs:
+    MATRIX_SNAP_TABS = bool(specs['matrix_snap_tabs_mode'])
+elif 'matrix_snap_tabs' in specs:
+    MATRIX_SNAP_TABS = bool(specs['matrix_snap_tabs'])
+
+if '--matrix-snap-tabs' in sys.argv:
+    _mst = sys.argv.index('--matrix-snap-tabs')
+    if _mst + 1 < len(sys.argv):
+        MATRIX_SNAP_TABS = sys.argv[_mst + 1].lower() in ('on', '1', 'true', 'yes')
+
+MATRIX_SNAP_FLOOR_MM = 0.80
+if 'matrix_snap_floor_mm' in specs:
+    try:
+        MATRIX_SNAP_FLOOR_MM = float(specs['matrix_snap_floor_mm'])
+    except Exception:
+        MATRIX_SNAP_FLOOR_MM = 0.80
+
+if '--matrix-snap-floor' in sys.argv:
+    _msf = sys.argv.index('--matrix-snap-floor')
+    if _msf + 1 < len(sys.argv):
+        try:
+            MATRIX_SNAP_FLOOR_MM = float(sys.argv[_msf + 1])
+        except Exception:
+            pass
+
 def export_assembled_3mf(scene_items, mf3_path, assembly_name="MSEP_MultiColor_Plate", pause_layer=4, pause_z=0.60):
     """Exports a multi-part trimesh dictionary as a single 3MF parent assembly with components and slicer metadata
     for Bambu Studio / OrcaSlicer / Snapmaker Orca so that:
@@ -378,7 +404,7 @@ def export_assembled_3mf(scene_items, mf3_path, assembly_name="MSEP_MultiColor_P
     except Exception as e:
         print(f"[3MF Assembly Post-Process Warning]: {e}")
 
-def compile_matrix_16x16_plate_variant(variant_name, artwork_path, window_shape='round_34', plate_thickness_mm=0.60, gap_mm=3.0, lip_mm=None, include_lenses=True, clear_layer_mm=0.4, include_frame=True, corner_radius_mm=6.0, windowed_leds=None, backlight_leds=None):
+def compile_matrix_16x16_plate_variant(variant_name, artwork_path, window_shape='round_34', plate_thickness_mm=0.60, gap_mm=3.0, lip_mm=None, include_lenses=True, clear_layer_mm=0.4, include_frame=True, corner_radius_mm=6.0, include_snap_tabs=True, snap_floor_mm=0.80, windowed_leds=None, backlight_leds=None):
     PLATE_SIZE_MM = 176.0
     MATRIX_SIZE_MM = 160.0
     MARGIN_MM = 8.0
@@ -392,7 +418,18 @@ def compile_matrix_16x16_plate_variant(variant_name, artwork_path, window_shape=
     FRAME_ACTIVE = bool(include_frame)
     CORNER_R = round(max(0.0, min(15.0, float(6.0 if corner_radius_mm is None else corner_radius_mm))), 2)
 
-    print(f"\n>>> Compiling {variant_name.upper()} 16x16 Matrix Backlight Plate ({PLATE_SIZE_MM}x{PLATE_SIZE_MM}x{THICK_MM:.2f}mm, Window Shape: {window_shape.upper()})...")
+    SNAP_TABS_ACTIVE = bool(include_snap_tabs)
+    try:
+        SNAP_FLOOR_MM = round(float(snap_floor_mm), 2)
+    except Exception:
+        SNAP_FLOOR_MM = 0.80
+    if not SNAP_TABS_ACTIVE:
+        SNAP_FLOOR_MM = 0.0
+    elif SNAP_FLOOR_MM not in [0.60, 0.80, 1.00]:
+        SNAP_FLOOR_MM = 0.80
+
+    snap_desc = f"KAM Snaps: {SNAP_FLOOR_MM:.1f}mm Floor" if SNAP_TABS_ACTIVE else "No Snap Tabs"
+    print(f"\n>>> Compiling {variant_name.upper()} 16x16 Matrix Backlight Plate ({PLATE_SIZE_MM}x{PLATE_SIZE_MM}x{THICK_MM:.2f}mm, Window Shape: {window_shape.upper()}, {snap_desc})...")
     v_t0 = time.time()
 
     active_img = Image.open(artwork_path).convert('RGBA')
@@ -671,15 +708,52 @@ def compile_matrix_16x16_plate_variant(variant_name, artwork_path, window_shape=
             win_polys.append(sg.Point(lx, ly).buffer(1.70, resolution=24))
     windows_union_2d = unary_union(win_polys) if win_polys else sg.Polygon()
 
-    # Build 4 corner sewing holes (Ø 2.8mm, radius 1.40mm) inset from the 176mm plate corners
-    hole_inset = max(4.0, round(CORNER_R * 0.707, 1)) if CORNER_R > 6.0 else 4.0
-    shirt_hole_coords = [
-        [hole_inset, hole_inset],                                     # Bottom-Left corner
-        [PLATE_SIZE_MM - hole_inset, hole_inset],                     # Bottom-Right corner
-        [hole_inset, PLATE_SIZE_MM - hole_inset],                     # Top-Left corner
-        [PLATE_SIZE_MM - hole_inset, PLATE_SIZE_MM - hole_inset]      # Top-Right corner
-    ]
-    shirt_holes_union_2d = unary_union([sg.Point(hx, hy).buffer(1.40, resolution=24) for hx, hy in shirt_hole_coords])
+    # Build fastener holes: either Ø 3.2mm holes in extended corner snap tabs or Ø 2.8mm sewing holes inset
+    half_cav = 160.4 / 2.0
+    half_frame = half_cav + 2.0
+    half_plate = PLATE_SIZE_MM / 2.0
+    Cx, Cy = half_plate, half_plate
+
+    if SNAP_TABS_ACTIVE:
+        diag_offset = 7.5 * math.cos(math.radians(45))
+        hole_pos = half_frame + diag_offset
+        tab_hole_coords = []
+        snap_hole_polys = []
+        snap_pocket_polys = []
+        ear_hulls = []
+
+        for sx, sy in [(-1, -1), (1, -1), (-1, 1), (1, 1)]:
+            hx = round(Cx + sx * hole_pos, 3)
+            hy = round(Cy + sy * hole_pos, 3)
+            tab_hole_coords.append([hx, hy])
+            pt = sg.Point(hx, hy)
+            snap_hole_polys.append(pt.buffer(1.60, resolution=48))   # Ø 3.2mm clearance hole
+            snap_pocket_polys.append(pt.buffer(7.00, resolution=48)) # Ø 14.0mm socket recess well
+            circle = pt.buffer(7.50, resolution=48)
+            x0 = Cx + min(sx * 75.0, sx * half_plate)
+            x1 = Cx + max(sx * 75.0, sx * half_plate)
+            y0 = Cy + min(sy * 75.0, sy * half_plate)
+            y1 = Cy + max(sy * 75.0, sy * half_plate)
+            c_box = sg.box(x0, y0, x1, y1)
+            ear_hulls.append(unary_union([circle, c_box]).convex_hull)
+
+        all_ears_union = unary_union(ear_hulls)
+        snap_holes_union_2d = unary_union(snap_hole_polys)
+        snap_pockets_union_2d = unary_union(snap_pocket_polys)
+        fastener_holes_union_2d = snap_holes_union_2d
+        shirt_hole_coords = tab_hole_coords
+    else:
+        all_ears_union = sg.Polygon()
+        snap_holes_union_2d = sg.Polygon()
+        snap_pockets_union_2d = sg.Polygon()
+        hole_inset = max(4.0, round(CORNER_R * 0.707, 1)) if CORNER_R > 6.0 else 4.0
+        shirt_hole_coords = [
+            [hole_inset, hole_inset],                                     # Bottom-Left corner
+            [PLATE_SIZE_MM - hole_inset, hole_inset],                     # Bottom-Right corner
+            [hole_inset, PLATE_SIZE_MM - hole_inset],                     # Top-Left corner
+            [PLATE_SIZE_MM - hole_inset, PLATE_SIZE_MM - hole_inset]      # Top-Right corner
+        ]
+        fastener_holes_union_2d = unary_union([sg.Point(hx, hy).buffer(1.40, resolution=24) for hx, hy in shirt_hole_coords])
 
     # Extract 2D polygons for each non-black color inlay
     polys_2d = {}
@@ -727,8 +801,8 @@ def compile_matrix_16x16_plate_variant(variant_name, artwork_path, window_shape=
             u = unary_union(c_polys)
             if not windows_union_2d.is_empty:
                 u = u.difference(windows_union_2d)
-            if not shirt_holes_union_2d.is_empty:
-                u = u.difference(shirt_holes_union_2d)
+            if not fastener_holes_union_2d.is_empty:
+                u = u.difference(fastener_holes_union_2d)
             polys_2d[c_name] = u if u.is_valid else u.buffer(0)
 
     # Build registration anchors so that EVERY split STL file (chassis, lenses, clear backing,
@@ -770,22 +844,24 @@ def compile_matrix_16x16_plate_variant(variant_name, artwork_path, window_shape=
         plate_box_2d = unary_union([b1, b2, c1, c2, c3, c4])
     else:
         plate_box_2d = sg.box(0.0, 0.0, PLATE_SIZE_MM, PLATE_SIZE_MM)
+
+    base_plate_2d = unary_union([plate_box_2d, all_ears_union]) if SNAP_TABS_ACTIVE else plate_box_2d
     all_inlays_2d = unary_union(list(polys_2d.values())) if polys_2d else sg.Polygon()
-    chassis_2d = plate_box_2d.difference(all_inlays_2d)
+    chassis_2d = base_plate_2d.difference(all_inlays_2d)
     if not corner_anchors_2d.is_empty:
         chassis_2d = unary_union([chassis_2d, corner_anchors_2d])
     if not windows_union_2d.is_empty:
         chassis_2d = chassis_2d.difference(windows_union_2d)
-    if not shirt_holes_union_2d.is_empty:
-        chassis_2d = chassis_2d.difference(shirt_holes_union_2d)
+    if not fastener_holes_union_2d.is_empty:
+        chassis_2d = chassis_2d.difference(fastener_holes_union_2d)
     if not chassis_2d.is_valid:
         chassis_2d = chassis_2d.buffer(0)
 
-    mono_2d = plate_box_2d
+    mono_2d = base_plate_2d
     if not windows_union_2d.is_empty:
         mono_2d = mono_2d.difference(windows_union_2d)
-    if not shirt_holes_union_2d.is_empty:
-        mono_2d = mono_2d.difference(shirt_holes_union_2d)
+    if not fastener_holes_union_2d.is_empty:
+        mono_2d = mono_2d.difference(fastener_holes_union_2d)
 
     # -----------------------------------------------------------------------
     # FACE-DOWN Z-STACKING (OPTIMIZED FOR BUILD PLATE TEXTURE & U1 TOOLCHANGER):
@@ -825,8 +901,8 @@ def compile_matrix_16x16_plate_variant(variant_name, artwork_path, window_shape=
 
     wire_notch_2d = sg.box(PLATE_SIZE_MM / 2.0 - 8.0, 0.0, PLATE_SIZE_MM / 2.0 + 8.0, pocket_y0 + 0.5)
 
-    pocket_wall_2d = outer_frame_2d.difference(inner_pocket_2d).difference(shirt_holes_union_2d).difference(wire_notch_2d)
-    ledge_wall_2d = outer_frame_2d.difference(ledge_aperture_2d).difference(shirt_holes_union_2d).difference(wire_notch_2d)
+    pocket_wall_2d = outer_frame_2d.difference(inner_pocket_2d).difference(fastener_holes_union_2d).difference(wire_notch_2d)
+    ledge_wall_2d = outer_frame_2d.difference(ledge_aperture_2d).difference(fastener_holes_union_2d).difference(wire_notch_2d)
 
     # Faceplate Z coordinates (Face-Down: starts on bed at Z = 0.0):
     FACE_Z0 = 0.00
@@ -835,7 +911,7 @@ def compile_matrix_16x16_plate_variant(variant_name, artwork_path, window_shape=
     # Extrude all front plate parts through full face thickness (0.0 to THICK_MM)
     final_chassis_tm = extrude_shapely(chassis_2d, THICK_MM)
     final_monolithic_tm = extrude_shapely(mono_2d, THICK_MM)
-    final_lid_tm = extrude_shapely(plate_box_2d.difference(shirt_holes_union_2d), THICK_MM)
+    final_lid_tm = extrude_shapely(base_plate_2d.difference(fastener_holes_union_2d), THICK_MM)
 
     # Clear Backing Layer: Z = FACE_Z1 to FACE_Z1 + CLEAR_MM (0.60 to 1.00mm)
     CLEAR_Z0 = FACE_Z1
@@ -859,7 +935,7 @@ def compile_matrix_16x16_plate_variant(variant_name, artwork_path, window_shape=
     #  - 2.0mm solid black foundation directly under the 2mm frame wall (X = 5.80 to 7.80)
     #  - 2.0mm solid black perimeter shelf between the frame wall and the clear backing (X = 7.80 to 9.80)
     # Printed in Black Chassis PETG directly on top of the black chassis floor (ZERO floating air gap!).
-    black_shelf_base_2d = outer_frame_2d.difference(clear_box_2d).difference(shirt_holes_union_2d).difference(wire_notch_2d)
+    black_shelf_base_2d = outer_frame_2d.difference(clear_box_2d).difference(fastener_holes_union_2d).difference(wire_notch_2d)
     if CLEAR_MM > 0 and not black_shelf_base_2d.is_empty:
         tm_shelf_base = extrude_shapely(black_shelf_base_2d, CLEAR_MM)
         if tm_shelf_base is not None:
@@ -901,6 +977,30 @@ def compile_matrix_16x16_plate_variant(variant_name, artwork_path, window_shape=
         full_frame_tm = trimesh.util.concatenate(frame_solids)
         final_chassis_tm = trimesh.util.concatenate([final_chassis_tm, full_frame_tm])
         final_monolithic_tm = trimesh.util.concatenate([final_monolithic_tm, full_frame_tm])
+
+    # Ear wing tabs and recessed sockets (Z = THICK_MM to TOTAL_Z):
+    if SNAP_TABS_ACTIVE:
+        ear_ext_2d = all_ears_union.difference(outer_frame_2d)
+
+        # 1. Floor elevation from THICK_MM to SNAP_FLOOR_MM (if SNAP_FLOOR_MM > THICK_MM):
+        if SNAP_FLOOR_MM > THICK_MM:
+            floor_fill_h = round(SNAP_FLOOR_MM - THICK_MM, 2)
+            floor_fill_2d = ear_ext_2d.difference(fastener_holes_union_2d)
+            tm_ear_floor = extrude_shapely(floor_fill_2d, floor_fill_h)
+            if tm_ear_floor is not None:
+                tm_ear_floor.apply_translation([0.0, 0.0, THICK_MM])
+                final_chassis_tm = trimesh.util.concatenate([final_chassis_tm, tm_ear_floor])
+                final_monolithic_tm = trimesh.util.concatenate([final_monolithic_tm, tm_ear_floor])
+
+        # 2. Raised Rim from SNAP_FLOOR_MM to TOTAL_Z around the Ø 14.0mm recessed pocket:
+        rim_h = round(TOTAL_Z - SNAP_FLOOR_MM, 2)
+        if rim_h > 0:
+            ear_rim_2d = ear_ext_2d.difference(snap_pockets_union_2d)
+            tm_ear_rim = extrude_shapely(ear_rim_2d, rim_h)
+            if tm_ear_rim is not None:
+                tm_ear_rim.apply_translation([0.0, 0.0, SNAP_FLOOR_MM])
+                final_chassis_tm = trimesh.util.concatenate([final_chassis_tm, tm_ear_rim])
+                final_monolithic_tm = trimesh.util.concatenate([final_monolithic_tm, tm_ear_rim])
 
     out_dir = '3d_panels'
     os.makedirs(out_dir, exist_ok=True)
@@ -1065,14 +1165,14 @@ REMOVED FEATURES: No LED channels, no side walls, no screw holes, no eyelets, no
     chassis_size = os.path.getsize(chassis_path)
     zip_size = os.path.getsize(zip_path)
     total_z = TOTAL_Z
-    stl_bounds = [PLATE_SIZE_MM, PLATE_SIZE_MM, total_z]
-    stl_center = [PLATE_SIZE_MM / 2.0, PLATE_SIZE_MM / 2.0, round(total_z / 2.0, 3)]
-    if CORNER_R > 0:
-        contour_coords = [[round(pt[0], 2), round(pt[1], 2)] for pt in list(plate_box_2d.exterior.coords)]
-    else:
-        contour_coords = [[0.0, 0.0], [PLATE_SIZE_MM, 0.0], [PLATE_SIZE_MM, PLATE_SIZE_MM], [0.0, PLATE_SIZE_MM], [0.0, 0.0]]
+    panel_extent_x = round(float(final_monolithic_tm.extents[0]), 2)
+    panel_extent_y = round(float(final_monolithic_tm.extents[1]), 2)
+    stl_bounds = [panel_extent_x, panel_extent_y, total_z]
+    stl_center = [round(float(final_monolithic_tm.centroid[0]), 3), round(float(final_monolithic_tm.centroid[1]), 3), round(total_z / 2.0, 3)]
+    contour_coords = [[round(pt[0], 2), round(pt[1], 2)] for pt in list(base_plate_2d.exterior.coords)]
 
-    print(f"[{variant_name}] 16x16 Matrix Plate compiled in {time.time()-v_t0:.2f}s! ({len(windowed_leds)} Ø3.4mm windows, {len(backlight_leds)} backlit, 4 corner sewing holes, {THICK_MM:.2f}mm thick)")
+    fastener_desc = f"4 KAM snap tabs ({SNAP_FLOOR_MM:.1f}mm floor)" if SNAP_TABS_ACTIVE else "4 corner sewing holes"
+    print(f"[{variant_name}] 16x16 Matrix Plate compiled in {time.time()-v_t0:.2f}s! ({len(windowed_leds)} Ø3.4mm windows, {len(backlight_leds)} backlit, {fastener_desc}, {THICK_MM:.2f}mm thick, Watertight: {final_monolithic_tm.is_watertight})")
 
     return {
         "variant": variant_name,
@@ -1089,12 +1189,14 @@ REMOVED FEATURES: No LED channels, no side walls, no screw holes, no eyelets, no
         "matrix_rounded_corners": bool(CORNER_R > 0),
         "matrix_corner_radius_mm": CORNER_R,
         "corner_radius_mm": CORNER_R,
+        "matrix_snap_tabs": SNAP_TABS_ACTIVE,
+        "matrix_snap_floor_mm": SNAP_FLOOR_MM,
         "frame_height_mm": FRAME_HEIGHT,
         "total_thickness_mm": total_z,
-        "width_mm": PLATE_SIZE_MM,
-        "height_mm": PLATE_SIZE_MM,
-        "panel_width_mm": PLATE_SIZE_MM,
-        "panel_height_mm": PLATE_SIZE_MM,
+        "width_mm": panel_extent_x,
+        "height_mm": panel_extent_y,
+        "panel_width_mm": panel_extent_x,
+        "panel_height_mm": panel_extent_y,
         "total_image_width_mm": PLATE_SIZE_MM,
         "total_image_height_mm": PLATE_SIZE_MM,
         "artwork_offset_mm": [offset_x, offset_y],
@@ -2402,6 +2504,8 @@ if MATRIX_16X16_MODE:
         clear_layer_mm=MATRIX_CLEAR_LAYER_MM,
         include_frame=INCLUDE_FRAME,
         corner_radius_mm=MATRIX_CORNER_RADIUS_MM,
+        include_snap_tabs=MATRIX_SNAP_TABS,
+        snap_floor_mm=MATRIX_SNAP_FLOOR_MM,
         windowed_leds=windowed_leds_spec,
         backlight_leds=backlight_leds_spec
     )
@@ -2417,6 +2521,8 @@ if MATRIX_16X16_MODE:
         clear_layer_mm=MATRIX_CLEAR_LAYER_MM,
         include_frame=INCLUDE_FRAME,
         corner_radius_mm=MATRIX_CORNER_RADIUS_MM,
+        include_snap_tabs=MATRIX_SNAP_TABS,
+        snap_floor_mm=MATRIX_SNAP_FLOOR_MM,
         windowed_leds=windowed_leds_spec,
         backlight_leds=backlight_leds_spec
     )

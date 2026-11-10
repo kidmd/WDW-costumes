@@ -1571,6 +1571,16 @@ const uint8_t PROGMEM SPATIAL_RADIUS_BYTE[FRONT_LEDS] = {{
                 matrix_corner_radius_mm = 0.0
             matrix_corner_radius_mm = round(max(0.0, min(15.0, matrix_corner_radius_mm)), 1)
 
+            matrix_snap_tabs_mode = bool(req_data.get("matrixSnapTabsMode", req_data.get("snapTabsMode", True)))
+            try:
+                matrix_snap_floor_mm = float(req_data.get("matrixSnapFloorMm", req_data.get("snapFloorMm", 0.80)))
+            except Exception:
+                matrix_snap_floor_mm = 0.80
+            if not matrix_snap_tabs_mode:
+                matrix_snap_floor_mm = 0.0
+            elif matrix_snap_floor_mm not in [0.60, 0.80, 1.00]:
+                matrix_snap_floor_mm = 0.80
+
             matrix_windowed_leds = req_data.get("matrixWindowedLeds", [])
             matrix_backlight_leds = req_data.get("matrixBacklightLeds", [])
 
@@ -1599,6 +1609,8 @@ const uint8_t PROGMEM SPATIAL_RADIUS_BYTE[FRONT_LEDS] = {{
                 "matrix_rounded_corners": matrix_rounded_corners,
                 "matrix_corner_radius_mm": matrix_corner_radius_mm,
                 "corner_radius_mm": matrix_corner_radius_mm,
+                "matrix_snap_tabs_mode": matrix_snap_tabs_mode,
+                "matrix_snap_floor_mm": matrix_snap_floor_mm,
                 "matrix_windowed_leds": matrix_windowed_leds,
                 "matrix_backlight_leds": matrix_backlight_leds,
                 "stl_colors": req_data.get("stlColors"),
@@ -1667,7 +1679,11 @@ const uint8_t PROGMEM SPATIAL_RADIUS_BYTE[FRONT_LEDS] = {{
                 "--matrix-corner-radius",
                 str(matrix_corner_radius_mm),
                 "--matrix-rounded-corners",
-                "on" if matrix_rounded_corners else "off"
+                "on" if matrix_rounded_corners else "off",
+                "--matrix-snap-tabs",
+                "on" if matrix_snap_tabs_mode else "off",
+                "--matrix-snap-floor",
+                str(matrix_snap_floor_mm)
             ]
             res = subprocess.run(cmd, cwd=BASE_DIR, capture_output=True, text=True, timeout=90)
             if res.returncode != 0:

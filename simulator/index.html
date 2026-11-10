@@ -725,6 +725,17 @@
                                 </div>
                             </div>
 
+                            <!-- KAM Snap Corner Tabs & Recessed Floor Thickness Selector (None, 0.6mm, 0.8mm, 1.0mm) -->
+                            <div style="margin-bottom: 8px;">
+                                <label style="font-size: 10px; color: #a78bfa; display: block; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.5px;">🔘 KAM Snap Tabs &amp; Recessed Floor (Back / Felt Side):</label>
+                                <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px;">
+                                    <button type="button" class="action-btn btf-matrix-snap-btn" data-snap="none" style="font-size: 10px; padding: 4px 2px;" title="Standard 176×176mm flush corners with Ø 2.8mm sewing holes">None</button>
+                                    <button type="button" class="action-btn btf-matrix-snap-btn" data-snap="0.6" style="font-size: 10px; padding: 4px 2px;" title="0.60mm solid floor under snap socket (maximum pin mushroom clearance • 2.4mm recess)">0.6mm</button>
+                                    <button type="button" class="action-btn btf-matrix-snap-btn active" data-snap="0.8" style="font-size: 10px; padding: 4px 2px; background: rgba(167, 139, 250, 0.25); border-color: #a78bfa; color: #fff; font-weight: 700;" title="0.80mm solid floor under snap socket (Optimal balance of clamp strength and pin retention • 2.2mm recess) ★">0.8mm ★</button>
+                                    <button type="button" class="action-btn btf-matrix-snap-btn" data-snap="1.0" style="font-size: 10px; padding: 4px 2px;" title="1.00mm solid floor under snap socket (Rigid floor • 2.0mm recess)">1.0mm</button>
+                                </div>
+                            </div>
+
                                                             </div>
                             </div>
 
@@ -3208,6 +3219,15 @@
                         <span style="font-size: 10px; color: #c084fc; padding: 0 5px; font-weight: 700;">⭕ Corners:</span>
                         <button type="button" id="tpuModalCornersRoundedBtn" onclick="setTpuMatrixCorners(true)" style="border: none; border-radius: 4px; padding: 3px 6px; font-size: 11px; font-weight: 700; cursor: pointer; background: #c084fc; color: #000; transition: all 0.15s ease;" title="6mm Soft Anti-Snag Fillet">Rounded ★</button>
                         <button type="button" id="tpuModalCornersSharpBtn" onclick="setTpuMatrixCorners(false)" style="border: none; border-radius: 4px; padding: 3px 6px; font-size: 11px; font-weight: 500; cursor: pointer; background: transparent; color: #8b949e; transition: all 0.15s ease;" title="Sharp 90° Square Corners">Sharp</button>
+                    </div>
+
+                    <!-- 16x16 Matrix KAM Snap Tabs Pill -->
+                    <div id="tpuModalSnapPill" class="matrix16-hardware-only" style="display: inline-flex; align-items: center; background: #161b22; border: 1px solid #a78bfa; border-radius: 6px; padding: 2px; gap: 2px;" title="Select KAM Snap corner wing tabs & recessed floor thickness (0.6, 0.8, 1.0mm or None)">
+                        <span style="font-size: 10px; color: #c4b5fd; padding: 0 5px; font-weight: 700;">🔘 Snaps:</span>
+                        <button type="button" id="tpuModalSnapNoneBtn" onclick="setTpuMatrixSnapFloor('none')" style="border: none; border-radius: 4px; padding: 3px 6px; font-size: 11px; font-weight: 500; cursor: pointer; background: transparent; color: #8b949e; transition: all 0.15s ease;" title="Standard 176×176mm flush corners with Ø 2.8mm sewing holes">None</button>
+                        <button type="button" id="tpuModalSnap06Btn" onclick="setTpuMatrixSnapFloor('0.6')" style="border: none; border-radius: 4px; padding: 3px 6px; font-size: 11px; font-weight: 500; cursor: pointer; background: transparent; color: #8b949e; transition: all 0.15s ease;" title="0.60mm solid floor under snap socket (2.4mm recess depth)">0.6mm</button>
+                        <button type="button" id="tpuModalSnap08Btn" onclick="setTpuMatrixSnapFloor('0.8')" style="border: none; border-radius: 4px; padding: 3px 6px; font-size: 11px; font-weight: 700; cursor: pointer; background: #a78bfa; color: #000; transition: all 0.15s ease;" title="0.80mm solid floor under snap socket (2.2mm recess depth) ★">0.8mm ★</button>
+                        <button type="button" id="tpuModalSnap10Btn" onclick="setTpuMatrixSnapFloor('1.0')" style="border: none; border-radius: 4px; padding: 3px 6px; font-size: 11px; font-weight: 500; cursor: pointer; background: transparent; color: #8b949e; transition: all 0.15s ease;" title="1.00mm solid floor under snap socket (2.0mm recess depth)">1.0mm</button>
                     </div>
 
                     <div style="width: 1px; height: 16px; background: #30363d; margin: 0 1px;"></div>

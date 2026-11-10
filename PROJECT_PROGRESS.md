@@ -93,6 +93,21 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### November 10, 2026 - Interactive KAM Snap Tabs & Recessed Floor Thickness Selector (Simulator & 3D Compiler)
+- **Selectable Snap Wing Tabs & Recessed Wells:**
+  - Integrated full parametric controls into the **Simulator Layout Tab (16×16 Matrix card)** and **3D Preview Modal toolbar** allowing the runner/builder to select between:
+    - **`None`**: Standard $176\times 176\text{ mm}$ plate with 4 flush corner sewing holes ($\varnothing 2.8\text{ mm}$).
+    - **`0.6mm`**: Solid floor with $2.40\text{ mm}$ recess depth (maximum pin mushroom clearance).
+    - **`0.8mm ★`**: Calibrated default standard with $2.20\text{ mm}$ recess depth ($+0.20\text{ mm}$ extra pin exposure with 4 solid $0.20\text{ mm}$ layers for high clamping durability).
+    - **`1.0mm`**: Rigid floor with $2.00\text{ mm}$ recess depth.
+- **Full-Stack Implementation:**
+  - **`simulator/index.html`:** Added 4-button selector in `#btfMatrix3dParamsBody` and matching toolbar pill `#tpuModalSnapPill` in `#tpuPreviewModal`.
+  - **`simulator/app.js`:** Added `snapTabsActive` & `snapFloorMm` state with `localStorage` persistence, button active styles, status telemetry badge (`• 0.8mm KAM Snaps`), 2D canvas workbench rendering of corner lobes & recessed pockets, and auto-recompilation triggers.
+  - **`simulator.py`:** Added `matrixSnapTabsMode` & `matrixSnapFloorMm` request parsing, persistence into `3d_panels/tpu_panel_specs.json`, and CLI argument forwarding (`--matrix-snap-tabs`, `--matrix-snap-floor`).
+  - **`scripts/compile_clean_tpu_panel.py`:** Built 4 diagonal corner wings centered at $(88.0 \pm 87.503, 88.0 \pm 87.503)$ with $R = 7.5\text{ mm}$ convex-hull edge blending, $\varnothing 3.2\text{ mm}$ through-holes, and $\varnothing 14.0\text{ mm}$ counterbore wells.
+- **Hardware & Mesh Verification:**
+  - Verified 100% watertight STL/3MF generation (`mesh.is_watertight == True`) across $0.6\text{ mm}$, $0.8\text{ mm}$, and $1.0\text{ mm}$ floors with exact $190.01 \times 190.01 \times 3.00\text{ mm}$ extents.
+
 ### November 9, 2026 - 0.8mm Recessed Snap Floor Calibration (Goldilocks Standard)
 - **Bench Tuning & Separation Equilibrium:**
   - After breaking in the male and female snaps, separation force stabilized into a smoother release profile. To achieve the perfect "Goldilocks" balance between tab structural rigidity and rivet mushroom thickness, calibrated the tab floor to **$0.80\text{ mm}$** (exactly 4 solid PETG layers @ $0.20\text{ mm}$ layer height).
@@ -175,7 +190,9 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 - **Dynamic Multi-Color Effects:**
   - `traveling_wave` & `chase`: Successive wave pulses cycle through the 2 or 3 colors.
   - `marquee`: Alternates individual bulbs across the 2 or 3 colors.
-  - `pulse` & `comet`: Successive breath / pass cycles advance through Color 1 $ightarrow$ Color 2 $ightarrow$ Color 3.
+  - `pulse` & `comet`: Successive breath / pass cycles advance through Color 1 $
+ightarrow$ Color 2 $
+ightarrow$ Color 3.
 - **Cue Editor Up to 3 Colors Selector:**
   - Both Panels and Fairy Lights color rows allow selecting 1, 2, or 3 custom colors with live swatch previews and instant Reset to Float Baseline.
 - **ESP32 Firmware Parity (`src/main.cpp`, `arduino/MSEP_Costume/MSEP_Costume.ino`):**
