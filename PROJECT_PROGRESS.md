@@ -93,6 +93,17 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### November 10, 2026 - Preset Loading All-Backlight State Synchronization & Float 7 Restoration
+- **Root Cause & Diagnosis:**
+  - Float 7 (*To Honor America / Flag & Eagle*) in `presets/fleet_lineup.json` was defaulting to the 0-window All-Backlight test preset (`...21-22.json`).
+  - Loading any preset previously left `isAllBacklightNoWindowsActive` untouched in memory. When switching to a windowed preset like `...16-24.json` (48 windows • 103 backlights), the simulator remained locked in All-Backlight mode with the window slider disabled and 3D STL recompile logic forcing `withoutWindows: true`.
+  - In `simulator/app.js`, `applyProfileData`, `loadProfile`, `restoreSavedMatrix16x16Roles`, and `editRunnerInSingleView` only checked `profileData.matrixWindowedLeds.length > 0`, failing to restore roles when transitioning from 0-window presets and omitting `setAllBacklightNoWindowsUIState(false)`.
+- **Architectural Fixes:**
+  - **Dynamic State Synchronization (`setAllBacklightNoWindowsUIState`):** In `applyProfileData` and `restoreSavedMatrix16x16Roles`, dynamically synchronize `isAllBacklightNoWindowsActive`: if `targetWin > 0`, cleanly deactivate All-Backlight mode, unlock `winSlider` (`disabled = false`, opacity 1.0), and reset `tpuWindowShape` to `round_34`; if `targetWin === 0 && targetBacklight > 0`, cleanly activate All-Backlight mode.
+  - **3D Recompile on Preset Load:** In `loadProfile` and `editRunnerInSingleView`, immediately trigger `handleRecompileTpuStl({ skipOpen: true })` in `matrix16` mode so 3D specifications and STL models immediately reflect the loaded float preset.
+  - **Fleet Lineup Upgrade:** Updated Float 7 in `presets/fleet_lineup.json` and `DEFAULT_FLEET_ROSTER[6]` to `"server:to_honor_america_100_led_patriotic_preset_medium_100led_2026-11-04_16-24.json"` (48 windows, 103 backlights), with automated localStorage startup sanitization.
+  - **Verified 3D Plate Build:** Executed `scripts/compile_clean_tpu_panel.py` confirming both Front and Back 16×16 plates compile with all 48 Ø3.4mm window cutouts, 103 backlights, 4 KAM snap tabs (0.8mm floor), and 100% watertight geometry.
+
 ### November 10, 2026 - Interactive KAM Snap Tabs & Recessed Floor Thickness Selector (Simulator & 3D Compiler)
 - **Selectable Snap Wing Tabs & Recessed Wells:**
   - Integrated full parametric controls into the **Simulator Layout Tab (16×16 Matrix card)** and **3D Preview Modal toolbar** allowing the runner/builder to select between:

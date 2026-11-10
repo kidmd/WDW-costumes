@@ -5386,7 +5386,7 @@ const DEFAULT_FLEET_ROSTER = [
     { slot: 3, num: "04", icon: "🐌", fullName: "The Spinning Snail", name: "The Snail", tag: "SNAIL", color: "#ff007f", accent: "Pink", role: "📡 Follower Float", preset: "server:spinning_snail.json", defaultGraphic: "spinning_snail" },
     { slot: 4, num: "05", icon: "🏴‍☠️", fullName: "The Pirate Ship", name: "Pirate Ship", tag: "PIRATE", color: "#e63946", accent: "Red", role: "📡 Follower Float", preset: "server:pirate_ship.json", defaultGraphic: "pirate_ship" },
     { slot: 5, num: "06", icon: "🐉", fullName: "Pete's Dragon (Elliott)", name: "Pete's Dragon", tag: "ELLIOTT", color: "#00ff88", accent: "Green", role: "📡 Follower Float", preset: "server:petes_dragon.json", defaultGraphic: "builtin_dragon" },
-    { slot: 6, num: "07", icon: "🦅", fullName: "To Honor America", name: "Flag & Eagle", tag: "HONOR AMERICA", color: "#3a86ff", accent: "Patriotic", role: "📡 Follower Float", preset: "server:honor_america_eagle.json", defaultGraphic: "honor_america_eagle" }
+    { slot: 6, num: "07", icon: "🦅", fullName: "To Honor America", name: "Flag & Eagle", tag: "HONOR AMERICA", color: "#3a86ff", accent: "Patriotic", role: "📡 Follower Float", preset: "server:to_honor_america_100_led_patriotic_preset_medium_100led_2026-11-04_16-24.json", defaultGraphic: "honor_america_eagle" }
 ];
 
 let fleetRunners = JSON.parse(JSON.stringify(DEFAULT_FLEET_ROSTER));
@@ -7477,8 +7477,15 @@ async function editRunnerInSingleView(slot) {
             if (typeof computeBtfMatrix16x16Layout === 'function') {
                 computeBtfMatrix16x16Layout();
             }
-            if (typeof restoreSavedMatrix16x16Roles === 'function' && pData && Array.isArray(pData.matrixWindowedLeds) && pData.matrixWindowedLeds.length > 0) {
+            const hasRoles = pData && (
+                (Array.isArray(pData.matrixWindowedLeds) && pData.matrixWindowedLeds.length > 0) ||
+                (Array.isArray(pData.matrixBacklightLeds) && pData.matrixBacklightLeds.length > 0)
+            );
+            if (typeof restoreSavedMatrix16x16Roles === 'function' && hasRoles) {
                 restoreSavedMatrix16x16Roles(pData);
+            }
+            if (typeof handleRecompileTpuStl === 'function' && (btfMatrix16x16Active || currentHardwareMode === 'matrix16')) {
+                handleRecompileTpuStl({ skipOpen: true });
             }
         }
 
@@ -8831,6 +8838,19 @@ async function loadFleetLineupFromStorage() {
         fleetRunners[4].tag = 'PIRATE';
         fleetRunners[4].icon = '🏴‍☠️';
         fleetRunners[4].color = '#e63946';
+    }
+
+    // Ensure slot 6 (To Honor America) defaults to latest windowed preset if set to all-backlight 21-22 or legacy preset
+    if (fleetRunners[6] && (fleetRunners[6].preset === 'server:to_honor_america_100_led_patriotic_preset_medium_100led_2026-11-04_21-22.json' || fleetRunners[6].preset === 'server:honor_america_eagle.json' || !fleetRunners[6].preset)) {
+        fleetRunners[6].preset = 'server:to_honor_america_100_led_patriotic_preset_medium_100led_2026-11-04_16-24.json';
+        fleetRunners[6].defaultGraphic = 'honor_america_eagle';
+        fleetRunners[6].name = 'Flag & Eagle';
+        fleetRunners[6].fullName = 'To Honor America';
+        fleetRunners[6].tag = 'HONOR AMERICA';
+        fleetRunners[6].icon = '🦅';
+        fleetRunners[6].color = '#3a86ff';
+        fleetRunners[6].accent = 'Patriotic';
+        saveFleetLineupToStorage();
     }
 
     // Preload all runner presets into cache in parallel
@@ -15328,7 +15348,9 @@ function applyProfileData(profileData) {
                 }
                 if (typeof btfMatrix16x16Active !== 'undefined' && btfMatrix16x16Active) {
                     computeBtfMatrix16x16Layout();
-                    if (typeof restoreSavedMatrix16x16Roles === 'function' && Array.isArray(profileData.matrixWindowedLeds) && profileData.matrixWindowedLeds.length > 0) {
+                    const hasRoles = (Array.isArray(profileData.matrixWindowedLeds) && profileData.matrixWindowedLeds.length > 0) ||
+                        (Array.isArray(profileData.matrixBacklightLeds) && profileData.matrixBacklightLeds.length > 0);
+                    if (typeof restoreSavedMatrix16x16Roles === 'function' && hasRoles) {
                         restoreSavedMatrix16x16Roles(profileData);
                     }
                 }
@@ -15488,25 +15510,63 @@ function applyProfileData(profileData) {
         const hasMatrixMode = (currentHardwareMode === 'matrix16') ||
             (profileData.btfMatrix16x16Active === true) ||
             (profileData.matrix_16x16_mode === true) ||
-            (Array.isArray(profileData.matrixWindowedLeds) && profileData.matrixWindowedLeds.length > 0);
+            (Array.isArray(profileData.matrixWindowedLeds) && profileData.matrixWindowedLeds.length > 0) ||
+            (Array.isArray(profileData.matrixBacklightLeds) && profileData.matrixBacklightLeds.length > 0);
         btfMatrix16x16Active = hasMatrixMode;
+
+        let targetWin = 50;
+        let targetBacklight = 25;
 
         if (profileData.btfMatrix16x16Config && typeof profileData.btfMatrix16x16Config === 'object') {
             if (typeof profileData.btfMatrix16x16Config.windowCount === 'number') {
-                btfMatrix16x16Config.windowCount = profileData.btfMatrix16x16Config.windowCount;
+                targetWin = profileData.btfMatrix16x16Config.windowCount;
+            } else if (Array.isArray(profileData.matrixWindowedLeds)) {
+                targetWin = profileData.matrixWindowedLeds.length;
             }
             if (typeof profileData.btfMatrix16x16Config.backlightCount === 'number') {
-                btfMatrix16x16Config.backlightCount = profileData.btfMatrix16x16Config.backlightCount;
+                targetBacklight = profileData.btfMatrix16x16Config.backlightCount;
+            } else if (Array.isArray(profileData.matrixBacklightLeds)) {
+                targetBacklight = profileData.matrixBacklightLeds.length;
             }
             if (typeof profileData.btfMatrix16x16Config.thicknessMm === 'number') {
                 btfMatrix16x16Config.thicknessMm = profileData.btfMatrix16x16Config.thicknessMm;
             }
-        } else if (hasMatrixMode) {
-            if (Array.isArray(profileData.matrixWindowedLeds) && profileData.matrixWindowedLeds.length > 0) {
-                btfMatrix16x16Config.windowCount = profileData.matrixWindowedLeds.length;
+            if (typeof profileData.btfMatrix16x16Config.lipMm === 'number') {
+                btfMatrix16x16Config.lipMm = profileData.btfMatrix16x16Config.lipMm;
             }
-            if (Array.isArray(profileData.matrixBacklightLeds) && profileData.matrixBacklightLeds.length > 0) {
-                btfMatrix16x16Config.backlightCount = profileData.matrixBacklightLeds.length;
+            if (typeof profileData.btfMatrix16x16Config.clearLayerMm === 'number') {
+                btfMatrix16x16Config.clearLayerMm = profileData.btfMatrix16x16Config.clearLayerMm;
+            }
+            if (typeof profileData.btfMatrix16x16Config.frameActive === 'boolean') {
+                btfMatrix16x16Config.frameActive = profileData.btfMatrix16x16Config.frameActive;
+            }
+            if (typeof profileData.btfMatrix16x16Config.roundedCorners === 'boolean') {
+                btfMatrix16x16Config.roundedCorners = profileData.btfMatrix16x16Config.roundedCorners;
+            }
+            if (typeof profileData.btfMatrix16x16Config.snapTabsActive === 'boolean') {
+                btfMatrix16x16Config.snapTabsActive = profileData.btfMatrix16x16Config.snapTabsActive;
+            }
+            if (typeof profileData.btfMatrix16x16Config.snapFloorMm === 'number') {
+                btfMatrix16x16Config.snapFloorMm = profileData.btfMatrix16x16Config.snapFloorMm;
+            }
+        } else if (hasMatrixMode) {
+            if (Array.isArray(profileData.matrixWindowedLeds)) {
+                targetWin = profileData.matrixWindowedLeds.length;
+            }
+            if (Array.isArray(profileData.matrixBacklightLeds)) {
+                targetBacklight = profileData.matrixBacklightLeds.length;
+            }
+        }
+
+        btfMatrix16x16Config.windowCount = targetWin;
+        btfMatrix16x16Config.backlightCount = targetBacklight;
+
+        // Synchronize All-Backlight mode state based on preset contents
+        if (typeof setAllBacklightNoWindowsUIState === 'function') {
+            if (targetWin === 0 && targetBacklight > 0) {
+                setAllBacklightNoWindowsUIState(true);
+            } else {
+                setAllBacklightNoWindowsUIState(false);
             }
         }
 
@@ -15516,14 +15576,27 @@ function applyProfileData(profileData) {
         const glowSlider = document.getElementById('btfMatrixBacklightCountSlider');
         if (matToggle) matToggle.checked = btfMatrix16x16Active;
         if (matCard) matCard.style.display = btfMatrix16x16Active ? 'block' : 'none';
-        if (winSlider) winSlider.value = btfMatrix16x16Config.windowCount;
+        if (winSlider) {
+            winSlider.value = btfMatrix16x16Config.windowCount;
+            if (targetWin > 0) {
+                winSlider.disabled = false;
+                winSlider.style.opacity = '1.0';
+                winSlider.style.cursor = 'pointer';
+            }
+        }
         if (glowSlider) glowSlider.value = btfMatrix16x16Config.backlightCount;
         if (typeof syncBtfMatrixThicknessUI === 'function') {
             syncBtfMatrixThicknessUI(btfMatrix16x16Config.thicknessMm);
             syncBtfMatrixLipUI(btfMatrix16x16Config.lipMm !== undefined ? btfMatrix16x16Config.lipMm : 0.0);
             syncBtfMatrixClearLayerUI(btfMatrix16x16Config.clearLayerMm !== undefined ? btfMatrix16x16Config.clearLayerMm : 0.4);
             syncBtfMatrixFrameUI(btfMatrix16x16Config.frameActive !== false);
+            if (typeof syncBtfMatrixSnapTabsUI === 'function') {
+                syncBtfMatrixSnapTabsUI(btfMatrix16x16Config.snapFloorMm !== undefined ? btfMatrix16x16Config.snapFloorMm : (btfMatrix16x16Config.snapTabsActive === false ? 'none' : '0.8'));
+            }
         }
+
+        // Cache loaded profile for image onload callback
+        lastLoadedMatrix16x16Profile = profileData;
 
         if (btfMatrix16x16Active) {
             if (btfStripPreviewActive) {
@@ -15537,7 +15610,9 @@ function applyProfileData(profileData) {
             computeBtfMatrix16x16Layout();
 
             // If exact windowed/backlit cell assignments were saved in the preset, restore valid on-graphic cells!
-            if (typeof restoreSavedMatrix16x16Roles === 'function' && Array.isArray(profileData.matrixWindowedLeds) && profileData.matrixWindowedLeds.length > 0) {
+            const hasSavedMatrixRoles = (Array.isArray(profileData.matrixWindowedLeds) && profileData.matrixWindowedLeds.length > 0) ||
+                (Array.isArray(profileData.matrixBacklightLeds) && profileData.matrixBacklightLeds.length > 0);
+            if (typeof restoreSavedMatrix16x16Roles === 'function' && hasSavedMatrixRoles) {
                 restoreSavedMatrix16x16Roles(profileData);
             }
         } else {
@@ -15549,7 +15624,10 @@ function applyProfileData(profileData) {
     }
 
     // 8. Restore TPU Armor Panel Features (Aperture Shape, Orientation, Numbers, Grooves, Nubs)
-    const targetShape = profileData.tpuWindowShape || profileData.windowShape || profileData.window_shape || null;
+    let targetShape = profileData.tpuWindowShape || profileData.windowShape || profileData.window_shape || null;
+    if (btfMatrix16x16Config.windowCount > 0 && (!targetShape || targetShape === 'none')) {
+        targetShape = 'round_34';
+    }
     if (targetShape && typeof setTpuWindowShape === 'function') {
         setTpuWindowShape(targetShape);
     }
@@ -15666,6 +15744,11 @@ async function loadProfile(sourceValue) {
         const displayLabel = profileData.name || sourceValue.replace(/^(server:|local:)/, '');
         badge.textContent = `✓ ${displayLabel}`;
         badge.title = `Currently loaded: ${displayLabel}`;
+    }
+
+    // Immediately synchronize 3D TPU specs/STL when in matrix16 mode
+    if (typeof handleRecompileTpuStl === 'function' && (btfMatrix16x16Active || currentHardwareMode === 'matrix16')) {
+        handleRecompileTpuStl({ skipOpen: true });
     }
 
     showToast(`📂 Loaded "${profileData.name || 'Profile'}"`);
@@ -17913,7 +17996,22 @@ function restoreSavedMatrix16x16Roles(profileData) {
     if (restoredWinCount > 0) {
         btfMatrix16x16Config.windowCount = restoredWinCount;
         const winSlider = document.getElementById('btfMatrixWindowCountSlider');
-        if (winSlider) winSlider.value = restoredWinCount;
+        if (winSlider) {
+            winSlider.value = restoredWinCount;
+            winSlider.disabled = false;
+            winSlider.style.opacity = '1.0';
+            winSlider.style.cursor = 'pointer';
+        }
+        if (typeof setAllBacklightNoWindowsUIState === 'function') {
+            setAllBacklightNoWindowsUIState(false);
+        }
+    } else if (restoredWinCount === 0 && restoredGlowCount > 0) {
+        btfMatrix16x16Config.windowCount = 0;
+        const winSlider = document.getElementById('btfMatrixWindowCountSlider');
+        if (winSlider) winSlider.value = 0;
+        if (typeof setAllBacklightNoWindowsUIState === 'function') {
+            setAllBacklightNoWindowsUIState(true);
+        }
     }
     if (restoredGlowCount > 0) {
         btfMatrix16x16Config.backlightCount = restoredGlowCount;
@@ -26586,11 +26684,9 @@ async function handleRecompileTpuStl(opts) {
                 : 0.0
         }));
 
-        const isWithoutWindows = (
-            (typeof isAllBacklightNoWindowsActive !== 'undefined' && isAllBacklightNoWindowsActive) ||
-            (typeof btfMatrix16x16Config !== 'undefined' && btfMatrix16x16Config.windowCount === 0) ||
-            params.tpuWindowShape === 'none'
-        );
+        const isWithoutWindows = isMatrix16
+            ? ((typeof isAllBacklightNoWindowsActive !== 'undefined' && isAllBacklightNoWindowsActive) || (typeof btfMatrix16x16Config !== 'undefined' && btfMatrix16x16Config.windowCount === 0))
+            : (params.tpuWindowShape === 'none');
 
         const matrixLists = isMatrix16 && typeof getBtfMatrix16x16ListsForExport === 'function'
             ? getBtfMatrix16x16ListsForExport()
@@ -26602,7 +26698,7 @@ async function handleRecompileTpuStl(opts) {
             floatName: floatName,
             graphicType: currentGraphicType,
             withoutWindows: isWithoutWindows,
-            windowShape: isWithoutWindows ? 'none' : (params.tpuWindowShape || 'round_34'),
+            windowShape: isWithoutWindows ? 'none' : ((params.tpuWindowShape && params.tpuWindowShape !== 'none') ? params.tpuWindowShape : 'round_34'),
             wellOrientation: params.tpuWellOrientation || 'horizontal',
             includeLedNumbers: !isWithoutWindows && (params.tpuIncludeLedNumbers === true),
             includeClipGrooves: params.tpuIncludeClipGrooves === true,
@@ -26611,7 +26707,7 @@ async function handleRecompileTpuStl(opts) {
             matrix16x16Mode: isMatrix16 || (currentHardwareMode === 'full_costume'),
             plateThicknessMm: (typeof btfMatrix16x16Config !== 'undefined' && btfMatrix16x16Config.thicknessMm) ? btfMatrix16x16Config.thicknessMm : 0.60,
             matrixGapMm: (typeof btfMatrix16x16Config !== 'undefined' && btfMatrix16x16Config.gapMm !== undefined) ? btfMatrix16x16Config.gapMm : 0.0,
-            matrixLipMm: (typeof btfMatrix16x16Config !== 'undefined' && btfMatrix16x16Config.gapMm !== undefined) ? btfMatrix16x16Config.gapMm : 0.0,
+            matrixLipMm: (typeof btfMatrix16x16Config !== 'undefined' && btfMatrix16x16Config.lipMm !== undefined) ? btfMatrix16x16Config.lipMm : ((typeof btfMatrix16x16Config !== 'undefined' && btfMatrix16x16Config.gapMm !== undefined) ? btfMatrix16x16Config.gapMm : 0.0),
             matrixLensesMode: !isWithoutWindows && (typeof btfMatrix16x16Config !== 'undefined' && btfMatrix16x16Config.lensesActive !== false),
             matrixClearLayerMm: (typeof btfMatrix16x16Config !== 'undefined' && btfMatrix16x16Config.clearLayerMm !== undefined) ? btfMatrix16x16Config.clearLayerMm : 0.4,
             matrixFrameMode: (typeof btfMatrix16x16Config !== 'undefined' && btfMatrix16x16Config.frameActive !== false),

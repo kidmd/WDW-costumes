@@ -139,7 +139,7 @@ The sidebar navigation is organized into a clean **2-row × 3-column grid** that
 1. **🎨 Tab 1: Layout ("The Canvas Studio"):**
    - **🔲 16×16 Matrix Configuration (Primary in Default Mode):**
      - **Hybrid 256-LED Allocation (Windowed / Backlit / Dark):** Interactive count sliders (`0–200`) for 🔆 **Windowed LEDs** (through-hole apertures for crisp point-source sparkles) and ✨ **Backlit LEDs** (diffused subsurface glow shining through thin colored PLA at 50% brightness), with remaining pixels kept dark.
-     - **Quick Allocation Presets:** Direct 1-click actions: `🎯 Spread 50 Win + 25 Glow`, `💡 Auto-Backlight Colored Areas (Keep Windows & Black Dark)`, `🌟 100% All-Backlight Mode (0 Windows • No Cutouts)`, and `🔄 Reset Counts`.
+     - **Quick Allocation Presets:** Direct 1-click actions: 🎯 Spread 50 Win + 25 Glow, 💡 Auto-Backlight Colored Areas (Keep Windows & Black Dark), 🌟 100% All-Backlight Mode (0 Windows • No Cutouts), and 🔄 Reset Counts. Loading any saved preset automatically synchronizes its window configuration—toggling off All-Backlight mode and unlocking the Windowed count slider whenever windows are present, or cleanly activating All-Backlight mode when 0 cutouts are specified. Instant background re-compilation ensures 3D previews and STL specs always match the loaded float file.
      - **⚙️ Collapsible 3D Plate & Slicer Parameters Card:** Expandable settings card tucked neatly above presets allowing instant fine-tuning of 3D print specs:
        - **Plate Thickness (Full-Z Inlays):** `0.48mm`, `0.60mm ★` (Default), `0.80mm`, `1.00mm`.
        - **LED Standoff Gap (Internal Ledge):** `0mm ★` (Default - No Lip, 2mm Frame Only), `1mm`, `2mm`, `3mm`, `4mm`, `5mm`.
