@@ -51,30 +51,33 @@ static uint8_t currentSparklePreset = 0; // Starts at Preset 0: Calm Starlight
 // Fairy Light Layout Presets (Mixed Color Order on single GPIO 16 line)
 // WS2812B 16x16 Panels are native GRB. WS2812B/WS2811 Fairy Lights are native RGB.
 enum FairyLayoutMode : uint8_t {
-    FAIRY_LAYOUT_BENCH_MIDDLE   = 0, // Panel 1 (0..255) -> Fairy 50 (256..305) -> Panel 2 (306..561) [Default]
+    FAIRY_LAYOUT_COSTUME_25_25  = 0, // Panel 1 (0..255) -> Fairy 1 (256..280, 25 LEDs) -> Panel 2 (281..536) -> Fairy 2 (537..561, 25 LEDs) [Default]
     FAIRY_LAYOUT_BENCH_END      = 1, // Panels (0..511) -> Fairy 50 (512..561)
-    FAIRY_LAYOUT_COSTUME_SPLIT  = 2, // Front (0..255) -> Fairy Right (256..280) -> Back (281..536) -> Fairy Left (537..561)
-    FAIRY_LAYOUT_ALL_GRB        = 3, // All LEDs GRB (Panels only, no fairy swap)
+    FAIRY_LAYOUT_COSTUME_13_37  = 2, // Panel 1 (0..255) -> Fairy 1 (256..268, 13 LEDs) -> Panel 2 (269..524) -> Fairy 2 (525..561, 37 LEDs)
+    FAIRY_LAYOUT_BENCH_MIDDLE   = 3, // Panel 1 (0..255) -> Fairy 50 (256..305) -> Panel 2 (306..561)
     FAIRY_LAYOUT_ALL_RGB        = 4  // All LEDs RGB (Full strip swap for standalone pebble strands)
 };
 
-static uint8_t currentFairyLayout = FAIRY_LAYOUT_BENCH_MIDDLE; // Starts at Bench Middle (256..305)
+static uint8_t currentFairyLayout = FAIRY_LAYOUT_COSTUME_25_25; // Default: 25 front fairy + 25 back fairy (matches user physical wiring)
 static const char* FAIRY_LAYOUT_NAMES[5] = {
-    "1: Bench Middle (Fairy 50 at 256..305, Panels at 0..255 & 306..561)",
+    "1: Costume 25/25 Split (Fairy 1 at 256..280 [25], Panel 2 at 281..536, Fairy 2 at 537..561 [25]) [DEFAULT]",
     "2: Bench End (Panels at 0..511, Fairy 50 at 512..561)",
-    "3: Costume Split (Fairy at 256..280 & 537..561, Panels at 0..255 & 281..536)",
-    "4: All GRB (Panels only, zero swap)",
+    "3: Costume 13/37 Split (Fairy 1 at 256..268 [13], Panel 2 at 269..524, Fairy 2 at 525..561 [37])",
+    "4: Bench Middle (Fairy 50 at 256..305, Panels at 0..255 & 306..561)",
     "5: All RGB (Full strip swap for standalone pebble strands)"
 };
 
 inline bool isFairyPixel(uint16_t i) {
     switch (currentFairyLayout) {
-        case FAIRY_LAYOUT_BENCH_MIDDLE:
-            return (i >= 256 && i < 306);
+        case FAIRY_LAYOUT_COSTUME_25_25:
+            // 25 bulbs on front harness (256..280) + 25 bulbs on back harness/tail (537..561)
+            return ((i >= 256 && i <= 280) || (i >= 537 && i <= 561));
         case FAIRY_LAYOUT_BENCH_END:
             return (i >= 512 && i < 562);
-        case FAIRY_LAYOUT_COSTUME_SPLIT:
-            return ((i >= 256 && i <= 280) || (i >= 537 && i <= 561));
+        case FAIRY_LAYOUT_COSTUME_13_37:
+            return ((i >= 256 && i <= 268) || (i >= 525 && i <= 561));
+        case FAIRY_LAYOUT_BENCH_MIDDLE:
+            return (i >= 256 && i < 306);
         case FAIRY_LAYOUT_ALL_RGB:
             return true;
         default:
