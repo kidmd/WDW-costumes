@@ -188,6 +188,9 @@ def write_float_config(float_id, fleet_build=True):
 #ifndef COMPILED_FLOAT_ID
 #define COMPILED_FLOAT_ID {float_id}
 #endif
+#ifndef COSTUME_FULL_562_MODE
+#define COSTUME_FULL_562_MODE 1
+#endif
 {fleet_def}
 #endif // FLOAT_CONFIG_H
 """

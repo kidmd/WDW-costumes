@@ -1,16 +1,15 @@
 /**
  * 🏰 Main Street Electrical Parade (WDW 10K) - Universal Panel & Bench Test Firmware
- * Arduino IDE Sketch Version
  * 
  * Purpose:
- * Immediately sets all connected LEDs (up to 512 LEDs / full 16x16 matrices / 200-LED pebble strands)
+ * Immediately sets all connected LEDs (up to 562 LEDs: Dual 16x16 Matrices [512] + 50 Fairy Lights)
  * into the authentic 3% Incandescent Warm White (~2500K vintage filament glow) with calm starlight sparkles
  * on boot — with ZERO button clicking, zero pairing, and zero graphic masking required!
  * 
  * Hardware Specs:
  * - Microcontroller: ESP32 DevKit (GPIO 16 Data Out, GPIO 4 Button 1, GPIO 33 Button 2, GPIO 0 BOOT)
  * - LED Standard: WS2812B / WS2811 (5V, 2.0A FastLED power limit enforced)
- * - Capacity: 512 LEDs (covers 256-LED 16x16 BTF matrix panels and 200-LED costume shirts)
+ * - Capacity: 562 LEDs (covers Front 16x16 [256] + 50 Fairy Lights + Back 16x16 [256])
  * - Default Mode: 2500K Warm White Base (~3.1% duty cycle) + Calm Starlight Bloom & Fade (~200ms decay)
  * 
  * Interactive Controls (Optional Bench Testing):
@@ -28,21 +27,23 @@
 #define BUTTON_2_PIN        33      // External Button 2 (Photo / Sleep)
 #define BUTTON_BOOT_PIN     0       // Onboard BOOT button (GPIO 0)
 
-#define NUM_LEDS            512     // Full buffer driving any panel up to 512 LEDs (16x16 = 256, dual = 512)
+#define NUM_LEDS            562     // Full buffer driving 562 LEDs (Front 16x16 [256] + Fairy [50] + Back 16x16 [256])
 #define LED_TYPE            WS2812B // Standard 5V addressable LED protocol
 #define MAX_BRIGHTNESS      60      // Bench-safe brightness matching MSEP costume baseline
 #define MAX_POWER_MILLIAMPS 2000    // 5V, 2.0A safety limit for USB power banks and bench supplies
 
 CRGB leds[NUM_LEDS];
 static uint8_t sparkleLevel[NUM_LEDS] = {0}; // Per-LED sparkle intensity (0 = base, 255 = peak sparkle)
+static uint8_t sparkleDecay[NUM_LEDS] = {24}; // Per-LED decay rate for organic non-uniform fade
 
-// Sparkle Rate Presets (calibrated for 256-LED 16x16 panels & 50 FPS)
-// With 200ms smooth bloom & decay, lower thresholds yield calm, authentic starlight rather than rapid strobes
-static const uint16_t SPARKLE_THRESHOLDS[4] = { 5, 2, 15, 0 }; // 0.05% (Calm), 0.02% (Ultra-Subtle), 0.15% (Parade), 0.0% (Solid)
+// Sparkle Rate Presets (calibrated for 562-LED full costume & 50 FPS)
+// Uses ESP32 hardware True Random Number Generator (esp_random()) to eliminate PRNG cycle resonance
+static const uint16_t SPARKLE_PROB_PER_1000[4] = { 100, 30, 300, 0 }; // Probability per 20ms frame (Calm ~5/s, Subtle ~1.5/s, Parade ~15/s, Solid 0)
+static const uint8_t  SPARKLE_MAX_PER_FRAME[4]  = { 1,   1,  2,   0 }; // Max sparkles that can spawn in one frame
 static const char* SPARKLE_NAMES[4] = {
-    "1: Calm Starlight (0.05% / ~4-6 twinkles/sec, soft 200ms fade)",
-    "2: Ultra-Subtle (0.02% / ~1-2 twinkles/sec, gentle starlight)",
-    "3: Parade Sparkle (0.15% / ~12-15 twinkles/sec)",
+    "1: Calm Starlight (~4-6 twinkles/sec across 562 LEDs, soft ~200ms bloom & fade)",
+    "2: Ultra-Subtle (~1-2 twinkles/sec, gentle starlight)",
+    "3: Parade Sparkle (~12-15 twinkles/sec, lively theatrical sparkle)",
     "4: Solid Warm White (0% sparkles / Steady Photo Mode)"
 };
 static uint8_t currentSparklePreset = 0; // Starts at Preset 0: Calm Starlight
@@ -75,7 +76,7 @@ void setup() {
     Serial.println("================================================================");
     Serial.println(" * Mode: 2500K Incandescent Warm White + Calm Starlight Twinkle");
     Serial.println(" * Sparkle Decay: Smooth 200ms bloom & fade (zero strobe noise)");
-    Serial.println(" * Target: GPIO 16 driving up to 512 LEDs (16x16 Panels & Strands)");
+    Serial.println(" * Target: GPIO 16 driving 562 LEDs (Dual 16x16 Matrices + 50 Fairy Lights)");
     Serial.println(" * FastLED Safety: 5V 2000mA Max Current Limit Active");
     Serial.println(" * Default Color Order: GRB (BTF-LIGHTING 16x16 Matrix Standard)");
     Serial.println("----------------------------------------------------------------");
@@ -110,20 +111,30 @@ void renderWarmWhiteSparkles() {
     // Starlight sparkle color: pure bright starlight pop scaled by 192 (~3x pop over base)
     const CRGB sparklePeak = CRGB(192, 192, 192);
 
-    uint16_t threshold = SPARKLE_THRESHOLDS[currentSparklePreset];
-
+    // 1. Smoothly decay active sparkles
     for (int i = 0; i < NUM_LEDS; i++) {
-        // 1. Decay active sparkle smoothly over ~200ms (10 frames at 20ms per frame)
         if (sparkleLevel[i] > 0) {
-            sparkleLevel[i] = qsub8(sparkleLevel[i], 24);
+            sparkleLevel[i] = qsub8(sparkleLevel[i], sparkleDecay[i]);
         }
+    }
 
-        // 2. Trigger new sparkle at calm rate
-        if (threshold > 0 && random16(10000) < threshold) {
-            sparkleLevel[i] = 255;
+    // 2. Spawn new sparkles using ESP32 True Hardware RNG (esp_random())
+    // This completely eliminates the 16-bit LCG harmonic resonance that caused sparkles to repeat on the same few LEDs!
+    uint16_t prob = SPARKLE_PROB_PER_1000[currentSparklePreset];
+    uint8_t maxSp = SPARKLE_MAX_PER_FRAME[currentSparklePreset];
+    for (uint8_t s = 0; s < maxSp; s++) {
+        if (prob > 0 && ((esp_random() % 1000) < prob)) {
+            uint16_t target = esp_random() % NUM_LEDS;
+            if (sparkleLevel[target] == 0) {
+                // Organic variance: slight peak brightness variance (210..255) and decay duration (~160ms - 280ms)
+                sparkleLevel[target] = 210 + (esp_random() % 46);
+                sparkleDecay[target] = 18 + (esp_random() % 14);
+            }
         }
+    }
 
-        // 3. Smooth linear interpolation between warm base and starlight white
+    // 3. Render base warm white and interpolate sparkles
+    for (int i = 0; i < NUM_LEDS; i++) {
         if (sparkleLevel[i] == 0) {
             leds[i] = baseCol;
         } else {

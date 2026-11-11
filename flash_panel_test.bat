@@ -12,7 +12,7 @@ echo  connected ESP32 microcontroller over USB.
 echo.
 echo  - Boots directly into 3%% Incandescent Warm White (~2500K vintage filament glow)
 echo  - 0.5%% Starlight Sparkles (~3x pop over warm white base)
-echo  - Illuminates ALL connected LEDs (up to 512 LEDs / full 16x16 matrices)
+echo  - Illuminates ALL connected LEDs (up to 562 LEDs: Dual 16x16 Matrices [512] + 50 Fairy Lights)
 echo  - No button clicks, float pairing, or graphic masks required!
 echo.
 echo ----------------------------------------------------------------------

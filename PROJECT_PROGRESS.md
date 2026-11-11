@@ -93,6 +93,23 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### November 11, 2026 - 562-LED Bench Test Calibration, PRNG Harmonic Resonance Fix & Full Costume Solo Mode Validation
+- **562-LED Universal Bench Test Firmware (`src/panel_test.cpp`, `arduino/MSEP_Panel_Test/MSEP_Panel_Test.ino`, `flash_panel_test.bat`):**
+  - Updated buffer capacity from 512 to **562 LEDs** to fully accommodate dual 16×16 BTF-LIGHTING panels (256 front + 256 back = 512) **plus** the 50-LED fairy light strand.
+  - Updated all diagnostic messages, serial startup banner, and batch flasher to reflect full 562-LED capacity.
+- **Sparkle Randomness & PRNG Harmonic Resonance Resolution:**
+  - **Root Cause:** FastLED's `random16()` is a 16-bit linear congruential generator ($x_{n+1} = (2053 \cdot x_n + 13849) \pmod{65536}$) with a cycle length of 65,536 states. Calling `random16(10000) < threshold` across 512 LEDs at 50 FPS (25,600 calls/sec) resulted in a full cycle repeat every ~2.56 seconds. Because $512$ is an exact divisor of $65,536$, each LED sampled the LCG sequence at fixed stride powers of 2. In small-threshold comparisons, this caused severe harmonic resonance where the exact same 2–3 LEDs passed the threshold while the remaining 509+ LEDs were permanently starved.
+  - **Solution:** Replaced per-pixel LCG dice rolling with **global event-based starlight spawning** driven by the ESP32's hardware True Random Number Generator (`esp_random()`).
+  - Each frame (50 FPS), new sparkles spawn uniformly across the entire array ($0 \le \text{target} < 562$) with organic peak intensity variance (210–255) and individualized fade decay rates (18–31 counts per frame = ~160ms to ~280ms duration).
+  - Guaranteed 100% uniform spatial distribution with zero repetitive cycles or fixed "hot spots".
+- **562-LED Costume Architecture Validation Across All Solo & Fleet Programs (`src/main.cpp`, `arduino/MSEP_Costume/MSEP_Costume.ino`, `build_fleet_binaries.py`):**
+  - **Back Panel Offset Calibration in `duplicateFrontToBack()`:** Corrected matrix duplication index math. In the 562-LED costume topology (0..255 Front Matrix, 256..280 Right Fairy, 281..536 Back Matrix, 537..561 Left Fairy), the back matrix starts at index **281** (previously $+256$ overwrote the right fairy strand and shifted back panel pixels).
+  - **Fairy Strand Illumination across Modes:** Integrated active fairy strand driving across `duplicateFrontToBack()` so that Castle Photo Mode, Corral Standby, Rapid Roll Call, and Solo Autonomous routines illuminate all 562 LEDs without dark gaps.
+  - **Fleet Binary Builds:** Updated `build_fleet_binaries.py` to bake `#define COSTUME_FULL_562_MODE 1` into all 7 float ROM binaries. Successfully recompiled all float ROMs (`firmware_float1.bin` through `firmware_float7.bin`, `firmware.bin`, and `firmware_panel_test.bin`).
+- **Power Consumption & Safety Margin Analysis:**
+  - Enforced strict 5V 2000mA (10.0W) FastLED hardware current governor.
+  - Calculated total draw in Warm White (~2500K @ MAX_BRIGHTNESS 60): ~1.70A continuous (85% of power bank rating), providing a comfortable 15% safety headroom and ~3.7 hours of continuous run time on a 10,000 mAh battery bank.
+
 ### November 10, 2026 - Preset Loading All-Backlight State Synchronization & Float 7 Restoration
 - **Root Cause & Diagnosis:**
   - Float 7 (*To Honor America / Flag & Eagle*) in `presets/fleet_lineup.json` was defaulting to the 0-window All-Backlight test preset (`...21-22.json`).

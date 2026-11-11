@@ -1,8 +1,13 @@
 #ifndef FLOAT_CONFIG_H
 #define FLOAT_CONFIG_H
 
+// Auto-generated dedicated float identity
 #ifndef COMPILED_FLOAT_ID
-#define COMPILED_FLOAT_ID 6
+#define COMPILED_FLOAT_ID 0
 #endif
+#ifndef COSTUME_FULL_562_MODE
+#define COSTUME_FULL_562_MODE 1
+#endif
+
 
 #endif // FLOAT_CONFIG_H

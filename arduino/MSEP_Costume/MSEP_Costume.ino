@@ -57,7 +57,7 @@
 #endif
 #define STATUS_LED_PIN      2       // Onboard Blue LED
 
-#if defined(COSTUME_FULL_562_MODE) && COSTUME_FULL_562_MODE
+#if (defined(COSTUME_FULL_562_MODE) && COSTUME_FULL_562_MODE) || (defined(NUM_LEDS) && NUM_LEDS == 562)
 #undef FRONT_LEDS
 #define FRONT_LEDS          256     // 16x16 front matrix panel
 #undef BACK_LEDS
@@ -136,7 +136,9 @@ uint8_t myFloatNumber = 2;
 
 // Check if current active float uses a BTF-LIGHTING 16x16 (256-pixel) Matrix Panel
 inline bool isCurrentFloatMatrix16x16() {
-#if defined(COSTUME_MATRIX_16X16_MODE) && COSTUME_MATRIX_16X16_MODE
+#if (defined(COSTUME_FULL_562_MODE) && COSTUME_FULL_562_MODE) || (defined(NUM_LEDS) && NUM_LEDS == 562)
+    return true;
+#elif defined(COSTUME_MATRIX_16X16_MODE) && COSTUME_MATRIX_16X16_MODE
     return true;
 #elif defined(HAS_FLEET_MATRIX_CONFIG) && HAS_FLEET_MATRIX_CONFIG
     uint8_t floatIdx = (myFloatNumber >= 1 && myFloatNumber <= 7) ? (myFloatNumber - 1) : 0;
@@ -302,10 +304,43 @@ inline void duplicateFrontToBack() {
             c.g = tmpR;
 #endif
             leds[physIdx] = c;
+#if (defined(COSTUME_FULL_562_MODE) && COSTUME_FULL_562_MODE) || (defined(NUM_LEDS) && NUM_LEDS == 562)
+            // 562-LED closed-loop costume: Front Matrix (0..255), Right Fairy (256..280), Back Matrix (281..536), Left Fairy (537..561)
+            if ((281 + (int)physIdx) < MAX_LEDS_CAPACITY) {
+                leds[281 + (int)physIdx] = c;
+            }
+#else
             if ((256 + (int)physIdx) < MAX_LEDS_CAPACITY) {
                 leds[256 + (int)physIdx] = c;
             }
+#endif
         }
+
+#if (defined(COSTUME_FULL_562_MODE) && COSTUME_FULL_562_MODE) || (defined(NUM_LEDS) && NUM_LEDS == 562)
+        // Ensure fairy strands (256..280 on Right, 537..561 on Left) are illuminated across all modes
+        CRGB fairyCol = getFloatDefaultFairyColor(myFloatNumber);
+        if (currentStandaloneMode == SHOW_MODE_PHOTO_STATIC) {
+            for (int f = 256; f <= 280; f++) leds[f] = fairyCol;
+            for (int f = 537; f <= 561; f++) leds[f] = fairyCol;
+        } else if (currentStandaloneMode == SHOW_MODE_CORRAL_STANDBY) {
+            CRGB dimFairy = fairyCol;
+            dimFairy.nscale8_video(35);
+            for (int f = 256; f <= 280; f++) leds[f] = dimFairy;
+            for (int f = 537; f <= 561; f++) leds[f] = dimFairy;
+        } else if (currentStandaloneMode == SHOW_MODE_RAPID_ROLL_CALL) {
+            CRGB rcCol = tempActive[0];
+            for (int f = 256; f <= 280; f++) leds[f] = rcCol;
+            for (int f = 537; f <= 561; f++) leds[f] = rcCol;
+        } else {
+            // Solo / Autonomous parade mode: illuminate unlit fairy bulbs with signature/fairy color
+            for (int f = 256; f <= 280; f++) {
+                if (leds[f] == CRGB(0,0,0)) leds[f] = fairyCol;
+            }
+            for (int f = 537; f <= 561; f++) {
+                if (leds[f] == CRGB(0,0,0)) leds[f] = fairyCol;
+            }
+        }
+#endif
         return;
     }
 
@@ -1853,7 +1888,7 @@ void runAutonomousShowSequence(uint32_t now) {
 #endif
         baseColor.nscale8_video(breath);
         leds[i] = baseColor;
-        if (COSTUME_SPARKLE_RATE > 0 && random16(10000) < (uint16_t)(COSTUME_SPARKLE_RATE * 100)) {
+        if (COSTUME_SPARKLE_RATE > 0 && ((esp_random() % 10000) < (uint16_t)(COSTUME_SPARKLE_RATE * 100))) {
             leds[i] = CRGB(255, 255, 240);
         }
     }
@@ -1884,7 +1919,7 @@ void runAutonomousShowSequence(uint32_t now) {
         uint8_t floatIdx = (myFloatNumber >= 1 && myFloatNumber <= 7) ? (myFloatNumber - 1) : 0;
         leds[i] = FLEET_ROSTER_INFO[floatIdx].color;
 #endif
-        if (COSTUME_SPARKLE_RATE > 0 && random16(10000) < (uint16_t)(COSTUME_SPARKLE_RATE * 100)) {
+        if (COSTUME_SPARKLE_RATE > 0 && ((esp_random() % 10000) < (uint16_t)(COSTUME_SPARKLE_RATE * 100))) {
             leds[i] = CRGB(255, 255, 240);
         }
     }
