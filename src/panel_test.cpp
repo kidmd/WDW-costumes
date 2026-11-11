@@ -48,37 +48,41 @@ static const char* SPARKLE_NAMES[4] = {
 };
 static uint8_t currentSparklePreset = 0; // Starts at Preset 0: Calm Starlight
 
-// Fairy Light Layout Presets (Mixed Color Order on single GPIO 16 line)
-// WS2812B 16x16 Panels are native GRB. WS2812B/WS2811 Fairy Lights are native RGB.
+// Fairy Light Layout Presets & Calibration
+// Optical Diagnostic Result: Both the 16x16 Panels and the Fairy Pebble Lights are 100% NATIVE GRB!
+// In pure Red/Green/Blue color inspection, all LEDs must receive native GRB (ZERO swapping) to prevent inversion.
+// In Warm White mode, clear resin pebble LEDs have ~7x higher human luminous sensitivity in green than red dies,
+// so fairy lights receive a customized warm white spectrum (CRGB(72, 34, 18)) instead of swapping bytes!
 enum FairyLayoutMode : uint8_t {
-    FAIRY_LAYOUT_COSTUME_25_25  = 0, // Panel 1 (0..255) -> Fairy 1 (256..280, 25 LEDs) -> Panel 2 (281..536) -> Fairy 2 (537..561, 25 LEDs) [Default]
-    FAIRY_LAYOUT_BENCH_END      = 1, // Panels (0..511) -> Fairy 50 (512..561)
-    FAIRY_LAYOUT_COSTUME_13_37  = 2, // Panel 1 (0..255) -> Fairy 1 (256..268, 13 LEDs) -> Panel 2 (269..524) -> Fairy 2 (525..561, 37 LEDs)
-    FAIRY_LAYOUT_BENCH_MIDDLE   = 3, // Panel 1 (0..255) -> Fairy 50 (256..305) -> Panel 2 (306..561)
-    FAIRY_LAYOUT_ALL_RGB        = 4  // All LEDs RGB (Full strip swap for standalone pebble strands)
+    FAIRY_LAYOUT_NATIVE_UNIFORM_GRB = 0, // All LEDs native GRB (Panel 1 + Fairy 1 + Panel 2 + Fairy 2) [DEFAULT: 100% Uniform Colors]
+    FAIRY_LAYOUT_COSTUME_25_25_SWAP = 1, // Optional legacy RGB byte-swap on fairy lights (Fairy 1 at 256..280 & Fairy 2 at 537..561)
+    FAIRY_LAYOUT_BENCH_END_SWAP     = 2, // Optional legacy RGB byte-swap at end (512..561)
+    FAIRY_LAYOUT_ALL_RGB_SWAP       = 3  // Full strip RGB byte-swap
 };
 
-static uint8_t currentFairyLayout = FAIRY_LAYOUT_COSTUME_25_25; // Default: 25 front fairy + 25 back fairy (matches user physical wiring)
-static const char* FAIRY_LAYOUT_NAMES[5] = {
-    "1: Costume 25/25 Split (Fairy 1 at 256..280 [25], Panel 2 at 281..536, Fairy 2 at 537..561 [25]) [DEFAULT]",
-    "2: Bench End (Panels at 0..511, Fairy 50 at 512..561)",
-    "3: Costume 13/37 Split (Fairy 1 at 256..268 [13], Panel 2 at 269..524, Fairy 2 at 525..561 [37])",
-    "4: Bench Middle (Fairy 50 at 256..305, Panels at 0..255 & 306..561)",
-    "5: All RGB (Full strip swap for standalone pebble strands)"
+static uint8_t currentFairyLayout = FAIRY_LAYOUT_NATIVE_UNIFORM_GRB; // Default: Native GRB across entire rig (Flawless Red, Green, Blue, White)
+static const char* FAIRY_LAYOUT_NAMES[4] = {
+    "1: Native Uniform GRB (Panel 1 [0..255] + Fairy 1 [256..280] + Panel 2 [281..536] + Fairy 2 [537..561]) [DEFAULT]",
+    "2: Costume 25/25 RGB Swap (Fairy 1 at 256..280 [25] & Fairy 2 at 537..561 [25])",
+    "3: Bench End RGB Swap (Panels at 0..511, Fairy 50 at 512..561)",
+    "4: All RGB Swap (Full strip swap)"
 };
 
 inline bool isFairyPixel(uint16_t i) {
+    // Identifies fairy pixel indices for custom optical warm-white spectral tuning
+    // Physical order: Panel 1 (0..255) -> Fairy 1 (256..280) -> Panel 2 (281..536) -> Fairy 2 (537..561)
+    return ((i >= 256 && i <= 280) || (i >= 537 && i <= 561));
+}
+
+inline bool shouldSwapRgbBytes(uint16_t i) {
     switch (currentFairyLayout) {
-        case FAIRY_LAYOUT_COSTUME_25_25:
-            // 25 bulbs on front harness (256..280) + 25 bulbs on back harness/tail (537..561)
+        case FAIRY_LAYOUT_NATIVE_UNIFORM_GRB:
+            return false; // Zero swap: all hardware is native GRB!
+        case FAIRY_LAYOUT_COSTUME_25_25_SWAP:
             return ((i >= 256 && i <= 280) || (i >= 537 && i <= 561));
-        case FAIRY_LAYOUT_BENCH_END:
+        case FAIRY_LAYOUT_BENCH_END_SWAP:
             return (i >= 512 && i < 562);
-        case FAIRY_LAYOUT_COSTUME_13_37:
-            return ((i >= 256 && i <= 268) || (i >= 525 && i <= 561));
-        case FAIRY_LAYOUT_BENCH_MIDDLE:
-            return (i >= 256 && i < 306);
-        case FAIRY_LAYOUT_ALL_RGB:
+        case FAIRY_LAYOUT_ALL_RGB_SWAP:
             return true;
         default:
             return false;
@@ -142,8 +146,10 @@ void setup() {
 
 void renderWarmWhiteSparkles() {
     // Balanced Warm Incandescent / ~2500K Vintage Filament Glow
-    // Base color: CRGB(255, 185, 110) scaled by 64 (~3.1% duty cycle)
-    const CRGB baseCol = CRGB(64, 46, 28);
+    // Panel color: CRGB(64, 46, 28) for diffuse SMD5050 with dense phosphor
+    const CRGB baseColPanel = CRGB(64, 46, 28);
+    // Fairy color: CRGB(72, 34, 18) optically calibrated for clear resin pebble LEDs (tames green flare)
+    const CRGB baseColFairy = CRGB(72, 34, 18);
     // Starlight sparkle color: pure bright starlight pop scaled by 192 (~3x pop over base)
     const CRGB sparklePeak = CRGB(192, 192, 192);
 
@@ -155,14 +161,12 @@ void renderWarmWhiteSparkles() {
     }
 
     // 2. Spawn new sparkles using ESP32 True Hardware RNG (esp_random())
-    // This completely eliminates the 16-bit LCG harmonic resonance that caused sparkles to repeat on the same few LEDs!
     uint16_t prob = SPARKLE_PROB_PER_1000[currentSparklePreset];
     uint8_t maxSp = SPARKLE_MAX_PER_FRAME[currentSparklePreset];
     for (uint8_t s = 0; s < maxSp; s++) {
         if (prob > 0 && ((esp_random() % 1000) < prob)) {
             uint16_t target = esp_random() % NUM_LEDS;
             if (sparkleLevel[target] == 0) {
-                // Organic variance: slight peak brightness variance (210..255) and decay duration (~160ms - 280ms)
                 sparkleLevel[target] = 210 + (esp_random() % 46);
                 sparkleDecay[target] = 18 + (esp_random() % 14);
             }
@@ -171,6 +175,7 @@ void renderWarmWhiteSparkles() {
 
     // 3. Render base warm white and interpolate sparkles
     for (int i = 0; i < NUM_LEDS; i++) {
+        CRGB baseCol = isFairyPixel(i) ? baseColFairy : baseColPanel;
         CRGB col;
         if (sparkleLevel[i] == 0) {
             col = baseCol;
@@ -183,10 +188,8 @@ void renderWarmWhiteSparkles() {
             );
         }
 
-        // Color order correction:
-        // WS2812B 16x16 Panels are native GRB. Fairy lights are RGB chips on a GRB data stream.
-        // Swapping Red and Green on fairy lights eliminates the green tint so they match the warm white!
-        if (isFairyPixel(i)) {
+        // Apply byte swapping only if an explicit legacy swap mode is selected
+        if (shouldSwapRgbBytes(i)) {
             leds[i] = CRGB(col.g, col.r, col.b);
         } else {
             leds[i] = col;
@@ -204,9 +207,9 @@ void renderSubpixelRgbTest(uint32_t now) {
         case 2: testCol = CRGB(0, 0, 180); break;   // Blue inspection
         default: testCol = CRGB(120, 120, 120); break; // Full white inspection
     }
-    CRGB fairyTestCol = CRGB(testCol.g, testCol.r, testCol.b);
+    CRGB swapTestCol = CRGB(testCol.g, testCol.r, testCol.b);
     for (int i = 0; i < NUM_LEDS; i++) {
-        leds[i] = isFairyPixel(i) ? fairyTestCol : testCol;
+        leds[i] = shouldSwapRgbBytes(i) ? swapTestCol : testCol;
     }
 }
 
@@ -245,7 +248,7 @@ void loop() {
             Serial.printf("[RGB INSPECTION] %s\n", isRgbInspectionMode ? "ACTIVE (Red->Green->Blue->White)" : "OFF (Warm White)");
         } else {
             // Short Tap: Cycle Fairy Layout Mode
-            currentFairyLayout = (currentFairyLayout + 1) % 5;
+            currentFairyLayout = (currentFairyLayout + 1) % 4;
             isRgbInspectionMode = false;
             Serial.printf("[FAIRY LAYOUT] %s\n", FAIRY_LAYOUT_NAMES[currentFairyLayout]);
             for (int k = 0; k <= currentFairyLayout; k++) {
