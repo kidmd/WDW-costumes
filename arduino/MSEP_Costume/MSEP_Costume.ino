@@ -45,9 +45,9 @@
 // ============================================================================
 #define DATA_PIN            16      // 8th pin down on the right
 #define LED_TYPE            WS2812B
-#if (defined(COSTUME_MATRIX_16X16_MODE) && COSTUME_MATRIX_16X16_MODE) || (defined(COMPILED_FLOAT_ID) && (COMPILED_FLOAT_ID == 6))
+#if (defined(COSTUME_FULL_562_MODE) && COSTUME_FULL_562_MODE) || (defined(NUM_LEDS) && NUM_LEDS == 562) || (defined(COSTUME_MATRIX_16X16_MODE) && COSTUME_MATRIX_16X16_MODE) || (defined(COMPILED_FLOAT_ID) && (COMPILED_FLOAT_ID == 2 || COMPILED_FLOAT_ID == 6 || COMPILED_FLOAT_ID == 7))
 #undef COLOR_ORDER
-#define COLOR_ORDER         GRB     // BTF-LIGHTING 16x16 WS2812B matrix uses GRB byte order
+#define COLOR_ORDER         GRB     // BTF-LIGHTING 16x16 WS2812B matrix and fairy lights use GRB byte order
 #define COMPILED_COLOR_ORDER_IS_GRB 1
 #elif !defined(COLOR_ORDER)
 #define COLOR_ORDER         RGB     // Calibrated hardware color order for 5V WS2812B seed/pebble strings
@@ -196,7 +196,7 @@ static const CRGB FLOAT_PALETTES[7][3] PROGMEM = {
     { CRGB(255, 0, 0),   CRGB(0, 60, 255),    CRGB(0, 220, 40) }, // Float 4 (The Snail): Bold Red, Bold Royal Blue, Emerald Green
     { CRGB(255, 0, 0),   CRGB(255, 180, 0),   CRGB(0, 0, 0) },   // Float 5 (The Pirate Ship): Bold Red, Gold
     { CRGB(0, 255, 100), CRGB(255, 215, 0),   CRGB(0, 0, 0) },   // Float 6 (Pete's Dragon): Vivid Elliott Green, Golden Yellow
-    { CRGB(255, 0, 0),   CRGB(255, 255, 255), CRGB(0, 20, 255) } // Float 7 (To Honor America): Bold Patriotic Red, Pure Star White, Bold Royal Blue
+    { CRGB(255, 0, 0),   CRGB(255, 255, 255), CRGB(0, 0, 255) }  // Float 7 (To Honor America): Bold Patriotic Red, Pure Star White, Deep Royal Blue
 };
 
 inline CRGB getFloatPaletteColor(uint8_t floatNum, uint8_t colorIdx = 0) {
@@ -210,9 +210,25 @@ inline CRGB getFloatPaletteColor(uint8_t floatNum, uint8_t colorIdx = 0) {
     );
 }
 
-// Helper to get fairy bulb color in triplets (groups of 3 bulbs)
-inline CRGB getFloatFairyBulbColor(uint8_t floatNum, uint8_t bulbIndex) {
-    uint8_t group = bulbIndex / 3;
+// 🌟 Physical Z-fold Accordion Spatial Step Mapping for 25-bulb Fairy Strands
+// Maps sequential wire bulb offset (0..24) to physical spatial rank (0..24) along the runner's ribs
+// Guarantees exact 3 Red, 3 White, 3 Blue repeating triplets along the body!
+static const uint8_t FAIRY_STRAND1_SPATIAL_STEP[25] PROGMEM = {
+    1, 4, 7, 10, 9, 6, 3, 0, 2, 5, 8, 11, 12, // Bulbs 1..13 (Front Ribs 0..12)
+    13, 14, 17, 20, 23, 22, 19, 16, 15, 18, 21, 24 // Bulbs 14..25 (Back Ribs 13..24)
+};
+
+static const uint8_t FAIRY_STRAND2_SPATIAL_STEP[25] PROGMEM = {
+    23, 20, 17, 14, 15, 18, 21, 24, 22, 19, 16, 13, 12, // Bulbs 1..13 (Back Ribs 12..24)
+    11, 10, 7, 4, 1, 2, 5, 8, 9, 6, 3, 0 // Bulbs 14..25 (Front Ribs 0..11)
+};
+
+// Helper to get fairy bulb color in repeating triplets (groups of 3 bulbs) mapped to physical body order
+inline CRGB getFloatFairyBulbColor(uint8_t floatNum, uint8_t strandId, uint8_t wireBulbIndex) {
+    if (wireBulbIndex >= 25) wireBulbIndex = 24;
+    uint8_t step = (strandId == 1) ? pgm_read_byte(&FAIRY_STRAND1_SPATIAL_STEP[wireBulbIndex])
+                                   : pgm_read_byte(&FAIRY_STRAND2_SPATIAL_STEP[wireBulbIndex]);
+    uint8_t group = (step / 3) % 3;
     return getFloatPaletteColor(floatNum, group);
 }
 
@@ -282,7 +298,7 @@ inline void duplicateFrontToBack() {
             physIdx = pgm_read_byte(&MATRIX_ACTIVE_INDICES[i]);
 #elif defined(HAS_FLEET_MATRIX_CONFIG) && HAS_FLEET_MATRIX_CONFIG
             uint8_t fIdx = (myFloatNumber >= 1 && myFloatNumber <= 7) ? (myFloatNumber - 1) : 0;
-            if (i < 100) {
+            if (i < 256) {
                 physIdx = pgm_read_byte(&FLOAT_MATRIX_INDICES[fIdx][i]);
             }
 #endif
@@ -320,47 +336,40 @@ inline void duplicateFrontToBack() {
 
 #if (defined(COSTUME_FULL_562_MODE) && COSTUME_FULL_562_MODE) || (defined(NUM_LEDS) && NUM_LEDS == 562)
         // Ensure fairy strands (256..280 on Right, 537..561 on Left) are illuminated across all modes.
-        // WS2812B 16x16 panels are native GRB; fairy seed bulbs are RGB chips.
-        // Swapping R and G on fairy bulbs on the GRB stream eliminates green tint so colors match!
+        // Both the 16x16 matrices and the fairy seed strands share identical native GRB byte order.
+        // Colors are mapped to physical 3, 3, 3 repeating triplets along the runner's ribs!
         if (currentStandaloneMode == SHOW_MODE_PHOTO_STATIC) {
             for (int f = 256; f <= 280; f++) {
-                CRGB fc = getFloatFairyBulbColor(myFloatNumber, f - 256);
-                leds[f] = CRGB(fc.g, fc.r, fc.b);
+                leds[f] = getFloatFairyBulbColor(myFloatNumber, 1, f - 256);
             }
             for (int f = 537; f <= 561; f++) {
-                CRGB fc = getFloatFairyBulbColor(myFloatNumber, f - 537);
-                leds[f] = CRGB(fc.g, fc.r, fc.b);
+                leds[f] = getFloatFairyBulbColor(myFloatNumber, 2, f - 537);
             }
         } else if (currentStandaloneMode == SHOW_MODE_CORRAL_STANDBY) {
             for (int f = 256; f <= 280; f++) {
-                CRGB fc = getFloatFairyBulbColor(myFloatNumber, f - 256);
-                CRGB dimF = CRGB(fc.g, fc.r, fc.b);
+                CRGB dimF = getFloatFairyBulbColor(myFloatNumber, 1, f - 256);
                 dimF.nscale8_video(35);
                 leds[f] = dimF;
             }
             for (int f = 537; f <= 561; f++) {
-                CRGB fc = getFloatFairyBulbColor(myFloatNumber, f - 537);
-                CRGB dimF = CRGB(fc.g, fc.r, fc.b);
+                CRGB dimF = getFloatFairyBulbColor(myFloatNumber, 2, f - 537);
                 dimF.nscale8_video(35);
                 leds[f] = dimF;
             }
         } else if (currentStandaloneMode == SHOW_MODE_RAPID_ROLL_CALL) {
             CRGB rcCol = tempActive[0];
-            CRGB rcWireCol = CRGB(rcCol.g, rcCol.r, rcCol.b);
-            for (int f = 256; f <= 280; f++) leds[f] = rcWireCol;
-            for (int f = 537; f <= 561; f++) leds[f] = rcWireCol;
+            for (int f = 256; f <= 280; f++) leds[f] = rcCol;
+            for (int f = 537; f <= 561; f++) leds[f] = rcCol;
         } else {
             // Solo / Autonomous parade mode & Ambient fallback: illuminate unlit fairy bulbs with float palette triplets!
             for (int f = 256; f <= 280; f++) {
                 if (leds[f] == CRGB(0,0,0)) {
-                    CRGB fc = getFloatFairyBulbColor(myFloatNumber, f - 256);
-                    leds[f] = CRGB(fc.g, fc.r, fc.b);
+                    leds[f] = getFloatFairyBulbColor(myFloatNumber, 1, f - 256);
                 }
             }
             for (int f = 537; f <= 561; f++) {
                 if (leds[f] == CRGB(0,0,0)) {
-                    CRGB fc = getFloatFairyBulbColor(myFloatNumber, f - 537);
-                    leds[f] = CRGB(fc.g, fc.r, fc.b);
+                    leds[f] = getFloatFairyBulbColor(myFloatNumber, 2, f - 537);
                 }
             }
         }
@@ -503,7 +512,7 @@ void renderCastlePhotoMode() {
 
 #if defined(HAS_DEFAULT_FLOAT_PALETTES) && HAS_DEFAULT_FLOAT_PALETTES
     for (int i = 0; i < FRONT_LEDS && i < MAX_LEDS_CAPACITY; i++) {
-        leds[i] = (i < activeCount && i < 100) ? DEFAULT_FLOAT_PALETTES[floatIdx][i] : ((i < activeCount) ? FLEET_ROSTER_INFO[floatIdx].color : CRGB::Black);
+        leds[i] = (i < activeCount && i < 256) ? DEFAULT_FLOAT_PALETTES[floatIdx][i] : ((i < activeCount) ? FLEET_ROSTER_INFO[floatIdx].color : CRGB::Black);
     }
 #else
     CRGB heroColor = FLEET_ROSTER_INFO[floatIdx].color;
@@ -1196,7 +1205,7 @@ void renderAmbientFallback(uint32_t now) {
         CRGB baseColor = ARTWORK_PALETTE[i];
 #elif defined(HAS_DEFAULT_FLOAT_PALETTES) && HAS_DEFAULT_FLOAT_PALETTES
         uint8_t floatIdx = (myFloatNumber >= 1 && myFloatNumber <= 7) ? (myFloatNumber - 1) : 0;
-        CRGB baseColor = (i < 100) ? DEFAULT_FLOAT_PALETTES[floatIdx][i] : FLEET_ROSTER_INFO[floatIdx].color;
+        CRGB baseColor = (i < 256) ? DEFAULT_FLOAT_PALETTES[floatIdx][i] : FLEET_ROSTER_INFO[floatIdx].color;
 #else
         uint8_t floatIdx = (myFloatNumber >= 1 && myFloatNumber <= 7) ? (myFloatNumber - 1) : 0;
         CRGB baseColor = FLEET_ROSTER_INFO[floatIdx].color;
@@ -1914,7 +1923,7 @@ void runAutonomousShowSequence(uint32_t now) {
                     leds[i] = ARTWORK_PALETTE[i];
 #elif defined(HAS_DEFAULT_FLOAT_PALETTES) && HAS_DEFAULT_FLOAT_PALETTES
                     uint8_t floatIdx = (myFloatNumber >= 1 && myFloatNumber <= 7) ? (myFloatNumber - 1) : 0;
-                    leds[i] = (i < 100) ? DEFAULT_FLOAT_PALETTES[floatIdx][i] : FLEET_ROSTER_INFO[floatIdx].color;
+                    leds[i] = (i < 256) ? DEFAULT_FLOAT_PALETTES[floatIdx][i] : FLEET_ROSTER_INFO[floatIdx].color;
 #else
                     uint8_t floatIdx = (myFloatNumber >= 1 && myFloatNumber <= 7) ? (myFloatNumber - 1) : 0;
                     leds[i] = FLEET_ROSTER_INFO[floatIdx].color;

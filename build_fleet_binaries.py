@@ -74,16 +74,17 @@ def sync_fleet_palettes():
                     act_count = min(256, len(combined))
                     win_count = min(act_count, len(win_leds))
                     mat_indices = []
-                    for i in range(100):
-                        entry = combined[i % len(combined)]
-                        c = entry.get("color", {})
-                        r = int(c.get("r", 255))
-                        g = int(c.get("g", 183))
-                        b = int(c.get("b", 3))
-                        colors.append((r, g, b))
+                    for i in range(256):
                         if i < len(combined):
+                            entry = combined[i]
+                            c = entry.get("color", {})
+                            r = int(c.get("r", 255))
+                            g = int(c.get("g", 183))
+                            b = int(c.get("b", 3))
+                            colors.append((r, g, b))
                             mat_indices.append(max(0, min(255, int(entry.get("id", i)))))
                         else:
+                            colors.append((0, 0, 0))
                             mat_indices.append(255)
                     print(f"[MATRIX 16x16] Float {float_id} ({flt.get('name', '')}): {len(win_leds)} Windowed + {len(glow_leds)} Backlit = {act_count} active LEDs.")
                 else:
@@ -91,20 +92,25 @@ def sync_fleet_palettes():
                     if leds:
                         act_count = min(100, len(leds))
                         win_count = act_count
-                        for i in range(100):
-                            led_entry = leds[i % len(leds)]
-                            c = led_entry.get("color", {})
-                            r = int(c.get("r", 255))
-                            g = int(c.get("g", 183))
-                            b = int(c.get("b", 3))
-                            colors.append((r, g, b))
+                        for i in range(256):
+                            if i < len(leds):
+                                led_entry = leds[i]
+                                c = led_entry.get("color", {})
+                                r = int(c.get("r", 255))
+                                g = int(c.get("g", 183))
+                                b = int(c.get("b", 3))
+                                colors.append((r, g, b))
+                                mat_indices.append(i % 256)
+                            else:
+                                colors.append((0, 0, 0))
+                                mat_indices.append(255)
             except Exception as pe:
                 print(f"[WARN] Error reading {preset_rel} for Float {float_id}: {pe}")
 
-        if len(colors) < 100:
-            colors = [(255, 183, 3)] * 100
-        if len(mat_indices) < 100:
-            mat_indices = [i % 256 for i in range(100)]
+        if len(colors) < 256:
+            colors = colors + [(0, 0, 0)] * (256 - len(colors))
+        if len(mat_indices) < 256:
+            mat_indices = mat_indices + [255] * (256 - len(mat_indices))
 
         palettes_by_float[float_id] = colors
         is_matrix_by_float[float_id] = is_mat
@@ -127,32 +133,32 @@ def sync_fleet_palettes():
         "const uint8_t PROGMEM FLOAT_MATRIX_WINDOW_COUNT[7] = { " + ", ".join(str(window_count_by_float.get(fid, 100)) for fid in range(1, 8)) + " };",
         "",
         "// Physical 16x16 serpentine matrix indices (0..255) for active Windowed + Backlit LEDs",
-        "const uint8_t PROGMEM FLOAT_MATRIX_INDICES[7][100] = {"
+        "const uint8_t PROGMEM FLOAT_MATRIX_INDICES[7][256] = {"
     ]
 
     for fid in range(1, 8):
         flt_meta = next((f for f in FLOATS if f["id"] == fid), {"name": f"Float {fid}"})
-        m_idxs = matrix_indices_by_float.get(fid, [i for i in range(100)])
-        idx_str = ", ".join(str(v) for v in m_idxs[:100])
+        m_idxs = matrix_indices_by_float.get(fid, [i for i in range(256)])
+        idx_str = ", ".join(str(v) for v in m_idxs[:256])
         close_comma = "," if fid < 7 else ""
         lines.append(f"    {{ {idx_str} }}{close_comma} // Float {fid}: {flt_meta['name']}")
 
     lines.extend([
         "};",
         "",
-        "// Authentic default background graphic colors for all 7 floats (100 LEDs each)",
+        "// Authentic default background graphic colors for all 7 floats (256 LEDs capacity)",
         "// Automatically synchronized from active fleet presets by build_fleet_binaries.py",
         "// Used for 📸 Castle Photo Mode and default float palettes",
-        "const CRGB PROGMEM DEFAULT_FLOAT_PALETTES[7][100] = {"
+        "const CRGB PROGMEM DEFAULT_FLOAT_PALETTES[7][256] = {"
     ])
 
     for fid in range(1, 8):
         flt_meta = next((f for f in FLOATS if f["id"] == fid), {"name": f"Float {fid}"})
         lines.append(f"    // Float {fid}: {flt_meta['name']}")
         lines.append("    {")
-        f_colors = palettes_by_float.get(fid, [(255, 183, 3)] * 100)
-        for i, (r, g, b) in enumerate(f_colors):
-            comma = "," if i < 99 else ""
+        f_colors = palettes_by_float.get(fid, [(0, 0, 0)] * 256)
+        for i, (r, g, b) in enumerate(f_colors[:256]):
+            comma = "," if i < 255 else ""
             lines.append(f"        CRGB({r}, {g}, {b}){comma}")
         close_comma = "," if fid < 7 else ""
         lines.append(f"    }}{close_comma}")

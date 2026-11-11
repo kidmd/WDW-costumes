@@ -618,12 +618,16 @@ class SimulatorRequestHandler(http.server.SimpleHTTPRequestHandler):
             num_front = 256
             num_back = 256
             total_leds = 562  # 562 total LEDs: Front 256 + Right Fairy 25 + Back 256 + Left Fairy 25
-            active_palette_count = int(payload.get("numLeds", 100))
-            if active_palette_count > 256:
-                active_palette_count = 256
             matrix_active_indices = payload.get("matrixActiveIndices", [])
             matrix_win_count = int(payload.get("matrixWindowCount", 0))
             matrix_glow_count = int(payload.get("matrixBacklightCount", 0))
+            active_palette_count = int(payload.get("numLeds", 100))
+            if matrix_16x16_mode and (matrix_win_count + matrix_glow_count > 0):
+                active_palette_count = matrix_win_count + matrix_glow_count
+            elif len(matrix_active_indices) > 0:
+                active_palette_count = len(matrix_active_indices)
+            if active_palette_count > 256:
+                active_palette_count = 256
             pattern_str = payload.get("pattern", "steady_sparkle")
             ambient_pattern_str = payload.get("ambientPattern", "steady_sparkle")
             ambient_dir = int(payload.get("ambientDirection", 1))
@@ -713,7 +717,7 @@ class SimulatorRequestHandler(http.server.SimpleHTTPRequestHandler):
             palette_lines = []
             # 1. Front LEDs (0 to num_front - 1)
             for i in range(num_front):
-                if i < len(palette) and palette[i]:
+                if i < active_palette_count and i < len(palette) and palette[i]:
                     c = palette[i]
                     r = int(c.get("r", 0))
                     g = int(c.get("g", 0))
@@ -724,7 +728,7 @@ class SimulatorRequestHandler(http.server.SimpleHTTPRequestHandler):
 
             # 2. Back LEDs (num_front to total_leds - 1, duplicate of front)
             for i in range(num_back):
-                if i < len(palette) and palette[i]:
+                if i < active_palette_count and i < len(palette) and palette[i]:
                     c = palette[i]
                     r = int(c.get("r", 0))
                     g = int(c.get("g", 0))
@@ -829,7 +833,7 @@ class SimulatorRequestHandler(http.server.SimpleHTTPRequestHandler):
 
             matrix_indices_lines = []
             for i in range(num_front):
-                m_idx = int(matrix_active_indices[i]) if i < len(matrix_active_indices) else (i % 256)
+                m_idx = int(matrix_active_indices[i]) if i < len(matrix_active_indices) else 255
                 m_idx = max(0, min(255, m_idx))
                 comma = "," if i < num_front - 1 else ""
                 matrix_indices_lines.append(f"    {m_idx}{comma} // Active LED {i} -> Physical Matrix Index {m_idx}")

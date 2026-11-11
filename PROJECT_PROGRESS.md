@@ -93,6 +93,22 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### November 11, 2026 - Fairy Spatial 3-3-3 Triplet Mapping & Permanent Elimination of Lower Panel Green
+- **Physical Z-Fold Accordion Spatial Step Mapping for Fairy Lights (3, 3, 3 Repeating Triplets):**
+  - **Root Cause & Diagnosis:** `getFloatFairyBulbColor()` previously determined color triplets using raw sequential wire index (`wireBulbIndex / 3`). Because the 25-bulb fairy light wire is physically Z-folded / accordion-routed through the 3D-printed clips along the runner's ribs (13 steps front, 12 steps back), sequential wire bulbs jump between front and back rib channels. Looking at the runner's side, bulbs appeared scrambled (e.g., 2 reds, 1 white, 2 blues) instead of clean 3, 3, 3 bands.
+  - **Solution:** Added PROGMEM spatial lookup tables `FAIRY_STRAND1_SPATIAL_STEP[25]` and `FAIRY_STRAND2_SPATIAL_STEP[25]` in `src/main.cpp` and `arduino/MSEP_Costume/MSEP_Costume.ino`. The mapping assigns color triplet groups via `spatialStep / 3`, guaranteeing mathematically exact **3 Red, 3 White, 3 Blue** repeating triplets along the runner's body.
+  - Saturated patriotic blue in `FLOAT_PALETTES` to pure `CRGB(0, 0, 255)` with 0% green/red bleed for rich royal American blue.
+- **Permanent Resolution of Lower Panel Green (`include/costume_config.h`, `simulator.py`, `build_fleet_binaries.py`):**
+  - **Root Cause & Diagnosis:** When flashing Float 7 from the simulator UI, the long-running background HTTP server had cached old Python bytecode in RAM. When triggered, it regenerated `include/costume_config.h` with `#define MATRIX_ACTIVE_LED_COUNT 256` and filled inactive chest LEDs 151..255 with `CRGB(15, 255, 35)` (legacy Elliott green) mapped to physical serpentine matrix indices 151..255 (the bottom half of both 16×16 panels).
+  - **Architectural Fixes Applied:**
+    1. Terminated the stale server process and relaunched `simulator.py` with fresh bytecode.
+    2. Updated `simulator.py` `handle_flash_firmware()` to compute `active_palette_count` directly from `matrix_win_count + matrix_glow_count` (151 for Float 7), emit `#define MATRIX_ACTIVE_LED_COUNT 151`, and enforce `CRGB(0, 0, 0)` on all inactive indices.
+    3. Sanitized `include/costume_config.h` on disk, stripping all instances of `CRGB(15, 255, 35)`.
+    4. Expanded `build_fleet_binaries.py` matrix tables to 256 elements (`FLOAT_MATRIX_INDICES[7][256]`, `DEFAULT_FLOAT_PALETTES[7][256]`) so matrix floats with >100 LEDs (Float 2: 170, Float 7: 151) preserve their complete active LED layouts in dedicated fleet builds.
+    5. Recompiled all fleet binaries (`firmware.bin`, `firmware_float1.bin` through `firmware_float7.bin`, and `firmware_panel_test.bin`).
+- **Fairy Light Native GRB Consistency (Zero Inversion):**
+  - Removed unnecessary software R/G byte swap on fairy lights in `duplicateFrontToBack()`. Optical diagnostic confirmed that both BTF 16×16 panels and pebble fairy strands are native GRB WS2812B; running unswapped on FastLED GRB controller produces 100% matched, un-inverted colors across all panels and strings.
+
 ### November 11, 2026 - Elimination of Green Panel Artifacts & High-Vibrancy Saturated Fairy Bulbs
 - **Green Bottom-Third Artifact Elimination (`simulator.py`, `src/main.cpp`, `arduino/MSEP_Costume/`):**
   - **Root Cause & Diagnosis:** In `simulator.py`, when generating `ARTWORK_PALETTE` and `MATRIX_ACTIVE_INDICES` for 16×16 matrices (`FRONT_LEDS = 256`), any LED beyond the active graphic count (e.g., indices 151..255 for Float 7) defaulted to `CRGB(15, 255, 35)` (legacy Elliott green) and linear indices `151..255`. In a 16×16 serpentine matrix, physical indices 151..255 map directly to rows 10 through 15—the bottom third of the panel where the race bib rests! Because `activeCount` in `duplicateFrontToBack()` was hardcoded to `FRONT_LEDS` (256), the firmware populated those inactive rows with solid green.
