@@ -93,6 +93,26 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### November 11, 2026 - 562-LED Flasher Automation, Back Panel Alignment & Float 7 Ambient Fairy Light Synchronization
+- **Root Cause Confirmed (Full Costume Mode UI Selection & 25-Pixel Shift):**
+  - If the "Full Costume (562 LEDs)" toggle on the simulator canvas was not selected prior to clicking "Flash Firmware", the flasher defaulted to 302 LEDs (`NUM_LEDS 302`, `COSTUME_FULL_562_MODE 0`).
+  - Without full costume mode, `duplicateFrontToBack()` wrote the back matrix starting at `leds[256 + physIdx]` instead of `leds[281 + physIdx]`.
+  - On the physical costume, Fairy Strand 1 occupies indices `256..280` (25 LEDs). Writing Panel 2 to `256 + physIdx` shifted the entire second panel by 25 pixels:
+    - Pixels 0..24 poured into Fairy Strand 1.
+    - Pixels 25..255 filled the first 231 pixels of Panel 2 (`281..511`).
+    - The final 25 pixels of Panel 2 (`512..536`) and the entire Fairy Strand 2 (`537..561`) were beyond the 302-LED transmission ceiling and never received data.
+- **Architectural & Safety Fixes Applied:**
+  1. **Fail-Safe Simulator Flashing (`simulator.py`):**
+     - Updated `handle_flash_firmware()` to unconditionally generate `NUM_LEDS 562`, `FRONT_LEDS 256`, `BACK_LEDS 256`, `COSTUME_FULL_562_MODE 1`, and `COSTUME_MATRIX_16X16_MODE 1` for all float flashing actions, making it 100% immune to UI toggle state.
+  2. **100% Mirroring for Back Panel (`src/main.cpp`, `arduino/MSEP_Costume/MSEP_Costume.ino`):**
+     - In `duplicateFrontToBack()`, the back panel is strictly addressed at `281 + physIdx`, guaranteeing Panel 2 is a bit-exact duplicate of Panel 1.
+  3. **Ambient & Standalone Fairy Illumination:**
+     - Both Fairy Strand 1 (`256..280`) and Fairy Strand 2 (`537..561`) are actively populated across all standalone modes (Solo Autonomous Parade, Ambient Fallback, Castle Photo Mode, Corral Standby, and Rapid Roll Call).
+     - Driven by `getFloatFairyBulbColor()` with signature float palettes in repeating triplets (Float 7: Red / White / Blue).
+     - Applied RGB-to-GRB byte swap (`CRGB(fc.g, fc.r, fc.b)`) to the fairy strands so that red and green on the fairy pebble bulbs match the matrix panels with zero color inversion.
+  4. **Firmware Fleet Rebuild:**
+     - Ran `python build_fleet_binaries.py` and successfully compiled all 8 ROM binaries (`firmware.bin`, `firmware_float1.bin` through `firmware_float7.bin`, and `firmware_panel_test.bin`).
+
 ### November 11, 2026 - 100% Solid Infill Guarantee for All Simulator 3D Plates & Snap Tabs
 - **Slicer Pre-Configuration & 100% Solid Infill Injection (`scripts/compile_clean_tpu_panel.py`):**
   - **Identified Slicer Edge Behavior:** In OrcaSlicer, Bambu Studio, and Snapmaker Orca, thin sections and corner earlobes for KAM snap fasteners were occasionally flagged as internal infill volumes, causing the slicer's default profile to inject weak $15\%$ grid infill into structural earlobes.

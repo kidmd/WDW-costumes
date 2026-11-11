@@ -320,28 +320,46 @@ inline void duplicateFrontToBack() {
         // Ensure fairy strands (256..280 on Right, 537..561 on Left) are illuminated across all modes.
         // WS2812B 16x16 panels are native GRB; fairy seed bulbs are RGB chips.
         // Swapping R and G on fairy bulbs on the GRB stream eliminates green tint so colors match!
-        CRGB fairyCol = getFloatDefaultFairyColor(myFloatNumber);
-        CRGB fairyWireCol = CRGB(fairyCol.g, fairyCol.r, fairyCol.b);
         if (currentStandaloneMode == SHOW_MODE_PHOTO_STATIC) {
-            for (int f = 256; f <= 280; f++) leds[f] = fairyWireCol;
-            for (int f = 537; f <= 561; f++) leds[f] = fairyWireCol;
+            for (int f = 256; f <= 280; f++) {
+                CRGB fc = getFloatFairyBulbColor(myFloatNumber, f - 256);
+                leds[f] = CRGB(fc.g, fc.r, fc.b);
+            }
+            for (int f = 537; f <= 561; f++) {
+                CRGB fc = getFloatFairyBulbColor(myFloatNumber, f - 537);
+                leds[f] = CRGB(fc.g, fc.r, fc.b);
+            }
         } else if (currentStandaloneMode == SHOW_MODE_CORRAL_STANDBY) {
-            CRGB dimFairy = fairyWireCol;
-            dimFairy.nscale8_video(35);
-            for (int f = 256; f <= 280; f++) leds[f] = dimFairy;
-            for (int f = 537; f <= 561; f++) leds[f] = dimFairy;
+            for (int f = 256; f <= 280; f++) {
+                CRGB fc = getFloatFairyBulbColor(myFloatNumber, f - 256);
+                CRGB dimF = CRGB(fc.g, fc.r, fc.b);
+                dimF.nscale8_video(35);
+                leds[f] = dimF;
+            }
+            for (int f = 537; f <= 561; f++) {
+                CRGB fc = getFloatFairyBulbColor(myFloatNumber, f - 537);
+                CRGB dimF = CRGB(fc.g, fc.r, fc.b);
+                dimF.nscale8_video(35);
+                leds[f] = dimF;
+            }
         } else if (currentStandaloneMode == SHOW_MODE_RAPID_ROLL_CALL) {
             CRGB rcCol = tempActive[0];
             CRGB rcWireCol = CRGB(rcCol.g, rcCol.r, rcCol.b);
             for (int f = 256; f <= 280; f++) leds[f] = rcWireCol;
             for (int f = 537; f <= 561; f++) leds[f] = rcWireCol;
         } else {
-            // Solo / Autonomous parade mode: illuminate unlit fairy bulbs with signature/fairy color
+            // Solo / Autonomous parade mode & Ambient fallback: illuminate unlit fairy bulbs with float palette triplets!
             for (int f = 256; f <= 280; f++) {
-                if (leds[f] == CRGB(0,0,0)) leds[f] = fairyWireCol;
+                if (leds[f] == CRGB(0,0,0)) {
+                    CRGB fc = getFloatFairyBulbColor(myFloatNumber, f - 256);
+                    leds[f] = CRGB(fc.g, fc.r, fc.b);
+                }
             }
             for (int f = 537; f <= 561; f++) {
-                if (leds[f] == CRGB(0,0,0)) leds[f] = fairyWireCol;
+                if (leds[f] == CRGB(0,0,0)) {
+                    CRGB fc = getFloatFairyBulbColor(myFloatNumber, f - 537);
+                    leds[f] = CRGB(fc.g, fc.r, fc.b);
+                }
             }
         }
 #endif
