@@ -48,7 +48,40 @@ static const char* SPARKLE_NAMES[4] = {
 };
 static uint8_t currentSparklePreset = 0; // Starts at Preset 0: Calm Starlight
 
-static bool isGrbOrder = true;          // True = GRB (16x16 BTF matrix default), False = RGB (pebble strings)
+// Fairy Light Layout Presets (Mixed Color Order on single GPIO 16 line)
+// WS2812B 16x16 Panels are native GRB. WS2812B/WS2811 Fairy Lights are native RGB.
+enum FairyLayoutMode : uint8_t {
+    FAIRY_LAYOUT_BENCH_MIDDLE   = 0, // Panel 1 (0..255) -> Fairy 50 (256..305) -> Panel 2 (306..561) [Default]
+    FAIRY_LAYOUT_BENCH_END      = 1, // Panels (0..511) -> Fairy 50 (512..561)
+    FAIRY_LAYOUT_COSTUME_SPLIT  = 2, // Front (0..255) -> Fairy Right (256..280) -> Back (281..536) -> Fairy Left (537..561)
+    FAIRY_LAYOUT_ALL_GRB        = 3, // All LEDs GRB (Panels only, no fairy swap)
+    FAIRY_LAYOUT_ALL_RGB        = 4  // All LEDs RGB (Full strip swap for standalone pebble strands)
+};
+
+static uint8_t currentFairyLayout = FAIRY_LAYOUT_BENCH_MIDDLE; // Starts at Bench Middle (256..305)
+static const char* FAIRY_LAYOUT_NAMES[5] = {
+    "1: Bench Middle (Fairy 50 at 256..305, Panels at 0..255 & 306..561)",
+    "2: Bench End (Panels at 0..511, Fairy 50 at 512..561)",
+    "3: Costume Split (Fairy at 256..280 & 537..561, Panels at 0..255 & 281..536)",
+    "4: All GRB (Panels only, zero swap)",
+    "5: All RGB (Full strip swap for standalone pebble strands)"
+};
+
+inline bool isFairyPixel(uint16_t i) {
+    switch (currentFairyLayout) {
+        case FAIRY_LAYOUT_BENCH_MIDDLE:
+            return (i >= 256 && i < 306);
+        case FAIRY_LAYOUT_BENCH_END:
+            return (i >= 512 && i < 562);
+        case FAIRY_LAYOUT_COSTUME_SPLIT:
+            return ((i >= 256 && i <= 280) || (i >= 537 && i <= 561));
+        case FAIRY_LAYOUT_ALL_RGB:
+            return true;
+        default:
+            return false;
+    }
+}
+
 static bool isRgbInspectionMode = false; // True when running Red/Green/Blue/White subpixel check
 
 // Button Debounce & Timing State
@@ -82,8 +115,8 @@ void setup() {
     Serial.println("----------------------------------------------------------------");
     Serial.println(" Controls:");
     Serial.println("  - BOOT / Button 1 (GPIO 4/0): Tap to cycle Sparkle Rate (Calm -> Subtle -> Parade -> Solid)");
-    Serial.println("  - Button 2 (GPIO 33): Tap to toggle Color Order (GRB <-> RGB)");
-    Serial.println("  - Button 2 (GPIO 33): Hold (>1s) for Subpixel RGB Inspection Cycle");
+    Serial.println("  - Button 2 (GPIO 33): Tap to cycle Fairy Layout (Bench Middle -> Bench End -> Costume -> GRB -> RGB)");
+    Serial.println("  - Button 2 (GPIO 33): Hold (>1s) for Subpixel RGB Inspection Cycle (Red -> Green -> Blue -> White)");
     Serial.println("================================================================");
 
     pinMode(STATUS_LED_PIN, OUTPUT);
@@ -135,15 +168,25 @@ void renderWarmWhiteSparkles() {
 
     // 3. Render base warm white and interpolate sparkles
     for (int i = 0; i < NUM_LEDS; i++) {
+        CRGB col;
         if (sparkleLevel[i] == 0) {
-            leds[i] = baseCol;
+            col = baseCol;
         } else {
             uint8_t sp = sparkleLevel[i];
-            leds[i] = CRGB(
+            col = CRGB(
                 lerp8by8(baseCol.r, sparklePeak.r, sp),
                 lerp8by8(baseCol.g, sparklePeak.g, sp),
                 lerp8by8(baseCol.b, sparklePeak.b, sp)
             );
+        }
+
+        // Color order correction:
+        // WS2812B 16x16 Panels are native GRB. Fairy lights are RGB chips on a GRB data stream.
+        // Swapping Red and Green on fairy lights eliminates the green tint so they match the warm white!
+        if (isFairyPixel(i)) {
+            leds[i] = CRGB(col.g, col.r, col.b);
+        } else {
+            leds[i] = col;
         }
     }
 }
@@ -158,7 +201,10 @@ void renderSubpixelRgbTest(uint32_t now) {
         case 2: testCol = CRGB(0, 0, 180); break;   // Blue inspection
         default: testCol = CRGB(120, 120, 120); break; // Full white inspection
     }
-    fill_solid(leds, NUM_LEDS, testCol);
+    CRGB fairyTestCol = CRGB(testCol.g, testCol.r, testCol.b);
+    for (int i = 0; i < NUM_LEDS; i++) {
+        leds[i] = isFairyPixel(i) ? fairyTestCol : testCol;
+    }
 }
 
 void loop() {
@@ -182,7 +228,7 @@ void loop() {
     }
     b1PrevDown = b1Down;
 
-    // 2. Button 2: Tap toggles Color Order (GRB <-> RGB), Hold (>1s) toggles Subpixel RGB Test
+    // 2. Button 2: Tap cycles Fairy Layout Mode, Hold (>1s) toggles Subpixel RGB Test
     bool b2Down = isButton2Down();
     if (b2Down && !b2PrevDown) {
         b2PressStartTime = now;
@@ -195,14 +241,15 @@ void loop() {
             isRgbInspectionMode = !isRgbInspectionMode;
             Serial.printf("[RGB INSPECTION] %s\n", isRgbInspectionMode ? "ACTIVE (Red->Green->Blue->White)" : "OFF (Warm White)");
         } else {
-            // Short Tap: Toggle Color Order
-            isGrbOrder = !isGrbOrder;
-            Serial.printf("[COLOR ORDER] Toggled to: %s\n", isGrbOrder ? "GRB (16x16 Matrix)" : "RGB (Pebble String)");
-            for (int k = 0; k < 2; k++) {
+            // Short Tap: Cycle Fairy Layout Mode
+            currentFairyLayout = (currentFairyLayout + 1) % 5;
+            isRgbInspectionMode = false;
+            Serial.printf("[FAIRY LAYOUT] %s\n", FAIRY_LAYOUT_NAMES[currentFairyLayout]);
+            for (int k = 0; k <= currentFairyLayout; k++) {
                 digitalWrite(STATUS_LED_PIN, LOW);
-                delay(60);
+                delay(40);
                 digitalWrite(STATUS_LED_PIN, HIGH);
-                delay(60);
+                delay(40);
             }
         }
     }
@@ -213,16 +260,6 @@ void loop() {
         renderSubpixelRgbTest(now);
     } else {
         renderWarmWhiteSparkles();
-    }
-
-    // 4. Dynamic Color Order Correction if RGB mode selected
-    if (!isGrbOrder) {
-        // Swap Red and Green bytes dynamically for RGB seed pebble strands
-        for (int i = 0; i < NUM_LEDS; i++) {
-            uint8_t tempR = leds[i].r;
-            leds[i].r = leds[i].g;
-            leds[i].g = tempR;
-        }
     }
 
     FastLED.show();

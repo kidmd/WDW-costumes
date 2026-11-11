@@ -317,27 +317,31 @@ inline void duplicateFrontToBack() {
         }
 
 #if (defined(COSTUME_FULL_562_MODE) && COSTUME_FULL_562_MODE) || (defined(NUM_LEDS) && NUM_LEDS == 562)
-        // Ensure fairy strands (256..280 on Right, 537..561 on Left) are illuminated across all modes
+        // Ensure fairy strands (256..280 on Right, 537..561 on Left) are illuminated across all modes.
+        // WS2812B 16x16 panels are native GRB; fairy seed bulbs are RGB chips.
+        // Swapping R and G on fairy bulbs on the GRB stream eliminates green tint so colors match!
         CRGB fairyCol = getFloatDefaultFairyColor(myFloatNumber);
+        CRGB fairyWireCol = CRGB(fairyCol.g, fairyCol.r, fairyCol.b);
         if (currentStandaloneMode == SHOW_MODE_PHOTO_STATIC) {
-            for (int f = 256; f <= 280; f++) leds[f] = fairyCol;
-            for (int f = 537; f <= 561; f++) leds[f] = fairyCol;
+            for (int f = 256; f <= 280; f++) leds[f] = fairyWireCol;
+            for (int f = 537; f <= 561; f++) leds[f] = fairyWireCol;
         } else if (currentStandaloneMode == SHOW_MODE_CORRAL_STANDBY) {
-            CRGB dimFairy = fairyCol;
+            CRGB dimFairy = fairyWireCol;
             dimFairy.nscale8_video(35);
             for (int f = 256; f <= 280; f++) leds[f] = dimFairy;
             for (int f = 537; f <= 561; f++) leds[f] = dimFairy;
         } else if (currentStandaloneMode == SHOW_MODE_RAPID_ROLL_CALL) {
             CRGB rcCol = tempActive[0];
-            for (int f = 256; f <= 280; f++) leds[f] = rcCol;
-            for (int f = 537; f <= 561; f++) leds[f] = rcCol;
+            CRGB rcWireCol = CRGB(rcCol.g, rcCol.r, rcCol.b);
+            for (int f = 256; f <= 280; f++) leds[f] = rcWireCol;
+            for (int f = 537; f <= 561; f++) leds[f] = rcWireCol;
         } else {
             // Solo / Autonomous parade mode: illuminate unlit fairy bulbs with signature/fairy color
             for (int f = 256; f <= 280; f++) {
-                if (leds[f] == CRGB(0,0,0)) leds[f] = fairyCol;
+                if (leds[f] == CRGB(0,0,0)) leds[f] = fairyWireCol;
             }
             for (int f = 537; f <= 561; f++) {
-                if (leds[f] == CRGB(0,0,0)) leds[f] = fairyCol;
+                if (leds[f] == CRGB(0,0,0)) leds[f] = fairyWireCol;
             }
         }
 #endif
@@ -2070,7 +2074,7 @@ void render30sFleetRoutine(uint32_t elapsedMs) {
             float intensity = 1.0f - (dist / 1.5f);
             uint8_t sparkleCount = (uint8_t)(intensity * 25.0f);
             for (int s = 0; s < sparkleCount; s++) {
-                uint8_t rndPix = random8(FRONT_LEDS);
+                uint16_t rndPix = esp_random() % FRONT_LEDS;
                 leds[rndPix] = (random8(100) < 60) ? CRGB(255, 255, 255) : blend(baseCol, CRGB(255, 215, 0), 160);
             }
         }
