@@ -364,7 +364,7 @@ def export_assembled_3mf(scene_items, mf3_path, assembly_name="MSEP_MultiColor_P
                     })
                     files_data['3D/3dmodel.model'] = ET.tostring(root, encoding='utf-8', xml_declaration=True)
 
-                    # Build 100% compliant model_settings.config with plate definition and extruder mappings
+                    # Build 100% compliant model_settings.config with plate definition, extruder mappings, and 100% solid infill
                     cfg_root = ET.Element('config')
                     plate_elem = ET.SubElement(cfg_root, 'plate')
                     ET.SubElement(plate_elem, 'metadata', {'key': 'plater_id', 'value': '1'})
@@ -372,10 +372,18 @@ def export_assembled_3mf(scene_items, mf3_path, assembly_name="MSEP_MultiColor_P
 
                     obj_elem = ET.SubElement(cfg_root, 'object', {'id': parent_id})
                     ET.SubElement(obj_elem, 'metadata', {'key': 'name', 'value': clean_assembly_name})
+                    ET.SubElement(obj_elem, 'metadata', {'key': 'sparse_infill_density', 'value': '100%'})
+                    ET.SubElement(obj_elem, 'metadata', {'key': 'wall_loops', 'value': '5'})
+                    ET.SubElement(obj_elem, 'metadata', {'key': 'bottom_shell_layers', 'value': '15'})
+                    ET.SubElement(obj_elem, 'metadata', {'key': 'top_shell_layers', 'value': '15'})
                     for oid, oname, ext_id in part_mappings:
                         part_elem = ET.SubElement(obj_elem, 'part', {'id': oid, 'subtype': 'normal_part'})
                         ET.SubElement(part_elem, 'metadata', {'key': 'name', 'value': oname})
                         ET.SubElement(part_elem, 'metadata', {'key': 'extruder', 'value': ext_id})
+                        ET.SubElement(part_elem, 'metadata', {'key': 'sparse_infill_density', 'value': '100%'})
+                        ET.SubElement(part_elem, 'metadata', {'key': 'wall_loops', 'value': '5'})
+                        ET.SubElement(part_elem, 'metadata', {'key': 'bottom_shell_layers', 'value': '15'})
+                        ET.SubElement(part_elem, 'metadata', {'key': 'top_shell_layers', 'value': '15'})
 
                     files_data['Metadata/model_settings.config'] = ET.tostring(cfg_root, encoding='utf-8', xml_declaration=True)
 

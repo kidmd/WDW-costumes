@@ -95,13 +95,15 @@ The exported 3MF project (`3d_panels/tpu_panel_front_multicolor.3mf`) comes pre-
 
 ## 5. Recommended Slicer Print Settings
 
+* **Infill Density:** **100% Solid Infill** (Mandatory for structural rigidity on race day, high mechanical tear resistance around corner KAM snap earlobes, and uniform light transmission).
+* **Sparse Infill Pattern:** Monotonic / Rectilinear (or Aligned Rectilinear @ 100%).
 * **Layer Height:** $0.20\text{ mm}$ (First Layer: $0.20\text{ mm}$).
-* **Wall Loops:** 3 (Perimeter walls solid).
-* **Top/Bottom Shells:** 3 bottom shell layers, 3 top shell layers.
+* **Wall Loops:** 5 perimeter loops (ensures all frame walls, corner earlobes, and snap tabs print as solid concentric loops with zero hollow interior).
+* **Top/Bottom Shells:** 15 bottom shell layers, 15 top shell layers (guarantees solid infill across the full 3.0mm plate height).
 * **Build Plate:** Textured PEI Plate (creates a beautiful, professional matte anti-glare finish on the front float badge).
 * **Bed Temperature:** $60^\circ\text{C}$ (PLA) or $50^\circ\text{C}$ (TPU).
 * **Nozzle Temperature:** $210^\circ\text{C}$ (PLA) or $225^\circ\text{C}$ (TPU).
 * **Speed:** 
   - First Layer: $40\text{ mm/s}$ (for pristine artwork line definition).
   - Outer Wall: $100\text{ mm/s}$.
-  - Infill: $200\text{ mm/s}$.
+  - Solid Infill: $150\text{–}200\text{ mm/s}$.
