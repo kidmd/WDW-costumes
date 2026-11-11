@@ -267,24 +267,31 @@ inline uint16_t getCostumePacedLoopPosition(uint16_t index, uint8_t prog = WAVE_
     return (uint16_t)(((uint32_t)(index % 562) * 1000) / 562);
 }
 
+inline int getMatrixActiveLedCount() {
+    int activeCount = FRONT_LEDS;
+#if !(defined(FLEET_BUILD) && FLEET_BUILD) && defined(MATRIX_WINDOW_LED_COUNT) && defined(MATRIX_BACKLIGHT_LED_COUNT) && ((MATRIX_WINDOW_LED_COUNT + MATRIX_BACKLIGHT_LED_COUNT) > 0)
+    activeCount = min((int)FRONT_LEDS, (int)(MATRIX_WINDOW_LED_COUNT + MATRIX_BACKLIGHT_LED_COUNT));
+#elif !(defined(FLEET_BUILD) && FLEET_BUILD) && defined(MATRIX_ACTIVE_LED_COUNT)
+    activeCount = min((int)FRONT_LEDS, (int)MATRIX_ACTIVE_LED_COUNT);
+#elif defined(HAS_FLEET_MATRIX_CONFIG) && HAS_FLEET_MATRIX_CONFIG
+    uint8_t floatIdx = (myFloatNumber >= 1 && myFloatNumber <= 7) ? (myFloatNumber - 1) : 0;
+    activeCount = min((int)FRONT_LEDS, (int)pgm_read_byte(&FLOAT_ACTIVE_LED_COUNT[floatIdx]));
+#endif
+    if (activeCount > 256) activeCount = 256;
+    return activeCount;
+}
+
 inline void duplicateFrontToBack() {
     if (isCurrentFloatMatrix16x16()) {
         CRGB tempActive[256];
-        int activeCount = FRONT_LEDS;
-#if defined(MATRIX_ACTIVE_LED_COUNT)
-        activeCount = min((int)FRONT_LEDS, (int)MATRIX_ACTIVE_LED_COUNT);
-#elif defined(HAS_FLEET_MATRIX_CONFIG) && HAS_FLEET_MATRIX_CONFIG
-        uint8_t floatIdx = (myFloatNumber >= 1 && myFloatNumber <= 7) ? (myFloatNumber - 1) : 0;
-        activeCount = min((int)FRONT_LEDS, (int)pgm_read_byte(&FLOAT_ACTIVE_LED_COUNT[floatIdx]));
-#endif
-        if (activeCount > 256) activeCount = 256;
+        int activeCount = getMatrixActiveLedCount();
         for (int i = 0; i < activeCount; i++) {
             tempActive[i] = leds[i];
         }
         // Clear all 512 pixels so non-windowed / non-backlit dark cells stay strictly off
         fill_solid(leds, MAX_LEDS_CAPACITY, CRGB::Black);
         uint8_t winCount = 51;
-#if defined(MATRIX_WINDOW_LED_COUNT)
+#if !(defined(FLEET_BUILD) && FLEET_BUILD) && defined(MATRIX_WINDOW_LED_COUNT)
         winCount = MATRIX_WINDOW_LED_COUNT;
 #elif defined(HAS_FLEET_MATRIX_CONFIG) && HAS_FLEET_MATRIX_CONFIG
         {
@@ -294,7 +301,7 @@ inline void duplicateFrontToBack() {
 #endif
         for (int i = 0; i < activeCount; i++) {
             uint8_t physIdx = i;
-#if defined(COSTUME_MATRIX_16X16_MODE) && COSTUME_MATRIX_16X16_MODE
+#if !(defined(FLEET_BUILD) && FLEET_BUILD) && defined(COSTUME_MATRIX_16X16_MODE) && COSTUME_MATRIX_16X16_MODE
             physIdx = pgm_read_byte(&MATRIX_ACTIVE_INDICES[i]);
 #elif defined(HAS_FLEET_MATRIX_CONFIG) && HAS_FLEET_MATRIX_CONFIG
             uint8_t fIdx = (myFloatNumber >= 1 && myFloatNumber <= 7) ? (myFloatNumber - 1) : 0;
@@ -336,40 +343,51 @@ inline void duplicateFrontToBack() {
 
 #if (defined(COSTUME_FULL_562_MODE) && COSTUME_FULL_562_MODE) || (defined(NUM_LEDS) && NUM_LEDS == 562)
         // Ensure fairy strands (256..280 on Right, 537..561 on Left) are illuminated across all modes.
-        // Both the 16x16 matrices and the fairy seed strands share identical native GRB byte order.
-        // Colors are mapped to physical 3, 3, 3 repeating triplets along the runner's ribs!
+        // WS2812B 16x16 panels are native GRB; fairy seed bulbs on this costume are RGB chips.
+        // Swapping R and G on fairy bulbs on the GRB stream ensures Red, White, and Blue match 100%!
         if (currentStandaloneMode == SHOW_MODE_PHOTO_STATIC) {
             for (int f = 256; f <= 280; f++) {
-                leds[f] = getFloatFairyBulbColor(myFloatNumber, 1, f - 256);
+                CRGB fc = getFloatFairyBulbColor(myFloatNumber, 1, f - 256);
+                leds[f] = CRGB(fc.g, fc.r, fc.b);
             }
             for (int f = 537; f <= 561; f++) {
-                leds[f] = getFloatFairyBulbColor(myFloatNumber, 2, f - 537);
+                CRGB fc = getFloatFairyBulbColor(myFloatNumber, 2, f - 537);
+                leds[f] = CRGB(fc.g, fc.r, fc.b);
             }
         } else if (currentStandaloneMode == SHOW_MODE_CORRAL_STANDBY) {
             for (int f = 256; f <= 280; f++) {
-                CRGB dimF = getFloatFairyBulbColor(myFloatNumber, 1, f - 256);
+                CRGB fc = getFloatFairyBulbColor(myFloatNumber, 1, f - 256);
+                CRGB dimF = CRGB(fc.g, fc.r, fc.b);
                 dimF.nscale8_video(35);
                 leds[f] = dimF;
             }
             for (int f = 537; f <= 561; f++) {
-                CRGB dimF = getFloatFairyBulbColor(myFloatNumber, 2, f - 537);
+                CRGB fc = getFloatFairyBulbColor(myFloatNumber, 2, f - 537);
+                CRGB dimF = CRGB(fc.g, fc.r, fc.b);
                 dimF.nscale8_video(35);
                 leds[f] = dimF;
             }
         } else if (currentStandaloneMode == SHOW_MODE_RAPID_ROLL_CALL) {
             CRGB rcCol = tempActive[0];
-            for (int f = 256; f <= 280; f++) leds[f] = rcCol;
-            for (int f = 537; f <= 561; f++) leds[f] = rcCol;
+            CRGB rcWireCol = CRGB(rcCol.g, rcCol.r, rcCol.b);
+            for (int f = 256; f <= 280; f++) leds[f] = rcWireCol;
+            for (int f = 537; f <= 561; f++) leds[f] = rcWireCol;
         } else {
             // Solo / Autonomous parade mode & Ambient fallback: illuminate unlit fairy bulbs with float palette triplets!
             for (int f = 256; f <= 280; f++) {
                 if (leds[f] == CRGB(0,0,0)) {
-                    leds[f] = getFloatFairyBulbColor(myFloatNumber, 1, f - 256);
+                    CRGB fc = getFloatFairyBulbColor(myFloatNumber, 1, f - 256);
+                    leds[f] = CRGB(fc.g, fc.r, fc.b);
+                } else {
+                    leds[f] = CRGB(leds[f].g, leds[f].r, leds[f].b);
                 }
             }
             for (int f = 537; f <= 561; f++) {
                 if (leds[f] == CRGB(0,0,0)) {
-                    leds[f] = getFloatFairyBulbColor(myFloatNumber, 2, f - 537);
+                    CRGB fc = getFloatFairyBulbColor(myFloatNumber, 2, f - 537);
+                    leds[f] = CRGB(fc.g, fc.r, fc.b);
+                } else {
+                    leds[f] = CRGB(leds[f].g, leds[f].r, leds[f].b);
                 }
             }
         }
@@ -482,15 +500,7 @@ void broadcastPhotoModePacket(uint8_t mode) {
 
 void renderCastlePhotoMode() {
     uint8_t floatIdx = (myFloatNumber >= 1 && myFloatNumber <= 7) ? (myFloatNumber - 1) : 0;
-    int activeCount = FRONT_LEDS;
-    if (isCurrentFloatMatrix16x16()) {
-#if defined(MATRIX_ACTIVE_LED_COUNT)
-        activeCount = min((int)FRONT_LEDS, (int)MATRIX_ACTIVE_LED_COUNT);
-#elif defined(HAS_FLEET_MATRIX_CONFIG) && HAS_FLEET_MATRIX_CONFIG
-        activeCount = min((int)FRONT_LEDS, (int)pgm_read_byte(&FLOAT_ACTIVE_LED_COUNT[floatIdx]));
-#endif
-        if (activeCount > 256) activeCount = 256;
-    }
+    int activeCount = isCurrentFloatMatrix16x16() ? getMatrixActiveLedCount() : FRONT_LEDS;
 
 #if defined(HAS_CUSTOM_PALETTE) && HAS_CUSTOM_PALETTE
     #if defined(COMPILED_FLOAT_ID)
@@ -553,17 +563,13 @@ void renderWarmWhiteSparkle(uint32_t now) {
 void renderCorralStandby(uint32_t t) {
     // 16x16 Matrix Mode: Ultra-low-power standby on active artwork LEDs only (<120mA USB-safe)
     if (isCurrentFloatMatrix16x16()) {
-        int activeCount = FRONT_LEDS;
-#if defined(MATRIX_ACTIVE_LED_COUNT)
-        activeCount = min((int)FRONT_LEDS, (int)MATRIX_ACTIVE_LED_COUNT);
-#elif defined(HAS_FLEET_MATRIX_CONFIG) && HAS_FLEET_MATRIX_CONFIG
-        uint8_t floatIdx = (myFloatNumber >= 1 && myFloatNumber <= 7) ? (myFloatNumber - 1) : 0;
-        activeCount = min((int)FRONT_LEDS, (int)pgm_read_byte(&FLOAT_ACTIVE_LED_COUNT[floatIdx]));
-#endif
-        if (activeCount > 256) activeCount = 256;
+        int activeCount = getMatrixActiveLedCount();
         for (int i = 0; i < activeCount && i < MAX_LEDS_CAPACITY; i++) {
 #if defined(HAS_CUSTOM_PALETTE) && HAS_CUSTOM_PALETTE
             CRGB c = ARTWORK_PALETTE[i];
+#elif defined(HAS_DEFAULT_FLOAT_PALETTES) && HAS_DEFAULT_FLOAT_PALETTES
+            uint8_t floatIdx = (myFloatNumber >= 1 && myFloatNumber <= 7) ? (myFloatNumber - 1) : 0;
+            CRGB c = (i < 256) ? DEFAULT_FLOAT_PALETTES[floatIdx][i] : FLEET_ROSTER_INFO[floatIdx].color;
 #else
             uint8_t floatIdx = (myFloatNumber >= 1 && myFloatNumber <= 7) ? (myFloatNumber - 1) : 0;
             CRGB c = FLEET_ROSTER_INFO[floatIdx].color;
@@ -1146,16 +1152,7 @@ static inline CRGB getSparkleColor() {
 
 void renderAmbientFallback(uint32_t now) {
     uint32_t beatMs = 60000 / max((uint16_t)20, (uint16_t)COSTUME_SPEED_BPM);
-    int activeCount = FRONT_LEDS;
-    if (isCurrentFloatMatrix16x16()) {
-#if defined(MATRIX_ACTIVE_LED_COUNT)
-        activeCount = min((int)FRONT_LEDS, (int)MATRIX_ACTIVE_LED_COUNT);
-#elif defined(HAS_FLEET_MATRIX_CONFIG) && HAS_FLEET_MATRIX_CONFIG
-        uint8_t floatIdx = (myFloatNumber >= 1 && myFloatNumber <= 7) ? (myFloatNumber - 1) : 0;
-        activeCount = min((int)FRONT_LEDS, (int)pgm_read_byte(&FLOAT_ACTIVE_LED_COUNT[floatIdx]));
-#endif
-        if (activeCount > 256) activeCount = 256;
-    }
+    int activeCount = isCurrentFloatMatrix16x16() ? getMatrixActiveLedCount() : FRONT_LEDS;
 #if defined(AMBIENT_FALLBACK_PATTERN) && (AMBIENT_FALLBACK_PATTERN == COSTUME_PATTERN_BREATHING_GLOW)
     uint8_t breath = beatsin8(COSTUME_SPEED_BPM / 2, 40, 255);
 #elif defined(AMBIENT_FALLBACK_PATTERN) && (AMBIENT_FALLBACK_PATTERN == COSTUME_PATTERN_COMET)

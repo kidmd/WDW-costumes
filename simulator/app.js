@@ -23634,7 +23634,7 @@ async function triggerUsbFirmwareFlash(floatId = 0) {
         saveFleetLineupToStorage();
     }
 
-    const isMatrix16x16 = (typeof btfMatrix16x16Active !== 'undefined' && btfMatrix16x16Active);
+    const isMatrix16x16 = (typeof btfMatrix16x16Active !== 'undefined' && btfMatrix16x16Active) || (currentHardwareMode === 'full_costume');
     let matrixExportLists = { windowedLeds: [], backlightLeds: [] };
     let activeMatrixLeds = [];
     if (isMatrix16x16 && typeof getBtfMatrix16x16ListsForExport === 'function') {
@@ -23682,8 +23682,8 @@ async function triggerUsbFirmwareFlash(floatId = 0) {
 
     try {
         const effectivePalette = (isMatrix16x16 && activeMatrixLeds.length > 0)
-            ? activeMatrixLeds.map(l => l.color || { r: 255, g: 183, b: 3 })
-            : leds.map(l => l.color || { r: 15, g: 255, b: 35 });
+            ? activeMatrixLeds.map(l => l.color || { r: 0, g: 0, b: 0 })
+            : leds.map(l => l.color || { r: 0, g: 0, b: 0 });
 
         const effectiveCoords = (isMatrix16x16 && activeMatrixLeds.length > 0)
             ? activeMatrixLeds.map(l => ({
