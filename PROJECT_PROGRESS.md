@@ -93,6 +93,21 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### November 11, 2026 - Elimination of Green Panel Artifacts & High-Vibrancy Saturated Fairy Bulbs
+- **Green Bottom-Third Artifact Elimination (`simulator.py`, `src/main.cpp`, `arduino/MSEP_Costume/`):**
+  - **Root Cause & Diagnosis:** In `simulator.py`, when generating `ARTWORK_PALETTE` and `MATRIX_ACTIVE_INDICES` for 16×16 matrices (`FRONT_LEDS = 256`), any LED beyond the active graphic count (e.g., indices 151..255 for Float 7) defaulted to `CRGB(15, 255, 35)` (legacy Elliott green) and linear indices `151..255`. In a 16×16 serpentine matrix, physical indices 151..255 map directly to rows 10 through 15—the bottom third of the panel where the race bib rests! Because `activeCount` in `duplicateFrontToBack()` was hardcoded to `FRONT_LEDS` (256), the firmware populated those inactive rows with solid green.
+  - **Architectural Fixes Applied:**
+    1. Replaced the `simulator.py` palette export fallback from `(15, 255, 35)` to pure black `(0, 0, 0)` so unused cells never illuminate.
+    2. Updated `duplicateFrontToBack()`, `renderCorralStandby()`, `renderCastlePhotoMode()`, and `renderAmbientFallback()` in `src/main.cpp` and `arduino/MSEP_Costume/MSEP_Costume.ino` to dynamically bind `activeCount = min((int)FRONT_LEDS, (int)MATRIX_ACTIVE_LED_COUNT)`.
+    3. All cells beyond `activeCount` are strictly driven to `CRGB::Black`, guaranteeing that only the active chest graphic LEDs light up on both panels and the bottom third remains completely off.
+- **High-Vibrancy Saturated Fairy Bulbs:**
+  - **Root Cause & Diagnosis:** Float 7's palette originally used web CSS hex codes `#e63946` (R=230, G=57, B=70) and `#3a86ff` (R=58, G=134, B=255). On WS2812B fairy seed diodes, the significant green and blue components in `#e63946` washed out the red into a soft pink, while the 53% green component in `#3a86ff` washed out the blue into a pale sky blue / cyan.
+  - **Solution:** Standardized Float 7 fairy lights in `FLOAT_PALETTES` on pure, bold, highly saturated patriotic diodes:
+    - **Bold Patriotic Red:** `CRGB(255, 0, 0)` (100% pure saturated red, zero pink tint).
+    - **Pure Star White:** `CRGB(255, 255, 255)` (crisp, brilliant incandescent star white).
+    - **Bold Royal Blue:** `CRGB(0, 20, 255)` (deep, rich, saturated royal American blue, zero sky blue/cyan wash).
+    - Enhanced saturation across red and blue channels for all floats in `FLOAT_PALETTES`.
+
 ### November 11, 2026 - 562-LED Flasher Automation, Back Panel Alignment & Float 7 Ambient Fairy Light Synchronization
 - **Root Cause Confirmed (Full Costume Mode UI Selection & 25-Pixel Shift):**
   - If the "Full Costume (562 LEDs)" toggle on the simulator canvas was not selected prior to clicking "Flash Firmware", the flasher defaulted to 302 LEDs (`NUM_LEDS 302`, `COSTUME_FULL_562_MODE 0`).

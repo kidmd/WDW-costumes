@@ -190,13 +190,13 @@ enum WaveProgressionMode : uint8_t {
 static const uint8_t FLOAT_PALETTE_COUNTS[7] PROGMEM = { 2, 2, 3, 3, 2, 2, 3 };
 
 static const CRGB FLOAT_PALETTES[7][3] PROGMEM = {
-    { CRGB(0xE6, 0x39, 0x46), CRGB(0xFF, 0xB7, 0x03), CRGB(0x00, 0x00, 0x00) }, // Float 1 (Casey Jr.): Red, Gold
-    { CRGB(0xE6, 0x39, 0x46), CRGB(0xFF, 0xB7, 0x03), CRGB(0x00, 0x00, 0x00) }, // Float 2 (Title Drum): Red, Gold
-    { CRGB(0xFF, 0xD7, 0x00), CRGB(0x00, 0x88, 0xFF), CRGB(0x00, 0xCC, 0x44) }, // Float 3 (The Turtle): Yellow, Blue, Green
-    { CRGB(0xE6, 0x39, 0x46), CRGB(0x00, 0x88, 0xFF), CRGB(0x00, 0xCC, 0x44) }, // Float 4 (The Snail): Red, Blue, Green
-    { CRGB(0xE6, 0x39, 0x46), CRGB(0xFF, 0xB7, 0x03), CRGB(0x00, 0x00, 0x00) }, // Float 5 (The Pirate Ship): Red, Gold
-    { CRGB(0x00, 0xFF, 0x88), CRGB(0xFF, 0xD7, 0x00), CRGB(0x00, 0x00, 0x00) }, // Float 6 (Pete's Dragon): Green, Yellow
-    { CRGB(0xE6, 0x39, 0x46), CRGB(0xFF, 0xFF, 0xFF), CRGB(0x3A, 0x86, 0xFF) }  // Float 7 (To Honor America): Red, White, Blue
+    { CRGB(255, 0, 0),   CRGB(255, 180, 0),   CRGB(0, 0, 0) },   // Float 1 (Casey Jr.): Bold Red, Gold
+    { CRGB(255, 0, 0),   CRGB(255, 180, 0),   CRGB(0, 0, 0) },   // Float 2 (Title Drum): Bold Red, Gold
+    { CRGB(255, 215, 0), CRGB(0, 60, 255),    CRGB(0, 220, 40) }, // Float 3 (The Turtle): Yellow, Bold Royal Blue, Emerald Green
+    { CRGB(255, 0, 0),   CRGB(0, 60, 255),    CRGB(0, 220, 40) }, // Float 4 (The Snail): Bold Red, Bold Royal Blue, Emerald Green
+    { CRGB(255, 0, 0),   CRGB(255, 180, 0),   CRGB(0, 0, 0) },   // Float 5 (The Pirate Ship): Bold Red, Gold
+    { CRGB(0, 255, 100), CRGB(255, 215, 0),   CRGB(0, 0, 0) },   // Float 6 (Pete's Dragon): Vivid Elliott Green, Golden Yellow
+    { CRGB(255, 0, 0),   CRGB(255, 255, 255), CRGB(0, 20, 255) } // Float 7 (To Honor America): Bold Patriotic Red, Pure Star White, Bold Royal Blue
 };
 
 inline CRGB getFloatPaletteColor(uint8_t floatNum, uint8_t colorIdx = 0) {
@@ -255,7 +255,9 @@ inline void duplicateFrontToBack() {
     if (isCurrentFloatMatrix16x16()) {
         CRGB tempActive[256];
         int activeCount = FRONT_LEDS;
-#if !(defined(HAS_CUSTOM_PALETTE) && HAS_CUSTOM_PALETTE) && defined(HAS_FLEET_MATRIX_CONFIG) && HAS_FLEET_MATRIX_CONFIG
+#if defined(MATRIX_ACTIVE_LED_COUNT)
+        activeCount = min((int)FRONT_LEDS, (int)MATRIX_ACTIVE_LED_COUNT);
+#elif defined(HAS_FLEET_MATRIX_CONFIG) && HAS_FLEET_MATRIX_CONFIG
         uint8_t floatIdx = (myFloatNumber >= 1 && myFloatNumber <= 7) ? (myFloatNumber - 1) : 0;
         activeCount = min((int)FRONT_LEDS, (int)pgm_read_byte(&FLOAT_ACTIVE_LED_COUNT[floatIdx]));
 #endif
@@ -471,19 +473,28 @@ void broadcastPhotoModePacket(uint8_t mode) {
 
 void renderCastlePhotoMode() {
     uint8_t floatIdx = (myFloatNumber >= 1 && myFloatNumber <= 7) ? (myFloatNumber - 1) : 0;
+    int activeCount = FRONT_LEDS;
+    if (isCurrentFloatMatrix16x16()) {
+#if defined(MATRIX_ACTIVE_LED_COUNT)
+        activeCount = min((int)FRONT_LEDS, (int)MATRIX_ACTIVE_LED_COUNT);
+#elif defined(HAS_FLEET_MATRIX_CONFIG) && HAS_FLEET_MATRIX_CONFIG
+        activeCount = min((int)FRONT_LEDS, (int)pgm_read_byte(&FLOAT_ACTIVE_LED_COUNT[floatIdx]));
+#endif
+        if (activeCount > 256) activeCount = 256;
+    }
 
 #if defined(HAS_CUSTOM_PALETTE) && HAS_CUSTOM_PALETTE
     #if defined(COMPILED_FLOAT_ID)
     if (myFloatNumber == COMPILED_FLOAT_ID) {
         for (int i = 0; i < FRONT_LEDS && i < MAX_LEDS_CAPACITY; i++) {
-            leds[i] = ARTWORK_PALETTE[i];
+            leds[i] = (i < activeCount) ? ARTWORK_PALETTE[i] : CRGB::Black;
         }
         duplicateFrontToBack();
         return;
     }
     #else
     for (int i = 0; i < FRONT_LEDS && i < MAX_LEDS_CAPACITY; i++) {
-        leds[i] = ARTWORK_PALETTE[i];
+        leds[i] = (i < activeCount) ? ARTWORK_PALETTE[i] : CRGB::Black;
     }
     duplicateFrontToBack();
     return;
@@ -492,7 +503,7 @@ void renderCastlePhotoMode() {
 
 #if defined(HAS_DEFAULT_FLOAT_PALETTES) && HAS_DEFAULT_FLOAT_PALETTES
     for (int i = 0; i < FRONT_LEDS && i < MAX_LEDS_CAPACITY; i++) {
-        leds[i] = (i < 100) ? DEFAULT_FLOAT_PALETTES[floatIdx][i] : FLEET_ROSTER_INFO[floatIdx].color;
+        leds[i] = (i < activeCount && i < 100) ? DEFAULT_FLOAT_PALETTES[floatIdx][i] : ((i < activeCount) ? FLEET_ROSTER_INFO[floatIdx].color : CRGB::Black);
     }
 #else
     CRGB heroColor = FLEET_ROSTER_INFO[floatIdx].color;
@@ -533,7 +544,15 @@ void renderWarmWhiteSparkle(uint32_t now) {
 void renderCorralStandby(uint32_t t) {
     // 16x16 Matrix Mode: Ultra-low-power standby on active artwork LEDs only (<120mA USB-safe)
     if (isCurrentFloatMatrix16x16()) {
-        for (int i = 0; i < FRONT_LEDS && i < MAX_LEDS_CAPACITY; i++) {
+        int activeCount = FRONT_LEDS;
+#if defined(MATRIX_ACTIVE_LED_COUNT)
+        activeCount = min((int)FRONT_LEDS, (int)MATRIX_ACTIVE_LED_COUNT);
+#elif defined(HAS_FLEET_MATRIX_CONFIG) && HAS_FLEET_MATRIX_CONFIG
+        uint8_t floatIdx = (myFloatNumber >= 1 && myFloatNumber <= 7) ? (myFloatNumber - 1) : 0;
+        activeCount = min((int)FRONT_LEDS, (int)pgm_read_byte(&FLOAT_ACTIVE_LED_COUNT[floatIdx]));
+#endif
+        if (activeCount > 256) activeCount = 256;
+        for (int i = 0; i < activeCount && i < MAX_LEDS_CAPACITY; i++) {
 #if defined(HAS_CUSTOM_PALETTE) && HAS_CUSTOM_PALETTE
             CRGB c = ARTWORK_PALETTE[i];
 #else
@@ -542,6 +561,9 @@ void renderCorralStandby(uint32_t t) {
 #endif
             c.nscale8_video(35); // Soft midnight artwork glow (<100mA total draw)
             leds[i] = c;
+        }
+        for (int i = activeCount; i < FRONT_LEDS && i < MAX_LEDS_CAPACITY; i++) {
+            leds[i] = CRGB::Black;
         }
         duplicateFrontToBack();
         return;
@@ -1115,6 +1137,16 @@ static inline CRGB getSparkleColor() {
 
 void renderAmbientFallback(uint32_t now) {
     uint32_t beatMs = 60000 / max((uint16_t)20, (uint16_t)COSTUME_SPEED_BPM);
+    int activeCount = FRONT_LEDS;
+    if (isCurrentFloatMatrix16x16()) {
+#if defined(MATRIX_ACTIVE_LED_COUNT)
+        activeCount = min((int)FRONT_LEDS, (int)MATRIX_ACTIVE_LED_COUNT);
+#elif defined(HAS_FLEET_MATRIX_CONFIG) && HAS_FLEET_MATRIX_CONFIG
+        uint8_t floatIdx = (myFloatNumber >= 1 && myFloatNumber <= 7) ? (myFloatNumber - 1) : 0;
+        activeCount = min((int)FRONT_LEDS, (int)pgm_read_byte(&FLOAT_ACTIVE_LED_COUNT[floatIdx]));
+#endif
+        if (activeCount > 256) activeCount = 256;
+    }
 #if defined(AMBIENT_FALLBACK_PATTERN) && (AMBIENT_FALLBACK_PATTERN == COSTUME_PATTERN_BREATHING_GLOW)
     uint8_t breath = beatsin8(COSTUME_SPEED_BPM / 2, 40, 255);
 #elif defined(AMBIENT_FALLBACK_PATTERN) && (AMBIENT_FALLBACK_PATTERN == COSTUME_PATTERN_COMET)
@@ -1149,6 +1181,10 @@ void renderAmbientFallback(uint32_t now) {
 #endif
 
     for (int i = 0; i < FRONT_LEDS && i < MAX_LEDS_CAPACITY; i++) {
+        if (i >= activeCount) {
+            leds[i] = CRGB::Black;
+            continue;
+        }
 #if defined(COSTUME_AMBIENT_COLOR_MODE) && (COSTUME_AMBIENT_COLOR_MODE == 1)
         uint8_t floatIdx = (myFloatNumber >= 1 && myFloatNumber <= 7) ? (myFloatNumber - 1) : 0;
         CRGB baseColor = FLEET_ROSTER_INFO[floatIdx].color;

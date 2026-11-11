@@ -715,22 +715,22 @@ class SimulatorRequestHandler(http.server.SimpleHTTPRequestHandler):
             for i in range(num_front):
                 if i < len(palette) and palette[i]:
                     c = palette[i]
-                    r = int(c.get("r", 15))
-                    g = int(c.get("g", 255))
-                    b = int(c.get("b", 35))
+                    r = int(c.get("r", 0))
+                    g = int(c.get("g", 0))
+                    b = int(c.get("b", 0))
                 else:
-                    r, g, b = (15, 255, 35)
+                    r, g, b = (0, 0, 0)
                 palette_lines.append(f"    CRGB({r}, {g}, {b}), // Front LED {i}")
 
             # 2. Back LEDs (num_front to total_leds - 1, duplicate of front)
             for i in range(num_back):
                 if i < len(palette) and palette[i]:
                     c = palette[i]
-                    r = int(c.get("r", 15))
-                    g = int(c.get("g", 255))
-                    b = int(c.get("b", 35))
+                    r = int(c.get("r", 0))
+                    g = int(c.get("g", 0))
+                    b = int(c.get("b", 0))
                 else:
-                    r, g, b = (15, 255, 35)
+                    r, g, b = (0, 0, 0)
                 comma = "," if i < num_back - 1 else ""
                 palette_lines.append(f"    CRGB({r}, {g}, {b}){comma} // Back LED {num_front + i} (Duplicate of {i})")
             
