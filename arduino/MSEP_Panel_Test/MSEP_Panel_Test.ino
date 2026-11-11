@@ -49,37 +49,42 @@ static const char* SPARKLE_NAMES[4] = {
 static uint8_t currentSparklePreset = 0; // Starts at Preset 0: Calm Starlight
 
 // Fairy Light Layout Presets & Calibration
-// Optical Diagnostic Result: Both the 16x16 Panels and the Fairy Pebble Lights are 100% NATIVE GRB!
-// In pure Red/Green/Blue color inspection, all LEDs must receive native GRB (ZERO swapping) to prevent inversion.
-// In Warm White mode, clear resin pebble LEDs have ~7x higher human luminous sensitivity in green than red dies,
-// so fairy lights receive a customized warm white spectrum (CRGB(72, 34, 18)) instead of swapping bytes!
+// Hardware Verification Result:
+// - Panels (16x16 Matrices) are native GRB chips.
+// - Fairy Lights (Pebble strands) are native RGB chips.
+// Because both run on a single GPIO 16 line driven with FastLED GRB controller,
+// fairy lights require an R <-> G byte swap to match the panels in Red and Green!
 enum FairyLayoutMode : uint8_t {
-    FAIRY_LAYOUT_NATIVE_UNIFORM_GRB = 0, // All LEDs native GRB (Panel 1 + Fairy 1 + Panel 2 + Fairy 2) [DEFAULT: 100% Uniform Colors]
-    FAIRY_LAYOUT_COSTUME_25_25_SWAP = 1, // Optional legacy RGB byte-swap on fairy lights (Fairy 1 at 256..280 & Fairy 2 at 537..561)
-    FAIRY_LAYOUT_BENCH_END_SWAP     = 2, // Optional legacy RGB byte-swap at end (512..561)
-    FAIRY_LAYOUT_ALL_RGB_SWAP       = 3  // Full strip RGB byte-swap
+    FAIRY_LAYOUT_COSTUME_25_25_SWAP = 0, // Panel 1 (0..255, GRB) -> Fairy 1 (256..280 [25], RGB) -> Panel 2 (281..536, GRB) -> Fairy 2 (537..561 [25], RGB) [DEFAULT: 100% Matching Colors]
+    FAIRY_LAYOUT_ALL_UNSWAPPED_GRB  = 1, // All LEDs unswapped GRB
+    FAIRY_LAYOUT_BENCH_END_SWAP     = 2, // Swap only at end (512..561)
+    FAIRY_LAYOUT_ALL_RGB_SWAP       = 3  // Swap all LEDs
 };
 
-static uint8_t currentFairyLayout = FAIRY_LAYOUT_NATIVE_UNIFORM_GRB; // Default: Native GRB across entire rig (Flawless Red, Green, Blue, White)
+static uint8_t currentFairyLayout = FAIRY_LAYOUT_COSTUME_25_25_SWAP; // Default: 25 front fairy + 25 back fairy swapped so Red & Green match panels!
 static const char* FAIRY_LAYOUT_NAMES[4] = {
-    "1: Native Uniform GRB (Panel 1 [0..255] + Fairy 1 [256..280] + Panel 2 [281..536] + Fairy 2 [537..561]) [DEFAULT]",
-    "2: Costume 25/25 RGB Swap (Fairy 1 at 256..280 [25] & Fairy 2 at 537..561 [25])",
+    "1: Costume 25/25 RGB Swap (Fairy 1 at 256..280 [25] & Fairy 2 at 537..561 [25]) [DEFAULT: Matching Red/Green]",
+    "2: All Unswapped GRB (Panels match, Fairy Red/Green inverted)",
     "3: Bench End RGB Swap (Panels at 0..511, Fairy 50 at 512..561)",
     "4: All RGB Swap (Full strip swap)"
 };
 
 inline bool isFairyPixel(uint16_t i) {
-    // Identifies fairy pixel indices for custom optical warm-white spectral tuning
+    // Identifies fairy pixel indices
     // Physical order: Panel 1 (0..255) -> Fairy 1 (256..280) -> Panel 2 (281..536) -> Fairy 2 (537..561)
     return ((i >= 256 && i <= 280) || (i >= 537 && i <= 561));
 }
 
 inline bool shouldSwapRgbBytes(uint16_t i) {
     switch (currentFairyLayout) {
-        case FAIRY_LAYOUT_NATIVE_UNIFORM_GRB:
-            return false; // Zero swap: all hardware is native GRB!
         case FAIRY_LAYOUT_COSTUME_25_25_SWAP:
+            // Swaps ONLY the two fairy light strands:
+            // Fairy 1 (Left string): indices 256 to 280 (25 LEDs)
+            // Fairy 2 (Right string): indices 537 to 561 (25 LEDs)
+            // Panels remain completely unswapped: Panel 1 (0..255) & Panel 2 (281..536)!
             return ((i >= 256 && i <= 280) || (i >= 537 && i <= 561));
+        case FAIRY_LAYOUT_ALL_UNSWAPPED_GRB:
+            return false;
         case FAIRY_LAYOUT_BENCH_END_SWAP:
             return (i >= 512 && i < 562);
         case FAIRY_LAYOUT_ALL_RGB_SWAP:
@@ -148,8 +153,8 @@ void renderWarmWhiteSparkles() {
     // Balanced Warm Incandescent / ~2500K Vintage Filament Glow
     // Panel color: CRGB(64, 46, 28) for diffuse SMD5050 with dense phosphor
     const CRGB baseColPanel = CRGB(64, 46, 28);
-    // Fairy color: CRGB(72, 34, 18) optically calibrated for clear resin pebble LEDs (tames green flare)
-    const CRGB baseColFairy = CRGB(72, 34, 18);
+    // Fairy color: CRGB(64, 46, 28) base before swap
+    const CRGB baseColFairy = CRGB(64, 46, 28);
     // Starlight sparkle color: pure bright starlight pop scaled by 192 (~3x pop over base)
     const CRGB sparklePeak = CRGB(192, 192, 192);
 
@@ -188,7 +193,7 @@ void renderWarmWhiteSparkles() {
             );
         }
 
-        // Apply byte swapping only if an explicit legacy swap mode is selected
+        // Apply byte swapping for fairy lights so Red and Green match the panels!
         if (shouldSwapRgbBytes(i)) {
             leds[i] = CRGB(col.g, col.r, col.b);
         } else {
