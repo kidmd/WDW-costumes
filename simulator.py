@@ -681,7 +681,19 @@ class SimulatorRequestHandler(http.server.SimpleHTTPRequestHandler):
                 "autonomous_90s": "COSTUME_PATTERN_AUTONOMOUS_90S",
                 "off": "COSTUME_PATTERN_OFF",
                 "flashlight": "COSTUME_PATTERN_FLASHLIGHT",
-                "mouse_scamper": "COSTUME_PATTERN_MOUSE_SCAMPER"
+                "mouse_scamper": "COSTUME_PATTERN_MOUSE_SCAMPER",
+                "dim_glow": "COSTUME_PATTERN_DIM_GLOW",
+                "dual_chase": "COSTUME_PATTERN_DUAL_CHASE",
+                "barber_pole": "COSTUME_PATTERN_BARBER_POLE",
+                "curtain_wipe": "COSTUME_PATTERN_CURTAIN_WIPE",
+                "random_dissolve": "COSTUME_PATTERN_RANDOM_DISSOLVE",
+                "lightning_bug": "COSTUME_PATTERN_LIGHTNING_BUG",
+                "paparazzi": "COSTUME_PATTERN_PAPARAZZI",
+                "double_blink": "COSTUME_PATTERN_DOUBLE_BLINK",
+                "heartbeat": "COSTUME_PATTERN_HEARTBEAT",
+                "two_tone_fade": "COSTUME_PATTERN_TWO_TONE_FADE",
+                "confetti": "COSTUME_PATTERN_CONFETTI",
+                "cinderella_twinkle": "COSTUME_PATTERN_CINDERELLA_TWINKLE"
             }
             active_pattern = pattern_map.get(pattern_str, "COSTUME_PATTERN_STEADY_SPARKLE")
 
@@ -710,6 +722,19 @@ class SimulatorRequestHandler(http.server.SimpleHTTPRequestHandler):
                 "off": 17,
                 "flashlight": 18,
                 "mouse_scamper": 19,
+                "dragon_sparkle": 20,
+                "dim_glow": 21,
+                "dual_chase": 22,
+                "barber_pole": 23,
+                "curtain_wipe": 24,
+                "random_dissolve": 25,
+                "lightning_bug": 26,
+                "paparazzi": 27,
+                "double_blink": 28,
+                "heartbeat": 29,
+                "two_tone_fade": 30,
+                "confetti": 31,
+                "cinderella_twinkle": 32,
                 "autonomous_90s": 0
             }
             ambient_fallback_code = ambient_pattern_numeric_map.get(ambient_pattern_str, 0)
@@ -767,7 +792,22 @@ class SimulatorRequestHandler(http.server.SimpleHTTPRequestHandler):
                 "filament_glow": 12,
                 "candle_flicker": 13,
                 "tidal_ripple": 14,
-                "piston_chug": 15
+                "piston_chug": 15,
+                "flashlight": 18,
+                "mouse_scamper": 19,
+                "dragon_sparkle": 20,
+                "dim_glow": 21,
+                "dual_chase": 22,
+                "barber_pole": 23,
+                "curtain_wipe": 24,
+                "random_dissolve": 25,
+                "lightning_bug": 26,
+                "paparazzi": 27,
+                "double_blink": 28,
+                "heartbeat": 29,
+                "two_tone_fade": 30,
+                "confetti": 31,
+                "cinderella_twinkle": 32
             }
 
             cue_lines = []
@@ -876,6 +916,19 @@ class SimulatorRequestHandler(http.server.SimpleHTTPRequestHandler):
 #define COSTUME_PATTERN_OFF              17
 #define COSTUME_PATTERN_FLASHLIGHT       18
 #define COSTUME_PATTERN_MOUSE_SCAMPER    19
+#define COSTUME_PATTERN_DRAGON_SPARKLE   20
+#define COSTUME_PATTERN_DIM_GLOW         21
+#define COSTUME_PATTERN_DUAL_CHASE       22
+#define COSTUME_PATTERN_BARBER_POLE      23
+#define COSTUME_PATTERN_CURTAIN_WIPE     24
+#define COSTUME_PATTERN_RANDOM_DISSOLVE  25
+#define COSTUME_PATTERN_LIGHTNING_BUG    26
+#define COSTUME_PATTERN_PAPARAZZI        27
+#define COSTUME_PATTERN_DOUBLE_BLINK     28
+#define COSTUME_PATTERN_HEARTBEAT        29
+#define COSTUME_PATTERN_TWO_TONE_FADE    30
+#define COSTUME_PATTERN_CONFETTI         31
+#define COSTUME_PATTERN_CINDERELLA_TWINKLE 32
 
 #define ACTIVE_COSTUME_PATTERN           {active_pattern}
 #define COSTUME_SPEED_BPM                {speed_bpm}

@@ -93,6 +93,18 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### November 12, 2026 - Categorized Solo Mode Effect Catalog, 11 New Effects & Full ESP32 Firmware Parity
+- **Unified Solo Mode Effect Registry (`simulator/app.js`, `simulator/index.html`):**
+  - Replaced 7 separate flat `<select>` dropdowns (`patternSelect`, `groupEffectSelectHub`, `groupBaselineSelectHub`, `drawGroupEffectSelect`, `drawGroupBaselineSelect`, `groupEffectSelect`, `groupBaselineSelect`) and the Cue Director `effectOptions` list with a single shared `EFFECT_CATALOG` and `EFFECT_CATEGORIES` registry.
+  - Organized all **36 effects** into **6 intuitive `<optgroup>` categories** (*🏃 Chases & Sweeps*, *🖌️ Wipes & Fills*, *⚡ Flashes & Strobes*, *🌬️ Glows & Pulses*, *✨ Sparkles & Magic*, *🌈 Color & Utility*) with live 1-line description hints (`#patternEffectHint`, `#groupEffectHintHub`) and tooltips.
+  - Surfaced 4 previously hidden effects (`dragon_sparkle`, `fire_breath`, `traveling_wave`, `dim_glow`) into both Global and Group selectors.
+- **11 New Parade-Inspired Effects (`evalNewCatalogEffect` in `simulator/app.js`):**
+  - Added `dual_chase`, `barber_pole`, `curtain_wipe`, `random_dissolve`, `lightning_bug`, `paparazzi`, `double_blink`, `heartbeat`, `two_tone_fade`, `confetti`, and `cinderella_twinkle`.
+- **Full ESP32 Firmware & Export Parity (`simulator.py`, `include/costume_config.h`, `src/main.cpp`, `arduino/MSEP_Costume/MSEP_Costume.ino`):**
+  - Assigned `COSTUME_PATTERN_*` IDs `20..32` across `simulator.py` and `include/costume_config.h`.
+  - Implemented shared `renderCatalogEffect20to32()` helper in both `src/main.cpp` and `arduino/MSEP_Costume/MSEP_Costume.ino`, wired into both `renderAmbientFallback()` and `runAutonomousShowSequence()`.
+  - Verified with `node --check simulator/app.js`, `python -m py_compile simulator.py`, and PlatformIO `pio run` (`esp32dev` SUCCESS).
+
 ### November 11, 2026 - Fairy Spatial 3-3-3 Red/White/Blue Triplets, Orphaned Port 8000 Server Cleanup & `getMatrixActiveLedCount()` Guard
 - **Physical Z-Fold Accordion Spatial Step Mapping + RGB-on-GRB Byte Swap (3 Red, 3 White, 3 Blue):**
   - **Root Cause & Diagnosis:** `getFloatFairyBulbColor()` previously determined color triplets using raw sequential wire index (`wireBulbIndex / 3`). Because the 25-bulb fairy light wire is physically Z-folded / accordion-routed through the 3D-printed clips along the runner's ribs (13 steps front, 12 steps back), sequential wire bulbs jump between front and back rib channels. Adding `FAIRY_STRAND1_SPATIAL_STEP[25]` and `FAIRY_STRAND2_SPATIAL_STEP[25]` grouped the fairy lights into clean triplets of 3 along the ribs, and restoring the R↔G byte swap (`CRGB(fc.g, fc.r, fc.b)`) for the RGB fairy chips on the GRB FastLED stream turned the Green/White/Blue triplets back into pure, bold **3 Red, 3 White, 3 Royal Blue** (`CRGB(255, 0, 0)`, `CRGB(255, 255, 255)`, `CRGB(0, 0, 255)`).

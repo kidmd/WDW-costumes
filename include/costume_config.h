@@ -35,6 +35,19 @@
 #define COSTUME_PATTERN_OFF              17
 #define COSTUME_PATTERN_FLASHLIGHT       18
 #define COSTUME_PATTERN_MOUSE_SCAMPER    19
+#define COSTUME_PATTERN_DRAGON_SPARKLE   20
+#define COSTUME_PATTERN_DIM_GLOW         21
+#define COSTUME_PATTERN_DUAL_CHASE       22
+#define COSTUME_PATTERN_BARBER_POLE      23
+#define COSTUME_PATTERN_CURTAIN_WIPE     24
+#define COSTUME_PATTERN_RANDOM_DISSOLVE  25
+#define COSTUME_PATTERN_LIGHTNING_BUG    26
+#define COSTUME_PATTERN_PAPARAZZI        27
+#define COSTUME_PATTERN_DOUBLE_BLINK     28
+#define COSTUME_PATTERN_HEARTBEAT        29
+#define COSTUME_PATTERN_TWO_TONE_FADE    30
+#define COSTUME_PATTERN_CONFETTI         31
+#define COSTUME_PATTERN_CINDERELLA_TWINKLE 32
 
 #define ACTIVE_COSTUME_PATTERN           COSTUME_PATTERN_AUTONOMOUS_90S
 #define COSTUME_SPEED_BPM                120
@@ -69,156 +82,156 @@ const CostumeCue PROGMEM CUSTOM_SEQUENCE_CUES[1] = {
 // Artwork Sampled Color Palette (PROGMEM Flash Storage)
 const CRGB PROGMEM ARTWORK_PALETTE[NUM_LEDS] = {
     CRGB(10, 118, 247), // Front LED 0
-    CRGB(13, 119, 245), // Front LED 1
-    CRGB(22, 116, 244), // Front LED 2
-    CRGB(27, 119, 243), // Front LED 3
-    CRGB(12, 119, 246), // Front LED 4
-    CRGB(14, 120, 247), // Front LED 5
-    CRGB(40, 131, 240), // Front LED 6
-    CRGB(253, 8, 0), // Front LED 7
-    CRGB(255, 250, 242), // Front LED 8
-    CRGB(255, 250, 242), // Front LED 9
-    CRGB(253, 8, 0), // Front LED 10
-    CRGB(253, 8, 0), // Front LED 11
-    CRGB(38, 126, 240), // Front LED 12
-    CRGB(255, 250, 242), // Front LED 13
-    CRGB(255, 250, 242), // Front LED 14
-    CRGB(10, 118, 248), // Front LED 15
-    CRGB(10, 119, 248), // Front LED 16
-    CRGB(253, 6, 0), // Front LED 17
-    CRGB(26, 122, 243), // Front LED 18
-    CRGB(22, 117, 244), // Front LED 19
-    CRGB(12, 118, 248), // Front LED 20
-    CRGB(16, 122, 246), // Front LED 21
-    CRGB(255, 250, 242), // Front LED 22
+    CRGB(21, 115, 244), // Front LED 1
+    CRGB(255, 250, 242), // Front LED 2
+    CRGB(12, 119, 247), // Front LED 3
+    CRGB(48, 132, 238), // Front LED 4
+    CRGB(253, 8, 0), // Front LED 5
+    CRGB(253, 6, 0), // Front LED 6
+    CRGB(255, 250, 242), // Front LED 7
+    CRGB(253, 8, 0), // Front LED 8
+    CRGB(253, 8, 0), // Front LED 9
+    CRGB(21, 123, 244), // Front LED 10
+    CRGB(255, 250, 242), // Front LED 11
+    CRGB(255, 250, 242), // Front LED 12
+    CRGB(9, 119, 248), // Front LED 13
+    CRGB(9, 118, 248), // Front LED 14
+    CRGB(253, 6, 0), // Front LED 15
+    CRGB(255, 250, 242), // Front LED 16
+    CRGB(31, 122, 242), // Front LED 17
+    CRGB(255, 250, 242), // Front LED 18
+    CRGB(30, 122, 242), // Front LED 19
+    CRGB(17, 22, 29), // Front LED 20
+    CRGB(253, 8, 0), // Front LED 21
+    CRGB(17, 120, 246), // Front LED 22
     CRGB(253, 8, 0), // Front LED 23
-    CRGB(254, 8, 0), // Front LED 24
-    CRGB(255, 250, 242), // Front LED 25
-    CRGB(254, 8, 0), // Front LED 26
-    CRGB(19, 124, 246), // Front LED 27
-    CRGB(255, 250, 242), // Front LED 28
+    CRGB(253, 7, 0), // Front LED 24
+    CRGB(254, 8, 0), // Front LED 25
+    CRGB(255, 250, 242), // Front LED 26
+    CRGB(255, 250, 242), // Front LED 27
+    CRGB(254, 8, 0), // Front LED 28
     CRGB(254, 8, 0), // Front LED 29
-    CRGB(9, 118, 248), // Front LED 30
-    CRGB(255, 250, 242), // Front LED 31
+    CRGB(9, 120, 248), // Front LED 30
+    CRGB(253, 8, 0), // Front LED 31
     CRGB(254, 8, 0), // Front LED 32
-    CRGB(253, 8, 0), // Front LED 33
+    CRGB(254, 8, 0), // Front LED 33
     CRGB(10, 119, 248), // Front LED 34
-    CRGB(254, 8, 0), // Front LED 35
+    CRGB(255, 250, 242), // Front LED 35
     CRGB(253, 8, 0), // Front LED 36
     CRGB(253, 8, 0), // Front LED 37
     CRGB(255, 250, 242), // Front LED 38
     CRGB(254, 8, 0), // Front LED 39
     CRGB(10, 118, 248), // Front LED 40
     CRGB(253, 8, 0), // Front LED 41
-    CRGB(255, 250, 242), // Front LED 42
-    CRGB(255, 250, 242), // Front LED 43
+    CRGB(253, 6, 0), // Front LED 42
+    CRGB(11, 118, 248), // Front LED 43
     CRGB(255, 250, 242), // Front LED 44
     CRGB(255, 250, 242), // Front LED 45
-    CRGB(40, 127, 239), // Front LED 46
-    CRGB(45, 126, 238), // Front LED 47
-    CRGB(19, 122, 244), // Front LED 48
-    CRGB(253, 6, 0), // Front LED 49
-    CRGB(15, 122, 247), // Front LED 50
+    CRGB(255, 250, 242), // Front LED 46
+    CRGB(32, 120, 241), // Front LED 47
+    CRGB(41, 121, 239), // Front LED 48
+    CRGB(9, 118, 248), // Front LED 49
+    CRGB(16, 122, 246), // Front LED 50
     CRGB(255, 250, 242), // Front LED 51
     CRGB(255, 250, 242), // Front LED 52
     CRGB(255, 250, 242), // Front LED 53
-    CRGB(9, 117, 248), // Front LED 54
-    CRGB(15, 120, 245), // Front LED 55
-    CRGB(14, 118, 245), // Front LED 56
-    CRGB(19, 117, 243), // Front LED 57
-    CRGB(19, 124, 244), // Front LED 58
-    CRGB(255, 250, 242), // Front LED 59
+    CRGB(255, 250, 242), // Front LED 54
+    CRGB(10, 118, 248), // Front LED 55
+    CRGB(26, 124, 243), // Front LED 56
+    CRGB(11, 119, 246), // Front LED 57
+    CRGB(22, 117, 243), // Front LED 58
+    CRGB(32, 126, 241), // Front LED 59
     CRGB(255, 250, 242), // Front LED 60
     CRGB(255, 250, 242), // Front LED 61
     CRGB(255, 250, 242), // Front LED 62
     CRGB(255, 250, 242), // Front LED 63
-    CRGB(23, 125, 244), // Front LED 64
-    CRGB(253, 6, 0), // Front LED 65
-    CRGB(50, 130, 238), // Front LED 66
-    CRGB(253, 6, 0), // Front LED 67
-    CRGB(255, 250, 242), // Front LED 68
-    CRGB(255, 250, 242), // Front LED 69
+    CRGB(255, 250, 242), // Front LED 64
+    CRGB(19, 123, 246), // Front LED 65
+    CRGB(253, 6, 0), // Front LED 66
+    CRGB(17, 22, 29), // Front LED 67
+    CRGB(51, 130, 238), // Front LED 68
+    CRGB(253, 6, 0), // Front LED 69
     CRGB(255, 250, 242), // Front LED 70
     CRGB(255, 250, 242), // Front LED 71
     CRGB(255, 250, 242), // Front LED 72
     CRGB(255, 250, 242), // Front LED 73
     CRGB(253, 8, 0), // Front LED 74
     CRGB(253, 8, 0), // Front LED 75
-    CRGB(253, 8, 0), // Front LED 76
+    CRGB(17, 22, 29), // Front LED 76
     CRGB(253, 6, 0), // Front LED 77
-    CRGB(252, 6, 0), // Front LED 78
+    CRGB(10, 119, 248), // Front LED 78
     CRGB(255, 250, 242), // Front LED 79
-    CRGB(16, 120, 246), // Front LED 80
+    CRGB(255, 250, 242), // Front LED 80
     CRGB(255, 250, 242), // Front LED 81
     CRGB(255, 250, 242), // Front LED 82
-    CRGB(253, 8, 0), // Front LED 83
-    CRGB(254, 8, 0), // Front LED 84
-    CRGB(254, 8, 0), // Front LED 85
+    CRGB(255, 250, 242), // Front LED 83
+    CRGB(253, 8, 0), // Front LED 84
+    CRGB(17, 22, 29), // Front LED 85
     CRGB(254, 8, 0), // Front LED 86
     CRGB(254, 8, 0), // Front LED 87
-    CRGB(15, 119, 247), // Front LED 88
-    CRGB(14, 120, 247), // Front LED 89
-    CRGB(255, 250, 242), // Front LED 90
-    CRGB(255, 250, 242), // Front LED 91
-    CRGB(254, 8, 0), // Front LED 92
+    CRGB(254, 8, 0), // Front LED 88
+    CRGB(254, 8, 0), // Front LED 89
+    CRGB(14, 120, 247), // Front LED 90
+    CRGB(14, 121, 247), // Front LED 91
+    CRGB(255, 250, 242), // Front LED 92
     CRGB(254, 8, 0), // Front LED 93
     CRGB(254, 8, 0), // Front LED 94
     CRGB(254, 8, 0), // Front LED 95
-    CRGB(254, 8, 0), // Front LED 96
+    CRGB(255, 250, 242), // Front LED 96
     CRGB(254, 8, 0), // Front LED 97
     CRGB(254, 8, 0), // Front LED 98
-    CRGB(19, 121, 246), // Front LED 99
-    CRGB(255, 250, 242), // Front LED 100
+    CRGB(254, 8, 0), // Front LED 99
+    CRGB(16, 121, 246), // Front LED 100
     CRGB(255, 250, 242), // Front LED 101
     CRGB(255, 250, 242), // Front LED 102
-    CRGB(254, 8, 0), // Front LED 103
+    CRGB(255, 250, 242), // Front LED 103
     CRGB(254, 8, 0), // Front LED 104
     CRGB(254, 8, 0), // Front LED 105
-    CRGB(255, 250, 242), // Front LED 106
-    CRGB(253, 8, 0), // Front LED 107
-    CRGB(254, 8, 0), // Front LED 108
+    CRGB(254, 8, 0), // Front LED 106
+    CRGB(255, 250, 242), // Front LED 107
+    CRGB(253, 8, 0), // Front LED 108
     CRGB(254, 8, 0), // Front LED 109
-    CRGB(255, 250, 242), // Front LED 110
+    CRGB(254, 8, 0), // Front LED 110
     CRGB(254, 8, 0), // Front LED 111
-    CRGB(254, 8, 0), // Front LED 112
-    CRGB(253, 8, 0), // Front LED 113
-    CRGB(16, 123, 247), // Front LED 114
-    CRGB(10, 119, 248), // Front LED 115
-    CRGB(255, 250, 242), // Front LED 116
+    CRGB(255, 250, 242), // Front LED 112
+    CRGB(254, 8, 0), // Front LED 113
+    CRGB(254, 8, 0), // Front LED 114
+    CRGB(16, 121, 247), // Front LED 115
+    CRGB(10, 118, 247), // Front LED 116
     CRGB(255, 250, 242), // Front LED 117
     CRGB(255, 250, 242), // Front LED 118
-    CRGB(254, 8, 0), // Front LED 119
-    CRGB(255, 250, 242), // Front LED 120
+    CRGB(255, 250, 242), // Front LED 119
+    CRGB(254, 8, 0), // Front LED 120
     CRGB(255, 250, 242), // Front LED 121
     CRGB(255, 250, 242), // Front LED 122
     CRGB(253, 8, 0), // Front LED 123
     CRGB(253, 8, 0), // Front LED 124
     CRGB(254, 8, 0), // Front LED 125
     CRGB(254, 8, 0), // Front LED 126
-    CRGB(11, 119, 247), // Front LED 127
-    CRGB(254, 8, 0), // Front LED 128
-    CRGB(255, 250, 242), // Front LED 129
+    CRGB(254, 8, 0), // Front LED 127
+    CRGB(11, 117, 247), // Front LED 128
+    CRGB(254, 8, 0), // Front LED 129
     CRGB(255, 250, 242), // Front LED 130
     CRGB(255, 250, 242), // Front LED 131
     CRGB(255, 250, 242), // Front LED 132
-    CRGB(12, 120, 247), // Front LED 133
-    CRGB(253, 8, 0), // Front LED 134
-    CRGB(254, 8, 0), // Front LED 135
+    CRGB(255, 250, 242), // Front LED 133
+    CRGB(12, 118, 247), // Front LED 134
+    CRGB(253, 8, 0), // Front LED 135
     CRGB(254, 8, 0), // Front LED 136
     CRGB(254, 8, 0), // Front LED 137
-    CRGB(255, 250, 242), // Front LED 138
+    CRGB(254, 8, 0), // Front LED 138
     CRGB(254, 8, 0), // Front LED 139
     CRGB(254, 8, 0), // Front LED 140
     CRGB(254, 8, 0), // Front LED 141
-    CRGB(10, 119, 248), // Front LED 142
-    CRGB(254, 8, 0), // Front LED 143
-    CRGB(51, 146, 240), // Front LED 144
+    CRGB(255, 250, 242), // Front LED 142
+    CRGB(10, 119, 248), // Front LED 143
+    CRGB(254, 8, 0), // Front LED 144
     CRGB(255, 250, 242), // Front LED 145
     CRGB(254, 8, 0), // Front LED 146
     CRGB(254, 8, 0), // Front LED 147
     CRGB(254, 8, 0), // Front LED 148
     CRGB(254, 8, 0), // Front LED 149
-    CRGB(253, 8, 0), // Front LED 150
+    CRGB(253, 6, 0), // Front LED 150
     CRGB(0, 0, 0), // Front LED 151
     CRGB(0, 0, 0), // Front LED 152
     CRGB(0, 0, 0), // Front LED 153
@@ -325,156 +338,156 @@ const CRGB PROGMEM ARTWORK_PALETTE[NUM_LEDS] = {
     CRGB(0, 0, 0), // Front LED 254
     CRGB(0, 0, 0), // Front LED 255
     CRGB(10, 118, 247), // Back LED 256 (Duplicate of 0)
-    CRGB(13, 119, 245), // Back LED 257 (Duplicate of 1)
-    CRGB(22, 116, 244), // Back LED 258 (Duplicate of 2)
-    CRGB(27, 119, 243), // Back LED 259 (Duplicate of 3)
-    CRGB(12, 119, 246), // Back LED 260 (Duplicate of 4)
-    CRGB(14, 120, 247), // Back LED 261 (Duplicate of 5)
-    CRGB(40, 131, 240), // Back LED 262 (Duplicate of 6)
-    CRGB(253, 8, 0), // Back LED 263 (Duplicate of 7)
-    CRGB(255, 250, 242), // Back LED 264 (Duplicate of 8)
-    CRGB(255, 250, 242), // Back LED 265 (Duplicate of 9)
-    CRGB(253, 8, 0), // Back LED 266 (Duplicate of 10)
-    CRGB(253, 8, 0), // Back LED 267 (Duplicate of 11)
-    CRGB(38, 126, 240), // Back LED 268 (Duplicate of 12)
-    CRGB(255, 250, 242), // Back LED 269 (Duplicate of 13)
-    CRGB(255, 250, 242), // Back LED 270 (Duplicate of 14)
-    CRGB(10, 118, 248), // Back LED 271 (Duplicate of 15)
-    CRGB(10, 119, 248), // Back LED 272 (Duplicate of 16)
-    CRGB(253, 6, 0), // Back LED 273 (Duplicate of 17)
-    CRGB(26, 122, 243), // Back LED 274 (Duplicate of 18)
-    CRGB(22, 117, 244), // Back LED 275 (Duplicate of 19)
-    CRGB(12, 118, 248), // Back LED 276 (Duplicate of 20)
-    CRGB(16, 122, 246), // Back LED 277 (Duplicate of 21)
-    CRGB(255, 250, 242), // Back LED 278 (Duplicate of 22)
+    CRGB(21, 115, 244), // Back LED 257 (Duplicate of 1)
+    CRGB(255, 250, 242), // Back LED 258 (Duplicate of 2)
+    CRGB(12, 119, 247), // Back LED 259 (Duplicate of 3)
+    CRGB(48, 132, 238), // Back LED 260 (Duplicate of 4)
+    CRGB(253, 8, 0), // Back LED 261 (Duplicate of 5)
+    CRGB(253, 6, 0), // Back LED 262 (Duplicate of 6)
+    CRGB(255, 250, 242), // Back LED 263 (Duplicate of 7)
+    CRGB(253, 8, 0), // Back LED 264 (Duplicate of 8)
+    CRGB(253, 8, 0), // Back LED 265 (Duplicate of 9)
+    CRGB(21, 123, 244), // Back LED 266 (Duplicate of 10)
+    CRGB(255, 250, 242), // Back LED 267 (Duplicate of 11)
+    CRGB(255, 250, 242), // Back LED 268 (Duplicate of 12)
+    CRGB(9, 119, 248), // Back LED 269 (Duplicate of 13)
+    CRGB(9, 118, 248), // Back LED 270 (Duplicate of 14)
+    CRGB(253, 6, 0), // Back LED 271 (Duplicate of 15)
+    CRGB(255, 250, 242), // Back LED 272 (Duplicate of 16)
+    CRGB(31, 122, 242), // Back LED 273 (Duplicate of 17)
+    CRGB(255, 250, 242), // Back LED 274 (Duplicate of 18)
+    CRGB(30, 122, 242), // Back LED 275 (Duplicate of 19)
+    CRGB(17, 22, 29), // Back LED 276 (Duplicate of 20)
+    CRGB(253, 8, 0), // Back LED 277 (Duplicate of 21)
+    CRGB(17, 120, 246), // Back LED 278 (Duplicate of 22)
     CRGB(253, 8, 0), // Back LED 279 (Duplicate of 23)
-    CRGB(254, 8, 0), // Back LED 280 (Duplicate of 24)
-    CRGB(255, 250, 242), // Back LED 281 (Duplicate of 25)
-    CRGB(254, 8, 0), // Back LED 282 (Duplicate of 26)
-    CRGB(19, 124, 246), // Back LED 283 (Duplicate of 27)
-    CRGB(255, 250, 242), // Back LED 284 (Duplicate of 28)
+    CRGB(253, 7, 0), // Back LED 280 (Duplicate of 24)
+    CRGB(254, 8, 0), // Back LED 281 (Duplicate of 25)
+    CRGB(255, 250, 242), // Back LED 282 (Duplicate of 26)
+    CRGB(255, 250, 242), // Back LED 283 (Duplicate of 27)
+    CRGB(254, 8, 0), // Back LED 284 (Duplicate of 28)
     CRGB(254, 8, 0), // Back LED 285 (Duplicate of 29)
-    CRGB(9, 118, 248), // Back LED 286 (Duplicate of 30)
-    CRGB(255, 250, 242), // Back LED 287 (Duplicate of 31)
+    CRGB(9, 120, 248), // Back LED 286 (Duplicate of 30)
+    CRGB(253, 8, 0), // Back LED 287 (Duplicate of 31)
     CRGB(254, 8, 0), // Back LED 288 (Duplicate of 32)
-    CRGB(253, 8, 0), // Back LED 289 (Duplicate of 33)
+    CRGB(254, 8, 0), // Back LED 289 (Duplicate of 33)
     CRGB(10, 119, 248), // Back LED 290 (Duplicate of 34)
-    CRGB(254, 8, 0), // Back LED 291 (Duplicate of 35)
+    CRGB(255, 250, 242), // Back LED 291 (Duplicate of 35)
     CRGB(253, 8, 0), // Back LED 292 (Duplicate of 36)
     CRGB(253, 8, 0), // Back LED 293 (Duplicate of 37)
     CRGB(255, 250, 242), // Back LED 294 (Duplicate of 38)
     CRGB(254, 8, 0), // Back LED 295 (Duplicate of 39)
     CRGB(10, 118, 248), // Back LED 296 (Duplicate of 40)
     CRGB(253, 8, 0), // Back LED 297 (Duplicate of 41)
-    CRGB(255, 250, 242), // Back LED 298 (Duplicate of 42)
-    CRGB(255, 250, 242), // Back LED 299 (Duplicate of 43)
+    CRGB(253, 6, 0), // Back LED 298 (Duplicate of 42)
+    CRGB(11, 118, 248), // Back LED 299 (Duplicate of 43)
     CRGB(255, 250, 242), // Back LED 300 (Duplicate of 44)
     CRGB(255, 250, 242), // Back LED 301 (Duplicate of 45)
-    CRGB(40, 127, 239), // Back LED 302 (Duplicate of 46)
-    CRGB(45, 126, 238), // Back LED 303 (Duplicate of 47)
-    CRGB(19, 122, 244), // Back LED 304 (Duplicate of 48)
-    CRGB(253, 6, 0), // Back LED 305 (Duplicate of 49)
-    CRGB(15, 122, 247), // Back LED 306 (Duplicate of 50)
+    CRGB(255, 250, 242), // Back LED 302 (Duplicate of 46)
+    CRGB(32, 120, 241), // Back LED 303 (Duplicate of 47)
+    CRGB(41, 121, 239), // Back LED 304 (Duplicate of 48)
+    CRGB(9, 118, 248), // Back LED 305 (Duplicate of 49)
+    CRGB(16, 122, 246), // Back LED 306 (Duplicate of 50)
     CRGB(255, 250, 242), // Back LED 307 (Duplicate of 51)
     CRGB(255, 250, 242), // Back LED 308 (Duplicate of 52)
     CRGB(255, 250, 242), // Back LED 309 (Duplicate of 53)
-    CRGB(9, 117, 248), // Back LED 310 (Duplicate of 54)
-    CRGB(15, 120, 245), // Back LED 311 (Duplicate of 55)
-    CRGB(14, 118, 245), // Back LED 312 (Duplicate of 56)
-    CRGB(19, 117, 243), // Back LED 313 (Duplicate of 57)
-    CRGB(19, 124, 244), // Back LED 314 (Duplicate of 58)
-    CRGB(255, 250, 242), // Back LED 315 (Duplicate of 59)
+    CRGB(255, 250, 242), // Back LED 310 (Duplicate of 54)
+    CRGB(10, 118, 248), // Back LED 311 (Duplicate of 55)
+    CRGB(26, 124, 243), // Back LED 312 (Duplicate of 56)
+    CRGB(11, 119, 246), // Back LED 313 (Duplicate of 57)
+    CRGB(22, 117, 243), // Back LED 314 (Duplicate of 58)
+    CRGB(32, 126, 241), // Back LED 315 (Duplicate of 59)
     CRGB(255, 250, 242), // Back LED 316 (Duplicate of 60)
     CRGB(255, 250, 242), // Back LED 317 (Duplicate of 61)
     CRGB(255, 250, 242), // Back LED 318 (Duplicate of 62)
     CRGB(255, 250, 242), // Back LED 319 (Duplicate of 63)
-    CRGB(23, 125, 244), // Back LED 320 (Duplicate of 64)
-    CRGB(253, 6, 0), // Back LED 321 (Duplicate of 65)
-    CRGB(50, 130, 238), // Back LED 322 (Duplicate of 66)
-    CRGB(253, 6, 0), // Back LED 323 (Duplicate of 67)
-    CRGB(255, 250, 242), // Back LED 324 (Duplicate of 68)
-    CRGB(255, 250, 242), // Back LED 325 (Duplicate of 69)
+    CRGB(255, 250, 242), // Back LED 320 (Duplicate of 64)
+    CRGB(19, 123, 246), // Back LED 321 (Duplicate of 65)
+    CRGB(253, 6, 0), // Back LED 322 (Duplicate of 66)
+    CRGB(17, 22, 29), // Back LED 323 (Duplicate of 67)
+    CRGB(51, 130, 238), // Back LED 324 (Duplicate of 68)
+    CRGB(253, 6, 0), // Back LED 325 (Duplicate of 69)
     CRGB(255, 250, 242), // Back LED 326 (Duplicate of 70)
     CRGB(255, 250, 242), // Back LED 327 (Duplicate of 71)
     CRGB(255, 250, 242), // Back LED 328 (Duplicate of 72)
     CRGB(255, 250, 242), // Back LED 329 (Duplicate of 73)
     CRGB(253, 8, 0), // Back LED 330 (Duplicate of 74)
     CRGB(253, 8, 0), // Back LED 331 (Duplicate of 75)
-    CRGB(253, 8, 0), // Back LED 332 (Duplicate of 76)
+    CRGB(17, 22, 29), // Back LED 332 (Duplicate of 76)
     CRGB(253, 6, 0), // Back LED 333 (Duplicate of 77)
-    CRGB(252, 6, 0), // Back LED 334 (Duplicate of 78)
+    CRGB(10, 119, 248), // Back LED 334 (Duplicate of 78)
     CRGB(255, 250, 242), // Back LED 335 (Duplicate of 79)
-    CRGB(16, 120, 246), // Back LED 336 (Duplicate of 80)
+    CRGB(255, 250, 242), // Back LED 336 (Duplicate of 80)
     CRGB(255, 250, 242), // Back LED 337 (Duplicate of 81)
     CRGB(255, 250, 242), // Back LED 338 (Duplicate of 82)
-    CRGB(253, 8, 0), // Back LED 339 (Duplicate of 83)
-    CRGB(254, 8, 0), // Back LED 340 (Duplicate of 84)
-    CRGB(254, 8, 0), // Back LED 341 (Duplicate of 85)
+    CRGB(255, 250, 242), // Back LED 339 (Duplicate of 83)
+    CRGB(253, 8, 0), // Back LED 340 (Duplicate of 84)
+    CRGB(17, 22, 29), // Back LED 341 (Duplicate of 85)
     CRGB(254, 8, 0), // Back LED 342 (Duplicate of 86)
     CRGB(254, 8, 0), // Back LED 343 (Duplicate of 87)
-    CRGB(15, 119, 247), // Back LED 344 (Duplicate of 88)
-    CRGB(14, 120, 247), // Back LED 345 (Duplicate of 89)
-    CRGB(255, 250, 242), // Back LED 346 (Duplicate of 90)
-    CRGB(255, 250, 242), // Back LED 347 (Duplicate of 91)
-    CRGB(254, 8, 0), // Back LED 348 (Duplicate of 92)
+    CRGB(254, 8, 0), // Back LED 344 (Duplicate of 88)
+    CRGB(254, 8, 0), // Back LED 345 (Duplicate of 89)
+    CRGB(14, 120, 247), // Back LED 346 (Duplicate of 90)
+    CRGB(14, 121, 247), // Back LED 347 (Duplicate of 91)
+    CRGB(255, 250, 242), // Back LED 348 (Duplicate of 92)
     CRGB(254, 8, 0), // Back LED 349 (Duplicate of 93)
     CRGB(254, 8, 0), // Back LED 350 (Duplicate of 94)
     CRGB(254, 8, 0), // Back LED 351 (Duplicate of 95)
-    CRGB(254, 8, 0), // Back LED 352 (Duplicate of 96)
+    CRGB(255, 250, 242), // Back LED 352 (Duplicate of 96)
     CRGB(254, 8, 0), // Back LED 353 (Duplicate of 97)
     CRGB(254, 8, 0), // Back LED 354 (Duplicate of 98)
-    CRGB(19, 121, 246), // Back LED 355 (Duplicate of 99)
-    CRGB(255, 250, 242), // Back LED 356 (Duplicate of 100)
+    CRGB(254, 8, 0), // Back LED 355 (Duplicate of 99)
+    CRGB(16, 121, 246), // Back LED 356 (Duplicate of 100)
     CRGB(255, 250, 242), // Back LED 357 (Duplicate of 101)
     CRGB(255, 250, 242), // Back LED 358 (Duplicate of 102)
-    CRGB(254, 8, 0), // Back LED 359 (Duplicate of 103)
+    CRGB(255, 250, 242), // Back LED 359 (Duplicate of 103)
     CRGB(254, 8, 0), // Back LED 360 (Duplicate of 104)
     CRGB(254, 8, 0), // Back LED 361 (Duplicate of 105)
-    CRGB(255, 250, 242), // Back LED 362 (Duplicate of 106)
-    CRGB(253, 8, 0), // Back LED 363 (Duplicate of 107)
-    CRGB(254, 8, 0), // Back LED 364 (Duplicate of 108)
+    CRGB(254, 8, 0), // Back LED 362 (Duplicate of 106)
+    CRGB(255, 250, 242), // Back LED 363 (Duplicate of 107)
+    CRGB(253, 8, 0), // Back LED 364 (Duplicate of 108)
     CRGB(254, 8, 0), // Back LED 365 (Duplicate of 109)
-    CRGB(255, 250, 242), // Back LED 366 (Duplicate of 110)
+    CRGB(254, 8, 0), // Back LED 366 (Duplicate of 110)
     CRGB(254, 8, 0), // Back LED 367 (Duplicate of 111)
-    CRGB(254, 8, 0), // Back LED 368 (Duplicate of 112)
-    CRGB(253, 8, 0), // Back LED 369 (Duplicate of 113)
-    CRGB(16, 123, 247), // Back LED 370 (Duplicate of 114)
-    CRGB(10, 119, 248), // Back LED 371 (Duplicate of 115)
-    CRGB(255, 250, 242), // Back LED 372 (Duplicate of 116)
+    CRGB(255, 250, 242), // Back LED 368 (Duplicate of 112)
+    CRGB(254, 8, 0), // Back LED 369 (Duplicate of 113)
+    CRGB(254, 8, 0), // Back LED 370 (Duplicate of 114)
+    CRGB(16, 121, 247), // Back LED 371 (Duplicate of 115)
+    CRGB(10, 118, 247), // Back LED 372 (Duplicate of 116)
     CRGB(255, 250, 242), // Back LED 373 (Duplicate of 117)
     CRGB(255, 250, 242), // Back LED 374 (Duplicate of 118)
-    CRGB(254, 8, 0), // Back LED 375 (Duplicate of 119)
-    CRGB(255, 250, 242), // Back LED 376 (Duplicate of 120)
+    CRGB(255, 250, 242), // Back LED 375 (Duplicate of 119)
+    CRGB(254, 8, 0), // Back LED 376 (Duplicate of 120)
     CRGB(255, 250, 242), // Back LED 377 (Duplicate of 121)
     CRGB(255, 250, 242), // Back LED 378 (Duplicate of 122)
     CRGB(253, 8, 0), // Back LED 379 (Duplicate of 123)
     CRGB(253, 8, 0), // Back LED 380 (Duplicate of 124)
     CRGB(254, 8, 0), // Back LED 381 (Duplicate of 125)
     CRGB(254, 8, 0), // Back LED 382 (Duplicate of 126)
-    CRGB(11, 119, 247), // Back LED 383 (Duplicate of 127)
-    CRGB(254, 8, 0), // Back LED 384 (Duplicate of 128)
-    CRGB(255, 250, 242), // Back LED 385 (Duplicate of 129)
+    CRGB(254, 8, 0), // Back LED 383 (Duplicate of 127)
+    CRGB(11, 117, 247), // Back LED 384 (Duplicate of 128)
+    CRGB(254, 8, 0), // Back LED 385 (Duplicate of 129)
     CRGB(255, 250, 242), // Back LED 386 (Duplicate of 130)
     CRGB(255, 250, 242), // Back LED 387 (Duplicate of 131)
     CRGB(255, 250, 242), // Back LED 388 (Duplicate of 132)
-    CRGB(12, 120, 247), // Back LED 389 (Duplicate of 133)
-    CRGB(253, 8, 0), // Back LED 390 (Duplicate of 134)
-    CRGB(254, 8, 0), // Back LED 391 (Duplicate of 135)
+    CRGB(255, 250, 242), // Back LED 389 (Duplicate of 133)
+    CRGB(12, 118, 247), // Back LED 390 (Duplicate of 134)
+    CRGB(253, 8, 0), // Back LED 391 (Duplicate of 135)
     CRGB(254, 8, 0), // Back LED 392 (Duplicate of 136)
     CRGB(254, 8, 0), // Back LED 393 (Duplicate of 137)
-    CRGB(255, 250, 242), // Back LED 394 (Duplicate of 138)
+    CRGB(254, 8, 0), // Back LED 394 (Duplicate of 138)
     CRGB(254, 8, 0), // Back LED 395 (Duplicate of 139)
     CRGB(254, 8, 0), // Back LED 396 (Duplicate of 140)
     CRGB(254, 8, 0), // Back LED 397 (Duplicate of 141)
-    CRGB(10, 119, 248), // Back LED 398 (Duplicate of 142)
-    CRGB(254, 8, 0), // Back LED 399 (Duplicate of 143)
-    CRGB(51, 146, 240), // Back LED 400 (Duplicate of 144)
+    CRGB(255, 250, 242), // Back LED 398 (Duplicate of 142)
+    CRGB(10, 119, 248), // Back LED 399 (Duplicate of 143)
+    CRGB(254, 8, 0), // Back LED 400 (Duplicate of 144)
     CRGB(255, 250, 242), // Back LED 401 (Duplicate of 145)
     CRGB(254, 8, 0), // Back LED 402 (Duplicate of 146)
     CRGB(254, 8, 0), // Back LED 403 (Duplicate of 147)
     CRGB(254, 8, 0), // Back LED 404 (Duplicate of 148)
     CRGB(254, 8, 0), // Back LED 405 (Duplicate of 149)
-    CRGB(253, 8, 0), // Back LED 406 (Duplicate of 150)
+    CRGB(253, 6, 0), // Back LED 406 (Duplicate of 150)
     CRGB(0, 0, 0), // Back LED 407 (Duplicate of 151)
     CRGB(0, 0, 0), // Back LED 408 (Duplicate of 152)
     CRGB(0, 0, 0), // Back LED 409 (Duplicate of 153)
@@ -584,42 +597,42 @@ const CRGB PROGMEM ARTWORK_PALETTE[NUM_LEDS] = {
 
 // 16x16 Matrix Physical Serpentine Indices (0..255) for Active Windowed + Backlit LEDs
 const uint8_t PROGMEM MATRIX_ACTIVE_INDICES[FRONT_LEDS] = {
-    26, // Active LED 0 -> Physical Matrix Index 26
-    30, // Active LED 1 -> Physical Matrix Index 30
-    44, // Active LED 2 -> Physical Matrix Index 44
-    42, // Active LED 3 -> Physical Matrix Index 42
-    38, // Active LED 4 -> Physical Matrix Index 38
-    32, // Active LED 5 -> Physical Matrix Index 32
-    52, // Active LED 6 -> Physical Matrix Index 52
-    54, // Active LED 7 -> Physical Matrix Index 54
-    59, // Active LED 8 -> Physical Matrix Index 59
-    61, // Active LED 9 -> Physical Matrix Index 61
-    78, // Active LED 10 -> Physical Matrix Index 78
-    74, // Active LED 11 -> Physical Matrix Index 74
-    71, // Active LED 12 -> Physical Matrix Index 71
-    69, // Active LED 13 -> Physical Matrix Index 69
-    65, // Active LED 14 -> Physical Matrix Index 65
-    80, // Active LED 15 -> Physical Matrix Index 80
-    83, // Active LED 16 -> Physical Matrix Index 83
-    86, // Active LED 17 -> Physical Matrix Index 86
-    92, // Active LED 18 -> Physical Matrix Index 92
+    44, // Active LED 0 -> Physical Matrix Index 44
+    42, // Active LED 1 -> Physical Matrix Index 42
+    37, // Active LED 2 -> Physical Matrix Index 37
+    32, // Active LED 3 -> Physical Matrix Index 32
+    52, // Active LED 4 -> Physical Matrix Index 52
+    54, // Active LED 5 -> Physical Matrix Index 54
+    56, // Active LED 6 -> Physical Matrix Index 56
+    61, // Active LED 7 -> Physical Matrix Index 61
+    78, // Active LED 8 -> Physical Matrix Index 78
+    74, // Active LED 9 -> Physical Matrix Index 74
+    72, // Active LED 10 -> Physical Matrix Index 72
+    68, // Active LED 11 -> Physical Matrix Index 68
+    64, // Active LED 12 -> Physical Matrix Index 64
+    80, // Active LED 13 -> Physical Matrix Index 80
+    83, // Active LED 14 -> Physical Matrix Index 83
+    86, // Active LED 15 -> Physical Matrix Index 86
+    89, // Active LED 16 -> Physical Matrix Index 89
+    92, // Active LED 17 -> Physical Matrix Index 92
+    94, // Active LED 18 -> Physical Matrix Index 94
     109, // Active LED 19 -> Physical Matrix Index 109
-    102, // Active LED 20 -> Physical Matrix Index 102
-    100, // Active LED 21 -> Physical Matrix Index 100
-    96, // Active LED 22 -> Physical Matrix Index 96
+    106, // Active LED 20 -> Physical Matrix Index 106
+    103, // Active LED 21 -> Physical Matrix Index 103
+    100, // Active LED 22 -> Physical Matrix Index 100
     113, // Active LED 23 -> Physical Matrix Index 113
-    116, // Active LED 24 -> Physical Matrix Index 116
-    119, // Active LED 25 -> Physical Matrix Index 119
-    122, // Active LED 26 -> Physical Matrix Index 122
-    125, // Active LED 27 -> Physical Matrix Index 125
+    119, // Active LED 24 -> Physical Matrix Index 119
+    122, // Active LED 25 -> Physical Matrix Index 122
+    125, // Active LED 26 -> Physical Matrix Index 125
+    127, // Active LED 27 -> Physical Matrix Index 127
     138, // Active LED 28 -> Physical Matrix Index 138
-    132, // Active LED 29 -> Physical Matrix Index 132
+    134, // Active LED 29 -> Physical Matrix Index 134
     144, // Active LED 30 -> Physical Matrix Index 144
     147, // Active LED 31 -> Physical Matrix Index 147
-    152, // Active LED 32 -> Physical Matrix Index 152
+    155, // Active LED 32 -> Physical Matrix Index 155
     158, // Active LED 33 -> Physical Matrix Index 158
     169, // Active LED 34 -> Physical Matrix Index 169
-    163, // Active LED 35 -> Physical Matrix Index 163
+    167, // Active LED 35 -> Physical Matrix Index 167
     186, // Active LED 36 -> Physical Matrix Index 186
     207, // Active LED 37 -> Physical Matrix Index 207
     204, // Active LED 38 -> Physical Matrix Index 204
@@ -627,417 +640,417 @@ const uint8_t PROGMEM MATRIX_ACTIVE_INDICES[FRONT_LEDS] = {
     214, // Active LED 40 -> Physical Matrix Index 214
     43, // Active LED 41 -> Physical Matrix Index 43
     41, // Active LED 42 -> Physical Matrix Index 41
-    37, // Active LED 43 -> Physical Matrix Index 37
+    38, // Active LED 43 -> Physical Matrix Index 38
     36, // Active LED 44 -> Physical Matrix Index 36
-    33, // Active LED 45 -> Physical Matrix Index 33
-    51, // Active LED 46 -> Physical Matrix Index 51
-    53, // Active LED 47 -> Physical Matrix Index 53
-    55, // Active LED 48 -> Physical Matrix Index 55
-    56, // Active LED 49 -> Physical Matrix Index 56
+    34, // Active LED 45 -> Physical Matrix Index 34
+    33, // Active LED 46 -> Physical Matrix Index 33
+    51, // Active LED 47 -> Physical Matrix Index 51
+    53, // Active LED 48 -> Physical Matrix Index 53
+    55, // Active LED 49 -> Physical Matrix Index 55
     57, // Active LED 50 -> Physical Matrix Index 57
     58, // Active LED 51 -> Physical Matrix Index 58
-    62, // Active LED 52 -> Physical Matrix Index 62
-    63, // Active LED 53 -> Physical Matrix Index 63
-    77, // Active LED 54 -> Physical Matrix Index 77
-    76, // Active LED 55 -> Physical Matrix Index 76
-    75, // Active LED 56 -> Physical Matrix Index 75
-    73, // Active LED 57 -> Physical Matrix Index 73
-    72, // Active LED 58 -> Physical Matrix Index 72
-    70, // Active LED 59 -> Physical Matrix Index 70
-    68, // Active LED 60 -> Physical Matrix Index 68
-    67, // Active LED 61 -> Physical Matrix Index 67
-    66, // Active LED 62 -> Physical Matrix Index 66
-    64, // Active LED 63 -> Physical Matrix Index 64
-    81, // Active LED 64 -> Physical Matrix Index 81
-    82, // Active LED 65 -> Physical Matrix Index 82
-    87, // Active LED 66 -> Physical Matrix Index 87
-    88, // Active LED 67 -> Physical Matrix Index 88
-    89, // Active LED 68 -> Physical Matrix Index 89
-    90, // Active LED 69 -> Physical Matrix Index 90
-    91, // Active LED 70 -> Physical Matrix Index 91
-    93, // Active LED 71 -> Physical Matrix Index 93
-    94, // Active LED 72 -> Physical Matrix Index 94
+    59, // Active LED 52 -> Physical Matrix Index 59
+    62, // Active LED 53 -> Physical Matrix Index 62
+    63, // Active LED 54 -> Physical Matrix Index 63
+    77, // Active LED 55 -> Physical Matrix Index 77
+    76, // Active LED 56 -> Physical Matrix Index 76
+    75, // Active LED 57 -> Physical Matrix Index 75
+    73, // Active LED 58 -> Physical Matrix Index 73
+    71, // Active LED 59 -> Physical Matrix Index 71
+    70, // Active LED 60 -> Physical Matrix Index 70
+    69, // Active LED 61 -> Physical Matrix Index 69
+    67, // Active LED 62 -> Physical Matrix Index 67
+    66, // Active LED 63 -> Physical Matrix Index 66
+    65, // Active LED 64 -> Physical Matrix Index 65
+    81, // Active LED 65 -> Physical Matrix Index 81
+    82, // Active LED 66 -> Physical Matrix Index 82
+    85, // Active LED 67 -> Physical Matrix Index 85
+    87, // Active LED 68 -> Physical Matrix Index 87
+    88, // Active LED 69 -> Physical Matrix Index 88
+    90, // Active LED 70 -> Physical Matrix Index 90
+    91, // Active LED 71 -> Physical Matrix Index 91
+    93, // Active LED 72 -> Physical Matrix Index 93
     95, // Active LED 73 -> Physical Matrix Index 95
-    111, // Active LED 74 -> Physical Matrix Index 111
-    110, // Active LED 75 -> Physical Matrix Index 110
-    108, // Active LED 76 -> Physical Matrix Index 108
+    110, // Active LED 74 -> Physical Matrix Index 110
+    108, // Active LED 75 -> Physical Matrix Index 108
+    105, // Active LED 76 -> Physical Matrix Index 105
     104, // Active LED 77 -> Physical Matrix Index 104
-    103, // Active LED 78 -> Physical Matrix Index 103
+    102, // Active LED 78 -> Physical Matrix Index 102
     101, // Active LED 79 -> Physical Matrix Index 101
     99, // Active LED 80 -> Physical Matrix Index 99
     98, // Active LED 81 -> Physical Matrix Index 98
     97, // Active LED 82 -> Physical Matrix Index 97
-    114, // Active LED 83 -> Physical Matrix Index 114
-    117, // Active LED 84 -> Physical Matrix Index 117
-    118, // Active LED 85 -> Physical Matrix Index 118
-    120, // Active LED 86 -> Physical Matrix Index 120
-    121, // Active LED 87 -> Physical Matrix Index 121
-    123, // Active LED 88 -> Physical Matrix Index 123
-    124, // Active LED 89 -> Physical Matrix Index 124
-    126, // Active LED 90 -> Physical Matrix Index 126
-    127, // Active LED 91 -> Physical Matrix Index 127
-    140, // Active LED 92 -> Physical Matrix Index 140
-    139, // Active LED 93 -> Physical Matrix Index 139
-    137, // Active LED 94 -> Physical Matrix Index 137
-    136, // Active LED 95 -> Physical Matrix Index 136
-    135, // Active LED 96 -> Physical Matrix Index 135
-    134, // Active LED 97 -> Physical Matrix Index 134
+    96, // Active LED 83 -> Physical Matrix Index 96
+    114, // Active LED 84 -> Physical Matrix Index 114
+    116, // Active LED 85 -> Physical Matrix Index 116
+    117, // Active LED 86 -> Physical Matrix Index 117
+    118, // Active LED 87 -> Physical Matrix Index 118
+    120, // Active LED 88 -> Physical Matrix Index 120
+    121, // Active LED 89 -> Physical Matrix Index 121
+    123, // Active LED 90 -> Physical Matrix Index 123
+    124, // Active LED 91 -> Physical Matrix Index 124
+    126, // Active LED 92 -> Physical Matrix Index 126
+    140, // Active LED 93 -> Physical Matrix Index 140
+    139, // Active LED 94 -> Physical Matrix Index 139
+    137, // Active LED 95 -> Physical Matrix Index 137
+    136, // Active LED 96 -> Physical Matrix Index 136
+    135, // Active LED 97 -> Physical Matrix Index 135
     133, // Active LED 98 -> Physical Matrix Index 133
-    131, // Active LED 99 -> Physical Matrix Index 131
-    130, // Active LED 100 -> Physical Matrix Index 130
-    129, // Active LED 101 -> Physical Matrix Index 129
-    128, // Active LED 102 -> Physical Matrix Index 128
-    145, // Active LED 103 -> Physical Matrix Index 145
-    146, // Active LED 104 -> Physical Matrix Index 146
-    148, // Active LED 105 -> Physical Matrix Index 148
-    149, // Active LED 106 -> Physical Matrix Index 149
-    150, // Active LED 107 -> Physical Matrix Index 150
-    151, // Active LED 108 -> Physical Matrix Index 151
-    153, // Active LED 109 -> Physical Matrix Index 153
-    154, // Active LED 110 -> Physical Matrix Index 154
-    155, // Active LED 111 -> Physical Matrix Index 155
-    156, // Active LED 112 -> Physical Matrix Index 156
-    157, // Active LED 113 -> Physical Matrix Index 157
-    159, // Active LED 114 -> Physical Matrix Index 159
-    175, // Active LED 115 -> Physical Matrix Index 175
-    174, // Active LED 116 -> Physical Matrix Index 174
-    173, // Active LED 117 -> Physical Matrix Index 173
-    172, // Active LED 118 -> Physical Matrix Index 172
-    171, // Active LED 119 -> Physical Matrix Index 171
-    170, // Active LED 120 -> Physical Matrix Index 170
-    168, // Active LED 121 -> Physical Matrix Index 168
-    167, // Active LED 122 -> Physical Matrix Index 167
+    132, // Active LED 99 -> Physical Matrix Index 132
+    131, // Active LED 100 -> Physical Matrix Index 131
+    130, // Active LED 101 -> Physical Matrix Index 130
+    129, // Active LED 102 -> Physical Matrix Index 129
+    128, // Active LED 103 -> Physical Matrix Index 128
+    145, // Active LED 104 -> Physical Matrix Index 145
+    146, // Active LED 105 -> Physical Matrix Index 146
+    148, // Active LED 106 -> Physical Matrix Index 148
+    149, // Active LED 107 -> Physical Matrix Index 149
+    150, // Active LED 108 -> Physical Matrix Index 150
+    151, // Active LED 109 -> Physical Matrix Index 151
+    152, // Active LED 110 -> Physical Matrix Index 152
+    153, // Active LED 111 -> Physical Matrix Index 153
+    154, // Active LED 112 -> Physical Matrix Index 154
+    156, // Active LED 113 -> Physical Matrix Index 156
+    157, // Active LED 114 -> Physical Matrix Index 157
+    159, // Active LED 115 -> Physical Matrix Index 159
+    175, // Active LED 116 -> Physical Matrix Index 175
+    174, // Active LED 117 -> Physical Matrix Index 174
+    173, // Active LED 118 -> Physical Matrix Index 173
+    172, // Active LED 119 -> Physical Matrix Index 172
+    171, // Active LED 120 -> Physical Matrix Index 171
+    170, // Active LED 121 -> Physical Matrix Index 170
+    168, // Active LED 122 -> Physical Matrix Index 168
     166, // Active LED 123 -> Physical Matrix Index 166
     165, // Active LED 124 -> Physical Matrix Index 165
     164, // Active LED 125 -> Physical Matrix Index 164
-    162, // Active LED 126 -> Physical Matrix Index 162
-    176, // Active LED 127 -> Physical Matrix Index 176
-    177, // Active LED 128 -> Physical Matrix Index 177
-    178, // Active LED 129 -> Physical Matrix Index 178
-    179, // Active LED 130 -> Physical Matrix Index 179
-    180, // Active LED 131 -> Physical Matrix Index 180
-    181, // Active LED 132 -> Physical Matrix Index 181
-    182, // Active LED 133 -> Physical Matrix Index 182
-    183, // Active LED 134 -> Physical Matrix Index 183
-    184, // Active LED 135 -> Physical Matrix Index 184
-    185, // Active LED 136 -> Physical Matrix Index 185
-    187, // Active LED 137 -> Physical Matrix Index 187
-    206, // Active LED 138 -> Physical Matrix Index 206
-    205, // Active LED 139 -> Physical Matrix Index 205
-    203, // Active LED 140 -> Physical Matrix Index 203
-    202, // Active LED 141 -> Physical Matrix Index 202
-    201, // Active LED 142 -> Physical Matrix Index 201
-    200, // Active LED 143 -> Physical Matrix Index 200
-    198, // Active LED 144 -> Physical Matrix Index 198
+    163, // Active LED 126 -> Physical Matrix Index 163
+    162, // Active LED 127 -> Physical Matrix Index 162
+    176, // Active LED 128 -> Physical Matrix Index 176
+    177, // Active LED 129 -> Physical Matrix Index 177
+    178, // Active LED 130 -> Physical Matrix Index 178
+    179, // Active LED 131 -> Physical Matrix Index 179
+    180, // Active LED 132 -> Physical Matrix Index 180
+    181, // Active LED 133 -> Physical Matrix Index 181
+    182, // Active LED 134 -> Physical Matrix Index 182
+    183, // Active LED 135 -> Physical Matrix Index 183
+    184, // Active LED 136 -> Physical Matrix Index 184
+    185, // Active LED 137 -> Physical Matrix Index 185
+    187, // Active LED 138 -> Physical Matrix Index 187
+    206, // Active LED 139 -> Physical Matrix Index 206
+    205, // Active LED 140 -> Physical Matrix Index 205
+    203, // Active LED 141 -> Physical Matrix Index 203
+    202, // Active LED 142 -> Physical Matrix Index 202
+    201, // Active LED 143 -> Physical Matrix Index 201
+    200, // Active LED 144 -> Physical Matrix Index 200
     209, // Active LED 145 -> Physical Matrix Index 209
     210, // Active LED 146 -> Physical Matrix Index 210
     211, // Active LED 147 -> Physical Matrix Index 211
     212, // Active LED 148 -> Physical Matrix Index 212
     213, // Active LED 149 -> Physical Matrix Index 213
     215, // Active LED 150 -> Physical Matrix Index 215
-    151, // Active LED 151 -> Physical Matrix Index 151
-    152, // Active LED 152 -> Physical Matrix Index 152
-    153, // Active LED 153 -> Physical Matrix Index 153
-    154, // Active LED 154 -> Physical Matrix Index 154
-    155, // Active LED 155 -> Physical Matrix Index 155
-    156, // Active LED 156 -> Physical Matrix Index 156
-    157, // Active LED 157 -> Physical Matrix Index 157
-    158, // Active LED 158 -> Physical Matrix Index 158
-    159, // Active LED 159 -> Physical Matrix Index 159
-    160, // Active LED 160 -> Physical Matrix Index 160
-    161, // Active LED 161 -> Physical Matrix Index 161
-    162, // Active LED 162 -> Physical Matrix Index 162
-    163, // Active LED 163 -> Physical Matrix Index 163
-    164, // Active LED 164 -> Physical Matrix Index 164
-    165, // Active LED 165 -> Physical Matrix Index 165
-    166, // Active LED 166 -> Physical Matrix Index 166
-    167, // Active LED 167 -> Physical Matrix Index 167
-    168, // Active LED 168 -> Physical Matrix Index 168
-    169, // Active LED 169 -> Physical Matrix Index 169
-    170, // Active LED 170 -> Physical Matrix Index 170
-    171, // Active LED 171 -> Physical Matrix Index 171
-    172, // Active LED 172 -> Physical Matrix Index 172
-    173, // Active LED 173 -> Physical Matrix Index 173
-    174, // Active LED 174 -> Physical Matrix Index 174
-    175, // Active LED 175 -> Physical Matrix Index 175
-    176, // Active LED 176 -> Physical Matrix Index 176
-    177, // Active LED 177 -> Physical Matrix Index 177
-    178, // Active LED 178 -> Physical Matrix Index 178
-    179, // Active LED 179 -> Physical Matrix Index 179
-    180, // Active LED 180 -> Physical Matrix Index 180
-    181, // Active LED 181 -> Physical Matrix Index 181
-    182, // Active LED 182 -> Physical Matrix Index 182
-    183, // Active LED 183 -> Physical Matrix Index 183
-    184, // Active LED 184 -> Physical Matrix Index 184
-    185, // Active LED 185 -> Physical Matrix Index 185
-    186, // Active LED 186 -> Physical Matrix Index 186
-    187, // Active LED 187 -> Physical Matrix Index 187
-    188, // Active LED 188 -> Physical Matrix Index 188
-    189, // Active LED 189 -> Physical Matrix Index 189
-    190, // Active LED 190 -> Physical Matrix Index 190
-    191, // Active LED 191 -> Physical Matrix Index 191
-    192, // Active LED 192 -> Physical Matrix Index 192
-    193, // Active LED 193 -> Physical Matrix Index 193
-    194, // Active LED 194 -> Physical Matrix Index 194
-    195, // Active LED 195 -> Physical Matrix Index 195
-    196, // Active LED 196 -> Physical Matrix Index 196
-    197, // Active LED 197 -> Physical Matrix Index 197
-    198, // Active LED 198 -> Physical Matrix Index 198
-    199, // Active LED 199 -> Physical Matrix Index 199
-    200, // Active LED 200 -> Physical Matrix Index 200
-    201, // Active LED 201 -> Physical Matrix Index 201
-    202, // Active LED 202 -> Physical Matrix Index 202
-    203, // Active LED 203 -> Physical Matrix Index 203
-    204, // Active LED 204 -> Physical Matrix Index 204
-    205, // Active LED 205 -> Physical Matrix Index 205
-    206, // Active LED 206 -> Physical Matrix Index 206
-    207, // Active LED 207 -> Physical Matrix Index 207
-    208, // Active LED 208 -> Physical Matrix Index 208
-    209, // Active LED 209 -> Physical Matrix Index 209
-    210, // Active LED 210 -> Physical Matrix Index 210
-    211, // Active LED 211 -> Physical Matrix Index 211
-    212, // Active LED 212 -> Physical Matrix Index 212
-    213, // Active LED 213 -> Physical Matrix Index 213
-    214, // Active LED 214 -> Physical Matrix Index 214
-    215, // Active LED 215 -> Physical Matrix Index 215
-    216, // Active LED 216 -> Physical Matrix Index 216
-    217, // Active LED 217 -> Physical Matrix Index 217
-    218, // Active LED 218 -> Physical Matrix Index 218
-    219, // Active LED 219 -> Physical Matrix Index 219
-    220, // Active LED 220 -> Physical Matrix Index 220
-    221, // Active LED 221 -> Physical Matrix Index 221
-    222, // Active LED 222 -> Physical Matrix Index 222
-    223, // Active LED 223 -> Physical Matrix Index 223
-    224, // Active LED 224 -> Physical Matrix Index 224
-    225, // Active LED 225 -> Physical Matrix Index 225
-    226, // Active LED 226 -> Physical Matrix Index 226
-    227, // Active LED 227 -> Physical Matrix Index 227
-    228, // Active LED 228 -> Physical Matrix Index 228
-    229, // Active LED 229 -> Physical Matrix Index 229
-    230, // Active LED 230 -> Physical Matrix Index 230
-    231, // Active LED 231 -> Physical Matrix Index 231
-    232, // Active LED 232 -> Physical Matrix Index 232
-    233, // Active LED 233 -> Physical Matrix Index 233
-    234, // Active LED 234 -> Physical Matrix Index 234
-    235, // Active LED 235 -> Physical Matrix Index 235
-    236, // Active LED 236 -> Physical Matrix Index 236
-    237, // Active LED 237 -> Physical Matrix Index 237
-    238, // Active LED 238 -> Physical Matrix Index 238
-    239, // Active LED 239 -> Physical Matrix Index 239
-    240, // Active LED 240 -> Physical Matrix Index 240
-    241, // Active LED 241 -> Physical Matrix Index 241
-    242, // Active LED 242 -> Physical Matrix Index 242
-    243, // Active LED 243 -> Physical Matrix Index 243
-    244, // Active LED 244 -> Physical Matrix Index 244
-    245, // Active LED 245 -> Physical Matrix Index 245
-    246, // Active LED 246 -> Physical Matrix Index 246
-    247, // Active LED 247 -> Physical Matrix Index 247
-    248, // Active LED 248 -> Physical Matrix Index 248
-    249, // Active LED 249 -> Physical Matrix Index 249
-    250, // Active LED 250 -> Physical Matrix Index 250
-    251, // Active LED 251 -> Physical Matrix Index 251
-    252, // Active LED 252 -> Physical Matrix Index 252
-    253, // Active LED 253 -> Physical Matrix Index 253
-    254, // Active LED 254 -> Physical Matrix Index 254
+    255, // Active LED 151 -> Physical Matrix Index 255
+    255, // Active LED 152 -> Physical Matrix Index 255
+    255, // Active LED 153 -> Physical Matrix Index 255
+    255, // Active LED 154 -> Physical Matrix Index 255
+    255, // Active LED 155 -> Physical Matrix Index 255
+    255, // Active LED 156 -> Physical Matrix Index 255
+    255, // Active LED 157 -> Physical Matrix Index 255
+    255, // Active LED 158 -> Physical Matrix Index 255
+    255, // Active LED 159 -> Physical Matrix Index 255
+    255, // Active LED 160 -> Physical Matrix Index 255
+    255, // Active LED 161 -> Physical Matrix Index 255
+    255, // Active LED 162 -> Physical Matrix Index 255
+    255, // Active LED 163 -> Physical Matrix Index 255
+    255, // Active LED 164 -> Physical Matrix Index 255
+    255, // Active LED 165 -> Physical Matrix Index 255
+    255, // Active LED 166 -> Physical Matrix Index 255
+    255, // Active LED 167 -> Physical Matrix Index 255
+    255, // Active LED 168 -> Physical Matrix Index 255
+    255, // Active LED 169 -> Physical Matrix Index 255
+    255, // Active LED 170 -> Physical Matrix Index 255
+    255, // Active LED 171 -> Physical Matrix Index 255
+    255, // Active LED 172 -> Physical Matrix Index 255
+    255, // Active LED 173 -> Physical Matrix Index 255
+    255, // Active LED 174 -> Physical Matrix Index 255
+    255, // Active LED 175 -> Physical Matrix Index 255
+    255, // Active LED 176 -> Physical Matrix Index 255
+    255, // Active LED 177 -> Physical Matrix Index 255
+    255, // Active LED 178 -> Physical Matrix Index 255
+    255, // Active LED 179 -> Physical Matrix Index 255
+    255, // Active LED 180 -> Physical Matrix Index 255
+    255, // Active LED 181 -> Physical Matrix Index 255
+    255, // Active LED 182 -> Physical Matrix Index 255
+    255, // Active LED 183 -> Physical Matrix Index 255
+    255, // Active LED 184 -> Physical Matrix Index 255
+    255, // Active LED 185 -> Physical Matrix Index 255
+    255, // Active LED 186 -> Physical Matrix Index 255
+    255, // Active LED 187 -> Physical Matrix Index 255
+    255, // Active LED 188 -> Physical Matrix Index 255
+    255, // Active LED 189 -> Physical Matrix Index 255
+    255, // Active LED 190 -> Physical Matrix Index 255
+    255, // Active LED 191 -> Physical Matrix Index 255
+    255, // Active LED 192 -> Physical Matrix Index 255
+    255, // Active LED 193 -> Physical Matrix Index 255
+    255, // Active LED 194 -> Physical Matrix Index 255
+    255, // Active LED 195 -> Physical Matrix Index 255
+    255, // Active LED 196 -> Physical Matrix Index 255
+    255, // Active LED 197 -> Physical Matrix Index 255
+    255, // Active LED 198 -> Physical Matrix Index 255
+    255, // Active LED 199 -> Physical Matrix Index 255
+    255, // Active LED 200 -> Physical Matrix Index 255
+    255, // Active LED 201 -> Physical Matrix Index 255
+    255, // Active LED 202 -> Physical Matrix Index 255
+    255, // Active LED 203 -> Physical Matrix Index 255
+    255, // Active LED 204 -> Physical Matrix Index 255
+    255, // Active LED 205 -> Physical Matrix Index 255
+    255, // Active LED 206 -> Physical Matrix Index 255
+    255, // Active LED 207 -> Physical Matrix Index 255
+    255, // Active LED 208 -> Physical Matrix Index 255
+    255, // Active LED 209 -> Physical Matrix Index 255
+    255, // Active LED 210 -> Physical Matrix Index 255
+    255, // Active LED 211 -> Physical Matrix Index 255
+    255, // Active LED 212 -> Physical Matrix Index 255
+    255, // Active LED 213 -> Physical Matrix Index 255
+    255, // Active LED 214 -> Physical Matrix Index 255
+    255, // Active LED 215 -> Physical Matrix Index 255
+    255, // Active LED 216 -> Physical Matrix Index 255
+    255, // Active LED 217 -> Physical Matrix Index 255
+    255, // Active LED 218 -> Physical Matrix Index 255
+    255, // Active LED 219 -> Physical Matrix Index 255
+    255, // Active LED 220 -> Physical Matrix Index 255
+    255, // Active LED 221 -> Physical Matrix Index 255
+    255, // Active LED 222 -> Physical Matrix Index 255
+    255, // Active LED 223 -> Physical Matrix Index 255
+    255, // Active LED 224 -> Physical Matrix Index 255
+    255, // Active LED 225 -> Physical Matrix Index 255
+    255, // Active LED 226 -> Physical Matrix Index 255
+    255, // Active LED 227 -> Physical Matrix Index 255
+    255, // Active LED 228 -> Physical Matrix Index 255
+    255, // Active LED 229 -> Physical Matrix Index 255
+    255, // Active LED 230 -> Physical Matrix Index 255
+    255, // Active LED 231 -> Physical Matrix Index 255
+    255, // Active LED 232 -> Physical Matrix Index 255
+    255, // Active LED 233 -> Physical Matrix Index 255
+    255, // Active LED 234 -> Physical Matrix Index 255
+    255, // Active LED 235 -> Physical Matrix Index 255
+    255, // Active LED 236 -> Physical Matrix Index 255
+    255, // Active LED 237 -> Physical Matrix Index 255
+    255, // Active LED 238 -> Physical Matrix Index 255
+    255, // Active LED 239 -> Physical Matrix Index 255
+    255, // Active LED 240 -> Physical Matrix Index 255
+    255, // Active LED 241 -> Physical Matrix Index 255
+    255, // Active LED 242 -> Physical Matrix Index 255
+    255, // Active LED 243 -> Physical Matrix Index 255
+    255, // Active LED 244 -> Physical Matrix Index 255
+    255, // Active LED 245 -> Physical Matrix Index 255
+    255, // Active LED 246 -> Physical Matrix Index 255
+    255, // Active LED 247 -> Physical Matrix Index 255
+    255, // Active LED 248 -> Physical Matrix Index 255
+    255, // Active LED 249 -> Physical Matrix Index 255
+    255, // Active LED 250 -> Physical Matrix Index 255
+    255, // Active LED 251 -> Physical Matrix Index 255
+    255, // Active LED 252 -> Physical Matrix Index 255
+    255, // Active LED 253 -> Physical Matrix Index 255
+    255, // Active LED 254 -> Physical Matrix Index 255
     255 // Active LED 255 -> Physical Matrix Index 255
 };
 
 // 2D Spatial Metrics (PROGMEM Flash Storage)
 // Allows 60 FPS spatial lighting sweeps without floating-point math
 const uint8_t PROGMEM SPATIAL_RANK_Y[FRONT_LEDS] = {
-    254, // Front LED 0
-    255, // Front LED 1
-    245, // Front LED 2
-    247, // Front LED 3
-    249, // Front LED 4
-    253, // Front LED 5
-    234, // Front LED 6
-    236, // Front LED 7
-    241, // Front LED 8
-    242, // Front LED 9
-    218, // Front LED 10
-    222, // Front LED 11
-    225, // Front LED 12
-    227, // Front LED 13
-    231, // Front LED 14
-    204, // Front LED 15
-    207, // Front LED 16
-    208, // Front LED 17
-    214, // Front LED 18
-    193, // Front LED 19
-    197, // Front LED 20
-    199, // Front LED 21
-    203, // Front LED 22
-    177, // Front LED 23
-    179, // Front LED 24
-    182, // Front LED 25
-    185, // Front LED 26
-    188, // Front LED 27
-    166, // Front LED 28
-    172, // Front LED 29
-    148, // Front LED 30
-    151, // Front LED 31
-    156, // Front LED 32
-    162, // Front LED 33
-    127, // Front LED 34
-    133, // Front LED 35
-    104, // Front LED 36
+    246, // Front LED 0
+    248, // Front LED 1
+    251, // Front LED 2
+    255, // Front LED 3
+    235, // Front LED 4
+    237, // Front LED 5
+    239, // Front LED 6
+    243, // Front LED 7
+    219, // Front LED 8
+    223, // Front LED 9
+    225, // Front LED 10
+    229, // Front LED 11
+    233, // Front LED 12
+    204, // Front LED 13
+    207, // Front LED 14
+    209, // Front LED 15
+    212, // Front LED 16
+    215, // Front LED 17
+    217, // Front LED 18
+    191, // Front LED 19
+    193, // Front LED 20
+    196, // Front LED 21
+    199, // Front LED 22
+    176, // Front LED 23
+    181, // Front LED 24
+    184, // Front LED 25
+    187, // Front LED 26
+    189, // Front LED 27
+    165, // Front LED 28
+    169, // Front LED 29
+    147, // Front LED 30
+    150, // Front LED 31
+    158, // Front LED 32
+    161, // Front LED 33
+    126, // Front LED 34
+    128, // Front LED 35
+    103, // Front LED 36
     70, // Front LED 37
     73, // Front LED 38
     78, // Front LED 39
     53, // Front LED 40
-    246, // Front LED 41
-    248, // Front LED 42
+    247, // Front LED 41
+    249, // Front LED 42
     250, // Front LED 43
-    251, // Front LED 44
-    252, // Front LED 45
-    233, // Front LED 46
-    235, // Front LED 47
-    237, // Front LED 48
+    252, // Front LED 44
+    253, // Front LED 45
+    254, // Front LED 46
+    234, // Front LED 47
+    236, // Front LED 48
     238, // Front LED 49
-    239, // Front LED 50
-    240, // Front LED 51
-    243, // Front LED 52
+    240, // Front LED 50
+    241, // Front LED 51
+    242, // Front LED 52
     244, // Front LED 53
-    219, // Front LED 54
+    245, // Front LED 54
     220, // Front LED 55
     221, // Front LED 56
-    223, // Front LED 57
+    222, // Front LED 57
     224, // Front LED 58
     226, // Front LED 59
-    228, // Front LED 60
-    229, // Front LED 61
+    227, // Front LED 60
+    228, // Front LED 61
     230, // Front LED 62
-    232, // Front LED 63
-    205, // Front LED 64
-    206, // Front LED 65
-    209, // Front LED 66
-    210, // Front LED 67
-    211, // Front LED 68
-    212, // Front LED 69
+    231, // Front LED 63
+    232, // Front LED 64
+    205, // Front LED 65
+    206, // Front LED 66
+    208, // Front LED 67
+    210, // Front LED 68
+    211, // Front LED 69
     213, // Front LED 70
-    215, // Front LED 71
+    214, // Front LED 71
     216, // Front LED 72
-    217, // Front LED 73
-    191, // Front LED 74
+    218, // Front LED 73
+    190, // Front LED 74
     192, // Front LED 75
     194, // Front LED 76
     195, // Front LED 77
-    196, // Front LED 78
+    197, // Front LED 78
     198, // Front LED 79
     200, // Front LED 80
     201, // Front LED 81
     202, // Front LED 82
-    178, // Front LED 83
-    180, // Front LED 84
-    181, // Front LED 85
-    183, // Front LED 86
-    184, // Front LED 87
-    186, // Front LED 88
-    187, // Front LED 89
-    189, // Front LED 90
-    190, // Front LED 91
-    164, // Front LED 92
-    165, // Front LED 93
-    167, // Front LED 94
-    168, // Front LED 95
-    169, // Front LED 96
-    170, // Front LED 97
-    171, // Front LED 98
-    173, // Front LED 99
-    174, // Front LED 100
-    175, // Front LED 101
-    176, // Front LED 102
-    149, // Front LED 103
-    150, // Front LED 104
-    152, // Front LED 105
-    153, // Front LED 106
-    154, // Front LED 107
-    155, // Front LED 108
-    157, // Front LED 109
-    158, // Front LED 110
-    159, // Front LED 111
-    160, // Front LED 112
-    161, // Front LED 113
-    163, // Front LED 114
-    121, // Front LED 115
-    122, // Front LED 116
-    123, // Front LED 117
-    124, // Front LED 118
-    125, // Front LED 119
-    126, // Front LED 120
-    128, // Front LED 121
-    129, // Front LED 122
-    130, // Front LED 123
-    131, // Front LED 124
-    132, // Front LED 125
-    134, // Front LED 126
-    94, // Front LED 127
-    95, // Front LED 128
-    96, // Front LED 129
-    97, // Front LED 130
-    98, // Front LED 131
-    99, // Front LED 132
-    100, // Front LED 133
-    101, // Front LED 134
-    102, // Front LED 135
-    103, // Front LED 136
-    105, // Front LED 137
-    71, // Front LED 138
-    72, // Front LED 139
-    74, // Front LED 140
-    75, // Front LED 141
-    76, // Front LED 142
-    77, // Front LED 143
-    79, // Front LED 144
+    203, // Front LED 83
+    177, // Front LED 84
+    178, // Front LED 85
+    179, // Front LED 86
+    180, // Front LED 87
+    182, // Front LED 88
+    183, // Front LED 89
+    185, // Front LED 90
+    186, // Front LED 91
+    188, // Front LED 92
+    163, // Front LED 93
+    164, // Front LED 94
+    166, // Front LED 95
+    167, // Front LED 96
+    168, // Front LED 97
+    170, // Front LED 98
+    171, // Front LED 99
+    172, // Front LED 100
+    173, // Front LED 101
+    174, // Front LED 102
+    175, // Front LED 103
+    148, // Front LED 104
+    149, // Front LED 105
+    151, // Front LED 106
+    152, // Front LED 107
+    153, // Front LED 108
+    154, // Front LED 109
+    155, // Front LED 110
+    156, // Front LED 111
+    157, // Front LED 112
+    159, // Front LED 113
+    160, // Front LED 114
+    162, // Front LED 115
+    120, // Front LED 116
+    121, // Front LED 117
+    122, // Front LED 118
+    123, // Front LED 119
+    124, // Front LED 120
+    125, // Front LED 121
+    127, // Front LED 122
+    129, // Front LED 123
+    130, // Front LED 124
+    131, // Front LED 125
+    132, // Front LED 126
+    133, // Front LED 127
+    93, // Front LED 128
+    94, // Front LED 129
+    95, // Front LED 130
+    96, // Front LED 131
+    97, // Front LED 132
+    98, // Front LED 133
+    99, // Front LED 134
+    100, // Front LED 135
+    101, // Front LED 136
+    102, // Front LED 137
+    104, // Front LED 138
+    71, // Front LED 139
+    72, // Front LED 140
+    74, // Front LED 141
+    75, // Front LED 142
+    76, // Front LED 143
+    77, // Front LED 144
     48, // Front LED 145
     49, // Front LED 146
     50, // Front LED 147
     51, // Front LED 148
     52, // Front LED 149
     54, // Front LED 150
-    147, // Front LED 151
-    146, // Front LED 152
-    145, // Front LED 153
-    144, // Front LED 154
-    143, // Front LED 155
-    142, // Front LED 156
-    141, // Front LED 157
-    140, // Front LED 158
-    139, // Front LED 159
-    138, // Front LED 160
-    137, // Front LED 161
-    136, // Front LED 162
-    135, // Front LED 163
-    120, // Front LED 164
-    119, // Front LED 165
-    118, // Front LED 166
-    117, // Front LED 167
-    116, // Front LED 168
-    115, // Front LED 169
-    114, // Front LED 170
-    113, // Front LED 171
-    112, // Front LED 172
-    111, // Front LED 173
-    110, // Front LED 174
-    109, // Front LED 175
-    108, // Front LED 176
-    107, // Front LED 177
-    106, // Front LED 178
-    93, // Front LED 179
-    92, // Front LED 180
-    91, // Front LED 181
-    90, // Front LED 182
-    89, // Front LED 183
-    88, // Front LED 184
-    87, // Front LED 185
-    86, // Front LED 186
-    85, // Front LED 187
-    84, // Front LED 188
-    83, // Front LED 189
-    82, // Front LED 190
-    81, // Front LED 191
-    80, // Front LED 192
+    146, // Front LED 151
+    145, // Front LED 152
+    144, // Front LED 153
+    143, // Front LED 154
+    142, // Front LED 155
+    141, // Front LED 156
+    140, // Front LED 157
+    139, // Front LED 158
+    138, // Front LED 159
+    137, // Front LED 160
+    136, // Front LED 161
+    135, // Front LED 162
+    134, // Front LED 163
+    119, // Front LED 164
+    118, // Front LED 165
+    117, // Front LED 166
+    116, // Front LED 167
+    115, // Front LED 168
+    114, // Front LED 169
+    113, // Front LED 170
+    112, // Front LED 171
+    111, // Front LED 172
+    110, // Front LED 173
+    109, // Front LED 174
+    108, // Front LED 175
+    107, // Front LED 176
+    106, // Front LED 177
+    105, // Front LED 178
+    92, // Front LED 179
+    91, // Front LED 180
+    90, // Front LED 181
+    89, // Front LED 182
+    88, // Front LED 183
+    87, // Front LED 184
+    86, // Front LED 185
+    85, // Front LED 186
+    84, // Front LED 187
+    83, // Front LED 188
+    82, // Front LED 189
+    81, // Front LED 190
+    80, // Front LED 191
+    79, // Front LED 192
     69, // Front LED 193
     68, // Front LED 194
     67, // Front LED 195
@@ -1104,42 +1117,42 @@ const uint8_t PROGMEM SPATIAL_RANK_Y[FRONT_LEDS] = {
 };
 
 const uint8_t PROGMEM SPATIAL_X_BYTE[FRONT_LEDS] = {
-    170, // Front LED 0
-    237, // Front LED 1
-    51, // Front LED 2
-    85, // Front LED 3
-    153, // Front LED 4
-    255, // Front LED 5
-    68, // Front LED 6
-    102, // Front LED 7
-    187, // Front LED 8
-    221, // Front LED 9
-    16, // Front LED 10
-    85, // Front LED 11
-    136, // Front LED 12
-    170, // Front LED 13
-    237, // Front LED 14
-    0, // Front LED 15
-    51, // Front LED 16
-    102, // Front LED 17
-    204, // Front LED 18
+    51, // Front LED 0
+    85, // Front LED 1
+    170, // Front LED 2
+    255, // Front LED 3
+    68, // Front LED 4
+    102, // Front LED 5
+    136, // Front LED 6
+    221, // Front LED 7
+    16, // Front LED 8
+    85, // Front LED 9
+    119, // Front LED 10
+    187, // Front LED 11
+    255, // Front LED 12
+    0, // Front LED 13
+    51, // Front LED 14
+    102, // Front LED 15
+    153, // Front LED 16
+    204, // Front LED 17
+    237, // Front LED 18
     34, // Front LED 19
-    153, // Front LED 20
-    187, // Front LED 21
-    255, // Front LED 22
+    85, // Front LED 20
+    136, // Front LED 21
+    187, // Front LED 22
     16, // Front LED 23
-    68, // Front LED 24
-    119, // Front LED 25
-    170, // Front LED 26
-    221, // Front LED 27
+    119, // Front LED 24
+    170, // Front LED 25
+    221, // Front LED 26
+    255, // Front LED 27
     85, // Front LED 28
-    187, // Front LED 29
+    153, // Front LED 29
     0, // Front LED 30
     51, // Front LED 31
-    136, // Front LED 32
+    187, // Front LED 32
     237, // Front LED 33
     102, // Front LED 34
-    204, // Front LED 35
+    136, // Front LED 35
     170, // Front LED 36
     0, // Front LED 37
     51, // Front LED 38
@@ -1147,108 +1160,108 @@ const uint8_t PROGMEM SPATIAL_X_BYTE[FRONT_LEDS] = {
     102, // Front LED 40
     68, // Front LED 41
     102, // Front LED 42
-    170, // Front LED 43
+    153, // Front LED 43
     187, // Front LED 44
-    237, // Front LED 45
-    51, // Front LED 46
-    85, // Front LED 47
-    119, // Front LED 48
-    136, // Front LED 49
+    221, // Front LED 45
+    237, // Front LED 46
+    51, // Front LED 47
+    85, // Front LED 48
+    119, // Front LED 49
     153, // Front LED 50
     170, // Front LED 51
-    237, // Front LED 52
-    255, // Front LED 53
-    34, // Front LED 54
-    51, // Front LED 55
-    68, // Front LED 56
-    102, // Front LED 57
-    119, // Front LED 58
-    153, // Front LED 59
-    187, // Front LED 60
-    204, // Front LED 61
-    221, // Front LED 62
-    255, // Front LED 63
-    16, // Front LED 64
-    34, // Front LED 65
-    119, // Front LED 66
-    136, // Front LED 67
-    153, // Front LED 68
-    170, // Front LED 69
-    187, // Front LED 70
-    221, // Front LED 71
-    237, // Front LED 72
+    187, // Front LED 52
+    237, // Front LED 53
+    255, // Front LED 54
+    34, // Front LED 55
+    51, // Front LED 56
+    68, // Front LED 57
+    102, // Front LED 58
+    136, // Front LED 59
+    153, // Front LED 60
+    170, // Front LED 61
+    204, // Front LED 62
+    221, // Front LED 63
+    237, // Front LED 64
+    16, // Front LED 65
+    34, // Front LED 66
+    85, // Front LED 67
+    119, // Front LED 68
+    136, // Front LED 69
+    170, // Front LED 70
+    187, // Front LED 71
+    221, // Front LED 72
     255, // Front LED 73
-    0, // Front LED 74
-    16, // Front LED 75
-    51, // Front LED 76
+    16, // Front LED 74
+    51, // Front LED 75
+    102, // Front LED 76
     119, // Front LED 77
-    136, // Front LED 78
+    153, // Front LED 78
     170, // Front LED 79
     204, // Front LED 80
     221, // Front LED 81
     237, // Front LED 82
-    34, // Front LED 83
-    85, // Front LED 84
-    102, // Front LED 85
-    136, // Front LED 86
-    153, // Front LED 87
-    187, // Front LED 88
-    204, // Front LED 89
-    237, // Front LED 90
-    255, // Front LED 91
-    51, // Front LED 92
-    68, // Front LED 93
-    102, // Front LED 94
-    119, // Front LED 95
-    136, // Front LED 96
-    153, // Front LED 97
+    255, // Front LED 83
+    34, // Front LED 84
+    68, // Front LED 85
+    85, // Front LED 86
+    102, // Front LED 87
+    136, // Front LED 88
+    153, // Front LED 89
+    187, // Front LED 90
+    204, // Front LED 91
+    237, // Front LED 92
+    51, // Front LED 93
+    68, // Front LED 94
+    102, // Front LED 95
+    119, // Front LED 96
+    136, // Front LED 97
     170, // Front LED 98
-    204, // Front LED 99
-    221, // Front LED 100
-    237, // Front LED 101
-    255, // Front LED 102
-    16, // Front LED 103
-    34, // Front LED 104
-    68, // Front LED 105
-    85, // Front LED 106
-    102, // Front LED 107
-    119, // Front LED 108
-    153, // Front LED 109
-    170, // Front LED 110
-    187, // Front LED 111
-    204, // Front LED 112
-    221, // Front LED 113
-    255, // Front LED 114
-    0, // Front LED 115
-    16, // Front LED 116
-    34, // Front LED 117
-    51, // Front LED 118
-    68, // Front LED 119
-    85, // Front LED 120
-    119, // Front LED 121
-    136, // Front LED 122
+    187, // Front LED 99
+    204, // Front LED 100
+    221, // Front LED 101
+    237, // Front LED 102
+    255, // Front LED 103
+    16, // Front LED 104
+    34, // Front LED 105
+    68, // Front LED 106
+    85, // Front LED 107
+    102, // Front LED 108
+    119, // Front LED 109
+    136, // Front LED 110
+    153, // Front LED 111
+    170, // Front LED 112
+    204, // Front LED 113
+    221, // Front LED 114
+    255, // Front LED 115
+    0, // Front LED 116
+    16, // Front LED 117
+    34, // Front LED 118
+    51, // Front LED 119
+    68, // Front LED 120
+    85, // Front LED 121
+    119, // Front LED 122
     153, // Front LED 123
     170, // Front LED 124
     187, // Front LED 125
-    221, // Front LED 126
-    0, // Front LED 127
-    16, // Front LED 128
-    34, // Front LED 129
-    51, // Front LED 130
-    68, // Front LED 131
-    85, // Front LED 132
-    102, // Front LED 133
-    119, // Front LED 134
-    136, // Front LED 135
-    153, // Front LED 136
-    187, // Front LED 137
-    16, // Front LED 138
-    34, // Front LED 139
-    68, // Front LED 140
-    85, // Front LED 141
-    102, // Front LED 142
-    119, // Front LED 143
-    153, // Front LED 144
+    204, // Front LED 126
+    221, // Front LED 127
+    0, // Front LED 128
+    16, // Front LED 129
+    34, // Front LED 130
+    51, // Front LED 131
+    68, // Front LED 132
+    85, // Front LED 133
+    102, // Front LED 134
+    119, // Front LED 135
+    136, // Front LED 136
+    153, // Front LED 137
+    187, // Front LED 138
+    16, // Front LED 139
+    34, // Front LED 140
+    68, // Front LED 141
+    85, // Front LED 142
+    102, // Front LED 143
+    119, // Front LED 144
     16, // Front LED 145
     34, // Front LED 146
     51, // Front LED 147
@@ -1365,255 +1378,255 @@ const uint8_t PROGMEM SPATIAL_X_BYTE[FRONT_LEDS] = {
 const uint8_t PROGMEM SPATIAL_Y_BYTE[FRONT_LEDS] = {
     0, // Front LED 0
     0, // Front LED 1
-    16, // Front LED 2
-    16, // Front LED 3
-    16, // Front LED 4
-    16, // Front LED 5
-    33, // Front LED 6
-    33, // Front LED 7
-    33, // Front LED 8
-    33, // Front LED 9
-    49, // Front LED 10
-    49, // Front LED 11
-    49, // Front LED 12
-    49, // Front LED 13
-    49, // Front LED 14
-    66, // Front LED 15
-    66, // Front LED 16
-    66, // Front LED 17
-    66, // Front LED 18
-    83, // Front LED 19
-    83, // Front LED 20
-    83, // Front LED 21
-    83, // Front LED 22
-    99, // Front LED 23
-    99, // Front LED 24
-    99, // Front LED 25
-    99, // Front LED 26
-    99, // Front LED 27
-    116, // Front LED 28
-    116, // Front LED 29
-    133, // Front LED 30
-    133, // Front LED 31
-    133, // Front LED 32
-    133, // Front LED 33
-    150, // Front LED 34
-    150, // Front LED 35
-    166, // Front LED 36
-    183, // Front LED 37
-    183, // Front LED 38
-    183, // Front LED 39
-    200, // Front LED 40
-    16, // Front LED 41
-    16, // Front LED 42
-    16, // Front LED 43
-    16, // Front LED 44
-    16, // Front LED 45
-    33, // Front LED 46
-    33, // Front LED 47
-    33, // Front LED 48
-    33, // Front LED 49
-    33, // Front LED 50
-    33, // Front LED 51
-    33, // Front LED 52
-    33, // Front LED 53
-    49, // Front LED 54
-    49, // Front LED 55
-    49, // Front LED 56
-    49, // Front LED 57
-    49, // Front LED 58
-    49, // Front LED 59
-    49, // Front LED 60
-    49, // Front LED 61
-    49, // Front LED 62
-    49, // Front LED 63
-    66, // Front LED 64
-    66, // Front LED 65
-    66, // Front LED 66
-    66, // Front LED 67
-    66, // Front LED 68
-    66, // Front LED 69
-    66, // Front LED 70
-    66, // Front LED 71
-    66, // Front LED 72
-    66, // Front LED 73
-    83, // Front LED 74
-    83, // Front LED 75
-    83, // Front LED 76
-    83, // Front LED 77
-    83, // Front LED 78
-    83, // Front LED 79
-    83, // Front LED 80
-    83, // Front LED 81
-    83, // Front LED 82
-    99, // Front LED 83
-    99, // Front LED 84
-    99, // Front LED 85
-    99, // Front LED 86
-    99, // Front LED 87
-    99, // Front LED 88
-    99, // Front LED 89
-    99, // Front LED 90
-    99, // Front LED 91
-    116, // Front LED 92
-    116, // Front LED 93
-    116, // Front LED 94
-    116, // Front LED 95
-    116, // Front LED 96
-    116, // Front LED 97
-    116, // Front LED 98
-    116, // Front LED 99
-    116, // Front LED 100
-    116, // Front LED 101
-    116, // Front LED 102
-    133, // Front LED 103
-    133, // Front LED 104
-    133, // Front LED 105
-    133, // Front LED 106
-    133, // Front LED 107
-    133, // Front LED 108
-    133, // Front LED 109
-    133, // Front LED 110
-    133, // Front LED 111
-    133, // Front LED 112
-    133, // Front LED 113
-    133, // Front LED 114
-    150, // Front LED 115
-    150, // Front LED 116
-    150, // Front LED 117
-    150, // Front LED 118
-    150, // Front LED 119
-    150, // Front LED 120
-    150, // Front LED 121
-    150, // Front LED 122
-    150, // Front LED 123
-    150, // Front LED 124
-    150, // Front LED 125
-    150, // Front LED 126
-    166, // Front LED 127
-    166, // Front LED 128
-    166, // Front LED 129
-    166, // Front LED 130
-    166, // Front LED 131
-    166, // Front LED 132
-    166, // Front LED 133
-    166, // Front LED 134
-    166, // Front LED 135
-    166, // Front LED 136
-    166, // Front LED 137
-    183, // Front LED 138
-    183, // Front LED 139
-    183, // Front LED 140
-    183, // Front LED 141
-    183, // Front LED 142
-    183, // Front LED 143
-    183, // Front LED 144
-    200, // Front LED 145
-    200, // Front LED 146
-    200, // Front LED 147
-    200, // Front LED 148
-    200, // Front LED 149
-    200, // Front LED 150
-    135, // Front LED 151
-    136, // Front LED 152
-    137, // Front LED 153
-    138, // Front LED 154
-    139, // Front LED 155
-    141, // Front LED 156
-    142, // Front LED 157
-    143, // Front LED 158
-    144, // Front LED 159
-    145, // Front LED 160
-    146, // Front LED 161
-    148, // Front LED 162
-    149, // Front LED 163
-    150, // Front LED 164
-    151, // Front LED 165
-    152, // Front LED 166
-    153, // Front LED 167
-    154, // Front LED 168
-    156, // Front LED 169
-    157, // Front LED 170
-    158, // Front LED 171
-    159, // Front LED 172
-    160, // Front LED 173
-    161, // Front LED 174
-    162, // Front LED 175
-    164, // Front LED 176
-    165, // Front LED 177
-    166, // Front LED 178
-    167, // Front LED 179
-    168, // Front LED 180
-    169, // Front LED 181
-    171, // Front LED 182
-    172, // Front LED 183
-    173, // Front LED 184
-    174, // Front LED 185
-    175, // Front LED 186
-    176, // Front LED 187
-    177, // Front LED 188
-    179, // Front LED 189
-    180, // Front LED 190
-    181, // Front LED 191
-    182, // Front LED 192
-    183, // Front LED 193
-    184, // Front LED 194
-    185, // Front LED 195
-    187, // Front LED 196
-    188, // Front LED 197
-    189, // Front LED 198
-    190, // Front LED 199
-    191, // Front LED 200
-    192, // Front LED 201
-    194, // Front LED 202
-    195, // Front LED 203
-    196, // Front LED 204
-    197, // Front LED 205
-    198, // Front LED 206
-    199, // Front LED 207
-    200, // Front LED 208
-    202, // Front LED 209
-    203, // Front LED 210
-    204, // Front LED 211
-    205, // Front LED 212
-    206, // Front LED 213
-    207, // Front LED 214
-    208, // Front LED 215
-    210, // Front LED 216
-    211, // Front LED 217
-    212, // Front LED 218
-    213, // Front LED 219
-    214, // Front LED 220
-    215, // Front LED 221
-    217, // Front LED 222
-    218, // Front LED 223
-    219, // Front LED 224
-    220, // Front LED 225
-    221, // Front LED 226
-    222, // Front LED 227
-    223, // Front LED 228
-    225, // Front LED 229
-    226, // Front LED 230
-    227, // Front LED 231
-    228, // Front LED 232
-    229, // Front LED 233
-    230, // Front LED 234
-    231, // Front LED 235
-    233, // Front LED 236
-    234, // Front LED 237
-    235, // Front LED 238
-    236, // Front LED 239
-    237, // Front LED 240
-    238, // Front LED 241
-    240, // Front LED 242
-    241, // Front LED 243
-    242, // Front LED 244
-    243, // Front LED 245
-    244, // Front LED 246
+    0, // Front LED 2
+    0, // Front LED 3
+    17, // Front LED 4
+    17, // Front LED 5
+    17, // Front LED 6
+    17, // Front LED 7
+    35, // Front LED 8
+    35, // Front LED 9
+    35, // Front LED 10
+    35, // Front LED 11
+    35, // Front LED 12
+    53, // Front LED 13
+    53, // Front LED 14
+    53, // Front LED 15
+    53, // Front LED 16
+    53, // Front LED 17
+    53, // Front LED 18
+    71, // Front LED 19
+    71, // Front LED 20
+    71, // Front LED 21
+    71, // Front LED 22
+    89, // Front LED 23
+    89, // Front LED 24
+    89, // Front LED 25
+    89, // Front LED 26
+    89, // Front LED 27
+    106, // Front LED 28
+    106, // Front LED 29
+    124, // Front LED 30
+    124, // Front LED 31
+    124, // Front LED 32
+    124, // Front LED 33
+    142, // Front LED 34
+    142, // Front LED 35
+    160, // Front LED 36
+    178, // Front LED 37
+    178, // Front LED 38
+    178, // Front LED 39
+    196, // Front LED 40
+    0, // Front LED 41
+    0, // Front LED 42
+    0, // Front LED 43
+    0, // Front LED 44
+    0, // Front LED 45
+    0, // Front LED 46
+    17, // Front LED 47
+    17, // Front LED 48
+    17, // Front LED 49
+    17, // Front LED 50
+    17, // Front LED 51
+    17, // Front LED 52
+    17, // Front LED 53
+    17, // Front LED 54
+    35, // Front LED 55
+    35, // Front LED 56
+    35, // Front LED 57
+    35, // Front LED 58
+    35, // Front LED 59
+    35, // Front LED 60
+    35, // Front LED 61
+    35, // Front LED 62
+    35, // Front LED 63
+    35, // Front LED 64
+    53, // Front LED 65
+    53, // Front LED 66
+    53, // Front LED 67
+    53, // Front LED 68
+    53, // Front LED 69
+    53, // Front LED 70
+    53, // Front LED 71
+    53, // Front LED 72
+    53, // Front LED 73
+    71, // Front LED 74
+    71, // Front LED 75
+    71, // Front LED 76
+    71, // Front LED 77
+    71, // Front LED 78
+    71, // Front LED 79
+    71, // Front LED 80
+    71, // Front LED 81
+    71, // Front LED 82
+    71, // Front LED 83
+    89, // Front LED 84
+    89, // Front LED 85
+    89, // Front LED 86
+    89, // Front LED 87
+    89, // Front LED 88
+    89, // Front LED 89
+    89, // Front LED 90
+    89, // Front LED 91
+    89, // Front LED 92
+    106, // Front LED 93
+    106, // Front LED 94
+    106, // Front LED 95
+    106, // Front LED 96
+    106, // Front LED 97
+    106, // Front LED 98
+    106, // Front LED 99
+    106, // Front LED 100
+    106, // Front LED 101
+    106, // Front LED 102
+    106, // Front LED 103
+    124, // Front LED 104
+    124, // Front LED 105
+    124, // Front LED 106
+    124, // Front LED 107
+    124, // Front LED 108
+    124, // Front LED 109
+    124, // Front LED 110
+    124, // Front LED 111
+    124, // Front LED 112
+    124, // Front LED 113
+    124, // Front LED 114
+    124, // Front LED 115
+    142, // Front LED 116
+    142, // Front LED 117
+    142, // Front LED 118
+    142, // Front LED 119
+    142, // Front LED 120
+    142, // Front LED 121
+    142, // Front LED 122
+    142, // Front LED 123
+    142, // Front LED 124
+    142, // Front LED 125
+    142, // Front LED 126
+    142, // Front LED 127
+    160, // Front LED 128
+    160, // Front LED 129
+    160, // Front LED 130
+    160, // Front LED 131
+    160, // Front LED 132
+    160, // Front LED 133
+    160, // Front LED 134
+    160, // Front LED 135
+    160, // Front LED 136
+    160, // Front LED 137
+    160, // Front LED 138
+    178, // Front LED 139
+    178, // Front LED 140
+    178, // Front LED 141
+    178, // Front LED 142
+    178, // Front LED 143
+    178, // Front LED 144
+    196, // Front LED 145
+    196, // Front LED 146
+    196, // Front LED 147
+    196, // Front LED 148
+    196, // Front LED 149
+    196, // Front LED 150
+    127, // Front LED 151
+    128, // Front LED 152
+    129, // Front LED 153
+    130, // Front LED 154
+    131, // Front LED 155
+    133, // Front LED 156
+    134, // Front LED 157
+    135, // Front LED 158
+    136, // Front LED 159
+    138, // Front LED 160
+    139, // Front LED 161
+    140, // Front LED 162
+    141, // Front LED 163
+    143, // Front LED 164
+    144, // Front LED 165
+    145, // Front LED 166
+    146, // Front LED 167
+    147, // Front LED 168
+    149, // Front LED 169
+    150, // Front LED 170
+    151, // Front LED 171
+    152, // Front LED 172
+    154, // Front LED 173
+    155, // Front LED 174
+    156, // Front LED 175
+    157, // Front LED 176
+    159, // Front LED 177
+    160, // Front LED 178
+    161, // Front LED 179
+    162, // Front LED 180
+    163, // Front LED 181
+    165, // Front LED 182
+    166, // Front LED 183
+    167, // Front LED 184
+    168, // Front LED 185
+    170, // Front LED 186
+    171, // Front LED 187
+    172, // Front LED 188
+    173, // Front LED 189
+    175, // Front LED 190
+    176, // Front LED 191
+    177, // Front LED 192
+    178, // Front LED 193
+    179, // Front LED 194
+    181, // Front LED 195
+    182, // Front LED 196
+    183, // Front LED 197
+    184, // Front LED 198
+    186, // Front LED 199
+    187, // Front LED 200
+    188, // Front LED 201
+    189, // Front LED 202
+    190, // Front LED 203
+    192, // Front LED 204
+    193, // Front LED 205
+    194, // Front LED 206
+    195, // Front LED 207
+    197, // Front LED 208
+    198, // Front LED 209
+    199, // Front LED 210
+    200, // Front LED 211
+    202, // Front LED 212
+    203, // Front LED 213
+    204, // Front LED 214
+    205, // Front LED 215
+    207, // Front LED 216
+    208, // Front LED 217
+    209, // Front LED 218
+    210, // Front LED 219
+    211, // Front LED 220
+    213, // Front LED 221
+    214, // Front LED 222
+    215, // Front LED 223
+    216, // Front LED 224
+    218, // Front LED 225
+    219, // Front LED 226
+    220, // Front LED 227
+    221, // Front LED 228
+    223, // Front LED 229
+    224, // Front LED 230
+    225, // Front LED 231
+    226, // Front LED 232
+    227, // Front LED 233
+    229, // Front LED 234
+    230, // Front LED 235
+    231, // Front LED 236
+    232, // Front LED 237
+    234, // Front LED 238
+    235, // Front LED 239
+    236, // Front LED 240
+    237, // Front LED 241
+    239, // Front LED 242
+    240, // Front LED 243
+    241, // Front LED 244
+    242, // Front LED 245
+    243, // Front LED 246
     245, // Front LED 247
     246, // Front LED 248
-    248, // Front LED 249
-    249, // Front LED 250
+    247, // Front LED 249
+    248, // Front LED 250
     250, // Front LED 251
     251, // Front LED 252
     252, // Front LED 253
@@ -1622,171 +1635,171 @@ const uint8_t PROGMEM SPATIAL_Y_BYTE[FRONT_LEDS] = {
 };
 
 const uint8_t PROGMEM SPATIAL_RADIUS_BYTE[FRONT_LEDS] = {
-    210, // Front LED 0
-    255, // Front LED 1
-    207, // Front LED 2
-    187, // Front LED 3
-    181, // Front LED 4
-    252, // Front LED 5
-    175, // Front LED 6
-    158, // Front LED 7
-    175, // Front LED 8
-    202, // Front LED 9
-    202, // Front LED 10
-    143, // Front LED 11
-    131, // Front LED 12
-    143, // Front LED 13
-    203, // Front LED 14
-    207, // Front LED 15
-    150, // Front LED 16
-    112, // Front LED 17
-    151, // Front LED 18
-    154, // Front LED 19
-    90, // Front LED 20
-    118, // Front LED 21
-    197, // Front LED 22
-    165, // Front LED 23
-    101, // Front LED 24
-    60, // Front LED 25
-    84, // Front LED 26
-    144, // Front LED 27
+    209, // Front LED 0
+    189, // Front LED 1
+    189, // Front LED 2
+    255, // Front LED 3
+    176, // Front LED 4
+    159, // Front LED 5
+    156, // Front LED 6
+    204, // Front LED 7
+    203, // Front LED 8
+    144, // Front LED 9
+    132, // Front LED 10
+    156, // Front LED 11
+    223, // Front LED 12
+    208, // Front LED 13
+    151, // Front LED 14
+    113, // Front LED 15
+    113, // Front LED 16
+    153, // Front LED 17
+    190, // Front LED 18
+    155, // Front LED 19
+    102, // Front LED 20
+    84, // Front LED 21
+    119, // Front LED 22
+    166, // Front LED 23
+    60, // Front LED 24
+    85, // Front LED 25
+    145, // Front LED 26
+    190, // Front LED 27
     68, // Front LED 28
-    91, // Front LED 29
-    178, // Front LED 30
+    51, // Front LED 29
+    179, // Front LED 30
     107, // Front LED 31
-    17, // Front LED 32
-    155, // Front LED 33
+    85, // Front LED 32
+    157, // Front LED 33
     37, // Front LED 34
-    108, // Front LED 35
-    70, // Front LED 36
-    187, // Front LED 37
+    18, // Front LED 35
+    71, // Front LED 36
+    189, // Front LED 37
     122, // Front LED 38
     61, // Front LED 39
-    90, // Front LED 40
-    196, // Front LED 41
-    181, // Front LED 42
-    188, // Front LED 43
-    197, // Front LED 44
-    236, // Front LED 45
-    187, // Front LED 46
-    165, // Front LED 47
-    154, // Front LED 48
-    154, // Front LED 49
-    158, // Front LED 50
-    165, // Front LED 51
-    219, // Front LED 52
-    236, // Front LED 53
-    184, // Front LED 54
-    168, // Front LED 55
-    154, // Front LED 56
-    135, // Front LED 57
-    131, // Front LED 58
-    135, // Front LED 59
-    155, // Front LED 60
-    169, // Front LED 61
-    185, // Front LED 62
-    221, // Front LED 63
-    187, // Front LED 64
-    168, // Front LED 65
-    107, // Front LED 66
-    107, // Front LED 67
-    112, // Front LED 68
-    122, // Front LED 69
-    135, // Front LED 70
-    169, // Front LED 71
-    188, // Front LED 72
-    208, // Front LED 73
-    196, // Front LED 74
-    175, // Front LED 75
-    135, // Front LED 76
-    83, // Front LED 77
-    83, // Front LED 78
-    102, // Front LED 79
-    136, // Front LED 80
-    155, // Front LED 81
-    176, // Front LED 82
-    143, // Front LED 83
-    83, // Front LED 84
-    68, // Front LED 85
-    60, // Front LED 86
+    91, // Front LED 40
+    197, // Front LED 41
+    182, // Front LED 42
+    183, // Front LED 43
+    198, // Front LED 44
+    223, // Front LED 45
+    238, // Front LED 46
+    188, // Front LED 47
+    166, // Front LED 48
+    155, // Front LED 49
+    159, // Front LED 50
+    167, // Front LED 51
+    177, // Front LED 52
+    221, // Front LED 53
+    238, // Front LED 54
+    185, // Front LED 55
+    169, // Front LED 56
+    155, // Front LED 57
+    136, // Front LED 58
+    132, // Front LED 59
+    136, // Front LED 60
+    145, // Front LED 61
+    170, // Front LED 62
+    187, // Front LED 63
+    204, // Front LED 64
+    188, // Front LED 65
+    169, // Front LED 66
+    122, // Front LED 67
+    108, // Front LED 68
+    108, // Front LED 69
+    123, // Front LED 70
+    137, // Front LED 71
+    171, // Front LED 72
+    210, // Front LED 73
+    176, // Front LED 74
+    135, // Front LED 75
+    90, // Front LED 76
+    84, // Front LED 77
+    91, // Front LED 78
+    103, // Front LED 79
+    137, // Front LED 80
+    157, // Front LED 81
+    177, // Front LED 82
+    199, // Front LED 83
+    143, // Front LED 84
+    102, // Front LED 85
+    83, // Front LED 86
     69, // Front LED 87
-    102, // Front LED 88
-    122, // Front LED 89
-    166, // Front LED 90
-    188, // Front LED 91
-    112, // Front LED 92
-    90, // Front LED 93
-    49, // Front LED 94
-    37, // Front LED 95
+    60, // Front LED 88
+    70, // Front LED 89
+    103, // Front LED 90
+    124, // Front LED 91
+    167, // Front LED 92
+    112, // Front LED 93
+    90, // Front LED 94
+    49, // Front LED 95
     37, // Front LED 96
-    50, // Front LED 97
-    69, // Front LED 98
-    113, // Front LED 99
-    136, // Front LED 100
-    159, // Front LED 101
-    182, // Front LED 102
-    154, // Front LED 103
-    130, // Front LED 104
-    83, // Front LED 105
-    60, // Front LED 106
-    36, // Front LED 107
-    16, // Front LED 108
-    38, // Front LED 109
-    61, // Front LED 110
-    84, // Front LED 111
-    108, // Front LED 112
-    132, // Front LED 113
-    179, // Front LED 114
-    178, // Front LED 115
-    154, // Front LED 116
-    131, // Front LED 117
-    107, // Front LED 118
-    83, // Front LED 119
-    60, // Front LED 120
-    16, // Front LED 121
-    17, // Front LED 122
-    38, // Front LED 123
-    61, // Front LED 124
-    84, // Front LED 125
-    132, // Front LED 126
-    181, // Front LED 127
-    158, // Front LED 128
-    135, // Front LED 129
-    112, // Front LED 130
-    90, // Front LED 131
-    69, // Front LED 132
-    50, // Front LED 133
-    37, // Front LED 134
+    37, // Front LED 97
+    70, // Front LED 98
+    92, // Front LED 99
+    114, // Front LED 100
+    137, // Front LED 101
+    161, // Front LED 102
+    184, // Front LED 103
+    155, // Front LED 104
+    131, // Front LED 105
+    83, // Front LED 106
+    60, // Front LED 107
+    36, // Front LED 108
+    15, // Front LED 109
+    17, // Front LED 110
+    38, // Front LED 111
+    62, // Front LED 112
+    109, // Front LED 113
+    133, // Front LED 114
+    181, // Front LED 115
+    179, // Front LED 116
+    155, // Front LED 117
+    131, // Front LED 118
+    107, // Front LED 119
+    83, // Front LED 120
+    60, // Front LED 121
+    16, // Front LED 122
+    39, // Front LED 123
+    62, // Front LED 124
+    85, // Front LED 125
+    109, // Front LED 126
+    133, // Front LED 127
+    182, // Front LED 128
+    159, // Front LED 129
+    136, // Front LED 130
+    113, // Front LED 131
+    90, // Front LED 132
+    69, // Front LED 133
+    50, // Front LED 134
     38, // Front LED 135
-    51, // Front LED 136
-    91, // Front LED 137
-    165, // Front LED 138
-    143, // Front LED 139
-    102, // Front LED 140
-    84, // Front LED 141
-    69, // Front LED 142
-    61, // Front LED 143
-    70, // Front LED 144
-    175, // Front LED 145
+    38, // Front LED 136
+    51, // Front LED 137
+    92, // Front LED 138
+    166, // Front LED 139
+    144, // Front LED 140
+    102, // Front LED 141
+    84, // Front LED 142
+    69, // Front LED 143
+    61, // Front LED 144
+    176, // Front LED 145
     155, // Front LED 146
-    135, // Front LED 147
-    117, // Front LED 148
-    102, // Front LED 149
-    84, // Front LED 150
+    136, // Front LED 147
+    118, // Front LED 148
+    103, // Front LED 149
+    85, // Front LED 150
     8, // Front LED 151
     6, // Front LED 152
     5, // Front LED 153
     3, // Front LED 154
     2, // Front LED 155
-    0, // Front LED 156
+    1, // Front LED 156
     1, // Front LED 157
-    2, // Front LED 158
+    3, // Front LED 158
     4, // Front LED 159
     6, // Front LED 160
-    7, // Front LED 161
+    8, // Front LED 161
     9, // Front LED 162
     11, // Front LED 163
-    12, // Front LED 164
+    13, // Front LED 164
     14, // Front LED 165
     16, // Front LED 166
     17, // Front LED 167
@@ -1794,90 +1807,90 @@ const uint8_t PROGMEM SPATIAL_RADIUS_BYTE[FRONT_LEDS] = {
     21, // Front LED 169
     22, // Front LED 170
     24, // Front LED 171
-    25, // Front LED 172
+    26, // Front LED 172
     27, // Front LED 173
     29, // Front LED 174
-    30, // Front LED 175
+    31, // Front LED 175
     32, // Front LED 176
     34, // Front LED 177
-    35, // Front LED 178
+    36, // Front LED 178
     37, // Front LED 179
     39, // Front LED 180
-    40, // Front LED 181
+    41, // Front LED 181
     42, // Front LED 182
     44, // Front LED 183
-    45, // Front LED 184
+    46, // Front LED 184
     47, // Front LED 185
-    48, // Front LED 186
-    50, // Front LED 187
+    49, // Front LED 186
+    51, // Front LED 187
     52, // Front LED 188
-    53, // Front LED 189
-    55, // Front LED 190
+    54, // Front LED 189
+    56, // Front LED 190
     57, // Front LED 191
-    58, // Front LED 192
-    60, // Front LED 193
+    59, // Front LED 192
+    61, // Front LED 193
     62, // Front LED 194
-    63, // Front LED 195
-    65, // Front LED 196
+    64, // Front LED 195
+    66, // Front LED 196
     67, // Front LED 197
-    68, // Front LED 198
+    69, // Front LED 198
     70, // Front LED 199
-    71, // Front LED 200
-    73, // Front LED 201
+    72, // Front LED 200
+    74, // Front LED 201
     75, // Front LED 202
-    76, // Front LED 203
-    78, // Front LED 204
+    77, // Front LED 203
+    79, // Front LED 204
     80, // Front LED 205
-    81, // Front LED 206
-    83, // Front LED 207
+    82, // Front LED 206
+    84, // Front LED 207
     85, // Front LED 208
-    86, // Front LED 209
-    88, // Front LED 210
+    87, // Front LED 209
+    89, // Front LED 210
     90, // Front LED 211
-    91, // Front LED 212
-    93, // Front LED 213
+    92, // Front LED 212
+    94, // Front LED 213
     95, // Front LED 214
-    96, // Front LED 215
-    98, // Front LED 216
-    99, // Front LED 217
-    101, // Front LED 218
-    103, // Front LED 219
-    104, // Front LED 220
-    106, // Front LED 221
-    108, // Front LED 222
-    109, // Front LED 223
-    111, // Front LED 224
-    113, // Front LED 225
-    114, // Front LED 226
-    116, // Front LED 227
-    118, // Front LED 228
-    119, // Front LED 229
-    121, // Front LED 230
-    122, // Front LED 231
-    124, // Front LED 232
-    126, // Front LED 233
-    127, // Front LED 234
-    129, // Front LED 235
-    131, // Front LED 236
-    132, // Front LED 237
-    134, // Front LED 238
-    136, // Front LED 239
-    137, // Front LED 240
-    139, // Front LED 241
-    141, // Front LED 242
-    142, // Front LED 243
-    144, // Front LED 244
-    145, // Front LED 245
-    147, // Front LED 246
-    149, // Front LED 247
-    150, // Front LED 248
-    152, // Front LED 249
-    154, // Front LED 250
-    155, // Front LED 251
-    157, // Front LED 252
-    159, // Front LED 253
-    160, // Front LED 254
-    162 // Front LED 255
+    97, // Front LED 215
+    99, // Front LED 216
+    100, // Front LED 217
+    102, // Front LED 218
+    104, // Front LED 219
+    105, // Front LED 220
+    107, // Front LED 221
+    109, // Front LED 222
+    110, // Front LED 223
+    112, // Front LED 224
+    114, // Front LED 225
+    115, // Front LED 226
+    117, // Front LED 227
+    119, // Front LED 228
+    120, // Front LED 229
+    122, // Front LED 230
+    123, // Front LED 231
+    125, // Front LED 232
+    127, // Front LED 233
+    128, // Front LED 234
+    130, // Front LED 235
+    132, // Front LED 236
+    133, // Front LED 237
+    135, // Front LED 238
+    137, // Front LED 239
+    138, // Front LED 240
+    140, // Front LED 241
+    142, // Front LED 242
+    143, // Front LED 243
+    145, // Front LED 244
+    147, // Front LED 245
+    148, // Front LED 246
+    150, // Front LED 247
+    152, // Front LED 248
+    153, // Front LED 249
+    155, // Front LED 250
+    157, // Front LED 251
+    158, // Front LED 252
+    160, // Front LED 253
+    162, // Front LED 254
+    163 // Front LED 255
 };
 
 #endif // COSTUME_CONFIG_H

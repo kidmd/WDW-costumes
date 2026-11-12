@@ -877,7 +877,14 @@ Use the **Load Example Routine** dropdown to test fully orchestrated 90-second s
 
 ## 10. Lighting Patterns & Effects Library
 
-The simulator includes a unified library of 18 specialized algorithms available across Whole-Shirt Ambient (Tab 2), Group Creation & Docked Inspector (Tab 3), and Timed Show Cues (Tab 4):
+The simulator includes a unified **36-effect catalog** (`EFFECT_CATALOG` in `simulator/app.js`) organized into **6 functional `<optgroup>` categories** across Whole-Shirt Ambient (Tab 2), Group Creation & Docked Inspector (Tab 3), and Timed Show Cues (Tab 4), with live 1-line helper descriptions and full ESP32 firmware parity (`COSTUME_PATTERN_*` IDs `0..32`):
+
+1. **🏃 Chases & Sweeps:** `chase` (Wheel Spin), `comet` (Meteor Trail), `scanner` (Larson Ping-Pong), `marquee` (Classic Marquee Chase), `piston_chug` (Locomotive Chug), `mouse_scamper` (Scurrying Mouse), `flashlight` (Searchlight Roam), `traveling_wave` (Traveling Parade Wave), `dual_chase` (Dual Opposing Chase), `barber_pole` (Barber Pole Stripes)
+2. **🖌️ Wipes & Fills:** `color_wipe` (Progressive Fill), `write_on_off` (Write-On / Write-Off), `curtain_wipe` (Center-Out Curtain Wipe), `random_dissolve` (Random Dissolve Fill)
+3. **⚡ Flashes & Strobes:** `flash_slow` (Slow Blink), `fireworks` (Radiating Starburst), `lightning_bug` (Lightning Bug / Firefly Pulse), `paparazzi` (Paparazzi Camera Pops), `double_blink` (Syncopated Double-Blink)
+4. **🌬️ Glows & Pulses:** `color_match` (Slo-Glo Breath), `pulse` (Breathing Glow Pulse), `filament_glow` (Vintage 1972 Filament), `candle_flicker` (Lantern Flame), `tidal_ripple` (Tidal Ripple), `dim_glow` (Subtle Ambient Glow), `heartbeat` (Heartbeat 10K Cadence), `two_tone_fade` (Two-Tone Crossfade)
+5. **✨ Sparkles & Magic:** `steady_sparkle` (Steady + Occasional Sparkle), `sparkle_storm` (Sparkle Storm), `pixie_dust` (Pixie Dust Drift), `dragon_sparkle` (Dragon Emerald Sparkle), `fire_breath` (Snout Fire Breath), `confetti` (Confetti Shimmer), `cinderella_twinkle` (Cinderella Crystalline Twinkle)
+6. **🌈 Color & Utility:** `rainbow_cycle` (Rainbow Wave), `photo_mode` (Castle Photo Mode — Solid), `off` (All Off / Blackout)
 
 | Effect ID | Effect Name | Description | Best Suited For |
 |---|---|---|---|

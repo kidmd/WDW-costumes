@@ -32,6 +32,141 @@ const DEFAULT_FLEET_RADAR = [
     { id: 7, name: "Flag & Eagle", role: "CO-LEADER", tag: "PATRIOTIC", color: "#388bfd", icon: "🦅", status: "ONLINE", rssi: -69, voltage: 5.09, batteryPct: 94, lastSeenSec: 2.1 }
 ];
 
+// ============================================================================
+// UNIFIED SOLO MODE EFFECT CATALOG (Single Source of Truth)
+// ============================================================================
+const EFFECT_CATEGORIES = [
+    { id: 'chases',   label: '🏃 Chases & Sweeps' },
+    { id: 'wipes',    label: '🖌️ Wipes & Fills' },
+    { id: 'flashes',  label: '⚡ Flashes & Strobes' },
+    { id: 'glows',    label: '🌬️ Glows & Pulses' },
+    { id: 'sparkles', label: '✨ Sparkles & Magic' },
+    { id: 'utility',  label: '🌈 Color & Utility' }
+];
+
+const EFFECT_CATALOG = [
+    // --- Chases & Sweeps ---
+    { id: 'chase',          cat: 'chases',   icon: '🎡', short: 'Chase',          label: '🎡 Chase / Wheel Spin',              desc: 'Rotating bright dot & short trail—great for wheels & rings.' },
+    { id: 'comet',          cat: 'chases',   icon: '☄️', short: 'Comet',          label: '☄️ Meteor / Comet Trail',          desc: 'Fast bright head with a long fading tail.' },
+    { id: 'scanner',        cat: 'chases',   icon: '🛸', short: 'Scanner',        label: '🛸 Larson Scanner (Ping-Pong)',      desc: 'Cylon-style glowing eye sweeping back and forth.' },
+    { id: 'marquee',        cat: 'chases',   icon: '🎪', short: 'Marquee',        label: '🎪 Classic Marquee Chase',           desc: 'Vintage 1972 theater-bulb 3-step marching chase.' },
+    { id: 'piston_chug',    cat: 'chases',   icon: '🚂', short: 'Piston Chug',    label: '🚂 Locomotive Piston Chug',          desc: '4-beat steam-engine chug surging along the costume.' },
+    { id: 'mouse_scamper',  cat: 'chases',   icon: '🐭', short: 'Mouse Scamper',  label: '🐭 Scurrying Mouse (Dot + Trail)',   desc: 'Playful single dot darting around 2D costume space.' },
+    { id: 'flashlight',     cat: 'chases',   icon: '🔦', short: 'Searchlight',    label: '🔦 Flashlight / Searchlight Roam',   desc: 'Soft glowing spotlight beam roaming across the chest.' },
+    { id: 'traveling_wave', cat: 'chases',   icon: '🌊', short: 'Parade Wave',    label: '🌊 Traveling Parade Wave',           desc: 'Smooth sine wave crest rolling continuously across pixels.' },
+    { id: 'dual_chase',     cat: 'chases',   icon: '⚔️', short: 'Dual Chase',     label: '⚔️ Dual Opposing Chase',             desc: 'Two bright comet heads racing in opposite directions and crossing.' },
+    { id: 'barber_pole',    cat: 'chases',   icon: '💈', short: 'Barber Pole',    label: '💈 Barber Pole Stripes',             desc: 'Crisp alternating colored & warm-white bands marching.' },
+
+    // --- Wipes & Fills ---
+    { id: 'color_wipe',      cat: 'wipes',   icon: '🖌️', short: 'Color Wipe',     label: '🖌️ Color Wipe / Progressive Fill',   desc: 'Paints LEDs on progressively, then sweeps them clear.' },
+    { id: 'write_on_off',    cat: 'wipes',   icon: '✍️', short: 'Write-On/Off',   label: '✍️ Write-On / Write-Off',            desc: 'Theatrical draw-in reveal followed by reverse erase.' },
+    { id: 'curtain_wipe',    cat: 'wipes',   icon: '🎭', short: 'Curtain Wipe',   label: '🎭 Center-Out Curtain Wipe',         desc: 'Symmetrical reveal expanding from center to edges and back.' },
+    { id: 'random_dissolve', cat: 'wipes',   icon: '🎲', short: 'Dissolve',       label: '🎲 Random Dissolve Fill',            desc: 'Pixels pop on in shuffled order until full, then dissolve off.' },
+
+    // --- Flashes & Strobes ---
+    { id: 'flash_slow',    cat: 'flashes',  icon: '💡', short: 'Slow Blink',     label: '💡 Slow Flashing / Blink',           desc: 'Clean 50/50 rhythmic on-off blink synced to BPM.' },
+    { id: 'fireworks',     cat: 'flashes',  icon: '🎆', short: 'Fireworks',      label: '🎆 Fireworks (Radiating Starburst)', desc: 'Explosive radial shockwaves bursting from center.' },
+    { id: 'lightning_bug', cat: 'flashes',  icon: '🪲', short: 'Lightning Bug',  label: '🪲 Lightning Bug / Firefly Pulse',   desc: 'Organic firefly flash: quick warm-up, bright peak, slow fade.' },
+    { id: 'paparazzi',     cat: 'flashes',  icon: '📸', short: 'Paparazzi',      label: '📸 Paparazzi Camera Pops',           desc: 'Dim baseline with crisp random white/gold camera flashes.' },
+    { id: 'double_blink',  cat: 'flashes',  icon: '⚡', short: 'Double-Blink',   label: '⚡ Syncopated Double-Blink',         desc: 'Two snappy strobe pulses followed by a brief rest.' },
+
+    // --- Glows & Pulses ---
+    { id: 'color_match',    cat: 'glows',   icon: '🌬️', short: 'Slo-Glo',        label: '🌬️ Slo-Glo Breath (Color-Matched)',  desc: 'Smooth sine-wave breathing glow in artwork colors.' },
+    { id: 'pulse',          cat: 'glows',   icon: '💓', short: 'Pulse',          label: '💓 Breathing Glow Pulse',            desc: 'Gentle rhythmic pulse—ideal for accents and hearts.' },
+    { id: 'filament_glow',  cat: 'glows',   icon: '⚡', short: '1972 Filament',  label: '⚡ Vintage 1972 Filament',           desc: 'Warm incandescent bulb shimmer with subtle thermal drift.' },
+    { id: 'candle_flicker', cat: 'glows',   icon: '🕯️', short: 'Candle',         label: '🕯️ Candle / Lantern Flame',          desc: 'Organic flickering lantern warmth.' },
+    { id: 'tidal_ripple',   cat: 'glows',   icon: '🌊', short: 'Tidal Ripple',   label: '🌊 Tidal Ripple',                    desc: 'Soft overlapping ocean swells across the costume.' },
+    { id: 'dim_glow',       cat: 'glows',   icon: '🌙', short: 'Dim Glow',       label: '🌙 Subtle Ambient Glow',             desc: 'Low-power steady ember glow—great for resting baselines.' },
+    { id: 'heartbeat',      cat: 'glows',   icon: '💗', short: 'Heartbeat',      label: '💗 Heartbeat (10K Cadence)',         desc: 'Double lub-dub pulse synced to your running cadence.' },
+    { id: 'two_tone_fade',  cat: 'glows',   icon: '🎨', short: 'Two-Tone Fade',  label: '🎨 Two-Tone Crossfade',              desc: 'Smoothly morphs between artwork colors and float theme.' },
+
+    // --- Sparkles & Magic ---
+    { id: 'steady_sparkle',     cat: 'sparkles', icon: '✨', short: 'Steady+Sparkle', label: '✨ Steady Colors + Sparkle',        desc: 'Full artwork colors with occasional starlight twinkles.' },
+    { id: 'sparkle_storm',      cat: 'sparkles', icon: '✨', short: 'Sparkle Storm',  label: '✨ Sparkle Storm (Glitter)',        desc: 'High-energy glittering bursts over a dim base.' },
+    { id: 'pixie_dust',         cat: 'sparkles', icon: '💫', short: 'Pixie Dust',     label: '💫 Pixie Dust Drift',               desc: 'Floating golden-white fairy dust drifting across pixels.' },
+    { id: 'dragon_sparkle',     cat: 'sparkles', icon: '🐉', short: 'Dragon Sparkle', label: '🐉 Dragon Emerald Sparkle',         desc: 'Vibrant emerald shimmer with golden-white dragon sparks.' },
+    { id: 'fire_breath',        cat: 'sparkles', icon: '🔥', short: 'Fire Breath',    label: '🔥 Snout Fire Breath',              desc: 'Blazing amber/crimson flame surge with ember flickers.' },
+    { id: 'confetti',           cat: 'sparkles', icon: '🎉', short: 'Confetti',       label: '🎉 Confetti Shimmer',               desc: 'Playful multi-color celebratory pops fading softly.' },
+    { id: 'cinderella_twinkle', cat: 'sparkles', icon: '💎', short: 'Glass Slipper',  label: '💎 Cinderella Crystalline Twinkle', desc: 'Icy cyan, diamond white, and royal gold twinkles.' },
+
+    // --- Color & Utility ---
+    { id: 'rainbow_cycle', cat: 'utility', icon: '🌈', short: 'Rainbow',    label: '🌈 Rainbow Wave',              desc: 'Full-spectrum Main Street color wave.' },
+    { id: 'photo_mode',    cat: 'utility', icon: '📸', short: 'Photo Mode', label: '📸 Castle Photo Mode (Solid)', desc: '100% steady zero-flicker colors for crisp race photos.' },
+    { id: 'off',           cat: 'utility', icon: '🌑', short: 'Blackout',   label: '🌑 All Off / Completely Dark', desc: 'All LEDs turned off (pitch black).' }
+];
+
+const EFFECT_CATALOG_MAP = Object.fromEntries(EFFECT_CATALOG.map(e => [e.id, e]));
+
+function getEffectMeta(effectId) {
+    return EFFECT_CATALOG_MAP[effectId] || { id: effectId, cat: 'utility', icon: '✨', short: effectId, label: effectId, desc: '' };
+}
+
+function populateEffectSelect(selectEl, opts = {}) {
+    if (!selectEl) return;
+    const prevVal = selectEl.value;
+    selectEl.innerHTML = '';
+
+    if (opts.includeInherit) {
+        const inheritOpt = document.createElement('option');
+        inheritOpt.value = 'inherit';
+        inheritOpt.textContent = '🌐 Follow Overall Baseline (Default)';
+        inheritOpt.title = 'Inherits the overall Default Background Pattern';
+        selectEl.appendChild(inheritOpt);
+    }
+
+    for (const cat of EFFECT_CATEGORIES) {
+        const items = EFFECT_CATALOG.filter(e => e.cat === cat.id);
+        if (items.length === 0) continue;
+        const optgroup = document.createElement('optgroup');
+        optgroup.label = cat.label;
+        for (const item of items) {
+            const opt = document.createElement('option');
+            opt.value = item.id;
+            opt.textContent = item.label;
+            opt.title = item.desc;
+            optgroup.appendChild(opt);
+        }
+        selectEl.appendChild(optgroup);
+    }
+
+    if (prevVal && Array.from(selectEl.options).some(o => o.value === prevVal)) {
+        selectEl.value = prevVal;
+    } else if (opts.defaultValue) {
+        selectEl.value = opts.defaultValue;
+    }
+}
+
+function updateEffectHint(selectId, hintId) {
+    const sel = document.getElementById(selectId);
+    const hint = document.getElementById(hintId);
+    if (!sel || !hint) return;
+    const meta = getEffectMeta(sel.value);
+    hint.textContent = meta.desc || '';
+}
+
+function buildEffectOptgroupHtml(selectedId) {
+    return EFFECT_CATEGORIES.map(cat => {
+        const items = EFFECT_CATALOG.filter(e => e.cat === cat.id);
+        if (!items.length) return '';
+        const opts = items.map(e =>
+            `<option value="${e.id}" title="${e.desc}" ${selectedId === e.id ? 'selected' : ''}>${e.label}</option>`
+        ).join('');
+        return `<optgroup label="${cat.label}">${opts}</optgroup>`;
+    }).join('');
+}
+
+function populateAllSoloEffectSelects() {
+    populateEffectSelect(document.getElementById('patternSelect'), { defaultValue: 'steady_sparkle' });
+    populateEffectSelect(document.getElementById('groupEffectSelectHub'), { defaultValue: 'chase' });
+    populateEffectSelect(document.getElementById('groupBaselineSelectHub'), { includeInherit: true, defaultValue: 'inherit' });
+    populateEffectSelect(document.getElementById('drawGroupEffectSelect'), { defaultValue: 'chase' });
+    populateEffectSelect(document.getElementById('drawGroupBaselineSelect'), { includeInherit: true, defaultValue: 'inherit' });
+    populateEffectSelect(document.getElementById('groupEffectSelect'), { defaultValue: 'chase' });
+    populateEffectSelect(document.getElementById('groupBaselineSelect'), { includeInherit: true, defaultValue: 'inherit' });
+    updateEffectHint('patternSelect', 'patternEffectHint');
+    updateEffectHint('groupEffectSelectHub', 'groupEffectHintHub');
+}
+
 // Dynamic live single shirt editor preset helper
 function getLiveSingleShirtPresetData() {
     return {
@@ -1889,6 +2024,171 @@ function getSpatialMetrics() {
     return recomputeSpatialMetrics(leds);
 }
 
+function evalNewCatalogEffect(effect, normPos, index, totalLeds, timeMs, bpm, direction, baseR, baseG, baseB) {
+    const beatMs = 60000 / Math.max(20, bpm || 120);
+    const normTime = timeMs / beatMs;
+    const dir = direction || 1;
+    const hash = (n) => {
+        const x = Math.sin(n * 12.9898 + 78.233) * 43758.5453;
+        return x - Math.floor(x);
+    };
+
+    switch (effect) {
+        case 'dual_chase': {
+            const periodMs = Math.max(800, beatMs * 2);
+            const p = ((timeMs / periodMs) % 1 + 1) % 1;
+            const head1 = dir >= 0 ? p : (1 - p);
+            const head2 = 1 - head1;
+            const d1 = Math.min(Math.abs(normPos - head1), 1 - Math.abs(normPos - head1));
+            const d2 = Math.min(Math.abs(normPos - head2), 1 - Math.abs(normPos - head2));
+            const w = 0.14;
+            const i1 = d1 < w ? Math.pow(1 - d1 / w, 1.5) : 0;
+            const i2 = d2 < w ? Math.pow(1 - d2 / w, 1.5) : 0;
+            const combined = Math.min(1.0, i1 + i2);
+            const boost = (i1 > 0.5 && i2 > 0.5) ? 140 : (combined > 0.7 ? 60 : 0);
+            return {
+                r: Math.min(255, baseR + boost),
+                g: Math.min(255, baseG + boost),
+                b: Math.min(255, baseB + boost),
+                intensity: 0.10 + 0.90 * combined
+            };
+        }
+        case 'barber_pole': {
+            const shift = (normTime * 0.45 * dir) % 1;
+            const band = (((normPos * 4.0) - shift) % 1 + 1) % 1;
+            if (band < 0.5) {
+                return { r: baseR, g: baseG, b: baseB, intensity: 0.95 };
+            }
+            return { r: 255, g: 235, b: 190, intensity: 0.85 };
+        }
+        case 'curtain_wipe': {
+            const cycleMs = beatMs * 4;
+            const p = ((timeMs % cycleMs) + cycleMs) % cycleMs / cycleMs;
+            const reveal = p < 0.5 ? (p * 2.0) : ((1.0 - p) * 2.0);
+            const distFromCenter = Math.abs(normPos - 0.5) * 2.0;
+            const lit = dir >= 0 ? (distFromCenter <= reveal) : (distFromCenter >= (1.0 - reveal));
+            const edge = Math.abs(distFromCenter - (dir >= 0 ? reveal : (1.0 - reveal))) < 0.06;
+            return {
+                r: edge ? Math.min(255, baseR + 90) : baseR,
+                g: edge ? Math.min(255, baseG + 90) : baseG,
+                b: edge ? Math.min(255, baseB + 90) : baseB,
+                intensity: lit ? 1.0 : 0.07
+            };
+        }
+        case 'random_dissolve': {
+            const cycleMs = beatMs * 4;
+            const p = ((timeMs % cycleMs) + cycleMs) % cycleMs / cycleMs;
+            const thresh = hash(index + 1);
+            const lit = p < 0.5 ? (thresh <= p * 2.0) : (thresh <= (1.0 - p) * 2.0);
+            return { r: baseR, g: baseG, b: baseB, intensity: lit ? 0.95 : 0.06 };
+        }
+        case 'lightning_bug': {
+            const cycleMs = Math.max(1200, beatMs * 3);
+            const offset = hash(index + 17);
+            const tau = (((timeMs / cycleMs) + offset) % 1 + 1) % 1;
+            let glow = 0.06;
+            if (tau < 0.10) {
+                glow = 0.06 + 0.94 * (tau / 0.10);
+            } else if (tau < 0.60) {
+                glow = 0.06 + 0.94 * Math.exp(-(tau - 0.10) * 6.0);
+            }
+            const ffR = Math.round(baseR * 0.4 + 190 * 0.6);
+            const ffG = Math.round(baseG * 0.4 + 255 * 0.6);
+            const ffB = Math.round(baseB * 0.4 + 45 * 0.6);
+            return { r: ffR, g: ffG, b: ffB, intensity: glow };
+        }
+        case 'paparazzi': {
+            const sliceMs = Math.max(60, Math.round(beatMs / 4));
+            const slice = Math.floor(timeMs / sliceMs);
+            const isFlash = hash(index * 31 + slice * 17) < 0.065;
+            if (isFlash) {
+                return { r: 255, g: 250, b: 230, intensity: 1.0 };
+            }
+            return { r: baseR, g: baseG, b: baseB, intensity: 0.12 };
+        }
+        case 'double_blink': {
+            const cycleMs = beatMs * 2;
+            const p = ((timeMs % cycleMs) + cycleMs) % cycleMs / cycleMs;
+            const on = (p >= 0.0 && p < 0.14) || (p >= 0.24 && p < 0.38);
+            return { r: baseR, g: baseG, b: baseB, intensity: on ? 1.0 : 0.08 };
+        }
+        case 'heartbeat': {
+            const p = ((timeMs % beatMs) + beatMs) % beatMs / beatMs;
+            const lub = Math.exp(-Math.pow((p - 0.14) / 0.065, 2));
+            const dub = 0.78 * Math.exp(-Math.pow((p - 0.32) / 0.055, 2));
+            const pulse = Math.min(1.0, 0.12 + 0.88 * Math.max(lub, dub));
+            return { r: baseR, g: baseG, b: baseB, intensity: pulse };
+        }
+        case 'two_tone_fade': {
+            const slotMeta = (typeof DEFAULT_FLEET_RADAR !== 'undefined' && typeof activeSingleShirtRunnerSlot !== 'undefined')
+                ? DEFAULT_FLEET_RADAR[activeSingleShirtRunnerSlot] : null;
+            const hex = (slotMeta && slotMeta.color) ? slotMeta.color : '#ffd700';
+            const altR = parseInt(hex.slice(1, 3), 16) || 255;
+            const altG = parseInt(hex.slice(3, 5), 16) || 215;
+            const altB = parseInt(hex.slice(5, 7), 16) || 0;
+            const blend = 0.5 - 0.5 * Math.cos(normTime * Math.PI * 0.5);
+            return {
+                r: Math.round(baseR * (1 - blend) + altR * blend),
+                g: Math.round(baseG * (1 - blend) + altG * blend),
+                b: Math.round(baseB * (1 - blend) + altB * blend),
+                intensity: 0.90
+            };
+        }
+        case 'confetti': {
+            const sliceMs = Math.max(120, Math.round(beatMs * 0.6));
+            const slice = Math.floor(timeMs / sliceMs);
+            const hVal = hash(index * 19 + slice * 37);
+            if (hVal < 0.22) {
+                const hue = hash(index * 7 + slice * 53);
+                const rgb = hslToRgb(hue, 0.95, 0.55);
+                const age = ((timeMs % sliceMs) / sliceMs);
+                return { r: rgb.r, g: rgb.g, b: rgb.b, intensity: 1.0 - age * 0.55 };
+            }
+            return { r: baseR, g: baseG, b: baseB, intensity: 0.14 };
+        }
+        case 'cinderella_twinkle': {
+            const phase = hash(index + 99) * Math.PI * 2;
+            const speed = 0.004 * (bpm / 120);
+            const tw = Math.pow(0.5 + 0.5 * Math.sin(timeMs * speed + phase), 3);
+            const pick = index % 3;
+            const cR = pick === 0 ? 120 : (pick === 1 ? 240 : 255);
+            const cG = pick === 0 ? 220 : (pick === 1 ? 248 : 215);
+            const cB = pick === 0 ? 255 : (pick === 1 ? 255 : 110);
+            return {
+                r: Math.round(baseR * (1 - tw) + cR * tw),
+                g: Math.round(baseG * (1 - tw) + cG * tw),
+                b: Math.round(baseB * (1 - tw) + cB * tw),
+                intensity: 0.25 + 0.75 * tw
+            };
+        }
+        case 'traveling_wave': {
+            const wave = Math.sin((normPos * Math.PI * 4) - (normTime * Math.PI * 1.5 * dir)) * 0.5 + 0.5;
+            return { r: baseR, g: baseG, b: baseB, intensity: 0.15 + 0.85 * Math.pow(wave, 1.5) };
+        }
+        case 'dragon_sparkle': {
+            const sp = hash(index * 13 + Math.floor(timeMs / 90) * 29) < 0.05;
+            if (sp) return { r: 255, g: 255, b: 220, intensity: 1.0 };
+            return {
+                r: Math.round(baseR * 0.5 + 20 * 0.5),
+                g: Math.round(baseG * 0.5 + 255 * 0.5),
+                b: Math.round(baseB * 0.5 + 90 * 0.5),
+                intensity: 0.85
+            };
+        }
+        case 'fire_breath': {
+            const flick = hash(index * 23 + Math.floor(timeMs / 75) * 11);
+            const surge = 0.5 + 0.5 * Math.sin(normTime * Math.PI * 2 - normPos * 5.0 * dir);
+            const fG = Math.round(40 + 160 * surge * flick);
+            return { r: 255, g: fG, b: 10, intensity: 0.35 + 0.65 * surge };
+        }
+        case 'dim_glow': {
+            return { r: baseR, g: baseG, b: baseB, intensity: 0.22 };
+        }
+        default:
+            return null;
+    }
+}
+
 function evalGroupEffect(grp, effect, bpm, dir, grpIndex, grpSize, timeMs, c) {
     let effectiveBpm = bpm;
     if (!effectiveBpm) {
@@ -2303,9 +2603,19 @@ function evalGroupEffect(grp, effect, bpm, dir, grpIndex, grpSize, timeMs, c) {
             grpIntensity = 0.22;
             break;
         }
-        default:
-            grpIntensity = 1.0;
+        default: {
+            const normPos = grpSize > 1 ? (grpIndex / (grpSize - 1)) : 0.5;
+            const res = evalNewCatalogEffect(effect, normPos, actualLedIndex, grpSize, effectiveTimeMs, effectiveBpm, direction, baseR, baseG, baseB);
+            if (res) {
+                baseR = res.r;
+                baseG = res.g;
+                baseB = res.b;
+                grpIntensity = res.intensity;
+            } else {
+                grpIntensity = 1.0;
+            }
             break;
+        }
     }
 
     const effBrightness = (params.brightness / 100) * grpIntensity;
@@ -3314,11 +3624,18 @@ function evalGlobalPattern(pattern, bpm, index, totalLeds, timeMs, c, hasColor, 
             return { r: 0, g: 0, b: 0, alpha: 0 };
         }
         default: {
-            if (effHasColor) {
-                r = effC.r; g = effC.g; b = effC.b;
+            const fallbackR = effHasColor ? effC.r : hslToRgb(baseH / 360, 0.95, 0.50).r;
+            const fallbackG = effHasColor ? effC.g : hslToRgb(baseH / 360, 0.95, 0.50).g;
+            const fallbackB = effHasColor ? effC.b : hslToRgb(baseH / 360, 0.95, 0.50).b;
+            const normPos = getCostumeNormalizedLoopCoord(index, activeProgression);
+            const res = evalNewCatalogEffect(pattern, normPos, index, totalLeds, timeMs, bpm || params.speedBpm || 120, dir, fallbackR, fallbackG, fallbackB);
+            if (res) {
+                r = Math.floor(res.r * res.intensity);
+                g = Math.floor(res.g * res.intensity);
+                b = Math.floor(res.b * res.intensity);
+                brightness = res.intensity;
             } else {
-                const rgb = hslToRgb(baseH / 360, 0.95, 0.50);
-                r = rgb.r; g = rgb.g; b = rgb.b;
+                r = fallbackR; g = fallbackG; b = fallbackB;
             }
             break;
         }
@@ -10757,35 +11074,8 @@ function renderActiveGroupsList() {
         return;
     }
 
-    const effectIcons = {
-        chase: '🎡 Chase',
-        flash_slow: '💡 Blink',
-        pulse: '💓 Pulse',
-        write_on_off: '✍️ Wipe',
-        sparkle_storm: '✨ Sparkle',
-        marquee: '🎪 Marquee',
-        rainbow_cycle: '🌈 Rainbow',
-        fireworks: '🎆 Fireworks',
-        off: '🌑 Off'
-    };
-
-    const effectEmoji = {
-        fireworks: '🎆',
-        chase: '🎡',
-        flash_slow: '💡',
-        pulse: '💓',
-        write_on_off: '✍️',
-        sparkle_storm: '✨',
-        marquee: '🎪',
-        rainbow_cycle: '🌈',
-        off: '🌑'
-    };
-
     const baselineLabels = {
         inherit: '🌐 Global',
-        off: '🌑 Off / Unlit',
-        steady_sparkle: '✨ Sparkle',
-        dim_glow: '💡 Glow',
         breathe: '🌬️ Breathe',
         pulse_slow: '💓 Pulse'
     };
@@ -10806,10 +11096,12 @@ function renderActiveGroupsList() {
             card.classList.add('active-group');
         }
 
-        const icon = effectEmoji[grp.effect] || '💫';
-        const label = effectIcons[grp.effect] || grp.effect;
+        const meta = getEffectMeta(grp.effect);
+        const icon = meta.icon || '💫';
+        const label = `${icon} ${meta.short}`;
         const currentBaseline = grp.baselineEffect || (grp.effect === 'fireworks' ? 'off' : 'inherit');
-        const baselineLabel = baselineLabels[currentBaseline] || '🌐 Global';
+        const baseMeta = currentBaseline === 'inherit' ? null : getEffectMeta(currentBaseline);
+        const baselineLabel = baselineLabels[currentBaseline] || (baseMeta ? `${baseMeta.icon} ${baseMeta.short}` : '🌐 Global');
 
         let extraPillHtml = '';
         if (grp.effect === 'fireworks') {
@@ -11941,30 +12233,6 @@ function renderCuesList() {
     // Sort cues by start time
     sequenceCues.sort((a, b) => a.startTime - b.startTime);
 
-    const effectOptions = [
-        { id: 'steady_sparkle', label: '✨ Steady Colors + Sparkles' },
-        { id: 'color_match', label: '🌬️ Slo-Glo Breath' },
-        { id: 'comet', label: '☄️ Meteor / Comet Trail' },
-        { id: 'scanner', label: '🛸 Larson Scanner' },
-        { id: 'color_wipe', label: '✍️ Color Wipe / Progressive Fill' },
-        { id: 'pixie_dust', label: '💫 Pixie Dust Drift' },
-        { id: 'filament_glow', label: '⚡ Vintage 1972 Filament' },
-        { id: 'candle_flicker', label: '🕯️ Candle / Lantern Flame' },
-        { id: 'tidal_ripple', label: '🌊 Tidal Ripple' },
-        { id: 'piston_chug', label: '🚂 Locomotive Piston Chug' },
-        { id: 'marquee', label: '🎪 Classic Marquee Chase' },
-        { id: 'fireworks', label: '🎆 Fireworks Starburst' },
-        { id: 'rainbow_cycle', label: '🌈 Rainbow Color Wave' },
-        { id: 'photo_mode', label: '📸 Castle Photo Mode (Solid)' },
-        { id: 'chase', label: '🎡 Chase / Wheel Spin' },
-        { id: 'flash_slow', label: '💡 Slow Flashing / Blink' },
-        { id: 'sparkle_storm', label: '✨ Sparkle Storm' },
-        { id: 'write_on_off', label: '✍️ Theatrical Write-On/Off' },
-        { id: 'traveling_wave', label: '🌊 Traveling Parade Wave' },
-        { id: 'fire_breath', label: '🔥 Snout Fire Breath' },
-        { id: 'off', label: '🌑 Off / Completely Unlit' }
-    ];
-
     sequenceCues.forEach((cue, idx) => {
         const card = document.createElement('div');
         card.className = 'cue-card';
@@ -12007,7 +12275,7 @@ function renderCuesList() {
                 <div style="flex: 1.2;">
                     <label style="font-size: 10px; color: var(--text-muted); display: block;">Pattern / Effect:</label>
                     <select class="cue-effect-select" style="width: 100%; background: #0d1117; color: #fff; border: 1px solid #30363d; border-radius: 4px; padding: 4px; font-size: 11px;">
-                        ${effectOptions.map(e => `<option value="${e.id}" ${cue.effect === e.id ? 'selected' : ''}>${e.label}</option>`).join('')}
+                        ${buildEffectOptgroupHtml(cue.effect)}
                     </select>
                 </div>
                 <div style="flex: 0.8;">
@@ -15811,9 +16079,16 @@ renderActiveGroupsList();
 // ============================================================================
 // UI CONTROLS BINDING
 // ============================================================================
+populateAllSoloEffectSelects();
+
 document.getElementById('patternSelect').addEventListener('change', (e) => {
     activePattern = e.target.value;
+    updateEffectHint('patternSelect', 'patternEffectHint');
     markSingleShirtDirty();
+});
+
+document.getElementById('groupEffectSelectHub')?.addEventListener('change', () => {
+    updateEffectHint('groupEffectSelectHub', 'groupEffectHintHub');
 });
 
 document.getElementById('ambientDirectionSelect')?.addEventListener('change', (e) => {
