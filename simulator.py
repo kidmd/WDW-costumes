@@ -693,7 +693,8 @@ class SimulatorRequestHandler(http.server.SimpleHTTPRequestHandler):
                 "heartbeat": "COSTUME_PATTERN_HEARTBEAT",
                 "two_tone_fade": "COSTUME_PATTERN_TWO_TONE_FADE",
                 "confetti": "COSTUME_PATTERN_CONFETTI",
-                "cinderella_twinkle": "COSTUME_PATTERN_CINDERELLA_TWINKLE"
+                "cinderella_twinkle": "COSTUME_PATTERN_CINDERELLA_TWINKLE",
+                "triplet_chase": "COSTUME_PATTERN_TRIPLET_CHASE"
             }
             active_pattern = pattern_map.get(pattern_str, "COSTUME_PATTERN_STEADY_SPARKLE")
 
@@ -735,6 +736,7 @@ class SimulatorRequestHandler(http.server.SimpleHTTPRequestHandler):
                 "two_tone_fade": 30,
                 "confetti": 31,
                 "cinderella_twinkle": 32,
+                "triplet_chase": 33,
                 "autonomous_90s": 0
             }
             ambient_fallback_code = ambient_pattern_numeric_map.get(ambient_pattern_str, 0)
@@ -807,7 +809,8 @@ class SimulatorRequestHandler(http.server.SimpleHTTPRequestHandler):
                 "heartbeat": 29,
                 "two_tone_fade": 30,
                 "confetti": 31,
-                "cinderella_twinkle": 32
+                "cinderella_twinkle": 32,
+                "triplet_chase": 33
             }
 
             cue_lines = []
@@ -929,6 +932,7 @@ class SimulatorRequestHandler(http.server.SimpleHTTPRequestHandler):
 #define COSTUME_PATTERN_TWO_TONE_FADE    30
 #define COSTUME_PATTERN_CONFETTI         31
 #define COSTUME_PATTERN_CINDERELLA_TWINKLE 32
+#define COSTUME_PATTERN_TRIPLET_CHASE    33
 
 #define ACTIVE_COSTUME_PATTERN           {active_pattern}
 #define COSTUME_SPEED_BPM                {speed_bpm}

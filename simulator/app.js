@@ -56,6 +56,7 @@ const EFFECT_CATALOG = [
     { id: 'traveling_wave', cat: 'chases',   icon: '🌊', short: 'Parade Wave',    label: '🌊 Traveling Parade Wave',           desc: 'Smooth sine wave crest rolling continuously across pixels.' },
     { id: 'dual_chase',     cat: 'chases',   icon: '⚔️', short: 'Dual Chase',     label: '⚔️ Dual Opposing Chase',             desc: 'Two bright comet heads racing in opposite directions and crossing.' },
     { id: 'barber_pole',    cat: 'chases',   icon: '💈', short: 'Barber Pole',    label: '💈 Barber Pole Stripes',             desc: 'Crisp alternating colored & warm-white bands marching.' },
+    { id: 'triplet_chase',  cat: 'chases',   icon: '🎠', short: 'Triplet Chase',  label: '🎠 Classic 3-Bulb Triplet Chase',    desc: 'All LEDs lit in repeating 3-bulb float color blocks, slowly chasing in a continuous loop.' },
 
     // --- Wipes & Fills ---
     { id: 'color_wipe',      cat: 'wipes',   icon: '🖌️', short: 'Color Wipe',     label: '🖌️ Color Wipe / Progressive Fill',   desc: 'Paints LEDs on progressively, then sweeps them clear.' },
@@ -2061,6 +2062,20 @@ function evalNewCatalogEffect(effect, normPos, index, totalLeds, timeMs, bpm, di
             }
             return { r: 255, g: 235, b: 190, intensity: 0.85 };
         }
+        case 'triplet_chase': {
+            const floatPalette = (typeof getFloatDefaultFairyColors === 'function')
+                ? getFloatDefaultFairyColors()
+                : ['#ff0000', '#ffffff', '#0000ff'];
+            const isFairy = (typeof isFairyLedIndex === 'function') && isFairyLedIndex(index);
+            const loopLen = isFairy ? 50 : Math.max(9, totalLeds || 50);
+            const posIdx = isFairy ? getFairyContinuousLoopIndex(index) : (index % loopLen);
+            // Smooth slow chase (~1.5 bulbs per beat)
+            const shift = Math.floor(normTime * 1.5 * dir);
+            const shifted = ((posIdx - shift) % loopLen + loopLen) % loopLen;
+            const colorSlot = Math.floor(shifted / 3) % floatPalette.length;
+            const rgb = hexToRgb(floatPalette[colorSlot]) || { r: baseR, g: baseG, b: baseB };
+            return { r: rgb.r, g: rgb.g, b: rgb.b, intensity: 0.96 };
+        }
         case 'curtain_wipe': {
             const cycleMs = beatMs * 4;
             const p = ((timeMs % cycleMs) + cycleMs) % cycleMs / cycleMs;
@@ -3781,6 +3796,27 @@ function getCueLedColor(cue, index, isFairy, sampledArtworkColor, hasSampledColo
 }
 window.getCueLedColor = getCueLedColor;
 
+// Physical Z-fold Accordion Spatial Step Mapping for 25-bulb Fairy Strands
+const FAIRY_STRAND1_SPATIAL_STEP = [
+    1, 4, 7, 10, 9, 6, 3, 0, 2, 5, 8, 11, 12,
+    13, 14, 17, 20, 23, 22, 19, 16, 15, 18, 21, 24
+];
+const FAIRY_STRAND2_SPATIAL_STEP = [
+    23, 20, 17, 14, 15, 18, 21, 24, 22, 19, 16, 13, 12,
+    11, 10, 7, 4, 1, 2, 5, 8, 9, 6, 3, 0
+];
+
+// Connects both 25-bulb fairy strands (256..280 Right, 537..561 Left) at their loose ends into one continuous 50-bulb loop (0..49)
+function getFairyContinuousLoopIndex(index) {
+    if (index >= 256 && index <= 280) {
+        return FAIRY_STRAND1_SPATIAL_STEP[index - 256];
+    }
+    if (index >= 537 && index <= 561) {
+        return 25 + (24 - FAIRY_STRAND2_SPATIAL_STEP[index - 537]);
+    }
+    return index % 50;
+}
+
 // Helper to determine if an LED index belongs to the continuous fairy light ribs/shoulder strands
 function isFairyLedIndex(idx) {
     return (idx >= 256 && idx <= 280) || (idx >= 537 && idx <= 561);
@@ -3942,7 +3978,7 @@ function computeLedColor(index, totalLeds, timeMs, overrideColor = null) {
 
         // 2. Multi-Track Element Evaluation (Panels vs Fairy Strands vs Groups)
         let elementBaselineCol;
-        if (isFullCostume && isFairy) {
+        if (isFullCostume && isFairy && activePattern !== 'triplet_chase') {
             elementBaselineCol = evalFairyBaselineColor(index, effectiveTimeMs, params.speedBpm);
         } else {
             elementBaselineCol = evalGlobalPattern(activePattern, params.speedBpm, index, totalLeds, effectiveTimeMs, c, hasColor);
@@ -4102,7 +4138,7 @@ function computeLedColor(index, totalLeds, timeMs, overrideColor = null) {
     // ========================================================================
     if (isFullCostume && isFairy) {
         // Whole-body sweep animations circulate through both panels and fairy strands
-        const wholeBodySweeps = ['traveling_wave', 'chase', 'rainbow_cycle', 'scanner', 'comet', 'marquee', 'color_wipe', 'sparkle_storm'];
+        const wholeBodySweeps = ['traveling_wave', 'chase', 'rainbow_cycle', 'scanner', 'comet', 'marquee', 'color_wipe', 'sparkle_storm', 'triplet_chase'];
         if (wholeBodySweeps.includes(activePattern)) {
             return evalGlobalPattern(activePattern, params.speedBpm, index, totalLeds, timeMs, { r: 255, g: 214, b: 110 }, true, !!overrideColor);
         }

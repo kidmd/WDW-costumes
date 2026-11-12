@@ -93,6 +93,12 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### November 12, 2026 - Classic 3-Bulb Triplet Chase (`triplet_chase`) & Continuous 50-Bulb Fairy Loop
+- **All-Lit 3-Bulb Triplet Chase (`simulator/app.js`, `simulator.py`, `include/costume_config.h`, `src/main.cpp`, `arduino/MSEP_Costume/MSEP_Costume.ino`):**
+  - Added **`triplet_chase`** (`🎠 Classic 3-Bulb Triplet Chase`, `COSTUME_PATTERN_TRIPLET_CHASE 33`), keeping all LEDs lit in repeating 3-bulb blocks of the active float's default 3-color palette (e.g., 3 Red, 3 White, 3 Blue for Flag & Eagle) while slowly chasing forward or reverse.
+  - Added `getFairyContinuousLoopIndex()` in `simulator/app.js` and matching 50-bulb loop mapping in firmware using `FAIRY_STRAND1_SPATIAL_STEP` (`0..24`) and reversed `FAIRY_STRAND2_SPATIAL_STEP` (`25..49`) so both 25-bulb fairy strands connect at their loose ends into one continuous 50-bulb loop.
+  - Verified with `node --check simulator/app.js`, `python -m py_compile simulator.py`, and PlatformIO `pio run`.
+
 ### November 12, 2026 - Categorized Solo Mode Effect Catalog, 11 New Effects & Full ESP32 Firmware Parity
 - **Unified Solo Mode Effect Registry (`simulator/app.js`, `simulator/index.html`):**
   - Replaced 7 separate flat `<select>` dropdowns (`patternSelect`, `groupEffectSelectHub`, `groupBaselineSelectHub`, `drawGroupEffectSelect`, `drawGroupBaselineSelect`, `groupEffectSelect`, `groupBaselineSelect`) and the Cue Director `effectOptions` list with a single shared `EFFECT_CATALOG` and `EFFECT_CATEGORIES` registry.

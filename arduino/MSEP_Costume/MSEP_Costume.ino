@@ -1163,7 +1163,7 @@ static inline uint8_t catalogHash8(uint32_t n) {
 }
 
 bool renderCatalogEffect20to32(uint8_t effId, uint16_t bpm, uint32_t now, uint32_t originMs, int8_t dir) {
-    if (effId < 20 || effId > 32) return false;
+    if (effId < 20 || effId > 33) return false;
 
     uint32_t elapsed = now - originMs;
     uint32_t beatMs = 60000 / max((uint16_t)20, bpm);
@@ -1299,13 +1299,34 @@ bool renderCatalogEffect20to32(uint8_t effId, uint16_t bpm, uint32_t now, uint32
             CRGB c = blend(baseColor, accent, tw);
             c.nscale8_video(64 + scale8(tw, 191));
             leds[i] = c;
+        } else if (effId == 33) { // triplet_chase (3-bulb float color blocks chasing continuously)
+            int loopLen = max(9, activeCount);
+            int32_t shift = (int32_t)((elapsed * 3) / max((uint32_t)400, beatMs * 2)) * (dir >= 0 ? 1 : -1);
+            int pos = ((i - shift) % loopLen + loopLen) % loopLen;
+            uint8_t group = (uint8_t)((pos / 3) % 3);
+            leds[i] = getFloatPaletteColor(myFloatNumber, group);
         }
     }
+#if defined(COSTUME_FULL_562_MODE) && COSTUME_FULL_562_MODE
+    if (effId == 33 && NUM_LEDS >= 562) {
+        int32_t shift = (int32_t)((elapsed * 3) / max((uint32_t)400, beatMs * 2)) * (dir >= 0 ? 1 : -1);
+        for (int f = 256; f <= 280; f++) {
+            uint8_t step = pgm_read_byte(&FAIRY_STRAND1_SPATIAL_STEP[f - 256]);
+            int pos = (((int)step - shift) % 50 + 50) % 50;
+            leds[f] = getFloatPaletteColor(myFloatNumber, (uint8_t)((pos / 3) % 3));
+        }
+        for (int f = 537; f <= 561; f++) {
+            uint8_t step = 25 + (24 - pgm_read_byte(&FAIRY_STRAND2_SPATIAL_STEP[f - 537]));
+            int pos = (((int)step - shift) % 50 + 50) % 50;
+            leds[f] = getFloatPaletteColor(myFloatNumber, (uint8_t)((pos / 3) % 3));
+        }
+    }
+#endif
     return true;
 }
 
 void renderAmbientFallback(uint32_t now) {
-#if defined(AMBIENT_FALLBACK_PATTERN) && (AMBIENT_FALLBACK_PATTERN >= 20) && (AMBIENT_FALLBACK_PATTERN <= 32)
+#if defined(AMBIENT_FALLBACK_PATTERN) && (AMBIENT_FALLBACK_PATTERN >= 20) && (AMBIENT_FALLBACK_PATTERN <= 33)
     if (renderCatalogEffect20to32(AMBIENT_FALLBACK_PATTERN, COSTUME_SPEED_BPM, now, 0, COSTUME_AMBIENT_DIRECTION)) return;
 #endif
     uint32_t beatMs = 60000 / max((uint16_t)20, (uint16_t)COSTUME_SPEED_BPM);
@@ -2071,7 +2092,7 @@ void runAutonomousShowSequence(uint32_t now) {
                     }
 #endif
                 }
-            } else if (eff >= 20 && eff <= 32) {
+            } else if (eff >= 20 && eff <= 33) {
                 renderCatalogEffect20to32(eff, bpm, now, autonomousShowStartTime, 1);
             } else { // 0: steady_sparkle / default
                 for (int i = 0; i < FRONT_LEDS && i < MAX_LEDS_CAPACITY; i++) {
