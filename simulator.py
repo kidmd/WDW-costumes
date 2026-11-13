@@ -1160,7 +1160,8 @@ const uint8_t PROGMEM SPATIAL_RADIUS_BYTE[FRONT_LEDS] = {{
             # 2. Single-Costume Stream (Opcode 0x01 universal, or Opcode 0x02 if floatId specified)
             pixels = payload.get("pixels", [])
             float_id = payload.get("floatId")
-            self._send_msep_udp_frame(pixels, target_ip, float_id=float_id)
+            total_bytes = self._send_msep_udp_frame(pixels, target_ip, float_id=float_id)
+            num_leds = (len(pixels) // 3) if (pixels and isinstance(pixels[0], int)) else len(pixels)
 
             self.send_response(200)
             self.send_header("Content-Type", "application/json")
@@ -1169,7 +1170,7 @@ const uint8_t PROGMEM SPATIAL_RADIUS_BYTE[FRONT_LEDS] = {{
                 "success": True,
                 "mode": "single",
                 "count": num_leds,
-                "bytes": len(raw),
+                "bytes": total_bytes,
                 "targetIp": target_ip
             }).encode("utf-8"))
         except Exception as e:
