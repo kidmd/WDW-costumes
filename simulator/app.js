@@ -81,6 +81,7 @@ const EFFECT_CATALOG = [
     { id: 'dim_glow',       cat: 'glows',   icon: '🌙', short: 'Dim Glow',       label: '🌙 Subtle Ambient Glow',             desc: 'Low-power steady ember glow—great for resting baselines.' },
     { id: 'heartbeat',      cat: 'glows',   icon: '💗', short: 'Heartbeat',      label: '💗 Heartbeat (10K Cadence)',         desc: 'Double lub-dub pulse synced to your running cadence.' },
     { id: 'two_tone_fade',  cat: 'glows',   icon: '🎨', short: 'Two-Tone Fade',  label: '🎨 Two-Tone Crossfade',              desc: 'Smoothly morphs between artwork colors and float theme.' },
+    { id: 'flag_ripple',    cat: 'glows',   icon: '🇺🇸', short: 'Flag Ripple',    label: '🇺🇸 Waving Flag & Sparklers',         desc: 'Diagonal billowing fabric wave across chest & back artwork with July 4th fairy sparklers.' },
 
     // --- Sparkles & Magic ---
     { id: 'steady_sparkle',     cat: 'sparkles', icon: '✨', short: 'Steady+Sparkle', label: '✨ Steady Colors + Sparkle',        desc: 'Full artwork colors with occasional starlight twinkles.' },
@@ -2163,6 +2164,35 @@ function evalNewCatalogEffect(effect, normPos, index, totalLeds, timeMs, bpm, di
                 g: edge ? Math.min(255, c.g + 90) : c.g,
                 b: edge ? Math.min(255, c.b + 90) : c.b,
                 intensity: 0.96
+            };
+        }
+        case 'flag_ripple': {
+            const isFairy = (typeof isFairyLedIndex === 'function') && isFairyLedIndex(index);
+            if (isFairy) {
+                const step = (typeof getFairySpatialStep === 'function') ? getFairySpatialStep(index) : (index % 25);
+                const sparkRaw = Math.sin(normTime * 4.7 + step * 19.37) * Math.sin(normTime * 7.3 + index * 11.13);
+                const spark = sparkRaw > 0 ? Math.pow(sparkRaw, 4) : 0;
+                if (spark > 0.35) {
+                    const mix = Math.min(1.0, (spark - 0.35) / 0.65);
+                    return {
+                        r: Math.round(baseR + (255 - baseR) * mix),
+                        g: Math.round(baseG + (250 - baseG) * mix),
+                        b: Math.round(baseB + (220 - baseB) * mix),
+                        intensity: 0.78 + 0.22 * mix
+                    };
+                }
+                return { r: baseR, g: baseG, b: baseB, intensity: 0.78 };
+            }
+            const mIdx = (index >= 281) ? (index - 281) : (index % 256);
+            const row = Math.floor(mIdx / 16.0);
+            const col = (row % 2 === 0) ? (15 - (mIdx % 16)) : (mIdx % 16);
+            const wave = Math.sin((normTime * 1.15 * dir) - (col * 0.34 + row * 0.16)) * 0.5 + 0.5;
+            const sheen = wave > 0.72 ? Math.round(((wave - 0.72) / 0.28) * 65) : 0;
+            return {
+                r: Math.min(255, baseR + sheen),
+                g: Math.min(255, baseG + sheen),
+                b: Math.min(255, baseB + sheen),
+                intensity: 0.44 + 0.56 * Math.pow(wave, 1.3)
             };
         }
         case 'curtain_wipe': {

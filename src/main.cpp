@@ -1227,8 +1227,25 @@ inline CRGB evalTriColorWipePixel(uint16_t pos1000, uint8_t stage, uint16_t wipe
     return c;
 }
 
+inline void renderFlagSparklerFairyStrand(int startIdx, uint8_t strandId, uint32_t elapsed, uint16_t bpm) {
+    uint32_t beatTick = (elapsed * max((uint16_t)20, bpm)) / 8500UL;
+    for (int offset = 0; offset < 25; offset++) {
+        CRGB fc = getFloatFairyBulbColor(myFloatNumber, strandId, offset);
+        uint8_t step = (strandId == 1) ? pgm_read_byte(&FAIRY_STRAND1_SPATIAL_STEP[offset])
+                                       : pgm_read_byte(&FAIRY_STRAND2_SPATIAL_STEP[offset]);
+        uint16_t h = (uint16_t)((beatTick * 131U + (uint16_t)step * 73U + (uint16_t)startIdx * 17U) & 0xFF);
+        if (h > 236) {
+            fc = CRGB(255, 250, 220); // Crisp July 4th sparkler pop
+        } else {
+            fc.nscale8_video(200);    // ~78% steady patriotic triplet glow
+            if (fc == CRGB(0, 0, 0)) fc = CRGB(1, 1, 1);
+        }
+        leds[startIdx + offset] = fc;
+    }
+}
+
 bool renderCatalogEffect20to32(uint8_t effId, uint16_t bpm, uint32_t now, uint32_t originMs, int8_t dir) {
-    if (effId < 20 || effId > 35) return false;
+    if (effId < 20 || effId > 36) return false;
 
     uint32_t elapsed = now - originMs;
     uint32_t beatMs = 60000 / max((uint16_t)20, bpm);
@@ -1415,6 +1432,23 @@ bool renderCatalogEffect20to32(uint8_t effId, uint16_t bpm, uint32_t now, uint32
                 customBackActive[i] = evalTriColorWipePixel(posBack, triStage, triWipePermille);
                 useCustomBackActive = true;
             }
+        } else if (effId == 36) { // flag_ripple (To Honor America: diagonal billowing fabric wave)
+            uint8_t physIdx = isCurrentFloatMatrix16x16() ? getMatrixPhysicalIndex(i) : (uint8_t)i;
+            uint8_t row = physIdx / 16;
+            uint8_t col = (row % 2 == 0) ? (physIdx % 16) : (15 - (physIdx % 16));
+            uint8_t phase = (uint8_t)(((elapsed * max((uint16_t)40, bpm)) / 1200UL) & 0xFF);
+            uint8_t waveAngle = (dir >= 0) ? (uint8_t)(col * 14 + row * 7 - phase) : (uint8_t)(col * 14 + row * 7 + phase);
+            uint8_t s8 = sin8(waveAngle);
+            uint8_t intensity = (uint8_t)(112 + ((uint16_t)s8 * 143) / 255);
+            CRGB c = baseColor;
+            c.nscale8_video(intensity);
+            if (s8 > 220) {
+                uint8_t sheen = (uint8_t)(((uint16_t)(s8 - 220) * 65) / 35);
+                c.r = qadd8(c.r, sheen);
+                c.g = qadd8(c.g, sheen);
+                c.b = qadd8(c.b, sheen);
+            }
+            leds[i] = c;
         }
     }
 #if defined(COSTUME_FULL_562_MODE) && COSTUME_FULL_562_MODE
@@ -1449,13 +1483,16 @@ bool renderCatalogEffect20to32(uint8_t effId, uint16_t bpm, uint32_t now, uint32
             leds[256 + offset] = evalTriColorWipePixel(p1, triStage, triWipePermille);
             leds[537 + offset] = evalTriColorWipePixel(p2, triStage, triWipePermille);
         }
+    } else if (effId == 36 && NUM_LEDS >= 562) {
+        renderFlagSparklerFairyStrand(256, 1, elapsed, bpm);
+        renderFlagSparklerFairyStrand(537, 2, elapsed, bpm);
     }
 #endif
     return true;
 }
 
 void renderAmbientFallback(uint32_t now) {
-#if defined(AMBIENT_FALLBACK_PATTERN) && (AMBIENT_FALLBACK_PATTERN >= 20) && (AMBIENT_FALLBACK_PATTERN <= 35)
+#if defined(AMBIENT_FALLBACK_PATTERN) && (AMBIENT_FALLBACK_PATTERN >= 20) && (AMBIENT_FALLBACK_PATTERN <= 36)
     if (renderCatalogEffect20to32(AMBIENT_FALLBACK_PATTERN, COSTUME_SPEED_BPM, now, 0, COSTUME_AMBIENT_DIRECTION)) return;
 #endif
     uint32_t beatMs = 60000 / max((uint16_t)20, (uint16_t)COSTUME_SPEED_BPM);
@@ -2228,7 +2265,7 @@ void runAutonomousShowSequence(uint32_t now) {
                     }
 #endif
                 }
-            } else if (eff >= 20 && eff <= 35) {
+            } else if (eff >= 20 && eff <= 36) {
                 renderCatalogEffect20to32(eff, bpm, now, autonomousShowStartTime, 1);
             } else { // 0: steady_sparkle / default
                 for (int i = 0; i < FRONT_LEDS && i < MAX_LEDS_CAPACITY; i++) {
