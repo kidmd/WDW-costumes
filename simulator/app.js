@@ -15787,13 +15787,8 @@ function applyProfileData(profileData) {
             const hueVal = document.getElementById('hueVal');
             if (hueVal) hueVal.textContent = `${s.greenHue}°`;
         }
-        if (s.brightness !== undefined) {
-            params.brightness = s.brightness;
-            const brt = document.getElementById('brightnessSlider');
-            if (brt) brt.value = s.brightness;
-            const brtVal = document.getElementById('brightVal');
-            if (brtVal) brtVal.textContent = `${s.brightness}%`;
-        }
+        // Hardware LED Output (params.brightness) is governed globally by Deploy tab slider / localStorage (default 100%),
+        // so legacy 80% values baked into saved float preset JSONs do not silently dim hardware output on reload.
         if (s.glowSize !== undefined) {
             params.glowSize = s.glowSize;
             const glow = document.getElementById('glowSlider');
@@ -16246,11 +16241,27 @@ document.getElementById('hueSlider')?.addEventListener('input', (e) => {
     markSingleShirtDirty();
 });
 
-document.getElementById('brightnessSlider').addEventListener('input', (e) => {
-    params.brightness = parseInt(e.target.value);
-    document.getElementById('brightVal').textContent = `${params.brightness}%`;
-    markSingleShirtDirty();
-});
+const brightnessSliderEl = document.getElementById('brightnessSlider');
+if (brightnessSliderEl) {
+    let initHwBright = 100;
+    try {
+        const storedHwBright = parseInt(localStorage.getItem('msep_hw_brightness'), 10);
+        if (!Number.isNaN(storedHwBright) && storedHwBright >= 10 && storedHwBright <= 100) {
+            initHwBright = storedHwBright;
+        }
+    } catch (e) {}
+    params.brightness = initHwBright;
+    brightnessSliderEl.value = initHwBright;
+    const brightValEl = document.getElementById('brightVal');
+    if (brightValEl) brightValEl.textContent = `${initHwBright}%`;
+
+    brightnessSliderEl.addEventListener('input', (e) => {
+        params.brightness = parseInt(e.target.value, 10);
+        try { localStorage.setItem('msep_hw_brightness', String(params.brightness)); } catch (err) {}
+        if (brightValEl) brightValEl.textContent = `${params.brightness}%`;
+        markSingleShirtDirty();
+    });
+}
 
 document.getElementById('glowSlider').addEventListener('input', (e) => {
     params.glowSize = parseInt(e.target.value);
