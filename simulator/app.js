@@ -2067,11 +2067,11 @@ function evalNewCatalogEffect(effect, normPos, index, totalLeds, timeMs, bpm, di
                 ? getFloatDefaultFairyColors()
                 : ['#ff0000', '#ffffff', '#0000ff'];
             const isFairy = (typeof isFairyLedIndex === 'function') && isFairyLedIndex(index);
-            const loopLen = isFairy ? 50 : Math.max(9, totalLeds || 50);
-            const posIdx = isFairy ? getFairyContinuousLoopIndex(index) : (index % loopLen);
-            // Smooth slow chase (~1.5 bulbs per beat)
+            const patternLen = 3 * floatPalette.length;
+            const posIdx = isFairy ? getFairyContinuousLoopIndex(index) : index;
+            // Smooth slow rotation (~1.5 bulbs per beat) of pure 3-bulb blocks
             const shift = Math.floor(normTime * 1.5 * dir);
-            const shifted = ((posIdx - shift) % loopLen + loopLen) % loopLen;
+            const shifted = ((posIdx - shift) % patternLen + patternLen) % patternLen;
             const colorSlot = Math.floor(shifted / 3) % floatPalette.length;
             const rgb = hexToRgb(floatPalette[colorSlot]) || { r: baseR, g: baseG, b: baseB };
             return { r: rgb.r, g: rgb.g, b: rgb.b, intensity: 0.96 };
