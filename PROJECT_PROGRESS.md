@@ -100,6 +100,9 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
   - Updated `src/main.cpp` and `MSEP_Costume.ino` UDP receiver to buffer `0x04` back-matrix frames (`liveBackMatrixBuf[256]`) and apply them to `leds[281..536]` on the matching front+fairy frame instead of mirroring front pixels onto the back panel.
 - **Standalone Firmware Back-Panel Progression (`src/main.cpp`, `arduino/MSEP_Costume/MSEP_Costume.ino`):**
   - Added `getMatrixPhysicalIndex()` and `customBackActive[256]` support in `duplicateFrontToBack()` so `tri_color_wipe` (`effId == 35`) sweeps down the front matrix (`0..279`), around both Z-folded fairy strands (`280..720`), and up the back matrix (`720..999`) identically on standalone flashed ESP32s.
+- **Wave Progression Table Audit (`simulator/app.js`):**
+  - Fixed `COSTUME_562_PROGRESSIONS.lateral_roll` to un-flip serpentine even/odd matrix rows (`(row % 2 === 0) ? (15 - (mIdx % 16)) : (mIdx % 16)`) so all 16 rows sweep left-to-right together instead of alternating.
+  - Rescaled `COSTUME_562_PROGRESSIONS.dual_collision` across the full `0.00..1.00` range (`0.00..0.50` panels, `0.50..1.00` ribs) instead of clamping to `0.00..0.50`.
 
 ### November 13, 2026 - Tri-Color Cascade Wipe (`tri_color_wipe`: Blue → Red → White)
 - **Sequential Multi-Color Paint-Over Wipe (`simulator/app.js`, `simulator.py`, `src/main.cpp`, `arduino/MSEP_Costume/MSEP_Costume.ino`, `SIMULATOR_USER_GUIDE.md`):**

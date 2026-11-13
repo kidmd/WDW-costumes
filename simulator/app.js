@@ -2891,11 +2891,14 @@ const COSTUME_562_PROGRESSIONS = (function() {
         progs.lateral_roll[idx] = ((idx - 537) / 12.0) * 0.25;
     }
     for (let idx = 0; idx < 256; idx++) {
-        const col = idx % 16;
+        const row = Math.floor(idx / 16.0);
+        const col = (row % 2 === 0) ? (15 - (idx % 16)) : (idx % 16);
         progs.lateral_roll[idx] = 0.25 + (col / 15.0) * 0.50;
     }
     for (let idx = 281; idx <= 536; idx++) {
-        const col = (idx - 281) % 16;
+        const mIdx = idx - 281;
+        const row = Math.floor(mIdx / 16.0);
+        const col = (row % 2 === 0) ? (15 - (mIdx % 16)) : (mIdx % 16);
         progs.lateral_roll[idx] = 0.25 + (col / 15.0) * 0.50;
     }
     for (let idx = 256; idx <= 267; idx++) {
@@ -2905,26 +2908,26 @@ const COSTUME_562_PROGRESSIONS = (function() {
         progs.lateral_roll[idx] = 0.75 + ((280 - idx) / 12.0) * 0.25;
     }
 
-    // 7. DUAL COLLISION (Clash at Shoulders with Harmonic Rebound)
+    // 7. DUAL COLLISION (Front & Back Panels Rise to Clash at Shoulders)
     for (let idx = 0; idx < 256; idx++) {
         const row = Math.floor(idx / 16.0);
-        progs.dual_collision[idx] = ((15 - row) / 15.0) * 0.25;
+        progs.dual_collision[idx] = ((15 - row) / 15.0) * 0.50;
     }
     for (let idx = 281; idx <= 536; idx++) {
         const row = Math.floor((idx - 281) / 16.0);
-        progs.dual_collision[idx] = ((15 - row) / 15.0) * 0.25;
+        progs.dual_collision[idx] = ((15 - row) / 15.0) * 0.50;
     }
     for (let idx = 256; idx <= 267; idx++) {
-        progs.dual_collision[idx] = 0.25 + ((idx - 256) / 11.0) * 0.25;
+        progs.dual_collision[idx] = 0.50 + ((idx - 256) / 11.0) * 0.50;
     }
     for (let idx = 550; idx <= 561; idx++) {
-        progs.dual_collision[idx] = 0.25 + ((561 - idx) / 11.0) * 0.25;
+        progs.dual_collision[idx] = 0.50 + ((561 - idx) / 11.0) * 0.50;
     }
     for (let idx = 268; idx <= 280; idx++) {
-        progs.dual_collision[idx] = 0.25 + ((280 - idx) / 12.0) * 0.25;
+        progs.dual_collision[idx] = 0.50 + ((280 - idx) / 12.0) * 0.50;
     }
     for (let idx = 537; idx <= 549; idx++) {
-        progs.dual_collision[idx] = 0.25 + ((idx - 537) / 12.0) * 0.25;
+        progs.dual_collision[idx] = 0.50 + ((idx - 537) / 12.0) * 0.50;
     }
 
     // Safety clamp: strictly enforce [0.0, 0.999] so normalized coordinates never overflow [0.0, 1.0)
