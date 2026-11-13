@@ -12271,6 +12271,20 @@ function renderTimelineLayers() {
 // Retain alias for any existing calls
 const renderTimelineCueStrip = renderTimelineLayers;
 
+function getDefaultCueName(cue) {
+    const effectName = (typeof getEffectMeta === 'function' ? getEffectMeta(cue.effect).short : null) || cue.effect || 'Cue';
+    return (cue.targetType === 'group' && cue.groupName)
+        ? `${cue.groupName}: ${effectName}`
+        : effectName;
+}
+
+function isCueUsingDefaultName(cue) {
+    if (cue.isCustomName === true) return false;
+    if (cue.isCustomName === false) return true;
+    const n = cue.name || '';
+    return !n || n.startsWith('Cue #') || n.endsWith(' Routine') || n === '360° Global Sweep' || n === getDefaultCueName(cue);
+}
+
 function renderCuesList() {
     const container = document.getElementById('cuesListContainer');
     const badge = document.getElementById('cueDirectorBadge');
@@ -12469,11 +12483,21 @@ function renderCuesList() {
 
         // Event listeners for cue inputs
         card.querySelector('.cue-name-input').addEventListener('input', (e) => {
-            cue.name = e.target.value.trim() || `Cue #${idx + 1}`;
+            const val = e.target.value.trim();
+            if (val) {
+                cue.name = val;
+                cue.isCustomName = true;
+            } else {
+                cue.isCustomName = false;
+                cue.name = getDefaultCueName(cue);
+            }
+            renderTimelineCueStrip();
+            if (typeof renderTimelineLayers === 'function') renderTimelineLayers();
         });
 
         card.querySelector('.cue-target-select').addEventListener('change', (e) => {
             const val = e.target.value;
+            const prevDefault = getDefaultCueName(cue);
             if (val.startsWith('group:')) {
                 cue.targetType = 'group';
                 cue.groupId = val.replace('group:', '');
@@ -12496,40 +12520,25 @@ function renderCuesList() {
                         const dirSelect = card.querySelector('.cue-direction-select');
                         if (dirSelect) dirSelect.value = grp.direction;
                     }
-                    // If cue has default name, update to reflect group name
-                    if (cue.name.startsWith('Cue #') || cue.name.endsWith(' Routine')) {
-                        cue.name = `${grp.name} Routine`;
-                        const nameInput = card.querySelector('.cue-name-input');
-                        if (nameInput) nameInput.value = cue.name;
-                    }
                 }
             } else if (val === 'panels') {
                 cue.targetType = 'panels';
                 cue.groupId = '';
                 cue.groupName = '';
-                if (cue.name.startsWith('Cue #') || cue.name.endsWith(' Routine')) {
-                    cue.name = 'Panels Routine';
-                    const nameInput = card.querySelector('.cue-name-input');
-                    if (nameInput) nameInput.value = cue.name;
-                }
             } else if (val === 'fairy') {
                 cue.targetType = 'fairy';
                 cue.groupId = '';
                 cue.groupName = '';
-                if (cue.name.startsWith('Cue #') || cue.name.endsWith(' Routine')) {
-                    cue.name = 'Fairy Strands Routine';
-                    const nameInput = card.querySelector('.cue-name-input');
-                    if (nameInput) nameInput.value = cue.name;
-                }
             } else {
                 cue.targetType = 'global';
                 cue.groupId = '';
                 cue.groupName = '';
-                if (cue.name.startsWith('Cue #') || cue.name.endsWith(' Routine')) {
-                    cue.name = '360° Global Sweep';
-                    const nameInput = card.querySelector('.cue-name-input');
-                    if (nameInput) nameInput.value = cue.name;
-                }
+            }
+            if (isCueUsingDefaultName(cue) || cue.name === prevDefault) {
+                cue.name = getDefaultCueName(cue);
+                cue.isCustomName = false;
+                const nameInput = card.querySelector('.cue-name-input');
+                if (nameInput) nameInput.value = cue.name;
             }
             // Adaptively toggle visibility of Panels and Fairy Lights color selectors
             const panelRow = card.querySelector('.cue-panel-color-row');
@@ -12694,8 +12703,16 @@ function renderCuesList() {
         });
 
         card.querySelector('.cue-effect-select').addEventListener('change', (e) => {
+            const wasDefault = isCueUsingDefaultName(cue);
             cue.effect = e.target.value;
+            if (wasDefault) {
+                cue.name = getDefaultCueName(cue);
+                cue.isCustomName = false;
+                const nameInput = card.querySelector('.cue-name-input');
+                if (nameInput) nameInput.value = cue.name;
+            }
             renderTimelineCueStrip();
+            if (typeof renderTimelineLayers === 'function') renderTimelineLayers();
         });
 
         card.querySelector('.cue-direction-select').addEventListener('change', (e) => {
@@ -12803,13 +12820,12 @@ function addCue(options = {}) {
     if (!speedBpm) speedBpm = 120;
     if (direction === undefined) direction = 1;
 
-    const defaultName = (targetType === 'group' && groupName)
-        ? `${groupName} Routine`
-        : `Cue #${sequenceCues.length + 1}`;
+    const defaultName = getDefaultCueName({ targetType, groupName, effect });
 
     const newCue = {
         id: 'cue_' + Date.now() + '_' + Math.floor(Math.random() * 1000),
         name: options.name || defaultName,
+        isCustomName: Boolean(options.name),
         startTime: options.startTime !== undefined ? options.startTime : defaultStart,
         duration: options.duration !== undefined ? options.duration : 20.0,
         targetType: targetType,
