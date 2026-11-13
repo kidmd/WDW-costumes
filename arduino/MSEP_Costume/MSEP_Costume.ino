@@ -2404,14 +2404,15 @@ void setup() {
     WiFi.disconnect(true, true); // Erase any cached NVS STA credentials & stop background scanning
     delay(50);
 
-    // Optional: Connect to Home Wi-Fi ONLY if credentials are explicitly configured (Fast 1.5s check)
+    // Optional: Connect to Home Wi-Fi ONLY if credentials are explicitly configured (8s DHCP timeout)
 #if defined(WIFI_SSID)
     String ssid = WIFI_SSID;
     if (ssid.length() > 0 && ssid != "YourWiFiNetwork") {
         Serial.printf("[WIFI] Connecting to Wi-Fi '%s'...\n", WIFI_SSID);
+        WiFi.setSleep(false);
         WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
         uint32_t t0 = millis();
-        while (WiFi.status() != WL_CONNECTED && millis() - t0 < 1500) {
+        while (WiFi.status() != WL_CONNECTED && millis() - t0 < 8000) {
             delay(50);
             digitalWrite(STATUS_LED_PIN, !digitalRead(STATUS_LED_PIN));
         }
@@ -2875,7 +2876,7 @@ void loop() {
     // 2. Check for incoming live stream packets from Python Simulator
     int packetSize = 0;
     while ((packetSize = udp.parsePacket()) > 0) {
-        uint8_t buffer[512];
+        static uint8_t buffer[2048];
         int len = udp.read(buffer, sizeof(buffer));
         if (len >= 7 && 
             buffer[0] == 'M' && buffer[1] == 'S' && buffer[2] == 'E' && buffer[3] == 'P') {
@@ -2914,11 +2915,22 @@ void loop() {
             }
 
             if (frameAccepted) {
+                int hdrBytes = pIdx;
                 int ledsToUpdate = min((int)frameLeds, (int)FRONT_LEDS);
                 for (int i = 0; i < ledsToUpdate && (pIdx + 2) < len; i++) {
                     leds[i].r = buffer[pIdx++];
                     leds[i].g = buffer[pIdx++];
                     leds[i].b = buffer[pIdx++];
+                }
+                if (frameLeds >= 562 && NUM_LEDS >= 562) {
+                    for (int f = 256; f <= 280; f++) {
+                        int off = hdrBytes + f * 3;
+                        if (off + 2 < len) leds[f] = CRGB(buffer[off], buffer[off + 1], buffer[off + 2]);
+                    }
+                    for (int f = 537; f <= 561; f++) {
+                        int off = hdrBytes + f * 3;
+                        if (off + 2 < len) leds[f] = CRGB(buffer[off], buffer[off + 1], buffer[off + 2]);
+                    }
                 }
 
                 // Duplicate front LEDs to back LEDs (or scatter active LEDs across 16x16 matrix)
