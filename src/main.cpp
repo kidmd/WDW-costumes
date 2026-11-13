@@ -281,14 +281,24 @@ inline int getMatrixActiveLedCount() {
     return activeCount;
 }
 
-inline void duplicateFrontToBack() {
+inline void duplicateFrontToBack(bool preserveRenderedFairy = false) {
     if (isCurrentFloatMatrix16x16()) {
         CRGB tempActive[256];
         int activeCount = getMatrixActiveLedCount();
         for (int i = 0; i < activeCount; i++) {
             tempActive[i] = leds[i];
         }
-        // Clear all 512 pixels so non-windowed / non-backlit dark cells stay strictly off
+#if (defined(COSTUME_FULL_562_MODE) && COSTUME_FULL_562_MODE) || (defined(NUM_LEDS) && NUM_LEDS == 562)
+        CRGB tempFairyRight[25];
+        CRGB tempFairyLeft[25];
+        if (preserveRenderedFairy) {
+            for (int f = 0; f < 25; f++) {
+                tempFairyRight[f] = leds[256 + f];
+                tempFairyLeft[f]  = leds[537 + f];
+            }
+        }
+#endif
+        // Clear all 512 panel pixels so non-windowed / non-backlit dark cells stay strictly off
         fill_solid(leds, MAX_LEDS_CAPACITY, CRGB::Black);
         uint8_t winCount = 51;
 #if !(defined(FLEET_BUILD) && FLEET_BUILD) && defined(MATRIX_WINDOW_LED_COUNT)
@@ -373,22 +383,16 @@ inline void duplicateFrontToBack() {
             for (int f = 256; f <= 280; f++) leds[f] = rcWireCol;
             for (int f = 537; f <= 561; f++) leds[f] = rcWireCol;
         } else {
-            // Solo / Autonomous parade mode & Ambient fallback: illuminate unlit fairy bulbs with float palette triplets!
-            for (int f = 256; f <= 280; f++) {
-                if (leds[f] == CRGB(0,0,0)) {
-                    CRGB fc = getFloatFairyBulbColor(myFloatNumber, 1, f - 256);
-                    leds[f] = CRGB(fc.g, fc.r, fc.b);
-                } else {
-                    leds[f] = CRGB(leds[f].g, leds[f].r, leds[f].b);
-                }
-            }
-            for (int f = 537; f <= 561; f++) {
-                if (leds[f] == CRGB(0,0,0)) {
-                    CRGB fc = getFloatFairyBulbColor(myFloatNumber, 2, f - 537);
-                    leds[f] = CRGB(fc.g, fc.r, fc.b);
-                } else {
-                    leds[f] = CRGB(leds[f].g, leds[f].r, leds[f].b);
-                }
+            // Solo / Autonomous parade mode & Ambient fallback: preserve custom fairy animations or populate default triplets!
+            for (int f = 0; f < 25; f++) {
+                CRGB rc = (preserveRenderedFairy && !(tempFairyRight[f] == CRGB(0,0,0)))
+                          ? tempFairyRight[f]
+                          : getFloatFairyBulbColor(myFloatNumber, 1, f);
+                leds[256 + f] = CRGB(rc.g, rc.r, rc.b);
+                CRGB lc = (preserveRenderedFairy && !(tempFairyLeft[f] == CRGB(0,0,0)))
+                          ? tempFairyLeft[f]
+                          : getFloatFairyBulbColor(myFloatNumber, 2, f);
+                leds[537 + f] = CRGB(lc.g, lc.r, lc.b);
             }
         }
 #endif
@@ -1162,14 +1166,51 @@ static inline uint8_t catalogHash8(uint32_t n) {
     return (uint8_t)(n & 0xFF);
 }
 
+inline void renderSpotlightSwapFairyStrand(int startIdx, uint8_t strandId, bool inPhaseA, uint16_t subPermille, bool nearSwap, int8_t dir) {
+    uint16_t sweepPermille = (subPermille * 2) % 1000;
+    uint16_t forwardHead = (dir >= 0) ? sweepPermille : (uint16_t)(1000 - sweepPermille);
+    uint16_t head = (strandId == 1) ? forwardHead : (uint16_t)(1000 - forwardHead);
+    for (int offset = 0; offset < 25; offset++) {
+        CRGB baseF = getFloatFairyBulbColor(myFloatNumber, strandId, offset);
+        if (inPhaseA) {
+            uint8_t step = (strandId == 1) ? pgm_read_byte(&FAIRY_STRAND1_SPATIAL_STEP[offset])
+                                           : pgm_read_byte(&FAIRY_STRAND2_SPATIAL_STEP[offset]);
+            uint16_t fPos = (uint16_t)((step * 1000UL) / 24);
+            int16_t diff = abs((int16_t)fPos - (int16_t)head);
+            uint16_t d = (diff > 500) ? (uint16_t)(1000 - diff) : (uint16_t)diff;
+            uint16_t pulse255 = (d < 220) ? (uint16_t)(((220 - d) * (220 - d) * 255UL) / (220UL * 220UL)) : 0;
+            uint8_t boost = (pulse255 > 184 || nearSwap) ? 90 : 0;
+            CRGB fc(qadd8(baseF.r, boost), qadd8(baseF.g, boost), qadd8(baseF.b, boost));
+            uint8_t scale = (uint8_t)(46 + ((pulse255 * 209UL) / 255));
+            fc.nscale8_video(scale);
+            if (fc == CRGB(0, 0, 0)) fc = CRGB(1, 1, 1); // Non-zero sentinel so duplicateFrontToBack preserves it
+            leds[startIdx + offset] = fc;
+        } else {
+            uint8_t snapBoost = nearSwap ? 50 : 0;
+            CRGB fc(qadd8(baseF.r, snapBoost), qadd8(baseF.g, snapBoost), qadd8(baseF.b, snapBoost));
+            fc.nscale8_video(230); // ~90% steady showcase frame around artwork
+            if (fc == CRGB(0, 0, 0)) fc = CRGB(1, 1, 1);
+            leds[startIdx + offset] = fc;
+        }
+    }
+}
+
 bool renderCatalogEffect20to32(uint8_t effId, uint16_t bpm, uint32_t now, uint32_t originMs, int8_t dir) {
-    if (effId < 20 || effId > 33) return false;
+    if (effId < 20 || effId > 34) return false;
 
     uint32_t elapsed = now - originMs;
     uint32_t beatMs = 60000 / max((uint16_t)20, bpm);
     int activeCount = isCurrentFloatMatrix16x16() ? getMatrixActiveLedCount() : FRONT_LEDS;
     uint8_t floatIdx = (myFloatNumber >= 1 && myFloatNumber <= 7) ? (myFloatNumber - 1) : 0;
     CRGB themeColor = FLEET_ROSTER_INFO[floatIdx].color;
+
+    uint32_t spotCycleMs = max((uint32_t)1200, beatMs * 8);
+    uint32_t spotPhasePermille = ((elapsed % spotCycleMs) * 1000UL) / spotCycleMs;
+    bool spotInPhaseA = (spotPhasePermille < 500);
+    uint16_t spotSubPermille = spotInPhaseA ? (uint16_t)(spotPhasePermille * 2) : (uint16_t)((spotPhasePermille - 500) * 2);
+    bool spotNearSwap = (spotPhasePermille < 25) || (spotPhasePermille >= 475 && spotPhasePermille < 525);
+    uint8_t spotBreathScale = spotNearSwap ? 166 : (uint8_t)(71 + ((uint16_t)(255 - cos8((uint8_t)((spotSubPermille * 256UL) / 1000))) * 56) / 255);
+    uint16_t spotWavePos255 = (uint16_t)((spotSubPermille * 255UL) / 1000);
 
     for (int i = 0; i < FRONT_LEDS && i < MAX_LEDS_CAPACITY; i++) {
         if (i >= activeCount) {
@@ -1304,6 +1345,23 @@ bool renderCatalogEffect20to32(uint8_t effId, uint16_t bpm, uint32_t now, uint32
             int pos = ((i - shift) % 9 + 9) % 9;
             uint8_t group = (uint8_t)(pos / 3);
             leds[i] = getFloatPaletteColor(myFloatNumber, group);
+        } else if (effId == 34) { // spotlight_swap (4-beat fairy counter-motion / 4-beat panel showcase)
+            CRGB c = baseColor;
+            if (spotInPhaseA) {
+                c.nscale8_video(spotBreathScale);
+            } else {
+                int16_t diff = abs((int16_t)norm255 - (int16_t)spotWavePos255);
+                uint16_t d = (diff > 128) ? (uint16_t)(256 - diff) : (uint16_t)diff;
+                uint16_t spot = (d < 72) ? (uint16_t)(((72 - d) * (72 - d) * 255UL) / (72UL * 72UL)) : 0;
+                if (spot > 173 || spotNearSwap) {
+                    c.r = qadd8(c.r, 70);
+                    c.g = qadd8(c.g, 70);
+                    c.b = qadd8(c.b, 70);
+                }
+                uint8_t scale = (uint8_t)(194 + ((spot * 61UL) / 255));
+                c.nscale8_video(scale);
+            }
+            leds[i] = c;
         }
     }
 #if defined(COSTUME_FULL_562_MODE) && COSTUME_FULL_562_MODE
@@ -1324,13 +1382,16 @@ bool renderCatalogEffect20to32(uint8_t effId, uint16_t bpm, uint32_t now, uint32
             int pos = ((vPos - shift) % virtualLen + virtualLen) % virtualLen;
             leds[f] = getFloatPaletteColor(myFloatNumber, (uint8_t)(pos / 3));
         }
+    } else if (effId == 34 && NUM_LEDS >= 562) {
+        renderSpotlightSwapFairyStrand(256, 1, spotInPhaseA, spotSubPermille, spotNearSwap, dir);
+        renderSpotlightSwapFairyStrand(537, 2, spotInPhaseA, spotSubPermille, spotNearSwap, dir);
     }
 #endif
     return true;
 }
 
 void renderAmbientFallback(uint32_t now) {
-#if defined(AMBIENT_FALLBACK_PATTERN) && (AMBIENT_FALLBACK_PATTERN >= 20) && (AMBIENT_FALLBACK_PATTERN <= 33)
+#if defined(AMBIENT_FALLBACK_PATTERN) && (AMBIENT_FALLBACK_PATTERN >= 20) && (AMBIENT_FALLBACK_PATTERN <= 34)
     if (renderCatalogEffect20to32(AMBIENT_FALLBACK_PATTERN, COSTUME_SPEED_BPM, now, 0, COSTUME_AMBIENT_DIRECTION)) return;
 #endif
     uint32_t beatMs = 60000 / max((uint16_t)20, (uint16_t)COSTUME_SPEED_BPM);
@@ -1664,6 +1725,12 @@ void runAutonomousShowSequence(uint32_t now) {
         autonomousShowStartTime = now;
     }
     uint32_t seqTime = (now - autonomousShowStartTime) % SHOW_LOOP_MS;
+
+#if (defined(COSTUME_FULL_562_MODE) && COSTUME_FULL_562_MODE) || (defined(NUM_LEDS) && NUM_LEDS == 562)
+    // Clear prior frame's wire-swapped fairy pixels before rendering cues or ambient patterns
+    for (int f = 256; f <= 280; f++) leds[f] = CRGB::Black;
+    for (int f = 537; f <= 561; f++) leds[f] = CRGB::Black;
+#endif
 
 #if defined(ACTIVE_COSTUME_PATTERN) && (ACTIVE_COSTUME_PATTERN == COSTUME_PATTERN_AUTONOMOUS_90S)
     // ------------------------------------------------------------------------
@@ -2096,7 +2163,7 @@ void runAutonomousShowSequence(uint32_t now) {
                     }
 #endif
                 }
-            } else if (eff >= 20 && eff <= 33) {
+            } else if (eff >= 20 && eff <= 34) {
                 renderCatalogEffect20to32(eff, bpm, now, autonomousShowStartTime, 1);
             } else { // 0: steady_sparkle / default
                 for (int i = 0; i < FRONT_LEDS && i < MAX_LEDS_CAPACITY; i++) {
@@ -2174,7 +2241,7 @@ void runAutonomousShowSequence(uint32_t now) {
 #endif
 
     // Duplicate front LEDs to back LEDs (or scatter active LEDs across 16x16 matrix)
-    duplicateFrontToBack();
+    duplicateFrontToBack(true);
 
     // Status LED gentle breath during autonomous sequence
     uint8_t breathLed = ((seqTime / 1000) % 2 == 0) ? HIGH : LOW;

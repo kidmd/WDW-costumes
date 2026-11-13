@@ -694,7 +694,8 @@ class SimulatorRequestHandler(http.server.SimpleHTTPRequestHandler):
                 "two_tone_fade": "COSTUME_PATTERN_TWO_TONE_FADE",
                 "confetti": "COSTUME_PATTERN_CONFETTI",
                 "cinderella_twinkle": "COSTUME_PATTERN_CINDERELLA_TWINKLE",
-                "triplet_chase": "COSTUME_PATTERN_TRIPLET_CHASE"
+                "triplet_chase": "COSTUME_PATTERN_TRIPLET_CHASE",
+                "spotlight_swap": "COSTUME_PATTERN_SPOTLIGHT_SWAP"
             }
             active_pattern = pattern_map.get(pattern_str, "COSTUME_PATTERN_STEADY_SPARKLE")
 
@@ -737,6 +738,7 @@ class SimulatorRequestHandler(http.server.SimpleHTTPRequestHandler):
                 "confetti": 31,
                 "cinderella_twinkle": 32,
                 "triplet_chase": 33,
+                "spotlight_swap": 34,
                 "autonomous_90s": 0
             }
             ambient_fallback_code = ambient_pattern_numeric_map.get(ambient_pattern_str, 0)
@@ -810,7 +812,8 @@ class SimulatorRequestHandler(http.server.SimpleHTTPRequestHandler):
                 "two_tone_fade": 30,
                 "confetti": 31,
                 "cinderella_twinkle": 32,
-                "triplet_chase": 33
+                "triplet_chase": 33,
+                "spotlight_swap": 34
             }
 
             cue_lines = []
@@ -933,6 +936,7 @@ class SimulatorRequestHandler(http.server.SimpleHTTPRequestHandler):
 #define COSTUME_PATTERN_CONFETTI         31
 #define COSTUME_PATTERN_CINDERELLA_TWINKLE 32
 #define COSTUME_PATTERN_TRIPLET_CHASE    33
+#define COSTUME_PATTERN_SPOTLIGHT_SWAP   34
 
 #define ACTIVE_COSTUME_PATTERN           {active_pattern}
 #define COSTUME_SPEED_BPM                {speed_bpm}

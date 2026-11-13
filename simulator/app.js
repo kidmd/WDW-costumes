@@ -57,6 +57,7 @@ const EFFECT_CATALOG = [
     { id: 'dual_chase',     cat: 'chases',   icon: '⚔️', short: 'Dual Chase',     label: '⚔️ Dual Opposing Chase',             desc: 'Two bright comet heads racing in opposite directions and crossing.' },
     { id: 'barber_pole',    cat: 'chases',   icon: '💈', short: 'Barber Pole',    label: '💈 Barber Pole Stripes',             desc: 'Crisp alternating colored & warm-white bands marching.' },
     { id: 'triplet_chase',  cat: 'chases',   icon: '🎠', short: 'Triplet Chase',  label: '🎠 Classic 3-Bulb Triplet Chase',    desc: 'All LEDs lit in repeating 3-bulb float color blocks, slowly chasing in a continuous loop.' },
+    { id: 'spotlight_swap', cat: 'chases',   icon: '💥', short: 'Spotlight Swap', label: '💥 Spotlight Swap (Artwork ↔ Fairy)', desc: 'Fairy strands counter-chase while artwork breathes, then snap on the beat: fairy frames solid while artwork surges!' },
 
     // --- Wipes & Fills ---
     { id: 'color_wipe',      cat: 'wipes',   icon: '🖌️', short: 'Color Wipe',     label: '🖌️ Color Wipe / Progressive Fill',   desc: 'Paints LEDs on progressively, then sweeps them clear.' },
@@ -2084,6 +2085,62 @@ function evalNewCatalogEffect(effect, normPos, index, totalLeds, timeMs, bpm, di
             const colorSlot = Math.floor(shifted / 3) % floatPalette.length;
             const rgb = hexToRgb(floatPalette[colorSlot]) || { r: baseR, g: baseG, b: baseB };
             return { r: rgb.r, g: rgb.g, b: rgb.b, intensity: 0.96 };
+        }
+        case 'spotlight_swap': {
+            const cycleMs = Math.max(1200, beatMs * 8);
+            const cyclePhase = ((timeMs % cycleMs) + cycleMs) % cycleMs / cycleMs;
+            const inPhaseA = cyclePhase < 0.5;
+            const subP = inPhaseA ? (cyclePhase * 2.0) : ((cyclePhase - 0.5) * 2.0);
+            const isFairy = (typeof isFairyLedIndex === 'function') && isFairyLedIndex(index);
+            // Crisp 150ms golden-white marquee snap at the beat-0 and beat-4 handoff
+            const nearSwap = (cyclePhase < 0.025) || (Math.abs(cyclePhase - 0.5) < 0.025);
+
+            if (isFairy) {
+                if (inPhaseA) {
+                    // Phase A: Opposing Z-fold counter-motion cascading over both shoulders
+                    const step = (typeof getFairySpatialStep === 'function') ? getFairySpatialStep(index) : (index % 25);
+                    const fPos = Math.max(0, Math.min(1, step / 24.0));
+                    const sweep = (subP * 2.0) % 1.0;
+                    const rightSide = (index >= 256 && index <= 280);
+                    const forwardHead = dir >= 0 ? sweep : (1.0 - sweep);
+                    const head = rightSide ? forwardHead : (1.0 - forwardHead);
+                    const d = Math.min(Math.abs(fPos - head), 1.0 - Math.abs(fPos - head));
+                    const pulse = d < 0.22 ? Math.pow(1.0 - d / 0.22, 1.5) : 0.0;
+                    const boost = (pulse > 0.72 || nearSwap) ? 90 : 0;
+                    return {
+                        r: Math.min(255, baseR + boost),
+                        g: Math.min(255, baseG + boost),
+                        b: Math.min(255, baseB + boost),
+                        intensity: 0.18 + 0.82 * pulse
+                    };
+                }
+                // Phase B: Fairy strands lock 100% solid in 3-bulb marquee blocks to frame the artwork
+                const snapBoost = nearSwap ? 50 : 0;
+                return {
+                    r: Math.min(255, baseR + snapBoost),
+                    g: Math.min(255, baseG + snapBoost),
+                    b: Math.min(255, baseB + snapBoost),
+                    intensity: 0.90
+                };
+            }
+
+            // Artwork 16x16 Panels
+            if (inPhaseA) {
+                // Phase A: Soft calm background breath while fairy ribs perform counter-motion
+                const breath = 0.28 + 0.22 * (0.5 - 0.5 * Math.cos(subP * Math.PI * 2.0));
+                return { r: baseR, g: baseG, b: baseB, intensity: nearSwap ? 0.65 : breath };
+            }
+            // Phase B: Artwork Spotlight showcase surge + rolling spotlight wave
+            const waveHead = dir >= 0 ? subP : (1.0 - subP);
+            const dPanel = Math.min(Math.abs(normPos - waveHead), 1.0 - Math.abs(normPos - waveHead));
+            const spot = dPanel < 0.28 ? Math.pow(1.0 - dPanel / 0.28, 1.4) : 0.0;
+            const sparkBoost = (spot > 0.68 || nearSwap) ? 70 : 0;
+            return {
+                r: Math.min(255, baseR + sparkBoost),
+                g: Math.min(255, baseG + sparkBoost),
+                b: Math.min(255, baseB + sparkBoost),
+                intensity: 0.76 + 0.24 * spot
+            };
         }
         case 'curtain_wipe': {
             const cycleMs = beatMs * 4;

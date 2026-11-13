@@ -93,6 +93,13 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### November 13, 2026 - Spotlight Swap Effect (`spotlight_swap`) & 562-LED Fairy Animation Preservation
+- **Call-and-Response 562-LED Effect (`simulator/app.js`, `simulator.py`, `src/main.cpp`, `arduino/MSEP_Costume/MSEP_Costume.ino`):**
+  - Added **`spotlight_swap`** (`💥 Spotlight Swap (Artwork ↔ Fairy)`, `COSTUME_PATTERN_SPOTLIGHT_SWAP 34`) to `EFFECT_CATALOG`, `evalNewCatalogEffect()`, `simulator.py` export mappings, and firmware `renderCatalogEffect20to32()` / `renderSpotlightSwapFairyStrand()`.
+  - Executes an 8-beat cycle (`cycleMs = max(1200, beatMs * 8)`) with a brief beat-0 / beat-4 snap transition: Beats 0–4 dim the chest artwork to a gentle breath while driving opposing counter-motion pulses up the Right (`256..280`) and down the Left (`537..561`) Z-folded fairy strands; Beats 4–8 lock both fairy strands solid in repeating 3-bulb float marquee triplets while the chest panels surge with a rolling spotlight wave.
+- **Hardware Fairy Animation Preservation Fix (`src/main.cpp`, `arduino/MSEP_Costume/MSEP_Costume.ino`):**
+  - Updated `duplicateFrontToBack(bool preserveRenderedFairy = false)` so `runAutonomousShowSequence()` preserves custom-rendered fairy pixels (`leds[256..280]` and `leds[537..561]`) across the matrix clear step and swaps R↔G cleanly for the RGB seed bulbs on the GRB bus, while clearing prior-frame fairy pixels at the top of each autonomous frame so non-custom cues still fall back cleanly to default float triplets.
+
 ### November 12, 2026 - 562-LED Full Costume & 16x16 Matrix Wi-Fi UDP Live Stream Fix
 - **Root Causes Resolved (`simulator/app.js`, `src/main.cpp`, `arduino/MSEP_Costume/MSEP_Costume.ino`):**
   - `sendLivePixelFrame()` in `simulator/app.js` previously capped streamed packets at `Math.min(100, leds.length)`, omitting matrix pixels `100..255` and both 25-LED fairy strands (`256..280` and `537..561`). Added `buildLiveStreamPixelArray()` to pack the full 16x16 front matrix (`0..255`, honoring windowed 100%, backlight 50%, and dark 0%) plus right (`256..280`) and left (`281..305`) fairy strands into a compact **306-LED (925-byte)** single-MTU UDP frame for `full_costume` mode (and 256-LED frame for `matrix16` mode).
