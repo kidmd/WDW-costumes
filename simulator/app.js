@@ -198,7 +198,7 @@ let params = {
     ambientCustomColor: '#ffb703',
     direction: 1,                 // 1 = forward, -1 = reverse
     greenHue: 140, // 100 = lime, 140 = emerald, 165 = seafoam (procedural fallback)
-    brightness: 85,
+    brightness: 100,
     glowSize: 20,
     showWiring: false,
     showWireTension: false,
@@ -7827,7 +7827,7 @@ async function editRunnerInSingleView(slot) {
                 ledCount: 100,
                 leds: [],
                 graphicType: runner.defaultGraphic || 'casey_jr_train',
-                settings: { pattern: 'steady_sparkle', speedBpm: 120, sparkleRate: 1.5, greenHue: 140, brightness: 80, glowSize: 22 },
+                settings: { pattern: 'steady_sparkle', speedBpm: 120, sparkleRate: 1.5, greenHue: 140, brightness: 100, glowSize: 22 },
                 animationGroups: [],
                 sequence: { loopDuration: 90.0, cues: [] }
             };
@@ -16030,7 +16030,7 @@ async function loadProfile(sourceValue) {
             ledCount: 100,
             leds: [],
             graphicType: r.defaultGraphic || 'casey_jr_train',
-            settings: { pattern: 'steady_sparkle', speedBpm: 120, sparkleRate: 1.5, greenHue: 140, brightness: 80, glowSize: 22 },
+            settings: { pattern: 'steady_sparkle', speedBpm: 120, sparkleRate: 1.5, greenHue: 140, brightness: 100, glowSize: 22 },
             animationGroups: [],
             sequence: { loopDuration: 90.0, cues: [] }
         };

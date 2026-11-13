@@ -205,7 +205,6 @@ The sidebar navigation is organized into a clean **2-row × 3-column grid** that
        - `🏰 Float Signature Theme Color`: Automatically tint the garment baseline to the float's official theme color (Casey Jr. Locomotive Red, Drum Gold, Turtle Shell Teal, Snail Magenta, Pirate Ship Crimson, Pete's Dragon Emerald, America Patriot Red/White/Blue).
        - `💡 Vintage Incandescent`: 2700K warm-white uniform wash replicating classical parade bulb strings.
        - `🎯 Custom Uniform Color`: User-selected uniform tint with live color picker.
-     - **Hardware LED Output:** Hardware brightness slider strictly governed by FastLED hardware power limits (5V, 2000mA max).
      - *(Note: Legacy single-float green hue slider has been retired in favor of the full 4-mode color palette system; the 140° emerald hue is retained silently as a procedural fallback for Pete's Dragon).*
    - **Simulator Display Optics (Browser Canvas Only):** Visually separated preview control for **LED Bloom / Glow Radius** (8px to 40px) to simulate optical light diffusion on fabric without affecting compiled ESP32 firmware.
 
@@ -1253,7 +1252,7 @@ The simulator connects directly to physical ESP32 hardware via two powerful work
 ### Real-Time Live Wi-Fi UDP Streaming (Single Costume & Multi-Float Fleet)
 Preview animations on physical shirts in real time without flashing ROM:
 1. **Connect ESP32s to Wi-Fi:** Ensure your ESP32 boards are connected to your local 2.4 GHz Wi-Fi network (or the built-in `MSEP-Costume-AP` hotspot).
-2. **Dual-Tab Streaming Bar:** Launch streaming from either the **Fleet Tab** (`#fleetWifiStreamBtn`) or the **Deploy & Hardware Tab** (`#toggleWifiStreamBtn`). Click the gear icon (`⚙️`) to set your Wi-Fi SSID, password, and target broadcast IP (`255.255.255.255`).
+2. **Dual-Tab Streaming Bar & Hardware LED Output:** Launch streaming from either the **Fleet Tab** (`#fleetWifiStreamBtn`) or the **Deploy & Hardware Tab** (`#toggleWifiStreamBtn`), where the **Hardware LED Output** slider (default **100%**) sits right above the stream button. Click the gear icon (`⚙️`) to set your Wi-Fi SSID, password, and target broadcast IP (`255.255.255.255`).
 3. **Multi-Float Fleet Streaming (Opcode `0x02`):**
    - When on the **Fleet Tab** or during active Fleet Show playback, the simulator packages each of the 7 floats into an addressed high-speed UDP packet:
      ```

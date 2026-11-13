@@ -972,14 +972,6 @@
                             </div>
                         </div>
 
-                        <!-- Hardware Brightness -->
-                        <div class="control-group" style="margin-top: 8px;">
-                            <div class="label-row">
-                                <span>Hardware LED Output</span>
-                                <span id="brightVal" class="val-badge">80%</span>
-                            </div>
-                            <input type="range" id="brightnessSlider" min="10" max="100" value="80" style="width: 100%; accent-color: #38bdf8;">
-                        </div>
                     </div>
 
                     <!-- Simulator Display Optics (Browser Canvas Only) -->
@@ -2401,6 +2393,15 @@
                             <button id="wifiSettingsBtn" type="button" onclick="openWifiModal()" class="action-btn" style="flex: none; background: #21262d; border: 1px solid #388bfd; color: #58a6ff; font-size: 11px; padding: 4px 8px; border-radius: 4px; cursor: pointer; display: flex; align-items: center; gap: 4px;" title="Configure Wi-Fi Credentials">⚙️ Settings</button>
                         </div>
 
+                        <!-- Hardware Brightness (Default 100%) -->
+                        <div class="control-group" style="margin-bottom: 10px;">
+                            <div class="label-row">
+                                <span>Hardware LED Output</span>
+                                <span id="brightVal" class="val-badge">100%</span>
+                            </div>
+                            <input type="range" id="brightnessSlider" min="10" max="100" value="100" style="width: 100%; accent-color: #38bdf8;">
+                        </div>
+
                         <button id="toggleWifiStreamBtn" class="action-btn primary" style="font-weight: 600; font-size: 13px; padding: 10px; background: linear-gradient(135deg, #1f6feb, #388bfd); width: 100%;">
                             ▶ Start Live Wi-Fi Stream
                         </button>
@@ -3391,6 +3392,6 @@
     </div>
 
     <script src="led_clearance.js?v=2"></script>
-    <script src="app.js?v=124"></script>
+    <script src="app.js?v=125"></script>
 </body>
 </html>
