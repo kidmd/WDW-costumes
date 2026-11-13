@@ -17688,13 +17688,15 @@ try {
     const savedHwMode = localStorage.getItem('msep_hardware_architecture');
     if (savedHwMode === 'legacy') {
         currentHardwareMode = 'legacy';
+    } else if (savedHwMode === 'full_costume') {
+        currentHardwareMode = 'full_costume';
     } else {
         currentHardwareMode = 'matrix16';
     }
 } catch (e) {
     currentHardwareMode = 'matrix16';
 }
-let btfMatrix16x16Active = (currentHardwareMode === 'matrix16');
+let btfMatrix16x16Active = (currentHardwareMode === 'matrix16' || currentHardwareMode === 'full_costume');
 
 function setHardwareArchitectureMode(mode, savePref = true) {
     if (mode !== 'matrix16' && mode !== 'legacy' && mode !== 'full_costume') mode = 'full_costume';
