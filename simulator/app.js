@@ -3786,6 +3786,26 @@ function getCuePalette(cue, isFairy) {
 }
 window.getCuePalette = getCuePalette;
 
+const FAIRY_STRAND1_SPATIAL_STEP = [
+    1, 4, 7, 10, 9, 6, 3, 0, 2, 5, 8, 11, 12,
+    13, 14, 17, 20, 23, 22, 19, 16, 15, 18, 21, 24
+];
+const FAIRY_STRAND2_SPATIAL_STEP = [
+    23, 20, 17, 14, 15, 18, 21, 24, 22, 19, 16, 13, 12,
+    11, 10, 7, 4, 1, 2, 5, 8, 9, 6, 3, 0
+];
+
+// Maps raw wire LED index (256..280 Right, 537..561 Left) to Z-folded physical position (0..24)
+function getFairySpatialStep(index) {
+    if (index >= 256 && index <= 280) {
+        return FAIRY_STRAND1_SPATIAL_STEP[index - 256];
+    }
+    if (index >= 537 && index <= 561) {
+        return FAIRY_STRAND2_SPATIAL_STEP[index - 537];
+    }
+    return index;
+}
+
 // Helper to resolve the color for any LED under an active cue (Panels vs Fairy Lights)
 function getCueLedColor(cue, index, isFairy, sampledArtworkColor, hasSampledColor) {
     if (!cue) return { color: sampledArtworkColor, hasColor: hasSampledColor, isCustom: false, palette: null };
@@ -3795,8 +3815,8 @@ function getCueLedColor(cue, index, isFairy, sampledArtworkColor, hasSampledColo
     }
     let col;
     if (isFairy) {
-        const bOffset = (index >= 537) ? (index - 537) : (index >= 256 ? (index - 256) : index);
-        const group = Math.floor(bOffset / 3);
+        const spatialStep = getFairySpatialStep(index);
+        const group = Math.floor(spatialStep / 3);
         col = palette[group % palette.length];
     } else {
         col = palette[index % palette.length];
@@ -3804,15 +3824,6 @@ function getCueLedColor(cue, index, isFairy, sampledArtworkColor, hasSampledColo
     return { color: col, hasColor: true, isCustom: true, palette: palette };
 }
 window.getCueLedColor = getCueLedColor;
-
-const FAIRY_STRAND1_SPATIAL_STEP = [
-    1, 4, 7, 10, 9, 6, 3, 0, 2, 5, 8, 11, 12,
-    13, 14, 17, 20, 23, 22, 19, 16, 15, 18, 21, 24
-];
-const FAIRY_STRAND2_SPATIAL_STEP = [
-    23, 20, 17, 14, 15, 18, 21, 24, 22, 19, 16, 13, 12,
-    11, 10, 7, 4, 1, 2, 5, 8, 9, 6, 3, 0
-];
 
 // Connects both 25-bulb fairy strands (256..280 Right, 537..561 Left) in physical spatial body order into one continuous 50-bulb loop (0..49)
 function getFairyContinuousLoopIndex(index) {
@@ -3836,10 +3847,10 @@ function evalFairyBaselineColor(index, timeMs, speedBpm) {
     const bpm = Math.max(30, speedBpm || (params && params.speedBpm) || 120);
     const rate = (bpm / 60.0) * 1.25;
     
-    // Float multi-color baseline mapped in alternating triplets (groups of 3 bulbs)
+    // Float multi-color baseline mapped in alternating triplets (groups of 3 bulbs in physical Z-fold order)
     const floatPalette = getFloatDefaultFairyColors();
-    const bulbOffset = (index >= 537) ? (index - 537) : (index >= 256 ? (index - 256) : index);
-    const group = Math.floor(bulbOffset / 3);
+    const spatialStep = getFairySpatialStep(index);
+    const group = Math.floor(spatialStep / 3);
     const hex = floatPalette[group % floatPalette.length];
     const rgb = hexToRgb(hex) || { r: 255, g: 214, b: 110 };
     
@@ -3926,9 +3937,7 @@ function computeLedColor(index, totalLeds, timeMs, overrideColor = null) {
     if (isPhotoModeActive) {
         if (isFullCostume && isFairy) {
             // Steady 100% float-specific fairy triplet palette (matches firmware getFloatFairyBulbColor)
-            const spatialStep = (index >= 256 && index <= 280)
-                ? FAIRY_STRAND1_SPATIAL_STEP[index - 256]
-                : ((index >= 537 && index <= 561) ? FAIRY_STRAND2_SPATIAL_STEP[index - 537] : index);
+            const spatialStep = getFairySpatialStep(index);
             const hex = getFloatDefaultFairyColor(undefined, spatialStep);
             const rgb = (typeof hexToRgb === 'function') ? (hexToRgb(hex) || { r: 255, g: 220, b: 130 }) : { r: 255, g: 220, b: 130 };
             return { r: rgb.r, g: rgb.g, b: rgb.b, alpha: 1.0 };
