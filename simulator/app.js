@@ -2067,11 +2067,20 @@ function evalNewCatalogEffect(effect, normPos, index, totalLeds, timeMs, bpm, di
                 ? getFloatDefaultFairyColors()
                 : ['#ff0000', '#ffffff', '#0000ff'];
             const isFairy = (typeof isFairyLedIndex === 'function') && isFairyLedIndex(index);
-            const patternLen = 3 * floatPalette.length;
-            const posIdx = isFairy ? getFairyContinuousLoopIndex(index) : index;
-            // Smooth slow rotation (~1.5 bulbs per beat) of pure 3-bulb blocks
+            const cycleLen = 3 * floatPalette.length;
+            let posIdx;
+            let loopLen;
+            if (isFairy) {
+                // Map the 50-bulb loop onto the exact largest multiple of cycleLen (e.g. 45 for 3 colors, 48 for 2)
+                // so there is zero color-order disconnect where bulb #561 meets bulb #256 at the front center
+                loopLen = Math.floor(50 / cycleLen) * cycleLen;
+                posIdx = Math.floor((getFairyContinuousLoopIndex(index) * loopLen) / 50);
+            } else {
+                loopLen = cycleLen;
+                posIdx = index;
+            }
             const shift = Math.floor(normTime * 1.5 * dir);
-            const shifted = ((posIdx - shift) % patternLen + patternLen) % patternLen;
+            const shifted = ((posIdx - shift) % loopLen + loopLen) % loopLen;
             const colorSlot = Math.floor(shifted / 3) % floatPalette.length;
             const rgb = hexToRgb(floatPalette[colorSlot]) || { r: baseR, g: baseG, b: baseB };
             return { r: rgb.r, g: rgb.g, b: rgb.b, intensity: 0.96 };

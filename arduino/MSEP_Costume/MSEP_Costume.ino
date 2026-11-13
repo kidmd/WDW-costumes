@@ -1308,15 +1308,20 @@ bool renderCatalogEffect20to32(uint8_t effId, uint16_t bpm, uint32_t now, uint32
     }
 #if defined(COSTUME_FULL_562_MODE) && COSTUME_FULL_562_MODE
     if (effId == 33 && NUM_LEDS >= 562) {
+        uint8_t numColors = pgm_read_byte(&FLOAT_PALETTE_COUNTS[floatIdx]);
+        int cycleLen = 3 * max((uint8_t)1, numColors);
+        int virtualLen = (50 / cycleLen) * cycleLen;
         int32_t shift = (int32_t)((elapsed * 3) / max((uint32_t)400, beatMs * 2)) * (dir >= 0 ? 1 : -1);
         for (int f = 256; f <= 280; f++) {
             uint8_t step = pgm_read_byte(&FAIRY_STRAND1_SPATIAL_STEP[f - 256]);
-            int pos = (((int)step - shift) % 9 + 9) % 9;
+            int vPos = ((int)step * virtualLen) / 50;
+            int pos = ((vPos - shift) % virtualLen + virtualLen) % virtualLen;
             leds[f] = getFloatPaletteColor(myFloatNumber, (uint8_t)(pos / 3));
         }
         for (int f = 537; f <= 561; f++) {
             uint8_t step = 25 + (24 - pgm_read_byte(&FAIRY_STRAND2_SPATIAL_STEP[f - 537]));
-            int pos = (((int)step - shift) % 9 + 9) % 9;
+            int vPos = ((int)step * virtualLen) / 50;
+            int pos = ((vPos - shift) % virtualLen + virtualLen) % virtualLen;
             leds[f] = getFloatPaletteColor(myFloatNumber, (uint8_t)(pos / 3));
         }
     }
