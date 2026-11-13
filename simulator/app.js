@@ -3580,17 +3580,25 @@ function evalGlobalPattern(pattern, bpm, index, totalLeds, timeMs, c, hasColor, 
             break;
         }
         case 'tidal_ripple': {
-            let wavePhase;
+            let normDist;
             if (typeof currentHardwareMode !== 'undefined' && currentHardwareMode === 'full_costume') {
-                const coord = getCostumeNormalizedLoopCoord(index, activeProgression);
-                wavePhase = (normTime * 0.75 * dir) - (coord * 3.0);
+                if (index < 256 || (index >= 281 && index <= 536)) {
+                    const mIdx = (index >= 281) ? (index - 281) : index;
+                    const row = Math.floor(mIdx / 16.0);
+                    const col = mIdx % 16;
+                    normDist = Math.min(1.0, Math.hypot(col - 7.5, row - 7.5) / 10.606);
+                } else {
+                    // Fairy strands: continue the outward pond ripple from shoulder peak toward waist
+                    const step = (typeof getFairySpatialStep === 'function') ? getFairySpatialStep(index) : (index % 25);
+                    normDist = 0.60 + 0.40 * (Math.abs(step - 12) / 12.0);
+                }
             } else {
                 const sm = getSpatialMetrics();
-                const normDist = (sm && sm.normRadius && sm.normRadius[index] !== undefined)
+                normDist = (sm && sm.normRadius && sm.normRadius[index] !== undefined)
                     ? sm.normRadius[index]
                     : (Math.abs(index - (totalLeds - 1) / 2) / Math.max(1, (totalLeds - 1) / 2));
-                wavePhase = (normTime * 0.75 * dir) - (normDist * 2.2);
             }
+            const wavePhase = (normTime * 0.75 * dir) - (normDist * 2.5);
             const wave = Math.sin(wavePhase * Math.PI) * 0.5 + 0.5;
             const eff = 0.15 + 0.85 * Math.pow(wave, 1.8);
             if (effHasColor) {
