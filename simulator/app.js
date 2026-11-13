@@ -28625,123 +28625,122 @@ function computeFullCostumeFairyLayout() {
     const pRib2 = { x: 0.20, y: 0.350 };
     const pRib3 = { x: 0.21, y: 0.280 };
 
-    // --- STRAND 1: WEARER'S RIGHT SIDE (LEDs 256 to 280, 25 LEDs) ---
-    // A. Front Right Ribs (11 Zig-Zag LEDs: 256..266)
+    // --- STRAND 1: WEARER'S RIGHT SIDE (LEDs 256 to 280, 25 LEDs, Z-folded) ---
     const laneCycle = [-0.018, 0.0, 0.018, 0.0];
-    for (let i = 0; i < 11; i++) {
-        const t = i / 10.0;
-        let basePt = (t <= 0.4) 
-            ? getBezierPoint(pCurve0, pCurve1, pCurve2, pCurve3, t / 0.4)
-            : getBezierPoint(pRib0, pRib1, pRib2, pRib3, (t - 0.4) / 0.6);
-        const offset = laneCycle[i % 4];
-        nodes.push({
-            index: 256 + i,
-            x: Math.round((basePt.x + offset) * 10000) / 10000,
-            y: basePt.y,
-            view: 'front',
-            side: 'right',
-            label: `Right Ribs Front #${256 + i}`,
-            isZigzag: true
-        });
+    for (let w = 0; w < 25; w++) {
+        const idx = 256 + w;
+        const step = FAIRY_STRAND1_SPATIAL_STEP[w];
+        if (step <= 10) {
+            const t = step / 10.0;
+            const basePt = (t <= 0.4)
+                ? getBezierPoint(pCurve0, pCurve1, pCurve2, pCurve3, t / 0.4)
+                : getBezierPoint(pRib0, pRib1, pRib2, pRib3, (t - 0.4) / 0.6);
+            const offset = laneCycle[step % 4];
+            nodes.push({
+                index: idx,
+                x: Math.round((basePt.x + offset) * 10000) / 10000,
+                y: basePt.y,
+                view: 'front',
+                side: 'right',
+                label: `Right Ribs Front #${idx}`,
+                isZigzag: true
+            });
+        } else if (step === 11) {
+            nodes.push({
+                index: idx,
+                x: 0.195,
+                y: 0.175,
+                view: 'front',
+                side: 'right',
+                label: `Right Shoulder Front #${idx}`,
+                isZigzag: false
+            });
+        } else if (step === 12) {
+            nodes.push({
+                index: idx,
+                x: 0.805,
+                y: 0.175,
+                view: 'back',
+                side: 'right',
+                label: `Right Shoulder Back #${idx}`,
+                isZigzag: false
+            });
+        } else {
+            const b = step - 13; // 0..11 descending to back panel
+            const t = 1.0 - (b / 11.0);
+            const basePt = (t >= 0.6)
+                ? getBezierPoint(pRib0, pRib1, pRib2, pRib3, (t - 0.6) / 0.4)
+                : getBezierPoint(pCurve0, pCurve1, pCurve2, pCurve3, t / 0.6);
+            const offset = laneCycle[b % 4];
+            nodes.push({
+                index: idx,
+                x: Math.round(((1.0 - basePt.x) - offset) * 10000) / 10000,
+                y: basePt.y,
+                view: 'back',
+                side: 'right',
+                label: `Right Ribs Back #${idx}`,
+                isZigzag: true
+            });
+        }
     }
 
-    // B. Front Right Shoulder (Single LED 267 with 10cm wire gap)
-    nodes.push({
-        index: 267,
-        x: 0.195,
-        y: 0.175,
-        view: 'front',
-        side: 'right',
-        label: `Right Shoulder Front #267`,
-        isZigzag: false
-    });
-
-    // C. Back Right Shoulder (Single LED 268 with 10cm bridge over shoulder apex)
-    nodes.push({
-        index: 268,
-        x: 0.805, // Mirrored X on back view
-        y: 0.175,
-        view: 'back',
-        side: 'right',
-        label: `Right Shoulder Back #268`,
-        isZigzag: false
-    });
-
-    // D. Back Right Ribs (12 Zig-Zag LEDs: 269..280 descending to back panel)
-    for (let i = 0; i < 12; i++) {
-        const t = 1.0 - (i / 11.0);
-        let basePt = (t >= 0.6)
-            ? getBezierPoint(pRib0, pRib1, pRib2, pRib3, (t - 0.6) / 0.4)
-            : getBezierPoint(pCurve0, pCurve1, pCurve2, pCurve3, t / 0.6);
-        const offset = laneCycle[i % 4];
-        nodes.push({
-            index: 269 + i,
-            x: Math.round(((1.0 - basePt.x) - offset) * 10000) / 10000,
-            y: basePt.y,
-            view: 'back',
-            side: 'right',
-            label: `Right Ribs Back #${269 + i}`,
-            isZigzag: true
-        });
-    }
-
-    // --- STRAND 2: WEARER'S LEFT SIDE (LEDs 537 to 561, 25 LEDs) ---
-    // A. Back Left Ribs (12 Zig-Zag LEDs: 537..548 ascending from back panel)
-    for (let i = 0; i < 12; i++) {
-        const t = i / 11.0;
-        let basePt = (t <= 0.4)
-            ? getBezierPoint(pCurve0, pCurve1, pCurve2, pCurve3, t / 0.4)
-            : getBezierPoint(pRib0, pRib1, pRib2, pRib3, (t - 0.4) / 0.6);
-        const offset = laneCycle[i % 4];
-        nodes.push({
-            index: 537 + i,
-            x: Math.round((basePt.x + offset) * 10000) / 10000,
-            y: basePt.y,
-            view: 'back',
-            side: 'left',
-            label: `Left Ribs Back #${537 + i}`,
-            isZigzag: true
-        });
-    }
-
-    // B. Back Left Shoulder (Single LED 549 with 10cm wire gap)
-    nodes.push({
-        index: 549,
-        x: 0.195,
-        y: 0.175,
-        view: 'back',
-        side: 'left',
-        label: `Left Shoulder Back #549`,
-        isZigzag: false
-    });
-
-    // C. Front Left Shoulder (Single LED 550 over apex)
-    nodes.push({
-        index: 550,
-        x: 0.805,
-        y: 0.175,
-        view: 'front',
-        side: 'left',
-        label: `Left Shoulder Front #550`,
-        isZigzag: false
-    });
-
-    // D. Front Left Ribs (11 Zig-Zag LEDs: 551..561 descending to front panel)
-    for (let i = 0; i < 11; i++) {
-        const t = 1.0 - (i / 10.0);
-        let basePt = (t >= 0.6)
-            ? getBezierPoint(pRib0, pRib1, pRib2, pRib3, (t - 0.6) / 0.4)
-            : getBezierPoint(pCurve0, pCurve1, pCurve2, pCurve3, t / 0.6);
-        const offset = laneCycle[i % 4];
-        nodes.push({
-            index: 551 + i,
-            x: Math.round(((1.0 - basePt.x) - offset) * 10000) / 10000,
-            y: basePt.y,
-            view: 'front',
-            side: 'left',
-            label: `Left Ribs Front #${551 + i}`,
-            isZigzag: true
-        });
+    // --- STRAND 2: WEARER'S LEFT SIDE (LEDs 537 to 561, 25 LEDs, Z-folded) ---
+    for (let w = 0; w < 25; w++) {
+        const idx = 537 + w;
+        const step = FAIRY_STRAND2_SPATIAL_STEP[w];
+        if (step >= 13) {
+            const b = 24 - step; // 0..11 ascending from back panel
+            const t = b / 11.0;
+            const basePt = (t <= 0.4)
+                ? getBezierPoint(pCurve0, pCurve1, pCurve2, pCurve3, t / 0.4)
+                : getBezierPoint(pRib0, pRib1, pRib2, pRib3, (t - 0.4) / 0.6);
+            const offset = laneCycle[b % 4];
+            nodes.push({
+                index: idx,
+                x: Math.round((basePt.x + offset) * 10000) / 10000,
+                y: basePt.y,
+                view: 'back',
+                side: 'left',
+                label: `Left Ribs Back #${idx}`,
+                isZigzag: true
+            });
+        } else if (step === 12) {
+            nodes.push({
+                index: idx,
+                x: 0.195,
+                y: 0.175,
+                view: 'back',
+                side: 'left',
+                label: `Left Shoulder Back #${idx}`,
+                isZigzag: false
+            });
+        } else if (step === 11) {
+            nodes.push({
+                index: idx,
+                x: 0.805,
+                y: 0.175,
+                view: 'front',
+                side: 'left',
+                label: `Left Shoulder Front #${idx}`,
+                isZigzag: false
+            });
+        } else {
+            const f = 10 - step; // 0..10 descending to front panel
+            const t = 1.0 - (f / 10.0);
+            const basePt = (t >= 0.6)
+                ? getBezierPoint(pRib0, pRib1, pRib2, pRib3, (t - 0.6) / 0.4)
+                : getBezierPoint(pCurve0, pCurve1, pCurve2, pCurve3, t / 0.6);
+            const offset = laneCycle[f % 4];
+            nodes.push({
+                index: idx,
+                x: Math.round(((1.0 - basePt.x) - offset) * 10000) / 10000,
+                y: basePt.y,
+                view: 'front',
+                side: 'left',
+                label: `Left Ribs Front #${idx}`,
+                isZigzag: true
+            });
+        }
     }
 
     fullCostumeFairyNodes = nodes;
