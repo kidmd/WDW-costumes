@@ -3695,13 +3695,13 @@ window.rgbToHex = rgbToHex;
 // 🌟 FLOAT STANDARD FAIRY LIGHT COLORS & COLOR RESOLUTION HELPERS
 // ============================================================================
 const FLOAT_DEFAULT_FAIRY_COLORS = {
-    1: ['#e63946', '#ffb703'],             // Float 1 (Casey Jr.): Red and Gold
-    2: ['#e63946', '#ffb703'],             // Float 2 (Title Drum): Red and Gold
-    3: ['#ffd700', '#0088ff', '#00cc44'],  // Float 3 (The Turtle): Yellow, Blue, Green
-    4: ['#e63946', '#0088ff', '#00cc44'],  // Float 4 (The Snail): Red, Blue, Green
-    5: ['#e63946', '#ffb703'],             // Float 5 (The Pirate Ship): Red and Gold
-    6: ['#00ff88', '#ffd700'],             // Float 6 (Pete's Dragon): Green and Yellow
-    7: ['#e63946', '#ffffff', '#3a86ff']   // Float 7 (To Honor America): Red, White, Blue
+    1: ['#ff0000', '#ffb400'],             // Float 1 (Casey Jr.): Bold Red and Gold (matches FLOAT_PALETTES)
+    2: ['#ff0000', '#ffb400'],             // Float 2 (Title Drum): Bold Red and Gold
+    3: ['#ffd700', '#003cff', '#00dc28'],  // Float 3 (The Turtle): Yellow, Bold Royal Blue, Emerald Green
+    4: ['#ff0000', '#003cff', '#00dc28'],  // Float 4 (The Snail): Bold Red, Bold Royal Blue, Emerald Green
+    5: ['#ff0000', '#ffb400'],             // Float 5 (The Pirate Ship): Bold Red and Gold
+    6: ['#00ff64', '#ffd700'],             // Float 6 (Pete's Dragon): Vivid Elliott Green and Golden Yellow
+    7: ['#ff0000', '#ffffff', '#0000ff']   // Float 7 (To Honor America): Bold Patriotic Red, Pure Star White, Deep Royal Blue
 };
 window.FLOAT_DEFAULT_FAIRY_COLORS = FLOAT_DEFAULT_FAIRY_COLORS;
 
@@ -25343,7 +25343,7 @@ function buildLiveStreamPixelArray(timeMs) {
         }
 
         if (isFull) {
-            const fairyScale = 0.25 * showEffectScale; // Balance bare 360° fairy bulbs with 25% panel backlight duty cycle
+            const fairyScale = 1.0 * showEffectScale; // Match standalone firmware 100% fairy bulb drive (scaled by Hardware LED Output)
             for (let f = 256; f <= 280; f++) {
                 const col = computeLedColor(f, 562, timeMs);
                 const alpha = ((col.alpha !== undefined) ? Math.max(0, Math.min(1, col.alpha)) : 1.0) * photoBrightnessScale * fairyScale;
