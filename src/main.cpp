@@ -1195,14 +1195,39 @@ inline void renderSpotlightSwapFairyStrand(int startIdx, uint8_t strandId, bool 
     }
 }
 
+inline CRGB evalTriColorWipePixel(uint16_t pos1000, uint8_t stage, uint16_t wipePermille) {
+    static const CRGB TRI_COLORS[3] = {
+        CRGB(0, 0, 255),     // Blue
+        CRGB(255, 0, 0),     // Red
+        CRGB(255, 255, 255)  // White
+    };
+    CRGB prevCol = TRI_COLORS[(stage + 2) % 3];
+    CRGB nextCol = TRI_COLORS[stage % 3];
+    CRGB c = (pos1000 <= wipePermille) ? nextCol : prevCol;
+    if (wipePermille < 1000 && abs((int16_t)pos1000 - (int16_t)wipePermille) < 45) {
+        c.r = qadd8(c.r, 90);
+        c.g = qadd8(c.g, 90);
+        c.b = qadd8(c.b, 90);
+    }
+    return c;
+}
+
 bool renderCatalogEffect20to32(uint8_t effId, uint16_t bpm, uint32_t now, uint32_t originMs, int8_t dir) {
-    if (effId < 20 || effId > 34) return false;
+    if (effId < 20 || effId > 35) return false;
 
     uint32_t elapsed = now - originMs;
     uint32_t beatMs = 60000 / max((uint16_t)20, bpm);
     int activeCount = isCurrentFloatMatrix16x16() ? getMatrixActiveLedCount() : FRONT_LEDS;
     uint8_t floatIdx = (myFloatNumber >= 1 && myFloatNumber <= 7) ? (myFloatNumber - 1) : 0;
     CRGB themeColor = FLEET_ROSTER_INFO[floatIdx].color;
+
+    uint32_t triCycleMs = max((uint32_t)1800, beatMs * 6);
+    uint32_t triStageMs = max((uint32_t)600, triCycleMs / 3);
+    uint32_t triElapsed = elapsed % (triStageMs * 3);
+    uint8_t triStage = (uint8_t)(triElapsed / triStageMs);
+    uint32_t triStagePosMs = triElapsed % triStageMs;
+    uint32_t triWipeMs = max((uint32_t)1, (uint32_t)((triStageMs * 78UL) / 100UL));
+    uint16_t triWipePermille = (uint16_t)min((uint32_t)1000, (uint32_t)((triStagePosMs * 1000UL) / triWipeMs));
 
     uint32_t spotCycleMs = max((uint32_t)1200, beatMs * 8);
     uint32_t spotPhasePermille = ((elapsed % spotCycleMs) * 1000UL) / spotCycleMs;
@@ -1362,6 +1387,10 @@ bool renderCatalogEffect20to32(uint8_t effId, uint16_t bpm, uint32_t now, uint32
                 c.nscale8_video(scale);
             }
             leds[i] = c;
+        } else if (effId == 35) { // tri_color_wipe (Blue -> Red -> White progressive cascade)
+            uint16_t pos1000 = getCostumePacedLoopPosition(i);
+            if (dir < 0) pos1000 = (uint16_t)(999 - pos1000);
+            leds[i] = evalTriColorWipePixel(pos1000, triStage, triWipePermille);
         }
     }
 #if defined(COSTUME_FULL_562_MODE) && COSTUME_FULL_562_MODE
@@ -1385,13 +1414,24 @@ bool renderCatalogEffect20to32(uint8_t effId, uint16_t bpm, uint32_t now, uint32
     } else if (effId == 34 && NUM_LEDS >= 562) {
         renderSpotlightSwapFairyStrand(256, 1, spotInPhaseA, spotSubPermille, spotNearSwap, dir);
         renderSpotlightSwapFairyStrand(537, 2, spotInPhaseA, spotSubPermille, spotNearSwap, dir);
+    } else if (effId == 35 && NUM_LEDS >= 562) {
+        for (int offset = 0; offset < 25; offset++) {
+            uint16_t p1 = getCostumePacedLoopPosition(256 + offset);
+            uint16_t p2 = getCostumePacedLoopPosition(537 + offset);
+            if (dir < 0) {
+                p1 = (uint16_t)(999 - p1);
+                p2 = (uint16_t)(999 - p2);
+            }
+            leds[256 + offset] = evalTriColorWipePixel(p1, triStage, triWipePermille);
+            leds[537 + offset] = evalTriColorWipePixel(p2, triStage, triWipePermille);
+        }
     }
 #endif
     return true;
 }
 
 void renderAmbientFallback(uint32_t now) {
-#if defined(AMBIENT_FALLBACK_PATTERN) && (AMBIENT_FALLBACK_PATTERN >= 20) && (AMBIENT_FALLBACK_PATTERN <= 34)
+#if defined(AMBIENT_FALLBACK_PATTERN) && (AMBIENT_FALLBACK_PATTERN >= 20) && (AMBIENT_FALLBACK_PATTERN <= 35)
     if (renderCatalogEffect20to32(AMBIENT_FALLBACK_PATTERN, COSTUME_SPEED_BPM, now, 0, COSTUME_AMBIENT_DIRECTION)) return;
 #endif
     uint32_t beatMs = 60000 / max((uint16_t)20, (uint16_t)COSTUME_SPEED_BPM);
@@ -2163,7 +2203,7 @@ void runAutonomousShowSequence(uint32_t now) {
                     }
 #endif
                 }
-            } else if (eff >= 20 && eff <= 34) {
+            } else if (eff >= 20 && eff <= 35) {
                 renderCatalogEffect20to32(eff, bpm, now, autonomousShowStartTime, 1);
             } else { // 0: steady_sparkle / default
                 for (int i = 0; i < FRONT_LEDS && i < MAX_LEDS_CAPACITY; i++) {

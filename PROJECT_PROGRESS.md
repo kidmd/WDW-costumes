@@ -93,6 +93,11 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### November 13, 2026 - Tri-Color Cascade Wipe (`tri_color_wipe`: Blue → Red → White)
+- **Sequential Multi-Color Paint-Over Wipe (`simulator/app.js`, `simulator.py`, `src/main.cpp`, `arduino/MSEP_Costume/MSEP_Costume.ino`, `SIMULATOR_USER_GUIDE.md`):**
+  - Added **`tri_color_wipe`** (`🇺🇸 Tri-Color Wipe (Blue → Red → White)`, `COSTUME_PATTERN_TRI_COLOR_WIPE 35`) under *Wipes & Fills* in `EFFECT_CATALOG`, `evalNewCatalogEffect()`, `simulator.py` export tables, and firmware `renderCatalogEffect20to32()` / `evalTriColorWipePixel()`.
+  - Cycles across a 6-beat sequence (`max(1800ms, beatMs * 6)`): wipes the entire costume (front/back 16×16 panels and both Z-folded fairy strands) in **Blue**, then wipes **Red** directly over Blue, then wipes **White** directly over Red with a bright leading edge.
+
 ### November 13, 2026 - Spotlight Swap Effect (`spotlight_swap`) & 562-LED Fairy Animation Preservation
 - **Call-and-Response 562-LED Effect (`simulator/app.js`, `simulator.py`, `src/main.cpp`, `arduino/MSEP_Costume/MSEP_Costume.ino`):**
   - Added **`spotlight_swap`** (`💥 Spotlight Swap (Artwork ↔ Fairy)`, `COSTUME_PATTERN_SPOTLIGHT_SWAP 34`) to `EFFECT_CATALOG`, `evalNewCatalogEffect()`, `simulator.py` export mappings, and firmware `renderCatalogEffect20to32()` / `renderSpotlightSwapFairyStrand()`.

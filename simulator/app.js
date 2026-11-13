@@ -64,6 +64,7 @@ const EFFECT_CATALOG = [
     { id: 'write_on_off',    cat: 'wipes',   icon: '✍️', short: 'Write-On/Off',   label: '✍️ Write-On / Write-Off',            desc: 'Theatrical draw-in reveal followed by reverse erase.' },
     { id: 'curtain_wipe',    cat: 'wipes',   icon: '🎭', short: 'Curtain Wipe',   label: '🎭 Center-Out Curtain Wipe',         desc: 'Symmetrical reveal expanding from center to edges and back.' },
     { id: 'random_dissolve', cat: 'wipes',   icon: '🎲', short: 'Dissolve',       label: '🎲 Random Dissolve Fill',            desc: 'Pixels pop on in shuffled order until full, then dissolve off.' },
+    { id: 'tri_color_wipe',  cat: 'wipes',   icon: '🇺🇸', short: 'Blue→Red→White', label: '🇺🇸 Tri-Color Wipe (Blue → Red → White)', desc: 'Wipes the entire costume in Blue, then wipes Red over Blue, then White over Red.' },
 
     // --- Flashes & Strobes ---
     { id: 'flash_slow',    cat: 'flashes',  icon: '💡', short: 'Slow Blink',     label: '💡 Slow Flashing / Blink',           desc: 'Clean 50/50 rhythmic on-off blink synced to BPM.' },
@@ -2140,6 +2141,29 @@ function evalNewCatalogEffect(effect, normPos, index, totalLeds, timeMs, bpm, di
                 g: Math.min(255, baseG + sparkBoost),
                 b: Math.min(255, baseB + sparkBoost),
                 intensity: 0.76 + 0.24 * spot
+            };
+        }
+        case 'tri_color_wipe': {
+            const cycleMs = Math.max(1800, beatMs * 6);
+            const cyclePhase = ((timeMs % cycleMs) + cycleMs) % cycleMs / cycleMs;
+            const stage = Math.min(2, Math.floor(cyclePhase * 3));
+            const stageP = (cyclePhase * 3) - stage;
+            const wipeP = Math.min(1.0, stageP / 0.78);
+            const colors = [
+                { r: 0,   g: 0,   b: 255 }, // Blue
+                { r: 255, g: 0,   b: 0   }, // Red
+                { r: 255, g: 255, b: 255 }  // White
+            ];
+            const prevCol = colors[(stage + 2) % 3];
+            const nextCol = colors[stage];
+            const effPos = dir >= 0 ? normPos : (1.0 - normPos);
+            const c = (effPos <= wipeP) ? nextCol : prevCol;
+            const edge = wipeP < 1.0 && Math.abs(effPos - wipeP) < 0.045;
+            return {
+                r: edge ? Math.min(255, c.r + 90) : c.r,
+                g: edge ? Math.min(255, c.g + 90) : c.g,
+                b: edge ? Math.min(255, c.b + 90) : c.b,
+                intensity: 0.96
             };
         }
         case 'curtain_wipe': {
