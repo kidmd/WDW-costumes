@@ -96,7 +96,7 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 ### November 13, 2026 - Waving Flag & July 4th Sparklers (`flag_ripple`)
 - **Milestone:** Added the signature **To Honor America** effect (`flag_ripple` / `🇺🇸 Waving Flag & Sparklers`, Firmware ID `36`) across the simulator (`simulator/app.js`, `simulator/index.html`), firmware generator/flasher (`simulator.py`), and ESP32 firmware (`src/main.cpp` & `arduino/MSEP_Costume/MSEP_Costume.ino`).
 - **Visual Design:**
-  - **16×16 Front & Back Panels:** Diagonal billowing fabric wave (`col * 0.34 + row * 0.16`, serpentine-aware) with sunlit crest sheen (`+65`) and intensity modulation (`0.44..1.00`) that preserves underlying artwork colors.
+  - **16×16 Front & Back Panels:** Diagonal billowing fabric wave starting at the eagle (top-right) and flowing down along the flag toward the banner (bottom-left) (`(15-col)*0.30 + row*0.24`, serpentine-aware) when using default Waterfall progression—or following any custom `waveProgression` selected—with sunlit crest sheen (`+65`) and intensity modulation (`0.44..1.00`) that preserves underlying artwork colors.
   - **Z-Folded Fairy Strands (`256..280`, `537..561`):** Steady ~78% Red/White/Blue repeating triplets punctuated by crackling July 4th warm-white/gold sparkler twinkles (`255, 250, 220`).
 - **Verification:** Verified `node --check simulator/app.js`, `python -m py_compile simulator.py`, and `pio run -e esp32dev` compilation.
 

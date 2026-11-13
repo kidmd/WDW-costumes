@@ -2186,7 +2186,9 @@ function evalNewCatalogEffect(effect, normPos, index, totalLeds, timeMs, bpm, di
             const mIdx = (index >= 281) ? (index - 281) : (index % 256);
             const row = Math.floor(mIdx / 16.0);
             const col = (row % 2 === 0) ? (15 - (mIdx % 16)) : (mIdx % 16);
-            const wave = Math.sin((normTime * 1.15 * dir) - (col * 0.34 + row * 0.16)) * 0.5 + 0.5;
+            const useProg = (typeof params !== 'undefined' && params && params.waveProgression && params.waveProgression !== 'waterfall');
+            const waveCoord = useProg ? (normPos * 8.1) : ((15 - col) * 0.30 + row * 0.24);
+            const wave = Math.sin((normTime * 1.15 * dir) - waveCoord) * 0.5 + 0.5;
             const sheen = wave > 0.72 ? Math.round(((wave - 0.72) / 0.28) * 65) : 0;
             return {
                 r: Math.min(255, baseR + sheen),

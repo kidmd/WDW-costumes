@@ -1432,12 +1432,13 @@ bool renderCatalogEffect20to32(uint8_t effId, uint16_t bpm, uint32_t now, uint32
                 customBackActive[i] = evalTriColorWipePixel(posBack, triStage, triWipePermille);
                 useCustomBackActive = true;
             }
-        } else if (effId == 36) { // flag_ripple (To Honor America: diagonal billowing fabric wave)
+        } else if (effId == 36) { // flag_ripple (To Honor America: diagonal wave from eagle top-right down the flag)
             uint8_t physIdx = isCurrentFloatMatrix16x16() ? getMatrixPhysicalIndex(i) : (uint8_t)i;
             uint8_t row = physIdx / 16;
-            uint8_t col = (row % 2 == 0) ? (physIdx % 16) : (15 - (physIdx % 16));
+            uint8_t col = (row % 2 == 0) ? (15 - (physIdx % 16)) : (physIdx % 16);
             uint8_t phase = (uint8_t)(((elapsed * max((uint16_t)40, bpm)) / 1200UL) & 0xFF);
-            uint8_t waveAngle = (dir >= 0) ? (uint8_t)(col * 14 + row * 7 - phase) : (uint8_t)(col * 14 + row * 7 + phase);
+            uint8_t spatial = (uint8_t)((15 - col) * 12 + row * 10);
+            uint8_t waveAngle = (dir >= 0) ? (uint8_t)(phase - spatial) : (uint8_t)(phase + spatial);
             uint8_t s8 = sin8(waveAngle);
             uint8_t intensity = (uint8_t)(112 + ((uint16_t)s8 * 143) / 255);
             CRGB c = baseColor;
