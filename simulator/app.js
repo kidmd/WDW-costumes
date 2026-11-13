@@ -25297,7 +25297,9 @@ function buildLiveStreamPixelArray(timeMs) {
             if (mIdx < 0 || mIdx >= 256) continue;
             const col = computeLedColor(mIdx, totalVirtual, timeMs, cell.color);
             // Match firmware duplicateFrontToBack() duty cycle: 50% windowed (128/255), 25% backlight (64/255)
-            const scale = (cell.role === 'backlight') ? 0.25 : 0.50;
+            // Also apply col.alpha so the Brightness slider & alpha-animated effects match the simulator
+            const alpha = (col.alpha !== undefined) ? Math.max(0, Math.min(1, col.alpha)) : 1.0;
+            const scale = ((cell.role === 'backlight') ? 0.25 : 0.50) * alpha;
             const base = mIdx * 3;
             flatRgb[base]     = Math.max(0, Math.min(255, Math.round((col.r || 0) * scale)));
             flatRgb[base + 1] = Math.max(0, Math.min(255, Math.round((col.g || 0) * scale)));
@@ -25307,17 +25309,19 @@ function buildLiveStreamPixelArray(timeMs) {
         if (isFull) {
             for (let f = 256; f <= 280; f++) {
                 const col = computeLedColor(f, 562, timeMs);
+                const alpha = (col.alpha !== undefined) ? Math.max(0, Math.min(1, col.alpha)) : 1.0;
                 const base = f * 3;
-                flatRgb[base]     = Math.max(0, Math.min(255, Math.round(col.r || 0)));
-                flatRgb[base + 1] = Math.max(0, Math.min(255, Math.round(col.g || 0)));
-                flatRgb[base + 2] = Math.max(0, Math.min(255, Math.round(col.b || 0)));
+                flatRgb[base]     = Math.max(0, Math.min(255, Math.round((col.r || 0) * alpha)));
+                flatRgb[base + 1] = Math.max(0, Math.min(255, Math.round((col.g || 0) * alpha)));
+                flatRgb[base + 2] = Math.max(0, Math.min(255, Math.round((col.b || 0) * alpha)));
             }
             for (let k = 0; k < 25; k++) {
                 const col = computeLedColor(537 + k, 562, timeMs);
+                const alpha = (col.alpha !== undefined) ? Math.max(0, Math.min(1, col.alpha)) : 1.0;
                 const base = (281 + k) * 3;
-                flatRgb[base]     = Math.max(0, Math.min(255, Math.round(col.r || 0)));
-                flatRgb[base + 1] = Math.max(0, Math.min(255, Math.round(col.g || 0)));
-                flatRgb[base + 2] = Math.max(0, Math.min(255, Math.round(col.b || 0)));
+                flatRgb[base]     = Math.max(0, Math.min(255, Math.round((col.r || 0) * alpha)));
+                flatRgb[base + 1] = Math.max(0, Math.min(255, Math.round((col.g || 0) * alpha)));
+                flatRgb[base + 2] = Math.max(0, Math.min(255, Math.round((col.b || 0) * alpha)));
             }
         }
         return flatRgb;
