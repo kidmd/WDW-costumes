@@ -1118,8 +1118,8 @@ function canvasToNorm(x, y) {
     };
 }
 
-// Sparkle state per LED
-let sparkles = new Array(512).fill(0);
+// Sparkle state per LED (562 covers front matrix + right fairy + back matrix + left fairy)
+let sparkles = new Array(562).fill(0);
 
 // ============================================================================
 // DRAWING ROUTINES: Authentic Athletic T-Shirt with Natural Dimensions
@@ -3842,6 +3842,17 @@ function isFairyLedIndex(idx) {
 }
 window.isFairyLedIndex = isFairyLedIndex;
 
+function evalFairyAmbientPattern(index, totalLeds, timeMs) {
+    const useArtworkFairy = !params.ambientColorMode || params.ambientColorMode === 'artwork';
+    const fairyRgb = useArtworkFairy
+        ? (hexToRgb(getFloatDefaultFairyColor(undefined, getFairySpatialStep(index))) || { r: 255, g: 214, b: 110 })
+        : null;
+    const fairyPalette = useArtworkFairy
+        ? getFloatDefaultFairyColors().map(h => hexToRgb(h) || { r: 255, g: 214, b: 110 })
+        : null;
+    return evalGlobalPattern(activePattern, params.speedBpm, index, totalLeds, timeMs, fairyRgb, useArtworkFairy, false, params.direction, params.waveProgression, fairyPalette);
+}
+
 // Evaluates the independent resting baseline animation for the fairy light loops (2700K starlight twinkle + golden breathing glow)
 function evalFairyBaselineColor(index, timeMs, speedBpm) {
     const bpm = Math.max(30, speedBpm || (params && params.speedBpm) || 120);
@@ -4004,12 +4015,9 @@ function computeLedColor(index, totalLeds, timeMs, overrideColor = null) {
         const activeGlobalCues = sequenceCues.filter(q => q.targetType === 'global' && t >= q.startTime && t < (q.startTime + q.duration));
 
         // 2. Multi-Track Element Evaluation (Panels vs Fairy Strands vs Groups)
-        let elementBaselineCol;
-        if (isFullCostume && isFairy && activePattern !== 'triplet_chase' && activePattern !== 'off') {
-            elementBaselineCol = evalFairyBaselineColor(index, effectiveTimeMs, params.speedBpm);
-        } else {
-            elementBaselineCol = evalGlobalPattern(activePattern, params.speedBpm, index, totalLeds, effectiveTimeMs, c, hasColor);
-        }
+        const elementBaselineCol = (isFullCostume && isFairy)
+            ? evalFairyAmbientPattern(index, totalLeds, effectiveTimeMs)
+            : evalGlobalPattern(activePattern, params.speedBpm, index, totalLeds, effectiveTimeMs, c, hasColor);
 
         let trackCol = elementBaselineCol;
 
@@ -4164,16 +4172,7 @@ function computeLedColor(index, totalLeds, timeMs, overrideColor = null) {
     // MODE B: FREE-RUN PARADE PATTERN
     // ========================================================================
     if (isFullCostume && isFairy) {
-        if (activePattern === 'off') {
-            return { r: 0, g: 0, b: 0, alpha: 0 };
-        }
-        // Whole-body sweep animations circulate through both panels and fairy strands
-        const wholeBodySweeps = ['traveling_wave', 'chase', 'rainbow_cycle', 'scanner', 'comet', 'marquee', 'color_wipe', 'sparkle_storm', 'triplet_chase'];
-        if (wholeBodySweeps.includes(activePattern)) {
-            return evalGlobalPattern(activePattern, params.speedBpm, index, totalLeds, timeMs, { r: 255, g: 214, b: 110 }, true, !!overrideColor);
-        }
-        // Independent fairy baseline: warm golden starlight twinkle with gentle breathing glow
-        return evalFairyBaselineColor(index, timeMs, params.speedBpm);
+        return evalFairyAmbientPattern(index, totalLeds, timeMs);
     }
 
     if (grpEntry && grpEntry.group) {
