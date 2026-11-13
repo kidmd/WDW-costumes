@@ -25296,7 +25296,8 @@ function buildLiveStreamPixelArray(timeMs) {
             const mIdx = cell.matrixIdx;
             if (mIdx < 0 || mIdx >= 256) continue;
             const col = computeLedColor(mIdx, totalVirtual, timeMs, cell.color);
-            const scale = (cell.role === 'backlight') ? 0.5 : 1.0;
+            // Match firmware duplicateFrontToBack() duty cycle: 50% windowed (128/255), 25% backlight (64/255)
+            const scale = (cell.role === 'backlight') ? 0.25 : 0.50;
             const base = mIdx * 3;
             flatRgb[base]     = Math.max(0, Math.min(255, Math.round((col.r || 0) * scale)));
             flatRgb[base + 1] = Math.max(0, Math.min(255, Math.round((col.g || 0) * scale)));
