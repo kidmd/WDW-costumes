@@ -3805,15 +3805,22 @@ function getCueLedColor(cue, index, isFairy, sampledArtworkColor, hasSampledColo
 }
 window.getCueLedColor = getCueLedColor;
 
-// Connects both 25-bulb fairy strands (256..280 Right, 537..561 Left) at their loose ends into one continuous 50-bulb loop (0..49)
-// Note: computeFullCostumeFairyLayout() places 256..280 sequentially (Right Front -> Shoulder -> Right Back)
-// and 537..561 sequentially (Left Back -> Shoulder -> Left Front), so 280->537 and 561->256 form a closed 50-bulb loop!
+const FAIRY_STRAND1_SPATIAL_STEP = [
+    1, 4, 7, 10, 9, 6, 3, 0, 2, 5, 8, 11, 12,
+    13, 14, 17, 20, 23, 22, 19, 16, 15, 18, 21, 24
+];
+const FAIRY_STRAND2_SPATIAL_STEP = [
+    23, 20, 17, 14, 15, 18, 21, 24, 22, 19, 16, 13, 12,
+    11, 10, 7, 4, 1, 2, 5, 8, 9, 6, 3, 0
+];
+
+// Connects both 25-bulb fairy strands (256..280 Right, 537..561 Left) in physical spatial body order into one continuous 50-bulb loop (0..49)
 function getFairyContinuousLoopIndex(index) {
     if (index >= 256 && index <= 280) {
-        return index - 256;
+        return FAIRY_STRAND1_SPATIAL_STEP[index - 256];
     }
     if (index >= 537 && index <= 561) {
-        return 25 + (index - 537);
+        return 25 + (24 - FAIRY_STRAND2_SPATIAL_STEP[index - 537]);
     }
     return index % 50;
 }
@@ -3919,8 +3926,10 @@ function computeLedColor(index, totalLeds, timeMs, overrideColor = null) {
     if (isPhotoModeActive) {
         if (isFullCostume && isFairy) {
             // Steady 100% float-specific fairy triplet palette (matches firmware getFloatFairyBulbColor)
-            const bulbOffset = (index >= 537) ? (index - 537) : (index >= 256 ? (index - 256) : index);
-            const hex = getFloatDefaultFairyColor(undefined, bulbOffset);
+            const spatialStep = (index >= 256 && index <= 280)
+                ? FAIRY_STRAND1_SPATIAL_STEP[index - 256]
+                : ((index >= 537 && index <= 561) ? FAIRY_STRAND2_SPATIAL_STEP[index - 537] : index);
+            const hex = getFloatDefaultFairyColor(undefined, spatialStep);
             const rgb = (typeof hexToRgb === 'function') ? (hexToRgb(hex) || { r: 255, g: 220, b: 130 }) : { r: 255, g: 220, b: 130 };
             return { r: rgb.r, g: rgb.g, b: rgb.b, alpha: 1.0 };
         }
