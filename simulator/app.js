@@ -3862,6 +3862,7 @@ function evalFairyBaselineColor(index, timeMs, speedBpm) {
     const hwBright = (typeof params !== 'undefined' && params && typeof params.brightness === 'number')
         ? Math.max(0.05, Math.min(1.0, params.brightness / 100))
         : 1.0;
+    const baselineAlpha = (typeof sequenceMode !== 'undefined' && sequenceMode) ? 1.0 : hwBright;
 
     // Occasional starlight sparkle
     const spkPhase = Math.sin((timeMs * 0.006 * (rate / 2.0)) + (index * 4.91));
@@ -3871,16 +3872,16 @@ function evalFairyBaselineColor(index, timeMs, speedBpm) {
             r: 255,
             g: Math.round(Math.min(255, rgb.g + 40 * spkFactor)),
             b: Math.round(Math.min(255, rgb.b + 50 * spkFactor)),
-            alpha: hwBright
+            alpha: baselineAlpha
         };
     }
     
-    const br = 0.50 + 0.50 * swell;
+    const br = 0.70 + 0.30 * swell;
     return {
         r: Math.round(rgb.r * br),
         g: Math.round(rgb.g * br),
         b: Math.round(rgb.b * br),
-        alpha: Math.max(0.45, Math.min(1.0, 0.55 + 0.45 * swell)) * hwBright
+        alpha: baselineAlpha
     };
 }
 window.evalFairyBaselineColor = evalFairyBaselineColor;
