@@ -3796,23 +3796,15 @@ function getCueLedColor(cue, index, isFairy, sampledArtworkColor, hasSampledColo
 }
 window.getCueLedColor = getCueLedColor;
 
-// Physical Z-fold Accordion Spatial Step Mapping for 25-bulb Fairy Strands
-const FAIRY_STRAND1_SPATIAL_STEP = [
-    1, 4, 7, 10, 9, 6, 3, 0, 2, 5, 8, 11, 12,
-    13, 14, 17, 20, 23, 22, 19, 16, 15, 18, 21, 24
-];
-const FAIRY_STRAND2_SPATIAL_STEP = [
-    23, 20, 17, 14, 15, 18, 21, 24, 22, 19, 16, 13, 12,
-    11, 10, 7, 4, 1, 2, 5, 8, 9, 6, 3, 0
-];
-
 // Connects both 25-bulb fairy strands (256..280 Right, 537..561 Left) at their loose ends into one continuous 50-bulb loop (0..49)
+// Note: computeFullCostumeFairyLayout() places 256..280 sequentially (Right Front -> Shoulder -> Right Back)
+// and 537..561 sequentially (Left Back -> Shoulder -> Left Front), so 280->537 and 561->256 form a closed 50-bulb loop!
 function getFairyContinuousLoopIndex(index) {
     if (index >= 256 && index <= 280) {
-        return FAIRY_STRAND1_SPATIAL_STEP[index - 256];
+        return index - 256;
     }
     if (index >= 537 && index <= 561) {
-        return 25 + (24 - FAIRY_STRAND2_SPATIAL_STEP[index - 537]);
+        return 25 + (index - 537);
     }
     return index % 50;
 }
