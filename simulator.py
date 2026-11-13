@@ -1082,6 +1082,49 @@ const uint8_t PROGMEM SPATIAL_RADIUS_BYTE[FRONT_LEDS] = {{
                 "error": str(e)
             }).encode("utf-8"))
 
+    def _send_msep_udp_frame(self, pixels, target_ip, float_id=None):
+        rgb_bytes = bytearray()
+        if pixels and isinstance(pixels[0], int):
+            num_leds = len(pixels) // 3
+            for val in pixels:
+                rgb_bytes.append(max(0, min(255, int(val))))
+        else:
+            num_leds = len(pixels)
+            for p in pixels:
+                rgb_bytes.append(max(0, min(255, int(p.get("r", 0)))))
+                rgb_bytes.append(max(0, min(255, int(p.get("g", 0)))))
+                rgb_bytes.append(max(0, min(255, int(p.get("b", 0)))))
+
+        total_bytes = 0
+        # Split full 562-LED costume frames into two sub-MTU packets:
+        #   1) Opcode 0x04: 256-LED independent back matrix (indices 281..536)
+        #   2) Opcode 0x01/0x02: 306-LED front matrix (0..255) + right fairy (256..280) + left fairy (537..561)
+        if num_leds == 562 and len(rgb_bytes) >= 562 * 3:
+            fid_byte = (int(float_id) & 0xFF) if float_id is not None else 0
+            back_hdr = b'MSEP' + bytes([0x04, fid_byte]) + (256).to_bytes(2, 'big')
+            back_pkt = back_hdr + rgb_bytes[281 * 3 : 537 * 3]
+            udp_socket.sendto(bytes(back_pkt), (target_ip, UDP_STREAM_PORT))
+            total_bytes += len(back_pkt)
+
+            compact_rgb = rgb_bytes[0 : 281 * 3] + rgb_bytes[537 * 3 : 562 * 3]
+            compact_count = 306
+            if float_id is not None:
+                front_hdr = b'MSEP' + bytes([0x02, fid_byte]) + compact_count.to_bytes(2, 'big')
+            else:
+                front_hdr = b'MSEP' + bytes([0x01]) + compact_count.to_bytes(2, 'big')
+            front_pkt = front_hdr + compact_rgb
+            udp_socket.sendto(bytes(front_pkt), (target_ip, UDP_STREAM_PORT))
+            total_bytes += len(front_pkt)
+            return total_bytes
+
+        if float_id is not None:
+            header = b'MSEP' + bytes([0x02, int(float_id) & 0xFF]) + num_leds.to_bytes(2, 'big')
+        else:
+            header = b'MSEP' + bytes([0x01]) + num_leds.to_bytes(2, 'big')
+        raw = bytearray(header) + rgb_bytes
+        udp_socket.sendto(bytes(raw), (target_ip, UDP_STREAM_PORT))
+        return len(raw)
+
     def handle_stream_pixels(self):
         try:
             content_length = int(self.headers.get("Content-Length", 0))
@@ -1099,25 +1142,8 @@ const uint8_t PROGMEM SPATIAL_RADIUS_BYTE[FRONT_LEDS] = {{
                 for frame in fleet_frames:
                     float_id = int(frame.get("floatId", 0)) # 1-7 (or 0 for universal)
                     pixels = frame.get("pixels", [])
-                    if pixels and isinstance(pixels[0], int):
-                        # Fast Flat RGB Array: [r, g, b, r, g, b, ...]
-                        num_leds = len(pixels) // 3
-                        header = b'MSEP' + bytes([0x02, float_id & 0xFF]) + num_leds.to_bytes(2, 'big')
-                        raw = bytearray(header)
-                        for val in pixels:
-                            raw.append(max(0, min(255, int(val))))
-                    else:
-                        num_leds = len(pixels)
-                        header = b'MSEP' + bytes([0x02, float_id & 0xFF]) + num_leds.to_bytes(2, 'big')
-                        raw = bytearray(header)
-                        for p in pixels:
-                            raw.append(max(0, min(255, int(p.get("r", 0)))))
-                            raw.append(max(0, min(255, int(p.get("g", 0)))))
-                            raw.append(max(0, min(255, int(p.get("b", 0)))))
-
-                    udp_socket.sendto(bytes(raw), (target_ip, UDP_STREAM_PORT))
+                    total_bytes += self._send_msep_udp_frame(pixels, target_ip, float_id=float_id)
                     total_sent += 1
-                    total_bytes += len(raw)
 
                 self.send_response(200)
                 self.send_header("Content-Type", "application/json")
@@ -1134,29 +1160,7 @@ const uint8_t PROGMEM SPATIAL_RADIUS_BYTE[FRONT_LEDS] = {{
             # 2. Single-Costume Stream (Opcode 0x01 universal, or Opcode 0x02 if floatId specified)
             pixels = payload.get("pixels", [])
             float_id = payload.get("floatId")
-            if pixels and isinstance(pixels[0], int):
-                # Fast Flat RGB Array
-                num_leds = len(pixels) // 3
-                if float_id is not None:
-                    header = b'MSEP' + bytes([0x02, int(float_id) & 0xFF]) + num_leds.to_bytes(2, 'big')
-                else:
-                    header = b'MSEP' + bytes([0x01]) + num_leds.to_bytes(2, 'big')
-                raw = bytearray(header)
-                for val in pixels:
-                    raw.append(max(0, min(255, int(val))))
-            else:
-                num_leds = len(pixels)
-                if float_id is not None:
-                    header = b'MSEP' + bytes([0x02, int(float_id) & 0xFF]) + num_leds.to_bytes(2, 'big')
-                else:
-                    header = b'MSEP' + bytes([0x01]) + num_leds.to_bytes(2, 'big')
-                raw = bytearray(header)
-                for p in pixels:
-                    raw.append(max(0, min(255, int(p.get("r", 0)))))
-                    raw.append(max(0, min(255, int(p.get("g", 0)))))
-                    raw.append(max(0, min(255, int(p.get("b", 0)))))
-
-            udp_socket.sendto(bytes(raw), (target_ip, UDP_STREAM_PORT))
+            self._send_msep_udp_frame(pixels, target_ip, float_id=float_id)
 
             self.send_response(200)
             self.send_header("Content-Type", "application/json")

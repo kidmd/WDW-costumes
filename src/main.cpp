@@ -281,6 +281,22 @@ inline int getMatrixActiveLedCount() {
     return activeCount;
 }
 
+static CRGB customBackActive[256];
+static bool useCustomBackActive = false;
+
+inline uint8_t getMatrixPhysicalIndex(int i) {
+    uint8_t physIdx = (uint8_t)i;
+#if !(defined(FLEET_BUILD) && FLEET_BUILD) && defined(COSTUME_MATRIX_16X16_MODE) && COSTUME_MATRIX_16X16_MODE
+    physIdx = pgm_read_byte(&MATRIX_ACTIVE_INDICES[i]);
+#elif defined(HAS_FLEET_MATRIX_CONFIG) && HAS_FLEET_MATRIX_CONFIG
+    uint8_t fIdx = (myFloatNumber >= 1 && myFloatNumber <= 7) ? (myFloatNumber - 1) : 0;
+    if (i < 256) {
+        physIdx = pgm_read_byte(&FLOAT_MATRIX_INDICES[fIdx][i]);
+    }
+#endif
+    return physIdx;
+}
+
 inline void duplicateFrontToBack(bool preserveRenderedFairy = false) {
     if (isCurrentFloatMatrix16x16()) {
         CRGB tempActive[256];
@@ -310,28 +326,16 @@ inline void duplicateFrontToBack(bool preserveRenderedFairy = false) {
         }
 #endif
         for (int i = 0; i < activeCount; i++) {
-            uint8_t physIdx = i;
-#if !(defined(FLEET_BUILD) && FLEET_BUILD) && defined(COSTUME_MATRIX_16X16_MODE) && COSTUME_MATRIX_16X16_MODE
-            physIdx = pgm_read_byte(&MATRIX_ACTIVE_INDICES[i]);
-#elif defined(HAS_FLEET_MATRIX_CONFIG) && HAS_FLEET_MATRIX_CONFIG
-            uint8_t fIdx = (myFloatNumber >= 1 && myFloatNumber <= 7) ? (myFloatNumber - 1) : 0;
-            if (i < 256) {
-                physIdx = pgm_read_byte(&FLOAT_MATRIX_INDICES[fIdx][i]);
-            }
-#endif
+            uint8_t physIdx = getMatrixPhysicalIndex(i);
             CRGB c = tempActive[i];
+            uint8_t scaleVal = 128;
             if (currentStandaloneMode == SHOW_MODE_WARM_WHITE_SPARKLE) {
                 bool isSparkle = (c.r > 240 && c.g > 240 && c.b > 240);
-                if (isSparkle) {
-                    c.nscale8_video(192); // Bright starlight pop (~3x brighter than warm white base)
-                } else {
-                    c.nscale8_video(64);  // Identical physical level to normal colored backlights (~3.1% duty cycle)
-                }
+                scaleVal = isSparkle ? 192 : 64;
             } else if (i >= winCount) {
-                c.nscale8_video(64); // Backlight LEDs at 50% brightness of windowed LEDs
-            } else {
-                c.nscale8_video(128); // Windowed LEDs
+                scaleVal = 64; // Backlight LEDs at 50% brightness of windowed LEDs
             }
+            c.nscale8_video(scaleVal);
 #if !COMPILED_COLOR_ORDER_IS_GRB
             // If compiled with RGB for general pebble strings, swap R & G dynamically for GRB 16x16 matrix
             uint8_t tmpR = c.r;
@@ -342,7 +346,18 @@ inline void duplicateFrontToBack(bool preserveRenderedFairy = false) {
 #if (defined(COSTUME_FULL_562_MODE) && COSTUME_FULL_562_MODE) || (defined(NUM_LEDS) && NUM_LEDS == 562)
             // 562-LED closed-loop costume: Front Matrix (0..255), Right Fairy (256..280), Back Matrix (281..536), Left Fairy (537..561)
             if ((281 + (int)physIdx) < MAX_LEDS_CAPACITY) {
-                leds[281 + (int)physIdx] = c;
+                if (useCustomBackActive && preserveRenderedFairy) {
+                    CRGB cb = customBackActive[i];
+                    cb.nscale8_video(scaleVal);
+#if !COMPILED_COLOR_ORDER_IS_GRB
+                    uint8_t tmpBR = cb.r;
+                    cb.r = cb.g;
+                    cb.g = tmpBR;
+#endif
+                    leds[281 + (int)physIdx] = cb;
+                } else {
+                    leds[281 + (int)physIdx] = c;
+                }
             }
 #else
             if ((256 + (int)physIdx) < MAX_LEDS_CAPACITY) {
@@ -1388,9 +1403,18 @@ bool renderCatalogEffect20to32(uint8_t effId, uint16_t bpm, uint32_t now, uint32
             }
             leds[i] = c;
         } else if (effId == 35) { // tri_color_wipe (Blue -> Red -> White progressive cascade)
-            uint16_t pos1000 = getCostumePacedLoopPosition(i);
-            if (dir < 0) pos1000 = (uint16_t)(999 - pos1000);
-            leds[i] = evalTriColorWipePixel(pos1000, triStage, triWipePermille);
+            uint8_t physIdx = isCurrentFloatMatrix16x16() ? getMatrixPhysicalIndex(i) : (uint8_t)i;
+            uint16_t posFront = getCostumePacedLoopPosition(physIdx);
+            uint16_t posBack  = getCostumePacedLoopPosition(281 + physIdx);
+            if (dir < 0) {
+                posFront = (uint16_t)(999 - posFront);
+                posBack  = (uint16_t)(999 - posBack);
+            }
+            leds[i] = evalTriColorWipePixel(posFront, triStage, triWipePermille);
+            if (isCurrentFloatMatrix16x16() && i < 256) {
+                customBackActive[i] = evalTriColorWipePixel(posBack, triStage, triWipePermille);
+                useCustomBackActive = true;
+            }
         }
     }
 #if defined(COSTUME_FULL_562_MODE) && COSTUME_FULL_562_MODE
@@ -1765,6 +1789,7 @@ void runAutonomousShowSequence(uint32_t now) {
         autonomousShowStartTime = now;
     }
     uint32_t seqTime = (now - autonomousShowStartTime) % SHOW_LOOP_MS;
+    useCustomBackActive = false;
 
 #if (defined(COSTUME_FULL_562_MODE) && COSTUME_FULL_562_MODE) || (defined(NUM_LEDS) && NUM_LEDS == 562)
     // Clear prior frame's wire-swapped fairy pixels before rendering cues or ambient patterns
@@ -2981,6 +3006,8 @@ void loop() {
     }
 
     // 2. Check for incoming live stream packets from Python Simulator
+    static CRGB liveBackMatrixBuf[256];
+    static uint32_t liveBackMatrixTime = 0;
     int packetSize = 0;
     while ((packetSize = udp.parsePacket()) > 0) {
         static uint8_t buffer[2048];
@@ -2992,7 +3019,27 @@ void loop() {
             int pIdx = 0;
             uint16_t frameLeds = 0;
 
-            if (buffer[4] == 0x01) {
+            if (buffer[4] == 0x04 && len >= 8) {
+                // Opcode 0x04: Independent 256-LED Back Matrix (indices 281..536) for 562-LED full costume
+                uint8_t targetFloatId = buffer[5];
+                if (targetFloatId == 0 || targetFloatId == myFloatNumber) {
+                    uint16_t backCount = (buffer[6] << 8) | buffer[7];
+                    int bIdx = 8;
+                    int limit = min((int)backCount, 256);
+                    for (int i = 0; i < limit && (bIdx + 2) < len; i++) {
+                        uint8_t r = buffer[bIdx++];
+                        uint8_t g = buffer[bIdx++];
+                        uint8_t b = buffer[bIdx++];
+#if !COMPILED_COLOR_ORDER_IS_GRB
+                        liveBackMatrixBuf[i] = CRGB(g, r, b);
+#else
+                        liveBackMatrixBuf[i] = CRGB(r, g, b);
+#endif
+                    }
+                    liveBackMatrixTime = now;
+                }
+                continue; // Wait for the paired front+fairy packet to call FastLED.show()
+            } else if (buffer[4] == 0x01) {
                 // Opcode 0x01: Universal broadcast frame (accepted by any float role)
                 frameLeds = (buffer[5] << 8) | buffer[6];
                 pIdx = 7;
@@ -3026,6 +3073,7 @@ void loop() {
                 if (isCurrentFloatMatrix16x16() && frameLeds >= 256) {
                     // Direct physical 16x16 matrix frame (0..255 = front matrix)
                     fill_solid(leds, MAX_LEDS_CAPACITY, CRGB::Black);
+                    bool hasLiveBack = (liveBackMatrixTime != 0) && ((now - liveBackMatrixTime) < 500);
                     for (int i = 0; i < 256 && (pIdx + 2) < len; i++) {
                         uint8_t r = buffer[pIdx++];
                         uint8_t g = buffer[pIdx++];
@@ -3037,7 +3085,7 @@ void loop() {
 #endif
                         leds[i] = mc;
 #if (defined(COSTUME_FULL_562_MODE) && COSTUME_FULL_562_MODE) || (defined(NUM_LEDS) && NUM_LEDS == 562)
-                        if ((281 + i) < MAX_LEDS_CAPACITY) leds[281 + i] = mc;
+                        if ((281 + i) < MAX_LEDS_CAPACITY) leds[281 + i] = hasLiveBack ? liveBackMatrixBuf[i] : mc;
 #else
                         if ((256 + i) < MAX_LEDS_CAPACITY) leds[256 + i] = mc;
 #endif

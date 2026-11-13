@@ -93,6 +93,14 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### November 13, 2026 - Independent Back Matrix 562-LED Waterfall Progression (Live Stream & Firmware)
+- **Independent Front & Back 16×16 Matrix Streaming (`simulator/app.js`, `simulator.py`, `src/main.cpp`, `arduino/MSEP_Costume/MSEP_Costume.ino`):**
+  - Updated `buildLiveStreamPixelArray()` in `simulator/app.js` to pack all **562 LEDs** (`0..255` front matrix, `256..280` right fairy, `281..536` back matrix, `537..561` left fairy) in `full_costume` mode.
+  - Updated `_send_msep_udp_frame()` in `simulator.py` to split 562-LED frames into two sub-MTU UDP packets: **Opcode `0x04`** (256-LED back matrix `281..536`) followed by **Opcode `0x01`/`0x02`** (306-LED front + fairy packet).
+  - Updated `src/main.cpp` and `MSEP_Costume.ino` UDP receiver to buffer `0x04` back-matrix frames (`liveBackMatrixBuf[256]`) and apply them to `leds[281..536]` on the matching front+fairy frame instead of mirroring front pixels onto the back panel.
+- **Standalone Firmware Back-Panel Progression (`src/main.cpp`, `arduino/MSEP_Costume/MSEP_Costume.ino`):**
+  - Added `getMatrixPhysicalIndex()` and `customBackActive[256]` support in `duplicateFrontToBack()` so `tri_color_wipe` (`effId == 35`) sweeps down the front matrix (`0..279`), around both Z-folded fairy strands (`280..720`), and up the back matrix (`720..999`) identically on standalone flashed ESP32s.
+
 ### November 13, 2026 - Tri-Color Cascade Wipe (`tri_color_wipe`: Blue → Red → White)
 - **Sequential Multi-Color Paint-Over Wipe (`simulator/app.js`, `simulator.py`, `src/main.cpp`, `arduino/MSEP_Costume/MSEP_Costume.ino`, `SIMULATOR_USER_GUIDE.md`):**
   - Added **`tri_color_wipe`** (`🇺🇸 Tri-Color Wipe (Blue → Red → White)`, `COSTUME_PATTERN_TRI_COLOR_WIPE 35`) under *Wipes & Fills* in `EFFECT_CATALOG`, `evalNewCatalogEffect()`, `simulator.py` export tables, and firmware `renderCatalogEffect20to32()` / `evalTriColorWipePixel()`.
