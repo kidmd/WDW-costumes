@@ -25299,8 +25299,13 @@ function buildLiveStreamPixelArray(timeMs) {
         const outCount = isFull ? 306 : 256; // 0..255 front matrix + (if full) 256..280 right fairy + 281..305 left fairy
         const flatRgb = new Array(outCount * 3).fill(0);
 
-        const photoBrightnessScale = (typeof isPhotoModeActive !== 'undefined' && isPhotoModeActive && params && typeof params.brightness === 'number')
+        const hwBright = (typeof params !== 'undefined' && params && typeof params.brightness === 'number')
             ? Math.max(0.05, Math.min(1.0, params.brightness / 100))
+            : 1.0;
+        const photoBrightnessScale = (typeof isPhotoModeActive !== 'undefined' && isPhotoModeActive) ? hwBright : 1.0;
+        // Cue Director / Show Effects run at full 1.0 envelope; match Ambient Mode's comfortable 80%-scaled output
+        const showEffectScale = (typeof sequenceMode !== 'undefined' && sequenceMode && !(typeof isPhotoModeActive !== 'undefined' && isPhotoModeActive))
+            ? (hwBright * 0.65)
             : 1.0;
 
         for (let cIdx = 0; cIdx < btfMatrix16x16Cells.length; cIdx++) {
@@ -25310,8 +25315,8 @@ function buildLiveStreamPixelArray(timeMs) {
             if (mIdx < 0 || mIdx >= 256) continue;
             const col = computeLedColor(mIdx, totalVirtual, timeMs, cell.color);
             // Match firmware duplicateFrontToBack() duty cycle: 50% windowed (128/255), 25% backlight (64/255)
-            // Also apply col.alpha (and Brightness slider in Castle Photo Mode)
-            const alpha = ((col.alpha !== undefined) ? Math.max(0, Math.min(1, col.alpha)) : 1.0) * photoBrightnessScale;
+            // Also apply col.alpha (and Brightness slider in Castle Photo Mode / Cue Director Show Effects)
+            const alpha = ((col.alpha !== undefined) ? Math.max(0, Math.min(1, col.alpha)) : 1.0) * photoBrightnessScale * showEffectScale;
             const scale = ((cell.role === 'backlight') ? 0.25 : 0.50) * alpha;
             const base = mIdx * 3;
             flatRgb[base]     = Math.max(0, Math.min(255, Math.round((col.r || 0) * scale)));
@@ -25320,7 +25325,7 @@ function buildLiveStreamPixelArray(timeMs) {
         }
 
         if (isFull) {
-            const fairyScale = 0.25; // Balance bare 360° fairy bulbs with 25% panel backlight duty cycle
+            const fairyScale = 0.25 * showEffectScale; // Balance bare 360° fairy bulbs with 25% panel backlight duty cycle
             for (let f = 256; f <= 280; f++) {
                 const col = computeLedColor(f, 562, timeMs);
                 const alpha = ((col.alpha !== undefined) ? Math.max(0, Math.min(1, col.alpha)) : 1.0) * photoBrightnessScale * fairyScale;
