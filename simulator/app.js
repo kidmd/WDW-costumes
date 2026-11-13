@@ -4005,7 +4005,7 @@ function computeLedColor(index, totalLeds, timeMs, overrideColor = null) {
 
         // 2. Multi-Track Element Evaluation (Panels vs Fairy Strands vs Groups)
         let elementBaselineCol;
-        if (isFullCostume && isFairy && activePattern !== 'triplet_chase') {
+        if (isFullCostume && isFairy && activePattern !== 'triplet_chase' && activePattern !== 'off') {
             elementBaselineCol = evalFairyBaselineColor(index, effectiveTimeMs, params.speedBpm);
         } else {
             elementBaselineCol = evalGlobalPattern(activePattern, params.speedBpm, index, totalLeds, effectiveTimeMs, c, hasColor);
@@ -4164,6 +4164,9 @@ function computeLedColor(index, totalLeds, timeMs, overrideColor = null) {
     // MODE B: FREE-RUN PARADE PATTERN
     // ========================================================================
     if (isFullCostume && isFairy) {
+        if (activePattern === 'off') {
+            return { r: 0, g: 0, b: 0, alpha: 0 };
+        }
         // Whole-body sweep animations circulate through both panels and fairy strands
         const wholeBodySweeps = ['traveling_wave', 'chase', 'rainbow_cycle', 'scanner', 'comet', 'marquee', 'color_wipe', 'sparkle_storm', 'triplet_chase'];
         if (wholeBodySweeps.includes(activePattern)) {
