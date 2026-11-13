@@ -25320,9 +25320,10 @@ function buildLiveStreamPixelArray(timeMs) {
         }
 
         if (isFull) {
+            const fairyScale = 0.25; // Balance bare 360° fairy bulbs with 25% panel backlight duty cycle
             for (let f = 256; f <= 280; f++) {
                 const col = computeLedColor(f, 562, timeMs);
-                const alpha = ((col.alpha !== undefined) ? Math.max(0, Math.min(1, col.alpha)) : 1.0) * photoBrightnessScale;
+                const alpha = ((col.alpha !== undefined) ? Math.max(0, Math.min(1, col.alpha)) : 1.0) * photoBrightnessScale * fairyScale;
                 const base = f * 3;
                 flatRgb[base]     = Math.max(0, Math.min(255, Math.round((col.r || 0) * alpha)));
                 flatRgb[base + 1] = Math.max(0, Math.min(255, Math.round((col.g || 0) * alpha)));
@@ -25330,7 +25331,7 @@ function buildLiveStreamPixelArray(timeMs) {
             }
             for (let k = 0; k < 25; k++) {
                 const col = computeLedColor(537 + k, 562, timeMs);
-                const alpha = ((col.alpha !== undefined) ? Math.max(0, Math.min(1, col.alpha)) : 1.0) * photoBrightnessScale;
+                const alpha = ((col.alpha !== undefined) ? Math.max(0, Math.min(1, col.alpha)) : 1.0) * photoBrightnessScale * fairyScale;
                 const base = (281 + k) * 3;
                 flatRgb[base]     = Math.max(0, Math.min(255, Math.round((col.r || 0) * alpha)));
                 flatRgb[base + 1] = Math.max(0, Math.min(255, Math.round((col.g || 0) * alpha)));
