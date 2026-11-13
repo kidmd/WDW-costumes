@@ -1300,7 +1300,7 @@ bool renderCatalogEffect20to32(uint8_t effId, uint16_t bpm, uint32_t now, uint32
             c.nscale8_video(64 + scale8(tw, 191));
             leds[i] = c;
         } else if (effId == 33) { // triplet_chase (3-bulb float color blocks chasing continuously)
-            int32_t shift = (int32_t)((elapsed * 3) / max((uint32_t)400, beatMs * 2)) * (dir >= 0 ? 1 : -1);
+            int32_t shift = (int32_t)((elapsed * 3) / max((uint32_t)200, beatMs)) * (dir >= 0 ? 1 : -1);
             int pos = ((i - shift) % 9 + 9) % 9;
             uint8_t group = (uint8_t)(pos / 3);
             leds[i] = getFloatPaletteColor(myFloatNumber, group);
@@ -1311,7 +1311,7 @@ bool renderCatalogEffect20to32(uint8_t effId, uint16_t bpm, uint32_t now, uint32
         uint8_t numColors = pgm_read_byte(&FLOAT_PALETTE_COUNTS[floatIdx]);
         int cycleLen = 3 * max((uint8_t)1, numColors);
         int virtualLen = (50 / cycleLen) * cycleLen;
-        int32_t shift = (int32_t)((elapsed * 3) / max((uint32_t)400, beatMs * 2)) * (dir >= 0 ? 1 : -1);
+        int32_t shift = (int32_t)((elapsed * 3) / max((uint32_t)200, beatMs)) * (dir >= 0 ? 1 : -1);
         for (int f = 256; f <= 280; f++) {
             uint8_t step = pgm_read_byte(&FAIRY_STRAND1_SPATIAL_STEP[f - 256]);
             int vPos = ((int)step * virtualLen) / 50;

@@ -2079,7 +2079,7 @@ function evalNewCatalogEffect(effect, normPos, index, totalLeds, timeMs, bpm, di
                 loopLen = cycleLen;
                 posIdx = index;
             }
-            const shift = Math.floor(normTime * 1.5 * dir);
+            const shift = Math.floor(normTime * 3.0 * dir);
             const shifted = ((posIdx - shift) % loopLen + loopLen) % loopLen;
             const colorSlot = Math.floor(shifted / 3) % floatPalette.length;
             const rgb = hexToRgb(floatPalette[colorSlot]) || { r: baseR, g: baseG, b: baseB };
