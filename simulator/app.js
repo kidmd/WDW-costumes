@@ -192,7 +192,7 @@ function markSingleShirtDirty() {
 // Control parameters
 let params = {
     speedBpm: 48,
-    sparkleRate: 1.5,
+    sparkleRate: 1.0,
     sparkleStyle: 'incandescent', // 'incandescent', 'diamond', 'gold'
     ambientColorMode: 'artwork',   // 'artwork', 'float_theme', 'vintage_warm', 'custom'
     ambientCustomColor: '#ffb703',
@@ -7829,7 +7829,7 @@ async function editRunnerInSingleView(slot) {
                 ledCount: 100,
                 leds: [],
                 graphicType: runner.defaultGraphic || 'casey_jr_train',
-                settings: { pattern: 'steady_sparkle', speedBpm: 120, sparkleRate: 1.5, greenHue: 140, brightness: 100, glowSize: 22 },
+                settings: { pattern: 'steady_sparkle', speedBpm: 120, sparkleRate: 1.0, greenHue: 140, brightness: 100, glowSize: 22 },
                 animationGroups: [],
                 sequence: { loopDuration: 90.0, cues: [] }
             };
@@ -16043,7 +16043,7 @@ async function loadProfile(sourceValue) {
             ledCount: 100,
             leds: [],
             graphicType: r.defaultGraphic || 'casey_jr_train',
-            settings: { pattern: 'steady_sparkle', speedBpm: 120, sparkleRate: 1.5, greenHue: 140, brightness: 100, glowSize: 22 },
+            settings: { pattern: 'steady_sparkle', speedBpm: 120, sparkleRate: 1.0, greenHue: 140, brightness: 100, glowSize: 22 },
             animationGroups: [],
             sequence: { loopDuration: 90.0, cues: [] }
         };

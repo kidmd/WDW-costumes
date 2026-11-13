@@ -37,7 +37,7 @@
 #endif
 
 #ifndef COSTUME_SPARKLE_RATE
-#define COSTUME_SPARKLE_RATE 1.5
+#define COSTUME_SPARKLE_RATE 1.0
 #endif
 
 // ============================================================================
