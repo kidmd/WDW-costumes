@@ -25322,9 +25322,9 @@ function buildLiveStreamPixelArray(timeMs) {
             ? Math.max(0.05, Math.min(1.0, params.brightness / 100))
             : 1.0;
         const photoBrightnessScale = (typeof isPhotoModeActive !== 'undefined' && isPhotoModeActive) ? hwBright : 1.0;
-        // Cue Director / Show Effects run at full 1.0 envelope; match Ambient Mode's comfortable 80%-scaled output
+        // Cue Director / Show Effects scale directly with Hardware LED Output (100% slider = exact 255 match to standalone)
         const showEffectScale = (typeof sequenceMode !== 'undefined' && sequenceMode && !(typeof isPhotoModeActive !== 'undefined' && isPhotoModeActive))
-            ? (hwBright * 0.65)
+            ? hwBright
             : 1.0;
 
         for (let cIdx = 0; cIdx < btfMatrix16x16Cells.length; cIdx++) {
