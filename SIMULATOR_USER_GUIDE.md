@@ -425,7 +425,6 @@ Creating and editing groups is seamlessly integrated into both the Group Creatio
      - *🎡 Chase / Wheel Spin:* Chases illuminated heads around the ring.
      - *💓 Breathing Glow Pulse:* Pulses the group in sync or out of phase with the baseline.
      - *💡 Slow Flashing / Blink:* Theatrical blinking.
-     - *✍️ Write-On / Write-Off:* Successively illuminates the group in sequence.
      - *✨ Sparkle Storm:* High-energy glitter and sparkle storm.
      - *🎪 Theater Marquee:* 3-phase theatrical marquee chase.
      - *🌈 Rainbow Color Wave:* Smooth cycling rainbow wave across the group.
@@ -876,10 +875,10 @@ Use the **Load Example Routine** dropdown to test fully orchestrated 90-second s
 
 ## 10. Lighting Patterns & Effects Library
 
-The simulator includes a unified **39-effect catalog** (`EFFECT_CATALOG` in `simulator/app.js`) organized into **6 functional `<optgroup>` categories** across Whole-Shirt Ambient (Tab 2), Group Creation & Docked Inspector (Tab 3), and Timed Show Cues (Tab 4), with live 1-line helper descriptions and full ESP32 firmware parity (`COSTUME_PATTERN_*` IDs `0..35`):
+The simulator includes a unified **38-effect catalog** (`EFFECT_CATALOG` in `simulator/app.js`) organized into **6 functional `<optgroup>` categories** across Whole-Shirt Ambient (Tab 2), Group Creation & Docked Inspector (Tab 3), and Timed Show Cues (Tab 4), with live 1-line helper descriptions and full ESP32 firmware parity (`COSTUME_PATTERN_*` IDs `0..35`):
 
 1. **🏃 Chases & Sweeps:** `chase` (Wheel Spin), `comet` (Meteor Trail), `scanner` (Larson Ping-Pong), `marquee` (Classic Marquee Chase), `piston_chug` (Locomotive Chug), `mouse_scamper` (Scurrying Mouse), `flashlight` (Searchlight Roam), `traveling_wave` (Traveling Parade Wave), `dual_chase` (Dual Opposing Chase), `barber_pole` (Barber Pole Stripes), `triplet_chase` (Classic 3-Bulb Triplet Chase — all LEDs lit in repeating 3-bulb float colors, connecting both 25-bulb fairy strands into one continuous 50-bulb loop), `spotlight_swap` (Spotlight Swap — 8-beat call-and-response alternating 4 beats of opposing Z-fold fairy counter-motion over gently breathing chest panels with 4 beats of full-brightness panel showcase framed by steady 3-bulb marquee strands)
-2. **🖌️ Wipes & Fills:** `color_wipe` (Progressive Fill), `write_on_off` (Write-On / Write-Off), `curtain_wipe` (Center-Out Curtain Wipe), `random_dissolve` (Random Dissolve Fill), `tri_color_wipe` (Tri-Color Wipe — sequentially wipes the entire costume in Blue, then wipes Red directly over Blue, then wipes White directly over Red)
+2. **🖌️ Wipes & Fills:** `color_wipe` (Progressive Fill), `curtain_wipe` (Center-Out Curtain Wipe), `random_dissolve` (Random Dissolve Fill), `tri_color_wipe` (Tri-Color Wipe — sequentially wipes the entire costume in Blue, then wipes Red directly over Blue, then wipes White directly over Red)
 3. **⚡ Flashes & Strobes:** `flash_slow` (Slow Blink), `fireworks` (Radiating Starburst), `lightning_bug` (Lightning Bug / Firefly Pulse), `paparazzi` (Paparazzi Camera Pops), `double_blink` (Syncopated Double-Blink)
 4. **🌬️ Glows & Pulses:** `color_match` (Slo-Glo Breath), `pulse` (Breathing Glow Pulse), `filament_glow` (Vintage 1972 Filament), `candle_flicker` (Lantern Flame), `tidal_ripple` (Tidal Ripple), `dim_glow` (Subtle Ambient Glow), `heartbeat` (Heartbeat 10K Cadence), `two_tone_fade` (Two-Tone Crossfade)
 5. **✨ Sparkles & Magic:** `steady_sparkle` (Steady + Occasional Sparkle), `sparkle_storm` (Sparkle Storm), `pixie_dust` (Pixie Dust Drift), `dragon_sparkle` (Dragon Emerald Sparkle), `fire_breath` (Snout Fire Breath), `confetti` (Confetti Shimmer), `cinderella_twinkle` (Cinderella Crystalline Twinkle)
@@ -889,7 +888,6 @@ The simulator includes a unified **39-effect catalog** (`EFFECT_CATALOG` in `sim
 |---|---|---|---|
 | `chase` | **Chase / Wheel Spin** | Concentric or sequential single-point circulating chase with exponential decay wake. | Carriage wheels, train drivers, shell spirals |
 | `pulse` / `color_match` | **Breathing Glow / Slo-Glo** | Organic sinusoidal breathing pulse that preserves true sampled artwork hues (~30-60 BPM). | Main float bodies, resting groups, warm accents |
-| `write_on_off` | **Theatrical Write-On / Off** | Sequential progressive draw-on to full radiance, hold, and progressive wipe-off. | Entrances, flourish accents, musical wipes |
 | `flash_slow` | **Slow Flashing / Blink** | Classical synchronized rhythmic on/off beacon blinking. | Headlights, signals, warning markers |
 | `sparkle_storm` | **Sparkle Storm (Glitter)** | High-density diamond sparkle blizzard cascading across member LEDs. | Starbursts, pixie wands, climaxes |
 | `steady_sparkle` | **Steady Colors + Sparkles** | Holds constant artwork color palette with occasional incandescent starlight twinkles. | Entry / ambient float scenes, resting baseline |
@@ -922,13 +920,13 @@ In real-world garment wiring, LEDs are routed non-linearly across branches and c
 
 To prevent animations from jumping erratically across wire branches, the simulator and firmware use a **2D Spatial Lighting Engine**:
 - **Normalized Spatial Coordinates ($x, y$):** Every LED's 2D coordinate on the shirt is mapped into continuous spatial bounds.
-- **Physical Progressive Fill (`color_wipe` / `write_on_off`):** Lights LEDs strictly in physical vertical order (bottom hem $\rightarrow$ chest $\rightarrow$ collar when `dir = 1`, or top-down when `dir = -1`), creating a smooth, organic fluid-fill effect regardless of electrical wiring route.
+- **Physical Progressive Fill (`color_wipe`):** Lights LEDs strictly in physical vertical order (bottom hem $\rightarrow$ chest $\rightarrow$ collar when `dir = 1`, or top-down when `dir = -1`), creating a smooth, organic fluid-fill effect regardless of electrical wiring route.
 - **Directional Sweeps & Planar Waves (`traveling_wave`, `scanner`):** Larson scanner beams and traveling parade waves sweep smoothly across horizontal space along physical $X$ coordinates.
 - **Centroid-Based Radial Waves (`tidal_ripple`):** Ripples expand outwardly from the true 2D physical centroid $(\bar{x}, \bar{y})$ of the float or group.
 - **Zero-Overhead Microcontroller Optimization:** When flashing firmware or exporting C++, the spatial ranks and normalized coordinates are pre-computed into compact 8-bit PROGMEM flash lookup tables (`SPATIAL_RANK_Y`, `SPATIAL_X_BYTE`, `SPATIAL_Y_BYTE`, `SPATIAL_RADIUS_BYTE`). The ESP32 executes smooth 60 FPS spatial lighting sweeps with zero floating-point math overhead or memory allocation.
 
 ### 🌊 Selectable 7-Mode Theatrical Wave Progression Suite
-In Full Costume Mode (562 LEDs), wave and sweep effects (`traveling_wave`, `chase`, `comet`, `scanner`, `rainbow_cycle`, `color_wipe`, and `write_on_off`) can be directed along **7 distinct kinetic trajectories** around the runner's body. Each cue in the **Parade Cue Director** features a dedicated **Wave Progression** dropdown selector (with `🌊 Waterfall / Fountain` set as the default):
+In Full Costume Mode (562 LEDs), wave and sweep effects (`traveling_wave`, `chase`, `comet`, `scanner`, `rainbow_cycle`, `color_wipe`, and `tri_color_wipe`) can be directed along **7 distinct kinetic trajectories** around the runner's body. Each cue in the **Parade Cue Director** features a dedicated **Wave Progression** dropdown selector (with `🌊 Waterfall / Fountain` set as the default):
 
 | Progression Mode | Icon | Kinetic Trajectory & Choreography | Best Theatrical Pairing |
 |---|:---:|---|---|

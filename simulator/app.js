@@ -61,7 +61,6 @@ const EFFECT_CATALOG = [
 
     // --- Wipes & Fills ---
     { id: 'color_wipe',      cat: 'wipes',   icon: '🖌️', short: 'Color Wipe',     label: '🖌️ Color Wipe / Progressive Fill',   desc: 'Paints LEDs on progressively, then sweeps them clear.' },
-    { id: 'write_on_off',    cat: 'wipes',   icon: '✍️', short: 'Write-On/Off',   label: '✍️ Write-On / Write-Off',            desc: 'Theatrical draw-in reveal followed by reverse erase.' },
     { id: 'curtain_wipe',    cat: 'wipes',   icon: '🎭', short: 'Curtain Wipe',   label: '🎭 Center-Out Curtain Wipe',         desc: 'Symmetrical reveal expanding from center to edges and back.' },
     { id: 'random_dissolve', cat: 'wipes',   icon: '🎲', short: 'Dissolve',       label: '🎲 Random Dissolve Fill',            desc: 'Pixels pop on in shuffled order until full, then dissolve off.' },
     { id: 'tri_color_wipe',  cat: 'wipes',   icon: '🇺🇸', short: 'Blue→Red→White', label: '🇺🇸 Tri-Color Wipe (Blue → Red → White)', desc: 'Wipes the entire costume in Blue, then wipes Red over Blue, then White over Red.' },
@@ -2407,23 +2406,6 @@ function evalGroupEffect(grp, effect, bpm, dir, grpIndex, grpSize, timeMs, c) {
             }
             break;
         }
-        case 'write_on_off': {
-            const totalCycleMs = grpBeatMs * 4;
-            const progress = (effectiveTimeMs % totalCycleMs) / totalCycleMs;
-            const effRank = (direction >= 0 ? grpIndex : ((grpSize - 1) - grpIndex));
-            if (progress < 0.40) {
-                const litHead = (progress / 0.40) * grpSize;
-                grpIntensity = (effRank <= litHead) ? 1.0 : 0.05;
-            } else if (progress < 0.58) {
-                grpIntensity = 1.0;
-            } else if (progress < 0.88) {
-                const offHead = ((progress - 0.58) / 0.30) * grpSize;
-                grpIntensity = (effRank <= offHead) ? 0.05 : 1.0;
-            } else {
-                grpIntensity = 0.05;
-            }
-            break;
-        }
         case 'sparkle_storm': {
             const rand = Math.sin(grpNormTime * 12.0 + grpIndex * 37.1) * 0.5 + 0.5;
             if (rand > 0.65) {
@@ -2561,6 +2543,7 @@ function evalGroupEffect(grp, effect, bpm, dir, grpIndex, grpSize, timeMs, c) {
             }
             break;
         }
+        case 'write_on_off': // Legacy preset alias -> unified into color_wipe
         case 'color_wipe': {
             const totalCycleMs = grpBeatMs * 4;
             const progress = (effectiveTimeMs % totalCycleMs) / totalCycleMs;
@@ -3284,34 +3267,6 @@ function evalGlobalPattern(pattern, bpm, index, totalLeds, timeMs, c, hasColor, 
             brightness = phase < 0.5 ? 1.0 : 0.05;
             break;
         }
-        case 'write_on_off': {
-            const totalCycleMs = beatMs * 4;
-            const progress = (timeMs % totalCycleMs) / totalCycleMs;
-            const sm = getSpatialMetrics();
-            const effRank = (typeof currentHardwareMode !== 'undefined' && currentHardwareMode === 'full_costume')
-                ? (getCostumeNormalizedLoopCoord(index, activeProgression) * totalLeds)
-                : ((sm && sm.rankYBottomUp && sm.rankYBottomUp[index] !== undefined)
-                    ? (dir === -1 ? sm.rankYTopDown[index] : sm.rankYBottomUp[index])
-                    : ((dir === -1) ? (totalLeds - 1 - index) : index));
-            if (hasColor) {
-                r = c.r; g = c.g; b = c.b;
-            } else {
-                const rgb = hslToRgb(baseH / 360, 0.95, 0.50);
-                r = rgb.r; g = rgb.g; b = rgb.b;
-            }
-            if (progress < 0.40) {
-                const litHead = (progress / 0.40) * totalLeds;
-                brightness = effRank <= litHead ? 1.0 : 0.05;
-            } else if (progress < 0.58) {
-                brightness = 1.0;
-            } else if (progress < 0.88) {
-                const offHead = ((progress - 0.58) / 0.30) * totalLeds;
-                brightness = effRank <= offHead ? 0.05 : 1.0;
-            } else {
-                brightness = 0.05;
-            }
-            break;
-        }
         case 'sparkle_storm': {
             const rand = Math.sin(normTime * 12.0 + index * 37.1) * 0.5 + 0.5;
             if (rand > 0.65) {
@@ -3493,6 +3448,7 @@ function evalGlobalPattern(pattern, bpm, index, totalLeds, timeMs, c, hasColor, 
             }
             break;
         }
+        case 'write_on_off': // Legacy preset alias -> unified into color_wipe
         case 'color_wipe': {
             const totalCycleMs = beatMs * 4;
             const progress = (timeMs % totalCycleMs) / totalCycleMs;
