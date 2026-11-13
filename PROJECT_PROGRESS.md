@@ -103,6 +103,7 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 - **Wave Progression Table Audit (`simulator/app.js`):**
   - Fixed `COSTUME_562_PROGRESSIONS.lateral_roll` to un-flip serpentine even/odd matrix rows (`(row % 2 === 0) ? (15 - (mIdx % 16)) : (mIdx % 16)`) so all 16 rows sweep left-to-right together instead of alternating.
   - Rescaled `COSTUME_562_PROGRESSIONS.dual_collision` across the full `0.00..1.00` range (`0.00..0.50` panels, `0.50..1.00` ribs) instead of clamping to `0.00..0.50`.
+  - Updated all 7 progressions' fairy-strand tables (`256..280`, `537..561`) to use Z-fold physical spatial step (`FAIRY_STRAND1_SPATIAL_STEP` / `FAIRY_STRAND2_SPATIAL_STEP`) instead of raw wire order, eliminating alternating-bulb jumps in `horizon_lift` and `dragon_wings`.
   - Restored true radial pond-ripple expansion in `tidal_ripple` (`simulator/app.js`) for `full_costume` mode using 2D Euclidean distance from each 16×16 panel center (and outward along fairy strands) instead of falling back to linear `waterfall` row progression.
 - **Catalog Simplification (`simulator/app.js`, `simulator/index.html`, `SIMULATOR_USER_GUIDE.md`):**
   - Removed redundant `write_on_off` from `EFFECT_CATALOG` and UI dropdowns (now 38 effects), aliasing legacy `write_on_off` preset entries directly onto `color_wipe`.

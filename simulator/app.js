@@ -2748,6 +2748,15 @@ function getSparkleRgb(style) {
 // 6. lateral_roll: Transverse left-to-right lateral scan across the body
 // 7. dual_collision: Dual front & back wave clash at shoulder apexes with rebound
 // ============================================================================
+const FAIRY_STRAND1_SPATIAL_STEP = [
+    1, 4, 7, 10, 9, 6, 3, 0, 2, 5, 8, 11, 12,
+    13, 14, 17, 20, 23, 22, 19, 16, 15, 18, 21, 24
+];
+const FAIRY_STRAND2_SPATIAL_STEP = [
+    23, 20, 17, 14, 15, 18, 21, 24, 22, 19, 16, 13, 12,
+    11, 10, 7, 4, 1, 2, 5, 8, 9, 6, 3, 0
+];
+
 const COSTUME_562_PROGRESSIONS = (function() {
     const progs = {
         waterfall: new Float32Array(562),
@@ -2764,18 +2773,6 @@ const COSTUME_562_PROGRESSIONS = (function() {
         const row = Math.floor(idx / 16.0);
         progs.waterfall[idx] = 0.00 + ((row + 0.5) / 16.0) * 0.28;
     }
-    for (let idx = 256; idx <= 267; idx++) {
-        progs.waterfall[idx] = 0.28 + ((idx - 256) / 11.0) * 0.22;
-    }
-    for (let idx = 550; idx <= 561; idx++) {
-        progs.waterfall[idx] = 0.28 + ((561 - idx) / 11.0) * 0.22;
-    }
-    for (let idx = 268; idx <= 280; idx++) {
-        progs.waterfall[idx] = 0.50 + ((idx - 268) / 12.0) * 0.22;
-    }
-    for (let idx = 537; idx <= 549; idx++) {
-        progs.waterfall[idx] = 0.50 + ((549 - idx) / 12.0) * 0.22;
-    }
     for (let idx = 281; idx <= 536; idx++) {
         const row = Math.floor((idx - 281) / 16.0);
         progs.waterfall[idx] = 0.72 + (((15 - row) + 0.5) / 16.0) * 0.28;
@@ -2786,15 +2783,9 @@ const COSTUME_562_PROGRESSIONS = (function() {
         const row = Math.floor(idx / 16.0);
         progs.orbit[idx] = 0.00 + ((row + 0.5) / 16.0) * 0.25;
     }
-    for (let idx = 256; idx <= 280; idx++) {
-        progs.orbit[idx] = 0.25 + ((idx - 256) / 24.0) * 0.25;
-    }
     for (let idx = 281; idx <= 536; idx++) {
         const row = Math.floor((idx - 281) / 16.0);
         progs.orbit[idx] = 0.50 + ((row + 0.5) / 16.0) * 0.25;
-    }
-    for (let idx = 537; idx <= 561; idx++) {
-        progs.orbit[idx] = 0.75 + ((idx - 537) / 24.0) * 0.25;
     }
 
     // 3. RADIAL BURST (Heartbeat Center-Out Expansion)
@@ -2802,18 +2793,6 @@ const COSTUME_562_PROGRESSIONS = (function() {
         const row = Math.floor(idx / 16.0), col = idx % 16;
         const dist = Math.hypot(col - 7.5, row - 7.5) / 10.606;
         progs.radial_burst[idx] = Math.min(0.25, dist * 0.25);
-    }
-    for (let idx = 256; idx <= 267; idx++) {
-        progs.radial_burst[idx] = 0.25 + ((idx - 256) / 11.0) * 0.25;
-    }
-    for (let idx = 550; idx <= 561; idx++) {
-        progs.radial_burst[idx] = 0.25 + ((561 - idx) / 11.0) * 0.25;
-    }
-    for (let idx = 268; idx <= 280; idx++) {
-        progs.radial_burst[idx] = 0.50 + ((idx - 268) / 12.0) * 0.25;
-    }
-    for (let idx = 537; idx <= 549; idx++) {
-        progs.radial_burst[idx] = 0.50 + ((549 - idx) / 12.0) * 0.25;
     }
     for (let idx = 281; idx <= 536; idx++) {
         const mIdx = idx - 281;
@@ -2831,18 +2810,6 @@ const COSTUME_562_PROGRESSIONS = (function() {
         const row = Math.floor((idx - 281) / 16.0);
         progs.horizon_lift[idx] = ((15 - row) / 15.0) * 0.85;
     }
-    for (let idx = 256; idx <= 267; idx++) {
-        progs.horizon_lift[idx] = (idx - 256) / 11.0;
-    }
-    for (let idx = 550; idx <= 561; idx++) {
-        progs.horizon_lift[idx] = (561 - idx) / 11.0;
-    }
-    for (let idx = 268; idx <= 280; idx++) {
-        progs.horizon_lift[idx] = (280 - idx) / 12.0;
-    }
-    for (let idx = 537; idx <= 549; idx++) {
-        progs.horizon_lift[idx] = (idx - 537) / 12.0;
-    }
 
     // 5. DRAGON WINGS (Shoulders-Down Cascading Dive)
     for (let idx = 0; idx < 256; idx++) {
@@ -2853,26 +2820,8 @@ const COSTUME_562_PROGRESSIONS = (function() {
         const row = Math.floor((idx - 281) / 16.0);
         progs.dragon_wings[idx] = row / 15.0;
     }
-    for (let idx = 256; idx <= 267; idx++) {
-        progs.dragon_wings[idx] = (267 - idx) / 11.0;
-    }
-    for (let idx = 550; idx <= 561; idx++) {
-        progs.dragon_wings[idx] = (idx - 550) / 11.0;
-    }
-    for (let idx = 268; idx <= 280; idx++) {
-        progs.dragon_wings[idx] = (idx - 268) / 12.0;
-    }
-    for (let idx = 537; idx <= 549; idx++) {
-        progs.dragon_wings[idx] = (549 - idx) / 12.0;
-    }
 
-    // 6. LATERAL ROLL (Transverse Left-to-Right Scan)
-    for (let idx = 550; idx <= 561; idx++) {
-        progs.lateral_roll[idx] = ((561 - idx) / 11.0) * 0.25;
-    }
-    for (let idx = 537; idx <= 549; idx++) {
-        progs.lateral_roll[idx] = ((idx - 537) / 12.0) * 0.25;
-    }
+    // 6. LATERAL ROLL (Transverse Left-to-Right Scan across serpentine rows)
     for (let idx = 0; idx < 256; idx++) {
         const row = Math.floor(idx / 16.0);
         const col = (row % 2 === 0) ? (15 - (idx % 16)) : (idx % 16);
@@ -2884,12 +2833,6 @@ const COSTUME_562_PROGRESSIONS = (function() {
         const col = (row % 2 === 0) ? (15 - (mIdx % 16)) : (mIdx % 16);
         progs.lateral_roll[idx] = 0.25 + (col / 15.0) * 0.50;
     }
-    for (let idx = 256; idx <= 267; idx++) {
-        progs.lateral_roll[idx] = 0.75 + ((idx - 256) / 11.0) * 0.25;
-    }
-    for (let idx = 268; idx <= 280; idx++) {
-        progs.lateral_roll[idx] = 0.75 + ((280 - idx) / 12.0) * 0.25;
-    }
 
     // 7. DUAL COLLISION (Front & Back Panels Rise to Clash at Shoulders)
     for (let idx = 0; idx < 256; idx++) {
@@ -2900,17 +2843,36 @@ const COSTUME_562_PROGRESSIONS = (function() {
         const row = Math.floor((idx - 281) / 16.0);
         progs.dual_collision[idx] = ((15 - row) / 15.0) * 0.50;
     }
-    for (let idx = 256; idx <= 267; idx++) {
-        progs.dual_collision[idx] = 0.50 + ((idx - 256) / 11.0) * 0.50;
-    }
-    for (let idx = 550; idx <= 561; idx++) {
-        progs.dual_collision[idx] = 0.50 + ((561 - idx) / 11.0) * 0.50;
-    }
-    for (let idx = 268; idx <= 280; idx++) {
-        progs.dual_collision[idx] = 0.50 + ((280 - idx) / 12.0) * 0.50;
-    }
-    for (let idx = 537; idx <= 549; idx++) {
-        progs.dual_collision[idx] = 0.50 + ((idx - 537) / 12.0) * 0.50;
+
+    // Fairy Strands (256..280 Right, 537..561 Left): use Z-fold physical spatial step (0..24)
+    // s = 0.0 (front waist) -> 0.5 (shoulder peak) -> 1.0 (back waist)
+    // h = 0.0 (waist bottom) -> 1.0 (shoulder peak)
+    for (let w = 0; w < 25; w++) {
+        const rIdx = 256 + w;
+        const rStep = FAIRY_STRAND1_SPATIAL_STEP[w];
+        const rS = rStep / 24.0;
+        const rH = 1.0 - Math.abs(rStep - 12) / 12.0;
+
+        progs.waterfall[rIdx]      = 0.28 + rS * 0.44;
+        progs.orbit[rIdx]          = 0.25 + rS * 0.25;
+        progs.radial_burst[rIdx]   = 0.25 + rS * 0.50;
+        progs.horizon_lift[rIdx]   = rH;
+        progs.dragon_wings[rIdx]   = 1.0 - rH;
+        progs.lateral_roll[rIdx]   = 0.75 + (1.0 - rH) * 0.25;
+        progs.dual_collision[rIdx] = 0.50 + rH * 0.50;
+
+        const lIdx = 537 + w;
+        const lStep = FAIRY_STRAND2_SPATIAL_STEP[w];
+        const lS = lStep / 24.0;
+        const lH = 1.0 - Math.abs(lStep - 12) / 12.0;
+
+        progs.waterfall[lIdx]      = 0.28 + lS * 0.44;
+        progs.orbit[lIdx]          = 0.75 + (1.0 - lS) * 0.25;
+        progs.radial_burst[lIdx]   = 0.25 + lS * 0.50;
+        progs.horizon_lift[lIdx]   = lH;
+        progs.dragon_wings[lIdx]   = 1.0 - lH;
+        progs.lateral_roll[lIdx]   = (1.0 - lH) * 0.25;
+        progs.dual_collision[lIdx] = 0.50 + lH * 0.50;
     }
 
     // Safety clamp: strictly enforce [0.0, 0.999] so normalized coordinates never overflow [0.0, 1.0)
@@ -3833,15 +3795,6 @@ function getCuePalette(cue, isFairy) {
     }
 }
 window.getCuePalette = getCuePalette;
-
-const FAIRY_STRAND1_SPATIAL_STEP = [
-    1, 4, 7, 10, 9, 6, 3, 0, 2, 5, 8, 11, 12,
-    13, 14, 17, 20, 23, 22, 19, 16, 15, 18, 21, 24
-];
-const FAIRY_STRAND2_SPATIAL_STEP = [
-    23, 20, 17, 14, 15, 18, 21, 24, 22, 19, 16, 13, 12,
-    11, 10, 7, 4, 1, 2, 5, 8, 9, 6, 3, 0
-];
 
 // Maps raw wire LED index (256..280 Right, 537..561 Left) to Z-folded physical position (0..24)
 function getFairySpatialStep(index) {
