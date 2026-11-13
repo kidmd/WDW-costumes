@@ -1319,7 +1319,7 @@ When you are ready to prepare a shirt for autonomous use:
 6. The live terminal modal displays compilation output and upload progress.
 ### Race-Day Battery Life & Power Budget Calculator (200 LEDs / 5V 2.0A Limit)
 
-To ensure that **no runner goes dark on course** during the runDisney 10K, the Deploy & Hardware tab features an interactive, real-time power budget simulator modeled on the electrical physics of the wearable 200-LED costume:
+To ensure that **no runner goes dark on course** during the runDisney 10K, the Deploy & Hardware tab features both a **Live Mode / Livestream Power & Runtime Meter** (calculated directly from the active pixel stream at 5V, 2.0A cap) and an interactive race-day power budget planner:
 
 - **200-LED Duplicated Load:** 100 front chest artwork LEDs + 100 back LEDs run concurrently to guarantee 360° visibility in the dark pre-dawn corrals and through Epcot.
 - **Hardware Power Clamping:** Firmware enforces FastLED's safety limiter:

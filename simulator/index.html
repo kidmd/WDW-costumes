@@ -2402,6 +2402,12 @@
                             <input type="range" id="brightnessSlider" min="10" max="100" value="100" style="width: 100%; accent-color: #38bdf8;">
                         </div>
 
+                        <!-- Live Power & Battery Telemetry Bar -->
+                        <div id="livePowerTelemetryBar" style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; padding: 6px 10px; background: #0d1117; border-radius: 6px; border: 1px solid #30363d; font-size: 11px;">
+                            <span style="color: var(--text-muted);">⚡ <strong id="streamLiveMaText" style="color: #fbbf24; font-family: monospace;">— mA</strong> <span id="streamLiveWattsText" style="color: #8b949e; font-size: 10px;">(— W)</span></span>
+                            <span style="color: var(--text-muted);">🔋 <strong id="streamLiveHoursText" style="color: #3fb950; font-family: monospace;">— hrs</strong></span>
+                        </div>
+
                         <button id="toggleWifiStreamBtn" class="action-btn primary" style="font-weight: 600; font-size: 13px; padding: 10px; background: linear-gradient(135deg, #1f6feb, #388bfd); width: 100%;">
                             ▶ Start Live Wi-Fi Stream
                         </button>
@@ -2545,6 +2551,24 @@
                         <p style="font-size: 11px; color: var(--text-muted); line-height: 1.4; margin-top: 4px; margin-bottom: 10px;">
                             Model race-day battery consumption across all 200 LEDs (100 front + 100 back) to guarantee no runner goes dark on course!
                         </p>
+
+                        <!-- Live Mode / Livestream Power & Battery Meter -->
+                        <div id="liveModePowerCard" style="background: rgba(56, 139, 253, 0.08); border: 1px solid rgba(56, 139, 253, 0.35); border-radius: 8px; padding: 8px 10px; margin-bottom: 10px;">
+                            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px;">
+                                <span style="font-size: 10px; font-weight: 700; color: #58a6ff; text-transform: uppercase; letter-spacing: 0.4px;">⚡ Live Mode Power &amp; Runtime</span>
+                                <span id="liveModeSourceBadge" style="font-size: 9px; padding: 1px 6px; border-radius: 8px; background: #21262d; color: #8b949e; font-weight: 700;">LIVE PREVIEW</span>
+                            </div>
+                            <div style="display: flex; align-items: baseline; justify-content: space-between;">
+                                <div style="font-family: monospace; font-size: 14px; font-weight: 700; color: #fbbf24;">
+                                    <span id="liveModeMaText">— mA</span>
+                                    <span id="liveModeWattsText" style="font-size: 11px; color: #8b949e; font-weight: 500;">(— W)</span>
+                                </div>
+                                <div style="font-family: monospace; font-size: 14px; font-weight: 700; color: #3fb950;">
+                                    <span id="liveModeHoursText">— hrs</span>
+                                </div>
+                            </div>
+                            <div id="liveModePackSubtext" style="font-size: 9.5px; color: #8b949e; margin-top: 2px;">Measured from active pixel output @ 5V (2.0A hardware cap)</div>
+                        </div>
 
                         <!-- Primary Result Cards: Projected Battery Remaining & Total Runtime -->
                         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 12px;">
@@ -3392,6 +3416,6 @@
     </div>
 
     <script src="led_clearance.js?v=2"></script>
-    <script src="app.js?v=130"></script>
+    <script src="app.js?v=131"></script>
 </body>
 </html>

@@ -15216,6 +15216,11 @@ function animate(time) {
     }
     if (isWifiStreaming) {
         sendLivePixelFrame(time);
+    } else if (typeof currentTab !== 'undefined' && currentTab === 'tabHardware' && typeof updateLivePowerTelemetry === 'function') {
+        if (time - (window._lastPreviewPowerTime || 0) >= 333) {
+            window._lastPreviewPowerTime = time;
+            updateLivePowerTelemetry(buildLiveStreamPixelArray(time), time);
+        }
     }
     requestAnimationFrame(animate);
 }
@@ -24593,6 +24598,10 @@ function updatePowerBudgetCalculations() {
         `;
         tableBody.innerHTML = rowsHtml;
     }
+    lastLivePowerUiUpdate = 0;
+    if (typeof updateLivePowerTelemetry === 'function' && typeof buildLiveStreamPixelArray === 'function') {
+        updateLivePowerTelemetry(buildLiveStreamPixelArray(performance.now()), performance.now());
+    }
 }
 window.updatePowerBudgetCalculations = updatePowerBudgetCalculations;
 
@@ -25407,6 +25416,80 @@ function buildLiveStreamPixelArray(timeMs) {
     return flatRgb;
 }
 
+let smoothedLivePowerMa = null;
+let lastLivePowerUiUpdate = 0;
+
+function estimateLivePowerMa(flatRgb) {
+    if (!Array.isArray(flatRgb) || flatRgb.length < 3) return 110;
+    const isFull = (typeof currentHardwareMode !== 'undefined' && currentHardwareMode === 'full_costume');
+    const isMatrix = isFull || (typeof currentHardwareMode !== 'undefined' && currentHardwareMode === 'matrix16') || (typeof btfMatrix16x16Active !== 'undefined' && btfMatrix16x16Active);
+    const numPackedLeds = Math.floor(flatRgb.length / 3);
+    const brightnessScale = isMatrix ? (34 / 255) : (128 / 255);
+    const matrixCount = isMatrix ? Math.min(256, numPackedLeds) : numPackedLeds;
+
+    let matrixChannelSum = 0;
+    for (let i = 0; i < matrixCount * 3; i++) {
+        matrixChannelSum += flatRgb[i];
+    }
+    // Front + Back duplicated (x2): ~20mA per channel at 255, scaled by FastLED brightness + 0.35mA/LED IC quiescent
+    const matrixMa = (matrixChannelSum / 255) * 20 * brightnessScale * 2 + (matrixCount * 2 * 0.35);
+
+    let fairyMa = 0;
+    if (isFull && numPackedLeds >= 306) {
+        let fairyChannelSum = 0;
+        for (let i = 256 * 3; i < 306 * 3; i++) {
+            fairyChannelSum += flatRgb[i];
+        }
+        fairyMa = (fairyChannelSum / 255) * 18 * brightnessScale + (50 * 0.35);
+    }
+
+    const mcuMa = isWifiStreaming ? 160 : 105;
+    return Math.min(2000, Math.round(mcuMa + matrixMa + fairyMa));
+}
+
+function updateLivePowerTelemetry(flatRgb, timeMs) {
+    const instMa = estimateLivePowerMa(flatRgb);
+    smoothedLivePowerMa = (smoothedLivePowerMa === null)
+        ? instMa
+        : (smoothedLivePowerMa * 0.75 + instMa * 0.25);
+
+    const now = timeMs || performance.now();
+    if (now - lastLivePowerUiUpdate < 300) return;
+    lastLivePowerUiUpdate = now;
+
+    const liveMa = Math.round(smoothedLivePowerMa);
+    const liveWatts = ((liveMa / 1000) * 5.0).toFixed(1);
+    const bankSelect = document.getElementById('powerBankSizeSelect');
+    const ratedMah = parseInt(bankSelect?.value || '10000', 10);
+    const usable5vMah = Math.round(ratedMah * 0.70);
+    const liveHours = (usable5vMah / Math.max(1, liveMa)).toFixed(1);
+
+    const maColor = liveMa >= 1800 ? '#f85149' : (liveMa >= 1400 ? '#fbbf24' : '#3fb950');
+    const streamMaEl = document.getElementById('streamLiveMaText');
+    const streamWEl = document.getElementById('streamLiveWattsText');
+    const streamHrsEl = document.getElementById('streamLiveHoursText');
+    if (streamMaEl) { streamMaEl.textContent = `${liveMa.toLocaleString()} mA`; streamMaEl.style.color = maColor; }
+    if (streamWEl) streamWEl.textContent = `(${liveWatts} W)`;
+    if (streamHrsEl) streamHrsEl.textContent = `${liveHours} hrs`;
+
+    const modeMaEl = document.getElementById('liveModeMaText');
+    const modeWEl = document.getElementById('liveModeWattsText');
+    const modeHrsEl = document.getElementById('liveModeHoursText');
+    const modeBadgeEl = document.getElementById('liveModeSourceBadge');
+    const modeSubEl = document.getElementById('liveModePackSubtext');
+    if (modeMaEl) { modeMaEl.textContent = `${liveMa.toLocaleString()} mA`; modeMaEl.style.color = maColor; }
+    if (modeWEl) modeWEl.textContent = `(${liveWatts} W)`;
+    if (modeHrsEl) modeHrsEl.textContent = `${liveHours} hrs`;
+    if (modeBadgeEl) {
+        modeBadgeEl.textContent = isWifiStreaming ? 'LIVE STREAM' : 'LIVE PREVIEW';
+        modeBadgeEl.style.background = isWifiStreaming ? 'rgba(63, 185, 80, 0.2)' : '#21262d';
+        modeBadgeEl.style.color = isWifiStreaming ? '#3fb950' : '#8b949e';
+    }
+    if (modeSubEl) {
+        modeSubEl.textContent = `On ${ratedMah.toLocaleString()} mAh pack (~${usable5vMah.toLocaleString()} mAh @ 5V, 2.0A cap)`;
+    }
+}
+
 async function sendLivePixelFrame(timeMs) {
     if (!isWifiStreaming || isSendingFrame) return;
     if (timeMs - lastWifiStreamTime < 33) return; // 30 FPS throttle (~33ms)
@@ -25425,9 +25508,11 @@ async function sendLivePixelFrame(timeMs) {
                 const floatData = fleetRunners[i] || DEFAULT_FLEET_ROSTER[i];
                 const isLivePreview = (i === activeSingleShirtRunnerSlot) || (floatData && floatData.preset === 'current_editor');
                 if (isLivePreview) {
+                    const livePixels = buildLiveStreamPixelArray(timeMs);
+                    updateLivePowerTelemetry(livePixels, timeMs);
                     fleetFrames.push({
                         floatId: i + 1, // 1 to 7
-                        pixels: buildLiveStreamPixelArray(timeMs)
+                        pixels: livePixels
                     });
                     continue;
                 }
@@ -25456,9 +25541,11 @@ async function sendLivePixelFrame(timeMs) {
             };
         } else {
             // SINGLE COSTUME BROADCAST: Stream active single shirt (Opcode 0x01 universal)
+            const singlePixels = buildLiveStreamPixelArray(timeMs);
+            updateLivePowerTelemetry(singlePixels, timeMs);
             payload = {
                 targetIp: wifiTargetIp,
-                pixels: buildLiveStreamPixelArray(timeMs)
+                pixels: singlePixels
             };
         }
 
