@@ -3841,6 +3841,10 @@ function evalFairyBaselineColor(index, timeMs, speedBpm) {
     const phase2 = (timeMs * 0.0016 * rate * Math.PI) + (index * 3.77);
     const swell = 0.5 + 0.32 * Math.sin(phase1) + 0.18 * Math.sin(phase2);
     
+    const hwBright = (typeof params !== 'undefined' && params && typeof params.brightness === 'number')
+        ? Math.max(0.05, Math.min(1.0, params.brightness / 100))
+        : 1.0;
+
     // Occasional starlight sparkle
     const spkPhase = Math.sin((timeMs * 0.006 * (rate / 2.0)) + (index * 4.91));
     if (spkPhase > 0.93) {
@@ -3849,7 +3853,7 @@ function evalFairyBaselineColor(index, timeMs, speedBpm) {
             r: 255,
             g: Math.round(Math.min(255, rgb.g + 40 * spkFactor)),
             b: Math.round(Math.min(255, rgb.b + 50 * spkFactor)),
-            alpha: 1.0
+            alpha: hwBright
         };
     }
     
@@ -3858,7 +3862,7 @@ function evalFairyBaselineColor(index, timeMs, speedBpm) {
         r: Math.round(rgb.r * br),
         g: Math.round(rgb.g * br),
         b: Math.round(rgb.b * br),
-        alpha: Math.max(0.45, Math.min(1.0, 0.55 + 0.45 * swell))
+        alpha: Math.max(0.45, Math.min(1.0, 0.55 + 0.45 * swell)) * hwBright
     };
 }
 window.evalFairyBaselineColor = evalFairyBaselineColor;
@@ -3914,8 +3918,11 @@ function computeLedColor(index, totalLeds, timeMs, overrideColor = null) {
 
     if (isPhotoModeActive) {
         if (isFullCostume && isFairy) {
-            // Steady 100% warm white/amber parade lighting for photo
-            return { r: 255, g: 220, b: 130, alpha: 1.0 };
+            // Steady 100% float-specific fairy triplet palette (matches firmware getFloatFairyBulbColor)
+            const bulbOffset = (index >= 537) ? (index - 537) : (index >= 256 ? (index - 256) : index);
+            const hex = getFloatDefaultFairyColor(undefined, bulbOffset);
+            const rgb = (typeof hexToRgb === 'function') ? (hexToRgb(hex) || { r: 255, g: 220, b: 130 }) : { r: 255, g: 220, b: 130 };
+            return { r: rgb.r, g: rgb.g, b: rgb.b, alpha: 1.0 };
         }
         if (overrideColor) {
             return {
