@@ -93,6 +93,13 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### November 12, 2026 - 562-LED Full Costume & 16x16 Matrix Wi-Fi UDP Live Stream Fix
+- **Root Causes Resolved (`simulator/app.js`, `src/main.cpp`, `arduino/MSEP_Costume/MSEP_Costume.ino`):**
+  - `sendLivePixelFrame()` in `simulator/app.js` previously capped streamed packets at `Math.min(100, leds.length)`, omitting matrix pixels `100..255` and both 25-LED fairy strands (`256..280` and `537..561`). Added `buildLiveStreamPixelArray()` to pack the full 16x16 front matrix (`0..255`, honoring windowed 100%, backlight 50%, and dark 0%) plus right (`256..280`) and left (`281..305`) fairy strands into a compact **306-LED (925-byte)** single-MTU UDP frame for `full_costume` mode (and 256-LED frame for `matrix16` mode).
+  - Updated UDP frame reception in `src/main.cpp` and `arduino/MSEP_Costume/MSEP_Costume.ino`: when `isCurrentFloatMatrix16x16() && frameLeds >= 256`, frames are written directly to physical `leds[0..255]` and mirrored to `leds[281..536]` without calling `duplicateFrontToBack()` (which previously scrambled physical coordinates through `MATRIX_ACTIVE_INDICES` and overwrote fairy strands during Photo Mode).
+  - Applied R↔G channel swapping on received fairy strand pixels (`256..280` and `537..561`) so RGB fairy seed bulbs render accurate Red/White/Blue on the GRB 16x16 matrix bus.
+  - Verified with `node --check simulator/app.js` and PlatformIO `pio run` (`esp32dev SUCCESS`).
+
 ### November 12, 2026 - Classic 3-Bulb Triplet Chase (`triplet_chase`) & Continuous 50-Bulb Fairy Loop
 - **All-Lit 3-Bulb Triplet Chase (`simulator/app.js`, `simulator.py`, `include/costume_config.h`, `src/main.cpp`, `arduino/MSEP_Costume/MSEP_Costume.ino`):**
   - Added **`triplet_chase`** (`🎠 Classic 3-Bulb Triplet Chase`, `COSTUME_PATTERN_TRIPLET_CHASE 33`), keeping all LEDs lit in repeating 3-bulb blocks of the active float's default 3-color palette (e.g., 3 Red, 3 White, 3 Blue for Flag & Eagle) while slowly chasing forward or reverse.

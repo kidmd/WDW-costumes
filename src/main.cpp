@@ -2916,25 +2916,54 @@ void loop() {
 
             if (frameAccepted) {
                 int hdrBytes = pIdx;
-                int ledsToUpdate = min((int)frameLeds, (int)FRONT_LEDS);
-                for (int i = 0; i < ledsToUpdate && (pIdx + 2) < len; i++) {
-                    leds[i].r = buffer[pIdx++];
-                    leds[i].g = buffer[pIdx++];
-                    leds[i].b = buffer[pIdx++];
-                }
-                if (frameLeds >= 562 && NUM_LEDS >= 562) {
-                    for (int f = 256; f <= 280; f++) {
-                        int off = hdrBytes + f * 3;
-                        if (off + 2 < len) leds[f] = CRGB(buffer[off], buffer[off + 1], buffer[off + 2]);
+                if (isCurrentFloatMatrix16x16() && frameLeds >= 256) {
+                    // Direct physical 16x16 matrix frame (0..255 = front matrix)
+                    fill_solid(leds, MAX_LEDS_CAPACITY, CRGB::Black);
+                    for (int i = 0; i < 256 && (pIdx + 2) < len; i++) {
+                        uint8_t r = buffer[pIdx++];
+                        uint8_t g = buffer[pIdx++];
+                        uint8_t b = buffer[pIdx++];
+#if !COMPILED_COLOR_ORDER_IS_GRB
+                        CRGB mc(g, r, b);
+#else
+                        CRGB mc(r, g, b);
+#endif
+                        leds[i] = mc;
+#if (defined(COSTUME_FULL_562_MODE) && COSTUME_FULL_562_MODE) || (defined(NUM_LEDS) && NUM_LEDS == 562)
+                        if ((281 + i) < MAX_LEDS_CAPACITY) leds[281 + i] = mc;
+#else
+                        if ((256 + i) < MAX_LEDS_CAPACITY) leds[256 + i] = mc;
+#endif
                     }
-                    for (int f = 537; f <= 561; f++) {
-                        int off = hdrBytes + f * 3;
-                        if (off + 2 < len) leds[f] = CRGB(buffer[off], buffer[off + 1], buffer[off + 2]);
+#if (defined(COSTUME_FULL_562_MODE) && COSTUME_FULL_562_MODE) || (defined(NUM_LEDS) && NUM_LEDS == 562)
+                    if (frameLeds >= 306) {
+                        // Right fairy (256..280) and Left fairy (packed at 281..305 or full 537..561)
+                        // Fairy seed bulbs are RGB chips on a GRB stream: swap R & G!
+                        for (int f = 256; f <= 280; f++) {
+                            int off = hdrBytes + f * 3;
+                            if (off + 2 < len) {
+                                leds[f] = CRGB(buffer[off + 1], buffer[off], buffer[off + 2]);
+                            }
+                        }
+                        int leftBaseIdx = (frameLeds >= 562) ? 537 : 281;
+                        for (int k = 0; k < 25; k++) {
+                            int off = hdrBytes + (leftBaseIdx + k) * 3;
+                            if (off + 2 < len) {
+                                leds[537 + k] = CRGB(buffer[off + 1], buffer[off], buffer[off + 2]);
+                            }
+                        }
                     }
+#endif
+                } else {
+                    int ledsToUpdate = min((int)frameLeds, (int)FRONT_LEDS);
+                    for (int i = 0; i < ledsToUpdate && (pIdx + 2) < len; i++) {
+                        leds[i].r = buffer[pIdx++];
+                        leds[i].g = buffer[pIdx++];
+                        leds[i].b = buffer[pIdx++];
+                    }
+                    // Duplicate front LEDs to back LEDs (or scatter active LEDs across 16x16 matrix)
+                    duplicateFrontToBack();
                 }
-
-                // Duplicate front LEDs to back LEDs (or scatter active LEDs across 16x16 matrix)
-                duplicateFrontToBack();
                 
                 FastLED.show();
                 lastStreamPacketTime = now;

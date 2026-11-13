@@ -25281,6 +25281,60 @@ function updateWifiStreamStatusUI(isFleetMode) {
     }
 }
 
+function buildLiveStreamPixelArray(timeMs) {
+    const isFull = (typeof currentHardwareMode !== 'undefined' && currentHardwareMode === 'full_costume');
+    const isMatrix = isFull || (typeof currentHardwareMode !== 'undefined' && currentHardwareMode === 'matrix16') || (typeof btfMatrix16x16Active !== 'undefined' && btfMatrix16x16Active);
+
+    if (isMatrix && typeof btfMatrix16x16Cells !== 'undefined' && btfMatrix16x16Cells.length === 256) {
+        const totalVirtual = isFull ? 562 : 256;
+        const outCount = isFull ? 306 : 256; // 0..255 front matrix + (if full) 256..280 right fairy + 281..305 left fairy
+        const flatRgb = new Array(outCount * 3).fill(0);
+
+        for (let cIdx = 0; cIdx < btfMatrix16x16Cells.length; cIdx++) {
+            const cell = btfMatrix16x16Cells[cIdx];
+            if (!cell || cell.role === 'dark') continue;
+            const mIdx = cell.matrixIdx;
+            if (mIdx < 0 || mIdx >= 256) continue;
+            const col = computeLedColor(mIdx, totalVirtual, timeMs, cell.color);
+            const scale = (cell.role === 'backlight') ? 0.5 : 1.0;
+            const base = mIdx * 3;
+            flatRgb[base]     = Math.max(0, Math.min(255, Math.round((col.r || 0) * scale)));
+            flatRgb[base + 1] = Math.max(0, Math.min(255, Math.round((col.g || 0) * scale)));
+            flatRgb[base + 2] = Math.max(0, Math.min(255, Math.round((col.b || 0) * scale)));
+        }
+
+        if (isFull) {
+            for (let f = 256; f <= 280; f++) {
+                const col = computeLedColor(f, 562, timeMs);
+                const base = f * 3;
+                flatRgb[base]     = Math.max(0, Math.min(255, Math.round(col.r || 0)));
+                flatRgb[base + 1] = Math.max(0, Math.min(255, Math.round(col.g || 0)));
+                flatRgb[base + 2] = Math.max(0, Math.min(255, Math.round(col.b || 0)));
+            }
+            for (let k = 0; k < 25; k++) {
+                const col = computeLedColor(537 + k, 562, timeMs);
+                const base = (281 + k) * 3;
+                flatRgb[base]     = Math.max(0, Math.min(255, Math.round(col.r || 0)));
+                flatRgb[base + 1] = Math.max(0, Math.min(255, Math.round(col.g || 0)));
+                flatRgb[base + 2] = Math.max(0, Math.min(255, Math.round(col.b || 0)));
+            }
+        }
+        return flatRgb;
+    }
+
+    const count = Math.min(100, leds.length);
+    const flatRgb = [];
+    for (let i = 0; i < count; i++) {
+        const col = computeLedColor(i, count, timeMs);
+        flatRgb.push(
+            Math.max(0, Math.min(255, Math.round(col.r || 0))),
+            Math.max(0, Math.min(255, Math.round(col.g || 0))),
+            Math.max(0, Math.min(255, Math.round(col.b || 0)))
+        );
+    }
+    return flatRgb;
+}
+
 async function sendLivePixelFrame(timeMs) {
     if (!isWifiStreaming || isSendingFrame) return;
     if (timeMs - lastWifiStreamTime < 33) return; // 30 FPS throttle (~33ms)
@@ -25298,7 +25352,14 @@ async function sendLivePixelFrame(timeMs) {
             for (let i = 0; i < totalFloats; i++) {
                 const floatData = fleetRunners[i] || DEFAULT_FLEET_ROSTER[i];
                 const isLivePreview = (i === activeSingleShirtRunnerSlot) || (floatData && floatData.preset === 'current_editor');
-                const pData = isLivePreview ? getLiveSingleShirtPresetData() : (fleetPresetCache[floatData.preset] || null);
+                if (isLivePreview) {
+                    fleetFrames.push({
+                        floatId: i + 1, // 1 to 7
+                        pixels: buildLiveStreamPixelArray(timeMs)
+                    });
+                    continue;
+                }
+                const pData = fleetPresetCache[floatData.preset] || null;
                 const ledsArr = (pData && Array.isArray(pData.leds) && pData.leds.length > 0) ? pData.leds : leds;
                 const count = Math.min(100, (ledsArr && ledsArr.length > 0) ? ledsArr.length : 100);
                 const flatRgb = [];
@@ -25323,20 +25384,9 @@ async function sendLivePixelFrame(timeMs) {
             };
         } else {
             // SINGLE COSTUME BROADCAST: Stream active single shirt (Opcode 0x01 universal)
-            const count = Math.min(100, leds.length);
-            const flatRgb = [];
-            for (let i = 0; i < count; i++) {
-                const col = computeLedColor(i, count, timeMs);
-                flatRgb.push(
-                    Math.max(0, Math.min(255, Math.round(col.r || 0))),
-                    Math.max(0, Math.min(255, Math.round(col.g || 0))),
-                    Math.max(0, Math.min(255, Math.round(col.b || 0)))
-                );
-            }
-
             payload = {
                 targetIp: wifiTargetIp,
-                pixels: flatRgb
+                pixels: buildLiveStreamPixelArray(timeMs)
             };
         }
 
