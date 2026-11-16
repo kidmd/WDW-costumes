@@ -339,7 +339,7 @@ spinningSnailImg.onload = () => {
     spinningSnailLoaded = true;
     notifyFloatImgLoaded();
 };
-spinningSnailImg.src = 'assets/SimpleSnail.png?v=20261103_snail_gold_smile';
+spinningSnailImg.src = 'assets/SimpleSnail.png?v=20261116_snail_magenta_pupil';
 
 const spinningSnailSimplifiedImg = new Image();
 let spinningSnailSimplifiedLoaded = false;
@@ -425,8 +425,8 @@ floatArtworkImgs['casey_jr_train'].src = 'assets/Simpletrain.png?v=20261103_soli
 floatArtworkImgs['title_drum'].src = 'assets/title_drum.png';
 floatArtworkImgs['drumcleanedup'].src = 'assets/Drumcleanedup.png';
 floatArtworkImgs['spinning_turtle'].src = 'assets/Turtle_clean.png?v=20261103_turtle_neck_blue';
-floatArtworkImgs['spinning_snail'].src = 'assets/SimpleSnail.png?v=20261103_snail_gold_smile';
-floatArtworkImgs['spinning_snail_original'].src = 'assets/SimpleSnail.png?v=20261103_snail_gold_smile';
+floatArtworkImgs['spinning_snail'].src = 'assets/SimpleSnail.png?v=20261116_snail_magenta_pupil';
+floatArtworkImgs['spinning_snail_original'].src = 'assets/SimpleSnail.png?v=20261116_snail_magenta_pupil';
 floatArtworkImgs['spinning_snail_simplified'].src = 'assets/spinning_snail_simplified.png';
 floatArtworkImgs['pirate_ship'].src = 'assets/Pirateshipsimple.png?v=20261103_pirate_v8';
 floatArtworkImgs['pirateshipsimple'].src = 'assets/Pirateshipsimple.png?v=20261103_pirate_v8';
@@ -2144,6 +2144,7 @@ function evalNewCatalogEffect(effect, normPos, index, totalLeds, timeMs, bpm, di
             };
         }
         case 'tri_color_wipe': {
+            const isFairy = (typeof isFairyLedIndex === 'function') && isFairyLedIndex(index);
             const cycleMs = Math.max(1800, beatMs * 6);
             const cyclePhase = ((timeMs % cycleMs) + cycleMs) % cycleMs / cycleMs;
             const stage = Math.min(2, Math.floor(cyclePhase * 3));
@@ -2152,7 +2153,7 @@ function evalNewCatalogEffect(effect, normPos, index, totalLeds, timeMs, bpm, di
             const colors = [
                 { r: 0,   g: 0,   b: 255 }, // Blue
                 { r: 255, g: 0,   b: 0   }, // Red
-                { r: 255, g: 255, b: 255 }  // White
+                isFairy ? { r: 255, g: 210, b: 200 } : { r: 255, g: 255, b: 255 } // Gentle warm-neutral balance on bare fairy bulbs
             ];
             const prevCol = colors[(stage + 2) % 3];
             const nextCol = colors[stage];
@@ -5801,7 +5802,7 @@ const DEFAULT_FLEET_ROSTER = [
     { slot: 3, num: "04", icon: "🐌", fullName: "The Spinning Snail", name: "The Snail", tag: "SNAIL", color: "#ff007f", accent: "Pink", role: "📡 Follower Float", preset: "server:spinning_snail.json", defaultGraphic: "spinning_snail" },
     { slot: 4, num: "05", icon: "🏴‍☠️", fullName: "The Pirate Ship", name: "Pirate Ship", tag: "PIRATE", color: "#e63946", accent: "Red", role: "📡 Follower Float", preset: "server:pirate_ship.json", defaultGraphic: "pirate_ship" },
     { slot: 5, num: "06", icon: "🐉", fullName: "Pete's Dragon (Elliott)", name: "Pete's Dragon", tag: "ELLIOTT", color: "#00ff88", accent: "Green", role: "📡 Follower Float", preset: "server:petes_dragon.json", defaultGraphic: "builtin_dragon" },
-    { slot: 6, num: "07", icon: "🦅", fullName: "To Honor America", name: "Flag & Eagle", tag: "HONOR AMERICA", color: "#3a86ff", accent: "Patriotic", role: "📡 Follower Float", preset: "server:to_honor_america_100_led_patriotic_preset_medium_100led_2026-11-04_16-24.json", defaultGraphic: "honor_america_eagle" }
+    { slot: 6, num: "07", icon: "🦅", fullName: "To Honor America", name: "Flag & Eagle", tag: "HONOR AMERICA", color: "#3a86ff", accent: "Patriotic", role: "📡 Follower Float", preset: "server:to_honor_america_100_led_patriotic_preset_medium_100led_2026-11-15_22-30.json", defaultGraphic: "honor_america_eagle" }
 ];
 
 let fleetRunners = JSON.parse(JSON.stringify(DEFAULT_FLEET_ROSTER));
@@ -9255,9 +9256,15 @@ async function loadFleetLineupFromStorage() {
         fleetRunners[4].color = '#e63946';
     }
 
-    // Ensure slot 6 (To Honor America) defaults to latest windowed preset if set to all-backlight 21-22 or legacy preset
-    if (fleetRunners[6] && (fleetRunners[6].preset === 'server:to_honor_america_100_led_patriotic_preset_medium_100led_2026-11-04_21-22.json' || fleetRunners[6].preset === 'server:honor_america_eagle.json' || !fleetRunners[6].preset)) {
-        fleetRunners[6].preset = 'server:to_honor_america_100_led_patriotic_preset_medium_100led_2026-11-04_16-24.json';
+    // Ensure slot 6 (To Honor America) defaults to the 3D-printed 41-window preset if set to legacy presets
+    if (fleetRunners[6] && (
+        fleetRunners[6].preset === 'server:to_honor_america_100_led_patriotic_preset_medium_100led_2026-11-04_21-22.json' ||
+        fleetRunners[6].preset === 'server:to_honor_america_100_led_patriotic_preset_medium_100led_2026-11-04_16-24.json' ||
+        fleetRunners[6].preset === 'server:to_honor_america_100_led_patriotic_preset_medium_100led_2026-11-13_00-04.json' ||
+        fleetRunners[6].preset === 'server:honor_america_eagle.json' ||
+        !fleetRunners[6].preset
+    )) {
+        fleetRunners[6].preset = 'server:to_honor_america_100_led_patriotic_preset_medium_100led_2026-11-15_22-30.json';
         fleetRunners[6].defaultGraphic = 'honor_america_eagle';
         fleetRunners[6].name = 'Flag & Eagle';
         fleetRunners[6].fullName = 'To Honor America';
@@ -21031,9 +21038,9 @@ function boostLedVibrancy(r, g, b, relX, relY) {
             if (r > 150 && g > 110 && b < 95) {
                 return { r: 255, g: 204, b: 21 };
             }
-            // 2. Red (Head, Neck & Foot): [138, 38, 30]
-            if (r > 95 && r > g * 1.6 && r > b * 1.6) {
-                return { r: 239, g: 52, b: 42 };
+            // 2. Magenta (Head, Neck & Foot): [224, 27, 132] (with legacy Red fallback)
+            if ((r > 130 && b > 70 && r > g * 2.0 && b > g * 1.8) || (r > 95 && r > g * 1.6 && r > b * 1.6)) {
+                return { r: 255, g: 20, b: 140 };
             }
             // 3. Green Radial Shell Stripes: [30, 116, 61]
             if (g > 70 && g > r * 1.4 && g > b * 1.15) {
@@ -22222,7 +22229,7 @@ async function loadGraphicPreset(type) {
         'builtin_dragon': 'petes_dragon.json',
         'petes_dragon': 'petes_dragon.json',
         'petes_dragon_transparent': 'petes_dragon.json',
-        'honor_america_eagle': 'honor_america_eagle.json'
+        'honor_america_eagle': 'to_honor_america_100_led_patriotic_preset_medium_100led_2026-11-15_22-30.json'
     };
 
     const presetFile = presetFileMap[type];

@@ -93,6 +93,14 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### November 16, 2026 - Float 4 (The Spinning Snail) Cute Eye Pupil with Gold Sparkle & Magenta Body
+- **Artwork Upgrade (`assets/SimpleSnail.png`, `simulator/assets/SimpleSnail.png`):**
+  - Replaced all red body/head/neck/foot regions (`RGB(138, 38, 30)`) with vibrant **Magenta (`#e01b84` / `rgb(224, 27, 132)`)** using smooth edge-preserving color transfer.
+  - Added a **Black (`#11161d`)** oval pupil inside the gold eye with two **Gold (`#ca9927`)** catchlight sparkles (primary + secondary) for a friendlier, cuter parade expression while preserving the strict 5-color palette.
+- **Simulator Synchronization (`simulator/app.js`):**
+  - Updated `SimpleSnail.png` cache-busters to `?v=20261116_snail_magenta_pupil`.
+  - Updated the `spinning_snail` 5-color palette sampler to map the new Magenta body pixels to `RGB(255, 20, 140)`.
+
 ### November 15, 2026 - Overnight Webcam Battery Life Monitor (`scripts/battery_watch.py`)
 - **Milestone:** Built a reusable OpenCV webcam monitor ([battery_watch.py](file:///c:/Users/Kiddi/Desktop/WDW%20costumes/scripts/battery_watch.py)) to measure unattended overnight battery life for WDW 10K LED costume shirts.
 - **Technical Implementation:**
