@@ -1221,9 +1221,9 @@ inline void renderSpotlightSwapFairyStrand(int startIdx, uint8_t strandId, bool 
 
 inline CRGB evalTriColorWipePixel(uint16_t pos1000, uint8_t stage, uint16_t wipePermille, bool isFairy = false) {
     const CRGB TRI_COLORS[3] = {
-        CRGB(0, 0, 255),     // Blue
-        CRGB(255, 0, 0),     // Red
-        isFairy ? CRGB(255, 210, 200) : CRGB(255, 255, 255)  // Gentle warm-neutral balance on bare fairy bulbs
+        isFairy ? CRGB(0, 7, 255) : CRGB(0, 0, 255),          // Blue
+        CRGB(255, 0, 0),                                      // Red
+        isFairy ? CRGB(220, 223, 128) : CRGB(255, 255, 255)   // Calibrated Pure Star White on bare fairy bulbs
     };
     CRGB prevCol = TRI_COLORS[(stage + 2) % 3];
     CRGB nextCol = TRI_COLORS[stage % 3];
@@ -1244,7 +1244,7 @@ inline void renderFlagSparklerFairyStrand(int startIdx, uint8_t strandId, uint32
                                        : pgm_read_byte(&FAIRY_STRAND2_SPATIAL_STEP[offset]);
         uint16_t h = (uint16_t)((beatTick * 131U + (uint16_t)step * 73U + (uint16_t)startIdx * 17U) & 0xFF);
         if (h > 236) {
-            fc = CRGB(255, 250, 220); // Crisp July 4th sparkler pop
+            fc = CRGB(255, 230, 140); // Calibrated crisp July 4th sparkler pop on bare fairy bulbs
         } else {
             fc.nscale8_video(200);    // ~78% steady patriotic triplet glow
             if (fc == CRGB(0, 0, 0)) fc = CRGB(1, 1, 1);
