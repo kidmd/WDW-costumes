@@ -107,24 +107,25 @@ def analyze_frame(
 
 
 def open_camera(camera_index: int) -> cv2.VideoCapture:
-    """Open webcam using DirectShow on Windows to avoid MSMF streaming stalls."""
+    """Open webcam using the platform default backend (MSMF on Windows)."""
+    cap = cv2.VideoCapture(camera_index)
+    if cap.isOpened():
+        return cap
+    cap.release()
     if sys.platform == "win32":
-        cap = cv2.VideoCapture(camera_index, cv2.CAP_DSHOW)
-        if cap.isOpened():
-            return cap
-        cap.release()
-    return cv2.VideoCapture(camera_index)
+        return cv2.VideoCapture(camera_index, cv2.CAP_DSHOW)
+    return cap
 
 
 def capture_fresh_frame(cap: cv2.VideoCapture, warmup_frames: int = 3, retries: int = 5) -> np.ndarray:
-    """Flush stale buffered frames and return a fresh BGR frame."""
+    """Flush stale buffered frames and return a fresh non-zero BGR frame."""
     last_frame: Optional[np.ndarray] = None
     needed = max(1, warmup_frames)
     attempts = 0
     while attempts < needed + retries:
         attempts += 1
         ok, frame = cap.read()
-        if ok and frame is not None:
+        if ok and frame is not None and int(np.max(frame)) > 0:
             last_frame = frame
             if attempts >= needed:
                 return last_frame
@@ -132,7 +133,7 @@ def capture_fresh_frame(cap: cv2.VideoCapture, warmup_frames: int = 3, retries: 
             time.sleep(0.25)
     if last_frame is not None:
         return last_frame
-    raise RuntimeError("Failed to read frame from webcam after retries.")
+    raise RuntimeError("Failed to read non-black frame from webcam after retries.")
 
 
 class BatteryWatchStateMachine:
