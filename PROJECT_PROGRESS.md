@@ -93,6 +93,22 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### November 15, 2026 - Overnight Webcam Battery Life Monitor (`scripts/battery_watch.py`)
+- **Milestone:** Built a reusable OpenCV webcam monitor ([battery_watch.py](file:///c:/Users/Kiddi/Desktop/WDW%20costumes/scripts/battery_watch.py)) to measure unattended overnight battery life for WDW 10K LED costume shirts.
+- **Technical Implementation:**
+  - Uses `max(B, G, R)` channel intensity (`p99_val` + `bright_pixels` count) with optional `--roi x,y,w,h` cropping so saturated LEDs remain detectable in dark rooms without being washed out by whole-frame averaging.
+  - Implements a 60-second sustained-off debounce state machine (`BatteryWatchStateMachine`) that preserves `last_on.png`, `first_off.png`, `confirmed_off.png`, `battery_watch_log.csv`, and `summary.json` (including total elapsed runtime from `--start-time`).
+  - Calls Windows `SetThreadExecutionState(ES_CONTINUOUS | ES_SYSTEM_REQUIRED)` while monitoring so the laptop stays awake overnight without forcing the display to stay on.
+- **Verification:** Ran `python scripts/battery_watch.py --self-test` (`PASSED`) to verify frame brightness metrics, brief-darkness recovery, and shutoff timestamp tracking.
+
+### November 15, 2026 - To Honor America 3D-Printed 41-Window Default Preset & Fairy White Balance
+- **Tri-Color Wipe Fairy White Balance (`tri_color_wipe`, `src/main.cpp`, `arduino/MSEP_Costume/MSEP_Costume.ino`, `simulator/app.js`):**
+  - Updated `evalTriColorWipePixel(..., isFairy)` and the simulator's `tri_color_wipe` effect to use `RGB(255, 210, 200)` for the white stage on the bare Z-folded fairy seed bulbs (`256..280` and `537..561`), giving a gentle warm-neutral white balance without blue or green tint while keeping `RGB(255, 255, 255)` on the 16×16 panels. Verified `node --check simulator/app.js` and `pio run -e esp32dev` (`SUCCESS`).
+- **Milestone:** Matched the **41 physical LED windows** on the 3D-printed **To Honor America** 16×16 matrix panel from the user's photo (`(row, col)` aligned via SIFT homography to `assets/honor_america_eagle.png`) and set it as the simulator default for Float #7.
+- **Preset & Simulator Defaults:**
+  - Created [to_honor_america_100_led_patriotic_preset_medium_100led_2026-11-15_22-30.json](file:///c:/Users/Kiddi/Desktop/WDW%20costumes/presets/to_honor_america_100_led_patriotic_preset_medium_100led_2026-11-15_22-30.json) with the exact **41** `matrixWindowedLeds` and **110** `matrixBacklightLeds` (matching `2026-11-10_16-02.json` minus `(7, 12)` which is solid blue in the physical print, while preserving the latest Nov 13 `settings` and `sequence`).
+  - Updated [fleet_lineup.json](file:///c:/Users/Kiddi/Desktop/WDW%20costumes/presets/fleet_lineup.json) (slot 6) and [simulator/app.js](file:///c:/Users/Kiddi/Desktop/WDW%20costumes/simulator/app.js) (`DEFAULT_FLEET_ROSTER`, `localStorage` legacy-preset migration, and `presetFileMap['honor_america_eagle']`) so loading Float #7 or selecting `honor_america_eagle` loads this 41-window layout by default.
+
 ### November 13, 2026 - Waving Flag & July 4th Sparklers (`flag_ripple`)
 - **Milestone:** Added the signature **To Honor America** effect (`flag_ripple` / `🇺🇸 Waving Flag & Sparklers`, Firmware ID `36`) across the simulator (`simulator/app.js`, `simulator/index.html`), firmware generator/flasher (`simulator.py`), and ESP32 firmware (`src/main.cpp` & `arduino/MSEP_Costume/MSEP_Costume.ino`).
 - **Visual Design:**
