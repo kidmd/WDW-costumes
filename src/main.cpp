@@ -3140,18 +3140,21 @@ void loop() {
 #if (defined(COSTUME_FULL_562_MODE) && COSTUME_FULL_562_MODE) || (defined(NUM_LEDS) && NUM_LEDS == 562)
                     if (frameLeds >= 306) {
                         // Right fairy (256..280) and Left fairy (packed at 281..305 or full 537..561)
-                        // Fairy seed bulbs are RGB chips on a GRB stream: swap R & G!
+                        // Simulator streams sRGB values; apply dim8_video (gamma ~2.0) + toFairyWireColor()
+                        // so bare RGB fairy bulbs match standalone warm Gold/Red/White without lime-green shift!
                         for (int f = 256; f <= 280; f++) {
                             int off = hdrBytes + f * 3;
                             if (off + 2 < len) {
-                                leds[f] = CRGB(buffer[off + 1], buffer[off], buffer[off + 2]);
+                                CRGB srgb(dim8_video(buffer[off]), dim8_video(buffer[off + 1]), dim8_video(buffer[off + 2]));
+                                leds[f] = toFairyWireColor(srgb);
                             }
                         }
                         int leftBaseIdx = (frameLeds >= 562) ? 537 : 281;
                         for (int k = 0; k < 25; k++) {
                             int off = hdrBytes + (leftBaseIdx + k) * 3;
                             if (off + 2 < len) {
-                                leds[537 + k] = CRGB(buffer[off + 1], buffer[off], buffer[off + 2]);
+                                CRGB srgb(dim8_video(buffer[off]), dim8_video(buffer[off + 1]), dim8_video(buffer[off + 2]));
+                                leds[537 + k] = toFairyWireColor(srgb);
                             }
                         }
                     }
