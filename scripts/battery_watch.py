@@ -106,13 +106,33 @@ def analyze_frame(
     )
 
 
-def capture_fresh_frame(cap: cv2.VideoCapture, warmup_frames: int = 3) -> np.ndarray:
+def open_camera(camera_index: int) -> cv2.VideoCapture:
+    """Open webcam using DirectShow on Windows to avoid MSMF streaming stalls."""
+    if sys.platform == "win32":
+        cap = cv2.VideoCapture(camera_index, cv2.CAP_DSHOW)
+        if cap.isOpened():
+            return cap
+        cap.release()
+    return cv2.VideoCapture(camera_index)
+
+
+def capture_fresh_frame(cap: cv2.VideoCapture, warmup_frames: int = 3, retries: int = 5) -> np.ndarray:
     """Flush stale buffered frames and return a fresh BGR frame."""
-    for _ in range(max(1, warmup_frames)):
+    last_frame: Optional[np.ndarray] = None
+    needed = max(1, warmup_frames)
+    attempts = 0
+    while attempts < needed + retries:
+        attempts += 1
         ok, frame = cap.read()
-        if not ok or frame is None:
-            raise RuntimeError("Failed to read frame from webcam.")
-    return frame
+        if ok and frame is not None:
+            last_frame = frame
+            if attempts >= needed:
+                return last_frame
+        else:
+            time.sleep(0.25)
+    if last_frame is not None:
+        return last_frame
+    raise RuntimeError("Failed to read frame from webcam after retries.")
 
 
 class BatteryWatchStateMachine:
@@ -160,7 +180,7 @@ def run_calibrate(args: argparse.Namespace) -> int:
     out_dir.mkdir(parents=True, exist_ok=True)
     roi = parse_roi(args.roi)
 
-    cap = cv2.VideoCapture(args.camera)
+    cap = open_camera(args.camera)
     if not cap.isOpened():
         print(f"ERROR: Could not open camera index {args.camera}.", file=sys.stderr)
         return 1
@@ -195,7 +215,7 @@ def run_watch(args: argparse.Namespace) -> int:
     roi = parse_roi(args.roi)
     start_time = parse_start_time(args.start_time)
 
-    cap = cv2.VideoCapture(args.camera)
+    cap = open_camera(args.camera)
     if not cap.isOpened():
         print(f"ERROR: Could not open camera index {args.camera}.", file=sys.stderr)
         return 1
