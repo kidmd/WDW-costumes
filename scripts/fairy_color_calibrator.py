@@ -24,10 +24,10 @@ state = {
     "panel_r": 255,
     "panel_g": 204,
     "panel_b": 21,
-    "panel_bri": 100,
+    "panel_bri": 18,
     "fairy_r": 255,
-    "fairy_g": 50,
-    "fairy_b": 8,
+    "fairy_g": 103,
+    "fairy_b": 0,
     "fairy_bri": 100,
 }
 
@@ -183,34 +183,21 @@ HTML_PAGE = """<!DOCTYPE html>
 
 <script>
 const PRESETS = [
-  ["Drum Yellow",   255, 204, 21],
-  ["Parade Gold",   255, 180, 0],
-  ["Red",           255, 0,   0],
-  ["Blue",          0,   60,  255],
-  ["Green",         0,   220, 40],
-  ["White",         255, 255, 255],
-  ["Magenta",       255, 20,  140],
+  // [name, panelR, panelG, panelB, panelBri%, fairyWireR, fairyWireG, fairyWireB, fairyBri%]
+  ["Drum Yellow",   255, 204, 21,  18, 255, 103, 0,   100],
+  ["Parade Gold",   255, 180, 0,   18, 255, 47,  7,   100],
+  ["Red",           255, 0,   0,   16, 255, 0,   0,   100],
+  ["Blue",          0,   60,  255, 16, 0,   5,   187, 100],
+  ["Green",         0,   220, 40,  9,  0,   71,  4,   100],
+  ["White",         255, 255, 255, 15, 143, 100, 65,  100],
+  ["Magenta",       255, 20,  140, 16, 255, 1,   56,  100],
 ];
 
 let activePreset = "Drum Yellow";
 const saved = {};
 
-function estimateFairyWire(r, g, b) {
-  const rLin = Math.floor((r * r) / 255);
-  const gLin = Math.floor((g * g) / 255);
-  let bLin = Math.floor((b * b) / 255);
-  if (r > 200 && g > 100 && b < 25) {
-    bLin = Math.max(bLin, 10);
-  }
-  return [
-    rLin,
-    Math.floor((gLin * 96) / 255),
-    Math.floor((bLin * 187) / 255),
-  ];
-}
-
 const presetsEl = document.getElementById("presets");
-PRESETS.forEach(([name, r, g, b]) => {
+PRESETS.forEach(([name, r, g, b, pbri, fr, fg, fb, fbri]) => {
   const btn = document.createElement("button");
   btn.className = "preset-btn";
   btn.textContent = name;
@@ -232,10 +219,11 @@ PRESETS.forEach(([name, r, g, b]) => {
       document.getElementById("panel_r").value = r;
       document.getElementById("panel_g").value = g;
       document.getElementById("panel_b").value = b;
-      const [fr, fg, fb] = estimateFairyWire(r, g, b);
+      document.getElementById("panel_bri").value = pbri;
       document.getElementById("fairy_r").value = fr;
       document.getElementById("fairy_g").value = fg;
       document.getElementById("fairy_b").value = fb;
+      document.getElementById("fairy_bri").value = fbri;
     }
     onSlider();
   };

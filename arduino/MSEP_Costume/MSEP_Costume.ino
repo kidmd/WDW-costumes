@@ -196,7 +196,7 @@ static const CRGB FLOAT_PALETTES[7][3] PROGMEM = {
     { CRGB(255, 0, 0),   CRGB(0, 7, 255),     CRGB(0, 103, 4) }, // Float 4 (The Snail): Bold Red, Royal Blue, Emerald Green
     { CRGB(255, 0, 0),   CRGB(255, 68, 8),    CRGB(0, 0, 0) },   // Float 5 (The Pirate Ship): Bold Red, Calibrated Parade Gold
     { CRGB(0, 115, 25),  CRGB(255, 149, 0),   CRGB(0, 0, 0) },   // Float 6 (Pete's Dragon): Calibrated Elliott Green, Yellow
-    { CRGB(255, 0, 0),   CRGB(255, 255, 255), CRGB(0, 0, 255) }  // Float 7 (To Honor America): Bold Patriotic Red, Pure Star White, Deep Royal Blue
+    { CRGB(255, 0, 0),   CRGB(220, 223, 128), CRGB(0, 0, 255) }  // Float 7 (To Honor America): Bold Patriotic Red, Calibrated Pure Star White, Deep Royal Blue
 };
 
 inline CRGB getFloatPaletteColor(uint8_t floatNum, uint8_t colorIdx = 0) {
