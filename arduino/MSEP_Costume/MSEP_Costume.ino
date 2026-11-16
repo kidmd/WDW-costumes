@@ -190,12 +190,12 @@ enum WaveProgressionMode : uint8_t {
 static const uint8_t FLOAT_PALETTE_COUNTS[7] PROGMEM = { 2, 2, 3, 3, 2, 2, 3 };
 
 static const CRGB FLOAT_PALETTES[7][3] PROGMEM = {
-    { CRGB(255, 0, 0),   CRGB(255, 120, 0),   CRGB(0, 0, 0) },   // Float 1 (Casey Jr.): Bold Red, Warm Gold (linear-LED calibrated)
-    { CRGB(255, 0, 0),   CRGB(255, 120, 0),   CRGB(0, 0, 0) },   // Float 2 (Title Drum): Bold Red, Warm Gold (linear-LED calibrated)
-    { CRGB(255, 165, 0), CRGB(0, 60, 255),    CRGB(0, 220, 40) }, // Float 3 (The Turtle): Golden Yellow, Bold Royal Blue, Emerald Green
-    { CRGB(255, 0, 0),   CRGB(0, 60, 255),    CRGB(0, 220, 40) }, // Float 4 (The Snail): Bold Red, Bold Royal Blue, Emerald Green
-    { CRGB(255, 0, 0),   CRGB(255, 120, 0),   CRGB(0, 0, 0) },   // Float 5 (The Pirate Ship): Bold Red, Warm Gold (linear-LED calibrated)
-    { CRGB(0, 255, 100), CRGB(255, 165, 0),   CRGB(0, 0, 0) },   // Float 6 (Pete's Dragon): Vivid Elliott Green, Golden Yellow
+    { CRGB(255, 0, 0),   CRGB(255, 68, 8),    CRGB(0, 0, 0) },   // Float 1 (Casey Jr.): Bold Red, Calibrated Parade Gold
+    { CRGB(255, 0, 0),   CRGB(255, 68, 8),    CRGB(0, 0, 0) },   // Float 2 (Title Drum): Bold Red, Calibrated Parade Gold
+    { CRGB(255, 149, 0), CRGB(0, 7, 255),     CRGB(0, 103, 4) }, // Float 3 (The Turtle): Calibrated Yellow, Royal Blue, Emerald Green
+    { CRGB(255, 0, 0),   CRGB(0, 7, 255),     CRGB(0, 103, 4) }, // Float 4 (The Snail): Bold Red, Royal Blue, Emerald Green
+    { CRGB(255, 0, 0),   CRGB(255, 68, 8),    CRGB(0, 0, 0) },   // Float 5 (The Pirate Ship): Bold Red, Calibrated Parade Gold
+    { CRGB(0, 115, 25),  CRGB(255, 149, 0),   CRGB(0, 0, 0) },   // Float 6 (Pete's Dragon): Calibrated Elliott Green, Yellow
     { CRGB(255, 0, 0),   CRGB(255, 255, 255), CRGB(0, 0, 255) }  // Float 7 (To Honor America): Bold Patriotic Red, Pure Star White, Deep Royal Blue
 };
 
@@ -3140,21 +3140,25 @@ void loop() {
 #if (defined(COSTUME_FULL_562_MODE) && COSTUME_FULL_562_MODE) || (defined(NUM_LEDS) && NUM_LEDS == 562)
                     if (frameLeds >= 306) {
                         // Right fairy (256..280) and Left fairy (packed at 281..305 or full 537..561)
-                        // Simulator streams sRGB values; apply dim8_video (gamma ~2.0) + toFairyWireColor()
-                        // so bare RGB fairy bulbs match standalone warm Gold/Red/White without lime-green shift!
+                        // Simulator streams sRGB values; apply dim8_video (gamma ~2.0) + seed-bulb Green balance (96/176)
+                        // + toFairyWireColor() so streamed colors match the hardware-calibrated Parade Gold/Red/Blue/Green!
                         for (int f = 256; f <= 280; f++) {
                             int off = hdrBytes + f * 3;
                             if (off + 2 < len) {
-                                CRGB srgb(dim8_video(buffer[off]), dim8_video(buffer[off + 1]), dim8_video(buffer[off + 2]));
-                                leds[f] = toFairyWireColor(srgb);
+                                uint8_t rLin = dim8_video(buffer[off]);
+                                uint8_t gLin = (uint8_t)(((uint16_t)dim8_video(buffer[off + 1]) * 139U) / 255U);
+                                uint8_t bLin = dim8_video(buffer[off + 2]);
+                                leds[f] = toFairyWireColor(CRGB(rLin, gLin, bLin));
                             }
                         }
                         int leftBaseIdx = (frameLeds >= 562) ? 537 : 281;
                         for (int k = 0; k < 25; k++) {
                             int off = hdrBytes + (leftBaseIdx + k) * 3;
                             if (off + 2 < len) {
-                                CRGB srgb(dim8_video(buffer[off]), dim8_video(buffer[off + 1]), dim8_video(buffer[off + 2]));
-                                leds[537 + k] = toFairyWireColor(srgb);
+                                uint8_t rLin = dim8_video(buffer[off]);
+                                uint8_t gLin = (uint8_t)(((uint16_t)dim8_video(buffer[off + 1]) * 139U) / 255U);
+                                uint8_t bLin = dim8_video(buffer[off + 2]);
+                                leds[537 + k] = toFairyWireColor(CRGB(rLin, gLin, bLin));
                             }
                         }
                     }

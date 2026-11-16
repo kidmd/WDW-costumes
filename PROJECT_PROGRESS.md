@@ -93,12 +93,15 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
-### November 16, 2026 - Fairy Strand Color Calibration (`TypicalLEDStrip` R/G Swap Compensation & Linear Warm Gold)
+### November 16, 2026 - Fairy Strand Color Calibration (`TypicalLEDStrip` R/G Swap Compensation & Hardware-Matched Palette)
 - **Root Cause:** FastLED's `.setCorrection(TypicalLEDStrip)` (`255, 176, 240`) was applied *before* the `GRB -> RGB` channel swap on the bare RGB fairy seed bulbs (`leds[256..280]` and `leds[537..561]`). Because `leds[f].g` drives Fairy Red (`176/255` = 69%) while `leds[f].r` drives Fairy Green (`255/255` = 100%), Title Drum Gold `CRGB(255, 180, 0)` physically output `Red=176, Green=180, Blue=0` — more Green than Red, appearing lime/yellowish-green.
+- **Interactive Hardware Calibration (`scripts/fairy_color_calibrator.py`):**
+  - Built a web-based live UDP `:4210` color calibrator with 16×16 panel reference presets and fairy R/G/B + brightness sliders to visually match bare seed fairy bulbs against the chest matrix on the physical Title Drum shirt.
+  - Recorded exact physical matches: Parade Gold `(176, 47, 6)`, Yellow `(176, 103, 0)`, Bold Red `(176, 0, 0)`, Royal Blue `(0, 5, 176)`, Emerald Green `(0, 71, 3)`.
 - **Firmware Fix (`src/main.cpp`, `arduino/MSEP_Costume/MSEP_Costume.ino`):**
   - Added `toFairyWireColor(CRGB fc)` to scale Green by `176/255` and Blue by `187/255` (`176/240`) alongside the R/G swap across all fairy strand output modes in `duplicateFrontToBack()`, restoring exact 1:1 RGB color balance on bare RGB fairy bulbs.
-  - Updated the UDP Wi-Fi livestream receiver (`frameLeds >= 306` fairy strand unpacking) to apply `dim8_video()` (gamma ~2.0) + `toFairyWireColor()` so streamed sRGB simulator colors (`#ffb400` Gold, `#ffd700` Yellow, `#ffffff` White) render accurately on the physical fairy bulbs without lime-green shift.
-  - Tuned linear-LED Gold in `FLOAT_PALETTES` (Casey Jr., Title Drum, Pirate Ship) from `CRGB(255, 180, 0)` to `CRGB(255, 120, 0)` and Golden Yellow (The Turtle, Pete's Dragon) from `CRGB(255, 215, 0)` to `CRGB(255, 165, 0)` so bare seed bulbs render rich warm Disney parade gold instead of greenish-yellow.
+  - Updated the UDP Wi-Fi livestream receiver (`frameLeds >= 306` fairy strand unpacking) to apply `dim8_video()` (gamma ~2.0), the hardware-measured seed-bulb Green luminance balance (`139/255` pre-`toFairyWireColor`, yielding `96/255` net), and `toFairyWireColor()`.
+  - Locked hardware-calibrated colors into `FLOAT_PALETTES`: Parade Gold `CRGB(255, 68, 8)`, Yellow `CRGB(255, 149, 0)`, Royal Blue `CRGB(0, 7, 255)`, Emerald Green `CRGB(0, 103, 4)`, Elliott Green `CRGB(0, 115, 25)`.
 - **Verification:** Compiled `esp32dev` via PlatformIO (`pio run -e esp32dev` — SUCCESS in 11.45s).
 
 ### November 16, 2026 - Float 4 (The Spinning Snail) Cute Eye Pupil with Gold Sparkle & Magenta Body
