@@ -190,12 +190,12 @@ enum WaveProgressionMode : uint8_t {
 static const uint8_t FLOAT_PALETTE_COUNTS[7] PROGMEM = { 2, 2, 3, 3, 2, 2, 3 };
 
 static const CRGB FLOAT_PALETTES[7][3] PROGMEM = {
-    { CRGB(255, 0, 0),   CRGB(255, 180, 0),   CRGB(0, 0, 0) },   // Float 1 (Casey Jr.): Bold Red, Gold
-    { CRGB(255, 0, 0),   CRGB(255, 180, 0),   CRGB(0, 0, 0) },   // Float 2 (Title Drum): Bold Red, Gold
-    { CRGB(255, 215, 0), CRGB(0, 60, 255),    CRGB(0, 220, 40) }, // Float 3 (The Turtle): Yellow, Bold Royal Blue, Emerald Green
+    { CRGB(255, 0, 0),   CRGB(255, 120, 0),   CRGB(0, 0, 0) },   // Float 1 (Casey Jr.): Bold Red, Warm Gold (linear-LED calibrated)
+    { CRGB(255, 0, 0),   CRGB(255, 120, 0),   CRGB(0, 0, 0) },   // Float 2 (Title Drum): Bold Red, Warm Gold (linear-LED calibrated)
+    { CRGB(255, 165, 0), CRGB(0, 60, 255),    CRGB(0, 220, 40) }, // Float 3 (The Turtle): Golden Yellow, Bold Royal Blue, Emerald Green
     { CRGB(255, 0, 0),   CRGB(0, 60, 255),    CRGB(0, 220, 40) }, // Float 4 (The Snail): Bold Red, Bold Royal Blue, Emerald Green
-    { CRGB(255, 0, 0),   CRGB(255, 180, 0),   CRGB(0, 0, 0) },   // Float 5 (The Pirate Ship): Bold Red, Gold
-    { CRGB(0, 255, 100), CRGB(255, 215, 0),   CRGB(0, 0, 0) },   // Float 6 (Pete's Dragon): Vivid Elliott Green, Golden Yellow
+    { CRGB(255, 0, 0),   CRGB(255, 120, 0),   CRGB(0, 0, 0) },   // Float 5 (The Pirate Ship): Bold Red, Warm Gold (linear-LED calibrated)
+    { CRGB(0, 255, 100), CRGB(255, 165, 0),   CRGB(0, 0, 0) },   // Float 6 (Pete's Dragon): Vivid Elliott Green, Golden Yellow
     { CRGB(255, 0, 0),   CRGB(255, 255, 255), CRGB(0, 0, 255) }  // Float 7 (To Honor America): Bold Patriotic Red, Pure Star White, Deep Royal Blue
 };
 
@@ -234,6 +234,15 @@ inline CRGB getFloatFairyBulbColor(uint8_t floatNum, uint8_t strandId, uint8_t w
 
 inline CRGB getFloatDefaultFairyColor(uint8_t floatNum = 1) {
     return getFloatPaletteColor(floatNum, 0);
+}
+
+// Compensate for FastLED's TypicalLEDStrip (255, 176, 240) applied before GRB->RGB swap on bare RGB fairy bulbs:
+// leds[f].g drives Fairy Red (attenuated to 176/255), leds[f].r drives Fairy Green (255/255),
+// and leds[f].b drives Fairy Blue (240/255). Scaling Green by 176/255 and Blue by 187/255 restores true 1:1 RGB balance!
+inline CRGB toFairyWireColor(CRGB fc) {
+    uint8_t adjG = (uint8_t)(((uint16_t)fc.g * 176U) / 255U);
+    uint8_t adjB = (uint8_t)(((uint16_t)fc.b * 187U) / 255U);
+    return CRGB(adjG, fc.r, adjB);
 }
 
 static const uint16_t FAIRY_STRAND1_LOOP_POS[25] PROGMEM = {
@@ -369,32 +378,32 @@ inline void duplicateFrontToBack(bool preserveRenderedFairy = false) {
 #if (defined(COSTUME_FULL_562_MODE) && COSTUME_FULL_562_MODE) || (defined(NUM_LEDS) && NUM_LEDS == 562)
         // Ensure fairy strands (256..280 on Right, 537..561 on Left) are illuminated across all modes.
         // WS2812B 16x16 panels are native GRB; fairy seed bulbs on this costume are RGB chips.
-        // Swapping R and G on fairy bulbs on the GRB stream ensures Red, White, and Blue match 100%!
+        // toFairyWireColor() swaps R/G and compensates for TypicalLEDStrip so Gold, Red, White, and Blue match 100%!
         if (currentStandaloneMode == SHOW_MODE_PHOTO_STATIC) {
             for (int f = 256; f <= 280; f++) {
                 CRGB fc = getFloatFairyBulbColor(myFloatNumber, 1, f - 256);
-                leds[f] = CRGB(fc.g, fc.r, fc.b);
+                leds[f] = toFairyWireColor(fc);
             }
             for (int f = 537; f <= 561; f++) {
                 CRGB fc = getFloatFairyBulbColor(myFloatNumber, 2, f - 537);
-                leds[f] = CRGB(fc.g, fc.r, fc.b);
+                leds[f] = toFairyWireColor(fc);
             }
         } else if (currentStandaloneMode == SHOW_MODE_CORRAL_STANDBY) {
             for (int f = 256; f <= 280; f++) {
                 CRGB fc = getFloatFairyBulbColor(myFloatNumber, 1, f - 256);
-                CRGB dimF = CRGB(fc.g, fc.r, fc.b);
+                CRGB dimF = toFairyWireColor(fc);
                 dimF.nscale8_video(35);
                 leds[f] = dimF;
             }
             for (int f = 537; f <= 561; f++) {
                 CRGB fc = getFloatFairyBulbColor(myFloatNumber, 2, f - 537);
-                CRGB dimF = CRGB(fc.g, fc.r, fc.b);
+                CRGB dimF = toFairyWireColor(fc);
                 dimF.nscale8_video(35);
                 leds[f] = dimF;
             }
         } else if (currentStandaloneMode == SHOW_MODE_RAPID_ROLL_CALL) {
             CRGB rcCol = tempActive[0];
-            CRGB rcWireCol = CRGB(rcCol.g, rcCol.r, rcCol.b);
+            CRGB rcWireCol = toFairyWireColor(rcCol);
             for (int f = 256; f <= 280; f++) leds[f] = rcWireCol;
             for (int f = 537; f <= 561; f++) leds[f] = rcWireCol;
         } else {
@@ -403,11 +412,11 @@ inline void duplicateFrontToBack(bool preserveRenderedFairy = false) {
                 CRGB rc = (preserveRenderedFairy && !(tempFairyRight[f] == CRGB(0,0,0)))
                           ? tempFairyRight[f]
                           : getFloatFairyBulbColor(myFloatNumber, 1, f);
-                leds[256 + f] = CRGB(rc.g, rc.r, rc.b);
+                leds[256 + f] = toFairyWireColor(rc);
                 CRGB lc = (preserveRenderedFairy && !(tempFairyLeft[f] == CRGB(0,0,0)))
                           ? tempFairyLeft[f]
                           : getFloatFairyBulbColor(myFloatNumber, 2, f);
-                leds[537 + f] = CRGB(lc.g, lc.r, lc.b);
+                leds[537 + f] = toFairyWireColor(lc);
             }
         }
 #endif
@@ -1210,11 +1219,11 @@ inline void renderSpotlightSwapFairyStrand(int startIdx, uint8_t strandId, bool 
     }
 }
 
-inline CRGB evalTriColorWipePixel(uint16_t pos1000, uint8_t stage, uint16_t wipePermille) {
-    static const CRGB TRI_COLORS[3] = {
+inline CRGB evalTriColorWipePixel(uint16_t pos1000, uint8_t stage, uint16_t wipePermille, bool isFairy = false) {
+    const CRGB TRI_COLORS[3] = {
         CRGB(0, 0, 255),     // Blue
         CRGB(255, 0, 0),     // Red
-        CRGB(255, 255, 255)  // White
+        isFairy ? CRGB(255, 210, 200) : CRGB(255, 255, 255)  // Gentle warm-neutral balance on bare fairy bulbs
     };
     CRGB prevCol = TRI_COLORS[(stage + 2) % 3];
     CRGB nextCol = TRI_COLORS[stage % 3];
@@ -1481,8 +1490,8 @@ bool renderCatalogEffect20to32(uint8_t effId, uint16_t bpm, uint32_t now, uint32
                 p1 = (uint16_t)(999 - p1);
                 p2 = (uint16_t)(999 - p2);
             }
-            leds[256 + offset] = evalTriColorWipePixel(p1, triStage, triWipePermille);
-            leds[537 + offset] = evalTriColorWipePixel(p2, triStage, triWipePermille);
+            leds[256 + offset] = evalTriColorWipePixel(p1, triStage, triWipePermille, true);
+            leds[537 + offset] = evalTriColorWipePixel(p2, triStage, triWipePermille, true);
         }
     } else if (effId == 36 && NUM_LEDS >= 562) {
         renderFlagSparklerFairyStrand(256, 1, elapsed, bpm);
