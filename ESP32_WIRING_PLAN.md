@@ -310,7 +310,8 @@ For builders assembling costumes without a soldering iron, a dedicated ultra-com
 * **Breakout Board:** 38-pin ESP32-WROOM-32D plugged into a `63 × 78 mm` Screw Terminal Expansion Board (`B0DYD168RC`), flanked by `4.5 mm` side wire channels (`±X`).
 * **Power Distribution:** External 5V USB power enters through an M12 (`Ø 12.3 mm`) panel-mount USB-C 2-pin pigtail (`B0CXLZBD2V`) directly into **2× WAGO 221-415** (5-port) lever-nut blocks (`+5V` and `GND`), splitting high-current LED power *before* the ESP32 so LED current never passes through the ESP32's onboard USB Schottky diode.
 * **Buttons & Data Resistor:** Two pre-wired **APIELE PBS-33B** 12 mm waterproof momentary buttons (`B09V2KZZ8W`, `1 SHOW` → `GPIO 4` + `GND`, `2 PHOTO` → `GPIO 33` + `GND`) mount in the tool-free snap-fit lid (`Ø 12.3 mm`, clearing both the `17.5 mm` bezel and `~18.5 mm` under-panel depth above the WAGOs), and the inline `220 Ω–470 Ω` resistor connects directly from the `GPIO 16` screw terminal to the LED Data-In wire.
-* **Print Files:** `wago_controller_box_base.stl`, `wago_controller_box_lid.stl`, single-plate `wago_controller_box_plate.3mf` (zero supports), and interactive 3D viewer `wago_controller_box_preview.html`.
+* **Print Files (Standard 5-Port WAGO `33.0 mm`):** `3d_panels/controller_box_wago/` (`wago_controller_box_plate.3mf`, `wago_controller_box_base.stl`, `wago_controller_box_lid.stl`, `wago_controller_box_preview.html`).
+* **Print Files (Slim 3-Port WAGO `26.5 mm`):** `3d_panels/controller_box_wago_slim/` (`wago_slim_box_plate.3mf`, `wago_slim_box_base.stl`, `wago_slim_box_lid.stl`, `wago_slim_box_preview.html`) — centers 2× WAGO 221-413 (3-port) between centering ribs so the PBS-33B buttons drop beside them at `X = ±27.5 mm`, shaving 6.5 mm off total height.
 
 
 
