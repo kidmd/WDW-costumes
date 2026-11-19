@@ -743,6 +743,7 @@ class SimulatorRequestHandler(http.server.SimpleHTTPRequestHandler):
                 "spotlight_swap": 34,
                 "tri_color_wipe": 35,
                 "flag_ripple": 36,
+                "dragon_smoke": 37,
                 "autonomous_90s": 0
             }
             ambient_fallback_code = ambient_pattern_numeric_map.get(ambient_pattern_str, 0)
@@ -819,7 +820,8 @@ class SimulatorRequestHandler(http.server.SimpleHTTPRequestHandler):
                 "triplet_chase": 33,
                 "spotlight_swap": 34,
                 "tri_color_wipe": 35,
-                "flag_ripple": 36
+                "flag_ripple": 36,
+                "dragon_smoke": 37
             }
 
             cue_lines = []
@@ -945,6 +947,7 @@ class SimulatorRequestHandler(http.server.SimpleHTTPRequestHandler):
 #define COSTUME_PATTERN_SPOTLIGHT_SWAP   34
 #define COSTUME_PATTERN_TRI_COLOR_WIPE   35
 #define COSTUME_PATTERN_FLAG_RIPPLE      36
+#define COSTUME_PATTERN_DRAGON_SMOKE     37
 
 #define ACTIVE_COSTUME_PATTERN           {active_pattern}
 #define COSTUME_SPEED_BPM                {speed_bpm}

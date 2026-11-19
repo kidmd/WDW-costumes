@@ -89,6 +89,7 @@ const EFFECT_CATALOG = [
     { id: 'pixie_dust',         cat: 'sparkles', icon: '💫', short: 'Pixie Dust',     label: '💫 Pixie Dust Drift',               desc: 'Floating golden-white fairy dust drifting across pixels.' },
     { id: 'dragon_sparkle',     cat: 'sparkles', icon: '🐉', short: 'Dragon Sparkle', label: '🐉 Dragon Emerald Sparkle',         desc: 'Vibrant emerald shimmer with golden-white dragon sparks.' },
     { id: 'fire_breath',        cat: 'sparkles', icon: '🔥', short: 'Fire Breath',    label: '🔥 Snout Fire Breath',              desc: 'Blazing amber/crimson flame surge with ember flickers.' },
+    { id: 'dragon_smoke',       cat: 'sparkles', icon: '💨', short: 'Nostril Smoke',  label: '🐉💨 Elliott Nostril Smoke',        desc: 'Dims body lights while billowing rising, fading smoke puffs up & out from Elliott\'s nostrils.' },
     { id: 'confetti',           cat: 'sparkles', icon: '🎉', short: 'Confetti',       label: '🎉 Confetti Shimmer',               desc: 'Playful multi-color celebratory pops fading softly.' },
     { id: 'cinderella_twinkle', cat: 'sparkles', icon: '💎', short: 'Glass Slipper',  label: '💎 Cinderella Crystalline Twinkle', desc: 'Icy cyan, diamond white, and royal gold twinkles.' },
 
@@ -2317,6 +2318,183 @@ function evalNewCatalogEffect(effect, normPos, index, totalLeds, timeMs, bpm, di
             const surge = 0.5 + 0.5 * Math.sin(normTime * Math.PI * 2 - normPos * 5.0 * dir);
             const fG = Math.round(40 + 160 * surge * flick);
             return { r: 255, g: fG, b: 10, intensity: 0.35 + 0.65 * surge };
+        }
+        case 'dragon_smoke': {
+            const cycleMs = Math.max(1800, beatMs * 4);
+            const p = (((timeMs % cycleMs) + cycleMs) % cycleMs) / cycleMs;
+            const isFairy = (typeof isFairyLedIndex === 'function') && isFairyLedIndex(index);
+            // Rock-steady dimmed body baseline (~52% visible after computeLedColor squares intensity)
+            const bodyDim = 0.72;
+
+            if (isFairy) {
+                const step = (typeof getFairySpatialStep === 'function') ? getFairySpatialStep(index) : (index % 25);
+                const isStrand1 = (index >= 256 && index <= 280);
+                const fairyDim = 0.45; // Dimmed lower fairy baseline during smoke (~20% visible after squaring)
+                // Strand 1 (Right): shifted up 1 toward shoulder (Front: 10, 11, 12 | Back: 15, 14, 13)
+                // Strand 2 (Left):  Front: 9, 10, 11 | Back: 15, 14, 13
+                let tier = 0; // 0 = lower bulbs (stay dimmed), 3 = #3, 2 = #2, 1 = #1 shoulder
+                if (isStrand1) {
+                    if (step === 10 || step === 15) tier = 3;
+                    else if (step === 11 || step === 14) tier = 2;
+                    else if (step === 12 || step === 13) tier = 1;
+                } else {
+                    if (step === 9 || step === 14) tier = 3;
+                    else if (step === 10 || step === 13) tier = 2;
+                    else if (step === 11 || step === 12) tier = 1;
+                }
+
+                if (tier === 0) {
+                    return { r: baseR, g: baseG, b: baseB, intensity: fairyDim };
+                }
+
+                // #3 & #2 rise even with the panel smoke; #1 (shoulder) peaks & falls a little later
+                const tStart = (tier === 3) ? 0.06 : (tier === 2 ? 0.18 : 0.34);
+                const tPeak  = (tier === 3) ? 0.28 : (tier === 2 ? 0.42 : 0.60);
+                const tEnd   = (tier === 3) ? 0.72 : (tier === 2 ? 0.84 : 0.96);
+
+                let fairySmoke = 0;
+                if (p >= tStart && p <= tEnd) {
+                    if (p <= tPeak) {
+                        const u = (p - tStart) / Math.max(0.01, tPeak - tStart);
+                        fairySmoke = Math.sin(u * Math.PI * 0.5);
+                    } else {
+                        const u = (p - tPeak) / Math.max(0.01, tEnd - tPeak);
+                        fairySmoke = Math.pow(1.0 - u, 1.5);
+                    }
+                    // Subtle organic shimmer matching panel smoke
+                    const puffIdx = Math.floor(timeMs / cycleMs);
+                    const wisp = 0.88 + 0.12 * Math.sin(tier * 2.1 + index * 1.3 - normTime * 2.5 + puffIdx * 1.7);
+                    fairySmoke = Math.min(1.0, fairySmoke * wisp);
+                }
+                if (fairySmoke < 0.05) {
+                    return { r: 0, g: 0, b: 0, intensity: 0 };
+                }
+
+                // Inverse-calibrated for ESP32 UDP receiver (dim8_video + g*139/255 + toFairyWireColor):
+                // (187, 255, 143) -> exact hardware Pure Star White (220:223:128) -> Warm White (205, 240, 105) -> Off
+                const warmMix = 1.0 - fairySmoke;
+                const r = Math.round(187 + 18 * warmMix);
+                const g = Math.round(255 - 15 * warmMix);
+                const b = Math.round(143 - 38 * warmMix);
+                return { r, g, b, intensity: fairySmoke };
+            }
+
+            let dist2Puff1 = 99;
+            let dist2Puff2 = 99;
+            let dist2Origin1 = 99;
+            let dist2Origin2 = 99;
+            let sigma2 = 1.6;
+            let wisp = 1.0;
+
+            const isMatrix = (typeof btfMatrix16x16Active !== 'undefined' && btfMatrix16x16Active);
+            let allowSmoke = true;
+            if (isMatrix) {
+                let cell = null;
+                if (typeof btfMatrix16x16Cells !== 'undefined' && btfMatrix16x16Cells) {
+                    if (typeof currentHardwareMode !== 'undefined' && currentHardwareMode === 'full_costume') {
+                        const mIdx = (index >= 281) ? (index - 281) : (index % 256);
+                        const rRow = Math.floor(mIdx / 16.0);
+                        const rCol = (rRow % 2 === 0) ? (15 - (mIdx % 16)) : (mIdx % 16);
+                        cell = btfMatrix16x16Cells[rRow * 16 + rCol] || null;
+                    } else {
+                        const winCells = btfMatrix16x16Cells.filter(c => c.role === 'window');
+                        const glowCells = btfMatrix16x16Cells.filter(c => c.role === 'backlight');
+                        const activeCells = [...winCells, ...glowCells];
+                        cell = activeCells[index] || null;
+                    }
+                }
+                let row, col;
+                if (cell) {
+                    if (cell.role !== 'window') {
+                        // Backlit cells stay rock-steady at the dimmer baseline with zero flashing
+                        return { r: baseR, g: baseG, b: baseB, intensity: bodyDim };
+                    }
+                    row = cell.row;
+                    col = cell.col;
+                } else {
+                    const mIdx = (index >= 281) ? (index - 281) : (index % 256);
+                    row = Math.floor(mIdx / 16.0);
+                    col = (row % 2 === 0) ? (15 - (mIdx % 16)) : (mIdx % 16);
+                }
+                // Only upper head/snout/sky windowed cells (row 0..4, col 10..15) participate in smoke
+                if (row > 4 || col < 10) {
+                    return { r: baseR, g: baseG, b: baseB, intensity: bodyDim };
+                }
+                // Clean bottom-up rising smoke plume with subtle per-puff & top-edge brightness variation
+                const puffIdx = Math.floor(timeMs / cycleMs);
+                const puffDrift = (hash(puffIdx * 17 + 3) - 0.5) * 0.9;
+                const puffSpeed = 0.92 + 0.16 * hash(puffIdx * 31 + 11);
+
+                const riseT = Math.min(1.0, (p * puffSpeed) / 0.44);
+                const waveRow = 4.2 - 4.7 * riseT;
+                const bandWidth = 1.45 + 1.95 * riseT;
+                const rowDist = Math.abs(row - waveRow);
+                const rowEnv = Math.exp(-(rowDist * rowDist) / (bandWidth * bandWidth));
+
+                // Gentle horizontal sway, wide enough to keep the full plume cohesive
+                const swayCol = 12.6 + puffDrift * riseT + 0.45 * Math.sin(riseT * Math.PI + puffIdx * 1.3);
+                const colDist = Math.abs(col - swayCol);
+                const colWidth = 3.4 + 2.6 * riseT;
+                const colEnv = Math.exp(-(colDist * colDist) / (colWidth * colWidth));
+
+                // Subtle organic brightness variation, slightly stronger near the top (row 0..1)
+                const topFactor = Math.max(0, (3 - row) / 3); // 0 at bottom, 1 at row 0
+                const gentleWave = 0.5 + 0.5 * Math.sin(row * 1.4 + col * 1.1 - normTime * 2.5 + puffIdx * 1.9);
+                const cellVar = 0.86 + 0.14 * hash(row * 19 + col * 37 + puffIdx * 53);
+                const wisp = (1.0 - 0.28 * topFactor * (1.0 - gentleWave)) * cellVar;
+
+                const trailEnv = (row <= 3 && p >= 0.12 && p <= 0.88)
+                    ? Math.exp(-Math.pow((row - (2.2 - 2.2 * riseT)) / 2.2, 2)) * 0.88
+                    : 0;
+                const lifeT = Math.min(1.0, p / 0.94);
+                const fadeIn = Math.min(1.0, p / 0.06);
+                const fadeOut = (p <= 0.94) ? (1.0 - Math.pow(lifeT, 2.0)) : 0;
+                let smokeAmt = Math.min(1.0, fadeIn * fadeOut * Math.max(rowEnv, trailEnv) * colEnv * wisp * 1.35);
+                if (smokeAmt < 0.05) smokeAmt = 0;
+
+                // Cool misty-white tint as it fades to neutralize any pink/warm cast from underlying artwork
+                const coolMix = 1.0 - smokeAmt;
+                const sr = Math.round(255 - 30 * coolMix);
+                const sg = Math.round(255 - 12 * coolMix);
+                return { r: sr, g: sg, b: 255, intensity: smokeAmt };
+            } else if (typeof leds !== 'undefined' && leds[index]) {
+                const lx = leds[index].x;
+                const ly = leds[index].y;
+                const nX1 = 0.59, nY1 = 0.27;
+                const nX2 = 0.53, nY2 = 0.26;
+                dist2Origin1 = ((lx - nX1) * (lx - nX1) + (ly - nY1) * (ly - nY1)) * 900.0;
+                dist2Origin2 = ((lx - nX2) * (lx - nX2) + (ly - nY2) * (ly - nY2)) * 900.0;
+                const riseT = Math.min(1.0, p / 0.68);
+                const puffX1 = nX1 + 0.05 * riseT;
+                const puffY1 = nY1 - 0.13 * riseT;
+                const puffX2 = nX2 - 0.06 * riseT;
+                const puffY2 = nY2 - 0.12 * riseT;
+                sigma2 = 1.6 + 4.2 * riseT;
+                dist2Puff1 = ((lx - puffX1) * (lx - puffX1) + (ly - puffY1) * (ly - puffY1)) * 900.0;
+                dist2Puff2 = ((lx - puffX2) * (lx - puffX2) + (ly - puffY2) * (ly - puffY2)) * 900.0;
+                wisp = 0.85 + 0.15 * Math.sin(lx * 30.0 + ly * 25.0 - normTime * 5.0);
+            }
+
+            let smokeAmt = 0;
+            if (allowSmoke && p <= 0.94) {
+                const lifeT = p / 0.94;
+                // Stay bright white all the way up to the top, then gradually fade out
+                const fadeIn = Math.min(1.0, p / 0.08);
+                const fadeOut = 1.0 - Math.pow(lifeT, 1.85);
+                const env = fadeIn * fadeOut;
+                const d2P = Math.min(dist2Puff1, dist2Puff2);
+                const d2O = Math.min(dist2Origin1, dist2Origin2);
+                // Combine rising puff head + lingering base wisp at nostrils early in cycle
+                const puffCloud = Math.exp(-d2P / sigma2);
+                const baseCloud = Math.exp(-d2O / 1.8) * Math.max(0, 1.0 - p * 2.2);
+                smokeAmt = Math.min(1.0, env * Math.max(puffCloud, baseCloud) * wisp * 1.35);
+            }
+
+            const r = Math.min(255, Math.round(baseR * (1 - smokeAmt) + 255 * smokeAmt));
+            const g = Math.min(255, Math.round(baseG * (1 - smokeAmt) + 255 * smokeAmt));
+            const b = Math.min(255, Math.round(baseB * (1 - smokeAmt) + 255 * smokeAmt));
+            const intensity = Math.min(1.0, bodyDim + smokeAmt * (1.0 - bodyDim));
+            return { r, g, b, intensity };
         }
         case 'dim_glow': {
             return { r: baseR, g: baseG, b: baseB, intensity: 0.22 };

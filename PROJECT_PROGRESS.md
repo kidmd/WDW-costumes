@@ -93,6 +93,12 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### November 17, 2026 - Elliott's Nostril Smoke (`dragon_smoke`) & 16×16 Sky-Windowed Preset
+- **Simulator Effect (`simulator/app.js`):** Added `dragon_smoke` ("🐉💨 Elliott Nostril Smoke") to `EFFECT_CATALOG` and `evalNewCatalogEffect(...)`. Dims Elliott's body lights to ~26% while pulsing a subtle warm nostril ember at the snout (`row 3.2, col 14.3` on 16×16 matrix; `(0.58, 0.27)` in 2D space) and billowing rising, expanding, fading misty-white smoke puffs upward and outward into the upper-right sky and fairy strand.
+- **Firmware & Header Generator (`simulator.py`, `src/main.cpp`, `arduino/MSEP_Costume/MSEP_Costume.ino`):** Registered `COSTUME_PATTERN_DRAGON_SMOKE` (`effId = 37`) in `simulator.py`, implemented fixed-point `effId == 37` rendering (including 562-LED fairy strand drift) in both `src/main.cpp` and `arduino/MSEP_Costume/MSEP_Costume.ino`, and updated `effId` range checks (`20..37`).
+- **New Preset (`presets/pete_s_dragon_nostril_smoke_16x16.json`):** Created a non-destructive variant of `pete_s_dragon_chris_large_81led_2026-11-11_14-17.json` adding 6 extra `Windowed` sky cells (`(0,12)`, `(0,14)`, `(0,15)`, `(1,14)`, `(1,15)`, `(2,15)`) with `{r:0, g:0, b:0}` baseline color so they remain dark during normal/Photo Mode and diffuse rising smoke via the `0.4 mm` clear backing layer when `dragon_smoke` is active.
+- **Verification:** Verified `node --check simulator/app.js`, `python -m py_compile simulator.py`, and PlatformIO `pio run -e esp32dev`.
+
 ### November 16, 2026 - Fairy Strand Color Calibration (`TypicalLEDStrip` R/G Swap Compensation & Hardware-Matched Palette)
 - **Root Cause:** FastLED's `.setCorrection(TypicalLEDStrip)` (`255, 176, 240`) was applied *before* the `GRB -> RGB` channel swap on the bare RGB fairy seed bulbs (`leds[256..280]` and `leds[537..561]`). Because `leds[f].g` drives Fairy Red (`176/255` = 69%) while `leds[f].r` drives Fairy Green (`255/255` = 100%), Title Drum Gold `CRGB(255, 180, 0)` physically output `Red=176, Green=180, Blue=0` — more Green than Red, appearing lime/yellowish-green.
 - **Interactive Hardware Calibration (`scripts/fairy_color_calibrator.py`):**

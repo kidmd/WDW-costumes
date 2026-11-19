@@ -1254,7 +1254,7 @@ inline void renderFlagSparklerFairyStrand(int startIdx, uint8_t strandId, uint32
 }
 
 bool renderCatalogEffect20to32(uint8_t effId, uint16_t bpm, uint32_t now, uint32_t originMs, int8_t dir) {
-    if (effId < 20 || effId > 36) return false;
+    if (effId < 20 || effId > 37) return false;
 
     uint32_t elapsed = now - originMs;
     uint32_t beatMs = 60000 / max((uint16_t)20, bpm);
@@ -1459,6 +1459,78 @@ bool renderCatalogEffect20to32(uint8_t effId, uint16_t bpm, uint32_t now, uint32
                 c.b = qadd8(c.b, sheen);
             }
             leds[i] = c;
+        } else if (effId == 37) { // dragon_smoke (Elliott's Nostril Smoke: dim body + bright wide white plumes to top row)
+            uint8_t physIdx = isCurrentFloatMatrix16x16() ? getMatrixPhysicalIndex(i) : (uint8_t)i;
+            uint8_t row = physIdx / 16;
+            uint8_t col = (row % 2 == 0) ? (15 - (physIdx % 16)) : (physIdx % 16);
+            uint32_t cycleMs = max((uint32_t)1800, beatMs * 4);
+            uint16_t p1000 = (uint16_t)(((elapsed % cycleMs) * 1000UL) / cycleMs);
+
+            bool isWindowed = true;
+            if (isCurrentFloatMatrix16x16()) {
+                uint8_t winCount = 51;
+#if !(defined(FLEET_BUILD) && FLEET_BUILD) && defined(MATRIX_WINDOW_LED_COUNT)
+                winCount = MATRIX_WINDOW_LED_COUNT;
+#elif defined(HAS_FLEET_MATRIX_CONFIG) && HAS_FLEET_MATRIX_CONFIG
+                uint8_t fIdxW = (myFloatNumber >= 1 && myFloatNumber <= 7) ? (myFloatNumber - 1) : 0;
+                winCount = pgm_read_byte(&FLOAT_MATRIX_WINDOW_COUNT[fIdxW]);
+#endif
+                isWindowed = (i < winCount);
+            }
+
+            if (isWindowed && row <= 4 && col >= 10) {
+                uint8_t smokeAmt = 0;
+                if (p1000 <= 940) {
+                    uint32_t puffIdx = elapsed / cycleMs;
+                    uint8_t puffHash = (uint8_t)((puffIdx * 73UL + 19UL) & 0xFF);
+                    uint8_t speedScale = (uint8_t)(235 + (puffHash & 0x27)); // ~0.92..1.07x
+                    uint16_t rise1000 = (uint16_t)min((uint32_t)1000, (uint32_t)((((uint32_t)p1000 * speedScale) >> 8) * 1000UL / 440));
+
+                    int16_t waveR10 = 42 - (int16_t)((47L * rise1000) / 1000);
+                    int16_t r10 = (int16_t)row * 10;
+                    int16_t dr = (r10 >= waveR10) ? (r10 - waveR10) : (waveR10 - r10);
+                    int32_t band10 = 15 + (int32_t)rise1000 * 19 / 1000;
+                    int32_t dr2 = (int32_t)dr * dr;
+                    int32_t band2 = band10 * band10 * 2;
+                    uint8_t rowEnv = (dr2 < band2)
+                        ? (uint8_t)max((int32_t)0, (int32_t)(255 - (dr2 * 255L) / band2))
+                        : 0;
+
+                    // Gentle horizontal sway, wide enough to keep the full plume cohesive
+                    int16_t swayC10 = 126 + (((int16_t)(puffHash & 0x0F) - 8) * (int16_t)rise1000) / 1000
+                        + ((int16_t)sin8((uint8_t)(rise1000 / 8 + puffIdx * 37)) - 128) / 28;
+                    int16_t dc = (int16_t)col * 10 - swayC10;
+                    int32_t colBand = 34 + (int32_t)rise1000 * 26 / 1000;
+                    int32_t dc2 = (int32_t)dc * dc;
+                    int32_t colBand2 = colBand * colBand * 2;
+                    uint8_t colEnv = (dc2 < colBand2)
+                        ? (uint8_t)max((int32_t)0, (int32_t)(255 - (dc2 * 255L) / colBand2))
+                        : 0;
+
+                    // Subtle variation, slightly stronger near the top (row 0..1)
+                    uint8_t topFactor = (row <= 3) ? (uint8_t)(((3 - row) * 255) / 3) : 0;
+                    uint8_t gentleWave = sin8((uint8_t)(row * 36 + col * 28 - (elapsed / 45) + puffIdx * 49));
+                    uint8_t cellVar = (uint8_t)(218 + (((row * 19 + col * 37 + puffIdx * 53) * 109) & 0x24));
+                    uint8_t topDim = scale8(topFactor, (uint8_t)(255 - gentleWave)) * 28 / 100;
+                    uint8_t wisp = scale8((uint8_t)(255 - topDim), cellVar);
+
+                    uint16_t life1000 = (uint16_t)(((uint32_t)p1000 * 1000UL) / 940);
+                    uint8_t fadeIn = (p1000 < 60) ? (uint8_t)((p1000 * 255UL) / 60) : 255;
+                    uint8_t lifeSq = (uint8_t)((uint32_t)life1000 * life1000 / 3921);
+                    uint8_t fadeOut = (uint8_t)(255 - lifeSq);
+                    uint8_t env = scale8(scale8(fadeIn, fadeOut), scale8(rowEnv, colEnv));
+                    smokeAmt = qadd8(scale8(env, wisp), scale8(env, wisp) / 3);
+                    if (smokeAmt < 12) smokeAmt = 0;
+                }
+                uint8_t coolMix = (uint8_t)(255 - smokeAmt);
+                CRGB s = CRGB((uint8_t)(255 - scale8(coolMix, 30)), (uint8_t)(255 - scale8(coolMix, 12)), 255);
+                s.nscale8_video(smokeAmt);
+                leds[i] = s;
+            } else {
+                CRGB c = baseColor;
+                c.nscale8_video(120); // ~47% dimmed dragon body so green/magenta silhouette stays clear
+                leds[i] = c;
+            }
         }
     }
 #if defined(COSTUME_FULL_562_MODE) && COSTUME_FULL_562_MODE
@@ -1496,13 +1568,62 @@ bool renderCatalogEffect20to32(uint8_t effId, uint16_t bpm, uint32_t now, uint32
     } else if (effId == 36 && NUM_LEDS >= 562) {
         renderFlagSparklerFairyStrand(256, 1, elapsed, bpm);
         renderFlagSparklerFairyStrand(537, 2, elapsed, bpm);
+    } else if (effId == 37 && NUM_LEDS >= 562) {
+        uint32_t cycleMs = max((uint32_t)1800, beatMs * 4);
+        uint16_t p1000 = (uint16_t)(((elapsed % cycleMs) * 1000UL) / cycleMs);
+        for (int offset = 0; offset < 25; offset++) {
+            uint8_t step1 = pgm_read_byte(&FAIRY_STRAND1_SPATIAL_STEP[offset]);
+            uint8_t step2 = pgm_read_byte(&FAIRY_STRAND2_SPATIAL_STEP[offset]);
+            uint8_t steps[2] = { step1, step2 };
+            int indices[2] = { 256 + offset, 537 + offset };
+            for (int s = 0; s < 2; s++) {
+                uint8_t st = steps[s];
+                CRGB fc = getFloatPaletteColor(myFloatNumber, (uint8_t)(offset % 4));
+                fc.nscale8_video(64); // ~25% dimmed lower fairy baseline during smoke
+                uint8_t tier = 0;
+                if (s == 0) {
+                    if (st == 10 || st == 15) tier = 3;
+                    else if (st == 11 || st == 14) tier = 2;
+                    else if (st == 12 || st == 13) tier = 1;
+                } else {
+                    if (st == 9 || st == 14) tier = 3;
+                    else if (st == 10 || st == 13) tier = 2;
+                    else if (st == 11 || st == 12) tier = 1;
+                }
+
+                if (tier > 0) {
+                    uint16_t tStart = (tier == 3) ? 60 : ((tier == 2) ? 180 : 340);
+                    uint16_t tPeak  = (tier == 3) ? 280 : ((tier == 2) ? 420 : 600);
+                    uint16_t tEnd   = (tier == 3) ? 720 : ((tier == 2) ? 840 : 960);
+                    uint8_t fSmoke = 0;
+                    if (p1000 >= tStart && p1000 <= tEnd) {
+                        if (p1000 <= tPeak) {
+                            uint16_t u = (uint16_t)(((uint32_t)(p1000 - tStart) * 128UL) / max((uint16_t)1, (uint16_t)(tPeak - tStart)));
+                            fSmoke = sin8((uint8_t)u);
+                        } else {
+                            uint16_t u = (uint16_t)(((uint32_t)(tEnd - p1000) * 255UL) / max((uint16_t)1, (uint16_t)(tEnd - tPeak)));
+                            fSmoke = scale8((uint8_t)u, (uint8_t)u);
+                        }
+                        if (fSmoke < 12) fSmoke = 0;
+                    }
+                    if (fSmoke > 0) {
+                        uint8_t warmMix = (uint8_t)(255 - fSmoke);
+                        fc = CRGB((uint8_t)(220 + scale8(warmMix, 25)), (uint8_t)(223 - scale8(warmMix, 23)), (uint8_t)(128 - scale8(warmMix, 53)));
+                        fc.nscale8_video(fSmoke);
+                    } else {
+                        fc = CRGB::Black;
+                    }
+                }
+                leds[indices[s]] = fc;
+            }
+        }
     }
 #endif
     return true;
 }
 
 void renderAmbientFallback(uint32_t now) {
-#if defined(AMBIENT_FALLBACK_PATTERN) && (AMBIENT_FALLBACK_PATTERN >= 20) && (AMBIENT_FALLBACK_PATTERN <= 36)
+#if defined(AMBIENT_FALLBACK_PATTERN) && (AMBIENT_FALLBACK_PATTERN >= 20) && (AMBIENT_FALLBACK_PATTERN <= 37)
     if (renderCatalogEffect20to32(AMBIENT_FALLBACK_PATTERN, COSTUME_SPEED_BPM, now, 0, COSTUME_AMBIENT_DIRECTION)) return;
 #endif
     uint32_t beatMs = 60000 / max((uint16_t)20, (uint16_t)COSTUME_SPEED_BPM);
@@ -2275,7 +2396,7 @@ void runAutonomousShowSequence(uint32_t now) {
                     }
 #endif
                 }
-            } else if (eff >= 20 && eff <= 36) {
+            } else if (eff >= 20 && eff <= 37) {
                 renderCatalogEffect20to32(eff, bpm, now, autonomousShowStartTime, 1);
             } else { // 0: steady_sparkle / default
                 for (int i = 0; i < FRONT_LEDS && i < MAX_LEDS_CAPACITY; i++) {
