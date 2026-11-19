@@ -93,6 +93,14 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### November 18, 2026 - Zero-Solder ESP32 + 38-Pin Screw Terminal + WAGO Controller Box (STL & 3MF)
+- **Parametric 3D CAD Generator (`scripts/build_controller_box_wago.py`):** Built an ultra-compact (`77.0 × 107.0 × 33.0 mm`, `R = 4.0 mm` FlipBelt-friendly) zero-solder controller enclosure using `manifold3d` and `trimesh`.
+- **Hardware Architecture:**
+  - **Main Bay (`-Y`):** Houses the 38-pin ESP32-WROOM-32D plugged into the `63 × 78 mm` Screw Terminal Breakout Board (`B0DYD168RC`) on `2.5 mm` floor standoffs with dual `4.5 mm` side wire channels (`±X`) for kink-free 22 AWG routing into outward-facing screw terminals (`5V`, `GND`, `GPIO 16`, `GPIO 4`, `GPIO 33`), plus an onboard `"ESP"` USB-C reflash cutout on the `-Y` wall.
+  - **Wiring & WAGO Bay (`+Y`):** Dedicated `72.6 × 23.0 mm` bay holding 2× **WAGO 221-415** (5-port) lever-nut power/ground buses flat on the floor + inline `220 Ω–470 Ω` data resistor, with a centered **Ø 12.3 mm** `"PWR"` mounting hole for the M12 threaded panel-mount USB-C pigtail (`B0CXLZBD2V`) and an offset `"LED"` cable U-notch with internal strain-relief bollards.
+  - **Tool-Free Snap-Fit Lid:** Prints upside-down flat on the build plate (`Z_min = 0.0000`) with zero supports, 4 compliant snap-hook latches, and two **Ø 12.3 mm** panel-mount button holes sized specifically for **APIELE PBS-33B** waterproof pre-wired momentary buttons (`B09V2KZZ8W`, `17.5 mm` bezel, `~18.5 mm` depth clearing the WAGOs underneath) with tactile engraved `"1 SHOW"` and `"2 PHOTO"` labels.
+- **Deliverables & Verification (`3d_panels/controller_box_wago/`):** Exported `wago_controller_box_base.stl`, `wago_controller_box_lid.stl`, single-plate `wago_controller_box_plate.3mf`, and interactive Three.js viewer `wago_controller_box_preview.html`. Verified both base and lid meshes are strictly watertight (`is_watertight == True`) with `Z_min == 0.0000`.
+
 ### November 17, 2026 - Elliott's Nostril Smoke (`dragon_smoke`) & 16×16 Sky-Windowed Preset
 - **Simulator Effect (`simulator/app.js`):** Added `dragon_smoke` ("🐉💨 Elliott Nostril Smoke") to `EFFECT_CATALOG` and `evalNewCatalogEffect(...)`. Dims Elliott's body lights to ~26% while pulsing a subtle warm nostril ember at the snout (`row 3.2, col 14.3` on 16×16 matrix; `(0.58, 0.27)` in 2D space) and billowing rising, expanding, fading misty-white smoke puffs upward and outward into the upper-right sky and fairy strand.
 - **Firmware & Header Generator (`simulator.py`, `src/main.cpp`, `arduino/MSEP_Costume/MSEP_Costume.ino`):** Registered `COSTUME_PATTERN_DRAGON_SMOKE` (`effId = 37`) in `simulator.py`, implemented fixed-point `effId == 37` rendering (including 562-LED fairy strand drift) in both `src/main.cpp` and `arduino/MSEP_Costume/MSEP_Costume.ino`, and updated `effId` range checks (`20..37`).

@@ -298,8 +298,19 @@ For single-piece chest and back displays that eliminate all internal jumper cabl
   - `IN_PADS` at $(30.0, 194.0)$ and `OUT_PADS` at $(170.0, 194.0)$ with dual strain-relief anchor holes.
 
 ### 3. Mounting & Attachment:
-- 4 Corner M3 Screw Holes (`H1`–`H4`) at $(6.0, 6.0)$, $(194.0, 6.0)$, $(6.0, 194.0)$, and $(194.0, 194.0)$.
+- **4 Corner M3 Screw Holes (`H1`–`H4`) at $(6.0, 6.0)$, $(194.0, 6.0)$, $(6.0, 194.0)$, and $(194.0, 194.0)$.
 - 12 Perimeter Sewing Eyelets (`S1`–`S12`): $\varnothing 2.0\text{ mm}$ plated through-holes spaced evenly along all four edges for stitching into shirt pockets.
+
+---
+
+## 9. Zero-Solder Controller Box Architecture (38-Pin Screw Terminal + WAGO 221)
+
+For builders assembling costumes without a soldering iron, a dedicated ultra-compact (`77.0 × 107.0 × 33.0 mm`) 3D-printable enclosure is provided in `3d_panels/controller_box_wago/` (generated via `scripts/build_controller_box_wago.py`):
+
+* **Breakout Board:** 38-pin ESP32-WROOM-32D plugged into a `63 × 78 mm` Screw Terminal Expansion Board (`B0DYD168RC`), flanked by `4.5 mm` side wire channels (`±X`).
+* **Power Distribution:** External 5V USB power enters through an M12 (`Ø 12.3 mm`) panel-mount USB-C 2-pin pigtail (`B0CXLZBD2V`) directly into **2× WAGO 221-415** (5-port) lever-nut blocks (`+5V` and `GND`), splitting high-current LED power *before* the ESP32 so LED current never passes through the ESP32's onboard USB Schottky diode.
+* **Buttons & Data Resistor:** Two pre-wired **APIELE PBS-33B** 12 mm waterproof momentary buttons (`B09V2KZZ8W`, `1 SHOW` → `GPIO 4` + `GND`, `2 PHOTO` → `GPIO 33` + `GND`) mount in the tool-free snap-fit lid (`Ø 12.3 mm`, clearing both the `17.5 mm` bezel and `~18.5 mm` under-panel depth above the WAGOs), and the inline `220 Ω–470 Ω` resistor connects directly from the `GPIO 16` screw terminal to the LED Data-In wire.
+* **Print Files:** `wago_controller_box_base.stl`, `wago_controller_box_lid.stl`, single-plate `wago_controller_box_plate.3mf` (zero supports), and interactive 3D viewer `wago_controller_box_preview.html`.
 
 
 
