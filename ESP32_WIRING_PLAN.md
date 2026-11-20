@@ -313,6 +313,7 @@ For builders assembling costumes without a soldering iron, a dedicated ultra-com
 * **Print Files (Standard 5-Port WAGO `33.0 mm`):** `3d_panels/controller_box_wago/` (`wago_controller_box_plate.3mf`, `wago_controller_box_base.stl`, `wago_controller_box_lid.stl`, `wago_controller_box_preview.html`).
 * **Print Files (Slim 3-Port WAGO `26.5 mm`):** `3d_panels/controller_box_wago_slim/` (`wago_slim_box_plate.3mf`, `wago_slim_box_base.stl`, `wago_slim_box_lid.stl`, `wago_slim_box_preview.html`) — centers 2× WAGO 221-413 (3-port) between centering ribs so the PBS-33B buttons drop beside them at `X = ±27.5 mm`, shaving 6.5 mm off total height.
 * **Print Files (Ultra-Mini No-WAGO `72 × 98.5 × 23.5 mm`):** `3d_panels/controller_box_mini/` (`mini_controller_box_plate.3mf`, `mini_controller_box_base.stl`, `mini_controller_box_lid.stl`, `mini_controller_box_preview.html`) — smallest zero-solder enclosure (~43.6 g PETG), eliminating WAGOs by twisting USB-C + LED power leads directly into the breakout's `5V` and `GND` screw terminals.
+* **Print Files (Caliper-Tuned Narrow Breakout No-WAGO `77 × 101.5 × 26.5 mm`):** `3d_panels/controller_box_narrow/` (`narrow_box_plate.3mf`, `narrow_box_base.stl`, `narrow_box_lid.stl`, `narrow_box_preview.html`) — tuned to the exact `77.5 × 63.25 mm` narrow 38-pin adapter (`B0GX93HZZZ`) with both 12 mm PBS-33B buttons grouped closely together (`20 mm` pitch) on the left side of the `+Y` lid and M12 USB-C + LED exit on the right side.
 
 
 

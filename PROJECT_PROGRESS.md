@@ -93,6 +93,14 @@ This project coordinates synchronized, addressable LED lighting across **7 runne
 
 ## Progress Log
 
+### November 20, 2026 - Caliper-Tuned Narrow Breakout No-WAGO Box (Side-by-Side Left Buttons)
+- **Real-World Test Fit Calibration (`scripts/build_controller_box_narrow.py`, `3d_panels/controller_box_narrow/`):** Built a custom `77.0 × 101.5 × 26.5 mm` enclosure calibrated directly to the physical `0.9"` narrow 38-pin terminal adapter (`B0GX93HZZZ`, measured `77.5 × 63.25 mm`).
+- **Key Changes:**
+  - Kept the proven `63.6 mm` width, 4 side locating tabs, `2.2 mm` underside solder-pin rails, and `26.5 mm` snap-fit height verified on the test print.
+  - Tightened the board cradle length to `78.0 mm` (moving the end backstop snugly against the `77.5 mm` board) and removed all WAGO bay dividers/rails.
+  - Grouped both **12 mm PBS-33B** waterproof buttons closely together (`20.0 mm` center-to-center, `2.5 mm` gap between `17.5 mm` bezels) on the **left (`-X`) side** of the `+Y` lid (`X = -25.0 mm` & `-5.0 mm`), while grouping the **M12 USB-C (`PWR`)** and **`LED`** U-notch cleanly on the **right (`+X`) side** of the `+Y` wall (`X = +16.5 mm` & `+30.0 mm`).
+- **Deliverables:** `narrow_box_base.stl`, `narrow_box_lid.stl`, `narrow_box_plate.3mf`, and `narrow_box_preview.html`.
+
 ### November 18, 2026 - Zero-Solder ESP32 + 38-Pin Screw Terminal + WAGO Controller Box (STL & 3MF)
 - **Parametric 3D CAD Generator (`scripts/build_controller_box_wago.py`):** Built an ultra-compact (`77.0 × 107.0 × 33.0 mm`, `R = 4.0 mm` FlipBelt-friendly) zero-solder controller enclosure using `manifold3d` and `trimesh`.
 - **Hardware Architecture:**
